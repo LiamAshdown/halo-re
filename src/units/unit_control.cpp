@@ -271,7 +271,7 @@ void UnitView::get_look_origin_and_direction(uint32_t *out_autoaim_width, real_v
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    real_matrix4x3 *nodes = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset);
+    real_matrix4x3 *nodes = halo::objects::object_block<real_matrix4x3>(*obj, obj->nodes);
 
     if (tag->pelvis_model_node_index != halo::k_word_none && tag->head_model_node_index != halo::k_word_none) {
         real_matrix4x3 *pelvis = &nodes[tag->pelvis_model_node_index];

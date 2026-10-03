@@ -436,7 +436,7 @@ uint32_t BipedView::ground_adjust_step()
     biped_data *biped = halo::units::biped_data_of(obj);
     Object *object_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     ModelAnimations *graph = (ModelAnimations *)halo::cache::globals().tag_instances[object_tag->animation_graph.tag_id.index].data;
-    real_matrix4x3 *nodes = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset);
+    real_matrix4x3 *nodes = halo::objects::object_block<real_matrix4x3>(*obj, obj->nodes);
     uint32_t already_capped = biped->ground_adjust_iteration_limit <= biped->ground_adjust_iteration;
 
     if (!already_capped) {

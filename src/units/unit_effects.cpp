@@ -224,7 +224,7 @@ void UnitView::get_forward_vector_or_marker_normal(real_vector3d *out)
 
     object *parent = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_obj->parent_object)].data;
     if (out != (real_vector3d *)0) {
-        real_matrix4x3 *node = (real_matrix4x3 *)((uint8_t *)parent + parent->nodes.offset) + unit_obj->parent_marker_index;
+        real_matrix4x3 *node = halo::objects::object_block<real_matrix4x3>(*parent, parent->nodes) + unit_obj->parent_marker_index;
         halo::math::matrix4x3_transform_normal(*out, unit_obj->forward, *node);
     }
     return;

@@ -510,7 +510,7 @@ real_matrix4x3 * halo::objects::ObjectRef::get_node_marker_address(int16_t node_
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    return (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset + node_index * 0x34);
+    return (halo::objects::object_block<real_matrix4x3>(*obj, obj->nodes) + (node_index));
 }
 
 /**
@@ -565,7 +565,7 @@ int32_t halo::objects::ObjectRef::get_node_local_transform(char *marker_name, ob
         marker->transform.position.z = 0.0f;
 
         obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-        marker->node_transform = *(real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset);
+        marker->node_transform = *halo::objects::object_block<real_matrix4x3>(*obj, obj->nodes);
 
         if ((obj->flags & _object_mirrored_geometry_bit) != 0) {
             marker->node_transform.left.i = -marker->node_transform.left.i;
@@ -700,8 +700,7 @@ void halo::objects::ObjectRef::attach_to_object(uint32_t child_index, int16_t ma
         }
 
         parent = ((object_header *)object_data->data)[halo::datum_slot(parent_index)].data;
-        parent_node = (real_matrix4x3 *)((uint8_t *)parent + parent->nodes.offset +
-                                         marker_index * 0x34);
+        parent_node = (halo::objects::object_block<real_matrix4x3>(*parent, parent->nodes) + (marker_index));
 
         halo::math::matrix4x3_inverse(&inverse, *parent_node);
         halo::math::matrix4x3_transform_point(child->position, child->position, inverse);
@@ -753,8 +752,7 @@ void halo::objects::ObjectRef::snap_to_parent_marker_and_detach()
 
     {
         object *parent_node_owner = ((object_header *)object_data->data)[halo::datum_slot(child->parent_object)].data;
-        real_matrix4x3 *parent_node = (real_matrix4x3 *)((uint8_t *)parent_node_owner +
-            parent_node_owner->nodes.offset + (int8_t)child->parent_marker_index * 0x34);
+        real_matrix4x3 *parent_node = (halo::objects::object_block<real_matrix4x3>(*parent_node_owner, parent_node_owner->nodes) + ((int8_t)child->parent_marker_index));
 
         real_matrix4x3 own_rotation;
         real_matrix4x3 local_transform;
@@ -880,8 +878,7 @@ void halo::objects::ObjectRef::get_position(real_point3d *out)
 
     {
         object *parent = ((object_header *)object_data->data)[halo::datum_slot(obj->parent_object)].data;
-        real_matrix4x3 *parent_node = (real_matrix4x3 *)((uint8_t *)parent + parent->nodes.offset +
-            (int8_t)obj->parent_marker_index * 0x34);
+        real_matrix4x3 *parent_node = (halo::objects::object_block<real_matrix4x3>(*parent, parent->nodes) + ((int8_t)obj->parent_marker_index));
         halo::math::matrix4x3_transform_point(*out, obj->position, *parent_node);
     }
 }
@@ -908,8 +905,7 @@ void halo::objects::ObjectRef::get_orientation(real_vector3d *out_forward, real_
 
     {
         object *parent = ((object_header *)object_data->data)[halo::datum_slot(obj->parent_object)].data;
-        real_matrix4x3 *parent_node = (real_matrix4x3 *)((uint8_t *)parent + parent->nodes.offset +
-            (int8_t)obj->parent_marker_index * 0x34);
+        real_matrix4x3 *parent_node = (halo::objects::object_block<real_matrix4x3>(*parent, parent->nodes) + ((int8_t)obj->parent_marker_index));
 
         if (out_forward != (real_vector3d *)0) {
             halo::math::matrix4x3_transform_normal(*out_forward, obj->forward, *parent_node);
@@ -935,8 +931,7 @@ real_matrix4x3 * halo::objects::ObjectRef::get_world_matrix(real_matrix4x3 *out)
 
     if (obj->parent_object != k_datum_index_none) {
         object *parent = ((object_header *)object_data->data)[halo::datum_slot(obj->parent_object)].data;
-        real_matrix4x3 *parent_node = (real_matrix4x3 *)((uint8_t *)parent + parent->nodes.offset +
-            (int8_t)obj->parent_marker_index * 0x34);
+        real_matrix4x3 *parent_node = (halo::objects::object_block<real_matrix4x3>(*parent, parent->nodes) + ((int8_t)obj->parent_marker_index));
         halo::math::globals().matrix4x3_multiply_procedure(parent_node, out, out);
     }
 
@@ -1051,7 +1046,7 @@ void halo::objects::ObjectRef::solve_two_bone_ik_to_marker(char *marker_a_name, 
     Object *definition = (Object *)halo::cache::globals().tag_instances[
         ((object_header *)object_data->data)[halo::datum_slot(object_index)].data->definition_tag & 0xffff].data;
     GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[halo::datum_slot(definition->model.tag_id.index)].data;
-    uint8_t *nodes = (uint8_t *)model->nodes.pointer;
+    ModelNode *nodes = halo::objects::block_elements<ModelNode>(model->nodes);
 
     object_marker marker_a;
     object_marker marker_b;
@@ -1065,9 +1060,9 @@ void halo::objects::ObjectRef::solve_two_bone_ik_to_marker(char *marker_a_name, 
     }
 
     {
-        int16_t node_b = *(int16_t *)(nodes + marker_a.node_index * 0x9c + 0x24);
+        int16_t node_b = nodes[marker_a.node_index].parent_node_index;
         if (node_b != -1) {
-            int16_t node_c = *(int16_t *)(nodes + node_b * 0x9c + 0x24);
+            int16_t node_c = nodes[node_b].parent_node_index;
             if (node_c != -1) {
                 real_matrix4x3 inverse;
 
