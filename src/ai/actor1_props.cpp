@@ -1028,28 +1028,28 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
     p->last_engaged_time = -1;
 
     if (object_index != (datum_index)halo::k_dword_none) {
-        uint8_t *object = reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
-        uint8_t *object_type = (uint8_t *)halo::cache::globals().tag_instances[*(uint16_t *)object & halo::k_slot_mask].data;
+        unit_object *object = (unit_object *)halo::ai::object_at(object_index);
+        Unit *object_type = halo::ai::tag_data<Unit>(object->base.definition_tag);
         uint8_t is_vault;
 
-        p->team = ((struct object *)object)->owner_team;
+        p->team = object->base.owner_team;
 
         p->enemy = halo::game::teams_are_enemies(p->team, self->team);
         p->allegiance = halo::game::team_pair_flag_test(self->team, p->team);
         p->team_pair_status = halo::game::team_pair_override_get_flag(self->team, p->team);
 
-        is_vault = (*(uint8_t *)&((struct object *)object)->vitality_flags >> 2) & 1;
+        is_vault = (object->base.vitality_flags >> 2) & 1;
         p->dead = is_vault;
-        p->danger_radius = *(float *)(object_type + 0x284);
-        p->dead_not_feigning = (is_vault != 0) && (halo::units::unit_data_of(object)->feign_death_ticks == 0);
+        p->danger_radius = object_type->ai_danger_radius;
+        p->dead_not_feigning = (is_vault != 0) && (object->unit.feign_death_ticks == 0);
         p->dead_ticks = (is_vault != 0) ? 1000 : 0;
-        p->is_parented = static_cast<int32_t>(((struct object *)object)->owner_linkage) != -1;
+        p->is_parented = static_cast<int32_t>(object->base.owner_linkage) != -1;
 
-        if (*(int32_t *)(object + 0x1f8) == -1) {
-            p->owner_actor_index = halo::units::unit_data_of(object)->actor_index;
+        if ((int32_t)object->unit.swarm_actor_index == -1) {
+            p->owner_actor_index = object->unit.actor_index;
         } else {
             p->swarm_owned = 1;
-            p->owner_actor_index = *(datum_index *)(object + 0x1f8);
+            p->owner_actor_index = object->unit.swarm_actor_index;
             p->swarm_reassign_time = halo::game::globals().game_time->game_time;
         }
 
