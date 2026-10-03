@@ -15,12 +15,12 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/networking/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
 extern "C" {
 extern ai_update_stagger_state *ai_update_stagger;
-extern int16_t network_game_mode;
 extern int32_t network_scenario_round_counter_a;
 extern int32_t network_scenario_round_counter_b;
 extern void game_engine_flag_local_player_units(void);
@@ -34,8 +34,6 @@ extern void players_server_catchup_on_client_updates(void);
 extern void players_client_catchup_on_server_updates(void);
 extern void first_person_weapon_interface_tick(void);
 extern void hud_update_dispatch(void);
-extern void network_client_send_local_player_updates(void);
-extern void network_event_feed_flush(void *queue);
 extern void network_server_broadcast_object_type_changes(void);
 extern game_engine_definition *current_game_engine;
 extern uint8_t player_profile_cache_initialized;
@@ -108,12 +106,12 @@ void GameLifecycle::simulate_tick(uint32_t predict_pass)
 
     halo::ai::ai_tick_dispatcher();
 
-    if (network_game_mode != 0) {
-        if (network_game_mode == 1) {
+    if (halo::networking::globals().game_mode != 0) {
+        if (halo::networking::globals().game_mode == 1) {
             game_engine_players_update_client();
             goto after_role_update;
         }
-        if (network_game_mode != 2) {
+        if (halo::networking::globals().game_mode != 2) {
             goto after_role_update;
         }
     }
@@ -137,21 +135,21 @@ after_role_update:
     hud_update_dispatch();
     halo::effects::player_effect_clear_dead_players();
 
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         if (predict_pass == 0) {
             players_server_catchup_on_client_updates();
         }
         game_engine_server_update_player_positions();
-        network_client_send_local_player_updates();
+        halo::networking::network_client_send_local_player_updates();
         network_server_broadcast_object_type_changes();
         if (0 < network_scenario_round_counter_a) {
-            network_event_feed_flush(fields::network_event_feed_a);
+            halo::networking::network_event_feed_flush((int32_t *)(fields::network_event_feed_a));
         }
         if (0 < network_scenario_round_counter_b) {
-            network_event_feed_flush(fields::network_event_feed_b);
+            halo::networking::network_event_feed_flush((int32_t *)(fields::network_event_feed_b));
         }
     }
-    if (network_game_mode == 1) {
+    if (halo::networking::globals().game_mode == 1) {
         players_client_catchup_on_server_updates();
     }
 

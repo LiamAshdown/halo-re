@@ -28,6 +28,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t playlist_profiles_need_defaults;
@@ -63,18 +64,13 @@ extern int32_t server_browser_total_players;
 extern heap * widget_memory_pool;
 extern char k_empty_string[];
 extern wchar_t empty_string[];
-extern int32_t network_join_request_resolve_host(void);
 extern void widget_close_all(void);
 extern uint8_t input_get_key_state(int16_t key_index);
 extern void widget_play_sound_effect(int16_t effect_id);
-extern void master_server_process_pending_requests(void);
 extern int32_t SBServerHasFullKeys(void *entry);
 extern int32_t ServerBrowserState(void *engine);
-extern void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self);
 extern ticker_text_buffer server_browser_player_ticker;
 extern ticker_text_buffer server_browser_variant_ticker;
-extern void master_server_list_refresh_request(void);
-extern uint8_t autopatch_download_get_result(void **out_data, int32_t *out_size, int32_t slot_index);
 extern wchar_t string_widen_scratch[0x400];
 extern int32_t map_list_count;
 extern map_list_entry * map_list;
@@ -107,17 +103,10 @@ extern uint8_t server_browser_initialized;
 extern uint8_t network_session_start_host_name[];
 extern uint8_t network_session_start_map_name[];
 extern uint8_t profile_globals_block[];
-extern void network_channels_open(void);
-extern int32_t master_server_connection_start(void);
 extern void * ServerBrowserNew(void *a, void *b, void *c, int32_t d, int32_t e, int32_t f,
                            void *callback, int32_t h);
-extern void network_channel_gap_4ba660(void);
-extern void autopatch_download_pool_initialize(void);
-extern int32_t autopatch_download_start(const char *source);
 extern wchar_t hud_text_unbound[];
 extern char * SBServerGetPlayerStringValue(void *entry, int32_t index, const char *key, const char *default_value);
-extern void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_buffer *self);
-extern int32_t dynamic_pointer_array_add_unique(void *value, server_list_globals *array);
 extern int32_t ServerBrowserGetServer(void *query_engine, int32_t index);
 extern int32_t ServerBrowserCount(void *engine);
 extern int32_t SBServerHasBasicKeys(int32_t record);
@@ -125,57 +114,8 @@ extern uint8_t server_browser_skip_reselect;
 extern void multiplayer_game_variant_description_generate(char *variant_name, ticker_text_buffer *ticker,
     int32_t fraglimit, wchar_t *game_flags_wide, wchar_t *player_flags_wide);
 extern int32_t server_browser_ping_limits[];
-extern uint32_t gamespy_array_length(int32_t object);
-extern uint8_t autopatch_version_string_is_outdated(const char *gamever);
 extern int32_t map_list_find_known_map_index(const char *mapname);
 
-void game_variant_list_matching_substring(uint32_t argument_count, char **arguments);
-int32_t join_game_server_browser_tick(network_ui_widget *browser_widget);
-void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index);
-void map_list_matching_substring(uint32_t argument_count, char **arguments);
-void server_browser_column_header_update(network_ui_widget *header, int32_t sort_direction);
-char * server_browser_custom_options_pack(server_browser_custom_options *options);
-void server_browser_custom_options_unpack(char *text, server_browser_custom_options *out);
-void server_browser_filter_headers_refresh(network_ui_widget *row);
-void server_browser_filter_panel_set_mode(network_ui_widget *panel, uint8_t internet_mode);
-int32_t server_browser_filter_widget_clicked(network_ui_widget *clicked);
-uint32_t server_browser_gametype1_flags_pack(server_browser_gametype1_options *options);
-void server_browser_gametype1_flags_unpack(uint32_t code, server_browser_gametype1_decoded *out);
-uint32_t server_browser_gametype2_flags_pack(uint8_t *flags);
-uint32_t server_browser_gametype3_flags_pack(server_browser_gametype3_options *options);
-void server_browser_gametype3_flags_unpack(uint32_t code, server_browser_gametype3_options *out);
-uint32_t server_browser_gametype5_flags_pack(int32_t *values);
-void server_browser_gametype5_flags_unpack(uint32_t code, int32_t *out);
-void server_browser_latch_join_target(void);
-void server_browser_list_row_gather(network_ui_widget *row, uint8_t flag, void *entry);
-void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uint8_t flag2,
-                                        const char *server_name, wchar_t *map_name,
-                                        const char *gametype_name,
-                                        uint8_t flag3, int32_t count_a, int32_t count_b, int32_t ping);
-int32_t server_browser_open(network_ui_widget *root);
-int32_t server_browser_player_list_populate(void *entry);
-void server_browser_query_results_ingest(server_list_globals *list);
-void server_browser_result_array_sort(server_list_globals *array);
-int32_t server_browser_selected_variant_description_build(void *entry);
-uint8_t server_browser_server_passes_filter(void *entry);
-server_browser_sort_comparator server_browser_sort_comparator_select(void);
-void server_browser_total_players_compute(server_list_globals *array);
-void server_browser_ui_refresh(void);
-int32_t server_list_compare_by_gametype(const void *a, const void *b);
-int32_t server_list_compare_by_hostname(const void *a, const void *b);
-int32_t server_list_compare_by_mapname(void **a, void **b);
-int32_t server_list_compare_by_mapname_then_hostname(void **a, void **b);
-int32_t server_list_compare_by_ping_then_hostname(void **a, void **b);
-int32_t server_list_compare_by_players(const void *a, const void *b);
-int32_t server_list_compare_by_string_key(void **a, void **b, const char *key);
-server_list_globals * server_list_mutex_try_lock(uint32_t timeout_ms);
-void server_list_mutex_unlock(server_list_globals **list_slot);
-void server_list_reset(uint8_t *entry);
-uint32_t server_list_result_count_get(void);
-void server_list_result_reset(uint8_t *entry);
-void server_list_scroll_clamp(server_list_globals *results);
-void server_list_scroll_page_down(uint8_t jump_to_bottom);
-void server_list_scroll_page_up(uint8_t jump_to_top);
 }
 
 static network_ui_widget *ui_widget_find_control(network_ui_widget *container)
@@ -266,7 +206,6 @@ void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments
 
 int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
 {
-    void (*const server_browser_player_list_populate)(void *entry) = reinterpret_cast<void (*)(void *entry)>(&::server_browser_player_list_populate);
     network_ui_widget *password_panel;
     int32_t clicked;
     int32_t *scroll_target;
@@ -308,7 +247,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
 
     if (server_browser_join_target != 0) {
         if (server_browser_join_target_has_password == 0 || network_join_target_address[0] != 0) {
-            clicked = (uint8_t)network_join_request_resolve_host();
+            clicked = (uint8_t)halo::networking::network_join_request_resolve_host();
             if (clicked != 0) {
                 widget_close_all();
                 return 1;
@@ -334,26 +273,26 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
     }
 
     if (halo::input::input_get_key_state(0x53) == 1) {
-        server_list_scroll_page_up(0);
+        halo::networking::server_list_scroll_page_up(0);
         widget_play_sound_effect(2);
     }
     if (halo::input::input_get_key_state(0x52) == 1) {
-        server_list_scroll_page_up(1);
+        halo::networking::server_list_scroll_page_up(1);
         widget_play_sound_effect(2);
     }
     if (halo::input::input_get_key_state(0x56) == 1) {
-        server_list_scroll_page_down(0);
+        halo::networking::server_list_scroll_page_down(0);
         widget_play_sound_effect(2);
     }
     if (halo::input::input_get_key_state(0x55) == 1) {
-        server_list_scroll_page_down(1);
+        halo::networking::server_list_scroll_page_down(1);
         widget_play_sound_effect(2);
     }
     if (scroll_target != 0) {
         if (scroll_target[2] < 0) {
-            server_list_scroll_page_up(0);
+            halo::networking::server_list_scroll_page_up(0);
         } else if (0 < scroll_target[2]) {
-            server_list_scroll_page_down(0);
+            halo::networking::server_list_scroll_page_down(0);
         }
     }
 
@@ -397,7 +336,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
         w_iter->selected_child = list_container;
     }
 
-    server_browser_filter_headers_refresh(sort_widget);
+    halo::networking::server_browser_filter_headers_refresh(sort_widget);
 
     player_count = 0;
     if (master_server_query_engine == 0) {
@@ -405,7 +344,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
         do {
             row_entry = col_headers[idx];
             row_entry->highlight_flag = (row_entry->parent->selected_child == row_entry);
-            server_browser_list_row_populate(row_entry, 0, 0, k_empty_string, empty_string, k_empty_string, 0,
+            halo::networking::server_browser_list_row_populate(row_entry, 0, 0, k_empty_string, empty_string, k_empty_string, 0,
                                               0xffffffff, 0xffffffff, 0xffffffff);
             idx = idx + 1;
             row_entry->hidden = 1;
@@ -413,18 +352,18 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
     } else {
         browser_state::tick_reset_flag = 0;
         if (server_list_thread == 0) {
-            master_server_process_pending_requests();
+            halo::networking::master_server_process_pending_requests();
         }
-        locked = server_list_mutex_try_lock(0x1e);
+        locked = halo::networking::server_list_mutex_try_lock(0x1e);
         bVar11 = (locked != 0);
         if (locked != 0) {
             if (server_browser_query_pending == 0) {
                 if (0x32 < locked->pending_count ||
                     (0 < locked->pending_count && locked->result_count < 100)) {
-                    server_browser_result_array_sort(locked);
+                    halo::networking::server_browser_result_array_sort(locked);
                 }
             } else {
-                server_browser_query_results_ingest(locked);
+                halo::networking::server_browser_query_results_ingest(locked);
             }
             player_count = locked->result_count;
             idx = 0;
@@ -435,18 +374,18 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
                 } else {
                     entry = locked->list[scan_index];
                 }
-                server_browser_list_row_gather(col_headers[idx], (uint8_t)(server_browser_selected_index == scan_index), entry);
+                halo::networking::server_browser_list_row_gather(col_headers[idx], (uint8_t)(server_browser_selected_index == scan_index), entry);
                 if (server_browser_selected_index == scan_index && server_browser_player_list_ready == 0) {
                     if (entry == 0) {
                         server_browser_selected_index = -1;
                         server_browser_last_click_ms = 0;
-                        server_list_reset((uint8_t *)locked);
+                        halo::networking::server_list_reset((uint8_t *)locked);
                     } else {
                         probe = SBServerHasFullKeys(entry);
                         if (probe != 0) {
                             server_browser_player_list_ready = 1;
-                            server_browser_player_list_populate(entry);
-                            server_browser_selected_variant_description_build(entry);
+                            halo::networking::server_browser_player_list_populate(entry);
+                            halo::networking::server_browser_selected_variant_description_build(entry);
                         }
                     }
                 }
@@ -476,7 +415,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
             label = halo::memory::heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
             w_iter->label_text = (uint16_t *)label;
             if (label != 0) {
-                join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 6);
+                halo::networking::join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 6);
                 halo::text::string_format_wide_va_bounded(0x1f, w_iter->label_text, (const uint16_t *)L"%s %d", scratch_80, player_count);
                 *(uint16_t *)((uint8_t *)w_iter->label_text + 0x3e) = 0;
             }
@@ -486,7 +425,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
             label = halo::memory::heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
             w_iter->label_text = (uint16_t *)label;
             if (label != 0) {
-                join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 7);
+                halo::networking::join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 7);
                 halo::text::string_format_wide_va_bounded(0x1f, w_iter->label_text, (const uint16_t *)L"%s %d", scratch_80, server_browser_total_players);
                 *(uint16_t *)((uint8_t *)w_iter->label_text + 0x3e) = 0;
             }
@@ -506,7 +445,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
                     } else if (page_count < current_page) {
                         current_page = page_count;
                     }
-                    join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 8);
+                    halo::networking::join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 8);
                     halo::text::string_format_wide_va_bounded(0x1f, w_iter->label_text, (const uint16_t *)L"%s %d/%d", scratch_80, current_page, page_count);
                     *(uint16_t *)((uint8_t *)w_iter->label_text + 0x3e) = 0;
                     w_iter->visible = 1;
@@ -588,12 +527,12 @@ scroll_fade_settled:
         now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         if ((uint32_t)server_browser_variant_ticker.scroll_delay_ms <= (uint32_t)(now_ms - master_server_connection_last_tick_ms)) {
             master_server_connection_last_tick_ms = now_ms;
-            ticker_text_buffer_advance((uint8_t *)w17, &server_browser_player_ticker);
-            ticker_text_buffer_advance((uint8_t *)w18, &server_browser_variant_ticker);
+            halo::networking::ticker_text_buffer_advance((uint8_t *)w17, &server_browser_player_ticker);
+            halo::networking::ticker_text_buffer_advance((uint8_t *)w18, &server_browser_variant_ticker);
         }
         if ((uint32_t)browser_state::next_auto_refresh_ms < (uint32_t)now_ms) {
             if (server_browser_require_valid_entry == 0 && server_browser_selected_index == -1) {
-                master_server_list_refresh_request();
+                halo::networking::master_server_list_refresh_request();
             }
             browser_state::next_auto_refresh_ms = now_ms + 10000;
         }
@@ -605,10 +544,10 @@ scroll_fade_settled:
             }
             switch (state) {
             case 4:
-                got_result = autopatch_download_get_result((void **)&result_a, &result_b, autopatch_slot);
+                got_result = halo::networking::autopatch_download_get_result((void **)&result_a, &result_b, autopatch_slot);
                 if (got_result != 0) {
                     if (result_a == 0 || result_b == 0) {
-                        join_game_ticker_string_copy((uint16_t *)browser_state::ticker_message, 0x100, 5);
+                        halo::networking::join_game_ticker_string_copy((uint16_t *)browser_state::ticker_message, 0x100, 5);
                         autopatch_slot = browser_state::motd_download_slot;
                     } else {
 
@@ -616,7 +555,7 @@ scroll_fade_settled:
                         browser_state::ticker_message_terminator = 0;
                     }
                     if (server_browser_selected_index == -1) {
-                        server_browser_ui_refresh();
+                        halo::networking::server_browser_ui_refresh();
                         autopatch_slot = browser_state::motd_download_slot;
                     }
                 }
@@ -644,7 +583,7 @@ scroll_fade_settled:
                     browser_state::ticker_message_terminator = 0;
                 }
                 if (server_browser_selected_index == -1) {
-                    server_browser_ui_refresh();
+                    halo::networking::server_browser_ui_refresh();
                 }
                 break;
             }
@@ -1003,15 +942,15 @@ void ServerBrowser::filter_headers_refresh(network_ui_widget *row)
     sort_col3 = sort_col4->next_sibling;
 
     direction = (server_browser_sort_column == 0) ? (server_browser_sort_ascending ? 1 : -1) : 0;
-    server_browser_column_header_update(sort_col0, direction);
+    halo::networking::server_browser_column_header_update(sort_col0, direction);
     direction = (server_browser_sort_column == 1) ? (server_browser_sort_ascending ? 1 : -1) : 0;
-    server_browser_column_header_update(sort_col1, direction);
+    halo::networking::server_browser_column_header_update(sort_col1, direction);
     direction = (server_browser_sort_column == 2) ? (server_browser_sort_ascending ? 1 : -1) : 0;
-    server_browser_column_header_update(sort_col2, direction);
+    halo::networking::server_browser_column_header_update(sort_col2, direction);
     direction = (server_browser_sort_column == 4) ? (server_browser_sort_ascending ? 1 : -1) : 0;
-    server_browser_column_header_update(sort_col4, direction);
+    halo::networking::server_browser_column_header_update(sort_col4, direction);
     direction = (server_browser_sort_column == 3) ? (server_browser_sort_ascending ? 1 : -1) : 0;
-    server_browser_column_header_update(sort_col3, direction);
+    halo::networking::server_browser_column_header_update(sort_col3, direction);
 
     mark = password_check->first_child;
     mark->highlight_flag = (server_browser_allow_password == 0) + 1;
@@ -1387,13 +1326,13 @@ void ServerBrowser::list_row_gather(network_ui_widget *row, uint8_t flag, void *
         }
 
         map_list_get_friendly_level_name(mapname, friendly_map);
-        server_browser_list_row_populate(row, (uint8_t)is_password, (uint8_t)is_dedicated,
+        halo::networking::server_browser_list_row_populate(row, (uint8_t)is_password, (uint8_t)is_dedicated,
                                           hostname, friendly_map, gametype,
                                           (uint8_t)(is_classic == 1), count_a, count_b, ping);
         row->hidden = 0;
         return;
     }
-    server_browser_list_row_populate(row, 0, 0, 0, empty_string, 0, 0, 0xffffffff, 0xffffffff, 0xffffffff);
+    halo::networking::server_browser_list_row_populate(row, 0, 0, 0, empty_string, 0, 0, 0xffffffff, 0xffffffff, 0xffffffff);
     row->hidden = 1;
 }
 
@@ -1465,8 +1404,6 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
 int32_t ServerBrowser::open(network_ui_widget *root)
 {
     uint8_t &network_join_target_address = reinterpret_cast<uint8_t &>(::network_join_target_address);
-    void (*const server_list_reset)(void) = reinterpret_cast<void (*)(void)>(&::server_list_reset);
-    void (*const join_game_server_browser_tick)(network_ui_widget *root) = reinterpret_cast<void (*)(network_ui_widget *root)>(&::join_game_server_browser_tick);
     char motd_string[1020];
     int32_t motd_available;
     int32_t tag_index;
@@ -1482,22 +1419,22 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     network_ui_widget *w;
     int32_t i;
 
-    network_channels_open();
-    if (server_browser_initialized == 0 && master_server_connection_start() == 0) {
+    halo::networking::network_channels_open();
+    if (server_browser_initialized == 0 && halo::networking::master_server_connection_start() == 0) {
         server_browser_join_requested = 1;
         master_server_query_engine = ServerBrowserNew(&network_session_start_host_name, &network_session_start_host_name, &network_session_start_map_name, 0,
-                                                    10, 1, (void *)network_channel_gap_4ba660, 0);
+                                                    10, 1, (void *)halo::networking::network_channel_gap_4ba660, 0);
     }
     server_browser_join_target = 0;
     server_browser_join_target_has_password = 0;
     network_join_target_address = 0;
-    autopatch_download_pool_initialize();
+    halo::networking::autopatch_download_pool_initialize();
     if (server_browser_require_valid_entry != 0 && browser_state::motd_download_state == 0) {
         motd_available = halo::shell::shell_load_localized_string(sizeof(motd_string), halo::shell::globals().module_handle, motd_string, 0x90);
         if (motd_available != 0) {
-            browser_state::motd_download_slot = autopatch_download_start(motd_string);
+            browser_state::motd_download_slot = halo::networking::autopatch_download_start(motd_string, 0);
             browser_state::motd_download_state = 1;
-            join_game_ticker_string_copy((uint16_t *)browser_state::ticker_message, 0x100, 4);
+            halo::networking::join_game_ticker_string_copy((uint16_t *)browser_state::ticker_message, 0x100, 4);
         }
     }
     if (browser_state::ticker_message[0] == 0) {
@@ -1572,7 +1509,7 @@ int32_t ServerBrowser::open(network_ui_widget *root)
 
     server_browser_filter_panel_mode = 0;
     server_browser_initialized = 1;
-    server_list_reset();
+    halo::networking::server_list_reset((uint8_t *)0);
 
     w2 = root->first_child->next_sibling->next_sibling;
     root->selected_child = w2;
@@ -1595,7 +1532,7 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     }
     list_container->parent->visible = 0;
     list_container->parent->hidden = 1;
-    join_game_server_browser_tick(root->selected_child);
+    halo::networking::join_game_server_browser_tick(root->selected_child);
     browser_state::next_auto_refresh_ms = 0;
     browser_state::refresh_in_flight = 0;
     return 1;
@@ -1624,7 +1561,7 @@ int32_t ServerBrowser::player_list_populate(void *entry)
             player_count = 0x10;
         }
     }
-    ticker_text_buffer_append(0, 0, &server_browser_player_ticker);
+    halo::networking::ticker_text_buffer_append(0, 0, &server_browser_player_ticker);
     i = 0;
     if (0 < player_count) {
         do {
@@ -1635,7 +1572,7 @@ int32_t ServerBrowser::player_list_populate(void *entry)
                 score = SBServerGetPlayerStringValue(entry, i, "score", "--");
                 swprintf(row, 0x100, L"  %S %S     ", name, score);
             }
-            ticker_text_buffer_append(row, 0, &server_browser_player_ticker);
+            halo::networking::ticker_text_buffer_append(row, 0, &server_browser_player_ticker);
             i = i + 1;
         } while (i < player_count);
     }
@@ -1648,27 +1585,26 @@ void ServerBrowser::query_results_ingest(server_list_globals *list)
         int32_t result_count = ServerBrowserCount(master_server_query_engine);
         int32_t i = 0;
 
-        server_list_reset((uint8_t *)list);
+        halo::networking::server_list_reset((uint8_t *)list);
 
         if (0 < result_count) {
             do {
                 int32_t record = ServerBrowserGetServer(master_server_query_engine, i);
 
                 if (SBServerHasBasicKeys(record) != 0) {
-                    dynamic_pointer_array_add_unique((void *)(intptr_t)record, list);
+                    halo::networking::dynamic_pointer_array_add_unique((void *)(intptr_t)record, list);
                 }
                 i = i + 1;
             } while (i < result_count);
         }
 
-        server_browser_result_array_sort(list);
+        halo::networking::server_browser_result_array_sort(list);
         server_browser_query_pending = 0;
     }
 }
 
 void ServerBrowser::result_array_sort(server_list_globals *array)
 {
-    void (*const server_list_scroll_clamp)(void) = reinterpret_cast<void (*)(void)>(&::server_list_scroll_clamp);
     if (0 < array->result_count) {
         server_browser_sort_comparator comparator;
         void *previous_key;
@@ -1679,7 +1615,7 @@ void ServerBrowser::result_array_sort(server_list_globals *array)
             previous_key = array->list[server_browser_selected_index];
         }
 
-        comparator = server_browser_sort_comparator_select();
+        comparator = halo::networking::server_browser_sort_comparator_select();
         qsort(array->list, (size_t)array->result_count, 4, comparator);
 
         if (server_browser_skip_reselect == 0) {
@@ -1704,12 +1640,12 @@ void ServerBrowser::result_array_sort(server_list_globals *array)
                 (server_browser_selected_index < server_list_scroll_offset ||
                  server_list_scroll_offset + 0xf <= server_browser_selected_index)) {
                 server_list_scroll_offset = server_browser_selected_index;
-                server_list_scroll_clamp();
+                halo::networking::server_list_scroll_clamp((server_list_globals *)0);
             }
         }
 
         array->pending_count = 0;
-        server_browser_total_players_compute(array);
+        halo::networking::server_browser_total_players_compute(array);
     }
 }
 
@@ -1722,7 +1658,7 @@ int32_t ServerBrowser::selected_variant_description_build(void *entry)
     wchar_t gamevariant_wide[0x400];
     wchar_t fraglimit_wide[0x400];
 
-    ticker_text_buffer_append(0, 1, &server_browser_variant_ticker);
+    halo::networking::ticker_text_buffer_append(0, 1, &server_browser_variant_ticker);
     if (entry != 0) {
         player_flags = SBServerGetStringValue(entry, "player_flags", "");
         game_flags = SBServerGetIntValue(entry, "game_flags", 0);
@@ -1757,7 +1693,7 @@ uint8_t ServerBrowser::server_passes_filter(void *entry)
 
     if (entry == 0 ||
         (server_browser_require_valid_entry != 0 &&
-         (probe = (int32_t)gamespy_array_length((int32_t)(uintptr_t)entry), probe == 0))) {
+         (probe = (int32_t)halo::networking::gamespy_array_length((void *)((int32_t)(uintptr_t)entry)), probe == 0))) {
         return 0;
     }
 
@@ -1803,7 +1739,7 @@ uint8_t ServerBrowser::server_passes_filter(void *entry)
     mapname = SBServerGetStringValue(entry, "mapname", "");
     is_teamplay = SBServerGetBoolValue(entry, "teamplay", 0);
     gamever = SBServerGetStringValue(entry, "gamever", "");
-    version_outdated = autopatch_version_string_is_outdated(gamever);
+    version_outdated = halo::networking::autopatch_version_string_is_outdated(gamever);
 
     if (0x270e < ping) {
         return 0;
@@ -1909,9 +1845,9 @@ next:
 
 void ServerBrowser::ui_refresh(void)
 {
-    ticker_text_buffer_append(0, 2, &server_browser_player_ticker);
-    ticker_text_buffer_append(0, 1, &server_browser_variant_ticker);
-    ticker_text_buffer_append(browser_state::ticker_message, 0, &server_browser_player_ticker);
+    halo::networking::ticker_text_buffer_append(0, 2, &server_browser_player_ticker);
+    halo::networking::ticker_text_buffer_append(0, 1, &server_browser_variant_ticker);
+    halo::networking::ticker_text_buffer_append(browser_state::ticker_message, 0, &server_browser_player_ticker);
 }
 
 int32_t ServerBrowser::compare_by_gametype(const void *a, const void *b)
@@ -1978,7 +1914,7 @@ int32_t ServerBrowser::compare_by_mapname_then_hostname(void **a, void **b)
     char *hostname_b;
     int32_t hostname_diff;
 
-    mapname_diff = server_list_compare_by_mapname(a, b);
+    mapname_diff = halo::networking::server_list_compare_by_mapname(a, b);
     if (mapname_diff == 0) {
         hostname_b = SBServerGetStringValue(*b, "hostname", "");
         hostname_a = SBServerGetStringValue(*a, "hostname", "");
@@ -2065,7 +2001,7 @@ int32_t ServerBrowser::compare_by_players(const void *a, const void *b)
     } else if (maximum_a != maximum_b) {
         result = maximum_a < maximum_b ? 1 : -1;
     } else {
-        result = server_list_compare_by_string_key((void **)a, (void **)b, "hostname");
+        result = halo::networking::server_list_compare_by_string_key((void **)a, (void **)b, "hostname");
         if (result == 0) {
             result = (uint32_t)b > (uint32_t)a ? -1 : ((uint32_t)b < (uint32_t)a ? 1 : 0);
         }
@@ -2117,10 +2053,10 @@ void ServerBrowser::reset(uint8_t *entry)
     server_browser_skip_reselect = 0;
     browser_state::scroll_arrow_flash = 0;
     server_browser_total_players = 0;
-    server_list_result_reset(entry);
-    ticker_text_buffer_append(0, 2, &server_browser_player_ticker);
-    ticker_text_buffer_append(0, 1, &server_browser_variant_ticker);
-    ticker_text_buffer_append(browser_state::ticker_message, 0, &server_browser_player_ticker);
+    halo::networking::server_list_result_reset(entry);
+    halo::networking::ticker_text_buffer_append(0, 2, &server_browser_player_ticker);
+    halo::networking::ticker_text_buffer_append(0, 1, &server_browser_variant_ticker);
+    halo::networking::ticker_text_buffer_append(browser_state::ticker_message, 0, &server_browser_player_ticker);
 }
 
 uint32_t ServerBrowser::result_count_get(void)
@@ -2169,12 +2105,11 @@ void ServerBrowser::result_reset(uint8_t *entry)
 
 void ServerBrowser::scroll_clamp(server_list_globals *results)
 {
-    int32_t (*const server_list_result_count_get)(void) = reinterpret_cast<int32_t (*)(void)>(&::server_list_result_count_get);
     int32_t count;
     int32_t max_scroll;
 
     if (results == 0) {
-        count = server_list_result_count_get();
+        count = halo::networking::server_list_result_count_get();
     } else {
         count = results->result_count;
     }
@@ -2190,7 +2125,6 @@ void ServerBrowser::scroll_clamp(server_list_globals *results)
 
 void ServerBrowser::scroll_page_down(uint8_t jump_to_bottom)
 {
-    int32_t (*const server_list_result_count_get)(void) = reinterpret_cast<int32_t (*)(void)>(&::server_list_result_count_get);
     int32_t old_offset;
     int32_t count;
     int32_t max_scroll;
@@ -2199,10 +2133,10 @@ void ServerBrowser::scroll_page_down(uint8_t jump_to_bottom)
     if (jump_to_bottom == 0) {
         server_list_scroll_offset = server_list_scroll_offset + 0xe;
     } else {
-        count = server_list_result_count_get();
+        count = halo::networking::server_list_result_count_get();
         server_list_scroll_offset = count - 0xf;
     }
-    count = server_list_result_count_get();
+    count = halo::networking::server_list_result_count_get();
     max_scroll = (count - 0xf < 0) ? 0 : (count - 0xf);
     if (server_list_scroll_offset < 0) {
         max_scroll = 0;
@@ -2224,7 +2158,6 @@ after_clamp:
 
 void ServerBrowser::scroll_page_up(uint8_t jump_to_top)
 {
-    int32_t (*const server_list_result_count_get)(void) = reinterpret_cast<int32_t (*)(void)>(&::server_list_result_count_get);
     int32_t old_offset;
     int32_t count;
     int32_t max_scroll;
@@ -2235,7 +2168,7 @@ void ServerBrowser::scroll_page_up(uint8_t jump_to_top)
     } else {
         server_list_scroll_offset = 0;
     }
-    count = server_list_result_count_get();
+    count = halo::networking::server_list_result_count_get();
     max_scroll = (count - 0xf < 0) ? 0 : (count - 0xf);
     if (server_list_scroll_offset < 0) {
         max_scroll = 0;
@@ -2257,7 +2190,7 @@ after_clamp:
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 void game_variant_list_matching_substring(uint32_t argument_count, char **arguments)
 {
     halo::networking::ServerBrowser::matching_substring(argument_count, arguments);

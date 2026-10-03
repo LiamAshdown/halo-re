@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_autopatch_status_widget.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t autopatch_status_active_00719235;
@@ -11,7 +12,6 @@ extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
 extern void widget_instance_close_and_restore_previous(widget_instance *widget);
-extern int32_t autopatch_check_for_update_start(void);
 }
 
 namespace halo::interface {
@@ -32,7 +32,7 @@ void AutopatchStatusWidget::widget_update(uint8_t *record)
         return;
     }
 
-    switch (autopatch_check_for_update_start()) {
+    switch (halo::networking::autopatch_check_for_update_start()) {
     case 0:
     case 2: {
         uint8_t first_time = (autopatch_status_flag_00692b11 == 0);

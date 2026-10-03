@@ -1,8 +1,8 @@
 #include "halo/objects/object_type_definitions.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
-extern uint8_t message_delta_decode_compound_field_staged(void **context);
 extern data_array *object_data;
 extern network_id_table *object_network_id_table;
 extern object_type_definition *object_type_definition_list;
@@ -512,7 +512,7 @@ void halo::objects::ObjectTypeDefinitions::override_call_0x70(uint32_t object_in
     int16_t i;
 
     if (obj == 0) {
-        message_delta_decode_compound_field_staged((void **)edi_argument);
+        halo::networking::message_delta_decode_compound_field_staged((void **)edi_argument);
         return;
     }
     def = object_type_definitions[obj->type];

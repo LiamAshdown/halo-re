@@ -7,35 +7,16 @@
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern data_packet_group network_game_messages_group;
 extern uint8_t network_disconnect_timeout_flag;
-extern uint32_t network_game_message_handle_keepalive(network_channel **channel, int32_t *record);
-extern char network_game_server_handle_join_password(network_machine *machine, network_server_globals *server, uint8_t *buffer, int32_t length);
-extern char network_game_server_handle_join_confirm(network_machine *machine, network_server_globals *server, uint8_t *buffer, int32_t length);
-extern uint32_t network_game_message_handle_settings_relay(network_server_globals *server, uint8_t *record, int32_t length);
-extern uint32_t network_game_message_handle_player_count_broadcast(network_server_globals *server, uint8_t *record, int32_t length);
-extern uint32_t network_game_message_handle_player_entry_update(network_server_globals *server, uint8_t *record, int32_t length);
-extern uint32_t network_game_message_handle_handshake_forward(network_server_globals *server, uint8_t *record, int32_t length);
-extern uint32_t network_game_message_handle_retry_schedule(network_server_globals *server, network_machine *machine, uint8_t *record, int32_t length);
-extern uint32_t network_game_message_handle_build_version(network_server_globals *server, network_machine *machine, uint8_t *record, int32_t length);
-extern uint32_t network_game_server_handle_info_request(network_server_globals *server, network_machine *machine, uint8_t *record, int32_t length);
-extern void network_game_client_apply_position_update(uint8_t *state, uint32_t *packet, void *tick_count, void *object);
-extern uint32_t network_game_client_handle_map_data(network_server_globals *server, uint8_t *record, int32_t length);
-extern uint32_t network_game_client_handle_settings_relay(network_server_globals *server, uint8_t *record, int32_t length);
-extern uint32_t network_game_client_handle_retry_schedule(network_server_globals *server, network_machine *machine, uint8_t *record, int32_t length);
-extern uint32_t network_game_message_handle_settings_relay_role2(network_server_globals *server, uint8_t *record, int32_t length);
-extern uint32_t network_game_message_handle_join_finalize_ack_role2(network_server_globals *server, network_machine *machine, uint8_t *record, int32_t length);
 extern uint32_t profile_globals_block[0x7ff];
-extern void network_game_start_new_server_with_name_and_password(uint32_t unused, uint16_t *name, uint16_t *password);
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern data_array *player_data;
 extern int16_t network_game_mode;
 extern network_server_globals *network_server;
-extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type, uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5, uint8_t unknown_6);
 extern network_client_globals *network_client;
-extern void network_channel_reliable_pool_store(network_channel *channel, void *message, uint8_t *out_flag, int32_t priority);
 extern game_engine_definition *current_game_engine;
 extern void qr2_buffer_add(void *buffer, const char *value);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
@@ -83,7 +64,7 @@ uint32_t GameRuntime::process_incoming_message(int32_t length, network_machine *
  *
  * @address 0x4e40f0
  */
-void GameRuntime::start_new_server_from_profile(uint32_t param_1)
+uint8_t GameRuntime::start_new_server_from_profile(uint32_t param_1)
 {
     uint32_t profile[0x7ff];
 
@@ -92,7 +73,7 @@ void GameRuntime::start_new_server_from_profile(uint32_t param_1)
     } else {
         memcpy(profile, profile_globals_block, sizeof(profile));
     }
-    network_game_start_new_server_with_name_and_password(param_1,
+    return halo::networking::network_game_start_new_server_with_name_and_password(param_1,
         (uint16_t *)((uint8_t *)profile + 867 * 4),
         (uint16_t *)((uint8_t *)profile + 867 * 4 + 288));
 }
@@ -122,7 +103,7 @@ void PlayerReports::ping_field_update_and_report(void *decode_context)
     int32_t encoded_bits;
     uint8_t message_buffer[64];
 
-    ok = message_delta_decode_compound_field(decode_context, decode_scratch);
+    ok = halo::networking::message_delta_decode_compound_field((void **)decode_context, decode_scratch);
     player_index = decode_scratch[0];
     new_value = 0;
     if (ok == 1) {
@@ -160,11 +141,11 @@ void PlayerReports::ping_field_update_and_report(void *decode_context)
         fields_pad = 0;
         fields_byte0 = (uint8_t)team_index;
         (void)fields_pad;
-        encoded_bits = message_delta_encode_message(0, 0x34, 0, (void **)&fields_ptr, 0, 1, 0);
+        encoded_bits = halo::networking::message_delta_encode_message((int32_t)message_buffer, 0x200, 0, 0x34, 0, (void **)&fields_ptr, 0, 1, 0);
         if (encoded_bits > 0) {
             fields_byte1 = 1;
             if ((network_client->channel->flags & 1) == 0) {
-                network_channel_reliable_pool_store(network_client->channel, message_buffer, &fields_byte1, 0);
+                halo::networking::network_channel_reliable_pool_store(network_client->channel, message_buffer, &fields_byte1, 0, 1, (uint32_t)encoded_bits);
             }
         }
     }

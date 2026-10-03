@@ -3,6 +3,7 @@
 #include "halo/cseries/api.hpp"
 #include "rasterizer.h"
 #include "halo/rasterizer/api.hpp"
+#include "halo/networking/api.hpp"
 extern "C" { extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; }
 extern "C" { extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; }
 
@@ -14,19 +15,10 @@ extern "C" {
 extern const char *network_bandwidth_direction_label_table[2];
 extern network_bandwidth_graph network_bandwidth_graph_globals;
 extern uint32_t network_bandwidth_graph_default_interval_ms;
-extern void network_bandwidth_graph_instance_update_layout(network_bandwidth_graph *graph, uint8_t force_refresh);
 extern uint8_t network_bandwidth_overlay_enabled;
-extern int32_t network_bandwidth_unit_name_to_index(const char *name);
-extern int32_t network_bandwidth_direction_name_to_index(const char *name);
-extern void network_bandwidth_graph_instance_init(network_bandwidth_graph *graph, int32_t units_index, int32_t direction_index);
 extern network_screen_point game_window_top_left;
 extern network_screen_point game_window_bottom_right;
-extern void network_bandwidth_graph_instance_history_reset(network_bandwidth_graph *graph);
-extern void network_stats_overlay_draw(network_bandwidth_graph *graph);
 extern const char *network_bandwidth_units_label_table[2];
-extern void network_bandwidth_graph_update_columns(int32_t new_sample, network_bandwidth_graph *graph);
-extern void network_bandwidth_graph_new_sample(network_bandwidth_graph *graph);
-extern int32_t network_bandwidth_graph_find_peak_sample(int32_t *out_peak_countdown, network_bandwidth_graph *graph);
 extern uint32_t renderer_unknown_6e1af0;
 extern uint32_t renderer_unknown_6e1af8;
 extern uint32_t renderer_unknown_69e468;
@@ -140,7 +132,7 @@ uint32_t BandwidthMonitor::reset()
     network_bandwidth_graph_globals.needs_layout = 1;
     network_bandwidth_graph_globals.sample_interval_ms = network_bandwidth_graph_default_interval_ms;
     network_bandwidth_graph_globals.direction_index = 1;
-    network_bandwidth_graph_instance_update_layout(&network_bandwidth_graph_globals, 1);
+    halo::networking::network_bandwidth_graph_instance_update_layout(&network_bandwidth_graph_globals, 1);
     return 1;
 }
 
@@ -164,10 +156,10 @@ uint32_t BandwidthMonitor::set_units_command(const char *units_name, const char 
         return 0;
     }
 
-    units_index = network_bandwidth_unit_name_to_index(units_name);
-    direction_index = network_bandwidth_direction_name_to_index(direction_name);
+    units_index = halo::networking::network_bandwidth_unit_name_to_index(units_name);
+    direction_index = halo::networking::network_bandwidth_direction_name_to_index(direction_name);
     if (units_index != -1 && direction_index != -1) {
-        network_bandwidth_graph_instance_init(&network_bandwidth_graph_globals, units_index, direction_index);
+        halo::networking::network_bandwidth_graph_instance_init(&network_bandwidth_graph_globals, units_index, direction_index);
         return 1;
     }
     return 0;
@@ -223,7 +215,7 @@ void BandwidthMonitor::update_()
                 ((float *)(base + 0x44))[i] = 0.0f;
             }
 
-            network_bandwidth_graph_instance_history_reset(graph);
+            halo::networking::network_bandwidth_graph_instance_history_reset(graph);
 
             box_x0 = right_minus_yscale - 1.0f;
             *(uint32_t *)(base + 0x50) = 0xffffff00;
@@ -271,7 +263,7 @@ void BandwidthMonitor::update_()
                 network_bandwidth_units_label_table[graph->units_index],
                 network_bandwidth_direction_label_table[graph->direction_index]);
         }
-        network_stats_overlay_draw(graph);
+        halo::networking::network_stats_overlay_draw(graph);
     }
 }
 
@@ -396,7 +388,7 @@ void BandwidthGraphView::instance_init(int32_t units_index, int32_t direction_in
     graph->bits_sent = 0;
     graph->bits_received = 0;
     graph->rate_base_ms = 0;
-    network_bandwidth_graph_instance_update_layout(graph, 1);
+    halo::networking::network_bandwidth_graph_instance_update_layout(graph, 1);
 }
 
 /**
@@ -446,7 +438,7 @@ void BandwidthGraphView::instance_update_layout(uint8_t force_refresh)
             ((float *)(base + 0x44))[i] = 0.0f;
         }
 
-        network_bandwidth_graph_instance_history_reset(graph);
+        halo::networking::network_bandwidth_graph_instance_history_reset(graph);
 
         box_x0 = (right_raw - y_scale) - 1.0f;
         *(uint32_t *)(base + 0x50) = 0xffffff00;
@@ -513,7 +505,7 @@ void BandwidthGraphView::new_sample()
     large_integer counter;
     int32_t recent_sum;
 
-    network_bandwidth_graph_update_columns(graph->pending_sample, graph);
+    halo::networking::network_bandwidth_graph_update_columns(graph->pending_sample, graph);
 
     recent_sum = graph->history[319] + graph->history[318] + graph->history[317] +
                  graph->history[316] + graph->history[315];
@@ -549,7 +541,7 @@ void BandwidthGraphView::tick()
     elapsed_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency) -
                  (uint32_t)graph->last_sample_ms;
     while (graph->sample_interval_ms <= elapsed_ms) {
-        network_bandwidth_graph_new_sample(graph);
+        halo::networking::network_bandwidth_graph_new_sample(graph);
         elapsed_ms -= graph->sample_interval_ms;
     }
 }
@@ -581,7 +573,7 @@ void BandwidthGraphView::update_columns(int32_t new_sample)
     if (new_sample < graph->peak_scale) {
         graph->peak_samples_remaining -= 1;
         if (graph->peak_samples_remaining == 0) {
-            graph->peak_scale = network_bandwidth_graph_find_peak_sample(&graph->peak_samples_remaining, graph);
+            graph->peak_scale = halo::networking::network_bandwidth_graph_find_peak_sample(&graph->peak_samples_remaining, graph);
         }
     } else {
         graph->peak_scale = new_sample;

@@ -7,6 +7,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/networking/api.hpp"
 
 
 #ifdef __cplusplus
@@ -16,8 +17,6 @@ extern void chimera__console_out(void *color, const char *format, ...);
 extern void (*hs_type_inspectors[])(int16_t type, int32_t value, char *buffer);
 extern void message_delta_metrics_dump(char *suffix);
 extern uint8_t network_bandwidth_graph_globals[];
-extern void network_bandwidth_graph_instance_history_reset(void *graph);
-extern uint32_t network_bandwidth_graph_set_units_command(const char *units_name, const char *direction_name);
 extern void *actor_mode_default_look_weights;
 extern void console_printf_verbose(ColorARGB *color, char *format, ...);
 extern uint32_t renderer_unknown_69c684;
@@ -141,7 +140,7 @@ void DebugCommands::evaluate_message_metrics_dump(int16_t function_index, uint32
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        message_delta_metrics_dump((char *)arguments[0]);
+        halo::networking::message_delta_metrics_dump((char *)arguments[0]);
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -154,7 +153,7 @@ void DebugCommands::evaluate_message_metrics_dump(int16_t function_index, uint32
  */
 void DebugCommands::evaluate_net_graph_clear(int16_t function_index, uint32_t thread_index, char first)
 {
-    network_bandwidth_graph_instance_history_reset(network_bandwidth_graph_globals);
+    halo::networking::network_bandwidth_graph_instance_history_reset(network_bandwidth_graph_globals);
     halo::hs::hs_thread_return(0, thread_index);
 }
 
@@ -171,7 +170,7 @@ void DebugCommands::evaluate_net_graph_show(int16_t function_index, uint32_t thr
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        halo::hs::hs_thread_return((int32_t)(uint8_t)(network_bandwidth_graph_set_units_command((const char *)arguments[0], (const char *)arguments[1])), thread_index);
+        halo::hs::hs_thread_return((int32_t)(uint8_t)(halo::networking::network_bandwidth_graph_set_units_command((const char *)arguments[0], (const char *)arguments[1])), thread_index);
     }
 }
 

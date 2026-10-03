@@ -12,6 +12,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time);
@@ -20,14 +21,8 @@ extern void effect_delete(datum_index handle);
 extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index, int16_t change_color_index, int16_t u, int16_t v);
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern data_array *game_looping_sound_data;
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern void network_index_cache_remove(void *globals, uint32_t object_index);
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern void *network_object_index_cache;
-extern network_server_globals *network_server;
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern data_array *object_data;
 extern network_id_table *object_network_id_table;
 extern data_array *particle_system_data;
@@ -201,17 +196,17 @@ void halo::objects::ObjectLifetime::delete_unparented()
     scratch_pointer = &looked_up;
     scratch_tail = 0;
 
-    encoded_length = message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0, 0,
+    encoded_length = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0, 0,
                                                   (void **)&scratch_pointer, 0, 1, 0);
     (void)scratch_tail;
 
     header = (object_header *)object_data->data + halo::datum_slot(object_index);
     if ((header->flags & _object_header_delete_pending_bit) == 0) {
-        network_index_cache_remove(&network_object_index_cache, object_index);
+        halo::networking::network_index_cache_remove((uint8_t *)&network_object_index_cache, object_index);
     }
 
     if (encoded_length > 0) {
-        network_session_broadcast_to_flagged(encoded_length, network_server, 1, network_message_scratch, 1, 0, 0, 3);
+        halo::networking::network_session_broadcast_to_flagged(encoded_length, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
     }
 }
 
@@ -232,11 +227,11 @@ void halo::objects::ObjectLifetime::delete_by_pooled_node_id(int32_t **record)
     int32_t node_table;
 
     if (**record != 0) {
-        message_delta_decode_compound_field_staged(record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)record);
         return;
     }
 
-    preconditions_ok = message_delta_decode_compound_field(record, &pooled_node_id);
+    preconditions_ok = halo::networking::message_delta_decode_compound_field((void **)record, &pooled_node_id);
 
     if (preconditions_ok != 0 && pooled_node_id != 0) {
         node_table = (int32_t)object_network_id_table->handles;
@@ -244,7 +239,7 @@ void halo::objects::ObjectLifetime::delete_by_pooled_node_id(int32_t **record)
         if (object_index != k_datum_index_none) {
             header = (object_header *)object_data->data + halo::datum_slot(object_index);
             if ((header->flags & _object_header_delete_pending_bit) == 0) {
-                network_index_cache_remove(&network_object_index_cache, object_index);
+                halo::networking::network_index_cache_remove((uint8_t *)&network_object_index_cache, object_index);
             }
             if (halo::objects::object_try_and_get(object_index, _object_mask_all) != 0) {
 

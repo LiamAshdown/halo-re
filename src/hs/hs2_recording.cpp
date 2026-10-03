@@ -5,6 +5,7 @@
 #include "cutscene.h"
 #include "halo/cutscene/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/networking/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,7 +31,7 @@ void RecordingCommands::evaluate_play_update_history(int16_t function_index, uin
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        player_update_history_play_local_player(arguments[0]);
+        halo::networking::player_update_history_play_local_player(arguments[0]);
         halo::hs::hs_thread_return(0, thread_index);
     }
 }

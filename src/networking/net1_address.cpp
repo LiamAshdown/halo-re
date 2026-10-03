@@ -3,10 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include "halo/networking/api.hpp"
 
 extern "C" {
-extern char network_address_string_normalize(char *address_string, char *out_buffer, uint8_t *out_is_any);
-extern char network_address_parse_port(char *address_string, int32_t *port_out);
 extern char network_address_string[0x100];
 extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);
 }
@@ -70,7 +69,7 @@ char AddressText::string_is_valid(char *address_string)
 
     normalize_result = 0;
     if (*address_string != '\0') {
-        normalize_result = network_address_string_normalize(address_string, scratch, 0);
+        normalize_result = halo::networking::network_address_string_normalize(address_string, scratch, 0);
         if (normalize_result == 0) {
             valid = 1;
             while (1) {
@@ -125,7 +124,7 @@ char AddressText::string_normalize(char *address_string, char *out_buffer, uint8
         if (out_is_any != 0) {
             *out_is_any = is_any;
         }
-        result = network_address_parse_port(address_string, &port);
+        result = halo::networking::network_address_parse_port(address_string, &port);
         if (result == 1) {
             if (port != -1) {
                 _snprintf(out_buffer, 0x19, "%d.%d.%d.%d:%d", a, b, c, d, port);

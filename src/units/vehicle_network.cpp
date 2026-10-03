@@ -5,17 +5,13 @@
 #include "halo/core/flag_bits.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
-extern uint8_t message_delta_decode_compound_field_forced(void **context, void *destination, int32_t changed_offset, int32_t force);
-extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
-extern uint8_t message_delta_decode_compound_field_staged(void **context);
 extern double sqrt(double x);
 extern network_id_table *object_network_id_table;
 extern uint8_t *machine_table;
 extern uint8_t network_object_index_cache[];
-extern int32_t network_index_cache_find_or_allocate_slot(uint8_t *container, int32_t key);
-extern int32_t message_delta_encode_message(int32_t buffer, int32_t bit_budget, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 }
 
 namespace halo::units {
@@ -57,7 +53,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     int32_t *timing;
 
     if (vehicle == 0) {
-        message_delta_decode_compound_field_staged(message);
+        halo::networking::message_delta_decode_compound_field_staged(message);
         return;
     }
     record = (uint8_t *)message[0x11];
@@ -67,15 +63,15 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
         int32_t current = ((struct vehicle_object *)vehicle)->vehicle.network_update_sequence;
 
         if (record[4] != ((struct vehicle_object *)vehicle)->vehicle.network_epoch || (incoming <= current && incoming - current + 0xff >= 0x1e)) {
-            message_delta_decode_compound_field_staged(message);
+            halo::networking::message_delta_decode_compound_field_staged(message);
             return;
         }
     }
     if (**(int32_t **)message == 1) {
         memcpy(&baseline, vehicle + 0x528, sizeof(baseline));
-        accepted = message_delta_decode_compound_field_forced(message, &baseline, (int32_t)(vehicle + 0x528), 0);
+        accepted = halo::networking::message_delta_decode_compound_field_forced(message, &baseline, (int32_t)(vehicle + 0x528), 0);
     } else {
-        accepted = message_delta_decode_compound_field(message, &baseline);
+        accepted = halo::networking::message_delta_decode_compound_field(message, &baseline);
     }
     if (!accepted) {
         return;
@@ -183,7 +179,7 @@ int32_t VehicleView::encode_network_create(int32_t buffer, int32_t bit_budget)
         }
     }
     if (key == -1) {
-        key = network_index_cache_find_or_allocate_slot(network_object_index_cache, (int32_t)vehicle_index);
+        key = halo::networking::network_index_cache_find_or_allocate_slot(network_object_index_cache, (int32_t)vehicle_index);
     }
     record.definition = *(datum_index *)vehicle;
     record.network_key = key;
@@ -201,7 +197,7 @@ int32_t VehicleView::encode_network_create(int32_t buffer, int32_t bit_budget)
     memcpy(record.vectors[2], vehicle + 0x55c, 12);
     memcpy(record.vectors[3], vehicle + 0x538, 12);
     memcpy(record.vectors[4], vehicle + 0x544, 12);
-    return message_delta_encode_message(buffer, bit_budget, 0, 0x1c, 0, &item, 0, 1, 0);
+    return halo::networking::message_delta_encode_message(buffer, bit_budget, 0, 0x1c, 0, &item, 0, 1, 0);
 }
 
 namespace vehicle_network_baseline_take_local {

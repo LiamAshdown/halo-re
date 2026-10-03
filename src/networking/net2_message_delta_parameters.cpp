@@ -11,39 +11,24 @@
 #include "win32.h"
 #include <string.h>
 #include "halo/networking/net2_message_delta_parameters.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
+extern network_server_globals *network_server;
 extern uint8_t message_delta_parameters_enabled;
 extern uint8_t message_delta_unknown_table_0069a304[28][0x18];
 extern char message_delta_config_text_buffer[];
 extern char message_delta_config_write_mode_string[];
-extern void message_delta_definitions_teardown_field_bindings(void);
 extern int32_t message_delta_parameter_count;
 extern message_delta_parameter message_delta_parameters[];
 extern int32_t sprintf(char *buffer, const char *format, ...);
 extern char message_delta_config_value_delimiters[];
 extern int32_t sscanf(const char *buffer, const char *format, ...);
 extern int32_t message_delta_parameters_protocol_sequence;
-extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
-extern void message_delta_decode_compound_field_staged(void **context);
 extern char message_delta_config_mode_string[];
 extern uint8_t message_delta_parameters_sending;
 extern uint8_t message_delta_parameters_protocol_broadcast_target[];
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern char network_session_broadcast_to_all(int32_t a1, void *a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6);
-void message_delta_parameters_protocol_dump_to_config_file(void);
-uint8_t message_delta_parameters_protocol_find_registered(char *name, void **out_value);
-void message_delta_parameters_protocol_format_received_values(int32_t *values);
-void message_delta_parameters_protocol_format_registered_values(void);
-void message_delta_parameters_protocol_free_registered(void);
-void message_delta_parameters_protocol_pack_values(int32_t *out_values);
-int32_t message_delta_parameters_protocol_parse_value_from_config(char *name, char *format, void *out_value);
-void message_delta_parameters_protocol_receive_update(void **context);
-void message_delta_parameters_protocol_register(char *scope, char *name, int32_t type, void *value);
-void message_delta_parameters_protocol_reload_from_config_file(void);
-void message_delta_parameters_protocol_send_update(void);
 }
 
 
@@ -54,7 +39,7 @@ void ParametersProtocol::dump_to_config_file(void)
     int32_t i;
     void *file;
 
-    message_delta_definitions_teardown_field_bindings();
+    halo::networking::message_delta_definitions_teardown_field_bindings();
     for (i = 0; i < 28; i++) {
         message_delta_unknown_table_0069a304[i][0] = 0;
     }
@@ -64,7 +49,7 @@ void ParametersProtocol::dump_to_config_file(void)
             fprintf((FILE *)file, message_delta_config_text_buffer);
             fclose((FILE *)file);
         }
-        message_delta_parameters_protocol_free_registered();
+        halo::networking::message_delta_parameters_protocol_free_registered();
     }
 }
 
@@ -181,20 +166,18 @@ void ParametersProtocol::receive_update(void **context)
                 int32_t values[64];
             } destination;
 
-            if (message_delta_decode_compound_field(context, &destination) == 1) {
-                message_delta_parameters_protocol_format_received_values(destination.values);
+            if (halo::networking::message_delta_decode_compound_field(context, &destination) == 1) {
+                halo::networking::message_delta_parameters_protocol_format_received_values(destination.values);
                 message_delta_parameters_protocol_sequence = destination.sequence;
             }
         } else {
-            message_delta_decode_compound_field_staged(context);
+            halo::networking::message_delta_decode_compound_field_staged(context);
         }
     }
 }
 
 void ParametersProtocol::run_register(char *scope, char *name, int32_t type, void *value)
 {
-    char (*const message_delta_parameters_protocol_find_registered)(char *name, void **out_value) = reinterpret_cast<char (*)(char *name, void **out_value)>(&::message_delta_parameters_protocol_find_registered);
-    int32_t (*const message_delta_parameters_protocol_parse_value_from_config)(char *format, void *out_value) = reinterpret_cast<int32_t (*)(char *format, void *out_value)>(&::message_delta_parameters_protocol_parse_value_from_config);
     char *buffer;
 
     if (message_delta_parameters_enabled == 1) {
@@ -211,16 +194,16 @@ void ParametersProtocol::run_register(char *scope, char *name, int32_t type, voi
             buffer[scope_len + 2] = '\0';
             memcpy(buffer + scope_len + 2, name, name_len);
         }
-        if (message_delta_parameters_protocol_find_registered(buffer, 0) == 0) {
+        if (halo::networking::message_delta_parameters_protocol_find_registered(buffer, 0) == 0) {
             message_delta_parameters[message_delta_parameter_count].name = buffer;
             message_delta_parameters[message_delta_parameter_count].type = type;
             message_delta_parameters[message_delta_parameter_count].value = value;
             message_delta_parameter_count = message_delta_parameter_count + 1;
         }
         if (type == 1) {
-            message_delta_parameters_protocol_parse_value_from_config((char *)"%d", value);
+            halo::networking::message_delta_parameters_protocol_parse_value_from_config(buffer, (char *)"%d", value);
         } else {
-            message_delta_parameters_protocol_parse_value_from_config((char *)"%f", value);
+            halo::networking::message_delta_parameters_protocol_parse_value_from_config(buffer, (char *)"%f", value);
         }
     }
 }
@@ -245,7 +228,6 @@ void ParametersProtocol::reload_from_config_file(void)
 
 void ParametersProtocol::send_update(void)
 {
-    void (*const message_delta_parameters_protocol_pack_values)(void) = reinterpret_cast<void (*)(void)>(&::message_delta_parameters_protocol_pack_values);
     uint32_t next_sequence;
     int32_t encoded_bits;
 
@@ -255,19 +237,19 @@ void ParametersProtocol::send_update(void)
         if ((int32_t)next_sequence < 0) {
             next_sequence = (next_sequence - 1 | 0xfffffffc) + 1;
         }
-        message_delta_parameters_protocol_format_registered_values();
-        message_delta_parameters_protocol_pack_values();
+        halo::networking::message_delta_parameters_protocol_format_registered_values();
         {
             uint8_t local_104[260];
             uint8_t *local_10c;
             int32_t local_108;
 
             local_104[0] = (uint8_t)next_sequence;
+            halo::networking::message_delta_parameters_protocol_pack_values((int32_t *)(local_104 + 4));
             local_10c = local_104;
             local_108 = 0;
-            encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x22, 0, (void **)&local_10c, 0, 1, '\0');
+            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x22, 0, (void **)&local_10c, 0, 1, '\0');
             if (0 < encoded_bits) {
-                if (network_session_broadcast_to_all(1, message_delta_parameters_protocol_broadcast_target, 1, 0, 1, 3) != '\0') {
+                if (halo::networking::network_session_broadcast_to_all(network_server, 1, message_delta_parameters_protocol_broadcast_target, 1, 0, 1, 3) != '\0') {
                     message_delta_parameters_protocol_sequence = next_sequence;
                 }
             }
@@ -278,7 +260,7 @@ void ParametersProtocol::send_update(void)
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 void message_delta_parameters_protocol_dump_to_config_file(void)
 {
     halo::networking::ParametersProtocol::dump_to_config_file();

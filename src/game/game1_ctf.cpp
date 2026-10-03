@@ -23,20 +23,14 @@
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern ctf_globals ctf_globals_live;
 extern ctf_globals ctf_globals_network;
 extern int32_t ctf_neutral_flag_id;
 extern uint8_t shared_hud_text_draw_state;
-extern network_server_globals *network_server;
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
-    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6);
-extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length,
-    uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5, uint32_t unknown_6);
 extern data_array *player_data;
 extern int32_t ctf_team_flag_touch_count[2];
 extern wchar_t empty_string;
@@ -46,7 +40,6 @@ extern int32_t ctf_flag_auto_return_ticks;
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t count, wchar_t *dest);
 extern uint16_t missing_string_text[];
 extern Globals *global_globals;
-extern int16_t network_game_mode;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern int32_t game_engine_ctf_reset_ticks;
 extern game_variant game_engine_variant;
@@ -142,13 +135,13 @@ void Ctf::broadcast_state(void *request_fields, int32_t machine_index)
 
     if (request_fields == (void *)0) {
         void *field = &ctf_globals_network;
-        encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x14, 0, &field, 0, 1, 0);
+        encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x14, 0, &field, 0, 1, 0);
     } else {
         void *fields0 = &ctf_globals_live;
         void *fields1 = &ctf_globals_network;
         int32_t i;
 
-        encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x14, 0, (void **)&fields0, (uint32_t)&fields1, 1, 0);
+        encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x14, 0, (void **)&fields0, (uint32_t)&fields1, 1, 0);
 
         *(int32_t *)((uint8_t *)&ctf_globals_network + 0x84) = ctf_neutral_flag_id;
         for (i = 0; i < 16; i++) {
@@ -167,9 +160,9 @@ void Ctf::broadcast_state(void *request_fields, int32_t machine_index)
 
     if (encoded_bits > 0) {
         if (machine_index == -1) {
-            network_session_broadcast_to_flagged(network_server, 1, &shared_hud_text_draw_state, 0, 0, 0, 0);
+            halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 0, 0, 0, 0);
         } else {
-            network_session_send_to_machine(1, &shared_hud_text_draw_state, encoded_bits, 1, 0, 0, 3);
+            halo::networking::network_session_send_to_machine(machine_index, halo::networking::globals().server, 1, &shared_hud_text_draw_state, encoded_bits, 1, 0, 0, 3);
         }
     }
 }
@@ -326,7 +319,7 @@ datum_index Ctf::create_flag_object(real_point3d *position, uint16_t name_index)
     placement.owner_team = (int16_t)name_index;
 
     role = 3;
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         int16_t object_type = *(int16_t *)halo::cache::globals().tag_instances[(uint32_t)placement.definition_tag & 0xffff].data;
         if (object_type_definitions[object_type]->network_delta_message_type != -1) {
             role = 0;
@@ -480,7 +473,7 @@ uint8_t Ctf::initialize_for_new_game(void)
             ctf_team_flag_stand_position[slot] = (real_point3d *)((uint8_t *)halo::scenario::globals().scenario->netgame_flags.pointer + index * 0x94);
         }
     }
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         if (game_engine_variant.engine.ctf.single_flag_time > 0) {
             int32_t active;
 
@@ -725,7 +718,7 @@ uint8_t Ctf::player_flag_tick(uint32_t flag_handle, uint32_t player_index)
     object *flag_obj = ((object_header *)halo::objects::globals().object_data->data)[flag_handle & 0xffff].data;
     int16_t team = ((struct object *)flag_obj)->owner_team;
 
-    if (player_index != 0xffffffff && network_game_mode == 2) {
+    if (player_index != 0xffffffff && halo::networking::globals().game_mode == 2) {
         player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
 
         if ((int32_t)team == p->team) {
@@ -792,7 +785,7 @@ void Ctf::player_touch_flag(uint32_t player_index, int32_t team)
     ctf_team_flag_touch_count[team]++;
     (*touch_count)++;
 
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         game_engine_player_profile_cache_sync_all(1, (void *)0xffffffff);
     }
     game_engine_queue_multiplayer_sound(p->team != 0 ? 0xa : 0xd, 0xffffffff, 1);

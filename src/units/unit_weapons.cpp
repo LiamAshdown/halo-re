@@ -19,10 +19,10 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
-extern int16_t network_game_mode;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern Globals *global_globals;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
@@ -41,8 +41,6 @@ extern uint8_t network_message_scratch[0x7ff8];
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
 extern uint8_t *object_network_id_table;
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern uint8_t weapon_bottomless_clip;
 extern uint32_t game_engine_unknown_aa00;
 extern uint32_t motion_sensor_override_value;
@@ -84,7 +82,7 @@ void UnitView::add_initial_weapons()
         }
         halo::objects::object_placement_data_initialize(&placement, weapon_tag, unit_index);
         role = 3;
-        if (network_game_mode == 2 &&
+        if (halo::networking::globals().game_mode == 2 &&
             object_type_definitions[((Object *)halo::cache::globals().tag_instances[halo::datum_slot(placement.definition_tag)].data)->object_type]
                 ->network_delta_message_type != -1) {
             role = 0;
@@ -372,7 +370,7 @@ uint8_t UnitView::drop_current_weapon(uint8_t force)
             unit->weapons[unit->current_weapon_index] = k_datum_index_none;
             unit->current_weapon_index = -1;
             unit->desired_weapon_index = UnitView(unit_index).find_next_zone_permitted_weapon_slot(-1, 0);
-            if (((uint8_t)halo::items::weapon_is_out_of_ammo(current_weapon) == 0) && (network_game_mode == 0)) {
+            if (((uint8_t)halo::items::weapon_is_out_of_ammo(current_weapon) == 0) && (halo::networking::globals().game_mode == 0)) {
                 halo::objects::object_delete(current_weapon);
             }
             return 1;
@@ -408,7 +406,7 @@ void UnitView::drop_grenades()
 
             halo::objects::object_placement_data_initialize(&placement, projectile_tag, unit_index);
 
-            if (network_game_mode == 2) {
+            if (halo::networking::globals().game_mode == 2) {
                 Object *proj_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(placement.definition_tag)].data;
                 object_type_definition *type_def = object_type_definitions[proj_tag->object_type];
                 if (((struct object_type_definition *)type_def)->network_delta_message_type != -1) {
@@ -457,7 +455,7 @@ void UnitView::drop_inventory_weapons()
             }
             *weapon = k_datum_index_none;
 
-            if (halo::items::weapon_is_out_of_ammo(dropped) == 0 && network_game_mode == 0) {
+            if (halo::items::weapon_is_out_of_ammo(dropped) == 0 && halo::networking::globals().game_mode == 0) {
                 halo::objects::object_delete(dropped);
             }
         }
@@ -1041,7 +1039,7 @@ uint8_t halo::units::unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_ind
     object *weapon_obj = halo::objects::object_try_and_get(weapon_index, _object_mask_weapon);
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
-    if (network_game_mode == 1) {
+    if (halo::networking::globals().game_mode == 1) {
         char *seat_name = UnitView(unit_index).get_seat_or_state_name();
         char *weapon_label = k_empty_string;
         if (weapon_index != k_datum_index_none) {
@@ -1341,13 +1339,13 @@ void UnitView::release_thrown_grenade(uint8_t early)
             return;
         }
     }
-    if (((unit_object *)unit)->base.network_role == 0 && network_game_mode == 2 && !halo::objects::object_is_delete_pending(grenade)) {
+    if (((unit_object *)unit)->base.network_role == 0 && halo::networking::globals().game_mode == 2 && !halo::objects::object_is_delete_pending(grenade)) {
         ((struct object *)OBJECT_DATA(grenade))->network_role = 0;
         halo::objects::object_type_override_call_0x68(grenade);
         int32_t bits = halo::projectiles::projectile_send_creation(grenade);
 
         if (bits > 0) {
-            network_session_broadcast_to_flagged(bits, network_server, 1, network_message_scratch, 1, 0, 0, 3);
+            halo::networking::network_session_broadcast_to_flagged(bits, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
         }
     }
 }
@@ -1382,10 +1380,10 @@ void halo::units::unit_scripting_set_or_drop_weapon(int32_t *message)
     int32_t i;
 
     if (*(int32_t *)*message != 0) {
-        message_delta_decode_compound_field_staged(message);
+        halo::networking::message_delta_decode_compound_field_staged((void **)message);
         return;
     }
-    if (message_delta_decode_compound_field(message, &decoded) == 0 || decoded.unit_key == 0) {
+    if (halo::networking::message_delta_decode_compound_field((void **)message, &decoded) == 0 || decoded.unit_key == 0) {
         return;
     }
     keys = *(int32_t **)(object_network_id_table + 0x28);
@@ -1480,7 +1478,7 @@ void UnitView::throw_grenade_move_to_hand()
         unit->grenade_counts[grenade_type] -= 1;
     }
 
-    if ((network_game_mode != 2) && (network_game_mode != 0)) {
+    if ((halo::networking::globals().game_mode != 2) && (halo::networking::globals().game_mode != 0)) {
         unit->throwing_grenade_projectile = k_datum_index_none;
         unit->throwing_grenade_state = 2;
         return;

@@ -4,28 +4,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int32_t network_console_connection_id;
 extern int32_t sv_ban_penalty_seconds[4];
 extern char *gcd_getkeyhash(int32_t connection_id, int32_t identity_lookup_key);
-extern void network_banlist_load(void);
-extern ban_list_entry *ban_list_get_or_add_entry(char *name, char *cd_key_hash);
-extern void network_banlist_save(void);
-extern void format_local_time_and_date(char *date_dest, int32_t max_len, int32_t time_value, char *time_dest);
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern char network_banlist_full_path[0x104];
 extern char network_ban_file_read_mode_string[];
 extern char network_ban_indefinite_marker[];
-extern char *network_log_path_resolve(char *requested_path);
-extern void string_trim_whitespace(char **string_ptr);
 extern growable_array ban_list;
 extern void *console_color_00685214;
 extern void *actor_mode_default_look_weights;
 extern data_array *player_data;
 extern network_server_globals *network_server;
-extern uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_override_seconds, network_player_entry *target_player);
-extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server);
 }
 
 namespace halo::networking {
@@ -53,8 +46,8 @@ uint8_t Banlist::add_ban(int32_t identity_lookup_key, int32_t duration_override_
     }
     halo::text::string_convert_unicode_to_ascii(reinterpret_cast<uint8_t *>(player_name), reinterpret_cast<uint16_t *>(target_player), 0x18);
     player_name[0xc] = 0;
-    network_banlist_load();
-    entry = ban_list_get_or_add_entry(player_name, cd_key_hash);
+    halo::networking::network_banlist_load();
+    entry = halo::networking::ban_list_get_or_add_entry(player_name, cd_key_hash);
     if (entry != 0) {
         if (duration_override_seconds == 0) {
             if (entry->ban_count < 4) {
@@ -68,16 +61,16 @@ uint8_t Banlist::add_ban(int32_t identity_lookup_key, int32_t duration_override_
             entry->indefinite = 1;
             entry->expiry_time = 0;
             chimera__console_out((ColorARGB *)0, (char *)"Banning %s (%s) indefinitely.", player_name, cd_key_hash);
-            network_banlist_save();
+            halo::networking::network_banlist_save();
             return 1;
         }
         time(&now);
         expiry = now + duration_override_seconds;
         entry->expiry_time = expiry;
         entry->indefinite = 0;
-        format_local_time_and_date(date_buf, 0x20, expiry, time_buf);
+        halo::networking::format_local_time_and_date(date_buf, 0x20, expiry, time_buf);
         chimera__console_out((ColorARGB *)0, (char *)"Banning %s (%s) until %s %s.", player_name, cd_key_hash, date_buf, time_buf);
-        network_banlist_save();
+        halo::networking::network_banlist_save();
     }
     return 1;
 }
@@ -106,7 +99,7 @@ void Banlist::load()
     long ban_count;
     ban_list_entry *entry;
 
-    file = (FILE *)fopen(network_log_path_resolve(network_banlist_full_path),
+    file = (FILE *)fopen(halo::networking::network_log_path_resolve(network_banlist_full_path),
                                  network_ban_file_read_mode_string);
     if (file == 0) {
         return;
@@ -127,9 +120,9 @@ void Banlist::load()
             *rest = 0;
             rest = rest + 1;
         }
-        string_trim_whitespace(&name_ptr);
-        string_trim_whitespace(&hash_ptr);
-        entry = ban_list_get_or_add_entry(name_ptr, hash_ptr);
+        halo::networking::string_trim_whitespace(&name_ptr);
+        halo::networking::string_trim_whitespace(&hash_ptr);
+        entry = halo::networking::ban_list_get_or_add_entry(name_ptr, hash_ptr);
         if (entry == 0) {
             continue;
         }
@@ -249,10 +242,10 @@ uint8_t Banlist::autoban_player(datum_index player_handle)
         return 0;
     }
     chimera__console_out((ColorARGB *)0, (char *)"AUTOBAN: Banning %S.", target_player->name);
-    if (!network_banlist_add_ban(machine->gcd_user_id, 0, (network_player_entry *)target_player->name)) {
+    if (!halo::networking::network_banlist_add_ban(machine->gcd_user_id, 0, (network_player_entry *)target_player->name)) {
         return 0;
     }
-    if (!network_server_notify_or_resend_challenge(6, machine, network_server)) {
+    if (!halo::networking::network_server_notify_or_resend_challenge(6, machine, network_server)) {
         return 0;
     }
     return 1;

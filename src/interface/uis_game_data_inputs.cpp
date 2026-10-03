@@ -21,19 +21,17 @@
 #include "halo/interface/uis_game_data_inputs.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t ui_split_screen;
 extern int32_t network_host_number_field_00719218;
 extern uint16_t network_host_number_text_0071921c[0x10];
-extern uint32_t network_game_socket_port;
 extern uint32_t network_game_option_a_00719210;
 extern uint32_t network_game_option_b_00719214;
 extern heap *widget_memory_pool;
 extern void widget_extended_description_sync_selection(widget_instance *widget);
-extern network_server_globals *network_server;
 extern uint8_t *network_client;
-extern char network_player_entry_validate(void *entry);
 extern void widget_instance_set_state_recursive(widget_instance *widget, uint8_t state);
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
@@ -108,7 +106,7 @@ void UiGameDataInputs::input_4a3b70(widget_instance *widget)
 
     if (network_host_number_field_00719218 == 1) {
         if (network_host_number_text_0071921c[0] == 0) {
-            network_game_option_a_00719210 = network_game_socket_port;
+            network_game_option_a_00719210 = halo::networking::globals().game_socket_port;
         } else {
             network_game_option_a_00719210 = (uint32_t)_wtoi((const wchar_t *)network_host_number_text_0071921c);
             if (network_game_option_a_00719210 > 0xffff) {
@@ -164,7 +162,7 @@ void UiGameDataInputs::input_4a4c70(widget_instance *widget)
  */
 void UiGameDataInputs::input_4a5740(widget_instance *widget)
 {
-    uint8_t *game = network_server != 0 ? (uint8_t *)network_server + 8
+    uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
                   : network_client != 0 ? network_client + 0xb14 : 0;
     widget_instance *first;
     widget_instance *second;
@@ -221,7 +219,7 @@ void UiGameDataInputs::input_4a5740(widget_instance *widget)
     for (i = 0; i < 0x10; i++) {
         uint8_t *entry = game + 0x1a2 + i * 0x20;
 
-        if (network_player_entry_validate(entry) != 0 && (int16_t)(int8_t)entry[0x1c] == key) {
+        if (halo::networking::network_player_entry_validate((network_player_entry *)entry) != 0 && (int16_t)(int8_t)entry[0x1c] == key) {
             if ((int8_t)entry[0x1d] == 0) {
                 found = i;
             }
@@ -346,7 +344,7 @@ void UiGameDataInputs::input_4a6ab0(widget_instance *widget)
  */
 void UiGameDataInputs::input_4a6b70(widget_instance *widget)
 {
-    uint8_t *game = network_server != 0 ? (uint8_t *)network_server + 8
+    uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
                   : network_client != 0 ? network_client + 0xb14 : 0;
     static const char *const maps[] = {
         "beavercreek", "sidewinder", "damnation", "ratrace", "prisoner",
@@ -374,7 +372,7 @@ void UiGameDataInputs::input_4a6b70(widget_instance *widget)
  */
 void UiGameDataInputs::input_4a6d50(widget_instance *widget)
 {
-    uint8_t *game = network_server != 0 ? (uint8_t *)network_server + 8
+    uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
                   : network_client != 0 ? network_client + 0xb14 : 0;
 
     if (game == 0) {
@@ -423,7 +421,7 @@ void UiGameDataInputs::input_4a6d50(widget_instance *widget)
  */
 void UiGameDataInputs::input_4a6e50(widget_instance *widget)
 {
-    uint8_t *game = network_server != 0 ? (uint8_t *)network_server + 8
+    uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
                   : network_client != 0 ? network_client + 0xb14 : 0;
 
     if (game != 0) {
@@ -438,7 +436,7 @@ void UiGameDataInputs::input_4a6e50(widget_instance *widget)
  */
 void UiGameDataInputs::input_4a6e90(widget_instance *widget)
 {
-    uint8_t *game = network_server != 0 ? (uint8_t *)network_server + 8
+    uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
                   : network_client != 0 ? network_client + 0xb14 : 0;
     uint16_t *text;
 
@@ -460,7 +458,7 @@ void UiGameDataInputs::input_4a6e90(widget_instance *widget)
  */
 void UiGameDataInputs::input_4a6f00(widget_instance *widget)
 {
-    uint8_t *game = network_server != 0 ? (uint8_t *)network_server + 8
+    uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
                   : network_client != 0 ? network_client + 0xb14 : 0;
 
     if (game == 0) {
@@ -492,7 +490,7 @@ void UiGameDataInputs::input_4a6f00(widget_instance *widget)
  */
 void UiGameDataInputs::input_4a6fa0(widget_instance *widget)
 {
-    uint8_t *game = network_server != 0 ? (uint8_t *)network_server + 8
+    uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
                   : network_client != 0 ? network_client + 0xb14 : 0;
     static const char *const maps[] = {
         "beavercreek", "sidewinder", "damnation", "ratrace", "prisoner",
@@ -520,7 +518,7 @@ void UiGameDataInputs::input_4a6fa0(widget_instance *widget)
  */
 void UiGameDataInputs::input_4a7180(widget_instance *widget)
 {
-    uint8_t *game = network_server != 0 ? (uint8_t *)network_server + 8
+    uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
                   : network_client != 0 ? network_client + 0xb14 : 0;
 
     if (game == 0) {
@@ -555,7 +553,7 @@ void UiGameDataInputs::input_4a7180(widget_instance *widget)
  */
 void UiGameDataInputs::input_4a7210(widget_instance *widget)
 {
-    uint8_t *game = network_server != 0 ? (uint8_t *)network_server + 8
+    uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
                   : network_client != 0 ? network_client + 0xb14 : 0;
     uint16_t *text;
 
@@ -593,7 +591,7 @@ void UiGameDataInputs::input_4a7280(widget_instance *widget)
  */
 void UiGameDataInputs::input_4a7300(widget_instance *widget)
 {
-    uint8_t *game = network_server != 0 ? (uint8_t *)network_server + 8
+    uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
                   : network_client != 0 ? network_client + 0xb14 : 0;
 
     if (game != 0) {

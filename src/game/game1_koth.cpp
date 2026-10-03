@@ -25,13 +25,13 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 extern "C" { extern uint8_t rasterizer_render_states_dirty; }
 
 extern "C" {
 extern uint8_t hill_pulse_fade_done;
 extern uint8_t hill_pulse_grow_done;
 extern data_array *player_data;
-extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
 extern uint8_t game_engine_teams_enabled_flag;
 extern int32_t king_alt_player_score[];
@@ -54,14 +54,7 @@ extern uint8_t shared_hud_text_draw_state;
 extern int32_t king_team_hill_seconds_network[16];
 extern int32_t king_bucket_credit_ticks[16];
 extern int32_t king_hill_broadcast_overrun_value;
-extern network_server_globals *network_server;
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
-    int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
-extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length,
-    uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5, uint32_t unknown_6);
 extern int32_t king_alt_team_scores_network[16];
 extern int32_t king_alt_player_scores_network[16];
 extern int32_t king_alt_team_scores_network2[16];
@@ -174,7 +167,7 @@ void Koth::alt_scorer_tick(uint32_t player_index)
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
 
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         king_alt_player_score[player_index & 0xffff]++;
         king_alt_team_score[p->team]++;
         if (king_alt_score_target - king_alt_team_score[p->team] == 900) {
@@ -220,7 +213,7 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
 
     tick = game_time->game_time;
     if ((uint32_t)(game_time->game_time - item->held_game_time) > 0x4b0) {
-        if (network_game_mode != 2) {
+        if (halo::networking::globals().game_mode != 2) {
             return;
         }
         if (halo::items::weapon_must_be_readied((datum_index)object_handle) == 0 || (obj->flags >> 0xb & 1) == 0 || obj->parent_object != (datum_index)0xffffffff) {
@@ -242,7 +235,7 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
         game_engine_koth_relocate_object_hill(object_handle);
     }
     tick = game_time->game_time;
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         return;
     }
 check_relocation:
@@ -272,7 +265,7 @@ void Koth::broadcast_hill_times(int32_t mode, int32_t machine_index)
         void *field = &king_team_hill_seconds_network[0];
         void *no_extra = (void *)0;
         (void)no_extra;
-        encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x13, 0, &field, 0, 1, 0);
+        encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x13, 0, &field, 0, 1, 0);
     } else {
         int32_t seconds[107];
         int32_t i;
@@ -291,7 +284,7 @@ void Koth::broadcast_hill_times(int32_t mode, int32_t machine_index)
             int32_t zero_extra = 0;
             (void)count_field;
             (void)zero_extra;
-            encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x13, 0, (void **)&seconds_field, (uint32_t)&king_team_hill_seconds_network[0], 1, 0);
+            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x13, 0, (void **)&seconds_field, (uint32_t)&king_team_hill_seconds_network[0], 1, 0);
         }
 
         for (i = 0; i < 16; i++) {
@@ -302,9 +295,9 @@ void Koth::broadcast_hill_times(int32_t mode, int32_t machine_index)
 
     if (encoded_bits > 0) {
         if (machine_index == -1) {
-            network_session_broadcast_to_flagged(encoded_bits, network_server, 1, &shared_hud_text_draw_state, 0, 0, 0, 0);
+            halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 0, 0, 0, 0);
         } else {
-            network_session_send_to_machine(1, &shared_hud_text_draw_state, encoded_bits, 1, 0, 0, 3);
+            halo::networking::network_session_send_to_machine(machine_index, halo::networking::globals().server, 1, &shared_hud_text_draw_state, encoded_bits, 1, 0, 0, 3);
         }
     }
 }
@@ -321,7 +314,7 @@ void Koth::broadcast_team_scores(int32_t mode, int32_t machine_index)
 
     if (mode == 0) {
         void *field = &king_alt_team_scores_network[0];
-        encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x12, 0, &field, 0, 1, 0);
+        encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x12, 0, &field, 0, 1, 0);
     } else {
         int32_t target_and_team[17];
         int32_t player_scores[16];
@@ -343,7 +336,7 @@ void Koth::broadcast_team_scores(int32_t mode, int32_t machine_index)
         {
             void *fields0 = target_and_team;
             void *fields1 = &king_alt_team_scores_network[0];
-            encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x12, 0, (void **)&fields0,
+            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x12, 0, (void **)&fields0,
                 (uint32_t)&fields1, 1, 0);
         }
 
@@ -360,9 +353,9 @@ void Koth::broadcast_team_scores(int32_t mode, int32_t machine_index)
 
     if (encoded_bits > 0) {
         if (machine_index == -1) {
-            network_session_broadcast_to_flagged(encoded_bits, network_server, 1, &shared_hud_text_draw_state, 0, 0, 0, 0);
+            halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 0, 0, 0, 0);
         } else {
-            network_session_send_to_machine(1, &shared_hud_text_draw_state, encoded_bits, 1, 0, 0, 3);
+            halo::networking::network_session_send_to_machine(machine_index, halo::networking::globals().server, 1, &shared_hud_text_draw_state, encoded_bits, 1, 0, 0, 3);
         }
     }
 }
@@ -768,14 +761,14 @@ void Koth::player_tick(uint32_t player_index)
     if (p->unit != (datum_index)0xffffffff &&
         (current_game_engine == 0 || game_engine_state_value == 0) &&
         game_engine_koth_player_in_hill_bounds(player_index) != 0) {
-        uint8_t hosting = (network_game_mode == 2);
+        uint8_t hosting = (halo::networking::globals().game_mode == 2);
 
         king_hill_player_in_hill[idx] = 1;
         if (hosting) {
             *(int16_t *)&((struct player *)p)->objective_time += 1;
         }
 
-        if (king_bucket_last_credit_tick[p->team] < game_time->game_time && network_game_mode == 2) {
+        if (king_bucket_last_credit_tick[p->team] < game_time->game_time && halo::networking::globals().game_mode == 2) {
             int32_t limit_ticks = game_engine_variant.score_limit * 0x708;
             int32_t bucket;
 
@@ -852,7 +845,7 @@ void Koth::relocate_hill_marker(int32_t ball_index)
  */
 void Koth::relocate_object_hill(uint32_t object_index)
 {
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
         real_point3d discarded_position;
 

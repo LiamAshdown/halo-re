@@ -5,29 +5,9 @@
 #include "message_delta_codec.h"
 #include "halo/networking/net2_message_delta_scalar.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
-int32_t message_delta_boolean_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_boolean_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_byte_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_byte_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_compute_size_1(message_delta_field_type *field_type);
-int32_t message_delta_compute_size_16(message_delta_field_type *field_type);
-int32_t message_delta_compute_size_2(message_delta_field_type *field_type);
-int32_t message_delta_compute_size_3(message_delta_field_type *field_type);
-int32_t message_delta_compute_size_32(message_delta_field_type *field_type);
-int32_t message_delta_compute_size_4(message_delta_field_type *field_type);
-int32_t message_delta_compute_size_6(message_delta_field_type *field_type);
-int32_t message_delta_compute_size_8(message_delta_field_type *field_type);
-int32_t message_delta_flags_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_flags_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-uint8_t message_delta_flags_initialize(message_delta_field_type *field_type);
-int32_t message_delta_integer_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_integer_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_integer_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-uint8_t message_delta_integer_initialize(message_delta_field_type *field_type);
-int32_t message_delta_long_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_long_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 }
 
 
@@ -298,7 +278,7 @@ int32_t ScalarFieldCodec::long_encode(message_delta_field_type *field_type, void
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 int32_t message_delta_boolean_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
     return halo::networking::ScalarFieldCodec::boolean_decode(field_type, previous, current, stream);

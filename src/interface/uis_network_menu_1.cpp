@@ -18,6 +18,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int32_t ui_list_current;
@@ -48,20 +49,13 @@ extern uint32_t sv_maxplayers_value;
 extern uint32_t network_resolved_local_address;
 extern uint16_t local_port_006869b6;
 extern uint16_t ip_port_format_string_0066a564[];
-extern uint32_t network_game_socket_port;
 extern uint8_t network_host_name_flag_00719276;
 extern uint8_t ui_network_wait_active;
 extern int32_t ui_network_wait_start_time;
 extern uint8_t ui_network_wait_timed_out;
-extern network_client_globals *network_client;
-extern int16_t network_game_mode;
-extern uint8_t network_host_handoff_requested;
 extern void *widget_instance_find_root(widget_instance *widget);
 extern int32_t widget_get_sibling_index(widget_instance *widget);
 extern void chat_close(void);
-extern int32_t network_connection_initiate(network_client_globals *connection, const uint32_t *target,
-                                            const uint32_t *session_info);
-extern void network_debug_fill_canary_buffer(void);
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
     widget_instance *parent, uint16_t controller_index, datum_index history_definition,
     datum_index history_list_definition, int16_t history_selection);
@@ -306,7 +300,7 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
         halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(ip_control->text), 0x40, text);
         halo::text::string_format_wide_va_bounded(
             0x1f - address_length, reinterpret_cast<uint16_t *>(ip_control->text) + address_length,
-            reinterpret_cast<const uint16_t *>(ip_port_format_string_0066a564), network_game_socket_port);
+            reinterpret_cast<const uint16_t *>(ip_port_format_string_0066a564), halo::networking::globals().game_socket_port);
         ((uint16_t *)ip_control->text)[0x1f] = 0;
     }
 
@@ -460,14 +454,14 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
         if (entry[0x12c] == 1) {
             if (*(int16_t *)(entry + 0x12a) == 1 && *(uint32_t *)entry != 0 &&
                 *(int16_t *)(entry + 0x12) != 0) {
-                uint32_t session_info[1] = {0};
+                uint32_t session_info[9] = {0};
                 int32_t connected;
 
-                network_debug_fill_canary_buffer();
-                connected = network_connection_initiate(network_client, (const uint32_t *)entry,
+                halo::networking::network_debug_fill_canary_buffer(session_info);
+                connected = halo::networking::network_connection_initiate(halo::networking::globals().client, (const uint32_t *)entry,
                                                          session_info);
                 if ((uint8_t)connected == 0) {
-                    network_host_handoff_requested = 1;
+                    halo::networking::globals().host_handoff_requested = 1;
                     chat_close();
                     return 0;
                 }
@@ -485,7 +479,7 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
                         (datum_index)-1, (widget_instance *)0, (uint16_t)-1,
                         *(datum_index *)page, parent_definition, (int16_t)sibling);
                     if (opened != (widget_instance *)0) {
-                        network_game_mode = 1;
+                        halo::networking::globals().game_mode = 1;
                     }
                     *out_handled = 1;
                     return opened != (widget_instance *)0;

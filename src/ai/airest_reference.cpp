@@ -14,6 +14,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern const real_vector3d *global_down3d_pointer;
@@ -1380,7 +1381,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-    if (network_game_mode == 1) {
+    if (halo::networking::globals().game_mode == 1) {
         uint8_t *player = (uint8_t *)halo::memory::datum_get(*(datum_index *)(self + 0x218), player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
@@ -1399,7 +1400,7 @@ static void biped_free_local_player_history(uint8_t *self)
     int16_t salt = (int16_t)(player_index >> 16);
     uint8_t *player;
 
-    if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
+    if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
         index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
         return;
     }
@@ -1407,8 +1408,8 @@ static void biped_free_local_player_history(uint8_t *self)
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
-    if (network_client != 0) {
-        player_update_history_free_all(*(void **)&network_client->update_history);
+    if (halo::networking::globals().client != 0) {
+        halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
     }
 }
 
@@ -1445,7 +1446,7 @@ void ReferenceView::units_exit_vehicles()
             continue;
         }
         self = *(uint8_t **)(header + 0x8);
-        if (self == 0 || network_game_mode == 1 ||
+        if (self == 0 || halo::networking::globals().game_mode == 1 ||
             (vehicle_index = ((struct object *)self)->parent_object) == k_datum_index_none ||
             *(int16_t *)(self + 0x2f0) == -1) {
             continue;

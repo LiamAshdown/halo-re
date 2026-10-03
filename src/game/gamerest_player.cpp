@@ -15,21 +15,19 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
 extern data_array *player_data;
 extern player_globals *local_player_globals;
 extern uint8_t *main_game_globals;
-extern int16_t network_game_mode;
 extern void player_trigger_shield_recharge_effect(uint32_t player_index);
 extern void player_trigger_full_health_effect(uint32_t player_index);
 extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle);
 extern void player_trigger_kill_streak_effect(uint32_t player_index);
 extern void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t local_player_index, int8_t machine_id);
 extern game_time_globals *game_time;
-extern network_client_globals *network_client;
-extern void player_update_history_free_all(void *history);
 extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point);
 extern void player_set_pending_interaction_action(int16_t priority_type, int16_t seat, uint32_t player_index, uint32_t candidate_object);
 extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind, int16_t count);
@@ -74,13 +72,9 @@ extern void player_notify_kill_streak_update(int32_t slot, int16_t amount, uint3
 extern int32_t multikill_medal_threshold;
 extern int32_t sv_tk_grace_ticks;
 extern int32_t sv_tk_cooldown_ticks;
-extern void network_session_autoban_player(void);
 extern uint8_t shared_hud_text_draw_state;
 extern uint8_t *machine_table;
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern network_server_globals *network_server;
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern uint16_t global_006889e4;
 extern uint16_t global_007102f0;
 extern uint32_t global_006889f4;
@@ -97,22 +91,18 @@ extern void position_update_queue_create(circular_queue *queue);
 extern void vehicle_update_queue_create(circular_queue *queue);
 extern void game_engine_player_changed_object(uint32_t param);
 extern void network_queue_destroy(circular_queue *queue);
-extern uint32_t network_machine_clear_flag_by_id(network_server_globals *server, int32_t machine_id);
 extern data_array *update_client_queues;
 extern player_profile player_profile_cache[16];
 extern int32_t player_profile_cache_count;
 extern void player_delete(uint32_t machine_index, datum_index player_handle);
-extern void network_index_cache_remove(void *table, datum_index player_handle);
 extern int32_t game_engine_player_profile_cache_find(datum_index player_handle);
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern int32_t catchup_backlog_threshold;
 extern int32_t catchup_time_threshold;
-extern uint8_t network_client_vehicle_ack_enabled;
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward);
 extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern void apply_remote_player_position_update(player *plr, object *unit_obj);
 extern void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj);
-extern void player_update_history_log_printf_filtered(player *target_player, int32_t unused_arg, const char *format, ...);
 extern data_array *team_data;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern void game_engine_reattach_player_unit_unused(uint32_t player_index, uint32_t target_object, void *local_offset);
@@ -210,7 +200,7 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-    if (network_game_mode == 1) {
+    if (halo::networking::globals().game_mode == 1) {
         uint8_t *player = (uint8_t *)halo::memory::datum_get(*(datum_index *)(self + 0x218), player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
@@ -286,14 +276,14 @@ void PlayerView::apply_pickup_effect(uint32_t pickup_object)
         if (halo::objects::object_shield_recharge_start(p->unit) == 0) {
             return;
         }
-        if (network_game_mode == 0) {
+        if (halo::networking::globals().game_mode == 0) {
             PlayerView(player_index).trigger_shield_recharge_effect();
         }
     } else if (discriminator == 5) {
         if (halo::objects::object_restore_full_body_vitality(p->unit) == 0) {
             return;
         }
-        if (network_game_mode == 0) {
+        if (halo::networking::globals().game_mode == 0) {
             PlayerView(player_index).trigger_full_health_effect();
         }
     } else {
@@ -306,7 +296,7 @@ void PlayerView::apply_pickup_effect(uint32_t pickup_object)
         if (KillStreak(player_index).add_kill_streak(slot, amount) == 0) {
             return;
         }
-        if ((int16_t)slot == 0 && network_game_mode == 0) {
+        if ((int16_t)slot == 0 && halo::networking::globals().game_mode == 0) {
             KillStreak(player_index).trigger_kill_streak_effect();
         }
     }
@@ -332,7 +322,7 @@ uint8_t PlayerView::attach_unit_to_parent(uint32_t target_object, void *local_of
     if (biped == 0) {
         return 0;
     }
-    if (((biped_object *)biped)->base.parent_object != k_datum_index_none && network_game_mode != 1) {
+    if (((biped_object *)biped)->base.parent_object != k_datum_index_none && halo::networking::globals().game_mode != 1) {
         uint8_t *self = OBJECT_DATA(unit_index);
         datum_index parent = ((struct object *)self)->parent_object;
 
@@ -343,7 +333,7 @@ uint8_t PlayerView::attach_unit_to_parent(uint32_t target_object, void *local_of
         if (((struct object *)self)->network_role == 0) {
             halo::units::unit_dispatch_scripted_event_9(1, (int32_t)unit_index);
         }
-        if (network_game_mode == 1) {
+        if (halo::networking::globals().game_mode == 1) {
             datum_index player_handle = *(datum_index *)(self + 0x218);
             int16_t index = (int16_t)player_handle;
             int16_t salt = (int16_t)(player_handle >> 16);
@@ -353,8 +343,8 @@ uint8_t PlayerView::attach_unit_to_parent(uint32_t target_object, void *local_of
                 uint8_t *player = (uint8_t *)player_data->data + *(int16_t *)((uint8_t *)player_data + 0x22) * index;
 
                 if (*(int16_t *)player != 0 && (salt == 0 || *(int16_t *)player == salt) &&
-                    ((struct player *)player)->local_player_index != -1 && network_client != 0) {
-                    player_update_history_free_all(*(void **)&network_client->update_history);
+                    ((struct player *)player)->local_player_index != -1 && halo::networking::globals().client != 0) {
+                    halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
                 }
             }
         }
@@ -476,13 +466,13 @@ void PlayerView::check_vehicle_boarding_interaction(uint32_t candidate_object)
             return;
         }
         tag = *(datum_index *)OBJECT_DATA(candidate_object);
-        if (network_game_mode == 2) {
+        if (halo::networking::globals().game_mode == 2) {
             hud_post_item_message(0, (int32_t)tag, 0, local_player_index, machine);
         } else {
             hud_add_item_message(local_player_index, (int32_t)tag, 0, 0);
         }
         LocalPlayerUnit(unit_index).invalidate_local_player_zoom_level();
-        if (network_game_mode == 2) {
+        if (halo::networking::globals().game_mode == 2) {
             game_engine_notify_player_interaction(player_index, candidate_object, 1, 7, -1, -1);
         }
         return;
@@ -646,11 +636,11 @@ uint8_t PlayerView::execute_pending_interaction()
     case 9: {
         uint32_t occupant = k_datum_index_none;
 
-        if (network_game_mode == 1 &&
+        if (halo::networking::globals().game_mode == 1 &&
             (unit_index == k_datum_index_none || halo::objects::object_try_and_get(unit_index, 3) == 0)) {
             return 0;
         }
-        if (network_game_mode == 1 && !halo::units::unit_seat_is_occupied_by_other(unit_index, (int16_t)seat, target_index,
+        if (halo::networking::globals().game_mode == 1 && !halo::units::unit_seat_is_occupied_by_other(unit_index, (int16_t)seat, target_index,
                                                                       &occupant)) {
             datum_index self_index = ((player *)record)->unit;
             uint8_t *self = (uint8_t *)halo::objects::object_try_and_get(self_index, 3);
@@ -664,10 +654,10 @@ uint8_t PlayerView::execute_pending_interaction()
             halo::units::unit_enter_vehicle_seat(((player *)record)->interaction_object, (int16_t)*(uint16_t *)&((player *)record)->interaction_seat,
                 ((player *)record)->unit);
             handled = 1;
-            if (network_game_mode == 1) {
+            if (halo::networking::globals().game_mode == 1) {
                 if (((player *)record)->local_player_index != -1) {
-                    if (network_client != 0) {
-                        player_update_history_free_all(*(void **)&network_client->update_history);
+                    if (halo::networking::globals().client != 0) {
+                        halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
                     }
                 } else {
                     ((player *)record)->position_updates.read_index = 0;
@@ -1075,7 +1065,7 @@ void PlayerView::reset_after_unit_change()
         return;
     }
 
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         update_server_queue *entry =
             &((update_server_queue *)update_server_queues->data)[player_index];
         plr->unknown_f4 = (datum_index)-1;
@@ -1087,10 +1077,10 @@ void PlayerView::reset_after_unit_change()
     }
 
     if (plr->local_player_index != -1) {
-        if (network_client != 0) {
-            player_update_history_free_all(*(void **)&network_client->update_history);
+        if (halo::networking::globals().client != 0) {
+            halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
         }
-    } else if (network_game_mode == 1) {
+    } else if (halo::networking::globals().game_mode == 1) {
         plr->update_history.queue.read_index = 0;
         plr->update_history.queue.write_index = 0;
         plr->position_updates.read_index = 0;
@@ -1641,7 +1631,7 @@ uint8_t KillStreak::add_kill_streak(int32_t slot, int16_t amount)
         *streak = *streak + amount;
     }
 
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         object *owner_unit = (object *)((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
         if (owner_unit->network_role == 0) {
             KillStreak(player_handle).notify_kill_streak_update(slot, amount);
@@ -1690,7 +1680,7 @@ void KillStreak::advance_multikill_medal()
 
     p->medal_streak_count = p->medal_streak_count + 1;
     if (multikill_medal_threshold != 0 && multikill_medal_threshold <= p->medal_streak_count) {
-        network_session_autoban_player();
+        halo::networking::network_session_autoban_player(player_handle);
         return;
     }
 
@@ -1773,9 +1763,9 @@ void KillStreak::notify_kill_streak_update(int32_t slot, int16_t amount)
     fields.amount = amount;
     fields_ptr = &fields;
 
-    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xe, 0, &fields_ptr, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xe, 0, &fields_ptr, 0, 1, 0);
     if (0 < encoded_bits) {
-        network_session_broadcast_to_flagged(encoded_bits, network_server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
+        halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
     }
 }
 
@@ -2163,7 +2153,7 @@ void Players::delete_player(uint32_t machine_index, datum_index player_handle)
     game_engine_player_changed_object(player_handle);
 
     update_machine_slot = 0;
-    if (network_game_mode == 1) {
+    if (halo::networking::globals().game_mode == 1) {
         update_machine_slot = 1;
         if (player_handle != (datum_index)-1) {
             index = (int16_t)player_handle;
@@ -2179,10 +2169,10 @@ void Players::delete_player(uint32_t machine_index, datum_index player_handle)
                 }
             }
         }
-    } else if (network_game_mode == 2) {
+    } else if (halo::networking::globals().game_mode == 2) {
         update_machine_slot = 1;
 
-        network_machine_clear_flag_by_id((network_server_globals *)network_server, (int32_t)machine_index);
+        halo::networking::network_machine_clear_flag_by_id((network_server_globals *)halo::networking::globals().server, (int32_t)machine_index);
     }
 
     if (update_machine_slot && machine_to_player[machine_index & 0xffff] == player_handle) {
@@ -2213,7 +2203,7 @@ void Players::remove_player(datum_index player_handle)
 
     halo::memory::datum_delete(update_client_queues, player_handle);
 
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         server_entry = &((update_server_queue *)update_server_queues->data)[index];
         GlobalFree(server_entry->queue.queue.storage);
         server_entry->queue.queue.storage = (void *)0;
@@ -2222,7 +2212,7 @@ void Players::remove_player(datum_index player_handle)
 
     Players::delete_player((uint32_t)(int8_t)*((uint8_t *)p + 0x64), player_handle);
 
-    network_index_cache_remove(network_index_cache_table, player_handle);
+    halo::networking::network_index_cache_remove((uint8_t *)network_index_cache_table, player_handle);
     profile_index = game_engine_player_profile_cache_find(player_handle);
     player_profile_cache[profile_index].in_use = 0;
     player_profile_cache_count = player_profile_cache_count - 1;
@@ -2302,7 +2292,7 @@ datum_index Players::spawn_starting_profile_weapon(TagDependency *weapon_depende
 
         {
             uint32_t datum_role = 3;
-            if (network_game_mode == 2) {
+            if (halo::networking::globals().game_mode == 2) {
                 tag_instance *inst = &halo::cache::globals().tag_instances[weapon_dependency->tag_id.index];
                 Object *tag_data = (Object *)inst->data;
                 object_type_definition *def = object_type_definitions[tag_data->object_type];
@@ -2544,7 +2534,7 @@ void Players::client_catchup_on_server_updates()
 
                 updates_applied = updates_applied + 1;
 
-                if (record.references_remaining == record.reference_count - 1 && network_game_mode == 1 &&
+                if (record.references_remaining == record.reference_count - 1 && halo::networking::globals().game_mode == 1 &&
                     plr->local_player_index == -1 && plr->unit != (datum_index)-1) {
                     int16_t index = (int16_t)plr->unit;
                     int16_t salt = (int16_t)((uint32_t)plr->unit >> 16);
@@ -2621,7 +2611,7 @@ void Players::client_catchup_on_server_updates()
                         halo::units::unit_apply_control_block(plr->unit, &control, -1);
                     }
 
-                    if (PlayerView(iter.index).unit_has_parent() != 0 && network_client_vehicle_ack_enabled != 0) {
+                    if (PlayerView(iter.index).unit_has_parent() != 0 && halo::networking::globals().client_vehicle_ack_enabled != 0) {
                         halo::objects::object_update((uint32_t)unit_obj->parent_object);
                     } else {
                         halo::units::unit_update(plr->unit);
@@ -2633,7 +2623,7 @@ void Players::client_catchup_on_server_updates()
             if (updates_applied > 0) {
                 int32_t remaining_backlog = update_queue_count(queue);
 
-                player_update_history_log_printf_filtered(
+                halo::networking::player_update_history_log_printf_filtered(
                     plr, 1, "[%d]: Caught up on [%d] updates == [%d] ticks.\n", game_time->game_time,
                     initial_backlog - remaining_backlog, updates_applied);
             }

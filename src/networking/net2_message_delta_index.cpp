@@ -8,6 +8,7 @@
 #include "halo/networking/field_codec.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t message_delta_item_count_bits[];
@@ -15,32 +16,7 @@ extern uint32_t item_placement_bits_x;
 extern uint32_t item_placement_bits_y;
 extern uint32_t item_placement_bits_z;
 extern double floor(double x);
-extern void message_delta_parameters_protocol_register(char *scope, char *name, int32_t type, void *value);
 extern uint8_t message_delta_parameters_enabled;
-uint8_t message_delta_count_initialize(message_delta_field_type *field_type);
-int32_t message_delta_enum_width_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_first_dword_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_grenade_counts_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_grenade_counts_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_grenade_index_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_grenade_index_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_index_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_index_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_index_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-uint8_t message_delta_index_initialize(message_delta_field_type *field_type);
-void message_delta_index_teardown(message_delta_field_type *field_type);
-int32_t message_delta_item_placement_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_item_placement_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_item_placement_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-uint8_t message_delta_item_placement_initialize(message_delta_field_type *field_type);
-int32_t message_delta_pointer_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_pointer_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_pointer_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-uint8_t message_delta_pointer_initialize(message_delta_field_type *field_type);
-int32_t message_delta_range_compute_size(message_delta_field_type *field_type);
-uint8_t message_delta_range_initialize(message_delta_field_type *field_type);
-int32_t message_delta_weapon_index_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_weapon_index_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 }
 
 
@@ -248,9 +224,9 @@ uint8_t IndexFieldCodec::item_placement_initialize(message_delta_field_type *fie
 {
     (void)field_type;
     if (message_delta_parameters_enabled == 1) {
-        message_delta_parameters_protocol_register(0, (char *)"gITEM_PLACEMENT_BITS_X", 1, &item_placement_bits_x);
-        message_delta_parameters_protocol_register(0, (char *)"gITEM_PLACEMENT_BITS_Y", 1, &item_placement_bits_y);
-        message_delta_parameters_protocol_register(0, (char *)"gITEM_PLACEMENT_BITS_Z", 1, &item_placement_bits_z);
+        halo::networking::message_delta_parameters_protocol_register(0, (char *)"gITEM_PLACEMENT_BITS_X", 1, &item_placement_bits_x);
+        halo::networking::message_delta_parameters_protocol_register(0, (char *)"gITEM_PLACEMENT_BITS_Y", 1, &item_placement_bits_y);
+        halo::networking::message_delta_parameters_protocol_register(0, (char *)"gITEM_PLACEMENT_BITS_Z", 1, &item_placement_bits_z);
     }
     return 1;
 }
@@ -337,7 +313,7 @@ int32_t IndexFieldCodec::weapon_index_encode(message_delta_field_type *field_typ
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 uint8_t message_delta_count_initialize(message_delta_field_type *field_type)
 {
     return halo::networking::IndexFieldCodec::count_initialize(field_type);

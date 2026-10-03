@@ -10,6 +10,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -56,19 +57,14 @@ extern uint8_t playlist_profiles_need_defaults;
 extern char last_profile_name[];
 extern int32_t cached_profile_slot;
 extern uint16_t hud_text_unknown[];
-extern network_client_globals *network_client;
-extern network_server_globals *network_server;
 extern uint8_t profile_globals_block[];
 extern game_engine_definition *current_game_engine;
 extern uint8_t port_overridden;
-extern uint32_t network_game_socket_port;
 extern uint32_t game_cport;
 extern uint32_t network_session_start_game_type;
 extern void player_profile_refresh_settings_cache(int16_t player_index);
 extern uint8_t player_profile_apply_video_options(uint8_t *settings);
 extern void player_profile_apply_audio_options(uint8_t *settings);
-extern void network_channels_close(void);
-extern void network_channels_open(void);
 extern player_control_settings input_globals[];
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_disk_copy[0x1ffc];
@@ -652,7 +648,7 @@ uint8_t PlayerProfiles::get_flag_by_id(int16_t id)
     int32_t slot;
 
     slot = id;
-    if (network_client == (void *)0 && network_server == (void *)0) {
+    if (halo::networking::globals().client == (void *)0 && halo::networking::globals().server == (void *)0) {
         slot = -1;
         if (profile_slot_id[0] == id) {
             slot = 0;
@@ -694,13 +690,13 @@ void PlayerProfiles::load(int16_t player_index, void *source_profile, int32_t pr
     player_profile_apply_audio_options(record);
 
     if (current_game_engine == (void *)0 && port_overridden == 0 &&
-        (network_game_socket_port != *(uint16_t *)(record + 0x1002) ||
+        (halo::networking::globals().game_socket_port != *(uint16_t *)(record + 0x1002) ||
          game_cport != *(uint16_t *)(record + 0x1004))) {
-        network_channels_close();
-        network_game_socket_port = *(uint16_t *)(record + 0x1002);
+        halo::networking::network_channels_close();
+        halo::networking::globals().game_socket_port = *(uint16_t *)(record + 0x1002);
         game_cport = *(uint16_t *)(record + 0x1004);
-        network_channels_open();
-        network_session_start_game_type = network_game_socket_port;
+        halo::networking::network_channels_open();
+        network_session_start_game_type = halo::networking::globals().game_socket_port;
     }
 
     if (profile_id != -1) {

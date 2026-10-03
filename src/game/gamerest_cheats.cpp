@@ -5,6 +5,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -12,7 +13,6 @@ extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t co
 extern data_array *player_data;
 extern player_globals *local_player_globals;
 extern uint32_t cheat_get_target_object_index(void);
-extern int16_t network_game_mode;
 extern void *object_type_definitions[12];
 extern double atan2(double y, double x);
 extern double sin(double x);
@@ -185,7 +185,7 @@ void Cheats::spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
         placement.position.x = (float)(cos(angle) * (double)1.5f + (double)unit_position.x);
         placement.position.y = (float)(sin(angle) * (double)1.5f + (double)unit_position.y);
         placement.position.z = unit_position.z + 0.8f;
-        if (network_game_mode == 2) {
+        if (halo::networking::globals().game_mode == 2) {
             int16_t object_type = *(int16_t *)halo::cache::globals().tag_instances[placement.definition_tag & 0xffff].data;
 
             if (*(int32_t *)((uint8_t *)object_type_definitions[object_type] + 0x10) != -1) {

@@ -20,6 +20,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern data_array * player_data;
@@ -36,30 +37,6 @@ extern void player_compute_view_forward_vector(void);
 extern network_client_globals * network_client;
 extern void players_find_local_owned_unclear(void);
 extern network_id_table * machine_table;
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state,
-    void *field_bindings, const void *previous, void *destination);
-extern void handle_remote_player_action_update(remote_player_action_state *control_source,
-    remote_player_update_header *header, uint8_t is_baseline);
-int32_t player_data_iterator_advance(int16_t step_count);
-uint8_t player_update_history_add(datum_index unit_index, player_update_history *history,
-    int32_t tick_count, player_action control, int32_t *out_update_id);
-void player_update_history_destroy(player_update_history *history);
-player_update_history_node * player_update_history_find_and_prune(player_update_history *history,
-    int32_t target_id, uint8_t prune);
-void player_update_history_free_all(player_update_history *history);
-void player_update_history_log_printf_filtered(player *target_player, int32_t unused_arg,
-    const char *format, ...);
-void player_update_history_log_set_name_filter(char *name);
-void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask, const char *format, ...);
-int32_t player_update_history_play(uint8_t prune, int32_t prune_target_id,
-    player_update_history *history, datum_index unit_index, float server_x, float server_y,
-    float server_z, local_player_vehicle_update_ack *vehicle_ack);
-void player_update_history_play_for_update_index(datum_index player_index);
-void player_update_history_play_local_player(int32_t target_update_id);
-void player_update_queue_flush_by_name(char *name);
-int32_t player_update_queue_offset_from_head(player *plr, int32_t new_update_id);
-void player_update_remote_player_action_update_apply(int32_t **decode_context);
 }
 
 
@@ -116,7 +93,7 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
                 count = count + 1;
                 tick_sum = tick_sum + walk->tick_count;
             }
-            player_update_history_log_write(1, 0,
+            halo::networking::player_update_history_log_write(1, 0,
                 "[%d]: Player update history overflow, [%d] updates == [%d] ticks.\n",
                 game_time->game_time, count, tick_sum);
             *out_update_id = -1;
@@ -197,13 +174,13 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
         tick_sum = tick_sum + walk->tick_count;
     }
     if (node->update_id % 10 == 0) {
-        player_update_history_log_write(1, 0,
+        halo::networking::player_update_history_log_write(1, 0,
             "[%d]: Added through update [%d]. [%d]/[%d]updates == [%d] ticks\n",
             game_time->game_time, node->update_id, count,
             0x40, tick_sum);
     }
     if (count == 0x40) {
-        player_update_history_log_write(1, 0,
+        halo::networking::player_update_history_log_write(1, 0,
             "[%d]: Warning...Update history is now full, [%d] updates.\n",
             game_time->game_time, 0x40);
     }
@@ -330,14 +307,14 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
     real distance;
 
     vehicle_obj = 0;
-    node = player_update_history_find_and_prune(history, prune_target_id, prune);
+    node = halo::networking::player_update_history_find_and_prune(history, prune_target_id, prune);
     history->statistics[0] = history->statistics[0] + 1;
     history->statistics[3] = 0;
     history->statistics[4] = 0;
 
     if (unit_index == (datum_index)-1) {
         result = 0;
-        player_update_history_log_write(1, 0, "Ignoring update [%d] due to unit_index == NONE");
+        halo::networking::player_update_history_log_write(1, 0, "Ignoring update [%d] due to unit_index == NONE");
         if (node != 0) {
             return result;
         }
@@ -465,16 +442,16 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
             end_z = vehicle_obj->position.z;
         }
 
-        player_update_history_log_write(1, 0, "       Original Pos: [%f] [%f] [%f]",
+        halo::networking::player_update_history_log_write(1, 0, "       Original Pos: [%f] [%f] [%f]",
             (double)original_x, (double)original_y, (double)original_z);
-        player_update_history_log_write(1, 0, "Server Starting Pos: [%f] [%f] [%f]",
+        halo::networking::player_update_history_log_write(1, 0, "Server Starting Pos: [%f] [%f] [%f]",
             (double)server_x, (double)server_y, (double)server_z);
-        player_update_history_log_write(1, 0, "Client Starting Pos: [%f] [%f] [%f]",
+        halo::networking::player_update_history_log_write(1, 0, "Client Starting Pos: [%f] [%f] [%f]",
             (double)client_start_x, (double)client_start_y, (double)client_start_z);
-        player_update_history_log_write(1, 0, "         Ending Pos: [%f] [%f] [%f]",
+        halo::networking::player_update_history_log_write(1, 0, "         Ending Pos: [%f] [%f] [%f]",
             (double)end_x, (double)end_y, (double)end_z);
-        player_update_history_log_write(1, 0, "         Difference: [%f]");
-        player_update_history_log_write(1, 0, "        Ran updates: [%d] -> [%d], [%d] updates == [%d] ticks");
+        halo::networking::player_update_history_log_write(1, 0, "         Difference: [%f]");
+        halo::networking::player_update_history_log_write(1, 0, "        Ran updates: [%d] -> [%d], [%d] updates == [%d] ticks");
 
         if (vehicle_obj == 0) {
             end2_x = unit_obj->position.x;
@@ -503,7 +480,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
     }
 
     result = 0;
-    player_update_history_log_write(1, 0, "Ignoring update [%d] due to starting_update == NULL");
+    halo::networking::player_update_history_log_write(1, 0, "Ignoring update [%d] due to starting_update == NULL");
     return result;
 }
 
@@ -512,18 +489,13 @@ void PlayerUpdateHistory::play_for_update_index(datum_index player_index)
     player *plr;
 
     plr = (player *)((uint8_t *)player_data->data + (uint16_t)player_index * player_data->size);
-    player_update_history_play(0, 0, (player_update_history *)network_client->update_history, plr->unit,
+    halo::networking::player_update_history_play(0, 0, (player_update_history *)network_client->update_history, plr->unit,
         *(float *)&plr->unknown_f0, *(float *)&plr->unknown_f4, *(float *)&plr->unknown_f8, 0);
 
 }
 
 void PlayerUpdateHistory::play_local_player(int32_t target_update_id)
 {
-    void (*const player_update_history_play)(uint8_t prune, int32_t prune_target_id,
-    player_update_history *history, datum_index unit_index, float server_x, float server_y,
-    float server_z, local_player_vehicle_update_ack *vehicle_ack) = reinterpret_cast<void (*)(uint8_t prune, int32_t prune_target_id,
-    player_update_history *history, datum_index unit_index, float server_x, float server_y,
-    float server_z, local_player_vehicle_update_ack *vehicle_ack)>(&::player_update_history_play);
     data_iterator iter;
     player *candidate;
     datum_index unit_index;
@@ -563,7 +535,7 @@ void PlayerUpdateHistory::play_local_player(int32_t target_update_id)
         }
     } while (1);
     if (after_match != 0) {
-        player_update_history_play(0, 0, (player_update_history *)network_client->update_history,
+        halo::networking::player_update_history_play(0, 0, (player_update_history *)network_client->update_history,
             unit_index, *(float *)(after_match->unit_state + 0x00),
             *(float *)(after_match->unit_state + 0x04),
             *(float *)(after_match->unit_state + 0x08), 0);
@@ -663,7 +635,7 @@ void PlayerUpdateHistory::remote_player_action_update_apply(int32_t **decode_con
     if (state->incremental == 0) {
         memset(&decoded, 0, sizeof(decoded));
         is_baseline = 1;
-        if (message_delta_decode_compound_field(decode_context, &decoded) != 1) {
+        if (halo::networking::message_delta_decode_compound_field((void **)decode_context, &decoded) != 1) {
             return;
         }
     } else {
@@ -688,8 +660,8 @@ void PlayerUpdateHistory::remote_player_action_update_apply(int32_t **decode_con
         }
 
         decoded = previous;
-        state->bits_read += message_delta_read_changed_subfields(state, decode_context + 1,
-            &previous, &decoded);
+        state->bits_read += halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(decode_context + 1),
+            (int32_t)&previous, (int32_t)&decoded);
         state->changed = 1;
     }
 
@@ -702,7 +674,7 @@ void PlayerUpdateHistory::remote_player_action_update_apply(int32_t **decode_con
             int16_t salt = (int16_t)((uint32_t)remapped_index >> 16);
             if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)
                 && maybe->local_player_index == -1) {
-                handle_remote_player_action_update(&decoded, header, is_baseline);
+                halo::networking::handle_remote_player_action_update(&decoded, header, is_baseline);
             }
         }
     }
@@ -710,7 +682,7 @@ void PlayerUpdateHistory::remote_player_action_update_apply(int32_t **decode_con
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 void player_update_history_log_printf_filtered(player *target_player, int32_t unused_arg,
     const char *format, ...)
 {

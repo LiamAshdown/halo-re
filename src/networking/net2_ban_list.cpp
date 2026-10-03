@@ -12,13 +12,11 @@
 #include <string.h>
 #include "halo/networking/net2_ban_list.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern growable_array ban_list;
-uint8_t ban_list_check_and_reject_player(char *key);
-ban_list_entry * ban_list_find_by_name(char *key);
-ban_list_entry * ban_list_get_or_add_entry(char *name, char *cd_key_hash);
 }
 
 
@@ -29,7 +27,7 @@ uint8_t BanList::check_and_reject_player(char *key)
     ban_list_entry *entry;
     time_t now;
 
-    entry = ban_list_find_by_name(key);
+    entry = halo::networking::ban_list_find_by_name(key);
     if (entry != 0) {
         if (entry->indefinite == 0) {
             time(&now);
@@ -67,7 +65,7 @@ ban_list_entry * BanList::get_or_add_entry(char *name, char *cd_key_hash)
     ban_list_entry *entry;
     int32_t index;
 
-    entry = ban_list_find_by_name(cd_key_hash);
+    entry = halo::networking::ban_list_find_by_name(cd_key_hash);
     if (entry != 0) {
         return entry;
     }
@@ -88,7 +86,7 @@ ban_list_entry * BanList::get_or_add_entry(char *name, char *cd_key_hash)
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 uint8_t ban_list_check_and_reject_player(char *key)
 {
     return halo::networking::BanList::check_and_reject_player(key);

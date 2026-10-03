@@ -23,6 +23,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t level_select_entries[0x50];
@@ -32,29 +33,17 @@ extern void widget_play_sound_effect(int16_t effect_id);
 extern int16_t local_player_count;
 extern uint8_t save_in_progress_00719010;
 extern uint32_t ui_start_campaign_from_level_one(void *widget, int16_t *event);
-extern uint8_t network_join_error_reason;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
-extern void network_client_globals_dispose(void);
-extern network_server_globals *network_server;
-extern void network_game_server_host_dispose(void *host);
-extern uint8_t network_server_host_valid;
 extern uint8_t local_team_00714dd8;
 extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc];
 extern void network_game_setup_teardown(void);
-extern void *network_session_create(void);
-extern network_client_globals *network_client;
-extern int16_t network_game_mode;
-extern uint8_t network_host_handoff_requested;
-extern uint8_t network_disconnect_timeout_flag;
 extern uint32_t game_engine_ensure_variant_history_has_entry(void);
-extern int32_t network_game_server_host_create(void);
 extern int32_t game_variant_history_current;
 extern void game_engine_apply_current_custom_variant(void);
 extern void game_engine_sync_variant_defaults(void);
 extern int32_t selected_saved_item;
 extern void main_menu_play_title_music(void);
-extern void network_dispatch_initialize(void);
 extern uint8_t *map_list;
 extern int32_t map_list_count;
 extern growable_array ui_lists[3];
@@ -183,7 +172,7 @@ uint8_t UiEventHandlers::event_49d0d0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d100(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    network_join_error_reason = 0;
+    halo::networking::globals().join_error_reason = 0;
     halo::main::fields::lost_map = 0;
     split_screen_quit_prompt_string = 0xffff;
     halo::main::fields::revert_map = 1;
@@ -197,7 +186,7 @@ uint8_t UiEventHandlers::event_49d100(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d120(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    network_join_error_reason = 0;
+    halo::networking::globals().join_error_reason = 0;
     halo::main::fields::lost_map = 0;
     split_screen_quit_prompt_string = 0xffff;
     halo::interface::state::round_reset_pending = 1;
@@ -212,7 +201,7 @@ uint8_t UiEventHandlers::event_49d120(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_49d140(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     split_screen_quit_prompt_string = 0xffff;
-    network_join_error_reason = 0;
+    halo::networking::globals().join_error_reason = 0;
     split_screen_quit_prompt_armed = 1;
     return 1;
 }
@@ -224,11 +213,11 @@ uint8_t UiEventHandlers::event_49d140(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d160(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    network_client_globals_dispose();
-    if (network_server != 0) {
-        network_game_server_host_dispose(network_server);
-        network_server = 0;
-        network_server_host_valid = 0;
+    halo::networking::network_client_globals_dispose();
+    if (halo::networking::globals().server != 0) {
+        halo::networking::network_game_server_host_dispose(halo::networking::globals().server);
+        halo::networking::globals().server = 0;
+        halo::networking::globals().server_host_valid = 0;
     }
     local_team_00714dd8 = 0;
     coop_profile_globals_block_00714ddc[0] = 0;
@@ -254,19 +243,19 @@ uint8_t UiEventHandlers::event_49d1a0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d1b0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    network_client_globals_dispose();
-    if (network_server != 0) {
-        network_game_server_host_dispose(network_server);
-        network_server = 0;
-        network_server_host_valid = 0;
+    halo::networking::network_client_globals_dispose();
+    if (halo::networking::globals().server != 0) {
+        halo::networking::network_game_server_host_dispose(halo::networking::globals().server);
+        halo::networking::globals().server = 0;
+        halo::networking::globals().server_host_valid = 0;
     }
     network_game_setup_teardown();
-    network_client = (network_client_globals *)network_session_create();
-    if (network_client == 0) {
+    halo::networking::globals().client = (network_client_globals *)halo::networking::network_session_create();
+    if (halo::networking::globals().client == 0) {
         return 0;
     }
-    network_game_mode = 1;
-    network_host_handoff_requested = 0;
+    halo::networking::globals().game_mode = 1;
+    halo::networking::globals().host_handoff_requested = 0;
     return 1;
 }
 
@@ -289,12 +278,12 @@ uint8_t UiEventHandlers::event_49d440(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d450(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    if (network_server != 0) {
-        network_game_server_host_dispose(network_server);
-        network_server = 0;
-        network_server_host_valid = 0;
+    if (halo::networking::globals().server != 0) {
+        halo::networking::network_game_server_host_dispose(halo::networking::globals().server);
+        halo::networking::globals().server = 0;
+        halo::networking::globals().server_host_valid = 0;
     }
-    network_client_globals_dispose();
+    halo::networking::network_client_globals_dispose();
     network_game_setup_teardown();
     return 1;
 }
@@ -308,31 +297,31 @@ uint8_t UiEventHandlers::event_49d480(widget_instance *widget, int16_t *event, u
 {
     uint8_t ok = 1;
 
-    network_disconnect_timeout_flag = 0;
-    if (network_server == 0) {
+    halo::networking::globals().disconnect_timeout_flag = 0;
+    if (halo::networking::globals().server == 0) {
         game_engine_ensure_variant_history_has_entry();
-        ok = (uint8_t)network_game_server_host_create();
+        ok = (uint8_t)halo::networking::network_game_server_host_create();
         if (ok == 1) {
             game_variant_history_current = -1;
             game_engine_apply_current_custom_variant();
             game_engine_sync_variant_defaults();
-            network_game_mode = 2;
+            halo::networking::globals().game_mode = 2;
         }
     }
-    if (ok != 0 && network_client == 0) {
-        network_client = (network_client_globals *)network_session_create();
-        if (network_client != 0) {
-            network_host_handoff_requested = 0;
+    if (ok != 0 && halo::networking::globals().client == 0) {
+        halo::networking::globals().client = (network_client_globals *)halo::networking::network_session_create();
+        if (halo::networking::globals().client != 0) {
+            halo::networking::globals().host_handoff_requested = 0;
         }
-        ok = (uint8_t)(network_client != 0);
+        ok = (uint8_t)(halo::networking::globals().client != 0);
     }
     if (ok == 0) {
-        if (network_server != 0) {
-            network_game_server_host_dispose(network_server);
-            network_server = 0;
-            network_server_host_valid = 0;
+        if (halo::networking::globals().server != 0) {
+            halo::networking::network_game_server_host_dispose(halo::networking::globals().server);
+            halo::networking::globals().server = 0;
+            halo::networking::globals().server_host_valid = 0;
         }
-        network_client_globals_dispose();
+        halo::networking::network_client_globals_dispose();
         network_game_setup_teardown();
     }
     return ok;
@@ -362,15 +351,15 @@ uint8_t UiEventHandlers::event_49d540(widget_instance *widget, int16_t *event, u
     local_team_00714dd8 = 0;
     coop_profile_globals_block_00714ddc[0] = 0;
     network_game_setup_teardown();
-    network_client_globals_dispose();
-    if (network_server != 0) {
-        network_game_server_host_dispose(network_server);
-        network_server = 0;
-        network_server_host_valid = 0;
+    halo::networking::network_client_globals_dispose();
+    if (halo::networking::globals().server != 0) {
+        halo::networking::network_game_server_host_dispose(halo::networking::globals().server);
+        halo::networking::globals().server = 0;
+        halo::networking::globals().server_host_valid = 0;
     }
     music_pending = halo::main::globals().menu_music_pending;
-    network_disconnect_timeout_flag = 0;
-    network_game_mode = 0;
+    halo::networking::globals().disconnect_timeout_flag = 0;
+    halo::networking::globals().game_mode = 0;
     save_in_progress_00719010 = 0;
     local_player_count = 1;
     selected_saved_item = -1;
@@ -389,7 +378,7 @@ uint8_t UiEventHandlers::event_49d5b0(widget_instance *widget, int16_t *event, u
 {
     local_player_count = 1;
     save_in_progress_00719010 = 0;
-    network_dispatch_initialize();
+    halo::networking::network_dispatch_initialize();
     return 1;
 }
 
@@ -402,7 +391,7 @@ uint8_t UiEventHandlers::event_49d5d0(widget_instance *widget, int16_t *event, u
 {
     game_engine_ensure_variant_history_has_entry();
     game_engine_apply_current_custom_variant();
-    network_server_host_valid = 1;
+    halo::networking::globals().server_host_valid = 1;
     return 1;
 }
 
@@ -581,7 +570,7 @@ uint8_t UiEventHandlers::event_49dab0(widget_instance *widget, int16_t *event, u
     }
     memcpy(game_variant_saved_default, variant, sizeof(variant));
     game_variant_saved_default_valid = 1;
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         return 1;
     }
     game_engine_ensure_variant_history_has_entry();

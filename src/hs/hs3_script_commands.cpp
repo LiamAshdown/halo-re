@@ -74,7 +74,7 @@ void ScriptCommands::evaluate_track_remote_player_position_updates(int16_t funct
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        player_update_history_log_set_name_filter((char *)arguments[0]);
+        halo::networking::player_update_history_log_set_name_filter((char *)arguments[0]);
         halo::hs::hs_thread_return(0, thread_index);
     }
 }

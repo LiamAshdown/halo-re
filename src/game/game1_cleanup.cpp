@@ -15,10 +15,10 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
-extern int16_t network_game_mode;
 extern game_variant game_engine_variant;
 extern game_engine_definition *current_game_engine;
 extern data_array *player_data;
@@ -105,7 +105,7 @@ void ObjectCleanup::cleanup_stray_items(void)
 
     obj = halo::objects::object_iterator_next(&iter);
     while (obj != (object *)0) {
-        if (network_game_mode != 1 || obj->network_role == 3) {
+        if (halo::networking::globals().game_mode != 1 || obj->network_role == 3) {
             int16_t index16 = (int16_t)(uint32_t)iter.handle;
 
             if (iter.handle != (datum_index)0xffffffff && index16 >= 0 &&
@@ -223,7 +223,7 @@ void ObjectCleanup::flag_local_player_units(void)
         p = (player *)halo::memory::data_iterator_next(&iterator);
         while (p != (player *)0) {
             if (p->quit_tick != k_datum_index_none && p->marked_for_deletion == 0 &&
-                (network_game_mode == 1 || current_tick == (int32_t)p->quit_tick)) {
+                (halo::networking::globals().game_mode == 1 || current_tick == (int32_t)p->quit_tick)) {
                 p->marked_for_deletion = 1;
                 if (p->unit == k_datum_index_none) {
                     player_remove(iterator.index);

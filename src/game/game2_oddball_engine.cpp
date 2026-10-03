@@ -2,6 +2,7 @@
 #include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_variant game_engine_variant;
@@ -9,7 +10,6 @@ extern int32_t king_alt_team_score[16];
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
 extern data_array *player_data;
 extern int32_t king_alt_player_score[];
-extern int16_t network_game_mode;
 extern int32_t king_alt_score_target;
 extern int32_t king_alt_team_scores_network[16];
 extern int32_t oddball_ball_timers_006b11cc[16];
@@ -21,8 +21,6 @@ extern void game_engine_koth_alt_scorer_tick(uint32_t player_index);
 extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player, int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast);
 extern game_engine_definition *current_game_engine;
 extern uint8_t game_engine_teams_enabled_flag;
-extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
-extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, uint8_t *changed_flags, int32_t changed_offset, int32_t destination_offset);
 extern int32_t king_alt_team_scores_network2[16];
 extern int32_t king_alt_player_scores_network[16];
 extern int32_t king_alt_scores_network_tail[16];
@@ -103,7 +101,7 @@ uint8_t OddballEngine::initialize_for_new_game(void)
         king_hill_occupant_table[i] = 0xffffffff;
         king_hill_occupant_last_tick[i] = -1;
     }
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         if (mode > 0 && mode <= 2) {
             for (i = 0; i < game_engine_variant.engine.oddball.ball_count; i++) {
                 oddball_ball_timers_006b11cc[i] = 0;
@@ -166,7 +164,7 @@ void OddballEngine::player_killed(datum_index killer, datum_index death_object, 
     int32_t i;
 
     (void)death_object;
-    if (game_engine_variant.engine.oddball.ball_type <= 0 || game_engine_variant.engine.oddball.ball_type > 2 || network_game_mode != 2) {
+    if (game_engine_variant.engine.oddball.ball_type <= 0 || game_engine_variant.engine.oddball.ball_type > 2 || halo::networking::globals().game_mode != 2) {
         return;
     }
     count = game_engine_variant.engine.oddball.ball_count;
@@ -219,7 +217,7 @@ void OddballEngine::player_killed(datum_index killer, datum_index death_object, 
  */
 void OddballEngine::player_new_life(datum_index player_index)
 {
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         return;
     }
     king_alt_player_score[player_index & 0xffff] = 0;
@@ -266,7 +264,7 @@ void OddballEngine::skip_unchanged_message(message_delta_decode_state *state)
 uint8_t OddballEngine::read_changed(void **context, void *changed_base, void *destination)
 {
     message_delta_decode_state *state = (message_delta_decode_state *)context[0];
-    int32_t bits = message_delta_read_changed_subfields(state, (uint8_t *)(context + 1), (int32_t)changed_base, (int32_t)destination);
+    int32_t bits = halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(context + 1), (int32_t)changed_base, (int32_t)destination);
 
     state->bits_read += bits;
     if (bits != 0) {
@@ -292,7 +290,7 @@ void OddballEngine::profile_post_update(void **context)
     int32_t i;
 
     if (state->incremental == 0) {
-        changed = message_delta_decode_compound_field(context, king_alt_team_scores_network);
+        changed = halo::networking::message_delta_decode_compound_field(context, king_alt_team_scores_network);
     } else {
         memcpy(&king_alt_score_target, king_alt_team_scores_network, 0x51 * 4);
         changed = read_changed(context, king_alt_team_scores_network, &king_alt_score_target);
@@ -364,7 +362,7 @@ void OddballEngine::reset_objects(void)
     int32_t count = game_engine_variant.engine.oddball.ball_count;
     int32_t i;
 
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         for (i = 0; i < 16; i++) {
             king_alt_player_score[i] = 0;
             king_alt_team_score[i] = 0;
@@ -433,7 +431,7 @@ void OddballEngine::unknown_48(void)
         game_engine_queue_multiplayer_sound(teams != 0 ? 0x21 : 0x13, 0xffffffff, 0);
     }
     count = game_engine_variant.engine.oddball.ball_count;
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         for (i = 0; i < count; i++) {
             if (oddball_ball_timers_006b11cc[i] > 0 && --oddball_ball_timers_006b11cc[i] == 0) {
                 game_engine_queue_multiplayer_sound(0, 0xffffffff, 0);

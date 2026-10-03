@@ -10,6 +10,7 @@
 #include "code_refs.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/networking/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/units/api.hpp"
@@ -1319,7 +1320,7 @@ uint32_t table_00687148[1] = {
 uint32_t table_006871b0[41] = {
     /* +0x0000 */ 0x1, 0x6c616572, 0, 0, 0, 0, 0, 0,
     /* +0x0020 */ 0, 0, 0, 0, 0, 0, 0, 0,
-    /* +0x0040 */ 0, 0, 0, 0, (uint32_t)message_delta_real_encode, (uint32_t)message_delta_long_decode, 0, 0xffffffffu,
+    /* +0x0040 */ 0, 0, 0, 0, (uint32_t)&halo::networking::message_delta_real_encode, (uint32_t)&halo::networking::message_delta_long_decode, 0, 0xffffffffu,
     /* +0x0060 */ 0, 0, 0x10000, 0x30002, 0x50004, 0x6, 0x8, 0x1010101,
     /* +0x0080 */ 0x1010101, 0, 0, 0, 0, 0, 0, 0,
     /* +0x00a0 */ 0x11,
@@ -1938,7 +1939,7 @@ uint32_t table_0069a838[1] = {
 uint32_t table_0069a8a0[27] = {
     /* +0x0000 */ 0x12, 0x656d6974, 0, 0, 0, 0, 0, 0,
     /* +0x0020 */ 0, 0, 0, 0, 0, 0, 0, 0,
-    /* +0x0040 */ 0, 0, 0, 0, (uint32_t)message_delta_long_encode, (uint32_t)message_delta_long_decode, 0, 0xffffffffu,
+    /* +0x0040 */ 0, 0, 0, 0, (uint32_t)&halo::networking::message_delta_long_encode, (uint32_t)&halo::networking::message_delta_long_decode, 0, 0xffffffffu,
     /* +0x0060 */ 0, 0, 0x1b,
 };
 

@@ -25,11 +25,11 @@
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
-extern void network_client_rejoin_check(int8_t machine_player_index);
 extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
 extern int32_t profile_slot_lookup_cache_00692ac8;
@@ -47,20 +47,11 @@ extern void *game_engine_variant_defaults_classic_slayer(void *out);
 extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind);
 extern int32_t network_host_edit_field_00719410;
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
-extern network_client_globals *network_client;
-extern char network_player_entry_validate(void *entry);
-extern int32_t network_staged_message_commit(void *client, int16_t value);
-extern network_server_globals *network_server;
 extern int16_t profile_slot_id[];
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error);
-extern char network_session_info_packet_send(const uint32_t *source, void *client);
 extern uint8_t local_team_00714dd8[];
-extern uint8_t network_disconnect_timeout_flag;
 extern uint32_t network_server_reset_game_stats(void);
 extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc];
-extern void network_client_globals_dispose(void);
-extern void network_game_server_host_dispose(void *host);
-extern uint8_t network_server_host_valid;
 extern widget_history_node *ui_widget_history[3];
 extern heap *widget_memory_pool;
 extern uint8_t level_select_flags_0071916b;
@@ -147,7 +138,7 @@ uint8_t UiEventHandlers::event_4a0fb0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a10f0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    network_client_rejoin_check((int8_t)event[1]);
+    halo::networking::network_client_rejoin_check((int8_t)event[1]);
     return 1;
 }
 
@@ -357,7 +348,7 @@ uint8_t UiEventHandlers::event_4a1480(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a1570(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *client = (uint8_t *)network_client;
+    uint8_t *client = (uint8_t *)halo::networking::globals().client;
     int32_t i;
 
     if (client == 0) {
@@ -366,9 +357,9 @@ uint8_t UiEventHandlers::event_4a1570(widget_instance *widget, int16_t *event, u
     for (i = 0; i < 0x10; i++) {
         uint8_t *entry = client + 0xcb6 + i * 0x20;
 
-        if (network_player_entry_validate(entry) != 0 && (int16_t)(int8_t)entry[0x1c] == *(int16_t *)client &&
+        if (halo::networking::network_player_entry_validate((network_player_entry *)entry) != 0 && (int16_t)(int8_t)entry[0x1c] == *(int16_t *)client &&
             (int16_t)(int8_t)entry[0x1d] == event[1]) {
-            network_staged_message_commit(client, 1);
+            halo::networking::network_staged_message_commit((network_client_globals *)client, 1);
             return 1;
         }
     }
@@ -382,7 +373,7 @@ uint8_t UiEventHandlers::event_4a1570(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a15e0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *client = (uint8_t *)network_client;
+    uint8_t *client = (uint8_t *)halo::networking::globals().client;
     int32_t i;
 
     if (client == 0) {
@@ -391,9 +382,9 @@ uint8_t UiEventHandlers::event_4a15e0(widget_instance *widget, int16_t *event, u
     for (i = 0; i < 0x10; i++) {
         uint8_t *entry = client + 0xcb6 + i * 0x20;
 
-        if (network_player_entry_validate(entry) != 0 && (int16_t)(int8_t)entry[0x1c] == *(int16_t *)client &&
+        if (halo::networking::network_player_entry_validate((network_player_entry *)entry) != 0 && (int16_t)(int8_t)entry[0x1c] == *(int16_t *)client &&
             (int16_t)(int8_t)entry[0x1d] == event[1]) {
-            network_staged_message_commit(client, 0);
+            halo::networking::network_staged_message_commit((network_client_globals *)client, 0);
             return 1;
         }
     }
@@ -407,7 +398,7 @@ uint8_t UiEventHandlers::event_4a15e0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a1650(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *server = (uint8_t *)network_server;
+    uint8_t *server = (uint8_t *)halo::networking::globals().server;
 
     if (server != 0) {
         *(uint16_t *)(server + 6) |= 1;
@@ -423,8 +414,8 @@ uint8_t UiEventHandlers::event_4a1650(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a16a0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    if (network_server != 0) {
-        ((uint8_t *)network_server)[0x9d5] = 0;
+    if (halo::networking::globals().server != 0) {
+        ((uint8_t *)halo::networking::globals().server)[0x9d5] = 0;
     }
     return 1;
 }
@@ -486,7 +477,7 @@ uint8_t UiEventHandlers::event_4a1700(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a1790(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *client = (uint8_t *)network_client;
+    uint8_t *client = (uint8_t *)halo::networking::globals().client;
     uint8_t *found = 0;
     int32_t count = 0;
     int16_t key;
@@ -503,14 +494,14 @@ uint8_t UiEventHandlers::event_4a1790(widget_instance *widget, int16_t *event, u
     if (*state != 2) {
         return 1;
     }
-    key = network_client != 0 ? *(int16_t *)network_client : -1;
+    key = halo::networking::globals().client != 0 ? *(int16_t *)halo::networking::globals().client : -1;
     if (key == -1) {
         return 1;
     }
     for (i = 0; i < 0x10; i++) {
         uint8_t *entry = client + 0xcb6 + i * 0x20;
 
-        if (network_player_entry_validate(entry) != 0 && (int16_t)(int8_t)entry[0x1c] == key) {
+        if (halo::networking::network_player_entry_validate((network_player_entry *)entry) != 0 && (int16_t)(int8_t)entry[0x1c] == key) {
             count++;
             if ((int16_t)(int8_t)entry[0x1d] == event[1]) {
                 found = entry;
@@ -521,23 +512,23 @@ uint8_t UiEventHandlers::event_4a1790(widget_instance *widget, int16_t *event, u
         return 1;
     }
     if (found != 0) {
-        network_session_info_packet_send((const uint32_t *)found, client);
+        halo::networking::network_session_info_packet_send((const uint32_t *)found, (network_client_globals *)client);
         local_team_00714dd8[(int8_t)found[0x1d] * 0x2004] = 0;
     }
     if (count != 1) {
         return 0;
     }
-    if (network_server != 0 && network_disconnect_timeout_flag != 1) {
+    if (halo::networking::globals().server != 0 && halo::networking::globals().disconnect_timeout_flag != 1) {
         uint8_t result = (uint8_t)network_server_reset_game_stats();
 
         local_team_00714dd8[0] = coop_profile_globals_block_00714ddc[0];
         return result;
     }
-    network_client_globals_dispose();
-    if (network_server != 0) {
-        network_game_server_host_dispose(network_server);
-        network_server = 0;
-        network_server_host_valid = 0;
+    halo::networking::network_client_globals_dispose();
+    if (halo::networking::globals().server != 0) {
+        halo::networking::network_game_server_host_dispose(halo::networking::globals().server);
+        halo::networking::globals().server = 0;
+        halo::networking::globals().server_host_valid = 0;
     }
     local_team_00714dd8[0] = coop_profile_globals_block_00714ddc[0];
     return 1;

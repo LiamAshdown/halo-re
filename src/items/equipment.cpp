@@ -6,24 +6,18 @@
 #include "halo/sound/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern real equipment_network_update_position_tolerance;
 extern double sqrt(double x);
-extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t changed_offset, uint8_t force);
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern network_id_table *object_network_id_table;
 extern network_id_table *machine_table;
 extern uint8_t network_object_index_cache[];
-extern int32_t network_index_cache_find_or_allocate_slot(uint8_t *container, int32_t key);
-extern int message_delta_encode_message(int flag, int message_type, int changed_offset, void **items, int type_offset, int count, char force_changed);
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 extern uint32_t sound_play_new(uint32_t sound_tag_id, void *parameters, uint32_t owner_index, int32_t extra_size, void *extra, uint32_t extra_count, uint32_t allow_deferred);
 extern void *game_time;
 extern int32_t k_equipment_minimum_age_ticks;
-extern int16_t network_game_mode;
 void halo::items::equipment_apply_network_update(datum_index item_index, uint32_t *update_record);
 int32_t halo::items::equipment_build_network_update(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
 void halo::items::equipment_create_from_creation_message(void *incoming_record);
@@ -54,7 +48,7 @@ void equipment_ref::apply_network_update(uint32_t *update_record)
 
     obj = halo::objects::object_try_and_get(item_index, _object_mask_equipment);
     if (obj == 0) {
-        message_delta_decode_compound_field_staged(update_record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)update_record);
         return;
     }
     ed = (equipment_data *)((uint8_t *)obj + k_item_extension_offset);
@@ -64,7 +58,7 @@ void equipment_ref::apply_network_update(uint32_t *update_record)
         (header->baseline_index != ed->network_baseline_index ||
          (header->sequence <= ed->network_sequence &&
           (int)((uint32_t)(header->sequence - ed->network_sequence) + 0xff) > 0x1d))) {
-        message_delta_decode_compound_field_staged(update_record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)update_record);
         return;
     }
 
@@ -72,8 +66,8 @@ void equipment_ref::apply_network_update(uint32_t *update_record)
 
     {
         uint8_t accept = (*(int32_t *)update_record[0] == 1)
-                             ? message_delta_decode_compound_field_forced(update_record, &decoded, (int32_t)&ed->network_state, 0)
-                             : message_delta_decode_compound_field(update_record, &decoded);
+                             ? halo::networking::message_delta_decode_compound_field_forced((void **)update_record, &decoded, (int32_t)&ed->network_state, 0)
+                             : halo::networking::message_delta_decode_compound_field((void **)update_record, &decoded);
         if (accept != 0) {
             ed->network_sequence = header->sequence;
             obj->flags |= _object_took_network_update_bit;
@@ -135,7 +129,7 @@ void equipment_ref::build_creation_message(uint32_t unused_arg2, uint32_t unused
         }
     }
     if (item_hash == -1) {
-        item_hash = network_index_cache_find_or_allocate_slot(network_object_index_cache, (int32_t)item_index);
+        item_hash = halo::networking::network_index_cache_find_or_allocate_slot(network_object_index_cache, (int32_t)item_index);
     }
 
     message.definition_tag = obj->definition_tag;
@@ -155,7 +149,7 @@ void equipment_ref::build_creation_message(uint32_t unused_arg2, uint32_t unused
     }
 
     item_ptr = &message;
-    message_delta_encode_message(0, k_message_equipment_creation, 0, &item_ptr, 0, 1, 0);
+    halo::networking::message_delta_encode_message((int32_t)unused_arg2, (int32_t)unused_arg3, 0, k_message_equipment_creation, 0, &item_ptr, 0, 1, 0);
 }
 
 /**
@@ -222,7 +216,7 @@ int32_t equipment_ref::build_network_update(uint32_t unused_arg2, uint32_t unuse
             type_offset = &net_ptr;
         }
 
-        result = message_delta_encode_message(is_full_snapshot, message_type,
+        result = halo::networking::message_delta_encode_message((int32_t)unused_arg2, (int32_t)unused_arg3, is_full_snapshot, message_type,
             (int)&header_ptr, items_array, (int)type_offset, 1, 0);
     }
 
@@ -257,10 +251,10 @@ void equipment_ref::create_from_creation_message(void *incoming_record)
     int32_t i;
 
     if (*(int32_t *)*(int32_t **)incoming_record != 0) {
-        message_delta_decode_compound_field_staged(incoming_record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)incoming_record);
         return;
     }
-    if (message_delta_decode_compound_field(incoming_record, &decoded) != 1) {
+    if (halo::networking::message_delta_decode_compound_field((void **)incoming_record, &decoded) != 1) {
         return;
     }
 
@@ -297,7 +291,7 @@ void equipment_ref::create_from_creation_message(void *incoming_record)
         return;
     }
 
-    network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object_index);
+    halo::networking::network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object_index);
 
     obj = ((object_header *)halo::objects::globals().object_data->data)[new_object_index & halo::k_slot_mask].data;
     ed = (equipment_data *)((uint8_t *)obj + k_item_extension_offset);
@@ -397,7 +391,7 @@ uint8_t equipment_ref::create()
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     equipment_data *ed = (equipment_data *)((uint8_t *)obj + k_item_extension_offset);
 
-    if (network_game_mode == 1 || network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) {
         ed->network_state_valid = 0;
         ed->network_baseline_index = 0;
         ed->network_sequence = 0;

@@ -2,15 +2,12 @@
 #include "halo/projectiles/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern network_id_table *object_network_id_table;
 extern uint8_t network_message_scratch[halo::projectiles::k_network_message_scratch_size];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern network_server_globals *network_server;
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern void *network_object_index_cache;
-extern void network_index_cache_remove(void *globals, uint32_t object_index);
 }
 
 namespace halo::projectiles {
@@ -51,7 +48,7 @@ void ProjectileNetwork::send_attach(datum_index parent_object_index, int16_t mar
     message.parent_marker_index = marker_index;
 
     items[0] = &message;
-    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, halo::projectiles::k_network_message_scratch_size, 0, k_message_projectile_attach, 0, items, 0, 1, 0), network_server, 1, network_message_scratch, 1, 0, 0, 3);
+    halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::projectiles::k_network_message_scratch_size, 0, k_message_projectile_attach, 0, items, 0, 1, 0), halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
 }
 
 /**
@@ -78,11 +75,11 @@ void ProjectileNetwork::send_detonation()
     message.position = obj->position;
 
     items[0] = &message;
-    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, halo::projectiles::k_network_message_scratch_size, 0, k_message_projectile_detonation, 0, items, 0, 1, 0), network_server, 1, network_message_scratch, 1, 0, 0, 3);
+    halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::projectiles::k_network_message_scratch_size, 0, k_message_projectile_detonation, 0, items, 0, 1, 0), halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
 
     obj->network_role = 3;
     if ((((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(projectile_index)].flags & _object_header_delete_pending_bit) == 0) {
-        network_index_cache_remove(&network_object_index_cache, projectile_index); 
+        halo::networking::network_index_cache_remove((uint8_t *)&network_object_index_cache, projectile_index); 
     }
 }
 

@@ -15,12 +15,10 @@
 
 #include "halo/interface/uis_screens.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
-extern network_client_globals *network_client;
-extern network_server_globals *network_server;
 extern game_time_globals *game_time;
-extern int16_t network_game_mode;
 extern uint8_t ui_split_screen;
 extern int32_t ui_pause_pending_count_00718fa0;
 extern player_control_globals *player_control_globals_ptr;
@@ -48,8 +46,8 @@ namespace halo::ui {
 uint32_t UiScreens::check_for_pause_game(void)
 {
     uint8_t handled = 0;
-    uint8_t networked = (network_client != (network_client_globals *)0) ||
-                         (network_server != (network_server_globals *)0);
+    uint8_t networked = (halo::networking::globals().client != (network_client_globals *)0) ||
+                         (halo::networking::globals().server != (network_server_globals *)0);
     int16_t active_player;
     int16_t player_count = 0;
     uint8_t single_player_at_start = 1;
@@ -59,7 +57,7 @@ uint32_t UiScreens::check_for_pause_game(void)
     if (game_time->initialized == 0 ||
         (game_time->active == 0 && game_time->paused == 0) ||
         halo::cutscene::globals().cinematic_globals->in_progress != 0 ||
-        network_game_mode == 3 || ui_split_screen != 0 || ui_pause_pending_count_00718fa0 != 0 ||
+        halo::networking::globals().game_mode == 3 || ui_split_screen != 0 || ui_pause_pending_count_00718fa0 != 0 ||
         (player_control_globals_ptr->action_flags_latched >> 3 & 1) != 0 || chat_dialog_open != 0 ||
         halo::interface::state::escape_key_state != 1) {
         goto decrement_and_return;

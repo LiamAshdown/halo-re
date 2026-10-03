@@ -6,10 +6,9 @@
 #include <math.h>
 #include "halo/networking/net2_message_delta_vector.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
-extern void vector3d_lerp_by_mode_denominator(void *table, real_vector3d *out_point,
-    int32_t *ratios);
 extern double sqrt(double x);
 extern real message_delta_vector3d_delta_epsilon;
 extern real message_delta_vector3d_delta_range;
@@ -18,40 +17,8 @@ extern uint32_t message_delta_vector3d_delta_bits;
 extern uint32_t message_delta_vector3d_absolute_bits_mode0;
 extern uint32_t message_delta_vector3d_absolute_bits_mode1;
 extern double floor(double x);
-extern void message_delta_parameters_protocol_register(char *scope, char *name, int32_t type, void *value);
 extern uint8_t message_delta_parameters_enabled;
-extern void vector3d_from_yaw_pitch(real_vector3d *out_direction, real yaw, real pitch);
-extern void vector3d_to_angles(real *out, real_vector3d vector);
-extern void digital_throttle_decode_vector(real *out, uint32_t code);
-extern int32_t digital_throttle_encode_vector(real_vector3d vector);
-extern int32_t message_delta_dword_array_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-extern int32_t message_delta_float_array_encode(message_delta_field_type *field_type, float *previous, float *values,
-    bit_stream *stream);
-extern void vector3d_quantize(int32_t *out_indices, int32_t *descriptor, real *point);
 extern uint32_t message_delta_unary_ones[];
-int32_t message_delta_decode_vector3d_indexed(int32_t param_1, int32_t mode, real *destination,
-    bit_stream *stream);
-int32_t message_delta_encode_vector3d(int32_t unused, real *previous, real *values,
-    bit_stream *stream);
-int32_t message_delta_locality_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_locality_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-uint8_t message_delta_locality_initialize(message_delta_field_type *field_type);
-int32_t message_delta_normal_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_normal_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_normal_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-uint8_t message_delta_normal_initialize(message_delta_field_type *field_type);
-uint32_t message_delta_quantize_float_to_int(uint32_t max_level, real value, real minimum,
-    real maximum);
-int32_t message_delta_quantized_real_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_quantized_real_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-uint8_t message_delta_quantized_real_initialize(message_delta_field_type *field_type);
-int32_t message_delta_real_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_throttle_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_throttle_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_vector_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_vector_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_velocity_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_velocity_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 }
 
 static int32_t write_zero_bit(bit_stream *stream)
@@ -94,7 +61,7 @@ int32_t VectorFieldCodec::decode_vector3d_indexed(int32_t param_1, int32_t mode,
         (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&b, stream);
         (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&c, stream);
         ratios[0] = a; ratios[1] = b; ratios[2] = c;
-        vector3d_lerp_by_mode_denominator(table, (real_vector3d *)destination, ratios);
+        halo::networking::vector3d_lerp_by_mode_denominator((vector3d_lerp_table *)table, (real_vector3d *)destination, ratios);
         return a + b + c;
     }
 
@@ -131,7 +98,7 @@ int32_t VectorFieldCodec::decode_vector3d_indexed(int32_t param_1, int32_t mode,
     (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&b, stream);
     (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&c, stream);
     ratios[0] = a; ratios[1] = b; ratios[2] = c;
-    vector3d_lerp_by_mode_denominator(table, (real_vector3d *)destination, ratios);
+    halo::networking::vector3d_lerp_by_mode_denominator((vector3d_lerp_table *)table, (real_vector3d *)destination, ratios);
     return total_bits + a + b + c;
 }
 
@@ -296,11 +263,11 @@ uint8_t VectorFieldCodec::locality_initialize(message_delta_field_type *field_ty
 {
     (void)field_type;
     if (message_delta_parameters_enabled == 1) {
-        message_delta_parameters_protocol_register(0, (char *)"LOCALITY_BITS_PER_COMPONENT_FULL", 1,
+        halo::networking::message_delta_parameters_protocol_register(0, (char *)"LOCALITY_BITS_PER_COMPONENT_FULL", 1,
             &message_delta_vector3d_absolute_bits_mode1);
-        message_delta_parameters_protocol_register(0, (char *)"LOCALITY_BITS_PER_COMPONENT_DELTA", 1, &message_delta_vector3d_delta_bits);
-        message_delta_parameters_protocol_register(0, (char *)"LOCALITY_DELTA_CUTOFF_DISTANCE", 0, &message_delta_vector3d_delta_range);
-        message_delta_parameters_protocol_register(0, (char *)"LOCALITY_MINIMUM_MOVE_DISTANCE", 0,
+        halo::networking::message_delta_parameters_protocol_register(0, (char *)"LOCALITY_BITS_PER_COMPONENT_DELTA", 1, &message_delta_vector3d_delta_bits);
+        halo::networking::message_delta_parameters_protocol_register(0, (char *)"LOCALITY_DELTA_CUTOFF_DISTANCE", 0, &message_delta_vector3d_delta_range);
+        halo::networking::message_delta_parameters_protocol_register(0, (char *)"LOCALITY_MINIMUM_MOVE_DISTANCE", 0,
             &message_delta_vector3d_delta_epsilon);
     }
     return 1;
@@ -332,7 +299,7 @@ int32_t VectorFieldCodec::normal_decode(message_delta_field_type *field_type, vo
     bits += halo::memory::bit_stream_read_bits_chunked(bits_b, &value_b, stream);
     angle_a = (real)((double)value_a / (double)(uint32_t)((1 << bits_a) - 1)) * 3.1415927f;
     angle_b = (real)((double)value_b / (double)(uint32_t)((1 << bits_b) - 1)) * 6.2831855f - 1.5707964f;
-    vector3d_from_yaw_pitch((real_vector3d *)current, angle_a, angle_b);
+    halo::networking::vector3d_from_yaw_pitch((real_vector3d *)current, angle_a, angle_b);
     return bits;
 }
 
@@ -348,7 +315,7 @@ int32_t VectorFieldCodec::normal_encode(message_delta_field_type *field_type, vo
     uint32_t level_a;
     uint32_t level_b;
 
-    vector3d_to_angles(angles, *(real_vector3d *)current);
+    halo::networking::vector3d_to_angles(angles, *(real_vector3d *)current);
     level_a = (uint32_t)(int64_t)floor((double)(angles[0] * 0.31830987f * (real)levels_a + 0.5f));
     if (level_a > levels_a) {
         level_a = levels_a;
@@ -360,10 +327,10 @@ int32_t VectorFieldCodec::normal_encode(message_delta_field_type *field_type, vo
     if (previous != 0) {
         uint32_t previous_a;
 
-        vector3d_to_angles(angles, *(real_vector3d *)previous);
-        previous_a = message_delta_quantize_float_to_int(levels_a, angles[0], 0.0f, 3.1415927f);
+        halo::networking::vector3d_to_angles(angles, *(real_vector3d *)previous);
+        previous_a = halo::networking::message_delta_quantize_float_to_int(levels_a, angles[0], 0.0f, 3.1415927f);
         if (level_a == previous_a &&
-            level_b == message_delta_quantize_float_to_int(levels_b, angles[1], -1.5707964f, 4.712389f)) {
+            level_b == halo::networking::message_delta_quantize_float_to_int(levels_b, angles[1], -1.5707964f, 4.712389f)) {
             return 0;
         }
     }
@@ -375,8 +342,8 @@ uint8_t VectorFieldCodec::normal_initialize(message_delta_field_type *field_type
     int32_t *descriptor = (int32_t *)field_type->array_descriptor;
 
     if (message_delta_parameters_enabled == 1) {
-        message_delta_parameters_protocol_register(field_type->name, (char *)"bits_theta_internet", 1, descriptor);
-        message_delta_parameters_protocol_register(field_type->name, (char *)"bits_phi_internet", 1, descriptor + 1);
+        halo::networking::message_delta_parameters_protocol_register(field_type->name, (char *)"bits_theta_internet", 1, descriptor);
+        halo::networking::message_delta_parameters_protocol_register(field_type->name, (char *)"bits_phi_internet", 1, descriptor + 1);
     }
     return descriptor[0] > 0 && descriptor[1] > 0 && descriptor[2] > 0 && descriptor[3] > 0;
 }
@@ -420,7 +387,7 @@ int32_t VectorFieldCodec::quantized_real_encode(message_delta_field_type *field_
     if (level > levels) {
         level = levels;
     }
-    if (previous != 0 && level == message_delta_quantize_float_to_int(descriptor[1], *(real *)previous, 0.0f, 1.0f)) {
+    if (previous != 0 && level == halo::networking::message_delta_quantize_float_to_int(descriptor[1], *(real *)previous, 0.0f, 1.0f)) {
         return 0;
     }
     return halo::memory::bit_stream_write_bits_chunked(stream, &level, (int32_t)descriptor[0]);
@@ -453,16 +420,16 @@ int32_t VectorFieldCodec::throttle_decode(message_delta_field_type *field_type, 
 
     (void)field_type;
     (void)previous;
-    digital_throttle_decode_vector((real *)current, code);
+    halo::networking::digital_throttle_decode_vector((real *)current, code);
     return bits;
 }
 
 int32_t VectorFieldCodec::throttle_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
-    int32_t code = digital_throttle_encode_vector(*(real_vector3d *)current);
+    int32_t code = halo::networking::digital_throttle_encode_vector(*(real_vector3d *)current);
 
     (void)field_type;
-    if (previous != 0 && code == digital_throttle_encode_vector(*(real_vector3d *)previous)) {
+    if (previous != 0 && code == halo::networking::digital_throttle_encode_vector(*(real_vector3d *)previous)) {
         return 0;
     }
     return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)&code, 4);
@@ -470,12 +437,12 @@ int32_t VectorFieldCodec::throttle_encode(message_delta_field_type *field_type, 
 
 int32_t VectorFieldCodec::vector_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
-    return message_delta_dword_array_decode(field_type, previous, current, stream);
+    return halo::networking::message_delta_dword_array_decode(field_type, (uint32_t *)previous, (uint32_t *)current, stream);
 }
 
 int32_t VectorFieldCodec::vector_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
-    return message_delta_float_array_encode(field_type, (float *)previous, (float *)current, stream);
+    return halo::networking::message_delta_float_array_encode(field_type, (float *)previous, (float *)current, stream);
 }
 
 int32_t VectorFieldCodec::velocity_compute_size(message_delta_field_type *field_type)
@@ -498,7 +465,7 @@ int32_t VectorFieldCodec::velocity_encode(message_delta_field_type *field_type, 
     int32_t quantized[3];
     int32_t total;
 
-    vector3d_quantize(quantized, descriptor, (real *)current);
+    halo::networking::vector3d_quantize(quantized, descriptor, (real *)current);
     if (previous == 0) {
         int32_t *table = descriptor + 0x67;
         int32_t i;
@@ -519,7 +486,7 @@ int32_t VectorFieldCodec::velocity_encode(message_delta_field_type *field_type, 
     } else {
         int32_t old[3];
 
-        vector3d_quantize(old, descriptor, (real *)previous);
+        halo::networking::vector3d_quantize(old, descriptor, (real *)previous);
         if (old[0] == quantized[0] && old[1] == quantized[1] && old[2] == quantized[2]) {
             return 0;
         }
@@ -533,7 +500,7 @@ int32_t VectorFieldCodec::velocity_encode(message_delta_field_type *field_type, 
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 int32_t message_delta_decode_vector3d_indexed(int32_t param_1, int32_t mode, real *destination,
     bit_stream *stream)
 {

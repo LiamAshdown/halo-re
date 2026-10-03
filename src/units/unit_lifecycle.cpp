@@ -20,6 +20,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -33,7 +34,6 @@ extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *c
 extern uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, float radius, real_vector3d *delta, collision_result *result);
 extern uint8_t object_collision_context_test_pill(object_collision_context *context, real_point3d *origin, real_vector3d *delta, float radius_scale, object_node_collision_result *out_result);
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
-extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
 extern char *s_stand;
 extern double sqrt(double x);
@@ -425,7 +425,7 @@ uint8_t UnitView::new_()
 
     UnitView(object_index).set_or_test_seat_and_weapon_label(s_stand, (const char *)0, 1);
 
-    if (network_game_mode != 1) {
+    if (halo::networking::globals().game_mode != 1) {
         UnitView(object_index).add_initial_weapons();
     }
 

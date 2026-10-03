@@ -7,6 +7,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern char s_primary_trigger_marker[];
@@ -21,7 +22,6 @@ extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_
 extern uint32_t local_player_index_for_weapon(datum_index item_index);
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
-extern int16_t network_game_mode;
 extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code);
 void halo::items::trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint32_t role);
 void halo::items::weapon_trigger_become_charged(datum_index item_index, int16_t trigger_index);
@@ -396,7 +396,7 @@ void weapon_trigger_ref::begin_reload(int16_t magazine_index, int8_t is_client_p
             int16_t mode = -1;
             int16_t ticks;
 
-            if (is_client_predicted == 1 && item_obj->network_role == 0 && network_game_mode == 2) {
+            if (is_client_predicted == 1 && item_obj->network_role == 0 && halo::networking::globals().game_mode == 2) {
                 halo::items::weapon_notify_reload_begin(item_index, magazine_index);
             }
             halo::items::weapon_set_state(item_index, magazine_index + 5, 0);

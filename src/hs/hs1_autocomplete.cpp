@@ -47,7 +47,7 @@ void ScriptAutocomplete::game_variant_list_matching_substring_evaluate(int16_t f
     arguments = 0;
     ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
-        game_variant_list_matching_substring(argument_count, arguments);
+        halo::networking::game_variant_list_matching_substring(argument_count, arguments);
         halo::hs::hs_thread_return(0, thread);
     }
 }

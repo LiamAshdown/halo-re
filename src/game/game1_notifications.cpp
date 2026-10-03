@@ -20,11 +20,10 @@
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
-extern uint8_t message_delta_decode_compound_field(void *event, void *out_values);
-extern void message_delta_decode_compound_field_staged(void *event);
 extern void game_engine_reset_respawns_and_cleanup_bipeds(void);
 extern void game_engine_cleanup_stray_items(void);
 extern void game_engine_cleanup_stray_projectiles(void);
@@ -45,7 +44,6 @@ extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_in
 extern void game_engine_apply_player_grenade_counts(uint32_t player_index);
 extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle);
 extern uint8_t game_engine_teams_enabled_flag;
-extern int16_t network_game_mode;
 extern uint8_t *network_client;
 extern uint8_t player_customization_slot_set(uint8_t *base, uint8_t new_value, uint32_t key);
 extern void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_desired);
@@ -53,13 +51,7 @@ extern void game_engine_end_game_sequence_stage1(void);
 extern void game_engine_end_game_sequence_stage2(void);
 extern void game_engine_end_game_sequence_stage3(void);
 extern uint8_t network_object_index_cache[];
-extern int32_t network_index_cache_find_or_allocate_slot(uint8_t *container, int32_t key);
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern network_server_globals *network_server;
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
-    int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 extern int32_t multiplayer_sound_queue_count;
 extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds];
@@ -83,7 +75,7 @@ void Notifications::apply_partial_round_reset_message(void *event)
     int32_t scratch;
 
     if (*(int32_t *)*(void **)event == 0) {
-        if (message_delta_decode_compound_field(event, &scratch) != 0) {
+        if (halo::networking::message_delta_decode_compound_field((void **)event, &scratch) != 0) {
             game_engine_reset_respawns_and_cleanup_bipeds();
             game_engine_cleanup_stray_items();
             game_engine_cleanup_stray_projectiles();
@@ -92,7 +84,7 @@ void Notifications::apply_partial_round_reset_message(void *event)
             }
         }
     } else {
-        message_delta_decode_compound_field_staged(event);
+        halo::networking::message_delta_decode_compound_field_staged((void **)event);
     }
 }
 
@@ -221,10 +213,10 @@ uint8_t Notifications::apply_player_interaction_message(void **envelope)
     } message;
 
     if (*(int32_t *)*envelope != 0) {
-        message_delta_decode_compound_field_staged(envelope);
+        halo::networking::message_delta_decode_compound_field_staged(envelope);
         return 0;
     }
-    if (!message_delta_decode_compound_field(envelope, &message)) {
+    if (!halo::networking::message_delta_decode_compound_field(envelope, &message)) {
         return 0;
     }
 
@@ -292,10 +284,10 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
     } message;
 
     if (*(int32_t *)*envelope != 0) {
-        message_delta_decode_compound_field_staged(envelope);
+        halo::networking::message_delta_decode_compound_field_staged(envelope);
         return;
     }
-    if (!message_delta_decode_compound_field(envelope, &message)) {
+    if (!halo::networking::message_delta_decode_compound_field(envelope, &message)) {
         return;
     }
 
@@ -397,10 +389,10 @@ void Notifications::client_apply_team_assignment(void **envelope)
     uint8_t out_pair[2] = { 0xff, 0xff };
 
     if (*(int32_t *)*envelope != 0 || current_game_engine == 0 || !game_engine_teams_enabled_flag) {
-        message_delta_decode_compound_field_staged(envelope);
+        halo::networking::message_delta_decode_compound_field_staged(envelope);
         return;
     }
-    if (!message_delta_decode_compound_field(envelope, out_pair) || network_game_mode != 1) {
+    if (!halo::networking::message_delta_decode_compound_field(envelope, out_pair) || halo::networking::globals().game_mode != 1) {
         return;
     }
 
@@ -420,11 +412,11 @@ void Notifications::dispatch_end_game_notification(void *event)
     int32_t stage;
 
     if (**(int32_t **)event != 0) {
-        message_delta_decode_compound_field_staged(event);
+        halo::networking::message_delta_decode_compound_field_staged((void **)event);
         return;
     }
 
-    if (message_delta_decode_compound_field(event, &stage) == 0) {
+    if (halo::networking::message_delta_decode_compound_field((void **)event, &stage) == 0) {
         return;
     }
 
@@ -455,14 +447,14 @@ void Notifications::dispatch_item_pickup_event(int32_t machine_id, int32_t picke
         fields.slot = halo::objects::hash_table_get(&object_network_id_table->id_to_index, (int32_t)machine_id);
     }
     if (fields.slot == -1) {
-        fields.slot = network_index_cache_find_or_allocate_slot(network_object_index_cache, machine_id);
+        fields.slot = halo::networking::network_index_cache_find_or_allocate_slot(network_object_index_cache, machine_id);
     }
 
     fields.picked_tag = picked_tag;
     fields.param_2_low = (int16_t)param_2;
     fields_ptr = &fields;
 
-    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x2f, 0, &fields_ptr, 0, 1, '\0'), network_server, 1, network_message_scratch, 1, 0, 0, 3);
+    halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x2f, 0, &fields_ptr, 0, 1, '\0'), halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
 }
 
 /**
@@ -505,7 +497,7 @@ void Notifications::handle_sound_status_event(void *event)
 {
     if (*(int32_t *)*(void **)event == 0) {
         int32_t sound_index;
-        if (message_delta_decode_compound_field(event, &sound_index) != 0) {
+        if (halo::networking::message_delta_decode_compound_field((void **)event, &sound_index) != 0) {
             GlobalsMultiplayerInformation *mp_info =
                 (GlobalsMultiplayerInformation *)global_globals->multiplayer_information.pointer;
             if (mp_info != (GlobalsMultiplayerInformation *)0 &&
@@ -517,7 +509,7 @@ void Notifications::handle_sound_status_event(void *event)
             }
         }
     } else {
-        message_delta_decode_compound_field_staged(event);
+        halo::networking::message_delta_decode_compound_field_staged((void **)event);
     }
 }
 

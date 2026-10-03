@@ -16,6 +16,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -67,13 +68,10 @@ extern char strings_dll_invalid_text[k_shell_strings_dll_error_length];
 extern void *shell_stack_guard_page;
 extern uint32_t shell_stack_guard_old_protect;
 
-extern uint32_t network_game_socket_port;
 extern uint32_t game_cport;
 extern uint8_t port_overridden;
 extern uint32_t network_local_address;
 extern uint32_t connect_address;
-
-extern void network_session_host_start_info_set(char *game_name, char *secret_key, char *ip_address, int32_t port);
 
 
 extern char profile_directory[0x105];
@@ -447,7 +445,7 @@ void Application::run_engine()
     ip_value = 0;
     network_local_address = 0;
     if (CommandLine::has_flag("-port", &port_value) && port_value != 0) {
-        network_game_socket_port = (uint32_t)atol(port_value);
+        halo::networking::globals().game_socket_port = (uint32_t)atol(port_value);
         port_overridden = 1;
     }
     if (CommandLine::has_flag("-cport", &port_value) && port_value != 0) {
@@ -464,7 +462,7 @@ void Application::run_engine()
     }
     memset(secret_key, 0, sizeof(secret_key));
     memcpy(secret_key, "e4Rd9J", 7);
-    network_session_host_start_info_set((char *)"halor", secret_key, (char *)ip_value, (int32_t)network_game_socket_port);
+    halo::networking::network_session_host_start_info_set((char *)"halor", secret_key, (char *)ip_value, (int32_t)halo::networking::globals().game_socket_port);
     halo::main::main_loop();
     EngineLifecycle::shutdown();
 }

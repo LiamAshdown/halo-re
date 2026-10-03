@@ -15,14 +15,13 @@
 #include "halo/main/network.hpp"
 #include "halo/main/layout.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern void *connect_thread; }
 extern "C" { extern uint8_t ui_split_screen; }
 extern "C" { extern widget_instance *ui_root_widget[1]; }
-extern "C" { extern int16_t network_join_error_code; }
-extern "C" { extern void network_dispatch_initialize(void); }
 namespace halo::main {
 
 /**
@@ -49,7 +48,7 @@ uint32_t ClientConnection::game_client_connect_by_hostname(char *host_port_strin
         port = (uint16_t)atol(colon + 1);
         *colon = '\0';
     }
-    network_dispatch_initialize();
+    halo::networking::network_dispatch_initialize();
     if (halo::main::network_hostname_resolve_with_timeout(host_port_string) != 0) {
         host = gethostbyname(host_port_string);
         if (host != 0) {
@@ -70,8 +69,8 @@ uint32_t ClientConnection::game_client_connect_by_hostname(char *host_port_strin
         strncmp(ui_root_widget[0]->name, k_main_menu_widget_name, sizeof(k_main_menu_widget_name)) == 0) {
         goto done;
     }
-    if (network_join_error_code == -1) {
-        network_join_error_code = k_join_error_connection_failed;
+    if (halo::networking::globals().join_error_code == -1) {
+        halo::networking::globals().join_error_code = k_join_error_connection_failed;
     }
     main_globals_data.switch_structure_bsp_index = -1;
     main_globals_data.save_map = 0;
@@ -85,9 +84,6 @@ done:
 }
 
 extern "C" { extern int32_t join_ui_state; }
-extern "C" { extern char network_address_string_is_valid(char *address_string); }
-extern "C" { extern char network_address_string_normalize(char *address_string, char *out_buffer, uint8_t *out_is_any); }
-extern "C" { extern char network_address_parse_port(char *address_string, int32_t *port_out); }
 extern "C" { extern void widget_close_all(void); }
 extern "C" { extern void interface_loading_screen_reset(void); }
 extern "C" { extern void interface_loading_screen_set_text(const char *text); }
@@ -121,15 +117,15 @@ uint8_t ClientConnection::game_client_connect_to_address_async(char *address, ch
         return 1;
     }
 
-    if (!network_address_string_is_valid(address)) {
+    if (!halo::networking::network_address_string_is_valid(address)) {
         goto fail;
     }
 
     strncpy(main_globals_data.connect_password, password, 8);
     main_globals_data.connect_password[8] = 0;
 
-    if (!network_address_string_normalize(address, normalized, &is_any)) {
-        if (!network_address_parse_port(address, 0)) {
+    if (!halo::networking::network_address_string_normalize(address, normalized, &is_any)) {
+        if (!halo::networking::network_address_parse_port(address, 0)) {
             goto fail;
         }
         length = strlen(address) + 1;
@@ -172,7 +168,6 @@ extern "C" { extern int32_t interface_loading_screen_progress; }
 extern "C" { extern uint16_t progress_screen_text[0x20]; }
 extern "C" { extern uint16_t progress_screen_subtext[0x20]; }
 extern "C" { extern int32_t interface_loading_screen_request_id; }
-extern "C" { extern uint32_t network_game_client_connect_to_address(char *address_string, uint16_t *target_string); }
 namespace halo::main {
 
 /**
@@ -199,7 +194,7 @@ void ClientConnection::game_client_connect_to_resolved_address(void)
     progress_screen_text[0] = 0;
     progress_screen_subtext[0] = 0;
     interface_loading_screen_request_id = -1;
-    network_dispatch_initialize();
+    halo::networking::network_dispatch_initialize();
 
     length = strlen(main_globals_data.connect_password);
     if (length > 8) {
@@ -210,9 +205,9 @@ void ClientConnection::game_client_connect_to_resolved_address(void)
         wide_password[i - 1] = (uint8_t)main_globals_data.connect_password[i - 1];
     }
 
-    if (network_game_client_connect_to_address(main_globals_data.connect_address, wide_password) == 0) {
-        if (network_join_error_code == -1) {
-            network_join_error_code = k_join_error_connection_failed;
+    if (halo::networking::network_game_client_connect_to_address((wchar_t *)main_globals_data.connect_address, (char *)wide_password) == 0) {
+        if (halo::networking::globals().join_error_code == -1) {
+            halo::networking::globals().join_error_code = k_join_error_connection_failed;
         }
         main_globals_data.switch_structure_bsp_index = -1;
         main_globals_data.save_map = 0;

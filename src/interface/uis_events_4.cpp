@@ -22,6 +22,7 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t *network_client;
@@ -54,8 +55,6 @@ extern uint8_t network_game_info_packet_flag;
 extern int32_t quality_selection_00692b04;
 extern uint8_t saved_item_has_unsaved_changes(void);
 extern uint8_t player_profile_save(void);
-extern uint8_t network_game_start_new_server_with_name_and_password(uint32_t unused, uint16_t *name, uint16_t *password);
-extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
 extern uint8_t game_engine_teams_enabled_flag;
 extern void game_engine_send_team_allegiance_message(char broadcast);
@@ -473,7 +472,7 @@ uint8_t UiEventHandlers::event_4a2f10(widget_instance *widget, int16_t *event, u
     if (save_in_progress_00719010 != 0) {
         return 0;
     }
-    network_game_start_new_server_with_name_and_password(0, network_host_name_00719170, network_host_subname_007191f0);
+    halo::networking::network_game_start_new_server_with_name_and_password(0, network_host_name_00719170, network_host_subname_007191f0);
     return 0;
 }
 
@@ -486,7 +485,7 @@ uint8_t UiEventHandlers::event_4a3000(widget_instance *widget, int16_t *event, u
 {
     widget_instance *child = widget->first_child->next_sibling;
 
-    if (network_game_mode == 2 || (current_game_engine != 0 && game_engine_teams_enabled_flag != 0)) {
+    if (halo::networking::globals().game_mode == 2 || (current_game_engine != 0 && game_engine_teams_enabled_flag != 0)) {
         child->hidden = 0;
         child->scale = 1.0f;
     } else {
@@ -516,7 +515,7 @@ uint8_t UiEventHandlers::event_4a3050(widget_instance *widget, int16_t *event, u
     }
     for (i = 0; i < 2; i++) {
         child = child->next_sibling;
-        if (network_game_mode == 2) {
+        if (halo::networking::globals().game_mode == 2) {
             child->hidden = 0;
             child->scale = 1.0f;
         } else {

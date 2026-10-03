@@ -1,21 +1,18 @@
 #include "halo/networking/net1_channel.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int32_t network_query_socket;
 extern int32_t network_game_socket;
 extern int16_t network_join_error_code;
 extern uint8_t network_host_handoff_requested;
-extern void network_channels_open(void);
 extern void chat_close(void);
 extern int gt2NetworkToHostInt(unsigned int value);
 extern char *gt2AddressToString(unsigned int ip, unsigned short port, char *string);
 extern int gt2Connect(void *socket, void **connection_out, const char *remote_address, const unsigned char *message, int len, unsigned long timeout, const void *callbacks, int blocking);
 extern void gt2SetConnectionData(void *connection, void *data);
 extern int32_t network_connect_timeout_ms;
-extern void network_channel_connected_callback(void *connection, int32_t result, const uint8_t *message, int32_t length);
-extern void network_channel_receive_callback(void *handle, uint8_t *data, int32_t length);
-extern void network_channel_gap_441f30(void *connection);
 extern int32_t network_pending_connection_count;
 extern network_pending_connection network_pending_connections[k_network_pending_connection_count];
 extern void gt2Reject(void *connection, const unsigned char *message, int len);
@@ -48,11 +45,11 @@ int16_t ReceiveQueueView::attempt_connect(s_network_address *address, int32_t un
 
     formatted_address = (uint32_t)gt2NetworkToHostInt(address->ipv4);
     gt2AddressToString(formatted_address, address->port, address_buf);
-    callbacks[0] = (void *)network_channel_connected_callback;
-    callbacks[1] = (void *)network_channel_receive_callback;
-    callbacks[2] = (void *)network_channel_gap_441f30;
+    callbacks[0] = (void *)halo::networking::network_channel_connected_callback;
+    callbacks[1] = (void *)halo::networking::network_channel_receive_callback;
+    callbacks[2] = (void *)halo::networking::network_channel_gap_441f30;
     callbacks[3] = (void *)halo::cseries::function_do_nothing;
-    network_channels_open();
+    halo::networking::network_channels_open();
     socket = network_query_socket;
     if (use_query_socket == 0) {
         socket = network_game_socket;

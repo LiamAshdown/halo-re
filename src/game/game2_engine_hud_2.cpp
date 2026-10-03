@@ -1,6 +1,7 @@
 #include "halo/game/game2_engine_hud.hpp"
 #include "halo/text/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -21,7 +22,6 @@ extern uint32_t render_viewport_top;
 extern uint32_t screen_safe_area_right;
 extern uint32_t screen_safe_area_bottom;
 extern float game_engine_post_game_fade;
-extern network_server_globals *network_server;
 extern wchar_t empty_string;
 extern int32_t game_engine_get_scoreboard_place(datum_index player, int32_t mode, uint8_t invert_low_stat);
 extern int32_t select_players_to_display(int32_t mode, int32_t max_count, scoreboard_entry *out);
@@ -229,7 +229,7 @@ void EngineHud::post_rasterize_post_game(void)
         rect.left = (int16_t)(screen_safe_area_right >> 16);
         rect.bottom = (int16_t)((int16_t)screen_safe_area_bottom - (int16_t)render_viewport_top);
         rect.right = (int16_t)((int16_t)(screen_safe_area_bottom >> 16) - (int16_t)(render_viewport_top >> 16));
-        if (network_server != 0) {
+        if (halo::networking::globals().server != 0) {
             rect.right = 0x118;
             prompt = multiplayer_game_text_string(0x48);
         } else {

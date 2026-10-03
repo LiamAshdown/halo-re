@@ -11,6 +11,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern float angle_delta_wrapped(float from, float to);
@@ -22,7 +23,6 @@ extern double fmod(double x, double y);
 extern double fpatan(double y, double x);
 extern game_time_globals *game_time;
 extern real_vector3d *global_origin3d_pointer;
-extern int16_t network_game_mode;
 extern data_array *object_data;
 extern object_globals *object_globals_pointer;
 extern double pow(double base, double exponent);
@@ -158,7 +158,7 @@ uint8_t halo::objects::ObjectUpdater::update()
 
     halo::objects::object_notify_node_array_if_animated(object_index);
 
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         uint8_t *at_rest_flag = (uint8_t *)&obj->at_rest;
         if ((fabsf(obj->velocity.i - global_origin3d_pointer->i) < 0.0001f) &&
             (fabsf(obj->velocity.j - global_origin3d_pointer->j) < 0.0001f) &&

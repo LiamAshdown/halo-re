@@ -17,6 +17,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -35,13 +36,9 @@ extern int32_t king_hill_index_006b1058;
 extern int32_t king_hill_state_globals;
 extern void game_engine_koth_build_hill_boundary(void);
 extern void game_engine_koth_reset_hill_marker_history(void);
-extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
 extern uint8_t game_engine_teams_enabled_flag;
 extern int32_t king_bucket_last_credit_tick[16];
-extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
-extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, uint8_t *changed_flags,
-    int32_t changed_offset, int32_t destination_offset);
 extern int32_t king_hill_broadcast_overrun_value;
 extern uint32_t players_get_active_by_index(int32_t index);
 extern void qr2_buffer_add(void *buffer, const char *value);
@@ -250,7 +247,7 @@ uint8_t King::initialize_for_new_game(void)
  */
 void King::player_new_life(datum_index player_index)
 {
-    if (network_game_mode == 2 && (current_game_engine == 0 || game_engine_teams_enabled_flag == 0)) {
+    if (halo::networking::globals().game_mode == 2 && (current_game_engine == 0 || game_engine_teams_enabled_flag == 0)) {
         int32_t team = *(int32_t *)(((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200) + 0x20);
 
         king_bucket_credit_ticks[team] = 0;
@@ -295,7 +292,7 @@ void King::skip_unchanged_message(message_delta_decode_state *state)
 uint8_t King::read_changed(void **context, void *changed_base, void *destination)
 {
     message_delta_decode_state *state = (message_delta_decode_state *)context[0];
-    int32_t bits = message_delta_read_changed_subfields(state, (uint8_t *)(context + 1), (int32_t)changed_base, (int32_t)destination);
+    int32_t bits = halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(context + 1), (int32_t)changed_base, (int32_t)destination);
 
     state->bits_read += bits;
     if (bits != 0) {
@@ -319,7 +316,7 @@ void King::profile_post_update(void **context)
     int32_t i;
 
     if (state->incremental == 0) {
-        changed = message_delta_decode_compound_field(context, king_team_hill_seconds_network);
+        changed = halo::networking::message_delta_decode_compound_field(context, king_team_hill_seconds_network);
         moved = 1;
     } else {
         int32_t previous = king_hill_broadcast_overrun_value;
@@ -386,7 +383,7 @@ void King::reset_objects(void)
 {
     int32_t i;
 
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         return;
     }
     for (i = 0; i < 0x10; i++) {
@@ -422,7 +419,7 @@ void King::reset_round(void)
  */
 void King::unknown_48(void)
 {
-    if ((current_game_engine == 0 || game_engine_state_value == 0) && network_game_mode == 2 &&
+    if ((current_game_engine == 0 || game_engine_state_value == 0) && halo::networking::globals().game_mode == 2 &&
         game_engine_variant.engine.king.moving_hill != 0 && --king_hill_move_ticks_006b1068 == 0) {
         king_hill_move_ticks_006b1068 = 0x708;
         king_starting_location_type = game_engine_pick_random_recent_location(king_starting_location_type, king_starting_location_type);
@@ -441,7 +438,7 @@ void King::unknown_48(void)
     } else {
         halo::main::console_print_error_va(0, "FAILED TO FIND HILL");
     }
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         game_engine_koth_update_hill_occupancy_state();
     }
 }

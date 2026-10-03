@@ -1,13 +1,12 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern network_id_table *object_network_id_table;
 extern uint8_t *machine_table;
 extern uint8_t network_object_index_cache[];
-extern int32_t network_index_cache_find_or_allocate_slot(uint8_t *container, int32_t key);
-extern int32_t message_delta_encode_message(int32_t buffer, int32_t bit_budget, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 }
 
 namespace halo::units {
@@ -74,7 +73,7 @@ int32_t UnitView::build_network_update(int32_t buffer, int32_t bit_budget)
         }
     }
     if (key == -1) {
-        key = network_index_cache_find_or_allocate_slot(network_object_index_cache, (int32_t)object_index);
+        key = halo::networking::network_index_cache_find_or_allocate_slot(network_object_index_cache, (int32_t)object_index);
     }
     record.definition = *(datum_index *)biped;
     record.network_key = key;
@@ -94,7 +93,7 @@ int32_t UnitView::build_network_update(int32_t buffer, int32_t bit_budget)
     record.shield_stunned = biped[0x538];
     memcpy(record.grenade_counts, biped + 0x52c, 2);
     record.zero_8c = 0;
-    return message_delta_encode_message(buffer, bit_budget, 0, 0x1d, 0, &item, 0, 1, 0);
+    return halo::networking::message_delta_encode_message(buffer, bit_budget, 0, 0x1d, 0, &item, 0, 1, 0);
 }
 
 }

@@ -9,12 +9,12 @@
 #include <stdint.h>
 
 #include "halo/game/game1_scoreboard.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
 extern uint8_t game_engine_teams_enabled_flag;
 extern uint8_t network_server[];
-extern uint8_t network_player_entry_validate(void *entry_minus_0x1e);
 }
 
 namespace halo::game::engine1 {
@@ -39,7 +39,7 @@ void Scoreboard::gather_team_score_totals(uint32_t out_count[2], uint32_t out_sc
         int32_t i;
 
         for (i = 0; i < 16; i++) {
-            if (network_player_entry_validate(entry - 0x1e) != 0 && (int8_t)entry[1] != filter_value) {
+            if (halo::networking::network_player_entry_validate((network_player_entry *)(entry - 0x1e)) != 0 && (int8_t)entry[1] != filter_value) {
                 int8_t category = (int8_t)entry[0];
 
                 if (category >= 0 && category < 2) {

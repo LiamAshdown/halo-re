@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_error_dialogs.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern ui_pending_error ui_pending_errors[4];
@@ -8,7 +9,6 @@ extern player_globals *local_player_globals;
 extern uint8_t ui_split_screen;
 extern uint8_t network_wait_flag_00719739;
 extern widget_instance *ui_root_widget[1];
-extern int16_t network_game_mode;
 extern int16_t ui_pause_depth;
 extern game_time_globals *game_time;
 extern void chimera__load_main_menu(void);
@@ -145,7 +145,7 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
         dialog->is_error_dialog = 1;
         if (dialog->pauses_game_time == 0) {
             dialog->pauses_game_time = is_error;
-            if (is_error == 1 && network_game_mode != 2) {
+            if (is_error == 1 && halo::networking::globals().game_mode != 2) {
                 ui_pause_depth = ui_pause_depth + 1;
                 if (game_time->paused == 0) {
                     if (game_time->initialized != 0) {

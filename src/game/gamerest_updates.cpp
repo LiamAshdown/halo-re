@@ -4,6 +4,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int32_t update_client_unknown_ea0;
@@ -16,7 +17,6 @@ extern int32_t update_client_unknown_ec4;
 extern int32_t update_client_base_tick;
 extern uint8_t update_client_initialized;
 extern update_record update_client_history[128];
-extern int16_t network_game_mode;
 extern int32_t update_client_write_cursor;
 extern uint32_t update_client_unknown_ea8;
 extern uint32_t update_client_unknown_eac;
@@ -37,7 +37,6 @@ extern void update_server_queue_get_history_entry(int32_t *out_record, int32_t *
 extern int32_t wait_tick_counter;
 extern uint16_t local_player_name_filter[];
 extern uint8_t position_update_queue_find_and_remove(circular_queue *queue, int32_t target_tick, real_point3d *out);
-extern void player_update_history_log_printf_filtered(int32_t level, const char *format, ...);
 extern void unit_snap_position_if_far(real_point3d *new_position, object *obj);
 extern double sqrt(double x);
 extern int32_t vehicle_wait_tick_counter;
@@ -286,7 +285,7 @@ uint32_t UpdateClient::queue_apply_tick(player_action *out_actions, client_updat
  */
 update_record * UpdateClient::queue_get_slot(int32_t tick)
 {
-    if (network_game_mode != 2 && network_game_mode != 0) {
+    if (halo::networking::globals().game_mode != 2 && halo::networking::globals().game_mode != 0) {
         int32_t slot = update_client_write_cursor & 0x7f;
 
         update_client_write_cursor = update_client_write_cursor + 1;
@@ -643,7 +642,7 @@ void PlayerNetworkState::apply_remote_position_update(object *unit_obj)
         float dz = queued.z - unit_obj->position.z;
         float dist = (float)sqrt(dx * dx + dy * dy + dz * dz);
 
-        player_update_history_log_printf_filtered(1, "Waited [%d], dist [%f].", wait_tick_counter, (double)dist);
+        halo::networking::player_update_history_log_printf_filtered(plr, 1, "Waited [%d], dist [%f].", wait_tick_counter, (double)dist);
         if (wcscmp((const wchar_t *)((uint16_t *)plr->name), (const wchar_t *)local_player_name_filter) == 0) {
             wait_tick_counter = 0;
         }
@@ -670,7 +669,7 @@ void PlayerNetworkState::apply_remote_position_update(object *unit_obj)
 
         if (write_index + distance > 0) {
             int32_t *head_record = *(int32_t **)((uint8_t *)queue->records + read_index * 4);
-            player_update_history_log_printf_filtered(1, "Can't update pos: [%d] != [%d]",
+            halo::networking::player_update_history_log_printf_filtered(plr, 1, "Can't update pos: [%d] != [%d]",
                                                         target_tick, *head_record);
             if (wcscmp((const wchar_t *)((uint16_t *)plr->name), (const wchar_t *)local_player_name_filter) == 0) {
                 wait_tick_counter = wait_tick_counter + 1;
@@ -705,7 +704,7 @@ void PlayerNetworkState::apply_remote_vehicle_position_update(object *unit_obj)
                 float dz = record.body.position.z - parent_obj->position.z;
                 float dist = (float)sqrt(dx * dx + dy * dy + dz * dz);
 
-                player_update_history_log_printf_filtered(1, "Vehicle waited [%d], dist [%f].",
+                halo::networking::player_update_history_log_printf_filtered(plr, 1, "Vehicle waited [%d], dist [%f].",
                                                             vehicle_wait_tick_counter, (double)dist);
 
                 *(float *)&plr->vehicle_update_error_total = dist + *(float *)&plr->vehicle_update_error_total;
@@ -737,7 +736,7 @@ void PlayerNetworkState::apply_remote_vehicle_position_update(object *unit_obj)
 
         if (distance > 0 && read_index != write_index) {
             int32_t *head_record = *(int32_t **)((uint8_t *)queue->records + read_index * 4);
-            player_update_history_log_printf_filtered(1, "Can't update pos: [%d] != [%d]",
+            halo::networking::player_update_history_log_printf_filtered(plr, 1, "Can't update pos: [%d] != [%d]",
                                                         target_tick, *head_record);
             if (wcscmp((const wchar_t *)((uint16_t *)plr->name), (const wchar_t *)local_player_name_filter) == 0) {
                 vehicle_wait_tick_counter = vehicle_wait_tick_counter + 1;
@@ -760,7 +759,7 @@ void PlayerNetworkState::apply_first_position_update(uint32_t field0)
 {
     object *unit_obj;
 
-    if (network_game_mode != 1 || plr->local_player_index != -1 || plr->unit == (datum_index)-1) {
+    if (halo::networking::globals().game_mode != 1 || plr->local_player_index != -1 || plr->unit == (datum_index)-1) {
         return;
     }
 

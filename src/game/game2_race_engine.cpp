@@ -4,10 +4,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
-extern int16_t network_game_mode;
 extern game_variant game_engine_variant;
 extern Globals *global_globals;
 extern int32_t race_used_locations[8];
@@ -28,8 +28,6 @@ extern uint32_t game_engine_is_object_winning(uint32_t handle);
 extern int32_t game_engine_bucket_scores_extra[16];
 extern void game_engine_check_bucket_scores_and_end_round(void);
 extern game_time_globals *game_time;
-extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
-extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, uint8_t *changed_flags, int32_t changed_offset, int32_t destination_offset);
 extern uint8_t ctf_globals_live[];
 extern uint8_t ctf_globals_network[];
 extern uint32_t players_get_active_by_index(int32_t index);
@@ -162,7 +160,7 @@ void RaceEngine::race_spawn_next_vehicle(datum_index player_index)
  */
 uint8_t RaceEngine::allow_grenade_counts(datum_index player_index)
 {
-    if (network_game_mode == 2 && *(int16_t *)(((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200) + 0xae) == 0 &&
+    if (halo::networking::globals().game_mode == 2 && *(int16_t *)(((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200) + 0xae) == 0 &&
         race_used_location_count < *(int16_t *)((uint8_t *)player_data + 0x30)) {
         race_spawn_next_vehicle(player_index);
     }
@@ -373,7 +371,7 @@ void RaceEngine::player_changed_object(datum_index player_index)
 {
     uint8_t *player;
 
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         return;
     }
     player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
@@ -393,7 +391,7 @@ void RaceEngine::player_new_life(datum_index player)
 {
     *(int32_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0x88) = game_time->game_time;
     ctf_team_captured_flags_mask[player & 0xffff] = 0;
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         game_engine_check_bucket_scores_and_end_round();
     }
 }
@@ -411,7 +409,7 @@ void RaceEngine::player_round_reset(datum_index player_index, uint8_t team_flag)
     int16_t index = (int16_t)player_index;
     int16_t salt = (int16_t)(player_index >> 16);
 
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         return;
     }
     if (player_index != 0xffffffff && index >= 0 && index < *(int16_t *)((uint8_t *)player_data + 0x20)) {
@@ -461,7 +459,7 @@ void RaceEngine::skip_unchanged_message(message_delta_decode_state *state)
 uint8_t RaceEngine::read_changed(void **context, void *changed_base, void *destination)
 {
     message_delta_decode_state *state = (message_delta_decode_state *)context[0];
-    int32_t bits = message_delta_read_changed_subfields(state, (uint8_t *)(context + 1), (int32_t)changed_base, (int32_t)destination);
+    int32_t bits = halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(context + 1), (int32_t)changed_base, (int32_t)destination);
 
     state->bits_read += bits;
     if (bits != 0) {
@@ -486,7 +484,7 @@ void RaceEngine::profile_post_update(void **context)
     uint8_t changed;
 
     if (state->incremental == 0) {
-        changed = message_delta_decode_compound_field(context, ctf_globals_network);
+        changed = halo::networking::message_delta_decode_compound_field(context, ctf_globals_network);
     } else {
         changed = read_changed(context, ctf_globals_network, ctf_globals_live);
         memcpy(ctf_globals_network + 0x88, ctf_globals_live + 0x88, 16 * 4);
@@ -586,7 +584,7 @@ void RaceEngine::update(datum_index player_index)
     if (current_game_engine != 0 && game_engine_state_value != 0) {
         return;
     }
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         return;
     }
     unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & 0xffff) * 12 + 8);

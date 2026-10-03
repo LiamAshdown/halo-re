@@ -7,32 +7,10 @@
 #include "halo/networking/net2_message_delta_aggregate.hpp"
 #include "halo/networking/field_codec.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern message_delta_definition * message_delta_definitions[56];
-extern int32_t message_delta_decode_field_changed_flags(void **context);
-int32_t message_delta_array_field_decode(message_delta_field_type *field_type, uint8_t *previous,
-    uint8_t *destination, bit_stream *stream);
-int32_t message_delta_array_field_encode(message_delta_field_type *field_type, uint8_t *previous,
-    uint8_t *destination, bit_stream *stream);
-int32_t message_delta_compound_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_compound_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-uint8_t message_delta_compound_initialize(message_delta_field_type *field_type);
-int32_t message_delta_decode_array_field(void **context);
-uint8_t message_delta_decode_compound_field(void **context, void *destination);
-uint8_t message_delta_decode_compound_field_forced(void **context, void *destination, int32_t changed_offset,
-                                                    uint8_t force);
-uint8_t message_delta_decode_compound_field_staged(void **context);
-int32_t message_delta_dword_array_decode(message_delta_field_type *field_type, uint32_t *previous,
-    uint32_t *destination, bit_stream *stream);
-int32_t message_delta_float_array_encode(message_delta_field_type *field_type, float *previous,
-    float *values, bit_stream *stream);
-int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, uint8_t *changed_flags,
-                                              int32_t changed_offset, int32_t destination_offset);
-int32_t message_delta_scalar_array_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_structure_array_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_structure_array_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-uint8_t message_delta_structure_array_initialize(message_delta_field_type *field_type);
 }
 
 typedef int32_t (*message_delta_field_decode_fn)(void *field_type, int32_t changed, int32_t offset, bit_stream *stream);
@@ -318,7 +296,7 @@ int32_t AggregateFieldCodec::decode_array_field(void **context)
     int32_t treat_as_success;
 
     state = (message_delta_decode_state *)context[0];
-    array_bits = message_delta_decode_field_changed_flags(context);
+    array_bits = halo::networking::message_delta_decode_field_changed_flags(context);
     treat_as_success = (0 < array_bits);
     if (!treat_as_success && array_bits == 0 && state->incremental == 0) {
         message_delta_definition *definition = message_delta_definitions[state->message_type];
@@ -353,7 +331,7 @@ uint8_t AggregateFieldCodec::decode_compound_field(void **context, void *destina
     int32_t bits;
 
     state = (message_delta_decode_state *)context[0];
-    bits = message_delta_read_changed_subfields(state, (uint8_t *)context + 4, 0, (int32_t)(int32_t)destination);
+    bits = halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)context + 4, 0, (int32_t)(int32_t)destination);
     state->bits_read = state->bits_read + bits;
     if (bits == 0) {
         bit_stream *stream = (bit_stream *)state->stream;
@@ -378,7 +356,7 @@ uint8_t AggregateFieldCodec::decode_compound_field_forced(void **context, void *
     int32_t bits;
 
     state = (message_delta_decode_state *)context[0];
-    bits = message_delta_read_changed_subfields(state, (uint8_t *)context + 4, changed_offset,
+    bits = halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)context + 4, changed_offset,
                                                  (int32_t)(int32_t)destination);
     state->bits_read = state->bits_read + bits;
     if (bits == 0 && force == 0) {
@@ -406,7 +384,7 @@ uint8_t AggregateFieldCodec::decode_compound_field_staged(void **context)
 
     state = (message_delta_decode_state *)context[0];
     changed_offset = (state->incremental == 1) ? (int32_t)(int32_t)scratch : 0;
-    bits = message_delta_read_changed_subfields(state, (uint8_t *)context + 4, changed_offset,
+    bits = halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)context + 4, changed_offset,
                                                  (int32_t)(int32_t)scratch);
     if (bits == 0 && state->incremental == 0) {
         bit_stream *stream = (bit_stream *)state->stream;
@@ -730,7 +708,7 @@ uint8_t AggregateFieldCodec::structure_array_initialize(message_delta_field_type
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 int32_t message_delta_array_field_decode(message_delta_field_type *field_type, uint8_t *previous,
     uint8_t *destination, bit_stream *stream)
 {

@@ -9,6 +9,7 @@
 #include "halo/render/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int16_t director_camera_mode;
@@ -171,7 +172,7 @@ const ScriptCommandGroup &CameraCommands::commands()
 void CinematicCommands::cinematic_abort(int16_t function_index, uint32_t thread_index, char first)
 {
     split_screen_quit_prompt_string = halo::k_word_none;
-    network_join_error_reason = 0;
+    halo::networking::globals().join_error_reason = 0;
     halo::main::fields::revert_map_if_allowed = 1;
     halo::hs::hs_thread_return(0, thread_index);
 }

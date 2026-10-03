@@ -12,10 +12,10 @@
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count];
-extern int32_t network_connection_stats_lookup_or_add(int32_t connection_id, uint16_t connection_key);
 extern uint8_t network_statistics_logging_enabled;
 extern uint8_t network_connection_log_needs_open;
 extern void *network_connection_stats_log_file;
@@ -26,33 +26,24 @@ extern network_summary_statistics network_summary_stats;
 extern network_client_globals *network_client;
 extern network_server_globals *network_server;
 extern char network_summary_log_mode_string[];
-extern char *network_log_path_resolve(char *requested_path);
-extern void network_bandwidth_graph_accumulate_sent(int32_t enabled);
-extern void network_bandwidth_graph_accumulate_received(int32_t enabled);
 extern void *gt2GetConnectionData(void *gamespy_connection);
-extern uint32_t gamespy_array_length(int32_t object);
 extern uint16_t gt2GetRemotePort(int32_t object);
 extern uint8_t network_disabled_flag;
 extern int16_t network_join_error_code;
 extern int32_t network_join_error_reason;
 extern uint8_t split_screen_quit_prompt_string[4];
 extern data_packet_group network_game_messages_group;
-extern int16_t network_initialize(void);
 extern uint8_t network_hostname_ready;
 extern uint8_t network_winsock_initialized;
 extern uint32_t network_local_address;
 extern uint32_t network_resolved_local_address;
 extern int32_t network_initialized_at_ms;
-extern int network_local_hostent_get(void **out_hostent);
-extern uint32_t __stdcall autopatch_proxy_initialize(void *parameter);
 extern char network_local_hostname_buffer[0x100];
-extern void network_hostname_thread_proc(char *hostname_buffer);
 extern uint8_t network_log_path_buffer[0x104];
 extern char network_log_path_format[];
 extern int32_t security_check_write_access(void);
 extern uint8_t virtual_keyboard_character_is_legal(uint8_t ch, void *character);
 extern uint8_t ui_wide_string_has_non_whitespace(void);
-extern uint16_t *network_message_block_build(uint16_t *buffer, uint32_t *source, uint8_t flags, uint32_t length);
 extern uint16_t network_challenge_packet_block[];
 extern uint8_t network_random_seeded;
 extern int32_t __ftol(int32_t value);
@@ -63,15 +54,10 @@ extern void gt2CloseSocket(int32_t socket);
 extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address);
 extern int32_t network_high_res_clock_ms;
 extern uint8_t network_update_unknown_869bf;
-extern void network_connection_stats_log_tick(void);
 extern void gt2Think(int32_t socket);
-extern void gamespy_think_all(void);
 extern data_array *player_data;
 extern void *machine_table;
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
-extern void network_event_feed_flush(void);
 extern uint8_t network_summary_log_needs_open;
 }
 
@@ -88,7 +74,7 @@ void ConnectionStats::end(int32_t connection_id, uint16_t connection_key)
     int32_t now;
 
     if (2 < halo::cseries::globals().debug_log_level &&
-        (index = network_connection_stats_lookup_or_add(connection_id, connection_key), index != -1) &&
+        (index = halo::networking::network_connection_stats_lookup_or_add(connection_id, connection_key), index != -1) &&
         network_connection_stats[index].active != 0) {
         now = halo::cseries::time_query_performance_counter_ms();
         network_connection_stats[index].connected_duration_ms +=
@@ -130,7 +116,7 @@ void ConnectionStats::log_tick()
             tm_now = localtime(&now_time);
             strftime(date_buf, 0x103, "%Y-%m-%d %H_%M_%S", tm_now);
 
-            base_path = network_log_path_resolve((char *)"Gamespy Metrics");
+            base_path = halo::networking::network_log_path_resolve((char *)"Gamespy Metrics");
             strcpy(path_buf, base_path);
             halo::cseries::directory_create_recursive(path_buf);
 
@@ -245,16 +231,16 @@ void ConnectionStats::record_packet(void *gamespy_connection, int32_t payload_le
     if (2 < halo::cseries::globals().debug_log_level) {
         total_bytes = payload_length + 0x1c;
         if (is_sent == 0) {
-            network_bandwidth_graph_accumulate_received(1);
+            halo::networking::network_bandwidth_graph_accumulate_received(total_bytes, 1);
         } else {
-            network_bandwidth_graph_accumulate_sent(1);
+            halo::networking::network_bandwidth_graph_accumulate_sent(total_bytes, 1);
         }
         if (network_statistics_logging_enabled == 1 && gamespy_connection != 0 &&
             (gamespy_connection = gt2GetConnectionData(gamespy_connection), gamespy_connection != 0)) {
             stats_index_field = (int32_t *)((uint8_t *)gamespy_connection + 0x14);
             if (*stats_index_field == -1) {
-                index = network_connection_stats_lookup_or_add(
-                    (int32_t)gamespy_array_length((int32_t)(uintptr_t)gamespy_connection),
+                index = halo::networking::network_connection_stats_lookup_or_add(
+                    (int32_t)halo::networking::gamespy_array_length((void *)((int32_t)(uintptr_t)gamespy_connection)),
                     gt2GetRemotePort((int32_t)(uintptr_t)gamespy_connection));
                 *stats_index_field = index;
                 network_connection_stats[index].active = 1;
@@ -315,7 +301,7 @@ void NetworkRuntime::dispatch_initialize()
 {
     int16_t initialize_result;
 
-    initialize_result = network_initialize();
+    initialize_result = halo::networking::network_initialize();
     if (initialize_result != 0) {
         if (network_join_error_code == -1) {
             network_join_error_code = 5;
@@ -373,7 +359,7 @@ int16_t NetworkRuntime::initialize()
         wsa_result = WSAStartup(2, (LPWSADATA)wsa_data);
         if ((int16_t)wsa_result == 0) {
             if (network_local_address == 0) {
-                if (network_local_hostent_get(&hostent) == 0) {
+                if (halo::networking::network_local_hostent_get(&hostent) == 0) {
                     return -0x10;
                 }
                 raw_address = *(uint32_t *)**(uint32_t **)((uint8_t *)hostent + 0xc);
@@ -384,7 +370,7 @@ int16_t NetworkRuntime::initialize()
                 network_resolved_local_address = network_local_address;
             }
         }
-        CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)autopatch_proxy_initialize, 0, 0, (LPDWORD)&thread_id);
+        CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)halo::networking::autopatch_proxy_initialize, 0, 0, (LPDWORD)&thread_id);
 
         network_initialized_at_ms = halo::cseries::time_query_performance_counter_ms();
         network_winsock_initialized = 1;
@@ -408,7 +394,7 @@ int NetworkRuntime::local_hostent_get(void **out_hostent)
     uint32_t thread_id;
 
     network_hostname_ready = 0;
-    thread_handle = CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)network_hostname_thread_proc,
+    thread_handle = CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)halo::networking::network_hostname_thread_proc,
                                   network_local_hostname_buffer, 0, (LPDWORD)&thread_id);
     if (thread_handle != 0) {
         wait_result = WaitForSingleObject(thread_handle, 10000);
@@ -520,7 +506,7 @@ uint16_t * NetworkRuntime::prepare_challenge_packet(int32_t message_type, void *
     length = 0x600;
     if (halo::memory::data_packet_group_encode_packet(&network_game_messages_group, buffer, payload, &length,
                                         (int16_t)message_type, 1) != 0) {
-        return network_message_block_build(network_challenge_packet_block, (uint32_t *)buffer, 3,
+        return halo::networking::network_message_block_build(network_challenge_packet_block, (uint32_t *)buffer, 3,
                                            (uint32_t)length);
     }
     return 0;
@@ -671,14 +657,14 @@ uint32_t NetworkRuntime::update_()
     if (network_update_unknown_869bf == 1) {
         network_update_unknown_869bf = 0;
     }
-    network_connection_stats_log_tick();
+    halo::networking::network_connection_stats_log_tick();
     if (network_game_socket != 0) {
         gt2Think(network_game_socket);
     }
     if (network_query_socket != 0) {
         gt2Think(network_query_socket);
     }
-    gamespy_think_all();
+    halo::networking::gamespy_think_all();
     return 0;
 }
 
@@ -774,7 +760,7 @@ void EventFeed::flush(int32_t *queue)
 
     force_changed = (char)*queue != 1;
     type_offset_arg = force_changed ? survivors_extra : 0;
-    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, (uint32_t)force_changed, 0x26, (int32_t)survivors_key,
+    halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, (uint32_t)force_changed, 0x26, (int32_t)survivors_key,
         survivors_payload, (int32_t)type_offset_arg, survivor_count, force_changed), network_server, 1, 0, (char)*queue, 0, 0, 2);
     queue[1] = 0;
 }
@@ -807,7 +793,7 @@ void EventFeed::queue_append(uint8_t *queue, uint32_t *key, uint32_t *payload)
     count = *(int32_t *)(queue + 4) + 1;
     *(int32_t *)(queue + 4) = count;
     if (count == 0x10) {
-        network_event_feed_flush();
+        halo::networking::network_event_feed_flush((int32_t *)queue);
     }
 }
 
@@ -1034,7 +1020,7 @@ void StatsSummaryLog::open()
             tm_now = localtime(&now);
             strftime(date_buf, 0x103, "%Y-%m-%d %H_%M_%S", tm_now);
 
-            base_path = network_log_path_resolve((char *)"Gamespy Metrics");
+            base_path = halo::networking::network_log_path_resolve((char *)"Gamespy Metrics");
             strcpy(path_buf, base_path);
             halo::cseries::directory_create_recursive(path_buf);
 

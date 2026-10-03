@@ -12,6 +12,7 @@ extern "C" input_event_queue input_event_queue_active;
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/networking/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -20,9 +21,7 @@ extern "C" input_event_queue input_event_queue_active;
 extern "C" {
 extern uint8_t ui_force_quit;
 extern uint8_t ui_split_screen;
-extern int16_t network_join_error_code;
 extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t network_join_error_reason;
 extern uint8_t split_screen_quit_prompt_armed;
 extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
@@ -45,7 +44,6 @@ extern uint8_t controls_input_capture_flags;
 extern void display_error(int16_t error_string_index, int32_t unknown, uint8_t modal, uint8_t is_error);
 extern uint8_t ui_check_for_pause_game(void);
 extern void virtual_keyboard_process_input(void);
-extern uint8_t network_game_is_active(void);
 extern void widget_instance_handle_input_event(widget_instance *widget, UIWidgetDefinition *tag, uint8_t *event_scratch, uint8_t *out_handled);
 extern void list_node_pop(widget_history_node *out, widget_history_node **head);
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection);
@@ -84,11 +82,11 @@ void InterfaceMain::handle_quit_request()
         ExitProcess(0xffffec7a);
     }
     if (ui_split_screen == 0) {
-        if (network_join_error_code == -1) {
-            network_join_error_code = 0x23;
+        if (halo::networking::globals().join_error_code == -1) {
+            halo::networking::globals().join_error_code = 0x23;
         }
         split_screen_quit_prompt_string = 0xffff;
-        network_join_error_reason = 0;
+        halo::networking::globals().join_error_reason = 0;
         split_screen_quit_prompt_armed = 1;
         ui_force_quit = 0;
         return;
@@ -207,7 +205,7 @@ void InterfaceMain::tick()
 
                 int16_t error_string_index = quit_confirm_error_string_index;
 
-                if (ui_split_screen != 0 || network_game_is_active() != 0 ||
+                if (ui_split_screen != 0 || halo::networking::network_game_is_active() != 0 ||
                     game_time->game_time > 0x1d) {
                     display_error(error_string_index, (int32_t)(uint16_t)quit_confirm_error_unknown_ae,
                                   quit_confirm_error_modal, quit_confirm_error_is_error);

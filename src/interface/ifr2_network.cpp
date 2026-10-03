@@ -8,27 +8,18 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
 extern "C" {
-extern network_server_globals *network_server;
-extern uint8_t network_disconnect_timeout_flag;
 extern int32_t game_variant_history_current;
-extern int16_t network_game_mode;
-extern network_client_globals *network_client;
-extern uint8_t network_host_handoff_requested;
-extern uint8_t network_server_host_valid;
 extern void game_engine_sync_variant_defaults(void);
 extern uint8_t game_engine_ensure_variant_history_has_entry(void);
 extern void game_engine_apply_current_custom_variant(void);
 extern void network_game_setup_teardown(void);
-extern network_client_globals *network_session_create(void);
-extern uint8_t network_game_server_host_create(void);
-extern void network_client_globals_dispose(void);
-extern void network_game_server_host_dispose(network_server_globals *server);
 extern variant_carousel_slot variant_carousel_slots[3];
 extern uint8_t profile_globals_block[0x60a4];
 extern void widget_list_scroll_window(int32_t out[3], widget_instance *widget);
@@ -44,8 +35,6 @@ extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, ui
 extern uint8_t player_profile_get(int32_t slot, void *out_profile);
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern uint8_t local_team_00714dd8;
-extern void network_game_settings_ack_send(void *client, int32_t unknown);
-extern uint8_t network_player_entry_validate(void);
 extern uint8_t game_variant_saved_default_valid;
 extern game_engine_definition *current_game_engine;
 extern uint8_t player_profile_cache_initialized;
@@ -72,15 +61,15 @@ uint8_t NetworkSetup::host_session_start()
 {
     uint8_t ok = 1;
 
-    network_client_globals_dispose();
+    halo::networking::network_client_globals_dispose();
     network_game_setup_teardown();
-    network_disconnect_timeout_flag = 1;
+    halo::networking::globals().disconnect_timeout_flag = 1;
 
-    if (network_server == (network_server_globals *)0) {
+    if (halo::networking::globals().server == (network_server_globals *)0) {
         game_engine_ensure_variant_history_has_entry();
-        ok = network_game_server_host_create();
+        ok = halo::networking::network_game_server_host_create();
         if (ok == 1) {
-            int32_t *raw = (int32_t *)network_server;
+            int32_t *raw = (int32_t *)halo::networking::globals().server;
 
             raw[0x272] = 0;
             raw[0x273] = 0;
@@ -90,18 +79,18 @@ uint8_t NetworkSetup::host_session_start()
             game_variant_history_current = -1;
             game_engine_apply_current_custom_variant();
             game_engine_sync_variant_defaults();
-            network_game_mode = 2;
+            halo::networking::globals().game_mode = 2;
         }
         if (ok == 0) {
             goto fail;
         }
     }
 
-    if (network_client == (network_client_globals *)0) {
-        network_client = network_session_create();
-        ok = (network_client != (network_client_globals *)0);
+    if (halo::networking::globals().client == (network_client_globals *)0) {
+        halo::networking::globals().client = halo::networking::network_session_create();
+        ok = (halo::networking::globals().client != (network_client_globals *)0);
         if (ok) {
-            network_host_handoff_requested = 0;
+            halo::networking::globals().host_handoff_requested = 0;
         }
     }
     if (ok != 0) {
@@ -109,13 +98,13 @@ uint8_t NetworkSetup::host_session_start()
     }
 
 fail:
-    if (network_server != (network_server_globals *)0) {
-        network_game_server_host_dispose(network_server);
-        network_server = (network_server_globals *)0;
-        network_server_host_valid = 0;
+    if (halo::networking::globals().server != (network_server_globals *)0) {
+        halo::networking::network_game_server_host_dispose(halo::networking::globals().server);
+        halo::networking::globals().server = (network_server_globals *)0;
+        halo::networking::globals().server_host_valid = 0;
     }
-    network_client_globals_dispose();
-    network_disconnect_timeout_flag = 0;
+    halo::networking::network_client_globals_dispose();
+    halo::networking::globals().disconnect_timeout_flag = 0;
     network_game_setup_teardown();
     return 0;
 }
@@ -318,7 +307,7 @@ uint8_t NetworkSetup::autojoin_from_command_line()
  */
 void NetworkSetup::clear_player_ready_flags()
 {
-    int16_t *client = (int16_t *)network_client;
+    int16_t *client = (int16_t *)halo::networking::globals().client;
     int16_t *status;
     int16_t *player;
     uint8_t local_ready_flags[16];
@@ -337,22 +326,22 @@ void NetworkSetup::clear_player_ready_flags()
         return;
     }
 
-    if (network_server == (network_server_globals *)0) {
+    if (halo::networking::globals().server == (network_server_globals *)0) {
         player = (client == (int16_t *)0) ? (int16_t *)0 : client + 0x58a;
     } else {
-        player = (int16_t *)((uint8_t *)network_server + 8);
+        player = (int16_t *)((uint8_t *)halo::networking::globals().server + 8);
     }
     local_ready_flags[0] = local_team_00714dd8;
     player = player + 0xd1;
 
     for (i = 0x10; i != 0; i--) {
-        if (network_player_entry_validate() != 0) {
-            if (player == (int16_t *)0 || network_player_entry_validate() == 0) {
-                if (network_game_mode != 3 || *((int8_t *)player + 0x1c) == 0) {
+        if (halo::networking::network_player_entry_validate((network_player_entry *)player) != 0) {
+            if (player == (int16_t *)0 || halo::networking::network_player_entry_validate((network_player_entry *)player) == 0) {
+                if (halo::networking::globals().game_mode != 3 || *((int8_t *)player + 0x1c) == 0) {
                     goto clear_flag;
                 }
-            } else if ((network_server == (network_server_globals *)0 ||
-                        (((*((uint8_t *)network_server + 6) >> 2) & 1) == 0)) &&
+            } else if ((halo::networking::globals().server == (network_server_globals *)0 ||
+                        (((*((uint8_t *)halo::networking::globals().server + 6) >> 2) & 1) == 0)) &&
                        *client != -1 && *client == (int16_t)*((int8_t *)player + 0x1c)) {
             clear_flag:
                 local_ready_flags[*((int8_t *)player + 0x1d)] = 0;
@@ -362,7 +351,7 @@ void NetworkSetup::clear_player_ready_flags()
     }
 
     if (local_ready_flags[0] != 0) {
-        network_game_settings_ack_send(network_client, 0);
+        halo::networking::network_game_settings_ack_send((uint8_t *)halo::networking::globals().client, 0);
     }
 }
 
@@ -376,7 +365,7 @@ void NetworkSetup::clear_player_ready_flags()
 void NetworkSetup::game_setup_teardown()
 {
     game_variant_saved_default_valid = 0;
-    network_game_mode = 0;
+    halo::networking::globals().game_mode = 0;
 
     if (current_game_engine != (game_engine_definition *)0) {
         if (current_game_engine->dispose != (void *)0) {
@@ -401,8 +390,8 @@ void NetworkSetup::game_setup_teardown()
  */
 uint32_t NetworkSetup::server_reset_game_stats()
 {
-    if (network_server != (network_server_globals *)0) {
-        uint8_t *raw = (uint8_t *)network_server;
+    if (halo::networking::globals().server != (network_server_globals *)0) {
+        uint8_t *raw = (uint8_t *)halo::networking::globals().server;
 
         *(int32_t *)(raw + 0x9c8) = 0;
         *(int32_t *)(raw + 0x9cc) = 0;
@@ -410,7 +399,7 @@ uint32_t NetworkSetup::server_reset_game_stats()
         *(int32_t *)(raw + 0x9d4) = 0;
         raw[0x9d5] = 1;
     }
-    return ((uint32_t)network_server << 8) | 1;
+    return ((uint32_t)halo::networking::globals().server << 8) | 1;
 }
 
 /**
@@ -427,7 +416,7 @@ uint32_t MenuListView::choice_handler()
 
     if (widget == first_choice) {
         widget_close_all();
-        if (network_game_mode == 2) {
+        if (halo::networking::globals().game_mode == 2) {
             if (game_engine_state_value == 0) {
                 game_engine_reset_round_objects();
                 game_engine_send_round_reset_message();

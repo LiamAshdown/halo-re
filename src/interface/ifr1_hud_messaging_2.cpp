@@ -4,13 +4,11 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t *hud_messaging;
 extern data_array *player_data;
-extern int16_t network_game_mode;
-extern int8_t message_delta_decode_compound_field(void *message, hud_item_message *out_payload);
-extern int32_t message_delta_decode_compound_field_staged(void *message);
 extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
                                  int16_t count);
 extern void player_trigger_shield_recharge_effect(uint32_t player_index);
@@ -50,10 +48,10 @@ void HudMessaging::receive_item_message(void **message)
     datum_index sound;
 
     if (*(int32_t *)*message != 0) {
-        message_delta_decode_compound_field_staged(message);
+        halo::networking::message_delta_decode_compound_field_staged(message);
         return;
     }
-    if (message_delta_decode_compound_field(message, &payload) == 0) {
+    if (halo::networking::message_delta_decode_compound_field(message, &payload) == 0) {
         return;
     }
     iterator.data = player_data;
@@ -76,7 +74,7 @@ void HudMessaging::receive_item_message(void **message)
         switch (*(int16_t *)((uint8_t *)item_tag + 0x308)) {
         case 2:
             player_trigger_shield_recharge_effect(iterator.index);
-            if (network_game_mode == 1) {
+            if (halo::networking::globals().game_mode == 1) {
                 object *unit = halo::objects::object_try_and_get(p->unit, 1);
                 if (unit != 0) {
                     *((uint8_t *)unit + 0x106) |= 0x10;

@@ -9,9 +9,9 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
-extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern int32_t k_vehicle_minimum_age_ticks;
 extern int32_t vehicle_network_update_period;
@@ -62,7 +62,7 @@ uint8_t VehicleView::create()
         clear_flag(((struct object *)object)->flags, objects::object_flag::at_rest);
         ((struct object *)object)->position.z += *(float *)(definition + 4) * 0.5f;
     }
-    if (network_game_mode == 1 || network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) {
         ((struct vehicle_object *)object)->vehicle.network_position_pending = 0;
         ((struct vehicle_object *)object)->vehicle.network_epoch = 0;
         ((struct vehicle_object *)object)->vehicle.network_update_sequence = 0;
@@ -152,7 +152,7 @@ uint32_t VehicleView::update()
     static uint8_t node_output[0xc00];
     static uint8_t contact_points[0x2600];
 
-    if (network_game_mode == 2 && ((struct vehicle_object *)obj)->vehicle.network_update_tick != -1 && vehicle_network_update_period != 0 &&
+    if (halo::networking::globals().game_mode == 2 && ((struct vehicle_object *)obj)->vehicle.network_update_tick != -1 && vehicle_network_update_period != 0 &&
         game_time->game_time >= ((struct vehicle_object *)obj)->vehicle.network_update_tick + vehicle_network_update_period) {
         if (halo::math::vector3d_distance(*((real_point3d *)&((struct vehicle_object *)obj)->vehicle.unknown_5b2[2]), *((real_point3d *)&((struct object *)obj)->position)) > 1.5f &&
             UnitView(object_index).get_recently_updated_flag() == 1 && !UnitView(object_index).has_child_of_type5()) {

@@ -8,16 +8,12 @@
 #include "game.h"
 #include "networking.h"
 #include "halo/networking/net2_message_delta_metrics.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern char message_delta_metrics_filename_suffix[];
 extern int32_t snprintf(char *dest, uint32_t count, const char *format, ...);
 extern void console_printf_verbose(const char *format, ...);
-void message_delta_metrics_dump(char *suffix);
-void message_delta_sample_record_and_append(int32_t a, int32_t c, int32_t b,
-                                             message_delta_sample_ring_buffer *ring);
-void message_delta_sample_ring_buffer_append(message_delta_sample_ring_buffer *ring, const int32_t *entry);
-int32_t message_delta_sample_ring_buffer_average(message_delta_sample_ring_buffer *ring);
 }
 
 
@@ -49,7 +45,7 @@ void DeltaMetrics::sample_record_and_append(int32_t a, int32_t c, int32_t b,
     record[2] = c;
     record[3] = (int32_t)half_span;
     record[4] = (int32_t)half_span - c + b;
-    message_delta_sample_ring_buffer_append(ring, record);
+    halo::networking::message_delta_sample_ring_buffer_append(ring, record);
 }
 
 void DeltaMetrics::sample_ring_buffer_append(message_delta_sample_ring_buffer *ring, const int32_t *entry)
@@ -116,7 +112,7 @@ int32_t DeltaMetrics::sample_ring_buffer_average(message_delta_sample_ring_buffe
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 void message_delta_metrics_dump(char *suffix)
 {
     halo::networking::DeltaMetrics::metrics_dump(suffix);

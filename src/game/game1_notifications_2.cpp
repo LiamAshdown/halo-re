@@ -9,6 +9,7 @@
 
 #include "halo/game/game1_notifications.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -16,11 +17,6 @@ extern uint8_t *network_server;
 extern uint8_t *network_client;
 extern data_array *update_client_queues;
 extern uint8_t join_message_table[];
-extern void message_delta_decode_compound_field_staged(void *event);
-extern uint8_t message_delta_decode_compound_field(void *event, void *out_message);
-extern uint8_t network_channel_key_close(void *identifier_record);
-extern void network_index_cache_insert_if_free(uint32_t hash_value, datum_index player_handle,
-    void *table);
 extern void game_engine_player_profile_cache_add(uint32_t player_handle);
 extern void game_set_local_player(datum_index player_handle,
     int16_t local_player_index);
@@ -44,10 +40,10 @@ void Notifications::apply_player_join_message(void **envelope)
     player *p;
 
     if (*(int32_t *)*envelope != 0) {
-        message_delta_decode_compound_field_staged(envelope);
+        halo::networking::message_delta_decode_compound_field_staged(envelope);
         return;
     }
-    if (!message_delta_decode_compound_field(envelope, &message)) {
+    if (!halo::networking::message_delta_decode_compound_field(envelope, &message)) {
         return;
     }
 
@@ -58,10 +54,10 @@ void Notifications::apply_player_join_message(void **envelope)
 
     p = (player *)halo::memory::datum_get((datum_index)message.join_key, player_data);
     if (p == 0) {
-        if (network_channel_key_close(identifier_record) != 1) {
+        if (halo::networking::network_channel_key_close((network_player_entry *)identifier_record, (datum_index)message.join_key) != 1) {
             return;
         }
-        network_index_cache_insert_if_free(message.hash_value, message.join_key, join_message_table);
+        halo::networking::network_index_cache_insert_if_free(join_message_table, (int32_t)message.hash_value, (int32_t)message.join_key);
         p = (player *)halo::memory::datum_get((datum_index)message.join_key, player_data);
         halo::memory::datum_new_at_index_with_salt((datum_index)message.join_key, update_client_queues);
         game_engine_player_profile_cache_add(message.join_key);

@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/networking/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -19,7 +20,6 @@ extern widget_instance *ui_root_widget[1];
 extern void *ui_event_function_table[0xbe];
 extern int16_t ui_pause_depth;
 extern uint8_t ui_split_screen;
-extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern player_control_globals *player_control_globals_ptr;
 extern void widget_close(widget_instance *widget);
@@ -50,7 +50,6 @@ extern uint8_t ui_restoring_previous_widget;
 extern void list_node_pop(widget_history_node *out, widget_history_node **head);
 extern void widget_instance_select_list_index(widget_instance *widget, datum_index list_definition, int32_t selection);
 extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t network_join_error_reason;
 extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t widget_list_select_next(widget_instance *widget);
 extern uint8_t widget_list_select_previous(widget_instance *widget);
@@ -194,7 +193,7 @@ void WidgetLifecycle::close()
         }
     }
 
-    if (widget->pauses_game_time == 1 && network_game_mode != 2 &&
+    if (widget->pauses_game_time == 1 && halo::networking::globals().game_mode != 2 &&
         ui_split_screen == 0) {
         ui_pause_depth = ui_pause_depth - 1;
         if (ui_pause_depth == 0 && game_time->paused != 0) {
@@ -933,7 +932,7 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
             }
         }
     }
-    if (widget->pauses_game_time == 1 && network_game_mode != 2 && ui_split_screen == 0) {
+    if (widget->pauses_game_time == 1 && halo::networking::globals().game_mode != 2 && ui_split_screen == 0) {
         ui_pause_depth = ui_pause_depth + 1;
         if (game_time->paused == 0) {
             if (game_time->initialized != 0) {
@@ -1374,7 +1373,7 @@ dispatch_to_children:
         }
         if (i == 1) {
             split_screen_quit_prompt_string = 0xffff;
-            network_join_error_reason = 0;
+            halo::networking::globals().join_error_reason = 0;
             split_screen_quit_prompt_armed = 1;
         }
     }

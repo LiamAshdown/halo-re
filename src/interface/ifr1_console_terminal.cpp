@@ -9,6 +9,7 @@
 #include "halo/text/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern char console_echo_prefix[];
@@ -16,7 +17,6 @@ extern datum_index console_message_new(void);
 extern void chimera__console_out_copy(char *text);
 extern uint8_t console_rcon_out_reentrant_guard;
 extern void *console_output_handle;
-extern void chimera__rcon_out(int32_t rcon_handle);
 extern void console_clear_bottom_line(int32_t clear_all);
 extern void console_draw_input_line(void);
 extern void string_replace_all_in_place(char *buffer, char *search, char *replacement);
@@ -103,7 +103,7 @@ void ConsoleTerminal::out_copy(char *text)
 
     if (halo::main::globals().console_rcon_handle != -1 && console_rcon_out_reentrant_guard == 0) {
         console_rcon_out_reentrant_guard = 1;
-        chimera__rcon_out(halo::main::globals().console_rcon_handle);
+        halo::networking::chimera__rcon_out(text, halo::main::globals().console_rcon_handle);
         console_rcon_out_reentrant_guard = 0;
     }
     if (halo::main::globals().console_win32_attached != 0) {

@@ -22,12 +22,12 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int16_t pending_difficulty;
 extern void widget_play_sound_effect(int16_t effect_id);
 extern uint32_t ui_restart_saved_game(void);
-extern uint8_t autopatch_launch_updater(void);
 extern uint8_t ui_restoring_previous_widget;
 extern void widget_instance_close_and_restore_previous(widget_instance *widget);
 extern char *campaign_level_paths[];
@@ -155,7 +155,7 @@ uint8_t UiEventHandlers::event_4a4110(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a4190(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    autopatch_launch_updater();
+    halo::networking::autopatch_launch_updater();
     return 1;
 }
 

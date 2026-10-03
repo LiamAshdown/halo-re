@@ -10,6 +10,7 @@
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/networking/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,7 +25,6 @@ extern void network_game_host_start(char *map_name, char *variant_name, uint8_t 
 extern uint32_t game_safe_to_pause(void);
 extern int16_t pending_difficulty;
 extern int16_t local_player_count;
-extern uint8_t network_join_error_reason;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t main_globals_byte_0071973a;
 extern int32_t game_state_revert_time;
@@ -58,8 +58,8 @@ namespace halo::hs {
  */
 void GameCommands::evaluate_disconnect(int16_t function_index, uint32_t thread_index, char first)
 {
-    if (network_client != 0 && network_game_mode == 1) {
-        network_client_rejoin_check(0);
+    if (halo::networking::globals().client != 0 && halo::networking::globals().game_mode == 1) {
+        halo::networking::network_client_rejoin_check(0);
     }
     halo::hs::hs_thread_return(0, thread_index);
 }
@@ -225,7 +225,7 @@ void GameCommands::evaluate_game_is_cooperative(int16_t function_index, uint32_t
  */
 void GameCommands::evaluate_game_lost(int16_t function_index, uint32_t thread_index, char first)
 {
-    network_join_error_reason = 0;
+    halo::networking::globals().join_error_reason = 0;
     halo::main::fields::lost_map = 1;
     halo::hs::hs_thread_return(0, thread_index);
 }
@@ -238,7 +238,7 @@ void GameCommands::evaluate_game_lost(int16_t function_index, uint32_t thread_in
  */
 void GameCommands::evaluate_game_revert(int16_t function_index, uint32_t thread_index, char first)
 {
-    network_join_error_reason = 0;
+    halo::networking::globals().join_error_reason = 0;
     halo::main::fields::lost_map = 0;
     split_screen_quit_prompt_string = halo::k_word_none;
     main_globals_byte_0071973a = 1;
@@ -289,8 +289,8 @@ void GameCommands::evaluate_game_safe_to_speak(int16_t function_index, uint32_t 
  */
 void GameCommands::evaluate_game_save(int16_t function_index, uint32_t thread_index, char first)
 {
-    if (network_join_error_reason == 0 || main_globals_byte_0071973e != 0) {
-        network_join_error_reason = 1;
+    if (halo::networking::globals().join_error_reason == 0 || main_globals_byte_0071973e != 0) {
+        halo::networking::globals().join_error_reason = 1;
         main_globals_byte_0071973d = 1;
         main_globals_byte_0071973e = 1;
         main_globals_dword_00719740 = 0;
@@ -320,8 +320,8 @@ void GameCommands::evaluate_game_save_cancel(int16_t function_index, uint32_t th
  */
 void GameCommands::evaluate_game_save_no_timeout(int16_t function_index, uint32_t thread_index, char first)
 {
-    if (network_join_error_reason == 0 || main_globals_byte_0071973e != 0) {
-        network_join_error_reason = 1;
+    if (halo::networking::globals().join_error_reason == 0 || main_globals_byte_0071973e != 0) {
+        halo::networking::globals().join_error_reason = 1;
         main_globals_byte_0071973d = 1;
         main_globals_dword_00719740 = 0;
         main_globals_dword_00719744 = 0;
@@ -339,7 +339,7 @@ void GameCommands::evaluate_game_save_no_timeout(int16_t function_index, uint32_
  */
 void GameCommands::evaluate_game_save_totally_unsafe(int16_t function_index, uint32_t thread_index, char first)
 {
-    network_join_error_reason = 1;
+    halo::networking::globals().join_error_reason = 1;
     main_globals_byte_0071973d = 0;
     halo::hs::hs_thread_return(0, thread_index);
 }
@@ -422,7 +422,7 @@ void GameCommands::evaluate_game_variant(int16_t function_index, uint32_t thread
  */
 void GameCommands::evaluate_game_won(int16_t function_index, uint32_t thread_index, char first)
 {
-    network_join_error_reason = 0;
+    halo::networking::globals().join_error_reason = 0;
     main_globals_byte_0071974e = 1;
     halo::hs::hs_thread_return(0, thread_index);
 }
@@ -467,7 +467,7 @@ void GameCommands::evaluate_map_name(int16_t function_index, uint32_t thread_ind
  */
 void GameCommands::evaluate_map_reset(int16_t function_index, uint32_t thread_index, char first)
 {
-    network_join_error_reason = 0;
+    halo::networking::globals().join_error_reason = 0;
     halo::main::fields::lost_map = 0;
     split_screen_quit_prompt_string = halo::k_word_none;
     halo::main::fields::reset_map = 1;
@@ -556,7 +556,7 @@ void GameCommands::evaluate_rcon(int16_t function_index, uint32_t thread_index, 
     int32_t *values = 0;
 
     if (halo::hs::hs_evaluate_variadic_arguments(thread_index, (int32_t)first, &count, &values) != 0) {
-        rcon((int32_t)count, (char **)values);
+        halo::networking::rcon((int32_t)count, (char **)values);
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -574,7 +574,7 @@ void GameCommands::evaluate_remote_player_stats(int16_t function_index, uint32_t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        player_update_queue_flush_by_name((char *)arguments[0]);
+        halo::networking::player_update_queue_flush_by_name((char *)arguments[0]);
         halo::hs::hs_thread_return(0, thread_index);
     }
 }

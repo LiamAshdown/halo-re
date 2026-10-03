@@ -18,9 +18,9 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
-extern int16_t network_game_mode;
 extern const real_point3d *global_zero_vector3d_pointer;
 extern double atan2(double y, double x);
 extern double fcos(double x);
@@ -83,7 +83,7 @@ void UnitView::apply_control_block(const unit_control_data *control, int32_t sou
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         unit->network_update_forced = test_flag(control->control_flags, units::unit_control_flag::primary_trigger | units::unit_control_flag::grenade);
         unit->saved_control = *control;
     }
@@ -1116,7 +1116,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         if (forced) {
             uint8_t keep_still = suppress_shield_check || allow_death_reaction;
 
-            if (!keep_still && network_game_mode != 0) {
+            if (!keep_still && halo::networking::globals().game_mode != 0) {
                 datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)obj)->unit.current_weapon_index);
 
                 if (halo::objects::object_try_and_get(weapon, 4) != 0 && halo::items::weapon_must_be_readied(weapon) == 1) {

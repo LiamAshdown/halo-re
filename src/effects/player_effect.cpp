@@ -11,6 +11,7 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -26,15 +27,10 @@ extern double atan2(double y, double x);
 extern double fabs(double x);
 extern datum_index local_player_to_player_index(int16_t local_player_index);
 extern network_id_table *object_network_id_table;
-extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
-extern uint8_t message_delta_decode_compound_field_staged(void **context);
 extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd, const real_vector3d *direction, float random_blend, float damage_amount);
 extern double cos(double x);
 extern double sin(double x);
 extern uint8_t network_message_scratch[0x7ff8];
-extern network_server_globals *network_server;
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t status_bit, void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
 }
 
 namespace halo::effects {
@@ -372,11 +368,11 @@ void player_effect_ref::mark_damage_direction_dispatch(void **context)
     damage_data dd;
 
     if (**(int32_t **)context != 0) {
-        message_delta_decode_compound_field_staged(context);
+        halo::networking::message_delta_decode_compound_field_staged(context);
         return;
     }
     memset(fields, 0, sizeof(fields));
-    if (!message_delta_decode_compound_field(context, fields)) {
+    if (!halo::networking::message_delta_decode_compound_field(context, fields)) {
         return;
     }
     iterator.data = player_data;
@@ -474,9 +470,9 @@ void player_effect_ref::send_network_update(const real_vector3d *direction, cons
     *(float *)&fields[7] = damage_amount;
     items[0] = fields;
     items[1] = 0;
-    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xb, 0, items, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xb, 0, items, 0, 1, 0);
     if (encoded_bits > 0 && (int8_t)record->machine_index != -1) {
-        network_session_send_to_machine((int8_t)record->machine_index, network_server, 1, network_message_scratch,
+        halo::networking::network_session_send_to_machine((int8_t)record->machine_index, halo::networking::globals().server, 1, network_message_scratch,
             (uint32_t)encoded_bits, 1, 0, 1, 3);
     }
 }

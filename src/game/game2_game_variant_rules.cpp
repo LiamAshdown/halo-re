@@ -1,11 +1,11 @@
 #include "halo/game/game2_variants.hpp"
 #include "halo/text/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_variant game_engine_active_variant;
 extern uint8_t *network_server;
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
-extern void network_game_broadcast_player_set_changed(void *session);
 extern game_variant_history_entry *game_variant_history;
 extern uint32_t game_variant_history_count;
 extern uint32_t game_variant_history_capacity;
@@ -29,7 +29,7 @@ void GameVariantRules::set_variant_by_name(const char *name)
         if (network_server != (void *)0 &&
             *(int32_t *)((uint8_t *)network_server + 0x13c) != looked_up.game_engine_index) {
             *(game_variant *)((uint8_t *)network_server + 0x10c) = looked_up;
-            network_game_broadcast_player_set_changed(network_server);
+            halo::networking::network_game_broadcast_player_set_changed(network_server);
         }
     } else {
         uint8_t *dst = (uint8_t *)&game_engine_active_variant;

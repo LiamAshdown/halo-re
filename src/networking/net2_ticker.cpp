@@ -13,6 +13,7 @@
 #include "halo/networking/net2_ticker.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern heap * widget_memory_pool;
@@ -24,9 +25,6 @@ extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern int32_t hud_text_draw_unknown_4730;
-void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self);
-void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_buffer *self);
-void ticker_text_buffer_reset(ticker_text_buffer *self);
 }
 
 
@@ -163,7 +161,7 @@ void TickerTextBuffer::reset(ticker_text_buffer *self)
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self)
 {
     halo::networking::TickerTextBuffer::advance(widget, self);

@@ -16,6 +16,7 @@
 #include "halo/game/game1_variants.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/networking/api.hpp"
 
 typedef void (*game_engine_variant_defaults_fn)(game_variant *out);
 typedef void (*profile_post_update_proc)(uint32_t arg_edx, uint32_t arg_ecx);
@@ -32,13 +33,9 @@ extern player_profile player_profile_cache[16];
 extern game_variant game_engine_variant;
 extern data_array *player_data;
 extern int32_t game_engine_player_profile_cache_find(datum_index player_handle);
-extern uint8_t message_delta_decode_compound_field(void *event, void *out_values);
-extern uint8_t message_delta_decode_compound_field_forced(void *event, uint32_t *cache_tail, uint32_t *scratch, int32_t zero);
-extern void message_delta_decode_compound_field_staged(void *event);
 extern int32_t *machine_table;
 extern game_variant game_engine_active_variant;
 extern uint8_t *network_server;
-extern void network_game_broadcast_player_set_changed(void *session);
 extern uint8_t game_variant_saved_default_valid;
 extern game_variant game_variant_saved_default;
 extern char network_build_string[];
@@ -178,7 +175,7 @@ void Variants::apply_player_profile_entry(void *event)
 
     slot = game_engine_player_profile_cache_find(search_handle);
     if (slot == -1) {
-        message_delta_decode_compound_field_staged(event);
+        halo::networking::message_delta_decode_compound_field_staged((void **)event);
         return;
     }
 
@@ -186,14 +183,14 @@ void Variants::apply_player_profile_entry(void *event)
     tail = (uint32_t *)&profile->kills;
 
     if (**(int32_t **)event == 0) {
-        committed = message_delta_decode_compound_field(event, tail);
+        committed = halo::networking::message_delta_decode_compound_field((void **)event, tail);
     } else {
         uint32_t scratch[11];
         uint32_t i;
         for (i = 0; i < 10; i = i + 1) {
             scratch[i] = tail[i];
         }
-        committed = message_delta_decode_compound_field_forced(event, tail, scratch + 1, 0);
+        committed = halo::networking::message_delta_decode_compound_field_forced((void **)event, tail, (int32_t)(scratch + 1), 0);
         for (i = 0; i < 10; i = i + 1) {
             tail[i] = scratch[i + 1];
         }
@@ -242,7 +239,7 @@ void Variants::apply_variant(const game_variant *variant)
         if (network_server != (void *)0 &&
             *(int32_t *)((uint8_t *)network_server + 0x13c) != variant->game_engine_index) {
             *(game_variant *)((uint8_t *)network_server + 0x10c) = *variant;
-            network_game_broadcast_player_set_changed(network_server);
+            halo::networking::network_game_broadcast_player_set_changed(network_server);
         }
     } else {
         uint8_t *dst = (uint8_t *)&game_engine_active_variant;

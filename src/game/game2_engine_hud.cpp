@@ -7,13 +7,12 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
 extern game_variant game_engine_variant;
 extern data_array *player_data;
-extern network_server_globals *network_server;
-extern network_client_globals *network_client;
 extern player_globals *local_player_globals;
 extern wchar_t empty_string;
 extern uint8_t *hud_messaging_parameters;
@@ -33,15 +32,12 @@ extern wchar_t *game_engine_get_default_multiplayer_string(const scoreboard_entr
 extern int32_t hud_draw_world_relative_text(hud_world_text_params *params, int16_t row, wchar_t *text, uint8_t highlighted);
 extern int32_t game_engine_multiplayer_ui_state_id(void);
 extern uint16_t unit_find_weapon_index_by_flag(uint32_t unit_index, uint8_t flag_bit);
-extern char *network_address_to_string(s_network_address *addr);
-extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue);
 extern game_time_globals *game_time;
 extern uint8_t game_engine_player_is_eliminated(uint32_t player_index);
 extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_index);
 extern uint8_t game_engine_build_message_text(wchar_t *out, uint32_t buffer_size, datum_index subject, uint32_t param_1, uint32_t message_type);
 extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type, datum_index subject, size_t buffer_size);
 extern Globals *global_globals;
-extern int16_t network_game_mode;
 extern void game_engine_queue_status_sound_message(int32_t sound_index, datum_index recipient_player);
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 extern uint8_t multiplayer_sound_enabled[];
@@ -50,10 +46,6 @@ extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multip
 extern void game_engine_play_multiplayer_sound(int32_t sound_index, datum_index recipient_player, uint8_t broadcast);
 extern int32_t game_engine_get_multiplayer_sound_duration_ticks(int32_t sound_index);
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
-extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t status_bit, void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
-extern network_machine *network_machine_find_by_id(network_server_globals *server, int32_t machine_id);
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
 extern uint8_t custom_waypoint_matches_filter(int32_t candidate, player *reference_player, int32_t slot_index);
 extern int16_t hud_waypoint_visibility(int16_t local_player_index, const real_point3d *eye, const real_point3d *target, datum_index ignore_object);
@@ -307,7 +299,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
         char *address_text;
         s_network_address address;
 
-        if (network_server != 0) {
+        if (halo::networking::globals().server != 0) {
             struct in_addr in;
             uint32_t raw = scoreboard_server_address_raw;
 
@@ -317,12 +309,12 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
         } else {
             network_receive_queue *queue;
 
-            if (network_client == 0) {
+            if (halo::networking::globals().client == 0) {
                 return;
             }
-            queue = network_client->channel->endpoint;
+            queue = halo::networking::globals().client->channel->endpoint;
             if (queue != 0) {
-                if (network_channel_get_remote_address(&address, queue) != 0) {
+                if (halo::networking::network_channel_get_remote_address(&address, queue) != 0) {
                     memset(&address, 0, 0x18);
                     address.size = 4;
                 }
@@ -330,7 +322,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
                 memset(&address, 0, 0x18);
                 address.size = 4;
             }
-            address_text = network_address_to_string(&address);
+            address_text = halo::networking::network_address_to_string(&address);
         }
 
         if (address_text != (char *)0) {
@@ -457,7 +449,7 @@ void EngineHud::play_multiplayer_sound(int32_t sound_index, datum_index recipien
         game_engine_queue_status_sound_message(sound_index, recipient_player);
     }
 
-    if (recipient_player == (datum_index)0xffffffff || network_game_mode != 2) {
+    if (recipient_player == (datum_index)0xffffffff || halo::networking::globals().game_mode != 2) {
         halo::sound::sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
     } else {
         player *p = (player *)halo::memory::datum_get(recipient_player, player_data);
@@ -478,7 +470,7 @@ void EngineHud::queue_multiplayer_sound(int32_t sound_index, datum_index player,
 {
     int32_t count;
 
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         broadcast = 0;
     }
     if (multiplayer_sound_enabled[sound_index] != 0) {
@@ -517,19 +509,19 @@ void EngineHud::queue_status_sound_message(int32_t sound_index, datum_index reci
 
     items[0] = &payload;
     items[1] = 0;
-    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x19, 0, items, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x19, 0, items, 0, 1, 0);
     if (encoded_bits > 0) {
         if (recipient_player == (datum_index)0xffffffff) {
-            network_session_broadcast_to_flagged(encoded_bits, network_server, 1, network_message_scratch, 1, 0, 0, 3);
+            halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
         } else {
             int32_t machine_id = (int8_t)*((uint8_t *)player_data->data + (recipient_player & 0xffff) * 0x200 + 0x64);
-            network_machine *machine = network_machine_find_by_id(network_server, machine_id);
+            network_machine *machine = halo::networking::network_machine_find_by_id(halo::networking::globals().server, machine_id);
 
             if (machine != 0) {
                 uint8_t flags = machine->flags;
 
                 if ((flags >> 1 & 1) != 0 && (flags >> 2 & 1) != 0) {
-                    network_session_send_to_machine(machine_id, network_server, 1, network_message_scratch, encoded_bits, 1, 0, 0, 3);
+                    halo::networking::network_session_send_to_machine(machine_id, halo::networking::globals().server, 1, network_message_scratch, encoded_bits, 1, 0, 0, 3);
                 }
             }
         }

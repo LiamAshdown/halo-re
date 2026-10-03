@@ -21,6 +21,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern halo::units::ai_update_stagger_state *ai_update_stagger;
@@ -1189,7 +1190,7 @@ uint8_t halo::units::unit_try_start_seat_exit_animation(uint8_t force_flag, uint
     if (self == 0) {
         return 0;
     }
-    if (network_game_mode == 1 && force_flag != 1) {
+    if (halo::networking::globals().game_mode == 1 && force_flag != 1) {
         return 0;
     }
     vehicle_index = ((unit_object *)self)->base.parent_object;

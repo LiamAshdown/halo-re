@@ -19,6 +19,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int32_t __ftol();
@@ -31,12 +32,8 @@ extern double cos(double x);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern real_vector3d *global_origin3d_pointer;
 extern player_globals *local_player_globals;
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern int32_t network_index_cache_get(hash_table *table, int32_t key);
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern void *network_object_index_cache;
-extern network_server_globals *network_server;
-extern uint8_t network_session_send_to_machine(int32_t machine_id, void *server, uint32_t status_bit, void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
 extern datum_index *noncollideable_cluster_first;
 extern void *noncollideable_cluster_partition;
 extern data_array *noncollideable_object_references;
@@ -219,11 +216,11 @@ void halo::objects::ObjectRef::notify_pickup_or_refresh_probe(datum_index player
                 void *field_list[2];
                 int32_t encoded;
 
-                encoded_value = network_index_cache_get((hash_table *)&network_object_index_cache, (int32_t)object_index);
+                encoded_value = halo::networking::network_index_cache_get((hash_table *)&network_object_index_cache, (int32_t)object_index);
                 field_list[0] = &encoded_value;
                 field_list[1] = 0;
-                encoded = message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0x32, 0, field_list, 0, 1, 0);
-                network_session_send_to_machine((int8_t)record[0x64], network_server, 1, network_message_scratch,
+                encoded = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0x32, 0, field_list, 0, 1, 0);
+                halo::networking::network_session_send_to_machine((int8_t)record[0x64], halo::networking::globals().server, 1, network_message_scratch,
                     (uint32_t)encoded, 0, 0, 0, 9);
                 return;
             }

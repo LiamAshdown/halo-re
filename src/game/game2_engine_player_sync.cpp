@@ -6,13 +6,13 @@
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 #define k_uninitialized_fill 0xfafafafau
 
 extern "C" {
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
 extern uint8_t ui_split_screen;
 extern uint8_t global_00719750;
@@ -28,16 +28,10 @@ extern void player_apply_pickup_effect(datum_index player_handle, datum_index it
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward);
 extern void game_engine_build_visible_cluster_bitmask(void *out_bitmask, uint32_t flag);
 extern uint32_t update_client_queue_apply_tick(player_action *out_actions, client_update_carry *out_carry);
-extern void build_remote_player_transform_update(datum_index player_handle, int32_t field1, int32_t field2, player_action action);
 extern uint8_t player_execute_pending_interaction(datum_index player_handle);
 extern uint8_t player_execute_weapon_drop_interaction(datum_index player_handle);
 extern game_time_globals *game_time;
-extern void network_player_update_history_log_write(const char *format, ...);
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern network_server_globals *network_server;
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
-extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length, uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5, uint32_t unknown_6);
 extern network_id_table *object_network_id_table;
 extern uint8_t shared_hud_text_draw_state;
 extern uint8_t *machine_table;
@@ -247,8 +241,8 @@ void EnginePlayerSync::players_update_server(void)
         player_handle = player_iter.index;
 
         if (entry->flag_a == 1) {
-            if (network_game_mode == 2 && entry->field2 == entry->field3 + 1) {
-                build_remote_player_transform_update(player_handle, entry->field1, entry->field2, *action);
+            if (halo::networking::globals().game_mode == 2 && entry->field2 == entry->field3 + 1) {
+                halo::networking::build_remote_player_transform_update(player_handle, action, entry->field1);
             }
             if (entry->flag_b == 1) {
                 grenade_value = entry->field1;
@@ -270,7 +264,7 @@ void EnginePlayerSync::players_update_server(void)
             } else if (game_engine_player_ready_to_respawn(player_handle) != 0) {
                 game_engine_resolve_player_team(player_handle);
                 player_respawn(player_handle);
-                if (network_game_mode == 0) {
+                if (halo::networking::globals().game_mode == 0) {
                     if (plr->unit == (datum_index)-1) {
                         plr->respawn_timer = 1;
                     } else {
@@ -382,7 +376,7 @@ void EnginePlayerSync::server_update_player_positions(void)
     data_iterator iter;
     player *plr;
 
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         return;
     }
 
@@ -417,7 +411,7 @@ void EnginePlayerSync::server_update_player_positions(void)
                     unsigned long ticks = GetTickCount();
                     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
-                    network_player_update_history_log_write(
+                    halo::networking::network_player_update_history_log_write(
                         "[%d]: [%d]:\t Completed [%d] ([%f] [%f] [%f]), ([%f] [%f]), ([%f] [%f])\n",
                         ticks, game_time->game_time, value, (double)pos_x, (double)pos_y, (double)pos_z,
                         (double)unit->throttle.i, (double)unit->throttle.j,
@@ -444,13 +438,13 @@ void EnginePlayerSync::send_player_profile_update(void *has_payload, void *profi
 
     payload_ptr = (has_payload != (void *)0) ? profile_tail : (void *)0;
 
-    encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x15, (uint32_t)payload_ptr, &payload_ptr,
+    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x15, (uint32_t)payload_ptr, &payload_ptr,
                                                  (uint32_t)profile_tail, 1, 0);
     if (encoded_size > 0) {
         if (target == -1) {
-            network_session_broadcast_to_flagged(encoded_size, network_server, 1, network_message_scratch, 1, 0, 0, 3);
+            halo::networking::network_session_broadcast_to_flagged(encoded_size, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
         } else {
-            network_session_send_to_machine(1, network_message_scratch, encoded_size, 1, 0, 0, 3);
+            halo::networking::network_session_send_to_machine(target, halo::networking::globals().server, 1, network_message_scratch, encoded_size, 1, 0, 0, 3);
         }
     }
 }
@@ -557,13 +551,13 @@ void EnginePlayerSync::send_unit_weapon_loadout(uint32_t unit_index, datum_index
     }
 
     fields_ptr = &fields;
-    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 8, 0, &fields_ptr, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 8, 0, &fields_ptr, 0, 1, 0);
     if (0 < encoded_bits) {
         if (machine_index == -1) {
-            network_session_broadcast_to_flagged(encoded_bits, network_server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
+            halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
             return;
         }
-        network_session_send_to_machine(1, &shared_hud_text_draw_state, encoded_bits, 1, 0, 1, 3);
+        halo::networking::network_session_send_to_machine(machine_index, halo::networking::globals().server, 1, &shared_hud_text_draw_state, encoded_bits, 1, 0, 1, 3);
     }
 }
 
@@ -600,7 +594,7 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
     }
     button_flags = input.button_flags;
 
-    if (network_game_mode == 0) {
+    if (halo::networking::globals().game_mode == 0) {
         if ((button_flags & 0x18) != 0) {
             int32_t new_unit;
 
@@ -1022,7 +1016,7 @@ void EnginePlayerSync::spawn_player_starting_loadout(uint32_t starting_equipment
 
                 halo::objects::object_placement_data_initialize(&placement, picked_tag, (datum_index)0xffffffff);
 
-                if (network_game_mode == 2) {
+                if (halo::networking::globals().game_mode == 2) {
                     tag_instance *tag_inst = &halo::cache::globals().tag_instances[picked_tag & 0xffff];
                     Object *object_tag = (Object *)tag_inst->data;
                     if (object_type_definitions[object_tag->object_type]->network_delta_message_type != -1) {

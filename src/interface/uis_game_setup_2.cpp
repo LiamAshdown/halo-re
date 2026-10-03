@@ -18,6 +18,7 @@
 #include "halo/interface/uis_game_setup.hpp"
 #include "halo/input/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
@@ -33,7 +34,6 @@ extern uint8_t pending_difficulty;
 extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t selected_level_active_00719878;
 extern uint8_t selected_level_pending_00719778;
-extern int16_t network_game_mode;
 extern uint8_t network_wait_flag_00719739;
 extern int16_t profile_slot_id[];
 extern int16_t game_variant_saved_default;
@@ -104,7 +104,7 @@ uint32_t UiGameSetup::start_campaign_from_level_one(void *widget, int16_t *event
     strncpy(halo::interface::state::current_campaign_level_path, known_campaign_levels_00692acc, 0xff);
     selected_level_active_00719878 = 0;
     selected_level_pending_00719778 = 1;
-    network_game_mode = 0;
+    halo::networking::globals().game_mode = 0;
     network_wait_flag_00719739 = 1;
     profile_slot_id[0] = requested_index;
     if (i != -1) {
