@@ -1,0 +1,108 @@
+Original file: src/interface/first_person_weapon_interface_initialize.c (converted into halo::interface::FirstPersonWeaponController::interface_initialize)
+
+// first_person_weapon_interface_initialize  (Ghidra: FUN_00493c60, renamed per types/interface.h)
+// address 0x493c60, size 487 bytes
+// name confidence: 0.5   rewrite confidence: 0.85 (REWRITTEN parts from objdump 0x493c60..0x493e42: the two node match tables map the weapon's first-person animation graph (+0x478, EAX) onto the hands model (globals +0x180 -> +0xc) and the weapon's first-person model (+0x468) (ECX); the draft matched the weapon tag against the graph (garbage node permutation, gun drawn at the eye). +0x14 needs the animation's frame_count (graph +0x78, 0xb4 each, +0x22) >= 9)
+// evidence: types/interface.h first_person_weapon_interface struct comment names this address
+// first_person_weapon_interface_initialize; first_person_weapon_set_attached.c's disassembly-
+// confirmed effect_reattach_markers_for_object/effect_release_first_person_markers/
+// particles_delete_by_first_person_weapon signatures (the same detach-then-reattach pair this
+// function calls around a unit_index==-1 style check); types/units.h unit::current_weapon_index
+// (+0x2f2) / unit::weapons[4] (+0x2f8); types/tags.h GlobalsFirstPersonInterface (the
+// first_person_hands.tag_id read at globals->first_person_interface[0]+0xc).
+// register convention: player index as the recognized stack parameter (param_1).
+// blam-cc: stack -> local_player_index
+// TYPES-GAP / UNSURE: the weapon-tag navigation (weapon tag +0x468/+0x478 -> hud_interface tag
+// +0x48/+0x4c/+0x10/+0x14 -> model node array +0x78) is the exact same chain
+// first_person_weapon_set_state.c already flags as raw, unmodelled offsets; reproduced the same
+// way here rather than guessed at. first_person_weapon_set_state's third parameter (new_state,
+// in AX, not visible at this call site) is supplied as 0 -- a guess, not an attested value.
+
+#if 0
+Original Ghidra decompilation (0x493c60):
+
+void FUN_00493c60(undefined4 param_1)
+
+{
+  char *pcVar1;
+  char cVar2;
+  short sVar3;
+  int iVar4;
+  uint uVar5;
+  uint uVar6;
+  int iVar7;
+  char cVar8;
+
+  pcVar1 = (char *)((short)param_1 * 0x1ea0 + DAT_006b2d98);
+  cVar2 = *pcVar1;
+  pcVar1[8] = -1;
+  pcVar1[9] = -1;
+  pcVar1[10] = -1;
+  pcVar1[0xb] = -1;
+  if ((cVar2 != '\0') && (cVar2 != '\0')) {
+    FUN_00450d50(param_1);
+    FUN_00455c80();
+    *pcVar1 = '\0';
+  }
+  if (*(uint *)(pcVar1 + 4) != 0xffffffff) {
+    iVar4 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (*(uint *)(pcVar1 + 4) & 0xffff) * 0xc);
+    sVar3 = *(short *)(iVar4 + 0x2f2);
+    if (((((sVar3 != -1) && (uVar5 = *(uint *)(iVar4 + 0x2f8 + sVar3 * 4), uVar5 != 0xffffffff)) &&
+         (iVar4 = *(int *)((**(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (uVar5 & 0xffff) * 0xc)
+                           & 0xffff) * 0x20 + 0x14 + DAT_0087bc14), *(int *)(iVar4 + 0x468) != -1))
+        && ((uVar6 = *(uint *)(iVar4 + 0x478), uVar6 != 0xffffffff &&
+            (iVar4 = *(int *)((uVar6 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14),
+            *(int *)(iVar4 + 0x48) != 0)))) && (iVar7 = *(int *)(iVar4 + 0x4c), iVar7 != 0)) {
+      pcVar1[0x14] = -1;
+      pcVar1[0x15] = -1;
+      if (((4 < *(int *)(iVar7 + 0x10)) &&
+          (sVar3 = *(short *)(*(int *)(iVar7 + 0x14) + 8), sVar3 != -1)) &&
+         (8 < *(short *)(sVar3 * 0xb4 + 0x22 + *(int *)(iVar4 + 0x78)))) {
+        *(short *)(pcVar1 + 0x14) = sVar3;
+      }
+      if (*(int *)(*(int *)(DAT_00746fa0 + 0x180) + 0xc) != -1) {
+        cVar8 = FUN_00493f00(pcVar1 + 0x1e10);
+        pcVar1[0x1e0e] = cVar8;
+      }
+      cVar8 = FUN_00493f00(pcVar1 + 0x1d8e);
+      pcVar1[0x1d8c] = cVar8;
+      if ((cVar8 != '\0') && (pcVar1[0x1e0e] != '\0')) {
+        *(uint *)(pcVar1 + 8) = uVar5;
+        pcVar1[0xc] = -1;
+        pcVar1[0xd] = -1;
+        pcVar1[0x16] = -1;
+        pcVar1[0x17] = -1;
+        pcVar1[0x1a] = -1;
+        pcVar1[0x1b] = -1;
+        pcVar1[0x20] = -1;
+        pcVar1[0x21] = -1;
+        pcVar1[0x28] = '\0';
+        pcVar1[0x29] = '\0';
+        pcVar1[0x2a] = '\0';
+        pcVar1[0x2b] = '\0';
+        pcVar1[0x2c] = '\0';
+        pcVar1[0x2d] = '\0';
+        pcVar1[0x2e] = '\0';
+        pcVar1[0x2f] = '\0';
+        pcVar1[0x10] = '\0';
+        pcVar1[0x11] = '\0';
+        pcVar1[0x1e98] = -1;
+        pcVar1[0x1e99] = -1;
+        pcVar1[0x1e9a] = -1;
+        pcVar1[0x1e9b] = -1;
+        pcVar1[0x1e9c] = -1;
+        pcVar1[0x1e9d] = -1;
+        first_person_weapon_set_state(param_1,1);
+        pcVar1[0x8a] = '\0';
+        pcVar1[0x8b] = '\0';
+        if ((cVar2 != '\0') && (*pcVar1 != '\x01')) {
+          FUN_00450cb0(param_1,*(undefined4 *)(pcVar1 + 8));
+          *pcVar1 = '\x01';
+        }
+      }
+    }
+  }
+  FUN_004942e0();
+  return;
+}
+#endif

@@ -1,0 +1,33 @@
+Original file: src/interface/hud_set_message_string_argument.c (converted into halo::interface::HudMessaging::set_message_string_argument)
+
+// hud_set_message_string_argument  (Ghidra: FUN_004ae0b0, renamed in the phase-4 review)
+// address 0x4ae0b0, size 91 bytes
+// name confidence: 0.55 (chosen)   rewrite confidence: 0.9
+// evidence: objdump 0x4ae0b0..0x4ae10a. Stores {int16 string index, byte} into arguments[slot]
+// and sets bit slot of argument_is_string, under the same gate as
+// hud_set_message_icon_argument (0x4ae050). hud_messaging_update draws such an argument as
+// string index of the scenario custom_object_names list (Scenario +0x580) when the byte is
+// set, of HUDGlobals alternate_icon_text (+0xc0) otherwise, and index -1 as "<unknown>".
+// register convention: EAX local player index, ESI slot; two stack arguments.
+//   // blam-cc: local_player_index -> EAX, slot -> ESI
+
+#if 0
+Original Ghidra decompilation (0x4ae0b0):
+
+void FUN_004ae0b0(undefined2 param_1,undefined1 param_2)
+
+{
+  short in_AX;
+  int iVar1;
+  short unaff_SI;
+
+  iVar1 = in_AX * 0x460 + DAT_006b3a40;
+  if (((*(char *)(in_AX * 0x460 + 0x458 + DAT_006b3a40) != '\0') &&
+      (*(char *)(DAT_00719420 + 1) == '\0')) && (*(int *)(iVar1 + 0x454) != 0)) {
+    *(undefined2 *)(iVar1 + 0x434 + unaff_SI * 4) = param_1;
+    *(undefined1 *)(iVar1 + 0x436 + unaff_SI * 4) = param_2;
+    *(byte *)(iVar1 + 0x459) = *(byte *)(iVar1 + 0x459) | '\x01' << ((byte)unaff_SI & 0x1f);
+  }
+  return;
+}
+#endif

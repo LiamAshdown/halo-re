@@ -1,0 +1,38 @@
+Original file: src/interface/hud_chat_listbox_remove_oldest.c (converted into halo::interface::HudChatListbox::remove_oldest)
+
+// hud_chat_listbox_remove_oldest  (Ghidra: hud_chat_listbox_remove_oldest, already named)
+// address 0x4ab240, size 177 bytes
+// name confidence: 0.5 (existing Ghidra name, matches types/interface.h)   rewrite confidence: 0.45
+// evidence: types/interface.h hud_chat_message_expiry[8] (0x006b3a20) and hud_chat_message_count
+// (0x00719424); string "oListbox"; drives the same embedded GUI library table as
+// chimera__chat_open.c, but against a different root argument (0x0069c69c vs chat's 0x0069c698),
+// consistent with the header's note that the chat listbox is a separate "oListbox" control.
+// register convention: __cdecl, no parameters.
+
+#if 0
+Original Ghidra decompilation (0x4ab240):
+
+uint __cdecl hud_chat_listbox_remove_oldest(void)
+
+{
+  int iVar1;
+  int iVar2;
+  uint uVar3;
+
+  uVar3 = 0;
+  if (((0 < DAT_00719424) && (DAT_00721eb8 != (code *)0x0)) &&
+     (iVar1 = (*DAT_00721eb8)(DAT_00721ea4,PTR_PTR_0069c69c), iVar1 != 0)) {
+    iVar2 = (*DAT_00721ecc)(iVar1,L"oListbox");
+    if (iVar2 != 0) {
+      uVar3 = (*DAT_00721ee8)(iVar2,0x182,0,0);
+      (*DAT_00721ee8)(iVar2,0x115,2,0);
+      (*DAT_00721ed0)(iVar1);
+    }
+    (*DAT_00721ec8)(iVar1);
+  }
+  DAT_00719424 = DAT_00719424 + -1;
+  _memmove(&DAT_006b3a20,&DAT_006b3a24,DAT_00719424 * 4);
+  (&DAT_006b3a20)[DAT_00719424] = 0;
+  return uVar3;
+}
+#endif

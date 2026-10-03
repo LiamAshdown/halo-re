@@ -1,0 +1,51 @@
+Original file: src/interface/hud_chat_listbox_update.c (converted into halo::interface::HudChatListbox::update)
+
+// hud_chat_listbox_update  (Ghidra: hud_chat_listbox_update, already named)
+// address 0x4ab300, size 252 bytes
+// name confidence: 0.5 (existing Ghidra name, matches types/interface.h)   rewrite confidence: 0.4
+// evidence: types/interface.h hud_chat_message_count (0x00719424), hud_chat_message_expiry
+// (0x006b3a20) and hud_chat_listbox_visible (0x00692ed8); shares the chat-listbox GUI table
+// with hud_chat_listbox_remove_oldest.c.
+// UNSURE: DAT_0087aa10/DAT_0087aa14 (an int and a float gating the listbox's visibility state)
+// are not documented anywhere in this pass.
+// register convention: __cdecl, no parameters.
+
+#if 0
+Original Ghidra decompilation (0x4ab300):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void __cdecl hud_chat_listbox_update(void)
+
+{
+  uint uVar1;
+  int iVar2;
+
+  if ((0 < DAT_00719424) && (DAT_00721eb8 != (code *)0x0)) {
+    uVar1 = FUN_00449210();
+    while (((0 < DAT_00719424 && (DAT_006b3a20 != 0)) && (DAT_006b3a20 <= uVar1))) {
+      hud_chat_listbox_remove_oldest();
+    }
+    if (DAT_00692ed8 == '\0') {
+      if ((DAT_0087aa10 != 0) || (_DAT_0087aa14 == 0.0)) {
+        iVar2 = (*DAT_00721eb8)(DAT_00721ea4,PTR_PTR_0069c69c);
+        if (iVar2 != 0) {
+          (*DAT_00721edc)(iVar2,5);
+          (*DAT_00721ec8)(iVar2);
+        }
+        DAT_00692ed8 = 1;
+        return;
+      }
+    }
+    else if ((DAT_0087aa10 == 0) && (_DAT_0087aa14 != 0.0)) {
+      iVar2 = (*DAT_00721eb8)(DAT_00721ea4,PTR_PTR_0069c69c);
+      if (iVar2 != 0) {
+        (*DAT_00721edc)(iVar2,0);
+        (*DAT_00721ec8)(iVar2);
+      }
+      DAT_00692ed8 = '\0';
+    }
+  }
+  return;
+}
+#endif

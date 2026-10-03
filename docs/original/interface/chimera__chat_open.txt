@@ -1,0 +1,117 @@
+Original file: src/interface/chimera__chat_open.c (converted into halo::interface::ChatDialog::open)
+
+// chimera__chat_open  (Ghidra: chimera__chat_open, already named)
+// address 0x4aa700, size 512 bytes
+// name confidence: 0.6 (existing Ghidra name)   rewrite confidence: 0.35
+// evidence: matches the given name and cc (__cdecl); strings "ui\\multiplayer_game_text",
+// "oPrompt", "text", "oEditbox"; types/interface.h's note that the chat dialog is driven
+// through the embedded GUI library's function-pointer table at 0x00721ea4..0x00721ee8 (an
+// "oListbox"-style control), reused here for an "oPrompt"/"oEditbox" dialog; src/game/
+// established empty_string (0x00660c34).
+// UNSURE: the embedded GUI library's function table is not named anywhere in this pass; each
+// slot is declared with the signature its call site implies and a generic name. UNSURE:
+// DAT_006b7020 (a second "chat busy" gate alongside DAT_006b3858) is not documented.
+// register convention: __cdecl, chat_scope as the recognized parameter (0 = all, 1 = team,
+// 2 = vehicle).
+// reconciled: R08 0x006b7020 chat_busy -> main.h console_globals_data.active (the console-open byte; byte read unchanged)
+
+#if 0
+Original Ghidra decompilation (0x4aa700):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void __cdecl chimera__chat_open(int chat_scope)
+
+{
+  char cVar1;
+  int iVar2;
+  undefined *puVar3;
+  int iVar4;
+  undefined4 uStack_8;
+  undefined4 uStack_4;
+
+  if (DAT_006b3858 != '\0') {
+    return;
+  }
+  if (DAT_006b7020 != '\0') {
+    return;
+  }
+  if (DAT_00721eb8 == (code *)0x0) {
+    return;
+  }
+  DAT_006b385c = 0xffffffff;
+  if (chat_scope == 0) {
+LAB_004aa7b6:
+    iVar2 = tag_lookup("ui\\multiplayer_game_text");
+    if (iVar2 == -1) {
+      puVar3 = &DAT_00660c34;
+      DAT_006b385c = 0;
+    }
+    else {
+      puVar3 = (undefined *)text_string_list_get_string();
+      DAT_006b385c = 0;
+    }
+  }
+  else {
+    if (chat_scope == 1) {
+      cVar1 = game_engine_get_teams_enabled();
+      if (cVar1 == '\0') goto LAB_004aa7b6;
+    }
+    else {
+      if (chat_scope != 2) {
+        DAT_006b385c = 0xffffffff;
+        return;
+      }
+      cVar1 = game_engine_get_teams_enabled();
+      if (cVar1 == '\0') goto LAB_004aa7b6;
+      chat_default_team_channel();
+      iVar2 = player_index_from_unit_index();
+      if (iVar2 != -1) {
+        iVar2 = tag_lookup("ui\\multiplayer_game_text");
+        if (iVar2 == -1) {
+          puVar3 = &DAT_00660c34;
+          DAT_006b385c = 2;
+        }
+        else {
+          puVar3 = (undefined *)text_string_list_get_string();
+          DAT_006b385c = 2;
+        }
+        goto LAB_004aa826;
+      }
+    }
+    DAT_006b385c = 1;
+    iVar2 = tag_lookup("ui\\multiplayer_game_text");
+    if (iVar2 == -1) {
+      puVar3 = &DAT_00660c34;
+    }
+    else {
+      puVar3 = (undefined *)text_string_list_get_string();
+    }
+    if (DAT_006b385c == -1) {
+      return;
+    }
+  }
+LAB_004aa826:
+  _DAT_00721eec = 1;
+  iVar2 = (*DAT_00721eb8)(DAT_00721ea4,PTR_PTR_0069c698);
+  if (iVar2 != 0) {
+    iVar4 = (*DAT_00721ecc)(iVar2,L"oPrompt");
+    if (iVar4 != 0) {
+      (*DAT_00721ee4)(iVar4,L"text",puVar3);
+    }
+    iVar4 = (*DAT_00721ecc)(iVar2,L"oEditbox");
+    if (iVar4 != 0) {
+      uStack_8 = 0;
+      uStack_4 = 0;
+      (*DAT_00721ed4)(iVar2,iVar4);
+      (*DAT_00721ee4)(iVar4,L"text",&DAT_00660c34);
+      (*DAT_00721ee8)(iVar4,0x201,0,&uStack_8);
+    }
+    (*DAT_00721edc)(iVar2,5);
+    (*DAT_00721ec8)(iVar2);
+  }
+  DAT_006b3858 = 1;
+  FUN_0048b650();
+  return;
+}
+#endif

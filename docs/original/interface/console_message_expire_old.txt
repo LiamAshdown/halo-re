@@ -1,0 +1,35 @@
+Original file: src/interface/console_message_expire_old.c (converted into halo::interface::ConsoleTerminal::message_expire_old)
+
+// console_message_expire_old  (Ghidra: chimera__console_fade_fn, renamed per types/interface.h)
+// address 0x4966e0, size 79 bytes
+// name confidence: 0.55   rewrite confidence: 0.75
+// evidence: types/interface.h console_message struct comment lists this address as
+// console_message_expire_old; out/phase4/interface_functions.md "Ages every on-screen console
+// message each frame and deletes any that have been visible for more than [150 frames]."; the
+// age field and its 0x96 (150) cutoff match console_message::age exactly.
+// register convention: none (void).
+
+#if 0
+Original Ghidra decompilation (0x4966e0):
+
+void chimera__console_fade_fn(void)
+
+{
+  uint uVar1;
+  int iVar2;
+  int iVar3;
+
+  uVar1 = DAT_006b2f04;
+  while (uVar1 != 0xffffffff) {
+    iVar2 = (uVar1 & 0xffff) * 0x124;
+    iVar3 = iVar2 + *(int *)(DAT_006b2f00 + 0x34);
+    uVar1 = *(uint *)(iVar3 + 8);
+    iVar2 = *(int *)(iVar2 + 0x120 + *(int *)(DAT_006b2f00 + 0x34)) + 1;
+    *(int *)(iVar3 + 0x120) = iVar2;
+    if (0x96 < iVar2) {
+      console_message_delete();
+    }
+  }
+  return;
+}
+#endif

@@ -1,0 +1,38 @@
+Original file: src/interface/hud_message_broadcast_to_local_players.c (converted into halo::interface::HudMessaging::message_broadcast_to_local_players)
+
+// hud_message_broadcast_to_local_players  (Ghidra: FUN_00495f50, unnamed)
+// address 0x495f50, size 86 bytes
+// name confidence: 0.35   rewrite confidence: 0.4
+// evidence: out/phase4/interface_functions.md "Walks a generic data-array (register-passed) and
+// dispatches chimera__hud_message() for every entry w[hose local_player_index is set]"; the
+// tested field (element + 2, != -1) matches types/game.h player::local_player_index exactly, and
+// the referenced global (0x0087a480) is player_data, confirming the array walked is the player
+// list; local_player_index_for_unit.c's precedent name/type for player_data.
+// register convention: none (void); player_data is walked directly via a local data_iterator.
+// s2 part 2 review: the text comes in ESI and is pushed as the stack argument of
+// chimera__hud_message (0x4ae180), whose AX is the player local_player_index (objdump
+// 0x495f81..0x495f8c); player_profile_save_495fb0 passes the saved message or L"" (0x660c34).
+//   // blam-cc: ESI -> text
+// FIXED (register inputs, objdump): notes were written "text -> ESI" (name before register),
+// which the checker only recognizes as "REG -> name"; so ESI (read at 0x495f8b) looked
+// unclaimed. Body already used text correctly; reworded only.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
+
+#if 0
+Original Ghidra decompilation (0x495f50):
+
+void FUN_00495f50(void)
+
+{
+  int iVar1;
+
+  iVar1 = data_iterator_next();
+  while (iVar1 != 0) {
+    if (*(short *)(iVar1 + 2) != -1) {
+      chimera__hud_message();
+    }
+    iVar1 = data_iterator_next();
+  }
+  return;
+}
+#endif

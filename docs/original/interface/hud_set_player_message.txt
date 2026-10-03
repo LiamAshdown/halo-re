@@ -1,0 +1,44 @@
+Original file: src/interface/hud_set_player_message.c (converted into halo::interface::HudMessaging::set_player_message)
+
+// hud_set_player_message  (Ghidra: FUN_004adfc0, renamed in the phase-4 review)
+// address 0x4adfc0, size 140 bytes
+// name confidence: 0.55 (chosen)   rewrite confidence: 0.85
+// evidence: objdump 0x4adfc0..0x4ae04b. HUDGlobals +0xfc is the tag id of hud_messages (a
+// hud_message_text tag; TagDependency at +0xf0), +0x20/+0x24 of that tag the messages block.
+// The pointer stored at +0x454 is the message itself (hud_player_messaging_state::message; the
+// header used to call it argument_count). Called by hud_update_interaction_prompt with the
+// message index per interaction type. An out of range index stores nothing and only clears
+// message_shown; -1 clears message_shown. Nothing happens while show_hud_help_text is on or
+// when HUDGlobals has no hud_messages tag.
+// register convention: EAX message index; one stack argument (local player index).
+//   // blam-cc: message_index -> EAX
+
+#if 0
+Original Ghidra decompilation (0x4adfc0):
+
+void FUN_004adfc0(short param_1)
+
+{
+  int iVar1;
+  short in_AX;
+  int iVar2;
+  bool bVar3;
+
+  if ((*(char *)(DAT_00719420 + 1) == '\0') && (*(uint *)(DAT_0071941c + 0xfc) != 0xffffffff)) {
+    iVar2 = param_1 * 0x460 + DAT_006b3a40;
+    bVar3 = in_AX == -1;
+    if (!bVar3) {
+      iVar1 = *(int *)((*(uint *)(DAT_0071941c + 0xfc) & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+      if ((int)in_AX < *(int *)(iVar1 + 0x20)) {
+        *(int *)(iVar2 + 0x454) = in_AX * 0x40 + *(int *)(iVar1 + 0x24);
+        *(undefined1 *)(iVar2 + 0x459) = 0;
+        *(bool *)(iVar2 + 0x458) = in_AX != -1;
+        return;
+      }
+      bVar3 = true;
+    }
+    *(bool *)(iVar2 + 0x458) = !bVar3;
+  }
+  return;
+}
+#endif

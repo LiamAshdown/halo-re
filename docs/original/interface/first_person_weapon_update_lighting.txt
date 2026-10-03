@@ -1,0 +1,89 @@
+Original file: src/interface/first_person_weapon_update_lighting.c (converted into halo::interface::FirstPersonWeaponController::update_lighting)
+
+// first_person_weapon_update_lighting  (Ghidra: FUN_004924b0, unnamed)
+// address 0x4924b0, size 568 bytes
+// name confidence: 0.3   rewrite confidence: 0.55
+// evidence: out/phase4/interface_functions.md "When the local player's weapon HUD elements are
+// present, gathers first-person weapon node data and dispatches it (twice, for two different HUD
+// interface elements) to a lower-level effect/render routine."; types/units.h unit::flags
+// (+0x204), unknown_37c/unknown_380; types/objects.h object::function_out_values (+0x134) and
+// object::change_colors (+0x1b8), read here off BOTH the weapon object and the unit object,
+// confirming they are generic `object` fields, not unit/weapon-specific; local_player_index_for_
+// unit.c's local_player_globals/player_data walk; hud_meter_permute_node_records.c and
+// first_person_weapon_interface_initialize.c's weapon-tag/hud-interface-tag chain.
+// register convention: none recognized by Ghidra (every input is a global or a freshly-computed
+// local). // blam-cc: none
+// UNSURE: render_model (module render) is modeled from the call sites only: the model tag
+// reference in EAX, the permuted node records in ECX and 11 stack arguments. The stack block
+// built here is first_person_light_parameters in types/interface.h.
+// Fixed from objdump this pass: the node permute and render calls take the weapon tag +0x468
+// reference (first person model) for the weapon case and first_person_interface +0x0c (the
+// hands model) for the device case; the earlier rewrite passed weapon tag +0x478 to both.
+// reconciled: R44 first_person_light_parameters is the first 0x20 bytes of render.h render_model_effect: armed -> type, unknown_37c/380 -> unit_37c/380, unit_handle -> object_index, camera_x/y/z -> centroid[3], zero -> modifier_shader; 0x4d6fc0 reads 0x28 bytes, so change_colors/function_values come from the next 8 stack bytes
+
+#if 0
+Original Ghidra decompilation (0x4924b0):
+
+void FUN_004924b0(void)
+
+{
+  uint uVar1;
+  int iVar2;
+  uint *puVar3;
+  int iVar4;
+  int iVar5;
+  undefined4 uVar6;
+  char *pcVar7;
+  undefined2 local_d2c [2];
+  undefined4 local_d28;
+  undefined4 local_d24;
+  uint local_d20;
+  undefined4 local_d1c;
+  undefined4 local_d18;
+  undefined4 local_d14;
+  undefined4 local_d10;
+  undefined1 local_d04 [3332];
+
+  if (DAT_007c3108 != -1) {
+    pcVar7 = (char *)(DAT_007c3108 * 0x1ea0 + DAT_006b2d98);
+    if (((((DAT_007c3108 < 1) &&
+          (uVar1 = *(uint *)(DAT_0087a478 + 4 + DAT_007c3108 * 4), uVar1 != 0xffffffff)) &&
+         (uVar1 = *(uint *)((uVar1 & 0xffff) * 0x200 + 0x34 + *(int *)(DAT_0087a480 + 0x34)),
+         uVar1 != 0xffffffff)) && ((*pcVar7 != '\0' && (*(int *)(pcVar7 + 4) != -1)))) &&
+       (*(uint *)(pcVar7 + 8) != 0xffffffff)) {
+      iVar2 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (uVar1 & 0xffff) * 0xc);
+      puVar3 = *(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (*(uint *)(pcVar7 + 8) & 0xffff) * 0xc
+                         );
+      iVar4 = *(int *)((*puVar3 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+      if (*(int *)(iVar4 + 0x478) != -1) {
+        iVar5 = *(int *)(DAT_00746fa0 + 0x180);
+        uVar6 = render_get_cluster_ambient_light_sample(0x7f7fffff);
+        local_d10 = 0;
+        if (((*(byte *)(iVar2 + 0x204) & 0x10) != 0) || (0.0 < *(float *)(iVar2 + 0x37c))) {
+          local_d28 = *(undefined4 *)(iVar2 + 0x37c);
+          local_d24 = *(undefined4 *)(iVar2 + 0x380);
+          local_d2c[0] = 1;
+          local_d1c = DAT_007c3114;
+          local_d18 = DAT_007c3118;
+          local_d14 = DAT_007c311c;
+          local_d20 = uVar1;
+        }
+        else {
+          local_d2c[0] = 0;
+        }
+        if ((pcVar7[0x1d8c] != '\0') && (*(int *)(iVar4 + 0x468) != -1)) {
+          FUN_00493ea0(local_d04,pcVar7 + 0x108c);
+          FUN_004d6fc0(0,0,puVar3 + 0x6e,puVar3 + 0x4d,uVar6,&DAT_007c3114,0,local_d2c,
+                       *(undefined4 *)(pcVar7 + 8),0,8);
+        }
+        if ((pcVar7[0x1e0e] != '\0') && (*(int *)(iVar5 + 0xc) != -1)) {
+          FUN_00493ea0(local_d04,pcVar7 + 0x108c);
+          FUN_004d6fc0(0,0,iVar2 + 0x1b8,iVar2 + 0x134,uVar6,&DAT_007c3114,0,local_d2c,
+                       *(undefined4 *)(pcVar7 + 8),0,8);
+        }
+      }
+    }
+  }
+  return;
+}
+#endif

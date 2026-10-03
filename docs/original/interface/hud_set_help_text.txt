@@ -1,0 +1,28 @@
+Original file: src/interface/hud_set_help_text.c (converted into halo::interface::HudMessaging::set_help_text)
+
+// hud_set_help_text  (Ghidra: FUN_004adb30, renamed in the phase-4 review)
+// address 0x4adb30, size 73 bytes
+// name confidence: 0.6 (chosen)   rewrite confidence: 0.9
+// evidence: objdump 0x4adb30..0x4adb78. No direct callers (reached through the hs function
+// table, like the hud_set_objective_text / hud_set_timer_time / pause_hud_timer neighbours).
+// global_scenario +0x5a0 is the tag id of Scenario::hud_messages (a hud_message_text tag) and
+// +0x24 of that tag the messages block pointer (HUDMessageTextMessage, stride 0x40). The first
+// rewrite read 0x00746f8c as a datum itself (it is the Scenario pointer) and called the argument
+// a local player index. The message pointer lands in hud_messaging_globals::help_text.
+// register convention: plain cdecl, one stack argument (a short).
+
+#if 0
+Original Ghidra decompilation (0x4adb30):
+
+void FUN_004adb30(short param_1)
+
+{
+  if ((*(char *)(DAT_00719420 + 1) != '\0') && (*(uint *)(DAT_00746f8c + 0x5a0) != 0xffffffff)) {
+    *(int *)(DAT_006b3a40 + 0x46c) =
+         param_1 * 0x40 +
+         *(int *)(*(int *)((*(uint *)(DAT_00746f8c + 0x5a0) & 0xffff) * 0x20 + 0x14 + DAT_0087bc14)
+                 + 0x24);
+  }
+  return;
+}
+#endif

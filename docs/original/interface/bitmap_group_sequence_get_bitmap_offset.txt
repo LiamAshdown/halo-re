@@ -1,0 +1,46 @@
+Original file: src/interface/bitmap_group_sequence_get_bitmap_offset.c (converted into halo::interface::BitmapSequenceLookup::get_bitmap_offset)
+
+// bitmap_group_sequence_get_bitmap_offset  (Ghidra: bitmap_group_sequence_get_bitmap_offset,
+// already named)
+// address 0x4ab630, size 83 bytes
+// name confidence: 0.5 (existing Ghidra name, matches types/interface.h)   rewrite confidence: 0.5
+// evidence: types/tags.h Bitmap::bitmap_group_sequence (TagReflexive at 0x54, matching the
+// `+0x54`/`+0x58` count/pointer reads) and BitmapGroupSequence::sprites (TagReflexive at 0x34,
+// matching the `+0x34`/`+0x38` reads); types/cache.h tag_instance for the tag lookup idiom.
+// UNSURE: the returned address (`(frame_index % sprite_count) * 0x20 + 8 + sprites.pointer`)
+// reaches 8 bytes into each 0x20 byte BitmapGroupSprite element; that struct is not declared in
+// types/tags.h, so the offset is kept raw.
+// register convention: bitmap tag in ECX (in_ECX), sequence_index in AX (in_AX), frame_index in
+// DI (unaff_DI), all unresolved register reads.
+//   // blam-cc: ECX -> bitmap_tag, AX -> sequence_index, DI -> frame_index
+// FIXED (register inputs, objdump): DI (read at 0x4ab641, `cmp di,0xffff`) carries frame_index;
+//   it was already a C parameter but the "blam-cc" note phrased it as "name -> REG" instead of
+//   "REG -> name", so the checker's parser missed it.
+
+#if 0
+Original Ghidra decompilation (0x4ab630):
+
+int bitmap_group_sequence_get_bitmap_offset(void)
+
+{
+  int iVar1;
+  short in_AX;
+  int iVar2;
+  uint in_ECX;
+  int iVar3;
+  short unaff_DI;
+
+  iVar2 = 0;
+  if (((in_ECX != 0xffffffff) && (in_AX != -1)) && (unaff_DI != -1)) {
+    iVar1 = *(int *)((in_ECX & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+    if ((int)in_AX < *(int *)(iVar1 + 0x54)) {
+      iVar3 = in_AX * 0x40 + *(int *)(iVar1 + 0x58);
+      iVar1 = *(int *)(iVar3 + 0x34);
+      if (iVar1 != 0) {
+        iVar2 = ((int)unaff_DI % iVar1) * 0x20 + 8 + *(int *)(iVar3 + 0x38);
+      }
+    }
+  }
+  return iVar2;
+}
+#endif

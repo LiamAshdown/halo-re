@@ -1,0 +1,80 @@
+Original file: src/interface/hud_draw_number.c (converted into halo::interface::HudDraw::number)
+
+// hud_draw_number  (Ghidra: FUN_004ac0b0, renamed; earlier hud_draw_ammo_digit)
+// address 0x4ac0b0, size 1566 bytes; real extent 0x4ac0b0..0x4ac6ce (1566 bytes; Ghidra stopped at the jump
+// table and reported 402)
+// name confidence: 0.55 (chosen)   rewrite confidence: 0.6
+// evidence: rewritten in the phase-4 review from objdump -d 0x4ac0b0..0x4ac6ce and the jump
+// table at 0x4ac6d0 (anchor 0 and 2, 1 and 3, 4). The routine draws a whole HUD number right to
+// left with the Globals interface_bitmaps hud_digits_definition (HUDNumber): glyphs 0..9 are the
+// digits, 0xa the decimal point, 0xc the minus sign, 0xd the trailing m and 0xe its km form. The
+// element is a hud_number_placement (types/interface.h). With flags bit 2 (draw a trailing m) a
+// value over 999 is shown in thousands with the remainder as fraction digits.
+// Each glyph goes through hud_meter_resolve_bitmap_frame @0x4ab8d0 (EAX glyph, stack digits
+// bitmap tag, sequence 0, out bitmap data, out sprite rect) and hud_draw_bitmap_at 0x4acbb0 (EAX sprite rect, EDX
+// bitmap data, CL sprite-bitmap flag, stack anchor value, position, scale, 0, color), then the pen
+// moves left by screen_digit_width times the scale (_ftol truncation at every step).
+// UNSURE: the first stack argument is never read. 0x4acbb0 is hud_draw_bitmap_at (rewritten in
+// the s2 part 2 review); the 0 pushed as its fourth stack argument is the rotation.
+// register convention: __cdecl, eight stack arguments.
+
+#if 0
+Original Ghidra decompilation (0x4ac0b0):
+
+void FUN_004ac0b0(undefined4 param_1,short *param_2,int param_3,undefined4 param_4,short param_5)
+
+{
+  char cVar1;
+  int iVar2;
+  int iVar3;
+  int local_20;
+  undefined4 local_1c;
+  float local_18;
+  float local_14;
+  int local_c;
+
+  if (*(int *)(DAT_00746fa0 + 0x140) == 0) {
+    iVar2 = 0;
+  }
+  else {
+    iVar2 = *(int *)(DAT_00746fa0 + 0x144);
+  }
+  if (*(uint *)(iVar2 + 0xbc) != 0xffffffff) {
+    iVar2 = *(int *)((*(uint *)(iVar2 + 0xbc) & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+    local_1c = *(undefined4 *)((*(uint *)(iVar2 + 0xc) & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+    bitmap_group_sequence_get_bitmap_data(0);
+    iVar3 = texture_cache_get(0,1);
+    if (iVar3 != 0) {
+      cVar1 = *(char *)(param_3 + 0x46);
+      if ((cVar1 == '\0') || (param_5 == -1)) {
+        local_c = 0;
+      }
+      else {
+        local_c = 4;
+        if (cVar1 < '\x05') {
+          local_c = (int)cVar1;
+        }
+        local_c = local_c + 1;
+      }
+      local_c = *(char *)(param_3 + 0x44) + local_c;
+      local_18 = (float)local_c;
+      if (cVar1 == '\0') {
+        local_20 = 0;
+      }
+      else {
+        local_20 = (int)*(char *)(iVar2 + 0x14);
+      }
+      local_14 = (float)local_20;
+      if ((*(byte *)(param_3 + 0x45) & 4) != 0) {
+        local_18 = local_18 + 1.0;
+      }
+      FUN_004ab690(param_2,0,&local_20);
+                    /* WARNING: Could not recover jumptable at 0x004ac234. Too many branches */
+                    /* WARNING: Treating indirect jump as call */
+      (*(code *)(&PTR_LAB_004ac6d0)[*param_2])();
+      return;
+    }
+  }
+  return;
+}
+#endif

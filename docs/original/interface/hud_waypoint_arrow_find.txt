@@ -1,0 +1,40 @@
+Original file: src/interface/hud_waypoint_arrow_find.c (converted into halo::interface::HudWaypoints::arrow_find)
+
+// hud_waypoint_arrow_find  (Ghidra: FUN_004af070, renamed in the phase-4 review)
+// address 0x4af070, size 94 bytes
+// name confidence: 0.6 (chosen)   rewrite confidence: 0.9
+// evidence: objdump 0x4af070..0x4af0cd. HUDGlobals +0x160/+0x164 is the waypoint_arrows block
+// (HUDGlobalsWaypointArrow, stride 0x68, name first); 0x628d8b is the CRT stricmp. Used for
+// the navpoint names of the activate_nav_point_* scripts and custom waypoints (types/game.h
+// custom_waypoint::icon "resolved by name through 0x4af070").
+// register convention: EDI name; the result is in AX.
+//   // blam-cc: name -> EDI
+
+#if 0
+Original Ghidra decompilation (0x4af070):
+
+short FUN_004af070(void)
+
+{
+  int iVar1;
+  short sVar2;
+  char *unaff_EDI;
+
+  if (DAT_0071941c == 0) {
+    return -1;
+  }
+  sVar2 = 0;
+  if (0 < *(int *)(DAT_0071941c + 0x160)) {
+    iVar1 = 0;
+    do {
+      iVar1 = __stricmp(unaff_EDI,(char *)(iVar1 * 0x68 + *(int *)(DAT_0071941c + 0x164)));
+      if (iVar1 == 0) {
+        return sVar2;
+      }
+      sVar2 = sVar2 + 1;
+      iVar1 = (int)sVar2;
+    } while (iVar1 < *(int *)(DAT_0071941c + 0x160));
+  }
+  return -1;
+}
+#endif

@@ -1,0 +1,47 @@
+Original file: src/interface/chimera__multiplayer_message.c (converted into halo::interface::HudMessaging::multiplayer_message)
+
+// chimera__multiplayer_message  (Ghidra: chimera__multiplayer_message, already named)
+// address 0x4ab4b0, size 214 bytes
+// name confidence: 0.55 (existing Ghidra name, matches types/interface.h)   rewrite confidence: 0.6
+// evidence: types/interface.h hud_chat_message_count (0x00719424) and hud_chat_message_expiry
+// (0x006b3a20, "8 seconds past post time"); string "oListbox"; shares the chat-listbox GUI
+// table with hud_chat_listbox_remove_oldest.c.
+// UNSURE: the QueryPerformanceCounter-based millisecond conversion (0x006ac8f8/0x006ac8fc, a
+// 64 bit performance-counter frequency) is transcribed with plain 64 bit arithmetic in place of
+// the original's __allmul/__alldiv helper calls, which is behaviorally identical on this
+// target.
+// register convention: __cdecl, text as the recognized parameter. The text is wide: every caller
+// (chat_dispatch_incoming, chimera__kill_feed, game_engine_on_player_death) builds a wchar_t line.
+
+#if 0
+Original Ghidra decompilation (0x4ab4b0):
+
+void __cdecl chimera__multiplayer_message(char *text)
+
+{
+  int iVar1;
+  int iVar2;
+  undefined8 uVar3;
+  LARGE_INTEGER local_8;
+
+  if (7 < DAT_00719424) {
+    hud_chat_listbox_remove_oldest();
+  }
+  if ((DAT_00721eb8 != (code *)0x0) &&
+     (iVar1 = (*DAT_00721eb8)(DAT_00721ea4,PTR_PTR_0069c69c), iVar1 != 0)) {
+    iVar2 = (*DAT_00721ecc)(iVar1,L"oListbox");
+    if (iVar2 != 0) {
+      (*DAT_00721ee8)(iVar2,0x180,0,text);
+      (*DAT_00721ee8)(iVar2,0x115,2,0);
+      (*DAT_00721ed0)(iVar1);
+    }
+    (*DAT_00721ec8)(iVar1);
+  }
+  QueryPerformanceCounter(&local_8);
+  uVar3 = __allmul(local_8.s.LowPart,local_8.s.HighPart,1000,0);
+  iVar1 = __alldiv(uVar3,DAT_006ac8f8,DAT_006ac8fc);
+  (&DAT_006b3a20)[DAT_00719424] = iVar1 + 8000;
+  DAT_00719424 = DAT_00719424 + 1;
+  return;
+}
+#endif

@@ -1,0 +1,68 @@
+Original file: src/interface/controls_gamepad_bindings_restore.c (converted into halo::interface::GamepadBindings::bindings_restore)
+
+// controls_gamepad_bindings_restore  (Ghidra: FUN_004b5a70, named in phase 4)
+// address 0x4b5a70, size 170 bytes (0x2000 byte frame through _chkstk 0x628240)
+// name confidence: 0.4   rewrite confidence: 0.75
+// phase-4 review: this family was named as a server history / favorites list; every caller
+// is on the controls setup gamepad screen (see types/interface.h controls_gamepad_record), so
+// it was renamed; the old names are logged in symbols/agent_phase4_interface.txt.
+// evidence: rewritten from objdump 0x4b5a70..0x4b5b19 in the phase-4 review. The first
+// rewrite dropped every register argument of the five saved-games calls.
+//   Without a loaded profile (selected_saved_item low nibble set) returns 0. Otherwise the
+// working profile at 0x00714e80 (0x1ffc bytes) is copied to the stack, 0x53b5a0 runs on the
+// working profile (ECX), its four slots are reset (control_profile_reset_slot, ESI profile,
+// EDX slot), and for every controls_assigned_gamepads entry that 0x53b470 accepts (both cdecl stack
+// arguments: entry, profile) 0x53b700 merges the saved copy back (EAX entry; stack profile,
+// saved copy). 0x53b620 (EAX profile) finishes; returns 1.
+// register convention: plain cdecl, no arguments; returns AL.
+
+#if 0
+Original Ghidra decompilation (0x4b5a70):
+
+/* WARNING: Function: __chkstk replaced with injection: alloca_probe */
+
+undefined4 FUN_004b5a70(void)
+
+{
+  char cVar1;
+  undefined4 uVar2;
+  int iVar3;
+  undefined4 *puVar4;
+  undefined4 *puVar5;
+  undefined4 local_2008 [2047];
+  undefined4 uStack_c;
+
+  uStack_c = 0x4b5a80;
+  uVar2 = 0;
+  if ((DAT_00714e7c & 0xf) == 0) {
+    puVar4 = &DAT_00714e80;
+    puVar5 = local_2008;
+    for (iVar3 = 0x7ff; iVar3 != 0; iVar3 = iVar3 + -1) {
+      *puVar5 = *puVar4;
+      puVar4 = puVar4 + 1;
+      puVar5 = puVar5 + 1;
+    }
+    FUN_0053b5a0();
+    iVar3 = 0;
+    do {
+      control_profile_reset_slot();
+      iVar3 = iVar3 + 1;
+    } while (iVar3 < 4);
+    iVar3 = 0;
+    if (0 < DAT_00719448) {
+      puVar4 = &DAT_006b53d8;
+      do {
+        cVar1 = FUN_0053b470(puVar4,&DAT_00714e80);
+        if (cVar1 != '\0') {
+          FUN_0053b700(&DAT_00714e80,local_2008);
+        }
+        iVar3 = iVar3 + 1;
+        puVar4 = puVar4 + 0x88;
+      } while (iVar3 < DAT_00719448);
+    }
+    FUN_0053b620();
+    uVar2 = 1;
+  }
+  return uVar2;
+}
+#endif
