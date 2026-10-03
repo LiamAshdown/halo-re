@@ -13,6 +13,8 @@ extern "C" input_event_queue input_event_queue_active;
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -35,7 +37,6 @@ extern uint8_t virtual_keyboard;
 extern widget_instance *ui_root_widget[1];
 extern widget_history_node *ui_widget_history[3];
 extern ui_pending_error ui_pending_error_alternate;
-extern game_time_globals *game_time;
 extern uint8_t ui_cursor_changed;
 extern uint8_t ui_widget_opened;
 extern int32_t ui_cursor_x;
@@ -131,10 +132,10 @@ void InterfaceMain::tick()
             loading_thread = (loading_thread_record *)0;
             ui_input_batch_mode = 0;
             if (loading_thread_result == 1) {
-                display_error(0x21, -1, 1, 0);
+                halo::interface::display_error(0x21, -1, 1, 0);
                 root = ui_root_widget[0];
             } else if (loading_thread_result == 2) {
-                display_error(0x22, -1, 1, 0);
+                halo::interface::display_error(0x22, -1, 1, 0);
                 root = ui_root_widget[0];
             }
         }
@@ -144,7 +145,7 @@ void InterfaceMain::tick()
     if (virtual_keyboard == 0) {
         if (ui_pending_error_alternate.error_string_index == -1) {
             if (quit_confirm_error_string_index == -1) {
-                uint8_t is_paused = ui_check_for_pause_game();
+                uint8_t is_paused = halo::interface::ui_check_for_pause_game();
                 widget_instance *widget = ui_root_widget[0];
 
                 root = widget;
@@ -163,7 +164,7 @@ void InterfaceMain::tick()
                             looped = 1;
                             do {
                                 if ((is_paused == 0 &&
-                                     (widget_instance_handle_input_event(widget, tag, event_scratch, &handled),
+                                     (halo::interface::widget_instance_handle_input_event(widget, tag, (int16_t *)event_scratch, &handled),
                                       root = ui_root_widget[0], handled == 1)) ||
                                     widget != root) {
                                     break;
@@ -174,24 +175,24 @@ void InterfaceMain::tick()
                     }
                     if (looped == 0 && is_paused == 0) {
                         *(uint16_t *)(event_scratch + 2) = widget->controller_index;
-                        widget_instance_handle_input_event(widget, tag, event_scratch, &handled);
+                        halo::interface::widget_instance_handle_input_event(widget, tag, (int16_t *)event_scratch, &handled);
                         root = ui_root_widget[0];
                     }
                     handled = 1;
                     if (root == (widget_instance *)0 && ui_widget_history[0] != (widget_history_node *)0) {
                         widget_history_node popped;
 
-                        list_node_pop(&popped, &ui_widget_history[0]);
+                        halo::interface::list_node_pop(&popped, &ui_widget_history[0]);
                         root = ui_root_widget[0];
                         if (popped.definition != (datum_index)-1) {
-                            widget_instance *reopened = chimera__load_ui_widget(
+                            widget_instance *reopened = halo::interface::chimera__load_ui_widget(
                                 (char *)0, popped.definition, (widget_instance *)0,
                                 (uint16_t)popped.controller_index, (datum_index)-1, (datum_index)-1, -1);
 
                             root = ui_root_widget[0];
                             if (reopened != (widget_instance *)0) {
 
-                                widget_instance_select_list_index(reopened, popped.list_definition,
+                                halo::interface::widget_instance_select_list_index(reopened, popped.list_definition,
                                                                    popped.selection);
                                 root = ui_root_widget[0];
                             }
@@ -206,20 +207,20 @@ void InterfaceMain::tick()
                 int16_t error_string_index = quit_confirm_error_string_index;
 
                 if (ui_split_screen != 0 || halo::networking::network_game_is_active() != 0 ||
-                    game_time->game_time > 0x1d) {
-                    display_error(error_string_index, (int32_t)(uint16_t)quit_confirm_error_unknown_ae,
+                    halo::game::globals().game_time->game_time > 0x1d) {
+                    halo::interface::display_error(error_string_index, (int32_t)(uint16_t)quit_confirm_error_unknown_ae,
                                   quit_confirm_error_modal, quit_confirm_error_is_error);
                     quit_confirm_error_string_index = -1;
                     root = ui_root_widget[0];
                 }
             }
         } else {
-            display_error(ui_pending_error_alternate.error_string_index, -1, 1, 0);
+            halo::interface::display_error(ui_pending_error_alternate.error_string_index, -1, 1, 0);
             ui_pending_error_alternate.error_string_index = -1;
             root = ui_root_widget[0];
         }
     } else {
-        virtual_keyboard_process_input();
+        halo::interface::virtual_keyboard_process_input();
         root = ui_root_widget[0];
         goto shared_tail;
     }
@@ -235,25 +236,25 @@ shared_tail:
             }
             {
 
-                widget_instance *hit = widget_instance_find_at_point(
+                widget_instance *hit = halo::interface::widget_instance_find_at_point(
                     root, ui_cursor_x, ui_cursor_y, *(int32_t *)&((struct widget_instance *)root)->local_x);
 
                 root = ui_root_widget[0];
                 if (hit != (widget_instance *)0 && hit->parent != (widget_instance *)0 &&
-                    widget_instance_verify_stack_chain(hit) == 0) {
+                    halo::interface::widget_instance_verify_stack_chain(hit) == 0) {
                     widget_instance *parent = hit->parent;
                     UIWidgetDefinition *parent_tag =
                         (UIWidgetDefinition *)halo::cache::globals().tag_instances[parent->definition & 0xffff].data;
 
                     if (parent->focused_child != hit) {
-                        widget_play_sound_effect(1);
+                        halo::interface::widget_play_sound_effect(1);
                     }
                     if (parent->widget_type == 2) {
                         if (parent_tag->child_widgets.count > 1) {
-                            widget_list_scroll_window((int32_t *)event_scratch, parent);
+                            halo::interface::widget_list_scroll_window((int32_t *)event_scratch, parent);
                             {
 
-                                int32_t sibling = widget_get_sibling_index(hit);
+                                int32_t sibling = halo::interface::widget_get_sibling_index(hit);
                                 int32_t idx = (sibling < 0) ? 0 : ((sibling < 4) ? sibling : 3);
 
                                 parent->selection_index = *(int16_t *)(event_scratch + idx * 4);
@@ -268,7 +269,7 @@ shared_tail:
                             }
                         }
                     } else if (parent->widget_type == 3) {
-                        parent->selection_index = (int16_t)widget_get_sibling_index(hit);
+                        parent->selection_index = (int16_t)halo::interface::widget_get_sibling_index(hit);
                         parent->focused_child = hit;
                         {
                             widget_instance *cursor = parent;
@@ -278,7 +279,7 @@ shared_tail:
 
                                 up->focused_child = cursor;
                                 if (up->widget_type == 3) {
-                                    up->selection_index = (int16_t)widget_get_sibling_index(cursor);
+                                    up->selection_index = (int16_t)halo::interface::widget_get_sibling_index(cursor);
                                 }
                                 cursor = up;
                             }
@@ -411,7 +412,7 @@ void * InterfaceMain::registry_get_product_id()
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 void interface_handle_quit_request(void)
 {

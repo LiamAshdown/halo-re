@@ -6,11 +6,11 @@
 #include "halo/units/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern real_point3d *global_origin3d_pointer;
 extern real_vector3d *g_006966e4;
-extern void vector3d_clamp_length(real_vector3d *v, real max_length);
 extern void object_physics_tick(uint32_t unit_index, void *node_output, void *contact_points, void *extra_force, void *extra_torque);
 extern double sqrt(double x);
 extern double fabs(double x);
@@ -82,7 +82,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
                 accel = tag->speed_acceleration;
             }
 
-            vector3d_clamp_length(&desired, accel);
+            halo::game::vector3d_clamp_length(&desired, accel);
             halo::math::matrix4x3_transform_vector(desired, desired, basis);
 
             {

@@ -7,6 +7,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -749,7 +750,7 @@ void ActorView::type_infection_swarm_update()
             }
             if (parent_dead) {
                 if (U32(parent, 0x41c) != (uint32_t)k_datum_index_none &&
-                    (int32_t)(U32(parent, 0x41c) + 0x4b) < *(int32_t *)((uint8_t *)game_time + 0xc) &&
+                    (int32_t)(U32(parent, 0x41c) + 0x4b) < *(int32_t *)((uint8_t *)halo::game::globals().game_time + 0xc) &&
                     best_prop != 0 && U32(best_prop, 0x18) != U32(object, 0x11c) &&
                     I16(best_prop, 0x24) >= 2 && I16(best_prop, 0x24) <= 3) {
                     detach = 1;

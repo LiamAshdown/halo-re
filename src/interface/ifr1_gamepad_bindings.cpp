@@ -3,6 +3,7 @@
 #include <wchar.h>
 #include "halo/memory/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -11,13 +12,8 @@ extern int32_t controls_assigned_gamepad_count;
 extern controls_gamepad_record controls_assigned_gamepads[4];
 extern controls_gamepad_record controls_available_gamepads[8];
 extern int32_t controls_available_gamepad_count;
-extern int32_t controls_gamepad_list_find(const controls_gamepad_record *entry, controls_gamepad_record *list);
 extern int32_t input_device_count;
 extern uint8_t input_devices[];
-extern void controls_gamepad_widget_nodes_collect(widget_instance **out, widget_instance *screen);
-extern void controls_gamepad_lists_refresh(widget_instance *screen);
-extern uint8_t controls_gamepad_list_add(const controls_gamepad_record *entry, controls_gamepad_record *list);
-extern uint8_t controls_gamepad_list_remove(const controls_gamepad_record *entry, controls_gamepad_record *list);
 extern heap *widget_memory_pool;
 }
 
@@ -135,7 +131,7 @@ int32_t GamepadBindings::list_find(const controls_gamepad_record *entry, control
  */
 uint8_t GamepadBindings::list_remove(const controls_gamepad_record *entry, controls_gamepad_record *list)
 {
-    int32_t index = controls_gamepad_list_find(entry, list);
+    int32_t index = halo::interface::controls_gamepad_list_find(entry, list);
     int32_t *count;
     int32_t tail_count;
 
@@ -150,7 +146,7 @@ uint8_t GamepadBindings::list_remove(const controls_gamepad_record *entry, contr
         return 0;
     }
 
-    index = controls_gamepad_list_find(entry, list);
+    index = halo::interface::controls_gamepad_list_find(entry, list);
     if (index == -1) {
         return 0;
     }
@@ -185,7 +181,7 @@ uint8_t GamepadBindings::lists_load(widget_instance *screen)
         return 0;
     }
 
-    controls_gamepad_widget_nodes_collect(nodes, screen);
+    halo::interface::controls_gamepad_widget_nodes_collect(nodes, screen);
     count = (int16_t)input_device_count;
     for (i = 0; i < count; i++) {
         if ((int16_t)i < input_device_count) {
@@ -194,7 +190,7 @@ uint8_t GamepadBindings::lists_load(widget_instance *screen)
         } else if (!have_entry) {
             continue;
         }
-        controls_gamepad_list_add(&entry, controls_available_gamepads);
+        halo::interface::controls_gamepad_list_add(&entry, controls_available_gamepads);
     }
 
     for (i = 0; i < 4; i++) {
@@ -208,10 +204,10 @@ uint8_t GamepadBindings::lists_load(widget_instance *screen)
             controls_assigned_gamepads[controls_assigned_gamepad_count] = *saved;
             controls_assigned_gamepad_count++;
         }
-        controls_gamepad_list_remove(&entry, controls_available_gamepads);
+        halo::interface::controls_gamepad_list_remove(&entry, controls_available_gamepads);
     }
 
-    controls_gamepad_lists_refresh(screen);
+    halo::interface::controls_gamepad_lists_refresh(screen);
     if (controls_assigned_gamepad_count > 0) {
         screen->focused_child = nodes[0];
     } else if (controls_available_gamepad_count > 0) {
@@ -236,7 +232,7 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
     widget_instance *nodes[17];
     int32_t i;
 
-    controls_gamepad_widget_nodes_collect(nodes, screen);
+    halo::interface::controls_gamepad_widget_nodes_collect(nodes, screen);
 
     nodes[0]->hidden = controls_assigned_gamepad_count == 0;
     for (i = 0; i < 4; i++) {
@@ -301,7 +297,7 @@ uint8_t GamepadBindings::toggle_assignment(widget_instance *row)
     int32_t i;
     uint8_t moved = 0;
 
-    controls_gamepad_widget_nodes_collect(nodes, screen);
+    halo::interface::controls_gamepad_widget_nodes_collect(nodes, screen);
     if (list == nodes[0]) {
         source = controls_assigned_gamepads;
         target = controls_available_gamepads;
@@ -333,12 +329,12 @@ uint8_t GamepadBindings::toggle_assignment(widget_instance *row)
             if (*target_count < capacity) {
                 target[*target_count] = entry;
                 (*target_count)++;
-                moved = controls_gamepad_list_remove(&entry, source);
+                moved = halo::interface::controls_gamepad_list_remove(&entry, source);
             }
         }
     }
 
-    controls_gamepad_lists_refresh(screen);
+    halo::interface::controls_gamepad_lists_refresh(screen);
     if (row->parent == nodes[0]) {
         if (controls_assigned_gamepad_count == 0) {
             screen->focused_child = nodes[5];

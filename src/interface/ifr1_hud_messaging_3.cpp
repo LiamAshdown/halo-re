@@ -8,14 +8,14 @@
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
-extern player_globals *local_player_globals;
 extern HUDGlobals *hud_messaging_parameters;
 extern HUDGlobals *hud_globals_tag_data;
 extern hud_messaging_globals *hud_messaging;
 extern hud_globals_flags *hud_flags;
-extern game_time_globals *game_time;
 extern int16_t current_local_player_index;
 extern int32_t hud_splitscreen_message_raise;
 extern Rectangle2D screen_safe_area_right;
@@ -33,16 +33,6 @@ extern const uint16_t hud_text_unknown[];
 extern const uint16_t hud_text_no_button_icon[];
 extern int32_t __ftol(double x);
 extern double pow(double base, double exponent);
-extern uint8_t game_engine_local_player_score_is_nonpositive(datum_index player_index);
-extern uint32_t color_pack_argb_from_real(ColorARGB *color);
-extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
-                                                 const int16_t *offset, int16_t *out, int32_t selector);
-extern uint32_t hud_meter_flash_color_blend(const hud_flash_parameters *flash, int32_t start_time);
-extern void hud_draw_message_text_span(Rectangle2D *cursor, Rectangle2D *origin, const uint16_t *text,
-                                       uint8_t allow_button_prompts);
-extern void hud_draw_message_icon(const hud_messaging_information *information, Rectangle2D *cursor,
-                                  uint32_t color);
-extern int32_t hud_message_compare(const void *a, const void *b);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);
 }
@@ -65,17 +55,17 @@ static void hud_messaging_draw_button_icon(int16_t button_icon, Rectangle2D *cur
     uint16_t name[0x40];
 
     if ((int32_t)button_icon >= (int32_t)hud_globals_tag_data->button_icons.count) {
-        hud_draw_message_text_span(cursor, line, hud_text_no_button_icon, 0);
+        halo::interface::hud_draw_message_text_span(cursor, line, hud_text_no_button_icon, 0);
         return;
     }
     if (halo::input::input_get_last_used_binding(button_icon, (control_binding_descriptor *)binding) == 0) {
-        hud_draw_message_text_span(cursor, line, hud_text_unbound, 0);
+        halo::interface::hud_draw_message_text_span(cursor, line, hud_text_unbound, 0);
         return;
     }
     halo::input::input_get_binding_display_name((control_binding_descriptor *)binding, name);
-    hud_draw_message_text_span(cursor, line, hud_text_quote, 0);
-    hud_draw_message_text_span(cursor, line, name, 0);
-    hud_draw_message_text_span(cursor, line, hud_text_quote, 0);
+    halo::interface::hud_draw_message_text_span(cursor, line, hud_text_quote, 0);
+    halo::interface::hud_draw_message_text_span(cursor, line, name, 0);
+    halo::interface::hud_draw_message_text_span(cursor, line, hud_text_quote, 0);
 }
 
 namespace halo::interface {
@@ -113,20 +103,20 @@ void HudMessaging::messaging_update(int16_t local_player_index)
     if (halo::cutscene::globals().cinematic_globals->in_progress != 0 || local_player_index == -1) {
         return;
     }
-    player_index = local_player_index < 1 ? local_player_globals->local_players[local_player_index]
+    player_index = local_player_index < 1 ? halo::game::globals().local_player_globals->local_players[local_player_index]
                                           : (datum_index)-1;
-    if (game_engine_local_player_score_is_nonpositive(player_index) == 0) {
+    if (halo::game::game_engine_local_player_score_is_nonpositive(player_index) == 0) {
         return;
     }
 
     parameters = hud_messaging_parameters;
-    split_screen = local_player_globals->local_player_count > 1;
+    split_screen = halo::game::globals().local_player_globals->local_player_count > 1;
     font = *(datum_index *)&parameters->fullscreen_font.tag_id;
-    if (local_player_globals->local_player_count > 1 &&
+    if (halo::game::globals().local_player_globals->local_player_count > 1 &&
         *(datum_index *)&parameters->splitscreen_font.tag_id != (datum_index)-1) {
         font = *(datum_index *)&parameters->splitscreen_font.tag_id;
     }
-    hud_anchor_offset_to_screen_position((uint16_t *)&parameters->anchor, split_screen, 0.0f,
+    halo::interface::hud_anchor_offset_to_screen_position((uint16_t *)&parameters->anchor, split_screen, 0.0f,
                                          &parameters->anchor_offset.x, &origin.x, 0);
     font_tag = (Font *)halo::cache::globals().tag_instances[font & 0xffff].data;
     y = origin.y;
@@ -138,7 +128,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
     }
 
     record = &hud_messaging->players[current_local_player_index];
-    max_lines = (int16_t)(4 - (local_player_globals->local_player_count > 1));
+    max_lines = (int16_t)(4 - (halo::game::globals().local_player_globals->local_player_count > 1));
     objective_shown = hud_messaging->objective_text != 0 && hud_messaging->objective_text_ticks != 0;
     help_shown = hud_flags->help_text_shown != 0 && hud_messaging->help_text != 0;
     action_shown = record->message_shown != 0 && (record->message != 0 || record->action_text[0] != 0);
@@ -153,8 +143,8 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             HUDGlobals *globals = hud_globals_tag_data;
             float fraction;
 
-            now = game_time->game_time;
-            packed_color = hud_meter_flash_color_blend(
+            now = halo::game::globals().game_time->game_time;
+            packed_color = halo::interface::hud_meter_flash_color_blend(
                 (const hud_flash_parameters *)&globals->objective_default_color,
                 hud_messaging->objective_text_ticks - globals->objective_uptime_ticks - globals->objective_fade_ticks + now);
             halo::bitmaps::color_argb_int_to_real(&color, packed_color);
@@ -163,10 +153,10 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                 fraction = 1.0f;
             }
             color.alpha = fraction * color.alpha;
-            packed_color = color_pack_argb_from_real(&color);
+            packed_color = halo::interface::color_pack_argb_from_real(&color);
         } else if (help_shown) {
             if (hud_messaging->help_text_flashing != 0) {
-                packed_color = hud_meter_flash_color_blend(
+                packed_color = halo::interface::hud_meter_flash_color_blend(
                     (const hud_flash_parameters *)&hud_globals_tag_data->hud_help_default_color,
                     hud_messaging->help_text_flash_start_time);
             } else if ((*(uint8_t *)&hud_globals_tag_data->hud_help_flash_flags & 1) != 0) {
@@ -177,7 +167,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             halo::bitmaps::color_argb_int_to_real(&color, packed_color);
         } else {
             color = parameters->icon_color;
-            packed_color = color_pack_argb_from_real(&color);
+            packed_color = halo::interface::color_pack_argb_from_real(&color);
         }
 
         line.top = y;
@@ -188,7 +178,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         hud_messaging_set_text_state(font, &color);
 
         if (objective_shown) {
-            int32_t remaining = hud_messaging->objective_text_ticks - game_time->ticks_this_frame;
+            int32_t remaining = hud_messaging->objective_text_ticks - halo::game::globals().game_time->ticks_this_frame;
             messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id & 0xffff].data;
             message = hud_messaging->objective_text;
             hud_messaging->objective_text_ticks = (int16_t)(remaining > 0 ? remaining : 0);
@@ -199,7 +189,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&hud_globals_tag_data->hud_messages.tag_id & 0xffff].data;
             message = record->message;
         } else if (record->action_text[0] != 0) {
-            hud_draw_message_text_span(&cursor, &line, record->action_text, 1);
+            halo::interface::hud_draw_message_text_span(&cursor, &line, record->action_text, 1);
         }
 
         if (message != 0 && message->panel_count != 0) {
@@ -238,18 +228,18 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                         uint16_t string_index = *(uint16_t *)reference;
 
                         if (string_index == 0xffff) {
-                            hud_draw_message_text_span(&cursor, &line, hud_text_unknown, 0);
+                            halo::interface::hud_draw_message_text_span(&cursor, &line, hud_text_unknown, 0);
                         } else if (reference[2] != 0) {
-                            hud_draw_message_text_span(&cursor, &line,
+                            halo::interface::hud_draw_message_text_span(&cursor, &line,
                                 halo::text::text_string_list_get_string(*(datum_index *)&halo::scenario::globals().scenario->custom_object_names.tag_id,
                                                             (int16_t)string_index), 0);
                         } else {
-                            hud_draw_message_text_span(&cursor, &line,
+                            halo::interface::hud_draw_message_text_span(&cursor, &line,
                                 halo::text::text_string_list_get_string(*(datum_index *)&hud_globals_tag_data->alternate_icon_text.tag_id,
                                                             (int16_t)string_index), 0);
                         }
                     } else if (record->arguments[argument] != 0) {
-                        hud_draw_message_icon((const hud_messaging_information *)record->arguments[argument], &cursor,
+                        halo::interface::hud_draw_message_icon((const hud_messaging_information *)record->arguments[argument], &cursor,
                                               packed_color);
                     }
                 }
@@ -270,7 +260,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         max_lines--;
     }
 
-    qsort(record->messages, 4, sizeof(hud_message_slot), hud_message_compare);
+    qsort(record->messages, 4, sizeof(hud_message_slot), halo::interface::hud_message_compare);
     for (i = 0; i < max_lines; i++) {
         hud_message_slot *slot = &record->messages[i];
         float elapsed;
@@ -279,7 +269,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         if (slot->active == 0) {
             return;
         }
-        now = game_time->game_time;
+        now = halo::game::globals().game_time->game_time;
         color = parameters->text_color;
         elapsed = (float)(now - slot->timestamp);
         up_ticks = parameters->up_time * 30.0f;

@@ -17,16 +17,13 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern game_engine_definition *current_game_engine;
-extern int16_t current_local_player_index;
-extern void first_person_weapon_center_flashlight(datum_index unit_index, real_point3d *out_origin, real_vector3d *out_extents, real_vector3d *out_direction);
-extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name, object_marker *out, uint32_t maximum);
 extern int32_t fistp_round(float x);
 extern uint8_t game_engine_unknown_aa00;
-extern game_time_globals *game_time;
 extern float *global_white_color;
 extern datum_index light_active_list[0x80];
 extern int16_t light_active_list_count;
@@ -41,7 +38,6 @@ extern int16_t light_transient_count;
 extern int16_t light_transient_count_or_queue;
 extern light_transient light_transient_table[k_maximum_transient_lights];
 extern uint8_t *lights_enabled;
-extern int32_t local_player_index_for_weapon(datum_index weapon_index);
 extern data_array *object_data;
 extern char *object_get_attachment_marker_name(uint32_t object_index, int16_t attachment_index);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
@@ -52,7 +48,6 @@ extern int32_t rasterizer_light_count;
 extern rasterizer_light rasterizer_lights[0x80];
 extern uint8_t render_window_index;
 extern double sqrt(double x);
-extern uint8_t unit_get_first_person_marker_transform(datum_index object_index, const char *marker_name, real_point3d *out_position, real_vector3d *out_extents, real_vector3d *out_direction);
 }
 
 namespace {
@@ -186,7 +181,7 @@ datum_index halo::objects::LightSystem::new_positioned(datum_index light_tag, in
         uint8_t *raw = (uint8_t *)entry;
 
         entry->flags = 0;
-        entry->marker_link = game_time->game_time;
+        entry->marker_link = halo::game::globals().game_time->game_time;
         entry->definition_tag = light_tag;
         *(int32_t *)&((struct light *)raw)->owner_object = marker_index;
         entry->transient_color_scale = param_5;
@@ -245,7 +240,7 @@ static const char *light_owner_marker_name(uint8_t *light)
  */
 void halo::objects::LightSystem::update_all()
 {
-    int32_t tick = game_time->game_time;
+    int32_t tick = halo::game::globals().game_time->game_time;
     datum_index handle;
     int16_t i;
 
@@ -365,10 +360,10 @@ void halo::objects::LightSystem::update_all()
                 record.radius = intensity;
                 if (((struct light *)light)->marker_link == -1) {
                     if ((tag[0] & 0x10) != 0) {
-                        first_person_weapon_center_flashlight(owner_handle, &record.position, &record.forward, &record.up);
+                        halo::interface::first_person_weapon_center_flashlight(owner_handle, &record.position, &record.forward, &record.up);
                         light[2] |= 8;
                     } else if (*(int16_t *)(owner + 0xb4) == 2 && *(datum_index *)(owner + 0x11c) != k_datum_index_none &&
-                               unit_get_first_person_marker_transform(owner_handle, light_owner_marker_name(light),
+                               halo::interface::unit_get_first_person_marker_transform(owner_handle, light_owner_marker_name(light),
                                                                       &record.position, &record.forward, &record.up)) {
                         light[2] |= 8;
                     }
@@ -407,8 +402,8 @@ void halo::objects::LightSystem::update_all()
                 int16_t j;
 
                 if (*(int16_t *)(owner + 0xb4) == 2 && *(datum_index *)(owner + 0x11c) != k_datum_index_none &&
-                    (int16_t)local_player_index_for_weapon(owner_handle) == current_local_player_index) {
-                    count = (int16_t)first_person_weapon_get_marker_data(owner_handle, marker_name, markers, 8);
+                    (int16_t)halo::interface::local_player_index_for_weapon(owner_handle) == halo::interface::globals().current_local_player_index) {
+                    count = (int16_t)halo::interface::first_person_weapon_get_marker_data(owner_handle, marker_name, markers, 8);
                     if (count > 0) {
                         flare.window_flags |= 0x80;
                     }
@@ -528,7 +523,7 @@ void halo::objects::LightSystem::apply_spot_falloff()
     halo::rasterizer::rasterizer_light_cone_set_texture_stage_states();
 
     if (*lights_enabled != 0 &&
-        (current_game_engine == 0 || ((game_engine_unknown_aa00 & 1) == 0 && 1 < light_count_enabled))) {
+        (halo::game::globals().current_engine == 0 || ((game_engine_unknown_aa00 & 1) == 0 && 1 < light_count_enabled))) {
         int16_t i;
 
         for (i = 0; i < light_active_list_count; i++) {
@@ -588,7 +583,7 @@ void halo::objects::LightSystem::apply_spot_falloff_specular()
     halo::rasterizer::rasterizer_shader_environment_technique_ps2_set_states();
 
     if (*lights_enabled != 0 &&
-        (current_game_engine == 0 || ((game_engine_unknown_aa00 & 1) == 0 && 1 < light_count_enabled))) {
+        (halo::game::globals().current_engine == 0 || ((game_engine_unknown_aa00 & 1) == 0 && 1 < light_count_enabled))) {
         int16_t i;
 
         for (i = 0; i < light_active_list_count; i++) {

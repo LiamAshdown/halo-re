@@ -11,6 +11,8 @@
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -26,9 +28,6 @@ extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
-extern void hud_state_reset(void);
-extern player_globals *local_player_globals;
-extern data_array *player_data;
 extern int16_t profile_slot_id[];
 extern char player_help_name_a10[];
 extern char player_help_name_a30[];
@@ -40,25 +39,20 @@ extern char player_help_name_c20[];
 extern char player_help_name_c40[];
 extern char player_help_name_d20[];
 extern char player_help_name_d40[];
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection);
 extern profile_carousel_slot profile_carousel_slots[3];
 extern char joystick_set_separator_0065f010[];
 extern uint16_t empty_string[];
 extern heap *widget_memory_pool;
-extern void ui_profile_carousel_slot_cache_populate(int32_t count, const int32_t *candidate_ids);
-extern int32_t ui_carousel_slot_compare_valid_first(const void *a, const void *b);
 extern int32_t safe_mode;
 extern uint8_t directsound_initialized;
 extern uint8_t directsound_eax_available;
 extern uint16_t sound_permutation_limit;
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern uint8_t loading_thread_result;
 extern uint8_t playlist_profiles_need_defaults;
 extern char last_profile_name[];
 extern int32_t cached_profile_slot;
 extern uint16_t hud_text_unknown[];
 extern uint8_t profile_globals_block[];
-extern game_engine_definition *current_game_engine;
 extern uint8_t port_overridden;
 extern uint32_t game_cport;
 extern uint32_t network_session_start_game_type;
@@ -69,14 +63,9 @@ extern player_control_settings input_globals[];
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_disk_copy[0x1ffc];
 extern uint8_t saved_item_working_copy[0x1ffc];
-extern void game_variant_sanitize_options(game_variant *variant);
-extern void player_profile_select_list_widget_build(widget_instance *widget);
 extern virtual_keyboard_globals virtual_keyboard;
-extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind);
 extern uint8_t default_profile_data[0x1ffc];
-extern void game_engine_apply_current_custom_variant(void);
 extern int16_t current_local_player_index;
-extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name, object_marker *out, uint32_t name_arg);
 }
 
 namespace halo::interface {
@@ -115,7 +104,7 @@ void LocalPlayers::state_reset()
     first_person_weapon_interface *fp;
     GlobalsInterfaceBitmaps *interface_bitmaps;
 
-    hud_state_reset();
+    halo::interface::hud_state_reset();
     halo::text::text_language_initialize_from_string_list();
 
     fp = &first_person_weapon_interfaces[0];
@@ -170,11 +159,11 @@ int32_t LocalPlayers::index_for_unit(datum_index unit_index)
     player *record;
 
     for (i = 0; i < 1; i++) {
-        if (local_player_globals->local_players[i] == (datum_index)0xffffffff) {
+        if (halo::game::globals().local_player_globals->local_players[i] == (datum_index)0xffffffff) {
             continue;
         }
-        record = (player *)((char *)player_data->data +
-                             (local_player_globals->local_players[i] & 0xffff) * sizeof(player));
+        record = (player *)((char *)halo::game::globals().player_data->data +
+                             (halo::game::globals().local_player_globals->local_players[i] & 0xffff) * sizeof(player));
         if (record->unit == unit_index) {
             return i;
         }
@@ -197,11 +186,11 @@ int32_t LocalPlayers::index_for_weapon(datum_index weapon_index)
     int16_t slot;
 
     for (i = 0; i < 1; i++) {
-        if (local_player_globals->local_players[i] == (datum_index)0xffffffff) {
+        if (halo::game::globals().local_player_globals->local_players[i] == (datum_index)0xffffffff) {
             continue;
         }
-        record = (player *)((char *)player_data->data +
-                             (local_player_globals->local_players[i] & 0xffff) * sizeof(player));
+        record = (player *)((char *)halo::game::globals().player_data->data +
+                             (halo::game::globals().local_player_globals->local_players[i] & 0xffff) * sizeof(player));
         if (record->unit == (datum_index)0xffffffff) {
             continue;
         }
@@ -227,10 +216,10 @@ datum_index LocalPlayers::get_vehicle(datum_index player_index)
     player *p;
     object *unit;
 
-    if (player_index == (datum_index)-1 || index < 0 || index >= player_data->maximum_count) {
+    if (player_index == (datum_index)-1 || index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return (datum_index)-1;
     }
-    p = (player *)((uint8_t *)player_data->data + (int32_t)player_data->size * index);
+    p = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * index);
     if (p->identifier == 0 || (salt != 0 && p->identifier != salt)) {
         return (datum_index)-1;
     }
@@ -288,7 +277,7 @@ void LocalPlayers::help_screen_select_by_name(int16_t value)
         return;
     }
 
-    dialog = chimera__load_ui_widget(tag_path, (datum_index)-1, (widget_instance *)0,
+    dialog = halo::interface::chimera__load_ui_widget(tag_path, (datum_index)-1, (widget_instance *)0,
                                      (uint16_t)profile_slot_id[0], (datum_index)-1, (datum_index)-1, -1);
     if (dialog != (widget_instance *)0) {
         widget_instance *child;
@@ -313,7 +302,7 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
         int32_t *ids = (int32_t *)widget->list_items;
         int32_t profile_id = ids[widget->selection_index];
 
-        ui_profile_carousel_slot_cache_populate(1, &profile_id);
+        halo::interface::ui_profile_carousel_slot_cache_populate(1, &profile_id);
 
         if (profile_id != -1) {
             int32_t slot;
@@ -396,7 +385,7 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
         {
             int32_t count = widget->item_count;
             int32_t valid = 0;
-            qsort(ids, (uint32_t)count, 4, ui_carousel_slot_compare_valid_first);
+            qsort(ids, (uint32_t)count, 4, (_CoreCrtNonSecureSearchSortCompareFunction)(halo::interface::ui_carousel_slot_compare_valid_first));
             while (valid < count && ids[valid] != -1) {
                 valid++;
             }
@@ -488,7 +477,7 @@ void PlayerProfiles::auto_select()
         if (halo::saved_games::player_profile_get(slot, (saved_player_profile *)profile_data) == 0) {
             return;
         }
-        player_profile_load(0, profile_data, slot);
+        halo::interface::player_profile_load(0, profile_data, slot);
         return;
     }
 
@@ -500,7 +489,7 @@ void PlayerProfiles::auto_select()
     if (halo::saved_games::player_profile_get(slot, (saved_player_profile *)profile_data) == 0) {
         return;
     }
-    player_profile_load(0, profile_data, -1);
+    halo::interface::player_profile_load(0, profile_data, -1);
 }
 
 /**
@@ -684,10 +673,10 @@ void PlayerProfiles::load(int16_t player_index, void *source_profile, int32_t pr
         *dst_words++ = *src_words++;
     }
 
-    player_profile_refresh_settings_cache(player_index);
+    halo::interface::player_profile_refresh_settings_cache(player_index);
     halo::saved_games::control_profile_reestablish_device_slot_mappings((saved_player_profile *)record);
-    player_profile_apply_video_options(record);
-    player_profile_apply_audio_options(record);
+    halo::interface::player_profile_apply_video_options(record);
+    halo::interface::player_profile_apply_audio_options(record);
 
     if (current_game_engine == (void *)0 && port_overridden == 0 &&
         (halo::networking::globals().game_socket_port != *(uint16_t *)(record + 0x1002) ||
@@ -789,12 +778,12 @@ uint8_t PlayerProfiles::save()
         } else {
             halo::saved_games::player_profile_write_data(item, (saved_player_profile *)saved_item_working_copy);
         }
-        player_profile_load(0, saved_item_working_copy, selected_saved_item);
+        halo::interface::player_profile_load(0, saved_item_working_copy, selected_saved_item);
         result = 1;
     } else if ((item & 0xf) == 1) {
         if ((item & 0x40000000) == 0) {
             if (item != -1) {
-                game_variant_sanitize_options((game_variant *)saved_item_working_copy);
+                halo::game::game_variant_sanitize_options((game_variant *)saved_item_working_copy);
                 halo::saved_games::game_variant_write_request_start(item, (game_variant *)saved_item_working_copy);
             }
             if (halo::saved_games::saved_game_get_directory_by_handle(selected_saved_item, name) != 0) {
@@ -806,7 +795,7 @@ uint8_t PlayerProfiles::save()
             ((game_variant *)saved_item_working_copy)->variant_flags &= 0xfffe;
             new_slot = halo::saved_games::saved_game_create_custom_variant(0, (uint16_t *)saved_item_working_copy);
             if (new_slot != -1) {
-                game_variant_sanitize_options((game_variant *)saved_item_working_copy);
+                halo::game::game_variant_sanitize_options((game_variant *)saved_item_working_copy);
                 halo::saved_games::game_variant_write_request_start(new_slot, (game_variant *)saved_item_working_copy);
                 selected_saved_item = new_slot;
                 if (halo::saved_games::saved_game_get_directory_by_handle(new_slot, name) != 0) {
@@ -826,7 +815,7 @@ uint8_t PlayerProfiles::save()
  */
 void PlayerProfiles::select_list_widget_build_thunk(widget_instance *widget)
 {
-    player_profile_select_list_widget_build(widget);
+    halo::interface::player_profile_select_list_widget_build(widget);
 }
 
 /**
@@ -888,10 +877,10 @@ uint8_t SavedItem::name_edit_begin()
 
     if (selected_saved_item != -1) {
         if ((selected_saved_item & 0xf) == 0) {
-            return virtual_keyboard_open((uint16_t *)(saved_item_working_copy + 2), 0x18, 10);
+            return halo::interface::virtual_keyboard_open((uint16_t *)(saved_item_working_copy + 2), 0x18, 10);
         }
         if ((selected_saved_item & 0xf) == 1) {
-            opened = virtual_keyboard_open((uint16_t *)saved_item_working_copy, 0x30, 10);
+            opened = halo::interface::virtual_keyboard_open((uint16_t *)saved_item_working_copy, 0x30, 10);
             if (opened != 0) {
                 virtual_keyboard.validation_mode = 2;
                 return opened;
@@ -937,7 +926,7 @@ void SavedItem::select(int32_t item)
         }
     } else if ((item & 0xf) == 1) {
         if (item == -1) {
-            game_engine_apply_current_custom_variant();
+            halo::game::game_engine_apply_current_custom_variant();
             return;
         }
         if (halo::saved_games::saved_game_get_variant(item, (game_variant *)saved_item_disk_copy) != 0) {
@@ -980,7 +969,7 @@ uint8_t LocalPlayers::get_first_person_marker_transform(datum_index object_index
         return 0;
     }
 
-    p = (player *)((uint8_t *)player_data->data + (controlling_player & 0xffff) * sizeof(player));
+    p = (player *)((uint8_t *)halo::game::globals().player_data->data + (controlling_player & 0xffff) * sizeof(player));
     local_player = p->local_player_index;
     if (local_player == -1 || local_player != current_local_player_index) {
         return 0;
@@ -991,7 +980,7 @@ uint8_t LocalPlayers::get_first_person_marker_transform(datum_index object_index
         return 0;
     }
 
-    result = (int16_t)first_person_weapon_get_marker_data(object_index, marker_name, &marker, 1);
+    result = (int16_t)halo::interface::first_person_weapon_get_marker_data(object_index, marker_name, &marker, 1);
     if (result <= 0) {
         return 0;
     }
@@ -1004,7 +993,7 @@ uint8_t LocalPlayers::get_first_person_marker_transform(datum_index object_index
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 void interface_local_player_state_reset(void)
 {

@@ -16,17 +16,13 @@
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern game_engine_definition *current_game_engine;
 extern game_variant game_engine_variant;
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
-extern uint8_t custom_waypoint_matches_filter(int32_t candidate, player *reference_player,
-    int32_t slot_index);
-extern int game_engine_find_valid_starting_locations(real_point3d *origin,
-    float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type,
-    int32_t max_results, int32_t *results);
 }
 
 namespace halo::game::engine1 {
@@ -112,7 +108,7 @@ int16_t SpawnLocations::collect_matching_waypoints(int32_t candidate, float *out
         player *reference_player = (player *)((uint8_t *)player_data->data + (candidate & 0xffff) * 0x200);
 
         for (slot = 0; slot < k_maximum_custom_waypoints; slot++) {
-            if (custom_waypoint_matches_filter(candidate, reference_player, slot) != 0 &&
+            if (halo::game::custom_waypoint_matches_filter(candidate, reference_player, slot) != 0 &&
                 written < max_count) {
                 out_slots[written] = (uint8_t)slot;
                 out_positions[written * 2] = custom_waypoints[slot].position.x;
@@ -184,7 +180,7 @@ int32_t SpawnLocations::find_nearest_unused_type4_location(int32_t *excluded_ind
 int32_t SpawnLocations::find_one_valid_starting_location(int16_t type, int16_t team, real_point3d *origin, float max_horizontal_dist, float max_height_delta)
 {
     int32_t result = -1;
-    game_engine_find_valid_starting_locations(origin, max_horizontal_dist, max_height_delta,
+    halo::game::game_engine_find_valid_starting_locations(origin, max_horizontal_dist, max_height_delta,
         team, type, 1, &result);
     return result;
 }

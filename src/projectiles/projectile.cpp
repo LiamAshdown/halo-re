@@ -10,6 +10,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern double sqrt(double x);
@@ -18,11 +19,9 @@ extern double fcos(double x);
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t collision_mask, uint32_t ignore_object_index, void *out_record);
 extern char k_empty_string[1];
-extern game_engine_definition *current_game_engine;
 extern ProjectileMaterialResponse projectile_default_material_response;
 extern real_vector3d *global_down3d_pointer;
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
-extern game_time_globals *game_time;
 extern int32_t k_projectile_minimum_age_ticks;
 }
 
@@ -394,7 +393,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
 
         if (parent->type == _object_type_biped &&
             (((unit_data *)((uint8_t *)parent + k_unit_data_offset))->controlling_player == (datum_index)k_datum_index_none ||
-             current_game_engine != 0) &&
+             halo::game::globals().current_engine != 0) &&
             sibling_count > k_projectile_super_combine_detonate_threshold) {
 
             cursor = first_child;
@@ -552,7 +551,7 @@ uint8_t ProjectileHandle::is_old_enough()
     if (stamp == -1) {
         return 1;
     }
-    return stamp + k_projectile_minimum_age_ticks <= game_time->game_time;
+    return stamp + k_projectile_minimum_age_ticks <= halo::game::globals().game_time->game_time;
 }
 
 /**

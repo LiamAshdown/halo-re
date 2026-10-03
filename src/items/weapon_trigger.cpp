@@ -8,6 +8,8 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern char s_primary_trigger_marker[];
@@ -148,7 +150,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
                 origin.x = origin.x + forward.i * x + left.i * y + up.i * z;
                 origin.y = origin.y + forward.j * x + left.j * y + up.j * z;
                 origin.z = origin.z + forward.k * x + left.k * y + up.k * z;
-                target = camera_observer_update(player, &origin, &forward);
+                target = halo::game::camera_observer_update(player, &origin, &forward);
             } else if (actor != k_datum_index_none) {
                 target = halo::ai::actor_compute_grenade_aim_direction(actor, &origin, &forward, &error);
             }
@@ -348,10 +350,10 @@ void weapon_trigger_ref::become_charged(int16_t trigger_index)
     wd->triggers[trigger_index].effect_state = _weapon_trigger_effect_charged;
 
     halo::items::weapon_set_state(item_index, trigger_index + 7, 1);
-    action_handle = local_player_index_for_weapon(item_index);
-    first_person_weapon_process_action(action_handle, 0x0e);
+    action_handle = halo::interface::local_player_index_for_weapon(item_index);
+    halo::interface::first_person_weapon_process_action(action_handle, 0x0e);
     if ((int16_t)action_handle == -1) {
-        hud_play_pickup_notification(item_index, 0xe);
+        halo::interface::hud_play_pickup_notification(item_index, 0xe);
     }
 }
 
@@ -402,7 +404,7 @@ void weapon_trigger_ref::begin_reload(int16_t magazine_index, int8_t is_client_p
             halo::items::weapon_set_state(item_index, magazine_index + 5, 0);
             halo::items::weapon_play_trigger_tag_effect(item_index, *(datum_index *)&magazine_tag->reloading_effect.tag_id,
                 0.0f, 0.0f);
-            weapon_action_notify_for_weapon(item_index, magazine->rounds_loaded != 0 ? 10 : 9);
+            halo::interface::weapon_action_notify_for_weapon(item_index, magazine->rounds_loaded != 0 ? 10 : 9);
 
             if (weapon_tag->weapon_type == 1) {
                 int16_t remaining = magazine_tag->rounds_loaded_maximum - magazine->rounds_loaded;

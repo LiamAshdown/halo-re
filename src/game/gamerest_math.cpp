@@ -4,9 +4,9 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern void vector3d_clamp_length(real_vector3d *v, real max_length);
 extern double sqrt(double x);
 extern double response_curve_scale_limit;
 extern double fabs(double x);
@@ -15,9 +15,7 @@ extern game_engine_definition *current_game_engine;
 extern team_pair_globals *team_pair_data;
 extern void *main_game_globals;
 extern int16_t weapon_zoom_index_substitutions[];
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern int32_t __ftol(void);
-extern int32_t random_advance_draws(TagReflexive *reflexive);
 }
 
 namespace halo::game {
@@ -385,7 +383,7 @@ void PlacementData::set_change_colors(real *color)
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::ScalarMath::angle_delta_wrapped; forwards to the C++ implementation.
@@ -521,10 +519,7 @@ real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution
  *
  * @address 0x45f6e0
  */
-int32_t random_advance_draws(TagReflexive *reflexive)
-{
-    return halo::game::RandomTable::advance_draws(reflexive);
-}
+
 
 /**
  * C entry point for halo::game::RandomTable::get_table_point; forwards to the C++ implementation.

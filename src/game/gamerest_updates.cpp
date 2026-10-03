@@ -5,10 +5,10 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t update_client_unknown_ea0;
-extern update_record *update_client_queue_get_slot(int32_t tick);
 extern data_array *update_client_queues;
 extern data_array *player_data;
 extern uint32_t update_client_staged[8];
@@ -21,29 +21,18 @@ extern int32_t update_client_write_cursor;
 extern uint32_t update_client_unknown_ea8;
 extern uint32_t update_client_unknown_eac;
 extern data_array *update_server_queues;
-extern void player_update_queue_create(player_update_queue *queue);
-extern void update_client_dispose(void);
 extern uint8_t update_server_initialized;
 extern int32_t update_server_tick;
 extern update_record update_server_history[32];
-extern uint32_t update_client_new(void);
 extern datum_index machine_to_player[16];
 extern game_time_globals *game_time;
-extern void update_server_dispose(void);
 extern int32_t update_client_unknown_102d4;
-extern void update_server_queue_push_history(int16_t machine_index, int32_t tick_count, uint32_t *source, uint32_t extra);
-extern void update_server_push_player_tick_history(void);
-extern void update_server_queue_get_history_entry(int32_t *out_record, int32_t *out_tick, datum_index queue_handle);
 extern int32_t wait_tick_counter;
 extern uint16_t local_player_name_filter[];
 extern uint8_t position_update_queue_find_and_remove(circular_queue *queue, int32_t target_tick, real_point3d *out);
 extern void unit_snap_position_if_far(real_point3d *new_position, object *obj);
 extern double sqrt(double x);
 extern int32_t vehicle_wait_tick_counter;
-extern uint8_t vehicle_update_queue_find_and_remove(circular_queue *queue, int32_t target_tick, vehicle_update_record *out);
-extern uint8_t player_unit_has_parent(datum_index player_handle);
-extern void apply_remote_player_position_update(player *plr, object *unit_obj);
-extern void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj);
 }
 
 namespace halo::game {
@@ -367,7 +356,7 @@ void UpdateServer::dispose()
                 }
                 slot->identifier = salt;
 
-                player_update_queue_create(&slot->queue);
+                halo::game::player_update_queue_create(&slot->queue);
             }
         }
         player_element = halo::memory::data_iterator_next(&player_iter);
@@ -410,7 +399,7 @@ void UpdateServer::queue_create_entry(datum_index requested_handle)
     datum_index handle = halo::memory::datum_new_at_index_with_salt(requested_handle, update_server_queues);
     update_server_queue *entry = (update_server_queue *)
         ((uint8_t *)update_server_queues->data + ((uint32_t)handle & 0xffff) * sizeof(update_server_queue));
-    player_update_queue_create(&entry->queue);
+    halo::game::player_update_queue_create(&entry->queue);
 }
 
 /**
@@ -635,7 +624,7 @@ void PlayerNetworkState::apply_remote_position_update(object *unit_obj)
     uint8_t found;
     int32_t target_tick = *(int32_t *)((uint8_t *)unit_obj + 0x4bc);
 
-    found = position_update_queue_find_and_remove(&plr->position_updates, target_tick, &queued);
+    found = halo::game::position_update_queue_find_and_remove(&plr->position_updates, target_tick, &queued);
     if (found == 1) {
         float dx = queued.x - unit_obj->position.x;
         float dy = queued.y - unit_obj->position.y;
@@ -650,7 +639,7 @@ void PlayerNetworkState::apply_remote_position_update(object *unit_obj)
         *(float *)&plr->position_update_error_total = dist + *(float *)&plr->position_update_error_total;
 
         if (unit_obj->parent_object == (datum_index)-1 && unit_obj->network_role == 1) {
-            unit_snap_position_if_far(&queued, unit_obj);
+            halo::game::unit_snap_position_if_far(&queued, unit_obj);
         }
     } else {
         circular_queue *queue = &plr->position_updates;
@@ -693,7 +682,7 @@ void PlayerNetworkState::apply_remote_vehicle_position_update(object *unit_obj)
 {
     vehicle_update_record record;
     int32_t target_tick = *(int32_t *)((uint8_t *)unit_obj + 0x4bc);
-    uint8_t found = vehicle_update_queue_find_and_remove(&plr->vehicle_updates, target_tick, &record);
+    uint8_t found = halo::game::vehicle_update_queue_find_and_remove(&plr->vehicle_updates, target_tick, &record);
 
     if (found == 1) {
         if (unit_obj->parent_object == (datum_index)record.body.parent_or_tag) {
@@ -770,7 +759,7 @@ void PlayerNetworkState::apply_first_position_update(uint32_t field0)
 
     {
         unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-        uint8_t seated = player_unit_has_parent(unit->controlling_player);
+        uint8_t seated = halo::game::player_unit_has_parent(unit->controlling_player);
         *(uint32_t *)((uint8_t *)unit_obj + 0x4bc) = field0;
         if (seated == 0) {
             PlayerNetworkState(plr).apply_remote_position_update(unit_obj);
@@ -782,7 +771,7 @@ void PlayerNetworkState::apply_first_position_update(uint32_t field0)
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::UpdateClient::advance_read_cursor; forwards to the C++ implementation.
@@ -826,10 +815,7 @@ uint32_t update_client_distribute_staged_entry(uint8_t *out)
  *
  * @address 0x472f40
  */
-uint32_t update_client_new(void)
-{
-    return halo::game::UpdateClient::update_client_new();
-}
+
 
 /**
  * C entry point for halo::game::UpdateClient::queue_apply_tick; forwards to the C++ implementation.
@@ -850,10 +836,7 @@ uint32_t update_client_queue_apply_tick(player_action *out_actions, client_updat
  *
  * @address 0x473500
  */
-update_record * update_client_queue_get_slot(int32_t tick)
-{
-    return halo::game::UpdateClient::queue_get_slot(tick);
-}
+
 
 /**
  * C entry point for halo::game::UpdateClient::stage_entry; forwards to the C++ implementation.
@@ -916,10 +899,7 @@ void update_server_queue_create_entry(datum_index requested_handle)
  *
  * @address 0x472ea0
  */
-void update_server_queue_get_history_entry(int32_t *out_record, int32_t *out_tick, datum_index queue_handle)
-{
-    halo::game::UpdateServer::queue_get_history_entry(out_record, out_tick, queue_handle);
-}
+
 
 /**
  * C entry point for halo::game::UpdateServer::queue_push_history; forwards to the C++ implementation.

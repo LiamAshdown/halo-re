@@ -9,11 +9,11 @@
 #include "halo/shaders/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 
 extern double sqrt(double x);
-extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
 extern double fabs(double x);
 
 }  // extern "C"
@@ -88,7 +88,6 @@ void chimera__rasterizer_set_up_node_parts(int32_t node_part_count, uint8_t *nod
 }
 
 namespace rasterizer_model_draw_prepare_states_impl {
-
 
 
 #undef CLAMP01_X87
@@ -283,12 +282,6 @@ void rasterizer_model_draw_restore_states(void)
 namespace rasterizer_object_shadow_begin_impl {
 
 
-
-
-
-
-
-
 static void set_render_state(uint32_t state, uint32_t value)
 {
     render_device().set_render_state(state, value);
@@ -387,17 +380,6 @@ uint8_t rasterizer_object_shadow_begin(const real_matrix4x3 *projection, const C
 }  // namespace rasterizer_object_shadow_begin_impl
 
 namespace rasterizer_object_shadow_blur_impl {
-
-
-
-
-
-
-
-
-
-
-
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -544,10 +526,6 @@ void rasterizer_object_shadow_blur(void)
 namespace rasterizer_object_shadow_model_draw_impl {
 
 
-
-
-
-
 static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 {
     render_device().set_sampler_state(sampler, type, value);
@@ -600,13 +578,6 @@ void rasterizer_object_shadow_model_draw(const ShaderModel *shader, int16_t fram
 }  // namespace rasterizer_object_shadow_model_draw_impl
 
 namespace rasterizer_object_shadow_structure_draw_impl {
-
-
-
-
-
-
-
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -729,10 +700,6 @@ void rasterizer_object_shadow_structure_draw(rasterizer_vertex_buffer *vertex_bu
 }  // namespace rasterizer_object_shadow_structure_draw_impl
 
 namespace rasterizer_shader_model_draw_fixed_function_impl {
-
-
-
-
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -906,7 +873,7 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
             rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, &processed, primitive_count, 0,
                                                       dynamic_vertex_slot);
 
-            set_render_state(0x22, color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color));
+            set_render_state(0x22, halo::interface::color_rgb_float_to_int((const float *)(&rasterizer_window.fog.atmospheric_color)));
             set_render_state(0x13, 5);
             set_render_state(0x14, 2);
             set_render_state(0xab, 1);
@@ -945,10 +912,6 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
 }  // namespace rasterizer_shader_model_draw_fixed_function_impl
 
 namespace rasterizer_shader_model_draw_limited_impl {
-
-
-
-
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -1096,13 +1059,6 @@ void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, raster
 }  // namespace rasterizer_shader_model_draw_limited_impl
 
 namespace rasterizer_shader_model_draw_pixel_shader_impl {
-
-
-
-
-
-
-
 
 
 static int32_t set_render_state(uint32_t state, uint32_t value)
@@ -1312,7 +1268,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     } else if (true_atmospheric_fog) {
         if (rasterizer_caps.pixel_shader_version < 0xffff0104) {
             set_render_state(0x1c, 1);
-            set_render_state(0x22, color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color));
+            set_render_state(0x22, halo::interface::color_rgb_float_to_int((const float *)(&rasterizer_window.fog.atmospheric_color)));
         } else {
 
             fog_add = animated;
@@ -1356,7 +1312,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
                 fixed_function_fog.blue = clamp01(clamp01(fog_add.blue - halo::rasterizer::fields::planar_fog_attenuation * fog_negative.blue) +
                                                   fog_planar.blue);
                 set_render_state(0x1c, 1);
-                set_render_state(0x22, color_rgb_float_to_int(&fixed_function_fog));
+                set_render_state(0x22, halo::interface::color_rgb_float_to_int((const float *)&fixed_function_fog));
             } else {
                 set_render_state(0x1c, 0);
             }

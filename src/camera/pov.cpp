@@ -9,13 +9,10 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern player_control_globals *player_control_globals_ptr;
-extern player_globals *local_player_globals;
 extern director_pov_proc director_last_pov_proc;
-extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward);
-extern real game_engine_get_max_look_pitch(int16_t local_player_index);
 extern double sqrt(double x);
 extern double fabs(double x);
 extern double asin(double x);
@@ -23,10 +20,6 @@ extern const real_point3d *global_origin3d_pointer;
 extern Globals *global_globals;
 extern double fcos(double angle);
 extern double fsin(double angle);
-extern void chimera__spectate_fp_camera_position(camera_basis_out *out, int16_t local_player_index);
-extern data_array *player_data;
-extern game_time_globals *game_time;
-extern game_engine_definition *current_game_engine;
 extern double cos(double x);
 extern double sin(double x);
 extern camera_script_globals camera_script;
@@ -85,17 +78,17 @@ void FirstPersonCamera::compute_pov(director_camera_data *data, camera_input *in
     if (input->local_player_index == -1 || input->local_player_index >= 1) {
         local_player = k_datum_index_none; 
     } else {
-        local_player = local_player_globals->local_players[input->local_player_index];
+        local_player = halo::game::globals().local_player_globals->local_players[input->local_player_index];
     }
 
-    player_compute_view_forward_vector(local_player,
-        &player_control_globals_ptr->local_players[input->local_player_index].yaw,
+    halo::game::player_compute_view_forward_vector(local_player,
+        &halo::game::globals().player_control->local_players[input->local_player_index].yaw,
         (real_vector3d *)&direction);
 
     halo::camera::first_person_camera_for_unit_and_vector(command, &direction,
-                                             player_control_globals_ptr->local_players[input->local_player_index].unit);
+                                             halo::game::globals().player_control->local_players[input->local_player_index].unit);
 
-    fov = game_engine_get_max_look_pitch(input->local_player_index);
+    fov = halo::game::game_engine_get_max_look_pitch(input->local_player_index);
     command->parameters.field_of_view = fov;
     if (*cached_field_of_view != fov) {
         command->interpolation_flags[_observer_parameter_field_of_view] = 1;
@@ -440,7 +433,7 @@ void ThirdPersonCamera::compute_pov(director_camera_data *data, camera_input *in
     float track_magnitude;
     local_player_control *player;
 
-    chimera__spectate_fp_camera_position(&basis, input->local_player_index);
+    halo::game::chimera__spectate_fp_camera_position(&basis, input->local_player_index);
 
     *(real_point3d *)&command->parameters.position = basis.position;
     command->timer = 0.0f;
@@ -501,7 +494,7 @@ void ThirdPersonCamera::compute_pov(director_camera_data *data, camera_input *in
             }
         }
 
-        player = &player_control_globals_ptr->local_players[input->local_player_index];
+        player = &halo::game::globals().player_control->local_players[input->local_player_index];
         yaw = player->yaw + tp->yaw_offset;
         pitch = player->pitch + tp->pitch_offset;
         if (pitch < -1.5707964f) {
@@ -604,7 +597,7 @@ void TrackCamera::compute_pov(director_camera_data *data, camera_input *input, o
         dead->retarget_time = 0.0f;
     }
 
-    if (dead->retarget_time == 0.0f && game_time->paused == 0) {
+    if (dead->retarget_time == 0.0f && halo::game::globals().game_time->paused == 0) {
         uint8_t has_teammate = halo::camera::camera_dead_player_has_teammate(dead->local_player);
         datum_index new_target = halo::camera::camera_dead_find_next_teammate(dead->local_player, dead->target_player,
                                                                   (uint8_t)has_teammate);
@@ -612,11 +605,11 @@ void TrackCamera::compute_pov(director_camera_data *data, camera_input *input, o
 
         dead->target_player = new_target;
         if (new_target != k_datum_index_none) {
-            player *p = (player *)halo::memory::datum_get(new_target, player_data);
+            player *p = (player *)halo::memory::datum_get(new_target, halo::game::globals().player_data);
             if (p == (player *)0) {
                 dead->target_player = dead->local_player;
             }
-            p = (player *)((uint8_t *)player_data->data + (halo::datum_slot(dead->target_player)) * sizeof(player));
+            p = (player *)((uint8_t *)halo::game::globals().player_data->data + (halo::datum_slot(dead->target_player)) * sizeof(player));
             new_unit = p->unit;
         }
 
@@ -625,7 +618,7 @@ void TrackCamera::compute_pov(director_camera_data *data, camera_input *input, o
             dead->target_unit = new_unit;
         }
 
-        dead->retarget_time = (current_game_engine != (game_engine_definition *)0) ? 15.0f : 3.0f;
+        dead->retarget_time = (halo::game::globals().current_engine != (game_engine_definition *)0) ? 15.0f : 3.0f;
     }
 }
 
@@ -647,10 +640,10 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
 
     default_position = *(Point3D *)global_zero_vector3d_pointer;
 
-    time_scale = (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) ? 1.0f : game_time->speed;
+    time_scale = (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) ? 1.0f : halo::game::globals().game_time->speed;
 
     command->flags = 8; 
-    if (game_time->paused) {
+    if (halo::game::globals().game_time->paused) {
         command->flags |= 0x20; 
     }
 
@@ -1112,7 +1105,7 @@ void OrbitingCamera::update(director_camera_data *data, camera_input *input, obs
     camera_basis_out basis;
     float distance;
 
-    chimera__spectate_fp_camera_position(&basis, input->local_player_index);
+    halo::game::chimera__spectate_fp_camera_position(&basis, input->local_player_index);
     command->parameters.position = *(Point3D *)&basis.position;
 
     if (input->has_look_input) {

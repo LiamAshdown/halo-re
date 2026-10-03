@@ -12,13 +12,13 @@
 #include "halo/render/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 
 extern double log(double x);
 extern double pow(double base, double exponent);
 extern int __cdecl _stricmp(const char *a, const char *b);
-extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
 extern double exp(double x);
 extern float effect_random_fraction(void);
 extern double floor(double x);
@@ -265,7 +265,7 @@ void rasterizer_fog_screen_overlay_set_states(void)
 
     if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
         render_device().set_render_state(0x1c, rasterizer_fog_enabled);
-        fog_color = color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color);
+        fog_color = halo::interface::color_rgb_float_to_int((const float *)(&rasterizer_window.fog.atmospheric_color));
         render_device().set_render_state(0x22, fog_color);
         rasterizer_set_shader_stage_config(5);
         return;

@@ -2,6 +2,7 @@
 #include <wchar.h>
 #include <string.h>
 #include "halo/cseries/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int32_t hud_chat_message_count;
@@ -17,7 +18,6 @@ extern uint8_t hud_chat_listbox_visible;
 extern int32_t game_engine_state_value;
 extern float game_engine_nameplate_fade_opacity_array;
 extern chat_gui_set_state_fn chat_gui_set_state;
-extern uint32_t hud_chat_listbox_remove_oldest(void);
 }
 
 namespace halo::interface {
@@ -101,7 +101,7 @@ void HudChatListbox::update(void)
         uint32_t now = (uint32_t)halo::cseries::time_query_performance_counter_ms();
         while (hud_chat_message_count > 0 && hud_chat_message_expiry[0] != 0 &&
                (uint32_t)hud_chat_message_expiry[0] <= now) {
-            hud_chat_listbox_remove_oldest();
+            halo::interface::hud_chat_listbox_remove_oldest();
         }
     }
 

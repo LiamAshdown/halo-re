@@ -9,6 +9,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *particle_data;
@@ -19,7 +20,6 @@ extern datum_index effect_new_with_color(uint32_t definition_index, uint32_t cre
 extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 extern const real_vector3d *global_down3d_pointer;
 extern char *particle_impact_vector_names[2];
-extern player_globals *local_player_globals;
 extern uint8_t *first_person_weapon_interfaces;
 extern int32_t render_frame_index;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -28,7 +28,6 @@ extern int effect_random_int_between(int16_t minimum, int16_t maximum);
 extern real particle_current_radius(datum_index particle_handle);
 extern void particle_impact(datum_index particle_handle);
 extern double sqrt(double x);
-extern uint8_t any_local_player_within_10_units(real_point3d *position);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 extern uint8_t particle_advance_animation(datum_index particle_handle, real delta_time);
@@ -256,7 +255,7 @@ void particle_ref::create(particle_creation_data *creation_data)
     }
     cluster = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + ((uint32_t)leaf & 0x7fffffff) * 0x10 + 8);
 
-    visible = *(uint32_t *)((uint8_t *)local_player_globals + 0x58 + (cluster >> 5) * 4) &
+    visible = *(uint32_t *)((uint8_t *)halo::game::globals().local_player_globals + 0x58 + (cluster >> 5) * 4) &
         (1u << (cluster & 0x1f));
     if (visible == 0) {
         return;
@@ -292,7 +291,7 @@ void particle_ref::create(particle_creation_data *creation_data)
 
             speed = halo::math::random_range_real(tag->lifespan[0], tag->lifespan[1]);
             if (speed > 0.7f) {
-                speed = (speed - 0.7f) / (real)local_player_globals->local_player_count + 0.7f;
+                speed = (speed - 0.7f) / (real)halo::game::globals().local_player_globals->local_player_count + 0.7f;
             }
             self->lifespan = speed;
 
@@ -489,7 +488,7 @@ uint8_t particle_ref::update_motion(real delta_time)
                         *(datum_index *)&tag->collision_effect.tag_id, speed);
                 }
                 if (*(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id != halo::k_dword_none &&
-                    any_local_player_within_10_units(&self->position) != 0) {
+                    halo::game::any_local_player_within_10_units(&self->position) != 0) {
                     halo::effects::material_effects_play_at_marker(
                         *(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id,
                         8, out_material_type, (uint32_t *)&self->location,

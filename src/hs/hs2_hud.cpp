@@ -5,19 +5,15 @@
 #include "interface.h"
 #include "halo/core/datum.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 extern void player_help_screen_select_by_name(int16_t value);
 extern uint8_t *hud_messaging;
-extern game_time_globals *game_time;
-extern hud_unit_meter_globals *hud_unit_meters;
-extern void hud_set_help_text(int16_t message_index);
-extern void hud_set_objective_text(int16_t message_index);
-extern void hud_set_timer_time(int32_t minutes, int32_t seconds);
 extern uint8_t *hud_weapon_state;
-extern void hud_pause_timer(uint8_t paused);
 extern uint8_t *hud_flags;
 #ifdef __cplusplus
 }
@@ -38,7 +34,7 @@ void HudCommands::evaluate_display_scenario_help(int16_t function_index, uint32_
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    player_help_screen_select_by_name(*(int16_t *)&arguments[0]);
+    halo::interface::player_help_screen_select_by_name(*(int16_t *)&arguments[0]);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -59,7 +55,7 @@ void HudCommands::evaluate_enable_hud_help_flash(int16_t function_index, uint32_
     uint8_t enable = *(uint8_t *)&arguments[0];
 
     if (enable && !hud_messaging[0x464]) {
-        *(int32_t *)(hud_messaging + 0x460) = game_time->game_time;
+        *(int32_t *)(hud_messaging + 0x460) = halo::game::globals().game_time->game_time;
     }
     hud_messaging[0x464] = enable;
     halo::hs::hs_thread_return(0, thread_index);
@@ -80,9 +76,9 @@ void HudCommands::evaluate_hud_blink_health(int16_t function_index, uint32_t thr
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
-        hud_unit_meters->flags |= 2;
+        halo::interface::globals().hud_unit_meters->flags |= 2;
     } else {
-        hud_unit_meters->flags &= 0xfffffffd;
+        halo::interface::globals().hud_unit_meters->flags &= 0xfffffffd;
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
@@ -102,9 +98,9 @@ void HudCommands::evaluate_hud_blink_motion_sensor(int16_t function_index, uint3
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
-        hud_unit_meters->flags |= 0x20;
+        halo::interface::globals().hud_unit_meters->flags |= 0x20;
     } else {
-        hud_unit_meters->flags &= 0xffffffdf;
+        halo::interface::globals().hud_unit_meters->flags &= 0xffffffdf;
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
@@ -124,9 +120,9 @@ void HudCommands::evaluate_hud_blink_shield(int16_t function_index, uint32_t thr
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
-        hud_unit_meters->flags |= 8;
+        halo::interface::globals().hud_unit_meters->flags |= 8;
     } else {
-        hud_unit_meters->flags &= 0xfffffff7;
+        halo::interface::globals().hud_unit_meters->flags &= 0xfffffff7;
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
@@ -166,7 +162,7 @@ void HudCommands::evaluate_hud_get_timer_ticks(int16_t function_index, uint32_t 
         } else if (hud_messaging[0x486]) {
             ticks = stored;
         } else {
-            ticks = (uint16_t)(*(uint16_t *)(hud_messaging + 0x478) - *(uint16_t *)&game_time->game_time + stored);
+            ticks = (uint16_t)(*(uint16_t *)(hud_messaging + 0x478) - *(uint16_t *)&halo::game::globals().game_time->game_time + stored);
         }
     }
     halo::hs::hs_thread_return((int32_t)ticks, thread_index);
@@ -181,7 +177,7 @@ void HudCommands::evaluate_hud_get_timer_ticks(int16_t function_index, uint32_t 
 void HudCommands::evaluate_hud_help_flash_restart(int16_t function_index, uint32_t thread_index, char first)
 {
     if (hud_messaging[0x464]) {
-        *(int32_t *)(hud_messaging + 0x460) = game_time->game_time;
+        *(int32_t *)(hud_messaging + 0x460) = halo::game::globals().game_time->game_time;
     }
     halo::hs::hs_thread_return(0, thread_index);
 }
@@ -199,7 +195,7 @@ void HudCommands::evaluate_hud_set_help_text(int16_t function_index, uint32_t th
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hud_set_help_text(*(int16_t *)&arguments[0]);
+    halo::interface::hud_set_help_text(*(int16_t *)&arguments[0]);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -217,7 +213,7 @@ void HudCommands::evaluate_hud_set_objective_text(int16_t function_index, uint32
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hud_set_objective_text(*(int16_t *)&arguments[0]);
+    halo::interface::hud_set_objective_text(*(int16_t *)&arguments[0]);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -257,7 +253,7 @@ void HudCommands::evaluate_hud_set_timer_time(int16_t function_index, uint32_t t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hud_set_timer_time(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1]);
+    halo::interface::hud_set_timer_time(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1]);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -298,9 +294,9 @@ void HudCommands::evaluate_hud_show_health(int16_t function_index, uint32_t thre
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
-        hud_unit_meters->flags &= 0xfffffffe;
+        halo::interface::globals().hud_unit_meters->flags &= 0xfffffffe;
     } else {
-        hud_unit_meters->flags |= 1;
+        halo::interface::globals().hud_unit_meters->flags |= 1;
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
@@ -320,9 +316,9 @@ void HudCommands::evaluate_hud_show_motion_sensor(int16_t function_index, uint32
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
-        hud_unit_meters->flags &= 0xffffffef;
+        halo::interface::globals().hud_unit_meters->flags &= 0xffffffef;
     } else {
-        hud_unit_meters->flags |= 0x10;
+        halo::interface::globals().hud_unit_meters->flags |= 0x10;
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
@@ -342,9 +338,9 @@ void HudCommands::evaluate_hud_show_shield(int16_t function_index, uint32_t thre
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
-        hud_unit_meters->flags &= 0xfffffffb;
+        halo::interface::globals().hud_unit_meters->flags &= 0xfffffffb;
     } else {
-        hud_unit_meters->flags |= 4;
+        halo::interface::globals().hud_unit_meters->flags |= 4;
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
@@ -425,7 +421,7 @@ void HudCommands::evaluate_pause_hud_timer(int16_t function_index, uint32_t thre
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hud_pause_timer(*(uint8_t *)&arguments[0]);
+    halo::interface::hud_pause_timer(*(uint8_t *)&arguments[0]);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }

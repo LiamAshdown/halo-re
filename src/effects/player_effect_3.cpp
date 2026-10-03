@@ -2,15 +2,13 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t *player_control_globals_ptr;
 extern double fabs(double x);
 extern double cos(double x);
 extern double sin(double x);
-extern void game_engine_update_local_player_look(int16_t local_player_index, real yaw_delta, real pitch_delta);
-extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward);
-extern player_globals *local_player_globals;
 }
 
 namespace halo::effects {
@@ -96,20 +94,20 @@ void player_effect_view::set_camera_impulse(int16_t local_player_index, real *de
     {
         real blended_b = (1.0f - descriptor[9]) * intensity_falloff + descriptor[9];
         datum_index player_handle = (local_player_index != -1 && local_player_index < 1) ?
-            *(datum_index *)&local_player_globals->local_players[local_player_index] : (datum_index)k_datum_index_none;
+            *(datum_index *)&halo::game::globals().local_player_globals->local_players[local_player_index] : (datum_index)k_datum_index_none;
         real_vector3d forward;
         real_vector3d left;
         real yaw_delta;
         real pitch_delta;
 
-        player_compute_view_forward_vector(player_handle, &look_globals[7], &forward);
+        halo::game::player_compute_view_forward_vector(player_handle, &look_globals[7], &forward);
         left.i = forward.k * up->j - forward.j * up->k;
         left.j = forward.i * up->k - forward.k * up->i;
         left.k = forward.j * up->i - forward.i * up->j;
         yaw_delta = (left.j * direction[1] + left.k * direction[2] + left.i * direction[0]) * descriptor[8] * blended_b;
         pitch_delta = (forward.j * direction[1] + forward.i * direction[0] + forward.k * direction[2]) * descriptor[8] *
             blended_b;
-        game_engine_update_local_player_look(local_player_index, yaw_delta, pitch_delta);
+        halo::game::game_engine_update_local_player_look(local_player_index, yaw_delta, pitch_delta);
     }
 }
 

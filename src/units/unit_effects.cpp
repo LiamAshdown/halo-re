@@ -10,9 +10,9 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern game_time_globals *game_time;
 extern real_point3d *global_zero_vector3d_pointer;
 extern uint8_t object_physics_context_build(uint32_t object_index, object_physics_context *out_context);
 extern char ai_marker_name_a[];
@@ -121,7 +121,7 @@ void UnitView::compute_marker_offset_position(real_vector3d *reference_direction
     } else {
         fraction = biped->crouch_fraction;
         if (!test_flag(biped->flags, units::biped_flag::airborne) && fraction > 0.0f && fraction < 1.0f) {
-            float step = game_time->leftover_time * 29.999998f * tag->crouch_camera_velocity;
+            float step = halo::game::globals().game_time->leftover_time * 29.999998f * tag->crouch_camera_velocity;
             if (unit->base_animation_state == 3) {
                 fraction += step;
             } else {

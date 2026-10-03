@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "halo/networking/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t network_console_connection_id;
@@ -17,7 +19,6 @@ extern char network_ban_indefinite_marker[];
 extern growable_array ban_list;
 extern void *console_color_00685214;
 extern void *actor_mode_default_look_weights;
-extern data_array *player_data;
 extern network_server_globals *network_server;
 }
 
@@ -60,7 +61,7 @@ uint8_t Banlist::add_ban(int32_t identity_lookup_key, int32_t duration_override_
         if (duration_override_seconds == -1) {
             entry->indefinite = 1;
             entry->expiry_time = 0;
-            chimera__console_out((ColorARGB *)0, (char *)"Banning %s (%s) indefinitely.", player_name, cd_key_hash);
+            halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Banning %s (%s) indefinitely.", player_name, cd_key_hash);
             halo::networking::network_banlist_save();
             return 1;
         }
@@ -69,7 +70,7 @@ uint8_t Banlist::add_ban(int32_t identity_lookup_key, int32_t duration_override_
         entry->expiry_time = expiry;
         entry->indefinite = 0;
         halo::networking::format_local_time_and_date(date_buf, 0x20, expiry, time_buf);
-        chimera__console_out((ColorARGB *)0, (char *)"Banning %s (%s) until %s %s.", player_name, cd_key_hash, date_buf, time_buf);
+        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Banning %s (%s) until %s %s.", player_name, cd_key_hash, date_buf, time_buf);
         halo::networking::network_banlist_save();
     }
     return 1;
@@ -175,7 +176,7 @@ void Banlist::print()
     char entry_text[63];
     char line[257];
 
-    chimera__console_out((ColorARGB *)console_color_00685214, (char *)"[Num Bans Name]");
+    halo::interface::chimera__console_out((ColorARGB *)console_color_00685214, (char *)"[Num Bans Name]");
     if (0 < ban_list.count) {
         do {
             int32_t in_line = 0;
@@ -189,7 +190,7 @@ void Banlist::print()
                 in_line = in_line + 1;
                 i = i + 1;
             } while (in_line < 3);
-            chimera__console_out((ColorARGB *)actor_mode_default_look_weights, line);
+            halo::interface::chimera__console_out((ColorARGB *)actor_mode_default_look_weights, line);
         } while (i < ban_list.count);
     }
 }
@@ -219,10 +220,10 @@ uint8_t Banlist::autoban_player(datum_index player_handle)
     if (index < 0) {
         return 0;
     }
-    if (index >= player_data->maximum_count) {
+    if (index >= halo::game::globals().player_data->maximum_count) {
         return 0;
     }
-    target_player = (player *)((uint8_t *)player_data->data + (int32_t)player_data->size * (int32_t)index);
+    target_player = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
     if (target_player->identifier == 0) {
         return 0;
     }
@@ -241,7 +242,7 @@ uint8_t Banlist::autoban_player(datum_index player_handle)
     if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
         return 0;
     }
-    chimera__console_out((ColorARGB *)0, (char *)"AUTOBAN: Banning %S.", target_player->name);
+    halo::interface::chimera__console_out((ColorARGB *)0, (char *)"AUTOBAN: Banning %S.", target_player->name);
     if (!halo::networking::network_banlist_add_ban(machine->gcd_user_id, 0, (network_player_entry *)target_player->name)) {
         return 0;
     }

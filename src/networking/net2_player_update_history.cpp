@@ -21,11 +21,9 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern data_array * player_data;
-extern game_time_globals * game_time;
-extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern uint16_t local_player_name_filter[0x400];
 extern uint32_t player_update_log_categories_default;
 extern uint32_t player_update_log_categories_filtered;
@@ -33,9 +31,7 @@ extern uint8_t player_update_log_flags;
 extern char * player_update_history_log_path;
 extern char player_update_log_file_mode_string[];
 extern double sqrt(double x);
-extern void player_compute_view_forward_vector(void);
 extern network_client_globals * network_client;
-extern void players_find_local_owned_unclear(void);
 extern network_id_table * machine_table;
 }
 
@@ -47,7 +43,7 @@ int32_t PlayerUpdateHistory::advance(int16_t step_count)
     data_iterator iter;
     void *element;
 
-    iter.data = player_data;
+    iter.data = halo::game::globals().player_data;
     iter.next_index = 0;
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
@@ -95,7 +91,7 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
             }
             halo::networking::player_update_history_log_write(1, 0,
                 "[%d]: Player update history overflow, [%d] updates == [%d] ticks.\n",
-                game_time->game_time, count, tick_sum);
+                halo::game::globals().game_time->game_time, count, tick_sum);
             *out_update_id = -1;
             return 0;
         }
@@ -143,7 +139,7 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
     node->unit_state[0xca] = biped_ext->movement_state;
     *(datum_index *)(node->unit_state + 0xcc) = biped_ext->ground_surface_index;
 
-    if (player_unit_has_parent(unit_ext->controlling_player)) {
+    if (halo::game::player_unit_has_parent(unit_ext->controlling_player)) {
         vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_obj->parent_object & 0xffff].data;
         node->has_vehicle = 1;
         *(real_point3d *)(node->vehicle_state + 0x00) = vehicle_obj->position;
@@ -176,13 +172,13 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
     if (node->update_id % 10 == 0) {
         halo::networking::player_update_history_log_write(1, 0,
             "[%d]: Added through update [%d]. [%d]/[%d]updates == [%d] ticks\n",
-            game_time->game_time, node->update_id, count,
+            halo::game::globals().game_time->game_time, node->update_id, count,
             0x40, tick_sum);
     }
     if (count == 0x40) {
         halo::networking::player_update_history_log_write(1, 0,
             "[%d]: Warning...Update history is now full, [%d] updates.\n",
-            game_time->game_time, 0x40);
+            halo::game::globals().game_time->game_time, 0x40);
     }
 
     *out_update_id = node->update_id;
@@ -411,7 +407,8 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
         }
 
         do {
-            player_compute_view_forward_vector();
+            real_vector3d view_forward;
+            halo::game::player_compute_view_forward_vector(*(datum_index *)((uint8_t *)unit_obj + 0x218), (real *)(node->control + 1), &view_forward);
             halo::units::unit_apply_control_block(unit_index, (const unit_control_data *)node->control, -1);
             remaining_ticks = node->tick_count;
             updates_this_call = updates_this_call + 1;
@@ -488,7 +485,7 @@ void PlayerUpdateHistory::play_for_update_index(datum_index player_index)
 {
     player *plr;
 
-    plr = (player *)((uint8_t *)player_data->data + (uint16_t)player_index * player_data->size);
+    plr = (player *)((uint8_t *)halo::game::globals().player_data->data + (uint16_t)player_index * halo::game::globals().player_data->size);
     halo::networking::player_update_history_play(0, 0, (player_update_history *)network_client->update_history, plr->unit,
         *(float *)&plr->unknown_f0, *(float *)&plr->unknown_f4, *(float *)&plr->unknown_f8, 0);
 
@@ -504,7 +501,7 @@ void PlayerUpdateHistory::play_local_player(int32_t target_update_id)
     int32_t node_id;
 
     unit_index = (datum_index)-1;
-    iter.data = player_data;
+    iter.data = halo::game::globals().player_data;
     iter.next_index = 0;
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
@@ -562,7 +559,7 @@ void PlayerUpdateHistory::flush_by_name(char *name)
         }
     }
 
-    iter.data = player_data;
+    iter.data = halo::game::globals().player_data;
     iter.next_index = 0;
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
@@ -574,7 +571,7 @@ void PlayerUpdateHistory::flush_by_name(char *name)
                  index = (index + 1) % 0x78) {
 
             }
-            players_find_local_owned_unclear();
+            halo::game::players_find_local_owned_unclear();
         }
         candidate = (player *)halo::memory::data_iterator_next(&iter);
     }
@@ -645,9 +642,9 @@ void PlayerUpdateHistory::remote_player_action_update_apply(int32_t **decode_con
         candidate = 0;
         if (remapped_index != -1) {
             int16_t index = (int16_t)remapped_index;
-            if (index >= 0 && index < player_data->maximum_count) {
-                player *maybe = (player *)((uint8_t *)player_data->data
-                    + (int32_t)player_data->size * (int32_t)index);
+            if (index >= 0 && index < halo::game::globals().player_data->maximum_count) {
+                player *maybe = (player *)((uint8_t *)halo::game::globals().player_data->data
+                    + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
                 int16_t salt = (int16_t)((uint32_t)remapped_index >> 16);
                 if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)
                     && maybe->local_player_index == -1) {
@@ -668,9 +665,9 @@ void PlayerUpdateHistory::remote_player_action_update_apply(int32_t **decode_con
     remapped_index = header->player_index;
     if (remapped_index != -1) {
         int16_t index = (int16_t)remapped_index;
-        if (index >= 0 && index < player_data->maximum_count) {
-            player *maybe = (player *)((uint8_t *)player_data->data
-                + (int32_t)player_data->size * (int32_t)index);
+        if (index >= 0 && index < halo::game::globals().player_data->maximum_count) {
+            player *maybe = (player *)((uint8_t *)halo::game::globals().player_data->data
+                + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
             int16_t salt = (int16_t)((uint32_t)remapped_index >> 16);
             if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)
                 && maybe->local_player_index == -1) {

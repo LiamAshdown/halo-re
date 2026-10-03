@@ -5,29 +5,20 @@
 #include <wchar.h>
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
 extern "C" {
-extern void widget_list_adjust_rect_for_scroll_arrows(widget_instance *widget, Rectangle2D *rect);
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
 extern double cos(double x);
 extern double sin(double x);
 extern int32_t ui_time_milliseconds;
 extern heap *widget_memory_pool;
-extern uint8_t widget_instance_point_in_bounds(widget_instance *widget);
-extern float widget_instance_get_cumulative_scale(widget_instance *widget);
-extern void widget_instance_render(widget_instance *widget, Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, int32_t flag2);
-extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
-extern const uint16_t *ui_search_replace_function_call(int16_t function, widget_instance *widget);
-extern void ui_string_replace_all(const uint16_t *search, const uint16_t *replacement, uint16_t **text);
-extern ColorRGB *ui_get_saved_color(ColorRGB *out);
-extern int32_t widget_cursor_side_of_midpoint(widget_instance *widget);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1, const uint16_t *text);
-extern widget_instance * widget_instance_find_at_point(widget_instance *widget, int32_t cursor_x, int32_t cursor_y, int32_t offset_xy);
 }
 
 namespace halo::interface {
@@ -60,7 +51,7 @@ widget_instance * WidgetView::find_at_point(int32_t cursor_x, int32_t cursor_y, 
         int16_t off_y = (int16_t)(offset_xy >> 16) + widget->local_y;
         Rectangle2D rect = tag->bounds;
 
-        widget_list_adjust_rect_for_scroll_arrows(widget, &rect);
+        halo::interface::widget_list_adjust_rect_for_scroll_arrows(widget, &rect);
 
         if ((int16_t)(rect.left + off_x) <= cursor_x && cursor_x <= (int16_t)(rect.right + off_x) &&
             (int16_t)(rect.top + off_y) <= cursor_y && cursor_y <= (int16_t)(rect.bottom + off_y)) {
@@ -68,7 +59,7 @@ widget_instance * WidgetView::find_at_point(int32_t cursor_x, int32_t cursor_y, 
             int32_t child_offset = ((int32_t)off_y << 16) | (uint16_t)off_x;
 
             while (child != (widget_instance *)0 && result == (widget_instance *)0) {
-                result = widget_instance_find_at_point(child, cursor_x, cursor_y, child_offset);
+                result = halo::interface::widget_instance_find_at_point(child, cursor_x, cursor_y, child_offset);
                 child = child->next_sibling;
             }
             if (widget->widget_type == 3 || widget->widget_type == 2) {
@@ -104,7 +95,7 @@ uint8_t WidgetView::point_in_bounds()
         cursor = cursor->parent;
     } while (cursor != (widget_instance *)0);
 
-    widget_list_adjust_rect_for_scroll_arrows(widget, &rect);
+    halo::interface::widget_list_adjust_rect_for_scroll_arrows(widget, &rect);
 
     if ((int16_t)(rect.left + x_sum) <= ui_cursor_x && ui_cursor_x <= (int16_t)(rect.right + x_sum) &&
         (int16_t)(rect.top + y_sum) <= ui_cursor_y && ui_cursor_y <= (int16_t)(rect.bottom + y_sum)) {
@@ -136,8 +127,8 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
     for (ancestor = widget->parent; ancestor != (widget_instance *)0; ancestor = ancestor->parent) {
         scale = scale * ancestor->scale;
     }
-    in_bounds = widget_instance_point_in_bounds(widget);
-    cursor_side = widget_cursor_side_of_midpoint(widget);
+    in_bounds = halo::interface::widget_instance_point_in_bounds(widget);
+    cursor_side = halo::interface::widget_cursor_side_of_midpoint(widget);
 
     if (widget->state == 0) {
         return;
@@ -150,7 +141,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
             desc_scale = desc_scale * ancestor->scale;
         }
         widget->extended_description->scale = desc_scale;
-        widget_instance_render(widget->extended_description, dest, offset_xy, 0, 1);
+        halo::interface::widget_instance_render(widget->extended_description, dest, offset_xy, 0, 1);
     }
 
     if (widget->scroll_blink != 0) {
@@ -174,7 +165,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
             int32_t bitmap;
 
             if (in_bounds != 0 && bitmap_tag_data != (uint8_t *)0 && *(int32_t *)(bitmap_tag_data + 0x60) == 4 &&
-                widget_instance_point_in_bounds(widget) != 0 &&
+                halo::interface::widget_instance_point_in_bounds(widget) != 0 &&
                 (arrow == 0 ? cursor_side <= 0 : cursor_side > 0)) {
                 frame = (int16_t)(frame + 2);
             }
@@ -187,7 +178,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
                 rect.left = (int16_t)(rect.left + x_off);
                 rect.bottom = (int16_t)(rect.bottom + y_off);
                 rect.right = (int16_t)(rect.right + x_off);
-                ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, bitmap, (int16_t *)dest,
+                halo::interface::ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, bitmap, (int16_t *)dest,
                                      (uint32_t)((int32_t)(alpha + 0.5f) << 24) | 0xffffffu);
             }
         }
@@ -228,10 +219,10 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
 
                 if (entry != (uint8_t *)0 && *entry != 0) {
 
-                    const uint16_t *replacement = ui_search_replace_function_call(*(int16_t *)(entry + 0x20), widget);
+                    const uint16_t *replacement = halo::interface::ui_search_replace_function_call(*(int16_t *)(entry + 0x20), widget);
                     uint16_t search[0x20];
 
-                    ui_string_replace_all(halo::text::string_convert_ascii_to_unicode(search, 0x40, (const char *)entry), replacement, &text);
+                    halo::interface::ui_string_replace_all((wchar_t *)(halo::text::string_convert_ascii_to_unicode(search, 0x40, (const char *)entry)), (uint16_t *)replacement, (wchar_t **)&text);
                 }
             }
         }
@@ -242,7 +233,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
 
         if (justification >= 0 && justification < 3) {
 
-            float cumulative = widget_instance_get_cumulative_scale(widget);
+            float cumulative = halo::interface::widget_instance_get_cumulative_scale(widget);
             int16_t x = (int16_t)offset_xy;
             int16_t y = (int16_t)(offset_xy >> 16);
             Rectangle2D rect = tag->bounds;
@@ -255,7 +246,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
             rect.bottom = (int16_t)(rect.bottom + y);
             rect.right = (int16_t)(rect.right + x);
             if (is_top_of_stack != 0) {
-                float *rgb = (float *)ui_get_saved_color((ColorRGB *)&flash);
+                float *rgb = (float *)halo::interface::ui_get_saved_color((ColorRGB *)&flash);
 
                 color.red = rgb[0];
                 color.green = rgb[1];
@@ -316,7 +307,7 @@ void WidgetList::adjust_rect_for_scroll_arrows(Rectangle2D *rect)
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 widget_instance * widget_instance_find_at_point(widget_instance *widget, int32_t cursor_x, int32_t cursor_y, int32_t offset_xy)
 {

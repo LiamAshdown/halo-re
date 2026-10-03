@@ -21,6 +21,7 @@
 #include "halo/ai/api.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -32,7 +33,6 @@ extern uint8_t network_object_index_cache[];
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern void player_update_history_free_all(void *history);
 extern uint8_t unit_updates_suppressed;
-extern int32_t player_index_from_unit_index(uint32_t unit_index);
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
 extern real_vector3d *global_origin3d_pointer;
@@ -72,7 +72,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
     }
     ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
-    ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
+    ((unit_object *)self)->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;
     if (((unit_object *)self)->unit.driver_unit_index == object_index) {
         ((unit_object *)self)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -128,11 +128,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *empty = (uint8_t *)halo::objects::object_try_and_get(vehicle_index, 2);
 
         if (empty != 0) {
-            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
+            *(int32_t *)(empty + 0x5ac) = halo::game::globals().game_time->game_time;
         }
     }
     if (halo::networking::globals().game_mode == 1) {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, halo::game::globals().player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;
@@ -151,10 +151,10 @@ static void biped_free_local_player_history(uint8_t *self)
     uint8_t *player;
 
     if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
-        index >= player_data->maximum_count) {
+        index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    player = (uint8_t *)player_data->data + player_data->size * index;
+    player = (uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * index;
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
@@ -337,7 +337,7 @@ record_check:
         }
         record.player_value = 0;
         if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
-            uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)obj)->unit.controlling_player, player_data);
+            uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)obj)->unit.controlling_player, halo::game::globals().player_data);
 
             if (player != 0) {
                 record.player_value = *(uint32_t *)&((struct player *)player)->respawn_timer;
@@ -353,8 +353,8 @@ local_reactions:
         datum_index unit_player = ((unit_object *)obj)->unit.controlling_player;
 
         if (dd->responsible_player != k_datum_index_none && unit_player != k_datum_index_none &&
-            current_game_engine != 0 && current_game_engine->unknown_64 != 0) {
-            ((void (*)(datum_index, datum_index, uint32_t))current_game_engine->unknown_64)(
+            halo::game::globals().current_engine != 0 && halo::game::globals().current_engine->unknown_64 != 0) {
+            ((void (*)(datum_index, datum_index, uint32_t))halo::game::globals().current_engine->unknown_64)(
                 dd->responsible_player, unit_player, (flags >> 4) & 0xffffff01);
         }
         if (dd->responsible_player != k_datum_index_none || dd->responsible_object != k_datum_index_none) {
@@ -377,7 +377,7 @@ local_reactions:
     }
 
     if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none && *(float *)(effect_block + 0x20) > 0.0f &&
-        (current_game_engine != 0 || is_dedicated_server_flag)) {
+        (halo::game::globals().current_engine != 0 || is_dedicated_server_flag)) {
         uint8_t *shake = (uint8_t *)global_globals->player_information.pointer;
         float step = dd->random_blend * *(float *)(effect_block + 0x20);
         float cap = *(float *)(effect_block + 0x24) * dd->random_blend;
@@ -460,8 +460,8 @@ void UnitView::apply_fall_damage(float fall_speed)
                     halo::objects::damage_data_initialize(&dd, *(datum_index *)(fall_table + 0x38));
                     halo::objects::object_apply_damage(&dd, object_index, -1, -1, -1, 0);
                 }
-                if (current_game_engine == 0 && test_flag(obj->flags, objects::object_flag::outside_map)) {
-                    if (player_index_from_unit_index(object_index) == -1) {
+                if (halo::game::globals().current_engine == 0 && test_flag(obj->flags, objects::object_flag::outside_map)) {
+                    if (halo::game::player_index_from_unit_index(object_index) == -1) {
                         halo::objects::object_delete(object_index);
                     }
                 }
@@ -753,7 +753,7 @@ void UnitView::record_recent_damage_and_react(float damage_amount, int16_t respo
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-    int32_t current_tick = game_time->game_time;
+    int32_t current_tick = halo::game::globals().game_time->game_time;
     uint8_t merged = 0;
 
     unit_recent_damage *slot = unit->recent_damage;
@@ -809,7 +809,7 @@ void UnitView::record_recent_damage_and_react(float damage_amount, int16_t respo
 
     int16_t self_team = ((struct object *)unit_obj)->owner_team;
     uint8_t hostile;
-    if (current_game_engine == 0) {
+    if (halo::game::globals().current_engine == 0) {
         if ((self_team < 0) || (9 < self_team) || (team_index < 0) || (9 < team_index)) {
             goto broadcast_check;
         }
@@ -828,7 +828,7 @@ broadcast_check:
         uint32_t attacker_handle = k_datum_index_none;
 
         if (responsible_player != k_datum_index_none) {
-            uint32_t controlled_unit = *(uint32_t *)((uint8_t *)player_data->data +
+            uint32_t controlled_unit = *(uint32_t *)((uint8_t *)halo::game::globals().player_data->data +
                                                      halo::datum_slot(responsible_player) * 0x200 + 0x34);
 
             if (controlled_unit != k_datum_index_none) {
@@ -869,7 +869,7 @@ broadcast_check:
         }
 
         if ((attacker[0x106] & 4) == 0) {
-            int32_t tick = game_time->game_time;
+            int32_t tick = halo::game::globals().game_time->game_time;
             int32_t last = *(int32_t *)(attacker + 0x42c);
             int16_t threshold;
 

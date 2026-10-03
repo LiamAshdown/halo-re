@@ -6,6 +6,8 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t weapon_infinite_ammo;
@@ -192,22 +194,22 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
         goto tail;
     }
 
-    if ((id->flags & _item_held_by_player_bit) != 0 && current_game_engine != 0) {
-        datum_index player = player_index_from_unit_index(holder_index);
+    if ((id->flags & _item_held_by_player_bit) != 0 && halo::game::globals().current_engine != 0) {
+        datum_index player = halo::game::player_index_from_unit_index(holder_index);
 
         if (player != (datum_index)0xffffffff) {
-            unit_update_active_camouflage_depower(player);
+            halo::game::unit_update_active_camouflage_depower(player);
         }
     }
 
-    wd->last_fire_game_time = game_time->game_time;
+    wd->last_fire_game_time = halo::game::globals().game_time->game_time;
 
     {
         int8_t action = is_misfire ? (int8_t)((trigger_index != 0) + 2) : (int8_t)(trigger_index != 0);
-        uint32_t action_handle = local_player_index_for_weapon(item_index);
-        first_person_weapon_process_action(action_handle, action);
+        uint32_t action_handle = halo::interface::local_player_index_for_weapon(item_index);
+        halo::interface::first_person_weapon_process_action(action_handle, action);
         if ((int16_t)action_handle == -1) {
-            hud_play_pickup_notification(item_index, (int16_t)action);
+            halo::interface::hud_play_pickup_notification(item_index, (int16_t)action);
         }
     }
 

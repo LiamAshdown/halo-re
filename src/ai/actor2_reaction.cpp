@@ -12,6 +12,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -486,10 +487,10 @@ void ActorView::queue_recognized_target_dialogue(datum_index target_prop_index)
                     return;
                 }
                 if (target->is_parented == 0 && target->last_attention_time != -1 &&
-                    (int32_t)game_time->game_time < target->last_attention_time + 600) {
+                    (int32_t)halo::game::globals().game_time->game_time < target->last_attention_time + 600) {
                     return;
                 }
-                target->last_attention_time = (int32_t)game_time->game_time;
+                target->last_attention_time = (int32_t)halo::game::globals().game_time->game_time;
                 target->interest_satisfied = (target->interest_satisfied <= target->interest)
                                           ? target->interest
                                           : target->interest_satisfied;
@@ -660,8 +661,8 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
                 (validated->dead != 0 && self->awareness_level > 2)) {
                 if (recent <= 6) {
                     if (validated->is_parented == 0 && validated->last_attention_time != -1 &&
-                        (int32_t)game_time->game_time >= validated->last_attention_time + 600) {
-                        validated->last_attention_time = (int32_t)game_time->game_time;
+                        (int32_t)halo::game::globals().game_time->game_time >= validated->last_attention_time + 600) {
+                        validated->last_attention_time = (int32_t)halo::game::globals().game_time->game_time;
                         validated->interest_satisfied = (validated->interest_satisfied <= validated->interest)
                                                      ? validated->interest
                                                      : validated->interest_satisfied;
@@ -812,7 +813,7 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
 
     if (flee_source_object != -1) {
         object *source = ((object_header *)halo::objects::globals().object_data->data)[flee_source_object & halo::k_slot_mask].data;
-        if (teams_are_enemies(source->owner_team , self->team) != 0) {
+        if (halo::game::teams_are_enemies(source->owner_team , self->team) != 0) {
             halo::ai::actor_record_perception_event(actor_index, 2, 0x384);
         }
     }
@@ -938,13 +939,13 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
         halo::ai::actor_queue_search_and_relay_perception(target_prop_index, actor_index);
 
         if (unit->controlling_player != (datum_index)k_datum_index_none) {
-            uint8_t *player = (uint8_t *)player_data->data + (unit->controlling_player & halo::k_slot_mask) * 0x200;
+            uint8_t *player = (uint8_t *)halo::game::globals().player_data->data + (unit->controlling_player & halo::k_slot_mask) * 0x200;
             int32_t unknown_40 = *(int32_t *)&((struct player *)player)->observer_target;
             int32_t unknown_44 = ((struct player *)player)->observer_state;
 
-            if (unknown_40 != -1 && (int32_t)game_time->game_time <= unknown_44 + 0x5a) {
+            if (unknown_40 != -1 && (int32_t)halo::game::globals().game_time->game_time <= unknown_44 + 0x5a) {
                 object *player_unit = ((object_header *)halo::objects::globals().object_data->data)[unknown_40 & halo::k_slot_mask].data;
-                if (teams_are_enemies(player_unit->owner_team , self->team) != 0) {
+                if (halo::game::teams_are_enemies(player_unit->owner_team , self->team) != 0) {
                     halo::ai::actor_target_data_acquire(actor_index, (datum_index)unknown_40, k_datum_index_none, k_datum_index_none);
                 }
             }
@@ -973,10 +974,10 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
                     return;
                 }
                 if (validated->is_parented == 0 && validated->last_attention_time != -1 &&
-                    (int32_t)game_time->game_time < validated->last_attention_time + 600) {
+                    (int32_t)halo::game::globals().game_time->game_time < validated->last_attention_time + 600) {
                     return;
                 }
-                validated->last_attention_time = (int32_t)game_time->game_time;
+                validated->last_attention_time = (int32_t)halo::game::globals().game_time->game_time;
                 validated->interest_satisfied = (validated->interest_satisfied <= validated->interest)
                                              ? validated->interest
                                              : validated->interest_satisfied;
@@ -1201,7 +1202,7 @@ void ActorView::scan_allies_for_backup_request()
     if (self->retreat_timer > 0) {
         self->retreat_timer--;
         if (self->retreat_timer == 0) {
-            self->retreat_end_time = game_time->game_time;
+            self->retreat_end_time = halo::game::globals().game_time->game_time;
         }
         return;
     }
@@ -1223,7 +1224,7 @@ void ActorView::scan_allies_for_backup_request()
             self->retreat_timer = (int16_t)(halo::math::random_real_range(
                 actor_def->retreat_time[0], actor_def->retreat_time[1]) * 30.0f);
             self->retreat_prop_index = (datum_index)best_prop;
-            self->retreat_start_time = game_time->game_time;
+            self->retreat_start_time = halo::game::globals().game_time->game_time;
         }
     }
 }
@@ -1249,7 +1250,7 @@ void TargetView::scan_ally_death_panic_reaction(datum_index actor_index)
     prop *target = &((prop *)halo::ai::globals().prop_data->data)[target_prop_index & halo::k_slot_mask];
 
     if (target->enemy == 0 && halo::has(static_cast<halo::tags::actor_more_tag_flag>(actor_tag->more_flags), halo::tags::actor_more_tag_flag::panic_in_groups)  &&
-        self->panic_cooldown_time < (int32_t)game_time->game_time) {
+        self->panic_cooldown_time < (int32_t)halo::game::globals().game_time->game_time) {
         float chance = actor_tag->friend_killed_panic_chance;
 
         if (!halo::ai::actor_scale_value_by_ally_exposure(actor_index, &chance) && !(halo::math::random_real() < chance)) {
@@ -1330,7 +1331,7 @@ void TargetView::scan_backup_and_panic_reaction(datum_index actor_index)
                 int roll_ok;
 
                 if (halo::has(static_cast<halo::tags::actor_more_tag_flag>(actor_tag->more_flags), halo::tags::actor_more_tag_flag::panic_in_groups)  &&
-                    self->panic_cooldown_time < (int32_t)game_time->game_time &&
+                    self->panic_cooldown_time < (int32_t)halo::game::globals().game_time->game_time &&
                     halo::ai::actor_scale_value_by_ally_exposure(actor_index, &chance)) {
                     roll_ok = 1;
                 } else {

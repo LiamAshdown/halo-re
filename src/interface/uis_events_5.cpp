@@ -23,50 +23,43 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int16_t pending_difficulty;
 extern void widget_play_sound_effect(int16_t effect_id);
 extern uint32_t ui_restart_saved_game(void);
 extern uint8_t ui_restoring_previous_widget;
-extern void widget_instance_close_and_restore_previous(widget_instance *widget);
 extern char *campaign_level_paths[];
 extern uint8_t network_wait_flag_00719739;
 extern growable_array ui_lists[3];
 extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
-extern uint8_t checkpoint_list_add_row(int32_t index, const char *name, int32_t level_index, int32_t difficulty, int32_t game_time, const void *time, void *user_data);
 extern char pending_delete_saved_game_name_00718fd0[];
-extern void ui_list_free_all(void);
 extern uint8_t autopatch_status_state_00719234;
 extern uint16_t network_host_name_field_00719238[32];
 extern uint16_t network_host_subname_007191f0[9];
 extern int32_t network_host_edit_field_00719410;
-extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind);
 extern int32_t controls_capture_row;
 extern uint8_t controls_menu_list_mode;
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern uint8_t input_controls_live_006b3a48[0x890];
 extern uint8_t ui_flag_00719444;
-extern void controls_build_device_label_table(void);
 extern int32_t controls_device_label_count;
 extern uint8_t controls_device_labels[];
-extern int32_t controls_binding_list_refresh_rows(widget_instance *widget, int32_t page);
 extern uint8_t controls_input_capture_flags;
 extern uint8_t controls_input_capture_buffer[0xa0 * 4];
-extern void controls_binding_rows_toggle_device_mode(widget_instance *widget, uint8_t mode);
 extern int32_t controls_selected_device;
 extern uint8_t controls_device_sensitivity_a[];
 extern uint8_t controls_device_sensitivity_b[];
 extern uint8_t ui_flag_007196d1;
 extern uint8_t ui_flag_007196d2;
-extern void video_options_menu_populate(uint8_t *context, uint8_t *settings);
 extern int32_t video_resolution_count;
 extern video_resolution video_resolutions[0x20];
 extern int32_t video_gamma_setting;
 extern rasterizer_display_mode ui_video_requested_display_mode_006b7010;
-extern int32_t game_time_force_single_tick;
 extern d3d_display_mode rasterizer_desktop_display_mode;
 extern float sound_master_gain;
 }
@@ -140,9 +133,9 @@ uint8_t UiEventHandlers::event_4a4110(widget_instance *widget, int16_t *event, u
             if (i >= 0) {
                 pending_difficulty = (int16_t)i;
             }
-            widget_play_sound_effect(2);
+            halo::interface::widget_play_sound_effect(2);
         }
-        ui_restart_saved_game();
+        halo::interface::ui_restart_saved_game();
     }
     *committed = (int16_t)i;
     return 1;
@@ -183,7 +176,7 @@ uint8_t UiEventHandlers::event_4a41a0(widget_instance *widget, int16_t *event, u
         return 1;
     }
     if (ui_restoring_previous_widget != 0) {
-        widget_instance_close_and_restore_previous(widget);
+        halo::interface::widget_instance_close_and_restore_previous(widget);
         return 1;
     }
     halo::main::main_queue_map_change(campaign_level_paths[0]);
@@ -218,10 +211,10 @@ uint8_t UiEventHandlers::event_4a44f0(widget_instance *widget, int16_t *event, u
     }
     ui_list_current = -1;
     ui_list_has_default = 0;
-    count = halo::saved_games::game_checkpoint_enumerate_files(1, 1, (checkpoint_enumerate_proc)((void *)checkpoint_list_add_row), 0);
+    count = halo::saved_games::game_checkpoint_enumerate_files(1, 1, (checkpoint_enumerate_proc)((void *)halo::interface::checkpoint_list_add_row), 0);
     pending_delete_saved_game_name_00718fd0[0] = 0;
     if (count == 0) {
-        widget_instance_close_and_restore_previous(widget);
+        halo::interface::widget_instance_close_and_restore_previous(widget);
     }
     return (uint8_t)(count != 0);
 }
@@ -233,7 +226,7 @@ uint8_t UiEventHandlers::event_4a44f0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a4570(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    ui_list_free_all();
+    halo::interface::ui_list_free_all();
     return 1;
 }
 
@@ -307,11 +300,11 @@ uint8_t UiEventHandlers::event_4a4af0(widget_instance *widget, int16_t *event, u
 {
     widget_instance *first = widget->parent->parent->first_child;
 
-    if (first == widget->parent && virtual_keyboard_open(network_host_name_field_00719238, 0x40, 0xd) != 0) {
+    if (first == widget->parent && halo::interface::virtual_keyboard_open(network_host_name_field_00719238, 0x40, 0xd) != 0) {
         network_host_edit_field_00719410 = 4;
         return 1;
     }
-    if (first->next_sibling == widget->parent && virtual_keyboard_open(network_host_subname_007191f0, 0x12, 0xc) != 0) {
+    if (first->next_sibling == widget->parent && halo::interface::virtual_keyboard_open(network_host_subname_007191f0, 0x12, 0xc) != 0) {
         network_host_edit_field_00719410 = 0;
         return 1;
     }
@@ -352,12 +345,12 @@ uint8_t UiEventHandlers::event_4b4980(widget_instance *widget, int16_t *event, u
     ui_flag_00719444 = 0;
     memcpy(live + 0x2fc, profile + 0x956, 4);
     memcpy(live + 0x88c, profile + 0x95a, 4);
-    controls_build_device_label_table();
+    halo::interface::controls_build_device_label_table();
     list = second->first_child->first_child->next_sibling;
     list->selection_index = 0;
     list->item_count = (uint16_t)controls_device_label_count;
     list->list_items = controls_device_labels;
-    controls_binding_list_refresh_rows(second, 0);
+    halo::interface::controls_binding_list_refresh_rows(second, 0);
     return 1;
 }
 
@@ -454,7 +447,7 @@ uint8_t UiEventHandlers::event_4b5350(widget_instance *widget, int16_t *event, u
         controls_menu_list_mode = 0;
         return 1;
     }
-    widget_instance_close_and_restore_previous(widget);
+    halo::interface::widget_instance_close_and_restore_previous(widget);
     *out_handled = 1;
     return 1;
 }
@@ -466,7 +459,7 @@ uint8_t UiEventHandlers::event_4b5350(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4b54a0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    controls_binding_rows_toggle_device_mode(widget->parent->parent->parent, 1);
+    halo::interface::controls_binding_rows_toggle_device_mode(widget->parent->parent->parent, 1);
     return 1;
 }
 
@@ -523,7 +516,7 @@ uint8_t UiEventHandlers::event_4bb290(widget_instance *widget, int16_t *event, u
     if ((selected_saved_item & 0xf) != 0) {
         return 0;
     }
-    video_options_menu_populate((uint8_t *)widget, saved_item_working_copy);
+    halo::interface::video_options_menu_populate((uint8_t *)widget, saved_item_working_copy);
     return 1;
 }
 
@@ -595,10 +588,10 @@ uint8_t UiEventHandlers::event_4bb360(widget_instance *widget, int16_t *event, u
         mode.vsync = (uint8_t)(profile[0xa6f] != 0);
         result = halo::rasterizer::rasterizer_display_mode_differs(&mode);
         if (result == 0) {
-            widget_instance_close_and_restore_previous(screen);
+            halo::interface::widget_instance_close_and_restore_previous(screen);
         }
     }
-    widget_play_sound_effect(3);
+    halo::interface::widget_play_sound_effect(3);
     ui_flag_007196d1 = 1;
     return result;
 }
@@ -641,7 +634,7 @@ uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, u
     }
     ui_flag_007196d2 = 0;
     if (changed == 1) {
-        if (game_time_force_single_tick != 0) {
+        if (halo::game::globals().time_force_single_tick != 0) {
             halo::interface::state::frame_rate_limiter_enabled = 0;
         } else {
             halo::interface::state::frame_rate_limiter_enabled = (uint8_t)(saved_item_working_copy[0xa6f] == 2);
@@ -682,7 +675,7 @@ uint8_t UiEventHandlers::event_4bb970(widget_instance *widget, int16_t *event, u
     if (ui_video_requested_display_mode_006b7010.vsync != 0) {
         profile[0xa6f] = (uint8_t)((halo::interface::state::frame_rate_limiter_enabled != 0) + 1);
     }
-    if (game_time_force_single_tick != 0) {
+    if (halo::game::globals().time_force_single_tick != 0) {
         halo::interface::state::frame_rate_limiter_enabled = 0;
     } else {
         halo::interface::state::frame_rate_limiter_enabled = (uint8_t)(profile[0xa6f] == 2);

@@ -15,14 +15,13 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern data_array *player_data;
 extern real_point3d *global_origin3d_pointer;
 extern Globals *global_globals;
 extern uint8_t *cinematic_globals_ptr;
 extern uint8_t *object_update_gate_globals;
-extern game_engine_definition *current_game_engine;
 extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);
@@ -112,7 +111,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
     biped_flags = tag->biped_flags;
     speed_scale = 1.0f;
     if (test_flag(biped_flags, tags::biped_tag_flag::random_speed_increase) && unit->aiming_speed == 0) {
-        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
+        speed_scale = (float)(object_index % 0x89) * 0.00729927f * halo::game::weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
     }
 
     if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||
@@ -223,7 +222,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
                 player_info->run_sideways = 2.0f;
                 player_info->run_acceleration = 0.32f;
             }
-            if (current_game_engine != 0) {
+            if (halo::game::globals().current_engine != 0) {
                 player_info_copy = *player_info;
                 player_info = &player_info_copy;
                 player_info->walking_speed = player_info->speed_multiplier * player_info->walking_speed +
@@ -238,7 +237,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
 
             player_speed_scale = 1.0f;
             if (unit->controlling_player != k_datum_index_none) {
-                player_speed_scale = *(float *)((uint8_t *)player_data->data +
+                player_speed_scale = *(float *)((uint8_t *)halo::game::globals().player_data->data +
                                                 halo::datum_slot(unit->controlling_player) * 0x200 + 0x6c);
             }
             speed_scale = (1.0f - player_info->stun_movement_penalty * unit->stun) *
@@ -508,7 +507,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
     biped_flags = tag->biped_flags;
     speed_scale = 1.0f;
     if (test_flag(biped_flags, tags::biped_tag_flag::random_speed_increase) && unit->aiming_speed == 0) {
-        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
+        speed_scale = (float)(object_index % 0x89) * 0.00729927f * halo::game::weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
     }
 
     if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||
@@ -620,7 +619,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
                 player_info->run_sideways = 2.0f;
                 player_info->run_acceleration = 0.32f;
             }
-            if (current_game_engine != 0) {
+            if (halo::game::globals().current_engine != 0) {
                 player_info_copy = *player_info;
                 player_info = &player_info_copy;
                 player_info->walking_speed = player_info->speed_multiplier * player_info->walking_speed +
@@ -635,7 +634,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
 
             player_speed_scale = 1.0f;
             if (unit->controlling_player != k_datum_index_none) {
-                player_speed_scale = *(float *)((uint8_t *)player_data->data +
+                player_speed_scale = *(float *)((uint8_t *)halo::game::globals().player_data->data +
                                                 halo::datum_slot(unit->controlling_player) * 0x200 + 0x6c);
             }
             speed_scale = (1.0f - player_info->stun_movement_penalty * unit->stun) *

@@ -6,12 +6,12 @@
 #include "halo/cache/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern data_array *player_data;
 extern hud_waypoint_state *hud_waypoints;
 extern HUDGlobals *hud_globals_tag_data;
-extern player_globals *local_player_globals;
 extern uint8_t render_frustum_global[];
 extern uint8_t render_camera_global[];
 extern int16_t render_viewport_top;
@@ -22,18 +22,9 @@ extern double pow(double base, double exponent);
 extern double fmod(double x, double y);
 extern long lrint(double x);
 extern int32_t __ftol(double x);
-extern int32_t ui_real_to_int_truncate(float value);
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *point, void *frustum,
                                                     void *camera);
-extern uint32_t color_rgb_float_to_int(const float *rgb);
-extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
-                                           void **out_data, int32_t *out_offset);
-extern void hud_draw_bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, int16_t anchor,
-                               const Point2DInt *screen_position, float scale, float rotation, uint32_t color);
-extern void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_placement *placement, int16_t value,
-                            int16_t fraction, uint32_t flags, int32_t flash_start_time, float scale);
 extern int16_t current_local_player_index;
-extern void hud_waypoint_draw_one(datum_index player_index);
 }
 
 static float hud_clamp01(float value)
@@ -54,7 +45,7 @@ void LocalPlayerVisitor::for_each_on_team(int16_t team, LocalPlayerVisitor &visi
     data_iterator iterator;
     player *p;
 
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -73,7 +64,7 @@ bool WaypointSlotSet::for_player(datum_index player_index, WaypointSlotSet *out)
     if (player_index == (datum_index)-1) {
         return false;
     }
-    local_player_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200))->local_player_index;
+    local_player_index = ((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * 0x200))->local_player_index;
     if (local_player_index < 0 || local_player_index >= 1) {
         return false;
     }
@@ -275,9 +266,9 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
     point = *position;
     unit_index = (datum_index)-1;
     if (local_player_index != -1 && local_player_index < 1 &&
-        local_player_globals->local_players[local_player_index] != (datum_index)-1) {
-        unit_index = ((player *)((uint8_t *)player_data->data +
-                                 (local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
+        halo::game::globals().local_player_globals->local_players[local_player_index] != (datum_index)-1) {
+        unit_index = ((player *)((uint8_t *)halo::game::globals().player_data->data +
+                                 (halo::game::globals().local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
     }
     halo::units::unit_get_camera_position(unit_index, &camera);
     {
@@ -325,7 +316,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
 
     bitmap = 0;
     uv_offset = 0;
-    hud_meter_resolve_bitmap_frame(*(datum_index *)&globals->arrow_bitmap.tag_id,
+    halo::interface::hud_meter_resolve_bitmap_frame(*(datum_index *)&globals->arrow_bitmap.tag_id,
                                    (int16_t)(&arrow->on_screen_sequence_index)[visibility], 0, (void **)&bitmap,
                                    &uv_offset);
     if (bitmap == 0 || halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
@@ -335,13 +326,13 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
     arrow_position.x = (int16_t)__ftol((double)screen.x);
     arrow_position.y = (int16_t)__ftol((double)screen.y);
 
-    whole = ui_real_to_int_truncate(arrow->opacity);
+    whole = halo::interface::ui_real_to_int_truncate(arrow->opacity);
     if (whole * 0xff < 0) {
         alpha = 0;
     } else if (whole * 0xff > 0xff) {
         alpha = 0xff;
     } else {
-        alpha = (uint8_t)-(int8_t)ui_real_to_int_truncate(arrow->opacity);
+        alpha = (uint8_t)-(int8_t)halo::interface::ui_real_to_int_truncate(arrow->opacity);
     }
     halo::bitmaps::color_rgb_int_to_real(&color, *(const uint32_t *)&arrow->color);
     color.red = hud_clamp01(1.0f - arrow->translucency) * color.red;
@@ -352,8 +343,8 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
         color.green = 0.0f;
         color.blue = 0.0f;
     }
-    packed = color_rgb_float_to_int(&color.red) | ((uint32_t)alpha << 24);
-    hud_draw_bitmap_at(uv, bitmap, 0, 4, &arrow_position, scale, rotation, packed);
+    packed = halo::interface::color_rgb_float_to_int(&color.red) | ((uint32_t)alpha << 24);
+    halo::interface::hud_draw_bitmap_at(uv, bitmap, 0, 4, &arrow_position, scale, rotation, packed);
 
     if (visibility == 1 || show_distance == 0) {
         return;
@@ -368,9 +359,9 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
 
         memset(anchor, 0, sizeof(anchor));
         memset(&placement, 0, sizeof(placement));
-        packed = color_rgb_float_to_int(&color.red) | ((uint32_t)alpha << 24);
+        packed = halo::interface::color_rgb_float_to_int(&color.red) | ((uint32_t)alpha << 24);
         *(uint32_t *)&placement.flash.default_color = packed;
-        packed = color_rgb_float_to_int(&color.red) | ((uint32_t)alpha << 24);
+        packed = halo::interface::color_rgb_float_to_int(&color.red) | ((uint32_t)alpha << 24);
         *(uint32_t *)&placement.flash.flashing_color = packed;
         placement.maximum_number_of_digits = 3;
         placement.number_of_fractional_digits = 1;
@@ -383,8 +374,8 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
         placement.anchor_offset.y = (int16_t)(number_y + (int16_t)(render_viewport_top - screen_safe_area_right.top));
         power = (float)pow(10.0, 4.0);
         whole = (int32_t)lrint(fmod((double)(power * meters < 0.0f ? -(power * meters) : power * meters), (double)power));
-        hud_draw_number((void *)(int32_t)local_player_index, anchor, &placement,
-                        (int16_t)ui_real_to_int_truncate(meters), (int16_t)whole, 0, 0, 0.0f);
+        halo::interface::hud_draw_number((void *)(int32_t)local_player_index, anchor, &placement,
+                        (int16_t)halo::interface::ui_real_to_int_truncate(meters), (int16_t)whole, 0, 0, 0.0f);
     }
 }
 
@@ -406,14 +397,14 @@ void HudWaypoints::draw_all_for_player(void)
     if (current_local_player_index == -1 || current_local_player_index >= 1) {
         local_player = (datum_index)-1;
     } else {
-        local_player = local_player_globals->local_players[current_local_player_index];
+        local_player = halo::game::globals().local_player_globals->local_players[current_local_player_index];
     }
-    team = ((player *)((uint8_t *)player_data->data + (local_player & 0xffff) * sizeof(player)))->team;
+    team = ((player *)((uint8_t *)halo::game::globals().player_data->data + (local_player & 0xffff) * sizeof(player)))->team;
     if (local_player == (datum_index)-1) {
         return;
     }
 
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -426,7 +417,7 @@ void HudWaypoints::draw_all_for_player(void)
     }
 
     for (i = 0; i < count; i++) {
-        hud_waypoint_draw_one(teammates[i]);
+        halo::interface::hud_waypoint_draw_one(teammates[i]);
     }
 }
 

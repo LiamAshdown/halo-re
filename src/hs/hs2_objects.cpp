@@ -10,6 +10,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/game/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,7 +68,7 @@ void ObjectCommands::evaluate_effect_new_on_object_marker(int16_t function_index
  */
 void ObjectCommands::evaluate_magic_melee_attack(int16_t function_index, uint32_t thread_index, char first)
 {
-    uint8_t *player = (uint8_t *)player_data->data;
+    uint8_t *player = (uint8_t *)halo::game::globals().player_data->data;
 
     halo::units::unit_try_ready_weapon(*(uint32_t *)&((struct player *)player)->unit, 0, 0);
     halo::hs::hs_thread_return(0, thread_index);

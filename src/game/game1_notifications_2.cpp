@@ -10,6 +10,7 @@
 #include "halo/game/game1_notifications.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -60,7 +61,7 @@ void Notifications::apply_player_join_message(void **envelope)
         halo::networking::network_index_cache_insert_if_free(join_message_table, (int32_t)message.hash_value, (int32_t)message.join_key);
         p = (player *)halo::memory::datum_get((datum_index)message.join_key, player_data);
         halo::memory::datum_new_at_index_with_salt((datum_index)message.join_key, update_client_queues);
-        game_engine_player_profile_cache_add(message.join_key);
+        halo::game::game_engine_player_profile_cache_add(message.join_key);
         if (p == 0) {
             return;
         }
@@ -69,7 +70,7 @@ void Notifications::apply_player_join_message(void **envelope)
     p->team = (int32_t)message.team;
     p->team_index = (int8_t)message.team;
     if (p->local_player_index != -1) {
-        game_set_local_player((datum_index)message.join_key,
+        halo::game::game_set_local_player((datum_index)message.join_key,
             (int16_t)*(int8_t *)(identifier_record + 0x1d));
     }
     p->kill_streak[0] = 0;
@@ -77,7 +78,7 @@ void Notifications::apply_player_join_message(void **envelope)
     p->interaction_type = 0;
     p->interaction_object = (datum_index)0xffffffff;
 
-    game_engine_player_new_life(message.join_key);
+    halo::game::game_engine_player_new_life(message.join_key);
     }
 }
 

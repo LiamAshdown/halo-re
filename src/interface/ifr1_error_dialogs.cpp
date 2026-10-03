@@ -2,19 +2,15 @@
 #include "halo/interface/engine_state.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern ui_pending_error ui_pending_errors[4];
-extern player_globals *local_player_globals;
 extern uint8_t ui_split_screen;
 extern uint8_t network_wait_flag_00719739;
 extern widget_instance *ui_root_widget[1];
 extern int16_t ui_pause_depth;
-extern game_time_globals *game_time;
-extern void chimera__load_main_menu(void);
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection);
 }
 
 namespace halo::interface {
@@ -56,7 +52,7 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
     } else {
         int32_t matched_index = -1;
 
-        if (local_player_globals->local_players[0] != (datum_index)-1) {
+        if (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) {
             active_player = 0;
         }
         if (active_player != -1) {
@@ -66,7 +62,7 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
                     half_screen = 0;
                 }
                 player_count = player_count + 1;
-                active_player = (local_player_globals->local_players[0] != (datum_index)-1 && active_player < 0)
+                active_player = (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1 && active_player < 0)
                                     ? 0
                                     : -1;
             } while (active_player != -1);
@@ -112,7 +108,7 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
 
     if (ui_split_screen != 0 && (state::screen_fade_progress < 1.0f) != (state::screen_fade_progress == 1.0f) &&
         0.0f <= state::screen_fade_progress) {
-        chimera__load_main_menu();
+        halo::interface::chimera__load_main_menu();
         network_wait_flag_00719739 = 0;
         state::screen_fade_progress = -1.0f;
     }
@@ -128,7 +124,7 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
         }
     }
 
-    dialog = chimera__load_ui_widget(tag_path, (datum_index)-1, (widget_instance *)0,
+    dialog = halo::interface::chimera__load_ui_widget(tag_path, (datum_index)-1, (widget_instance *)0,
                                      (uint16_t)player_index, history_source, (datum_index)-1, -1);
     if (dialog != (widget_instance *)0) {
         int16_t clamped;
@@ -147,11 +143,11 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
             dialog->pauses_game_time = is_error;
             if (is_error == 1 && halo::networking::globals().game_mode != 2) {
                 ui_pause_depth = ui_pause_depth + 1;
-                if (game_time->paused == 0) {
-                    if (game_time->initialized != 0) {
-                        game_time->active = 0;
+                if (halo::game::globals().game_time->paused == 0) {
+                    if (halo::game::globals().game_time->initialized != 0) {
+                        halo::game::globals().game_time->active = 0;
                     }
-                    game_time->paused = 1;
+                    halo::game::globals().game_time->paused = 1;
                 }
             }
         }

@@ -4,6 +4,7 @@
 #include <wchar.h>
 #include "units.h"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern void *current_game_engine;
@@ -12,7 +13,6 @@ extern void qr2_buffer_add_int(void *buffer, int32_t value);
 extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id);
 typedef struct data_array data_array;
 extern uint8_t *player_data;
-extern uint32_t players_get_active_by_index(int32_t index);
 extern uint8_t *network_server;
 extern char network_qr2_text[0x100];
 extern uint8_t network_session_host_closing;
@@ -35,7 +35,7 @@ namespace halo::networking {
  */
 void HostSession::dispatch_message(int32_t key_id, int32_t index, void *buffer, void *user_data)
 {
-    uint32_t handle = players_get_active_by_index(index);
+    uint32_t handle = halo::game::players_get_active_by_index(index);
     int16_t player_index = (int16_t)handle;
     int16_t salt = (int16_t)(handle >> 16);
     uint8_t *player;
@@ -129,7 +129,7 @@ void HostSession::qr2_server_key(int32_t key_id, void *buffer, void *user_data)
             (uint16_t *)game_engine_variant, 0x100));
         return;
     case 8:
-        qr2_buffer_add_int(buffer, current_game_engine != 0 ? players_active_count() : 0);
+        qr2_buffer_add_int(buffer, current_game_engine != 0 ? halo::game::players_active_count() : 0);
         return;
     case 10: {
         int8_t maximum = (int8_t)server[0x1a5];
@@ -141,7 +141,7 @@ void HostSession::qr2_server_key(int32_t key_id, void *buffer, void *user_data)
         qr2_buffer_add(buffer, network_session_host_closing != 0 ? "exiting" : "openplaying");
         return;
     case 12:
-        qr2_buffer_add_int(buffer, game_engine_get_teams_enabled() != 0);
+        qr2_buffer_add_int(buffer, halo::game::game_engine_get_teams_enabled() != 0);
         return;
     case 13:
         qr2_buffer_add_int(buffer, game_engine_variant_score_limit);

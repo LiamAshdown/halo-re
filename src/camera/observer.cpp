@@ -7,6 +7,7 @@
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern observer observers[1];
@@ -20,9 +21,6 @@ extern float observer_channel_acceleration_limit[5];
 extern int16_t observer_parameter_float_counts[5];
 extern const real_point3d *global_origin3d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
-extern player_globals *local_player_globals;
-extern data_array *player_data;
-extern game_time_globals *game_time;
 extern director directors[1];
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
 extern double atan2(double y, double x);
@@ -623,12 +621,12 @@ void ObserverSystem::update(float dt, uint8_t add_bob)
 
     observer_dt = dt;
 
-    local_player = local_player_globals->local_players[0];
+    local_player = halo::game::globals().local_player_globals->local_players[0];
     if (local_player == (datum_index)k_datum_index_none) {
         return;
     }
 
-    time_fraction = game_time->leftover_time;
+    time_fraction = halo::game::globals().game_time->leftover_time;
     observers[0].updated = 1;
     halo::camera::observer_set_command(0);
     if (observer_dt != 0.0f) {
@@ -641,7 +639,7 @@ void ObserverSystem::update(float dt, uint8_t add_bob)
     }
 
     {
-        player *p = &((player *)player_data->data)[halo::datum_slot(local_player)];
+        player *p = &((player *)halo::game::globals().player_data->data)[halo::datum_slot(local_player)];
         if (p->unit != (datum_index)k_datum_index_none) {
             object *unit_object = halo::objects::object_try_and_get(p->unit, 3  );
             if (unit_object != 0 && unit_object->parent_object != (datum_index)k_datum_index_none) {
@@ -675,7 +673,7 @@ void ObserverSystem::update_location()
 {
     int32_t leaf_index;
 
-    if (local_player_globals->local_players[0] == k_datum_index_none) {
+    if (halo::game::globals().local_player_globals->local_players[0] == k_datum_index_none) {
         return;
     }
     leaf_index = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp,

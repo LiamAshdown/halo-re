@@ -13,6 +13,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern float ticks_per_second;
@@ -276,7 +277,7 @@ uint8_t ConversationView::current_line_is_ready()
                     }
                 }
             }
-            if (game_time->game_time < halo::ai::globals().communication_quiet_until_tick || blocked) {
+            if (halo::game::globals().game_time->game_time < halo::ai::globals().communication_quiet_until_tick || blocked) {
                 return inst[0x63];
             }
             if (*(datum_index *)(inst + 0x54) != k_datum_index_none && !inst[0x60]) {
@@ -550,7 +551,7 @@ datum_index ConversationDefinitionView::create(uint8_t allow_eviction)
         instance->definition_index = conversation_definition_index;
         instance->line_index = -1;
         instance->priority = allow_eviction;
-        instance->start_tick = game_time->game_time;
+        instance->start_tick = halo::game::globals().game_time->game_time;
     }
     return handle;
 }
@@ -741,7 +742,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
             case 0:
             case 6:
                 if (player_object != 0 &&
-                    teams_are_enemies(((struct object *)player_object)->owner_team,
+                    halo::game::teams_are_enemies(((struct object *)player_object)->owner_team,
                                       candidate->team) != 0) {
                     continue;
                 }
@@ -1022,7 +1023,7 @@ clear_wait:
         ready = 0;
         goto check_keep_trying;
     }
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -1061,7 +1062,7 @@ check_looking:
     if ((definition->flags & 0x80) == 0 || any_resolved == 0) {
         goto apply;
     }
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -1181,7 +1182,7 @@ void ConversationView::stop(uint8_t reason_a, uint8_t reason_b)
     event->definition_index = instance->definition_index;
     event->reason_a = reason_a;
     event->reason_b = reason_b;
-    event->tick = game_time->game_time;
+    event->tick = halo::game::globals().game_time->game_time;
 
     participant_count = definition->participants.count;
     for (i = 0; i < participant_count; i++) {
@@ -1231,7 +1232,7 @@ void ConversationDefinitionView::stop_all()
  */
 void Conversations::update()
 {
-    int32_t now = game_time->game_time;
+    int32_t now = halo::game::globals().game_time->game_time;
     data_iterator iterator;
     uint8_t *inst;
 

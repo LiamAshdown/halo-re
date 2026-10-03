@@ -7,6 +7,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -56,7 +57,7 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
     } else {
         object *occupant_obj = ((object_header *)halo::objects::globals().object_data->data)[occupant & halo::k_slot_mask].data;
         object *self_obj = ((object_header *)halo::objects::globals().object_data->data)[self_object_index & halo::k_slot_mask].data;
-        reason = teams_are_enemies(((struct object *)occupant_obj)->owner_team,
+        reason = halo::game::teams_are_enemies(((struct object *)occupant_obj)->owner_team,
                                ((struct object *)self_obj)->owner_team) ? 3 : 2;
     }
 
@@ -235,7 +236,7 @@ void ActorView::refresh_combat_context()
             int16_t child_team = ((struct object *)child_object)->owner_team;
             uint8_t enemy;
 
-            if (current_game_engine != 0) {
+            if (halo::game::globals().current_engine != 0) {
                 enemy = actor_team != child_team;
             } else if (actor_team < 0 || actor_team >= 10 || child_team < 0 || child_team >= 10) {
                 enemy = 1;

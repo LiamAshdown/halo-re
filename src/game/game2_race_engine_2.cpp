@@ -1,8 +1,8 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern uint32_t ctf_globals_live;
-extern uint8_t game_engine_ctf_is_flag_eligible_for_capture(uint32_t team, int32_t flag_id);
 }
 
 namespace halo::game {
@@ -19,7 +19,7 @@ uint8_t RaceEngine::waypoint_filter(datum_index player, int32_t team)
     if ((ctf_globals_live & (1u << (team & 0x1f))) == 0) {
         return 0;
     }
-    return game_engine_ctf_is_flag_eligible_for_capture((uint32_t)team, team);
+    return halo::game::game_engine_ctf_is_flag_eligible_for_capture((uint32_t)team, team);
 }
 
 }

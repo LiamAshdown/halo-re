@@ -17,11 +17,12 @@
 
 #include "halo/interface/uis_game_setup.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
-extern int16_t local_player_count;
 extern uint8_t profile_globals_block[0x60a4];
 extern int32_t cached_profile_slot;
 extern char last_profile_name[];
@@ -30,7 +31,6 @@ extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t selected_level_active_00719878;
 extern uint8_t selected_level_pending_00719778;
 extern uint8_t network_wait_flag_00719739;
-extern void widget_play_sound_effect(int16_t effect_id);
 }
 
 namespace halo::ui {
@@ -67,7 +67,7 @@ uint8_t UiGameSetup::level_select_confirm_choice(widget_instance *widget)
     if (list_index >= 0 && list_index < list->count) {
         level_id = ((ui_list_item *)list->data)[list_index].id;
     }
-    if (local_player_count == 1) {
+    if (halo::game::globals().local_player_count == 1) {
         unlocked = level_unlocked_for(0, level_id);
         if (cached_profile_slot != halo::saved_games::globals().player_profile_slots_handle) {
             if (halo::saved_games::globals().player_profile_slots_handle != -1) {
@@ -78,13 +78,13 @@ uint8_t UiGameSetup::level_select_confirm_choice(widget_instance *widget)
         if (last_profile_name[0] != 0) {
             halo::saved_games::saved_game_last_profile_clear(last_profile_name);
         }
-    } else if (local_player_count == 2) {
+    } else if (halo::game::globals().local_player_count == 2) {
         for (player = 0; player <= 1 && !unlocked; player++) {
             unlocked = level_unlocked_for(player, level_id);
         }
     }
     if (unlocked != 1) {
-        widget_play_sound_effect(4);
+        halo::interface::widget_play_sound_effect(4);
         return unlocked;
     }
     split_screen_quit_prompt_armed = 0;

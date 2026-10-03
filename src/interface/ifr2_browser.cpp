@@ -1,6 +1,7 @@
 #include "halo/interface/ifr2_browser.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -82,12 +83,12 @@ uint8_t BackHandler::handle(widget_instance *widget, int16_t *event, uint8_t *ou
         parent = child->parent;
         parent->focused_child = parent->first_child->next_sibling->next_sibling;
         server_browser_filter_panel_mode = 0;
-        widget_play_sound_effect(3);
+        halo::interface::widget_play_sound_effect(3);
         return 1;
     }
-    widget_instance_close_and_restore_previous(widget);
+    halo::interface::widget_instance_close_and_restore_previous(widget);
     *out_handled = 1;
-    widget_play_sound_effect(3);
+    halo::interface::widget_play_sound_effect(3);
     return 1;
 }
 
@@ -115,7 +116,7 @@ uint8_t ButtonHandler::handle(widget_instance *widget, int16_t *event, uint8_t *
     } else {
         return 0;
     }
-    widget_play_sound_effect(2);
+    halo::interface::widget_play_sound_effect(2);
     return 1;
 }
 
@@ -141,7 +142,7 @@ uint8_t FilterPanelApplyHandler::handle(widget_instance *widget, int16_t *event,
     server_browser_filter_teamplay = clamp_selection(find_control(row)->selection_index, 2);
     row = row->next_sibling;
     server_browser_filter_allow_unknown_map = find_control(row)->selection_index == 1;
-    widget_play_sound_effect(2);
+    halo::interface::widget_play_sound_effect(2);
     child = widget->parent->parent->parent->parent->first_child;
     widget_show(child, 1);
     child = child->next_sibling;
@@ -268,7 +269,7 @@ uint8_t ListRowHandler::handle(widget_instance *widget, int16_t *event, uint8_t 
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 uint8_t server_browser_back_event(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

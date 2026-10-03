@@ -16,6 +16,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern uint8_t *object_network_id_table;
@@ -25,15 +26,12 @@ extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern data_array *player_data;
 extern uint8_t unit_updates_suppressed;
 extern uint8_t *ai_update_stagger;
-extern game_engine_definition *current_game_engine;
 extern uint8_t weapon_bottomless_clip;
 extern Globals *global_globals;
 extern char *s_stand;
 extern real_point3d *global_origin3d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const void *color, const void *tint_source);
-extern uint8_t game_engine_is_valid_team_player(uint32_t identifier);
-extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern void weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger);
 extern void weapon_set_ready_timer(datum_index item_index, real value);
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
@@ -95,7 +93,7 @@ uint8_t UnitView::update()
     real_vector3d previous_aim;
     real_point3d *zero_vector;
 
-    valid_team_player = game_engine_is_valid_team_player(unit_index);
+    valid_team_player = halo::game::game_engine_is_valid_team_player(unit_index);
     if (!unit_updates_suppressed) {
         uint8_t *stagger = ai_update_stagger;
 
@@ -179,7 +177,7 @@ uint8_t UnitView::update()
             if (test_flag(((struct unit_object *)obj)->unit.flags, units::unit_flag::unknown_10)) {
                 float step = 0.008333334f;
 
-                if (current_game_engine != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth == 1) {
+                if (halo::game::globals().current_engine != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth == 1) {
                     datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.current_weapon_index);
 
                     if (weapon != k_datum_index_none) {
@@ -278,9 +276,9 @@ controls:
                 if ((uint8_t)((struct unit_object *)obj)->unit.zoom_level == 0xff) {
                     *(int32_t *)&((struct unit_object *)obj)->unit.integrated_night_vision_power = 0;
                 }
-                if (player_index_from_unit_index(unit_index) != k_datum_index_none &&
-                    *(int16_t *)((uint8_t *)player_data->data +
-                        halo::datum_slot(player_index_from_unit_index(unit_index)) * 0x200 + 2) != -1) {
+                if (halo::game::player_index_from_unit_index(unit_index) != k_datum_index_none &&
+                    *(int16_t *)((uint8_t *)halo::game::globals().player_data->data +
+                        halo::datum_slot(halo::game::player_index_from_unit_index(unit_index)) * 0x200 + 2) != -1) {
                     datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.current_weapon_index);
 
                     if (weapon != k_datum_index_none) {

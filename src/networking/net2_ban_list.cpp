@@ -13,9 +13,9 @@
 #include "halo/networking/net2_ban_list.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
-extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern growable_array ban_list;
 }
 
@@ -35,7 +35,7 @@ uint8_t BanList::check_and_reject_player(char *key)
                 return 0;
             }
         }
-        chimera__console_out((ColorARGB *)0, (char *)"Rejecting banned player %s (%s).", entry, key);
+        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Rejecting banned player %s (%s).", entry, key);
         return 1;
     }
     return 0;

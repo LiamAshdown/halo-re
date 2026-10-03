@@ -2,6 +2,8 @@
 #include "halo/game/legacy_globals.hpp"
 #include "halo/input/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -42,8 +44,8 @@ void EngineMatch::update_end_game_sequence(float delta_time)
         if (halo::networking::globals().game_mode != 2) {
             return;
         }
-        game_engine_end_game_sequence_stage3();
-        game_engine_send_end_game_notification(3);
+        halo::game::game_engine_end_game_sequence_stage3();
+        halo::game::game_engine_send_end_game_notification(3);
         return;
     }
 
@@ -61,9 +63,9 @@ void EngineMatch::update_end_game_sequence(float delta_time)
 
         if (game_engine_dedicated_idle == 0) {
             if ((*((uint8_t *)network_server + 6) >> 2 & 1) != 0) {
-                chimera__console_out((ColorARGB *)0, (char *)"Game Complete. Dedicated server is now idle.");
+                halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Game Complete. Dedicated server is now idle.");
                 halo::networking::globals().host_handoff_requested = 1;
-                chat_close();
+                halo::interface::chat_close();
             }
         } else {
             game_engine_dedicated_idle_timer = game_engine_dedicated_idle_timer - delta_time;
@@ -80,7 +82,7 @@ void EngineMatch::update_end_game_sequence(float delta_time)
 
     if (chimera_loading_screen_cleanup_gate != 0) {
         halo::networking::globals().host_handoff_requested = 1;
-        chat_close();
+        halo::interface::chat_close();
     }
 }
 

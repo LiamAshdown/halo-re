@@ -1,25 +1,20 @@
 #include "halo/interface/ifr1_hud_motion_sensor.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern game_time_globals *game_time;
 extern motion_sensor_globals *motion_sensor;
-extern player_globals *local_player_globals;
-extern data_array *player_data;
 extern HUDGlobals *hud_globals_tag_data;
-extern game_engine_definition *current_game_engine;
 extern float motion_sensor_sweep;
 extern float motion_sensor_sweep_scale;
 extern double fmod(double x, double y);
-extern uint8_t motion_sensor_object_is_detected(datum_index unit_index);
-extern void motion_sensor_blip_fill(int16_t local_player_index, datum_index object_index,
-                                    motion_sensor_blip *blip);
 }
 
 static int16_t motion_sensor_next_local_player(int16_t local_player_index)
 {
-    return (local_player_globals->local_players[0] != (datum_index)-1 && local_player_index < 0) ? 0 : -1;
+    return (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1 && local_player_index < 0) ? 0 : -1;
 }
 
 namespace halo::interface {
@@ -37,14 +32,14 @@ void HudMotionSensor::update(void)
     int16_t frame_index;
     int16_t player_count;
 
-    t = (float)fmod((double)((float)game_time->game_time * 0.03333333507180214f), 2.0999999046325684);
+    t = (float)fmod((double)((float)halo::game::globals().game_time->game_time * 0.03333333507180214f), 2.0999999046325684);
     if (t < 2.0374999046325684f) {
         motion_sensor_sweep = 1.0f / ((t + 0.0625f) * motion_sensor_sweep_scale);
     } else {
         motion_sensor_sweep = 0.4f;
     }
 
-    now = game_time->game_time;
+    now = halo::game::globals().game_time->game_time;
     frame_index = (int16_t)((int16_t)(motion_sensor->frame_index + 1) % 10);
     motion_sensor->enabled = 1;
     motion_sensor->update_time = now;
@@ -52,9 +47,9 @@ void HudMotionSensor::update(void)
 
     if (now % 15 != 0 && now != 0) {
         int16_t previous = (int16_t)((frame_index + 9) % 10);
-        int16_t local_player_index = local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1;
+        int16_t local_player_index = halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1;
 
-        for (player_count = local_player_globals->local_player_count; player_count > 0; player_count--) {
+        for (player_count = halo::game::globals().local_player_globals->local_player_count; player_count > 0; player_count--) {
             motion_sensor->players[local_player_index].history[frame_index] =
                 motion_sensor->players[local_player_index].history[previous];
             local_player_index = motion_sensor_next_local_player(local_player_index);
@@ -71,8 +66,8 @@ void HudMotionSensor::update(void)
             uint32_t signature;
         } walk;
         uint8_t all_full = 0;
-        int16_t local_player_index = local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1;
-        int16_t count = local_player_globals->local_player_count;
+        int16_t local_player_index = halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1;
+        int16_t count = halo::game::globals().local_player_globals->local_player_count;
         int16_t k;
 
         blip_counts[0] = 0;
@@ -82,9 +77,9 @@ void HudMotionSensor::update(void)
             int32_t i;
 
             if (local_player_index != -1 && local_player_index < 1 &&
-                local_player_globals->local_players[local_player_index] != (datum_index)-1) {
-                unit_index = ((player *)((uint8_t *)player_data->data +
-                                         (local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
+                halo::game::globals().local_player_globals->local_players[local_player_index] != (datum_index)-1) {
+                unit_index = ((player *)((uint8_t *)halo::game::globals().player_data->data +
+                                         (halo::game::globals().local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
             }
             local_players[k] = local_player_index;
             cameras[local_player_index].x = 0.0f;
@@ -97,7 +92,7 @@ void HudMotionSensor::update(void)
             for (i = 0; i < 0x10; i++) {
                 frame->blips[i].type = _blip_type_empty;
             }
-            local_player_index = (local_player_globals->local_players[0] != (datum_index)-1 &&
+            local_player_index = (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1 &&
                                   local_player_index < count) ? 0 : -1;
         }
 
@@ -120,7 +115,7 @@ void HudMotionSensor::update(void)
                 }
             }
             if (header == 0 || ((1u << (header[3] & 0x1f)) & 3) == 0 || *(uint8_t **)(header + 8) == 0 ||
-                ((*(uint8_t **)(header + 8))[0x106] & 4) != 0 || motion_sensor_object_is_detected(object_index) == 0) {
+                ((*(uint8_t **)(header + 8))[0x106] & 4) != 0 || halo::interface::motion_sensor_object_is_detected(object_index) == 0) {
                 continue;
             }
             {
@@ -136,9 +131,9 @@ void HudMotionSensor::update(void)
                     if (index == -1 || index >= 1) {
                         continue;
                     }
-                    player_index = local_player_globals->local_players[index];
+                    player_index = halo::game::globals().local_player_globals->local_players[index];
                     if (player_index == (datum_index)-1 ||
-                        ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200))->unit == (datum_index)-1) {
+                        ((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * 0x200))->unit == (datum_index)-1) {
                         continue;
                     }
                     if (blip_counts[index] >= 0x10) {
@@ -146,7 +141,7 @@ void HudMotionSensor::update(void)
                         continue;
                     }
                     position.z = cameras[index].z;
-                    if (current_game_engine == 0) {
+                    if (halo::game::globals().current_engine == 0) {
                         float dx = position.x - cameras[index].x;
                         float dy = position.y - cameras[index].y;
                         float dz = position.z - cameras[index].z;
@@ -157,7 +152,7 @@ void HudMotionSensor::update(void)
                     }
                     state = &motion_sensor->players[index];
                     frame = &state->history[motion_sensor->frame_index];
-                    motion_sensor_blip_fill(index, object_index, &frame->blips[blip_counts[index]]);
+                    halo::interface::motion_sensor_blip_fill(index, object_index, &frame->blips[blip_counts[index]]);
                     state->tracked_objects[blip_counts[index]] = object_index;
                     blip_counts[index]++;
                     frame->blip_count++;

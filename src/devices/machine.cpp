@@ -3,11 +3,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/devices/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *device_groups;
-extern game_time_globals *game_time;
-extern game_engine_definition *current_game_engine;
 extern void *team_pair_data;
 }
 
@@ -130,7 +129,7 @@ uint32_t MachineHandle::update()
     
     if ((dev->device.type_flags & (1u << _device_machine_does_not_operate_automatically_bit)) == 0 &&
         tag->machine_type == machinetype_door &&
-        (game_time->game_time + (int32_t)object_index & 3) == 0) {
+        (halo::game::globals().game_time->game_time + (int32_t)object_index & 3) == 0) {
         datum_index candidates[k_device_machine_activation_maximum];
         int16_t candidate_count;
         int should_open = 0;
@@ -158,7 +157,7 @@ uint32_t MachineHandle::update()
                     
                     int16_t team = ((struct object *)candidate)->owner_team; 
                     int exempt;
-                    if (current_game_engine == 0) {
+                    if (halo::game::globals().current_engine == 0) {
                         if (team < 0 || 9 < team) {
                             exempt = 1;
                         } else {

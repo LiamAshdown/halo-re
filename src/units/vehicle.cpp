@@ -10,6 +10,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -68,7 +69,7 @@ uint8_t VehicleView::create()
         ((struct vehicle_object *)object)->vehicle.network_update_sequence = 0;
         ((struct object *)object)->network_state_009 = 0;
     }
-    ((struct vehicle_object *)object)->vehicle.network_update_tick = (uint32_t)game_time->game_time;
+    ((struct vehicle_object *)object)->vehicle.network_update_tick = (uint32_t)halo::game::globals().game_time->game_time;
     for (i = 0; i < 3; i++) {
         ((uint32_t *)&((struct vehicle_object *)object)->vehicle.unknown_5b2[2])[i] = ((uint32_t *)&((struct object *)object)->position)[i];
     }
@@ -90,7 +91,7 @@ uint8_t VehicleView::is_old_enough()
     if (stamp == -1) {
         return 1;
     }
-    if (game_time->game_time >= stamp + k_vehicle_minimum_age_ticks) {
+    if (halo::game::globals().game_time->game_time >= stamp + k_vehicle_minimum_age_ticks) {
         return 1;
     }
     return (uint8_t)(((struct vehicle_object *)obj)->vehicle.collision_update_pending == 1);
@@ -153,12 +154,12 @@ uint32_t VehicleView::update()
     static uint8_t contact_points[0x2600];
 
     if (halo::networking::globals().game_mode == 2 && ((struct vehicle_object *)obj)->vehicle.network_update_tick != -1 && vehicle_network_update_period != 0 &&
-        game_time->game_time >= ((struct vehicle_object *)obj)->vehicle.network_update_tick + vehicle_network_update_period) {
+        halo::game::globals().game_time->game_time >= ((struct vehicle_object *)obj)->vehicle.network_update_tick + vehicle_network_update_period) {
         if (halo::math::vector3d_distance(*((real_point3d *)&((struct vehicle_object *)obj)->vehicle.unknown_5b2[2]), *((real_point3d *)&((struct object *)obj)->position)) > 1.5f &&
             UnitView(object_index).get_recently_updated_flag() == 1 && !UnitView(object_index).has_child_of_type5()) {
             UnitView(object_index).set_facing_from_index_table();
         }
-        ((struct vehicle_object *)obj)->vehicle.network_update_tick = game_time->game_time;
+        ((struct vehicle_object *)obj)->vehicle.network_update_tick = halo::game::globals().game_time->game_time;
     }
 
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {

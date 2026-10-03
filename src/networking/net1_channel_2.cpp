@@ -1,6 +1,7 @@
 #include "halo/networking/net1_channel.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int32_t network_query_socket;
@@ -70,7 +71,7 @@ int16_t ReceiveQueueView::attempt_connect(s_network_address *address, int32_t un
         network_join_error_code = 7;
     }
     network_host_handoff_requested = 1;
-    chat_close();
+    halo::interface::chat_close();
     queue->last_error = k_network_error_connect_failed;
     return k_network_error_connect_failed;
 }

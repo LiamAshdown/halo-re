@@ -5,9 +5,9 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern void unit_invalidate_local_player_zoom_level(void);
 extern network_id_table *object_network_id_table;
 extern network_id_table *machine_table;
 extern uint8_t network_object_index_cache[];
@@ -30,7 +30,7 @@ void halo::units::unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_n
     unit->zoom_level = -1;
     unit->desired_zoom_level = -1;
     unit->integrated_night_vision_power = 0.0f;
-    unit_invalidate_local_player_zoom_level();
+    halo::game::unit_invalidate_local_player_zoom_level((datum_index)0xffffffff);
 }
 
 namespace unit_spawn_with_starting_weapons_local {

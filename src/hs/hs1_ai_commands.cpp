@@ -5,6 +5,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b);
@@ -228,8 +229,8 @@ void AiBehaviourCommands::allegiance_broken(int16_t function_index, uint32_t thr
         int16_t team_b = *(int16_t *)&arguments[1];
         uint8_t broken = 0;
 
-        if (team_a != -1 && team_b != -1 && team_pair_flag_test(team_a, team_b) &&
-            teams_are_enemies(team_b, team_a)) {
+        if (team_a != -1 && team_b != -1 && halo::game::team_pair_flag_test(team_a, team_b) &&
+            halo::game::teams_are_enemies(team_b, team_a)) {
             broken = 1;
         }
         halo::hs::hs_thread_return((int32_t)broken, thread_index);
@@ -252,7 +253,7 @@ void AiBehaviourCommands::allegiance_remove(int16_t function_index, uint32_t thr
     int16_t second_team = *(int16_t *)&arguments[1];
 
     if (first_team != -1 && second_team != -1) {
-        team_pair_override_remove(second_team, first_team);
+        halo::game::team_pair_override_remove(second_team, first_team);
     }
     halo::hs::hs_thread_return(0, thread_index);
     }

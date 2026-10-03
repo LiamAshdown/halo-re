@@ -12,16 +12,15 @@
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern float angle_delta_wrapped(float from, float to);
 extern double atan2(double y, double x);
 extern double fabs(double x);
 extern float fabsf(float x);
 extern double floor(double x);
 extern double fmod(double x, double y);
 extern double fpatan(double y, double x);
-extern game_time_globals *game_time;
 extern real_vector3d *global_origin3d_pointer;
 extern data_array *object_data;
 extern object_globals *object_globals_pointer;
@@ -222,7 +221,7 @@ void halo::objects::ObjectUpdater::update_export_functions()
                 value = *output;
             } else {
                 float yaw = (float)fpatan(forward[0], forward[1]);
-                value = angle_delta_wrapped(halo::scenario::globals().scenario->local_north, yaw) * 0.15915494f + 0.5f;
+                value = halo::game::angle_delta_wrapped(halo::scenario::globals().scenario->local_north, yaw) * 0.15915494f + 0.5f;
                 value = value >= 0.0f ? clamp_to_one(value) : 0.0f;
             }
             break;
@@ -251,7 +250,7 @@ void halo::objects::ObjectUpdater::function_evaluate_input(float initial_angle_i
     float value;
     int16_t selector;
 
-    value = angle_delta_wrapped(initial_angle_input, initial_st0);
+    value = halo::game::angle_delta_wrapped(initial_angle_input, initial_st0);
     value = value * 0.15915494f + 0.5f;
     if (value < 0.0f) {
         value = 0.0f;
@@ -312,7 +311,7 @@ store_and_advance:
             }
             initial_st0 = (float)atan2((double)node->forward.j, (double)node->forward.k);
             initial_angle_input = *(float *)(global_scenario__as_object_function_evaluate_input + 0x4c);
-            value = angle_delta_wrapped(initial_angle_input, initial_st0);
+            value = halo::game::angle_delta_wrapped(initial_angle_input, initial_st0);
             value = value * 0.15915494f + 0.5f;
             if (value >= 0.0f) {
                 goto clamp_to_one;
@@ -416,7 +415,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
             int16_t frame_count = (int16_t)animation->frame_count;
             uint32_t frame;
             if (OFS(obj, 0x10, int8_t) < 0 && frame_count > 0) {
-                frame = ((uint32_t)game_time->game_time + object_index) % (uint32_t)(int32_t)frame_count;
+                frame = ((uint32_t)halo::game::globals().game_time->game_time + object_index) % (uint32_t)(int32_t)frame_count;
             } else {
                 frame = (uint16_t)((struct object *)obj)->animation_frame;
             }
@@ -445,7 +444,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                         }
                         halo::models::animation_overlay_interpolated_frame_orientations(animation, (float)frames * value, orientations);
                     } else if (entry[2] == 1) {
-                        uint32_t frame = ((uint32_t)game_time->game_time + object_index) %
+                        uint32_t frame = ((uint32_t)halo::game::globals().game_time->game_time + object_index) %
                             (uint32_t)(int32_t)(int16_t)animation->frame_count;
                         halo::models::animation_overlay_frame_orientations_weighted(animation, (int16_t)frame, value, orientations);
                     }
@@ -812,7 +811,7 @@ void halo::objects::ObjectUpdater::update_functions()
     uint32_t object_index = handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     Object *definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
-    float phase = (float)(int32_t)(halo::datum_slot(object_index) * 0x39 + game_time->game_time) * 0.033333335f;
+    float phase = (float)(int32_t)(halo::datum_slot(object_index) * 0x39 + halo::game::globals().game_time->game_time) * 0.033333335f;
     int16_t i;
 
     for (i = 0; i < (int32_t)definition->functions.count; i++) {

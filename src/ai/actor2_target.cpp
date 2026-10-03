@@ -11,6 +11,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -157,8 +158,8 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
     }
 
     if (((target->swarm_owned != 0 && target->owner_actor_index != k_datum_index_none) && allow_reassign != 0) &&
-        target->swarm_reassign_time + 0x5a <= game_time->game_time) {
-        target->swarm_reassign_time = game_time->game_time;
+        target->swarm_reassign_time + 0x5a <= halo::game::globals().game_time->game_time) {
+        target->swarm_reassign_time = halo::game::globals().game_time->game_time;
         reassigned = halo::ai::object_find_nearest_squad_member(target->owner_actor_index, (void *)&self->aim_origin, object_index, 0);
         if (reassigned != object_index) {
             target->object_index = reassigned;
@@ -612,7 +613,7 @@ void TargetView::target_mark_engaged(datum_index actor_index, uint8_t mark_engag
         if (target->engaged_ticks == 0) {
             target->engaged_ticks = 1;
         }
-        target->last_engaged_time = game_time->game_time;
+        target->last_engaged_time = halo::game::globals().game_time->game_time;
     }
 
     target->engaged = halo::ai::actor_target_update_active_flag(actor_index, target_prop_index);
@@ -1190,7 +1191,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
     p = &((prop *)halo::ai::globals().prop_data->data)[target_prop_index & halo::k_slot_mask];
     unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->object_index & halo::k_slot_mask].data;
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-    tick = game_time->game_time;
+    tick = halo::game::globals().game_time->game_time;
 
     team_gate = 0;
     if ((enc != (encounter *)0 && enc->blind != 0) || self->awareness_level == 1) {

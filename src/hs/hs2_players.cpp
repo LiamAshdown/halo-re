@@ -4,6 +4,7 @@
 #include "units.h"
 #include "game.h"
 #include "halo/hs/api.hpp"
+#include "halo/game/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -183,7 +184,7 @@ void PlayerCommands::evaluate_player_add_equipment(int16_t function_index, uint3
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    unit_apply_starting_profile(*(int16_t *)&arguments[1], (datum_index)arguments[0], *(uint8_t *)&arguments[2]);
+    halo::game::unit_apply_starting_profile(*(int16_t *)&arguments[1], (datum_index)arguments[0], *(uint8_t *)&arguments[2]);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -204,9 +205,9 @@ void PlayerCommands::evaluate_player_camera_control(int16_t function_index, uint
     uint8_t enable = *(uint8_t *)&arguments[0];
 
     if (enable) {
-        player_control_globals_ptr->flags &= 0xfffffffe;
+        halo::game::globals().player_control->flags &= 0xfffffffe;
     } else {
-        player_control_globals_ptr->flags |= 1;
+        halo::game::globals().player_control->flags |= 1;
     }
     halo::hs::hs_thread_return((int32_t)enable, thread_index);
     }
@@ -265,7 +266,7 @@ void PlayerCommands::evaluate_player_enable_input(int16_t function_index, uint32
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    local_player_globals->input_disabled = (uint8_t)(*(uint8_t *)&arguments[0] == 0);
+    halo::game::globals().local_player_globals->input_disabled = (uint8_t)(*(uint8_t *)&arguments[0] == 0);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }

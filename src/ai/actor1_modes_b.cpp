@@ -7,6 +7,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_mode_charge_enter {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
@@ -106,7 +107,7 @@ uint8_t halo::ai::charge_mode::process()
             if (check_range && range < *(float *)(target + 0x11c)) {
                 md[0x8] = 1;
             } else {
-                *(int32_t *)&((struct actor *)act)->last_melee_time = game_time->game_time;
+                *(int32_t *)&((struct actor *)act)->last_melee_time = halo::game::globals().game_time->game_time;
                 md[0x28] = 1;
                 if (check_range) {
                     if (*(int16_t *)(md + 0x4) == 2) {
@@ -298,7 +299,7 @@ uint8_t halo::ai::charge_mode::process()
     strike_done:;
     }
 
-    now = game_time->game_time;
+    now = halo::game::globals().game_time->game_time;
     kind = *(int16_t *)(md + 0x4);
     if ((kind == 2 || kind == 3) && !md[0x6] && !md[0xc]) {
         if (md[0xb]) {
@@ -406,7 +407,6 @@ extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
-extern game_time_globals *game_time;
 }
 }
 
@@ -455,7 +455,7 @@ void halo::ai::charge_mode::update()
         *(int32_t *)&((struct actor *)act)->jump_vertical_velocity = *(int32_t *)(act + 0xbc);
         act[0xa7] = 1;
         act[0xa8] = 0;
-        ((struct actor *)act)->mode_data.charge.stage_start_time = game_time->game_time;
+        ((struct actor *)act)->mode_data.charge.stage_start_time = halo::game::globals().game_time->game_time;
         ((struct actor *)act)->mode_data.charge.stage_ticks = 0;
     }
     if (actor_flags & 0x100000) {
@@ -778,12 +778,12 @@ uint8_t halo::ai::flee_mode::process()
             if (act[0x160]) {
                 ((actor_mode_flee_data *)mode_data)->movement_cancelled = 0;
                 mode_data[0xe] = 1;
-                *(int32_t *)&((struct actor *)act)->last_flee_abort_time = game_time->game_time;
+                *(int32_t *)&((struct actor *)act)->last_flee_abort_time = halo::game::globals().game_time->game_time;
             } else if (((actor_mode_flee_data *)mode_data)->movement_cancelled) {
                 halo::ai::actor_check_melee_target_reachable(actor_index, (int16_t *)mode_data);
                 if (((actor_mode_flee_data *)mode_data)->destination == -1) {
                     mode_data[0xe] = 1;
-                    *(int32_t *)&((struct actor *)act)->last_flee_abort_time = game_time->game_time;
+                    *(int32_t *)&((struct actor *)act)->last_flee_abort_time = halo::game::globals().game_time->game_time;
                 }
             }
         }
@@ -808,7 +808,7 @@ uint8_t halo::ai::flee_mode::process()
         unit_index = ((actor *)act)->unit_index;
         if (unit_index != k_datum_index_none) {
             announced = mode_data[0x10];
-            now = game_time->game_time;
+            now = halo::game::globals().game_time->game_time;
             if (!announced || *(int32_t *)(mode_data + 0x14) + 60 >= now) {
                 if (kind == 11 || kind == 12) {
                     halo::units::unit_dispatch_reaction_animation(unit_index, 2);
@@ -880,7 +880,6 @@ extern "C" {
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
-extern game_time_globals *game_time;
 }
 }
 
@@ -909,7 +908,7 @@ void halo::ai::flee_mode::tick()
         }
     }
     if (((struct actor *)act)->mode_data.flee.panic > 0) {
-        *(int32_t *)&((struct actor *)act)->panic_cooldown_time = game_time->game_time + 750;
+        *(int32_t *)&((struct actor *)act)->panic_cooldown_time = halo::game::globals().game_time->game_time + 750;
     }
 }
 

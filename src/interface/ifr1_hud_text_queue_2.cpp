@@ -5,6 +5,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/text/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int32_t hud_text_message_time_base;
@@ -16,8 +17,6 @@ extern int32_t hud_text_draw_font_tag_id;
 extern uint32_t hud_text_draw_color_or_flags;
 extern int32_t hud_text_draw_unknown_4730;
 extern uint16_t missing_string_text[];
-extern void widget_instance_close_and_restore_previous(widget_instance *widget);
-extern int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t tag);
 }
 
 namespace halo::interface {
@@ -77,7 +76,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
                         goto draw;
                     }
                     hud_text_message_cycle_state_00719230 = 2;
-                    widget_instance_close_and_restore_previous(widget);
+                    halo::interface::widget_instance_close_and_restore_previous(widget);
                     return 1;
                 }
                 message_index = 0;
@@ -98,7 +97,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
                     }
                 }
             }
-            bottom += hud_text_message_queue_add(text, bottom, message_index);
+            bottom += halo::interface::hud_text_message_queue_add(text, bottom, message_index);
         } while (bottom <= 0x1ae);
     }
 

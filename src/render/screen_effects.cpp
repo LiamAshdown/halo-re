@@ -27,11 +27,12 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 static_assert(offsetof(Bitmap, bitmap_data) + offsetof(TagReflexive, pointer) == halo::render::k_bitmap_data_pointer_offset);
 
 extern "C" {
-extern game_time_globals *game_time;
 extern GlobalsRasterizerData *rasterizer_globals_data;
 extern ColorRGB *default_axis_b;
 extern ColorRGB *global_real_rgb_green_pointer;
@@ -43,8 +44,6 @@ extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern void rasterizer_set_shader_stage_config(int16_t mode);
-extern void hud_text_draw_configure(int16_t font_table_index, uint16_t color_or_flags, int16_t column,
-    uint32_t unknown_4730, int16_t color_table_index, int16_t color_index);
 extern rasterizer_dynamic_index_slot rasterizer_dynamic_index_slots[];
 extern void **rasterizer_effect_pool_scratch;
 extern void rasterizer_lens_flare_batch_flush_all(void);
@@ -80,7 +79,7 @@ static float progress(float start_time, float end_time)
     if (end_time == start_time) {
         return 1.0f;
     }
-    t = ((float)game_time->game_time * 0.033333335f - start_time) / (end_time - start_time);
+    t = ((float)halo::game::globals().game_time->game_time * 0.033333335f - start_time) / (end_time - start_time);
     if (t < 0.0f) {
         return 0.0f;
     }
@@ -191,7 +190,7 @@ void set_convolution(int16_t convolution_type, int16_t extra_passes, float radiu
     g->convolution_radius_lower_bound = radius_lower_bound;
     g->convolution_radius_upper_bound = radius_upper_bound;
 
-    start_time = (float)game_time->game_time * 0.033333335f;
+    start_time = (float)halo::game::globals().game_time->game_time * 0.033333335f;
     g->convolution_start_time = start_time;
     g->convolution_end_time = start_time + duration;
 }
@@ -227,7 +226,7 @@ void set_filter(float light_enhancement_lower, float light_enhancement_upper, fl
 
     g->filter_desaturation_is_additive = is_additive;
 
-    start_time = (float)game_time->game_time * 0.033333335f;
+    start_time = (float)halo::game::globals().game_time->game_time * 0.033333335f;
     g->night_vision_masked = 0;
     g->desaturation_masked = 0;
     g->filter_start_time = start_time;
@@ -460,7 +459,7 @@ void draw(uint8_t render_graph, uint8_t render_infos)
             frame_graphs[0].frame_vertices, sizeof(rasterizer_dynamic_screen_vertex));
     }
 
-    hud_text_draw_configure(1, 0xffff, 0, 0, 5, 0);
+    halo::interface::hud_text_draw_configure(1, 0xffff, 0, 0, 5, 0);
     hud_text_draw_color_a = white[0];
     halo::text::globals().hud_text_draw_background_mode = 0;
     hud_text_draw_color_r = white[1];
@@ -664,7 +663,7 @@ void draw(void)
     bounds.top = (int16_t)(bounds.top + 0x20);
     bounds.bottom = (int16_t)(bounds.bottom + 0x20);
 
-    hud_text_draw_configure(1, 0xffff, 0, 0, 5, 0);
+    halo::interface::hud_text_draw_configure(1, 0xffff, 0, 0, 5, 0);
     sprintf(text, "|n|tframerate|taverage (of %d)|tmin|tmax|tdropped",
             (int32_t)halo::rasterizer::globals().frame_statistics.sample_count);
     tab_stops[0] = left;

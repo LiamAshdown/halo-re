@@ -8,6 +8,8 @@
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern uint8_t chat_dialog_open;
@@ -23,20 +25,13 @@ extern chat_gui_set_focus_fn chat_gui_set_focus;
 extern chat_gui_set_state_fn chat_gui_set_state;
 extern chat_gui_release_fn chat_gui_release;
 extern uint8_t chat_gui_active;
-extern data_array *player_data;
 extern wchar_t empty_string;
 extern int32_t shell_load_localized_string(int32_t id, char *out_buffer);
-extern void chimera__multiplayer_message(const wchar_t *text);
 extern uint8_t chat_hotkey_all;
 extern uint8_t chat_hotkey_team;
 extern uint8_t chat_hotkey_vehicle;
-extern void chimera__chat_open(int32_t chat_scope);
-extern void hud_chat_listbox_update(void);
 extern chat_gui_find_child_fn chat_gui_find_child;
 extern chat_gui_get_property_string_fn keystone_control_get_attribute;
-extern int32_t chat_default_team_channel(void);
-extern void chimera__chat_out(uint8_t team_index);
-extern void chat_close(void);
 extern uint8_t network_message_scratch[0x7ff8];
 }
 
@@ -97,7 +92,7 @@ int32_t ChatDialog::default_team_channel(void)
     data_iterator iterator;
     player *entry;
 
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -140,7 +135,7 @@ bool PlayerChatSource::accepts(const chat_incoming_record &record) const
 void PlayerChatSource::deliver(const chat_incoming_record &record, wchar_t *text) const
 {
     wchar_t line[0x200];
-    player *sender = (player *)halo::memory::datum_get((datum_index)record.player_index, player_data);
+    player *sender = (player *)halo::memory::datum_get((datum_index)record.player_index, halo::game::globals().player_data);
 
     if (sender == 0) {
         return;
@@ -154,7 +149,7 @@ void PlayerChatSource::deliver(const chat_incoming_record &record, wchar_t *text
         wcslen(line);
     }
     wcscat(line, text);
-    chimera__multiplayer_message(line);
+    halo::interface::chimera__multiplayer_message(line);
 }
 
 bool LocalizedChatSource::accepts(const chat_incoming_record &record) const
@@ -174,7 +169,7 @@ void LocalizedChatSource::deliver(const chat_incoming_record &record, wchar_t *)
     }
     halo::text::string_format_wide_va_bounded(0x7f, (uint16_t *)short_line, (const uint16_t *)L"%S", localized);
     short_line[0x7f] = 0;
-    chimera__multiplayer_message(short_line);
+    halo::interface::chimera__multiplayer_message(short_line);
 }
 
 bool PlainChatSource::accepts(const chat_incoming_record &record) const
@@ -184,7 +179,7 @@ bool PlainChatSource::accepts(const chat_incoming_record &record) const
 
 void PlainChatSource::deliver(const chat_incoming_record &, wchar_t *text) const
 {
-    chimera__multiplayer_message(text);
+    halo::interface::chimera__multiplayer_message(text);
 }
 
 const PlayerChatSource k_player_source;
@@ -245,20 +240,20 @@ uint8_t ChatDialog::poll_hotkeys(void)
 {
     if (halo::main::globals().console_globals.active == 0) {
         if (chat_hotkey_all == 1) {
-            chimera__chat_open(0);
-            hud_chat_listbox_update();
+            halo::interface::chimera__chat_open(0);
+            halo::interface::hud_chat_listbox_update();
             return chat_dialog_open;
         }
         if (chat_hotkey_team == 1) {
-            chimera__chat_open(1);
-            hud_chat_listbox_update();
+            halo::interface::chimera__chat_open(1);
+            halo::interface::hud_chat_listbox_update();
             return chat_dialog_open;
         }
         if (chat_hotkey_vehicle == 1) {
-            chimera__chat_open(2);
+            halo::interface::chimera__chat_open(2);
         }
     }
-    hud_chat_listbox_update();
+    halo::interface::hud_chat_listbox_update();
     return chat_dialog_open;
 }
 
@@ -275,7 +270,7 @@ void ChatDialog::submit_input(void)
     }
 
     {
-        int32_t team_index = chat_default_team_channel();
+        int32_t team_index = halo::interface::chat_default_team_channel();
         if (team_index != -1) {
             const wchar_t *text = 0;
             void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_gui_find_object_arg);
@@ -292,11 +287,11 @@ void ChatDialog::submit_input(void)
                     size_t count = (length < 0xff) ? length : 0xfe;
                     wcsncpy(buffer, text, count);
                     buffer[count] = 0;
-                    chimera__chat_out((uint8_t)team_index);
+                    halo::interface::chimera__chat_out((uint8_t)team_index);
                 }
             }
         }
-        chat_close();
+        halo::interface::chat_close();
     }
 }
 

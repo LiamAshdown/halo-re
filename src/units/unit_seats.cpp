@@ -20,6 +20,7 @@
 #include "halo/ai/api.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -219,7 +220,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
     }
     ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
-    ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
+    ((unit_object *)self)->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;
     if (((unit_object *)self)->unit.driver_unit_index == object_index) {
         ((unit_object *)self)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -275,11 +276,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *empty = (uint8_t *)halo::objects::object_try_and_get(vehicle_index, 2);
 
         if (empty != 0) {
-            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
+            *(int32_t *)(empty + 0x5ac) = halo::game::globals().game_time->game_time;
         }
     }
     if (halo::networking::globals().game_mode == 1) {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, halo::game::globals().player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;
@@ -298,10 +299,10 @@ static void biped_free_local_player_history(uint8_t *self)
     uint8_t *player;
 
     if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
-        index >= player_data->maximum_count) {
+        index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    player = (uint8_t *)player_data->data + player_data->size * index;
+    player = (uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * index;
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
@@ -413,7 +414,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
     }
     ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
-    ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
+    ((unit_object *)self)->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;
     if (((unit_object *)self)->unit.driver_unit_index == object_index) {
         ((unit_object *)self)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -469,11 +470,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *empty = (uint8_t *)halo::objects::object_try_and_get(vehicle_index, 2);
 
         if (empty != 0) {
-            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
+            *(int32_t *)(empty + 0x5ac) = halo::game::globals().game_time->game_time;
         }
     }
     if (halo::networking::globals().game_mode == 1) {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, halo::game::globals().player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;
@@ -492,10 +493,10 @@ static void biped_free_local_player_history(uint8_t *self)
     uint8_t *player;
 
     if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
-        index >= player_data->maximum_count) {
+        index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    player = (uint8_t *)player_data->data + player_data->size * index;
+    player = (uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * index;
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
@@ -782,19 +783,19 @@ void halo::units::unit_exit_seat_end(void)
 void halo::units::unit_exit_vehicle_seat(uint32_t player_index)
 {
     if ((player_index != k_datum_index_none) && (0 <= (int16_t)player_index) &&
-        ((int16_t)player_index < player_data->maximum_count)) {
-        int32_t record_offset = (int32_t)player_data->size * (int16_t)player_index;
-        int16_t salt = *(int16_t *)((uint8_t *)player_data->data + record_offset);
+        ((int16_t)player_index < halo::game::globals().player_data->maximum_count)) {
+        int32_t record_offset = (int32_t)halo::game::globals().player_data->size * (int16_t)player_index;
+        int16_t salt = *(int16_t *)((uint8_t *)halo::game::globals().player_data->data + record_offset);
         int16_t requested_salt = (int16_t)(player_index >> 16);
         if ((salt != 0) && ((requested_salt == 0) || (salt == requested_salt))) {
-            uint32_t unit_index = *(uint32_t *)((uint8_t *)player_data->data + record_offset + 0x34);
+            uint32_t unit_index = *(uint32_t *)((uint8_t *)halo::game::globals().player_data->data + record_offset + 0x34);
 
             uint32_t record[8] = { 0, 0, k_datum_index_none, 0, 0, 0, 0, 0 };
 
             UnitView(unit_index).update_stance_and_jump(1, 0, 0, 0, 0, 0.0f, -1, 0, 0);
             UnitView(unit_index).release_transient_state(0);
 
-            uint32_t player_field_2c = *(uint32_t *)((uint8_t *)player_data->data + record_offset + 0x2c);
+            uint32_t player_field_2c = *(uint32_t *)((uint8_t *)halo::game::globals().player_data->data + record_offset + 0x2c);
 
             uint8_t *rec_bytes = (uint8_t *)record;
             record[0] = unit_index;
@@ -1343,7 +1344,7 @@ void UnitView::release_transient_state_and_detach(uint8_t is_light_reset)
     if (!is_light_reset) {
         unit->feign_death_ticks = 0;
         if (unit->controlling_player != k_datum_index_none) {
-            player_reset_after_unit_change(unit->controlling_player);
+            halo::game::player_reset_after_unit_change(unit->controlling_player);
             unit->controlling_player = k_datum_index_none;
         }
         if (unit->actor_index != k_datum_index_none) {
@@ -1360,7 +1361,7 @@ void UnitView::release_transient_state_and_detach(uint8_t is_light_reset)
             halo::ai::actor_release_from_cluster_or_delete(unit->swarm_actor_index, unit_index);
             unit->swarm_actor_index = k_datum_index_none;
         }
-        unit->death_time = game_time->game_time;
+        unit->death_time = halo::game::globals().game_time->game_time;
     } else {
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(self_obj->definition_tag)].data;
@@ -1440,7 +1441,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
     }
     ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
-    ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
+    ((unit_object *)self)->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;
     if (((unit_object *)self)->unit.driver_unit_index == object_index) {
         ((unit_object *)self)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -1496,11 +1497,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *empty = (uint8_t *)halo::objects::object_try_and_get(vehicle_index, 2);
 
         if (empty != 0) {
-            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
+            *(int32_t *)(empty + 0x5ac) = halo::game::globals().game_time->game_time;
         }
     }
     if (halo::networking::globals().game_mode == 1) {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, halo::game::globals().player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;
@@ -1519,10 +1520,10 @@ static void biped_free_local_player_history(uint8_t *self)
     uint8_t *player;
 
     if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
-        index >= player_data->maximum_count) {
+        index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    player = (uint8_t *)player_data->data + player_data->size * index;
+    player = (uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * index;
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
@@ -1727,7 +1728,7 @@ uint8_t halo::units::unit_seat_is_occupied_by_other(uint32_t self_index, int16_t
             uint32_t reassigned = child;
             if (!match && self_unit->controlling_player != k_datum_index_none) {
                 reassigned = found;
-                match = teams_are_enemies(((struct object *)child_obj)->owner_team, ((struct object *)self_obj)->owner_team) != 0;
+                match = halo::game::teams_are_enemies(((struct object *)child_obj)->owner_team, ((struct object *)self_obj)->owner_team) != 0;
             }
             if (match) {
                 not_found = 0;
@@ -1852,7 +1853,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
     }
     ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
-    ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
+    ((unit_object *)self)->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;
     if (((unit_object *)self)->unit.driver_unit_index == object_index) {
         ((unit_object *)self)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -1908,11 +1909,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *empty = (uint8_t *)halo::objects::object_try_and_get(vehicle_index, 2);
 
         if (empty != 0) {
-            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
+            *(int32_t *)(empty + 0x5ac) = halo::game::globals().game_time->game_time;
         }
     }
     if (halo::networking::globals().game_mode == 1) {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, halo::game::globals().player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;
@@ -1931,10 +1932,10 @@ static void biped_free_local_player_history(uint8_t *self)
     uint8_t *player;
 
     if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
-        index >= player_data->maximum_count) {
+        index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    player = (uint8_t *)player_data->data + player_data->size * index;
+    player = (uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * index;
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }

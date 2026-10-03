@@ -13,6 +13,8 @@
 #include "halo/shell/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count];
@@ -453,7 +455,7 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
     }
     for (i = 0; i < len; i = i + 1) {
         uint8_t ch = (uint8_t)name[i];
-        if (ch < ' ' || ch == 0xff || halo::text::text_get_character_metrics(ch, (Font *)small_ui_font) == 0 || virtual_keyboard_character_is_legal(ch, character) == 0) {
+        if (ch < ' ' || ch == 0xff || halo::text::text_get_character_metrics(ch, (Font *)small_ui_font) == 0 || halo::interface::virtual_keyboard_character_is_legal(mode, ch) == 0) {
             ok = 0;
             break;
         }
@@ -472,7 +474,7 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
     if (mode != 1) {
         return ok;
     }
-    return ok != 0 && ui_wide_string_has_non_whitespace() != 0;
+    return ok != 0 && halo::interface::ui_wide_string_has_non_whitespace((const uint16_t *)character) != 0;
 }
 
 /**
@@ -714,8 +716,8 @@ void EventFeed::flush(int32_t *queue)
             key_slot = key_slot + 2;
             raw_key = *key_slot;
             if (raw_key != -1 && (int16_t)raw_key >= 0 &&
-                (int16_t)raw_key < player_data->maximum_count) {
-                entry = (uint8_t *)player_data->data + (int16_t)raw_key * player_data->size;
+                (int16_t)raw_key < halo::game::globals().player_data->maximum_count) {
+                entry = (uint8_t *)halo::game::globals().player_data->data + (int16_t)raw_key * halo::game::globals().player_data->size;
                 entry_identifier = *(int16_t *)entry;
                 if (entry_identifier != 0) {
                     entry_salt = (int16_t)((uint32_t)raw_key >> 16);

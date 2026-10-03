@@ -20,23 +20,19 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern Globals *global_globals;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern void unit_invalidate_local_player_zoom_level(uint32_t unit_index);
-extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
 extern char k_empty_string[];
 extern real_vector3d *global_origin3d_pointer;
 extern char s_left_hand_marker[];
 extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level);
 extern uint8_t *local_player_globals;
-extern data_array *player_data;
-extern uint8_t game_engine_notify_weapon_ready_state_change(datum_index unit_index, datum_index weapon_index);
-extern void unit_set_local_player_weapon_index(datum_index unit, int16_t weapon_index);
-extern game_time_globals *game_time;
 extern uint8_t network_message_scratch[0x7ff8];
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
@@ -44,7 +40,6 @@ extern uint8_t *object_network_id_table;
 extern uint8_t weapon_bottomless_clip;
 extern uint32_t game_engine_unknown_aa00;
 extern uint32_t motion_sensor_override_value;
-extern int32_t player_index_from_unit_index(uint32_t unit_index);
 }
 
 namespace halo::units {
@@ -91,7 +86,7 @@ void UnitView::add_initial_weapons()
         if (weapon_index == k_datum_index_none) {
             continue;
         }
-        if (current_game_engine != 0 &&
+        if (halo::game::globals().current_engine != 0 &&
             UnitView(unit_index).has_weapon_of_type((int32_t)object_from_index(weapon_index)->definition_tag)) {
             halo::objects::object_delete(weapon_index);
             continue;
@@ -173,8 +168,8 @@ uint8_t UnitView::begin_throw_grenade(const real_vector2d *direction)
                 UnitView(unit_index).set_throw_aim_direction(&aim);
             }
         }
-        weapon_action_notify_for_unit(unit_index, 0x11);
-        unit_invalidate_local_player_zoom_level(unit_index);
+        halo::interface::weapon_action_notify_for_unit(unit_index, 0x11);
+        halo::game::unit_invalidate_local_player_zoom_level(unit_index);
         uint8_t *grenade_table_entry = ((uint8_t *)global_globals->grenades.pointer) + (int8_t)grenade_type * 0x44;
         if (*(int32_t *)(grenade_table_entry + 0x10) != -1) {
             halo::effects::effect_new_on_object(unit_index, *(datum_index *)(grenade_table_entry + 0x10), unit_index, -1,
@@ -205,9 +200,9 @@ uint8_t UnitView::check_weapon_use_permission(uint32_t weapon_index)
     if (UnitView(unit_index).set_or_test_seat_and_weapon_label(seat_name, weapon_label, 0) == 0) {
         return 0;
     }
-    if (current_game_engine != 0 && (void *)current_game_engine->unknown_60 != (void *)0) {
+    if (halo::game::globals().current_engine != 0 && (void *)halo::game::globals().current_engine->unknown_60 != (void *)0) {
         uint8_t (*permission)(uint32_t, uint32_t) =
-            *(uint8_t (**)(uint32_t, uint32_t))((uint8_t *)current_game_engine + 0x60);
+            *(uint8_t (**)(uint32_t, uint32_t))((uint8_t *)halo::game::globals().current_engine + 0x60);
 
         return permission(unit_index, weapon_index);
     }
@@ -365,7 +360,7 @@ uint8_t UnitView::drop_current_weapon(uint8_t force)
         ((next_slot != unit->current_weapon_index) || force) &&
         ((((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(current_weapon)].data->flags & 1) == 0)) {
         if ((uint8_t)halo::items::weapon_put_away(current_weapon, (int8_t)force) != 0) {
-            weapon_action_notify_for_unit(unit_index, 0xd);
+            halo::interface::weapon_action_notify_for_unit(unit_index, 0xd);
             UnitView(unit_index).drop_object_from_hand(current_weapon);
             unit->weapons[unit->current_weapon_index] = k_datum_index_none;
             unit->current_weapon_index = -1;
@@ -552,7 +547,7 @@ void UnitView::drop_object_from_hand(uint32_t object_index)
     halo::items::item_accelerate(object_index, &toss, 0);
 
     UnitView(unit_index).get_camera_position(&camera);
-    if (!halo::objects::object_reposition_to_spawn_location(object_index, &camera, k_datum_index_none) && current_game_engine == 0) {
+    if (!halo::objects::object_reposition_to_spawn_location(object_index, &camera, k_datum_index_none) && halo::game::globals().current_engine == 0) {
         halo::objects::object_delete(object_index);
     }
     if (((unit_object *)unit)->unit.flags & 0x100000) {
@@ -966,7 +961,7 @@ uint8_t halo::units::unit_local_player_weapon_flag_check(void)
         if (slot != -1 && slot < 1) {
             uint32_t player_handle = *(uint32_t *)(local_player_globals + 4 + slot * 4);
             if (player_handle != (uint32_t)-1) {
-                datum_index unit_handle = *(datum_index *)((uint8_t *)player_data->data +
+                datum_index unit_handle = *(datum_index *)((uint8_t *)halo::game::globals().player_data->data +
                                                              halo::datum_slot(player_handle) * 0x200 + 0x34);
                 if (unit_handle != k_datum_index_none) {
                     return UnitView(unit_handle).current_weapon_has_flag();
@@ -1056,7 +1051,7 @@ uint8_t halo::units::unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_ind
 
     if ((test_flag(weapon_obj->flags, objects::object_flag::needs_cluster_update)) && (weapon_obj->parent_object == k_datum_index_none)) {
         if (UnitView(unit_index).check_weapon_use_permission(weapon_index) != 0  ) {
-            if (game_engine_notify_weapon_ready_state_change(unit_index, weapon_index) != 0  ) {
+            if (halo::game::game_engine_notify_weapon_ready_state_change(unit_index, weapon_index) != 0  ) {
                 if (pickup_mode == 2) {
                     UnitView(unit_index).drop_inventory_weapons_except_current();
                 }
@@ -1077,7 +1072,7 @@ uint8_t halo::units::unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_ind
                     if (pickup_mode != 0) {
                         if (pickup_mode == 1) {
                             if (!test_flag(unit->control_flags, units::unit_control_flag::primary_trigger)) {
-                                unit_set_local_player_weapon_index(unit_index, slot);
+                                halo::game::unit_set_local_player_weapon_index(unit_index, slot);
                             }
                         } else if (pickup_mode != 2) {
                             return 1;
@@ -1170,7 +1165,7 @@ void UnitView::ready_desired_weapon(uint8_t force)
         desired = ((unit_object *)unit)->unit.desired_weapon_index;
         ((unit_object *)unit)->unit.current_weapon_index = desired;
         if (desired != -1) {
-            *(int32_t *)(unit + 0x308 + desired * 4) = game_time->game_time;
+            *(int32_t *)(unit + 0x308 + desired * 4) = halo::game::globals().game_time->game_time;
         }
         halo::items::weapon_ready(desired_weapon);
         UnitView(unit_index).validate_and_clear_weapon_switch();
@@ -1471,7 +1466,7 @@ void UnitView::throw_grenade_move_to_hand()
 
     if (((unit->controlling_player == k_datum_index_none) ||
          ((weapon_bottomless_clip == 0) &&
-          ((current_game_engine == 0) || ((game_engine_unknown_aa00 & 4) != 0) ||
+          ((halo::game::globals().current_engine == 0) || ((game_engine_unknown_aa00 & 4) != 0) ||
            ((motion_sensor_override_value >> 2 & 1) == 0)))) &&
         (unit->actor_index == k_datum_index_none) &&
         ((unit_obj->network_role == 3) || (unit_obj->network_role == 0))) {
@@ -1538,10 +1533,10 @@ uint8_t halo::units::unit_try_give_grenade(uint32_t tag_source_index, uint32_t u
     if ((max_count_ptr != (int16_t *)0) && (unit->grenade_counts[grenade_type] < *max_count_ptr)) {
         unit->grenade_counts[grenade_type] += 1;
         set_flag(unit_obj->flags, objects::object_flag::changed);
-        int32_t local_player = player_index_from_unit_index(unit_index);
+        int32_t local_player = halo::game::player_index_from_unit_index(unit_index);
         if (local_player != -1) {
-            uint32_t local_player2 = (uint32_t)player_index_from_unit_index(unit_index);
-            if (*(int16_t *)((uint8_t *)player_data->data + halo::datum_slot(local_player2) * 0x200 + 2) != -1) {
+            uint32_t local_player2 = (uint32_t)halo::game::player_index_from_unit_index(unit_index);
+            if (*(int16_t *)((uint8_t *)halo::game::globals().player_data->data + halo::datum_slot(local_player2) * 0x200 + 2) != -1) {
                 halo::items::equipment_pickup_play_sound(tag_source_index);
             }
         }
@@ -1679,10 +1674,10 @@ uint8_t UnitView::try_select_equipment(uint32_t new_equipment_object_index, int1
         set_flag(new_obj->flags, objects::object_flag::no_collision);
         ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(new_equipment_object_index)].flags &= 0xfd;
 
-        int32_t local_player = player_index_from_unit_index(unit_index);
+        int32_t local_player = halo::game::player_index_from_unit_index(unit_index);
         if (local_player != -1) {
-            uint32_t local_player2 = (uint32_t)player_index_from_unit_index(unit_index);
-            if (*(int16_t *)((uint8_t *)player_data->data + halo::datum_slot(local_player2) * 0x200 + 2) != -1) {
+            uint32_t local_player2 = (uint32_t)halo::game::player_index_from_unit_index(unit_index);
+            if (*(int16_t *)((uint8_t *)halo::game::globals().player_data->data + halo::datum_slot(local_player2) * 0x200 + 2) != -1) {
                 halo::items::equipment_pickup_play_sound(new_equipment_object_index);
             }
         }

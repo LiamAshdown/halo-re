@@ -5,6 +5,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -377,7 +378,7 @@ restart:
         if (target->state == 4 &&
             (target->visual_perception > 1 ||
              (self->firing_target_type == 1 && self->firing_target_prop_index == target_prop_index &&
-              game_time->game_time % 3 == 0))) {
+              halo::game::globals().game_time->game_time % 3 == 0))) {
             char nearly_dead = self->vehicle_gunner_bombards[0];
             int16_t threshold = (int16_t)((nearly_dead != 0) ? 300 : 45);
             target->inspection_ticks += 1;
@@ -428,7 +429,7 @@ tail:
             float dist_threshold;
             payload.object_type = target->team;
             payload.team = self->team;
-            payload.is_enemy = (char)teams_are_enemies(target->team, self->team);
+            payload.is_enemy = (char)halo::game::teams_are_enemies(target->team, self->team);
             if (payload.is_enemy == 0) {
                 dist_threshold = (target->aiming_at_actor_class < 3) ? 10.0f : 3.0f;
             } else {

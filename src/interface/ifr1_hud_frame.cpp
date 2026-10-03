@@ -9,65 +9,26 @@
 #include "halo/render/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
-extern data_array *player_data;
-extern player_globals *local_player_globals;
 extern HUDGlobals *hud_globals_tag_data;
 extern int16_t render_viewport_top;
 extern float hud_damage_indicator_screen_center_x;
-extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
-                                           void **out_data, int32_t *out_offset);
-extern void hud_draw_bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, int16_t anchor,
-                               const Point2DInt *screen_position, float scale, float rotation, uint32_t color);
 extern Globals *global_globals;
-extern game_time_globals *game_time;
 extern hud_weapon_interface_state *hud_weapon_state;
-extern void hud_draw_static_element(int16_t local_player_index, uint16_t *anchor,
-                                    const hud_static_element_placement *element, uint32_t draw_flags,
-                                    int32_t flash_start_time);
-extern void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_placement *placement, int16_t value,
-                            int16_t fraction, uint32_t flags, int32_t flash_start_time, float scale);
-extern void hud_draw_overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t type_mask,
-                              int32_t flash_start_time, uint32_t draw_flags, uint8_t split_screen);
-extern void hud_weapon_crosshairs_draw(datum_index hud_tag, const player *p, const weapon_hud_ammo_state *ammo);
-extern void hud_weapon_interface_draw_elements(datum_index hud_tag, int16_t local_player_index, const Weapon *weapon_tag,
-                                               const weapon_hud_ammo_state *ammo, const uint16_t *parent_state_flags,
-                                               const uint16_t *parent_overlay_types, const int16_t *parent_numbers);
-extern void hud_draw_grenade_interface(int16_t local_player_index, datum_index unit_index);
 extern hud_unit_meter_globals *hud_unit_meters;
 extern int16_t current_local_player_index;
-extern game_engine_definition *current_game_engine;
-extern game_variant game_engine_variant;
 extern int32_t hud_overshield_layer_count;
 extern datum_index hud_team_icon_bitmap;
 extern datum_index hud_team_background_bitmap;
 extern long lrint(double x);
-extern int32_t ui_real_to_int_truncate(float value);
-extern uint8_t game_engine_is_valid_team_player(uint32_t identifier);
-extern uint8_t game_engine_scores_tracked_individually(void);
-extern float *game_engine_get_player_color(uint32_t player_index, float *out_rgb);
-extern uint32_t color_rgb_float_to_int(const float *rgb);
-extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
-                                                 const int16_t *offset, int16_t *out, int32_t selector);
-extern void hud_meter_draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t flags,
-                                float fraction, float fraction_2, const hud_meter_placement *meter);
-extern void hud_draw_rotated_bitmap_quad(const Point2DInt *screen_position, const float *scale,
-                                         void *meter_parameters, BitmapData *bitmap, const float *uv,
-                                         const float *extents, float rotation, uint32_t color);
-extern void motion_sensor_update_for_player(int16_t local_player_index);
-extern void motion_sensor_render(uint8_t splitscreen, const int16_t *screen_center,
-                                 int16_t local_player_index);
 extern hud_globals_flags *hud_flags;
 extern hud_messaging_globals *hud_messaging;
 extern hud_waypoint_state *hud_waypoints;
 extern motion_sensor_globals *motion_sensor;
 extern HUDGlobals *hud_messaging_parameters;
-extern void motion_sensor_reset(void);
-extern void hud_weapon_interface_state_update(void);
-extern void hud_unit_meters_update(void);
-extern void hud_waypoints_update(void);
-extern void hud_unit_sounds_update(player *p, uint8_t hud_enabled);
 extern int32_t game_engine_state_value;
 }
 
@@ -85,7 +46,7 @@ static int32_t hud_alpha_round(float value)
 
 static int32_t hud_alpha_truncate(float value)
 {
-    int32_t truncated = ui_real_to_int_truncate(value);
+    int32_t truncated = halo::interface::ui_real_to_int_truncate(value);
     if (truncated < 0) {
         return 0;
     }
@@ -132,11 +93,11 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
     if (local_player_index >= 1) {
         unit_index = (datum_index)-1;
     } else {
-        datum_index player_index = local_player_globals->local_players[local_player_index];
+        datum_index player_index = halo::game::globals().local_player_globals->local_players[local_player_index];
         if (player_index == (datum_index)-1) {
             unit_index = (datum_index)-1;
         } else {
-            player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+            player *p = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * sizeof(player));
             unit_index = p->unit;
         }
     }
@@ -151,7 +112,7 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
         uint8_t *hud = (uint8_t *)hud_globals_tag_data;
         uint8_t *edge_offsets = hud + 0x310;
         datum_index icon_bitmap = *(datum_index *)(hud + 0x344);
-        uint16_t sequence_index = (local_player_globals->local_player_count <= 1)
+        uint16_t sequence_index = (halo::game::globals().local_player_globals->local_player_count <= 1)
             ? *(uint16_t *)(hud + 0x348)
             : *(uint16_t *)(hud + 0x34a);
         uint32_t icon_color = *(uint32_t *)(hud + 0x34c);
@@ -194,7 +155,7 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
             x -= (float)halo::render::globals().viewport_left;
             y -= (float)render_viewport_top;
 
-            hud_meter_resolve_bitmap_frame(icon_bitmap, (int16_t)sequence_index, 0, &bitmap_data, &sprite_rect);
+            halo::interface::hud_meter_resolve_bitmap_frame(icon_bitmap, (int16_t)sequence_index, 0, &bitmap_data, &sprite_rect);
             if (bitmap_data == 0) {
                 continue;
             }
@@ -203,7 +164,7 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
             }
             position.x = (int16_t)(int32_t)x;
             position.y = (int16_t)(int32_t)y;
-            hud_draw_bitmap_at((const float *)sprite_rect, (BitmapData *)bitmap_data, 0, 4, &position, 1.0f,
+            halo::interface::hud_draw_bitmap_at((const float *)sprite_rect, (BitmapData *)bitmap_data, 0, 4, &position, 1.0f,
                                *(float *)&rotation_bits, icon_color);
         }
     }
@@ -243,28 +204,28 @@ void HudFrame::draw_grenade_interface(int16_t local_player_index, datum_index un
     hud = (GrenadeHUDInterface *)halo::cache::globals().tag_instances[hud_tag & 0xffff].data;
 
     count = *(int8_t *)(unit + 0x31e + grenade);
-    flags = (count <= hud->flash_cutoff ? 1 : 0) | (count == 0 ? 2 : 0) | (local_player_globals->local_player_count > 1 ? 4 : 0);
+    flags = (count <= hud->flash_cutoff ? 1 : 0) | (count == 0 ? 2 : 0) | (halo::game::globals().local_player_globals->local_player_count > 1 ? 4 : 0);
     if ((flags & 1) != 0) {
         if (*flash_start_time == -1) {
-            *flash_start_time = game_time->game_time;
+            *flash_start_time = halo::game::globals().game_time->game_time;
         }
     } else {
         *flash_start_time = -1;
     }
 
     if (*(datum_index *)&((struct GrenadeHUDInterface *)hud)->background_interface_bitmap.tag_id != (datum_index)-1) {
-        hud_draw_static_element(local_player_index, (uint16_t *)hud,
+        halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)hud,
                                 (const hud_static_element_placement *)&hud->background_anchor_offset, flags,
                                 *flash_start_time);
     }
     if (*(datum_index *)&((struct GrenadeHUDInterface *)hud)->total_grenades_background_interface_bitmap.tag_id != (datum_index)-1) {
-        hud_draw_static_element(local_player_index, (uint16_t *)hud,
+        halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)hud,
                                 (const hud_static_element_placement *)&hud->total_grenades_background_anchor_offset,
                                 flags, *flash_start_time);
     }
     if (hud->total_grenades_numbers_maximum_number_of_digits != 0) {
         int32_t total = halo::units::unit_get_grenade_count(unit_index, halo::units::unit_get_current_grenade_index(unit_index));
-        hud_draw_number((void *)(int32_t)local_player_index, (uint16_t *)hud,
+        halo::interface::hud_draw_number((void *)(int32_t)local_player_index, (uint16_t *)hud,
                         (const hud_number_placement *)&hud->total_grenades_numbers_anchor_offset, (int16_t)total, -1,
                         flags, *flash_start_time, 0.0f);
     }
@@ -274,9 +235,9 @@ void HudFrame::draw_grenade_interface(int16_t local_player_index, datum_index un
         count = *(int8_t *)(unit + 0x31e + ((unit_object *)unit)->unit.current_grenade_index);
         types = (uint16_t)((count <= hud->flash_cutoff ? 1 : 0) | (count == 0 ? 2 : 0));
         types = types == 0 ? 4 : (uint16_t)(types & 0xfffb);
-        hud_draw_overlays((uint16_t *)hud, (const hud_overlay_list *)&hud->total_grenades_overlay_bitmap,
+        halo::interface::hud_draw_overlays((uint16_t *)hud, (const hud_overlay_list *)&hud->total_grenades_overlay_bitmap,
                           (uint32_t)(int16_t)types | 8, *flash_start_time, flags,
-                          local_player_globals->local_player_count > 1);
+                          halo::game::globals().local_player_globals->local_player_count > 1);
     }
 }
 
@@ -324,15 +285,15 @@ void HudFrame::draw_weapon_interface(player *p)
         halo::items::weapon_build_hud_ammo_state(weapon, &ammo);
         hud_tag = *(datum_index *)&((struct Weapon *)weapon_tag)->hud_interface.tag_id;
         if (hud_tag != (datum_index)-1) {
-            hud_weapon_crosshairs_draw(hud_tag, p, &ammo);
-            hud_weapon_interface_draw_elements(hud_tag, p->local_player_index, weapon_tag, &ammo, 0, 0, 0);
+            halo::interface::hud_weapon_crosshairs_draw(hud_tag, p, &ammo);
+            halo::interface::hud_weapon_interface_draw_elements(hud_tag, p->local_player_index, weapon_tag, &ammo, 0, 0, 0);
         }
     } else if (no_weapon && halo::units::unit_count_deployed_weapons(p->unit) == 0) {
         memset(&ammo, 0, sizeof(ammo));
-        hud_weapon_crosshairs_draw(*(datum_index *)((uint8_t *)hud_globals_tag_data + 0x2cc), p, &ammo);
+        halo::interface::hud_weapon_crosshairs_draw(*(datum_index *)((uint8_t *)hud_globals_tag_data + 0x2cc), p, &ammo);
     }
 
-    hud_draw_grenade_interface(p->local_player_index, p->unit);
+    halo::interface::hud_draw_grenade_interface(p->local_player_index, p->unit);
     if (p->local_player_index != -1) {
         *(datum_index *)((uint8_t *)hud_weapon_state + p->local_player_index * 0x28 + 0x20) = weapon;
     }
@@ -418,7 +379,7 @@ void HudFrame::render_unit_interface(player *p)
     unit_object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
     unit_tag = (Unit *)halo::cache::globals().tag_instances[*(datum_index *)unit_object & 0xffff].data;
     player_index = (local_player_index != -1 && local_player_index < 1)
-                       ? local_player_globals->local_players[local_player_index] : (datum_index)-1;
+                       ? halo::game::globals().local_player_globals->local_players[local_player_index] : (datum_index)-1;
     state = &hud_unit_meters->players[local_player_index];
 
     for (i = 1; i < 18; i++) {
@@ -428,7 +389,7 @@ void HudFrame::render_unit_interface(player *p)
     objects[0] = p->unit;
     {
         int32_t last = (int32_t)((struct Unit *)unit_tag)->new_hud_interfaces.count - 1;
-        int32_t choice = (int16_t)(local_player_globals->local_player_count > 1);
+        int32_t choice = (int16_t)(halo::game::globals().local_player_globals->local_player_count > 1);
         if (choice > last) {
             choice = last;
         }
@@ -439,7 +400,7 @@ void HudFrame::render_unit_interface(player *p)
     count = 1;
 
     {
-        uint8_t valid_team_player = game_engine_is_valid_team_player(p->unit);
+        uint8_t valid_team_player = halo::game::game_engine_is_valid_team_player(p->unit);
         datum_index parent;
 
         if (state->last_unit == (datum_index)-1) {
@@ -458,7 +419,7 @@ void HudFrame::render_unit_interface(player *p)
         if (parent != (datum_index)-1 && *(int16_t *)(unit_object + 0x2f0) != -1) {
             uint8_t *parent_object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[parent & 0xffff].data;
             Unit *parent_tag = (Unit *)halo::cache::globals().tag_instances[*(datum_index *)parent_object & 0xffff].data;
-            uint8_t split = local_player_globals->local_player_count > 1;
+            uint8_t split = halo::game::globals().local_player_globals->local_player_count > 1;
             TagID parent_hud = halo::units::unit_get_hud_interface_tag_id(parent_tag, split);
             uint8_t *seats = *(uint8_t **)&((struct Unit *)parent_tag)->seats.pointer;
 
@@ -496,7 +457,7 @@ void HudFrame::render_unit_interface(player *p)
         meter_values[0] = *(float *)(unit_object + 0x344);
     }
 
-    split_screen = local_player_globals->local_player_count > 1;
+    split_screen = halo::game::globals().local_player_globals->local_player_count > 1;
     index = count;
     do {
         UnitHUDInterface *hud;
@@ -517,28 +478,28 @@ void HudFrame::render_unit_interface(player *p)
 
         if (*(datum_index *)&hud->hud_background_interface_bitmap.tag_id != (datum_index)-1) {
             flags = (uint32_t)((*(uint8_t *)(object + 0x106) >> 1) & 2);
-            if (local_player_globals->local_player_count > 1) {
+            if (halo::game::globals().local_player_globals->local_player_count > 1) {
                 flags |= 4;
             }
-            hud_draw_static_element(local_player_index, (uint16_t *)hud,
+            halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)hud,
                                     (const hud_static_element_placement *)&hud->hud_background_anchor_offset, flags, -1);
         }
 
-        if ((current_game_engine == 0 || player_index == (datum_index)-1 ||
-             ((game_engine_variant.flags >> 3) & 1) == 0) &&
+        if ((halo::game::globals().current_engine == 0 || player_index == (datum_index)-1 ||
+             ((halo::game::globals().variant.flags >> 3) & 1) == 0) &&
             (hud_unit_meters->flags & 4) == 0) {
             float shield = *(float *)(object + 0xe4);
             flags = (shield < 0.25f || (hud_unit_meters->flags & 8) != 0) ? 1 : 0;
             if ((*(uint8_t *)(object + 0x106) & 4) != 0) {
                 flags |= 2;
             }
-            if (local_player_globals->local_player_count > 1) {
+            if (halo::game::globals().local_player_globals->local_player_count > 1) {
                 flags |= 4;
             }
             if (index == 0) {
                 if ((flags & 1) != 0) {
                     if (state->shield_flash_start_time == -1) {
-                        state->shield_flash_start_time = game_time->game_time;
+                        state->shield_flash_start_time = halo::game::globals().game_time->game_time;
                     }
                 } else {
                     state->shield_flash_start_time = -1;
@@ -579,14 +540,14 @@ void HudFrame::render_unit_interface(player *p)
                     scale = (float)(int16_t)value_scale;
                     alpha_shown = hud_alpha_round(scale * shown);
                     alpha_actual = hud_alpha_round(scale * actual);
-                    hud_meter_draw_fill(hud, (uint8_t)alpha_actual, (uint8_t)alpha_shown, flags,
+                    halo::interface::hud_meter_draw_fill(hud, (uint8_t)alpha_actual, (uint8_t)alpha_shown, flags,
                                         dropping ? state->shield_drain_time : -1.0f, actual,
                                         layer == 0 ? (const hud_meter_placement *)&hud->shield_panel_meter_anchor_offset
                                                    : &layer_placement);
                 }
             }
             if (*(datum_index *)&hud->shield_panel_background_interface_bitmap.tag_id != (datum_index)-1) {
-                hud_draw_static_element(local_player_index, (uint16_t *)hud,
+                halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)hud,
                                         (const hud_static_element_placement *)&hud->shield_panel_background_anchor_offset,
                                         flags, state->shield_flash_start_time);
             }
@@ -599,13 +560,13 @@ void HudFrame::render_unit_interface(player *p)
             if ((object_flags & 4) != 0) {
                 flags |= 2;
             }
-            if (local_player_globals->local_player_count > 1) {
+            if (halo::game::globals().local_player_globals->local_player_count > 1) {
                 flags |= 4;
             }
             if (index == 0) {
                 if ((flags & 1) != 0) {
                     if (state->health_flash_start_time == -1) {
-                        state->health_flash_start_time = game_time->game_time;
+                        state->health_flash_start_time = halo::game::globals().game_time->game_time;
                     }
                 } else {
                     state->health_flash_start_time = -1;
@@ -632,55 +593,55 @@ void HudFrame::render_unit_interface(player *p)
                 }
                 alpha_a = hud_alpha_truncate((float)(int16_t)value_scale * health);
                 alpha_b = hud_alpha_truncate((float)(int16_t)value_scale * health);
-                hud_meter_draw_fill(hud, (uint8_t)alpha_b, (uint8_t)alpha_a, flags, -1.0f, health, &health_placement);
+                halo::interface::hud_meter_draw_fill(hud, (uint8_t)alpha_b, (uint8_t)alpha_a, flags, -1.0f, health, &health_placement);
             }
             if (*(datum_index *)&hud->health_panel_background_interface_bitmap.tag_id != (datum_index)-1) {
-                hud_draw_static_element(local_player_index, (uint16_t *)hud,
+                halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)hud,
                                         (const hud_static_element_placement *)&hud->health_panel_background_anchor_offset,
                                         flags, state->health_flash_start_time);
             }
             state->displayed_health = *(float *)(object + 0xe0);
         }
 
-        if (index == 0 && (hud_unit_meters->flags & 0x10) == 0 && game_engine_scores_tracked_individually() != 0) {
+        if (index == 0 && (hud_unit_meters->flags & 0x10) == 0 && halo::game::game_engine_scores_tracked_individually() != 0) {
             uint16_t anchor[0x12];
             Point2DInt center;
 
             anchor[0] = 2;
-            flags = local_player_globals->local_player_count > 1 ? 4 : 0;
+            flags = halo::game::globals().local_player_globals->local_player_count > 1 ? 4 : 0;
             if ((hud_unit_meters->flags & 0x20) != 0) {
                 flags |= 1;
             }
             if ((flags & 1) != 0) {
                 if (state->motion_sensor_flash_start_time == -1) {
-                    state->motion_sensor_flash_start_time = game_time->game_time;
+                    state->motion_sensor_flash_start_time = halo::game::globals().game_time->game_time;
                 }
             } else {
                 state->motion_sensor_flash_start_time = -1;
             }
             if (*(datum_index *)&hud->motion_sensor_background_interface_bitmap.tag_id != (datum_index)-1) {
-                hud_draw_static_element(local_player_index, anchor,
+                halo::interface::hud_draw_static_element(local_player_index, anchor,
                                         (const hud_static_element_placement *)&hud->motion_sensor_background_anchor_offset,
                                         flags, -1);
             }
             if (*(datum_index *)&hud->motion_sensor_foreground_interface_bitmap.tag_id != (datum_index)-1) {
-                hud_draw_static_element(local_player_index, anchor,
+                halo::interface::hud_draw_static_element(local_player_index, anchor,
                                         (const hud_static_element_placement *)&hud->motion_sensor_foreground_anchor_offset,
                                         flags, -1);
             }
-            hud_anchor_offset_to_screen_position(anchor, local_player_globals->local_player_count > 1, 0.0f,
+            halo::interface::hud_anchor_offset_to_screen_position(anchor, halo::game::globals().local_player_globals->local_player_count > 1, 0.0f,
                                                  &hud->motion_sensor_center_anchor_offset.x, &center.x, 0);
             if (local_player_index != -1) {
-                motion_sensor_update_for_player(local_player_index);
-                motion_sensor_render(local_player_globals->local_player_count > 1, &center.x, local_player_index);
+                halo::interface::motion_sensor_update_for_player(local_player_index);
+                halo::interface::motion_sensor_render(halo::game::globals().local_player_globals->local_player_count > 1, &center.x, local_player_index);
             }
         }
 
         {
-            uint32_t overlay_types = (current_game_engine != 0 && game_engine_variant.teams != 0) ? 1 : 0;
+            uint32_t overlay_types = (halo::game::globals().current_engine != 0 && halo::game::globals().variant.teams != 0) ? 1 : 0;
             int16_t overlay_index;
 
-            flags = local_player_globals->local_player_count > 1 ? 4 : 0;
+            flags = halo::game::globals().local_player_globals->local_player_count > 1 ? 4 : 0;
             for (overlay_index = 0; (int32_t)overlay_index < (int32_t)hud->overlays.count; overlay_index++) {
                 UnitHUDInterfaceAuxiliaryOverlay *overlay =
                     (UnitHUDInterfaceAuxiliaryOverlay *)hud->overlays.pointer + overlay_index;
@@ -689,9 +650,9 @@ void HudFrame::render_unit_interface(player *p)
                     continue;
                 }
                 if ((*(uint8_t *)&overlay->flags & 1) != 0) {
-                    *(uint32_t *)&overlay->default_color = color_rgb_float_to_int((const float *)(object + 0x188)) | 0xff000000;
+                    *(uint32_t *)&overlay->default_color = halo::interface::color_rgb_float_to_int((const float *)(object + 0x188)) | 0xff000000;
                 }
-                hud_draw_static_element(local_player_index, (uint16_t *)&hud->auxiliary_overlay_anchor,
+                halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)&hud->auxiliary_overlay_anchor,
                                         (const hud_static_element_placement *)overlay, flags, -1);
             }
         }
@@ -713,23 +674,23 @@ void HudFrame::render_unit_interface(player *p)
                     datum_index meter = *(datum_index *)&panel->meter_meter_bitmap.tag_id;
                     int32_t period;
 
-                    flags = local_player_globals->local_player_count > 1 ? 4 : 0;
+                    flags = halo::game::globals().local_player_globals->local_player_count > 1 ? 4 : 0;
                     if (meter_values[type] <= panel->meter_minimum_fraction_cutoff) {
                         flags |= 1;
                     }
-                    *timer = (int16_t)(*timer + game_time->ticks_this_frame);
+                    *timer = (int16_t)(*timer + halo::game::globals().game_time->ticks_this_frame);
                     period = (int32_t)lrint((double)(panel->background_flash_period * 30.0f));
                     *timer = (int16_t)(*timer % (period * 2));
                     if (background != (datum_index)-1) {
-                        hud_draw_static_element(local_player_index, (uint16_t *)hud,
+                        halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)hud,
                                                 (const hud_static_element_placement *)&panel->background_anchor_offset,
-                                                flags, game_time->game_time - *timer);
+                                                flags, halo::game::globals().game_time->game_time - *timer);
                     }
                     if (meter != (datum_index)-1) {
                         float scale = (float)(int32_t)panel->meter_value_scale;
                         int32_t alpha_a = hud_alpha_round(scale * meter_values[type]);
                         int32_t alpha_b = hud_alpha_round(scale * meter_values[type]);
-                        hud_meter_draw_fill(hud, (uint8_t)alpha_b, (uint8_t)alpha_a, flags, -1.0f, meter_values[type],
+                        halo::interface::hud_meter_draw_fill(hud, (uint8_t)alpha_b, (uint8_t)alpha_a, flags, -1.0f, meter_values[type],
                                             (const hud_meter_placement *)&panel->meter_anchor_offset);
                     }
                 } else {
@@ -740,19 +701,19 @@ void HudFrame::render_unit_interface(player *p)
                             continue;
                         }
                     }
-                    flags = local_player_globals->local_player_count > 1 ? 4 : 0;
-                    *timer = (int16_t)(*timer + game_time->ticks_this_frame);
+                    flags = halo::game::globals().local_player_globals->local_player_count > 1 ? 4 : 0;
+                    *timer = (int16_t)(*timer + halo::game::globals().game_time->ticks_this_frame);
                     if (*(datum_index *)&panel->background_interface_bitmap.tag_id != (datum_index)-1) {
-                        hud_draw_static_element(local_player_index, (uint16_t *)hud,
+                        halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)hud,
                                                 (const hud_static_element_placement *)&panel->background_anchor_offset,
-                                                flags | 1, game_time->game_time - *timer);
+                                                flags | 1, halo::game::globals().game_time->game_time - *timer);
                     }
                 }
             }
         }
         state->auxiliary_meters_shown = (uint16_t)enabled_meters;
 
-        if (current_game_engine != 0) {
+        if (halo::game::globals().current_engine != 0) {
             static const float full_uv[4] = {0.0f, 1.0f, 0.0f, 1.0f};
             static char *icon_paths[5] = {
                 (char *)"ui\\shell\\bitmaps\\team_icon_ctf", (char *)"ui\\shell\\bitmaps\\team_icon_slayer",
@@ -770,17 +731,17 @@ void HudFrame::render_unit_interface(player *p)
             float background_scale[2];
             float extents[4];
 
-            if (game_engine_variant.teams != 0) {
+            if (halo::game::globals().variant.teams != 0) {
                 team_color = p->team != 0 ? 0xb00201e3 : 0xb0fe0000;
             } else {
                 float rgb_buffer[3];
-                float *rgb = game_engine_get_player_color(player_index, rgb_buffer);
+                float *rgb = halo::game::game_engine_get_player_color(player_index, rgb_buffer);
                 team_color = ((uint32_t)lrint((double)(rgb[0] * 255.0f)) & 0xff) << 16 |
                              ((uint32_t)lrint((double)(rgb[1] * 255.0f)) & 0xff) << 8 |
                              ((uint32_t)lrint((double)(rgb[2] * 255.0f)) & 0xff) | 0xff000000;
             }
-            if ((uint32_t)(game_engine_variant.game_engine_index - 1) <= 4) {
-                int32_t engine = game_engine_variant.game_engine_index - 1;
+            if ((uint32_t)(halo::game::globals().variant.game_engine_index - 1) <= 4) {
+                int32_t engine = halo::game::globals().variant.game_engine_index - 1;
                 hud_team_icon_bitmap = halo::cache::tag_lookup(0x6269746d, icon_paths[engine]);
                 icon_position.x = icon_x[engine];
                 icon_position.y = icon_y[engine];
@@ -799,13 +760,13 @@ void HudFrame::render_unit_interface(player *p)
                 extents[1] = 128.0f;
                 extents[2] = 0.0f;
                 extents[3] = 64.0f;
-                hud_draw_rotated_bitmap_quad(&background_position, background_scale, 0, background, full_uv, extents,
+                halo::interface::hud_draw_rotated_bitmap_quad(&background_position, background_scale, 0, background, full_uv, extents,
                                              0.0f, 0xffffffff);
                 extents[0] = 0.0f;
                 extents[1] = 64.0f;
                 extents[2] = 0.0f;
                 extents[3] = 64.0f;
-                hud_draw_rotated_bitmap_quad(&icon_position, icon_scales, 0, icon, full_uv, extents, 0.0f, team_color);
+                halo::interface::hud_draw_rotated_bitmap_quad(&icon_position, icon_scales, 0, icon, full_uv, extents, 0.0f, team_color);
             }
         }
     } while (index != 0);
@@ -899,7 +860,7 @@ void HudFrame::state_reset(void)
 
     memset(hud_waypoints, 0xff, sizeof(*hud_waypoints));
 
-    motion_sensor_reset();
+    halo::interface::motion_sensor_reset();
 }
 
 /**
@@ -911,15 +872,15 @@ void HudFrame::state_reset(void)
  */
 void HudFrame::update_dispatch(void)
 {
-    hud_weapon_interface_state_update();
-    hud_unit_meters_update();
-    hud_waypoints_update();
+    halo::interface::hud_weapon_interface_state_update();
+    halo::interface::hud_unit_meters_update();
+    halo::interface::hud_waypoints_update();
     hud_messaging->next_sequence = 0;
 
-    if (current_game_engine != 0 && game_engine_state_value > 1 && game_engine_state_value < 4 &&
-        local_player_globals->local_players[0] != (datum_index)-1) {
-        hud_unit_sounds_update((player *)((uint8_t *)player_data->data +
-                                          (local_player_globals->local_players[0] & 0xffff) * 0x200), 0);
+    if (halo::game::globals().current_engine != 0 && game_engine_state_value > 1 && game_engine_state_value < 4 &&
+        halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) {
+        halo::interface::hud_unit_sounds_update((player *)((uint8_t *)halo::game::globals().player_data->data +
+                                          (halo::game::globals().local_player_globals->local_players[0] & 0xffff) * 0x200), 0);
     }
 }
 

@@ -26,6 +26,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
 
 static_assert(offsetof(first_person_weapon_interface, node_matrices) == 0x108c);
 static_assert(sizeof(real_matrix4x3) == 0x34);
@@ -42,7 +43,6 @@ extern real_vector3d build_sprite_view_left;
 extern render_frustum render_frustum_global;
 extern const ColorARGB *global_white_argb;
 extern real_rectangle3d *global_null_rectangle3d_pointer;
-extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern double sin(double x);
 extern double cos(double x);
 extern uint8_t build_sprite_group_warning;
@@ -61,9 +61,7 @@ extern void *rasterizer_dynamic_index_buffer;
 extern int32_t rasterizer_dynamic_index_cache_reserve(int32_t count);
 extern data_array *contrail_data;
 extern uint8_t particle_spawn_debug_mode;
-extern int16_t current_local_player_index;
 extern data_array *particle_data;
-extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern int32_t render_frame_index;
 }
 
@@ -482,7 +480,7 @@ void draw(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
                                                   shader->framebuffer_fade_mode) * fade;
     }
 
-    packed_color = color_pack_argb_from_real(color);
+    packed_color = halo::interface::color_pack_argb_from_real(color);
     if (shader != 0 && shader->framebuffer_blend_function != 0 && (shader->shader_flags & 2) == 0) {
         vertex_color = (uint32_t)(uint8_t)(int32_t)(fade * 255.0f);
     } else {
@@ -872,7 +870,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         } else if (color.alpha > 1.0f) {
             color.alpha = 1.0f;
         }
-        vertices[1].color = color_pack_argb_from_real(&color);
+        vertices[1].color = halo::interface::color_pack_argb_from_real(&color);
         vertices[0].color = vertices[1].color;
         u = u_step + u;
 
@@ -977,7 +975,7 @@ void particles(void)
     if (!halo::effects::globals().particle_spawn_debug_mode) {
         return;
     }
-    viewer = current_local_player_index;
+    viewer = halo::interface::globals().current_local_player_index;
     if (viewer == -1 || !(uint8_t)halo::render::render_local_player_gunner_seat_visible(viewer)) {
         viewer = 1;
     }
@@ -1080,7 +1078,7 @@ void particles(void)
                     real_vector3d dir;
 
                     if ((p->flags & _particle_first_person_bit) != 0) {
-                        m = (real_matrix4x3 *)first_person_weapon_interfaces[
+                        m = (real_matrix4x3 *)halo::interface::globals().first_person_weapon_interfaces[
                                 p->first_person_weapon_index].node_matrices + p->marker_index;
                     } else {
                         int16_t object_slot = (int16_t)p->object_index;

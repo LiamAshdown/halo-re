@@ -21,6 +21,8 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" { extern int32_t input_device_count; }
 extern "C" { extern input_device input_devices[8]; }
@@ -166,7 +168,6 @@ int32_t DirectInput::device_get_pov_count(int16_t slot_index)
 
 }
 
-extern "C" { extern void console_printf_verbose(ColorARGB *color, char *format, ...); }
 namespace halo::input {
 
 /**
@@ -219,7 +220,7 @@ void DirectInput::device_list_print(void)
         }
         name_ascii[i] = '\0';
 
-        console_printf_verbose((ColorARGB *)0, (char *)"%d) deviceid %s - %s", index, guid_ascii_trimmed, name_ascii);
+        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)"%d) deviceid %s - %s", index, guid_ascii_trimmed, name_ascii);
     }
 }
 
@@ -363,7 +364,6 @@ extern "C" { extern uint8_t key_frames[0x6d]; }
 extern "C" { extern uint8_t key_release_pending[0x6d]; }
 extern "C" { extern int16_t scan_code_to_key[0x100]; }
 extern "C" { extern input_abstraction_globals input_globals; }
-extern "C" { extern int32_t game_time_force_single_tick; }
 extern "C" { extern mouse_state live_mouse_state; }
 extern "C" { extern joystick_state joystick_states[4]; }
 extern "C" { extern joystick_state joystick_neutral_state; }
@@ -458,7 +458,7 @@ void DirectInput::directinput_poll_devices(void)
         }
     }
 
-    if (mouse_device != 0 && game_time_force_single_tick == 0) {
+    if (mouse_device != 0 && halo::game::globals().time_force_single_tick == 0) {
         vtable = *(void ***)mouse_device;
         hr = ((idirectinputdevice8_getdevicestate_proc)vtable[9])(mouse_device, 0x14, &mouse_raw);
         if (hr == k_dierr_reacquire_b || hr == k_dierr_reacquire_a) {
@@ -475,7 +475,7 @@ void DirectInput::directinput_poll_devices(void)
     }
 
 joystick_poll:
-    if (game_time_force_single_tick != 0) {
+    if (halo::game::globals().time_force_single_tick != 0) {
         return;
     }
     for (i = 0; i < 8; i++) {

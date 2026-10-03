@@ -8,6 +8,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_packet_group network_game_messages_group;
@@ -108,14 +109,14 @@ void PlayerReports::ping_field_update_and_report(void *decode_context)
     new_value = 0;
     if (ok == 1) {
         team_index = -1;
-        if (player_index != 0xff && (int16_t)(uint16_t)player_index < player_data->maximum_count) {
-            uint8_t *player = (uint8_t *)player_data->data + player_data->size * (int16_t)(uint16_t)player_index;
+        if (player_index != 0xff && (int16_t)(uint16_t)player_index < halo::game::globals().player_data->maximum_count) {
+            uint8_t *player = (uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * (int16_t)(uint16_t)player_index;
             if (*(int16_t *)player != 0) {
                 ((struct player *)player)->ping = new_value;
             }
         }
 
-        iter.data = player_data;
+        iter.data = halo::game::globals().player_data;
         iter.next_index = 0;
         iter.index = k_datum_index_none;
         iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
@@ -170,20 +171,20 @@ void HostSession::qr2_key_list(int32_t key_type, void *keybuffer, void *user_dat
         for (i = 0; i < 8; i++) {
             qr2_keybuffer_add(keybuffer, always[i]);
         }
-        if (current_game_engine != 0) {
+        if (halo::game::globals().current_engine != 0) {
             for (i = 0; i < 8; i++) {
                 qr2_keybuffer_add(keybuffer, in_game[i]);
             }
         }
     } else if (key_type == 1) {
-        if (current_game_engine != 0) {
+        if (halo::game::globals().current_engine != 0) {
             qr2_keybuffer_add(keybuffer, 0x15);
             qr2_keybuffer_add(keybuffer, 0x16);
             qr2_keybuffer_add(keybuffer, 0x18);
             qr2_keybuffer_add(keybuffer, 0x19);
         }
     } else if (key_type == 2) {
-        if (current_game_engine != 0) {
+        if (halo::game::globals().current_engine != 0) {
             qr2_keybuffer_add(keybuffer, 0x1c);
             qr2_keybuffer_add(keybuffer, 0x1d);
         }

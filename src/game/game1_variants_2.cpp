@@ -10,14 +10,13 @@
 
 #include "halo/game/game1_variants.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern player_profile player_profile_cache[16];
 extern data_array *player_data;
 extern game_variant game_engine_variant;
 extern uint8_t *machine_table;
-extern void game_engine_send_player_profile_update(void *has_payload, void *profile_tail,
-                                                     int32_t target);
 }
 
 namespace halo::game::engine1 {
@@ -67,7 +66,7 @@ void Variants::capture_player_profile(int32_t slot, int32_t commit)
         *low_word = *low_word / 30;
     }
 
-    game_engine_send_player_profile_update(&lookup_result, &snapshot.kills, -1);
+    halo::game::game_engine_send_player_profile_update(&lookup_result, &snapshot.kills, -1);
 
     if (commit == 1) {
         player_profile_cache[slot].kills = snapshot.kills;

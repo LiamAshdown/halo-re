@@ -15,11 +15,11 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern double sqrt(double x);
 extern uint8_t *global_globals;
-extern game_engine_definition *current_game_engine;
 extern uint8_t event9_target;
 extern network_id_table *object_network_id_table;
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
@@ -249,7 +249,7 @@ void UnitView::check_fell_off_level()
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
 
-    if (current_game_engine == 0 &&
+    if (halo::game::globals().current_engine == 0 &&
         (test_flag(obj->flags, objects::object_flag::outside_map) || obj->location_cluster_index == -1)) {
         if (obj->position.z < -2000.0f) {
             halo::objects::object_delete(object_index);
@@ -509,15 +509,15 @@ uint8_t halo::units::unit_is_area_clear_of_fast_objects(void)
     int16_t slot = -1;
     uint8_t result = 1;
 
-    if (*(int32_t *)local_player_globals->local_players != -1) {
+    if (*(int32_t *)halo::game::globals().local_player_globals->local_players != -1) {
         slot = 0;
     }
 
     while (slot != -1) {
         if (slot >= 0 && slot < 1) {
-            uint32_t player_handle = *(uint32_t *)&local_player_globals->local_players[slot];
+            uint32_t player_handle = *(uint32_t *)&halo::game::globals().local_player_globals->local_players[slot];
             if (player_handle != k_datum_index_none) {
-                uint32_t unit_handle = *(uint32_t *)((uint8_t *)player_data->data +
+                uint32_t unit_handle = *(uint32_t *)((uint8_t *)halo::game::globals().player_data->data +
                                                       halo::datum_slot(player_handle) * 0x200 + 0x34);
                 if (unit_handle != k_datum_index_none) {
                     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_handle)].data;
@@ -528,7 +528,7 @@ uint8_t halo::units::unit_is_area_clear_of_fast_objects(void)
                 }
             }
         }
-        slot = (*(int32_t *)local_player_globals->local_players != -1 && slot < 0) ? 0 : -1;
+        slot = (*(int32_t *)halo::game::globals().local_player_globals->local_players != -1 && slot < 0) ? 0 : -1;
     }
 
     if (tracked_count != 0) {

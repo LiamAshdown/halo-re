@@ -10,6 +10,7 @@
 #include "halo/main/api.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int16_t director_camera_mode;
@@ -18,7 +19,6 @@ extern float camera_script_time_remaining;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
 extern uint8_t *cinematic_screen_effect_state;
-extern game_time_globals *game_time;
 }
 
 namespace halo::hs {
@@ -363,7 +363,7 @@ void CinematicCommands::cinematic_show_letterbox(int16_t function_index, uint32_
 
     halo::cutscene::globals().cinematic_globals->show_letterbox = show;
     if (show) {
-        halo::cutscene::globals().cinematic_globals->letterbox_last_tick = game_time->game_time;
+        halo::cutscene::globals().cinematic_globals->letterbox_last_tick = halo::game::globals().game_time->game_time;
     }
     halo::hs::hs_thread_return(0, thread_index);
     }

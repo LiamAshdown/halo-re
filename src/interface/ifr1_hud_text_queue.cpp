@@ -2,6 +2,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/text/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -11,8 +12,6 @@ extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
-extern void globals_color_table_get_cyclic_color(int16_t table_index, int16_t color_index,
-                                                   ColorARGB *out);
 extern growable_array hud_text_message_queue;
 extern uint16_t empty_string[];
 extern int32_t hud_text_message_time_base;
@@ -34,7 +33,7 @@ void HudTextQueue::draw_configure(int16_t font_table_index, uint16_t color_or_fl
     TagDependency *dependency;
     ColorARGB color;
 
-    globals_color_table_get_cyclic_color(color_table_index, color_index, &color);
+    halo::interface::globals_color_table_get_cyclic_color(color_table_index, color_index, &color);
 
     interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
                              ? (GlobalsInterfaceBitmaps *)0

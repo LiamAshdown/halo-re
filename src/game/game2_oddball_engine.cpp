@@ -3,11 +3,12 @@
 #include "halo/memory/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern game_variant game_engine_variant;
 extern int32_t king_alt_team_score[16];
-extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
 extern data_array *player_data;
 extern int32_t king_alt_player_score[];
 extern int32_t king_alt_score_target;
@@ -15,23 +16,15 @@ extern int32_t king_alt_team_scores_network[16];
 extern int32_t oddball_ball_timers_006b11cc[16];
 extern int32_t king_hill_occupant_last_tick[16];
 extern uint32_t king_hill_occupant_table[16];
-extern void game_engine_koth_relocate_hill_marker(int32_t ball_index);
-extern uint8_t game_engine_is_inactive(void);
-extern void game_engine_koth_alt_scorer_tick(uint32_t player_index);
-extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player, int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast);
 extern game_engine_definition *current_game_engine;
 extern uint8_t game_engine_teams_enabled_flag;
 extern int32_t king_alt_team_scores_network2[16];
 extern int32_t king_alt_player_scores_network[16];
 extern int32_t king_alt_scores_network_tail[16];
-extern uint32_t players_get_active_by_index(int32_t index);
 extern void qr2_buffer_add(void *buffer, const char *value);
-extern void game_time_format_minutes_seconds_ascii(uint32_t ticks, uint32_t count, char *dest);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
 extern uint8_t custom_waypoints[];
 extern game_time_globals *game_time;
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
-extern int16_t hud_waypoint_arrow_find(const char *name);
 }
 
 namespace halo::game {
@@ -48,7 +41,7 @@ wchar_t * OddballEngine::build_team_score_text(int32_t team, wchar_t *buffer)
     if (game_engine_variant.engine.oddball.ball_type == 2) {
         halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", score);
     } else {
-        game_time_format_minutes_seconds((uint32_t)score, 0x100, buffer);
+        halo::game::game_time_format_minutes_seconds((uint32_t)score, 0x100, buffer);
     }
     return buffer;
 }
@@ -105,7 +98,7 @@ uint8_t OddballEngine::initialize_for_new_game(void)
         if (mode > 0 && mode <= 2) {
             for (i = 0; i < game_engine_variant.engine.oddball.ball_count; i++) {
                 oddball_ball_timers_006b11cc[i] = 0;
-                game_engine_koth_relocate_hill_marker(i);
+                halo::game::game_engine_koth_relocate_hill_marker(i);
             }
         } else {
             int32_t delay = 0;
@@ -178,12 +171,12 @@ void OddballEngine::player_killed(datum_index killer, datum_index death_object, 
             } else {
                 (*(int16_t *)(killer_player + 0xc8))++;
             }
-            score = game_engine_variant.engine.oddball.ball_type == 2 ? game_engine_is_inactive() : 0;
+            score = game_engine_variant.engine.oddball.ball_type == 2 ? halo::game::game_engine_is_inactive() : 0;
         } else {
             score = oddball_any_ball_free();
         }
         if (score != 0) {
-            game_engine_koth_alt_scorer_tick(killer);
+            halo::game::game_engine_koth_alt_scorer_tick(killer);
         }
         if (*(datum_index *)(killer_player + 0x34) != 0xffffffff) {
             for (i = 0; i < count; i++) {
@@ -198,7 +191,7 @@ void OddballEngine::player_killed(datum_index killer, datum_index death_object, 
             if (found != -1) {
                 int32_t message = (game_engine_variant.engine.oddball.ball_type > 0 && game_engine_variant.engine.oddball.ball_type <= 2) ? -1 : 0x23;
 
-                game_engine_broadcast_kill_feed_by_relationship(killer, message, 0x24, 0x25, killer, 0);
+                halo::game::game_engine_broadcast_kill_feed_by_relationship(killer, message, 0x24, 0x25, killer, 0);
                 king_hill_occupant_table[found] = killer;
             }
         }
@@ -322,14 +315,14 @@ void OddballEngine::profile_post_update(void **context)
  */
 uint8_t OddballEngine::query_player_score(int32_t key, int32_t index, void *buffer)
 {
-    uint32_t handle = players_get_active_by_index(index);
+    uint32_t handle = halo::game::players_get_active_by_index(index);
     uint8_t *player = (uint8_t *)halo::memory::datum_get(handle, player_data);
     char text[0x100];
 
     if (player == 0 || key != 0x16) {
         return 0;
     }
-    game_time_format_minutes_seconds_ascii((uint32_t)(king_alt_player_score[handle & 0xffff]), 0x100, text);
+    halo::game::game_time_format_minutes_seconds_ascii((uint32_t)(king_alt_player_score[handle & 0xffff]), 0x100, text);
     qr2_buffer_add(buffer, text);
     return 1;
 }
@@ -374,7 +367,7 @@ void OddballEngine::reset_objects(void)
         if (game_engine_variant.engine.oddball.ball_type > 0 && game_engine_variant.engine.oddball.ball_type <= 2) {
             for (i = 0; i < count; i++) {
                 oddball_ball_timers_006b11cc[i] = 0;
-                game_engine_koth_relocate_hill_marker(i);
+                halo::game::game_engine_koth_relocate_hill_marker(i);
             }
             count = game_engine_variant.engine.oddball.ball_count;
         } else {
@@ -428,14 +421,14 @@ void OddballEngine::unknown_48(void)
     if (game_time->game_time == 0x3c) {
         uint8_t teams = current_game_engine != 0 ? game_engine_teams_enabled_flag : 0;
 
-        game_engine_queue_multiplayer_sound(teams != 0 ? 0x21 : 0x13, 0xffffffff, 0);
+        halo::game::game_engine_queue_multiplayer_sound(teams != 0 ? 0x21 : 0x13, 0xffffffff, 0);
     }
     count = game_engine_variant.engine.oddball.ball_count;
     if (halo::networking::globals().game_mode == 2) {
         for (i = 0; i < count; i++) {
             if (oddball_ball_timers_006b11cc[i] > 0 && --oddball_ball_timers_006b11cc[i] == 0) {
-                game_engine_queue_multiplayer_sound(0, 0xffffffff, 0);
-                game_engine_koth_relocate_hill_marker(i);
+                halo::game::game_engine_queue_multiplayer_sound(0, 0xffffffff, 0);
+                halo::game::game_engine_koth_relocate_hill_marker(i);
             }
         }
     }
@@ -458,7 +451,7 @@ void OddballEngine::unknown_48(void)
         }
         unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & 0xffff) * 12 + 8);
         *(datum_index *)(waypoint + 0x18) = carrier;
-        *(int16_t *)(waypoint + 0x1c) = hud_waypoint_arrow_find("target_blue");
+        *(int16_t *)(waypoint + 0x1c) = halo::interface::hud_waypoint_arrow_find("target_blue");
         waypoint[0x0c] = 1;
         *(real_point3d *)waypoint = *(real_point3d *)&((unit_object *)unit)->base.bounding_center.x;
         *(float *)(waypoint + 0x08) += 0.63f;

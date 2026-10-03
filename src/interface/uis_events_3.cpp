@@ -26,6 +26,8 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -33,18 +35,11 @@ extern uint8_t saved_item_working_copy[0x1ffc];
 extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
 extern int32_t profile_slot_lookup_cache_00692ac8;
-extern void widget_play_sound_effect(int16_t effect_id);
 extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
-extern void player_profile_auto_select(void);
 extern char pending_delete_saved_game_name_00718fd0[];
-extern void saved_item_select(int32_t item);
-extern int32_t ui_list_get_id(int32_t index);
-extern void *ui_list_get_data(int32_t index);
-extern void *game_engine_variant_defaults_classic_slayer(void *out);
-extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind);
 extern int32_t network_host_edit_field_00719410;
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern int16_t profile_slot_id[];
@@ -158,7 +153,7 @@ uint8_t UiEventHandlers::event_4a1180(widget_instance *widget, int16_t *event, u
             return 1;
         }
     }
-    widget_play_sound_effect(4);
+    halo::interface::widget_play_sound_effect(4);
     return 0;
 }
 
@@ -174,13 +169,13 @@ uint8_t UiEventHandlers::event_4a11e0(widget_instance *widget, int16_t *event, u
 
     profile_slot_lookup_cache_00692ac8 = item;
     if (item == -1) {
-        widget_play_sound_effect(4);
+        halo::interface::widget_play_sound_effect(4);
         return 0;
     }
     if ((item & 0x40000000) == 0) {
         return 1;
     }
-    widget_play_sound_effect(4);
+    halo::interface::widget_play_sound_effect(4);
     if (quit_confirm_error_string_index == -1) {
         quit_confirm_error_string_index = 0x1a;
         quit_confirm_error_unknown_ae = -1;
@@ -209,7 +204,7 @@ uint8_t UiEventHandlers::event_4a1280(widget_instance *widget, int16_t *event, u
         handle = profile_slot_lookup_cache_00692ac8;
     }
     if (handle == current) {
-        player_profile_auto_select();
+        halo::interface::player_profile_auto_select();
     }
     return 1;
 }
@@ -260,19 +255,19 @@ uint8_t UiEventHandlers::event_4a1310(widget_instance *widget, int16_t *event, u
     if (name[0] != 0) {
         handle = halo::saved_games::saved_game_create_custom_variant((uint32_t)(uint16_t)widget->controller_index, name);
         if (handle != 0xffffffff) {
-            saved_item_select((int32_t)handle);
+            halo::interface::saved_item_select((int32_t)handle);
             if ((selected_saved_item & 0xf) == 1) {
-                int32_t id = ui_list_get_id(*(int16_t *)&((struct widget_instance *)list)->text);
+                int32_t id = halo::interface::ui_list_get_id(*(int16_t *)&((struct widget_instance *)list)->text);
                 const void *source;
                 uint8_t opened;
 
-                source = id != -1 ? ui_list_get_data(id) : game_engine_variant_defaults_classic_slayer(scratch);
+                source = id != -1 ? halo::interface::ui_list_get_data(id) : halo::game::game_engine_variant_defaults_classic_slayer((game_variant *)scratch);
                 memcpy(saved_item_working_copy, source, 0x98);
                 *(uint16_t *)(saved_item_working_copy + 0x94) = 0;
                 wcsncpy((wchar_t *)saved_item_working_copy, (const wchar_t *)name, 0x17);
                 *(uint16_t *)(saved_item_working_copy + 0x2e) = 0;
                 *(uint32_t *)(saved_item_working_copy + 0x38) &= 0xfffffe7f;
-                opened = virtual_keyboard_open((uint16_t *)saved_item_working_copy, 0x30, 9);
+                opened = halo::interface::virtual_keyboard_open((uint16_t *)saved_item_working_copy, 0x30, 9);
                 if (opened == 1) {
                     network_host_edit_field_00719410 = 2;
                     if (halo::saved_games::saved_game_get_directory_by_handle((int32_t)handle, (char *)scratch) != 0) {
@@ -294,7 +289,7 @@ uint8_t UiEventHandlers::event_4a1310(widget_instance *widget, int16_t *event, u
         quit_confirm_error_modal = 1;
         quit_confirm_error_is_error = 0;
     }
-    widget_play_sound_effect(4);
+    halo::interface::widget_play_sound_effect(4);
     return 0;
 }
 
@@ -314,15 +309,15 @@ uint8_t UiEventHandlers::event_4a1480(widget_instance *widget, int16_t *event, u
         if (handle != 0xffffffff) {
             uint8_t *profile;
 
-            saved_item_select((int32_t)handle);
+            halo::interface::saved_item_select((int32_t)handle);
             profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
-            player_profile_load(0, profile, (int32_t)handle);
+            halo::interface::player_profile_load(0, profile, (int32_t)handle);
             if (profile != 0) {
                 uint8_t opened;
 
                 wcsncpy((wchar_t *)(profile + 2), (const wchar_t *)name, 0xb);
                 *(uint16_t *)(profile + 0x18) = 0;
-                opened = virtual_keyboard_open((uint16_t *)(profile + 2), 0x18, 8);
+                opened = halo::interface::virtual_keyboard_open((uint16_t *)(profile + 2), 0x18, 8);
                 if (opened != 0) {
                     return opened;
                 }
@@ -337,7 +332,7 @@ uint8_t UiEventHandlers::event_4a1480(widget_instance *widget, int16_t *event, u
         quit_confirm_error_modal = 1;
         quit_confirm_error_is_error = 0;
     }
-    widget_play_sound_effect(4);
+    halo::interface::widget_play_sound_effect(4);
     return 0;
 }
 
@@ -462,7 +457,7 @@ uint8_t UiEventHandlers::event_4a16e0(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a1700(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     if (event[1] == profile_slot_id[0]) {
-        display_error(0x12, -1, 1, 0);
+        halo::interface::display_error(0x12, -1, 1, 0);
         *out_handled = 1;
         return 0;
     }
@@ -519,7 +514,7 @@ uint8_t UiEventHandlers::event_4a1790(widget_instance *widget, int16_t *event, u
         return 0;
     }
     if (halo::networking::globals().server != 0 && halo::networking::globals().disconnect_timeout_flag != 1) {
-        uint8_t result = (uint8_t)network_server_reset_game_stats();
+        uint8_t result = (uint8_t)halo::interface::network_server_reset_game_stats();
 
         local_team_00714dd8[0] = coop_profile_globals_block_00714ddc[0];
         return result;

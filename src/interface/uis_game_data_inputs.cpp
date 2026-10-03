@@ -22,6 +22,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t ui_split_screen;
@@ -37,9 +38,6 @@ extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern uint8_t variant_teams_enabled_0071920c;
 extern int32_t variant_team_selection_00692b08;
-extern void ui_controls_populate_bind_rows(widget_instance *widget, uint32_t packed);
-extern void controls_gamepad_lists_refresh(widget_instance *screen);
-extern void controls_gamepad_widget_nodes_collect(widget_instance **out, widget_instance *screen);
 }
 
 namespace halo::ui {
@@ -127,7 +125,7 @@ void UiGameDataInputs::input_4a3b70(widget_instance *widget)
     set_option_text(row, network_game_option_a_00719210, hidden);
     row = row->next_sibling;
     set_option_text(row, network_game_option_b_00719214, hidden);
-    widget_extended_description_sync_selection(widget);
+    halo::interface::widget_extended_description_sync_selection(widget);
     network_host_number_field_00719218 = 0;
 }
 
@@ -235,7 +233,7 @@ void UiGameDataInputs::input_4a5740(widget_instance *widget)
 
         team->state = 0;
         for (child = team->first_child; child != 0; child = child->next_sibling) {
-            widget_instance_set_state_recursive(child, 0);
+            halo::interface::widget_instance_set_state_recursive(child, 0);
         }
     }
     if (found == -1) {
@@ -701,7 +699,7 @@ void UiGameDataInputs::input_4a7880(widget_instance *widget)
     if (selection != variant_team_selection_00692b08 || changed) {
         *packed = (*packed & ~0xfu) | ((uint32_t)selection & 0xf);
         variant_team_selection_00692b08 = selection;
-        ui_controls_populate_bind_rows(widget, *packed);
+        halo::interface::ui_controls_populate_bind_rows(widget, *packed);
     }
     if ((*packed & 0xf) == 8) {
         int32_t shift;
@@ -712,7 +710,7 @@ void UiGameDataInputs::input_4a7880(widget_instance *widget)
             *packed = (*packed & ~(7u << shift)) | (((uint32_t)(int32_t)selection << shift) & (7u << shift));
         }
     }
-    widget_extended_description_sync_selection(widget);
+    halo::interface::widget_extended_description_sync_selection(widget);
 }
 
 /**
@@ -725,8 +723,8 @@ void UiGameDataInputs::input_4b5ce0(widget_instance *widget)
     widget_instance *nodes[17];
     widget_instance *focused;
 
-    controls_gamepad_lists_refresh(widget);
-    controls_gamepad_widget_nodes_collect(nodes, widget);
+    halo::interface::controls_gamepad_lists_refresh(widget);
+    halo::interface::controls_gamepad_widget_nodes_collect(nodes, widget);
     nodes[15]->background_bitmap_frame = (int16_t)(widget->focused_child == nodes[15]);
     nodes[14]->background_bitmap_frame = (int16_t)(widget->focused_child == nodes[14]);
     focused = widget->focused_child;

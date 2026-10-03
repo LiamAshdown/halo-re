@@ -4,11 +4,10 @@
 #include <stdint.h>
 #include "halo/cache/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern int32_t user_save_path_register(uint32_t user_id, char *path);
 extern char *user_save_path_default;
-extern char *user_save_path_lookup(uint32_t user_id);
 extern char saved_game_root_path[];
 extern file_reference savegame_index_file;
 extern network_mutex_record *savegame_index_mutex;
@@ -819,7 +818,7 @@ uint8_t UserProfile::customization_slot_set(uint8_t *base, uint8_t new_value, ui
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::SaveGameFiles::create; forwards to the C++ implementation.
@@ -964,10 +963,7 @@ uint8_t savegame_index_write_slot(uint16_t slot, const void *entry)
  *
  * @address 0x5516a0
  */
-char * user_save_path_lookup(uint32_t user_id)
-{
-    return halo::game::UserSavePaths::lookup(user_id);
-}
+
 
 /**
  * C entry point for halo::game::UserSavePaths::user_save_path_register; forwards to the C++ implementation.
@@ -975,10 +971,7 @@ char * user_save_path_lookup(uint32_t user_id)
  *
  * @address 0x551650
  */
-int32_t user_save_path_register(uint32_t user_id, char *path)
-{
-    return halo::game::UserSavePaths::user_save_path_register(user_id, path);
-}
+
 
 /**
  * C entry point for halo::game::UserSavePaths::user_save_path_remove; forwards to the C++ implementation.

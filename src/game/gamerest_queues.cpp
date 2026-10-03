@@ -1,8 +1,7 @@
 #include "halo/game/gamerest_queues.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern uint8_t circular_queue_pop(circular_queue *queue, void **out_record);
-extern uint8_t circular_queue_push(circular_queue *queue, void *source);
 }
 
 namespace halo::game {
@@ -352,7 +351,7 @@ uint8_t PlayerUpdateQueue::pop_current(player_update_record *out)
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::CircularQueue::count; forwards to the C++ implementation.
@@ -374,10 +373,7 @@ int32_t circular_queue_count(circular_queue *queue)
  *
  * @address 0x47a200
  */
-uint8_t circular_queue_pop(circular_queue *queue, void **out_record)
-{
-    return halo::game::CircularQueue(queue).pop(out_record);
-}
+
 
 /**
  * C entry point for halo::game::CircularQueue::push; forwards to the C++ implementation.

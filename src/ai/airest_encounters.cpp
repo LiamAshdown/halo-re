@@ -16,6 +16,7 @@
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern double fabs(double x);
@@ -102,7 +103,7 @@ void EncounterView::stamp_team_from_unit(datum_index unit_index)
     datum_index encounter_index = handle;
     encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[encounter_index & halo::k_slot_mask];
 
-    if (current_game_engine == 0 && enc->team == 0) {
+    if (halo::game::globals().current_engine == 0 && enc->team == 0) {
         object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
         enc->team = *(int16_t *)((uint8_t *)header->data + 0xb8);
         if (enc->activation_tick != (datum_index)k_datum_index_none) {
@@ -626,7 +627,7 @@ uint8_t EncounterView::activate()
         }
     }
 
-    enc->activation_tick = game_time->game_time;
+    enc->activation_tick = halo::game::globals().game_time->game_time;
     enc->units_active = 1;
     return enc->units_active;
 }
@@ -1138,7 +1139,7 @@ void EncounterView::deactivate()
             halo::ai::actor_delete_swarm(current);
             halo::ai::actor_set_units_active(current, 1);
             a->active = 0;
-            a->deactivation_time = (datum_index)game_time->game_time;
+            a->deactivation_time = (datum_index)halo::game::globals().game_time->game_time;
         }
     }
 }
@@ -2095,7 +2096,7 @@ tally_vocalization:
         } else {
             enc->post_combat = 0;
             enc->pre_combat_living_count = enc->living_count;
-            enc->last_idle_time = game_time->game_time;
+            enc->last_idle_time = halo::game::globals().game_time->game_time;
             enc->enemy_death_count = 0;
             if (enc->ever_had_target == 0) {
                 enc->ticks_since_engaged = (datum_index)k_datum_index_none;
@@ -2181,7 +2182,7 @@ void EncounterView::redistribute_squads_toward_targets()
         data_iterator player_iter;
         void *player_record;
 
-        player_iter.data = player_data;
+        player_iter.data = halo::game::globals().player_data;
         player_iter.next_index = 0;
         player_iter.index = (datum_index)k_datum_index_none;
         player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
@@ -3032,7 +3033,7 @@ void Encounters::note_hostile_object(datum_index object_index)
 
         object_team = ((object *)obj)->owner_team;
         encounter_team = enc->team;
-        if (current_game_engine == 0) {
+        if (halo::game::globals().current_engine == 0) {
             hostile = 0;
             if (0 <= encounter_team && encounter_team < 10 &&
                 0 <= object_team && object_team < 10) {
@@ -3193,7 +3194,7 @@ void Encounters::update()
     encounter_iterator iterator;
     encounter *enc;
 
-    tick = game_time->game_time;
+    tick = halo::game::globals().game_time->game_time;
     if (tick % 0x1e == 0) {
         halo::ai::encounters_recompute_dirty();
         halo::ai::encounters_update_activation();
@@ -3264,7 +3265,7 @@ void Encounters::update_activation()
     int16_t i;
     uint16_t *dependents;
 
-    visible_clusters = (uint32_t *)((uint8_t *)local_player_globals + 0x18);
+    visible_clusters = (uint32_t *)((uint8_t *)halo::game::globals().local_player_globals + 0x18);
 
     actor_index = halo::ai::globals().state->first_encounterless_actor;
     while (actor_index != (datum_index)k_datum_index_none) {
@@ -3361,7 +3362,7 @@ void Encounters::update_activation()
                 halo::ai::actor_delete_swarm(current);
                 halo::ai::actor_set_units_active(current, 1);
                 a->active = 0;
-                a->deactivation_time = (datum_index)game_time->game_time;
+                a->deactivation_time = (datum_index)halo::game::globals().game_time->game_time;
             }
         } else {
             *(int16_t *)&a->activation_delay[0] = (int16_t)(*(int16_t *)&a->activation_delay[0] - 0x1e);

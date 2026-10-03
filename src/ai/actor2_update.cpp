@@ -11,6 +11,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -129,7 +130,7 @@ void ActorView::update_aim_wander()
         moving = (velocity->i * velocity->i + velocity->j * velocity->j + velocity->k * velocity->k > 1.0f) ? 1 : 0;
     }
     a[0x601] = moving;
-    a[0x600] = (weapon_get_zoom_fov_resolved(0xd, team) * ((ActorVariant *)variant)->new_target_firing_pattern_time * 30.0f >
+    a[0x600] = (halo::game::weapon_get_zoom_fov_resolved(0xd, team) * ((ActorVariant *)variant)->new_target_firing_pattern_time * 30.0f >
         (float)((struct actor *)a)->firing_target_ticks) ? 1 : 0;
 
     halo::ai::actor_select_stance_offset_pair(actor_index, variant, &burst, &scale);
@@ -148,7 +149,7 @@ void ActorView::update_aim_wander()
     }
     ((struct actor *)a)->firing_state_timer = (int16_t)(int32_t)(time * 30.0f);
 
-    error = weapon_get_zoom_fov_resolved(0xb, team) * ((ActorVariant *)variant)->projectile_error;
+    error = halo::game::weapon_get_zoom_fov_resolved(0xb, team) * ((ActorVariant *)variant)->projectile_error;
     if (scale != 0 && *(float *)(scale + 0xc) != 0.0f) {
         error = error * *(float *)(scale + 0xc);
     }
@@ -214,9 +215,9 @@ void ActorView::update_aim_wander()
     angle_1 = aim_wander_random_fraction() * (*(float *)(burst + 0x4) + *(float *)(burst + 0x4)) - *(float *)(burst + 0x4);
     angle_2 = aim_wander_random_fraction() * (*(float *)(burst + 0x10) + *(float *)(burst + 0x10)) -
         *(float *)(burst + 0x10) + angle_1;
-    radius_a = weapon_get_zoom_fov_resolved(0xc, team) * *(float *)(burst + 0x0);
+    radius_a = halo::game::weapon_get_zoom_fov_resolved(0xc, team) * *(float *)(burst + 0x0);
     radius_b = aim_wander_random_fraction() * (*(float *)(burst + 0xc) - *(float *)(burst + 0x8)) + *(float *)(burst + 0x8);
-    radius_b = weapon_get_zoom_fov_resolved(0xc, team) * radius_b;
+    radius_b = halo::game::weapon_get_zoom_fov_resolved(0xc, team) * radius_b;
     if (a[0x1ca] != 0) {
         radius_a = radius_a + radius_a;
         radius_b = radius_b + radius_b;

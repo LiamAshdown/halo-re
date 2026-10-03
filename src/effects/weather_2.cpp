@@ -2,10 +2,10 @@
 #include "halo/scenario/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t weather_enabled;
-extern int16_t current_local_player_index;
 extern weather_instance weather_instances[1];
 extern real_point3d render_camera_global;
 }
@@ -21,8 +21,8 @@ namespace halo::effects {
  */
 void weather_system::update_local_player()
 {
-    if (weather_enabled != 0 && current_local_player_index != -1) {
-        int16_t instance_index = current_local_player_index;
+    if (weather_enabled != 0 && halo::interface::globals().current_local_player_index != -1) {
+        int16_t instance_index = halo::interface::globals().current_local_player_index;
         weather_instance *instance = &weather_instances[instance_index];
         int16_t cluster_index;
         int32_t new_definition_index = -1;

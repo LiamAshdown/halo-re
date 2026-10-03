@@ -11,6 +11,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -503,10 +504,10 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
     uint8_t order[k_actor_mode_data_size];
     int16_t code = (int16_t)order_code;
 
-    if (code == -1 && ((struct actor *)act)->last_order_request_time != -1 && ((struct actor *)act)->last_order_request_time + 0x2d >= game_time->game_time) {
+    if (code == -1 && ((struct actor *)act)->last_order_request_time != -1 && ((struct actor *)act)->last_order_request_time + 0x2d >= halo::game::globals().game_time->game_time) {
         return 0;
     }
-    ((struct actor *)act)->last_order_request_time = game_time->game_time;
+    ((struct actor *)act)->last_order_request_time = halo::game::globals().game_time->game_time;
     if (code == -1) {
         code = ((struct actor *)act)->pending_order_request;
         if (code != -1) {
@@ -693,7 +694,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         halo::units::unit_try_set_animation_state(((struct object *)self)->parent_object, 0x25);
     }
     *(datum_index *)(self + 0x32c) = vehicle_index;
-    *(int32_t *)(self + 0x330) = game_time->game_time;
+    *(int32_t *)(self + 0x330) = halo::game::globals().game_time->game_time;
     if (*(datum_index *)(self + 0x324) == object_index) {
         *(datum_index *)(self + 0x324) = k_datum_index_none;
     }
@@ -749,11 +750,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *empty = (uint8_t *)halo::objects::object_try_and_get(vehicle_index, 2);
 
         if (empty != 0) {
-            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
+            *(int32_t *)(empty + 0x5ac) = halo::game::globals().game_time->game_time;
         }
     }
     if (halo::networking::globals().game_mode == 1) {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(*(datum_index *)(self + 0x218), player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(*(datum_index *)(self + 0x218), halo::game::globals().player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;
@@ -771,10 +772,10 @@ static void biped_free_local_player_history(uint8_t *self)
     uint8_t *player;
 
     if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
-        index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
+        index >= *(int16_t *)((uint8_t *)halo::game::globals().player_data + 0x20)) {
         return;
     }
-    player = (uint8_t *)player_data->data + *(int16_t *)((uint8_t *)player_data + 0x22) * index;
+    player = (uint8_t *)halo::game::globals().player_data->data + *(int16_t *)((uint8_t *)halo::game::globals().player_data + 0x22) * index;
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
@@ -878,7 +879,7 @@ uint8_t ActorView::process_vehicle_seat_exit()
                         halo::units::unit_dispatch_scripted_event_9(0, (int32_t)rider_index);
                     }
                     ((struct actor *)act)->exited_vehicle_index = ((actor *)act)->active_unit_index;
-                    *(int32_t *)&((struct actor *)act)->exited_vehicle_reentry_time = game_time->game_time + 180;
+                    *(int32_t *)&((struct actor *)act)->exited_vehicle_reentry_time = halo::game::globals().game_time->game_time + 180;
                     result = 1;
                 }
             }
@@ -1373,7 +1374,7 @@ int32_t ActorView::report_command_status()
             if (p->enemy == 0) {
                 target_state = 2;
             } else {
-                target_state = (team_pair_flag_test(((actor *)a)->team, ((struct prop *)p)->team) != 0) + 3;
+                target_state = (halo::game::team_pair_flag_test(((actor *)a)->team, ((struct prop *)p)->team) != 0) + 3;
             }
         }
         halo::ai::ai_communication_broadcast(event_code, a->unit_index, target_object, target_state, halo::k_dword_none, halo::k_dword_none, 0);
@@ -1475,7 +1476,7 @@ void ActorView::reseed_movement_pause_timer()
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     fraction = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
     pause = fraction * (upper - lower) + lower;
-    pause = weapon_get_zoom_fov_resolved(0xe, ((struct actor *)self)->team) * pause;
+    pause = halo::game::weapon_get_zoom_fov_resolved(0xe, ((struct actor *)self)->team) * pause;
     if (entry_b != 0 && *(float *)(entry_b + 4) != 0.0f) {
         pause = pause * *(float *)(entry_b + 4);
     }
@@ -1924,7 +1925,7 @@ uint8_t ActorView::select_facing_target_prop(uint8_t require_trust, uint8_t skip
 
     self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
-    now = game_time->game_time;
+    now = halo::game::globals().game_time->game_time;
 
     if (self->awareness_level == 3) {
         side_thresholds[0] = (float)cos((double)definition->combat_look_delta_l);
@@ -2478,7 +2479,7 @@ void ActorView::start_search_timer(datum_index prop_index)
     prop *target = &((prop *)halo::ai::globals().prop_data->data)[prop_index & halo::k_slot_mask];
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
-    self->found_body_time = (uint32_t)game_time->game_time;
+    self->found_body_time = (uint32_t)halo::game::globals().game_time->game_time;
 
     halo::ai::actor_target_get_relationship_object(prop_index);
 
@@ -2655,7 +2656,7 @@ uint8_t ActorOps::toggle_active_state(uint8_t activate, datum_index actor_index)
         halo::ai::actor_delete_swarm(actor_index);
         halo::ai::actor_set_units_active(actor_index, 1);
         self->active = 0;
-        self->deactivation_time = (int32_t)game_time->game_time;
+        self->deactivation_time = (int32_t)halo::game::globals().game_time->game_time;
         return 1;
     }
 
@@ -2770,7 +2771,7 @@ uint8_t ActorView::vehicle_not_recently_left(datum_index vehicle_index)
     if (vehicle_index != ((struct actor *)act)->exited_vehicle_index) {
         return 1;
     }
-    return (uint8_t)(game_time->game_time >= *(int32_t *)&((struct actor *)act)->exited_vehicle_reentry_time);
+    return (uint8_t)(halo::game::globals().game_time->game_time >= *(int32_t *)&((struct actor *)act)->exited_vehicle_reentry_time);
 }
 
 #undef ACTOR

@@ -22,6 +22,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern halo::units::ai_update_stagger_state *ai_update_stagger;
@@ -486,11 +487,11 @@ void UnitView::evaluate_flee_reaction()
         unit->actor_index != k_datum_index_none && unit->animation_state != 0x1d &&
         (int8_t)unit->weapon_control_idle_ticks > 0x78 && *(uint8_t *)((uint8_t *)parent + 0x4d0) > 0x1e &&
         (biped->last_falling_reaction_tick == -1 ||
-         (int32_t)(biped->last_falling_reaction_tick + 0xf) < game_time->game_time)) {
+         (int32_t)(biped->last_falling_reaction_tick + 0xf) < halo::game::globals().game_time->game_time)) {
         real_vector3d direction;
         real_vector3d normal;
 
-        biped->last_falling_reaction_tick = game_time->game_time;
+        biped->last_falling_reaction_tick = halo::game::globals().game_time->game_time;
         if (UnitView(object_index).test_placement_candidate(global_down3d_pointer, 0, 8.0f, 0) == -1) {
             direction.i = parent->velocity.i * 60.0f;
             direction.j = parent->velocity.j * 60.0f;
@@ -530,7 +531,7 @@ void UnitView::fire_animation_sound_trigger(uint32_t trigger_kind, int16_t conta
         *(datum_index *)(biped_tag + 0x398) == k_datum_index_none) {
         return;
     }
-    if (!any_local_player_within_10_units((real_point3d *)&((struct object *)unit)->bounding_center)) {
+    if (!halo::game::any_local_player_within_10_units((real_point3d *)&((struct object *)unit)->bounding_center)) {
         return;
     }
     if ((int16_t)halo::objects::object_get_node_local_transform(unit_index,

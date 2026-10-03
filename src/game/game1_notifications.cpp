@@ -21,6 +21,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -31,33 +32,15 @@ extern data_array *player_data;
 extern Globals *global_globals;
 extern int32_t game_engine_unknown_aa00;
 extern game_variant game_engine_variant;
-extern void game_engine_spawn_player_starting_loadout(uint32_t starting_equipment_index,
-    int32_t *frag_count, int32_t *plasma_count);
-extern uint32_t game_engine_pack_object_flags_or_passthrough(uint32_t input);
 extern network_id_table *machine_table;
 extern network_id_table *object_network_id_table;
-extern uint8_t player_execute_pending_interaction(uint32_t handle);
-extern uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon);
-extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index);
-extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle,
-    uint8_t reset_stats);
-extern void game_engine_apply_player_grenade_counts(uint32_t player_index);
-extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle);
 extern uint8_t game_engine_teams_enabled_flag;
 extern uint8_t *network_client;
-extern uint8_t player_customization_slot_set(uint8_t *base, uint8_t new_value, uint32_t key);
-extern void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_desired);
-extern void game_engine_end_game_sequence_stage1(void);
-extern void game_engine_end_game_sequence_stage2(void);
-extern void game_engine_end_game_sequence_stage3(void);
 extern uint8_t network_object_index_cache[];
 extern uint8_t network_message_scratch[0x7ff8];
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 extern int32_t multiplayer_sound_queue_count;
 extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds];
-extern void game_engine_play_multiplayer_sound(int32_t sound_index, datum_index recipient_player,
-    uint8_t broadcast);
-extern datum_index player_index_from_unit_index(datum_index unit_index);
 }
 
 namespace halo::game::engine1 {
@@ -76,9 +59,9 @@ void Notifications::apply_partial_round_reset_message(void *event)
 
     if (*(int32_t *)*(void **)event == 0) {
         if (halo::networking::message_delta_decode_compound_field((void **)event, &scratch) != 0) {
-            game_engine_reset_respawns_and_cleanup_bipeds();
-            game_engine_cleanup_stray_items();
-            game_engine_cleanup_stray_projectiles();
+            halo::game::game_engine_reset_respawns_and_cleanup_bipeds();
+            halo::game::game_engine_cleanup_stray_items();
+            halo::game::game_engine_cleanup_stray_projectiles();
             if (current_game_engine->reset_objects != 0) {
                 ((void (*)(void))current_game_engine->reset_objects)();
             }
@@ -133,7 +116,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
     if ((game_engine_variant.flags & 0x20) == 0) {
         object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
         if (obj->network_role == 0 || obj->network_role == 3) {
-            game_engine_spawn_player_starting_loadout(unit, &frag_count, &plasma_count);
+            halo::game::game_engine_spawn_player_starting_loadout(unit, &frag_count, &plasma_count);
         }
     }
 
@@ -168,7 +151,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
                 goto clamp;
             case 0x0d:
 
-                if ((uint8_t)game_engine_pack_object_flags_or_passthrough(0) == 0) {
+                if ((uint8_t)halo::game::game_engine_pack_object_flags_or_passthrough(0) == 0) {
                     frag_result = 0;
                     plasma_result = 0;
                 }
@@ -254,9 +237,9 @@ uint8_t Notifications::apply_player_interaction_message(void **envelope)
                 p->interaction_seat = message.interaction_seat;
 
                 if (message.use_secondary_mode == 0) {
-                    return player_execute_pending_interaction(primary_handle);
+                    return halo::game::player_execute_pending_interaction(primary_handle);
                 }
-                return player_swap_to_weapon(primary_handle, (datum_index)secondary_handle);
+                return halo::game::player_swap_to_weapon(primary_handle, (datum_index)secondary_handle);
             }
         }
     }
@@ -322,7 +305,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                             ((struct player *)p)->vehicle_updates.write_index = 0;
                         } else {
                             unit_obj->network_role = 2;
-                            game_engine_init_player_look_state_from_object(new_unit, p->local_player_index);
+                            halo::game::game_engine_init_player_look_state_from_object(new_unit, p->local_player_index);
                         }
 
                         if (current_game_engine == 0 &&
@@ -330,14 +313,14 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                              halo::scenario::globals().scenario->player_starting_profile.count != 0)) {
                             int16_t starting_profile_index =
                                 (halo::scenario::globals().scenario->player_starting_profile.count > 1 && p->deaths > 0) ? 1 : 0;
-                            unit_apply_starting_profile(starting_profile_index, new_unit, 1);
+                            halo::game::unit_apply_starting_profile(starting_profile_index, new_unit, 1);
                         }
 
                         p->kill_streak[0] = 0;
                         p->kill_streak[1] = 0;
                         p->interaction_type = 0;
                         p->interaction_object = (datum_index)0xffffffff;
-                        game_engine_apply_player_grenade_counts(player_handle);
+                        halo::game::game_engine_apply_player_grenade_counts(player_handle);
 
                         {
                             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
@@ -365,10 +348,10 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                         }
 
                         if (0 < message.kill_streak_delta[0]) {
-                            player_add_kill_streak(0, message.kill_streak_delta[0], player_handle);
+                            halo::game::player_add_kill_streak(0, message.kill_streak_delta[0], player_handle);
                         }
                         if (0 < message.kill_streak_delta[1]) {
-                            player_add_kill_streak(1, message.kill_streak_delta[1], player_handle);
+                            halo::game::player_add_kill_streak(1, message.kill_streak_delta[1], player_handle);
                         }
                     }
                 }
@@ -396,8 +379,8 @@ void Notifications::client_apply_team_assignment(void **envelope)
         return;
     }
 
-    player_customization_slot_set(network_client + 0xb14, out_pair[1], (uint8_t)out_pair[0]);
-    player_set_team_by_color(out_pair[1], (uint8_t)out_pair[0]);
+    halo::game::player_customization_slot_set(network_client + 0xb14, out_pair[1], (uint8_t)out_pair[0]);
+    halo::game::player_set_team_by_color(out_pair[1], (uint8_t)out_pair[0]);
 }
 
 /**
@@ -421,11 +404,11 @@ void Notifications::dispatch_end_game_notification(void *event)
     }
 
     if (stage == 1) {
-        game_engine_end_game_sequence_stage1();
+        halo::game::game_engine_end_game_sequence_stage1();
     } else if (stage == 2) {
-        game_engine_end_game_sequence_stage2();
+        halo::game::game_engine_end_game_sequence_stage2();
     } else if (stage == 3) {
-        game_engine_end_game_sequence_stage3();
+        halo::game::game_engine_end_game_sequence_stage3();
     }
 }
 
@@ -531,7 +514,7 @@ void Notifications::multiplayer_sound_queue_tick(void)
             }
             multiplayer_sound_queue_count--;
             if (multiplayer_sound_queue_count != 0) {
-                game_engine_play_multiplayer_sound(multiplayer_sound_queue[0].sound_index,
+                halo::game::game_engine_play_multiplayer_sound(multiplayer_sound_queue[0].sound_index,
                     (datum_index)0xffffffff, multiplayer_sound_queue[0].broadcast);
             }
         }
@@ -595,7 +578,7 @@ uint8_t Notifications::notify_weapon_ready_state_change(datum_index unit_index, 
     ((struct weapon_object *)weapon)->weapon.flags |= 0x20;
     if (current_game_engine->weapon_ready_state_change != 0) {
         return ((uint8_t (*)(datum_index, datum_index))current_game_engine->weapon_ready_state_change)
-            (weapon_index, player_index_from_unit_index(unit_index));
+            (weapon_index, halo::game::player_index_from_unit_index(unit_index));
     }
     return 1;
 }

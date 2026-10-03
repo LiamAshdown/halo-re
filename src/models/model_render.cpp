@@ -12,6 +12,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/interface/api.hpp"
 extern "C" { extern rasterizer_window_parameters rasterizer_window; }
 
 extern "C" {
@@ -36,10 +37,6 @@ extern uint8_t rasterizer_caps_flag_689;
 extern uint8_t console_debug_toggle_6893f2;
 extern rasterizer_model_draw_context *rasterizer_object_shadow_model_context;
 extern uint8_t rasterizer_object_shadow_model_active;
-extern void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, const float *node0,
-    const float *center, int32_t early_out);
-extern void debug_fp_clip_note(const float *world, int32_t effect_type);
-extern void debug_fp_state_arm(int32_t armed);
 }
 
 namespace halo::models {
@@ -189,7 +186,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
 
     if ((&model->super_high_detail_cutoff)[_model_lod_super_low] > pixels && (flags & _model_render_immediate_bit) == 0) {
         if (flags == 8) {
-            debug_fp_render_model_note(*(uint32_t *)&model_tag_id, pixels, -1, (const float *)node_matrices,
+            halo::interface::debug_fp_render_model_note(*(uint32_t *)&model_tag_id, pixels, -1, (const float *)node_matrices,
                 (const float *)bounding_center, 1);
         }
         model_render_first_person = 0;
@@ -279,13 +276,13 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
     }
 
     if (flags == 8) {
-        debug_fp_render_model_note(*(uint32_t *)&model_tag_id, pixels, lod, (const float *)node_matrices,
+        halo::interface::debug_fp_render_model_note(*(uint32_t *)&model_tag_id, pixels, lod, (const float *)node_matrices,
             (const float *)bounding_center, 0);
-        debug_fp_clip_note(node_matrices ? (const float *)node_matrices + 10 : 0, effect->type);
+        halo::interface::debug_fp_clip_note(node_matrices ? (const float *)node_matrices + 10 : 0, effect->type);
     }
-    if (flags == 8) debug_fp_state_arm(1);
+    if (flags == 8) halo::interface::debug_fp_state_arm(1);
     model_view(model).render_parts(region_permutations, (rasterizer_node_matrices *)&context.node_matrices, lod, forced_shader_permutation, flags);
-    debug_fp_state_arm(0);
+    halo::interface::debug_fp_state_arm(0);
 
     if ((flags & _model_render_immediate_bit) != 0) {
         rasterizer_object_shadow_model_context = 0;

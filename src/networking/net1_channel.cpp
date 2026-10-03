@@ -5,6 +5,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t network_object_index_cache[];
@@ -37,7 +39,6 @@ extern void gt2SetConnectionData(int32_t socket, network_receive_queue *queue);
 extern void *gt2GetConnectionData(void *connection);
 extern int16_t network_join_error_code;
 extern uint8_t network_host_handoff_requested;
-extern void chat_close(void);
 extern void gt2CloseAllConnections(void *socket);
 extern uint8_t network_game_receive_buffer[0x2000];
 extern const uint8_t natneg_magic[6];
@@ -58,7 +59,6 @@ extern int32_t network_pending_connection_count;
 extern int32_t network_rate_override;
 extern int32_t network_rate_table[];
 extern uint8_t network_channel_service_backoff_bypass;
-extern game_time_globals *game_time;
 extern int16_t network_game_mode;
 extern network_server_globals *network_server;
 extern uint8_t network_disconnect_timeout_flag;
@@ -652,7 +652,7 @@ void ChannelCallbacks::on_socket_error(void *socket)
         network_join_error_code = 6;
     }
     network_host_handoff_requested = 1;
-    chat_close();
+    halo::interface::chat_close();
     gt2CloseAllConnections(socket);
     if ((int32_t)socket == network_game_socket) {
         network_game_socket = 0;
@@ -1423,7 +1423,7 @@ char ChannelView::service(int32_t timeout_ms, network_channel **out_new_child)
             goto after_timestamp;
         }
         if (network_channel_service_backoff_bypass == 0 &&
-            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < game_time->game_time || network_game_mode == 1)) {
+            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == 1)) {
             return 0;
         }
     }
@@ -1499,7 +1499,7 @@ char ChannelView::service_light(int32_t timeout_ms, network_channel **out_new_ch
             goto after_timestamp;
         }
         if (network_channel_service_backoff_bypass == 0 &&
-            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < game_time->game_time || network_game_mode == 1)) {
+            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == 1)) {
             return 0;
         }
     }
@@ -1684,7 +1684,7 @@ int32_t ChannelKeys::close(network_player_entry *entry, datum_index requested_ha
     } else {
         key = entry->machine_player_index;
     }
-    player_new_local(requested_handle, entry->machine_index, key, (uint16_t *)entry);
+    halo::game::player_new_local(requested_handle, entry->machine_index, key, (uint16_t *)entry);
     if (requested_handle != (datum_index)-1) {
         entry->slot_index = (int8_t)requested_handle;
         return 1;
@@ -1710,7 +1710,7 @@ int32_t ChannelKeys::open(network_player_entry *entry)
     } else {
         key = entry->machine_player_index;
     }
-    index = player_new_network(entry->machine_index, key);
+    index = halo::game::player_new_network((datum_index)(int32_t)entry->slot_index, (uint32_t)(int32_t)entry->machine_index, key, (uint16_t *)entry);
     if (index != -1) {
         entry->slot_index = (int8_t)index;
         halo::networking::network_index_cache_find_or_allocate_slot(network_object_index_cache, index);

@@ -8,6 +8,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -15,7 +16,6 @@
 
 extern "C" {
 extern virtual_keyboard_globals virtual_keyboard;
-extern void widget_play_sound_effect(int16_t effect_id);
 extern uint8_t *virtual_keyboard_blacklist_charset;
 extern uint8_t controls_input_capture_flags;
 extern void **keyboard_device;
@@ -27,21 +27,12 @@ extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
-extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
 extern const int16_t *text_get_character_metrics(uint16_t character, const void *font_data);
 extern int16_t key_event_read_index;
 extern int16_t key_event_count;
 extern ui_key_event key_events[];
-extern void display_error(int32_t string_index, int32_t player_index, uint8_t modal, uint8_t is_error);
-extern uint8_t virtual_keyboard_close(void);
-extern void virtual_keyboard_backspace(void);
-extern uint8_t ui_wide_string_has_non_whitespace(const uint16_t *text);
-extern uint8_t ui_variant_name_is_available(const uint16_t *name);
-extern uint8_t virtual_keyboard_character_is_legal(int32_t validation_mode, uint8_t character);
-extern uint8_t saved_item_name_matches(const uint16_t *text);
 extern uint16_t fortune_easter_egg_text[];
 extern uint16_t missing_string_text[];
-extern void virtual_keyboard_draw_text(Rectangle2D *bounds);
 }
 
 #define WCTYPE_SPACE 0x0008
@@ -105,7 +96,7 @@ void VirtualKeyboard::backspace()
             virtual_keyboard.destination_end = (uint16_t *)(destination_end - 2);
         }
     }
-    widget_play_sound_effect(1);
+    halo::interface::widget_play_sound_effect(1);
 }
 
 /**
@@ -154,7 +145,7 @@ uint8_t VirtualKeyboard::close()
     virtual_keyboard.destination = 0;
     virtual_keyboard.text[0] = 0;
     virtual_keyboard.committed = 0;
-    widget_play_sound_effect(3);
+    halo::interface::widget_play_sound_effect(3);
 
     controls_input_capture_flags &= 0xfb;
 
@@ -194,7 +185,7 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
             halo::text::text_measure_string_extents(bounds, &cursor, &highlight, virtual_keyboard.destination);
             highlight.left -= 2;
             highlight.right += 2;
-            ui_draw_screen_quad((int16_t *)bounds, (int16_t *)&highlight, (int32_t)white, 0, 0x7f7f7f7f);
+            halo::interface::ui_draw_screen_quad((int16_t *)bounds, (int16_t *)&highlight, (int32_t)white, 0, 0x7f7f7f7f);
         }
     }
 
@@ -229,7 +220,7 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
             caret.left = (int16_t)((bounds->left + bounds->right) / 2 - (total_advance >> 1) + advance_before_caret);
             caret.bottom = (int16_t)(height + 0x78);
             caret.right = (int16_t)(caret.left + 1);
-            ui_draw_screen_quad(0, (int16_t *)&caret, (int32_t)white, 0, 0xffffffff);
+            halo::interface::ui_draw_screen_quad(0, (int16_t *)&caret, (int32_t)white, 0, 0xffffffff);
         }
     }
 }
@@ -285,12 +276,12 @@ void VirtualKeyboard::process_input()
 
         switch (event.key_code) {
         case 0x00:
-            virtual_keyboard_close();
+            halo::interface::virtual_keyboard_close();
             continue;
 
         case 0x1d:
             if (virtual_keyboard.opened != 1) {
-                virtual_keyboard_backspace();
+                halo::interface::virtual_keyboard_backspace();
                 continue;
             }
             vk_clear_text();
@@ -305,27 +296,27 @@ void VirtualKeyboard::process_input()
             }
             switch (virtual_keyboard.validation_mode) {
             case 1:
-                if (!ui_wide_string_has_non_whitespace(virtual_keyboard.destination) ||
+                if (!halo::interface::ui_wide_string_has_non_whitespace(virtual_keyboard.destination) ||
                     !vk_trim_trailing_whitespace()) {
                     goto invalid;
                 }
                 if (halo::saved_games::saved_game_name_is_available(virtual_keyboard.destination)) {
                     goto commit_ok;
                 }
-                name_ok = saved_item_name_matches(virtual_keyboard.destination);
+                name_ok = halo::interface::saved_item_name_matches((wchar_t *)virtual_keyboard.destination);
                 break;
             case 2:
-                if (!ui_wide_string_has_non_whitespace(virtual_keyboard.destination) ||
+                if (!halo::interface::ui_wide_string_has_non_whitespace(virtual_keyboard.destination) ||
                     !vk_trim_trailing_whitespace()) {
                     goto invalid;
                 }
-                if (saved_item_name_matches(virtual_keyboard.destination)) {
+                if (halo::interface::saved_item_name_matches((wchar_t *)virtual_keyboard.destination)) {
                     goto commit_ok;
                 }
                 if (!halo::saved_games::saved_game_name_is_available(virtual_keyboard.destination)) {
                     goto name_taken;
                 }
-                name_ok = ui_variant_name_is_available(virtual_keyboard.destination);
+                name_ok = halo::interface::ui_variant_name_is_available(virtual_keyboard.destination);
                 break;
             case 3:
                 if (virtual_keyboard.destination[0] != 0) {
@@ -333,7 +324,7 @@ void VirtualKeyboard::process_input()
                 }
                 wcslen((const wchar_t *)virtual_keyboard.text);
                 wcscpy((wchar_t *)virtual_keyboard.destination, (const wchar_t *)virtual_keyboard.text);
-                virtual_keyboard_close();
+                halo::interface::virtual_keyboard_close();
                 goto finish;
             default:
                 goto finish;
@@ -342,17 +333,17 @@ void VirtualKeyboard::process_input()
                 goto commit_ok;
             }
 name_taken:
-            display_error(0x1b, -1, 1, 0);
-            virtual_keyboard_close();
+            halo::interface::display_error(0x1b, -1, 1, 0);
+            halo::interface::virtual_keyboard_close();
             goto finish;
 invalid:
-            display_error(0x1d, -1, 1, 0);
-            virtual_keyboard_close();
+            halo::interface::display_error(0x1d, -1, 1, 0);
+            halo::interface::virtual_keyboard_close();
             goto finish;
 commit_ok:
             virtual_keyboard.committed = 1;
 finish:
-            widget_play_sound_effect(3);
+            halo::interface::widget_play_sound_effect(3);
             controls_input_capture_flags &= 0xfb;
             virtual_keyboard.active = 0;
             if (keyboard_device != 0) {
@@ -398,7 +389,7 @@ finish:
                 if (bytes > 0) {
                     memmove(virtual_keyboard.destination_end, virtual_keyboard.destination_end + 1, bytes);
                     virtual_keyboard.destination[((uint16_t)virtual_keyboard.maximum_length >> 1) - 1] = 0;
-                    widget_play_sound_effect(1);
+                    halo::interface::widget_play_sound_effect(1);
                 }
             }
             continue;
@@ -419,7 +410,7 @@ finish:
             }
             glyph = (character_map[0] == 0x100) ? (int16_t *)(uintptr_t)character_map[1] + ch : (int16_t *)0;
             if (*glyph == -1 || *(int32_t *)(font + 0x80) + *glyph * 0x14 == 0 ||
-                !virtual_keyboard_character_is_legal(virtual_keyboard.validation_mode, ch)) {
+                !halo::interface::virtual_keyboard_character_is_legal(virtual_keyboard.validation_mode, ch)) {
                 goto rejected;
             }
             if (virtual_keyboard.validation_mode == 3 &&
@@ -443,7 +434,7 @@ finish:
             virtual_keyboard.destination_end++;
 
             if (wcscmp((const wchar_t *)virtual_keyboard.destination, (const wchar_t *)fortune_easter_egg_text) != 0) {
-                widget_play_sound_effect(1);
+                halo::interface::widget_play_sound_effect(1);
                 continue;
             }
             {
@@ -461,16 +452,16 @@ finish:
             } else {
                 vk_clear_text();
             }
-            widget_play_sound_effect(1);
+            halo::interface::widget_play_sound_effect(1);
             continue;
 rejected:
-            widget_play_sound_effect(4);
+            halo::interface::widget_play_sound_effect(4);
             continue;
         }
         }
 
         virtual_keyboard.opened = 0;
-        widget_play_sound_effect(1);
+        halo::interface::widget_play_sound_effect(1);
     }
 }
 
@@ -492,7 +483,7 @@ void VirtualKeyboard::render()
         rect.left = 0;
         rect.bottom = 0x1e0;
         rect.right = 0x280;
-        ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, (int32_t)bitmap, 0, 0xffffffff);
+        halo::interface::ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, (int32_t)bitmap, 0, 0xffffffff);
     }
 
     virtual_keyboard_set_text_state(0);
@@ -533,12 +524,12 @@ void VirtualKeyboard::render()
     rect.left = 0x78;
     rect.bottom = 0x8f;
     rect.right = 0x208;
-    virtual_keyboard_draw_text(&rect);
+    halo::interface::virtual_keyboard_draw_text(&rect);
 }
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 void virtual_keyboard_backspace(void)
 {

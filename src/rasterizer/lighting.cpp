@@ -11,20 +11,14 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 
-extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
 
 }  // extern "C"
 
 namespace halo::rasterizer {
-
-
-
-
-
-
 
 
 /**
@@ -196,7 +190,6 @@ void rasterizer_light_cone_set_orientation_constants(int32_t light_index)
 namespace rasterizer_light_cone_set_texture_stage_states_impl {
 
 
-
 /**
  * Direct3D 9 back end function rasterizer_light_cone_set_texture_stage_states. The original author notes are
  * in docs/original/rasterizer/rasterizer_light_cone_set_texture_stage_states.c.txt.
@@ -266,7 +259,6 @@ void rasterizer_light_cone_set_texture_stage_states(void)
 namespace rasterizer_light_disable_all_impl {
 
 
-
 /**
  * Resets the default material and disables every fixed-function Direct3D light, for the pre-pixel-shader
  * lighting fallback used when the device has no ps_1_1 support.
@@ -295,7 +287,6 @@ void rasterizer_light_disable_all(void)
 }  // namespace rasterizer_light_disable_all_impl
 
 namespace rasterizer_light_set_impl {
-
 
 
 #undef D3DLIGHT_POINT
@@ -423,7 +414,6 @@ void rasterizer_light_set_point_constants(int32_t light_index, int16_t slot, ras
 }
 
 namespace rasterizer_prepare_lighting_constants_impl {
-
 
 
 typedef struct lighting_constant_block {
@@ -630,7 +620,6 @@ void rasterizer_projected_light_constants_build_cube_map(int32_t light_index)
 namespace rasterizer_set_fog_constants_impl {
 
 
-
 static void rasterizer_set_render_state(uint32_t state, uint32_t value)
 {
     render_device().set_render_state(state, value);
@@ -737,7 +726,7 @@ void rasterizer_set_fog_constants(const render_fog *fog)
 
     rasterizer_fog_enabled = console_debug_toggle_6893fc;
     rasterizer_set_render_state(0x1c, rasterizer_fog_enabled);
-    rasterizer_set_render_state(0x22, color_rgb_float_to_int(&window_fog->atmospheric_color));
+    rasterizer_set_render_state(0x22, halo::interface::color_rgb_float_to_int((const float *)(&window_fog->atmospheric_color)));
     rasterizer_set_render_state(0x23, 0);
     rasterizer_set_render_state(0x8c, 3);
     rasterizer_set_render_state(0x24, real_bits(window_fog->atmospheric_minimum_distance));
@@ -848,7 +837,6 @@ done:
 }  // namespace rasterizer_set_shader_stage_config_impl
 
 namespace rasterizer_shader_technique_for_name_impl {
-
 
 
 /**

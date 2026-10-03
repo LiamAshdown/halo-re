@@ -2,6 +2,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern data_packet_group network_game_messages_group;
@@ -76,7 +78,7 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
     do {
         if ((int32_t)(int8_t)*puVar7 == (uint32_t)*connection) {
             puVar7 = connection + iVar6 * 0x10;
-            iVar6 = (int32_t)(uint32_t)player_data;
+            iVar6 = (int32_t)(uint32_t)halo::game::globals().player_data;
             if ((int32_t)(int8_t)puVar7[0x669] == (uint32_t)*connection) {
                 goto have_machine;
             }
@@ -91,15 +93,15 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
         uVar8 = (uint32_t)halo::networking::player_data_iterator_advance((int8_t)*((uint8_t *)puVar7 + 0xcd5));
         sVar9 = (int16_t)(int8_t)*((uint8_t *)puVar7 + 0xcd3);
         if (-1 < (int8_t)*((uint8_t *)puVar7 + 0xcd3) && sVar9 < 1) {
-            puVar2 = (uint32_t *)&local_player_globals->local_players[sVar9];
+            puVar2 = (uint32_t *)&halo::game::globals().local_player_globals->local_players[sVar9];
             uVar3 = *puVar2;
             if (uVar3 != 0xffffffff) {
-                *(uint16_t *)((uVar3 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)player_data + 0x34)) = 0xffff;
-                iVar6 = (int32_t)(uint32_t)player_data;
+                *(uint16_t *)((uVar3 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)halo::game::globals().player_data + 0x34)) = 0xffff;
+                iVar6 = (int32_t)(uint32_t)halo::game::globals().player_data;
             }
             *puVar2 = uVar8;
             if (uVar8 != 0xffffffff) {
-                *(int16_t *)((uVar8 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)player_data + 0x34)) = sVar9;
+                *(int16_t *)((uVar8 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)halo::game::globals().player_data + 0x34)) = sVar9;
             }
         }
         puVar1 = puVar7 + 0x679;
@@ -167,9 +169,9 @@ after_search:
         connection[0x768] = 0;
         connection[0x769] = 0;
         *((uint8_t *)connection + 0xee1) = 0;
-        widget_close_all();
-        game_engine_init_tick_record_for_mode();
-        game_engine_reset_all_players();
+        halo::interface::widget_close_all();
+        halo::game::game_engine_init_tick_record_for_mode();
+        halo::game::game_engine_reset_all_players();
         if (network_game_mode == 2 && ((*(uint8_t *)((uint8_t *)network_server + 6) >> 2 & 1) == 0)) {
             halo::networking::network_host_full_state_broadcast(network_server);
         }

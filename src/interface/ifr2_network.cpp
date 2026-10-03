@@ -9,6 +9,8 @@
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -22,10 +24,6 @@ extern void game_engine_apply_current_custom_variant(void);
 extern void network_game_setup_teardown(void);
 extern variant_carousel_slot variant_carousel_slots[3];
 extern uint8_t profile_globals_block[0x60a4];
-extern void widget_list_scroll_window(int32_t out[3], widget_instance *widget);
-extern void ui_variant_carousel_slot_cache_populate(int32_t *candidate_ids, int32_t count);
-extern void multiplayer_settings_select_list_update_item(widget_instance *widget, const uint16_t *record);
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
 extern uint8_t default_profile_data[0x1ffc];
@@ -33,19 +31,12 @@ extern char k_empty_string[];
 extern uint8_t command_line_check_flag(const char *flag, const char **out_value);
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only, uint16_t *capacity_and_count);
 extern uint8_t player_profile_get(int32_t slot, void *out_profile);
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern uint8_t local_team_00714dd8;
 extern uint8_t game_variant_saved_default_valid;
 extern game_engine_definition *current_game_engine;
 extern uint8_t player_profile_cache_initialized;
 extern player_profile player_profile_cache[16];
 extern game_variant game_engine_active_variant;
-extern game_engine_state game_engine_state_value;
-extern void game_engine_player_profile_cache_sync_all(int32_t unknown);
-extern void game_engine_reset_round_objects(void);
-extern void game_engine_send_round_reset_message(void);
-extern void chimera__console_out(ColorARGB *color, char *format, ...);
-extern void widget_close_all(void);
 }
 
 namespace halo::interface {
@@ -62,11 +53,11 @@ uint8_t NetworkSetup::host_session_start()
     uint8_t ok = 1;
 
     halo::networking::network_client_globals_dispose();
-    network_game_setup_teardown();
+    halo::interface::network_game_setup_teardown();
     halo::networking::globals().disconnect_timeout_flag = 1;
 
     if (halo::networking::globals().server == (network_server_globals *)0) {
-        game_engine_ensure_variant_history_has_entry();
+        halo::game::game_engine_ensure_variant_history_has_entry();
         ok = halo::networking::network_game_server_host_create();
         if (ok == 1) {
             int32_t *raw = (int32_t *)halo::networking::globals().server;
@@ -77,8 +68,8 @@ uint8_t NetworkSetup::host_session_start()
             raw[0x275] = 0;
             *((uint8_t *)raw + 0x9d5) = 1;
             game_variant_history_current = -1;
-            game_engine_apply_current_custom_variant();
-            game_engine_sync_variant_defaults();
+            halo::game::game_engine_apply_current_custom_variant();
+            halo::game::game_engine_sync_variant_defaults();
             halo::networking::globals().game_mode = 2;
         }
         if (ok == 0) {
@@ -105,7 +96,7 @@ fail:
     }
     halo::networking::network_client_globals_dispose();
     halo::networking::globals().disconnect_timeout_flag = 0;
-    network_game_setup_teardown();
+    halo::interface::network_game_setup_teardown();
     return 0;
 }
 
@@ -118,11 +109,11 @@ void MenuListView::refresh_3wide()
     int32_t ids[3];
     int32_t i;
 
-    widget_list_scroll_window(window, widget);
+    halo::interface::widget_list_scroll_window(window, widget);
     for (i = 0; i < 3; i++) {
         ids[i] = window[i] == -1 ? -1 : ((int32_t *)widget->list_items)[window[i]];
     }
-    ui_variant_carousel_slot_cache_populate(ids, 3);
+    halo::interface::ui_variant_carousel_slot_cache_populate(ids, 3);
 
     for (i = 0; i < 3 && window[i] != -1; i++) {
         widget_instance *row = widget->first_child;
@@ -135,7 +126,7 @@ void MenuListView::refresh_3wide()
         }
         for (slot = 0; slot < 3; slot++) {
             if (variant_carousel_slots[slot].id == id) {
-                multiplayer_settings_select_list_update_item(row, (const uint16_t *)variant_carousel_slots[slot].unknown);
+                halo::interface::multiplayer_settings_select_list_update_item(row, (const uint16_t *)variant_carousel_slots[slot].unknown);
                 break;
             }
         }
@@ -145,7 +136,7 @@ void MenuListView::refresh_3wide()
         uint8_t profile_copy[0x7ff * 4];
 
         memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        set_profile_name(widget->extended_description, (const uint16_t *)(profile_copy + 2));
+        halo::interface::set_profile_name(widget->extended_description, (const uint16_t *)(profile_copy + 2));
     }
 }
 
@@ -288,7 +279,7 @@ uint8_t NetworkSetup::autojoin_from_command_line()
                 memcpy(profile, default_profile_data, sizeof(profile));
             } else if (halo::saved_games::player_profile_get(slot, (saved_player_profile *)profile) != 0 &&
                        wcscmp((const wchar_t *)wide_name, (const wchar_t *)((const uint16_t *)(profile + 2))) == 0) {
-                player_profile_load(0, profile, slot);
+                halo::interface::player_profile_load(0, profile, slot);
                 break;
             }
             count--;
@@ -367,11 +358,11 @@ void NetworkSetup::game_setup_teardown()
     game_variant_saved_default_valid = 0;
     halo::networking::globals().game_mode = 0;
 
-    if (current_game_engine != (game_engine_definition *)0) {
-        if (current_game_engine->dispose != (void *)0) {
-            ((void (*)(void))current_game_engine->dispose)();
+    if (halo::game::globals().current_engine != (game_engine_definition *)0) {
+        if (halo::game::globals().current_engine->dispose != (void *)0) {
+            ((void (*)(void))halo::game::globals().current_engine->dispose)();
         }
-        current_game_engine = (game_engine_definition *)0;
+        halo::game::globals().current_engine = (game_engine_definition *)0;
     }
 
     if (player_profile_cache_initialized == 1) {
@@ -415,14 +406,14 @@ uint32_t MenuListView::choice_handler()
     uint32_t handled = 0;
 
     if (widget == first_choice) {
-        widget_close_all();
+        halo::interface::widget_close_all();
         if (halo::networking::globals().game_mode == 2) {
             if (game_engine_state_value == 0) {
-                game_engine_reset_round_objects();
-                game_engine_send_round_reset_message();
-                game_engine_player_profile_cache_sync_all(-1);
+                halo::game::game_engine_reset_round_objects();
+                halo::game::game_engine_send_round_reset_message();
+                halo::game::game_engine_player_profile_cache_sync_all(-1);
             } else {
-                chimera__console_out((ColorARGB *)0, (char *)"Cannot restart the map when the game is over.");
+                halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Cannot restart the map when the game is over.");
             }
         }
         handled = 1;
@@ -435,7 +426,7 @@ uint32_t MenuListView::choice_handler()
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 uint8_t multiplayer_host_session_start(void)
 {

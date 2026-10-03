@@ -5,6 +5,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_investigate_disturbance_update {
 extern "C" {
@@ -44,8 +45,8 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
             uint8_t close;
             uint8_t in_front;
 
-            if (game_time->game_time >= *(int32_t *)(act + 0xac) + 150) {
-                *(int32_t *)(act + 0xac) = game_time->game_time;
+            if (halo::game::globals().game_time->game_time >= *(int32_t *)(act + 0xac) + 150) {
+                *(int32_t *)(act + 0xac) = halo::game::globals().game_time->game_time;
                 if (halo::math::vector3d_distance_squared(((struct actor *)act)->body_position, *(real_point3d *)(act + 0xb0)) <= 25.0f) {
                     *(int16_t *)(act + 0xaa) += 1;
                 } else {

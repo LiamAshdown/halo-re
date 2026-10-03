@@ -20,14 +20,13 @@
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern game_engine_definition *current_game_engine;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern uint8_t g_control_binding_secondary_active;
 extern uint8_t g_control_binding_state;
-extern uint32_t game_engine_remap_placement_by_type(uint32_t handle);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t *global_scenario;
 extern const real_vector3d *global_white_color;
@@ -89,7 +88,7 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
                 }
             }
         }
-        if (current_game_engine != 0) {
+        if (halo::game::globals().current_engine != 0) {
             if (halo::input::globals().binding_secondary_active) {
                 halo::input::control_binding_table_update_b();
             } else {
@@ -318,12 +317,12 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
 
     definition_tag = placement->definition_tag;
 
-    if (current_game_engine != 0) {
+    if (halo::game::globals().current_engine != 0) {
         if (definition_tag == k_datum_index_none) {
             return k_datum_index_none;
         }
         if (role != 1 && role != 2) {
-            definition_tag = game_engine_remap_placement_by_type(definition_tag);
+            definition_tag = halo::game::game_engine_remap_placement_by_type(definition_tag);
         }
     }
 

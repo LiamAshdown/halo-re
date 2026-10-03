@@ -20,6 +20,8 @@
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern ctf_globals ctf_globals_live;
@@ -31,33 +33,16 @@ extern int32_t ctf_flag_auto_return_ticks;
 extern uint8_t custom_waypoints[];
 extern uint8_t network_message_scratch[0x7ff8];
 extern datum_index ctf_team_flag_object[2];
-extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index);
 extern uint8_t ctf_team_return_credit_active[2];
 extern int32_t ctf_team_return_credit_ticks[2];
 extern int32_t ctf_notify_throttle_tick;
 extern int32_t ctf_neutral_flag_id;
-extern void game_engine_ctf_assign_flag_ids(void);
-extern int32_t game_engine_ctf_pick_random_flag(int32_t exclude_flag_index);
-extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position,
-    float height_offset, datum_index player_filter, int16_t team_filter);
 extern uint32_t ctf_team_captured_flags_mask[];
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
-extern void game_engine_ctf_on_flag_captured(uint32_t flag_index);
-extern uint8_t game_engine_ctf_is_flag_eligible_for_capture(uint32_t team, int32_t flag_id);
 extern int32_t game_engine_state_value;
 extern float game_engine_end_game_timer;
-extern void widget_close_all(void);
-extern void game_engine_send_end_game_notification(uint32_t reason);
 extern int32_t ctf_flag_capture_limit_006b0ea0;
 extern data_array *player_data;
-extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern game_engine_definition *current_game_engine;
-extern uint8_t unit_has_must_be_readied_weapon(uint32_t player_index);
-extern void unit_reset_gauge_if_flagged(uint32_t player_index);
-extern uint8_t game_engine_ctf_point_within_team_flag_radius(float radius, int32_t team, real_point3d *point);
-extern void game_engine_ctf_notify_flag_carried_throttled(int32_t target_player);
-extern void game_engine_ctf_player_touch_flag(uint32_t player_index, int32_t team);
-extern void game_engine_ctf_player_drop_flag(uint32_t player_index, datum_index flag_object_index);
 }
 
 namespace halo::game::engine1 {
@@ -232,10 +217,10 @@ void Ctf::reset_objects(void)
         return;
     }
     if (ctf_team_flag_object[0] != 0xffffffff) {
-        game_engine_ctf_reset_team_return_credit(ctf_team_flag_object[0]);
+        halo::game::game_engine_ctf_reset_team_return_credit(ctf_team_flag_object[0]);
     }
     if (ctf_team_flag_object[1] != 0xffffffff) {
-        game_engine_ctf_reset_team_return_credit(ctf_team_flag_object[1]);
+        halo::game::game_engine_ctf_reset_team_return_credit(ctf_team_flag_object[1]);
     }
     ctf_flag_auto_return_ticks = game_engine_variant.engine.ctf.single_flag_time;
     ctf_team_flag_touch_count[0] = 0;
@@ -265,7 +250,7 @@ void Ctf::return_all_flags(void)
         return;
     }
 
-    game_engine_ctf_assign_flag_ids();
+    halo::game::game_engine_ctf_assign_flag_ids();
     {
         uint32_t *raw = (uint32_t *)&ctf_globals_live;
         for (i = 0; i < (int32_t)(sizeof(ctf_globals_live) / 4); i++) raw[i] = 0;
@@ -284,12 +269,12 @@ void Ctf::return_all_flags(void)
             lowest_usage_id = usage_id;
         }
         ctf_globals_live.flag_id_mask |= 1u << (usage_id & 0x1f);
-        custom_waypoint_register((datum_index)0, (int16_t)0, (real_point3d *)0, 0.0f,
+        halo::game::custom_waypoint_register((datum_index)0, (int16_t)0, (real_point3d *)0, "flag_blue", 0.0f,
             (datum_index)0xffffffff, (int16_t)0xffffffff);
     }
 
     if (game_engine_variant.engine.race.race_type == 2) {
-        ctf_neutral_flag_id = game_engine_ctf_pick_random_flag(-1);
+        ctf_neutral_flag_id = halo::game::game_engine_ctf_pick_random_flag(-1);
         return;
     }
     if (game_engine_variant.engine.race.race_type == 0) {
@@ -318,22 +303,22 @@ void Ctf::score_flag(uint32_t team, int32_t scenario_flag_index)
     int16_t usage_id = flags[scenario_flag_index].usage_id;
     uint32_t idx = team & 0xffff;
 
-    if (game_engine_ctf_is_flag_eligible_for_capture(team, usage_id) == 0) {
+    if (halo::game::game_engine_ctf_is_flag_eligible_for_capture(team, usage_id) == 0) {
         return;
     }
 
-    game_engine_queue_multiplayer_sound(0x1a, team, 1);
+    halo::game::game_engine_queue_multiplayer_sound(0x1a, team, 1);
     if (ctf_globals_live.team_flag_id[idx] == -1) {
         ctf_globals_live.team_flag_id[idx] = usage_id;
     }
 
     if (game_engine_variant.engine.race.race_type == 2) {
-        game_engine_ctf_on_flag_captured(team);
-        ctf_neutral_flag_id = game_engine_ctf_pick_random_flag(ctf_neutral_flag_id);
+        halo::game::game_engine_ctf_on_flag_captured(team);
+        ctf_neutral_flag_id = halo::game::game_engine_ctf_pick_random_flag(ctf_neutral_flag_id);
         return;
     }
     if (ctf_team_captured_flags_mask[idx] == ctf_globals_live.flag_id_mask) {
-        game_engine_ctf_on_flag_captured(team);
+        halo::game::game_engine_ctf_on_flag_captured(team);
         return;
     }
     ctf_team_captured_flags_mask[idx] |= 1u << (usage_id & 0x1f);
@@ -355,15 +340,15 @@ void Ctf::unknown_48(void)
         halo::networking::globals().server->game_over = 1;
         game_engine_state_value = 1;
         game_engine_end_game_timer = 7.0f;
-        game_engine_queue_multiplayer_sound(1, 0xffffffff, 0);
-        widget_close_all();
-        game_engine_send_end_game_notification(1);
+        halo::game::game_engine_queue_multiplayer_sound(1, 0xffffffff, 0);
+        halo::interface::widget_close_all();
+        halo::game::game_engine_send_end_game_notification(1);
     }
     if (ctf_team_return_credit_active[0] != 0) {
         int32_t ticks = ctf_team_return_credit_ticks[0];
 
         if (ticks > 0x258) {
-            game_engine_queue_multiplayer_sound(8, 0xffffffff, 1);
+            halo::game::game_engine_queue_multiplayer_sound(8, 0xffffffff, 1);
             ticks = 0;
         }
         ctf_team_return_credit_ticks[0] = ticks + 1;
@@ -372,7 +357,7 @@ void Ctf::unknown_48(void)
         int32_t ticks = ctf_team_return_credit_ticks[1];
 
         if (ticks > 0x258) {
-            game_engine_queue_multiplayer_sound(0xb, 0xffffffff, 1);
+            halo::game::game_engine_queue_multiplayer_sound(0xb, 0xffffffff, 1);
             ticks = 0;
         }
         ctf_team_return_credit_ticks[1] = ticks + 1;
@@ -386,7 +371,7 @@ void Ctf::unknown_48(void)
  */
 uint8_t Ctf::unknown_60(datum_index unit_index, datum_index item_index)
 {
-    datum_index player = player_index_from_unit_index(unit_index);
+    datum_index player = halo::game::player_index_from_unit_index(unit_index);
     uint8_t *weapon;
 
     if (player == 0xffffffff || item_index == 0xffffffff || halo::networking::globals().game_mode != 2) {
@@ -415,8 +400,8 @@ void Ctf::update(datum_index player_index)
     datum_index weapon;
     int32_t team;
 
-    if (unit_has_must_be_readied_weapon(player_index) != 0) {
-        unit_reset_gauge_if_flagged(player_index);
+    if (halo::game::unit_has_must_be_readied_weapon(player_index) != 0) {
+        halo::game::unit_reset_gauge_if_flagged(player_index);
     }
     if (halo::networking::globals().game_mode != 2) {
         return;
@@ -441,19 +426,19 @@ void Ctf::update(datum_index player_index)
         return;
     }
     team = ((struct player *)player)->team;
-    if (game_engine_ctf_point_within_team_flag_radius(1.0f, team, (real_point3d *)(unit + 0x5c)) == 0) {
+    if (halo::game::game_engine_ctf_point_within_team_flag_radius(1.0f, team, (real_point3d *)(unit + 0x5c)) == 0) {
         return;
     }
     if (game_engine_variant.engine.ctf.flag_at_home_to_score != 0 && game_engine_variant.engine.ctf.single_flag_time == 0) {
         uint8_t *flag = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (ctf_team_flag_object[team] & 0xffff) * 12 + 8);
 
         if (((*(uint32_t *)(flag + 0x22c) >> 6) & 1) != 0) {
-            game_engine_ctf_notify_flag_carried_throttled((int32_t)player_index);
+            halo::game::game_engine_ctf_notify_flag_carried_throttled((int32_t)player_index);
             return;
         }
     }
-    game_engine_ctf_player_touch_flag(player_index, team);
-    game_engine_ctf_player_drop_flag(player_index, weapon);
+    halo::game::game_engine_ctf_player_touch_flag(player_index, team);
+    halo::game::game_engine_ctf_player_drop_flag(player_index, weapon);
 }
 
 }

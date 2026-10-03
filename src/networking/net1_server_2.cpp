@@ -5,6 +5,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern data_packet_group network_game_messages_group;
@@ -39,8 +41,6 @@ extern int32_t join_ui_state;
 extern int32_t ui_root_widget;
 extern int32_t ui_widget_history;
 extern uint8_t ui_pause_depth;
-extern int32_t controls_capture_row;
-extern uint8_t controls_input_capture_flags;
 extern uint8_t controls_input_capture_buffer[0x280];
 extern void game_engine_apply_current_custom_variant(void);
 extern void game_engine_sync_variant_defaults(void);
@@ -196,7 +196,7 @@ uint32_t ServerView::record_last_sender(int32_t sender, int16_t step_count)
         return 0;
     }
     if (server->session.map_loaded != 0 && resolved != 0 && sender != -1) {
-        *(int32_t *)((uint8_t *)player_data->data + (resolved & 0xffff) * 0x200 + 0xd0) = sender;
+        *(int32_t *)((uint8_t *)halo::game::globals().player_data->data + (resolved & 0xffff) * 0x200 + 0xd0) = sender;
     }
     return 1;
 }
@@ -651,8 +651,8 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
 
     is_host = (host->flags >> 2) & 1;
     if (!is_host) {
-        if (local_player_globals->local_players[0] != (datum_index)-1) {
-            struct player *local_player = (struct player *)halo::memory::datum_get(local_player_globals->local_players[0], player_data);
+        if (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) {
+            struct player *local_player = (struct player *)halo::memory::datum_get(halo::game::globals().local_player_globals->local_players[0], halo::game::globals().player_data);
             if (local_player != 0) {
                 network_client->team_index = *(int32_t *)((uint8_t *)local_player + 0x20);
             }
@@ -696,8 +696,8 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
     host->update_tick = 0;
     host->state = 0;
 
-    game_engine_apply_current_custom_variant();
-    game_engine_sync_variant_defaults();
+    halo::game::game_engine_apply_current_custom_variant();
+    halo::game::game_engine_sync_variant_defaults();
     if (!is_host) {
         join_ui_state = 2;
     }
@@ -711,16 +711,16 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
     host->listen_channel->listening = 1;
 
     if (ui_root_widget != 0) {
-        widget_close(ui_root_widget);
+        halo::interface::widget_close((widget_instance *)ui_root_widget);
     }
     if (ui_widget_history != 0) {
-        widget_pool_list_free_all();
+        halo::interface::widget_pool_list_free_all((widget_history_node **)&ui_widget_history);
     }
     ui_pause_depth = 0;
-    if (controls_capture_row != -1) {
-        controls_input_capture_flags = controls_input_capture_flags & 0xf7;
+    if (halo::interface::globals().controls_capture_row != -1) {
+        halo::interface::globals().controls_input_capture_flags = halo::interface::globals().controls_input_capture_flags & 0xf7;
         memset(controls_input_capture_buffer, 0, sizeof(controls_input_capture_buffer));
-        controls_capture_row = -1;
+        halo::interface::globals().controls_capture_row = -1;
     }
     host->handshake_blocked = 0;
 

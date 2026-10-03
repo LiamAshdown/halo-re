@@ -9,6 +9,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -30,10 +31,10 @@ namespace halo::hs::part3 {
  */
 void ScriptRuntime::reposition_players_outside_trigger_volume(int32_t trigger_volume_index, int32_t location_index) const
 {
-    datum_index player_index = halo::memory::datum_next(-1, player_data);
+    datum_index player_index = halo::memory::datum_next(-1, halo::game::globals().player_data);
 
     while (player_index != k_datum_index_none) {
-        datum_index unit = *(datum_index *)((uint8_t *)player_data->data + (player_index & halo::k_slot_mask) * 0x200 + 0x34);
+        datum_index unit = *(datum_index *)((uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_slot_mask) * 0x200 + 0x34);
 
         if (unit != k_datum_index_none) {
             uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit & halo::k_slot_mask) * 0xc + 8);
@@ -42,7 +43,7 @@ void ScriptRuntime::reposition_players_outside_trigger_volume(int32_t trigger_vo
                 halo::hs::hs_object_detach_and_place_at_location((int16_t)location_index, unit, 1, 1);
             }
         }
-        player_index = halo::memory::datum_next((int16_t)player_index, player_data);
+        player_index = halo::memory::datum_next((int16_t)player_index, halo::game::globals().player_data);
     }
 }
 
@@ -86,7 +87,7 @@ void ScriptRuntime::runtime_update() const
         return;
     }
 
-    current_tick = game_time->game_time;
+    current_tick = halo::game::globals().game_time->game_time;
     command_thread_pending = 0;
     thread_handle = halo::memory::datum_next(-1, halo::hs::globals().thread_data);
     while (thread_handle != k_datum_index_none) {
@@ -104,7 +105,7 @@ void ScriptRuntime::runtime_update() const
     }
 
     halo::hs::object_lists_dispose_empty();
-    if (command_thread_pending == 0 && game_time->game_time % 16 == 0) {
+    if (command_thread_pending == 0 && halo::game::globals().game_time->game_time % 16 == 0) {
         halo::hs::hs_syntax_node_garbage_collect();
     }
 }

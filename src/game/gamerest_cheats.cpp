@@ -6,10 +6,11 @@
 #include "halo/camera/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
-extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t count);
 extern data_array *player_data;
 extern player_globals *local_player_globals;
 extern uint32_t cheat_get_target_object_index(void);
@@ -17,7 +18,6 @@ extern void *object_type_definitions[12];
 extern double atan2(double y, double x);
 extern double sin(double x);
 extern double cos(double x);
-extern void console_printf_verbose(const char *format, ...);
 }
 
 namespace halo::game {
@@ -257,14 +257,14 @@ void Cheats::teleport_to_camera()
                 halo::objects::object_set_position_and_orientation(root, 0, 0, (real_point3d *)camera_row);
                 return;
             }
-            console_printf_verbose("Camera is outside BSP... cannot initiate teleportation...");
+            halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Camera is outside BSP... cannot initiate teleportation..."));
         }
     }
 }
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::Cheats::all_weapons; forwards to the C++ implementation.
@@ -287,10 +287,7 @@ void cheat_all_weapons(void)
  *
  * @address 0x45a7a0
  */
-uint32_t cheat_get_target_object_index(void)
-{
-    return halo::game::Cheats::get_target_object_index();
-}
+
 
 /**
  * C entry point for halo::game::Cheats::make_player_invincible; forwards to the C++ implementation.

@@ -5,6 +5,7 @@
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -164,7 +165,7 @@ void ActorView::mode_vehicle_enter()
     uint8_t *act = ACTOR(actor_index);
 
     *(int16_t *)(act + 0xaa) = 0;
-    *(int32_t *)(act + 0xac) = game_time->game_time;
+    *(int32_t *)(act + 0xac) = halo::game::globals().game_time->game_time;
     *(real_point3d *)(act + 0xb0) = *(real_point3d *)&((actor *)act)->body_position.x;
 }
 
@@ -233,7 +234,7 @@ uint8_t ActorView::mode_wait_process()
             if (((struct actor *)act)->mode_data.wait.countdown_150 == 0) {
                 ((struct actor *)act)->mode_data.wait.countdown_150 = 150;
             }
-        } else if (game_time->game_time >= ((struct actor *)act)->mode_data.wait.start_game_time + 2700) {
+        } else if (halo::game::globals().game_time->game_time >= ((struct actor *)act)->mode_data.wait.start_game_time + 2700) {
             act[0x9c] = 1;
         }
     } else {

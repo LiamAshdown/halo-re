@@ -17,8 +17,10 @@
 #include "halo/memory/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
-typedef void (*game_engine_variant_defaults_fn)(game_variant *out);
+typedef game_variant *(*game_engine_variant_defaults_fn)(game_variant *out);
 typedef void (*profile_post_update_proc)(uint32_t arg_edx, uint32_t arg_ecx);
 
 extern "C" {
@@ -39,58 +41,13 @@ extern uint8_t *network_server;
 extern uint8_t game_variant_saved_default_valid;
 extern game_variant game_variant_saved_default;
 extern char network_build_string[];
-extern void game_engine_free_custom_variant_cache(void);
-extern uint32_t game_engine_variant_add_to_history(char *name, game_variant *options, char *path);
 extern uint32_t game_variant_history_capacity;
 extern uint8_t playlist_profiles_need_defaults;
-extern void game_engine_apply_current_custom_variant(void);
-extern void game_engine_variant_defaults_classic_slayer(game_variant *out);
-extern void game_engine_variant_defaults_classic_slayer_pro(game_variant *out);
-extern void game_engine_variant_defaults_classic_elimination(game_variant *out);
-extern void game_engine_variant_defaults_classic_phantoms(game_variant *out);
-extern void game_engine_variant_defaults_classic_endurance(game_variant *out);
-extern void game_engine_variant_defaults_classic_rockets(game_variant *out);
-extern void game_engine_variant_defaults_classic_snipers(game_variant *out);
-extern void game_engine_variant_defaults_classic_team_slayer(game_variant *out);
-extern void game_engine_variant_defaults_classic_oddball(game_variant *out);
-extern void game_engine_variant_defaults_classic_team_oddball(game_variant *out);
-extern void game_engine_variant_defaults_classic_reverse_tag(game_variant *out);
-extern void game_engine_variant_defaults_classic_accumulation(game_variant *out);
-extern void game_engine_variant_defaults_classic_juggernaut(game_variant *out);
-extern void game_engine_variant_defaults_classic_stalker(game_variant *out);
-extern void game_engine_variant_defaults_classic_king(game_variant *out);
-extern void game_engine_variant_defaults_classic_king_pro(game_variant *out);
-extern void game_engine_variant_defaults_classic_crazy_king(game_variant *out);
-extern void game_engine_variant_defaults_classic_team_king(game_variant *out);
-extern void game_engine_variant_defaults_classic_ctf(game_variant *out);
-extern void game_engine_variant_defaults_classic_ctf_pro(game_variant *out);
-extern void game_engine_variant_defaults_classic_invasion(game_variant *out);
-extern void game_engine_variant_defaults_classic_iron_ctf(game_variant *out);
-extern void game_engine_variant_defaults_classic_race(game_variant *out);
-extern void game_engine_variant_defaults_classic_rally(game_variant *out);
-extern void game_engine_variant_defaults_classic_team_race(game_variant *out);
-extern void game_engine_variant_defaults_classic_team_rally(game_variant *out);
-extern void game_engine_variant_defaults_team_slayer(game_variant *out);
-extern void game_engine_variant_defaults_team_race(game_variant *out);
-extern void game_engine_variant_defaults_team_oddball(game_variant *out);
-extern void game_engine_variant_defaults_team_king(game_variant *out);
-extern void game_engine_variant_defaults_slayer(game_variant *out);
-extern void game_engine_variant_defaults_race(game_variant *out);
-extern void game_engine_variant_defaults_oddball(game_variant *out);
-extern void game_engine_variant_defaults_king(game_variant *out);
-extern void game_engine_variant_defaults_juggernaut(game_variant *out);
-extern game_variant *game_engine_variant_defaults_stalker(game_variant *out);
-extern void game_engine_variant_defaults_crazy_king(game_variant *out);
-extern void game_engine_variant_defaults_assault(game_variant *out);
 extern void playlist_profile_create_default_profiles_on_disk(void);
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count);
 extern uint8_t saved_game_get_variant(int32_t slot, game_variant *out);
 extern game_engine_definition *current_game_engine;
-extern int32_t map_list_count;
-extern map_list_entry *map_list;
-extern int32_t map_list_find_known_map_index(void);
-extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
 extern uint32_t game_engine_unknown_aa00;
 extern int32_t game_engine_auto_team_counter;
 extern float game_engine_end_game_timer;
@@ -101,8 +58,6 @@ extern uint8_t game_engine_dedicated_idle;
 extern float game_engine_dedicated_idle_timer;
 extern int32_t game_engine_round_reset_tick;
 extern game_engine_definition *game_engine_definitions[7];
-extern void game_variant_sanitize_options(game_variant *variant);
-extern void player_profile_cache_initialize(void);
 }
 
 namespace halo::game::engine1 {
@@ -173,7 +128,7 @@ void Variants::apply_player_profile_entry(void *event)
         search_handle = (datum_index)machine_table[lookup_index];
     }
 
-    slot = game_engine_player_profile_cache_find(search_handle);
+    slot = halo::game::game_engine_player_profile_cache_find(search_handle);
     if (slot == -1) {
         halo::networking::message_delta_decode_compound_field_staged((void **)event);
         return;
@@ -258,15 +213,15 @@ void Variants::apply_variant(const game_variant *variant)
  */
 uint32_t Variants::ensure_variant_history_has_entry(void)
 {
-    game_engine_free_custom_variant_cache();
+    halo::game::game_engine_free_custom_variant_cache();
     if (game_variant_history_count != 0) {
         return 1;
     }
     if (game_variant_saved_default_valid != 0) {
         game_variant temp = game_variant_saved_default;
 
-        game_engine_free_custom_variant_cache();
-        game_engine_variant_add_to_history(network_build_string, &temp, 0);
+        halo::game::game_engine_free_custom_variant_cache();
+        halo::game::game_engine_variant_add_to_history(network_build_string, &temp, 0);
         if (game_variant_history_count != 0) {
             return 1;
         }
@@ -306,41 +261,41 @@ void Variants::free_custom_variant_cache(void)
 uint8_t Variants::get_variant_by_name(const char *name, game_variant *out)
 {
     static const struct { const char *name; game_engine_variant_defaults_fn fn; } k_builtin_variants[] = {
-        {"classic_slayer", game_engine_variant_defaults_classic_slayer},
-        {"classic_slayer_pro", game_engine_variant_defaults_classic_slayer_pro},
-        {"classic_elimination", game_engine_variant_defaults_classic_elimination},
-        {"classic_phantoms", game_engine_variant_defaults_classic_phantoms},
-        {"classic_endurance", game_engine_variant_defaults_classic_endurance},
-        {"classic_rockets", game_engine_variant_defaults_classic_rockets},
-        {"classic_snipers", game_engine_variant_defaults_classic_snipers},
-        {"classic_team_slayer", game_engine_variant_defaults_classic_team_slayer},
-        {"classic_oddball", game_engine_variant_defaults_classic_oddball},
-        {"classic_team_oddball", game_engine_variant_defaults_classic_team_oddball},
-        {"classic_reverse_tag", game_engine_variant_defaults_classic_reverse_tag},
-        {"classic_accumulation", game_engine_variant_defaults_classic_accumulation},
-        {"classic_juggernaut", game_engine_variant_defaults_classic_juggernaut},
-        {"classic_stalker", game_engine_variant_defaults_classic_stalker},
-        {"classic_king", game_engine_variant_defaults_classic_king},
-        {"classic_king_pro", game_engine_variant_defaults_classic_king_pro},
-        {"classic_crazy_king", game_engine_variant_defaults_classic_crazy_king},
-        {"classic_team_king", game_engine_variant_defaults_classic_team_king},
-        {"classic_ctf", game_engine_variant_defaults_classic_ctf},
-        {"classic_ctf_pro", game_engine_variant_defaults_classic_ctf_pro},
-        {"classic_invasion", game_engine_variant_defaults_classic_invasion},
-        {"classic_iron_ctf", game_engine_variant_defaults_classic_iron_ctf},
-        {"classic_race", game_engine_variant_defaults_classic_race},
-        {"classic_rally", game_engine_variant_defaults_classic_rally},
-        {"classic_team_race", game_engine_variant_defaults_classic_team_race},
-        {"classic_team_rally", game_engine_variant_defaults_classic_team_rally},
-        {"team_slayer", game_engine_variant_defaults_team_slayer},
-        {"team_race", game_engine_variant_defaults_team_race},
-        {"team_oddball", game_engine_variant_defaults_team_oddball},
-        {"team_king", game_engine_variant_defaults_team_king},
-        {"slayer", game_engine_variant_defaults_slayer},
-        {"race", game_engine_variant_defaults_race},
-        {"oddball", game_engine_variant_defaults_oddball},
-        {"king", game_engine_variant_defaults_king},
-        {"juggernaut", game_engine_variant_defaults_juggernaut},
+        {"classic_slayer", halo::game::game_engine_variant_defaults_classic_slayer},
+        {"classic_slayer_pro", halo::game::game_engine_variant_defaults_classic_slayer_pro},
+        {"classic_elimination", halo::game::game_engine_variant_defaults_classic_elimination},
+        {"classic_phantoms", halo::game::game_engine_variant_defaults_classic_phantoms},
+        {"classic_endurance", halo::game::game_engine_variant_defaults_classic_endurance},
+        {"classic_rockets", halo::game::game_engine_variant_defaults_classic_rockets},
+        {"classic_snipers", halo::game::game_engine_variant_defaults_classic_snipers},
+        {"classic_team_slayer", halo::game::game_engine_variant_defaults_classic_team_slayer},
+        {"classic_oddball", halo::game::game_engine_variant_defaults_classic_oddball},
+        {"classic_team_oddball", halo::game::game_engine_variant_defaults_classic_team_oddball},
+        {"classic_reverse_tag", halo::game::game_engine_variant_defaults_classic_reverse_tag},
+        {"classic_accumulation", halo::game::game_engine_variant_defaults_classic_accumulation},
+        {"classic_juggernaut", halo::game::game_engine_variant_defaults_classic_juggernaut},
+        {"classic_stalker", halo::game::game_engine_variant_defaults_classic_stalker},
+        {"classic_king", halo::game::game_engine_variant_defaults_classic_king},
+        {"classic_king_pro", halo::game::game_engine_variant_defaults_classic_king_pro},
+        {"classic_crazy_king", halo::game::game_engine_variant_defaults_classic_crazy_king},
+        {"classic_team_king", halo::game::game_engine_variant_defaults_classic_team_king},
+        {"classic_ctf", halo::game::game_engine_variant_defaults_classic_ctf},
+        {"classic_ctf_pro", halo::game::game_engine_variant_defaults_classic_ctf_pro},
+        {"classic_invasion", halo::game::game_engine_variant_defaults_classic_invasion},
+        {"classic_iron_ctf", halo::game::game_engine_variant_defaults_classic_iron_ctf},
+        {"classic_race", halo::game::game_engine_variant_defaults_classic_race},
+        {"classic_rally", halo::game::game_engine_variant_defaults_classic_rally},
+        {"classic_team_race", halo::game::game_engine_variant_defaults_classic_team_race},
+        {"classic_team_rally", halo::game::game_engine_variant_defaults_classic_team_rally},
+        {"team_slayer", halo::game::game_engine_variant_defaults_team_slayer},
+        {"team_race", halo::game::game_engine_variant_defaults_team_race},
+        {"team_oddball", halo::game::game_engine_variant_defaults_team_oddball},
+        {"team_king", halo::game::game_engine_variant_defaults_team_king},
+        {"slayer", halo::game::game_engine_variant_defaults_slayer},
+        {"race", halo::game::game_engine_variant_defaults_race},
+        {"oddball", halo::game::game_engine_variant_defaults_oddball},
+        {"king", halo::game::game_engine_variant_defaults_king},
+        {"juggernaut", halo::game::game_engine_variant_defaults_juggernaut},
     };
     game_variant staging;
     wchar_t requested_name_wide[24];
@@ -362,13 +317,13 @@ uint8_t Variants::get_variant_by_name(const char *name, game_variant *out)
         if (out == 0) {
             return 1;
         }
-        game_engine_variant_defaults_stalker(&staging);
+        halo::game::game_engine_variant_defaults_stalker(&staging);
         matched = 1;
     } else if (matched == 0 && _stricmp(name, "crazy_king") == 0) {
         if (out == 0) {
             return 1;
         }
-        game_engine_variant_defaults_crazy_king(&staging);
+        halo::game::game_engine_variant_defaults_crazy_king(&staging);
         matched = 1;
     } else if (matched == 0 && _stricmp(name, "assault") != 0) {
         int32_t slots[100];
@@ -385,7 +340,7 @@ uint8_t Variants::get_variant_by_name(const char *name, game_variant *out)
 
         for (slot_index = 0; (int32_t)(uint32_t)slot_index < slot_count; slot_index++) {
             if (slots[slot_index] == -1) {
-                game_engine_apply_current_custom_variant();
+                halo::game::game_engine_apply_current_custom_variant();
                 continue;
             }
             if (halo::saved_games::saved_game_get_variant(slots[slot_index], &staging) != 0 &&
@@ -404,7 +359,7 @@ uint8_t Variants::get_variant_by_name(const char *name, game_variant *out)
         if (out == 0) {
             return 1;
         }
-        game_engine_variant_defaults_assault(&staging);
+        halo::game::game_engine_variant_defaults_assault(&staging);
     }
 
     memcpy(out, &staging, sizeof(game_variant));
@@ -436,13 +391,14 @@ uint32_t Variants::is_map_and_variant_valid(const char *map_path, const char *va
 {
     int32_t map_index;
 
-    strrchr(map_path, '\\');
-    map_index = map_list_find_known_map_index();
+    const char *map_name = strrchr(map_path, '\\');
+    map_name = map_name != (const char *)0 ? map_name + 1 : map_path;
+    map_index = halo::interface::map_list_find_known_map_index((char *)map_name);
 
-    if (map_index != -1 && -1 < map_index && map_index < map_list_count &&
-        map_list[map_index].cache_file_exists != 0) {
+    if (map_index != -1 && -1 < map_index && map_index < halo::interface::globals().map_list_count &&
+        halo::interface::globals().map_list[map_index].cache_file_exists != 0) {
         if (variant_name != 0) {
-            return (uint32_t)game_engine_get_variant_by_name(variant_name, 0);
+            return (uint32_t)halo::game::game_engine_get_variant_by_name(variant_name, 0);
 
         }
         return 1;
@@ -481,10 +437,10 @@ void Variants::load_from_variant(const game_variant *variant)
             src = src + 1;
             dst = dst + 1;
         }
-        game_variant_sanitize_options(&game_engine_variant);
+        halo::game::game_variant_sanitize_options(&game_engine_variant);
         current_game_engine = game_engine_definitions[variant->game_engine_index];
     }
-    player_profile_cache_initialize();
+    halo::game::player_profile_cache_initialize();
 }
 
 }

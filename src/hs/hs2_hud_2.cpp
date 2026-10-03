@@ -2,6 +2,7 @@
 
 #include "interface.h"
 #include "halo/hs/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,7 +29,7 @@ void HudCommands::evaluate_hud_set_timer_warning_time(int16_t function_index, ui
     if (arguments != 0) {
     uint16_t seconds = (uint16_t)(*(uint16_t *)&arguments[0] * 0x3c + *(uint16_t *)&arguments[1]);
 
-    *(uint16_t *)&hud_messaging->timer_warning_ticks = (uint16_t)((uint32_t)seconds * 0x1e);
+    *(uint16_t *)&halo::interface::globals().hud_messaging->timer_warning_ticks = (uint16_t)((uint32_t)seconds * 0x1e);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }

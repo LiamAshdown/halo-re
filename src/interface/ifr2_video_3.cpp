@@ -1,6 +1,7 @@
 #include "halo/interface/ifr2_video.hpp"
 #include "halo/text/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -8,8 +9,6 @@
 
 extern "C" {
 extern uint8_t video_gamma_current;
-extern void video_options_menu_populate(widget_instance *screen, uint8_t *settings);
-extern void widget_play_sound_effect(int16_t effect_id);
 extern video_resolution video_resolutions[0x20];
 extern int32_t video_resolution_count;
 }
@@ -26,8 +25,8 @@ uint8_t VideoOptions::reset_to_defaults(widget_instance *button)
 
     if (result != 0) {
         profile[0xa76] = video_gamma_current;
-        video_options_menu_populate(button->parent->parent, profile);
-        widget_play_sound_effect(2);
+        halo::interface::video_options_menu_populate((uint8_t *)button->parent->parent, profile);
+        halo::interface::widget_play_sound_effect(2);
     }
     return result;
 }
@@ -76,7 +75,7 @@ void VideoOptions::resolution_add(int32_t height, int32_t width, int32_t refresh
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 uint8_t video_options_reset_to_defaults(widget_instance *button)
 {

@@ -2,10 +2,10 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern player_effect_globals *player_effect_globals_pointer;
-extern game_time_globals *game_time;
 extern real_matrix4x3 *k_render_identity_matrix_ptr;
 extern double cos(double x);
 extern double sin(double x);
@@ -58,7 +58,7 @@ void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t l
                 fraction = 1.0f - fraction;
             }
             t = fraction * t;
-            ((struct player_effect_globals *)g)->scripted_shake_ticks = (int16_t)(ticks - game_time->ticks_this_frame);
+            ((struct player_effect_globals *)g)->scripted_shake_ticks = (int16_t)(ticks - halo::game::globals().game_time->ticks_this_frame);
         } else if ((((struct player_effect_globals *)g)->scripted_shake_flags & 2) != 0) {
             ((struct player_effect_globals *)g)->scripted_shake_flags &= ~(uint32_t)1;
         }
@@ -119,7 +119,7 @@ void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t l
             rotation.position.x = t * *(real *)(self + 0x0c) + k * *(real *)(self + 0x00);
             rotation.position.y = t * *(real *)(self + 0x10) + k * *(real *)(self + 0x04);
             rotation.position.z = t * *(real *)(self + 0x14) + k * *(real *)(self + 0x08);
-            *(int16_t *)(self + 0xe0) = (int16_t)(*(int16_t *)(self + 0xe0) - game_time->ticks_this_frame);
+            *(int16_t *)(self + 0xe0) = (int16_t)(*(int16_t *)(self + 0xe0) - halo::game::globals().game_time->ticks_this_frame);
             *out = rotation;
         }
 
@@ -152,7 +152,7 @@ void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t l
             }
             self[0xe8] &= 0xfb;
             halo::effects::player_effect_random_shake_offset(&second, a + *(real *)(self + 0xd4), b + *(real *)(self + 0xd8));
-            dt = game_time->ticks_this_frame;
+            dt = halo::game::globals().game_time->ticks_this_frame;
             *(int16_t *)(self + 0xdc) = (int16_t)(*(int16_t *)(self + 0xdc) + dt);
             if (*(int16_t *)(self + 0xdc) > 0) {
                 *(int16_t *)(self + 0xdc) = 0;

@@ -8,6 +8,8 @@
 #include "halo/effects/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 extern "C" { extern uint32_t config_disable_specular; }
 
 #ifdef interface
@@ -17,7 +19,6 @@ extern "C" { extern uint32_t config_disable_specular; }
 extern "C" {
 extern int32_t safe_mode;
 extern int16_t renderer_texture_quality;
-extern int32_t game_time_force_single_tick;
 extern uint8_t rasterizer_desktop_display_mode[];
 extern uint8_t console_debug_toggle_6893f7;
 extern uint8_t console_debug_toggle_6893f6;
@@ -72,7 +73,7 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
     mode.height = *(int16_t *)(settings + 0xa6a);
     mode.refresh_rate = *(int16_t *)(settings + 0xa6c);
     mode.vsync = settings[0xa6f] != 0;
-    state::frame_rate_limiter_enabled = game_time_force_single_tick != 0 ? 0 : settings[0xa6f] == 2;
+    state::frame_rate_limiter_enabled = halo::game::globals().time_force_single_tick != 0 ? 0 : settings[0xa6f] == 2;
 
     if (halo::rasterizer::globals().fullscreen == 0 || halo::rasterizer::globals().device == 0) {
         GetWindowRect(GetDesktopWindow(), &desktop);
@@ -121,7 +122,7 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 uint8_t player_profile_apply_video_options(uint8_t *settings)
 {

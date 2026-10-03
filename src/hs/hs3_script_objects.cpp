@@ -13,6 +13,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern char ai_marker_name_a[];
@@ -59,7 +60,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
             halo::units::unit_try_set_animation_state(((unit_object *)unit)->base.parent_object, 0x25);
         }
         ((unit_object *)unit)->unit.last_parent_object_index = parent_index;
-        ((unit_object *)unit)->unit.last_seat_change_tick = game_time->game_time;
+        ((unit_object *)unit)->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;
         if (((unit_object *)unit)->unit.driver_unit_index == object_index) {
             ((unit_object *)unit)->unit.driver_unit_index = k_datum_index_none;
         }
@@ -106,12 +107,12 @@ static void hs_unit_leave_seat(uint32_t object_index)
         if (halo::units::unit_all_seats_unoccupied(parent_index) == 1) {
             uint8_t *vehicle = (uint8_t *)halo::objects::object_try_and_get(parent_index, 2);
             if (vehicle != 0) {
-                ((vehicle_object *)vehicle)->vehicle.network_update_tick = game_time->game_time;
+                ((vehicle_object *)vehicle)->vehicle.network_update_tick = halo::game::globals().game_time->game_time;
             }
         }
         unit = OBJ(object_index);
         if (halo::networking::globals().game_mode == 1) {
-            uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)unit)->unit.controlling_player, player_data);
+            uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)unit)->unit.controlling_player, halo::game::globals().player_data);
             if (player != 0 && ((struct player *)player)->local_player_index == -1) {
                 *(uint32_t *)&((struct player *)player)->position_updates.read_index = 0;
                 *(uint32_t *)&((struct player *)player)->position_updates.write_index = 0;
@@ -130,8 +131,8 @@ static void hs_unit_leave_seat(uint32_t object_index)
             datum_index player_index = ((unit_object *)unit)->unit.controlling_player;
             int16_t index = (int16_t)player_index;
             int16_t salt = (int16_t)(player_index >> 16);
-            if (player_index != k_datum_index_none && index >= 0 && index < player_data->maximum_count) {
-                uint8_t *player = (uint8_t *)player_data->data + index * player_data->size;
+            if (player_index != k_datum_index_none && index >= 0 && index < halo::game::globals().player_data->maximum_count) {
+                uint8_t *player = (uint8_t *)halo::game::globals().player_data->data + index * halo::game::globals().player_data->size;
                 int16_t identifier = *(int16_t *)player;
                 if (identifier != 0 && (salt == 0 || identifier == salt) && ((struct player *)player)->local_player_index != -1 &&
                     network_client != 0) {
@@ -225,7 +226,7 @@ void ScriptObjects::object_detach_and_place_at_location(int16_t location_index, 
     unit = halo::objects::object_try_and_get(object_index, 3);
     if (unit != 0) {
         uint8_t *unit_bytes = (uint8_t *)unit;
-        datum_index player_index = player_index_from_unit_index(object_index);
+        datum_index player_index = halo::game::player_index_from_unit_index(object_index);
 
         if (*(datum_index *)(unit_bytes + 0x11c) != k_datum_index_none) {
             uint8_t *parent = OBJ(*(datum_index *)(unit_bytes + 0x11c));
@@ -244,12 +245,12 @@ void ScriptObjects::object_detach_and_place_at_location(int16_t location_index, 
             *(real_vector3d *)(unit_bytes + 0x254) = forward;
         }
         if (player_index != k_datum_index_none) {
-            player = (uint8_t *)player_data->data + (player_index & halo::k_slot_mask) * 0x200;
+            player = (uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_slot_mask) * 0x200;
             if (detach_from_parent) {
-                player_attach_unit_to_parent(player_index, halo::k_dword_none, flag + 0x24);
+                halo::game::player_attach_unit_to_parent(player_index, halo::k_dword_none, flag + 0x24);
             }
             if (reorient && ((struct player *)player)->local_player_index != -1) {
-                game_engine_compute_look_angles_from_vector(&local_forward, ((struct player *)player)->local_player_index);
+                halo::game::game_engine_compute_look_angles_from_vector(&local_forward, ((struct player *)player)->local_player_index);
             }
         }
     }
@@ -274,7 +275,7 @@ char ScriptObjects::object_hierarchy_test(datum_index object_index) const
     datum_index ancestor;
 
     object = hs_object_record_get(object_index);
-    if (player_index_from_unit_index(object_index) != halo::k_dword_none) {
+    if (halo::game::player_index_from_unit_index(object_index) != halo::k_dword_none) {
         return 1;
     }
 
@@ -290,7 +291,7 @@ char ScriptObjects::object_hierarchy_test(datum_index object_index) const
     ancestor = object->parent;
     while (ancestor != k_datum_index_none) {
         node = hs_object_record_get(ancestor);
-        if (player_index_from_unit_index(ancestor) != halo::k_dword_none) {
+        if (halo::game::player_index_from_unit_index(ancestor) != halo::k_dword_none) {
             return 1;
         }
         ancestor = node->parent;
@@ -456,9 +457,9 @@ datum_index ScriptObjects::object_list_collect_player_units() const
         header->first_reference = k_datum_index_none;
     }
 
-    player_index = halo::memory::datum_next(-1, player_data);
+    player_index = halo::memory::datum_next(-1, halo::game::globals().player_data);
     while (player_index != k_datum_index_none) {
-        unit = ((hs_player_record *)((uint8_t *)player_data->data +
+        unit = ((hs_player_record *)((uint8_t *)halo::game::globals().player_data->data +
             (player_index & halo::k_slot_mask) * 0x200))->unit;
         if (unit != k_datum_index_none) {
             header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
@@ -473,7 +474,7 @@ datum_index ScriptObjects::object_list_collect_player_units() const
             }
             header->count = header->count + 1;
         }
-        player_index = halo::memory::datum_next((int16_t)player_index, player_data);
+        player_index = halo::memory::datum_next((int16_t)player_index, halo::game::globals().player_data);
     }
     return header_index;
 }
@@ -639,7 +640,7 @@ void ScriptObjects::object_runtime_cleanup() const
     hs_object_record *object;
     datum_index object_index;
 
-    player_iter.data = player_data;
+    player_iter.data = halo::game::globals().player_data;
     player_iter.next_index = 0;
     player_iter.index = (datum_index)halo::k_dword_none;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;

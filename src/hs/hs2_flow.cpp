@@ -8,6 +8,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/game/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -387,7 +388,7 @@ void FlowCommands::evaluate_sleep(uint32_t unused_param_1, uint32_t thread_index
 
     if (first != 0) {
         *condition = 0;
-        *start_tick = game_time->game_time;
+        *start_tick = halo::game::globals().game_time->game_time;
         *stage = 0;
         *ticks = 0x1e;
         *timeout_ticks = -1;
@@ -413,14 +414,14 @@ void FlowCommands::evaluate_sleep(uint32_t unused_param_1, uint32_t thread_index
     }
 
     if (*condition == 0 &&
-        (*timeout_ticks == -1 || game_time->game_time < *start_tick + *timeout_ticks)) {
+        (*timeout_ticks == -1 || halo::game::globals().game_time->game_time < *start_tick + *timeout_ticks)) {
         /* re-evaluate the condition into the condition slot on every wake */
         halo::hs::hs_thread_push(condition_node, thread_index, condition);
         ticks_value = *ticks;
         if (ticks_value < 1) {
             ticks_value = 1;
         }
-        wake_tick = ticks_value + game_time->game_time;
+        wake_tick = ticks_value + halo::game::globals().game_time->game_time;
         thread_record->wake_tick = wake_tick;
         if (*timeout_ticks == -1) {
             return;
@@ -487,7 +488,7 @@ void FlowCommands::evaluate_sleep_ticks(int16_t function_index, uint32_t thread_
         }
         if (target != k_datum_index_none) {
             hs_thread *sleeper = thread_get(target);
-            int32_t wake = count < 0 ? -2 : game_time->game_time + count;
+            int32_t wake = count < 0 ? -2 : halo::game::globals().game_time->game_time + count;
             int32_t old_wake = sleeper->wake_tick;
 
             if (old_wake != -1) {

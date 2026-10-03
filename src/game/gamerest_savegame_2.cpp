@@ -1,5 +1,6 @@
 #include "halo/game/gamerest_savegame.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern char saved_game_root_path[];
@@ -75,7 +76,7 @@ uint8_t SaveGameIndex::remove_slot(uint16_t slot)
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::SaveGameIndex::remove_slot; forwards to the C++ implementation.

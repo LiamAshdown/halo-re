@@ -8,6 +8,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_alert_from_damage {
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
@@ -452,7 +453,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
     uint8_t result = 1;
 
     memset(out, 0, 0x38);
-    *(int32_t *)record = game_time->game_time;
+    *(int32_t *)record = halo::game::globals().game_time->game_time;
 
     if (mode == 5 || mode == 4) {
         ((struct actor_combat_consideration *)record)->mode = mode;
@@ -885,7 +886,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
             !(((actor *)a)->mode == 0xa && (*(int16_t *)(a + 0xa0) == 2 || *(int16_t *)(a + 0xa0) == 3)) &&
             !changed && !a[0x6] && ((actor *)a)->active_unit_index == k_datum_index_none &&
             ((struct actor *)a)->firing_state != 2) {
-            int32_t now = game_time->game_time;
+            int32_t now = halo::game::globals().game_time->game_time;
             uint8_t wide = a[0x378];
             float base_delay;
             float delay;
@@ -896,7 +897,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 wide = 1;
             }
             base_delay = a[0x378] ? 0.0f : ((Actor *)actor_tag)->melee_attack_delay;
-            delay = weapon_get_zoom_fov(0x14, difficulty) + weapon_get_zoom_fov(0x15, difficulty) * base_delay;
+            delay = halo::game::weapon_get_zoom_fov(0x14, difficulty) + halo::game::weapon_get_zoom_fov(0x15, difficulty) * base_delay;
             range = wide ? ((ActorVariant *)variant)->berserk_melee_range : ((ActorVariant *)variant)->melee_range;
             if (!(*(int32_t *)&((actor *)a)->search_wait_time != -1 && *(int32_t *)&((actor *)a)->search_wait_time + 0xa >= now) &&
                 distance <= range) {
@@ -934,7 +935,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 if (*(int32_t *)&((struct actor *)a)->last_vehicle_charge_time != -1) {
                     uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(((actor *)a)->active_unit_index));
 
-                    ready = (float)game_time->game_time >
+                    ready = (float)halo::game::globals().game_time->game_time >
                         *(float *)(vehicle_tag + 0x390) * 30.0f + (float)*(int32_t *)&((struct actor *)a)->last_vehicle_charge_time;
                 }
                 if (ready && seat_kind == 4 && distance > *(float *)(definition + 0x160) &&

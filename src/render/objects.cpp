@@ -30,6 +30,8 @@
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern render_frustum render_frustum_global;
@@ -39,10 +41,7 @@ extern int32_t render_window_count;
 extern int32_t render_frame_index;
 extern uint8_t render_lighting_smoothing_enabled;
 extern uint32_t rasterizer_device_version;
-extern player_globals *local_player_globals;
-extern data_array *player_data;
 extern render_fog render_fog_state;
-extern int16_t current_local_player_index;
 extern render_camera render_camera_global;
 extern uint8_t render_debug_objects;
 extern uint8_t rasterizer_object_shadow_begin(real_matrix4x3 *projection, ColorRGB *color, float radius,
@@ -54,7 +53,6 @@ extern int16_t rendered_object_count;
 extern datum_index rendered_objects[halo::render::k_maximum_rendered_objects];
 extern uint8_t rasterizer_render_states_dirty;
 extern uint8_t console_debug_toggle_6893ee;
-extern void first_person_weapon_update_lighting(void);
 extern uint8_t rendered_objects_full_warning;
 }
 
@@ -778,10 +776,10 @@ int16_t local_player_gunner_seat_visible(int16_t local_player_index)
     if (local_player_index == -1 || local_player_index > 0) {
         player_index = k_datum_index_none;
     } else {
-        player_index = local_player_globals->local_players[local_player_index];
+        player_index = halo::game::globals().local_player_globals->local_players[local_player_index];
     }
 
-    player_index = ((player *)player_data->data)[(uint16_t)player_index].unit;
+    player_index = ((player *)halo::game::globals().player_data->data)[(uint16_t)player_index].unit;
     if (player_index == k_datum_index_none) {
         return 0;
     }
@@ -840,13 +838,13 @@ void _get_cull_sphere(datum_index object_index, real_point3d *center, float *rad
  */
 uint8_t _is_camera_unit(datum_index object)
 {
-    int16_t local_player_index = current_local_player_index;
+    int16_t local_player_index = halo::interface::globals().current_local_player_index;
     datum_index local_unit = k_datum_index_none;
 
     if (local_player_index != -1 && local_player_index < 1) {
-        datum_index local_player = local_player_globals->local_players[local_player_index];
+        datum_index local_player = halo::game::globals().local_player_globals->local_players[local_player_index];
         if (local_player != k_datum_index_none) {
-            player *p = &((player *)player_data->data)[(uint16_t)local_player];
+            player *p = &((player *)halo::game::globals().player_data->data)[(uint16_t)local_player];
             local_unit = p->unit;
         }
     }
@@ -896,7 +894,7 @@ void s(void)
                 halo::render::render_object(&data);
             }
         } else {
-            first_person_weapon_update_lighting();
+            halo::interface::first_person_weapon_update_lighting();
         }
         first_iteration = (pass == 0);
         pass = 1;

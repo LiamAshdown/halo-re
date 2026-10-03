@@ -3,6 +3,7 @@
 #include "halo/interface/ifr2_browser.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -79,7 +80,7 @@ uint8_t ClosedHandler::handle(widget_instance *widget, int16_t *event, uint8_t *
     if (profile == -1) {
         return 1;
     }
-    saved_item_select(profile);
+    halo::interface::saved_item_select(profile);
     working = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
     working[0xc81] = server_browser_sort_ascending;
     working[0xc80] = server_browser_sort_column;
@@ -92,8 +93,8 @@ uint8_t ClosedHandler::handle(widget_instance *widget, int16_t *event, uint8_t *
     working[0xc88] = server_browser_filter_gametype;
     working[0xc89] = server_browser_filter_teamplay;
     working[0xc8a] = server_browser_filter_ping_limit_index;
-    if (saved_item_has_unsaved_changes()) {
-        player_profile_save();
+    if (halo::interface::saved_item_has_unsaved_changes()) {
+        halo::interface::player_profile_save();
         return 1;
     }
     selected_saved_item = -1;
@@ -102,7 +103,7 @@ uint8_t ClosedHandler::handle(widget_instance *widget, int16_t *event, uint8_t *
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 uint8_t server_browser_closed_event(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

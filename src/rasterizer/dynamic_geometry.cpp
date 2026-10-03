@@ -9,11 +9,10 @@
 #include "halo/render/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 
-extern void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primitive_type, uint32_t vertex_count, uint32_t primitive_count);
-extern void debug_fp_pre_draw(void);
 
 }  // extern "C"
 
@@ -46,11 +45,6 @@ void chimera__rasterizer_dispose_free_memory(void)
     transparent_geometry_group_secondary_count = 0;
     transparent_geometry_group_count = 0;
 }
-
-
-
-
-
 
 
 /**
@@ -88,7 +82,7 @@ void chimera__rasterizer_draw_dynamic_triangles_static_vertices(int32_t primitiv
         render_device().set_indices(rasterizer_dynamic_index_buffer);
         {
             int32_t debug_hr = render_device().draw_indexed_primitive(4, 0, 0, (uint32_t)vertex_buffer->count, (uint32_t)((slot->first_index + first_primitive) * 3), (uint32_t)chunk);
-            debug_fp_draw_state_note("st1", debug_hr, 0, (uint32_t)vertex_buffer->count, (uint32_t)chunk);
+            halo::interface::debug_fp_draw_state_note("st1", debug_hr, 0, (uint32_t)vertex_buffer->count, (uint32_t)chunk);
         }
         first_primitive += chunk;
         primitive_count -= chunk;
@@ -97,10 +91,6 @@ void chimera__rasterizer_draw_dynamic_triangles_static_vertices(int32_t primitiv
 }
 
 namespace chimera__rasterizer_draw_dynamic_triangles_static_vertices2_impl {
-
-
-
-
 
 
 /**
@@ -139,7 +129,7 @@ void chimera__rasterizer_draw_dynamic_triangles_static_vertices2(int32_t primiti
         render_device().set_indices(rasterizer_dynamic_index_buffer);
         {
             int32_t debug_hr = render_device().draw_indexed_primitive(4, 0, 0, (uint32_t)vertex_buffer->count, (uint32_t)((slot->first_index + first_primitive) * 3), (uint32_t)chunk);
-            debug_fp_draw_state_note("st2", debug_hr, 0, (uint32_t)vertex_buffer->count, (uint32_t)chunk);
+            halo::interface::debug_fp_draw_state_note("st2", debug_hr, 0, (uint32_t)vertex_buffer->count, (uint32_t)chunk);
         }
         first_primitive += chunk;
         primitive_count -= chunk;
@@ -177,10 +167,6 @@ void * chimera__rasterizer_memory_alloc(void *source, uint32_t size)
 namespace rasterizer_dynamic_geometry_chain_draw_impl {
 
 
-
-
-
-
 /**
  * Direct3D 9 back end function rasterizer_dynamic_geometry_chain_draw. The original author notes are in
  * docs/original/rasterizer/rasterizer_dynamic_geometry_chain_draw.c.txt.
@@ -208,9 +194,9 @@ void rasterizer_dynamic_geometry_chain_draw(int32_t primitive_count, rasterizer_
         render_device().set_stream_source(0, (void *)vertex_buffer->hardware_buffer, 0, stride);
         render_device().set_indices((void *)index_buffer->hardware_buffer);
         {
-            debug_fp_pre_draw();
+            halo::interface::debug_fp_pre_draw();
             int32_t debug_hr = render_device().draw_indexed_primitive(rasterizer_triangle_buffer_primitive_types[index_buffer->type], 0, 0, (uint32_t)vertex_buffer->count, start_index, (uint32_t)chunk);
-            debug_fp_draw_state_note("chn", debug_hr, 0, (uint32_t)vertex_buffer->count, (uint32_t)chunk);
+            halo::interface::debug_fp_draw_state_note("chn", debug_hr, 0, (uint32_t)vertex_buffer->count, (uint32_t)chunk);
         }
         primitive_count -= chunk;
         switch (index_buffer->type) {
@@ -299,10 +285,6 @@ void rasterizer_dynamic_geometry_draw_dispatch(rasterizer_index_buffer *index_bu
 namespace rasterizer_dynamic_index_cache_draw_impl {
 
 
-
-
-
-
 /**
  * Direct3D 9 back end function rasterizer_dynamic_index_cache_draw. The original author notes are in
  * docs/original/rasterizer/rasterizer_dynamic_index_cache_draw.c.txt.
@@ -337,7 +319,7 @@ void rasterizer_dynamic_index_cache_draw(int32_t dynamic_index_slot, int32_t fir
         render_device().set_indices(rasterizer_dynamic_index_buffer);
         {
             int32_t debug_hr = render_device().draw_indexed_primitive(4, vertex_slot->first_vertex, 0, (uint32_t)vertex_slot->vertex_count, (uint32_t)((index_slot->first_index + first_primitive) * 3), (uint32_t)chunk);
-            debug_fp_draw_state_note("idc", debug_hr, 0, (uint32_t)vertex_slot->vertex_count, (uint32_t)chunk);
+            halo::interface::debug_fp_draw_state_note("idc", debug_hr, 0, (uint32_t)vertex_slot->vertex_count, (uint32_t)chunk);
         }
         first_primitive += chunk;
         primitive_count -= chunk;
@@ -380,7 +362,6 @@ int32_t rasterizer_dynamic_index_cache_reserve(int32_t count)
 }
 
 namespace rasterizer_dynamic_light_technique_ps2_set_states_impl {
-
 
 
 /**
@@ -511,10 +492,6 @@ int32_t rasterizer_dynamic_vertex_cache_reserve(int16_t vertex_type, int32_t cou
 namespace rasterizer_dynamic_vertex_draw_impl {
 
 
-
-
-
-
 /**
  * Direct3D 9 back end function rasterizer_dynamic_vertex_draw. The original author notes are in
  * docs/original/rasterizer/rasterizer_dynamic_vertex_draw.c.txt.
@@ -583,7 +560,7 @@ void rasterizer_dynamic_vertex_draw(int32_t first_primitive, int32_t primitive_c
         render_device().set_stream_source(0, buffer, 0, stride);
         {
             int32_t debug_hr = render_device().draw_primitive(primitive_type, (uint32_t)(primitive_kind * first_primitive + vertex_slot->first_vertex), (uint32_t)chunk);
-            debug_fp_draw_state_note("vd", debug_hr, 0, 0, (uint32_t)chunk);
+            halo::interface::debug_fp_draw_state_note("vd", debug_hr, 0, 0, (uint32_t)chunk);
         }
         primitive_count -= chunk;
         first_primitive += chunk;
@@ -594,10 +571,6 @@ void rasterizer_dynamic_vertex_draw(int32_t first_primitive, int32_t primitive_c
 }  // namespace rasterizer_dynamic_vertex_draw_impl
 
 namespace rasterizer_dynamic_vertex_draw_indexed_impl {
-
-
-
-
 
 
 /**
@@ -634,7 +607,7 @@ void rasterizer_dynamic_vertex_draw_indexed(rasterizer_index_buffer *index_buffe
         render_device().set_indices((void *)index_buffer->hardware_buffer);
         {
             int32_t debug_hr = render_device().draw_indexed_primitive(rasterizer_triangle_buffer_primitive_types[index_buffer->type], vertex_slot->first_vertex, 0, (uint32_t)vertex_slot->vertex_count, start_index, (uint32_t)chunk);
-            debug_fp_draw_state_note("vdi", debug_hr, 0, (uint32_t)vertex_slot->vertex_count, (uint32_t)chunk);
+            halo::interface::debug_fp_draw_state_note("vdi", debug_hr, 0, (uint32_t)vertex_slot->vertex_count, (uint32_t)chunk);
         }
         primitive_count -= chunk;
         switch (index_buffer->type) {
@@ -654,8 +627,6 @@ void rasterizer_dynamic_vertex_draw_indexed(rasterizer_index_buffer *index_buffe
 }  // namespace rasterizer_dynamic_vertex_draw_indexed_impl
 
 namespace rasterizer_dynamic_vertex_process_and_get_handle_impl {
-
-
 
 
 /**

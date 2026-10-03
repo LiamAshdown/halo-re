@@ -1,6 +1,7 @@
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/input/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/interface/api.hpp"
 
 
 #ifdef __cplusplus
@@ -9,7 +10,6 @@ extern "C" {
 extern uint8_t input_globals[];
 extern uint8_t player_control_look_rates_0070facc[];
 extern uint8_t profile_globals_block[0x60a4];
-extern void player_profile_save_495fb0(uint8_t flag);
 #ifdef __cplusplus
 }
 #endif
@@ -287,7 +287,7 @@ void InputSettingsCommands::evaluate_player0_look_invert_pitch(int16_t function_
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    player_profile_save_495fb0(*(uint8_t *)&arguments[0]);
+    halo::interface::player_profile_save_495fb0(*(uint8_t *)&arguments[0]);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }

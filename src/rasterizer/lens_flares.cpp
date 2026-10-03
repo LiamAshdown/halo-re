@@ -11,12 +11,12 @@
 #include "halo/cache/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 
 extern double atan2(double y, double x);
 extern double fpatan(double y, double x);
-extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern double floor(double x);
 extern double fcos(double x);
 extern double fsin(double x);
@@ -336,7 +336,7 @@ void lens_flare_render_all(void)
                     tint.green = tint.green * animated.green;
                     tint.blue = tint.blue * animated.blue;
                 }
-                colour = color_pack_argb_from_real(&tint);
+                colour = halo::interface::color_pack_argb_from_real(&tint);
                 specular = *(float *)(reflection + 0x40);
             }
 
@@ -630,11 +630,6 @@ void rasterizer_lens_flare_batch_flush_all(void)
 namespace rasterizer_lens_flare_batching_select_mode_impl {
 
 
-
-
-
-
-
 static void set_render_state(uint32_t state, uint32_t value)
 {
     render_device().set_render_state(state, value);
@@ -891,7 +886,6 @@ void rasterizer_lens_flare_occlusion_sample_add(void *procedure, const real_poin
 }
 
 namespace rasterizer_lens_flare_occlusion_test_issue_impl {
-
 
 
 static int16_t floor_clamped(float value)

@@ -1,11 +1,14 @@
 #include "halo/interface/ifr1_gamepad_bindings.hpp"
+#include "halo/interface/api.hpp"
+
+namespace halo::interface {
 
 /**
  * C ABI entry point; forwards to halo::interface::GamepadBindings::bindings_restore.
  *
  * @address 0x4b5a70
  */
-extern "C" uint8_t controls_gamepad_bindings_restore(void)
+uint8_t controls_gamepad_bindings_restore(void)
 {
     return halo::interface::GamepadBindings::bindings_restore();
 }
@@ -16,7 +19,7 @@ extern "C" uint8_t controls_gamepad_bindings_restore(void)
  *
  * @address 0x4b5800
  */
-extern "C" uint8_t controls_gamepad_list_add(const controls_gamepad_record *entry, controls_gamepad_record *list)
+uint8_t controls_gamepad_list_add(const controls_gamepad_record *entry, controls_gamepad_record *list)
 {
     return halo::interface::GamepadBindings::list_add(entry, list);
 }
@@ -27,7 +30,7 @@ extern "C" uint8_t controls_gamepad_list_add(const controls_gamepad_record *entr
  *
  * @address 0x4b5760
  */
-extern "C" int32_t controls_gamepad_list_find(const controls_gamepad_record *entry, controls_gamepad_record *list)
+int32_t controls_gamepad_list_find(const controls_gamepad_record *entry, controls_gamepad_record *list)
 {
     return halo::interface::GamepadBindings::list_find(entry, list);
 }
@@ -38,7 +41,7 @@ extern "C" int32_t controls_gamepad_list_find(const controls_gamepad_record *ent
  *
  * @address 0x4b5850
  */
-extern "C" uint8_t controls_gamepad_list_remove(const controls_gamepad_record *entry, controls_gamepad_record *list)
+uint8_t controls_gamepad_list_remove(const controls_gamepad_record *entry, controls_gamepad_record *list)
 {
     return halo::interface::GamepadBindings::list_remove(entry, list);
 }
@@ -48,7 +51,7 @@ extern "C" uint8_t controls_gamepad_list_remove(const controls_gamepad_record *e
  *
  * @address 0x4b58d0
  */
-extern "C" uint8_t controls_gamepad_lists_load(widget_instance *screen)
+uint8_t controls_gamepad_lists_load(widget_instance *screen)
 {
     return halo::interface::GamepadBindings::lists_load(screen);
 }
@@ -59,7 +62,7 @@ extern "C" uint8_t controls_gamepad_lists_load(widget_instance *screen)
  *
  * @address 0x4b55d0
  */
-extern "C" void controls_gamepad_lists_refresh(widget_instance *screen)
+void controls_gamepad_lists_refresh(widget_instance *screen)
 {
     halo::interface::GamepadBindings::lists_refresh(screen);
 }
@@ -69,7 +72,7 @@ extern "C" void controls_gamepad_lists_refresh(widget_instance *screen)
  *
  * @address 0x4b5b20
  */
-extern "C" uint8_t controls_gamepad_toggle_assignment(widget_instance *row)
+uint8_t controls_gamepad_toggle_assignment(widget_instance *row)
 {
     return halo::interface::GamepadBindings::toggle_assignment(row);
 }
@@ -80,7 +83,9 @@ extern "C" uint8_t controls_gamepad_toggle_assignment(widget_instance *row)
  *
  * @address 0x4b5560
  */
-extern "C" void controls_gamepad_widget_nodes_collect(widget_instance **out, widget_instance *screen)
+void controls_gamepad_widget_nodes_collect(widget_instance **out, widget_instance *screen)
 {
     halo::interface::GamepadBindings::widget_nodes_collect(out, screen);
+}
+
 }

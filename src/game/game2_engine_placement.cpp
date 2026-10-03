@@ -10,6 +10,8 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 typedef struct netgame_equipment_spawn_message {
     int32_t object_hash;
@@ -24,10 +26,6 @@ extern double sqrt(double x);
 extern double pow(double base, double exponent);
 extern game_engine_definition *current_game_engine;
 extern game_variant game_engine_variant;
-extern float game_engine_rate_location_crowding(uint32_t self_index, real_point3d *point);
-extern float game_engine_rate_location_ally_bonus(uint32_t self_index, real_point3d *point);
-extern int32_t game_engine_resolve_netgame_flag_role(uint32_t handle);
-extern uint32_t game_engine_resolve_multiplayer_placement(uint32_t handle);
 extern Globals *global_globals;
 extern int32_t game_engine_unknown_aa00;
 extern uint8_t game_engine_map_table_value;
@@ -35,9 +33,6 @@ extern uint8_t network_object_index_cache[];
 extern double fcos(double radians);
 extern double fsin(double radians);
 extern game_time_globals *game_time;
-extern uint8_t netgame_equipment_game_type_matches(int16_t *types, int32_t count, int32_t current_engine_index);
-extern int32_t tag_reflexive_pick_weighted_random_index(datum_index tag_id);
-extern void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t picked_tag, int32_t param_2);
 extern int32_t teleport_message_cooldown;
 extern wchar_t empty_string;
 extern int16_t teleport_flash_type;
@@ -58,13 +53,6 @@ extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, i
 extern void game_engine_scan_netgame_flags_noop(int16_t needle);
 extern void game_engine_notify_item_expired(datum_index object_index);
 extern int32_t game_engine_round_reset_tick;
-extern void game_engine_reset_all_unit_grenade_counts(void);
-extern void game_engine_reset_respawns_and_cleanup_bipeds(void);
-extern void game_engine_cleanup_stray_items(void);
-extern void game_engine_cleanup_stray_projectiles(void);
-extern void game_engine_update_netgame_equipment(char force_respawn);
-extern void game_engine_reset_vehicles_or_race_cleanup(void);
-extern void game_engine_reset_player_profile_stats(void);
 }
 
 namespace halo::game {
@@ -192,7 +180,7 @@ real EnginePlacement::rate_player_starting_location(ScenarioPlayerStartingLocati
     if (current_game_engine == 0 || current_game_engine->unknown_84 == 0 ||
         ((char (*)(int32_t))current_game_engine->unknown_84)(0) == 0 ||
         p->team == (int32_t)(int16_t)location->team_index) {
-        score = game_engine_rate_location_crowding(player_handle,
+        score = halo::game::game_engine_rate_location_crowding(player_handle,
                                                   (real_point3d *)&location->position);
     } else {
         score = 0.0f;
@@ -200,7 +188,7 @@ real EnginePlacement::rate_player_starting_location(ScenarioPlayerStartingLocati
 
     if (current_game_engine != 0) {
         if (0.0f < score && game_engine_variant.teams != 0) {
-            score = game_engine_rate_location_ally_bonus(player_handle,
+            score = halo::game::game_engine_rate_location_ally_bonus(player_handle,
                                                         (real_point3d *)&location->position) * score;
         }
         if (current_game_engine->rate_starting_location != 0) {
@@ -227,10 +215,10 @@ uint32_t EnginePlacement::remap_placement_by_type(uint32_t handle)
     }
     type = **(int16_t **)&halo::cache::globals().tag_instances[handle & 0xffff].data;
     if (type == 2) {
-        return (uint32_t)game_engine_resolve_netgame_flag_role(handle);
+        return (uint32_t)halo::game::game_engine_resolve_netgame_flag_role(handle);
     }
     if (type == 3) {
-        return game_engine_resolve_multiplayer_placement(handle);
+        return halo::game::game_engine_resolve_multiplayer_placement(handle);
     }
     return handle;
 }
@@ -545,7 +533,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
             &((ScenarioNetgameEquipment *)halo::scenario::globals().scenario->netgame_equipment.pointer)[loop_index];
         datum_index item_collection_tag = *(datum_index *)&equipment->item_collection.tag_id;
 
-        if (!netgame_equipment_game_type_matches((int16_t *)&equipment->type_0, 4,
+        if (!halo::game::netgame_equipment_game_type_matches((int16_t *)&equipment->type_0, 4,
                 current_game_engine != 0 ? current_game_engine->index : -1)) {
             continue;
         }
@@ -590,7 +578,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                     {
                         object_placement_data placement;
                         datum_index new_object;
-                        int32_t picked_tag = tag_reflexive_pick_weighted_random_index(item_collection_tag);
+                        int32_t picked_tag = halo::game::tag_reflexive_pick_weighted_random_index(item_collection_tag);
 
                         halo::objects::object_placement_data_initialize(&placement, (datum_index)picked_tag, k_datum_index_none);
 
@@ -612,7 +600,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                             }
                             obj->network_role = 0;
                             halo::objects::object_type_override_call_0x68(new_object);
-                            game_engine_dispatch_item_pickup_event(new_object, obj->definition_tag, loop_index);
+                            halo::game::game_engine_dispatch_item_pickup_event(new_object, obj->definition_tag, loop_index);
 
                             item->held_game_time = item->held_game_time + respawn_interval - 900;
 
@@ -660,7 +648,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
     }
 
     found_index = -1;
-    game_engine_find_valid_starting_locations(&unit_object->position, 0.5f, 0.0f, 6, -1, 1, &found_index);
+    halo::game::game_engine_find_valid_starting_locations(&unit_object->position, 0.5f, 0.0f, 6, -1, 1, &found_index);
 
     if (found_index != -1 && found_index != (int32_t)p->teleporter_flag_index) {
         ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;
@@ -668,7 +656,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
         int16_t entrance_usage_id = (int16_t)entrance->usage_id;
 
         found_index = -1;
-        game_engine_find_valid_starting_locations(0, 0.0f, 0.0f, 7, entrance_usage_id, 1, &found_index);
+        halo::game::game_engine_find_valid_starting_locations(0, 0.0f, 0.0f, 7, entrance_usage_id, 1, &found_index);
 
         if (found_index == -1) {
             halo::main::console_print_error_va(0, "failed to teleport %d", (int32_t)entrance_usage_id);
@@ -724,7 +712,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
                     teleport_message_cooldown = 0x78;
                     text = (tag_id == k_datum_index_none) ? &empty_string
                         : reinterpret_cast<wchar_t *>(halo::text::text_string_list_get_string(tag_id, 0x65));
-                    chimera__hud_message(unit_get_local_player_weapon_index(p->unit), text);
+                    halo::interface::chimera__hud_message(halo::game::unit_get_local_player_weapon_index(p->unit), text);
                     return;
                 }
                 teleport_message_cooldown = teleport_message_cooldown - 1;
@@ -732,7 +720,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
             }
 
             if (p->local_player_index != -1) {
-                game_engine_queue_multiplayer_sound(0x1b, 0xffffffff, 0);
+                halo::game::game_engine_queue_multiplayer_sound(0x1b, 0xffffffff, 0);
                 if (p->local_player_index != -1) {
                     player_screen_flash flash;
                     uint8_t *flash_bytes = (uint8_t *)&flash;
@@ -765,11 +753,11 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
                 halo::objects::object_set_position_and_orientation(unit, &forward, 0, (real_point3d *)(&exit_flag->position));
 
                 if (p->local_player_index != -1) {
-                    game_engine_compute_look_angles_from_vector(&forward,
+                    halo::game::game_engine_compute_look_angles_from_vector(&forward,
                         p->local_player_index);
                 }
 
-                p->teleporter_flag_index = (datum_index)game_engine_find_one_valid_starting_location(-1, 6,
+                p->teleporter_flag_index = (datum_index)halo::game::game_engine_find_one_valid_starting_location(-1, 6,
                     &unit_object->position, 1.0f, 0.0f);
 
                 if ((unit_object->network_role == 1 || unit_object->network_role == 2) &&
@@ -795,7 +783,7 @@ void EnginePlacement::validate_scenario_placements_noop(void)
     int16_t i;
     int32_t pass;
 
-    game_engine_scan_netgame_flags_noop(0);
+    halo::game::game_engine_scan_netgame_flags_noop(0);
 
     netgame_flags_count = (int32_t)halo::scenario::globals().scenario->netgame_flags.count;
     i = 0;
@@ -805,7 +793,7 @@ void EnginePlacement::validate_scenario_placements_noop(void)
         } while (i < netgame_flags_count);
     }
 
-    game_engine_scan_netgame_flags_noop(0);
+    halo::game::game_engine_scan_netgame_flags_noop(0);
 
     netgame_equipment_count = (int32_t)halo::scenario::globals().scenario->netgame_equipment.count;
     for (pass = 0; pass < 5; pass++) {
@@ -942,7 +930,7 @@ void EnginePlacement::update_item_scale_and_pickup(void)
 
             if (hdr != 0 && (1u << hdr->type) == _object_mask_weapon && hdr->data != 0 &&
                 ((*(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data + 0x308) >> 3) & 1) != 0) {
-                game_engine_notify_item_expired(iterator.handle);
+                halo::game::game_engine_notify_item_expired(iterator.handle);
                 ((void (*)(datum_index, object *))current_game_engine->object_in_play_update)(
                     iterator.handle, hdr->data);
             }
@@ -962,17 +950,17 @@ void EnginePlacement::update_item_scale_and_pickup(void)
  */
 void EnginePlacement::reset_round_objects(void)
 {
-    game_engine_reset_all_unit_grenade_counts();
-    game_engine_reset_respawns_and_cleanup_bipeds();
-    game_engine_cleanup_stray_items();
-    game_engine_cleanup_stray_projectiles();
+    halo::game::game_engine_reset_all_unit_grenade_counts();
+    halo::game::game_engine_reset_respawns_and_cleanup_bipeds();
+    halo::game::game_engine_cleanup_stray_items();
+    halo::game::game_engine_cleanup_stray_projectiles();
     if (current_game_engine->reset_objects != 0) {
         ((void (*)(void))current_game_engine->reset_objects)();
     }
     game_engine_round_reset_tick = game_time->game_time;
-    game_engine_update_netgame_equipment(1);
-    game_engine_reset_vehicles_or_race_cleanup();
-    game_engine_reset_player_profile_stats();
+    halo::game::game_engine_update_netgame_equipment(1);
+    halo::game::game_engine_reset_vehicles_or_race_cleanup();
+    halo::game::game_engine_reset_player_profile_stats();
 }
 
 /**

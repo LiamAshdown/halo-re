@@ -22,6 +22,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" { void halo::physics::object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }
 extern "C" { uint8_t halo::physics::object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t candidate_object_index); }
@@ -119,7 +120,6 @@ void ObjectPhysics::blend_friction_axes(int16_t friction_type, float parallel_sc
 }
 
 extern "C" { extern Globals *global_globals; }
-extern "C" { extern game_time_globals *game_time; }
 extern "C" { extern float k_impact_damage_scale_table[]; }
 extern "C" { extern uint32_t object_collision_context_test_point(object_collision_context *context, real_point3d *point); }
 extern "C" { extern uint8_t object_collision_context_gather_sphere_shapes(void *context, real_point3d *origin, float radius_scale, float margin, float thickness, physics_model *model); }
@@ -214,7 +214,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
             halo::objects::object_set_position_and_relink(&recovered_position, candidate_object_index, 0);
 
             if (*self_object_index == *(uint32_t *)((uint8_t *)candidate_obj + 0x32c) &&
-                game_time->game_time <=
+                halo::game::globals().game_time->game_time <=
                     (int32_t)(*(uint32_t *)((uint8_t *)candidate_obj + 0x330) + 0x5a)) {
                 return 1;
             }

@@ -7,6 +7,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/game/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -253,7 +254,7 @@ void SoundCommands::evaluate_sound_impulse_time(int16_t function_index, uint32_t
         int32_t end_time = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[sound & halo::k_slot_mask].data + 0x90);
 
         if (end_time != -1) {
-            ticks = end_time - game_time->game_time;
+            ticks = end_time - halo::game::globals().game_time->game_time;
             if (ticks <= 0) {
                 ticks = 0;
             }

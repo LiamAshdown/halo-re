@@ -33,8 +33,9 @@
 #include "halo/game/game1_spawn.hpp"
 #include "halo/game/game1_cleanup.hpp"
 #include "halo/game/game1_engine_behavior.hpp"
+#include "halo/game/api.hpp"
 
-extern "C" {
+namespace halo::game {
 
 void game_engine_ctf_assign_flag_ids(void)
 {

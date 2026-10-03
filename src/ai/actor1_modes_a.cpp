@@ -8,6 +8,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_mode_alert_movement_cancelled {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
@@ -555,7 +556,7 @@ uint8_t halo::ai::obey_mode::process()
             }
         }
         if (mark) {
-            ((struct actor *)actor)->command_list_finished_time = game_time->game_time;
+            ((struct actor *)actor)->command_list_finished_time = halo::game::globals().game_time->game_time;
             mode_data[5] = 1;
         }
     }

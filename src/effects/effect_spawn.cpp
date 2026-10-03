@@ -8,9 +8,9 @@
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern data_array *player_data;
 extern int16_t light_count_enabled;
 extern const real_vector3d *global_origin3d_pointer;
 extern const ColorRGB *global_white_color;
@@ -131,7 +131,7 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
             uint8_t *creator = (uint8_t *)halo::objects::object_try_and_get(SELF_FIELD(datum_index, 0x40), 3);
 
             if (creator != 0) {
-                uint8_t *owner = (uint8_t *)halo::memory::datum_get(*(datum_index *)(creator + 0x218), player_data);
+                uint8_t *owner = (uint8_t *)halo::memory::datum_get(*(datum_index *)(creator + 0x218), halo::game::globals().player_data);
 
                 if (owner != 0 && ((struct player *)owner)->local_player_index != -1) {
                     first_person = 1;

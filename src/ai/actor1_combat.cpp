@@ -9,6 +9,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_check_burst_length_exceeded {
 }
@@ -143,7 +144,6 @@ void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
 namespace c_actor_check_vehicle_target_available {
 extern "C" {
 
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 }
 }
 
@@ -171,7 +171,7 @@ uint8_t halo::ai::combat_ops::check_vehicle_target_available(datum_index vehicle
     }
     self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
-    if (teams_are_enemies(((struct actor *)self)->team, ((struct object *)vehicle_object)->owner_team) != 0) {
+    if (halo::game::teams_are_enemies(((struct actor *)self)->team, ((struct object *)vehicle_object)->owner_team) != 0) {
         return 0;
     }
     if (flag_pursue) {

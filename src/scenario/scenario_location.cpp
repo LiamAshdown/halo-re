@@ -10,12 +10,12 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
 extern Scenario *global_scenario;
 extern float sqrtf(float x);
-extern void value_step_toward_target(float *value, float target, float max_step);
 extern scenario_game_globals *global_scenario_game_globals;
 }
 
@@ -340,12 +340,12 @@ sky_fog_resolved:
             state->fog_screen_blend = fog_screen_blend_target;
             state->valid = 1;
         } else {
-            value_step_toward_target(&state->start_distance, fog->start_distance, distance);
-            value_step_toward_target(&state->opaque_distance, fog->opaque_distance, distance);
+            halo::game::value_step_toward_target(&state->start_distance, fog->start_distance, distance);
+            halo::game::value_step_toward_target(&state->opaque_distance, fog->opaque_distance, distance);
             distance = distance * 0.05f;
-            value_step_toward_target(&state->maximum_density, fog->maximum_density, distance);
+            halo::game::value_step_toward_target(&state->maximum_density, fog->maximum_density, distance);
             halo::render::render_lighting_step_vector3_toward((float *)&state->color, (float *)&fog->color, distance);
-            value_step_toward_target(&state->fog_screen_blend, fog_screen_blend_target, distance);
+            halo::game::value_step_toward_target(&state->fog_screen_blend, fog_screen_blend_target, distance);
         }
 
         state->camera_position.x = camera_position->x;

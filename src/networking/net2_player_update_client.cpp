@@ -17,6 +17,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array * player_data;
@@ -53,7 +54,7 @@ void PlayerUpdateClient::local_player_update_from_network(int32_t *decode_contex
     if (halo::networking::message_delta_decode_compound_field((void **)decode_context, &ack) != 1) {
         return;
     }
-    iter.data = player_data;
+    iter.data = halo::game::globals().player_data;
     iter.next_index = 0;
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
@@ -71,7 +72,7 @@ void PlayerUpdateClient::local_player_update_from_network(int32_t *decode_contex
         return;
     }
     halo::networking::player_update_history_log_write(1, 0, "[%d]: Received ack for update [%d].\n",
-        game_time->game_time, ack.baseline_id);
+        halo::game::globals().game_time->game_time, ack.baseline_id);
     candidate->last_update_id = ack.update_id;
     candidate->baseline_update_id = ack.baseline_id;
     candidate->unknown_f0 = *(int32_t *)&ack.position.x;
@@ -110,14 +111,14 @@ void PlayerUpdateClient::local_player_vehicle_update_from_network(int32_t *decod
     halo::math::vector3d_normalize_with_length(ack.vehicle.forward);
     halo::math::vector3d_normalize_with_length(ack.vehicle.up);
 
-    vehicle_handle = players_find_local_owned_unclear();
-    candidate = (player *)halo::memory::datum_get(vehicle_handle, player_data);
+    vehicle_handle = halo::game::players_find_local_owned_unclear();
+    candidate = (player *)halo::memory::datum_get(vehicle_handle, halo::game::globals().player_data);
     if (candidate == 0) {
         return;
     }
     if (halo::networking::is_local_player_update_in_order(candidate->last_update_id, ack.update_id) == 1) {
         halo::networking::player_update_history_log_write(1, 0, "[%d]: Received vehicle ack for update [%d].\n",
-            game_time->game_time, ack.baseline_id);
+            halo::game::globals().game_time->game_time, ack.baseline_id);
         candidate->last_update_id = ack.update_id;
         candidate->baseline_update_id = ack.baseline_id;
         candidate->unknown_f0 = *(int32_t *)&ack.vehicle.position.x;
@@ -130,7 +131,7 @@ void PlayerUpdateClient::local_player_vehicle_update_from_network(int32_t *decod
     }
     halo::networking::player_update_history_log_write(1, 0,
         "[%d]: Threw away local player vehicle ack [%d] (%d), previous ack [%d] (%d).\n",
-        game_time->game_time, ack.baseline_id,
+        halo::game::globals().game_time->game_time, ack.baseline_id,
         candidate->baseline_update_id, ack.update_id, candidate->last_update_id);
 }
 
@@ -157,8 +158,8 @@ void PlayerUpdateClient::remote_player_action_update_from_network(int32_t **deco
     candidate = 0;
     if (remapped_index != -1) {
         index = (int16_t)remapped_index;
-        if (index >= 0 && index < player_data->maximum_count) {
-            player *maybe = (player *)((uint8_t *)player_data->data + (int32_t)player_data->size * (int32_t)index);
+        if (index >= 0 && index < halo::game::globals().player_data->maximum_count) {
+            player *maybe = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
             salt = (int16_t)((uint32_t)remapped_index >> 16);
             if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)) {
                 candidate = maybe;
@@ -206,8 +207,8 @@ void PlayerUpdateClient::remote_player_position_delta_from_network(int32_t **dec
     candidate = 0;
     if (remapped_index != -1) {
         index = (int16_t)remapped_index;
-        if (index >= 0 && index < player_data->maximum_count) {
-            player *maybe = (player *)((uint8_t *)player_data->data + (int32_t)player_data->size * (int32_t)index);
+        if (index >= 0 && index < halo::game::globals().player_data->maximum_count) {
+            player *maybe = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
             salt = (int16_t)((uint32_t)remapped_index >> 16);
             if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)) {
                 candidate = maybe;
@@ -253,10 +254,10 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
         return;
     }
     index = (int16_t)player_index;
-    if (index < 0 || index >= player_data->maximum_count) {
+    if (index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    target = (player *)((uint8_t *)player_data->data + (int32_t)player_data->size * (int32_t)index);
+    target = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
     salt = (int16_t)((uint32_t)player_index >> 16);
     if (target->identifier == 0 || (salt != 0 && target->identifier != salt)) {
         return;
@@ -282,11 +283,11 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
             int32_t write_index;
             int32_t read_index;
 
-            if (position_update_queue_push(&target->position_updates, x, y, z, update_id,
+            if (halo::game::position_update_queue_push(&target->position_updates, x, y, z, update_id,
                     distance) == 0) {
                 halo::networking::player_update_history_log_printf_filtered(target, 1,
                     "[%d]: Remote player position_queue overflow.\n",
-                    game_time->game_time);
+                    halo::game::globals().game_time->game_time);
             }
 
             write_index = target->position_updates.write_index;
@@ -319,8 +320,8 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
             out_of_range_count = target->position_update_ignored_count + 1;
             target->position_update_ignored_count = out_of_range_count;
             if (out_of_range_count <= 2) {
-                int32_t position_count = circular_queue_count(&target->position_updates);
-                int32_t action_count = circular_queue_count(&target->update_history.queue);
+                int32_t position_count = halo::game::circular_queue_count(&target->position_updates);
+                int32_t action_count = halo::game::circular_queue_count(&target->update_history.queue);
 
                 halo::networking::player_update_history_log_printf_filtered(target, 1,
                     "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions "
@@ -329,8 +330,8 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
                     out_of_range_count, 2);
 
             } else {
-                int32_t position_count = circular_queue_count(&target->position_updates);
-                int32_t action_count = circular_queue_count(&target->update_history.queue);
+                int32_t position_count = halo::game::circular_queue_count(&target->position_updates);
+                int32_t action_count = halo::game::circular_queue_count(&target->update_history.queue);
 
                 halo::networking::player_update_history_log_printf_filtered(target, 1,
                     "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions "
@@ -357,7 +358,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
                             halo::networking::player_update_history_log_printf_filtered(target, 1,
                                 "Apply immediately dist: [%f] (%f)",
                                 (double)snap_distance, 1.0);
-                            unit_snap_position_if_far(&new_position, unit, target->unit);
+                            halo::game::unit_snap_position_if_far(&new_position, unit);
                         }
                     }
                 }
@@ -393,9 +394,9 @@ void PlayerUpdateClient::remote_player_total_biped_update_from_network(int32_t *
     candidate = 0;
     if (remapped_index != -1) {
         index = (int16_t)remapped_index;
-        if (index >= 0 && index < player_data->maximum_count) {
-            player *maybe = (player *)((uint8_t *)player_data->data
-                + (int32_t)player_data->size * (int32_t)index);
+        if (index >= 0 && index < halo::game::globals().player_data->maximum_count) {
+            player *maybe = (player *)((uint8_t *)halo::game::globals().player_data->data
+                + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
             salt = (int16_t)((uint32_t)remapped_index >> 16);
             if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)) {
                 candidate = maybe;
@@ -470,9 +471,9 @@ void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(int32_t
     candidate = 0;
     if (remapped_index != -1) {
         index = (int16_t)remapped_index;
-        if (index >= 0 && index < player_data->maximum_count) {
-            player *maybe = (player *)((uint8_t *)player_data->data
-                + (int32_t)player_data->size * (int32_t)index);
+        if (index >= 0 && index < halo::game::globals().player_data->maximum_count) {
+            player *maybe = (player *)((uint8_t *)halo::game::globals().player_data->data
+                + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
             salt = (int16_t)((uint32_t)remapped_index >> 16);
             if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)) {
                 candidate = maybe;
@@ -543,9 +544,9 @@ void PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(int32
     candidate = 0;
     if (remapped_index != -1) {
         index = (int16_t)remapped_index;
-        if (index >= 0 && index < player_data->maximum_count) {
-            player *maybe = (player *)((uint8_t *)player_data->data
-                + (int32_t)player_data->size * (int32_t)index);
+        if (index >= 0 && index < halo::game::globals().player_data->maximum_count) {
+            player *maybe = (player *)((uint8_t *)halo::game::globals().player_data->data
+                + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
             salt = (int16_t)((uint32_t)remapped_index >> 16);
             if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)) {
                 candidate = maybe;
@@ -595,10 +596,10 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
         return;
     }
     index = (int16_t)player_index;
-    if (index < 0 || index >= player_data->maximum_count) {
+    if (index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    target = (player *)((uint8_t *)player_data->data + (int32_t)player_data->size * (int32_t)index);
+    target = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
     salt = (int16_t)((uint32_t)player_index >> 16);
     if (target->identifier == 0 || (salt != 0 && target->identifier != salt)) {
         return;
@@ -644,10 +645,10 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
             record.tick = update_id;
             record.sequence = distance;
             record.body = vehicle;
-            if (circular_queue_push(&target->vehicle_updates, &record) == 0) {
+            if (halo::game::circular_queue_push(&target->vehicle_updates, &record) == 0) {
                 halo::networking::player_update_history_log_printf_filtered(target, 1,
                     "[%d]: Remote player vehicle_update_queue overflow.\n",
-                    game_time->game_time);
+                    halo::game::globals().game_time->game_time);
             }
 
             write_index = target->vehicle_updates.write_index;
@@ -682,8 +683,8 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
             target->vehicle_update_ignored_count = out_of_range_count;
             if (out_of_range_count <= 1) {
 
-                int32_t position_count = circular_queue_count(&target->position_updates);
-                int32_t action_count = circular_queue_count(&target->update_history.queue);
+                int32_t position_count = halo::game::circular_queue_count(&target->position_updates);
+                int32_t action_count = halo::game::circular_queue_count(&target->update_history.queue);
 
                 halo::networking::player_update_history_log_printf_filtered(target, 1,
                     "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions "
@@ -692,8 +693,8 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
                     out_of_range_count, 1);
 
             } else {
-                int32_t vehicle_count = circular_queue_count(&target->vehicle_updates);
-                int32_t action_count = circular_queue_count(&target->update_history.queue);
+                int32_t vehicle_count = halo::game::circular_queue_count(&target->vehicle_updates);
+                int32_t action_count = halo::game::circular_queue_count(&target->update_history.queue);
 
                 halo::networking::player_update_history_log_printf_filtered(target, 1,
                     "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions "

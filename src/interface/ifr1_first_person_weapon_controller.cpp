@@ -10,47 +10,20 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
-extern int32_t local_player_index_for_unit(datum_index unit_index);
-extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name,
-                                                      object_marker *out, uint32_t name_arg);
-extern int32_t local_player_index_for_weapon(datum_index weapon_index);
 extern Globals *global_globals;
-extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot,
-                                           int16_t new_state);
-extern uint8_t hud_meter_find_matching_elements(uint32_t source_tag_ref, uint32_t target_tag_ref,
-                                                 int16_t *out);
-extern void first_person_weapon_interface_tick_reset(int16_t local_player_index);
-extern player_globals *local_player_globals;
-extern data_array *player_data;
-extern void first_person_weapon_interface_initialize(int16_t local_player_index);
-extern void first_person_weapon_update(int32_t local_player_index);
-extern void unit_invalidate_local_player_zoom_level(datum_index unit);
-extern int16_t item_type_to_message_stage(int16_t item_type_code);
-extern int16_t item_type_to_animation_stage(int16_t message_stage);
-extern void first_person_weapon_snapshot_pose(int16_t local_player_index, int16_t blend_gap);
 extern int16_t current_local_player_index;
-extern int32_t local_player_get_zoom_level(int16_t local_player_index);
-extern void first_person_weapon_set_attached(int16_t local_player_index, uint8_t attached);
-extern void first_person_weapon_update_animation_controls(int16_t local_player_index);
 extern float render_camera_global;
 extern float camera_position_y;
 extern float camera_position_z;
-extern void hud_meter_permute_node_records(uint8_t *dest, uint8_t *source,
-                                            uint32_t target_tag_ref, int16_t *lookup);
 extern void *object_get_cached_render_lighting(datum_index object_index, real level_of_detail_pixels);
-extern player_control_globals *player_control_globals_ptr;
 extern float camera_field_of_view;
 extern uint32_t rasterizer_device_version;
 extern uint8_t rasterizer_caps_flag_68a;
-extern game_engine_definition *current_game_engine;
-extern game_engine_state game_engine_state_value;
-extern int32_t local_player_get_weapon_hud_interface(float *out_intensity);
-extern void hud_update_player(void);
-extern void game_engine_post_rasterize_post_game(void);
-extern void hud_update_teammate_nameplate_fade(void);
 }
 
 static float clamp_unit(float value)
@@ -91,7 +64,7 @@ void FirstPersonWeaponController::center_flashlight(datum_index unit_index, real
     object_marker marker;
     int16_t result;
 
-    local_player = local_player_index_for_unit(unit_index);
+    local_player = halo::interface::local_player_index_for_unit(unit_index);
     if ((int16_t)local_player == -1) {
         return;
     }
@@ -101,7 +74,7 @@ void FirstPersonWeaponController::center_flashlight(datum_index unit_index, real
         return;
     }
 
-    result = (int16_t)first_person_weapon_get_marker_data(fp->weapon_index, "flashlight", &marker, 1);
+    result = (int16_t)halo::interface::first_person_weapon_get_marker_data(fp->weapon_index, "flashlight", &marker, 1);
     if (result <= 0) {
         return;
     }
@@ -141,7 +114,7 @@ uint32_t FirstPersonWeaponController::get_marker_data(datum_index weapon_index, 
         return 0;
     }
 
-    local_player = local_player_index_for_weapon(weapon_index);
+    local_player = halo::interface::local_player_index_for_weapon(weapon_index);
     if ((int16_t)local_player == -1) {
         return 0;
     }
@@ -200,7 +173,7 @@ void FirstPersonWeaponController::interface_initialize()
     }
 
     if (fp->unit_index == (datum_index)0xffffffff) {
-        first_person_weapon_interface_tick_reset(local_player_index);
+        halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
         return;
     }
 
@@ -208,12 +181,12 @@ void FirstPersonWeaponController::interface_initialize()
                                 (uint16_t)fp->unit_index * 0xc);
     current_weapon_slot = ((unit_object *)unit)->unit.current_weapon_index;
     if (current_weapon_slot == -1) {
-        first_person_weapon_interface_tick_reset(local_player_index);
+        halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
         return;
     }
     weapon_index = *(datum_index *)((char *)unit + 0x2f8 + current_weapon_slot * 4);
     if (weapon_index == (datum_index)0xffffffff) {
-        first_person_weapon_interface_tick_reset(local_player_index);
+        halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
         return;
     }
 
@@ -222,19 +195,19 @@ void FirstPersonWeaponController::interface_initialize()
     weapon_tag_ref = *(uint32_t *)weapon_object;
     weapon_tag_data = (char *)halo::cache::globals().tag_instances[(uint16_t)weapon_tag_ref].data;
     if (*(int32_t *)(weapon_tag_data + 0x468) == -1) {
-        first_person_weapon_interface_tick_reset(local_player_index);
+        halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
         return;
     }
 
     hud_interface_tag_ref = *(uint32_t *)(weapon_tag_data + 0x478);
     hud_interface_tag_data = (char *)halo::cache::globals().tag_instances[(uint16_t)hud_interface_tag_ref].data;
     if (*(int32_t *)(hud_interface_tag_data + 0x48) == 0) {
-        first_person_weapon_interface_tick_reset(local_player_index);
+        halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
         return;
     }
     node_array_block = *(int32_t **)(hud_interface_tag_data + 0x4c);
     if (node_array_block == (int32_t *)0) {
-        first_person_weapon_interface_tick_reset(local_player_index);
+        halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
         return;
     }
 
@@ -252,11 +225,11 @@ void FirstPersonWeaponController::interface_initialize()
         uint32_t hands_model = *(uint32_t *)(*(int32_t *)((char *)global_globals + 0x180) + 0xc);
 
         if (hands_model != 0xffffffff) {
-            fp->device_hud_valid = hud_meter_find_matching_elements(hud_interface_tag_ref, hands_model,
+            fp->device_hud_valid = halo::interface::hud_meter_find_matching_elements(hud_interface_tag_ref, hands_model,
                 fp->device_hud_element);
         }
     }
-    weapon_hud_matched = hud_meter_find_matching_elements(hud_interface_tag_ref,
+    weapon_hud_matched = halo::interface::hud_meter_find_matching_elements(hud_interface_tag_ref,
         *(uint32_t *)(weapon_tag_data + 0x468), fp->weapon_hud_element);
     fp->weapon_hud_valid = weapon_hud_matched;
 
@@ -271,7 +244,7 @@ void FirstPersonWeaponController::interface_initialize()
         fp->idle_ticks = 0;
         fp->frame_sound_index = -1;
         fp->frame_sound_state = -1;
-        first_person_weapon_set_state(local_player_index, 1, 0);
+        halo::interface::first_person_weapon_set_state(local_player_index, 1, 0);
         fp->blend_end = 0;
         if (was_attached != 0 && fp->attached != 1) {
             halo::effects::effect_reattach_markers_for_object(local_player_index, fp->weapon_index);
@@ -279,7 +252,7 @@ void FirstPersonWeaponController::interface_initialize()
         }
     }
 
-    first_person_weapon_interface_tick_reset(local_player_index);
+    halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
 }
 
 /**
@@ -297,20 +270,20 @@ void FirstPersonWeaponController::interface_tick(void)
 
     fp = &first_person_weapon_interfaces[0];
 
-    if (local_player_globals->local_players[0] != (datum_index)0xffffffff) {
-        record = (player *)((char *)player_data->data +
-                             (local_player_globals->local_players[0] & 0xffff) * sizeof(player));
+    if (halo::game::globals().local_player_globals->local_players[0] != (datum_index)0xffffffff) {
+        record = (player *)((char *)halo::game::globals().player_data->data +
+                             (halo::game::globals().local_player_globals->local_players[0] & 0xffff) * sizeof(player));
         unit_index = record->unit;
 
         if (fp->unit_index != unit_index) {
             fp->unknown_30[0x20] = 0;
             fp->unit_index = unit_index;
-            first_person_weapon_interface_initialize(0);
+            halo::interface::first_person_weapon_interface_initialize(0);
         }
         if (fp->weapon_index == (datum_index)0xffffffff) {
-            first_person_weapon_interface_initialize(0);
+            halo::interface::first_person_weapon_interface_initialize(0);
         }
-        first_person_weapon_update(0);
+        halo::interface::first_person_weapon_update(0);
     }
 }
 
@@ -370,10 +343,10 @@ void FirstPersonWeaponController::process_action(int16_t action_code)
             break;
         case 9:
         case 10:
-            unit_invalidate_local_player_zoom_level(fp->unit_index);
+            halo::game::unit_invalidate_local_player_zoom_level(fp->unit_index);
             break;
         case 0xc:
-            first_person_weapon_interface_initialize(local_player_index);
+            halo::interface::first_person_weapon_interface_initialize(local_player_index);
             break;
         case 0xd:
             fp->weapon_index = (datum_index)0xffffffff;
@@ -419,12 +392,12 @@ void FirstPersonWeaponController::process_action(int16_t action_code)
         }
     }
 
-    new_state = item_type_to_message_stage(action_code);
+    new_state = halo::interface::item_type_to_message_stage(action_code);
     if (new_state == -1) {
         goto skip_state_change;
     }
 set_state:
-    first_person_weapon_set_state(local_player_index, 1, new_state);
+    halo::interface::first_person_weapon_set_state(local_player_index, 1, new_state);
 skip_state_change:
     if (action_code == 0xc) {
         fp->blend_end = 0;
@@ -533,7 +506,7 @@ void FirstPersonWeaponController::set_state(uint8_t force_pose_snapshot, int16_t
         new_state = 0;
     }
 
-    animation_stage = item_type_to_animation_stage(new_state);
+    animation_stage = halo::interface::item_type_to_animation_stage(new_state);
 
     if (*(int16_t *)(item_tag_data + 0x4e2) == 1 && fp->state == 0x10) {
         blend_gap = 0;
@@ -579,7 +552,7 @@ void FirstPersonWeaponController::set_state(uint8_t force_pose_snapshot, int16_t
         fp->frame_sound_state = -1;
     }
     if (blend_gap != 0) {
-        first_person_weapon_snapshot_pose(local_player_index, blend_gap);
+        halo::interface::first_person_weapon_snapshot_pose(local_player_index, blend_gap);
     }
     fp->state = new_state;
     fp->current_animation = animation_stage;
@@ -657,7 +630,7 @@ void FirstPersonWeaponController::update_active_state(void)
 
     camera_type = halo::camera::camera_get_type_for_player(current_local_player_index);
     if (camera_type == 0) {
-        zoom_level = (int16_t)local_player_get_zoom_level(current_local_player_index);
+        zoom_level = (int16_t)halo::game::local_player_get_zoom_level(current_local_player_index);
         attach = 1;
         if (zoom_level != -1) {
             attach = 0;
@@ -666,10 +639,10 @@ void FirstPersonWeaponController::update_active_state(void)
         attach = 0;
     }
 
-    first_person_weapon_set_attached(current_local_player_index, attach);
+    halo::interface::first_person_weapon_set_attached(current_local_player_index, attach);
 
     if (fp->attached != 0) {
-        first_person_weapon_update_animation_controls(current_local_player_index);
+        halo::interface::first_person_weapon_update_animation_controls(current_local_player_index);
     }
 }
 
@@ -710,11 +683,11 @@ void FirstPersonWeaponController::update_lighting(void)
     if (current_local_player_index >= 1) {
         return;
     }
-    player_handle = local_player_globals->local_players[current_local_player_index];
+    player_handle = halo::game::globals().local_player_globals->local_players[current_local_player_index];
     if (player_handle == 0xffffffff) {
         return;
     }
-    player_record = (player *)((char *)player_data->data + (uint16_t)player_handle * player_data->size);
+    player_record = (player *)((char *)halo::game::globals().player_data->data + (uint16_t)player_handle * halo::game::globals().player_data->size);
     unit_handle = player_record->unit;
     if (unit_handle == 0xffffffff) {
         return;
@@ -753,7 +726,7 @@ void FirstPersonWeaponController::update_lighting(void)
     if (fp->weapon_hud_valid != 0 && *(int32_t *)(weapon_tag_data + 0x468) != -1) {
         uint32_t model_tag_ref = *(uint32_t *)(weapon_tag_data + 0x468);
 
-        hud_meter_permute_node_records(node_scratch, fp->node_matrices, model_tag_ref,
+        halo::interface::hud_meter_permute_node_records(node_scratch, fp->node_matrices, model_tag_ref,
                                         fp->weapon_hud_element);
         halo::models::render_model(static_cast<TagID>(model_tag_ref), node_scratch, 0, 0, (ColorRGB *)((char *)weapon_obj + 0x1b8),
                      (float *)((char *)weapon_obj + 0x134), reinterpret_cast<render_lighting *>(light_sample), reinterpret_cast<real_point3d *>(&render_camera_global), 0,
@@ -763,7 +736,7 @@ void FirstPersonWeaponController::update_lighting(void)
         *(int32_t *)&((struct GlobalsFirstPersonInterface *)first_person_interface)->first_person_hands.tag_id != -1) {
         uint32_t model_tag_ref = *(uint32_t *)&((struct GlobalsFirstPersonInterface *)first_person_interface)->first_person_hands.tag_id;
 
-        hud_meter_permute_node_records(node_scratch, fp->node_matrices, model_tag_ref,
+        halo::interface::hud_meter_permute_node_records(node_scratch, fp->node_matrices, model_tag_ref,
                                         fp->device_hud_element);
         halo::models::render_model(static_cast<TagID>(model_tag_ref), node_scratch, 0, 0, (ColorRGB *)((char *)unit_obj + 0x1b8),
                      (float *)((char *)unit_obj + 0x134), reinterpret_cast<render_lighting *>(light_sample), reinterpret_cast<real_point3d *>(&render_camera_global), 0,
@@ -791,7 +764,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
         return;
     }
 
-    hud_interface = local_player_get_weapon_hud_interface(&intensity);
+    hud_interface = halo::interface::local_player_get_weapon_hud_interface(&intensity);
     if (hud_interface == -1 ||
         (int32_t)((WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_interface & 0xffff].data)->screen_effect.count < 1) {
         if (rasterizer_device_version >= 0xffff0101u && rasterizer_caps_flag_68a == 0) {
@@ -807,7 +780,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
     desired_zoom_level = -1;
     if (current_local_player_index != -1) {
         desired_zoom_level =
-            player_control_globals_ptr->local_players[current_local_player_index].desired_zoom_level;
+            halo::game::globals().player_control->local_players[current_local_player_index].desired_zoom_level;
     }
     zoomed = (desired_zoom_level != -1);
     memset(&parameters, 0, sizeof(parameters));
@@ -872,13 +845,13 @@ void FirstPersonWeaponController::update_screen_effects(void)
     }
 
 post_hud:
-    hud_update_player();
-    if (current_game_engine != (void *)0) {
-        if ((int32_t)game_engine_state_value > 1) {
-            game_engine_post_rasterize_post_game();
+    halo::interface::hud_update_player();
+    if (halo::game::globals().current_engine != (void *)0) {
+        if ((int32_t)halo::game::globals().state > 1) {
+            halo::game::game_engine_post_rasterize_post_game();
             return;
         }
-        hud_update_teammate_nameplate_fade();
+        halo::game::hud_update_teammate_nameplate_fade();
     }
 }
 
@@ -907,10 +880,10 @@ void FirstPersonWeaponController::update_state()
     switch (fp->state) {
     case 0: case 5: case 6: case 7: case 8: case 9: case 10: case 0xb: case 0xc:
     case 0x10: case 0x11: case 0x13: case 0x14: case 0x16:
-        first_person_weapon_set_state(local_player_index, 0, 0);
+        halo::interface::first_person_weapon_set_state(local_player_index, 0, 0);
         return;
     case 1: case 2: case 0x15: case 0x17:
-        first_person_weapon_set_state(local_player_index, 0, 3);
+        halo::interface::first_person_weapon_set_state(local_player_index, 0, 3);
         return;
     case 3: case 4:
         return;
@@ -920,7 +893,7 @@ void FirstPersonWeaponController::update_state()
                                        (*(uint32_t *)weapon_obj & 0xffff) * 0x20 + 0x14);
         device_entry = *(int16_t *)(fpb + 0x1e94);
         if (*(int16_t *)(item_tag_data + 0x4e2) != 1 || device_entry == 0 || device_entry == -1) {
-            first_person_weapon_set_state(local_player_index, 0, 0);
+            halo::interface::first_person_weapon_set_state(local_player_index, 0, 0);
             return;
         }
         break;
@@ -929,7 +902,7 @@ void FirstPersonWeaponController::update_state()
         item_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
                                        (*(uint32_t *)weapon_obj & 0xffff) * 0x20 + 0x14);
         if (*(int16_t *)(item_tag_data + 0x4e2) != 1 || *(int16_t *)(fpb + 0x1e94) != 2) {
-            first_person_weapon_set_state(local_player_index, 0, 0);
+            halo::interface::first_person_weapon_set_state(local_player_index, 0, 0);
             return;
         }
         break;
@@ -941,7 +914,7 @@ void FirstPersonWeaponController::update_state()
     }
 
     flag = *(uint8_t *)(fpb + 0x1e90);
-    first_person_weapon_set_state(local_player_index, 0, (flag != 0) ? 0x10 : 0x11);
+    halo::interface::first_person_weapon_set_state(local_player_index, 0, (flag != 0) ? 0x10 : 0x11);
 }
 
 }

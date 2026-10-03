@@ -4,6 +4,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern void sv_ban(uint32_t argument_count, int32_t *arguments);
@@ -58,10 +60,10 @@ void ServerCommands::evaluate_sv_end_game(int16_t function_index, uint32_t threa
 {
     if (halo::networking::globals().game_mode == 2) {
         halo::game::fields::server_end_game_requested = 1;
-        game_engine_begin_end_game_sequence();
-        chimera__console_out(global_white_argb, (char *)"Server is stopping the game...");
+        halo::game::game_engine_begin_end_game_sequence();
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Server is stopping the game...");
     } else {
-        chimera__console_out(global_white_argb, (char *)"sv_end_game is a server-only function!");
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_end_game is a server-only function!");
     }
     halo::hs::hs_thread_return(0, thread_index);
 }
@@ -79,7 +81,7 @@ void ServerCommands::evaluate_sv_get_player_action_queue_length(int16_t function
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        game_engine_find_player_by_name((char *)arguments[0]);
+        halo::game::game_engine_find_player_by_name((char *)arguments[0]);
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -128,7 +130,7 @@ void ServerCommands::evaluate_sv_map(int16_t function_index, uint32_t thread_ind
  */
 void ServerCommands::evaluate_sv_map_next(int16_t function_index, uint32_t thread_index, char first) const
 {
-    chimera__console_out(0, (char *)"sv_map_next is a dedicated server-only function!");
+    halo::interface::chimera__console_out(0, (char *)"sv_map_next is a dedicated server-only function!");
     halo::hs::hs_thread_return(0, thread_index);
 }
 
@@ -152,7 +154,7 @@ void ServerCommands::evaluate_sv_map_reset(int16_t function_index, uint32_t thre
  */
 void ServerCommands::evaluate_sv_mapcycle(int16_t function_index, uint32_t thread_index, char first) const
 {
-    chimera__console_out(0, (char *)"sv_mapcycle is a dedicated server-only function!");
+    halo::interface::chimera__console_out(0, (char *)"sv_mapcycle is a dedicated server-only function!");
     halo::hs::hs_thread_return(0, thread_index);
 }
 
@@ -169,7 +171,7 @@ void ServerCommands::evaluate_sv_mapcycle_add(int16_t function_index, uint32_t t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        chimera__console_out(0, (char *)"sv_mapcycle_add is a dedicated server-only function!");
+        halo::interface::chimera__console_out(0, (char *)"sv_mapcycle_add is a dedicated server-only function!");
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -182,7 +184,7 @@ void ServerCommands::evaluate_sv_mapcycle_add(int16_t function_index, uint32_t t
  */
 void ServerCommands::evaluate_sv_mapcycle_begin(int16_t function_index, uint32_t thread_index, char first) const
 {
-    chimera__console_out(0, (char *)"sv_mapcycle_begin is a dedicated server-only function!");
+    halo::interface::chimera__console_out(0, (char *)"sv_mapcycle_begin is a dedicated server-only function!");
     halo::hs::hs_thread_return(0, thread_index);
 }
 
@@ -199,7 +201,7 @@ void ServerCommands::evaluate_sv_mapcycle_del(int16_t function_index, uint32_t t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        chimera__console_out(0, (char *)"sv_mapcycle_del is a dedicated server-only function!");
+        halo::interface::chimera__console_out(0, (char *)"sv_mapcycle_del is a dedicated server-only function!");
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -279,7 +281,7 @@ void ServerCommands::evaluate_sv_unban(int16_t function_index, uint32_t thread_i
         int32_t index = arguments[0];
 
         if (index >= 0 && index < ban_list.count) {
-            chimera__console_out(0, (char *)"Unbanning %s.", (uint8_t *)ban_list.data + index * 0x38);
+            halo::interface::chimera__console_out(0, (char *)"Unbanning %s.", (uint8_t *)ban_list.data + index * 0x38);
             halo::memory::growable_array_remove_element(&ban_list, (uint32_t)index);
             halo::networking::network_banlist_save();
         }

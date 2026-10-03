@@ -5,9 +5,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern data_array *player_data;
 extern Globals *global_globals;
 extern char ai_marker_name_a[];
 extern uint8_t render_frustum_global[];
@@ -17,8 +18,6 @@ extern float waypoint_fade_near;
 extern float waypoint_fade_far;
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *view_point,
                                               const void *frustum, const void *camera);
-extern void ui_draw_rotated_screen_quad(int16_t *origin, int32_t source_record, float *corner_uvs,
-                                        float scale, float rotation_radians, float alpha_fraction);
 }
 
 namespace halo::interface {
@@ -31,7 +30,7 @@ namespace halo::interface {
  */
 void HudWaypoints::draw_one(datum_index player_index)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * sizeof(player));
     object_marker marker;
     real_point3d world_point;
     real_point3d view_point;
@@ -72,7 +71,7 @@ void HudWaypoints::draw_one(datum_index player_index)
     uvs[1] = 1.0f;
     uvs[2] = (1.0f - fade) * 0.5f;
     uvs[3] = 1.0f;
-    ui_draw_rotated_screen_quad(origin, (int32_t)(uintptr_t)bitmap, uvs, 1.0f, 0.0f, 1.0f);
+    halo::interface::ui_draw_rotated_screen_quad(origin, (int32_t)(uintptr_t)bitmap, uvs, 1.0f, 0.0f, 1.0f);
 }
 
 }

@@ -11,6 +11,8 @@
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,16 +21,11 @@ extern network_client_globals *network_client;
 extern void network_client_rejoin_check(int8_t machine_player_index);
 extern uint8_t console_debug_flag_4;
 extern uint8_t *player_effect_globals_pointer;
-extern game_time_globals *game_time;
-extern void network_game_host_start(char *map_name, char *variant_name, uint8_t disconnect_timeout_flag);
-extern uint32_t game_safe_to_pause(void);
 extern int16_t pending_difficulty;
 extern int16_t local_player_count;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t main_globals_byte_0071973a;
 extern int32_t game_state_revert_time;
-extern uint8_t game_safe_to_save(void);
-extern uint32_t game_no_player_is_dead(void);
 extern uint8_t main_globals_byte_0071973d;
 extern uint8_t main_globals_byte_0071973e;
 extern int32_t main_globals_dword_00719740;
@@ -36,7 +33,6 @@ extern int32_t main_globals_dword_00719744;
 extern int16_t main_globals_word_0071974c;
 extern int16_t main_globals_word_0071976e;
 extern uint8_t main_globals_byte_0071976c;
-extern void game_engine_set_variant_by_name(const char *name);
 extern uint8_t main_globals_byte_0071974e;
 extern uint8_t profile_globals_block[0x60a4];
 extern uint8_t ui_event_byte_0071975b;
@@ -99,7 +95,7 @@ void GameCommands::evaluate_fade_in(int16_t function_index, uint32_t thread_inde
     *(int32_t *)(player_effect_globals_pointer + 0xf4) = arguments[2];
     *(int32_t *)(player_effect_globals_pointer + 0xec) = arguments[0];
     player_effect_globals_pointer[0xfe] = 0;
-    *(int32_t *)(player_effect_globals_pointer + 0xf8) = game_time->game_time;
+    *(int32_t *)(player_effect_globals_pointer + 0xf8) = halo::game::globals().game_time->game_time;
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -122,7 +118,7 @@ void GameCommands::evaluate_fade_out(int16_t function_index, uint32_t thread_ind
     *(int32_t *)(player_effect_globals_pointer + 0xf4) = arguments[2];
     *(int32_t *)(player_effect_globals_pointer + 0xec) = arguments[0];
     player_effect_globals_pointer[0xfe] = 1;
-    *(int32_t *)(player_effect_globals_pointer + 0xf8) = game_time->game_time;
+    *(int32_t *)(player_effect_globals_pointer + 0xf8) = halo::game::globals().game_time->game_time;
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -140,7 +136,7 @@ void GameCommands::evaluate_fast_setup_network_server(int16_t function_index, ui
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        network_game_host_start((char *)arguments[0], (char *)arguments[1], *(uint8_t *)&arguments[2]);
+        halo::interface::network_game_host_start((char *)arguments[0], (char *)arguments[1], *(uint8_t *)&arguments[2]);
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -153,7 +149,7 @@ void GameCommands::evaluate_fast_setup_network_server(int16_t function_index, ui
  */
 void GameCommands::evaluate_game_all_quiet(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::hs::hs_thread_return((int32_t)(uint8_t)game_safe_to_pause(), thread_index);
+    halo::hs::hs_thread_return((int32_t)(uint8_t)halo::game::game_safe_to_pause(), thread_index);
 }
 
 /**
@@ -213,7 +209,7 @@ void GameCommands::evaluate_game_difficulty_set(int16_t function_index, uint32_t
  */
 void GameCommands::evaluate_game_is_cooperative(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::hs::hs_thread_return((int32_t)(local_player_count > 1), thread_index);
+    halo::hs::hs_thread_return((int32_t)(halo::game::globals().local_player_count > 1), thread_index);
 }
 
 /**
@@ -252,7 +248,7 @@ void GameCommands::evaluate_game_revert(int16_t function_index, uint32_t thread_
  */
 void GameCommands::evaluate_game_reverted(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::hs::hs_thread_return((int32_t)(game_state_revert_time == game_time->game_time), thread_index);
+    halo::hs::hs_thread_return((int32_t)(game_state_revert_time == halo::game::globals().game_time->game_time), thread_index);
 }
 
 /**
@@ -265,7 +261,7 @@ void GameCommands::evaluate_game_safe_to_save(int16_t function_index, uint32_t t
 {
     (void)function_index;
     (void)first;
-    uint8_t safe = game_safe_to_save();
+    uint8_t safe = halo::game::game_safe_to_save();
     halo::hs::hs_thread_return((int32_t)safe, thread_index);
 }
 
@@ -277,7 +273,7 @@ void GameCommands::evaluate_game_safe_to_save(int16_t function_index, uint32_t t
  */
 void GameCommands::evaluate_game_safe_to_speak(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::hs::hs_thread_return((int32_t)(uint8_t)game_no_player_is_dead(), thread_index);
+    halo::hs::hs_thread_return((int32_t)(uint8_t)halo::game::game_no_player_is_dead(), thread_index);
 }
 
 /**
@@ -390,7 +386,7 @@ void GameCommands::evaluate_game_speed(int16_t function_index, uint32_t thread_i
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    game_time->speed = *(float *)&arguments[0];
+    halo::game::globals().game_time->speed = *(float *)&arguments[0];
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -408,7 +404,7 @@ void GameCommands::evaluate_game_variant(int16_t function_index, uint32_t thread
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        game_engine_set_variant_by_name((const char *)arguments[0]);
+        halo::game::game_engine_set_variant_by_name((const char *)arguments[0]);
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -539,7 +535,7 @@ void GameCommands::evaluate_quit(int16_t function_index, uint32_t thread_index, 
 {
     ui_event_byte_0071975b = 1;
     halo::main::globals().movie_playback_abort = 1;
-    split_screen_quit_prompt_armed = 0;
+    halo::interface::globals().split_screen_quit_prompt_armed = 0;
     halo::hs::hs_thread_return(0, thread_index);
 }
 

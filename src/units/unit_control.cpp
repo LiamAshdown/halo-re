@@ -19,6 +19,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern const real_point3d *global_zero_vector3d_pointer;
@@ -26,12 +27,10 @@ extern double atan2(double y, double x);
 extern double fcos(double x);
 extern double fsin(double x);
 extern double sqrt(double x);
-extern game_time_globals *game_time;
 extern real_point3d *global_origin3d_pointer;
 extern char ai_marker_name_a[];
 extern void *global_structure_collision_bsp;
 extern const real_vector3d *global_down3d_pointer;
-extern data_array *player_data;
 extern void *memcpy(void *dst, const void *src, uint32_t n);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern uint8_t *global_scenario;
@@ -39,7 +38,6 @@ extern int32_t control_binding_device_type;
 extern uint8_t *object_type_definitions_ex;
 extern double cos(double x);
 extern double sin(double x);
-extern game_engine_definition *current_game_engine;
 extern char *s_stand;
 extern double fabs(double x);
 extern uint32_t weapon_must_be_readied(uint32_t weapon_object_index);
@@ -217,7 +215,7 @@ void UnitView::get_camera_position(real_point3d *out)
             biped_data *biped = (biped_data *)((uint8_t *)unit_obj + k_unit_object_size);
             float height = biped->crouch_fraction;
             if ((!test_flag(biped->flags, units::biped_flag::airborne)) && (0.0f < height) && (height < 1.0f)) {
-                float rate = game_time->leftover_time * 29.999998f * biped_tag->crouch_camera_velocity;
+                float rate = halo::game::globals().game_time->leftover_time * 29.999998f * biped_tag->crouch_camera_velocity;
                 if (unit->base_animation_state == _unit_base_animation_state_crouch) {
                     height = height + rate;
                 } else {
@@ -462,7 +460,7 @@ int32_t UnitView::predict_aim_target_position(real_point3d *out_position)
  */
 uint32_t halo::units::unit_predict_movement_delta(real_vector3d *out_position_delta, real_vector3d *out_forward_delta, real_vector3d *out_up_delta, float time_fraction)
 {
-    if (game_time->paused != 0) {
+    if (halo::game::globals().game_time->paused != 0) {
         return 0;
     }
 
@@ -470,7 +468,7 @@ uint32_t halo::units::unit_predict_movement_delta(real_vector3d *out_position_de
         data_iterator iterator;
         void *entry;
 
-        iterator.data = player_data;
+        iterator.data = halo::game::globals().player_data;
         iterator.next_index = 0;
         iterator.index = k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -1037,7 +1035,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     } else {
         facing = turn_angle > 0.0f ? 1 : 2;
     }
-    if (current_game_engine != 0 && (int16_t)weapon_class == 2 && hard_ping && forced) {
+    if (halo::game::globals().current_engine != 0 && (int16_t)weapon_class == 2 && hard_ping && forced) {
         facing = 1;
     }
     if (require_still && !soft_ping && !forced) {

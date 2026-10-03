@@ -9,6 +9,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_avoid_obstacle_and_project {
 extern "C" {
@@ -456,7 +457,7 @@ uint8_t halo::ai::movement_ops::check_vehicle_mode_timeout()
         *(int16_t *)&self->mode_data.raw[4] == 3 &&
         self->mode_data.raw[0xb] != 0) {
         int32_t deadline = *(int32_t *)&self->mode_data.raw[0x10] + 0x1e;
-        return (int32_t)game_time->game_time <= deadline;
+        return (int32_t)halo::game::globals().game_time->game_time <= deadline;
     }
     return 0;
 }
@@ -973,7 +974,7 @@ uint8_t halo::ai::movement_ops::gate_jump_traversal(int16_t threshold, char allo
         }
     }
 
-    if (a->last_flee_abort_time == -1 || game_time->game_time > a->last_flee_abort_time + 7) {
+    if (a->last_flee_abort_time == -1 || halo::game::globals().game_time->game_time > a->last_flee_abort_time + 7) {
         if (allow_broadcast != 0 && a->pending_panic_type < broadcast_threshold) {
             halo::ai::ai_communication_broadcast(0x22, a->unit_index, halo::k_dword_none, halo::k_dword_none, halo::k_dword_none, halo::k_dword_none, 0);
             a->pending_panic_type = 0;

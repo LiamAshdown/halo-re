@@ -8,6 +8,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -15,7 +16,6 @@ namespace actor_update_firing_state_local {
 extern "C" {
 extern player_globals *local_player_globals;
 extern int32_t fistp_round(float x);
-extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 #define F(p, o) (*(float *)((p) + (o)))
 #define W(p, o) (*(int16_t *)((p) + (o)))
 #define D(p, o) (*(datum_index *)((p) + (o)))
@@ -115,9 +115,9 @@ void ActorView::update_firing_state()
         uint8_t *threat_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(weapon));
         uint8_t allowed;
 
-        weapon_get_zoom_fov_resolved(0x12, W(a, 0x3e));
+        halo::game::weapon_get_zoom_fov_resolved(0x12, W(a, 0x3e));
         if (W(def, 0x154) == 1) {
-            weapon_get_zoom_fov_resolved(0x11, W(a, 0x3e));
+            halo::game::weapon_get_zoom_fov_resolved(0x11, W(a, 0x3e));
             allowed = (uint8_t)(*(int32_t *)(threat_tag + 0x4fc) > 0);
         } else if (W(def, 0x154) == 2) {
             allowed = (uint8_t)(*(int32_t *)(threat_tag + 0x4fc) > 1);
@@ -155,7 +155,7 @@ void ActorView::update_firing_state()
             if (W(p, 0x100) != -1) {
                 int32_t bit = W(p, 0x100);
 
-                a[0x624] = (uint8_t)!(*(uint32_t *)&local_player_globals->cluster_pvs[(bit >> 5)] & (1u << (bit & 0x1f)));
+                a[0x624] = (uint8_t)!(*(uint32_t *)&halo::game::globals().local_player_globals->cluster_pvs[(bit >> 5)] & (1u << (bit & 0x1f)));
             }
         } else {
             ((actor *)a)->firing_target_point = *(real_point3d *)&((struct actor *)a)->firing_target_prop_index;
@@ -274,7 +274,7 @@ dispatch:
             float f;
 
             exclude = D(p, 0x114);
-            f = weapon_get_zoom_fov_resolved(0xf, W(a, 0x3e)) + F(def, 0xbc);
+            f = halo::game::weapon_get_zoom_fov_resolved(0xf, W(a, 0x3e)) + F(def, 0xbc);
             if (!(f <= 0.0f && f < 1.0f) && !a[0x623]) {
                 real_vector3d delta;
 
@@ -283,7 +283,7 @@ dispatch:
                 delta.k = F(p, 0xd0) - F(a, 0x654);
                 halo::math::point3d_add_scaled(*aim_point, delta, *aim_point, F(def, 0xbc));
             }
-            f = weapon_get_zoom_fov_resolved(0x10, W(a, 0x3e)) + F(def, 0xc0);
+            f = halo::game::weapon_get_zoom_fov_resolved(0x10, W(a, 0x3e)) + F(def, 0xc0);
             if (!(f <= 0.0f && f < 1.0f)) {
                 float lead = F(def, 0xc0);
                 real t = halo::items::weapon_trigger_projectile_time_fraction(weapon, (int16_t)(a[0x603] != 0), F(a, 0x648));
@@ -385,7 +385,7 @@ dispatch:
 
             enable = 1;
             value = 1.0f;
-            rate = weapon_get_zoom_fov_resolved(0xa, W(a, 0x3e)) * burst;
+            rate = halo::game::weapon_get_zoom_fov_resolved(0xa, W(a, 0x3e)) * burst;
             halo::ai::actor_select_stance_offset_pair(actor_index, def, &stance_a, &stance_b);
             if (stance_b != 0 && F(stance_b, 0x8) > 0.0f) {
                 rate *= F(stance_b, 0x8);

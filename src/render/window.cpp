@@ -28,6 +28,8 @@
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern float sky_animation_times[9];
@@ -46,7 +48,6 @@ extern double fabs(double x);
 extern double sin(double x);
 extern double cos(double x);
 extern int32_t render_window_count;
-extern int16_t current_local_player_index;
 extern int16_t render_window_index;
 extern render_frustum render_frustum_global;
 extern render_fog render_fog_state;
@@ -57,17 +58,12 @@ extern uint32_t rasterizer_active_environment_effect;
 extern int32_t transparent_geometry_group_last_drawn_key;
 extern uint8_t rasterizer_secondary_groups_drawn;
 extern int16_t rasterizer_decal_layer;
-extern game_engine_definition *current_game_engine;
 extern void player_effect_build_screen_flash(render_screen_flash *out, int16_t local_player_index);
-extern void first_person_weapon_update_zoom_static_tint(uint8_t enabled);
-extern void first_person_weapon_update_active_state(void);
 extern void object_lights_update_all(void);
 extern void lights_apply_spot_falloff(void);
 extern void lights_apply_spot_falloff_specular(void);
 extern void weather_update_local_player(void);
 extern void particle_systems_render(void);
-extern void first_person_weapon_update_screen_effects(void);
-extern void widget_draw_fullscreen_region(int16_t controller_index);
 extern uint8_t console_debug_toggle_6893f7;
 extern void *rasterizer_lightmap_bitmap;
 extern uint8_t rasterizer_lightmap_bitmap_missing;
@@ -330,7 +326,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     int16_t saved_69c67c;
 
     render_window_count++;
-    current_local_player_index = local_player_index;
+    halo::interface::globals().current_local_player_index = local_player_index;
     raw = (uint8_t *)&parameters;
     for (i = 0; i < sizeof(parameters); i++) {
         raw[i] = 0;
@@ -347,10 +343,10 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     halo::structures::structure_bsp_cluster_visibility_update();
     halo::effects::player_effect_build_screen_flash((uint32_t *)&parameters.screen_flash, local_player_index);
     halo::rasterizer::rasterizer_begin_frame(&parameters);
-    first_person_weapon_update_zoom_static_tint(1);
+    halo::interface::first_person_weapon_update_zoom_static_tint(1);
     halo::render::billboard_system_frame_init();
     halo::render::render_sky();
-    first_person_weapon_update_active_state();
+    halo::interface::first_person_weapon_update_active_state();
     halo::objects::object_lights_update_all();
     halo::render::render_objects();
     halo::structures::structure_picked_polygon_refresh();
@@ -435,8 +431,8 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
         }
     }
 
-    if (current_game_engine != 0 && current_game_engine->post_rasterize != 0) {
-        ((void (*)(void))current_game_engine->post_rasterize)();
+    if (halo::game::globals().current_engine != 0 && halo::game::globals().current_engine->post_rasterize != 0) {
+        ((void (*)(void))halo::game::globals().current_engine->post_rasterize)();
     }
     halo::effects::weather_update_local_player();
     halo::render::render_particles();
@@ -456,9 +452,9 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
         structure_pass(0, (structure_material_callback)halo::cseries::function_do_nothing, 0, 0);
     }
     halo::rasterizer::lens_flare_render_all();
-    first_person_weapon_update_screen_effects();
+    halo::interface::first_person_weapon_update_screen_effects();
     halo::rasterizer::rasterizer_screen_flash_render();
-    widget_draw_fullscreen_region(local_player_index);
+    halo::interface::widget_draw_fullscreen_region(local_player_index);
     if (halo::rasterizer::globals().window.window_index == -1) {
         halo::render::rasterizer_frame_statistics_sample(&halo::rasterizer::globals().frame_statistics, 0);
         halo::render::rasterizer_frame_statistics_draw();

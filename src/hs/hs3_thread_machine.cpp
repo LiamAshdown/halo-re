@@ -7,6 +7,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -57,9 +58,9 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
 
     while ((void *)thread->stack != (void *)&thread->stack_data) {
         if (thread->wake_tick < 0 ||
-            (game_time->initialized != 0 &&
-             (game_time->active != 0 || game_time->paused != 0) &&
-             game_time->game_time < thread->wake_tick) ||
+            (halo::game::globals().game_time->initialized != 0 &&
+             (halo::game::globals().game_time->active != 0 || halo::game::globals().game_time->paused != 0) &&
+             halo::game::globals().game_time->game_time < thread->wake_tick) ||
             halo::hs::globals().runtime_active == 0) {
             break;
         }

@@ -7,6 +7,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int16_t local_player_count;
@@ -82,7 +83,7 @@ void CacheFileMaps::switch_map_by_path(char *path, uint8_t apply_state)
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::CacheFileMaps::switch_map_by_path; forwards to the C++ implementation.

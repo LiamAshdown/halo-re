@@ -1,11 +1,11 @@
 #include "halo/game/gamerest_updates.hpp"
 #include <stdint.h>
 #include "halo/memory/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t update_server_tick;
 extern uint32_t update_server_history[32 * (0x308 / 4)];
-extern void update_client_advance_read_cursor(int32_t target_tick, const uint32_t *record);
 extern data_array *update_server_queues;
 }
 
@@ -103,7 +103,7 @@ void UpdateServer::push_player_tick_history()
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::UpdateServer::push_player_tick_history; forwards to the C++ implementation.

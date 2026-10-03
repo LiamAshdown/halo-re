@@ -9,6 +9,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_attempt_grenade_throw {
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
@@ -123,7 +124,6 @@ namespace c_actor_can_throw_grenade_at_target {
 extern "C" {
 extern game_time_globals *game_time;
 
-extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 
 }
 }
@@ -151,7 +151,7 @@ uint8_t halo::ai::grenade_ops::can_throw_grenade_at_target()
 
     self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
-    now = game_time->game_time;
+    now = halo::game::globals().game_time->game_time;
 
     if (self->active_unit_index != (datum_index)k_datum_index_none) {
         return 0;
@@ -163,7 +163,7 @@ uint8_t halo::ai::grenade_ops::can_throw_grenade_at_target()
         int32_t squad_deadline = enc->last_grenade_time;
 
         random_wait = ((ActorVariant *)variant)->encounter_grenade_timeout *
-                      weapon_get_zoom_fov_resolved(0x18, ((struct encounter *)enc)->team);
+                      halo::game::weapon_get_zoom_fov_resolved(0x18, ((struct encounter *)enc)->team);
         if (self->playfight != 0) {
             random_wait = random_wait + random_wait;
         }
@@ -251,7 +251,7 @@ uint8_t halo::ai::grenade_ops::check_grenade_facing_and_commit(uint8_t force_com
                 if (self->encounter_index != (datum_index)k_datum_index_none) {
                     encounter *enc = (encounter *)((uint8_t *)halo::ai::globals().encounter_data->data +
                                                     (self->encounter_index & halo::k_slot_mask) * sizeof(encounter));
-                    enc->last_grenade_time = game_time->game_time;
+                    enc->last_grenade_time = halo::game::globals().game_time->game_time;
                 }
                 return 1;
             }
@@ -418,7 +418,7 @@ uint8_t halo::ai::grenade_ops::consider_grenade_throw()
         return 0;
     }
 
-    now = game_time->game_time;
+    now = halo::game::globals().game_time->game_time;
 
     if (self->last_grenade_check_time != (uint32_t)-1 &&
         (variant->grenade_check_time * 30.0f + (float)(int32_t)self->last_grenade_check_time) > (float)now) {
@@ -427,7 +427,7 @@ uint8_t halo::ai::grenade_ops::consider_grenade_throw()
 
     {
 
-        float scaled = variant->grenade_chance * weapon_get_zoom_fov_resolved(0x17, ((struct actor *)self)->team);
+        float scaled = variant->grenade_chance * halo::game::weapon_get_zoom_fov_resolved(0x17, ((struct actor *)self)->team);
         float roll;
 
         self->last_grenade_check_time = now;

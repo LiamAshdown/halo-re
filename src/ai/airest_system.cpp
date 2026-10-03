@@ -17,6 +17,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t game_engine_get_current_tick(void);
@@ -67,7 +68,7 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
     if (!halo::ai::globals().state->actors_valid || window_ticks <= 0) {
         return;
     }
-    current_tick = game_engine_get_current_tick();
+    current_tick = halo::game::game_engine_get_current_tick();
     records = (ai_recent_event_record *)&halo::ai::globals().state->recent_events;
 
     found = 0;
@@ -329,7 +330,7 @@ void AiSystem::category_matches_wildcard(int16_t category, int16_t other_categor
     if (betrayable && team_a == other) {
         a_is_other = 1;
     }
-    team_pair_override_add(team_a, a_is_other, team_b, b_is_other, threshold, timer, human);
+    halo::game::team_pair_override_add(team_a, a_is_other, team_b, b_is_other, threshold, timer, human);
 }
 
 /**
@@ -364,11 +365,11 @@ void AiSystem::get_difficulty_request(int16_t request_code, uint8_t *out_flag_a,
     switch (request_code) {
     case 1:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1d, halo::main::globals().game_globals->difficulty);
+        *out_value = halo::game::weapon_get_zoom_fov(0x1d, halo::main::globals().game_globals->difficulty);
         break;
     case 2:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1e, halo::main::globals().game_globals->difficulty);
+        *out_value = halo::game::weapon_get_zoom_fov(0x1e, halo::main::globals().game_globals->difficulty);
         break;
     case 3:
         *out_flag_a = 0;
@@ -380,7 +381,7 @@ void AiSystem::get_difficulty_request(int16_t request_code, uint8_t *out_flag_a,
         break;
     default:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1c, halo::main::globals().game_globals->difficulty);
+        *out_value = halo::game::weapon_get_zoom_fov(0x1c, halo::main::globals().game_globals->difficulty);
         break;
     }
 }
@@ -523,7 +524,7 @@ void AiSystem::mark_recognized_objects_for_reaction(int16_t team_a, int16_t team
         }
         a = halo::ai::actor_iterator_next(&iterator);
     }
-    team_pair_override_clear_flag(team_b, team_a);
+    halo::game::team_pair_override_clear_flag(team_b, team_a);
 }
 
 /**
@@ -733,7 +734,7 @@ void AiSystem::recompute_all_relationship_flags()
             actor_team = a->team;
 
             hostile = 1;
-            if (current_game_engine == 0) {
+            if (halo::game::globals().current_engine == 0) {
                 if (-1 < actor_team && actor_team < 10 && -1 < object_team && object_team < 10) {
                     int32_t pair = (int32_t)object_team + actor_team * 10;
                     uint32_t bit = *(uint32_t *)(team_pair_data + 0xa4 + (pair >> 5) * 4);
@@ -809,7 +810,7 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
         uint8_t carry = 0;
         datum_index prop_index;
 
-        if (current_game_engine != 0) {
+        if (halo::game::globals().current_engine != 0) {
             enemies = team != 1;
         } else {
             int32_t index;
@@ -858,7 +859,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
         }
         cluster = *(int16_t *)(OBJ(root) + 0x9c);
         if (cluster == -1 ||
-            (*(uint32_t *)&local_player_globals->cluster_pvs[(cluster >> 5)] & (1u << (cluster & 0x1f))) == 0) {
+            (*(uint32_t *)&halo::game::globals().local_player_globals->cluster_pvs[(cluster >> 5)] & (1u << (cluster & 0x1f))) == 0) {
             hidden_units[hidden++] = unit_index;
         }
     }
@@ -1038,7 +1039,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
     uint8_t skip_close_check;
     int16_t kind;
 
-    current_tick = game_time->game_time;
+    current_tick = halo::game::globals().game_time->game_time;
 
     iterator.data = halo::ai::globals().prop_data;
     iterator.next_index = 0;

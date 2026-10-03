@@ -15,6 +15,8 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int32_t game_state_cursor;
@@ -44,7 +46,6 @@ extern void objects_initialize(void);
 extern void game_sound_initialize(void);
 extern uint8_t players_any_without_unit(void);
 extern uint8_t debug_print_safety_checks;
-extern uint8_t players_any_pending_seat_or_respawn(void);
 extern player_globals *local_player_globals;
 extern data_array *player_data;
 }
@@ -95,10 +96,10 @@ void GameLifecycle::initialize(void)
     }
 
     _control87(0x9001f, 0xfffff);
-    game_engine_allocate_tick_record();
-    game_engine_load_from_variant(&game_engine_active_variant);
-    team_pair_table_allocate();
-    interface_globals_allocate();
+    halo::game::game_engine_allocate_tick_record();
+    halo::game::game_engine_load_from_variant(&game_engine_active_variant);
+    halo::game::team_pair_table_allocate();
+    halo::interface::interface_globals_allocate();
 
     size = 0x7c;
     halo::scenario::globals().game_globals = (scenario_game_globals *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
@@ -126,7 +127,7 @@ void GameLifecycle::initialize(void)
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
 
     halo::effects::decals_initialize();
-    players_initialize();
+    halo::game::players_initialize();
     halo::effects::contrails_initialize();
 
     halo::effects::globals().particle_data = (data_array *)halo::saved_games::game_state_new((char *)"particle", 0x400, 0x70);
@@ -148,7 +149,7 @@ void GameLifecycle::initialize(void)
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     halo::ai::ai_initialize_for_new_map();
 
-    widget_memory_pool_initialize();
+    halo::interface::widget_memory_pool_initialize();
     halo::hs::object_lists_initialize();
     halo::hs::hs_runtime_initialize();
     halo::hs::hs_scripts_reload();
@@ -163,7 +164,7 @@ void GameLifecycle::initialize(void)
 
     halo::input::input_queue_initialize();
     halo::input::input_state_initialize();
-    player_profile_subsystem_initialize();
+    halo::interface::player_profile_subsystem_initialize();
 }
 
 /**
@@ -182,7 +183,7 @@ uint32_t GameLifecycle::no_player_is_dead(void)
     iterator.handle = k_datum_index_none;
 
     if (halo::objects::object_iterator_next(&iterator) == (object *)0) {
-        if (players_any_without_unit() == 0) {
+        if (halo::game::players_any_without_unit() == 0) {
             return 1;
         }
     }
@@ -259,13 +260,13 @@ uint8_t GameLifecycle::safe_to_save(void)
         }
         return 0;
     }
-    if (players_any_pending_seat_or_respawn() != 0) {
+    if (halo::game::players_any_pending_seat_or_respawn() != 0) {
         if (debug_print_safety_checks != 0) {
             halo::main::console_print_va("not safe to save: any_player_is_in_the_air");
         }
         return 0;
     }
-    if (players_any_without_unit() != 0) {
+    if (halo::game::players_any_without_unit() != 0) {
         if (debug_print_safety_checks != 0) {
             halo::main::console_print_va("not safe to save: any_player_is_dead");
         }

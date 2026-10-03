@@ -5,6 +5,8 @@
 #include "halo/sound/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t *hud_messaging;
@@ -54,7 +56,7 @@ void HudMessaging::receive_item_message(void **message)
     if (halo::networking::message_delta_decode_compound_field(message, &payload) == 0) {
         return;
     }
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -68,12 +70,12 @@ void HudMessaging::receive_item_message(void **message)
         return;
     }
 
-    hud_add_item_message(p->local_player_index, payload.item_definition, payload.kind, payload.count);
+    halo::interface::hud_add_item_message(p->local_player_index, payload.item_definition, payload.kind, payload.count);
     item_tag = (int16_t *)halo::cache::globals().tag_instances[payload.item_definition & 0xffff].data;
     if (item_tag[0] == 3) {
         switch (*(int16_t *)((uint8_t *)item_tag + 0x308)) {
         case 2:
-            player_trigger_shield_recharge_effect(iterator.index);
+            halo::game::player_trigger_shield_recharge_effect(iterator.index);
             if (halo::networking::globals().game_mode == 1) {
                 object *unit = halo::objects::object_try_and_get(p->unit, 1);
                 if (unit != 0) {
@@ -82,10 +84,10 @@ void HudMessaging::receive_item_message(void **message)
             }
             break;
         case 3:
-            player_trigger_kill_streak_effect(iterator.index);
+            halo::game::player_trigger_kill_streak_effect(iterator.index);
             break;
         case 5:
-            player_trigger_full_health_effect(iterator.index);
+            halo::game::player_trigger_full_health_effect(iterator.index);
             break;
         }
         sound = *(datum_index *)((uint8_t *)item_tag + 0x31c);

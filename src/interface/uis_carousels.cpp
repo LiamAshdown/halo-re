@@ -13,12 +13,10 @@
 
 #include "halo/interface/uis_carousels.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
-extern void widget_list_scroll_window(int32_t out[3], widget_instance *widget);
-extern void ui_level_carousel_row_refresh(widget_instance *widget, int32_t slot_index);
 extern level_select_entry level_select_entries[10];
 extern int8_t level_select_flags_0071916a;
 extern uint8_t level_select_flags_0071916b;
@@ -58,8 +56,8 @@ void UiCarousels::level_carousel_refresh(widget_instance *widget)
     int32_t i;
 
     memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    set_profile_name(widget->extended_description, (const uint16_t *)(profile_record + 2));
-    widget_list_scroll_window(visible, widget);
+    halo::interface::set_profile_name(widget->extended_description, (const uint16_t *)(profile_record + 2));
+    halo::interface::widget_list_scroll_window(visible, widget);
 
     for (i = 0; i < 3; i++) {
         widget_instance *row;
@@ -72,7 +70,7 @@ void UiCarousels::level_carousel_refresh(widget_instance *widget)
         for (depth = 0; depth < i && row != (widget_instance *)0; depth++) {
             row = row->next_sibling;
         }
-        ui_level_carousel_row_refresh(row, visible[i]);
+        halo::interface::ui_level_carousel_row_refresh(row, visible[i]);
     }
 }
 
@@ -132,9 +130,9 @@ void UiCarousels::map_list_carousel_refresh_window(widget_instance *widget)
     int32_t slot;
 
     memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    set_profile_name(widget->extended_description, (const uint16_t *)(profile_record + 2));
+    halo::interface::set_profile_name(widget->extended_description, (const uint16_t *)(profile_record + 2));
 
-    widget_list_scroll_window(window, widget);
+    halo::interface::widget_list_scroll_window(window, widget);
 
     for (slot = 0; slot < 3; slot = slot + 1) {
         widget_instance *row;

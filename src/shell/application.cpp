@@ -17,6 +17,7 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -53,7 +54,6 @@ extern int32_t nowindowskey;
 extern int32_t nojoystick;
 extern int32_t checkfpu;
 extern int32_t windowed;
-extern int32_t game_time_force_single_tick;
 
 extern uint32_t physical_memory;
 extern int16_t sound_cache_size_megabytes;
@@ -293,7 +293,7 @@ void Application::parse_command_line_flags()
     width640 = CommandLine::has_flag("-width640", 0);
     screenshots = CommandLine::has_flag("-screenshots", 0) || CommandLine::has_flag("-screenshot", 0);
     checkfpu = CommandLine::has_flag("-checkfpu", 0);
-    game_time_force_single_tick = CommandLine::has_flag("-timedemo", 0) != 0;
+    halo::game::globals().time_force_single_tick = CommandLine::has_flag("-timedemo", 0) != 0;
     nowindowskey = CommandLine::has_flag("-nowinkey", 0) || CommandLine::has_flag("-nowindowskey", 0);
     if (safe_mode != 0 || (safe_mode = CommandLine::has_flag("-safemode", 0)) != 0) {
         width640 = 1;

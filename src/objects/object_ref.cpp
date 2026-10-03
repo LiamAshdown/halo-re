@@ -20,6 +20,7 @@
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t __ftol();
@@ -41,8 +42,6 @@ extern data_array *object_data;
 extern object_globals *object_globals_pointer;
 extern uint8_t object_marker_scratch[0x6c];
 extern datum_index *object_name_list;
-extern data_array *player_data;
-extern int32_t player_index_from_unit_index(datum_index object_index);
 extern double sqrt(double x);
 }
 
@@ -158,7 +157,7 @@ int32_t halo::objects::ObjectRef::get_controlling_player_index()
                 if ((salt == 0 || header->identifier == salt) &&
                     (1 << (header->type & 0x1f) & _object_mask_unit) != 0 &&
                     header->data != 0) {
-                    return player_index_from_unit_index(object_index);
+                    return halo::game::player_index_from_unit_index(object_index);
                 }
             }
         }
@@ -183,12 +182,12 @@ void halo::objects::ObjectRef::notify_pickup_or_refresh_probe(datum_index player
     uint32_t object_index = handle;
     int16_t index = (int16_t)player_index;
 
-    if (player_index == k_datum_index_none || index < 0 || index >= player_data->maximum_count) {
+    if (player_index == k_datum_index_none || index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
 
     {
-        uint8_t *record = (uint8_t *)player_data->data + (int32_t)player_data->size * index;
+        uint8_t *record = (uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * index;
         int16_t identifier = *(int16_t *)record;
 
         if (identifier == 0) {
@@ -389,7 +388,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
             int16_t cluster = header->cluster_index;
             if (cluster == -1 ||
-                (*(uint32_t *)&local_player_globals->cluster_pvs[(cluster >> 5)] &
+                (*(uint32_t *)&halo::game::globals().local_player_globals->cluster_pvs[(cluster >> 5)] &
                  (1u << (cluster & 0x1f))) == 0) {
                 if ((obj->flags & _object_connected_to_map_bit) != 0) {
                     halo::objects::object_delete(object_index);
@@ -1161,7 +1160,7 @@ void halo::objects::ObjectRef::list_membership_set(char add)
 }
 
 namespace {
-static uint8_t * &local_player_globals__as_object_test_in_atmosphere_zone = reinterpret_cast<uint8_t * &>(local_player_globals);
+static uint8_t * &local_player_globals__as_object_test_in_atmosphere_zone = reinterpret_cast<uint8_t * &>(halo::game::globals().local_player_globals);
 }
 
 /**
@@ -1211,10 +1210,10 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
             if ((int16_t)ref != -1) {
                 float search_radius = obj->bounding_radius;
 
-                uint32_t zone_index = halo::memory::datum_next(-1, player_data);
+                uint32_t zone_index = halo::memory::datum_next(-1, halo::game::globals().player_data);
 
                 while (zone_index != k_datum_index_none) {
-                    uint8_t *zone_table = (uint8_t *)player_data->data;
+                    uint8_t *zone_table = (uint8_t *)halo::game::globals().player_data->data;
                     int32_t zone_offset = (int32_t)halo::datum_slot(zone_index) * 0x200;
                     int32_t zone_cluster_head = *(int32_t *)(zone_table + zone_offset + 0x34);
 
@@ -1247,12 +1246,12 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
                             if (delta.i * *(float *)(extended + 0x230) +
                                 delta.j * *(float *)(extended + 0x234) +
                                 delta.k * *(float *)(extended + 0x238) <= c) {
-                                zone_index = halo::memory::datum_next((int16_t)zone_index, player_data);
+                                zone_index = halo::memory::datum_next((int16_t)zone_index, halo::game::globals().player_data);
                                 continue;
                             }
                         }
                     } else {
-                        zone_index = halo::memory::datum_next((int16_t)zone_index, player_data);
+                        zone_index = halo::memory::datum_next((int16_t)zone_index, halo::game::globals().player_data);
                         continue;
                     }
 

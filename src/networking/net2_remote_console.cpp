@@ -14,6 +14,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int16_t network_join_error_code;
@@ -35,7 +37,6 @@ extern uint32_t player_data;
 extern void * message_delta_definition_table;
 extern uint8_t update_server_pending_flush;
 extern uint8_t update_server_history_index;
-extern game_time_globals * game_time;
 extern network_server_globals * network_server;
 extern int32_t update_server_last_log_ms;
 extern int32_t update_server_last_tick_ms;
@@ -91,7 +92,7 @@ int8_t RemoteConsole::on_connect(const uint32_t *target_address, network_client_
     if (endpoint_probe->endpoint != 0) {
         client->state = 1;
         attempt->elapsed_counter = 0;
-        console_printf_verbose("Connecting");
+        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Connecting"));
 
         endpoint = &client->connection;
         endpoint->address.ipv4 = 0;
@@ -152,7 +153,7 @@ void RemoteConsole::bool_get_set(uint32_t argument_count, uint8_t *value, char *
 
     if (argument_count == 0) {
     report:
-        chimera__console_out((ColorARGB *)0, (char *)"%s: %u", name, *value);
+        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"%s: %u", name, *value);
         return;
     }
     if (argument_count == 1) {
@@ -173,7 +174,7 @@ void RemoteConsole::bool_get_set(uint32_t argument_count, uint8_t *value, char *
             }
         }
     }
-    chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help %s for more information.", name);
+    halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help %s for more information.", name);
 }
 
 void RemoteConsole::rcon(int32_t argument_count, char **arguments)
@@ -185,17 +186,17 @@ void RemoteConsole::rcon(int32_t argument_count, char **arguments)
     int32_t i;
 
     if (network_game_mode != 1) {
-        chimera__console_out((ColorARGB *)global_white_argb, (char *)"rcon is a client-only function!");
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"rcon is a client-only function!");
         return;
     }
     if (argument_count < 2) {
-        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Incorrect usage. Type help rcon for more information.");
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Incorrect usage. Type help rcon for more information.");
         return;
     }
     password = arguments[0];
     password_len = strlen(password);
     if (password_len == 0 || 8 < password_len) {
-        chimera__console_out((ColorARGB *)global_white_argb, (char *)"rcon password must be between 1 and %d characters", 8);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"rcon password must be between 1 and %d characters", 8);
         return;
     }
 
@@ -207,7 +208,7 @@ void RemoteConsole::rcon(int32_t argument_count, char **arguments)
 
         budget = budget + (-3 - word_len);
         if (budget < 0) {
-            chimera__console_out((ColorARGB *)global_white_argb, (char *)"rcon command can be no longer than %d characters", 0x40);
+            halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"rcon command can be no longer than %d characters", 0x40);
             return;
         }
         if (command[0] != 0) {
@@ -231,11 +232,11 @@ void RemoteConsole::run_rcon_send_request(char *command, char *password)
     int32_t encoded_bits;
 
     if (strlen(password) > 8) {
-        chimera__console_out((ColorARGB *)global_white_argb, (char *)"ERROR: Maximum rcon password length is %d characters", 8);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"ERROR: Maximum rcon password length is %d characters", 8);
         return;
     }
     if (strlen(command) > 0x40) {
-        chimera__console_out((ColorARGB *)global_white_argb, (char *)"ERROR: Maximum rcon command length is %d characters", 0x40);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"ERROR: Maximum rcon command length is %d characters", 0x40);
         return;
     }
     strcpy(record.password, password);
@@ -329,10 +330,10 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
     result = 1;
     if (network_client == 0) {
         network_game_mode = 0;
-        update_queues_dispose();
-        update_server_new();
-        update_server_dispose();
-        ui_network_wait_timeout_check();
+        halo::game::update_queues_dispose();
+        halo::game::update_server_new();
+        halo::game::update_server_dispose();
+        halo::interface::ui_network_wait_timeout_check();
         return result;
     }
     if (network_client->state == 3) {
@@ -358,8 +359,9 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
             flush_ok = halo::networking::player_update_history_add(unit_index, (player_update_history *)network_client->update_history, (int32_t)(uintptr_t)tick_count,
                 *(player_action *)control, &history_update_id);
             if (flush_ok != 1) {
-                update_client_stage_entry();
-                ui_network_wait_timeout_start();
+                uint32_t blank_entry[8] = {0, 0, 0, 0, 0, 0, (uint32_t)network_client->unknown_f14[11], (uint16_t)network_client->unknown_f14[12]};
+                halo::game::update_client_stage_entry(blank_entry);
+                halo::interface::ui_network_wait_timeout_start();
                 goto after_send;
             }
         } else {
@@ -408,7 +410,7 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
             result = flush_ok;
             if (flush_ok != 0) {
                 halo::networking::player_update_history_log_write(1, 0, "[%d]: Sent update [%d], [%d] ticks.\n",
-                    game_time->game_time, (int32_t)history_byte, (int32_t)(uintptr_t)tick_count);
+                    halo::game::globals().game_time->game_time, (int32_t)history_byte, (int32_t)(uintptr_t)tick_count);
 
             }
         } else {
@@ -426,7 +428,7 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
         }
         update_server_last_tick_ms = now_ms;
     }
-    ui_network_wait_timeout_check();
+    halo::interface::ui_network_wait_timeout_check();
     return result;
 }
 

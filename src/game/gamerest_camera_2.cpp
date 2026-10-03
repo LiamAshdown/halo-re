@@ -2,13 +2,12 @@
 #include "halo/units/unit.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern void *player_control_globals_ptr;
-extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out);
-extern char camera_observer_find_best_target(real_point3d *observer_position, observer_target_cone *cone, real_vector3d *facing, datum_index exclude_object, int16_t team, observer_target_candidate *out);
 }
 
 namespace halo::game {
@@ -47,7 +46,7 @@ uint32_t CameraObserver::get_target_id(datum_index *out_id, int16_t local_player
     if (local_player_slot != -1) {
         zoom_requirement = *(int16_t *)(*(uint8_t **)&player_control_globals_ptr + local_player_slot * 0x40 + 0x34);
     }
-    if (!unit_get_current_weapon_autoaim_cone(*(uint32_t *)(player_record + 0x34), zoom_requirement, cone_buffer)) {
+    if (!halo::game::unit_get_current_weapon_autoaim_cone(*(uint32_t *)(player_record + 0x34), zoom_requirement, cone_buffer)) {
         return 0xffffffff;
     }
     observer_camera = local_player_slot == -1 ? 0 : (uint8_t *)halo::camera::globals().observers + local_player_slot * 0x29c + 0x74;
@@ -60,7 +59,7 @@ uint32_t CameraObserver::get_target_id(datum_index *out_id, int16_t local_player
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::CameraObserver::get_target_id; forwards to the C++ implementation.
