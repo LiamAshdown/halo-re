@@ -170,8 +170,8 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
             if (plasma_max < plasma_result) {
                 plasma_result = plasma_max;
             }
-            *(uint8_t *)((uint8_t *)obj + 0x31e) = (uint8_t)frag_result;
-            *(uint8_t *)((uint8_t *)obj + 0x31f) = (uint8_t)plasma_result;
+            ((unit_object *)obj)->unit.grenade_counts[0] = (int8_t)frag_result;
+            ((unit_object *)obj)->unit.grenade_counts[1] = (int8_t)plasma_result;
 
         }
     }
