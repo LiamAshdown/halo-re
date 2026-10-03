@@ -39,14 +39,14 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
     uint8_t *vehicle = OBJECT_DATA(vehicle_index);
-    uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)vehicle);
+    Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)vehicle);
     real_point3d point = *entry;
     uint8_t near_line = in_out_near_line != 0 ? *in_out_near_line : 0;
     collision_bsp_segment_result result;
     real_point3d start;
     real_vector3d delta;
 
-    if ((vehicle_tag[0x17c] & 0x10) == 0) {
+    if ((static_cast<uint8_t>(vehicle_tag->base.unit_flags) & 0x10) == 0) {
         real_point3d center = *(real_point3d *)&((vehicle_object *)vehicle)->base.bounding_center.x;
         float radius = ((vehicle_object *)vehicle)->base.bounding_radius;
         float ax = act->body_position.x;
@@ -58,8 +58,8 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
         real_vector2d from_target;
         real_vector2d away;
 
-        if (*(float *)(vehicle_tag + 0x280) > 0.0f) {
-            radius = *(float *)(vehicle_tag + 0x280);
+        if (vehicle_tag->base.ai_vehicle_radius > 0.0f) {
+            radius = vehicle_tag->base.ai_vehicle_radius;
         }
         target_pointer = entry;
         if (!near_line) {

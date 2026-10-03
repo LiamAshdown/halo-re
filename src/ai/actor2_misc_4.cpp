@@ -27,7 +27,7 @@ uint8_t ActorView::seek_vehicle_to_board()
 {
     using namespace actor_seek_vehicle_to_board_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     int32_t now = game_time->game_time;
     int16_t mode = act->mode;
     float best_distance = 3.4028235e38f;
@@ -44,7 +44,7 @@ uint8_t ActorView::seek_vehicle_to_board()
         return 0;
     }
     act->last_vehicle_search_time = static_cast<uint32_t>(now);
-    if (*(uint32_t *)actor_tag & 0x1000) {
+    if (actor_tag->flags & 0x1000) {
         datum_index prop_index = act->first_prop;
 
         while (prop_index != k_datum_index_none) {

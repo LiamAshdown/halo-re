@@ -39,7 +39,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
     datum_index target = object_index;
     datum_index target_actor_index;
     uint8_t *unit = object;
-    uint8_t *unit_tag;
+    Unit *unit_tag;
     actor *target_actor = 0;
     uint8_t controlled;
     uint8_t enemies;
@@ -67,7 +67,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
         return;
     }
 
-    unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & halo::k_slot_mask].data;
+    unit_tag = halo::ai::tag_data<Unit>(*(datum_index *)unit);
     controlled = ((unit_object *)unit)->unit.controlling_player != k_datum_index_none;
     enemies = halo::game::teams_are_enemies(((unit_object *)unit)->base.owner_team, self->team);
     if ((unit[0x106] & 4) != 0 && ((struct unit_object *)unit)->unit.feign_death_ticks == 0) {
@@ -79,7 +79,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
         firing = 0;
         since_fired = 0;
     }
-    radius = *(float *)(unit_tag + 0x284);
+    radius = unit_tag->ai_danger_radius;
     {
         float dx = position.x - block_point->x;
         float dy = position.y - block_point->y;

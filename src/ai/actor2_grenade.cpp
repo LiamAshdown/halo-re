@@ -387,7 +387,7 @@ char ActorView::update_grenade_and_morale_reactions()
     using namespace actor_update_grenade_and_morale_reactions_local;
     actor *act = halo::ai::actor_at(actor_index);
     uint8_t *variant = TAG_DATA(act->actor_variant_tag);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     int32_t now = game_time->game_time;
     char result = 0;
     float threshold;
@@ -404,7 +404,7 @@ char ActorView::update_grenade_and_morale_reactions()
                 if (halo::ai::actor_handle_death(actor_index, 0, 1)) {
                     return 1;
                 }
-                if ((*(uint32_t *)actor_tag & 0x400000) != 0 &&
+                if ((actor_tag->flags & 0x400000) != 0 &&
                     halo::ai::actor_check_pain_reaction(act->retreat_prop_index, 0, 5, actor_index)) {
                     return 1;
                 }
@@ -413,11 +413,11 @@ char ActorView::update_grenade_and_morale_reactions()
     }
 
     if (act->defending != 0 && act->berserking == 0) {
-        threshold = ((Actor *)actor_tag)->defending_evasion_threshold;
+        threshold = actor_tag->defending_evasion_threshold;
     } else {
-        threshold = ((Actor *)actor_tag)->attacking_evasion_threshold;
+        threshold = actor_tag->attacking_evasion_threshold;
     }
-    if (act->playfight != 0 && ((Actor *)actor_tag)->evasion_seek_cover_chance > 0.0f && threshold > 1.1f) {
+    if (act->playfight != 0 && actor_tag->evasion_seek_cover_chance > 0.0f && threshold > 1.1f) {
         threshold = 1.1f;
     }
     if (!(threshold <= act->danger_meter)) {
@@ -432,7 +432,7 @@ char ActorView::update_grenade_and_morale_reactions()
     }
     may_evade = 1;
     may_target = 1;
-    if (act->crouch_active != 0 && (*(uint32_t *)actor_tag & 0x20) != 0) {
+    if (act->crouch_active != 0 && (actor_tag->flags & 0x20) != 0) {
         datum_index target = act->target_unit_index;
 
         may_evade = 0;
@@ -452,7 +452,7 @@ char ActorView::update_grenade_and_morale_reactions()
     }
     if (may_evade && (static_cast<int32_t>(act->last_evasion_time) == -1 || static_cast<int32_t>(act->last_evasion_time) + 0x1e <= now)) {
         act->last_evasion_time = static_cast<datum_index>(now);
-        if (halo::ai::actor_should_throw_grenade(actor_index, 0) && halo::math::random_real() <= ((Actor *)actor_tag)->evasion_seek_cover_chance &&
+        if (halo::ai::actor_should_throw_grenade(actor_index, 0) && halo::math::random_real() <= actor_tag->evasion_seek_cover_chance &&
             halo::ai::actor_handle_death(actor_index, 0, 1)) {
             halo::ai::ai_communication_broadcast(0x18, act->unit_index, halo::ai::actor_get_target_prop_object_index(actor_index),
                                        -1, -1, -1, 0);
@@ -462,7 +462,7 @@ char ActorView::update_grenade_and_morale_reactions()
     }
     if (may_target && act->evasion_delay_ticks == 0 && halo::ai::actor_evaluate_grenade_target_position(actor_index)) {
         act->danger_meter = 0.0f;
-        act->evasion_delay_ticks = (int16_t)(int32_t)(((Actor *)actor_tag)->evasion_delay_time * 30.0f);
+        act->evasion_delay_ticks = (int16_t)(int32_t)(actor_tag->evasion_delay_time * 30.0f);
         act->grenade_evasion_active = 1;
         result = 1;
     }

@@ -514,9 +514,9 @@ uint8_t halo::ai::obey_mode::process()
         int mark = 1;
 
         if ((list[0x20] & 0x10) && actor->airborne != 0) {
-            uint8_t *variant = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
+            ActorVariant *variant = halo::ai::tag_data<ActorVariant>(actor->actor_definition_tag);
 
-            if ((*(uint32_t *)variant & 0x200000) == 0) {
+            if ((variant->flags & 0x200000) == 0) {
                 mark = 0;
             }
         }

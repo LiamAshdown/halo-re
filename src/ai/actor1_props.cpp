@@ -132,7 +132,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
     using namespace c_actor_apply_unit_definition_properties;
     ActorVariant *variant = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
     uint8_t *unit = object_get(unit_index);
-    uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&variant->actor_definition.tag_id & halo::k_slot_mask].data;
+    Unit *unit_tag = halo::ai::tag_data<Unit>(*(datum_index *)&variant->actor_definition.tag_id);
     int16_t i;
 
     if (variant->body_vitality > 0.0f || variant->shield_vitality > 0.0f) {
@@ -197,7 +197,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         }
         ((unit_object *)unit)->unit.flags |= 0x10;
         ((struct unit_object *)unit)->unit.active_camouflage_power = 1.0f;
-        ((struct unit_object *)unit)->unit.super_active_camouflage_power = (unit_tag[0] & 0x20) ? 1.0f : 0.0f;
+        ((struct unit_object *)unit)->unit.super_active_camouflage_power = (static_cast<uint8_t>(unit_tag->base.object_type) & 0x20) ? 1.0f : 0.0f;
     }
 }
 
@@ -547,16 +547,16 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
     using namespace c_actor_find_danger_escape;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *unit_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(act->unit_index));
-    float step = *(float *)(unit_tag + 0x238);
+    Unit *unit_tag = halo::ai::tag_data<Unit>(*(datum_index *)OBJECT_DATA(act->unit_index));
+    float step = unit_tag->distance_of_dive_anim;
     int16_t kind = -1;
     uint8_t blocked = 0;
     uint8_t escapes = 0;
     real_vector2d axis = {0.0f, 0.0f};
 
     if (step > 0.0f) {
-        uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
-        float sideways = (*(uint32_t *)actor_tag & 0x2000000) ? 8.0f : 0.0f;
+        Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
+        float sideways = (actor_tag->flags & 0x2000000) ? 8.0f : 0.0f;
         float length;
         real_vector3d path;
         real_vector3d left;

@@ -416,8 +416,8 @@ void halo::ai::charge_mode::update()
     using namespace c_actor_mode_charge_update;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
-    uint32_t actor_flags = *(uint32_t *)actor_tag;
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
+    uint32_t actor_flags = actor_tag->flags;
     int16_t kind = act->mode_data.charge.stage;
 
     act->flee_source.code = 2;
@@ -1291,8 +1291,8 @@ void halo::ai::guard_mode::update()
     using namespace c_actor_mode_guard_update;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
-    uint32_t actor_flags = *(uint32_t *)actor_tag;
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
+    uint32_t actor_flags = actor_tag->flags;
 
     if ((actor_flags & 0x40) && act->combat_status == 0) {
         act->crouch_decision[0] = 1;

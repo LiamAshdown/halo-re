@@ -94,7 +94,7 @@ void ActorView::refresh_combat_context()
 {
     using namespace actor_refresh_combat_context_local;
     actor *self = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     uint8_t *unit;
     unit_object *parent = 0;
     datum_index parent_index;
@@ -151,10 +151,10 @@ void ActorView::refresh_combat_context()
         head = marker.node_transform.position;
         self->in_water = halo::scenario::scenario_location_get_water_and_weather(&head, (bsp_leaf_reference *)((uint8_t *)self + 0x144), 0);
     }
-    self->flying = (uint8_t)((*(uint32_t *)actor_tag >> 21) & 1);
+    self->flying = (uint8_t)((actor_tag->flags >> 21) & 1);
 
     if (parent != 0 && parent->base.type == 1) {
-        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)parent & halo::k_slot_mask].data;
+        Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)parent);
         uint32_t vehicle_flags;
 
         self->vehicle_gunner = 0;
@@ -163,7 +163,7 @@ void ActorView::refresh_combat_context()
         self->active_unit_index = parent_index;
         if (static_cast<int32_t>(parent->unit.driver_unit_index) == self->unit_index) {
             self->vehicle_driving_type = 1;
-            vehicle_flags = *(uint32_t *)(vehicle_tag + 0x2f0);
+            vehicle_flags = vehicle_tag->vehicle_flags;
             if (vehicle_flags & 0x800) {
                 if (vehicle_flags & 0x1000) {
                     self->vehicle_driving_type = 4;
@@ -278,9 +278,9 @@ void ActorView::refresh_combat_context()
     }
     if (self->vehicle_gunner) {
         uint8_t *vehicle = object_get((int32_t)self->active_unit_index);
-        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)vehicle & halo::k_slot_mask].data;
+        Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)vehicle);
 
-        if (*(uint32_t *)(vehicle_tag + 0x2f0) & 0x100) {
+        if (vehicle_tag->vehicle_flags & 0x100) {
             halo::units::unit_get_forward_vector_or_marker_normal((int32_t)self->unit_index, &self->unit_aiming_vector);
         } else {
             *(real_vector3d *)&self->unit_aiming_vector.i = *(real_vector3d *)&((vehicle_object *)vehicle)->unit.aiming_vector.i;

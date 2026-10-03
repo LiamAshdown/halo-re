@@ -888,8 +888,8 @@ uint8_t ActorView::update_danger_avoidance()
                 goto flee_check;
             }
             if (take || reacting) {
-                uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[D(0x58) & halo::k_slot_mask].data;
-                float distance = (*(uint32_t *)definition & 0x2000000) ? 8.0f : 0.0f;
+                ActorVariant *definition = halo::ai::tag_data<ActorVariant>(D(0x58));
+                float distance = (definition->flags & 0x2000000) ? 8.0f : 0.0f;
 
                 result = halo::ai::actor_take_danger_escape(&path_delta, actor_index, escape, *(uint32_t *)escape_position,
                     distance);
@@ -1786,8 +1786,8 @@ uint8_t ActorView::update_movement_destination()
 
                 if (actor->vehicle_driving_type > 0) {
                     uint8_t *vehicle = (uint8_t *)halo::ai::object_at(actor->active_unit_index);
-                    uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)vehicle & halo::k_slot_mask].data;
-                    float cap = *(float *)(vehicle_tag + 0x3a8);
+                    Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)vehicle);
+                    float cap = vehicle_tag->ai_move_position_time;
 
                     if (cap > 0.0f && wait > cap) {
                         wait = cap;

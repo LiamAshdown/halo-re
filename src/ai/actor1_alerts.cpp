@@ -551,9 +551,9 @@ uint8_t halo::ai::alert_ops::escalate_check_leader_flag()
     using namespace c_actor_escalate_check_leader_flag;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
 
-    if ((*(uint32_t *)actor_tag & 0x80000) == 0 || act->platoon_defending || act->combat_status < 5) {
+    if ((actor_tag->flags & 0x80000) == 0 || act->platoon_defending || act->combat_status < 5) {
         return 0;
     }
     if (*(int16_t *)((uint8_t *)act + 0x310) <= 1) {
@@ -771,7 +771,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
     using namespace c_actor_evaluate_combat_state_transition;
     uint32_t actor_index = datum;
     actor *a = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(a->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(a->actor_definition_tag);
     uint8_t *variant = TAG_DATA(a->actor_variant_tag);
     ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
     uint8_t changed = 0;
@@ -789,8 +789,8 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
         if (a->mode == 0xa && a->mode_data.charge.stage == 1) {
             uint8_t engaged = p->seen || (p->shooting && (int8_t)p->distance_class <= 1);
 
-            if (!engaged && ((Actor *)actor_tag)->stalking_discovery_time > 0.0f &&
-                !(*(int16_t *)((uint8_t *)a + 0xc2) < (int16_t)(int32_t)(((Actor *)actor_tag)->stalking_discovery_time * 30.0f) )) {
+            if (!engaged && actor_tag->stalking_discovery_time > 0.0f &&
+                !(*(int16_t *)((uint8_t *)a + 0xc2) < (int16_t)(int32_t)(actor_tag->stalking_discovery_time * 30.0f) )) {
                 engaged = 1;
             }
             if (engaged) {
@@ -817,10 +817,10 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
             float range;
             int16_t difficulty = (int16_t)(uint16_t)halo::main::globals().game_globals->difficulty;
 
-            if (!halo::ai::actor_has_unshielded_threat_weapon(actor_index) && !(*(uint32_t *)actor_tag & 0x20000)) {
+            if (!halo::ai::actor_has_unshielded_threat_weapon(actor_index) && !(actor_tag->flags & 0x20000)) {
                 wide = 1;
             }
-            base_delay = a->berserking ? 0.0f : ((Actor *)actor_tag)->melee_attack_delay;
+            base_delay = a->berserking ? 0.0f : actor_tag->melee_attack_delay;
             delay = halo::game::weapon_get_zoom_fov(0x14, difficulty) + halo::game::weapon_get_zoom_fov(0x15, difficulty) * base_delay;
             range = wide ? ((ActorVariant *)variant)->berserk_melee_range : ((ActorVariant *)variant)->melee_range;
             if (!(a->search_wait_time != -1 && a->search_wait_time + 0xa >= now) &&
@@ -828,7 +828,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 uint8_t near_enough = 1;
 
                 if (a->charge_disallowed) {
-                    float extra = ((Actor *)actor_tag)->melee_fudge_factor;
+                    float extra = actor_tag->melee_fudge_factor;
 
                     if (!(0.0f <= extra)) {
                         extra = 0.0f;
@@ -857,10 +857,10 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 uint8_t ready = 1;
 
                 if (a->last_vehicle_charge_time != -1) {
-                    uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(a->active_unit_index));
+                    Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)OBJECT_DATA(a->active_unit_index));
 
                     ready = (float)game_time->game_time >
-                        *(float *)(vehicle_tag + 0x390) * 30.0f + (float)a->last_vehicle_charge_time;
+                        vehicle_tag->ai_charge_repeat_timeout * 30.0f + (float)a->last_vehicle_charge_time;
                 }
                 if (ready && seat_kind == 4 && distance > definition->melee_range &&
                     p->obstruction == 0 &&
@@ -876,7 +876,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
 
     fallback = (a->always_charge && !a->charge_disallowed) ? 1 : 0;
     hold = 0;
-    if (!a->charge_disallowed && !halo::ai::actor_has_unshielded_threat_weapon(actor_index) && (*(uint32_t *)actor_tag & 0x1000000)) {
+    if (!a->charge_disallowed && !halo::ai::actor_has_unshielded_threat_weapon(actor_index) && (actor_tag->flags & 0x1000000)) {
         fallback = 1;
     }
     mode = a->mode;
@@ -904,8 +904,8 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 goto consider_zero;
             }
             {
-                uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(a->active_unit_index));
-                float vehicle_range = *(float *)(vehicle_tag + 0x394);
+                Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)OBJECT_DATA(a->active_unit_index));
+                float vehicle_range = vehicle_tag->ai_strafing_abort_range;
 
                 if (a->movement_completed && a->active_movement.type == 5 &&
                     halo::bit_cast<datum_index>(a->active_movement.destination.x) == a->target_unit_index) {
