@@ -169,11 +169,8 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
             wcsncpy((wchar_t *)new_profile_name_buffer_006b37f4, (const wchar_t *)default_name, 0xb);
             new_profile_name_terminator_006b380a = 0;
             profile_id = halo::saved_games::saved_game_create_default_profile((uint16_t *)new_profile_name_buffer_006b37f4);
-            if (profile_id == -1) {
-                goto fail;
-            }
         }
-        if (halo::saved_games::player_profile_get_or_cached_default((saved_player_profile *)default_profile_data, (int32_t)profile_id) != 0) {
+        if (profile_id != -1 && halo::saved_games::player_profile_get_or_cached_default((saved_player_profile *)default_profile_data, (int32_t)profile_id) != 0) {
             halo::interface::player_profile_load((int16_t)profile_id, nullptr, profile_id);
             if (new_profile_name_flag_0071916e != 0) {
                 halo::interface::saved_item_select(-1);
@@ -185,7 +182,6 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
         }
     }
 
-fail:
     split_screen_quit_prompt_string = halo::k_word_none;
     halo::networking::globals().join_error_reason = 0;
     split_screen_quit_prompt_armed = 1;

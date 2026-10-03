@@ -208,7 +208,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
 
         text = buf;
         if (buf == nullptr) {
-            goto free_and_return;
+            return;
         }
         {
             uint8_t *dst8 = (uint8_t *)buf;
@@ -273,7 +273,6 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
         }
     }
 
-free_and_return:
     if (halo::interface::tag_handle(tag->text_label_unicode_strings_list.tag_id) != halo::k_dword_none && text != nullptr) {
         halo::interface::widget_pool_free(text);
     }

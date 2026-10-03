@@ -747,13 +747,9 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
                          halo::game::globals().player_control->local_players[player_record->local_player_index].nameplate_weight == 1.0f;
                 value = active;
                 break;
-            case 16: value = state->magazines[0].idle;  goto shared_byte_test;
-            case 7:  value = state->magazines[0].reloading;  goto shared_byte_test;
-            case 17: value = state->magazines[1].idle; goto shared_byte_test;
-            shared_byte_test:
-
-                active = (value != 0 || case_index == 0) ? 1 : 0;
-                break;
+            case 16: value = state->magazines[0].idle; active = value != 0 ? 1 : 0; break;
+            case 7:  value = state->magazines[0].reloading; active = value != 0 ? 1 : 0; break;
+            case 17: value = state->magazines[1].idle; active = value != 0 ? 1 : 0; break;
 
             case 1: {
                 int16_t lp = player_record->local_player_index;
@@ -861,7 +857,8 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
 
             case 13:
                 value = state->magazines[1].reloading;
-                goto shared_byte_test;
+                active = value != 0 ? 1 : 0;
+                break;
 
             case 14:
                 if (state->magazines[1].rounds_loaded == 0 && state->magazines[1].rounds_unloaded == 0 &&
@@ -1083,12 +1080,14 @@ int32_t WeaponHud::weapon_hud_interface(float *out_intensity)
                 UnitSeat *seats;
 
                 if (parent_handle == (datum_index)-1 || seat_index == -1) {
-                    goto done;
+                    *out_intensity = intensity;
+                    return result;
                 }
                 parent_obj = object_get(parent_handle);
                 seats = halo::interface::reflexive_elements<UnitSeat>(halo::interface::tag_data<Unit>(parent_obj->definition_tag)->seats);
                 if ((seats[seat_index].flags & 8) == 0) {
-                    goto done;
+                    *out_intensity = intensity;
+                    return result;
                 }
                 weapon_handle = halo::units::unit_get_weapon_object_index(
                     unit_obj->parent_object, ((struct unit_object *)parent_obj)->unit.current_weapon_index);
@@ -1110,7 +1109,6 @@ int32_t WeaponHud::weapon_hud_interface(float *out_intensity)
         }
     }
 
-done:
     *out_intensity = intensity;
     return result;
 }

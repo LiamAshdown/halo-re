@@ -76,23 +76,21 @@ uint8_t NetworkSetup::host_session_start()
             halo::game::game_engine_sync_variant_defaults();
             halo::networking::globals().game_mode = 2;
         }
-        if (ok == 0) {
-            goto fail;
-        }
     }
 
-    if (halo::networking::globals().client == (network_client_globals *)0) {
-        halo::networking::globals().client = halo::networking::network_session_create();
-        ok = (halo::networking::globals().client != (network_client_globals *)0);
-        if (ok) {
-            halo::networking::globals().host_handoff_requested = 0;
-        }
-    }
     if (ok != 0) {
-        return ok;
+        if (halo::networking::globals().client == (network_client_globals *)0) {
+            halo::networking::globals().client = halo::networking::network_session_create();
+            ok = (halo::networking::globals().client != (network_client_globals *)0);
+            if (ok) {
+                halo::networking::globals().host_handoff_requested = 0;
+            }
+        }
+        if (ok != 0) {
+            return ok;
+        }
     }
 
-fail:
     if (halo::networking::globals().server != (network_server_globals *)0) {
         halo::networking::network_game_server_host_dispose(halo::networking::globals().server);
         halo::networking::globals().server = (network_server_globals *)0;
@@ -330,13 +328,15 @@ void NetworkSetup::clear_player_ready_flags()
 
     for (i = 0x10; i != 0; i--) {
         if (halo::networking::network_player_entry_validate(player) != 0) {
+            bool clear_flag;
+
             if (player == nullptr || halo::networking::network_player_entry_validate(player) == 0) {
-                if (halo::networking::globals().game_mode != 3 || player->machine_index == 0) {
-                    goto clear_flag;
-                }
-            } else if ((server == nullptr || (((server->flags >> 2) & 1) == 0)) &&
-                       (int16_t)client->machine_index != -1 && (int16_t)client->machine_index == (int16_t)player->machine_index) {
-            clear_flag:
+                clear_flag = halo::networking::globals().game_mode != 3 || player->machine_index == 0;
+            } else {
+                clear_flag = (server == nullptr || (((server->flags >> 2) & 1) == 0)) &&
+                             (int16_t)client->machine_index != -1 && (int16_t)client->machine_index == (int16_t)player->machine_index;
+            }
+            if (clear_flag) {
                 local_ready_flags[player->machine_player_index] = 0;
             }
         }

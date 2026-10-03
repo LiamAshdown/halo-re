@@ -96,6 +96,8 @@ void HudDraw::anchor_offset_to_screen_position(const void *anchor, uint8_t has_s
         int32_t dx = child[8];
         int32_t dy = child[9];
 
+        bool known_anchor = true;
+
         switch ((int16_t)anchor_value) {
         case 0:
             break;
@@ -116,12 +118,14 @@ void HudDraw::anchor_offset_to_screen_position(const void *anchor, uint8_t has_s
             break;
         }
         default:
-            goto store;
+            known_anchor = false;
+            break;
         }
-        x = (float)dx * scale + x;
-        y = (float)dy * scale + y;
+        if (known_anchor) {
+            x = (float)dx * scale + x;
+            y = (float)dy * scale + y;
+        }
     }
-store:
     out[0] = (int16_t)(int32_t)halo::x87::ROUND(x);
     out[1] = (int16_t)(int32_t)halo::x87::ROUND(y);
 }

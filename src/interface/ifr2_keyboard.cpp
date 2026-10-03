@@ -294,60 +294,67 @@ void VirtualKeyboard::process_input()
 
         case 0x38:
         case 0x66: {
-            uint8_t name_ok;
+            enum commit_outcome { outcome_commit, outcome_invalid, outcome_name_taken, outcome_none };
 
-            if (wcscmp((const wchar_t *)virtual_keyboard.text, (const wchar_t *)virtual_keyboard.destination) == 0) {
-                goto commit_ok;
-            }
-            switch (virtual_keyboard.validation_mode) {
-            case 1:
-                if (!halo::interface::ui_wide_string_has_non_whitespace(virtual_keyboard.destination) ||
-                    !vk_trim_trailing_whitespace()) {
-                    goto invalid;
+            auto resolve_commit = [&]() -> commit_outcome {
+                uint8_t name_ok;
+
+                if (wcscmp((const wchar_t *)virtual_keyboard.text, (const wchar_t *)virtual_keyboard.destination) == 0) {
+                    return outcome_commit;
                 }
-                if (halo::saved_games::saved_game_name_is_available(virtual_keyboard.destination)) {
-                    goto commit_ok;
+                switch (virtual_keyboard.validation_mode) {
+                case 1:
+                    if (!halo::interface::ui_wide_string_has_non_whitespace(virtual_keyboard.destination) ||
+                        !vk_trim_trailing_whitespace()) {
+                        return outcome_invalid;
+                    }
+                    if (halo::saved_games::saved_game_name_is_available(virtual_keyboard.destination)) {
+                        return outcome_commit;
+                    }
+                    name_ok = halo::interface::saved_item_name_matches((wchar_t *)virtual_keyboard.destination);
+                    break;
+                case 2:
+                    if (!halo::interface::ui_wide_string_has_non_whitespace(virtual_keyboard.destination) ||
+                        !vk_trim_trailing_whitespace()) {
+                        return outcome_invalid;
+                    }
+                    if (halo::interface::saved_item_name_matches((wchar_t *)virtual_keyboard.destination)) {
+                        return outcome_commit;
+                    }
+                    if (!halo::saved_games::saved_game_name_is_available(virtual_keyboard.destination)) {
+                        return outcome_name_taken;
+                    }
+                    name_ok = halo::interface::ui_variant_name_is_available(virtual_keyboard.destination);
+                    break;
+                case 3:
+                    if (virtual_keyboard.destination[0] != 0) {
+                        return outcome_commit;
+                    }
+                    wcslen((const wchar_t *)virtual_keyboard.text);
+                    wcscpy((wchar_t *)virtual_keyboard.destination, (const wchar_t *)virtual_keyboard.text);
+                    halo::interface::virtual_keyboard_close();
+                    return outcome_none;
+                default:
+                    return outcome_none;
                 }
-                name_ok = halo::interface::saved_item_name_matches((wchar_t *)virtual_keyboard.destination);
-                break;
-            case 2:
-                if (!halo::interface::ui_wide_string_has_non_whitespace(virtual_keyboard.destination) ||
-                    !vk_trim_trailing_whitespace()) {
-                    goto invalid;
-                }
-                if (halo::interface::saved_item_name_matches((wchar_t *)virtual_keyboard.destination)) {
-                    goto commit_ok;
-                }
-                if (!halo::saved_games::saved_game_name_is_available(virtual_keyboard.destination)) {
-                    goto name_taken;
-                }
-                name_ok = halo::interface::ui_variant_name_is_available(virtual_keyboard.destination);
-                break;
-            case 3:
-                if (virtual_keyboard.destination[0] != 0) {
-                    goto commit_ok;
-                }
-                wcslen((const wchar_t *)virtual_keyboard.text);
-                wcscpy((wchar_t *)virtual_keyboard.destination, (const wchar_t *)virtual_keyboard.text);
+                return name_ok ? outcome_commit : outcome_name_taken;
+            };
+
+            switch (resolve_commit()) {
+            case outcome_name_taken:
+                halo::interface::display_error(0x1b, -1, 1, 0);
                 halo::interface::virtual_keyboard_close();
-                goto finish;
-            default:
-                goto finish;
+                break;
+            case outcome_invalid:
+                halo::interface::display_error(0x1d, -1, 1, 0);
+                halo::interface::virtual_keyboard_close();
+                break;
+            case outcome_commit:
+                virtual_keyboard.committed = 1;
+                break;
+            case outcome_none:
+                break;
             }
-            if (name_ok) {
-                goto commit_ok;
-            }
-name_taken:
-            halo::interface::display_error(0x1b, -1, 1, 0);
-            halo::interface::virtual_keyboard_close();
-            goto finish;
-invalid:
-            halo::interface::display_error(0x1d, -1, 1, 0);
-            halo::interface::virtual_keyboard_close();
-            goto finish;
-commit_ok:
-            virtual_keyboard.committed = 1;
-finish:
             halo::interface::widget_play_sound_effect(3);
             controls_input_capture_flags &= 0xfb;
             virtual_keyboard.active = 0;
@@ -408,20 +415,21 @@ finish:
             if (ch < 0x20 || ch == 0xff) {
                 continue;
             }
+            auto try_insert = [&]() -> bool {
             font = halo::interface::tag_data<Font>(virtual_keyboard.small_ui_tag);
             character_map = halo::interface::reflexive_elements<FontCharacterTables>(font->character_tables) + (ch >> 8);
             if ((int32_t)character_map->character_table.count <= 0) {
-                goto rejected;
+                return false;
             }
             glyph = (character_map->character_table.count == 256) ? (int16_t *)halo::interface::reflexive_elements<FontCharacterIndex>(character_map->character_table) + ch : nullptr;
             if (*glyph == -1 || (int32_t)font->characters.pointer + *glyph * (int32_t)sizeof(FontCharacter) == 0 ||
                 !halo::interface::virtual_keyboard_character_is_legal(virtual_keyboard.validation_mode, ch)) {
-                goto rejected;
+                return false;
             }
             if (virtual_keyboard.validation_mode == 3 &&
                 virtual_keyboard.destination_end == virtual_keyboard.destination &&
                 ch == 0x20) {
-                goto rejected;
+                return false;
             }
             if (virtual_keyboard.opened == 1) {
                 vk_clear_text();
@@ -429,7 +437,7 @@ finish:
             }
             if ((int32_t)(uint16_t)virtual_keyboard.maximum_length -
                     (wcslen((const wchar_t *)virtual_keyboard.destination) * 2 + 2) < 2) {
-                goto rejected;
+                return false;
             }
             memmove(virtual_keyboard.destination_end + 1, virtual_keyboard.destination_end,
                     (int32_t)(uint16_t)virtual_keyboard.maximum_length -
@@ -437,6 +445,13 @@ finish:
                                   (uint8_t *)virtual_keyboard.destination) - 2);
             *virtual_keyboard.destination_end = ch;
             virtual_keyboard.destination_end++;
+                return true;
+            };
+
+            if (!try_insert()) {
+                halo::interface::widget_play_sound_effect(4);
+                continue;
+            }
 
             if (wcscmp((const wchar_t *)virtual_keyboard.destination, (const wchar_t *)fortune_easter_egg_text) != 0) {
                 halo::interface::widget_play_sound_effect(1);
@@ -458,9 +473,6 @@ finish:
                 vk_clear_text();
             }
             halo::interface::widget_play_sound_effect(1);
-            continue;
-rejected:
-            halo::interface::widget_play_sound_effect(4);
             continue;
         }
         }

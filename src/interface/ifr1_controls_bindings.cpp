@@ -329,48 +329,47 @@ uint8_t ControlsBindings::binding_row_handle_input(widget_instance *screen)
 
         memcpy(record, controls_captured_binding, sizeof(record));
         kind = record[0];
-        if (kind == 1) {
-            if (record[3] == 0) {
-                sound = 3;
-                goto finish_capture;
-            }
-            if (record[3] == 0x1d) {
-                halo::interface::controls_binding_clear(action_index, device);
-                if (device == 0) {
-                    halo::interface::controls_binding_clear(action_index, 1);
-                }
-                sound = 2;
-                goto finish_capture;
-            }
-            if (device != 0) {
-                goto drop_control;
-            }
-            if (halo::interface::controls_key_is_bindable(record[3]) == 0) {
-                halo::interface::widget_play_sound_effect(4);
-                goto drop_control;
-            }
-        } else if (kind == 2) {
-            if (device != 0) {
-                goto drop_control;
-            }
-            if (record[2] != 0 && !(record[2] == 1 && record[3] == 2)) {
-                goto drop_control;
-            }
-        } else if (kind == 3) {
-            if (record[1] != device - 2) {
-                goto drop_control;
-            }
-        } else {
-            goto drop_control;
-        }
+        constexpr int16_t k_sound_drop = -1;
 
-        {
+        auto apply_capture = [&]() -> int16_t {
+            if (kind == 1) {
+                if (record[3] == 0) {
+                    return 3;
+                }
+                if (record[3] == 0x1d) {
+                    halo::interface::controls_binding_clear(action_index, device);
+                    if (device == 0) {
+                        halo::interface::controls_binding_clear(action_index, 1);
+                    }
+                    return 2;
+                }
+                if (device != 0) {
+                    return k_sound_drop;
+                }
+                if (halo::interface::controls_key_is_bindable(record[3]) == 0) {
+                    halo::interface::widget_play_sound_effect(4);
+                    return k_sound_drop;
+                }
+            } else if (kind == 2) {
+                if (device != 0) {
+                    return k_sound_drop;
+                }
+                if (record[2] != 0 && !(record[2] == 1 && record[3] == 2)) {
+                    return k_sound_drop;
+                }
+            } else if (kind == 3) {
+                if (record[1] != device - 2) {
+                    return k_sound_drop;
+                }
+            } else {
+                return k_sound_drop;
+            }
+
             const char *action_name = (const char *)controls_action_table[action_index];
             int16_t action = halo::input::BindingNames::action_name_to_index((char *)action_name);
 
             if (action == halo::interface::k_action_none || halo::interface::controls_action_column_is_bindable(kind == 2 ? 1 : device, action_index) == 0) {
-                sound = 4;
-                goto finish_capture;
+                return 4;
             }
             if (kind != 3 || (controls_action_table[action_index][0x14] & 4) == 0) {
                 int16_t previous[6];
@@ -381,12 +380,12 @@ uint8_t ControlsBindings::binding_row_handle_input(widget_instance *screen)
             }
             halo::saved_games::control_profile_set_binding((const control_binding_descriptor *)record, action);
             halo::input::Bindings::last_used_binding_copy(action, (control_binding_descriptor *)record);
-            sound = 2;
-        }
+            return 2;
+        };
 
-finish_capture:
-        halo::interface::widget_play_sound_effect(sound);
-        {
+        sound = apply_capture();
+        if (sound != k_sound_drop) {
+            halo::interface::widget_play_sound_effect(sound);
             widget_instance *row = screen->first_child->next_sibling->next_sibling;
             widget_instance *cell;
 
@@ -398,11 +397,10 @@ finish_capture:
             cell = cell->next_sibling->first_child;
             *(uint8_t *)&cell->selection_direction = 0;
             *(uint8_t *)&cell->next_sibling->selection_direction = 0;
+            controls_input_capture_flags &= 0xf7;
+            memset(controls_input_capture_buffer, 0, sizeof(controls_input_capture_buffer));
+            controls_capture_row = -1;
         }
-        controls_input_capture_flags &= 0xf7;
-        memset(controls_input_capture_buffer, 0, sizeof(controls_input_capture_buffer));
-        controls_capture_row = -1;
-drop_control:
         memset(controls_captured_binding, 0, sizeof(controls_captured_binding));
     }
     return 1;
