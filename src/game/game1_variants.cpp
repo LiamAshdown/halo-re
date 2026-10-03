@@ -254,7 +254,7 @@ void Variants::free_custom_variant_cache(void)
 /**
  * Looks a game variant up by name, filling in the defaults of built-in variants.
  *
- * Original register convention: EAX -> out_name, EDI -> max_chars. UNSURE identity, but it is what fills the.
+ * Original register convention: EAX -> out_name, EDI -> max_chars.
  *
  * @address 0x4622d0
  */

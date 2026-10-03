@@ -801,7 +801,6 @@ void EventFeed::queue_append(uint8_t *queue, uint32_t *key, uint32_t *payload)
 }
 
 /**
- * memory module; UNSURE: signature inferred, see file header
  * Looks up key in container's index cache; if present, returns its cached slot. Otherwise scans
  * forward from the cache's rotating cursor for a slot whose value is -1 (evicting/reusing it),
  * binds key to that slot in the hash table, and returns it. Returns -1 if the whole table was
