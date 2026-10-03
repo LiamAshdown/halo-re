@@ -37,6 +37,16 @@ inline constexpr int32_t k_ticks_per_minute = 60 * k_ticks_per_second;
 /** Character capacity of the HUD hint text buffer. */
 inline constexpr int k_hint_text_chars = 1024;
 
+/** Size in bytes of the scratch buffer network messages are encoded into, and the character capacity of long text lines. */
+inline constexpr int32_t k_network_message_scratch_size = 32760;
+inline constexpr int k_long_text_chars = 512;
+
+/** Property ids of the chat listbox and editbox GUI controls (the third argument of chat_gui_set_property_int is the row). */
+inline constexpr int32_t k_chat_property_add_item = 0x180;
+inline constexpr int32_t k_chat_property_remove_item = 0x182;
+inline constexpr int32_t k_chat_property_scroll = 0x115;
+inline constexpr int32_t k_chat_property_select_range = 0x201;
+
 /** Alpha byte of a fully opaque packed ARGB colour. */
 inline constexpr uint32_t k_argb_alpha_opaque = 0xff000000;
 

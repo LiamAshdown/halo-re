@@ -20,7 +20,7 @@ namespace halo::interface {
  */
 class AutopatchStatusWidget {
 public:
-    static void widget_update(uint8_t *record);
+    static void widget_update(widget_instance *record);
 };
 
 }

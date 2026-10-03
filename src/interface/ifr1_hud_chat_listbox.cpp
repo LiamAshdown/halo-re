@@ -3,6 +3,7 @@
 #include <string.h>
 #include "halo/cseries/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern int32_t hud_chat_message_count;
@@ -36,7 +37,7 @@ void HudChatListbox::clear(void)
             void *listbox = chat_gui_find_child(gui_object, (const uint16_t *)L"oListbox");
             if (listbox != 0) {
                 while (hud_chat_message_count != 0 &&
-                       (int32_t)chat_gui_set_property_int(listbox, 0x182, 0, 0) > 0) {
+                       (int32_t)chat_gui_set_property_int(listbox, halo::interface::k_chat_property_remove_item, 0, 0) > 0) {
                     hud_chat_message_count = hud_chat_message_count - 1;
                 }
                 chat_gui_finalize(gui_object);
@@ -70,8 +71,8 @@ uint32_t HudChatListbox::remove_oldest(void)
         if (gui_object != 0) {
             void *listbox = chat_gui_find_child(gui_object, (const uint16_t *)L"oListbox");
             if (listbox != 0) {
-                result = chat_gui_set_property_int(listbox, 0x182, 0, 0);
-                chat_gui_set_property_int(listbox, 0x115, 2, 0);
+                result = chat_gui_set_property_int(listbox, halo::interface::k_chat_property_remove_item, 0, 0);
+                chat_gui_set_property_int(listbox, halo::interface::k_chat_property_scroll, 2, 0);
                 chat_gui_finalize(gui_object);
             }
             chat_gui_release(gui_object);

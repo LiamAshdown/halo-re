@@ -16,6 +16,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "tags.h"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
@@ -33,7 +34,7 @@ extern uint16_t *empty_wide_string_pointer;
 extern void *global_zero_vector3d_pointer;
 extern int16_t item_type_to_message_stage(int16_t item_type_code);
 extern int16_t item_type_to_animation_stage(int16_t message_stage);
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::interface::k_network_message_scratch_size];
 extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
                                  int16_t count);
 extern hud_globals_flags *hud_flags;
@@ -52,7 +53,7 @@ void HudMessaging::hud_message(int16_t local_player_index, const wchar_t *text)
 {
     if (local_player_index != -1) {
         hud_player_messaging_state *player_record =
-            (hud_player_messaging_state *)((uint8_t *)hud_messaging + local_player_index * 0x460);
+            &hud_messaging->players[0] + local_player_index;
         hud_message_slot *slot = halo::interface::hud_message_find_slot(-1, player_record, 0);
 
         wcsncpy((wchar_t *)slot->text, text, 0x3f);
@@ -86,8 +87,8 @@ void HudMessaging::multiplayer_message(const wchar_t *text)
         if (gui_object != 0) {
             void *listbox = chat_gui_find_child(gui_object, (const uint16_t *)L"oListbox");
             if (listbox != 0) {
-                chat_gui_set_property_int(listbox, 0x180, 0, text);
-                chat_gui_set_property_int(listbox, 0x115, 2, 0);
+                chat_gui_set_property_int(listbox, halo::interface::k_chat_property_add_item, 0, text);
+                chat_gui_set_property_int(listbox, halo::interface::k_chat_property_scroll, 2, 0);
                 chat_gui_finalize(gui_object);
             }
             chat_gui_release(gui_object);
@@ -273,7 +274,7 @@ int32_t HudMessaging::message_compare(const void *a, const void *b)
 hud_message_slot * HudMessaging::message_find_slot(int32_t source, hud_player_messaging_state *record, uint8_t source_kind)
 {
     hud_message_slot *candidate = 0;
-    int32_t oldest_time = 0x7fffffff;
+    int32_t oldest_time = INT32_MAX;
     int16_t oldest = 0;
     uint16_t i;
 
@@ -419,7 +420,7 @@ void HudMessaging::post_item_message(int16_t count, int32_t source, uint8_t kind
     items[0] = &payload;
     payload.kind = kind;
     items[1] = 0;
-    bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 6, 0, items, 0, 1, 0);
+    bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::interface::k_network_message_scratch_size, 0, 6, 0, items, 0, 1, 0);
     if (bits <= 0) {
         return;
     }

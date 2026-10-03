@@ -9,7 +9,7 @@ namespace halo::interface {
  *
  * @address 0x4a4880
  */
-void autopatch_status_widget_update(uint8_t *record)
+void autopatch_status_widget_update(widget_instance *record)
 {
     halo::interface::AutopatchStatusWidget::widget_update(record);
 }
