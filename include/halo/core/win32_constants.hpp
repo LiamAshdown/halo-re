@@ -51,6 +51,18 @@ inline constexpr uint32_t k_error_already_exists = 0xb7;
 /** FormatMessage flags: FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM | maximum line width mask. */
 inline constexpr uint32_t k_format_message_system_message = 0x12ff;
 
+/** WaitForSingleObject timeout result and the default user locale. */
+inline constexpr uint32_t k_wait_timeout = 0x102;
+inline constexpr uint32_t k_locale_user_default = 0x400;
+
+/** Window messages, virtual keys and system commands the movie player handles. */
+inline constexpr uint32_t k_wm_keydown = 0x100;
+inline constexpr uint32_t k_wm_keyup = 0x101;
+inline constexpr uint32_t k_wm_syscommand = 0x112;
+inline constexpr uint32_t k_vk_escape = 0x1b;
+inline constexpr uint32_t k_vk_space = 0x20;
+inline constexpr uint32_t k_sc_close = 0xf060;
+
 /** SetFilePointer move methods. */
 inline constexpr uint32_t k_file_begin = 0;
 inline constexpr uint32_t k_file_end = 2;

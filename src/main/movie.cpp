@@ -21,6 +21,7 @@
 #include <stdint.h> 
 
 #include "halo/main/movie.hpp"
+#include "halo/main/layout.hpp"
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); }
@@ -38,7 +39,7 @@ namespace halo::main {
  */
 void MoviePlayer::capture_frame_export(void)
 {
-    char path[0x200];
+    char path[k_main_movie_frame_path_length];
     BitmapData *movie_frame_bitmap = (BitmapData *)main_globals_data.movie_frame_bitmap;
 
     rasterizer_capture_and_present(0, movie_frame_bitmap);
@@ -46,11 +47,11 @@ void MoviePlayer::capture_frame_export(void)
     if (main_globals_data.screenshot_tile_count < 1 && movie_frame_bitmap != 0) {
         file_reference_record request;
 
-        _snprintf(path, 0x200, "movie\\frame%06d.tga", main_globals_data.movie_frame_index);
+        _snprintf(path, k_main_movie_frame_path_length, "movie\\frame%06d.tga", main_globals_data.movie_frame_index);
         main_globals_data.movie_frame_index = main_globals_data.movie_frame_index + 1;
 
         memset(&request, 0, sizeof(request));
-        request.signature = 0x66696c6f;
+        request.signature = k_file_reference_signature;
         request.location = -1;
 
         if ((request.flags & 1) != 0) {
@@ -87,7 +88,6 @@ typedef int32_t (__stdcall *d3d_lock_rect_fn)(void *surface, d3d_locked_rect *lo
 
 typedef int32_t (__stdcall *d3d_unlock_rect_fn)(void *surface);
 
-#define D3D_VTABLE(object) (*(void ***)(object))
 namespace halo::main {
 
 /**
@@ -122,14 +122,14 @@ void MoviePlayer::play_bink(const char *movie_path)
         return;
     }
 
-    if (((d3d_create_offscreen_plain_surface_fn)D3D_VTABLE(rasterizer_device)[0x90 / 4])(
-            rasterizer_device, 0x280, 0x1e0, 0x16 , 0 ,
+    if (d3d9::device_function<d3d_create_offscreen_plain_surface_fn>(rasterizer_device, d3d9::device_method::create_offscreen_plain_surface)(
+            rasterizer_device, k_movie_surface_width, k_movie_surface_height, d3d9::k_format_x8r8g8b8, 0,
             &offscreen_surface, 0) != 0) {
         return;
     }
-    if (((d3d_get_render_target_fn)D3D_VTABLE(rasterizer_device)[0x98 / 4])(
+    if (d3d9::device_function<d3d_get_render_target_fn>(rasterizer_device, d3d9::device_method::get_render_target)(
             rasterizer_device, 0, &render_target) != 0) {
-        ((d3d_release_fn)D3D_VTABLE(render_target)[0x08 / 4])(render_target);
+        d3d9::surface_function<d3d_release_fn>(render_target, d3d9::surface_method::release)(render_target);
         return;
     }
 
@@ -140,16 +140,16 @@ void MoviePlayer::play_bink(const char *movie_path)
             if (PeekMessageA((LPMSG)&message, 0, 0, 0, 1 ) != 0) {
                 do {
                     TranslateMessage((const MSG *)&message);
-                    if (message.message == 0x100) {
-                        if (message.wparam == 0x1b || message.wparam == 0x20) {
+                    if (message.message == win32::k_wm_keydown) {
+                        if (message.wparam == win32::k_vk_escape || message.wparam == win32::k_vk_space) {
                             skip_key_down = 1;
                         }
-                    } else if (message.message == 0x101) {
-                        if (skip_key_down != 0 && (message.wparam == 0x1b || message.wparam == 0x20)) {
+                    } else if (message.message == win32::k_wm_keyup) {
+                        if (skip_key_down != 0 && (message.wparam == win32::k_vk_escape || message.wparam == win32::k_vk_space)) {
                             skip = 1;
                         }
-                    } else if (message.message == 0x112) {
-                        if (message.wparam == 0xf060) {
+                    } else if (message.message == win32::k_wm_syscommand) {
+                        if (message.wparam == win32::k_sc_close) {
                             skip = 1;
                         }
                     }
@@ -160,26 +160,26 @@ void MoviePlayer::play_bink(const char *movie_path)
                 }
             }
 
-            result = ((d3d_test_cooperative_level_fn)D3D_VTABLE(rasterizer_device)[0x0c / 4])(
+            result = d3d9::device_function<d3d_test_cooperative_level_fn>(rasterizer_device, d3d9::device_method::test_cooperative_level)(
                 rasterizer_device);
-            if (result == (int32_t)0x88760869) {
+            if (result == d3d9::k_error_device_not_reset) {
                 if (bink->paused == 0) {
                     BinkPause(bink, 1);
                 }
                 if (render_target != 0) {
-                    ((d3d_release_fn)D3D_VTABLE(render_target)[0x08 / 4])(render_target);
+                    d3d9::surface_function<d3d_release_fn>(render_target, d3d9::surface_method::release)(render_target);
                     render_target = 0;
                 }
                 if (offscreen_surface != 0) {
-                    ((d3d_release_fn)D3D_VTABLE(offscreen_surface)[0x08 / 4])(offscreen_surface);
+                    d3d9::surface_function<d3d_release_fn>(offscreen_surface, d3d9::surface_method::release)(offscreen_surface);
                     offscreen_surface = 0;
                 }
                 present_parameters = rasterizer_present_parameters;
                 rasterizer_device_reset(&present_parameters);
                 rasterizer_device_lost = 0;
-                ((d3d_create_offscreen_plain_surface_fn)D3D_VTABLE(rasterizer_device)[0x90 / 4])(
-                    rasterizer_device, 0x280, 0x1e0, 0x16, 0, &offscreen_surface, 0);
-                ((d3d_get_render_target_fn)D3D_VTABLE(rasterizer_device)[0x98 / 4])(
+                d3d9::device_function<d3d_create_offscreen_plain_surface_fn>(rasterizer_device, d3d9::device_method::create_offscreen_plain_surface)(
+                    rasterizer_device, k_movie_surface_width, k_movie_surface_height, d3d9::k_format_x8r8g8b8, 0, &offscreen_surface, 0);
+                d3d9::device_function<d3d_get_render_target_fn>(rasterizer_device, d3d9::device_method::get_render_target)(
                     rasterizer_device, 0, &render_target);
             } else if (result != 0) {
                 if (bink->paused == 0) {
@@ -192,15 +192,15 @@ void MoviePlayer::play_bink(const char *movie_path)
                 }
                 if (BinkWait(bink) == 0 && offscreen_surface != 0 && render_target != 0) {
                     BinkDoFrame(bink);
-                    if (((d3d_lock_rect_fn)D3D_VTABLE(offscreen_surface)[0x34 / 4])(
+                    if (d3d9::surface_function<d3d_lock_rect_fn>(offscreen_surface, d3d9::surface_method::lock_rect)(
                             offscreen_surface, &locked, 0, 0) == 0) {
-                        BinkCopyToBuffer(bink, (void *)(uintptr_t)locked.bits, locked.pitch, 0x1e0, 0, 0,
-                            (copy_all != 0 ? 0x80000000u : 0) + 3 );
+                        BinkCopyToBuffer(bink, (void *)(uintptr_t)locked.bits, locked.pitch, k_movie_surface_height, 0, 0,
+                            (copy_all != 0 ? k_bink_copy_all : 0) + k_bink_copy_format_32bit);
                         copy_all = 0;
-                        ((d3d_unlock_rect_fn)D3D_VTABLE(offscreen_surface)[0x38 / 4])(offscreen_surface);
+                        d3d9::surface_function<d3d_unlock_rect_fn>(offscreen_surface, d3d9::surface_method::unlock_rect)(offscreen_surface);
                     }
                     BinkNextFrame(bink);
-                    ((d3d_stretch_rect_fn)D3D_VTABLE(rasterizer_device)[0x88 / 4])(
+                    d3d9::device_function<d3d_stretch_rect_fn>(rasterizer_device, d3d9::device_method::stretch_rect)(
                         rasterizer_device, offscreen_surface, 0, render_target, 0, 0);
                     rasterizer_capture_and_present(0, 0);
                 }
@@ -208,8 +208,8 @@ void MoviePlayer::play_bink(const char *movie_path)
         } while (bink->frame_index != bink->frame_count && movie_playback_abort == 0);
         BinkClose(bink);
     }
-    ((d3d_release_fn)D3D_VTABLE(offscreen_surface)[0x08 / 4])(offscreen_surface);
-    ((d3d_release_fn)D3D_VTABLE(render_target)[0x08 / 4])(render_target);
+    d3d9::surface_function<d3d_release_fn>(offscreen_surface, d3d9::surface_method::release)(offscreen_surface);
+    d3d9::surface_function<d3d_release_fn>(render_target, d3d9::surface_method::release)(render_target);
 }
 
 }

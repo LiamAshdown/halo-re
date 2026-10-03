@@ -23,6 +23,7 @@
 #include "cache.h"
 
 #include "halo/main/main_loop.hpp"
+#include "halo/main/layout.hpp"
 
 extern "C" { void game_engine_flush_pending_simulation_ticks(void); }
 extern "C" { uint32_t game_frame_rate_average_update(void); }
@@ -96,10 +97,10 @@ uint32_t MainLoop::frame_rate_average_update(void)
         average = (uint32_t)sum / frame_rate_average_data.count;
     }
 
-    if (frame_rate_average_data.count + 1 < 0x11) {
+    if (frame_rate_average_data.count + 1 < k_main_frame_time_history_count + 1) {
         frame_rate_average_data.count = frame_rate_average_data.count + 1;
     } else {
-        frame_rate_average_data.count = 0x10;
+        frame_rate_average_data.count = k_main_frame_time_history_count;
     }
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
@@ -166,13 +167,13 @@ void MainLoop::ensure_local_players(void)
                 old_player = local_player_globals->local_players[slot];
                 if (old_player != (datum_index)-1) {
                     player *old_p = (player *)((uint8_t *)player_data->data +
-                                                (old_player & 0xffff) * sizeof(player));
+                                                datum_slot(old_player) * sizeof(player));
                     old_p->local_player_index = -1;
                 }
                 local_player_globals->local_players[slot] = new_player;
                 if (new_player != (datum_index)-1) {
                     player *new_p = (player *)((uint8_t *)player_data->data +
-                                                (new_player & 0xffff) * sizeof(player));
+                                                datum_slot(new_player) * sizeof(player));
                     new_p->local_player_index = (int16_t)slot;
                 }
             }
@@ -185,13 +186,13 @@ void MainLoop::ensure_local_players(void)
         old_player = local_player_globals->local_players[0];
         if (old_player != (datum_index)-1) {
             player *old_p = (player *)((uint8_t *)player_data->data +
-                                        (old_player & 0xffff) * sizeof(player));
+                                        datum_slot(old_player) * sizeof(player));
             old_p->local_player_index = -1;
         }
         local_player_globals->local_players[0] = new_player;
         if (new_player != (datum_index)-1) {
             player *new_p = (player *)((uint8_t *)player_data->data +
-                                        (new_player & 0xffff) * sizeof(player));
+                                        datum_slot(new_player) * sizeof(player));
             new_p->local_player_index = 0;
         }
     }
@@ -352,8 +353,8 @@ void MainLoop::loop(void)
     int32_t i;
 
     GetLocalTime((LPSYSTEMTIME)local_time);
-    strncpy(main_globals_data.scenario_path, "levels\\b30\\b30", 0xff);
-    main_globals_data.scenario_path[0xff] = 0;
+    strncpy(main_globals_data.scenario_path, k_default_scenario_path, k_main_path_length - 1);
+    main_globals_data.scenario_path[k_main_path_length - 1] = 0;
     main_globals_data.return_to_main_menu = 1;
     main_globals_data.switch_structure_bsp_index = -1;
     main_globals_data.time_is_running = 1;
@@ -368,8 +369,8 @@ void MainLoop::loop(void)
         map_list_add_entry((char *)(uintptr_t)multiplayer_maps[i].name, multiplayer_maps[i].map_id);
     }
 
-    sprintf(network_banlist_full_path, "%s\\%s", profile_directory, "banned.txt");
-    ban_list.element_size = 0x38;
+    sprintf(network_banlist_full_path, "%s\\%s", profile_directory, k_ban_list_file_name);
+    ban_list.element_size = k_ban_list_element_size;
     ban_list.count = 0;
     ban_list.data = 0;
     network_banlist_load();
@@ -393,7 +394,7 @@ void MainLoop::loop(void)
     for (;;) {
         frame_average = game_frame_rate_average_update();
         if (checkfpu != 0) {
-            fpu_control = 0x7e;
+            fpu_control = k_x87_control_word;
 #if defined(_MSC_VER)
             __asm { finit }
             __asm { fldcw fpu_control }
@@ -441,13 +442,13 @@ void MainLoop::loop(void)
         }
         if (main_globals_data.revert_map != 0) {
             game_state_perform_revert();
-            ui_pause_pending_count_00718fa0 = 0x1e;
+            ui_pause_pending_count_00718fa0 = k_ui_pause_pending_ticks;
             main_globals_data.revert_map = 0;
         }
         if (main_globals_data.revert_map_if_allowed != 0) {
             if (game_state_write_in_progress == 0 && cinematic_globals_ptr->skip_in_progress != 0) {
                 game_state_perform_revert();
-                ui_pause_pending_count_00718fa0 = 0x1e;
+                ui_pause_pending_count_00718fa0 = k_ui_pause_pending_ticks;
                 main_globals_data.revert_map = 0;
             }
             main_globals_data.revert_map_if_allowed = 0;
@@ -465,19 +466,19 @@ void MainLoop::loop(void)
             main_ensure_local_players();
             game_engine_init_tick_record_for_mode();
             game_engine_reset_all_players();
-            ui_pause_pending_count_00718fa0 = 0x1e;
+            ui_pause_pending_count_00718fa0 = k_ui_pause_pending_ticks;
             main_globals_data.reset_map = 0;
         }
         if (main_globals_data.save_core != 0) {
-            if (game_state_write_profile_file(0x440000, (char *)"core.bin", game_state_base) != 0) {
-                console_print_error_va(0, "saved '%s'", "core.bin");
+            if (game_state_write_profile_file(k_game_state_size, (char *)k_core_dump_file_name, game_state_base) != 0) {
+                console_print_error_va(0, "saved '%s'", k_core_dump_file_name);
             } else {
-                console_print_error_va(0, "error writing '%s'", "core.bin");
+                console_print_error_va(0, "error writing '%s'", k_core_dump_file_name);
             }
             main_globals_data.save_core = 0;
         }
         if (main_globals_data.load_core != 0) {
-            game_state_load_core((char *)"core.bin");
+            game_state_load_core((char *)k_core_dump_file_name);
             main_globals_data.load_core = 0;
         }
         if (main_globals_data.return_to_main_menu != 0) {
@@ -535,7 +536,7 @@ void MainLoop::loop(void)
         if (connection == _game_connection_network_client ||
             connection == _game_connection_network_server ||
             (ui_split_screen == 1 && ui_root_widget[0] != 0 &&
-             strcmp(ui_root_widget[0]->name, "the_main_menu") == 0)) {
+             strcmp(ui_root_widget[0]->name, k_main_menu_widget_name) == 0)) {
             if (network_bandwidth_graph_globals.sample_interval_ms !=
                 network_bandwidth_graph_default_interval_ms) {
                 network_bandwidth_graph_globals.sample_interval_ms =
@@ -665,7 +666,7 @@ void MainLoop::loop(void)
                     update_history = (player_update_history *)network_client->update_history;
                     if (local_player->unit != (datum_index)-1 && update_history != 0 &&
                         update_history->tail != 0) {
-                        unit_header = (object_header *)object_data->data + (local_player->unit & 0xffff);
+                        unit_header = (object_header *)object_data->data + datum_slot(local_player->unit);
                         unit = (uint8_t *)unit_header->data;
                         player_update_history_log_write(0x10, 0,
                             "[%d]: Update [%d] ([%d]): ([%f] [%f] [%f]), ([%f] [%f]), ([%f] [%f])\n",
@@ -698,8 +699,8 @@ void MainLoop::loop(void)
             main_save_map_private();
         }
         if (main_render_skip_threshold_ms != -1) {
-            if (main_render_skip_threshold_ms <= 0x14) {
-                main_render_skip_threshold_ms = 0x14;
+            if (main_render_skip_threshold_ms <= k_minimum_render_skip_threshold_ms) {
+                main_render_skip_threshold_ms = k_minimum_render_skip_threshold_ms;
             }
             if (frame_average >= (uint32_t)main_render_skip_threshold_ms) {
                 render_frame = 0;
@@ -867,7 +868,7 @@ apply:
         main_globals_data.frame_counter_low = (uint32_t)new_counter;
         main_globals_data.frame_counter_high = (uint32_t)(new_counter >> 32);
         main_globals_data.frame_delta_time = 0.033333335f;
-        main_globals_data.frame_time_ms = main_globals_data.frame_time_ms + 0x21;
+        main_globals_data.frame_time_ms = main_globals_data.frame_time_ms + k_fallback_frame_time_ms;
         return;
     }
 
@@ -945,7 +946,7 @@ namespace halo::main {
 void MainLoop::menu_music_stop(void)
 {
     if (main_menu_music_pending == 1) {
-        datum_index sound_tag = tag_lookup(0x6c736e64 , (char *)"sound\\music\\title1\\title1");
+        datum_index sound_tag = tag_lookup(k_looping_sound_group, (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             sound_looping_stop(sound_tag);
         }
@@ -953,7 +954,7 @@ void MainLoop::menu_music_stop(void)
     }
     ui_split_screen = 0;
     main_globals_data.main_menu_scenario_loaded = 0;
-    input_globals.mode_flags = input_globals.mode_flags & 0xfd;
+    input_globals.mode_flags = input_globals.mode_flags & (uint8_t)~_input_mode_menu_bit;
 }
 
 }
@@ -1022,7 +1023,7 @@ void MainLoop::menu_return_and_reset(void)
         game_time->initialized = 0;
         game_time->active = 0;
     }
-    memset(game_time, 0, 0x20);
+    memset(game_time, 0, sizeof(game_time_globals));
     game_time->initialized = 1;
 
     game_engine_init_tick_record_for_mode();

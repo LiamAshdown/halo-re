@@ -20,6 +20,7 @@
 #include <wchar.h>
 
 #include "halo/main/level.hpp"
+#include "halo/main/layout.hpp"
 
 extern "C" { int campaign_level_find_index_for_path(char *path); }
 extern "C" { void credits_load_directly_for_endgame(void); }
@@ -91,8 +92,8 @@ int LevelControl::campaign_level_find_index_for_path(char *path)
     char *c;
     int i;
 
-    strncpy(lower_path, path, 0x7f);
-    lower_path[0x7f] = 0;
+    strncpy(lower_path, path, sizeof(lower_path) - 1);
+    lower_path[sizeof(lower_path) - 1] = 0;
     for (c = lower_path; *c != 0; c++) {
         *c = (char)tolower((uint8_t)*c);
     }
@@ -137,13 +138,13 @@ void LevelControl::chimera__load_ui_map(char play_title_music)
 {
     network_scenario_load_request request;
 
-    cache_file_switch_map_by_path((char *)"levels\\ui\\ui", 1);
+    cache_file_switch_map_by_path((char *)k_ui_scenario_path, 1);
 
     memset(&request, 0, sizeof(request));
     request.difficulty = 1;
-    request.salt = 0xdeadbeef;
-    strncpy(request.map_name, "levels\\ui\\ui", 0xff);
-    request.map_name[0xff] = 0;
+    request.salt = k_scenario_load_request_salt;
+    strncpy(request.map_name, k_ui_scenario_path, k_main_path_length - 1);
+    request.map_name[k_main_path_length - 1] = 0;
 
     cache_file_switch_map_by_path(request.map_name, 1);
     game_stop_current_map();
@@ -207,7 +208,7 @@ void LevelControl::credits_load_directly_for_endgame(void)
         player_profile_write_data(profile_globals_block[0].handle, &profile_globals_block[0].profile);
     }
     main_menu_return_and_reset();
-    main_menu_tag = tag_lookup(0x44654c61 , (char *)"ui\\shell\\main_menu\\main_menu");
+    main_menu_tag = tag_lookup(k_ui_widget_definition_group, (char *)"ui\\shell\\main_menu\\main_menu");
     chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\credits_screen", (datum_index)-1,
                              (widget_instance *)0, (uint16_t)-1, main_menu_tag, (datum_index)-1,
                              -1);
@@ -296,21 +297,21 @@ after_load:
         game_state_load_checkpoint();
     }
 
-    ui_pause_pending_count_00718fa0 = 0x1e;
+    ui_pause_pending_count_00718fa0 = k_ui_pause_pending_ticks;
     if (main_globals_data.game_connection == 0 && join_ui_state != 0) {
         int32_t now = time_query_performance_counter_ms();
         uint32_t extra = 0;
 
         if (interface_loading_screen_address_b != -1) {
             uint32_t elapsed = (uint32_t)(now - interface_loading_screen_address_b);
-            if (elapsed < 2000 && join_ui_state != 1) {
-                extra = (uint32_t)(interface_loading_screen_address_b - now) + 2000;
-                if (extra > 2000) {
-                    extra = 2000;
+            if (elapsed < k_loading_screen_maximum_delay_ms && join_ui_state != 1) {
+                extra = (uint32_t)(interface_loading_screen_address_b - now) + k_loading_screen_maximum_delay_ms;
+                if (extra > k_loading_screen_maximum_delay_ms) {
+                    extra = k_loading_screen_maximum_delay_ms;
                 }
             }
         }
-        interface_loading_screen_address_a = (int32_t)(extra + 0x6d6 + now);
+        interface_loading_screen_address_a = (int32_t)(extra + k_loading_screen_extra_delay_ms + now);
     }
 }
 
@@ -344,9 +345,9 @@ void LevelControl::start_new_single_player_map(void)
 
     memset(&request, 0, sizeof(request));
     main_globals_data.game_connection = _game_connection_local;
-    request.salt = 0xdeadbeef;
-    strncpy(request.map_name, main_globals_data.scenario_path, 0xff);
-    request.map_name[0xff] = 0;
+    request.salt = k_scenario_load_request_salt;
+    strncpy(request.map_name, main_globals_data.scenario_path, k_main_path_length - 1);
+    request.map_name[k_main_path_length - 1] = 0;
     request.difficulty = pending_difficulty;
 
     cache_file_switch_map_by_path(request.map_name, 1);
@@ -389,8 +390,8 @@ void LevelControl::level_transition_update(void)
         char *name;
         char map_path[512];
 
-        strncpy(basename, main_globals_data.scenario_path, 0xff);
-        basename[0xff] = 0;
+        strncpy(basename, main_globals_data.scenario_path, k_main_path_length - 1);
+        basename[k_main_path_length - 1] = 0;
         slash = strrchr(basename, '\\');
         name = (slash == 0) ? basename : slash + 1;
 
@@ -449,9 +450,9 @@ after_fade:
             int16_t i;
 
             memset(&request, 0, sizeof(request));
-            request.salt = 0xdeadbeef;
-            strncpy(request.map_name, main_globals_data.scenario_path, 0xff);
-            request.map_name[0xff] = 0;
+            request.salt = k_scenario_load_request_salt;
+            strncpy(request.map_name, main_globals_data.scenario_path, k_main_path_length - 1);
+            request.map_name[k_main_path_length - 1] = 0;
             request.difficulty = pending_difficulty;
 
             game_stop_current_map();
@@ -487,7 +488,7 @@ namespace halo::main {
 void LevelControl::queue_cache_file_open(char *name)
 {
     if (name != 0) {
-        strncpy(main_globals_data.pending_cache_file_name, name, 0xff);
+        strncpy(main_globals_data.pending_cache_file_name, name, k_main_path_length - 1);
         main_globals_data.cache_file_open_pending = 1;
     } else {
         main_globals_data.pending_cache_file_name[0] = 0;
@@ -511,8 +512,8 @@ namespace halo::main {
 void LevelControl::queue_map_change(char *map_name)
 {
     main_globals_data.return_to_main_menu = 0;
-    strncpy(main_globals_data.scenario_path, map_name, 0xff);
-    main_globals_data.scenario_path[0xff] = 0;
+    strncpy(main_globals_data.scenario_path, map_name, k_main_path_length - 1);
+    main_globals_data.scenario_path[k_main_path_length - 1] = 0;
     main_globals_data.restore_checkpoint_on_load = 1;
     if (game_time->initialized != 0 &&
         (game_time->active != 0 || game_time->paused != 0) &&
@@ -542,8 +543,8 @@ namespace halo::main {
  */
 uint8_t LevelControl::queue_map_change_by_name_or_clear(char *name)
 {
-    strncpy(main_globals_data.multiplayer_map_name, name, 0xff);
-    main_globals_data.multiplayer_map_name[0xff] = 0;
+    strncpy(main_globals_data.multiplayer_map_name, name, k_main_path_length - 1);
+    main_globals_data.multiplayer_map_name[k_main_path_length - 1] = 0;
     if (name == 0) {
         progress_screen_subtext[0] = 0;
     } else {
@@ -587,7 +588,7 @@ void LevelControl::save_map_private(void)
     } else {
         int32_t next_attempt_count = main_globals_data.save_map_attempt_count + 1;
 
-        if (main_globals_data.save_map_attempt_count > 0xef &&
+        if (main_globals_data.save_map_attempt_count > k_main_save_give_up_attempts - 1 &&
             main_globals_data.save_map_with_timeout != 0) {
             main_globals_data.save_map_attempt_count = next_attempt_count;
             if (main_globals_data.debug_game_save == 0) {
@@ -663,10 +664,10 @@ void LevelControl::switch_structure_bsp_and_notify(void)
 
     message_id = (int16_t)hud_globals_tag_data->loading_end_text;
 
-    entry = hud_messaging + 0x82;
-    for (i = 4; i != 0; i--) {
+    entry = hud_messaging + k_hud_messaging_active_offset;
+    for (i = k_hud_messaging_entry_count; i != 0; i--) {
         *entry = 0;
-        entry = entry + 0x8c;
+        entry = entry + k_hud_messaging_entry_size;
     }
 
     if (message_id != -1) {

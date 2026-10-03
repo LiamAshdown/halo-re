@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "halo/main/network.hpp"
+#include "halo/main/layout.hpp"
 
 extern "C" { uint32_t __stdcall network_game_client_connect_by_hostname(char *host_port_string); }
 extern "C" { uint8_t network_game_client_connect_to_address_async(char *address, char *password); }
@@ -55,10 +56,10 @@ uint32_t ClientConnection::game_client_connect_by_hostname(char *host_port_strin
     if (network_hostname_resolve_with_timeout(host_port_string) != 0) {
         host = gethostbyname(host_port_string);
         if (host != 0) {
-            address_text = inet_ntoa(**(struct in_addr **)((char *)host + 0xc));
+            address_text = inet_ntoa(**(struct in_addr **)((char *)host + k_hostent_address_list_offset));
             if (port == 0) {
-                strncpy(main_globals_data.connect_address, address_text, 0x1f);
-                main_globals_data.connect_address[0x1f] = 0;
+                strncpy(main_globals_data.connect_address, address_text, k_main_connect_address_length - 1);
+                main_globals_data.connect_address[k_main_connect_address_length - 1] = 0;
                 main_globals_data.connect_pending = 1;
             } else {
                 sprintf(main_globals_data.connect_address, "%s:%d", address_text, (unsigned int)port);
@@ -69,11 +70,11 @@ uint32_t ClientConnection::game_client_connect_by_hostname(char *host_port_strin
     }
     network_game_client_connect_to_address_async(0, 0);
     if (ui_split_screen == 1 && ui_root_widget[0] != 0 &&
-        strncmp(ui_root_widget[0]->name, "the_main_menu", 14) == 0) {
+        strncmp(ui_root_widget[0]->name, k_main_menu_widget_name, sizeof(k_main_menu_widget_name)) == 0) {
         goto done;
     }
     if (network_join_error_code == -1) {
-        network_join_error_code = 0x35;
+        network_join_error_code = k_join_error_connection_failed;
     }
     main_globals_data.switch_structure_bsp_index = -1;
     main_globals_data.save_map = 0;
@@ -110,7 +111,7 @@ namespace halo::main {
  */
 uint8_t ClientConnection::game_client_connect_to_address_async(char *address, char *password)
 {
-    char normalized[0x20];
+    char normalized[k_main_connect_address_length];
     uint8_t is_any;
     uint32_t thread_id;
     size_t length;
@@ -156,13 +157,13 @@ uint8_t ClientConnection::game_client_connect_to_address_async(char *address, ch
         goto fail;
     }
     main_globals_data.connect_pending = 1;
-    strncpy(main_globals_data.connect_address, normalized, 0x1f);
-    main_globals_data.connect_address[0x1f] = 0;
+    strncpy(main_globals_data.connect_address, normalized, k_main_connect_address_length - 1);
+    main_globals_data.connect_address[k_main_connect_address_length - 1] = 0;
     return 1;
 
 fail:
     network_game_client_connect_to_address_async(0, 0);
-    display_error(0x35, -1, 1, 0);
+    display_error(k_join_error_connection_failed, -1, 1, 0);
     return 0;
 }
 
@@ -215,7 +216,7 @@ void ClientConnection::game_client_connect_to_resolved_address(void)
 
     if (network_game_client_connect_to_address(main_globals_data.connect_address, wide_password) == 0) {
         if (network_join_error_code == -1) {
-            network_join_error_code = 0x35;
+            network_join_error_code = k_join_error_connection_failed;
         }
         main_globals_data.switch_structure_bsp_index = -1;
         main_globals_data.save_map = 0;
@@ -274,7 +275,7 @@ char ClientConnection::hostname_resolve_with_timeout(char *hostname)
                                   (LPDWORD)(&thread_id));
     if (thread_handle != 0) {
         wait_result = WaitForSingleObject(thread_handle, k_main_hostname_resolve_timeout_ms);
-        if (wait_result == 0x102) {
+        if (wait_result == win32::k_wait_timeout) {
             TerminateThread(thread_handle, 0);
         }
         CloseHandle(thread_handle);

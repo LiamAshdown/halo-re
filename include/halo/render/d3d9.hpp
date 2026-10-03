@@ -211,6 +211,19 @@ enum class raster_cap : uint32_t {
     depth_bias = 0x04000000,
 };
 
+/** Index of a method of IDirect3DSurface9. */
+enum class surface_method : uint32_t {
+    release = 2,
+    lock_rect = 13,
+    unlock_rect = 14,
+};
+
+/** D3DFMT_X8R8G8B8. */
+inline constexpr uint32_t k_format_x8r8g8b8 = 22;
+
+/** D3DERR_DEVICENOTRESET. */
+inline constexpr int32_t k_error_device_not_reset = static_cast<int32_t>(0x88760869);
+
 /** The method table (first dword of a COM object) as an array of function pointers. */
 inline void **method_table(void *com_object) noexcept { return *reinterpret_cast<void ***>(com_object); }
 
@@ -221,6 +234,11 @@ inline Fn device_function(void *device, device_method method) noexcept {
 }
 
 /** Function pointer of a buffer method. */
+template <typename Fn>
+inline Fn surface_function(void *surface, surface_method method) noexcept {
+    return reinterpret_cast<Fn>(method_table(surface)[static_cast<uint32_t>(method)]);
+}
+
 template <typename Fn>
 inline Fn buffer_function(void *buffer, buffer_method method) noexcept {
     return reinterpret_cast<Fn>(method_table(buffer)[static_cast<uint32_t>(method)]);
