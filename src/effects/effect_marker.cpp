@@ -1,3 +1,5 @@
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
@@ -28,7 +30,7 @@ namespace halo::effects {
  */
 void effect_view::environment_probe(uint32_t definition_index, int16_t location_index, real_point3d *marker_position, uint32_t sound_param)
 {
-    TagReflexive *reflexive = (TagReflexive *)halo::cache::globals().tag_instances[definition_index & 0xffff].data;
+    TagReflexive *reflexive = (TagReflexive *)halo::cache::globals().tag_instances[definition_index & halo::k_slot_mask].data;
 
     if (location_index < (int32_t)reflexive->count) {
         real_point3d origin;
@@ -101,7 +103,7 @@ datum_index effect_view::create(int16_t location_index, object_marker *resolved_
             &((effect_location_marker *)effect_location_data->data)[(uint16_t)handle];
         uint16_t node_index = resolved_marker->node_index;
 
-        if (node_index != 0xffff) {
+        if (node_index != halo::k_word_none) {
             node_index = first_person ? (node_index | 0x8000) : (node_index & 0x7fff);
         }
         marker->marker_index = node_index;
@@ -132,16 +134,16 @@ effect_location_marker * effect_view::next(datum_index *marker, int32_t mode)
         return (effect_location_marker *)0;
     }
 
-    entry = &((effect_location_marker *)effect_location_data->data)[*marker & 0xffff];
+    entry = &((effect_location_marker *)effect_location_data->data)[*marker & halo::k_slot_mask];
     *marker = entry->next_marker;
 
     if (mode == 1 ||
         (mode == 3 && self->first_person_weapon_index != -1 &&
          local_player_globals->local_player_count == 1)) {
-        if (entry->marker_index == 0xffff || (entry->marker_index & 0x8000) == 0) {
+        if (entry->marker_index == halo::k_word_none || (entry->marker_index & 0x8000) == 0) {
             return halo::effects::effect_marker_next(self, marker, mode);
         }
-    } else if (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0) {
+    } else if (entry->marker_index != halo::k_word_none && (entry->marker_index & 0x8000) != 0) {
         return halo::effects::effect_marker_next(self, marker, mode);
     }
 
@@ -227,7 +229,7 @@ void effect_view::release_first_person_markers(int16_t first_person_weapon_index
                     effect_location_marker *marker =
                         &((effect_location_marker *)effect_location_data->data)[(uint16_t)*link];
 
-                    if (marker->marker_index == 0xffff || (int16_t)marker->marker_index >= 0) {
+                    if (marker->marker_index == halo::k_word_none || (int16_t)marker->marker_index >= 0) {
                         link = &marker->next_marker;
                     } else {
                         datum_index next = marker->next_marker;
@@ -265,7 +267,7 @@ real_matrix4x3 * effect_view::resolve_marker_transform(int16_t marker)
     }
 
     {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[self->object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[self->object_index & halo::k_slot_mask].data;
         return (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset + node_index * 0x34);
     }
 }

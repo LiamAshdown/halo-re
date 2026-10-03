@@ -1,3 +1,5 @@
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -165,7 +167,7 @@ void particle_ref::impact()
     particle *self = &((particle *)particle_data->data)[(uint16_t)particle_handle];
     Particle *tag = (Particle *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
 
-    if (*(uint32_t *)&tag->death_effect.tag_id != 0xffffffffu) {
+    if (*(uint32_t *)&tag->death_effect.tag_id != halo::k_dword_none) {
         halo::effects::particle_impact_response_dispatch(self, *(tag_group *)&tag->death_effect.tag_fourcc,
             *(datum_index *)&tag->death_effect.tag_id, 0.0f);
     }
@@ -237,7 +239,7 @@ void particle_ref::create(particle_creation_data *creation_data)
     if (creation_data->object_index == (datum_index)0xffffffff) {
         position = creation_data->position;
     } else if (creation_data->first_person == 0) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[creation_data->object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[creation_data->object_index & halo::k_slot_mask].data;
         real_matrix4x3 *marker = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset +
             creation_data->marker_index * 0x34);
         halo::math::matrix4x3_transform_point(position, creation_data->position, *marker);
@@ -264,7 +266,7 @@ void particle_ref::create(particle_creation_data *creation_data)
         datum_index handle = halo::memory::datum_new(particle_data);
 
         if (handle != (datum_index)0xffffffff) {
-            particle *self = &((particle *)particle_data->data)[handle & 0xffff];
+            particle *self = &((particle *)particle_data->data)[handle & halo::k_slot_mask];
             real speed;
 
             self->flags = 0;
@@ -476,17 +478,17 @@ uint8_t particle_ref::update_motion(real delta_time)
         collided = (collision_flags & _point_physics_collided_bit) != 0;
 
         if (collided) {
-            if (*(uint32_t *)&tag->collision_effect.tag_id != 0xffffffffu ||
+            if (*(uint32_t *)&tag->collision_effect.tag_id != halo::k_dword_none ||
                 *(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id != 0u) {
                 real speed = (real)sqrt((double)(self->velocity.k * self->velocity.k +
                     self->velocity.j * self->velocity.j + self->velocity.i * self->velocity.i)) - 0.5f;
                 speed = (speed < 0.0f) ? 0.0f : (speed > 1.0f ? 1.0f : speed);
 
-                if (*(uint32_t *)&tag->collision_effect.tag_id != 0xffffffffu) {
+                if (*(uint32_t *)&tag->collision_effect.tag_id != halo::k_dword_none) {
                     halo::effects::particle_impact_response_dispatch(self, *(tag_group *)&tag->collision_effect.tag_fourcc,
                         *(datum_index *)&tag->collision_effect.tag_id, speed);
                 }
-                if (*(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id != 0xffffffffu &&
+                if (*(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id != halo::k_dword_none &&
                     any_local_player_within_10_units(&self->position) != 0) {
                     halo::effects::material_effects_play_at_marker(
                         *(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id,
@@ -495,7 +497,7 @@ uint8_t particle_ref::update_motion(real delta_time)
                 }
             }
             if ((tag->flags & 0x20) != 0) {
-                if (*(uint32_t *)&tag->collision_effect.tag_id != 0xffffffffu) {
+                if (*(uint32_t *)&tag->collision_effect.tag_id != halo::k_dword_none) {
                     halo::memory::datum_delete(particle_data, particle_handle);
                     return 0;
                 }
@@ -599,7 +601,7 @@ void particle_ref::refresh_structure_locations()
 
     for (handle = halo::memory::datum_next(-1, particle_data); handle != k_datum_index_none;
          handle = halo::memory::datum_next((int16_t)handle, particle_data)) {
-        particle *entry = (particle *)((uint8_t *)particle_data->data + (handle & 0xffff) * 0x70);
+        particle *entry = (particle *)((uint8_t *)particle_data->data + (handle & halo::k_slot_mask) * 0x70);
         real_point3d *point;
         uint32_t leaf;
         int16_t cluster;
@@ -620,7 +622,7 @@ void particle_ref::refresh_structure_locations()
         }
         leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, point);
         entry->location.leaf_index = (int32_t)leaf;
-        if (leaf == 0xffffffff) {
+        if (leaf == halo::k_dword_none) {
             cluster = -1;
         } else {
             cluster = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8);

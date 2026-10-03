@@ -1,3 +1,6 @@
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/math/api.hpp"
@@ -66,7 +69,7 @@ void weather_instance_ref::activate(datum_index definition_index, real intensity
 
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
         slot->target_count = (type->particle_count[1] - type->particle_count[0]) *
-            (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f + type->particle_count[0];
+            (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale + type->particle_count[0];
         slot->field_extent = type->fade_out_end_distance;
     }
 }
@@ -213,7 +216,7 @@ void weather_instance_ref::build_render_geometry()
         sprites.group_count = 0;
 
         for (particle_index = state->first_particle; particle_index != (datum_index)0xffffffff;) {
-            weather_particle *particle = &((weather_particle *)weather_particle_data->data)[particle_index & 0xffff];
+            weather_particle *particle = &((weather_particle *)weather_particle_data->data)[particle_index & halo::k_slot_mask];
             float particle_plane_distance[5];
             int16_t cell;
 
@@ -412,11 +415,11 @@ datum_index weather_particle_ref::create(int16_t instance_index, int16_t type_in
         weather_particle *p = &((weather_particle *)weather_particle_data->data)[(uint16_t)handle];
 
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-        p->position.x = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * slot->field_extent;
+        p->position.x = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * slot->field_extent;
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-        p->position.y = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * slot->field_extent;
+        p->position.y = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * slot->field_extent;
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-        p->position.z = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * slot->field_extent;
+        p->position.z = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * slot->field_extent;
 
         p->velocity.i = 0.0f;
         p->velocity.j = 0.0f;
@@ -425,7 +428,7 @@ datum_index weather_particle_ref::create(int16_t instance_index, int16_t type_in
         halo::effects::effect_random_direction_from_table((real_point3d *)&p->acceleration);
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
         {
-            real magnitude = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
+            real magnitude = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale *
                 (type->acceleration_magnitude[1] - type->acceleration_magnitude[0]) +
                 type->acceleration_magnitude[0];
             p->acceleration.i = magnitude * p->acceleration.i;
@@ -434,20 +437,20 @@ datum_index weather_particle_ref::create(int16_t instance_index, int16_t type_in
         }
 
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-        p->radius = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
+        p->radius = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale *
             (type->particle_radius[1] - type->particle_radius[0]) + type->particle_radius[0];
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-        p->animation_rate = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
+        p->animation_rate = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale *
             (type->animation_rate[1] - type->animation_rate[0]) + type->animation_rate[0];
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-        p->rotation_rate = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
+        p->rotation_rate = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale *
             (type->rotation_rate[1] - type->rotation_rate[0]) + type->rotation_rate[0];
 
         if ((type->flags & 4) == 0) {
             p->rotation = 0.0f;
         } else {
             halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-            p->rotation = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
+            p->rotation = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * 6.2831855f;
         }
 
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
@@ -456,17 +459,17 @@ datum_index weather_particle_ref::create(int16_t instance_index, int16_t type_in
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
         {
             BitmapGroupSequence *sequences = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer;
-            p->frame = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
+            p->frame = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale *
                 (real)(int32_t)sequences[p->sequence_index].sprites.count;
         }
 
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
         halo::bitmaps::color_interpolate((ColorRGB *)((uint8_t *)type + 0x148), (ColorRGB *)((uint8_t *)type + 0x138),
             (ColorRGB *)&p->color, static_cast<color_interpolation_flags>(*(uint32_t *)&((struct WeatherParticleSystemParticleType *)type)->flags),
-            (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f);
+            (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale);
 
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-        p->alpha = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
+        p->alpha = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale *
             (*(real *)&((struct WeatherParticleSystemParticleType *)type)->color_upper_bound - *(real *)&((struct WeatherParticleSystemParticleType *)type)->color_lower_bound) +
             *(real *)&((struct WeatherParticleSystemParticleType *)type)->color_lower_bound;
 
@@ -505,7 +508,7 @@ void weather_particle_ref::update(int16_t type_index, int16_t instance_index)
         real_point3d *direction;
 
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-        target_length = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
+        target_length = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale *
             (2.0f * type->acceleration_change_rate) - type->acceleration_change_rate + length;
         if (target_length < type->acceleration_magnitude[0]) {
             target_length = type->acceleration_magnitude[0];
@@ -582,7 +585,7 @@ void weather_system::update()
         weather_particle_system_state *wind = &weather_wind_states[i];
         uint8_t *active = (uint8_t *)&weather_wind_states[0] + i * 0x20;
 
-        if (*(uint32_t *)&row->wind.tag_id == 0xffffffffu) {
+        if (*(uint32_t *)&row->wind.tag_id == halo::k_dword_none) {
             *active = 0;
         } else {
             Wind *wind_tag = (Wind *)halo::cache::globals().tag_instances[row->wind.tag_id.index].data;

@@ -2,6 +2,8 @@
  * World-level movement tests: structure BSP, nearby objects and water surfaces.
  */
 
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "tags.h"
 #include "halo/scenario/api.hpp"
 #include "memory.h"
@@ -47,7 +49,7 @@ void CollisionWorld::gather_nearby_object_shapes(uint32_t flags, uint32_t start_
     uint32_t object_index = start_object_index;
 
     do {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
         float reach;
         float dx, dy, dz;
 
@@ -384,9 +386,9 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                     ref = halo::physics::globals().collideable_cluster_first[cluster_index];
                     while (ref != k_datum_index_none) {
                         object_cluster_reference *node = (object_cluster_reference *)
-                            collideable_object_references->data + (ref & 0xffff);
+                            collideable_object_references->data + (ref & halo::k_slot_mask);
                         datum_index object_index = node->object_index;
-                        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+                        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
 
                         if (obj->cluster_stamp != stamp) {
                             obj->cluster_stamp = stamp;
@@ -494,14 +496,14 @@ namespace halo::physics {
  */
 uint8_t CollisionWorld::context_build(uint32_t object_index, object_collision_context *out_context)
 {
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
-    Object *object_tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
+    Object *object_tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
 
-    if (object_tag->collision_model.tag_id.index != 0xffff ||
-        object_tag->collision_model.tag_id.id != 0xffff) {
+    if (object_tag->collision_model.tag_id.index != halo::k_word_none ||
+        object_tag->collision_model.tag_id.id != halo::k_word_none) {
         out_context->object_index = object_index;
         out_context->definition =
-            halo::cache::globals().tag_instances[object_tag->collision_model.tag_id.index & 0xffff].data;
+            halo::cache::globals().tag_instances[object_tag->collision_model.tag_id.index & halo::k_slot_mask].data;
         out_context->region_permutations = (uint8_t *)obj + 0x180;
         out_context->nodes = (uint8_t *)obj + ((object *)obj)->nodes.offset;
         return 1;
@@ -536,7 +538,7 @@ uint8_t CollisionWorld::context_gather_sphere_shapes(object_collision_context *c
     for (node_index = 0; node_index < (int32_t)definition->nodes.count; node_index++) {
         ModelCollisionGeometryNode *node = &nodes[node_index];
 
-        if (node->region != 0xffff) {
+        if (node->region != halo::k_word_none) {
             uint8_t permutation_byte = context->region_permutations[(int16_t)node->region];
 
             if ((int32_t)node->bsps.count > 0) {
@@ -598,7 +600,7 @@ uint8_t CollisionWorld::context_test_pill(object_collision_context *context, rea
     for (node_index = 0; node_index < (int32_t)definition->nodes.count; node_index++) {
         ModelCollisionGeometryNode *node = &nodes[node_index];
 
-        if (node->region != 0xffff) {
+        if (node->region != halo::k_word_none) {
             uint8_t permutation_byte = context->region_permutations[node->region];
 
             if (permutation_byte != 0xff && (int32_t)node->bsps.count > 0) {
@@ -661,7 +663,7 @@ uint32_t CollisionWorld::context_test_point(object_collision_context *context, r
     for (node_index = 0; node_index < (int32_t)definition->nodes.count; node_index++) {
         ModelCollisionGeometryNode *node = &nodes[node_index];
 
-        if (node->region != 0xffff) {
+        if (node->region != halo::k_word_none) {
             uint8_t permutation = context->region_permutations[node->region];
 
             if (node->bsps.count > 0) {
@@ -679,7 +681,7 @@ uint32_t CollisionWorld::context_test_point(object_collision_context *context, r
 
                     halo::math::matrix4x3_inverse_transform_point(*(&((real_matrix4x3 *)context->nodes)[node_index]),
                                                        local_point, *point);
-                    if (halo::physics::bsp3d_node_find_leaf(0, bsp, &local_point) == 0xffffffff) {
+                    if (halo::physics::bsp3d_node_find_leaf(0, bsp, &local_point) == halo::k_dword_none) {
                         return 1;
                     }
                 }
@@ -719,7 +721,7 @@ uint8_t CollisionWorld::context_test_segment(object_collision_context *context, 
     for (node_index = 0; node_index < (int32_t)definition->nodes.count; node_index++) {
         ModelCollisionGeometryNode *node = &nodes[node_index];
 
-        if (node->region != 0xffff) {
+        if (node->region != halo::k_word_none) {
             uint8_t permutation_byte = context->region_permutations[node->region];
 
             if ((int32_t)node->bsps.count > 0) {
@@ -797,7 +799,7 @@ uint8_t CollisionWorld::test_cluster_group(uint32_t flags, real_point3d *positio
                 } else {
                     object_cluster_reference *ref =
                         (object_cluster_reference *)collideable_object_references->data +
-                        (next_reference & 0xffff);
+                        (next_reference & halo::k_slot_mask);
                     object_index = ref->object_index;
                     next_reference = ref->next_reference;
                 }
@@ -828,7 +830,7 @@ uint8_t CollisionWorld::test_nearby_chain(uint32_t start_object_index, uint32_t 
     uint32_t object_index = start_object_index;
 
     do {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
 
         if (object_index != exclude_object_index && (obj->flags & 1) == 0) {
             uint8_t type = (uint8_t)obj->type;
@@ -898,7 +900,7 @@ uint8_t CollisionWorld::test_ray_nearby_chain(uint32_t start_object_index, uint3
     uint8_t improved = 0;
 
     do {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
 
         if (object_index != exclude_object_index && (obj->flags & 1) == 0) {
             uint8_t type = (uint8_t)obj->type;
@@ -963,7 +965,7 @@ uint8_t CollisionWorld::test_ray_nearby_chain(uint32_t start_object_index, uint3
                             out_result->region_index = -1;
                             out_result->node_index = -1;
                             out_result->permutation_index = -1;
-                            out_result->plane_index = 0xffffffff;
+                            out_result->plane_index = halo::k_dword_none;
                             out_result->surface_index = -1;
                             out_result->surface_flags = 0;
                             out_result->breakable_surface_index = 0;

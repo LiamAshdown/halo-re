@@ -4,6 +4,9 @@
  * The original author notes and decompiles are in docs/original/sound/.
  */
 
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -15,7 +18,7 @@ namespace definitions {
 
 float maximum_distance(datum_index sound_definition)
 {
-    Sound *tag = (Sound *)halo::cache::globals().tag_instances[sound_definition & 0xffff].data;
+    Sound *tag = (Sound *)halo::cache::globals().tag_instances[sound_definition & halo::k_slot_mask].data;
     float distance = tag->maximum_distance;
 
     if (distance == 0.0f) {
@@ -79,7 +82,7 @@ int16_t pick_permutation(int16_t pitch_range_index, int16_t explicit_permutation
     if (range->discarded_permutation_index != (uint16_t)0xffff) {
         chosen = (int16_t)range->discarded_permutation_index;
         range->last_permutation_index = (uint16_t)chosen;
-        range->discarded_permutation_index = 0xffff;
+        range->discarded_permutation_index = halo::k_word_none;
         return chosen;
     }
 
@@ -88,7 +91,7 @@ int16_t pick_permutation(int16_t pitch_range_index, int16_t explicit_permutation
         return (int16_t)permutations[explicit_permutation_index].next_permutation_index;
     }
 
-    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
     candidate = (uint32_t)((halo::math::globals().effect_random_seed >> 16) * (int32_t)range->actual_permutation_count) >> 16;
     attempts = 0;
     permutations = (SoundPermutation *)range->permutations.pointer;
@@ -114,10 +117,10 @@ int16_t pick_permutation(int16_t pitch_range_index, int16_t explicit_permutation
                 break;
             }
 
-            halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
             attempts++;
 
-            if (permutations[chosen].skip_fraction <= (float)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f) {
+            if (permutations[chosen].skip_fraction <= (float)(halo::math::globals().effect_random_seed >> 16) * halo::k_unit_word_scale) {
                 break;
             }
         }
@@ -199,7 +202,7 @@ int16_t check_promotion(TagID sound_tag_id)
 
     threshold = sound->promotion_count * permutation_length;
     if (threshold < accumulated) {
-        if (sound->promotion_sound.tag_id.index != 0xffff || sound->promotion_sound.tag_id.id != 0xffff) {
+        if (sound->promotion_sound.tag_id.index != halo::k_word_none || sound->promotion_sound.tag_id.id != halo::k_word_none) {
             sound->promotion_counter = 0;
             return 1;
         }

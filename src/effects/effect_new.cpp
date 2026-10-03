@@ -1,3 +1,4 @@
+#include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -193,7 +194,7 @@ datum_index effect_ref::new_on_object_with_node_table(datum_index creator_object
         context.marker_names = marker_names;
         context.marker_forwards = marker_forwards;
         context.marker_positions = marker_positions;
-        context.node_index = (node_index == 0xffff) ? 0 : node_index;
+        context.node_index = (node_index == halo::k_word_none) ? 0 : node_index;
 
         attach_object = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)object_index].data;
         context.node_table_entry = (int16_t)context.node_index * 0x34 +
@@ -240,7 +241,7 @@ datum_index effect_ref::new_with_color(datum_index definition_index, datum_index
         context.marker_names = marker_names;
         context.marker_positions = (uint32_t)position;
         context.marker_forwards = marker_forwards;
-        context.node_index = 0xffff;
+        context.node_index = halo::k_word_none;
         context.node_table_entry = 0;
 
         leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, position);

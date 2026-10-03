@@ -1,3 +1,4 @@
+#include "halo/core/slot_mask.hpp"
 #include "halo/items/items.hpp"
 #include "halo/models/api.hpp"
 #include "halo/math/api.hpp"
@@ -310,7 +311,7 @@ int32_t weapon_ref::has_active_state()
 uint8_t weapon_ref::is_old_enough()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     int32_t stamp = obj->network_update_tick;
 
     if (stamp == -1) {
@@ -536,7 +537,7 @@ uint32_t weapon_ref::must_be_readied()
 uint8_t weapon_ref::create()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     Weapon *tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     weapon_data *wd = (weapon_data *)((uint8_t *)obj + k_item_extension_offset);
     int16_t i;

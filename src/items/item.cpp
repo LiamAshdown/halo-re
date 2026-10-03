@@ -1,3 +1,4 @@
+#include "halo/core/slot_mask.hpp"
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -52,11 +53,11 @@ uint32_t item_ref::any_detonating()
 void item_ref::detonation_timer_start()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
 
     if (item->detonation_countdown == 0) {
-        Item *tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+        Item *tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
 
         halo::effects::effect_new_on_object(object_index, *(datum_index *)&((struct Item *)tag)->detonating_effect.tag_id, object_index, -1, 0.0f, 0.0f,
             0, 0);
@@ -77,7 +78,7 @@ void item_ref::detonation_timer_start()
 uint8_t item_ref::create()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     item_data *id = (item_data *)((uint8_t *)obj + k_item_data_offset);
 
     obj->flags |= 0x6000;
@@ -97,7 +98,7 @@ uint8_t item_ref::create()
 void item_ref::set_holder(datum_index holder_index)
 {
     uint32_t item_index = datum;
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
     item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
 
     if (holder_index == (datum_index)0xffffffff) {
@@ -107,7 +108,7 @@ void item_ref::set_holder(datum_index holder_index)
 
     {
         uint32_t original_flags = item->flags;
-        object *holder = ((object_header *)halo::objects::globals().object_data->data)[holder_index & 0xffff].data;
+        object *holder = ((object_header *)halo::objects::globals().object_data->data)[holder_index & halo::k_slot_mask].data;
         unit_data *holder_unit = (unit_data *)((uint8_t *)holder + k_unit_data_offset);
 
         item->flags = (original_flags & ~(uint32_t)_item_unknown_40_bit) | _item_in_inventory_bit;
@@ -146,7 +147,7 @@ void item_ref::set_holder(datum_index holder_index)
 void item_ref::stamp_age_timestamp()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
 
     obj->network_update_tick = game_time->game_time;
 }

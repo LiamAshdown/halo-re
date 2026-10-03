@@ -1,3 +1,5 @@
+#include "halo/core/lcg.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
@@ -33,7 +35,7 @@ namespace halo::effects {
  */
 static int32_t effect_event_apply_marker_index(effect_location_marker *marker)
 {
-    if (marker->marker_index == 0xffff) {
+    if (marker->marker_index == halo::k_word_none) {
         return -1;
     }
     return marker->marker_index & 0x7fff;
@@ -183,7 +185,7 @@ real effect_view::property_random_value(uint8_t bit_index, uint32_t a_bitset, ui
     }
 
     *seed = *seed * k_random_multiplier + k_random_increment;
-    return (real)(*seed >> k_random_value_shift) * 1.5259022e-05f * span + lower;
+    return (real)(*seed >> k_random_value_shift) * halo::k_unit_word_scale * span + lower;
 }
 
 /**
@@ -237,7 +239,7 @@ void effect_view::change_color_evaluate()
         int16_t location = part->location;
 
         if (location >= 0 && (int32_t)location < (int32_t)tag->locations.count &&
-            (part->type.tag_id.index != 0xffff || part->type.tag_id.id != 0xffff)) {
+            (part->type.tag_id.index != halo::k_word_none || part->type.tag_id.id != halo::k_word_none)) {
             uint8_t skip_part;
 
             if ((self->flags & _effect_first_person_bit) == 0) {
@@ -255,7 +257,7 @@ void effect_view::change_color_evaluate()
                         &((effect_location_marker *)effect_location_data->data)[(uint16_t)marker_handle];
                     marker_handle = entry->next_marker;
 
-                    if (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0) {
+                    if (entry->marker_index != halo::k_word_none && (entry->marker_index & 0x8000) != 0) {
                         entry = halo::effects::effect_marker_next(self, &marker_handle, 0);
                     }
                     if (entry == (effect_location_marker *)0) {
@@ -264,7 +266,7 @@ void effect_view::change_color_evaluate()
 
                     real_vector3d placement[3];
 
-                    if (entry->marker_index == 0xffff) {
+                    if (entry->marker_index == halo::k_word_none) {
                         placement[0] = entry->transform.up;
                         placement[1] = entry->transform.forward;
                         *(real_point3d *)&placement[2] = entry->transform.position;

@@ -1,3 +1,5 @@
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -47,7 +49,7 @@ void player_effect_ref::apply_at_object(uint32_t tag_reference, int16_t local_pl
     datum_index player_index = local_player_globals->local_players[0];
 
     if (player_index != (datum_index)0xffffffff) {
-        player *record = &((player *)player_data->data)[player_index & 0xffff];
+        player *record = &((player *)player_data->data)[player_index & halo::k_slot_mask];
 
         if (record->unit != (datum_index)0xffffffff) {
             real_point3d position;
@@ -71,7 +73,7 @@ void player_effect_ref::apply_at_object(uint32_t tag_reference, int16_t local_pl
 void player_effect_ref::apply_continuous_damage(uint32_t tag_reference, int16_t local_player_index, float distance)
 {
     ContinuousDamageEffect *effect =
-        (ContinuousDamageEffect *)halo::cache::globals().tag_instances[tag_reference & 0xffff].data;
+        (ContinuousDamageEffect *)halo::cache::globals().tag_instances[tag_reference & halo::k_slot_mask].data;
 
     if (distance < effect->radius[1]) {
         player_effect *self = &player_effect_globals_pointer->players[local_player_index];
@@ -124,7 +126,7 @@ void player_effect_ref::apply_generic_damage_feedback(float fraction)
     memset(&flash_descriptor, 0, sizeof(flash_descriptor));
     memset(&shake_descriptor, 0, sizeof(shake_descriptor));
 
-    local_player_index = ((player *)player_data->data)[player_index & 0xffff].local_player_index;
+    local_player_index = ((player *)player_data->data)[player_index & halo::k_slot_mask].local_player_index;
     if (local_player_index != -1) {
         player_effect *self = &player_effect_globals_pointer->players[local_player_index];
 
@@ -225,7 +227,7 @@ void player_effect_ref::clear_dead_players()
         uint8_t dead = 1;
 
         if (player_index != (datum_index)0xffffffff) {
-            player *record = &((player *)player_data->data)[player_index & 0xffff];
+            player *record = &((player *)player_data->data)[player_index & halo::k_slot_mask];
             if (record->unit != (datum_index)0xffffffff) {
                 dead = 0;
             }
@@ -271,7 +273,7 @@ void player_effect_ref::fade_damage_indicators(int16_t local_player_index, uint3
 void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_vector3d *direction, float random_blend, float damage_amount)
 {
     datum_index player_index = datum;
-    int16_t local_player_index = ((player *)player_data->data)[player_index & 0xffff].local_player_index;
+    int16_t local_player_index = ((player *)player_data->data)[player_index & halo::k_slot_mask].local_player_index;
     player_effect *self;
     uint8_t *tag;
 
@@ -281,7 +283,7 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
         return;
     }
     self = (player_effect *)((uint8_t *)player_effect_globals_pointer + local_player_index * 0xec);
-    tag = (uint8_t *)halo::cache::globals().tag_instances[dd->damage_effect_tag & 0xffff].data;
+    tag = (uint8_t *)halo::cache::globals().tag_instances[dd->damage_effect_tag & halo::k_slot_mask].data;
     halo::effects::player_effect_set_screen_flash(self, (player_screen_flash *)(tag + 0x24), random_blend, 1.0f);
     halo::effects::player_effect_set_camera_impulse(self, local_player_index, (real *)(tag + 0x98), (real *)direction,
         random_blend, 1.0f);
@@ -313,7 +315,7 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
         }
         controlling_player = local_player_to_player_index(local_player_index);
         unit_index = (controlling_player == k_datum_index_none) ? k_datum_index_none :
-            ((player *)player_data->data)[controlling_player & 0xffff].unit;
+            ((player *)player_data->data)[controlling_player & halo::k_slot_mask].unit;
         if (halo::objects::object_try_and_get(unit_index, 3) == 0 ||
             halo::objects::object_try_and_get(dd->responsible_object, 0xffffffff) == 0) {
             player_effect_reentry_count--;
@@ -460,7 +462,7 @@ void player_effect_ref::send_network_update(const real_vector3d *direction, cons
     if (dd->responsible_object != (datum_index)0xffffffff) {
         fields[1] = (uint32_t)halo::objects::hash_table_get(&object_network_id_table->id_to_index,
             (int32_t)dd->responsible_object);
-        if (fields[1] == 0xffffffff) {
+        if (fields[1] == halo::k_dword_none) {
             fields[1] = 0;
         }
     }
@@ -557,7 +559,7 @@ void player_effect_ref::set_screen_flash_for_player(player_screen_flash *descrip
 {
     datum_index player_index = datum;
     if (player_index != (datum_index)0xffffffff) {
-        player *record = &((player *)player_data->data)[player_index & 0xffff];
+        player *record = &((player *)player_data->data)[player_index & halo::k_slot_mask];
 
         if (record->local_player_index != -1) {
             halo::effects::player_effect_set_screen_flash(
@@ -601,7 +603,7 @@ int32_t player_effect_ref::locality_for_object(datum_index weapon_object_index)
                         ((1 << (header->type & 0x1f)) & 3) != 0 &&
                         header->data != 0) {
                         unit_data *held_unit =
-                            (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data +
+                            (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data +
                                           k_unit_data_offset);
                         int16_t current_weapon = held_unit->current_weapon_index;
                         datum_index current_weapon_object = (datum_index)0xffffffff;

@@ -1,3 +1,5 @@
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -33,7 +35,7 @@ namespace halo::items {
 void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
 {
     uint32_t item_index = datum;
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
     item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
 
     if ((item->flags & _item_does_not_accelerate_bit) != 0) {
@@ -44,7 +46,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
     }
 
     if (apply_detonation_timer != 0 && current_game_engine == 0) {
-        Item *tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+        Item *tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
         if ((tag->item_flags & 0x02) != 0) {
             halo::items::item_detonation_timer_start(item_index);
         }
@@ -89,8 +91,8 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         real angle;
 
         if (magnitude < 0.0001f) {
-            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
-            magnitude = (real)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
+            halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
+            magnitude = (real)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * halo::k_unit_word_scale;
         }
         seed_snapshot = halo::math::globals().random_seed_global;
 
@@ -101,8 +103,8 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
             seed_snapshot = halo::math::globals().random_seed_global;
         }
 
-        halo::math::globals().random_seed_global = seed_snapshot * 0x19660d + 0x3c6ef35f;
-        angle = (real)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f * magnitude * 1.5707964f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(seed_snapshot);
+        angle = (real)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * halo::k_unit_word_scale * magnitude * 1.5707964f;
         obj->angular_velocity.i += cross_axis.i * angle;
         obj->angular_velocity.j += cross_axis.j * angle;
         obj->angular_velocity.k += cross_axis.k * angle;
@@ -136,7 +138,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
 void item_ref::align_to_normal_and_point(real_point3d *out_position, real_vector3d *normal, real_point3d *point)
 {
     uint32_t item_index = datum;
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
     object_marker marker;
     real_vector3d rotated_forward;
     real_matrix4x3 basis;
@@ -198,7 +200,7 @@ void item_ref::align_to_normal_and_point(real_point3d *out_position, real_vector
 void item_ref::compute_rotation()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
     real magnitude = (real)sqrt((double)obj->angular_velocity.k * (double)obj->angular_velocity.k +
                                  (double)obj->angular_velocity.j * (double)obj->angular_velocity.j +
@@ -257,7 +259,7 @@ uint8_t item_ref::get_effective_position(real_point3d *out_position)
                 if (controlled_object_index == (uint32_t)k_datum_index_none) {
                     return 0;
                 }
-                obj = ((object_header *)halo::objects::globals().object_data->data)[controlled_object_index & 0xffff].data;
+                obj = ((object_header *)halo::objects::globals().object_data->data)[controlled_object_index & halo::k_slot_mask].data;
             }
         }
     }

@@ -1,3 +1,4 @@
+#include "halo/core/slot_mask.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -574,7 +575,7 @@ void decal_ref::spawn_for_response(datum_index response_tag_index, uint8_t deter
 
     if (decals_for_all_responses == 0 &&
         (deterministic != 1 ||
-            *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[response_tag_index & 0xffff].data + 4) != 3)) {
+            *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[response_tag_index & halo::k_slot_mask].data + 4) != 3)) {
         allowed = 0;
     }
     if (decals_enabled == 0 || !allowed) {
@@ -588,7 +589,7 @@ void decal_ref::spawn_for_response(datum_index response_tag_index, uint8_t deter
     }
     if (halo::physics::collision_test_movement_segment(0x100061, origin, direction, 0xffffffff, &result) &&
         result.type == 2 &&
-        (*(uint8_t *)halo::cache::globals().tag_instances[response_tag_index & 0xffff].data & 0x10) == 0) {
+        (*(uint8_t *)halo::cache::globals().tag_instances[response_tag_index & halo::k_slot_mask].data & 0x10) == 0) {
         halo::effects::decal_place(response_tag_index, &result, direction, radius, deterministic, (int16_t)marker_index);
     }
     if (deterministic != 0) {
@@ -653,7 +654,7 @@ void decal_ref::detach_from_structure_bsp()
             datum_index handle = head;
 
             while (handle != k_datum_index_none) {
-                decal *entry = (decal *)((uint8_t *)decal_data->data + (handle & 0xffff) * 0x38);
+                decal *entry = (decal *)((uint8_t *)decal_data->data + (handle & halo::k_slot_mask) * 0x38);
                 datum_index next = entry->next_decal;
 
                 entry->cluster_index = -1;
@@ -662,7 +663,7 @@ void decal_ref::detach_from_structure_bsp()
 
                     entry->next_decal = first;
                     if (first != k_datum_index_none) {
-                        ((decal *)((uint8_t *)decal_data->data + (first & 0xffff) * 0x38))->previous_decal = handle;
+                        ((decal *)((uint8_t *)decal_data->data + (first & halo::k_slot_mask) * 0x38))->previous_decal = handle;
                     }
                     decal_grid_block->first_object_decal = head;
                     *cell = k_datum_index_none;

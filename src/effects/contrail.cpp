@@ -1,3 +1,5 @@
+#include "halo/core/lcg.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -96,7 +98,7 @@ void contrail_ref::age_points(real delta_time)
                                     span = span * point->scale;
                                 }
                                 halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-                                duration = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * span + duration;
+                                duration = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * span + duration;
                             }
                             point->inverse_duration = duration;
                             if (duration != 0.0f) {
@@ -125,7 +127,7 @@ void contrail_ref::age_points(real delta_time)
                                 span = span * point->scale;
                             }
                             halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-                            duration = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * span + duration;
+                            duration = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * span + duration;
                         }
                         point->inverse_duration = duration;
                         if (duration != 0.0f) {
@@ -144,7 +146,7 @@ render:
             } else if ((point->flags & _contrail_point_expired_bit) == 0) {
                 ContrailPointState *current_state = &states[point->state_index];
 
-                if (current_state->physics.tag_id.index != 0xffff || current_state->physics.tag_id.id != 0xffff) {
+                if (current_state->physics.tag_id.index != halo::k_word_none || current_state->physics.tag_id.id != halo::k_word_none) {
                     halo::physics::point_physics_tick(&point->velocity, 0,
                         (PointPhysics *)halo::cache::globals().tag_instances[current_state->physics.tag_id.index].data,
                         &point->location, 0xffffffff, &point->position, 0, 0, 0,

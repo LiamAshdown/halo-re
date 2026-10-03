@@ -1,3 +1,4 @@
+#include "halo/core/lcg.hpp"
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -121,7 +122,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
             uint16_t chosen_index = start_index;
 
             if (tag_trigger->flags & 2) {
-                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                 chosen_index = (uint16_t)((halo::math::globals().random_seed_global >> 0x10) % (uint32_t)tag_trigger->firing_effects.count);
             }
             do {
@@ -144,7 +145,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
 
                 lower = effects[chosen_index].shot_count_lower_bound;
                 upper = effects[chosen_index].shot_count_upper_bound;
-                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                 rounds = lower + (int16_t)(((int32_t)(upper - lower) * (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10);
                 trigger->firing_effect_rounds = rounds;
             } while (trigger->firing_effect_rounds < 1 && chosen_index != start_index);
@@ -299,8 +300,8 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
 
 tail:
     if (weapon_tag->heat_detonation_threshold < wd->heat) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
-        if ((real)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f < weapon_tag->heat_detonation_fraction) {
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
+        if ((real)(halo::math::globals().random_seed_global >> 0x10) * halo::k_unit_word_scale < weapon_tag->heat_detonation_fraction) {
             halo::items::weapon_reload_recovery_finish(item_index);
         }
     }

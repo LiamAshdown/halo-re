@@ -1,3 +1,5 @@
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
 #include "halo/items/api.hpp"
@@ -21,7 +23,7 @@ namespace halo::items {
 uint8_t garbage_ref::create()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     int16_t *despawn_countdown = (int16_t *)((uint8_t *)obj + k_item_extension_offset);
 
     if ((obj->flags & (_object_in_tracked_list_bit | _object_unknown_20000_bit)) == 0) {
@@ -31,7 +33,7 @@ uint8_t garbage_ref::create()
     }
     obj->flags |= _object_definition_flag0_bit | _object_connected_to_map_bit;
 
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     *despawn_countdown = (int16_t)(((halo::math::globals().random_seed_global >> 0x10) * 300) >> 0x10) + 300;
 
     return 1;
@@ -50,7 +52,7 @@ uint8_t garbage_ref::create()
 int32_t garbage_ref::update()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     int16_t *despawn_countdown = (int16_t *)((uint8_t *)obj + k_item_extension_offset);
     int32_t still_alive;
 

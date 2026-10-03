@@ -1,3 +1,4 @@
+#include "halo/core/lcg.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/effects/api.hpp"
@@ -20,7 +21,7 @@ namespace halo::effects {
 static real shake_random_signed(void)
 {
     halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-    return (real)(int32_t)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f * 2.0f - 1.0f;
+    return (real)(int32_t)(halo::math::globals().effect_random_seed >> 16) * halo::k_unit_word_scale * 2.0f - 1.0f;
 }
 
 /**

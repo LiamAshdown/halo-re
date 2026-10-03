@@ -1,3 +1,5 @@
+#include "halo/core/lcg.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/scenario/api.hpp"
@@ -127,7 +129,7 @@ void effect_view::spawn_particles()
              entry = halo::effects::effect_marker_next(self, &marker_handle, create)) {
             uint16_t remaining;
 
-            if (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0 &&
+            if (entry->marker_index != halo::k_word_none && (entry->marker_index & 0x8000) != 0 &&
                 *(int32_t *)(first_person_weapon_interfaces + self->first_person_weapon_index * 0x1ea0 + 8) == -1) {
                 continue;
             }
@@ -169,7 +171,7 @@ void effect_view::spawn_particles()
                 halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
                 sample_index = (int16_t)(((halo::math::globals().effect_random_seed >> 16) * (uint32_t)(int32_t)halo::math::globals().sphere_point_table_count) >> 16);
                 sample = halo::math::globals().sphere_point_table[sample_index];
-                radius = (real)(int32_t)(radius_word >> 16) * 1.5259022e-05f * radius_span + base_radius;
+                radius = (real)(int32_t)(radius_word >> 16) * halo::k_unit_word_scale * radius_span + base_radius;
 
                 effect_spawn_particles_transform_point(&record.position, *(real *)(pt + 0x14),
                     *(real *)(pt + 0x18), *(real *)(pt + 0x1c), m);
@@ -188,7 +190,7 @@ void effect_view::spawn_particles()
                         raw_velocity.k, m);
                 }
 
-                if (entry->marker_index != 0xffff) {
+                if (entry->marker_index != halo::k_word_none) {
                     real_matrix4x3 *node;
                     int16_t node_index = (int16_t)(entry->marker_index & 0x7fff);
 
@@ -234,7 +236,7 @@ void effect_view::spawn_particles()
                 flags = *(uint32_t *)(pt + 0x64);
                 if ((flags & 1) != 0) {
                     record.object_index = self->object_index;
-                    record.marker_index = (entry->marker_index == 0xffff) ? -1 : (int16_t)(entry->marker_index & 0x7fff);
+                    record.marker_index = (entry->marker_index == halo::k_word_none) ? -1 : (int16_t)(entry->marker_index & 0x7fff);
                     record.gravity = *(real_vector3d *)global_origin3d_pointer;
                 } else {
                     if (self->tint_source.proc != 0) {
@@ -246,7 +248,7 @@ void effect_view::spawn_particles()
                     }
                     record.position = position;
                     *(real_vector3d *)&record.direction = direction;
-                    record.object_index = 0xffffffff;
+                    record.object_index = halo::k_dword_none;
                     record.marker_index = -1;
                     record.velocity.i = self->velocity.i * 30.0f + velocity.i;
                     record.velocity.j = self->velocity.j * 30.0f + velocity.j;
@@ -258,13 +260,13 @@ void effect_view::spawn_particles()
                     *(uint32_t *)(pt + 0xe4), &halo::math::globals().effect_random_seed, *(real *)(pt + 0x90), *(real *)(pt + 0x94));
                 if ((pt[0x64] & 2) != 0) {
                     halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-                    record.rotation = (real)(int32_t)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f * 6.2831855f;
+                    record.rotation = (real)(int32_t)(halo::math::globals().effect_random_seed >> 16) * halo::k_unit_word_scale * 6.2831855f;
                 } else {
                     record.rotation = 0.0f;
                 }
                 if ((*(uint32_t *)(pt + 0xe0) & 0x800) == 0 && (*(uint32_t *)(pt + 0xe4) & 0x800) == 0) {
                     halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-                    frac = (real)(int32_t)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f;
+                    frac = (real)(int32_t)(halo::math::globals().effect_random_seed >> 16) * halo::k_unit_word_scale;
                 } else {
                     frac = ((*(uint32_t *)(pt + 0xe0) & 0x800) != 0) ? self->a_scale : 1.0f;
                     if ((*(uint32_t *)(pt + 0xe4) & 0x800) != 0) {
@@ -281,7 +283,7 @@ void effect_view::spawn_particles()
                     record.color.blue *= self->color.blue;
                 }
                 *(int16_t *)&record.first_person_weapon_index = self->first_person_weapon_index;
-                record.first_person = (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0);
+                record.first_person = (entry->marker_index != halo::k_word_none && (entry->marker_index & 0x8000) != 0);
                 record.third_person_only = (create == 2);
                 record.first_person_only = (create == 1);
                 halo::effects::particle_new(&record);

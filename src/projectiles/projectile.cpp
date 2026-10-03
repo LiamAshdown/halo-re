@@ -1,3 +1,4 @@
+#include "halo/core/lcg.hpp"
 #include "halo/projectiles/projectile.hpp"
 #include "halo/projectiles/api.hpp"
 #include "halo/scenario/api.hpp"
@@ -80,7 +81,7 @@ uint8_t ProjectileHandle::construct()
     if ((tag->projectile_flags & to_bits(projectile_definition_flag::detonation_max_time_if_attached)) == 0) {
         if ((tag->projectile_flags & to_bits(projectile_definition_flag::minimum_unattached_detonation_time)) == 0) {
             halo::math::globals().random_seed_global = advance_random_seed(halo::math::globals().random_seed_global);
-            rate = ((tag->timer[1] - tag->timer[0]) * (real)(halo::math::globals().random_seed_global >> k_random_high_shift) * 1.5259022e-05f +
+            rate = ((tag->timer[1] - tag->timer[0]) * (real)(halo::math::globals().random_seed_global >> k_random_high_shift) * halo::k_unit_word_scale +
                     tag->timer[0]) * 30.0f;
         } else {
             rate = tag->timer[0] * 30.0f;

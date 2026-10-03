@@ -1,3 +1,4 @@
+#include "halo/core/slot_mask.hpp"
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -50,8 +51,8 @@ static void item_start_falling(uint32_t item_index)
 uint8_t item_ref::update()
 {
     uint32_t item_index = datum;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[item_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & halo::k_slot_mask].data;
     real_vector3d *forward = &((item_object *)obj)->base.forward;
     real_vector3d *up = &((item_object *)obj)->base.up;
 
@@ -109,7 +110,7 @@ uint8_t item_ref::update()
                 }
                 if ((hit_type == 2 ||
                      (hit_type == 3 &&
-                      ((1u << (((uint8_t *)halo::objects::globals().object_data->data)[(hit.object_index & 0xffff) * 0xc + 3] & 0x1f)) & 0x3c0))) &&
+                      ((1u << (((uint8_t *)halo::objects::globals().object_data->data)[(hit.object_index & halo::k_slot_mask) * 0xc + 3] & 0x1f)) & 0x3c0))) &&
                     hit.plane.normal.k > 0.7071f &&
                     -(hit.plane.normal.j * velocity.j + hit.plane.normal.i * velocity.i +
                       hit.plane.normal.k * velocity.k) < 0.05f) {

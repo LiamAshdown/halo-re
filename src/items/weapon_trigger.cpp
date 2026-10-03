@@ -1,3 +1,4 @@
+#include "halo/core/slot_mask.hpp"
 #include "halo/items/items.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
@@ -46,9 +47,9 @@ namespace halo::items {
 
 #define D(p, o) (*(datum_index *)((p) + (o)))
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
 /**
  * Member form of the original trigger_create_projectiles: create projectiles.
@@ -124,7 +125,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
             }
             use_aiming_vector = (uint8_t)((*(uint32_t *)(holder_tag + 0x17c) >> 3) & 1);
             if (actor != k_datum_index_none &&
-                W((uint8_t *)halo::ai::globals().actor_data->data + (actor & 0xffff) * 0x724, 0x5f2) == 4) {
+                W((uint8_t *)halo::ai::globals().actor_data->data + (actor & halo::k_slot_mask) * 0x724, 0x5f2) == 4) {
                 project_point = 0;
             }
             if (D(holder_object, 0x328) != k_datum_index_none) {

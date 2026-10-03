@@ -1,3 +1,4 @@
+#include "halo/core/lcg.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/math/api.hpp"
@@ -41,7 +42,7 @@ typedef struct decal_place_vertex {
 static real decal_place_random_fraction(void)
 {
     halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-    return (real)(int32_t)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
+    return (real)(int32_t)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale;
 }
 
 /**

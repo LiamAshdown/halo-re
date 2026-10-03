@@ -1,3 +1,5 @@
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/projectiles/projectile.hpp"
 #include "halo/projectiles/api.hpp"
 #include "halo/core/datum.hpp"
@@ -132,11 +134,11 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         
         
         
-        alignment_score = ((((real)(seed_step >> k_random_high_shift) * 1.5259022e-05f) * response->velocity_noise +
+        alignment_score = ((((real)(seed_step >> k_random_high_shift) * halo::k_unit_word_scale) * response->velocity_noise +
             -response->velocity_noise) - hit->plane.normal.k * velocity->k) - hit->plane.normal.j * velocity->j -
             hit->plane.normal.i * velocity->i;
         
-        angle_score = ((angular_noise - -angular_noise) * ((real)((halo::math::globals().random_seed_global >> k_random_high_shift) & 0xffff) * 1.5259022e-05f) +
+        angle_score = ((angular_noise - -angular_noise) * ((real)((halo::math::globals().random_seed_global >> k_random_high_shift) & halo::k_slot_mask) * halo::k_unit_word_scale) +
             -angular_noise) + (halo::math::vector3d_angle_between_4cd4f0(*(real_vector3d *)&hit->plane.normal, *velocity) - 1.5707964f);
         
     }
@@ -153,7 +155,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         ((response->potential_flags & 1) != 0 && 
          (hit->type != _collision_result_type_object || halo::objects::object_try_and_get(hit->object_index, _object_mask_unit) == 0)) ||
         ((real)((halo::math::globals().random_seed_global = advance_random_seed(halo::math::globals().random_seed_global), halo::math::globals().random_seed_global) >> k_random_high_shift) *
-             1.5259022e-05f < response->potential_skip_fraction)) {
+             halo::k_unit_word_scale < response->potential_skip_fraction)) {
         response_type = (ProjectileResponse)response->default_response;
         response_effect_tag = *(uint32_t *)&response->default_effect.tag_id;
     } else {
@@ -267,7 +269,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         if (response->velocity_noise != 0.0f &&
             (pre_length = halo::math::vector3d_normalize_with_length(*velocity)) != 0.0f) {
             real scale = (real)((halo::math::globals().random_seed_global = advance_random_seed(halo::math::globals().random_seed_global), halo::math::globals().random_seed_global) >> k_random_high_shift) *
-                1.5259022e-05f * (response->velocity_noise - -response->velocity_noise) +
+                halo::k_unit_word_scale * (response->velocity_noise - -response->velocity_noise) +
                 -response->velocity_noise + pre_length;
             velocity->i *= scale;
             velocity->j *= scale;
@@ -430,7 +432,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         }
     } else if ((tag->projectile_flags & _projectile_definition_random_attached_detonation_time_bit) != 0) {
         real t = (real)((halo::math::globals().random_seed_global = advance_random_seed(halo::math::globals().random_seed_global), halo::math::globals().random_seed_global) >> k_random_high_shift) *
-            1.5259022e-05f * (tag->timer[1] - tag->timer[0]) + tag->timer[0];
+            halo::k_unit_word_scale * (tag->timer[1] - tag->timer[0]) + tag->timer[0];
         if (1.0f <= t * 30.0f) {
             pd->detonation_timer_rate = 1.0f / (t * 30.0f);
         }

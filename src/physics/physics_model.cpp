@@ -2,6 +2,8 @@
  * Scratch physics model of sphere, pill and polygon proxies built from a query, and the tests run against it.
  */
 
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -97,14 +99,14 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
                     ref = halo::physics::globals().collideable_cluster_first[cluster_index];
                     while (ref != k_datum_index_none) {
                         object_cluster_reference *node = (object_cluster_reference *)
-                            collideable_object_references->data + (ref & 0xffff);
+                            collideable_object_references->data + (ref & halo::k_slot_mask);
                         datum_index object_index = node->object_index;
                         object *obj;
 
                         if (object_index == k_datum_index_none) {
                             break;
                         }
-                        obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+                        obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
 
                         if (obj->cluster_stamp != stamp) {
                             obj->cluster_stamp = stamp;
@@ -288,7 +290,7 @@ int16_t PhysicsModelOps::model_slide_along_contacts(real_point3d *start_position
         floor->point_y = source->point_y;
         floor->point_z = source->point_z;
         contact_count++;
-        floor->object_index = 0xffffffff;
+        floor->object_index = halo::k_dword_none;
         floor->surface_index = -1;
         floor->surface_flags = 0;
         floor->breakable_surface_index = 0;
@@ -445,7 +447,7 @@ namespace halo::physics {
  */
 uint8_t PhysicsModelOps::point_refresh_leaf(real_point3d *point, float radius)
 {
-    if (halo::physics::bsp3d_node_find_leaf(0, global_structure_collision_bsp, point) != 0xffffffff) {
+    if (halo::physics::bsp3d_node_find_leaf(0, global_structure_collision_bsp, point) != halo::k_dword_none) {
         collision_bsp_sphere_result result;
         uint32_t *breakable_surfaces =
             (uint32_t *)((uint8_t *)breakable_surface_state + 1 +
@@ -639,7 +641,7 @@ void PhysicsModelOps::shape_add_vertex_proxy(ModelCollisionGeometryBSP *bsp, uin
         &((ModelCollisionGeometryBSPEdge *)bsp->edges.pointer)[vertex_rec->first_edge];
     ModelCollisionGeometryBSPSurface *surface =
         &((ModelCollisionGeometryBSPSurface *)bsp->surfaces.pointer)[edge->left_surface];
-    int32_t surface_index = (object_index == 0xffffffff) ? (int32_t)edge->left_surface : -1;
+    int32_t surface_index = (object_index == halo::k_dword_none) ? (int32_t)edge->left_surface : -1;
     real_point3d transformed;
     real_point3d *vertex_point;
 

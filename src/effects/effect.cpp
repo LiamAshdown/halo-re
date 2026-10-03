@@ -1,3 +1,6 @@
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -73,7 +76,7 @@ uint32_t effect_ref::check_object_collisions()
                         &((effect_location_marker *)effect_location_data->data)[(uint16_t)marker_handle];
                     marker_handle = entry->next_marker;
 
-                    if (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0) {
+                    if (entry->marker_index != halo::k_word_none && (entry->marker_index & 0x8000) != 0) {
                         entry = halo::effects::effect_marker_next(self, &marker_handle, 0);
                     }
                     if (entry == (effect_location_marker *)0) {
@@ -81,7 +84,7 @@ uint32_t effect_ref::check_object_collisions()
                     }
 
                     real_point3d point;
-                    if (entry->marker_index == 0xffff) {
+                    if (entry->marker_index == halo::k_word_none) {
                         point = entry->transform.position;
                     } else {
                         real_matrix4x3 *node;
@@ -271,7 +274,7 @@ static real effect_update_roll_fraction(uint8_t *tag)
     random_seed *seed = (tag[0] & 4) ? &halo::math::globals().random_seed_global : &halo::math::globals().effect_random_seed;
 
     *seed = *seed * k_random_multiplier + k_random_increment;
-    return (real)(*seed >> k_random_value_shift) * 1.5259022e-05f;
+    return (real)(*seed >> k_random_value_shift) * halo::k_unit_word_scale;
 }
 
 /**
@@ -282,8 +285,8 @@ static real effect_update_roll_fraction(uint8_t *tag)
 void effect_ref::update(real dt)
 {
     datum_index effect_index = datum;
-    effect *self = (effect *)((uint8_t *)effect_data->data + (effect_index & 0xffff) * 0xfc);
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[self->definition_index & 0xffff].data;
+    effect *self = (effect *)((uint8_t *)effect_data->data + (effect_index & halo::k_slot_mask) * 0xfc);
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[self->definition_index & halo::k_slot_mask].data;
     uint8_t *events = *(uint8_t **)(tag + 0x38);
     int32_t event_count = *(int32_t *)(tag + 0x34);
     datum_index object_index = self->object_index;
@@ -298,7 +301,7 @@ void effect_ref::update(real dt)
             return;
         }
         root = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data +
-            (halo::objects::object_get_root_object_index(object_index) & 0xffff) * 0xc + 8);
+            (halo::objects::object_get_root_object_index(object_index) & halo::k_slot_mask) * 0xc + 8);
         if (*(uint32_t *)(root + 0x10) & 0x800) {
             *(uint32_t *)&((struct effect *)self)->location.leaf_index = *(uint32_t *)(root + 0x98);
             *(uint32_t *)&((struct effect *)self)->location.cluster_index = *(uint32_t *)(root + 0x9c);
@@ -317,7 +320,7 @@ void effect_ref::update(real dt)
                     }
                 }
             } else if (tag[0] & 1) {
-                uint8_t *obj_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
+                uint8_t *obj_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & halo::k_slot_mask].data;
                 int16_t i;
 
                 for (i = 0; i < *(int32_t *)&((struct Object *)obj_tag)->attachments.count; i++) {
@@ -395,7 +398,7 @@ void effect_ref::update(real dt)
                     next = (int16_t)(self->event_index + 1);
                 }
                 while (next < event_count &&
-                    effect_update_roll_fraction((uint8_t *)halo::cache::globals().tag_instances[self->definition_index & 0xffff].data) <
+                    effect_update_roll_fraction((uint8_t *)halo::cache::globals().tag_instances[self->definition_index & halo::k_slot_mask].data) <
                         *(float *)(events + next * 0x44 + 4)) {
                     next++;
                 }
@@ -417,7 +420,7 @@ void effect_ref::update(real dt)
             self->event_time = 0.0f;
             self->previous_event_fraction = -1.0f;
             {
-                real fraction = effect_update_roll_fraction((uint8_t *)halo::cache::globals().tag_instances[self->definition_index & 0xffff].data);
+                real fraction = effect_update_roll_fraction((uint8_t *)halo::cache::globals().tag_instances[self->definition_index & halo::k_slot_mask].data);
 
                 self->event_duration = (*(float *)(event + 0x14) - *(float *)(event + 0x10)) * fraction +
                     *(float *)(event + 0x10);
@@ -455,7 +458,7 @@ void effect_ref::refresh_structure_locations()
 
     for (handle = halo::memory::datum_next(-1, effect_data); handle != k_datum_index_none;
          handle = halo::memory::datum_next((int16_t)handle, effect_data)) {
-        effect *entry = (effect *)((uint8_t *)effect_data->data + (handle & 0xffff) * 0xfc);
+        effect *entry = (effect *)((uint8_t *)effect_data->data + (handle & halo::k_slot_mask) * 0xfc);
         datum_index marker;
         effect_location_marker *location;
         uint32_t leaf;
@@ -471,7 +474,7 @@ void effect_ref::refresh_structure_locations()
         }
         leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)((uint8_t *)location + 0x30));
         entry->location.leaf_index = (int32_t)leaf;
-        if (leaf == 0xffffffff) {
+        if (leaf == halo::k_dword_none) {
             entry->location.cluster_index = -1;
         } else {
             entry->location.cluster_index =

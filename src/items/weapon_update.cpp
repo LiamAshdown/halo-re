@@ -1,3 +1,4 @@
+#include "halo/core/slot_mask.hpp"
 #include "halo/items/items.hpp"
 #include "halo/models/api.hpp"
 #include "halo/cache/api.hpp"
@@ -21,7 +22,7 @@ namespace halo::items {
  */
 static uint32_t weapon_blur_target(uint32_t item_index)
 {
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[item_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
 
     if ((((object *)obj)->flags & 1) && ((object *)obj)->parent_object != (datum_index)0xffffffff) {
         return ((object *)obj)->parent_object;
@@ -417,13 +418,13 @@ int32_t weapon_ref::update()
 void weapon_ref::update_function_values()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     Weapon *tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     object *destination = obj;
 
     while ((destination->flags & _object_no_collision_bit) != 0 &&
            destination->parent_object != (datum_index)k_datum_index_none) {
-        destination = ((object_header *)halo::objects::globals().object_data->data)[destination->parent_object & 0xffff].data;
+        destination = ((object_header *)halo::objects::globals().object_data->data)[destination->parent_object & halo::k_slot_mask].data;
     }
 
     {

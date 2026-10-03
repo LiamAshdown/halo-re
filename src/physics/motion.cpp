@@ -2,6 +2,8 @@
  * Point physics for particles and massless movers, plus the scalar range helpers.
  */
 
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "tags.h"
 #include "math.h"
 #include "physics.h"
@@ -101,9 +103,9 @@ int16_t PhysicsMotion::resolve_material_type(uint32_t object_index, int16_t vert
         return -1;
     }
 
-    if (object_index != 0xffffffff) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
-        void *object_tag_data = halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    if (object_index != halo::k_dword_none) {
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
+        void *object_tag_data = halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
         int32_t collision_model_id = *(int32_t *)((uint8_t *)object_tag_data + 0x7c);
         ModelCollisionGeometry *geometry =
             (ModelCollisionGeometry *)halo::cache::globals().tag_instances[(uint16_t)collision_model_id].data;

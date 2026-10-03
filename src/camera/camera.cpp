@@ -1,3 +1,4 @@
+#include "halo/core/lcg.hpp"
 #include "halo/camera/camera.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
@@ -579,15 +580,15 @@ dead_camera_data * DeadCamera::construct(dead_camera_data *self, int16_t local_p
     self->field_of_view = 1.2217305f; 
 
     halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-    self->distance = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 4.0f + 2.0f;
+    self->distance = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * 4.0f + 2.0f;
 
     halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-    self->yaw = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
+    self->yaw = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * 6.2831855f;
 
     self->transition_time = 3.0f;
 
     halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-    self->pitch = -((real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 0.6283184f + 0.47123894f);
+    self->pitch = -((real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * 0.6283184f + 0.47123894f);
 
     if (unit != k_datum_index_none) {
         self->retarget_time = 3.4028235e38f; 

@@ -2,6 +2,7 @@
  * Per-tick force and torque integration of an object carrying a physics tag, one mass point at a time.
  */
 
+#include "halo/core/slot_mask.hpp"
 #include "tags.h"
 #include "halo/scenario/api.hpp"
 #include "memory.h"
@@ -46,7 +47,7 @@ namespace halo::physics {
  */
 void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_state *powered_states, mass_point_state *mass_point_states, real_vector3d *extra_force, real_vector3d *extra_torque)
 {
-    object *self = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    object *self = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     void *object_tag_data;
     Physics *definition;
     float gravity_scale;
@@ -59,8 +60,8 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
     int32_t ground_contact_count = 0, on_ground_surface_count = 0, at_rest_count = 0, water_contact_count = 0;
     int32_t i;
 
-    object_tag_data = halo::cache::globals().tag_instances[self->definition_tag & 0xffff].data;
-    definition = (Physics *)halo::cache::globals().tag_instances[(uint16_t)(*(int32_t *)((uint8_t *)object_tag_data + 0x8c)) & 0xffff].data;
+    object_tag_data = halo::cache::globals().tag_instances[self->definition_tag & halo::k_slot_mask].data;
+    definition = (Physics *)halo::cache::globals().tag_instances[(uint16_t)(*(int32_t *)((uint8_t *)object_tag_data + 0x8c)) & halo::k_slot_mask].data;
     gravity_scale = k_physics_gravity * definition->gravity_scale;
 
     halo::math::matrix4x3_from_forward_up(self->up, self->forward, step_matrix);

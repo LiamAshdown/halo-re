@@ -1,3 +1,5 @@
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
@@ -81,7 +83,7 @@ uint8_t ambient_color::marker_visible(bsp_leaf_reference *location, real_point3d
                 datum_index fog_tag = *(datum_index *)((uint8_t *)halo::scenario::globals().structure_bsp->fog_palette.pointer + fog * 0x88 + 0x2c);
 
                 if (fog_tag != k_datum_index_none) {
-                    uint8_t *fog_data = (uint8_t *)halo::cache::globals().tag_instances[fog_tag & 0xffff].data;
+                    uint8_t *fog_data = (uint8_t *)halo::cache::globals().tag_instances[fog_tag & halo::k_slot_mask].data;
 
                     if (fog_data[0] & 1) {
                         if ((filter_flags & 8) == 0) {
@@ -189,7 +191,7 @@ void ambient_color::sample(ColorRGB *out, real_point3d *position, real hash_scal
  */
 void material_effects::play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset)
 {
-    MaterialEffects *definition = (MaterialEffects *)halo::cache::globals().tag_instances[material_effects_tag & 0xffff].data;
+    MaterialEffects *definition = (MaterialEffects *)halo::cache::globals().tag_instances[material_effects_tag & halo::k_slot_mask].data;
 
     if (material_type < (int32_t)definition->effects.count) {
         MaterialEffectsMaterialEffect *material =
@@ -205,13 +207,13 @@ void material_effects::play_at_marker(uint32_t material_effects_tag, int16_t mat
             spawn_position.y = offset->j * 0.01f + position->y;
             spawn_position.z = offset->k * 0.01f + position->z;
 
-            if (*(uint32_t *)&entry->effect.tag_id != 0xffffffffu) {
+            if (*(uint32_t *)&entry->effect.tag_id != halo::k_dword_none) {
                 halo::effects::effect_new_with_color(*(uint32_t *)&entry->effect.tag_id, 0xffffffff, (const real_vector3d *)0, 1, 0,
                     &spawn_position, (uint32_t)offset, *(real *)&sound_param, 0.0f, (const ColorRGB *)0,
                     (const effect_tint_source *)0, 0);
             }
 
-            if (*(uint32_t *)&entry->sound.tag_id != 0xffffffffu) {
+            if (*(uint32_t *)&entry->sound.tag_id != halo::k_dword_none) {
                 struct {
                     real_point3d position;
                     real_vector3d normal;

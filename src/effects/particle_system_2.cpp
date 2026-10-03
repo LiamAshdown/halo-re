@@ -1,3 +1,5 @@
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -28,13 +30,13 @@ namespace halo::effects {
 void particle_system_ref::update(float delta_time)
 {
     datum_index handle = datum;
-    particle_system *self = &((particle_system *)particle_system_data->data)[handle & 0xffff];
-    ParticleSystem *definition = (ParticleSystem *)halo::cache::globals().tag_instances[self->definition_index & 0xffff].data;
+    particle_system *self = &((particle_system *)particle_system_data->data)[handle & halo::k_slot_mask];
+    ParticleSystem *definition = (ParticleSystem *)halo::cache::globals().tag_instances[self->definition_index & halo::k_slot_mask].data;
     int32_t type_index;
     int32_t types_alive = 0;
 
     if (self->object_index != (datum_index)0xffffffff) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[self->object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[self->object_index & halo::k_slot_mask].data;
         float function_value;
 
         if ((obj->flags & _object_needs_cluster_update_bit) != 0 &&
@@ -174,14 +176,14 @@ void particle_system_ref::update(float delta_time)
 
             {
                 uint16_t particle_index;
-                uint16_t previous_particle = 0xffff;
+                uint16_t previous_particle = halo::k_word_none;
 
                 if ((self->flags & _particle_system_emitting_bit) != 0) {
                     halo::effects::particle_system_spawn(self, type_index, delta_time);
                 }
 
                 particle_index = (uint16_t)state->first_particle;
-                while (particle_index != 0xffff) {
+                while (particle_index != halo::k_word_none) {
                     particle_system_particle *particle = &((particle_system_particle *)
                         particle_system_particle_data->data)[particle_index];
 
@@ -268,7 +270,7 @@ void particle_system_ref::update(float delta_time)
                         }
                     }
 
-                    if (previous_particle == 0xffff) {
+                    if (previous_particle == halo::k_word_none) {
                         state->first_particle = particle->next_particle;
                     } else {
                         ((particle_system_particle *)particle_system_particle_data->data)

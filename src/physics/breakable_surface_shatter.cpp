@@ -2,6 +2,8 @@
  * Damage, reset and shattering of breakable collision surfaces.
  */
 
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "tags.h"
 #include "halo/bitmaps/api.hpp"
 #include "memory.h"
@@ -40,13 +42,13 @@ extern "C" { extern double pow(double base, double exponent); }
 #define k_breakable_polygon_size 64
 static uint32_t effect_random_next(void)
 {
-    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
     return halo::math::globals().effect_random_seed >> 16;
 }
 
 static float shatter_random_fraction(void)
 {
-    return (float)(int32_t)effect_random_next() * 1.5259022e-05f;
+    return (float)(int32_t)effect_random_next() * halo::k_unit_word_scale;
 }
 
 static int16_t shatter_grid_bound(float value, int round_up)
@@ -312,7 +314,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                     }
 
                     {
-                        uint8_t *damage_effect = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)damage_raw & 0xffff].data + 0x194;
+                        uint8_t *damage_effect = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)damage_raw & halo::k_slot_mask].data + 0x194;
                         real_vector3d velocity;
                         real_vector3d away;
                         float distance;
