@@ -8,6 +8,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/shader_access.hpp"
+#include "halo/core/bit_cast.hpp"
 #include <cstring>
 #include "internal/state.hpp"
 #include "halo/rasterizer/constants.hpp"
@@ -26,6 +27,9 @@ namespace {
 
 constexpr int16_t k_particle_effect_nonlinear_tint = 0x5a;
 constexpr int16_t k_particle_effect_linear_tint = 0x60;
+
+/** High half of the packed vertex type reference a group reports (low half is the vertex type). */
+constexpr uint32_t k_vertex_type_reference_flag = ~0xffffu;
 
 }  // namespace
 
@@ -114,7 +118,7 @@ transparent_geometry_group * rasterizer_transparent_geometry_group_build(transpa
 
     group->flags = flags;
     group->object_index = context->object_index;
-    if (flags & 0x100) {
+    if (flags & _group_node_parts_bit) {
         group->node_part_indices = rasterizer_node_part_indices;
         group->node_part_count = rasterizer_node_part_count;
     } else {
@@ -602,7 +606,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
                       halo::test_flag(shader_cast<ShaderTransparentChicago>(shader)->shader_transparent_chicago_flags, halo::tags::shader_transparent_generic_tag_flag::ignore_effect))) {
 
                     set_group_skinning(group, cursor);
-                    if (group->flags & 0x100) {
+                    if (group->flags & _group_node_parts_bit) {
                         chimera__rasterizer_set_up_node_parts(cursor->node_part_count,
                                                               cursor->node_part_indices);
                     }
@@ -628,7 +632,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
             shader = group->shader;
             if (key != transparent_geometry_group_last_drawn_key && shader != NULL &&
                 shader_type_of(shader) == 4 && !attached) {
-                set_depth_prepass_states(3, 0xffffffff);
+                set_depth_prepass_states(3, halo::d3d9::k_color_white);
                 cursor = group;
                 do {
                     if (cursor->sort_key != key || cursor->parameters.mode != 1) {
@@ -680,7 +684,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
         }
         if (immediate == 0) {
             set_group_skinning(group, group);
-            if (group->flags & 0x100) {
+            if (group->flags & _group_node_parts_bit) {
                 chimera__rasterizer_set_up_node_parts(group->node_part_count,
                                                       group->node_part_indices);
             }
@@ -690,7 +694,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
         }
         if (group->flags & 8) {
             if (rasterizer_window.type == 1) {
-                chimera__rasterizer_set_frustum_z_func(0x3b800000, 0x45800000);
+                chimera__rasterizer_set_frustum_z_func(halo::bit_cast<uint32_t>(k_decal_frustum_z_near), halo::bit_cast<uint32_t>(k_decal_frustum_z_far));
             }
             set_render_state(halo::d3d9::rs::z_enable, 0);
         } else {
@@ -1130,7 +1134,7 @@ void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_pe
         group->flags = group->flags | 2;
         rasterizer_transparent_geometry_group_draw(group, 0);
         transparent_geometry_group_set_drawn_bit(group, 1);
-        group->flags = group->flags & 0xfffffffd;
+        group->flags = group->flags & ~static_cast<uint32_t>(_group_immediate_bit);
         return;
     }
     if ((flags & 2) != 0) {
@@ -1216,7 +1220,7 @@ transparent_geometry_group * transparent_geometry_group_allocate(void)
 {
     transparent_geometry_group *group;
 
-    if (transparent_geometry_group_count >= 0x180) {
+    if (transparent_geometry_group_count >= k_rasterizer_maximum_transparent_groups) {
         return (transparent_geometry_group *)0;
     }
     group = &transparent_geometry_groups[transparent_geometry_group_count];
@@ -1234,7 +1238,7 @@ transparent_geometry_group * transparent_geometry_group_allocate_secondary(void)
 {
     transparent_geometry_group *group;
 
-    if (transparent_geometry_group_secondary_count >= 0x20) {
+    if (transparent_geometry_group_secondary_count >= k_rasterizer_maximum_secondary_groups) {
         return (transparent_geometry_group *)0;
     }
     group = &transparent_geometry_groups_secondary[transparent_geometry_group_secondary_count];
@@ -1357,7 +1361,7 @@ void transparent_geometry_group_draw_all(uint8_t resort)
             if (shader == (Shader *)0 ||
                 (shader->shader_type != 8 &&
                  ((shader->shader_type != 5 && shader->shader_type != 6 && shader->shader_type != 7) ||
-                  ((((uint8_t *)shader)[0x29] >> 4 & 1) == 0)))) {
+                  !halo::test_flag(shader_cast<ShaderTransparentChicago>(shader)->shader_transparent_chicago_flags, halo::tags::shader_transparent_generic_tag_flag::draw_before_water)))) {
                 break;
             }
         }
@@ -1413,12 +1417,12 @@ uint32_t transparent_geometry_group_get_vertex_type_reference(transparent_geomet
     rasterizer_vertex_buffer *vb = group->vertex_buffer;
 
     if (vb != (rasterizer_vertex_buffer *)0) {
-        return 0xffff0000u | (uint16_t)vb->type;
+        return k_vertex_type_reference_flag | (uint16_t)vb->type;
     }
     if (group->dynamic_vertex_slot != -1) {
-        return 0xffff0000u | (uint16_t)rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
+        return k_vertex_type_reference_flag | (uint16_t)rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
     }
-    return 0xffffffffu;
+    return halo::k_dword_none;
 }
 
 /**
@@ -1431,11 +1435,10 @@ uint32_t transparent_geometry_group_get_vertex_type_reference(transparent_geomet
  */
 int32_t transparent_geometry_group_index_from_pointer(transparent_geometry_group *group)
 {
-    uint8_t *base = (uint8_t *)transparent_geometry_groups;
-    uint8_t *p = (uint8_t *)group;
+    transparent_geometry_group *base = transparent_geometry_groups;
 
-    if (base <= p && p < base + (uint32_t)transparent_geometry_group_count * 0xa8) {
-        return (int32_t)(p - base) / 0xa8;
+    if (base <= group && group < base + transparent_geometry_group_count) {
+        return (int32_t)(group - base);
     }
     return -1;
 }
@@ -1449,14 +1452,13 @@ int32_t transparent_geometry_group_index_from_pointer(transparent_geometry_group
  */
 void transparent_geometry_group_set_drawn_bit(transparent_geometry_group *group, uint8_t clear)
 {
-    uint8_t *base = (uint8_t *)transparent_geometry_groups;
-    uint8_t *p = (uint8_t *)group;
+    transparent_geometry_group *base = transparent_geometry_groups;
     int32_t index;
 
-    if (!(base <= p && p < base + (uint32_t)transparent_geometry_group_count * 0xa8)) {
+    if (!(base <= group && group < base + transparent_geometry_group_count)) {
         return;
     }
-    index = (int32_t)(p - base) / 0xa8;
+    index = (int32_t)(group - base);
     if (index == -1) {
         return;
     }
@@ -1498,12 +1500,11 @@ void transparent_geometry_group_sort(void)
  */
 uint8_t transparent_geometry_group_test_drawn_bit(transparent_geometry_group *group)
 {
-    uint8_t *base = (uint8_t *)transparent_geometry_groups;
-    uint8_t *p = (uint8_t *)group;
+    transparent_geometry_group *base = transparent_geometry_groups;
     int32_t index = -1;
 
-    if (base <= p && p < base + (uint32_t)transparent_geometry_group_count * 0xa8) {
-        index = (int32_t)(p - base) / 0xa8;
+    if (base <= group && group < base + transparent_geometry_group_count) {
+        index = (int32_t)(group - base);
     }
     if (index == -1) {
         return 1;
@@ -1520,24 +1521,24 @@ uint8_t transparent_geometry_group_test_drawn_bit(transparent_geometry_group *gr
  */
 int32_t transparent_geometry_pool_initialize(void)
 {
-    uint32_t secondary_pool;
+    transparent_geometry_group *secondary_pool;
 
-    transparent_geometry_groups = (transparent_geometry_group *)GlobalAlloc(0, 0xfc00);
-    transparent_geometry_group_sorted_indices = (int16_t *)GlobalAlloc(0, 0x300);
-    secondary_pool = (uint32_t)GlobalAlloc(0, 0x1500);
+    transparent_geometry_groups = static_cast<transparent_geometry_group *>(GlobalAlloc(0, k_rasterizer_maximum_transparent_groups * sizeof(transparent_geometry_group)));
+    transparent_geometry_group_sorted_indices = static_cast<int16_t *>(GlobalAlloc(0, k_rasterizer_maximum_transparent_groups * sizeof(int16_t)));
+    secondary_pool = static_cast<transparent_geometry_group *>(GlobalAlloc(0, k_rasterizer_maximum_secondary_groups * sizeof(transparent_geometry_group)));
     transparent_geometry_group_secondary_count = 0;
     transparent_geometry_group_count = 0;
-    transparent_geometry_groups_secondary = (transparent_geometry_group *)secondary_pool;
+    transparent_geometry_groups_secondary = secondary_pool;
 
     if (transparent_geometry_groups != (transparent_geometry_group *)0 &&
-        transparent_geometry_group_sorted_indices != nullptr && secondary_pool != 0) {
+        transparent_geometry_group_sorted_indices != nullptr && secondary_pool != nullptr) {
         uint32_t result = rasterizer_misc_vertex_buffer_create();
         if ((uint8_t)result != 0) {
             return (int32_t)halo::rasterizer::replace_low_byte(result, 1);
         }
         return (int32_t)halo::rasterizer::replace_low_byte(result, 0);
     }
-    return (int32_t)halo::rasterizer::replace_low_byte(secondary_pool, 0);
+    return (int32_t)halo::rasterizer::replace_low_byte(static_cast<uint32_t>(reinterpret_cast<uintptr_t>(secondary_pool)), 0);
 }
 
 }  // namespace halo::rasterizer
