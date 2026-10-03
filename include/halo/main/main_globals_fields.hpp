@@ -4,6 +4,7 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
+#include "halo/core/shared_links.hpp"
 
 /**
  * Link names of the fields of the main_globals block (types/main.h, 0x719700) that other modules raise or read
@@ -11,10 +12,6 @@
  * range; the named references of halo::main::fields are what the engine code uses.
  */
 inline auto &main_globals_byte_0071973a = halo::link::ref<uint8_t>(halo::main::vars().main_globals_byte_0071973a);
-#ifndef HALO_LINKED_unknown_00719738
-#define HALO_LINKED_unknown_00719738
-inline auto &unknown_00719738 = halo::link::ref<uint8_t>(halo::ui::vars().unknown_00719738);
-#endif
 inline auto &unknown_0071973b = halo::link::ref<uint8_t>(halo::main::vars().unknown_0071973b);
 inline auto &main_globals_byte_0071974f = halo::link::ref<uint8_t>(halo::main::vars().main_globals_byte_0071974f);
 inline auto &unknown_00719769 = halo::link::ref<uint8_t>(halo::main::vars().unknown_00719769);

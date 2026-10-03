@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "halo/core/link.hpp"
 #include "halo/hs/vars.hpp"
+#include "halo/core/shared_links.hpp"
 
 /**
  * Link names of the script-visible cheat and debug flags (and the director camera request flag) that the
@@ -21,10 +22,6 @@ inline auto &DAT_00689471 = halo::link::ref<uint8_t>(halo::hs::vars().DAT_006894
 inline auto &g_00689481 = halo::link::ref<uint8_t>(halo::hs::vars().g_00689481);
 inline auto &unknown_00746fa4 = halo::link::ref<uint8_t>(halo::hs::vars().unknown_00746fa4);
 inline auto &unknown_006869d1 = halo::link::ref<uint8_t>(halo::hs::vars().unknown_006869d1);
-#ifndef HALO_LINKED_unknown_006894ba
-#define HALO_LINKED_unknown_006894ba
-inline auto &unknown_006894ba = halo::link::ref<uint8_t>(halo::hs::vars().unknown_006894ba);
-#endif
 
 namespace halo::hs::fields {
 

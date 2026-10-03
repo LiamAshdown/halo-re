@@ -6,6 +6,7 @@
 #include "halo/rasterizer/vars.hpp"
 #include "halo/render/vars.hpp"
 #include "halo/rasterizer/draw_procedures.hpp"
+#include "halo/core/shared_links.hpp"
 
 /**
  * Link names of the engine globals of the rasterizer that the original image keeps as anonymous data. The
@@ -14,10 +15,6 @@
  */
 inline auto &unknown_006893ef = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006893ef);
 inline auto &console_debug_toggle_689409 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689409);
-#ifndef HALO_LINKED_console_debug_toggle_689404
-#define HALO_LINKED_console_debug_toggle_689404
-inline auto &console_debug_toggle_689404 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689404);
-#endif
 inline auto &console_debug_toggle_689403 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689403);
 inline auto &console_debug_toggle_689421 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689421);
 inline auto &console_debug_toggle_68941e = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_68941e);
@@ -34,14 +31,6 @@ inline auto &console_debug_toggle_689400 = halo::link::ref<uint8_t>(halo::raster
 inline auto &console_debug_toggle_689407 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689407);
 inline auto &console_debug_toggle_689408 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689408);
 inline auto &console_debug_toggle_69c614 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_69c614);
-#ifndef HALO_LINKED_unknown_006893ff
-#define HALO_LINKED_unknown_006893ff
-inline auto &unknown_006893ff = halo::link::ref<uint8_t>(halo::ui::vars().unknown_006893ff);
-#endif
-#ifndef HALO_LINKED_unknown_00689450
-#define HALO_LINKED_unknown_00689450
-inline auto &unknown_00689450 = halo::link::ref<int16_t>(halo::ui::vars().unknown_00689450);
-#endif
 inline auto &unknown_006893e2 = halo::link::ref<uint16_t>(halo::rasterizer::vars().unknown_006893e2);
 inline auto &unknown_006893f6 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006893f6);
 inline auto &unknown_006893f7 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006893f7);
@@ -67,19 +56,7 @@ inline auto &unknown_0071d1fa = halo::link::ref<uint8_t>(halo::rasterizer::vars(
 inline auto &unknown_0071d1fb = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1fb);
 inline auto &unknown_0071d1fc = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1fc);
 inline auto &unknown_0071d1fd = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1fd);
-#ifndef HALO_LINKED_unknown_0071d275
-#define HALO_LINKED_unknown_0071d275
-inline auto &unknown_0071d275 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d275);
-#endif
-#ifndef HALO_LINKED_unknown_0071d276
-#define HALO_LINKED_unknown_0071d276
-inline auto &unknown_0071d276 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d276);
-#endif
 inline auto &unknown_00721ea0 = halo::link::ref<void *(*)(void *hwnd, void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e)>(halo::rasterizer::vars().unknown_00721ea0);
-#ifndef HALO_LINKED_unknown_00721eac
-#define HALO_LINKED_unknown_00721eac
-inline auto &unknown_00721eac = halo::link::ref<void (*)(void *engine)>(halo::rasterizer::vars().unknown_00721eac);
-#endif
 inline auto &unknown_00721eb4 = halo::link::ref<int32_t (*)(void *engine, void *path, void *key, uint32_t flags, void *rect, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e, uint32_t f)>(halo::rasterizer::vars().unknown_00721eb4);
 inline auto &unknown_00721eb8 = halo::link::ref<int32_t (*)(void *engine, void *key)>(halo::rasterizer::vars().unknown_00721eb8);
 inline auto &unknown_00721ebc = halo::link::ref<int32_t (*)(void *engine)>(halo::rasterizer::vars().unknown_00721ebc);

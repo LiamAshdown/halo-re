@@ -45,6 +45,8 @@
 #include "halo/render/vars.hpp"
 #include "halo/saved_games/vars.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/core/shared_links.hpp"
+#include "halo/core/shared_state_links.hpp"
 
 
 inline auto &direct3d_create9_procedure = halo::link::ref<void *(__stdcall *)(uint32_t sdk_version)>(halo::rasterizer::vars().direct3d_create9_procedure);
@@ -54,14 +56,6 @@ inline auto &cinematic_screen_effect_state = halo::link::ref<cinematic_screen_ef
 inline auto &rasterizer_default_z_near = halo::link::ref<float>(halo::rasterizer::vars().rasterizer_default_z_near);
 inline auto &rasterizer_time = halo::link::ref<rasterizer_frame_time>(halo::rasterizer::vars().rasterizer_time);
 inline auto &rasterizer_caps = halo::link::ref<d3d_caps9>(halo::rasterizer::vars().rasterizer_caps);
-#ifndef HALO_LINKED_unknown_0071d275
-#define HALO_LINKED_unknown_0071d275
-inline auto &unknown_0071d275 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d275);
-#endif
-#ifndef HALO_LINKED_unknown_0071d276
-#define HALO_LINKED_unknown_0071d276
-inline auto &unknown_0071d276 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d276);
-#endif
 inline auto &decals_for_all_responses = halo::link::ref<uint8_t>(halo::effects::vars().decals_for_all_responses);
 inline auto &rasterizer_decal_vertex_cache_handle = halo::link::ref<::cache *>(halo::effects::vars().rasterizer_decal_vertex_cache_handle);
 inline auto &text_rendering_enabled = halo::link::ref<uint8_t>(halo::rasterizer::vars().text_rendering_enabled);
@@ -107,10 +101,6 @@ inline auto &shell_argc = halo::link::ref<int32_t>(halo::shell::vars().shell_arg
 inline auto &shell_argv = halo::link::ref<char **>(halo::shell::vars().shell_argv);
 inline auto &safe_mode = halo::link::ref<int32_t>(halo::shell::vars().safe_mode);
 inline auto &rasterizer_ui_text_constants = halo::link::ref<float [20]>(halo::rasterizer::vars().rasterizer_ui_text_constants);
-#ifndef HALO_LINKED_global_globals
-#define HALO_LINKED_global_globals
-inline auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
-#endif
 inline auto &lens_flare_object_visibility_table = halo::link::ref<lens_flare_object_visibility [k_lens_flare_object_visibility_slots]>(halo::rasterizer::vars().lens_flare_object_visibility_table);
 inline auto &lens_flare_marker_visibility = halo::link::ref<uint8_t [0x10008]>(halo::rasterizer::vars().lens_flare_marker_visibility);
 inline auto &lens_flare_instance_count = halo::link::ref<int32_t>(halo::rasterizer::vars().lens_flare_instance_count);
@@ -141,10 +131,6 @@ inline auto &rasterizer_bitmap_format_to_d3dformat = halo::link::ref<int32_t []>
 inline auto &rasterizer_cube_face_to_d3d_face = halo::link::ref<int16_t [6]>(halo::rasterizer::vars().rasterizer_cube_face_to_d3d_face);
 inline auto &config_disable_buffering = halo::link::ref<uint32_t>(halo::shell::vars().config_disable_buffering);
 inline auto &screenshots = halo::link::ref<uint32_t>(halo::main::vars().screenshots);
-#ifndef HALO_LINKED_shell_window
-#define HALO_LINKED_shell_window
-inline auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
-#endif
 inline auto &video_force_mode_flag = halo::link::ref<uint8_t>(halo::ui::vars().video_force_mode_flag);
 inline auto &game_time_force_single_tick = halo::link::ref<uint32_t>(halo::game::vars().game_time_force_single_tick);
 inline auto &rasterizer_device_lost = halo::link::ref<uint8_t>(halo::main::vars().rasterizer_device_lost);
@@ -169,29 +155,9 @@ inline auto &rasterizer_decal_vertex_cache = halo::link::ref<void *>(halo::effec
 inline auto &rasterizer_vertex_buffer_lock_state = halo::link::ref<int16_t>(halo::rasterizer::vars().rasterizer_vertex_buffer_lock_state);
 inline auto &decal_grid_block = halo::link::ref<uint32_t *>(halo::effects::vars().decal_grid_block);
 inline auto &rasterizer_vertex_shaders = halo::link::ref<rasterizer_vertex_shader [k_rasterizer_vertex_shaders]>(halo::networking::vars().rasterizer_vertex_shaders);
-#ifndef HALO_LINKED_game_state_base
-#define HALO_LINKED_game_state_base
-inline auto &game_state_base = halo::link::ref<uint8_t *>(halo::saved_games::vars().game_state_base);
-#endif
-#ifndef HALO_LINKED_game_state_cursor
-#define HALO_LINKED_game_state_cursor
-inline auto &game_state_cursor = halo::link::ref<int32_t>(halo::saved_games::vars().game_state_cursor);
-#endif
-#ifndef HALO_LINKED_game_state_crc
-#define HALO_LINKED_game_state_crc
-inline auto &game_state_crc = halo::link::ref<uint32_t>(halo::saved_games::vars().game_state_crc);
-#endif
 inline auto &rasterizer_detail_object_vertex_buffer = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_detail_object_vertex_buffer);
-#ifndef HALO_LINKED_console_debug_toggle_689404
-#define HALO_LINKED_console_debug_toggle_689404
-inline auto &console_debug_toggle_689404 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689404);
-#endif
 inline auto &console_debug_value_689430 = halo::link::ref<float>(halo::rasterizer::vars().console_debug_value_689430);
 inline auto &global_scenario = halo::link::ref<Scenario *>(halo::hs::vars().global_scenario);
-#ifndef HALO_LINKED_global_structure_bsp
-#define HALO_LINKED_global_structure_bsp
-inline auto &global_structure_bsp = halo::link::ref<ScenarioStructureBSP *>(halo::ai::vars().global_structure_bsp);
-#endif
 inline auto &rasterizer_vertex_buffer_slot_high_water = halo::link::ref<int32_t>(halo::rasterizer::vars().rasterizer_vertex_buffer_slot_high_water);
 inline auto &rasterizer_vertex_buffer_slots = halo::link::ref<rasterizer_vertex_buffer_slot [k_rasterizer_vertex_buffer_slots]>(halo::rasterizer::vars().rasterizer_vertex_buffer_slots);
 inline auto &lens_flare_occlusion_queries = halo::link::ref<void *[k_lens_flare_occlusion_queries]>(halo::rasterizer::vars().lens_flare_occlusion_queries);
@@ -261,10 +227,6 @@ inline auto &graphics_device_id = halo::link::ref<uint32_t>(halo::shell::vars().
 inline auto &graphics_vendor_id = halo::link::ref<uint32_t>(halo::rasterizer::vars().graphics_vendor_id);
 inline auto &video_memory = halo::link::ref<uint32_t>(halo::ui::vars().video_memory);
 inline auto &required_video_memory = halo::link::ref<uint32_t>(halo::rasterizer::vars().required_video_memory);
-#ifndef HALO_LINKED_unknown_00721eac
-#define HALO_LINKED_unknown_00721eac
-inline auto &unknown_00721eac = halo::link::ref<void (*)(void *engine)>(halo::rasterizer::vars().unknown_00721eac);
-#endif
 inline auto &lens_flare_applied_key = halo::link::ref<lens_flare_batch_key>(halo::rasterizer::vars().lens_flare_applied_key);
 inline auto &lens_flare_batches = halo::link::ref<lens_flare_batch [k_lens_flare_batch_slots]>(halo::rasterizer::vars().lens_flare_batches);
 inline auto &lens_flare_current_key = halo::link::ref<lens_flare_batch_key>(halo::rasterizer::vars().lens_flare_current_key);
@@ -280,10 +242,6 @@ inline auto &rasterizer_active_model_context = halo::link::ref<rasterizer_model_
 inline auto &rasterizer_model_scratch_valid = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_model_scratch_valid);
 inline auto &rasterizer_active_model_mode = halo::link::ref<int16_t>(halo::rasterizer::vars().rasterizer_active_model_mode);
 inline auto &rasterizer_motion_sensor_ready = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_motion_sensor_ready);
-#ifndef HALO_LINKED_local_player_globals
-#define HALO_LINKED_local_player_globals
-inline auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
-#endif
 inline auto &rasterizer_identity_vertex_constants = halo::link::ref<const float [5][4]>(halo::rasterizer::vars().rasterizer_identity_vertex_constants);
 inline auto &console_debug_toggle_68941f = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_68941f);
 inline auto &rasterizer_object_shadow_color = halo::link::ref<ColorRGB>(halo::rasterizer::vars().rasterizer_object_shadow_color);

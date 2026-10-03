@@ -4,6 +4,7 @@
 #include "halo/core/link.hpp"
 #include "halo/hs/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/shared_links.hpp"
 
 #ifdef interface
 #undef interface
@@ -17,29 +18,9 @@
 inline auto &DAT_0065fb2c = halo::link::ref<char [4]>(halo::ui::vars().DAT_0065fb2c);
 inline auto &DAT_0065fb14 = halo::link::ref<char [4]>(halo::ui::vars().DAT_0065fb14);
 inline auto &DAT_00669ae0 = halo::link::ref<char [4]>(halo::ui::vars().DAT_00669ae0);
-#ifndef HALO_LINKED_DAT_00695420
-#define HALO_LINKED_DAT_00695420
-inline auto &DAT_00695420 = halo::link::ref<int32_t>(halo::ui::vars().DAT_00695420);
-#endif
 inline auto &unknown_00692b0c = halo::link::ref<int32_t>(halo::ui::vars().unknown_00692b0c);
-#ifndef HALO_LINKED_unknown_00689450
-#define HALO_LINKED_unknown_00689450
-inline auto &unknown_00689450 = halo::link::ref<int16_t>(halo::ui::vars().unknown_00689450);
-#endif
-#ifndef HALO_LINKED_unknown_006893ff
-#define HALO_LINKED_unknown_006893ff
-inline auto &unknown_006893ff = halo::link::ref<uint8_t>(halo::ui::vars().unknown_006893ff);
-#endif
-#ifndef HALO_LINKED_unknown_006894ba
-#define HALO_LINKED_unknown_006894ba
-inline auto &unknown_006894ba = halo::link::ref<uint8_t>(halo::hs::vars().unknown_006894ba);
-#endif
 inline auto &unknown_007127d1 = halo::link::ref<uint8_t>(halo::ui::vars().unknown_007127d1);
 inline auto &unknown_00712f07 = halo::link::ref<uint8_t>(halo::ui::vars().unknown_00712f07);
-#ifndef HALO_LINKED_unknown_00719738
-#define HALO_LINKED_unknown_00719738
-inline auto &unknown_00719738 = halo::link::ref<uint8_t>(halo::ui::vars().unknown_00719738);
-#endif
 inline auto &unknown_00719779 = halo::link::ref<char [255]>(halo::ui::vars().unknown_00719779);
 inline auto &unknown_00719208 = halo::link::ref<uint32_t>(halo::ui::vars().unknown_00719208);
 inline auto &unknown_00879f34 = halo::link::ref<uint32_t>(halo::ui::vars().unknown_00879f34);

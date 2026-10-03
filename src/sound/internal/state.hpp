@@ -28,23 +28,12 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/core/shared_state_links.hpp"
 
 
 inline auto &game_looping_sound_data = halo::link::ref<data_array *>(halo::ui::vars().game_looping_sound_data);
 inline auto &game_sound_globals_ptr = halo::link::ref<game_sound_globals *>(halo::sound::vars().game_sound_globals_ptr);
 inline auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
-#ifndef HALO_LINKED_game_state_base
-#define HALO_LINKED_game_state_base
-inline auto &game_state_base = halo::link::ref<uint8_t *>(halo::saved_games::vars().game_state_base);
-#endif
-#ifndef HALO_LINKED_game_state_cursor
-#define HALO_LINKED_game_state_cursor
-inline auto &game_state_cursor = halo::link::ref<int32_t>(halo::saved_games::vars().game_state_cursor);
-#endif
-#ifndef HALO_LINKED_game_state_crc
-#define HALO_LINKED_game_state_crc
-inline auto &game_state_crc = halo::link::ref<uint32_t>(halo::saved_games::vars().game_state_crc);
-#endif
 inline auto &sound_environment = halo::link::ref<SoundEnvironment>(halo::sound::vars().sound_environment);
 inline auto &sound_cluster_audible_bitmap = halo::link::ref<uint32_t [k_sound_cluster_bitmap_words]>(halo::sound::vars().sound_cluster_audible_bitmap);
 inline auto &sound_looping_audibility_check = halo::link::ref<uint8_t>(halo::sound::vars().sound_looping_audibility_check);
@@ -97,24 +86,12 @@ inline auto &sound_paused = halo::link::ref<uint8_t>(halo::shell::vars().sound_p
 inline auto &sound_stopping_all = halo::link::ref<uint8_t>(halo::sound::vars().sound_stopping_all);
 inline auto &debug_sound = halo::link::ref<uint8_t>(halo::sound::vars().debug_sound);
 inline auto &sound_permutation_limit = halo::link::ref<int16_t>(halo::ui::vars().sound_permutation_limit);
-#ifndef HALO_LINKED_local_player_globals
-#define HALO_LINKED_local_player_globals
-inline auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
-#endif
 inline auto &local_player_0_cluster_index = halo::link::ref<int16_t>(halo::sound::vars().local_player_0_cluster_index);
 inline auto &camera_point = halo::link::ref<real_point3d>(halo::game::vars().camera_point);
 inline auto &camera_leaf = halo::link::ref<bsp_leaf_reference>(halo::sound::vars().camera_leaf);
-#ifndef HALO_LINKED_global_structure_bsp
-#define HALO_LINKED_global_structure_bsp
-inline auto &global_structure_bsp = halo::link::ref<ScenarioStructureBSP *>(halo::ai::vars().global_structure_bsp);
-#endif
 inline auto &global_scenario_game_globals = halo::link::ref<scenario_game_globals *>(halo::shell::vars().global_scenario_game_globals);
 inline auto &k_default_sound_environment = halo::link::ref<SoundEnvironment>(halo::game::vars().k_default_sound_environment);
 inline auto &global_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_collision_bsp);
-#ifndef HALO_LINKED_global_globals
-#define HALO_LINKED_global_globals
-inline auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
-#endif
 inline auto &sound_dialog_ducking_gain = halo::link::ref<float>(halo::sound::vars().sound_dialog_ducking_gain);
 inline auto &sound_ducking_gain = halo::link::ref<float>(halo::sound::vars().sound_ducking_gain);
 inline auto &sound_time_delta = halo::link::ref<float>(halo::sound::vars().sound_time_delta);
@@ -140,10 +117,6 @@ inline auto &sound_cache_size_megabytes = halo::link::ref<int32_t>(halo::shell::
 inline auto &error_text_buffer = halo::link::ref<char []>(halo::sound::vars().error_text_buffer);
 inline auto &sound_ogg_underrun_count = halo::link::ref<int32_t>(halo::sound::vars().sound_ogg_underrun_count);
 inline auto &shell_nosound = halo::link::ref<int32_t>(halo::shell::vars().shell_nosound);
-#ifndef HALO_LINKED_shell_window
-#define HALO_LINKED_shell_window
-inline auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
-#endif
 inline auto &direct_sound_create8 = halo::link::ref<void *>(halo::shell::vars().direct_sound_create8);
 inline auto &directsound_initialized = halo::link::ref<uint8_t>(halo::ui::vars().directsound_initialized);
 inline auto &directsound_binding_count = halo::link::ref<int16_t>(halo::sound::vars().directsound_binding_count);
