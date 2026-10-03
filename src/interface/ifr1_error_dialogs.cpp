@@ -1,11 +1,11 @@
 #include "halo/interface/ifr1_error_dialogs.hpp"
+#include "halo/interface/engine_state.hpp"
 
 extern "C" {
 extern cinematic_globals *cinematic_globals_ptr;
 extern ui_pending_error ui_pending_errors[4];
 extern player_globals *local_player_globals;
 extern uint8_t ui_split_screen;
-extern float ui_unknown_718fa8;
 extern uint8_t network_wait_flag_00719739;
 extern widget_instance *ui_root_widget[1];
 extern int16_t network_game_mode;
@@ -110,11 +110,11 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
         return;
     }
 
-    if (ui_split_screen != 0 && (ui_unknown_718fa8 < 1.0f) != (ui_unknown_718fa8 == 1.0f) &&
-        0.0f <= ui_unknown_718fa8) {
+    if (ui_split_screen != 0 && (state::screen_fade_progress < 1.0f) != (state::screen_fade_progress == 1.0f) &&
+        0.0f <= state::screen_fade_progress) {
         chimera__load_main_menu();
         network_wait_flag_00719739 = 0;
-        ui_unknown_718fa8 = -1.0f;
+        state::screen_fade_progress = -1.0f;
     }
 
     slot = (int16_t)(((uint16_t)player_index == 0xffff) ? 0 : (uint16_t)player_index);

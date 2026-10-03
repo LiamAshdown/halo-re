@@ -1,11 +1,11 @@
 #include "halo/interface/ifr2_players.hpp"
+#include "halo/interface/engine_state.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
 extern "C" {
-extern uint8_t unknown_00712f07;
 extern int32_t saved_player_profile_slots_handle;
 extern tag_instance *tag_instances;
 extern uint8_t profile_globals_block[];
@@ -36,7 +36,7 @@ void PlayerProfiles::save_495fb0(uint8_t flag)
     uint32_t length;
     const uint16_t *text;
 
-    unknown_00712f07 = flag;
+    state::profile_slot_flag = flag;
     if (saved_player_profile_slots_handle != -1) {
         string_list_tag = tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\temp_strings");
 

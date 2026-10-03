@@ -91,7 +91,6 @@ extern player_control_settings input_globals[];
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_disk_copy[0x1ffc];
 extern uint8_t saved_item_working_copy[0x1ffc];
-extern uint8_t unknown_00714f14;
 extern void console_out_printf(uint8_t unknown, const char *format, ...);
 extern void player_profile_write_data(int32_t slot, void *profile_data);
 extern void game_variant_sanitize_options(game_variant *variant);
@@ -101,7 +100,6 @@ extern int32_t saved_game_create_custom_variant(int32_t unknown, void *variant_d
 extern void player_profile_select_list_widget_build(widget_instance *widget);
 extern virtual_keyboard_globals virtual_keyboard;
 extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind);
-extern uint32_t unknown_00714eb8;
 extern uint8_t default_profile_data[0x1ffc];
 extern void game_engine_apply_current_custom_variant(void);
 extern uint8_t saved_game_get_variant(int32_t slot, game_variant *out);
@@ -668,7 +666,7 @@ int16_t PlayerProfiles::find_index_by_id(int16_t id)
 
 /**
  * blam-cc: EDX -> id Finds the (sole, retail-PC) profile slot whose stored id matches `id` -- unless
- * unknown_0071c2d8/unknown_0071c2d4 are not both clear, in which case the slot index defaults to `id` itself
+ * network_client/network_server are not both clear, in which case the slot index defaults to `id` itself
  * -- and returns the flag byte at offset 0x132 of that slot's profile record, or 0 if no slot was found.
  *
  * @address 0x495a60
@@ -833,7 +831,7 @@ uint8_t PlayerProfiles::save()
             result = 1;
         } else if (wcsncmp((wchar_t *)saved_item_working_copy, (wchar_t *)saved_item_disk_copy,
                            0x18) != 0) {
-            unknown_00714f14 &= 0xfe;
+            ((game_variant *)saved_item_working_copy)->variant_flags &= 0xfffe;
             new_slot = saved_game_create_custom_variant(0, saved_item_working_copy);
             if (new_slot != -1) {
                 game_variant_sanitize_options((game_variant *)saved_item_working_copy);
@@ -972,7 +970,7 @@ void SavedItem::select(int32_t item)
         }
         if (saved_game_get_variant(item, (game_variant *)saved_item_disk_copy) != 0) {
             memcpy(saved_item_working_copy, saved_item_disk_copy, sizeof(game_variant));
-            unknown_00714eb8 = unknown_00714eb8 & 0xfffffe7f;
+            ((game_variant *)saved_item_working_copy)->flags &= 0xfffffe7f;
             selected_saved_item = item;
         }
     }

@@ -4,6 +4,7 @@
  */
 
 #include "tags.h"
+#include "halo/interface/engine_state.hpp"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
@@ -68,7 +69,6 @@ extern int32_t video_resolution_count;
 extern video_resolution video_resolutions[0x20];
 extern int32_t video_gamma_setting;
 extern rasterizer_display_mode ui_video_requested_display_mode_006b7010;
-extern uint8_t unknown_006894ba;
 extern int32_t game_time_force_single_tick;
 extern d3d_display_mode rasterizer_desktop_display_mode;
 extern uint8_t rasterizer_needs_reset;
@@ -654,9 +654,9 @@ uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, u
     ui_flag_007196d2 = 0;
     if (changed == 1) {
         if (game_time_force_single_tick != 0) {
-            unknown_006894ba = 0;
+            halo::interface::state::frame_rate_limiter_enabled = 0;
         } else {
-            unknown_006894ba = (uint8_t)(saved_item_working_copy[0xa6f] == 2);
+            halo::interface::state::frame_rate_limiter_enabled = (uint8_t)(saved_item_working_copy[0xa6f] == 2);
         }
         return 1;
     }
@@ -692,12 +692,12 @@ uint8_t UiEventHandlers::event_4bb970(widget_instance *widget, int16_t *event, u
     *(uint16_t *)(profile + 0xa6c) = (uint16_t)ui_video_requested_display_mode_006b7010.refresh_rate;
     *(uint16_t *)(profile + 0xa6a) = (uint16_t)ui_video_requested_display_mode_006b7010.height;
     if (ui_video_requested_display_mode_006b7010.vsync != 0) {
-        profile[0xa6f] = (uint8_t)((unknown_006894ba != 0) + 1);
+        profile[0xa6f] = (uint8_t)((halo::interface::state::frame_rate_limiter_enabled != 0) + 1);
     }
     if (game_time_force_single_tick != 0) {
-        unknown_006894ba = 0;
+        halo::interface::state::frame_rate_limiter_enabled = 0;
     } else {
-        unknown_006894ba = (uint8_t)(profile[0xa6f] == 2);
+        halo::interface::state::frame_rate_limiter_enabled = (uint8_t)(profile[0xa6f] == 2);
     }
     sound_set_master_gain(0.05f);
     if (rasterizer_display_mode_differs(&ui_video_requested_display_mode_006b7010) != 0) {

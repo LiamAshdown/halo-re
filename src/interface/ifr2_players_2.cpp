@@ -1,4 +1,5 @@
 #include "win32.h"
+#include "halo/interface/engine_state.hpp"
 #include "halo/interface/ifr2_players.hpp"
 #include "rasterizer.h"
 
@@ -9,9 +10,7 @@
 extern "C" {
 extern int32_t safe_mode;
 extern int16_t renderer_texture_quality;
-extern int16_t unknown_00689450;
 extern int32_t game_time_force_single_tick;
-extern uint8_t unknown_006894ba;
 extern uint8_t rasterizer_fullscreen;
 extern void *rasterizer_device;
 extern uint8_t rasterizer_needs_reset;
@@ -24,7 +23,6 @@ extern uint32_t rasterizer_device_version;
 extern uint8_t console_debug_toggle_6893f2;
 extern uint32_t rasterizer_capability_007c10e4;
 extern int16_t light_count_enabled;
-extern uint8_t unknown_006893ff;
 extern uint8_t console_debug_toggle_689404;
 extern uint8_t decals_for_all_responses;
 extern uint8_t particle_spawn_debug_mode;
@@ -77,13 +75,13 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
         mode_changed = renderer_texture_quality != new_mode;
         renderer_texture_quality = new_mode;
     }
-    unknown_00689450 = 2;
+    state::object_lod_quality = 2;
 
     mode.width = *(int16_t *)(settings + 0xa68);
     mode.height = *(int16_t *)(settings + 0xa6a);
     mode.refresh_rate = *(int16_t *)(settings + 0xa6c);
     mode.vsync = settings[0xa6f] != 0;
-    unknown_006894ba = game_time_force_single_tick != 0 ? 0 : settings[0xa6f] == 2;
+    state::frame_rate_limiter_enabled = game_time_force_single_tick != 0 ? 0 : settings[0xa6f] == 2;
 
     if (rasterizer_fullscreen == 0 || rasterizer_device == 0) {
         GetWindowRect(GetDesktopWindow(), &desktop);
@@ -115,7 +113,7 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
     console_debug_toggle_6893fa = value;
     console_debug_toggle_6893f2 = rasterizer_device_version < 0xffff0101u ? 0 : settings[0xa71];
     light_count_enabled = 2;
-    unknown_006893ff = 1;
+    state::decals_and_lens_flares_enabled = 1;
     console_debug_toggle_689404 = 1;
     decals_for_all_responses = (rasterizer_capability_007c10e4 & 0x6000000u) != 0 ? settings[0xa72] : 0;
     particle_spawn_debug_mode = settings[0xa73];

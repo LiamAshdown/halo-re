@@ -4,6 +4,7 @@
  */
 
 #include "win32.h"
+#include "halo/interface/engine_state.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -60,10 +61,6 @@ extern uint8_t game_engine_teams_enabled_flag;
 extern void game_engine_send_team_allegiance_message(char broadcast);
 extern uint8_t variant_teams_enabled_0071920c;
 extern int32_t variant_team_selection_00692b08;
-extern int32_t unknown_00692b0c;
-extern uint32_t unknown_00879f34;
-extern uint32_t unknown_00879f38;
-extern uint32_t unknown_00719208;
 extern void ui_controls_populate_bind_rows(widget_instance *widget, uint32_t packed);
 extern uint8_t ui_network_game_options_populate(widget_instance *widget, const uint8_t *options_record);
 extern uint32_t network_game_option_a_00719210;
@@ -569,10 +566,10 @@ uint8_t UiEventHandlers::event_4a33a0(widget_instance *widget, int16_t *event, u
     }
     time = ((struct game_variant *)variant)->vehicle_respawn_time;
     variant_teams_enabled_0071920c = (uint8_t)(((struct game_variant *)variant)->teams != 0);
-    unknown_00692b0c = 0;
-    unknown_00879f34 = ((struct game_variant *)variant)->red_vehicle_set;
-    unknown_00879f38 = ((struct game_variant *)variant)->blue_vehicle_set;
-    unknown_00719208 = (uint32_t)time;
+    halo::interface::state::vehicle_options_team_page = 0;
+    halo::interface::state::vehicle_options_red_set = ((struct game_variant *)variant)->red_vehicle_set;
+    halo::interface::state::vehicle_options_blue_set = ((struct game_variant *)variant)->blue_vehicle_set;
+    halo::interface::state::vehicle_options_respawn_time = (uint32_t)time;
     ui_controls_populate_bind_rows(widget, ((struct game_variant *)variant)->red_vehicle_set);
     first = widget->first_child;
     first_list_child(first)->selection_index = (int16_t)(time == 0x384 ? 1 : time == 0x708 ? 2 : time == 0xa8c ? 3 :
@@ -586,7 +583,7 @@ uint8_t UiEventHandlers::event_4a33a0(widget_instance *widget, int16_t *event, u
         second->hidden = 1;
         second->state = 0;
     }
-    first_list_child(second->next_sibling)->selection_index = (int16_t)((unknown_00879f34 & 0xf) < 9 ? (unknown_00879f34 & 0xf) : 0);
+    first_list_child(second->next_sibling)->selection_index = (int16_t)((halo::interface::state::vehicle_options_red_set & 0xf) < 9 ? (halo::interface::state::vehicle_options_red_set & 0xf) : 0);
     variant_team_selection_00692b08 = second_list->selection_index;
     return 1;
 }
@@ -601,9 +598,9 @@ uint8_t UiEventHandlers::event_4a3510(widget_instance *widget, int16_t *event, u
     if ((selected_saved_item & 0xf) == 1) {
         uint32_t *out = (uint32_t *)(saved_item_working_copy + 0x60);
 
-        out[0] = unknown_00879f34;
-        out[1] = unknown_00879f38;
-        out[2] = unknown_00719208;
+        out[0] = halo::interface::state::vehicle_options_red_set;
+        out[1] = halo::interface::state::vehicle_options_blue_set;
+        out[2] = halo::interface::state::vehicle_options_respawn_time;
     }
     return 1;
 }

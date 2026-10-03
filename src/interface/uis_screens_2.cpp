@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/interface/engine_state.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -24,7 +25,6 @@ extern uint8_t ui_split_screen;
 extern int32_t ui_pause_pending_count_00718fa0;
 extern player_control_globals *player_control_globals_ptr;
 extern uint8_t chat_dialog_open;
-extern uint8_t unknown_007127d1;
 extern player_globals *local_player_globals;
 extern game_engine_state game_engine_state_value;
 extern widget_instance *ui_root_widget[1];
@@ -61,7 +61,7 @@ uint32_t UiScreens::check_for_pause_game(void)
         cinematic_globals_ptr->in_progress != 0 ||
         network_game_mode == 3 || ui_split_screen != 0 || ui_pause_pending_count_00718fa0 != 0 ||
         (player_control_globals_ptr->action_flags_latched >> 3 & 1) != 0 || chat_dialog_open != 0 ||
-        unknown_007127d1 != 1) {
+        halo::interface::state::escape_key_state != 1) {
         goto decrement_and_return;
     }
 

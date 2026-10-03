@@ -4,6 +4,7 @@
  */
 
 #include "tags.h"
+#include "halo/interface/engine_state.hpp"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
@@ -37,12 +38,8 @@ extern void widget_instance_set_state_recursive(widget_instance *widget, uint8_t
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern int32_t joystick_slot_devices[4];
-extern uint32_t unknown_00719208;
 extern uint8_t variant_teams_enabled_0071920c;
 extern int32_t variant_team_selection_00692b08;
-extern int32_t unknown_00692b0c;
-extern uint32_t unknown_00879f34;
-extern uint32_t unknown_00879f38;
 extern void ui_controls_populate_bind_rows(widget_instance *widget, uint32_t packed);
 extern void controls_gamepad_lists_refresh(widget_instance *screen);
 extern void controls_gamepad_widget_nodes_collect(widget_instance **out, widget_instance *screen);
@@ -688,15 +685,15 @@ void UiGameDataInputs::input_4a7880(widget_instance *widget)
     uint32_t *packed;
     int32_t which;
 
-    unknown_00719208 = selection >= 0 && selection <= 6 ? delays[selection] : 0;
+    halo::interface::state::vehicle_options_respawn_time = selection >= 0 && selection <= 6 ? delays[selection] : 0;
     group = group->next_sibling;
-    which = unknown_00692b0c;
+    which = halo::interface::state::vehicle_options_team_page;
     if (first_list_child(group)->selection_index != which) {
         which = first_list_child(group)->selection_index;
-        unknown_00692b0c = which;
+        halo::interface::state::vehicle_options_team_page = which;
         changed = 1;
     }
-    packed = which == 1 ? &unknown_00879f38 : &unknown_00879f34;
+    packed = which == 1 ? &halo::interface::state::vehicle_options_blue_set : &halo::interface::state::vehicle_options_red_set;
     if (changed) {
         uint32_t value = *packed;
 

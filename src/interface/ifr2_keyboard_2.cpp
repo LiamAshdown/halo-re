@@ -1,4 +1,9 @@
 #include "halo/interface/ifr2_keyboard.hpp"
+#include "halo/interface/engine_state.hpp"
+#include "saved_games.h"
+#include "input.h"
+
+extern "C" input_event_queue input_event_queue_active;
 #include "crt.h"
 #include <wchar.h>
 #include <string.h>
@@ -10,7 +15,6 @@
 extern "C" {
 extern virtual_keyboard_globals virtual_keyboard;
 extern uint8_t controls_input_capture_flags;
-extern uint8_t unknown_00712ccc[0x100];
 extern datum_index tag_lookup(tag_group group, char *path);
 extern int32_t time_query_performance_counter_ms(void);
 extern void widget_play_sound_effect(int16_t effect_id);
@@ -35,7 +39,7 @@ uint8_t VirtualKeyboard::open(uint16_t *destination, uint16_t maximum_length, in
         return 0;
     }
 
-    memset(unknown_00712ccc, 0, sizeof(unknown_00712ccc));
+    memset(input_event_queue_active.events, 0, sizeof(input_event_queue_active.events));
 
     virtual_keyboard.caret = 0;
     virtual_keyboard.unknown_0a = 0;

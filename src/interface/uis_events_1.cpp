@@ -4,6 +4,7 @@
  */
 
 #include "crt.h"
+#include "halo/interface/engine_state.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -31,7 +32,6 @@ extern uint8_t network_join_error_reason;
 extern uint8_t main_globals_byte_0071974f;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t main_globals_byte_0071973a;
-extern uint8_t unknown_00719738;
 extern uint8_t split_screen_quit_prompt_armed;
 extern void network_client_globals_dispose(void);
 extern network_server_globals *network_server;
@@ -90,6 +90,10 @@ extern int32_t network_host_edit_field_00719410;
 extern widget_history_node *ui_widget_history[3];
 extern void heap_unlink_block(heap_block *block, heap *self);
 }
+
+#ifdef interface
+#undef interface
+#endif
 
 namespace halo::ui {
 
@@ -206,7 +210,7 @@ uint8_t UiEventHandlers::event_49d120(widget_instance *widget, int16_t *event, u
     network_join_error_reason = 0;
     main_globals_byte_0071974f = 0;
     split_screen_quit_prompt_string = 0xffff;
-    unknown_00719738 = 1;
+    halo::interface::state::round_reset_pending = 1;
     return 1;
 }
 

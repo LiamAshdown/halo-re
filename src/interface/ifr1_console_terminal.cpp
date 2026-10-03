@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_console_terminal.hpp"
+#include "halo/interface/engine_state.hpp"
 #include <stdarg.h>
 #include <string.h>
 
@@ -11,9 +12,6 @@ extern void chimera__console_out_copy(char *text);
 extern int32_t console_rcon_handle;
 extern uint8_t console_rcon_out_reentrant_guard;
 extern uint8_t console_win32_attached;
-extern char DAT_0065fb2c[];
-extern char DAT_0065fb14[];
-extern char DAT_00669ae0[];
 extern void *console_output_handle;
 extern void chimera__rcon_out(int32_t rcon_handle);
 extern void console_clear_bottom_line(int32_t clear_all);
@@ -123,12 +121,12 @@ void ConsoleTerminal::out_copy(char *text)
     if (console_win32_attached != 0) {
         line[0] = '\0';
         strncpy(line, text, 0x100);
-        string_replace_all_in_place(line, console_echo_prefix, DAT_0065fb2c);
-        string_replace_all_in_place(line, DAT_00669ae0, DAT_0065fb14);
+        string_replace_all_in_place(line, console_echo_prefix, state::console_tab_text);
+        string_replace_all_in_place(line, state::console_newline_escape, state::console_newline_text);
         length = strlen(line);
         console_clear_bottom_line(1);
         WriteConsoleA(console_output_handle, line, length, (LPDWORD)&chars_written, (void *)0);
-        WriteConsoleA(console_output_handle, DAT_0065fb14, 1, (LPDWORD)&chars_written, (void *)0);
+        WriteConsoleA(console_output_handle, state::console_newline_text, 1, (LPDWORD)&chars_written, (void *)0);
         console_draw_input_line();
     }
 }
