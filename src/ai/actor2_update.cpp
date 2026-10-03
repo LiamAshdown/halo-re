@@ -917,8 +917,8 @@ namespace actor_update_facing_change_timer_local {
 
 /**
  * Once the actor's "facing change pending" flag is set and its Actor tag allows a nonzero stand-facing-change
- * time, clears the flag and converts that time to a tick count. If the actor's current target (read here as a
- * prop index, see UNSURE above) is within 4 world units, clamps a smoothing field (unk
+ * time, clears the flag and converts that time to a tick count. If the actor's current target prop is within 4
+ * world units, raises the danger meter to at least 1.8.
  *
  * @address 0x423670
  */

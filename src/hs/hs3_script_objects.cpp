@@ -437,7 +437,7 @@ uint32_t ScriptObjects::object_list_any_angle_match_gated(datum_index header_ind
 /**
  * Allocates a fresh object_list header and chains a reference node onto it for the unit of every live player, in
  * ascending player-slot order. Returns the new list's handle (or k_datum_index_none if the header itself could
- * not be allocated -- see the UNSURE note above).
+ * not be allocated).
  *
  * @address 0x487630
  */

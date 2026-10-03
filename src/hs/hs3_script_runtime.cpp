@@ -57,7 +57,7 @@ void ScriptRuntime::reposition_players_outside_trigger_volume(int32_t trigger_vo
 /**
  * Allocates the hs_thread and hs_globals datum arrays. On success, marks hs_globals_data valid
  * (data_array::valid at +0x24), resets it, and reserves its first k_hs_builtin_global_count (0x1eb) slots for
- * the engine builtins, each with a distinct salt (see UNSURE above).
+ * the engine builtins, each with a distinct salt.
  *
  * @address 0x489e70
  */
