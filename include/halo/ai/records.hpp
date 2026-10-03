@@ -95,6 +95,9 @@ static_assert(offsetof(Actor, hearing_distance) == 0x4c && offsetof(Actor, berse
 static_assert(offsetof(ActorVariant, first_burst_delay_time) == 0x80 && offsetof(ActorVariant, special_fire_mode) == 0x154 && offsetof(ActorVariant, grenade_type) == 0x180);
 static_assert(offsetof(Biped, biped_flags) == 0x2f4 && offsetof(Projectile, danger_radius) == 0x1a8 && offsetof(Weapon, triggers) == 0x4fc);
 static_assert(offsetof(Equipment, powerup_type) == 0x308);
+static_assert(sizeof(actor_burst_parameters) == 0x28 && sizeof(actor_burst_scale) == 0x10);
+static_assert(offsetof(ActorVariant, burst_origin_radius) == 0xcc && offsetof(ActorVariant, burst_angular_velocity) == 0xf0);
+static_assert(offsetof(ActorVariant, new_target_burst_duration) == 0x100 && offsetof(ActorVariant, moving_burst_duration) == 0x118 && offsetof(ActorVariant, berserk_burst_duration) == 0x130);
 static_assert(sizeof(ScenarioAIAnimationReference) == 0x3c && offsetof(ScenarioAIAnimationReference, animation_graph) + offsetof(TagDependency, tag_id) == 0x2c);
 static_assert(offsetof(UnitSeat, built_in_gunner) + offsetof(TagDependency, tag_id) == 0x104);
 static_assert(sizeof(UnitSeat) == 0x11c);

@@ -1425,20 +1425,20 @@ void ActorView::reseed_movement_pause_timer()
 {
     using namespace actor_reseed_movement_pause_timer_local;
     actor *self = halo::ai::actor_at(actor_index);
-    void *definition = halo::ai::actor_get_actor_definition(actor_index);
-    uint8_t *entry_a = 0;
-    uint8_t *entry_b = 0;
+    ActorVariant *definition = reinterpret_cast<ActorVariant *>(halo::ai::actor_get_actor_definition(actor_index));
+    actor_burst_parameters *entry_a = 0;
+    actor_burst_scale *entry_b = 0;
     float lower, upper, fraction, pause;
 
-    halo::ai::actor_select_stance_offset_pair(actor_index, (uint8_t *)definition, &entry_a, &entry_b);
-    upper = *(float *)(entry_a + 0x20);
-    lower = *(float *)(entry_a + 0x1c);
+    halo::ai::actor_select_stance_offset_pair(actor_index, definition, &entry_a, &entry_b);
+    upper = entry_a->separation[1];
+    lower = entry_a->separation[0];
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     fraction = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
     pause = fraction * (upper - lower) + lower;
     pause = halo::game::weapon_get_zoom_fov_resolved(0xe, self->team) * pause;
-    if (entry_b != 0 && *(float *)(entry_b + 4) != 0.0f) {
-        pause = pause * *(float *)(entry_b + 4);
+    if (entry_b != 0 && entry_b->separation != 0.0f) {
+        pause = pause * entry_b->separation;
     }
     if (self->playfight != 0) {
         pause = pause * 1.7f;
@@ -1960,25 +1960,25 @@ namespace actor_select_stance_offset_pair_local {
  *
  * @address 0x4106b0
  */
-void ActorView::select_stance_offset_pair(uint8_t *base, uint8_t **out_a, uint8_t **out_b)
+void ActorView::select_stance_offset_pair(ActorVariant *base, actor_burst_parameters **out_a, actor_burst_scale **out_b)
 {
     using namespace actor_select_stance_offset_pair_local;
     actor *self = halo::ai::actor_at(actor_index);
 
-    *out_a = base + 0xcc;
+    *out_a = reinterpret_cast<actor_burst_parameters *>(&base->burst_origin_radius);
     if (self->berserking != 0) {
-        *out_b = base + 0x130;
+        *out_b = reinterpret_cast<actor_burst_scale *>(&base->berserk_burst_duration);
         return;
     }
     if (self->new_target_firing_pattern != 0) {
-        *out_b = base + 0x100;
+        *out_b = reinterpret_cast<actor_burst_scale *>(&base->new_target_burst_duration);
         return;
     }
     if (self->moving_firing_pattern != 0) {
-        *out_b = base + 0x118;
+        *out_b = reinterpret_cast<actor_burst_scale *>(&base->moving_burst_duration);
         return;
     }
-    *out_b = (uint8_t *)0;
+    *out_b = (actor_burst_scale *)0;
 }
 
 namespace actor_set_combat_alert_flag_local {

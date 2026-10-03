@@ -1227,7 +1227,7 @@ int32_t actor_select_move_position(uint32_t actor_index, int16_t select_mode, in
  *
  * @address 0x4106b0
  */
-void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uint8_t **out_a, uint8_t **out_b)
+void actor_select_stance_offset_pair(datum_index actor_index, ActorVariant *base, actor_burst_parameters **out_a, actor_burst_scale **out_b)
 {
     halo::ai::ActorView(actor_index).select_stance_offset_pair(base, out_a, out_b);
 }

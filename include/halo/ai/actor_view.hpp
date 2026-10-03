@@ -107,7 +107,7 @@ public:
     uint8_t select_facing_target_prop(uint8_t require_trust, uint8_t skip_lane_test, actor_recognition_scan_result *out_result, uint8_t *out_in_front);
     int16_t select_firing_position(actor_firing_position_query *query, actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context, uint8_t *out_path_ok);
     int32_t select_move_position(int16_t select_mode, int32_t position_index, uint8_t *direction_flag);
-    void select_stance_offset_pair(uint8_t *base, uint8_t **out_a, uint8_t **out_b);
+    void select_stance_offset_pair(ActorVariant *base, actor_burst_parameters **out_a, actor_burst_scale **out_b);
     void set_combat_alert_flag(uint8_t new_flag);
     void set_flag_bit1();
     void set_mode(int32_t mode, void *mode_data);

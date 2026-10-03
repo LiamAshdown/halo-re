@@ -2182,6 +2182,26 @@ typedef struct ai_conversation_range_lookup {
     uint32_t unknown_10;               // 0x10 always -1
 } ai_conversation_range_lookup; // size 0x14
 
+// The firing-pattern block of an ActorVariant tag at +0xcc (burst_origin_radius .. burst_angular_velocity) that the
+// actor's aim and burst timing draw from, and the four-float scale block (+0x100 new target, +0x118 moving,
+// +0x130 berserk) multiplied onto it; ai_actor_select_stance_offset_pair picks both.
+typedef struct actor_burst_parameters {
+    float origin_radius;     // 0x00
+    float origin_angle;      // 0x04
+    float return_length[2];  // 0x08
+    float return_angle;      // 0x10
+    float duration[2];       // 0x14
+    float separation[2];     // 0x1c
+    float angular_velocity;  // 0x24
+} actor_burst_parameters;    // size 0x28
+
+typedef struct actor_burst_scale {
+    float duration;          // 0x00
+    float separation;        // 0x04
+    float rate_of_fire;      // 0x08
+    float projectile_error;  // 0x0c
+} actor_burst_scale;         // size 0x10
+
 // One row of the per-ActorType table actor_type_procs points at. Only the offsets the
 // module actually reads are named.
 typedef struct actor_type_table_entry {

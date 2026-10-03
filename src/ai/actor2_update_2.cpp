@@ -376,17 +376,17 @@ void ActorView::update_firing_state()
             enable = 1;
             value = 1.0f;
         } else if (a->refire_timer == 0) {
-            uint8_t *stance_a;
-            uint8_t *stance_b = 0;
+            actor_burst_parameters *stance_a;
+            actor_burst_scale *stance_b = 0;
             float rate;
             int16_t ticks;
 
             enable = 1;
             value = 1.0f;
             rate = halo::game::weapon_get_zoom_fov_resolved(0xa, a->team) * burst;
-            halo::ai::actor_select_stance_offset_pair(actor_index, reinterpret_cast<uint8_t *>(def), &stance_a, &stance_b);
-            if (stance_b != 0 && *(float *)((uint8_t *)stance_b + 0x8) > 0.0f) {
-                rate *= *(float *)((uint8_t *)stance_b + 0x8);
+            halo::ai::actor_select_stance_offset_pair(actor_index, def, &stance_a, &stance_b);
+            if (stance_b != 0 && stance_b->rate_of_fire > 0.0f) {
+                rate *= stance_b->rate_of_fire;
             }
             ticks = (int16_t)halo::x87::fistp_round(30.0f / rate);
             a->refire_timer = ticks < 2 ? 2 : ticks;
