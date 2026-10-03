@@ -1,0 +1,55 @@
+// game_engine_player_profile_cache_find  (Ghidra: FUN_00466e80; named per
+// out/phase4/game_functions.md: "Searches the player-profile cache table for an active entry
+// whose stored handle matches the given value, returning its slot index.")
+// address 0x466e80, size 93 bytes
+// name confidence: 0.45   rewrite confidence: 0.75
+// evidence: types/game.h player_profile (in_use at +0x00, player at +0x04) and
+//   player_profile_cache[16] (0x006b0b88); the loop is unrolled 4 slots at a time but is
+//   otherwise a plain linear scan.
+// register convention: search handle in ESI (unaff_ESI).
+//   // blam-cc: ESI -> player_handle
+
+
+Comments that preceded the functions:
+// blam-cc: ESI -> player_handle
+// Returns the slot index of the active player-profile-cache entry whose stored player handle
+// equals `player_handle`, or -1 if none matches.
+
+Inline comments that were in the source (comment | code on that line):
+  extern player_profile player_profile_cache[16]; | // 0x006b0b88
+
+#if 0
+Original Ghidra decompilation (0x466e80), from tools/pack.py 0x466e80:
+
+int FUN_00466e80(void)
+
+{
+  int iVar1;
+  int iVar2;
+  int *piVar3;
+  int iVar4;
+  int unaff_ESI;
+
+  iVar2 = -1;
+  piVar3 = &DAT_006b0b8c;
+  iVar4 = 2;
+  do {
+    if (((char)piVar3[-1] == '\x01') && (*piVar3 == unaff_ESI)) {
+      iVar2 = iVar4 + -2;
+    }
+    if (((char)piVar3[0xb] == '\x01') && (piVar3[0xc] == unaff_ESI)) {
+      iVar2 = iVar4 + -1;
+    }
+    if (((char)piVar3[0x17] == '\x01') && (piVar3[0x18] == unaff_ESI)) {
+      iVar2 = iVar4;
+    }
+    if (((char)piVar3[0x23] == '\x01') && (piVar3[0x24] == unaff_ESI)) {
+      iVar2 = iVar4 + 1;
+    }
+    iVar1 = iVar4 + 2;
+    piVar3 = piVar3 + 0x30;
+    iVar4 = iVar4 + 4;
+  } while (iVar1 < 0x10);
+  return iVar2;
+}
+#endif

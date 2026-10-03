@@ -1,0 +1,591 @@
+#include "halo/game/game2_engine_hud.hpp"
+
+extern "C" {
+extern game_engine_definition *current_game_engine;
+extern game_variant game_engine_variant;
+extern data_array *player_data;
+extern data_array *object_data;
+extern tag_instance *tag_instances;
+extern network_server_globals *network_server;
+extern network_client_globals *network_client;
+extern player_globals *local_player_globals;
+extern wchar_t empty_string;
+extern uint8_t *hud_messaging_parameters;
+extern const ColorARGB *global_white_argb;
+extern uint32_t scoreboard_server_address_raw;
+extern uint32_t scoreboard_server_port;
+extern float hud_text_draw_color_r;
+extern float hud_text_draw_color_g;
+extern float hud_text_draw_color_b;
+extern float hud_text_draw_color_a;
+extern uint16_t hud_text_draw_color_or_flags;
+extern int16_t hud_text_draw_column;
+extern uint32_t hud_text_draw_unknown_4730;
+extern int32_t hud_text_draw_font_tag_id;
+extern datum_index tag_lookup(tag_group group, char *path);
+extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index);
+extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
+extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
+extern uint32_t color_real_to_argb_pack(float alpha, float *rgb);
+extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
+extern int32_t select_players_to_display(int32_t mode, int32_t max_count, scoreboard_entry *out);
+extern void game_engine_build_end_game_result_text(datum_index player, wchar_t *out);
+extern wchar_t *game_engine_get_default_multiplayer_string(const scoreboard_entry *entry);
+extern int32_t hud_draw_world_relative_text(hud_world_text_params *params, int16_t row, wchar_t *text, uint8_t highlighted);
+extern int32_t game_engine_multiplayer_ui_state_id(void);
+extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
+extern uint16_t unit_find_weapon_index_by_flag(uint32_t unit_index, uint8_t flag_bit);
+extern char *network_address_to_string(s_network_address *addr);
+extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue);
+extern game_time_globals *game_time;
+extern uint8_t game_engine_player_is_eliminated(uint32_t player_index);
+extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_index);
+extern uint8_t game_engine_build_message_text(wchar_t *out, uint32_t buffer_size, datum_index subject, uint32_t param_1, uint32_t message_type);
+extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type, datum_index subject, size_t buffer_size);
+extern Globals *global_globals;
+extern int16_t network_game_mode;
+extern void game_engine_queue_status_sound_message(int32_t sound_index, datum_index recipient_player);
+extern void *datum_get(datum_index handle, data_array *array);
+extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
+extern uint8_t multiplayer_sound_enabled[];
+extern int32_t multiplayer_sound_queue_count;
+extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds];
+extern void game_engine_play_multiplayer_sound(int32_t sound_index, datum_index recipient_player, uint8_t broadcast);
+extern int32_t game_engine_get_multiplayer_sound_duration_ticks(int32_t sound_index);
+extern uint8_t network_message_scratch[0x7ff8];
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
+extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t status_bit, void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
+extern network_machine *network_machine_find_by_id(network_server_globals *server, int32_t machine_id);
+extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
+extern uint8_t custom_waypoint_matches_filter(int32_t candidate, player *reference_player, int32_t slot_index);
+extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out);
+extern int16_t hud_waypoint_visibility(int16_t local_player_index, const real_point3d *eye, const real_point3d *target, datum_index ignore_object);
+extern void hud_waypoint_draw(const real_point3d *position, int16_t local_player_index, int16_t arrow_index, int16_t visibility, uint8_t show_distance);
+}
+
+namespace halo::game {
+
+/**
+ * Returns a string of the ui\multiplayer_game_text tag, or the empty string when the tag is missing.
+ */
+wchar_t * EngineHud::multiplayer_game_text_string(int16_t index)
+{
+    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+
+    if (tag_id == k_datum_index_none) {
+        return &empty_string;
+    }
+    return text_string_list_get_string(tag_id, index);
+}
+
+/**
+ * The font the scoreboard text uses: the messaging globals' +0x64 font when more than one local player exists
+ * (and it is set), otherwise +0x54 (0x466043..0x466050, 0x4662c1..0x4662ce).
+ */
+int32_t EngineHud::scoreboard_text_font(void)
+{
+    int32_t font = *(int32_t *)((uint8_t *)hud_messaging_parameters + 0x54);
+
+    if (local_player_globals->local_player_count > 1) {
+        int32_t preferred = *(int32_t *)((uint8_t *)hud_messaging_parameters + 0x64);
+
+        if (preferred != -1) {
+            font = preferred;
+        }
+    }
+    return font;
+}
+
+/**
+ * Draws one line of already-formatted text in white through the shared HUD text state, alpha = opacity.
+ */
+void EngineHud::scoreboard_draw_white_line(Rectangle2D *rect, wchar_t *text, float opacity)
+{
+    hud_text_draw_font_tag_id = scoreboard_text_font();
+    hud_text_draw_color_a = opacity;
+    hud_text_draw_color_r = global_white_argb->red;
+    hud_text_draw_color_g = global_white_argb->green;
+    hud_text_draw_color_b = global_white_argb->blue;
+    hud_text_draw_color_or_flags = 0xffffu;
+    hud_text_draw_column = 1;
+    hud_text_draw_unknown_4730 = 0;
+    chimera__draw_16_bit_text(0, (int32_t *)rect, 0, 0, (const int16_t *)text);
+}
+
+/**
+ * Renders the in-game multiplayer scoreboard overlay: a background panel, the result line, a header row
+ * (column labels plus "Ping" and the engine's live header text), one row per visible player (place / name /
+ * status / four stats / ping, prefixed with '*' when the player's unit has the flagged weapon, coloured by
+ * team, highlighted when the row is `subject_player`), a bottom-of-screen prompt, and, when a network ...
+ *
+ * @address 0x465690
+ */
+void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacity)
+{
+    uint8_t teams_enabled;
+    wchar_t result_text[0x50];
+    scoreboard_entry visible[16];
+    int32_t visible_count;
+    wchar_t row_buffer[0x200];
+    wchar_t header_names_buf[0x100];
+    hud_world_text_params params_result;
+    hud_world_text_params params_default;
+    hud_world_text_params params_header;
+    hud_world_text_params team_params[2];
+    real_vector3d bg_color;
+    Rectangle2D bg_rect;
+    wchar_t *col_a, *col_b, *col_c, *col_d, *col_e;
+    int32_t highlight_team;
+    int32_t pass;
+    int32_t row_count;
+    int32_t ui_state;
+    wchar_t *prompt;
+
+    teams_enabled = (current_game_engine != 0) ? (uint8_t)game_engine_variant.teams : 0;
+
+    game_engine_build_end_game_result_text(subject_player, result_text);
+    visible_count = select_players_to_display(0, 16, visible);
+
+    bg_color.i = 0.125f;
+    bg_color.j = 0.125f;
+    bg_color.k = 0.125f;
+    bg_rect.top = 0x3c;
+    bg_rect.left = 0xa;
+    bg_rect.bottom = 0x186;
+    bg_rect.right = 0x276;
+    ui_draw_filled_rectangle(color_real_to_argb_pack(opacity * 0.69f, &bg_color.i), &bg_rect);
+
+    params_result.alpha = opacity;
+    params_result.red = 0.7f;
+    params_result.green = 0.7f;
+    params_result.blue = 0.7f;
+    hud_draw_world_relative_text(&params_result, 0, result_text, 0);
+
+    params_default.alpha = opacity;
+    params_default.red = *(float *)((uint8_t *)hud_messaging_parameters + 0x74);
+    params_default.green = *(float *)((uint8_t *)hud_messaging_parameters + 0x78);
+    params_default.blue = *(float *)((uint8_t *)hud_messaging_parameters + 0x7c);
+    team_params[0].alpha = opacity;
+    team_params[0].red = 0.6f;
+    team_params[0].green = 0.3f;
+    team_params[0].blue = 0.3f;
+    team_params[1].alpha = opacity;
+    team_params[1].red = 0.3f;
+    team_params[1].green = 0.3f;
+    team_params[1].blue = 0.6f;
+    params_header.alpha = opacity;
+    params_header.red = 0.5f;
+    params_header.green = 0.5f;
+    params_header.blue = 0.5f;
+
+    col_a = multiplayer_game_text_string(0x43);
+    col_b = multiplayer_game_text_string(0x44);
+    col_c = multiplayer_game_text_string(0x45);
+    col_d = multiplayer_game_text_string(0x46);
+    col_e = multiplayer_game_text_string(0x47);
+    ((void (*)(wchar_t *))current_game_engine->build_score_header_text)(header_names_buf);
+    string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(L"\t%s\t%s\t%s\t%s\t%s\t%s\t%s"), col_a, col_b, header_names_buf,
+                          col_c, col_d, col_e, L"Ping");
+    hud_draw_world_relative_text(&params_header, 1, row_buffer, 0);
+
+    highlight_team = -1;
+    if (subject_player != (datum_index)0xffffffff && (int16_t)subject_player >= 0 &&
+        (int16_t)subject_player < player_data->maximum_count) {
+        player *subj = (player *)((uint8_t *)player_data->data +
+                                   (subject_player & 0xffff) * sizeof(player));
+        if (subj->identifier != 0 &&
+            ((int16_t)(subject_player >> 16) == 0 || subj->identifier == (int16_t)(subject_player >> 16))) {
+            highlight_team = subj->team;
+        }
+    }
+
+    row_count = 0;
+    for (pass = teams_enabled ? 2 : 1; pass != 0; pass = pass - 1) {
+        int32_t i;
+
+        for (i = 0; i < visible_count; i = i + 1) {
+            datum_index row_player = visible[i].player;
+            uint8_t is_subject = (uint8_t)(subject_player == row_player);
+            player *p;
+
+            if (row_player == (datum_index)0xffffffff || (int16_t)row_player < 0 ||
+                (int16_t)row_player >= player_data->maximum_count) {
+                continue;
+            }
+            p = (player *)((uint8_t *)player_data->data + (row_player & 0xffff) * sizeof(player));
+            if (p->identifier == 0) {
+                continue;
+            }
+            if ((int16_t)(row_player >> 16) != 0 && p->identifier != (int16_t)(row_player >> 16)) {
+                continue;
+            }
+            if (teams_enabled != 0 && highlight_team != p->team) {
+                continue;
+            }
+
+            {
+                wchar_t *status_text;
+                wchar_t *place_text;
+                uint8_t starred = 0;
+                hud_world_text_params *row_params;
+
+                ((void (*)(datum_index, wchar_t *))current_game_engine->build_player_text)(row_player, header_names_buf);
+
+                if (game_engine_variant.lives_per_round >= 1 && p->unit == (datum_index)0xffffffff &&
+                    (int32_t)(int16_t)p->deaths >= game_engine_variant.lives_per_round) {
+                    status_text = multiplayer_game_text_string(0x8a);
+                } else if (p->marked_for_deletion != 0) {
+                    status_text = multiplayer_game_text_string(0x8b);
+                } else {
+                    status_text = header_names_buf;
+                }
+
+                if (p->unit != (datum_index)0xffffffff) {
+                    int16_t unit_index = (int16_t)p->unit;
+                    int16_t unit_salt = (int16_t)((uint32_t)p->unit >> 16);
+
+                    if (unit_index >= 0 && unit_index < object_data->maximum_count) {
+                        object_header *unit_header = (object_header *)((uint8_t *)object_data->data +
+                                                                        (int32_t)object_data->size * unit_index);
+
+                        if (unit_header->identifier != 0 && (unit_salt == 0 || unit_header->identifier == unit_salt) &&
+                            (((1u << (unit_header->type & 0x1f)) & 3) != 0) && unit_header->data != 0) {
+                            starred = (uint8_t)unit_find_weapon_index_by_flag(p->unit, 3);
+                        }
+                    }
+                }
+
+                place_text = game_engine_get_default_multiplayer_string(&visible[i]);
+                string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(starred ? L"*\t%s\t%s\t%s\t%d\t%d\t%d\t%d"
+                                                          : L"\t%s\t%s\t%s\t%d\t%d\t%d\t%d"),
+                                      place_text, p->name, status_text,
+                                      visible[i].key_1, visible[i].key_3, visible[i].key_2,
+                                      p->ping);
+
+                if (teams_enabled != 0) {
+                    int32_t team = p->team;
+
+                    if (team < 0) {
+                        team = 0;
+                    } else if (team > 1) {
+                        team = 1;
+                    }
+                    row_params = &team_params[team];
+                } else {
+                    row_params = &params_default;
+                }
+                hud_draw_world_relative_text(row_params, (int16_t)(row_count + 2), row_buffer, is_subject);
+                row_count = row_count + 1;
+            }
+        }
+        if (highlight_team != -1) {
+            highlight_team = 1 - highlight_team;
+        }
+    }
+
+    ui_state = game_engine_multiplayer_ui_state_id();
+    if ((int16_t)ui_state != 8) {
+        wchar_t *word;
+        Rectangle2D prompt_rect;
+
+        prompt = multiplayer_game_text_string((int16_t)ui_state);
+        if (prompt != (wchar_t *)0) {
+            if (current_game_engine != 0 && game_engine_variant.teams == 1) {
+                word = multiplayer_game_text_string(0xc);
+            } else {
+                word = multiplayer_game_text_string(0xd);
+            }
+            string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(L"%s (%s)"), prompt, word);
+
+            prompt_rect.top = 0x1b8;
+            prompt_rect.left = 0xa;
+            prompt_rect.bottom = 0x1cc;
+            prompt_rect.right = 0x27b;
+            scoreboard_draw_white_line(&prompt_rect, row_buffer, opacity);
+        }
+    }
+
+    {
+        uint32_t port = 0;
+        char *address_text;
+        s_network_address address;
+
+        if (network_server != 0) {
+            struct in_addr in;
+            uint32_t raw = scoreboard_server_address_raw;
+
+            in.s_addr = ((raw << 0x10 | (raw & 0xff00) | (raw >> 0x10 & 0xff)) << 8) | (raw >> 0x18);
+            address_text = inet_ntoa(in);
+            port = scoreboard_server_port;
+        } else {
+            network_receive_queue *queue;
+
+            if (network_client == 0) {
+                return;
+            }
+            queue = network_client->channel->endpoint;
+            if (queue != 0) {
+                if (network_channel_get_remote_address(&address, queue) != 0) {
+                    memset(&address, 0, 0x18);
+                    address.size = 4;
+                }
+            } else {
+                memset(&address, 0, 0x18);
+                address.size = 4;
+            }
+            address_text = network_address_to_string(&address);
+        }
+
+        if (address_text != (char *)0) {
+            wchar_t *label = multiplayer_game_text_string(0xbe);
+            wchar_t address_wide[0x100];
+            Rectangle2D address_rect;
+            int32_t len = (int32_t)strlen(address_text);
+            int32_t n;
+
+            if (len * 2 + 2 > 0x200) {
+                len = 0xff;
+            }
+            for (n = 0; n < len; n = n + 1) {
+                address_wide[n] = (uint8_t)address_text[n];
+            }
+            address_wide[len] = 0;
+
+            if ((uint16_t)port != 0) {
+                string_format_wide_va_bounded(0x200, (uint16_t *)row_buffer, (const uint16_t *)(L"%s%s:%u"), label, address_wide, (uint32_t)(uint16_t)port);
+            } else {
+                string_format_wide_va_bounded(0x200, (uint16_t *)row_buffer, (const uint16_t *)(L"%s%s"), label, address_wide);
+            }
+
+            address_rect.top = 0x1cc;
+            address_rect.left = 0xa;
+            address_rect.bottom = 0x1e0;
+            address_rect.right = 0x27b;
+            scoreboard_draw_white_line(&address_rect, row_buffer, opacity);
+        }
+    }
+}
+
+/**
+ * Stub with no body in this retail build; presumably an on-screen game-engine message rasterizer that was
+ * compiled out or disabled.
+ *
+ * @address 0x462a80
+ */
+void EngineHud::rasterize_message(void)
+{
+}
+
+/**
+ * Determines and dispatches which contextual HUD hint (for example leader, score-limit reached, eliminated)
+ * should currently be shown to a player.
+ *
+ * @address 0x463150
+ */
+uint8_t EngineHud::pick_hud_hint(datum_index player_index, int32_t maximum_length, uint16_t *out_text)
+{
+    wchar_t *out = (wchar_t *)out_text;
+    uint32_t buffer_size = (uint32_t)maximum_length;
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+
+    if (current_game_engine == 0) {
+        return 0;
+    }
+
+    if (0x16 < (int32_t)p->hud_message_index && (int32_t)p->hud_message_index < 0x1b) {
+        p->hud_message_index = (datum_index)0xffffffff;
+    }
+
+    if (p->unit == (datum_index)0xffffffff) {
+        uint32_t message_type;
+        int32_t extra = 0;
+
+        if (p->marked_for_deletion == 1) {
+            message_type = 0x1b;
+        } else if (game_engine_player_is_eliminated(player_index) != 0) {
+            message_type = 0x18;
+        } else if (game_engine_player_has_respawn_priority(player_index) != 0) {
+            message_type = 0x17;
+        } else if (p->respawn_timer < 1) {
+            message_type = 0x1a;
+        } else {
+            extra = p->respawn_timer / 30;
+            message_type = 0x19;
+        }
+
+        if (current_game_engine->build_message_text != 0) {
+            char handled = ((char (*)(datum_index, uint32_t, int32_t, wchar_t *, uint32_t))
+                current_game_engine->build_message_text)(player_index, message_type, extra, out, buffer_size);
+            if (handled != 0) {
+                return (uint8_t)handled;
+            }
+        }
+        return game_engine_build_kill_feed_message_text(player_index, out, message_type, (datum_index)extra, buffer_size);
+    } else {
+        if (game_time->game_time < 0x1c2) {
+            if (p->hud_message_index == (datum_index)0xffffffff ||
+                game_engine_variant.game_engine_index != _game_engine_ctf ||
+                game_engine_variant.engine.ctf.single_flag_time < 1) {
+                return game_engine_build_message_text(out, buffer_size, (datum_index)0xffffffff, player_index, 0x1d);
+            }
+        } else if (p->hud_message_index == (datum_index)0xffffffff) {
+            return 0;
+        }
+        return game_engine_build_message_text(out, buffer_size, p->hud_message_player, player_index, p->hud_message_index);
+    }
+}
+
+/**
+ * If `sound_index` names a valid GlobalsMultiplayerInformation sound, optionally sends the networked status
+ * message (when `broadcast`), then plays the sound locally at full volume unless there is a specific
+ * `recipient_player` who is not the local player.
+ *
+ * @address 0x46bd00
+ */
+void EngineHud::play_multiplayer_sound(int32_t sound_index, datum_index recipient_player, uint8_t broadcast)
+{
+    GlobalsMultiplayerInformation *mp_info =
+        (GlobalsMultiplayerInformation *)global_globals->multiplayer_information.pointer;
+    uint8_t *sound;
+
+    if (mp_info == (GlobalsMultiplayerInformation *)0 || sound_index >= (int32_t)mp_info->sounds.count) {
+        return;
+    }
+    sound = (uint8_t *)mp_info->sounds.pointer + sound_index * 0x10;
+    if (sound == (uint8_t *)0 || *(int32_t *)(sound + 0xc) == -1) {
+        return;
+    }
+
+    if (broadcast == 1) {
+        game_engine_queue_status_sound_message(sound_index, recipient_player);
+    }
+
+    if (recipient_player == (datum_index)0xffffffff || network_game_mode != 2) {
+        sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
+    } else {
+        player *p = (player *)datum_get(recipient_player, player_data);
+        if (p != (player *)0 && p->local_player_index != -1) {
+            sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
+        }
+    }
+}
+
+/**
+ * Appends a multiplayer sound request (sound index, target player, broadcast byte) to the announcer queue,
+ * refusing once five are queued. The broadcast byte is forced to 0 unless hosting; playback starts at once
+ * when the sound is disabled or the request is the only queued entry.
+ *
+ * @address 0x46be40
+ */
+void EngineHud::queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast)
+{
+    int32_t count;
+
+    if (network_game_mode != 2) {
+        broadcast = 0;
+    }
+    if (multiplayer_sound_enabled[sound_index] != 0) {
+        int32_t duration = game_engine_get_multiplayer_sound_duration_ticks(sound_index) + 5;
+
+        count = multiplayer_sound_queue_count;
+        if (count < k_maximum_queued_multiplayer_sounds) {
+            multiplayer_sound_request *slot = &multiplayer_sound_queue[count];
+
+            slot->player = player;
+            slot->sound_index = sound_index;
+            slot->remaining_ticks = duration;
+            slot->broadcast = broadcast;
+            count++;
+            multiplayer_sound_queue_count = count;
+        }
+        if (count != 1) {
+            return;
+        }
+    }
+    game_engine_play_multiplayer_sound(sound_index, player, broadcast);
+}
+
+/**
+ * Encodes the multiplayer-sound status event (0x19) carrying the sound index and either broadcasts it
+ * (recipient -1) or, when the recipient's machine record has flag bits 1 and 2 set, sends it to that machine
+ * only.
+ *
+ * @address 0x46bbd0
+ */
+void EngineHud::queue_status_sound_message(int32_t sound_index, datum_index recipient_player)
+{
+    int32_t payload = sound_index;
+    void *items[2];
+    int32_t encoded_bits;
+
+    items[0] = &payload;
+    items[1] = 0;
+    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x19, 0, items, 0, 1, 0);
+    if (encoded_bits > 0) {
+        if (recipient_player == (datum_index)0xffffffff) {
+            network_session_broadcast_to_flagged(encoded_bits, network_server, 1, network_message_scratch, 1, 0, 0, 3);
+        } else {
+            int32_t machine_id = (int8_t)*((uint8_t *)player_data->data + (recipient_player & 0xffff) * 0x200 + 0x64);
+            network_machine *machine = network_machine_find_by_id(network_server, machine_id);
+
+            if (machine != 0) {
+                uint8_t flags = machine->flags;
+
+                if ((flags >> 1 & 1) != 0 && (flags >> 2 & 1) != 0) {
+                    network_session_send_to_machine(machine_id, network_server, 1, network_message_scratch, encoded_bits, 1, 0, 0, 3);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * For each active custom waypoint that passes the player/team filter, pushes an add-or-update call into the
+ * interface HUD nav-point system.
+ *
+ * @address 0x462a90
+ */
+void EngineHud::update_custom_waypoint_navpoints(int16_t local_player_slot)
+{
+    datum_index local_player;
+    player *p;
+    real_point3d eye;
+    int32_t slot;
+
+    if (current_game_engine == 0 || game_engine_variant.objective_indicator != 1 ||
+        local_player_slot == -1 || 1 <= local_player_slot) {
+        return;
+    }
+    local_player = local_player_globals->local_players[local_player_slot];
+    if (local_player == (datum_index)0xffffffff) {
+        return;
+    }
+    p = (player *)((uint8_t *)player_data->data + (local_player & 0xffff) * 0x200);
+    if (p->unit == (datum_index)0xffffffff) {
+        return;
+    }
+
+    unit_get_primary_eye_marker_position(p->unit, &eye);
+
+    for (slot = 0; slot < k_maximum_custom_waypoints; slot++) {
+        if (custom_waypoint_matches_filter((int32_t)local_player, p, slot) != 0) {
+            custom_waypoint *waypoint = &custom_waypoints[slot];
+
+            if (current_game_engine == 0 || current_game_engine->index != _game_engine_ctf ||
+                game_engine_variant.engine.ctf.assault != 0 ||
+                waypoint->team == p->team || waypoint->team == -1) {
+                int16_t visibility = hud_waypoint_visibility(local_player_slot, &eye, &waypoint->position, (datum_index)0xffffffff);
+
+                hud_waypoint_draw(&waypoint->position, local_player_slot, (int16_t)(uint16_t)waypoint->icon, visibility, 1);
+            } else {
+                if (hud_waypoint_visibility(local_player_slot, &eye, &waypoint->position, (datum_index)0xffffffff) != 0) {
+                    continue;
+                }
+                hud_waypoint_draw(&waypoint->position, local_player_slot, (int16_t)(uint16_t)waypoint->icon, 0, 0);
+            }
+        }
+    }
+}
+
+}

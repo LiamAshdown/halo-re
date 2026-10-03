@@ -1,0 +1,365 @@
+#include "halo/game/game2_game_lifecycle.hpp"
+
+extern "C" {
+extern Scenario *global_scenario;
+extern int32_t game_state_cursor;
+extern uint8_t *game_state_base;
+extern uint32_t game_state_crc;
+extern void *main_game_globals;
+extern game_variant game_engine_active_variant;
+extern scenario_game_globals *global_scenario_game_globals;
+extern uint8_t *hs_camera_control_pointer;
+extern data_array *object_render_state_cache;
+extern void *runtime_decals_suppressed;
+extern breakable_surface_globals *breakable_surface_state;
+extern data_array *particle_data;
+extern data_array *effect_data;
+extern data_array *effect_location_data;
+extern data_array *weather_particle_data;
+extern void *particle_system_data;
+extern data_array *particle_system_particle_data;
+extern void *sound_class_gains;
+extern player_effect_globals *player_effect_globals_pointer;
+extern void *recorded_animations;
+extern uint32_t *cinematic_globals_ptr;
+extern void ai_initialize_for_new_map(void);
+extern void contrails_initialize(void);
+extern void decals_initialize(void);
+extern void team_pair_table_allocate(void);
+extern void game_engine_load_from_variant(const game_variant *variant);
+extern void game_engine_allocate_tick_record(void);
+extern void players_initialize(void);
+extern void hs_scripts_reload(void);
+extern void hs_runtime_initialize(void);
+extern void object_lists_initialize(void);
+extern void input_state_initialize(void);
+extern void input_queue_initialize(void);
+extern void interface_globals_allocate(void);
+extern void player_profile_subsystem_initialize(void);
+extern void widget_memory_pool_initialize(void);
+extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
+extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count);
+extern void objects_initialize(void);
+extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
+extern void saved_game_files_initialize(void);
+extern void game_sound_initialize(void);
+extern void detail_objects_globals_allocate(void);
+extern object *object_iterator_next(object_iterator *iterator);
+extern uint8_t players_any_without_unit(void);
+extern uint8_t item_any_detonating(void);
+extern uint8_t effect_check_object_collisions(void);
+extern uint8_t unit_any_dying_or_seat_transition(void);
+extern uint8_t ai_scan_for_recent_combat_activity(uint32_t hard_difficulty);
+extern uint8_t debug_print_safety_checks;
+extern void console_print_va(const char *format, ...);
+extern uint8_t players_any_pending_seat_or_respawn(void);
+extern uint8_t unit_is_area_clear_of_fast_objects(void);
+extern player_globals *local_player_globals;
+extern data_array *player_data;
+extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
+}
+
+namespace halo::game {
+
+/**
+ * Returns a pointer to player_starting_locations[index], or NULL if index is negative or past the reflexive's
+ * count.
+ *
+ * @address 0x477640
+ */
+ScenarioPlayerStartingLocation * GameLifecycle::get_player_starting_location(int16_t index)
+{
+    if (index >= 0 && index < global_scenario->player_starting_locations.count) {
+        return &((ScenarioPlayerStartingLocation *)global_scenario->player_starting_locations.pointer)[index];
+    }
+    return (ScenarioPlayerStartingLocation *)0;
+}
+
+/**
+ * One-time post-map-load initialization that bump-allocates every particle/effect/render-state pool, sets the
+ * FPU control word, allocates the simulation tick record, loads the active game engine, allocates the team-
+ * pair table, and starts the object, player, sound, AI, script, input and save-file subsystems.
+ *
+ * @address 0x45a9c0
+ */
+void GameLifecycle::initialize(void)
+{
+    uint32_t *cursor;
+    int32_t i;
+    uint32_t size;
+
+    cursor = (uint32_t *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 0x114;
+    size = 0x114;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    main_game_globals = cursor;
+    for (i = 0x45; i != 0; i = i - 1) {
+        *cursor = 0;
+        cursor = cursor + 1;
+    }
+
+    cursor = (uint32_t *)&game_engine_active_variant;
+    for (i = 0x26; i != 0; i = i - 1) {
+        *cursor = 0;
+        cursor = cursor + 1;
+    }
+
+    _control87(0x9001f, 0xfffff);
+    game_engine_allocate_tick_record();
+    game_engine_load_from_variant(&game_engine_active_variant);
+    team_pair_table_allocate();
+    interface_globals_allocate();
+
+    size = 0x7c;
+    global_scenario_game_globals = (scenario_game_globals *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 0x7c;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+
+    hs_camera_control_pointer = (uint8_t *)(game_state_cursor + game_state_base);
+    size = 4;
+    game_state_cursor = game_state_cursor + 4;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    *hs_camera_control_pointer = 0;
+
+    object_render_state_cache = (data_array *)game_state_new((char *)"cached object render states", 0x100, 0x100);
+    objects_initialize();
+    detail_objects_globals_allocate();
+
+    size = 4;
+    runtime_decals_suppressed = (void *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 4;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+
+    size = 0x4204;
+    breakable_surface_state = (breakable_surface_globals *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 0x4204;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+
+    decals_initialize();
+    players_initialize();
+    contrails_initialize();
+
+    particle_data = (data_array *)game_state_new((char *)"particle", 0x400, 0x70);
+    effect_data = (data_array *)game_state_new((char *)"effect", 0x100, 0xfc);
+    effect_location_data = (data_array *)game_state_new((char *)"effect location", 0x200, 0x3c);
+    weather_particle_data = data_new(0x54, (char *)"weather particles", 0x200);
+    particle_system_data = game_state_new((char *)"particle systems", 0x40, 0x158);
+    particle_system_particle_data = (data_array *)game_state_new((char *)"particle system particles", 0x200, 0x80);
+
+    size = 0x264;
+    sound_class_gains = (void *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 0x264;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    game_sound_initialize();
+
+    size = 0x128;
+    player_effect_globals_pointer = (player_effect_globals *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 0x128;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    ai_initialize_for_new_map();
+
+    widget_memory_pool_initialize();
+    object_lists_initialize();
+    hs_runtime_initialize();
+    hs_scripts_reload();
+
+    recorded_animations = game_state_new((char *)"recorded animations", 0x40, 0x64);
+
+    size = 0x1c;
+    cinematic_globals_ptr = (uint32_t *)(game_state_cursor + game_state_base);
+    game_state_cursor = game_state_cursor + 0x1c;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    saved_game_files_initialize();
+
+    input_queue_initialize();
+    input_state_initialize();
+    player_profile_subsystem_initialize();
+}
+
+/**
+ * Returns true only when there are no nearby dangerous projectiles and no player is currently without a
+ * controlled unit (dead/respawning).
+ *
+ * @address 0x45bbe0
+ */
+uint32_t GameLifecycle::no_player_is_dead(void)
+{
+    object_iterator iterator;
+
+    iterator.type_mask = _object_mask_projectile;
+    iterator.flags_mask = 0;
+    iterator.index = 0;
+    iterator.handle = k_datum_index_none;
+
+    if (object_iterator_next(&iterator) == (object *)0) {
+        if (players_any_without_unit() == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ * Returns whether it is currently safe to pause: no nearby dangerous projectiles, items, effects or units. A
+ * quieter subset of game_safe_to_save's checks (no AI-visibility check, no console logging).
+ *
+ * @address 0x45b9e0
+ */
+uint32_t GameLifecycle::safe_to_pause(void)
+{
+    object_iterator iterator;
+
+    iterator.type_mask = _object_mask_projectile;
+    iterator.flags_mask = 0;
+    iterator.index = 0;
+    iterator.handle = k_datum_index_none;
+
+    if (object_iterator_next(&iterator) == (object *)0) {
+        if (item_any_detonating() == 0 && effect_check_object_collisions() == 0 && unit_any_dying_or_seat_transition() == 0 && ai_scan_for_recent_combat_activity(0) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ * Returns whether it is currently safe to auto/quick-save, checking for nearby AI threats, dangerous
+ * projectiles/items/effects, dangerous units, airborne/dead players, and moving vehicles, logging the specific
+ * reason to the console when debug_print_safety_checks is set.
+ *
+ * @address 0x45ba50
+ */
+uint8_t GameLifecycle::safe_to_save(void)
+{
+    object_iterator iterator;
+
+    if (ai_scan_for_recent_combat_activity(0) != 0) {
+        if (debug_print_safety_checks != 0) {
+            console_print_va("not safe to save: ai_enemies_can_see_player");
+        }
+        return 0;
+    }
+
+    iterator.type_mask = _object_mask_projectile;
+    iterator.flags_mask = 0;
+    iterator.index = 0;
+    iterator.handle = k_datum_index_none;
+
+    if (object_iterator_next(&iterator) != (object *)0) {
+        if (debug_print_safety_checks != 0) {
+            console_print_va("not safe to save: dangerous_projectiles_near_player");
+        }
+        return 0;
+    }
+    if (item_any_detonating() != 0) {
+        if (debug_print_safety_checks != 0) {
+            console_print_va("not safe to save: dangerous_items_near_player");
+        }
+        return 0;
+    }
+    if (effect_check_object_collisions() != 0) {
+        if (debug_print_safety_checks != 0) {
+            console_print_va("not safe to save: dangerous_effects_near_player");
+        }
+        return 0;
+    }
+    if (unit_any_dying_or_seat_transition() != 0) {
+        if (debug_print_safety_checks != 0) {
+            console_print_va("not safe to save: any_unit_is_dangerous");
+        }
+        return 0;
+    }
+    if (players_any_pending_seat_or_respawn() != 0) {
+        if (debug_print_safety_checks != 0) {
+            console_print_va("not safe to save: any_player_is_in_the_air");
+        }
+        return 0;
+    }
+    if (players_any_without_unit() != 0) {
+        if (debug_print_safety_checks != 0) {
+            console_print_va("not safe to save: any_player_is_dead");
+        }
+        return 0;
+    }
+    if (unit_is_area_clear_of_fast_objects() != 0) {
+        if (debug_print_safety_checks != 0) {
+            console_print_va("not safe to save: vehicle_moving_near_any_player");
+        }
+        return 0;
+    }
+    return 1;
+}
+
+/**
+ * Binds `player_handle` to local-player slot `local_player_index` (only slot 0 is ever valid in this build).
+ * Clears the previous occupant's local_player_index back-reference first, and sets the new occupant's
+ * local_player_index to this slot unless player_handle is the wildcard.
+ *
+ * @address 0x474d50
+ */
+void GameLifecycle::set_local_player(datum_index player_handle, int16_t local_player_index)
+{
+    datum_index previous;
+    player *p;
+
+    if (local_player_index >= 0 && local_player_index < 1) {
+        previous = local_player_globals->local_players[local_player_index];
+        if (previous != (datum_index)-1) {
+            p = (player *)((uint8_t *)player_data->data + (previous & 0xffff) * sizeof(player));
+            p->local_player_index = -1;
+        }
+        local_player_globals->local_players[local_player_index] = player_handle;
+        if (player_handle != (datum_index)-1) {
+            p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
+            p->local_player_index = local_player_index;
+        }
+    }
+}
+
+/**
+ * Formats a tick count as minutes:seconds wide text. The minutes part is a single space when zero and the
+ * seconds part is zero-padded below ten; the format templates are ordinary wide string literals.
+ *
+ * @address 0x466530
+ */
+void GameLifecycle::time_format_minutes_seconds(uint32_t ticks, uint32_t count, wchar_t *dest)
+{
+    int32_t total_seconds = (int32_t)ticks / 30;
+    int32_t minutes = total_seconds / 60;
+    int32_t seconds = total_seconds - minutes * 60;
+    uint16_t minutes_text[0x40];
+    uint16_t seconds_text[0x40];
+
+    if (minutes == 0) {
+        string_format_wide_va_bounded(0x40, minutes_text, (const uint16_t *)L" ");
+    } else {
+        string_format_wide_va_bounded(0x40, minutes_text, (const uint16_t *)L"%d", minutes);
+    }
+    string_format_wide_va_bounded(0x40, seconds_text, (const uint16_t *)(seconds <= 9 ? L"0%d" : L"%d"), seconds);
+    string_format_wide_va_bounded(count, (uint16_t *)dest, (const uint16_t *)L"%s:%s", minutes_text, seconds_text);
+}
+
+/**
+ * ASCII counterpart of game_time_format_minutes_seconds: ticks / 30 as seconds, minutes and zero-padded
+ * seconds formatted with _snprintf and combined as "%s:%s".
+ *
+ * @address 0x466600
+ */
+void GameLifecycle::time_format_minutes_seconds_ascii(uint32_t ticks, uint32_t count, char *dest)
+{
+    int32_t total_seconds = (int32_t)ticks / 30;
+    int32_t minutes = total_seconds / 60;
+    int32_t seconds = total_seconds - minutes * 60;
+    char minutes_text[0x40];
+    char seconds_text[0x40];
+
+    if (minutes == 0) {
+        _snprintf(minutes_text, 0x40, " ");
+    } else {
+        _snprintf(minutes_text, 0x40, "%d", minutes);
+    }
+    _snprintf(seconds_text, 0x40, seconds <= 9 ? "0%d" : "%d", seconds);
+    _snprintf(dest, count, "%s:%s", minutes_text, seconds_text);
+}
+
+}

@@ -1,0 +1,16 @@
+// game_time_format_minutes_seconds_ascii  (not a Ghidra function; the ASCII twin of game_time_format_minutes_seconds,
+//   used by the King / Oddball GameSpy player query hooks)
+// address 0x466600, size 188 bytes
+// name confidence: 0.7   rewrite confidence: 0.9
+// WRITTEN 2026-09-28 from objdump 0x466600..0x4666bb: ticks / 30 as seconds; minutes (" " when 0, else "%d") and
+//   seconds ("0%d" below 10, else "%d") into 0x40 byte parts with _snprintf, then "%s:%s" into the destination
+//   bounded by count.
+// blam-cc: ECX ticks, stack -> count, dest
+
+
+Inline comments that were in the source (comment | code on that line):
+  [game_time_format_minutes_seconds_ascii] _snprintf(minutes_text, 0x40, " "); | // 0x00660788
+  [game_time_format_minutes_seconds_ascii] _snprintf(minutes_text, 0x40, "%d", minutes); | // 0x0065fb30
+  [game_time_format_minutes_seconds_ascii] _snprintf(seconds_text, 0x40, seconds <= 9 ? "0%d" : "%d", seconds); | // 0x00660784
+  [game_time_format_minutes_seconds_ascii] _snprintf(dest, count, "%s:%s", minutes_text, seconds_text); | // 0x0066077c
+

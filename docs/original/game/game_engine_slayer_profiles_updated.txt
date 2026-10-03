@@ -1,0 +1,22 @@
+// game_engine_slayer_profiles_updated  (not a Ghidra function; the slayer game engine definition's +0x90 slot (profiles_updated); no C existed, so that
+//   stored pointer trapped as unlisted_46fa40)
+// address 0x46fa40, size 214 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x46fa40..0x46fb15: mode 0 encodes a type 0x10 request for the replicated scores
+//   at 0x87a4a0; otherwise encodes type 0x10 from the live team scores 0x6b13d8 against 0x87a4a0 and then copies the
+//   0x20 live dwords (team and player scores) over the replicated copy. A positive bit count is broadcast when the
+//   machine is -1, else sent to that machine.
+// blam-cc: cdecl (called through the engine definition)
+
+
+Inline comments that were in the source (comment | code on that line):
+  extern int32_t slayer_team_score[16]; | // 0x006b13d8
+  extern int32_t slayer_player_score[16]; | // 0x006b1418
+  extern int32_t slayer_unknown_0087a4a0[16]; | // 0x0087a4a0, UNSURE
+  extern int32_t slayer_unknown_0087a4e0[16]; | // 0x0087a4e0, UNSURE
+  extern uint8_t network_message_scratch[0x7ff8]; | // 0x00871de0
+  extern network_server_globals *network_server; | // 0x0071c2d4
+  int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); | // 0x4ec940, blam-cc: EAX buffer, EDX size
+  void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused); | // 0x4e1a80, blam-cc: EAX bits, ECX server
+  uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority); | // 0x4e1930, blam-cc: EAX machine, ESI server
+

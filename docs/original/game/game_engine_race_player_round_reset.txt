@@ -1,0 +1,21 @@
+// game_engine_race_player_round_reset  (not a Ghidra function; the race game engine definition's +0x98 slot (player_round_reset); no C existed, so that
+//   stored pointer trapped as unlisted_46ee60)
+// address 0x46ee60, size 207 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x46ee60..0x46ef2e: as the server, for a live player (index in range, salt 0 or
+//   matching): with variant +0x80 == 2 its word +0xc6 is added to the extra bucket score of its team (or, when the
+//   flag argument equals the team, of team flag != 1); its words +0xc4/+0xc6/+0xc8 are cleared, +0x88 takes the game
+//   tick and its 0x6b12d4 entry is cleared. Every server call ends with
+//   game_engine_check_bucket_scores_and_end_round.
+// blam-cc: cdecl (called through the engine definition)
+
+
+Inline comments that were in the source (comment | code on that line):
+  extern data_array *player_data; | // 0x0087a480
+  extern int16_t network_game_mode; | // 0x00719720
+  extern game_variant game_engine_variant; | // 0x006f1c88
+  extern game_time_globals *game_time; | // 0x006f1d6c
+  extern int32_t game_engine_bucket_scores_extra[16]; | // 0x006b1358
+  extern uint32_t ctf_team_captured_flags_mask[]; | // 0x006b12d4
+  extern void game_engine_check_bucket_scores_and_end_round(void); | // 0x46db70
+
