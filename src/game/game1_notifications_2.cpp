@@ -1,0 +1,89 @@
+/**
+ * Network message handlers and gameplay event notifications of the game engine.
+ */
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+
+#include "halo/game/game1_notifications.hpp"
+
+extern "C" {
+extern data_array *player_data;
+extern uint8_t *network_server;
+extern uint8_t *network_client;
+extern data_array *update_client_queues;
+extern uint8_t join_message_table[];
+extern void message_delta_decode_compound_field_staged(void *event);
+extern uint8_t message_delta_decode_compound_field(void *event, void *out_message);
+extern void *datum_get(datum_index handle, data_array *array);
+extern uint8_t network_channel_key_close(void *identifier_record);
+extern void network_index_cache_insert_if_free(uint32_t hash_value, datum_index player_handle,
+    void *table);
+extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array);
+extern void game_engine_player_profile_cache_add(uint32_t player_handle);
+extern void game_set_local_player(datum_index player_handle,
+    int16_t local_player_index);
+extern void game_engine_player_new_life(uint32_t player_handle);
+}
+
+namespace halo::game::engine1 {
+
+/**
+ * Implements game engine apply player join message.
+ *
+ * Original register convention: EAX -> event, ECX -> out_message (a leading identifier-table slot byte, then
+ * the.
+ *
+ * @address 0x4778c0
+ */
+void Notifications::apply_player_join_message(void **envelope)
+{
+    struct { uint8_t slot_index; uint8_t pad[3]; uint32_t join_key; uint32_t hash_value;
+        uint32_t team; } message;
+    player *p;
+
+    if (*(int32_t *)*envelope != 0) {
+        message_delta_decode_compound_field_staged(envelope);
+        return;
+    }
+    if (!message_delta_decode_compound_field(envelope, &message)) {
+        return;
+    }
+
+    {
+    uint8_t *table_base = (network_server != 0) ? (network_server + 8) :
+        ((network_client != 0) ? (network_client + 0xb14) : 0);
+    uint8_t *identifier_record = table_base + (uint32_t)message.slot_index * 0x20 + 0x1a2;
+
+    p = (player *)datum_get((datum_index)message.join_key, player_data);
+    if (p == 0) {
+        if (network_channel_key_close(identifier_record) != 1) {
+            return;
+        }
+        network_index_cache_insert_if_free(message.hash_value, message.join_key, join_message_table);
+        p = (player *)datum_get((datum_index)message.join_key, player_data);
+        datum_new_at_index_with_salt((datum_index)message.join_key, update_client_queues);
+        game_engine_player_profile_cache_add(message.join_key);
+        if (p == 0) {
+            return;
+        }
+    }
+
+    p->team = (int32_t)message.team;
+    p->team_index = (int8_t)message.team;
+    if (p->local_player_index != -1) {
+        game_set_local_player((datum_index)message.join_key,
+            (int16_t)*(int8_t *)(identifier_record + 0x1d));
+    }
+    p->kill_streak[0] = 0;
+    p->kill_streak[1] = 0;
+    p->interaction_type = 0;
+    p->interaction_object = (datum_index)0xffffffff;
+
+    game_engine_player_new_life(message.join_key);
+    }
+}
+
+}
