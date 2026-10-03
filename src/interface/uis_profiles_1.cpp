@@ -25,6 +25,7 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 
+static auto &known_campaign_levels_00692acc = halo::link::ref<campaign_level_entry [10]>(halo::ui::vars().known_campaign_levels_00692acc);
 static auto &profile_slot_lookup_cache_00692ac8 = halo::link::ref<int32_t>(halo::ui::vars().profile_slot_lookup_cache_00692ac8);
 static auto &profile_carousel_slots = halo::link::ref<profile_carousel_slot [3]>(halo::ui::vars().profile_carousel_slots);
 static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
@@ -175,7 +176,7 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
             if (new_profile_name_flag_0071916e != 0) {
                 halo::interface::saved_item_select(-1);
             }
-            halo::main::main_queue_map_change((char *)"");
+            halo::main::main_queue_map_change(known_campaign_levels_00692acc[0].path);
             new_profile_name_entry_player_00692b00 = -1;
             network_wait_flag_00719739 = 0;
             return 1;

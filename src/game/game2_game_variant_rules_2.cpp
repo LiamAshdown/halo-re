@@ -8,8 +8,10 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 #include "halo/game/api.hpp"
 
+static auto &variant_defaults_source = halo::link::ref<char [0x40]>(halo::networking::vars().variant_defaults_source);
 static auto &game_engine_pending_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_pending_variant);
 static auto &game_engine_active_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_active_variant);
 static auto &cached_network_engine_index = halo::link::ref<int32_t>(halo::game::vars().cached_network_engine_index);
@@ -30,7 +32,7 @@ void GameVariantRules::sync_variant_defaults(void)
     void *session;
     uint8_t hosting;
 
-    halo::main::main_queue_map_change_by_name_or_clear(halo::mutable_literal(""));
+    halo::main::main_queue_map_change_by_name_or_clear(variant_defaults_source);
 
     session = halo::networking::globals().server;
     hosting = (session != 0);

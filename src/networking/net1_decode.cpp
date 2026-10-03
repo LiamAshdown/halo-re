@@ -322,7 +322,7 @@ int32_t GameClientView::settings_packet_receive(const uint32_t *request)
 
     cmp = strcmp(incoming->server_name, client->session.server_name);
     if (cmp != 0) {
-        halo::main::main_queue_map_change_by_name_or_clear(halo::mutable_literal(""));
+        halo::main::main_queue_map_change_by_name_or_clear(const_cast<char *>(incoming->server_name));
         if (join_ui_state != 1) {
             if (join_ui_state != 2 && join_ui_state == 4) {
                 interface_loading_screen_request_id = -1;
@@ -369,7 +369,7 @@ void GameClientView::settings_packet_send(const uint8_t *request)
 
     cmp = strcmp(challenge_request->server_name, client->session.server_name);
     if (cmp != 0) {
-        halo::main::main_queue_map_change_by_name_or_clear(halo::mutable_literal(""));
+        halo::main::main_queue_map_change_by_name_or_clear(const_cast<char *>(challenge_request->server_name));
         if (join_ui_state != 1) {
             if (join_ui_state != 2 && join_ui_state == 4) {
                 interface_loading_screen_request_id = -1;

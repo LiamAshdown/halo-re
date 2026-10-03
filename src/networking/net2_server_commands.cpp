@@ -351,8 +351,8 @@ void ServerCommands::map(uint32_t argument_count, uint16_t **arguments)
     if (network_game_mode == halo::networking::k_game_mode_local) {
         game_variant new_variant;
 
-        halo::main::main_queue_map_change_by_name_or_clear(halo::mutable_literal(""));
-        halo::game::game_engine_get_variant_by_name(0, &new_variant);
+        halo::main::main_queue_map_change_by_name_or_clear((char *)(uintptr_t)argument_count);
+        halo::game::game_engine_get_variant_by_name((const char *)arguments, &new_variant);
         memcpy(&game_variant_saved_default, &new_variant, sizeof(game_variant));
         game_variant_saved_default_valid = 1;
         if (halo::networking::network_game_start_new_server_from_profile(0) == 0) {
