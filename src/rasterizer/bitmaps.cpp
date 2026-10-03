@@ -5,6 +5,8 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -181,10 +183,10 @@ static BitmapData *rasterizer_default_bitmap(int16_t bitmap_type, int16_t defaul
     uint32_t tag = *(uint32_t *)((uint8_t *)rasterizer_globals_data + bitmap_type * 0x10 + 0xb8);
     Bitmap *bitmap;
 
-    if (tag == 0xffffffff) {
+    if (tag == halo::k_dword_none) {
         return 0;
     }
-    bitmap = (Bitmap *)halo::cache::globals().tag_instances[tag & 0xffff].data;
+    bitmap = (Bitmap *)halo::cache::globals().tag_instances[tag & halo::k_slot_mask].data;
     if (bitmap == 0 || default_index < 0 || default_index >= (int32_t)bitmap->bitmap_data.count) {
         return 0;
     }
@@ -198,10 +200,10 @@ static BitmapData *rasterizer_tag_bitmap(uint32_t bitmap_tag_id, int16_t bitmap_
     int32_t count;
 
     *resolved = 0;
-    if ((halo::rasterizer::fields::bump_mapping_enabled == 0 && default_index == 3) || bitmap_tag_id == 0xffffffff) {
+    if ((halo::rasterizer::fields::bump_mapping_enabled == 0 && default_index == 3) || bitmap_tag_id == halo::k_dword_none) {
         return 0;
     }
-    bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag_id & 0xffff].data;
+    bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag_id & halo::k_slot_mask].data;
     count = (int32_t)bitmap->bitmap_data.count;
     if (count <= 0) {
         return 0;
@@ -237,7 +239,7 @@ int16_t * chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage,
 
 static BitmapData *bitmap_group_frame(uint32_t bitmap_tag_id, int16_t frame)
 {
-    Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag_id & 0xffff].data;
+    Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag_id & halo::k_slot_mask].data;
     int32_t count = (int32_t)bitmap->bitmap_data.count;
     int16_t index;
 
@@ -263,7 +265,7 @@ uint8_t chimera__rasterizer_set_texture_direct_d3d9(uint32_t bitmap_tag_id, int1
 {
     BitmapData *data;
 
-    if (bitmap_tag_id == 0xffffffff) {
+    if (bitmap_tag_id == halo::k_dword_none) {
         return 0;
     }
     data = bitmap_group_frame(bitmap_tag_id, frame);
@@ -286,7 +288,7 @@ uint8_t chimera__rasterizer_set_texture_direct_d3dx(uint32_t bitmap_tag_id, int1
 {
     BitmapData *data;
 
-    if (bitmap_tag_id == 0xffffffff) {
+    if (bitmap_tag_id == halo::k_dword_none) {
         return 0;
     }
     data = bitmap_group_frame(bitmap_tag_id, frame);
@@ -1015,7 +1017,7 @@ uint8_t rasterizer_validate_and_rebind_texture(uint32_t bitmap_tag_id, int16_t s
 {
     BitmapData *data;
 
-    if (bitmap_tag_id == 0xffffffff) {
+    if (bitmap_tag_id == halo::k_dword_none) {
         return 0;
     }
     data = bitmap_group_frame(bitmap_tag_id, frame);

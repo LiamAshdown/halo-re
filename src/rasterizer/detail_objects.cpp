@@ -5,6 +5,7 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "internal/state.hpp"
 #include "halo/cache/api.hpp"
@@ -154,9 +155,9 @@ void rasterizer_detail_objects_draw(const rasterizer_detail_object_batches *list
         const rasterizer_detail_object_batch *batch = &((const rasterizer_detail_object_batch *)list->batches)[batch_index];
         const uint8_t *palette = (const uint8_t *)global_scenario->detail_object_collection_palette.pointer;
         uint32_t collection_tag = *(const uint32_t *)(palette + batch->collection_palette_index * 0x30 + 0xc);
-        const DetailObjectCollection *collection = (const DetailObjectCollection *)halo::cache::globals().tag_instances[collection_tag & 0xffff].data;
+        const DetailObjectCollection *collection = (const DetailObjectCollection *)halo::cache::globals().tag_instances[collection_tag & halo::k_slot_mask].data;
         uint32_t sprite_plate_tag = halo::tag_id_bits(collection->sprite_plate.tag_id);
-        const Bitmap *sprite_plate = (const Bitmap *)halo::cache::globals().tag_instances[sprite_plate_tag & 0xffff].data;
+        const Bitmap *sprite_plate = (const Bitmap *)halo::cache::globals().tag_instances[sprite_plate_tag & halo::k_slot_mask].data;
         float type_constants[16][4];
         float sprite_constants[128][4];
         int32_t type_count;
@@ -309,7 +310,7 @@ void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batch
             const uint8_t *palette = (const uint8_t *)scenario->detail_object_collection_palette.pointer;
             uint32_t collection_tag = *(const uint32_t *)(palette + batch->collection_palette_index * 0x30 + 0xc);
             const DetailObjectCollection *collection =
-                (const DetailObjectCollection *)halo::cache::globals().tag_instances[collection_tag & 0xffff].data;
+                (const DetailObjectCollection *)halo::cache::globals().tag_instances[collection_tag & halo::k_slot_mask].data;
             int16_t draw_index;
 
             for (draw_index = 0; draw_index < batch->draw_count; draw_index++) {

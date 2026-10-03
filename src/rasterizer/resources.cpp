@@ -5,6 +5,7 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/cseries/api.hpp"
@@ -568,7 +569,7 @@ uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, 
     }
 
     size = GetFileSize(file, (LPDWORD)((uint32_t *)0));
-    if (size == 0xffffffff) {
+    if (size == halo::k_dword_none) {
         CloseHandle(file);
         return 0;
     }

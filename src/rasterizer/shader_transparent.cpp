@@ -5,6 +5,7 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -447,8 +448,8 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
         constants[11] = 0.0f;
         render_device().set_vertex_shader_constant_f(0xa, constants, 3);
 
-        if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
-            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
+        if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != halo::k_dword_none) {
+            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & halo::k_slot_mask].data;
             int32_t count = (int32_t)bitmap->bitmap_data.count;
 
             if (count > 0) {
@@ -462,8 +463,8 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
         if (bump_bitmap == 0) {
             uint32_t default_tag = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
-            if (default_tag != 0xffffffff) {
-                Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & 0xffff].data;
+            if (default_tag != halo::k_dword_none) {
+                Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & halo::k_slot_mask].data;
 
                 if (bitmap != 0 && (int32_t)bitmap->bitmap_data.count > 3) {
                     bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);
@@ -807,7 +808,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         uint32_t tag_id = halo::tag_id_bits(layers[layer].shader.tag_id);
 
         copy.sorted_index = -1;
-        copy.shader = (uint32_t)(uintptr_t)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+        copy.shader = (uint32_t)(uintptr_t)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data;
         rasterizer_transparent_geometry_group_draw(&copy, attached);
     }
 
@@ -820,7 +821,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
     chimera__rasterizer_set_framebuffer_blend_function(shader->framebuffer_blend_function);
 
     if ((shader->shader_transparent_chicago_flags & _shader_transparent_numeric_bit) != 0 && group->lighting_extra != 0 && (int32_t)shader->maps.count > 0) {
-        const Bitmap *bitmap = (const Bitmap *)halo::cache::globals().tag_instances[halo::tag_id_bits(maps->map.tag_id) & 0xffff].data;
+        const Bitmap *bitmap = (const Bitmap *)halo::cache::globals().tag_instances[halo::tag_id_bits(maps->map.tag_id) & halo::k_slot_mask].data;
         int16_t base = (int16_t)bitmap->bitmap_data.count;
 
         if (shader->extra_flags & k_extra_flag_numeric_countdown_timer) {
@@ -1139,7 +1140,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
         uint32_t tag_id = halo::tag_id_bits(layers[layer].shader.tag_id);
 
         copy.sorted_index = -1;
-        copy.shader = (uint32_t)(uintptr_t)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+        copy.shader = (uint32_t)(uintptr_t)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data;
         rasterizer_transparent_geometry_group_draw(&copy, attached);
     }
 
@@ -1153,7 +1154,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
 
     if ((shader->shader_transparent_chicago_extended_flags & _shader_transparent_numeric_bit) != 0 && group->lighting_extra != 0 && (int32_t)shader->maps_4_stage.count > 0) {
         const ShaderTransparentChicagoMap *maps_4_stage = (const ShaderTransparentChicagoMap *)(uintptr_t)shader->maps_4_stage.pointer;
-        const Bitmap *bitmap = (const Bitmap *)halo::cache::globals().tag_instances[halo::tag_id_bits(maps_4_stage->map.tag_id) & 0xffff].data;
+        const Bitmap *bitmap = (const Bitmap *)halo::cache::globals().tag_instances[halo::tag_id_bits(maps_4_stage->map.tag_id) & halo::k_slot_mask].data;
         int16_t base = (int16_t)bitmap->bitmap_data.count;
 
         if (shader->extra_flags & k_extra_flag_numeric_countdown_timer) {
@@ -2388,7 +2389,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
                 uint8_t bound = 0;
 
                 if (halo::rasterizer::fields::bump_mapping_enabled != 0 && ripple_bitmap != k_datum_index_none) {
-                    const Bitmap *bitmap_tag = (const Bitmap *)halo::cache::globals().tag_instances[ripple_bitmap & 0xffff].data;
+                    const Bitmap *bitmap_tag = (const Bitmap *)halo::cache::globals().tag_instances[ripple_bitmap & halo::k_slot_mask].data;
                     int32_t bitmap_count = (int32_t)bitmap_tag->bitmap_data.count;
 
                     if (bitmap_count > 0) {
@@ -2408,7 +2409,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
                     datum_index fallback = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
                     if (fallback != k_datum_index_none) {
-                        const Bitmap *bitmap_tag = (const Bitmap *)halo::cache::globals().tag_instances[fallback & 0xffff].data;
+                        const Bitmap *bitmap_tag = (const Bitmap *)halo::cache::globals().tag_instances[fallback & halo::k_slot_mask].data;
 
                         if (bitmap_tag != 0 && (int32_t)bitmap_tag->bitmap_data.count > 3) {
                             bind_ripple_bitmap((uint32_t)stage, (BitmapData *)(uintptr_t)bitmap_tag->bitmap_data.pointer + 3);

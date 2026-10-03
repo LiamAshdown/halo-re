@@ -5,6 +5,7 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
@@ -635,7 +636,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
         if ((shader->shader_environment_flags & k_senv_bump_map_is_specular_mask) != 0) {
             reflection_type = 1;
         }
-        if (halo::tag_id_bits(shader->bump_map.tag_id) == 0xffffffff) {
+        if (halo::tag_id_bits(shader->bump_map.tag_id) == halo::k_dword_none) {
             reflection_type = 1;
         }
     }
@@ -669,13 +670,13 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
 
     normalization_tag = halo::tag_id_bits(rasterizer_globals_data->vector_normalization.tag_id);
     bump_map_tag = halo::tag_id_bits(shader->bump_map.tag_id);
-    if (bump_map_tag == 0xffffffff) {
+    if (bump_map_tag == halo::k_dword_none) {
         chimera__rasterizer_set_texture_direct_d3dx(normalization_tag, 2, 0, effect_slot);
     } else {
         BitmapData *bump_bitmap = 0;
 
         if (halo::rasterizer::fields::bump_mapping_enabled != 0) {
-            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
+            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & halo::k_slot_mask].data;
             int32_t count = (int32_t)bitmap->bitmap_data.count;
 
             if (count > 0) {
@@ -688,8 +689,8 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
         if (bump_bitmap == 0) {
             uint32_t default_tag = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
-            if (default_tag != 0xffffffff) {
-                Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & 0xffff].data;
+            if (default_tag != halo::k_dword_none) {
+                Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & halo::k_slot_mask].data;
 
                 if (bitmap != 0 && (int32_t)bitmap->bitmap_data.count > 3) {
                     bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);
@@ -988,8 +989,8 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
 
     bump_map_tag = halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id);
     bump_bitmap = 0;
-    if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
-        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
+    if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != halo::k_dword_none) {
+        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & halo::k_slot_mask].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
 
         if (count > 0) {
@@ -1002,8 +1003,8 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
     if (bump_bitmap == 0) {
         uint32_t default_tag = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
-        if (default_tag != 0xffffffff) {
-            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & 0xffff].data;
+        if (default_tag != halo::k_dword_none) {
+            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & halo::k_slot_mask].data;
 
             if (bitmap != 0 && (int32_t)bitmap->bitmap_data.count > 3) {
                 bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);
@@ -1076,8 +1077,8 @@ static void rasterizer_bind_bump_map(uint32_t bump_map_tag, int16_t frame, raste
 {
     BitmapData *bump_bitmap = 0;
 
-    if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
-        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
+    if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != halo::k_dword_none) {
+        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & halo::k_slot_mask].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
 
         if (count > 0) {
@@ -1090,11 +1091,11 @@ static void rasterizer_bind_bump_map(uint32_t bump_map_tag, int16_t frame, raste
     if (bump_bitmap == 0) {
         uint32_t default_tag = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
-        if (default_tag == 0xffffffff) {
+        if (default_tag == halo::k_dword_none) {
             return;
         }
         {
-            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & 0xffff].data;
+            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & halo::k_slot_mask].data;
 
             if (bitmap == 0 || (int32_t)bitmap->bitmap_data.count <= 3) {
                 return;
@@ -1249,14 +1250,14 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
         if ((raw[0x28] & 2) != 0) {
             reflection_type = 1;
         }
-        if (halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id) == 0xffffffff) {
+        if (halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id) == halo::k_dword_none) {
             reflection_type = 1;
         }
     }
     if (!(((struct ShaderEnvironment *)raw)->perpendicular_brightness > 0.0f) && !(((struct ShaderEnvironment *)raw)->parallel_brightness > 0.0f)) {
         return;
     }
-    if (halo::tag_id_bits(((struct ShaderEnvironment *)raw)->reflection_cube_map.tag_id) == 0xffffffff) {
+    if (halo::tag_id_bits(((struct ShaderEnvironment *)raw)->reflection_cube_map.tag_id) == halo::k_dword_none) {
         return;
     }
 
@@ -1283,8 +1284,8 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
 
     bump_map_tag = halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id);
     bump_bitmap = 0;
-    if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
-        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
+    if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != halo::k_dword_none) {
+        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & halo::k_slot_mask].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
 
         if (count > 0) {
@@ -1297,8 +1298,8 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
     if (bump_bitmap == 0) {
         uint32_t default_tag = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
-        if (default_tag != 0xffffffff) {
-            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & 0xffff].data;
+        if (default_tag != halo::k_dword_none) {
+            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & halo::k_slot_mask].data;
 
             if (bitmap != 0 && (int32_t)bitmap->bitmap_data.count > 3) {
                 bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);
@@ -1439,7 +1440,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
     render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, (raw[0x28] & 1) != 0 && halo::rasterizer::fields::environment_alpha_testing_enabled != 0 ? 1 : 0);
 
     map_tag = halo::tag_id_bits(((struct ShaderEnvironment *)raw)->map.tag_id);
-    if (map_tag == 0xffffffff) {
+    if (map_tag == halo::k_dword_none) {
         effect_index = (int16_t)(2 + (halo::rasterizer::fields::environment_effect_variant != 0 ? 1 : 0));
     } else {
         effect_index = (int16_t)(halo::rasterizer::fields::environment_effect_variant != 0 ? 1 : 0);
@@ -1455,8 +1456,8 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
 
     bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id);
     bump_bitmap = 0;
-    if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
-        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
+    if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != halo::k_dword_none) {
+        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & halo::k_slot_mask].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
 
         if (count > 0) {
@@ -1469,8 +1470,8 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
     if (bump_bitmap == 0) {
         uint32_t default_tag = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
-        if (default_tag != 0xffffffff) {
-            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & 0xffff].data;
+        if (default_tag != halo::k_dword_none) {
+            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & halo::k_slot_mask].data;
 
             if (bitmap != 0 && (int32_t)bitmap->bitmap_data.count > 3) {
                 bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);
@@ -1619,7 +1620,7 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
 
     self_illumination = (raw[0x28] & 2) ? k_datum_index_none : halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id);
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && self_illumination != k_datum_index_none) {
-        int32_t count = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[self_illumination & 0xffff].data + 0x60);
+        int32_t count = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[self_illumination & halo::k_slot_mask].data + 0x60);
 
         if (count > 0) {
             bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(self_illumination, (int16_t)((int32_t)frame % count));
@@ -1632,7 +1633,7 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
         datum_index fallback = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
         if (fallback != k_datum_index_none) {
-            uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[fallback & 0xffff].data;
+            uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[fallback & halo::k_slot_mask].data;
 
             if (tag != 0 && *(int32_t *)(tag + 0x60) > 3) {
                 bitmap = (BitmapData *)(*(uint8_t **)(tag + 0x64) + 0x90);
@@ -1711,7 +1712,7 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
 
     self_illumination = (raw[0x28] & 2) ? k_datum_index_none : halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id);
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && self_illumination != k_datum_index_none) {
-        int32_t count = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[self_illumination & 0xffff].data + 0x60);
+        int32_t count = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[self_illumination & halo::k_slot_mask].data + 0x60);
 
         if (count > 0) {
             bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(self_illumination, (int16_t)((int32_t)frame % count));
@@ -1724,7 +1725,7 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
         datum_index fallback = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
         if (fallback != k_datum_index_none) {
-            uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[fallback & 0xffff].data;
+            uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[fallback & halo::k_slot_mask].data;
 
             if (tag != 0 && *(int32_t *)(tag + 0x60) > 3) {
                 bitmap = (BitmapData *)(*(uint8_t **)(tag + 0x64) + 0x90);

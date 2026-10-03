@@ -5,6 +5,7 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
@@ -337,7 +338,7 @@ static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 
 static BitmapData *first_bitmap_data(uint32_t tag_id)
 {
-    uint8_t *bitmap = (uint8_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+    uint8_t *bitmap = (uint8_t *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data;
 
     if (bitmap != NULL && *(int32_t *)(bitmap + 0x60) > 0) {
         return (BitmapData *)(uintptr_t)*(uint32_t *)(bitmap + 0x64);
@@ -525,7 +526,7 @@ static void set_vertex(rasterizer_dynamic_screen_vertex *vertex, float x, float 
 
 static BitmapData *first_bitmap_data(uint32_t tag_id)
 {
-    uint8_t *bitmap = (uint8_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+    uint8_t *bitmap = (uint8_t *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data;
 
     if (bitmap != NULL && *(int32_t *)(bitmap + 0x60) > 0) {
         return (BitmapData *)(uintptr_t)*(uint32_t *)(bitmap + 0x64);

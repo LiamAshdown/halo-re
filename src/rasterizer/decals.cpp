@@ -5,6 +5,8 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/memory/api.hpp"
@@ -235,7 +237,7 @@ void rasterizer_decal_pass_begin(int16_t stage)
 
     {
         TagID *fallback_tag_id = (TagID *)((uint8_t *)rasterizer_globals_data + 0xb8);
-        if (*(uint32_t *)fallback_tag_id != 0xffffffff) {
+        if (*(uint32_t *)fallback_tag_id != halo::k_dword_none) {
             Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[fallback_tag_id->index].data;
             if (bitmap != (Bitmap *)0 && bitmap->bitmap_data.count > 1) {
                 uint8_t *first_submap = (uint8_t *)bitmap->bitmap_data.pointer;
@@ -364,10 +366,10 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
     }
 
     decal_index = decal_grid_block[rasterizer_decal_layer * 0x200 + cluster_index];
-    while (decal_index != 0xffffffff) {
+    while (decal_index != halo::k_dword_none) {
         uint8_t *decal = (uint8_t *)decal_data->data + (decal_index & 0xffff) * 0x38;
         uint32_t definition_tag = *(uint32_t *)&((struct decal *)decal)->definition_index;
-        uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[definition_tag & 0xffff].data + 0xbc;
+        uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[definition_tag & halo::k_slot_mask].data + 0xbc;
         int16_t type = *(int16_t *)(definition + 4);
 
         if (rasterizer_decal_blend_mode != type) {

@@ -5,6 +5,7 @@
  */
 
 #include <cstddef>
+#include "halo/core/slot_mask.hpp"
 #include "halo/render/d3d9.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
@@ -1151,7 +1152,7 @@ void structure_cluster_add_lens_flares(int16_t cluster_index)
 
         candidate.packed_direction = vector3d_pack_normal_11_11_10(&direction);
         candidate.packed_up = vector3d_pack_normal_11_11_10(&up);
-        candidate.definition = (uint32_t)halo::cache::globals().tag_instances[*(const uint32_t *)(palette + 0xc) & 0xffff].data;
+        candidate.definition = (uint32_t)halo::cache::globals().tag_instances[*(const uint32_t *)(palette + 0xc) & halo::k_slot_mask].data;
         candidate.position.x = marker->position.x;
         candidate.position.y = marker->position.y;
         candidate.position.z = marker->position.z;
