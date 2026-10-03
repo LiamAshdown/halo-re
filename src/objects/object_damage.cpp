@@ -1145,14 +1145,14 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
             datum_index child = obj->base.first_child_object;
 
             while (child != k_datum_index_none) {
-                uint8_t *child_obj = halo::objects::object_record_bytes(child);
+                unit_object *child_obj = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(child));
 
-                if (((1u << ((uint8_t)((struct object *)child_obj)->type & 0x1f)) & 3) &&
-                    *(datum_index *)(child_obj + 0x218) != k_datum_index_none) {
+                if (((1u << ((uint8_t)child_obj->base.type & 0x1f)) & 3) &&
+                    child_obj->unit.controlling_player != k_datum_index_none) {
                     *vitality = 0.0f;
                     break;
                 }
-                child = ((object *)child_obj)->next_object;
+                child = child_obj->base.next_object;
             }
         }
     }

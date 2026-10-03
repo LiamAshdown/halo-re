@@ -24,12 +24,13 @@ int32_t ClientMessageDecoder::connect_rejected(const uint8_t *buffer, int32_t le
     network_resolved_address sender;
     uint32_t decoded_body[2];
     int16_t out_a;
+    int16_t remaining = static_cast<int16_t>(length - 2);
 
     halo::networking::network_channel_remote_address_or_default(client->channel, &sender);
     if (sender.address.ipv4 == *expected_sequence && client->state != 0 && client->state != 4) {
         uint16_t version_used;
-        if (halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group,
-                                             decoded_body, (uint8_t *)buffer + 2, &out_a, &version_used, 2) != 0) {
+        if (halo::memory::data_packet_group_decode_packet(&remaining, &network_game_messages_group,
+                                             decoded_body, const_cast<uint8_t *>(buffer) + 2, &out_a, &version_used, 2) != 0) {
             halo::networking::network_session_disconnect_with_error((int16_t)decoded_body[0]);
         }
     }
@@ -49,7 +50,9 @@ int32_t ClientMessageDecoder::settings_or_ack(const uint8_t *buffer, int32_t len
     network_client_globals *client = self;
     network_resolved_address sender;
     uint8_t decoded_body[944];
-    int16_t out_a, out_b;
+    int16_t out_a;
+    uint16_t out_b;
+    int16_t remaining = static_cast<int16_t>(length - 2);
 
     halo::networking::network_channel_remote_address_or_default(client->channel, &sender);
     if (sender.address.ipv4 == *expected_sequence) {
@@ -59,8 +62,8 @@ int32_t ClientMessageDecoder::settings_or_ack(const uint8_t *buffer, int32_t len
                 client->settings_ack_sent = 1;
             }
         } else if (client->state == 2 || client->state == 3) {
-            if (halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group,
-                                                 decoded_body, (uint8_t *)buffer + 2, &out_a, (uint16_t *)&out_b, 2) != 0) {
+            if (halo::memory::data_packet_group_decode_packet(&remaining, &network_game_messages_group,
+                                                 decoded_body, const_cast<uint8_t *>(buffer) + 2, &out_a, &out_b, 2) != 0) {
                 return halo::networking::network_game_settings_packet_receive(client, (const uint32_t *)decoded_body);
             }
             return 0;
@@ -85,12 +88,14 @@ int32_t ClientMessageDecoder::decode_settings_request(const uint8_t *buffer, int
     network_client_globals *client = self;
     network_resolved_address sender;
     uint8_t decoded_body[0x94];
-    int16_t out_a, out_b;
+    int16_t out_a;
+    uint16_t out_b;
+    int16_t remaining = static_cast<int16_t>(length - 2);
 
     halo::networking::network_channel_remote_address_or_default(client->channel, &sender);
     if (sender.address.ipv4 == *expected_sequence && client->state == 1) {
-        if (halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group,
-                                             decoded_body, (uint8_t *)buffer + 2, &out_a, (uint16_t *)&out_b, 2) != 0) {
+        if (halo::memory::data_packet_group_decode_packet(&remaining, &network_game_messages_group,
+                                             decoded_body, const_cast<uint8_t *>(buffer) + 2, &out_a, &out_b, 2) != 0) {
             message_delta_vector3d_mode = (decoded_body[8] == 1);
             halo::networking::network_game_settings_packet_send(client, decoded_body);
             return 1;
