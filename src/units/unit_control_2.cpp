@@ -1,4 +1,5 @@
 #include <string.h>
+#include "halo/models/api.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -7,11 +8,6 @@ extern "C" {
 extern data_array *object_data;
 extern float *global_zero_vector2d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
-extern void animation_replace_frame_orientations(void *animation, int16_t frame, void *out_orientations);
-extern void animation_overlay_frame_orientations(void *animation, int16_t frame, void *out_orientations);
-extern void animation_overlay_frame_orientations_weighted(void *animation, int16_t frame, float weight, void *out_orientations);
-extern void animation_overlay_interpolated_frame_orientations(void *animation, float frame, void *out_orientations);
-extern void animation_aiming_screen_blend(void *animation, void *screen, real yaw, real pitch, void *orientation_out);
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
 extern double atan2(double y, double x);
 extern double sqrt(double x);
@@ -67,16 +63,16 @@ void UnitView::update_aiming_overlay_angles(void *output)
     int8_t state;
 
     if (*(int16_t *)(unit + 0x2aa) != -1) {
-        animation_replace_frame_orientations(animations + *(int16_t *)(unit + 0x2aa) * 0xb4,
-            (int16_t)*(uint16_t *)(unit + 0x2ac), output);
+        halo::models::animation_replace_frame_orientations(reinterpret_cast<ModelAnimationsAnimation *>(animations + *(int16_t *)(unit + 0x2aa) * 0xb4),
+            (int16_t)*(uint16_t *)(unit + 0x2ac), reinterpret_cast<real_orientation *>(output));
     }
     if (*(int16_t *)(unit + 0x2ae) != -1) {
-        animation_overlay_frame_orientations(animations + *(int16_t *)(unit + 0x2ae) * 0xb4,
-            (int16_t)*(uint16_t *)(unit + 0x2b0), output);
+        halo::models::animation_overlay_frame_orientations(reinterpret_cast<ModelAnimationsAnimation *>(animations + *(int16_t *)(unit + 0x2ae) * 0xb4),
+            (int16_t)*(uint16_t *)(unit + 0x2b0), reinterpret_cast<real_orientation *>(output));
     }
     if (*(int16_t *)(unit + 0x2b2) != -1) {
-        animation_overlay_frame_orientations(animations + *(int16_t *)(unit + 0x2b2) * 0xb4,
-            (int16_t)*(uint16_t *)(unit + 0x2b4), output);
+        halo::models::animation_overlay_frame_orientations(reinterpret_cast<ModelAnimationsAnimation *>(animations + *(int16_t *)(unit + 0x2b2) * 0xb4),
+            (int16_t)*(uint16_t *)(unit + 0x2b4), reinterpret_cast<real_orientation *>(output));
     }
     unit[0x2b6] = 0;
     unit[0x2b7] = 0;
@@ -96,14 +92,14 @@ void UnitView::update_aiming_overlay_angles(void *output)
             int8_t frame = (int8_t)unit[0x2a8];
 
             if (frame >= 0 && frame < *(int16_t *)(record + 0x22)) {
-                animation_overlay_frame_orientations(record, frame, output);
+                halo::models::animation_overlay_frame_orientations(reinterpret_cast<ModelAnimationsAnimation *>(record), frame, reinterpret_cast<real_orientation *>(output));
             }
         }
     }
     if (((unit_object *)unit)->unit.mouth_aperture > 0.0f && *(int32_t *)(block + 0x40) > 0xa &&
         (*(int16_t **)(block + 0x44))[0xa] != -1) {
-        animation_overlay_frame_orientations_weighted(animations + (*(int16_t **)(block + 0x44))[0xa] * 0xb4, 0,
-            ((unit_object *)unit)->unit.mouth_aperture, output);
+        halo::models::animation_overlay_frame_orientations_weighted(reinterpret_cast<ModelAnimationsAnimation *>(animations + (*(int16_t **)(block + 0x44))[0xa] * 0xb4), 0,
+            ((unit_object *)unit)->unit.mouth_aperture, reinterpret_cast<real_orientation *>(output));
     }
     if (unit[0x298] & 2) {
         int32_t slot;
@@ -113,8 +109,8 @@ void UnitView::update_aiming_overlay_angles(void *output)
                 uint8_t *record = animations + (*(int16_t **)(block + 0x44))[slot] * 0xb4;
                 int32_t last_frame = *(int16_t *)(record + 0x22) - 1;
 
-                animation_overlay_interpolated_frame_orientations(record,
-                    (float)last_frame * *(float *)(unit + 0x364 + (slot - 2) * 4), output);
+                halo::models::animation_overlay_interpolated_frame_orientations(reinterpret_cast<ModelAnimationsAnimation *>(record),
+                    (float)last_frame * *(float *)(unit + 0x364 + (slot - 2) * 4), reinterpret_cast<real_orientation *>(output));
             }
         }
     }
@@ -135,7 +131,7 @@ void UnitView::update_aiming_overlay_angles(void *output)
         aiming_angles_in_unit_frame(unit_index, (real_vector3d *)(unit + 0x23c), &aim_yaw, &aim_pitch);
         unit[0x2b6] = 1;
         aiming_screen_limits(screen, (float *)(unit + 0x2b8));
-        animation_aiming_screen_blend(animations + ((unit_object *)unit)->unit.aiming_animation_index * 0xb4, screen, aim_yaw, aim_pitch, output);
+        halo::models::animation_aiming_screen_blend(reinterpret_cast<ModelAnimationsAnimation *>(animations + ((unit_object *)unit)->unit.aiming_animation_index * 0xb4), reinterpret_cast<animation_aiming_screen *>(screen), aim_yaw, aim_pitch, reinterpret_cast<real_orientation *>(output));
     }
 
     if (((unit_object *)unit)->unit.current_weapon_index == -1 && ((unit_object *)unit)->unit.controlling_player == k_datum_index_none) {
@@ -151,8 +147,8 @@ void UnitView::update_aiming_overlay_angles(void *output)
         look_yaw -= aim_yaw;
         look_pitch -= aim_pitch;
         aiming_screen_limits(screen, (float *)(unit + 0x2c8));
-        animation_aiming_screen_blend(animations + ((struct unit_object *)unit)->unit.looking_animation_index * 0xb4, screen, look_yaw, look_pitch,
-            output);
+        halo::models::animation_aiming_screen_blend(reinterpret_cast<ModelAnimationsAnimation *>(animations + ((struct unit_object *)unit)->unit.looking_animation_index * 0xb4), reinterpret_cast<animation_aiming_screen *>(screen), look_yaw, look_pitch,
+            reinterpret_cast<real_orientation *>(output));
     }
 }
 

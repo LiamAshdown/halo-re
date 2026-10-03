@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_first_person_weapon_controller.hpp"
+#include "halo/models/api.hpp"
 #include <stdint.h>
 #include <string.h>
 #include "halo/cache/api.hpp"
@@ -13,8 +14,6 @@ extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, co
 extern void *object_try_and_get(datum_index object_index, uint32_t mask);
 extern int16_t camera_get_type_for_player(int16_t player_index);
 extern int32_t local_player_index_for_weapon(datum_index weapon_index);
-extern int16_t model_markers_get_by_name(datum_index model_tag_id, const char *name, uint8_t *region_permutations,
-    int16_t *node_remap, real_matrix4x3 *node_matrices, uint8_t mirrored, object_marker *out, int16_t maximum);
 extern data_array *object_data;
 extern Globals *global_globals;
 extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot,
@@ -40,11 +39,6 @@ extern float camera_position_z;
 extern void hud_meter_permute_node_records(uint8_t *dest, uint8_t *source,
                                             uint32_t target_tag_ref, int16_t *lookup);
 extern void *object_get_cached_render_lighting(datum_index object_index, real level_of_detail_pixels);
-extern void render_model(uint32_t model_tag_ref, uint8_t *node_records,
-                          int32_t unknown_0, int32_t unknown_1, ColorRGB *change_colors,
-                          float *function_out_values, int32_t light_sample, float *camera_position,
-                          int32_t unknown_6, first_person_light_parameters *light_params,
-                          datum_index weapon_index, int32_t unknown_9, int32_t unknown_10);
 extern player_control_globals *player_control_globals_ptr;
 extern float camera_field_of_view;
 extern uint32_t rasterizer_device_version;
@@ -165,7 +159,7 @@ uint32_t FirstPersonWeaponController::get_marker_data(datum_index weapon_index, 
 
     if (fp->weapon_hud_valid != 0 && *(int32_t *)(item_tag_data + 0x468) != -1 &&
         *(int32_t *)(item_tag_data + 0x478) != -1) {
-        return (uint32_t)model_markers_get_by_name(*(datum_index *)(item_tag_data + 0x468), marker_name,
+        return (uint32_t)halo::models::model_markers_get_by_name(*(datum_index *)(item_tag_data + 0x468), marker_name,
             (uint8_t *)0, fp->weapon_hud_element, (real_matrix4x3 *)fp->node_matrices, 0, out, (int16_t)maximum);
     }
     return 0;
@@ -763,9 +757,9 @@ void FirstPersonWeaponController::update_lighting(void)
 
         hud_meter_permute_node_records(node_scratch, fp->node_matrices, model_tag_ref,
                                         fp->weapon_hud_element);
-        render_model(model_tag_ref, node_scratch, 0, 0, (ColorRGB *)((char *)weapon_obj + 0x1b8),
-                     (float *)((char *)weapon_obj + 0x134), light_sample, &render_camera_global, 0,
-                     &light_params, fp->weapon_index, 0, 8);
+        halo::models::render_model(static_cast<TagID>(model_tag_ref), node_scratch, 0, 0, (ColorRGB *)((char *)weapon_obj + 0x1b8),
+                     (float *)((char *)weapon_obj + 0x134), reinterpret_cast<render_lighting *>(light_sample), reinterpret_cast<real_point3d *>(&render_camera_global), 0,
+                     reinterpret_cast<render_model_effect *>(&light_params), fp->weapon_index, 0, 8);
     }
     if (fp->device_hud_valid != 0 &&
         *(int32_t *)&((struct GlobalsFirstPersonInterface *)first_person_interface)->first_person_hands.tag_id != -1) {
@@ -773,9 +767,9 @@ void FirstPersonWeaponController::update_lighting(void)
 
         hud_meter_permute_node_records(node_scratch, fp->node_matrices, model_tag_ref,
                                         fp->device_hud_element);
-        render_model(model_tag_ref, node_scratch, 0, 0, (ColorRGB *)((char *)unit_obj + 0x1b8),
-                     (float *)((char *)unit_obj + 0x134), light_sample, &render_camera_global, 0,
-                     &light_params, fp->weapon_index, 0, 8);
+        halo::models::render_model(static_cast<TagID>(model_tag_ref), node_scratch, 0, 0, (ColorRGB *)((char *)unit_obj + 0x1b8),
+                     (float *)((char *)unit_obj + 0x134), reinterpret_cast<render_lighting *>(light_sample), reinterpret_cast<real_point3d *>(&render_camera_global), 0,
+                     reinterpret_cast<render_model_effect *>(&light_params), fp->weapon_index, 0, 8);
     }
 }
 

@@ -1,4 +1,5 @@
 #include <string.h>
+#include "halo/models/api.hpp"
 #include "halo/units/unit.hpp"
 #include "game.h"
 #include "hs.h"
@@ -29,17 +30,14 @@ extern real_vector3d *global_down3d_pointer;
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
 extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
-extern int16_t animation_graph_find_animation_by_name(uint32_t unit_index, const char *name);
 extern void console_print_va(const char *format, ...);
 extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
-extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern int16_t network_game_mode;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
 extern void object_delete_teardown(uint32_t object_index);
-extern void model_animation_get_frame_delta(int16_t frame, void *animation, real_vector3d *out, void *model);
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out);
 extern void object_set_collision_enabled(uint32_t object_index, uint8_t enable);
 extern real_point3d *global_zero_vector3d_pointer;
@@ -763,7 +761,7 @@ void UnitView::scripting_set_emotion_animation(const char *emotion_name)
     if (unit_index != 0xffffffff) {
         object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
         unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-        int16_t region = animation_graph_find_animation_by_name(unit_index, emotion_name);
+        int16_t region = halo::models::animation_graph_find_animation_by_name(unit_index, emotion_name);
         if (region != -1) {
             unit->emotion_animation_index = region;
             return;
@@ -887,8 +885,8 @@ void UnitView::start_seat_overlay_animation_a(int16_t command)
         if (command != 7) {
             object_copy_default_node_transforms(unit_index, 6);
         }
-        unit->overlays[0].animation_index = animation_choose_random_permutation(
-            *(datum_index *)&obj_tag->animation_graph.tag_id, animation_index, 1);
+        unit->overlays[0].animation_index = halo::models::animation_choose_random_permutation(
+            *(datum_index *)&obj_tag->animation_graph.tag_id, animation_index, static_cast<animation_random_stream>(1));
         unit->overlays[0].frame = 0;
         unit->replacement_animation_state = (int8_t)command;
     }
@@ -944,9 +942,9 @@ void UnitView::start_seat_overlay_animation_b(int16_t command)
 
     if (raw_index < (int32_t)weapon_type->animations.count &&
         *(int16_t *)((uint8_t *)weapon_type->animations.pointer + raw_index * 2) != -1) {
-        unit->overlays[1].animation_index = animation_choose_random_permutation(
+        unit->overlays[1].animation_index = halo::models::animation_choose_random_permutation(
             *(datum_index *)&obj_tag->animation_graph.tag_id,
-            *(int16_t *)((uint8_t *)weapon_type->animations.pointer + raw_index * 2), 1);
+            *(int16_t *)((uint8_t *)weapon_type->animations.pointer + raw_index * 2), static_cast<animation_random_stream>(1));
         unit->overlays[1].frame = 0;
         unit->overlay_animation_state = (int8_t)command;
     }
@@ -969,13 +967,13 @@ uint8_t UnitView::start_user_animation(datum_index graph_tag, const char *animat
         return 0;
     }
     unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
-    animation = animation_graph_find_animation_by_name(graph_tag, animation_name);
+    animation = halo::models::animation_graph_find_animation_by_name(graph_tag, animation_name);
     if (animation == -1) {
         console_print_va("the animation '%s' doesn't exist in the graph '%s'", animation_name,
             *(char **)((uint8_t *)halo::cache::globals().tag_instances + (int16_t)graph_tag * 0x20 + 0x10));
         return 0;
     }
-    animation = animation_choose_random_permutation(graph_tag, animation, 1);
+    animation = halo::models::animation_choose_random_permutation(graph_tag, animation, static_cast<animation_random_stream>(1));
     animations = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[graph_tag & 0xffff].data + 0x78);
     record = animations + animation * 0xb4;
     if (*(int16_t *)(record + 0x20) != 0) {
@@ -1088,7 +1086,7 @@ uint8_t UnitView::try_set_animation_state(int16_t new_state)
                 break;
             }
         }
-        animation = animation_choose_random_permutation(graph, animation, 1);
+        animation = halo::models::animation_choose_random_permutation(graph, animation, static_cast<animation_random_stream>(1));
         {
             uint8_t *reloaded = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
 
@@ -1115,12 +1113,12 @@ uint8_t UnitView::try_set_animation_state(int16_t new_state)
         if (seat_type >= 0 && seat_type < *(int32_t *)(weapon_block + 0x98)) {
             overlay = (*(int16_t **)(weapon_block + 0x9c))[seat_type];
         }
-        ((unit_object *)unit)->unit.aiming_animation_index = animation_choose_random_permutation(graph, overlay, 1);
+        ((unit_object *)unit)->unit.aiming_animation_index = halo::models::animation_choose_random_permutation(graph, overlay, static_cast<animation_random_stream>(1));
         count = 6;
         if (no_state) {
             int16_t idle = (*(int32_t *)(unit_block + 0x40) > 9) ? (*(int16_t **)(unit_block + 0x44))[9] : -1;
 
-            ((struct unit_object *)unit)->unit.looking_animation_index = animation_choose_random_permutation(graph, idle, 1);
+            ((struct unit_object *)unit)->unit.looking_animation_index = halo::models::animation_choose_random_permutation(graph, idle, static_cast<animation_random_stream>(1));
         }
         object_copy_default_node_transforms(unit_index, count);
     } else if (changed) {
@@ -1168,7 +1166,7 @@ uint8_t UnitView::try_start_scripted_action_animation(int16_t command, const rea
         return 0;
     }
     object_copy_default_node_transforms(unit_index, priority);
-    animation = animation_choose_random_permutation(*(datum_index *)(unit_tag + 0x44), first_animation, 1);
+    animation = halo::models::animation_choose_random_permutation(*(datum_index *)(unit_tag + 0x44), first_animation, static_cast<animation_random_stream>(1));
     object = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     *(datum_index *)(object + 0xcc) = *(datum_index *)(unit_tag + 0x44);
     *(int16_t *)(object + 0xd0) = animation;
@@ -1225,7 +1223,7 @@ uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_ind
     if (*(datum_index *)(OBJECT_DATA(vehicle_index) + 0x324) == unit_index) {
         UnitView((int32_t)vehicle_index).notify_weapon_removed();
     }
-    UnitView(unit_index).set_custom_animation(*(datum_index *)(self_tag + 0x44), animation_choose_random_permutation(graph, exit_animation, 1));
+    UnitView(unit_index).set_custom_animation(*(datum_index *)(self_tag + 0x44), halo::models::animation_choose_random_permutation(graph, exit_animation, static_cast<animation_random_stream>(1)));
     object = OBJECT_DATA(unit_index);
     object_tag = TAG_DATA(*(datum_index *)object);
     if (*(int32_t *)(object_tag + 0x34) != -1) {
@@ -1367,8 +1365,8 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
                 real_matrix4x3 world;
                 real_matrix4x3 *matrix;
 
-                model_animation_get_frame_delta(((unit_object *)unit)->base.animation_frame,
-                    animations + ((unit_object *)unit)->base.animation_index * 0xb4, &delta, model);
+                halo::models::model_animation_get_frame_delta(((unit_object *)unit)->base.animation_frame,
+                    reinterpret_cast<ModelAnimationsAnimation *>(animations + ((unit_object *)unit)->base.animation_index * 0xb4), &delta, reinterpret_cast<GBXModel *>(model));
                 matrix = object_get_world_matrix(unit_index, &world);
                 halo::math::matrix4x3_transform_vector(delta, delta, *matrix);
                 UnitView(unit_index).detach_from_seat(1, 1, 1);

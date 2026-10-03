@@ -125,7 +125,7 @@ typedef enum model_constants {
 // The console global at 0x006893e8 (int16, -1 by default) overrides the result and is
 // clamped to 0..4.
 // ---------------------------------------------------------------------------
-typedef enum model_level_of_detail {
+typedef enum model_level_of_detail : int {
     _model_lod_super_low = 0,    // permutation +0x40, cutoff GBXModel +0x08
     _model_lod_low = 1,          // permutation +0x42, cutoff +0x0c
     _model_lod_medium = 2,       // permutation +0x44, cutoff +0x10
@@ -166,7 +166,7 @@ typedef struct animation_state {
 
 // Return value of animation_state_advance 0x4d48d0 (the callers at 0x493256 and 0x49325c test
 // 1 and 2).
-typedef enum animation_state_advance_result {
+typedef enum animation_state_advance_result : int {
     _animation_advance_none = 0,            // an ordinary frame
     _animation_advance_key_frame = 1,       // frame_index == key_frame_index or
                                             //   second_key_frame_index
@@ -182,7 +182,7 @@ typedef enum animation_state_advance_result {
 // The first stack argument of 0x4d48d0 and of 0x4d6280: which random stream picks the next
 // animation. 1 advances random_seed_global 0x00719cd0, anything else local_random_seed
 // 0x00719cd4 (both types/math.h, LCG 0x19660d / 0x3c6ef35f).
-typedef enum animation_random_stream {
+typedef enum animation_random_stream : int {
     _animation_random_local = 0,
     _animation_random_global = 1
 } animation_random_stream;

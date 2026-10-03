@@ -1,4 +1,5 @@
 #include "halo/devices/device.hpp"
+#include "halo/models/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -9,8 +10,6 @@
 extern "C" {
 extern data_array *object_data;
 extern data_array *device_groups;
-extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame, real_orientation *out_orientations);
-extern void animation_overlay_frame_orientations(ModelAnimationsAnimation *animation, int16_t frame, real_orientation *out_orientations);
 extern uint8_t device_group_set_value(uint16_t group_index, float value);
 extern void device_play_state_change_effect(uint32_t object_index, TagID tag_id);
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name, object_marker *marker, uint32_t flags);
@@ -184,16 +183,16 @@ void DeviceHandle::blend_animations(real_orientation *orientations)
         }
         frame = (float)((double)frames * position);
         if (tag_flags & 2) {
-            animation_overlay_frame_orientations(animation, (int16_t)(int32_t)frame, orientations); 
+            halo::models::animation_overlay_frame_orientations(animation, (int16_t)(int32_t)frame, orientations); 
         } else {
-            animation_overlay_interpolated_frame_orientations(animation, frame, orientations);
+            halo::models::animation_overlay_interpolated_frame_orientations(animation, frame, orientations);
         }
     }
     if (count > 1 && indices[1] != -1) {
         ModelAnimationsAnimation *animation = (ModelAnimationsAnimation *)(animations + indices[1] * 0xb4);
         int32_t frames = (int16_t)animation->frame_count;
 
-        animation_overlay_interpolated_frame_orientations(animation,
+        halo::models::animation_overlay_interpolated_frame_orientations(animation,
             (float)((double)frames * obj->device.power), orientations);
     }
 }

@@ -1,4 +1,5 @@
 #include "halo/objects/object_update.hpp"
+#include "halo/models/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "game.h"
 #include "models.h"
@@ -7,9 +8,6 @@
 
 extern "C" {
 extern float angle_delta_wrapped(float from, float to);
-extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model, int16_t frame, real_orientation *out_orientations);
-extern void animation_overlay_frame_orientations_weighted(ModelAnimationsAnimation *animation, int16_t frame, float weight, real_orientation *out_orientations);
-extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame, real_orientation *out_orientations);
 extern double atan2(double y, double x);
 extern double fabs(double x);
 extern float fabsf(float x);
@@ -19,8 +17,6 @@ extern double fpatan(double y, double x);
 extern game_time_globals *game_time;
 extern real_vector3d *global_origin3d_pointer;
 extern Scenario *global_scenario;
-extern void model_nodes_blend_transforms(real_orientation *in_out, int16_t node_count, real_orientation *other, int16_t step, int16_t steps);
-extern void model_nodes_get_default_transforms(GBXModel *model, real_orientation *out);
 extern int16_t network_game_mode;
 extern data_array *object_data;
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
@@ -433,10 +429,10 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
             } else {
                 frame = OFS(obj, 0xd2, uint16_t);
             }
-            animation_get_frame_orientations(animation, (GBXModel *)model, (int16_t)frame, orientations);
+            halo::models::animation_get_frame_orientations(animation, (GBXModel *)model, (int16_t)frame, orientations);
             absolute_root = (uint8_t)((OFS(animation, 0x3a, uint8_t) >> 1) & 1);
         } else {
-            model_nodes_get_default_transforms((GBXModel *)model, orientations);
+            halo::models::model_nodes_get_default_transforms((GBXModel *)model, orientations);
         }
 
         if (OFS(def, 0x44, int32_t) != -1) {
@@ -456,11 +452,11 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                         if ((OFS(OFS(def, 0x15c, uint8_t *), (int32_t)entry[1] * 0x168, uint8_t) & 2) == 0) {
                             frames -= 1;
                         }
-                        animation_overlay_interpolated_frame_orientations(animation, (float)frames * value, orientations);
+                        halo::models::animation_overlay_interpolated_frame_orientations(animation, (float)frames * value, orientations);
                     } else if (entry[2] == 1) {
                         uint32_t frame = (OFS(game_time, 0xc, uint32_t) + object_index) %
                             (uint32_t)(int32_t)OFS(animation, 0x22, int16_t);
-                        animation_overlay_frame_orientations_weighted(animation, (int16_t)frame, value, orientations);
+                        halo::models::animation_overlay_frame_orientations_weighted(animation, (int16_t)frame, value, orientations);
                     }
                 }
             }
@@ -478,7 +474,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         }
         if (OFS(obj, 0xd6, int16_t) > 0) {
 
-            model_nodes_blend_transforms(orientations, OFS(model, 0xb8, int16_t),
+            halo::models::model_nodes_blend_transforms(orientations, OFS(model, 0xb8, int16_t),
                 (real_orientation *)(obj + OFS(obj, 0x1ea, int16_t)), (int16_t)OFS(obj, 0xd4, uint16_t),
                 (int16_t)OFS(obj, 0xd6, uint16_t));
         }

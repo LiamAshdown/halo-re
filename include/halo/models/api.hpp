@@ -1,15 +1,37 @@
 /**
- * @file include/halo/models/models_c_api.h
- * The C ABI of the models module: every original function with its original signature and C linkage.
- * Defined in src/models/models_c_api.cpp; documented on the halo::models C++ API.
+ * @file include/halo/models/api.hpp
+ * Functions of the models module that other modules and the data tables call (namespace halo::models). The record types are
+ * forward-declared, so the header is light enough for every caller and for the data tables.
  */
 #pragma once
 
-#include "halo/models/models.hpp"
+#include <stdarg.h>
+#include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef float real;
+struct ColorRGB;
+struct GBXModel;
+struct ModelAnimationsAnimation;
+struct TagID;
+struct animation_aiming_screen;
+struct animation_quaternion48;
+struct animation_state;
+struct effect;
+struct object_marker;
+struct rasterizer_node_matrices;
+struct real_matrix4x3;
+struct real_orientation;
+struct real_point3d;
+struct real_quaternion;
+struct real_vector3d;
+struct render_lighting;
+struct render_model_effect;
+enum animation_random_stream : int;
+enum animation_state_advance_result : int;
+enum model_level_of_detail : int;
+typedef uint32_t datum_index;
+
+namespace halo::models {
 
 void * animation_get_frame_data(ModelAnimationsAnimation *animation, int16_t frame);
 void animation_get_frame_info_distance(ModelAnimationsAnimation *animation, float *dx_to_key_frame, float *dx_total);
@@ -41,6 +63,4 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
 int16_t model_marker_group_index_from_name(datum_index model_tag_id, const char *name);
 int16_t model_markers_get_by_name(datum_index model_tag_id, const char *name, uint8_t *region_permutations, int16_t *node_remap, real_matrix4x3 *node_matrices, uint8_t mirrored, object_marker *out, int16_t maximum);
 
-#ifdef __cplusplus
 }
-#endif

@@ -1,4 +1,5 @@
 #include "halo/camera/pov.hpp"
+#include "halo/models/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -41,7 +42,6 @@ extern real_point3d *global_zero_vector3d_pointer;
 extern dead_camera_data *dead_camera_new(dead_camera_data *self, int16_t local_player_index, datum_index unit);
 extern void camera_track_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
 extern void first_person_camera_command_for_unit(datum_index unit, observer_command *command);
-extern void animation_get_root_node_matrix(real_matrix4x3 *out, int16_t frame, ModelAnimationsAnimation *animation, GBXModel *model);
 extern int32_t __ftol(double x);
 extern double atan2(double y, double x);
 extern datum_index flying_camera_attached_object;
@@ -747,7 +747,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
             frame_index = frame;
         }
 
-        animation_get_root_node_matrix(&sample, frame_index, anim, 0);
+        halo::models::animation_get_root_node_matrix(&sample, frame_index, anim, 0);
 
         command->parameters.forward = *(Vector3D *)&sample.forward;
         command->parameters.up = *(Vector3D *)&sample.up;

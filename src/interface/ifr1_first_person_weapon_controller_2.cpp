@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_first_person_weapon_controller.hpp"
+#include "halo/models/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
@@ -13,8 +14,6 @@ extern void *global_zero_vector3d_pointer;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int16_t camera_get_type_for_player(int16_t player_index);
 extern uint8_t biped_is_idle_eligible(datum_index unit_index);
-extern int16_t animation_state_advance(datum_index animation_graph, int16_t *animation_state,
-                            datum_index *out_frame_sound, int32_t unknown);
 extern void first_person_weapon_update_state(int16_t local_player_index);
 extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot,
                                           int16_t new_state);
@@ -30,22 +29,6 @@ extern real_point3d render_camera_global;
 extern real_vector3d camera_forward_x;
 extern real_vector3d camera_up;
 extern double fpatan(double y, double x);
-extern void model_nodes_get_default_transforms(void *model, void *animation_control);
-extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model,
-    int16_t frame, void *out_orientations);
-extern void animation_overlay_frame_orientations(ModelAnimationsAnimation *animation, int32_t frame,
-                         void *animation_control);
-extern void animation_overlay_interpolated_frame_orientations_weighted(ModelAnimationsAnimation *animation, float frame, float weight,
-                         void *animation_control);
-extern void animation_overlay_frame_orientations_weighted(ModelAnimationsAnimation *animation, int32_t channel, float weight,
-                         void *animation_control);
-extern void model_nodes_blend_transforms(void *animation_control, int16_t node_count,
-                                         void *previous_pose, int32_t blend_start,
-                                         int32_t blend_end);
-extern void animation_graph_nodes_build_matrices(datum_index animation_graph,
-                                                   real_point3d *position, void *node_matrices,
-                                                   void *animation_control, real_vector3d *forward,
-                                                   real_vector3d *up);
 extern int16_t current_local_player_index;
 extern float zoom_static_tint_r;
 extern float zoom_static_tint_g;
@@ -86,9 +69,9 @@ static void overlay_channel(ModelAnimationsAnimation *animation, float value, in
                             int32_t negative, void *animation_control)
 {
     if (value > 0.0f) {
-        animation_overlay_frame_orientations_weighted(animation, positive, value, animation_control);
+        halo::models::animation_overlay_frame_orientations_weighted(animation, positive, value, reinterpret_cast<real_orientation *>(animation_control));
     } else if (value < 0.0f) {
-        animation_overlay_frame_orientations_weighted(animation, negative, -value, animation_control);
+        halo::models::animation_overlay_frame_orientations_weighted(animation, negative, -value, reinterpret_cast<real_orientation *>(animation_control));
     }
 }
 
@@ -131,8 +114,8 @@ void FirstPersonWeaponController::update()
             }
         }
 
-        if (animation_state_advance(*(datum_index *)&weapon_tag->first_person_animations.tag_id, &fp->current_animation,
-                         &frame_sound, 0) == 2) {
+        if (halo::models::animation_state_advance(*(datum_index *)&weapon_tag->first_person_animations.tag_id, reinterpret_cast<animation_state *>(&fp->current_animation),
+                         reinterpret_cast<int32_t *>(&frame_sound), static_cast<animation_random_stream>(0)) == 2) {
             first_person_weapon_update_state(local_player_index);
         }
 
@@ -156,8 +139,8 @@ void FirstPersonWeaponController::update()
         }
 
         if (fp->moving_animation != -1) {
-            animation_state_advance(*(datum_index *)&weapon_tag->first_person_animations.tag_id, &fp->moving_animation,
-                         (datum_index *)0, 0);
+            halo::models::animation_state_advance(*(datum_index *)&weapon_tag->first_person_animations.tag_id, reinterpret_cast<animation_state *>(&fp->moving_animation),
+                         reinterpret_cast<int32_t *>((datum_index *)0), static_cast<animation_random_stream>(0));
             if (!is_moving) {
                 if (fp->state == 0) {
                     first_person_weapon_snapshot_pose(local_player_index, 6);
@@ -320,10 +303,10 @@ void FirstPersonWeaponController::update_animation_controls()
             list_entries = (int16_t *)list->animations.pointer;
 
             if (fp->current_animation != -1) {
-                animation_get_frame_orientations(&animation_block[fp->current_animation], (GBXModel *)0,
-                             (int16_t)*(uint16_t *)fp->current_animation_frame, animation_control);
+                halo::models::animation_get_frame_orientations(&animation_block[fp->current_animation], (GBXModel *)0,
+                             (int16_t)*(uint16_t *)fp->current_animation_frame, reinterpret_cast<real_orientation *>(animation_control));
             } else {
-                model_nodes_get_default_transforms(model, animation_control);
+                halo::models::model_nodes_get_default_transforms(reinterpret_cast<GBXModel *>(model), reinterpret_cast<real_orientation *>(animation_control));
             }
 
             if ((int32_t)list->animations.count > 0x11 && (index = list_entries[0x11]) != -1) {
@@ -349,19 +332,19 @@ void FirstPersonWeaponController::update_animation_controls()
                         }
                         frame += __ftol((double)(target - (int16_t)frame) * fraction);
                     }
-                    animation_overlay_frame_orientations(ammunition, frame, animation_control);
+                    halo::models::animation_overlay_frame_orientations(ammunition, frame, reinterpret_cast<real_orientation *>(animation_control));
                 } else if (magazine[4] < (int16_t)ammunition->frame_count) {
-                    animation_overlay_frame_orientations(ammunition, (uint16_t)magazine[4], animation_control);
+                    halo::models::animation_overlay_frame_orientations(ammunition, (uint16_t)magazine[4], reinterpret_cast<real_orientation *>(animation_control));
                 }
             }
 
             if (fp->moving_animation != -1) {
-                animation_overlay_frame_orientations(&animation_block[fp->moving_animation],
-                             (uint16_t)*(int16_t *)fp->unknown_1c, animation_control);
+                halo::models::animation_overlay_frame_orientations(&animation_block[fp->moving_animation],
+                             (uint16_t)*(int16_t *)fp->unknown_1c, reinterpret_cast<real_orientation *>(animation_control));
             }
             if (fp->overcharged_animation != -1) {
-                animation_overlay_interpolated_frame_orientations_weighted(&animation_block[fp->overcharged_animation], FP_FLOAT(fp, 0x24),
-                             *(float *)((uint8_t *)weapon_obj + 0x244) + 0.5f, animation_control);
+                halo::models::animation_overlay_interpolated_frame_orientations_weighted(&animation_block[fp->overcharged_animation], FP_FLOAT(fp, 0x24),
+                             *(float *)((uint8_t *)weapon_obj + 0x244) + 0.5f, reinterpret_cast<real_orientation *>(animation_control));
             }
 
             if ((int32_t)list->animations.count > 4 && (index = list_entries[4]) != -1 &&
@@ -372,20 +355,20 @@ void FirstPersonWeaponController::update_animation_controls()
                 overlay_channel(overlays, FP_FLOAT(fp, 0x40), 4, 5, animation_control);
                 overlay_channel(overlays, FP_FLOAT(fp, 0x44), 7, 6, animation_control);
                 if (fp->recoil > 0.0f) {
-                    animation_overlay_frame_orientations_weighted(overlays, 8, fp->recoil, animation_control);
+                    halo::models::animation_overlay_frame_orientations_weighted(overlays, 8, fp->recoil, reinterpret_cast<real_orientation *>(animation_control));
                 }
             }
 
             if (fp->blend_end > 0) {
-                model_nodes_blend_transforms(animation_control, (int16_t)animations->nodes.count,
-                                             fp_raw + 0x88c, (uint16_t)fp->blend_start,
+                halo::models::model_nodes_blend_transforms(reinterpret_cast<real_orientation *>(animation_control), (int16_t)animations->nodes.count,
+                                             reinterpret_cast<real_orientation *>(fp_raw + 0x88c), (uint16_t)fp->blend_start,
                                              (uint16_t)fp->blend_end);
             }
         }
 
-        animation_graph_nodes_build_matrices(
+        halo::models::animation_graph_nodes_build_matrices(
             *(datum_index *)&weapon_tag->first_person_animations.tag_id, &render_camera_global,
-            fp_raw + 0x108c, fp_raw + 0x8c, &camera_forward_x, &camera_up);
+            reinterpret_cast<real_matrix4x3 *>(fp_raw + 0x108c), reinterpret_cast<real_orientation *>(fp_raw + 0x8c), &camera_forward_x, &camera_up);
     }
 }
 

@@ -1,10 +1,10 @@
 #include "halo/units/unit.hpp"
+#include "halo/models/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/sound/api.hpp"
 
 extern "C" {
 extern void *global_zero_vector3d_pointer;
-extern animation_state_advance_result animation_state_advance(uint32_t animation_graph_tag_index, animation_state *state, int32_t *sound_tag_id, animation_random_stream random_stream);
 }
 
 namespace halo::units {
@@ -19,7 +19,7 @@ namespace halo::units {
 uint16_t unit_reset_light_effect(animation_state *state, uint32_t animation_graph_tag_index, datum_index object_index)
 {
     int32_t sound_tag_id;
-    uint16_t result = animation_state_advance(animation_graph_tag_index, state, &sound_tag_id, _animation_random_global);
+    uint16_t result = halo::models::animation_state_advance(animation_graph_tag_index, state, &sound_tag_id, _animation_random_global);
 
     if (sound_tag_id != -1) {
         halo::sound::sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,

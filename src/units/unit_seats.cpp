@@ -1,4 +1,5 @@
 #include <string.h>
+#include "halo/models/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/unit.hpp"
 #include "game.h"
@@ -42,7 +43,6 @@ extern uint8_t message_delta_decode_compound_field(void *decode_context, void *d
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern void object_reorient_relative_to_marker(uint32_t parent_index, char *parent_marker_name, uint32_t object_index, char *object_marker_name);
 extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
-extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern void object_offset_node_translation(uint32_t object_index, real_vector3d *delta);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern uint8_t network_object_index_cache[];
@@ -757,7 +757,7 @@ uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uin
         int16_t animation;
 
         object_copy_default_node_transforms(unit_index, 6);
-        animation = animation_choose_random_permutation(*(datum_index *)(unit_tag + 0x44), enter_animation, 1);
+        animation = halo::models::animation_choose_random_permutation(*(datum_index *)(unit_tag + 0x44), enter_animation, static_cast<animation_random_stream>(1));
         reloaded = OBJECT_DATA(unit_index);
         *(datum_index *)(reloaded + 0xcc) = *(datum_index *)(unit_tag + 0x44);
         *(int16_t *)(reloaded + 0xd0) = animation;
@@ -2012,7 +2012,7 @@ void UnitView::try_exit_controlled_seat()
             if (*(datum_index *)(OBJECT_DATA(vehicle_index) + 0x324) == unit_index) {
                 UnitView((int32_t)vehicle_index).notify_weapon_removed();
             }
-            UnitView(unit_index).set_custom_animation(*(datum_index *)(self_tag + 0x44), animation_choose_random_permutation(graph, exit_animation, 1));
+            UnitView(unit_index).set_custom_animation(*(datum_index *)(self_tag + 0x44), halo::models::animation_choose_random_permutation(graph, exit_animation, static_cast<animation_random_stream>(1)));
             object = OBJECT_DATA(unit_index);
             object_tag = TAG_DATA(*(datum_index *)object);
             if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {

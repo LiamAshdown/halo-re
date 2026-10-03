@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/models/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -729,8 +730,6 @@ extern void unit_recompute_seat_occupants(uint32_t unit_index);
 extern void unit_pick_and_ready_next_weapon(uint32_t unit_index);
 extern uint8_t unit_state_is_scripted_animation(unit_data *unit);
 extern void unit_notify_weapon_removed(int32_t object_index);
-extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
-                                                   int32_t stream);
 extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index);
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key);
@@ -928,7 +927,7 @@ uint8_t ActorView::process_vehicle_seat_exit()
                         unit_notify_weapon_removed(vehicle_index);
                     }
                     unit_set_custom_animation(rider_index, graph,
-                                              animation_choose_random_permutation(graph, exit_animation, 1));
+                                              halo::models::animation_choose_random_permutation(graph, exit_animation, static_cast<animation_random_stream>(1)));
                     object = OBJECT_DATA(rider_index);
                     object_tag = TAG_DATA(*(datum_index *)object);
                     if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {

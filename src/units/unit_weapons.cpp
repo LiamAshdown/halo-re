@@ -1,4 +1,5 @@
 #include <string.h>
+#include "halo/models/api.hpp"
 #include "halo/units/unit.hpp"
 #include "game.h"
 #include "hs.h"
@@ -36,9 +37,7 @@ extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position, uint32_t ignore_object_index);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model, int16_t frame, real_orientation *out_orientations);
 extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level);
-extern void animation_get_frame_info_distance(ModelAnimationsAnimation *animation, float *dx_to_key_frame, float *dx_total);
 extern uint8_t *local_player_globals;
 extern data_array *player_data;
 extern uint8_t game_engine_notify_weapon_ready_state_change(datum_index unit_index, datum_index weapon_index);
@@ -748,7 +747,7 @@ uint8_t UnitView::find_weapon_marker_transform(uint32_t vehicle_index, int16_t s
     }
     animation = (ModelAnimationsAnimation *)(*(uint8_t **)&((ModelAnimations *)graph)->animations.pointer + enter_animation * 0xb4);
     object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &seat_marker, 1);
-    animation_get_frame_orientations(animation, (GBXModel *)model, 0, orientations);
+    halo::models::animation_get_frame_orientations(animation, (GBXModel *)model, 0, orientations);
     halo::math::matrix4x3_from_quaternion(orientations[0].rotation, root);
     root.position = orientations[0].translation;
     halo::math::matrix4x3_multiply(&seat_marker.node_transform, &root, &entry);
@@ -878,7 +877,7 @@ uint8_t UnitView::get_weapon_marker_indices(uint8_t use_alternate, uint32_t out_
     uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
     ModelAnimationsAnimation *anim = (ModelAnimationsAnimation *)(animations + animation_index * 0xb4);
 
-    animation_get_frame_info_distance(anim, (float *)out_dx_to_key_frame, (float *)out_dx_total);
+    halo::models::animation_get_frame_info_distance(anim, (float *)out_dx_to_key_frame, (float *)out_dx_total);
 
     if (out_key_frame_index != 0) {
         *out_key_frame_index = anim->key_frame_index;

@@ -1,4 +1,5 @@
 #include "crt.h"
+#include "halo/models/api.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -34,19 +35,8 @@ extern uint8_t rasterizer_render_states_dirty;
 extern uint8_t unknown_0071d1fa;
 extern uint32_t rasterizer_device_version;
 extern void *rasterizer_device;
-extern void model_nodes_get_default_transforms(GBXModel *model, void *nodes);
-extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame,
-    void *out_orientations);
-extern void model_nodes_build_matrices(real_point3d *position, real_vector3d *forward, GBXModel *model,
-    real_matrix4x3 *matrices, void *nodes, real_vector3d *up);
-extern int16_t model_markers_get_by_name(datum_index model_tag, const char *name, uint8_t *permutations,
-    uint32_t reserved, real_matrix4x3 *node_matrices, uint32_t flags, object_marker *out, int32_t maximum_count);
 extern void light_transient_add(datum_index light_tag, ColorRGB *color, real_point3d *position,
     real_vector3d *direction, real_vector3d *up, float intensity);
-extern void render_model(TagID model_tag_id, void *node_matrices, float level_of_detail_pixels,
-    uint8_t *region_permutations, ColorRGB *change_colors, float *function_out_values, render_lighting *lighting,
-    real_point3d *bounding_center, float bounding_radius, render_model_effect *effect, datum_index object_index,
-    uint16_t forced_shader_permutation, uint32_t flags);
 extern double fmod(double x, double y);
 extern double sqrt(double x);
 extern double fabs(double x);
@@ -218,7 +208,7 @@ void sky(void)
         sky = (Sky *)halo::cache::globals().tag_instances[(uint16_t)sky_tag].data;
     }
     model = (GBXModel *)halo::cache::globals().tag_instances[sky->model.tag_id.index].data;
-    model_nodes_get_default_transforms(model, nodes);
+    halo::models::model_nodes_get_default_transforms(model, reinterpret_cast<real_orientation *>(nodes));
 
     if (tag_id_of(sky->animation_graph.tag_id) != 0xffffffff) {
         ModelAnimations *graph =
@@ -238,14 +228,14 @@ void sky(void)
                                              sky_animation_times[i], 1.0);
 
                     sky_animation_times[i] = time;
-                    animation_overlay_interpolated_frame_orientations(animation,
-                        (float)(int32_t)(int16_t)animation->frame_count * time, nodes);
+                    halo::models::animation_overlay_interpolated_frame_orientations(animation,
+                        (float)(int32_t)(int16_t)animation->frame_count * time, reinterpret_cast<real_orientation *>(nodes));
                 }
             }
         }
     }
 
-    model_nodes_build_matrices(global_zero_vector3d_pointer, halo::math::globals().global_forward3d_pointer, model, matrices, nodes, halo::math::globals().global_up3d_pointer);
+    halo::models::model_nodes_build_matrices(global_zero_vector3d_pointer, halo::math::globals().global_forward3d_pointer, model, matrices, reinterpret_cast<real_orientation *>(nodes), halo::math::globals().global_up3d_pointer);
 
     for (i = 0; (int32_t)i < (int32_t)sky->shader_functions.count; i++) {
         function_values[i] = 1.0f;
@@ -271,7 +261,7 @@ void sky(void)
         } else {
             object_marker marker;
 
-            if (model_markers_get_by_name(tag_id_of(sky->model.tag_id), light->lens_flare_marker_name.string, 0, 0,
+            if (halo::models::model_markers_get_by_name(tag_id_of(sky->model.tag_id), light->lens_flare_marker_name.string, 0, 0,
                                           matrices, 0, &marker, 1) == 0) {
                 continue;
             }
@@ -330,7 +320,7 @@ void sky(void)
         }
     }
     lighting.ambient_color = *global_white_color;
-    render_model(sky->model.tag_id, matrices, 0.0f, 0, 0, function_values, &lighting,
+    halo::models::render_model(sky->model.tag_id, matrices, 0.0f, 0, 0, function_values, &lighting,
                  &render_camera_global.position, 0.0f, 0, 0, 0, 1);
 
     if (console_debug_toggle_6893ec && rasterizer_device_version < 0xffff0101) {

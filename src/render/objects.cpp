@@ -1,4 +1,5 @@
 #include "crt.h"
+#include "halo/models/api.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -53,10 +54,6 @@ extern render_camera render_camera_global;
 extern uint8_t render_debug_objects;
 extern void object_type_definitions_notify_0x5c(uint32_t object_index);
 extern void widget_list_notify(uint32_t object_index, render_lighting *lighting, render_animation *animation);
-extern void render_model(TagID model_tag_id, void *node_matrices, float level_of_detail_pixels,
-    uint8_t *region_permutations, ColorRGB *change_colors, float *function_out_values, render_lighting *lighting,
-    real_point3d *bounding_center, float bounding_radius, render_model_effect *effect, datum_index object_index,
-    uint16_t forced_shader_permutation, uint32_t flags);
 extern uint8_t rasterizer_object_shadow_begin(real_matrix4x3 *projection, ColorRGB *color, float radius,
     float *out_radius);
 extern rasterizer_window_parameters rasterizer_window;
@@ -261,7 +258,7 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
                     effect.object_index = object_index;
                 }
 
-                render_model(tag_data->model.tag_id,
+                halo::models::render_model(tag_data->model.tag_id,
                              (uint8_t *)obj + obj->nodes.offset, lod,
                              obj->region_permutations, obj->change_colors, obj->function_out_values,
                              (render_lighting *)(uintptr_t)data->lighting, &obj->bounding_center,
@@ -273,7 +270,7 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
                     object_type_definitions_notify_0x5c(object_index);
                 }
             } else {
-                render_model(tag_data->model.tag_id,
+                halo::models::render_model(tag_data->model.tag_id,
                              (uint8_t *)obj + obj->nodes.offset, lod * 0.3f,
                              obj->region_permutations, obj->change_colors, obj->function_out_values,
                              (render_lighting *)(uintptr_t)data->lighting, &obj->bounding_center,

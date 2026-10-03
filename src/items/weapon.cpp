@@ -1,4 +1,5 @@
 #include "halo/items/items.hpp"
+#include "halo/models/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
@@ -27,7 +28,6 @@ extern void object_delete_recursive(datum_index object_index, uint8_t recurse_si
 extern void weapon_magazine_reload_tick(datum_index item_index, int16_t magazine_index);
 extern void weapon_notify_reload_cancel(datum_index item_index, int16_t magazine_index);
 extern double floor(double x);
-extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern void unit_dispatch_seat_overlay_command(uint32_t unit_index, int16_t command);
 extern void object_delete(uint32_t object_index);
 void halo::items::weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out);
@@ -1021,7 +1021,7 @@ int32_t weapon_ref::set_state(int16_t new_state, int8_t force)
                         : -1;
 
                     if (animation != -1 || new_state == 0) {
-                        item_obj->animation_index = animation_choose_random_permutation(graph_tag_id, animation, 1);
+                        item_obj->animation_index = halo::models::animation_choose_random_permutation(graph_tag_id, animation, static_cast<animation_random_stream>(1));
                         item_obj->animation_frame = 0;
                         wd->state = (int8_t)new_state;
                     }

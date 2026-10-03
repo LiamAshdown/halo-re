@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/models/api.hpp"
 #include "game.h"
 #include "hs.h"
 #include "physics.h"
@@ -42,7 +43,6 @@ extern game_engine_definition *current_game_engine;
 extern char *s_stand;
 extern double fabs(double x);
 extern uint32_t weapon_must_be_readied(uint32_t weapon_object_index);
-extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern void object_delete_teardown(uint32_t object_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
@@ -1053,8 +1053,8 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         if (OBJECT_I16(obj, 0x2b2) != -1 && OBJECT_I16(obj, 0x2b4) <= OBJECT_I16(unit_tag, 0x2c8)) {
             return;
         }
-        animation = animation_choose_random_permutation(graph_tag,
-            animation_table_lookup(graph, (int16_t)(facing * 0xb + weapon_class)), 1);
+        animation = halo::models::animation_choose_random_permutation(graph_tag,
+            animation_table_lookup(graph, (int16_t)(facing * 0xb + weapon_class)), static_cast<animation_random_stream>(1));
         if (animation == -1) {
             return;
         }
@@ -1096,8 +1096,8 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         }
     }
 
-    animation = animation_choose_random_permutation(graph_tag,
-        animation_table_lookup(graph, (int16_t)((facing + stance_class * 4) * 0xb + weapon_class)), 1);
+    animation = halo::models::animation_choose_random_permutation(graph_tag,
+        animation_table_lookup(graph, (int16_t)((facing + stance_class * 4) * 0xb + weapon_class)), static_cast<animation_random_stream>(1));
     if (animation == -1) {
         if (forced) {
             OBJECT_U16(obj, 0x298) = (uint16_t)((OBJECT_U16(obj, 0x298) & 0xfff7) | 4);
