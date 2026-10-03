@@ -43,7 +43,7 @@ int32_t weapon_ref::add_ammunition(void **message_record)
         return 0;
     }
 
-    item_index = (datum_index)0xffffffff;
+    item_index = k_datum_index_none;
     if (decoded.object_hash != 0) {
         item_index = object_network_id_table->handles[decoded.object_hash];
     }
@@ -81,7 +81,7 @@ void weapon_ref::apply_ammo_correction(void **message_record)
         return;
     }
 
-    item_index = (datum_index)0xffffffff;
+    item_index = k_datum_index_none;
     if (decoded.object_hash != 0) {
         item_index = object_network_id_table->handles[decoded.object_hash];
     }
@@ -122,7 +122,7 @@ void weapon_ref::apply_ammo_correction_and_resync(void **message_record)
         return;
     }
 
-    item_index = (datum_index)0xffffffff;
+    item_index = k_datum_index_none;
     if (decoded.object_hash != 0) {
         item_index = object_network_id_table->handles[decoded.object_hash];
     }
@@ -166,7 +166,7 @@ void weapon_ref::apply_network_update(uint32_t *update_record)
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     header = (weapon_network_update_header *)update_record[0x11];
 
-    if ((item_obj->flags & 0x8000000) != 0 && *(int32_t *)update_record[0] == 1 &&
+    if ((item_obj->flags & _object_took_network_update_bit) != 0 && *(int32_t *)update_record[0] == 1 &&
         (header->baseline_index != wd->network_baseline_index ||
          (header->sequence <= wd->network_sequence &&
           (int)((uint32_t)(header->sequence - wd->network_sequence) + 0xff) > 0x1d))) {
@@ -184,7 +184,7 @@ void weapon_ref::apply_network_update(uint32_t *update_record)
 
     if (accept != 0) {
         wd->network_sequence = header->sequence;
-        item_obj->flags = item_obj->flags | 0x8000000;
+        item_obj->flags = item_obj->flags | _object_took_network_update_bit;
 
         if (header->force_baseline != 0) {
             wd->network_baseline_index = header->baseline_index;
@@ -210,9 +210,9 @@ void weapon_ref::apply_network_update(uint32_t *update_record)
         dx = snapshot.position.x - item_obj->position.x;
         dy = snapshot.position.y - item_obj->position.y;
         dz = snapshot.position.z - item_obj->position.z;
-        if ((item_obj->flags & 0x800) != 0 &&
+        if ((item_obj->flags & _object_needs_cluster_update_bit) != 0 &&
             (weapon_network_update_position_tolerance < (real)halo::libm::sqrt((double)(dy * dy + dx * dx + dz * dz)) ||
-             (item_obj->flags & 0x20) != 0 || header->force_baseline != 0)) {
+             (item_obj->flags & _object_at_rest_bit) != 0 || header->force_baseline != 0)) {
             halo::objects::object_set_position_and_recalculate(&snapshot.position, item_index);
         }
 
@@ -243,14 +243,14 @@ void weapon_ref::build_creation_message(uint32_t unused_param_2, uint32_t unused
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
-    if (item_index != (datum_index)0xffffffff) {
+    if (item_index != k_datum_index_none) {
         object_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, item_index);
     }
-    if (item_obj->creator_object != (uint32_t)0xffffffff) {
+    if (item_obj->creator_object != k_datum_index_none) {
         parent_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, item_obj->creator_object);
         if (parent_hash == -1) parent_hash = 0;
     }
-    if (item_obj->owner_linkage != (uint32_t)0xffffffff) {
+    if (item_obj->owner_linkage != k_datum_index_none) {
         owner_hash = halo::objects::hash_table_get(&machine_table->id_to_index, item_obj->owner_linkage);
         if (owner_hash == -1) owner_hash = 0;
     }
@@ -269,9 +269,9 @@ void weapon_ref::build_creation_message(uint32_t unused_param_2, uint32_t unused
     message.up = item_obj->up;
     message.velocity = wd->network_state.velocity;
     message.baseline_index = wd->network_baseline_index;
-    message.rounds_unloaded[0] = *(int16_t *)((uint8_t *)wd + 0x2e4 + 0x24);
-    message.rounds_unloaded[1] = *(int16_t *)((uint8_t *)wd + 0x2e4 + 0x26);
-    message.age = *(float *)((uint8_t *)wd + 0x2e4 + 0x28);
+    message.rounds_unloaded[0] = wd->network_state.rounds_unloaded[0];
+    message.rounds_unloaded[1] = wd->network_state.rounds_unloaded[1];
+    message.age = wd->network_state.age;
     message.rounds_loaded[0] = wd->magazines[0].rounds_loaded;
     message.rounds_loaded[1] = wd->magazines[1].rounds_loaded;
 
@@ -498,7 +498,7 @@ void weapon_ref::predict_ammo(void **message_record)
         return;
     }
 
-    item_index = (datum_index)0xffffffff;
+    item_index = k_datum_index_none;
     if (decoded.object_hash != 0) {
         item_index = object_network_id_table->handles[decoded.object_hash];
     }

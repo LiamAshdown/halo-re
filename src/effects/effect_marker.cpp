@@ -1,4 +1,5 @@
 #include "halo/core/slot_mask.hpp"
+#include "halo/effects/local_views.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/scenario/api.hpp"
@@ -24,7 +25,7 @@ static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo
 static auto &effect_location_data = halo::link::ref<data_array *>(halo::effects::vars().effect_location_data);
 static auto &effect_marker_callback_context = halo::link::ref<uint8_t *>(halo::effects::vars().effect_marker_callback_context);
 static auto &effect_data = halo::link::ref<data_array *>(halo::effects::vars().effect_data);
-static auto &first_person_weapon_interfaces = halo::link::ref<uint8_t *>(halo::ui::vars().first_person_weapon_interfaces);
+static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
 
 namespace halo::effects {
 
@@ -135,7 +136,7 @@ effect_location_marker * effect_view::next(datum_index *marker, int32_t mode)
     effect * self = record;
     effect_location_marker *entry;
 
-    if (*marker == (datum_index)0xffffffff) {
+    if (*marker == k_datum_index_none) {
         return (effect_location_marker *)0;
     }
 
@@ -264,16 +265,14 @@ real_matrix4x3 * effect_view::resolve_marker_transform(int16_t marker)
     if (node_index != (int16_t)0xffff) {
         if ((marker & 0x8000) != 0) {
             uint16_t weapon_node = (uint16_t)marker & 0x7fff;
-            return (real_matrix4x3 *)(first_person_weapon_interfaces + 0x108c +
-                                       self->first_person_weapon_index * 0x1ea0 +
-                                       weapon_node * 0x34);
+            return first_person_marker_node(first_person_weapon_interfaces, self->first_person_weapon_index, weapon_node);
         }
         node_index = (int16_t)((uint16_t)marker & 0x7fff);
     }
 
     {
         object *obj = ((object_header *)halo::objects::globals().object_data->data)[self->object_index & halo::k_slot_mask].data;
-        return (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset + node_index * 0x34);
+        return object_marker_node(obj, node_index);
     }
 }
 

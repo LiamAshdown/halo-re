@@ -1,4 +1,5 @@
 #include "halo/camera/observer.hpp"
+#include "halo/scenario/leaf.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
@@ -140,7 +141,7 @@ void ObserverHandle::commit()
     leaf_index = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)&camera->position);
     if (leaf_index != -1) {
         int16_t new_cluster =
-            ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
+            halo::scenario::structure_leaf_cluster(leaf_index);
 
         if (new_cluster != -1) {
             if (new_cluster != camera->cluster_index) {
@@ -809,18 +810,20 @@ void ObserverSystem::avoid_collision(real_vector3d *forward, real_point3d *posit
             delta.k = probe.z - position->z;
             hit = halo::physics::collision_test_movement_segment(mask, position, &delta, k_datum_index_none, &collision);
 
-            if (!hit) {
-mark_clear:
-                clear_t = mid;
-                last_clear_result = converged_this_time ? hit_fraction : 1.0f;
-            } else {
+            bool mark_clear = !hit;
+
+            if (hit) {
                 hit_fraction = collision.t;
                 converged_this_time = 1;
-                if (0.1 <= halo::libm::fabs((double)(hit_fraction - last_blocked_fraction))) {
-                    goto mark_clear;
+                mark_clear = 0.1 <= halo::libm::fabs((double)(hit_fraction - last_blocked_fraction));
+                if (!mark_clear) {
+                    last_blocked_fraction = hit_fraction;
+                    blocked_t = mid;
                 }
-                last_blocked_fraction = hit_fraction;
-                blocked_t = mid;
+            }
+            if (mark_clear) {
+                clear_t = mid;
+                last_clear_result = converged_this_time ? hit_fraction : 1.0f;
             }
             iterations_left--;
         } while (iterations_left != 0);

@@ -34,9 +34,9 @@ int32_t weapon_ref::put_away(int8_t force)
     wd->control_flags = 0;
     halo::items::weapon_reset_triggers(item_index);
 
-    if (wd->overheat_effect_handle != (datum_index)0xffffffff) {
+    if (wd->overheat_effect_handle != k_datum_index_none) {
         halo::effects::effect_delete(wd->overheat_effect_handle);
-        wd->overheat_effect_handle = (datum_index)0xffffffff;
+        wd->overheat_effect_handle = k_datum_index_none;
     }
 
     action_handle = halo::interface::local_player_index_for_weapon(item_index);

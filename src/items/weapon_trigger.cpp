@@ -13,21 +13,49 @@
 #include "halo/core/link.hpp"
 #include "halo/items/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "ai.h"
+#include "halo/items/tag_flags.hpp"
+#include "halo/projectiles/layout.hpp"
 
 static auto &s_primary_trigger_marker = halo::link::ref<char []>(halo::items::vars().s_primary_trigger_marker);
 static auto &s_secondary_trigger_marker = halo::link::ref<char []>(halo::items::vars().s_secondary_trigger_marker);
 
 namespace halo::items {
 
-#define F(p, o) (*(float *)((p) + (o)))
+static_assert(offsetof(WeaponTrigger, distribution_function) == 0x6c);
+static_assert(offsetof(WeaponTrigger, projectiles_per_shot) == 0x6e);
+static_assert(offsetof(WeaponTrigger, distribution_angle) == 0x70);
+static_assert(offsetof(WeaponTrigger, minimum_error) == 0x78);
+static_assert(offsetof(WeaponTrigger, error_angle) == 0x7c);
+static_assert(offsetof(WeaponTrigger, first_person_offset) == 0x84);
+static_assert(offsetof(WeaponTrigger, projectiles_between_contrails) == 0x26);
+static_assert(offsetof(WeaponTrigger, projectile) + offsetof(TagDependency, tag_id) == 0xa0);
+static_assert(sizeof(weapon_trigger_state) == 0x28);
+static_assert(offsetof(weapon_object, weapon.triggers) == 0x260);
+static_assert(offsetof(unit_object, unit.controlling_player) == 0x218);
+static_assert(offsetof(unit_object, unit.actor_index) == 0x1f4);
+static_assert(offsetof(unit_object, unit.gunner_unit_index) == 0x328);
+static_assert(offsetof(Unit, unit_flags) == 0x17c);
+static_assert(offsetof(Projectile, projectile_flags) == 0x17c);
 
-#define W(p, o) (*(int16_t *)((p) + (o)))
+namespace {
 
-#define D(p, o) (*(datum_index *)((p) + (o)))
+constexpr uint32_t k_object_type_mask_unit = 3;
+constexpr uint32_t k_placement_flag_connect_to_map = 2;
+constexpr int16_t k_actor_firing_state_holding = 4;
+constexpr uint16_t k_unit_flag_fires_from_camera = 1u << 3;
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+object *object_at(datum_index handle)
+{
+    return ((object_header *)halo::objects::globals().object_data->data)[handle & halo::k_slot_mask].data;
+}
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
+void *tag_data_at(datum_index tag)
+{
+    return halo::cache::globals().tag_instances[tag & halo::k_slot_mask].data;
+}
+
+}  // namespace
 
 /**
  * Member form of the original trigger_create_projectiles: create projectiles.
@@ -37,28 +65,29 @@ namespace halo::items {
 void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role)
 {
     uint32_t item_index = datum;
-    uint8_t *item = OBJECT_DATA(item_index);
-    uint8_t *weapon_tag = TAG_DATA(*(datum_index *)item);
-    uint8_t *trigger = *(uint8_t **)(weapon_tag + 0x500) + trigger_index * 0x114;
-    uint8_t *state = item + 0x260 + trigger_index * 0x28;
+    weapon_object *item = (weapon_object *)object_at(item_index);
+    Weapon *weapon_tag = (Weapon *)tag_data_at(item->base.definition_tag);
+    WeaponTrigger *trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
+    weapon_trigger_state *state = &item->weapon.triggers[trigger_index];
     datum_index holder = k_datum_index_none;
     uint32_t marker_object = item_index;
     static object_marker markers[0x40];
     int16_t marker_count;
     int16_t m;
 
-    if (D(item, 0x11c) != k_datum_index_none && halo::objects::object_try_and_get(D(item, 0x11c), 3) != 0) {
-        holder = D(item, 0x11c);
+    if (item->base.parent_object != k_datum_index_none &&
+        halo::objects::object_try_and_get(item->base.parent_object, k_object_type_mask_unit) != 0) {
+        holder = item->base.parent_object;
     }
-    if ((((struct item_object *)item)->base.flags & 1) && D(item, 0x11c) != k_datum_index_none) {
-        marker_object = D(item, 0x11c);
+    if ((item->base.flags & 1) && item->base.parent_object != k_datum_index_none) {
+        marker_object = item->base.parent_object;
     }
     marker_count = (int16_t)halo::objects::object_get_node_local_transform(marker_object,
         trigger_index == 0 ? s_primary_trigger_marker : s_secondary_trigger_marker, markers, 0x40);
     if (marker_count == 0) {
         marker_count = 1;
     }
-    if (!(*(uint32_t *)trigger & 0x20)) {
+    if (!trigger_has(trigger->flags, weapon_trigger_tag_flag::projectiles_use_weapon_origin)) {
         marker_count = 1;
     }
 
@@ -67,7 +96,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
         real_vector3d forward = markers[m].node_transform.forward;
         real speed = 0.0f;
         float error = 0.0f;
-        uint8_t *holder_object = 0;
+        unit_object *holder_object = 0;
         datum_index target = k_datum_index_none;
         datum_index projectile_tag;
         int16_t count;
@@ -75,47 +104,38 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
         int16_t shot;
 
         if (holder != k_datum_index_none) {
-            int16_t index = (int16_t)holder;
-            int16_t salt = (int16_t)(holder >> 16);
-
-            if (index >= 0 && index < *(int16_t *)((uint8_t *)halo::objects::globals().object_data + 0x20)) {
-                uint8_t *header = (uint8_t *)halo::objects::globals().object_data->data + *(int16_t *)((uint8_t *)halo::objects::globals().object_data + 0x22) * index;
-
-                if (*(int16_t *)header != 0 && (salt == 0 || *(int16_t *)header == salt) &&
-                    ((1u << (header[3] & 0x1f)) & 3)) {
-                    holder_object = *(uint8_t **)(header + 0x8);
-                }
-            }
+            holder_object = (unit_object *)halo::objects::object_try_and_get(holder, k_object_type_mask_unit);
         }
 
-        if (!(*(uint32_t *)trigger & 0x800) && holder_object != 0 && !(holder_object[0x106] & 4)) {
-            uint8_t *holder_tag = TAG_DATA(*(datum_index *)holder_object);
-            datum_index player = D(holder_object, 0x218);
-            datum_index actor = D(holder_object, 0x1f4);
+        if (!trigger_has(trigger->flags, weapon_trigger_tag_flag::projectile_vector_cannot_be_adjusted) && holder_object != 0 &&
+            !(holder_object->base.vitality_flags & _object_health_frozen_bit)) {
+            Unit *holder_tag = (Unit *)tag_data_at(holder_object->base.definition_tag);
+            datum_index player = holder_object->unit.controlling_player;
+            datum_index actor = holder_object->unit.actor_index;
             uint8_t use_aiming_vector;
             uint8_t project_point = 1;
 
-            if (D(holder_object, 0x328) != k_datum_index_none) {
-                uint8_t *controller = OBJECT_DATA(D(holder_object, 0x328));
+            if (holder_object->unit.gunner_unit_index != k_datum_index_none) {
+                unit_object *controller = (unit_object *)object_at(holder_object->unit.gunner_unit_index);
 
-                player = D(controller, 0x218);
-                actor = D(controller, 0x1f4);
+                player = controller->unit.controlling_player;
+                actor = controller->unit.actor_index;
             }
-            use_aiming_vector = (uint8_t)((*(uint32_t *)(holder_tag + 0x17c) >> 3) & 1);
+            use_aiming_vector = (uint8_t)((holder_tag->unit_flags >> 3) & 1);
             if (actor != k_datum_index_none &&
-                W((uint8_t *)halo::ai::globals().actor_data->data + (actor & halo::k_slot_mask) * 0x724, 0x5f2) == 4) {
+                ((::actor *)halo::ai::globals().actor_data->data)[actor & halo::k_slot_mask].firing_state == k_actor_firing_state_holding) {
                 project_point = 0;
             }
-            if (D(holder_object, 0x328) != k_datum_index_none) {
+            if (holder_object->unit.gunner_unit_index != k_datum_index_none) {
                 project_point = 0;
             }
             halo::units::unit_project_onto_aiming_axis(holder, &speed, use_aiming_vector, project_point, &origin, &forward);
             if (player != k_datum_index_none) {
                 real_vector3d left;
                 real_vector3d up;
-                real x = F(trigger, 0x84);
-                real y = F(trigger, 0x88);
-                real z = F(trigger, 0x8c);
+                real x = trigger->first_person_offset.x;
+                real y = trigger->first_person_offset.y;
+                real z = trigger->first_person_offset.z;
 
                 halo::math::vector3d_cross_product(left, forward, *halo::math::globals().global_up3d_pointer);
                 if (halo::math::vector3d_normalize_with_length(left) == 0.0f) {
@@ -131,34 +151,34 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
                 target = halo::ai::actor_compute_grenade_aim_direction(actor, &origin, &forward, &error);
             }
         }
-        if (*(uint32_t *)trigger & 0x20) {
+        if (trigger_has(trigger->flags, weapon_trigger_tag_flag::projectiles_use_weapon_origin)) {
             origin = markers[m].node_transform.position;
         }
 
-        if (trigger_index == 0 && W(item, 0x25c) > 0) {
-            int16_t charge = W(item, 0x25c);
+        if (trigger_index == 0 && item->weapon.alternate_shots_loaded > 0) {
+            int16_t charge = item->weapon.alternate_shots_loaded;
 
-            if (W(weapon_tag, 0x32c) == 4) {
+            if (weapon_tag->secondary_trigger_mode == 4) {
                 charge++;
             }
-            projectile_tag = D(*(uint8_t **)(weapon_tag + 0x500), 0x1b4);
-            count = (int16_t)((uint16_t)W(trigger, 0x6e) * charge);
-            W(item, 0x25c) = 0;
+            projectile_tag = *(datum_index *)&((WeaponTrigger *)weapon_tag->triggers.pointer)[1].projectile.tag_id;
+            count = (int16_t)((uint16_t)trigger->projectiles_per_shot * charge);
+            item->weapon.alternate_shots_loaded = 0;
         } else {
-            count = W(trigger, 0x6e);
-            projectile_tag = D(trigger, 0xa0);
+            count = trigger->projectiles_per_shot;
+            projectile_tag = *(datum_index *)&trigger->projectile.tag_id;
         }
         if (projectile_tag == k_datum_index_none) {
             continue;
         }
         {
-            datum_index parent = D(OBJECT_DATA(item_index), 0x11c);
-            object *parent_object = parent != k_datum_index_none ? halo::objects::object_try_and_get(parent, 3) : 0;
+            datum_index parent = object_at(item_index)->parent_object;
+            object *parent_object = parent != k_datum_index_none ? halo::objects::object_try_and_get(parent, k_object_type_mask_unit) : 0;
 
             if (parent_object != 0) {
                 owner = parent;
-                if (D((uint8_t *)parent_object, 0x328) != k_datum_index_none) {
-                    owner = D((uint8_t *)parent_object, 0x328);
+                if (((unit_object *)parent_object)->unit.gunner_unit_index != k_datum_index_none) {
+                    owner = ((unit_object *)parent_object)->unit.gunner_unit_index;
                 }
             }
         }
@@ -168,31 +188,32 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
             uint8_t tracer = 0;
             uint8_t from_player;
             datum_index projectile;
-            uint8_t *projectile_definition;
+            Projectile *projectile_definition;
 
-            halo::objects::object_placement_data_initialize(&placement, D(trigger, 0xa0), owner);
+            halo::objects::object_placement_data_initialize(&placement, *(datum_index *)&trigger->projectile.tag_id, owner);
             placement.position = origin;
             placement.forward = forward;
-            if (F(state, 0x10) == 0.0f) {
+            if (state->firing_rate == 0.0f) {
                 tracer = 1;
-                W(state, 0xe) = 0;
+                state->projectiles_since_tracer = 0;
             } else {
-                int16_t n = W(state, 0xe);
+                int16_t n = state->projectiles_since_tracer;
 
-                W(state, 0xe) = n + 1;
-                if (!(n < W(trigger, 0x26))) {
+                state->projectiles_since_tracer = n + 1;
+                if (!(n < trigger->projectiles_between_contrails)) {
                     tracer = 1;
-                    W(state, 0xe) = 0;
+                    state->projectiles_since_tracer = 0;
                 }
             }
             if (error == 0.0f) {
-                real e = (*(uint32_t *)trigger & 0x200) ? F(item, 0x234) : F(state, 0x1c);
+                real e = trigger_has(trigger->flags, weapon_trigger_tag_flag::analog_rate_of_fire) ? item->weapon.primary_trigger : state->error;
 
-                error = (1.0f - e) * F(trigger, 0x7c) + e * F(trigger, 0x80);
+                error = (1.0f - e) * trigger->error_angle[0] + e * trigger->error_angle[1];
             }
-            if (!(*(uint32_t *)trigger & 0x400) || !(item[0x230] & 0x40)) {
+            if (!trigger_has(trigger->flags, weapon_trigger_tag_flag::use_error_when_unzoomed) ||
+                !(item->weapon.control_flags & _weapon_control_unknown_40_bit)) {
                 halo::math::vector3d_randomize_direction(*((real_point3d *)&placement.forward), &placement.forward, halo::math::globals().random_seed_global,
-                                             F(trigger, 0x78), error);
+                                             trigger->minimum_error, error);
             }
             {
                 static real_vector3d first_direction;
@@ -200,7 +221,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
                 if (shot == 0) {
                     first_direction = placement.forward;
                 }
-                if (*(uint32_t *)trigger & 0x1000) {
+                if (trigger_has(trigger->flags, weapon_trigger_tag_flag::projectiles_have_identical_error)) {
                     placement.forward = first_direction;
                 }
             }
@@ -218,25 +239,26 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
                     placement.up.k = (float)(placement.up.k * inverse);
                 }
             }
-            halo::items::weapon_trigger_barrel_spread_offset(&placement.forward, &placement.up, (uint16_t)shot, W(trigger, 0x6c),
-                                                F(trigger, 0x70), (uint32_t)count);
-            projectile_definition = TAG_DATA(projectile_tag);
-            if (projectile_definition != 0 && (*(uint32_t *)(projectile_definition + 0x17c) & 0x10) &&
+            halo::items::weapon_trigger_barrel_spread_offset(&placement.forward, &placement.up, (uint16_t)shot, trigger->distribution_function,
+                                                trigger->distribution_angle, (uint32_t)count);
+            projectile_definition = (Projectile *)tag_data_at(projectile_tag);
+            if (projectile_definition != 0 &&
+                (projectile_definition->projectile_flags & (uint32_t)halo::projectiles::projectile_definition_flag::combine_initial_velocity_with_parent) &&
                 holder != k_datum_index_none) {
-                uint8_t *root = OBJECT_DATA(holder);
+                object *root = object_at(holder);
 
-                while (D(root, 0x11c) != k_datum_index_none) {
-                    root = OBJECT_DATA(D(root, 0x11c));
+                while (root->parent_object != k_datum_index_none) {
+                    root = object_at(root->parent_object);
                 }
-                placement.velocity = *(real_vector3d *)&((struct object *)root)->velocity.i;
+                placement.velocity = root->velocity;
             } else {
                 placement.velocity.i = placement.forward.i * speed;
                 placement.velocity.j = placement.forward.j * speed;
                 placement.velocity.k = placement.forward.k * speed;
             }
-            from_player = (uint8_t)(holder_object != 0 && D(holder_object, 0x218) != k_datum_index_none);
+            from_player = (uint8_t)(holder_object != 0 && holder_object->unit.controlling_player != k_datum_index_none);
             if (from_player) {
-                placement.flags |= 2;
+                placement.flags |= k_placement_flag_connect_to_map;
             }
             projectile = halo::objects::object_new_with_datum_role_control(&placement, role);
             if (projectile == k_datum_index_none) {
@@ -249,24 +271,14 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
                 halo::objects::object_reposition_to_spawn_location(projectile, &camera, holder);
             }
             if (target != k_datum_index_none) {
-                D(OBJECT_DATA(projectile), 0x238) = target;
+                ((projectile_object *)object_at(projectile))->projectile.tracked_object_index = target;
             }
             if (!tracer) {
-                *(uint32_t *)(OBJECT_DATA(projectile) + 0x22c) &= ~2u;
+                ((projectile_object *)object_at(projectile))->projectile.flags &= ~(uint32_t)_projectile_tracer_bit;
             }
         }
     }
 }
-
-#undef F
-
-#undef W
-
-#undef D
-
-#undef OBJECT_DATA
-
-#undef TAG_DATA
 
 /**
  * Rotates `v` around `axis` by barrel_index's share of distribution_angle, for
@@ -555,19 +567,19 @@ void weapon_trigger_ref::fire_or_reload(int16_t trigger_index, int8_t force)
         ready = 0;
     }
 
-    if (halo::scenario::scenario_location_get_water_and_weather((real_point3d *)((uint8_t *)item_obj + 0x5c),
-            (bsp_leaf_reference *)((uint8_t *)item_obj + 0x98), 0) == 0 && ready) {
+    if (halo::scenario::scenario_location_get_water_and_weather(&item_obj->position,
+            (bsp_leaf_reference *)&item_obj->location_leaf_index, 0) == 0 && ready) {
         if (force == 0) {
             if (tag_trigger->charging_time > 0.0f) {
-                if ((weapon_tag->weapon_flags & 0x800) != 0 && wd->age >= 1.0f) {
+                if (weapon_has(weapon_tag->weapon_flags, weapon_tag_flag::cannot_fire_at_maximum_age) && wd->age >= 1.0f) {
                     halo::items::weapon_fire_trigger(item_index, trigger_index);
                     return;
                 }
                 if (weapon_tag->triggers.count < 2) {
                     if (wd->triggers[trigger_index].firing_rate <= 0.0f) {
-                        wd->triggers[trigger_index].flags &= ~0x20;
+                        wd->triggers[trigger_index].flags &= ~(uint32_t)_weapon_trigger_charge_effect_bit;
                     } else {
-                        wd->triggers[trigger_index].flags |= 0x20;
+                        wd->triggers[trigger_index].flags |= _weapon_trigger_charge_effect_bit;
                         halo::items::weapon_fire_trigger(item_index, trigger_index);
                     }
                 } else {
@@ -638,17 +650,17 @@ real weapon_trigger_ref::get_average_damage(datum_index weapon_tag_id, float *ou
     }
 
     projectile_tag_id = *(datum_index *)&trigger->projectile.tag_id;
-    if (projectile_tag_id != (datum_index)0xffffffff) {
+    if (projectile_tag_id != k_datum_index_none) {
         projectile_tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)projectile_tag_id].data;
 
         damage_tag_id = *(datum_index *)&projectile_tag->impact_damage.tag_id;
-        if (damage_tag_id != (datum_index)0xffffffff) {
+        if (damage_tag_id != k_datum_index_none) {
             damage_tag = (DamageEffect *)halo::cache::globals().tag_instances[(uint16_t)damage_tag_id].data;
             total = (damage_tag->damage_upper_bound[1] + damage_tag->damage_upper_bound[0]) * 0.5f;
         }
 
         damage_tag_id = *(datum_index *)&projectile_tag->attached_detonation_damage.tag_id;
-        if (damage_tag_id != (datum_index)0xffffffff) {
+        if (damage_tag_id != k_datum_index_none) {
             damage_tag = (DamageEffect *)halo::cache::globals().tag_instances[(uint16_t)damage_tag_id].data;
             total = total + (damage_tag->damage_upper_bound[1] + damage_tag->damage_upper_bound[0]) * 0.5f;
         }
@@ -766,7 +778,7 @@ int32_t weapon_trigger_ref::ready_to_fire(int16_t trigger_index)
     trigger = &wd->triggers[trigger_index];
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
 
-    rate = (tag_trigger->flags & 0x200) == 0 ? trigger->firing_rate : wd->primary_trigger;
+    rate = !trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::analog_rate_of_fire) ? trigger->firing_rate : wd->primary_trigger;
     rate = (tag_trigger->maximum_rate_of_fire[1] - tag_trigger->maximum_rate_of_fire[0]) * rate +
            tag_trigger->maximum_rate_of_fire[0];
 
@@ -778,7 +790,7 @@ int32_t weapon_trigger_ref::ready_to_fire(int16_t trigger_index)
     idle_plus_one = (real)trigger->idle_ticks + 1.0f;
     ready = idle_plus_one >= ticks_per_shot;
 
-    if ((tag_trigger->flags & 8) != 0 && (id->flags & _item_held_by_player_bit) != 0 &&
+    if (trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::does_not_repeat_automatically) && (id->flags & _item_held_by_player_bit) != 0 &&
         (trigger->flags & _weapon_trigger_not_pulled_bit) == 0) {
         ready = 0;
     }
@@ -799,7 +811,7 @@ void weapon_trigger_ref::reset_tracking(int16_t trigger_index)
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
-    wd->tracked_object_index = (datum_index)0xffffffff;
+    wd->tracked_object_index = k_datum_index_none;
     wd->triggers[trigger_index].idle_ticks = 0;
     wd->triggers[trigger_index].effect_state = 0;
     wd->triggers[trigger_index].effect_state_ticks = 0;

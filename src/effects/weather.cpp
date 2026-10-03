@@ -60,7 +60,7 @@ void weather_instance_ref::activate(datum_index definition_index, real intensity
         weather_instance_type *slot = &instance->types[i];
 
         slot->particle_count = 0;
-        slot->first_particle = (datum_index)0xffffffff;
+        slot->first_particle = k_datum_index_none;
 
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
         slot->target_count = (type->particle_count[1] - type->particle_count[0]) *
@@ -87,7 +87,7 @@ void weather_instance_ref::adjust_count(int16_t type_index, real target_value)
     }
 
     while (slot->particle_count < target) {
-        if (halo::effects::weather_particle_new(instance_index, type_index) == (datum_index)0xffffffff) {
+        if (halo::effects::weather_particle_new(instance_index, type_index) == k_datum_index_none) {
             break;
         }
     }
@@ -210,7 +210,7 @@ void weather_instance_ref::build_render_geometry()
         sprites.centroid = *global_zero_vector3d_pointer;
         sprites.group_count = 0;
 
-        for (particle_index = state->first_particle; particle_index != (datum_index)0xffffffff;) {
+        for (particle_index = state->first_particle; particle_index != k_datum_index_none;) {
             weather_particle *particle = &((weather_particle *)weather_particle_data->data)[particle_index & halo::k_slot_mask];
             float particle_plane_distance[5];
             int16_t cell;
@@ -318,7 +318,7 @@ void weather_instance_ref::deactivate()
     for (i = 0; i < (int32_t)tag->particle_types.count; i++) {
         weather_instance_type *slot = &instance->types[i];
 
-        while (slot->first_particle != (datum_index)0xffffffff) {
+        while (slot->first_particle != k_datum_index_none) {
             weather_particle *p =
                 &((weather_particle *)weather_particle_data->data)[(uint16_t)slot->first_particle];
             datum_index next = p->next_particle;
@@ -330,7 +330,7 @@ void weather_instance_ref::deactivate()
     }
 
     weather_instance_count--;
-    instance->definition_index = (datum_index)0xffffffff;
+    instance->definition_index = k_datum_index_none;
 }
 
 /**
@@ -371,7 +371,7 @@ void weather_instance_ref::update()
             (1.0f - fade_out) * fade_in * instance->intensity * slot->target_count);
 
         particle_index = slot->first_particle;
-        while (particle_index != (datum_index)0xffffffff) {
+        while (particle_index != k_datum_index_none) {
             weather_particle *p =
                 &((weather_particle *)weather_particle_data->data)[(uint16_t)particle_index];
 
@@ -399,7 +399,7 @@ datum_index weather_particle_ref::create(int16_t instance_index, int16_t type_in
 {
     datum_index handle = halo::memory::datum_new(weather_particle_data);
 
-    if (handle != (datum_index)0xffffffff) {
+    if (handle != k_datum_index_none) {
         weather_instance *instance = &weather_instances[instance_index];
         weather_instance_type *slot = &instance->types[type_index];
         WeatherParticleSystem *system_tag =

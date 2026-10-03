@@ -1,4 +1,5 @@
 #include "halo/core/slot_mask.hpp"
+#include "halo/items/tag_flags.hpp"
 #include "halo/items/items.hpp"
 #include "halo/models/api.hpp"
 #include "halo/cache/api.hpp"
@@ -22,7 +23,7 @@ static uint32_t weapon_blur_target(uint32_t item_index)
 {
     uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
 
-    if ((((object *)obj)->flags & 1) && ((object *)obj)->parent_object != (datum_index)0xffffffff) {
+    if ((((object *)obj)->flags & 1) && ((object *)obj)->parent_object != k_datum_index_none) {
         return ((object *)obj)->parent_object;
     }
     return item_index;
@@ -54,7 +55,7 @@ int32_t weapon_ref::update()
         return 1;
     }
 
-    if (*(datum_index *)&weapon_tag->base.base.animation_graph.tag_id != (datum_index)0xffffffff &&
+    if (*(datum_index *)&weapon_tag->base.base.animation_graph.tag_id != k_datum_index_none &&
         item_obj->animation_index != -1) {
         int16_t kind = (int16_t)halo::models::animation_state_advance(*(datum_index *)&weapon_tag->base.base.animation_graph.tag_id,
                                                         (animation_state *)((uint8_t *)item_obj + 0xd0), 0,
@@ -66,19 +67,19 @@ int32_t weapon_ref::update()
         }
     }
 
-    if ((weapon_tag->weapon_flags & 0x400) != 0 && item_obj->parent_object == (datum_index)0xffffffff) {
+    if (weapon_has(weapon_tag->weapon_flags, weapon_tag_flag::detonates_when_dropped) && item_obj->parent_object == k_datum_index_none) {
         halo::items::item_detonation_timer_start(item_index);
     }
 
     if (wd->ready_timer > 0.0f) {
         int skip_decrement = 0;
-        if (item_obj->parent_object == (datum_index)0xffffffff) {
+        if (item_obj->parent_object == k_datum_index_none) {
             skip_decrement = 0;
         } else {
             object *holder = halo::objects::object_try_and_get(item_obj->parent_object, _object_mask_unit);
             if (holder == 0) {
                 skip_decrement = 0;
-            } else if (holder->definition_tag == (datum_index)0xffffffff) {
+            } else if (holder->definition_tag == k_datum_index_none) {
                 skip_decrement = 0;
             } else {
                 Unit *holder_tag = (Unit *)halo::cache::globals().tag_instances[(uint16_t)holder->definition_tag].data;
@@ -128,7 +129,7 @@ int32_t weapon_ref::update()
 
         if ((wd->flags & 1) != 0 && wd->heat < weapon_tag->heat_recovery_threshold) {
             wd->flags = wd->flags & ~(uint32_t)3;
-            if (wd->overheat_effect_handle != (datum_index)0xffffffff) {
+            if (wd->overheat_effect_handle != k_datum_index_none) {
                 halo::effects::effect_stop(wd->overheat_effect_handle, 1);
             }
         }
@@ -146,7 +147,7 @@ int32_t weapon_ref::update()
         pulled[0] = 0;
         if ((wd->control_flags & 0x10) == 0 && wd->action_ticks < 1) {
             pulled[0] = (uint8_t)((wd->control_flags >> 1) & 1);
-            if ((weapon_tag->weapon_flags & 0x1000) != 0 && (wd->control_flags & 4) != 0) {
+            if (weapon_has(weapon_tag->weapon_flags, weapon_tag_flag::secondary_trigger_overrides_grenades) && (wd->control_flags & 4) != 0) {
                 pulled[1] = 1;
             } else {
                 pulled[1] = 0;
@@ -218,11 +219,11 @@ int32_t weapon_ref::update()
             weapon_trigger_state *trigger = &wd->triggers[local_trigger_index];
             uint8_t is_pulled = pulled[local_trigger_index];
 
-            if ((tag_trigger->flags & 0x200) != 0 && (id->flags & _item_held_by_player_bit) != 0) {
+            if (trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::analog_rate_of_fire) && (id->flags & _item_held_by_player_bit) != 0) {
                 pulled[local_trigger_index] = wd->primary_trigger > 0.05f;
                 is_pulled = pulled[local_trigger_index];
             }
-            if ((tag_trigger->flags & 0x40) != 0 && item_obj->parent_object == (datum_index)0xffffffff) {
+            if (trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::sticks_when_dropped) && item_obj->parent_object == k_datum_index_none) {
                 pulled[local_trigger_index] = 1;
                 is_pulled = 1;
             }
@@ -231,7 +232,7 @@ int32_t weapon_ref::update()
                 trigger->effect_state_ticks = trigger->effect_state_ticks - 1;
             }
 
-            if ((tag_trigger->flags & 0x10) != 0) {
+            if (trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::locks_in_on_off_state)) {
                 if ((trigger->flags & _weapon_trigger_was_pulled_bit) == 0 && is_pulled != 0) {
                     trigger->flags = trigger->flags ^ (uint32_t)_weapon_trigger_latched_bit;
                 }
@@ -264,12 +265,12 @@ int32_t weapon_ref::update()
             switch (trigger->effect_state) {
             case 0: {
                 int32_t ready = 1;
-                if ((wd->control_flags & 0x10) == 0 && item_obj->parent_object != (datum_index)0xffffffff &&
+                if ((wd->control_flags & 0x10) == 0 && item_obj->parent_object != k_datum_index_none &&
                     tag_trigger->magazine != (uint16_t)-1) {
                     int16_t magazine_index = tag_trigger->magazine;
                     int16_t rounds_loaded = wd->magazines[magazine_index].rounds_loaded;
 
-                    if ((rounds_loaded < tag_trigger->rounds_per_shot && (tag_trigger->flags & 4) == 0) ||
+                    if ((rounds_loaded < tag_trigger->rounds_per_shot && !trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::can_fire_with_partial_ammo)) ||
                         rounds_loaded < tag_trigger->minimum_rounds_loaded || rounds_loaded == 0) {
                         int32_t nag = 0;
                         if (item_obj->network_role == 0 && tag_trigger->rounds_per_shot > 0) {
@@ -313,9 +314,9 @@ int32_t weapon_ref::update()
                         trigger->effect_state = 0;
                         trigger->effect_state_ticks = 0;
                     }
-                    if (trigger->effect_handle != (datum_index)0xffffffff) {
+                    if (trigger->effect_handle != k_datum_index_none) {
                         halo::effects::effect_stop(trigger->effect_handle, 1);
-                        trigger->effect_handle = (datum_index)0xffffffff;
+                        trigger->effect_handle = k_datum_index_none;
                     }
                 }
                 break;
@@ -328,7 +329,7 @@ int32_t weapon_ref::update()
                         halo::items::weapon_trigger_handle_empty(item_index, local_trigger_index);
                     } else {
                         int16_t rounds_loaded = wd->magazines[tag_trigger->magazine].rounds_loaded;
-                        if (rounds_loaded < tag_trigger->rounds_per_shot && (tag_trigger->flags & 4) == 0) {
+                        if (rounds_loaded < tag_trigger->rounds_per_shot && !trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::can_fire_with_partial_ammo)) {
                             halo::items::weapon_trigger_enter_recovery(item_index, local_trigger_index);
                         }
                     }
@@ -336,7 +337,7 @@ int32_t weapon_ref::update()
                 break;
             case 4:
                 if (trigger->effect_state_ticks == 0) {
-                    if ((tag_trigger->flags & 8) == 0 || (id->flags & _item_held_by_player_bit) == 0 ||
+                    if (!trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::does_not_repeat_automatically) || (id->flags & _item_held_by_player_bit) == 0 ||
                         (trigger->flags & _weapon_trigger_not_pulled_bit) != 0) {
                         trigger->effect_state = 0;
                         trigger->effect_state_ticks = 0;
@@ -346,7 +347,7 @@ int32_t weapon_ref::update()
                 }
                 break;
             case 5:
-                if (is_pulled == 0 || wd->tracked_object_index == (datum_index)0xffffffff) {
+                if (is_pulled == 0 || wd->tracked_object_index == k_datum_index_none) {
                     halo::items::weapon_trigger_reset_tracking(item_index, local_trigger_index);
                 }
                 break;

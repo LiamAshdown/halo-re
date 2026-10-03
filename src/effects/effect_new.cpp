@@ -1,4 +1,5 @@
 #include "halo/core/datum.hpp"
+#include "halo/scenario/leaf.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -247,7 +248,7 @@ datum_index effect_ref::new_with_color(datum_index definition_index, datum_index
         leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, position);
         self->location.leaf_index = leaf;
         self->location.cluster_index = (leaf == -1) ? -1 :
-            *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+            halo::scenario::structure_leaf_cluster(leaf);
 
         if (velocity == 0) {
             velocity = (const real_vector3d *)global_origin3d_pointer;

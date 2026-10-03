@@ -25,7 +25,7 @@ void weapon_ref::notify_ammo_pickup(int16_t magazine_index, int16_t rounds)
     void *items[2];
 
     message.object_hash = 0;
-    if (item_index != (datum_index)0xffffffff) {
+    if (item_index != k_datum_index_none) {
         message.object_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, item_index);
         if (message.object_hash == -1) {
             message.object_hash = 0;
@@ -56,7 +56,7 @@ void weapon_ref::notify_reload_begin(int16_t magazine_index)
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
     message.object_hash = 0;
-    if (item_index != (datum_index)0xffffffff) {
+    if (item_index != k_datum_index_none) {
         message.object_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, item_index);
         if (message.object_hash == -1) {
             message.object_hash = 0;
@@ -88,7 +88,7 @@ void weapon_ref::notify_reload_cancel(int16_t magazine_index)
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
     message.object_hash = 0;
-    if (item_index != (datum_index)0xffffffff) {
+    if (item_index != k_datum_index_none) {
         message.object_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, item_index);
         if (message.object_hash == -1) {
             message.object_hash = 0;
@@ -120,7 +120,7 @@ void weapon_ref::notify_reload_step(int16_t magazine_index)
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
     message.object_hash = 0;
-    if (item_index != (datum_index)0xffffffff) {
+    if (item_index != k_datum_index_none) {
         message.object_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, item_index);
         if (message.object_hash == -1) {
             message.object_hash = 0;

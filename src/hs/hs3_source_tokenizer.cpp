@@ -206,7 +206,7 @@ void SourceTokenizer::tokenize_nonprimitive(datum_index node_index, char **curso
     child_slot = first_child_slot;
     for (;;) {
         if (halo::hs::globals().compile_error != 0) {
-            goto empty_check;
+            break;
         }
         prev_cursor = *cursor;
         halo::hs::skip_whitespace(cursor);
@@ -216,25 +216,22 @@ void SourceTokenizer::tokenize_nonprimitive(datum_index node_index, char **curso
         if (**cursor == '\0') {
             halo::hs::globals().compile_error = const_cast<char *>("this left parenthesis is unmatched.");
             halo::hs::globals().compile_error_offset = node->source_offset;
-            goto empty_check;
+            break;
         }
         if (**cursor == ')') {
             **cursor = '\0';
             *cursor = *cursor + 1;
-            goto empty_check;
+            break;
         }
         child_index = halo::hs::hs_tokenize(cursor);
         *(datum_index *)child_slot = child_index;
         if (child_index != k_datum_index_none) {
             child_slot = reinterpret_cast<uint8_t *>(&halo::hs::syntax_node_at(child_index)->next_node);
         }
-        continue;
-    empty_check:
-        if ((child_slot == first_child_slot) && (halo::hs::globals().compile_error == 0)) {
-            halo::hs::globals().compile_error = const_cast<char *>("this expression is empty.");
-            halo::hs::globals().compile_error_offset = node->source_offset;
-        }
-        return;
+    }
+    if ((child_slot == first_child_slot) && (halo::hs::globals().compile_error == 0)) {
+        halo::hs::globals().compile_error = const_cast<char *>("this expression is empty.");
+        halo::hs::globals().compile_error_offset = node->source_offset;
     }
 }
 
@@ -277,20 +274,15 @@ void SourceTokenizer::tokenize_primitive(char **cursor, datum_index node_index) 
                 if ((c == ')') || (c == ';')) {
                     break;
                 }
-                i = 0;
-                do {
-                    if (c == hs_space_characters[i]) {
-                        goto done;
+                bool separator = false;
+                for (i = 0; i < 2; i++) {
+                    if (c == hs_space_characters[i] || c == hs_newline_characters[i]) {
+                        separator = true;
                     }
-                    i = i + 1;
-                } while (i < 2);
-                i = 0;
-                do {
-                    if (c == hs_newline_characters[i]) {
-                        goto done;
-                    }
-                    i = i + 1;
-                } while (i < 2);
+                }
+                if (separator) {
+                    break;
+                }
                 p = *cursor + 1;
                 *cursor = p;
                 if (*p == '\0') {
@@ -299,7 +291,6 @@ void SourceTokenizer::tokenize_primitive(char **cursor, datum_index node_index) 
             }
         }
     }
-done:
     if (halo::hs::globals().preserve_token_case == 0) {
         halo::cseries::string_to_lowercase(halo::hs::globals().compiled_source + node->source_offset);
     }
@@ -336,68 +327,61 @@ void SourceTokenizer::skip_whitespace(char **cursor) const
     int16_t i;
 
     state = 0;
-top:
-    if (state == 0) {
-        p = *cursor;
-        c = *p;
-        if (c == ';') {
-            *cursor = p + 1;
-            state = 1;
-            if (p[1] == '*') {
-                state = 2;
-                *cursor = p + 2;
+    for (;;) {
+        if (state == 0) {
+            p = *cursor;
+            c = *p;
+            if (c == ';') {
+                *cursor = p + 1;
+                state = 1;
+                if (p[1] == '*') {
+                    state = 2;
+                    *cursor = p + 2;
+                }
+                continue;
             }
-            goto top;
-        }
-        i = 0;
-        for (;;) {
-            if (c == hs_space_characters[i]) {
-                goto found;
+            bool whitespace = false;
+            for (i = 0; i < 2; i++) {
+                if (c == hs_space_characters[i]) {
+                    whitespace = true;
+                }
             }
-            i = i + 1;
-            if (!(i < 2)) {
-                break;
+            for (i = 0; i < 2 && !whitespace; i++) {
+                if (c == hs_newline_characters[i]) {
+                    whitespace = true;
+                }
             }
-        }
-        i = 0;
-        while (c != hs_newline_characters[i]) {
-            i = i + 1;
-            if (1 < i) {
+            if (!whitespace) {
                 return;
             }
-        }
-    found:
-        *cursor = p + 1;
-    } else if (state == 1) {
-        p = *cursor;
-        if (*p == '\0') {
-            return;
-        }
-        i = 0;
-        do {
-            if (*p == hs_newline_characters[i]) {
-                state = 0;
-                break;
-            }
-            i = i + 1;
-        } while (i < 2);
-        *cursor = p + 1;
-    } else {
-        p = *cursor;
-        if (*p == '\0') {
-            halo::hs::globals().compile_error = const_cast<char *>("unterminated comment.");
-            return;
-        }
-        if ((*p == '*') && (p[1] == ';')) {
-            state = 0;
             *cursor = p + 1;
+        } else if (state == 1) {
+            p = *cursor;
+            if (*p == '\0') {
+                return;
+            }
+            i = 0;
+            do {
+                if (*p == hs_newline_characters[i]) {
+                    state = 0;
+                    break;
+                }
+                i = i + 1;
+            } while (i < 2);
+            *cursor = p + 1;
+        } else {
+            p = *cursor;
+            if (*p == '\0') {
+                halo::hs::globals().compile_error = const_cast<char *>("unterminated comment.");
+                return;
+            }
+            if ((*p == '*') && (p[1] == ';')) {
+                state = 0;
+                *cursor = p + 1;
+            }
+            *cursor = *cursor + 1;
         }
-        *cursor = *cursor + 1;
     }
-    if (state == 3) {
-        return;
-    }
-    goto top;
 }
 
 }

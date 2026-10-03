@@ -206,6 +206,8 @@ void DirectorHandle::update_seat_camera(uint8_t force)
         return;
     }
 
+    bool switched = false;
+
     if (third_person == 1) {
         if (force || director->pov_proc == halo::camera::camera_first_person_compute_pov) {
             third_person_camera_data *third = &director->data.third_person;
@@ -221,23 +223,21 @@ void DirectorHandle::update_seat_camera(uint8_t force)
             third->yaw_offset = 0.0f;
             third->distance_scale = 1.0f;
             director->pov_proc = halo::camera::camera_third_person_compute_pov;
-            goto switched;
+            switched = true;
         }
     } else {
         if (force || director->pov_proc == halo::camera::camera_third_person_compute_pov) {
             director->data.first_person.field_of_view = 0.0f;
             director->pov_proc = halo::camera::camera_first_person_compute_pov;
-            goto switched;
+            switched = true;
         }
     }
-    director->seat_camera_state = seat_camera_state;
-    return;
-
-switched:
-    director->look_scale = 1.0f;
-    director->unknown_c0 = 0;
-    if (!force) {
-        director->transition_time = 1.0f;
+    if (switched) {
+        director->look_scale = 1.0f;
+        director->unknown_c0 = 0;
+        if (!force) {
+            director->transition_time = 1.0f;
+        }
     }
     director->seat_camera_state = seat_camera_state;
 }

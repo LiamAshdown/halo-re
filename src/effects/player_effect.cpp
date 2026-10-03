@@ -38,10 +38,10 @@ void player_effect_ref::apply_at_object(uint32_t tag_reference, int16_t local_pl
 {
     datum_index player_index = halo::game::globals().local_player_globals->local_players[0];
 
-    if (player_index != (datum_index)0xffffffff) {
+    if (player_index != k_datum_index_none) {
         player *record = &((player *)halo::game::globals().player_data->data)[player_index & halo::k_slot_mask];
 
-        if (record->unit != (datum_index)0xffffffff) {
+        if (record->unit != k_datum_index_none) {
             real_point3d position;
             float dx, dy, dz;
 
@@ -216,9 +216,9 @@ void player_effect_ref::clear_dead_players()
         datum_index player_index = halo::game::globals().local_player_globals->local_players[i];
         uint8_t dead = 1;
 
-        if (player_index != (datum_index)0xffffffff) {
+        if (player_index != k_datum_index_none) {
             player *record = &((player *)halo::game::globals().player_data->data)[player_index & halo::k_slot_mask];
-            if (record->unit != (datum_index)0xffffffff) {
+            if (record->unit != k_datum_index_none) {
                 dead = 0;
             }
         }
@@ -371,7 +371,7 @@ void player_effect_ref::mark_damage_direction_dispatch(void **context)
     }
     iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
-    iterator.index = (datum_index)0xffffffff;
+    iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     for (record = (player *)halo::memory::data_iterator_next(&iterator); record != 0;
          record = (player *)halo::memory::data_iterator_next(&iterator)) {
@@ -440,7 +440,7 @@ void player_effect_ref::send_network_update(const real_vector3d *direction, cons
     void *items[2];
     int32_t encoded_bits;
 
-    if (player_handle == (datum_index)0xffffffff || index < 0 || index >= halo::game::globals().player_data->maximum_count) {
+    if (player_handle == k_datum_index_none || index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
     record = (player *)((uint8_t *)halo::game::globals().player_data->data + index * halo::game::globals().player_data->size);
@@ -449,7 +449,7 @@ void player_effect_ref::send_network_update(const real_vector3d *direction, cons
     }
     fields[0] = dd->damage_effect_tag;
     fields[1] = 0;
-    if (dd->responsible_object != (datum_index)0xffffffff) {
+    if (dd->responsible_object != k_datum_index_none) {
         fields[1] = (uint32_t)halo::objects::hash_table_get(&object_network_id_table->id_to_index,
             (int32_t)dd->responsible_object);
         if (fields[1] == halo::k_dword_none) {
@@ -548,7 +548,7 @@ void player_effect_view::set_screen_flash(player_screen_flash *descriptor, float
 void player_effect_ref::set_screen_flash_for_player(player_screen_flash *descriptor, float intensity_falloff)
 {
     datum_index player_index = datum;
-    if (player_index != (datum_index)0xffffffff) {
+    if (player_index != k_datum_index_none) {
         player *record = &((player *)halo::game::globals().player_data->data)[player_index & halo::k_slot_mask];
 
         if (record->local_player_index != -1) {
@@ -573,14 +573,14 @@ int32_t player_effect_ref::locality_for_object(datum_index weapon_object_index)
 
     iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
-    iterator.index = (datum_index)0xffffffff;
+    iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     record = (player *)halo::memory::data_iterator_next(&iterator);
     while (record != (player *)0) {
         datum_index unit_index = record->unit;
 
-        if (unit_index != (datum_index)0xffffffff) {
+        if (unit_index != k_datum_index_none) {
             int16_t index = (int16_t)unit_index;
 
             if (index >= 0 && index < halo::objects::globals().object_data->maximum_count) {
@@ -596,7 +596,7 @@ int32_t player_effect_ref::locality_for_object(datum_index weapon_object_index)
                             (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data +
                                           k_unit_data_offset);
                         int16_t current_weapon = held_unit->current_weapon_index;
-                        datum_index current_weapon_object = (datum_index)0xffffffff;
+                        datum_index current_weapon_object = k_datum_index_none;
 
                         if (current_weapon != -1) {
                             current_weapon_object = held_unit->weapons[current_weapon];

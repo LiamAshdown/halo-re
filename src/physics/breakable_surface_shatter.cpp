@@ -4,6 +4,7 @@
 
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "tags.h"
 #include "halo/bitmaps/api.hpp"
 #include "memory.h"
@@ -33,14 +34,29 @@
 
 static auto &breakable_surfaces_enabled = halo::link::ref<uint8_t>(halo::physics::vars().breakable_surfaces_enabled);
 static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);
-static auto &global_structure_bsp = halo::link::ref<uint8_t *>(halo::ai::vars().global_structure_bsp);
+static auto &global_structure_bsp = halo::link::ref<ScenarioStructureBSP *>(halo::ai::vars().global_structure_bsp);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
-#define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
-#define I32(p, o) (*(int32_t *)((uint8_t *)(p) + (o)))
-#define I16(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
-#define k_breakable_queue_size 1023
-#define k_breakable_polygon_size 64
+static_assert(offsetof(ScenarioStructureBSP, collision_materials.pointer) == 0xa8);
+static_assert(offsetof(ScenarioStructureBSPCollisionMaterial, material) == 0x12);
+static_assert(offsetof(GlobalsMaterial, particle_effects.count) == 0x2d4 + 0x48);
+static_assert(offsetof(GlobalsMaterial, sound.tag_id) == 0x2d4 + 0x2c);
+static_assert(sizeof(GlobalsMaterial) == 0x374);
+static_assert(offsetof(GlobalsBreakableSurfaceParticleEffect, particle_type.tag_id) == 0xc);
+static_assert(offsetof(GlobalsBreakableSurfaceParticleEffect, flags) == 0x10);
+static_assert(offsetof(GlobalsBreakableSurfaceParticleEffect, density) == 0x14);
+static_assert(offsetof(GlobalsBreakableSurfaceParticleEffect, velocity_scale) == 0x18);
+static_assert(offsetof(GlobalsBreakableSurfaceParticleEffect, angular_velocity) == 0x24);
+static_assert(offsetof(GlobalsBreakableSurfaceParticleEffect, radius) == 0x34);
+static_assert(offsetof(GlobalsBreakableSurfaceParticleEffect, tint_lower_bound) == 0x44);
+static_assert(offsetof(GlobalsBreakableSurfaceParticleEffect, tint_upper_bound) == 0x54);
+static_assert(offsetof(DamageEffect, breaking_effect_forward_velocity) == 0x194);
+static_assert(offsetof(DamageEffect, breaking_effect_outward_velocity) == 0x194 + 0x18);
+static_assert(offsetof(damage_data, origin) == 0x28);
+static_assert(offsetof(damage_data, direction) == 0x34);
+static_assert(offsetof(particle_creation_data, color) == 0x4c);
+static constexpr int k_breakable_queue_size = 1023;
+static constexpr int k_breakable_polygon_size = 64;
 static uint32_t effect_random_next(void)
 {
     halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
@@ -90,36 +106,36 @@ namespace halo::physics {
 void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_index, damage_data *damage, int32_t collision_surface_index)
 {
     ModelCollisionGeometryBSP *bsp = global_structure_collision_bsp;
-    uint8_t *first_surface;
-    uint8_t *shatter;
+    ModelCollisionGeometryBSPSurface *first_surface;
+    GlobalsMaterial *shatter;
     int32_t queue[k_breakable_queue_size];
     int16_t queue_read = 0;
     int16_t queue_count = 1;
     uint8_t have_bounds = 0;
     real_point3d bounds_min;
     real_point3d bounds_max;
-    uint8_t *damage_raw = (uint8_t *)damage;
 
     if (!breakable_surfaces_enabled) {
         return;
     }
-    first_surface = (uint8_t *)bsp->surfaces.pointer + collision_surface_index * 0xc;
+    first_surface = (ModelCollisionGeometryBSPSurface *)bsp->surfaces.pointer + collision_surface_index;
     {
-        uint8_t *collision_materials = *(uint8_t **)(global_structure_bsp + 0xa8);
-        int16_t global_material = I16(collision_materials, I16(first_surface, 0xa) * 0x14 + 0x12);
+        ScenarioStructureBSPCollisionMaterial *collision_materials =
+            (ScenarioStructureBSPCollisionMaterial *)global_structure_bsp->collision_materials.pointer;
+        int16_t global_material = (int16_t)collision_materials[first_surface->material].material;
 
-        shatter = (uint8_t *)global_globals->materials.pointer + global_material * 0x374 + 0x2d4;
+        shatter = (GlobalsMaterial *)global_globals->materials.pointer + global_material;
     }
     queue[0] = collision_surface_index;
 
     do {
         int32_t surface_index = queue[queue_read++];
-        uint8_t *surfaces = (uint8_t *)bsp->surfaces.pointer;
-        uint8_t *edges = (uint8_t *)bsp->edges.pointer;
-        uint8_t *vertices = (uint8_t *)bsp->vertices.pointer;
-        int32_t first_edge = I32(surfaces, surface_index * 0xc + 4);
-        int32_t plane_index = I32(surfaces, surface_index * 0xc);
-        float *stored_plane = (float *)((uint8_t *)bsp->planes.pointer + (plane_index & 0x7fffffff) * 0x10);
+        ModelCollisionGeometryBSPSurface *surfaces = (ModelCollisionGeometryBSPSurface *)bsp->surfaces.pointer;
+        ModelCollisionGeometryBSPEdge *edges = (ModelCollisionGeometryBSPEdge *)bsp->edges.pointer;
+        ModelCollisionGeometryBSPVertex *vertices = (ModelCollisionGeometryBSPVertex *)bsp->vertices.pointer;
+        int32_t first_edge = (int32_t)surfaces[surface_index].first_edge;
+        int32_t plane_index = (int32_t)surfaces[surface_index].plane;
+        float *stored_plane = (float *)&((ModelCollisionGeometryBSPPlane *)bsp->planes.pointer)[plane_index & halo::k_leaf_index_mask];
         float plane[4];
         int16_t axis;
         const projection_axis_pair *axes;
@@ -163,17 +179,17 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
         v_axis = axes->j;
 
         do {
-            uint8_t *edge = edges + edge_index * 0x18;
-            uint8_t on_right = (uint8_t)(I32(edge, 0x14) == surface_index);
-            float *a = (float *)(vertices + I32(edge, (on_right ? 0 : 1) * 4) * 0x10);
-            int32_t neighbour = I32(edge, 0x10 + (on_right ? 0 : 1) * 4);
+            ModelCollisionGeometryBSPEdge *edge = &edges[edge_index];
+            uint8_t on_right = (uint8_t)((int32_t)edge->right_surface == surface_index);
+            float *a = (float *)&vertices[on_right ? edge->start_vertex : edge->end_vertex];
+            int32_t neighbour = (int32_t)(on_right ? edge->left_surface : edge->right_surface);
 
             if (vertex_count == 0) {
-                float *b = (float *)(vertices + I32(edge, (on_right ? 1 : 0) * 4) * 0x10);
+                float *b = (float *)&vertices[on_right ? edge->end_vertex : edge->start_vertex];
                 float length;
 
                 if (surface_index == collision_surface_index) {
-                    float *position = (float *)(damage_raw + 0x28);
+                    float *position = (float *)&damage->origin;
                     float pu = position[u_axis];
                     float pv = position[v_axis];
 
@@ -252,25 +268,25 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                     }
                 }
                 if (neighbour != -1) {
-                    uint8_t *other = surfaces + neighbour * 0xc;
+                    ModelCollisionGeometryBSPSurface *other = &surfaces[neighbour];
 
-                    if ((uint16_t)other[0x9] == breakable_surface_index && I16(other, 0xa) == I16(first_surface, 0xa) &&
+                    if ((uint16_t)(uint8_t)other->breakable_surface == breakable_surface_index && other->material == first_surface->material &&
                         queue_count < k_breakable_queue_size) {
                         queue[queue_count++] = neighbour;
                     }
                 }
             }
-            edge_index = I32(edge, 0x8 + (on_right ? 1 : 0) * 4);
+            edge_index = (int32_t)(on_right ? edge->reverse_edge : edge->forward_edge);
             vertex_count++;
         } while (edge_index != first_edge);
 
-        for (entry = 0; entry < I32(shatter, 0x48); entry++) {
-            uint8_t *particles = *(uint8_t **)(shatter + 0x4c) + entry * 0x80;
-            float spacing = F(particles, 0x14);
+        for (entry = 0; entry < (int32_t)shatter->particle_effects.count; entry++) {
+            GlobalsBreakableSurfaceParticleEffect *particles = (GlobalsBreakableSurfaceParticleEffect *)shatter->particle_effects.pointer + entry;
+            float spacing = particles->density;
             int16_t i_min, i_max, j_min, j_max;
             int16_t j;
 
-            if (I32(particles, 0xc) == -1) {
+            if (*(int32_t *)&particles->particle_type.tag_id == -1) {
                 continue;
             }
             if (spacing == 0.0f) {
@@ -315,7 +331,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                     }
 
                     {
-                        uint8_t *damage_effect = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)damage_raw & halo::k_slot_mask].data + 0x194;
+                        DamageEffect *damage_effect = (DamageEffect *)halo::cache::globals().tag_instances[damage->damage_effect_tag & halo::k_slot_mask].data;
                         real_vector3d velocity;
                         real_vector3d away;
                         float distance;
@@ -325,9 +341,9 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                         velocity.i = global_origin3d_pointer->x;
                         velocity.j = global_origin3d_pointer->y;
                         velocity.k = global_origin3d_pointer->z;
-                        away.i = point.x - F(damage_raw, 0x28);
-                        away.j = point.y - F(damage_raw, 0x2c);
-                        away.k = point.z - F(damage_raw, 0x30);
+                        away.i = point.x - damage->origin.x;
+                        away.j = point.y - damage->origin.y;
+                        away.k = point.z - damage->origin.z;
                         distance = (float)halo::libm::sqrt((double)(away.k * away.k + away.j * away.j + away.i * away.i));
                         if (!(halo::libm::fabs((double)distance) < 0.0001)) {
                             float inverse = 1.0f / distance;
@@ -338,25 +354,25 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                         } else {
                             distance = 0.0f;
                         }
-                        if (F(damage_effect, 0x1c) > 0.0f) {
-                            float t = shatter_falloff(distance, F(damage_effect, 0x1c), F(damage_effect, 0x20)) *
-                                F(damage_effect, 0x18);
+                        if (damage_effect->breaking_effect_outward_radius > 0.0f) {
+                            float t = shatter_falloff(distance, damage_effect->breaking_effect_outward_radius, damage_effect->breaking_effect_outward_exponent) *
+                                damage_effect->breaking_effect_outward_velocity;
 
                             velocity.i = away.i * t + velocity.i;
                             velocity.j = away.j * t + velocity.j;
                             velocity.k = away.k * t + velocity.k;
                         }
-                        if (F(damage_effect, 0x4) > 0.0f) {
-                            float t = shatter_falloff(distance, F(damage_effect, 0x4), F(damage_effect, 0x8)) *
-                                F(damage_effect, 0x0);
+                        if (damage_effect->breaking_effect_forward_radius > 0.0f) {
+                            float t = shatter_falloff(distance, damage_effect->breaking_effect_forward_radius, damage_effect->breaking_effect_forward_exponent) *
+                                damage_effect->breaking_effect_forward_velocity;
 
-                            velocity.i = t * F(damage_raw, 0x34) + velocity.i;
-                            velocity.j = t * F(damage_raw, 0x38) + velocity.j;
-                            velocity.k = t * F(damage_raw, 0x3c) + velocity.k;
+                            velocity.i = t * damage->direction.i + velocity.i;
+                            velocity.j = t * damage->direction.j + velocity.j;
+                            velocity.k = t * damage->direction.k + velocity.k;
                         }
-                        if (F(particles, 0x1c) > 0.0f) {
-                            float scale = (F(particles, 0x1c) - F(particles, 0x18)) * shatter_random_fraction() +
-                                F(particles, 0x18);
+                        if (particles->velocity_scale[1] > 0.0f) {
+                            float scale = (particles->velocity_scale[1] - particles->velocity_scale[0]) * shatter_random_fraction() +
+                                particles->velocity_scale[0];
 
                             velocity.i *= scale;
                             velocity.j *= scale;
@@ -364,10 +380,11 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                         }
 
                         memset(&creation, 0, sizeof creation);
-                        creation.definition_index = I32(particles, 0xc);
+                        creation.definition_index = *(datum_index *)&particles->particle_type.tag_id;
                         creation.object_index = k_datum_index_none;
                         creation.marker_index = -1;
-                        *(int16_t *)((uint8_t *)&creation + 0xa) = -1;
+                        creation.first_person_weapon_index = 0xff;
+                        creation.unknown_0b = 0xff;
                         creation.first_person = 0;
                         creation.third_person_only = 0;
                         creation.first_person_only = 0;
@@ -378,24 +395,24 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                         creation.gravity.j = global_origin3d_pointer->y;
                         creation.gravity.k = global_origin3d_pointer->z;
                         creation.rotation = shatter_random_fraction() * 6.2831855f;
-                        creation.angular_velocity = (F(particles, 0x28) - F(particles, 0x24)) * shatter_random_fraction() +
-                            F(particles, 0x24);
-                        creation.scale = (F(particles, 0x38) - F(particles, 0x34)) * shatter_random_fraction() +
-                            F(particles, 0x34);
-                        halo::bitmaps::color_interpolate((ColorRGB *)(particles + 0x58), (ColorRGB *)(particles + 0x48),
-                            (ColorRGB *)((uint8_t *)&creation + 0x50),
-                            (color_interpolation_flags)(I32(particles, 0x10) & 3), shatter_random_fraction());
-                        alpha = (F(particles, 0x54) - F(particles, 0x44)) * shatter_random_fraction() + F(particles, 0x44);
+                        creation.angular_velocity = (particles->angular_velocity[1] - particles->angular_velocity[0]) * shatter_random_fraction() +
+                            particles->angular_velocity[0];
+                        creation.scale = (particles->radius[1] - particles->radius[0]) * shatter_random_fraction() +
+                            particles->radius[0];
+                        halo::bitmaps::color_interpolate((ColorRGB *)&particles->tint_upper_bound.red, (ColorRGB *)&particles->tint_lower_bound.red,
+                            (ColorRGB *)&creation.color.red,
+                            (color_interpolation_flags)(particles->flags & 3), shatter_random_fraction());
+                        alpha = (particles->tint_upper_bound.alpha - particles->tint_lower_bound.alpha) * shatter_random_fraction() + particles->tint_lower_bound.alpha;
                         if (alpha < 0.0f) {
-                            F(&creation, 0x4c) = 0.0f;
+                            creation.color.alpha = 0.0f;
                         } else {
-                            alpha = (F(particles, 0x54) - F(particles, 0x44)) * shatter_random_fraction() +
-                                F(particles, 0x44);
+                            alpha = (particles->tint_upper_bound.alpha - particles->tint_lower_bound.alpha) * shatter_random_fraction() +
+                                particles->tint_lower_bound.alpha;
                             if (!(alpha <= 1.0f)) {
-                                F(&creation, 0x4c) = 1.0f;
+                                creation.color.alpha = 1.0f;
                             } else {
-                                F(&creation, 0x4c) = (F(particles, 0x54) - F(particles, 0x44)) * shatter_random_fraction() +
-                                    F(particles, 0x44);
+                                creation.color.alpha = (particles->tint_upper_bound.alpha - particles->tint_lower_bound.alpha) * shatter_random_fraction() +
+                                    particles->tint_lower_bound.alpha;
                             }
                         }
 
@@ -426,7 +443,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
         }
     } while (queue_read < queue_count);
 
-    if (I32(shatter, 0x2c) != -1 && have_bounds) {
+    if (*(int32_t *)&shatter->sound.tag_id != -1 && have_bounds) {
         sound_location location;
 
         memset(&location, 0, sizeof location);
@@ -442,16 +459,13 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
         location.velocity.i = global_origin3d_pointer->x;
         location.velocity.j = global_origin3d_pointer->y;
         location.velocity.k = global_origin3d_pointer->z;
-        *(int32_t *)((uint8_t *)&location + 0x30) = I32(damage_raw, 0x14);
-        *(int32_t *)((uint8_t *)&location + 0x34) = I32(damage_raw, 0x18);
-        halo::sound::sound_play_new(I32(shatter, 0x2c), &location, k_datum_index_none, 0, 0, 0, 0);
+        location.leaf_index = damage->location_leaf_index;
+        location.cluster_index = damage->location_cluster_index;
+        location.unknown_36 = damage->unknown_1a;
+        halo::sound::sound_play_new(*(int32_t *)&shatter->sound.tag_id, &location, k_datum_index_none, 0, 0, 0, 0);
     }
 }
 
 }
 
-#undef F
-#undef I32
-#undef I16
-#undef k_breakable_queue_size
-#undef k_breakable_polygon_size
+

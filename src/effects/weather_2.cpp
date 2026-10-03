@@ -41,7 +41,7 @@ void weather_system::update_local_player()
         }
 
         if ((int32_t)instance->definition_index != new_definition_index) {
-            if (instance->definition_index != (datum_index)0xffffffff) {
+            if (instance->definition_index != k_datum_index_none) {
                 halo::effects::weather_instance_deactivate(instance_index);
             }
             if (new_definition_index != -1) {
@@ -49,7 +49,7 @@ void weather_system::update_local_player()
             }
         }
 
-        if (instance->definition_index != (datum_index)0xffffffff) {
+        if (instance->definition_index != k_datum_index_none) {
             halo::effects::weather_instance_build_render_geometry(instance_index);
         }
     }

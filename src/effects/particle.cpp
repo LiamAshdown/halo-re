@@ -1,4 +1,8 @@
 #include "halo/core/slot_mask.hpp"
+#include "halo/effects/local_views.hpp"
+#include "halo/effects/particle_system_tags.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/scenario/leaf.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
@@ -26,7 +30,7 @@ void particles_update(real delta_time);
 static auto &particle_data = halo::link::ref<data_array *>(halo::effects::vars().particle_data);
 static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
 static auto &particle_impact_vector_names = halo::link::ref<char *[2]>(halo::effects::vars().particle_impact_vector_names);
-static auto &first_person_weapon_interfaces = halo::link::ref<uint8_t *>(halo::ui::vars().first_person_weapon_interfaces);
+static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
 static auto &render_frame_index = halo::link::ref<int32_t>(halo::render::vars().render_frame_index);
 
 namespace halo::effects {
@@ -181,7 +185,7 @@ void particle_ref::impact_response_dispatch(particle *self, tag_group fourcc, da
     velocity.i = self->velocity.i * 0.033333335f;
     velocity.j = self->velocity.j * 0.033333335f;
     velocity.k = self->velocity.k * 0.033333335f;
-    if (fourcc == 0x65666665) {
+    if (fourcc == halo::groups::effect) {
         real_point3d points[2];
         real_vector3d vectors[2];
 
@@ -190,9 +194,9 @@ void particle_ref::impact_response_dispatch(particle *self, tag_group fourcc, da
         vectors[0] = self->direction;
         vectors[1] = *global_down3d_pointer;
         halo::math::vector3d_normalize_with_length(vectors[0]);
-        halo::effects::effect_new_with_color(definition_index, 0xffffffff, &velocity, 2, (uint32_t)(uintptr_t)particle_impact_vector_names, points,
+        halo::effects::effect_new_with_color(definition_index, k_datum_index_none, &velocity, 2, (uint32_t)(uintptr_t)particle_impact_vector_names, points,
             (uint32_t)(uintptr_t)vectors, intensity, 0.0f, 0, 0, 0);
-    } else if (fourcc == 0x736e6421) {
+    } else if (fourcc == halo::groups::sound) {
         sound_placement placement;
 
         placement.position = *(Point3D *)&self->position;
@@ -221,22 +225,20 @@ void particle_ref::create(particle_creation_data *creation_data)
     int16_t cluster = -1;
     uint32_t visible;
 
-    if (creation_data->definition_index == (datum_index)0xffffffff) {
+    if (creation_data->definition_index == k_datum_index_none) {
         return;
     }
     tag = (Particle *)halo::cache::globals().tag_instances[(uint16_t)creation_data->definition_index].data;
 
-    if (creation_data->object_index == (datum_index)0xffffffff) {
+    if (creation_data->object_index == k_datum_index_none) {
         position = creation_data->position;
     } else if (creation_data->first_person == 0) {
         object *obj = ((object_header *)halo::objects::globals().object_data->data)[creation_data->object_index & halo::k_slot_mask].data;
-        real_matrix4x3 *marker = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset +
-            creation_data->marker_index * 0x34);
+        real_matrix4x3 *marker = object_marker_node(obj, creation_data->marker_index);
         halo::math::matrix4x3_transform_point(position, creation_data->position, *marker);
     } else {
-        real_matrix4x3 *marker = (real_matrix4x3 *)(first_person_weapon_interfaces + 0x108c +
-            creation_data->first_person_weapon_index * 0x1ea0 +
-            (uint16_t)creation_data->marker_index * 0x34);
+        real_matrix4x3 *marker = first_person_marker_node(first_person_weapon_interfaces, creation_data->first_person_weapon_index,
+            (uint16_t)creation_data->marker_index);
         halo::math::matrix4x3_transform_point(position, creation_data->position, *marker);
     }
 
@@ -244,9 +246,9 @@ void particle_ref::create(particle_creation_data *creation_data)
     if (leaf == -1) {
         return;
     }
-    cluster = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + ((uint32_t)leaf & 0x7fffffff) * 0x10 + 8);
+    cluster = halo::scenario::structure_leaf_cluster(leaf);
 
-    visible = *(uint32_t *)((uint8_t *)halo::game::globals().local_player_globals + 0x58 + (cluster >> 5) * 4) &
+    visible = cluster_visibility_bits(halo::game::globals().local_player_globals, cluster_visibility::local_view)[cluster >> 5] &
         (1u << (cluster & 0x1f));
     if (visible == 0) {
         return;
@@ -255,23 +257,23 @@ void particle_ref::create(particle_creation_data *creation_data)
     {
         datum_index handle = halo::memory::datum_new(particle_data);
 
-        if (handle != (datum_index)0xffffffff) {
+        if (handle != k_datum_index_none) {
             particle *self = &((particle *)particle_data->data)[handle & halo::k_slot_mask];
             real speed;
 
             self->flags = 0;
-            if ((tag->flags & 0x1) != 0) {
+            if (particle_tag_has(tag->flags, particle_tag_flag::can_animate_backwards)) {
                 self->flags |= (uint16_t)(halo::effects::effect_random_uint16() & 1);
             }
-            if ((tag->flags & 0x400) != 0) {
+            if (particle_tag_has(tag->flags, particle_tag_flag::random_horizontal_mirroring)) {
                 self->flags |= (uint16_t)(halo::effects::effect_random_uint16() & 4);
             }
-            if ((tag->flags & 0x800) != 0) {
+            if (particle_tag_has(tag->flags, particle_tag_flag::random_vertical_mirroring)) {
                 self->flags |= (uint16_t)(halo::effects::effect_random_uint16() & 8);
             }
-            self->flags = (creation_data->third_person_only == 0) ? (self->flags & ~0x10) : (self->flags | 0x10);
-            self->flags = (creation_data->first_person_only == 0) ? (self->flags & ~0x20) : (self->flags | 0x20);
-            self->flags = (creation_data->first_person == 0) ? (self->flags & ~0x40) : (self->flags | 0x40);
+            self->flags = (creation_data->third_person_only == 0) ? (self->flags & ~_particle_unknown_10_bit) : (self->flags | _particle_unknown_10_bit);
+            self->flags = (creation_data->first_person_only == 0) ? (self->flags & ~_particle_unknown_20_bit) : (self->flags | _particle_unknown_20_bit);
+            self->flags = (creation_data->first_person == 0) ? (self->flags & ~_particle_first_person_bit) : (self->flags | _particle_first_person_bit);
 
             self->definition_index = creation_data->definition_index;
             self->first_person_weapon_index = creation_data->first_person_weapon_index;
@@ -303,7 +305,7 @@ void particle_ref::create(particle_creation_data *creation_data)
             self->velocity = creation_data->velocity;
             self->rotation = creation_data->rotation;
 
-            if (self->object_index == (datum_index)0xffffffff) {
+            if (self->object_index == k_datum_index_none) {
                 real radius = halo::effects::particle_current_radius(handle);
                 PointPhysics *physics = (PointPhysics *)halo::cache::globals().tag_instances[tag->physics.tag_id.index].data;
                 real fold = radius * physics->mass_scale * radius * radius;
@@ -317,16 +319,16 @@ void particle_ref::create(particle_creation_data *creation_data)
             self->scale = creation_data->scale;
             self->color = creation_data->color;
 
-            if ((tag->flags & 0x200) == 0 || (tag->flags & 0x40) != 0) {
+            if (!particle_tag_has(tag->flags, particle_tag_flag::self_illuminated) || particle_tag_has(tag->flags, particle_tag_flag::tint_from_diffuse_texture)) {
                 real_vector3d ambient, incident;
 
                 halo::objects::object_sample_ambient_lightmap_point(&position, &ambient, &incident, 0);
-                if ((tag->flags & 0x200) == 0) {
+                if (!particle_tag_has(tag->flags, particle_tag_flag::self_illuminated)) {
                     self->color.red = self->color.red * ambient.i;
                     self->color.green = self->color.green * ambient.j;
                     self->color.blue = self->color.blue * ambient.k;
                 }
-                if ((tag->flags & 0x40) != 0) {
+                if (particle_tag_has(tag->flags, particle_tag_flag::tint_from_diffuse_texture)) {
                     self->color.red = self->color.red * incident.i;
                     self->color.green = self->color.green * incident.j;
                     self->color.blue = self->color.blue * incident.k;
@@ -486,7 +488,7 @@ uint8_t particle_ref::update_motion(real delta_time)
                         *(uint32_t *)&speed, &self->position, &out_normal);
                 }
             }
-            if ((tag->flags & 0x20) != 0) {
+            if (particle_tag_has(tag->flags, particle_tag_flag::dies_on_contact_with_structure)) {
                 if (*(uint32_t *)&tag->collision_effect.tag_id != halo::k_dword_none) {
                     halo::memory::datum_delete(particle_data, particle_handle);
                     return 0;
@@ -496,8 +498,8 @@ uint8_t particle_ref::update_motion(real delta_time)
             }
         }
 
-        if (((collision_flags & _point_physics_in_air_bit) != 0 && (tag->flags & 0x100) != 0) ||
-            ((collision_flags & _point_physics_in_water_bit) != 0 && (tag->flags & 0x80) != 0)) {
+        if (((collision_flags & _point_physics_in_air_bit) != 0 && particle_tag_has(tag->flags, particle_tag_flag::dies_on_contact_with_air)) ||
+            ((collision_flags & _point_physics_in_water_bit) != 0 && particle_tag_has(tag->flags, particle_tag_flag::dies_on_contact_with_water))) {
             halo::effects::particle_impact(particle_handle);
             return 0;
         }
@@ -546,7 +548,7 @@ uint8_t particle_ref::update_motion(real delta_time)
         self->velocity.i * self->velocity.i >= 0.0625f) {
         self->direction = self->velocity;
     } else if (settled) {
-        if ((tag->flags & 0x10) != 0) {
+        if (particle_tag_has(tag->flags, particle_tag_flag::dies_at_rest)) {
             halo::effects::particle_impact(particle_handle);
             return 0;
         }
@@ -591,31 +593,30 @@ void particle_ref::refresh_structure_locations()
 
     for (handle = halo::memory::datum_next(-1, particle_data); handle != k_datum_index_none;
          handle = halo::memory::datum_next((int16_t)handle, particle_data)) {
-        particle *entry = (particle *)((uint8_t *)particle_data->data + (handle & halo::k_slot_mask) * 0x70);
+        particle *entry = &((particle *)particle_data->data)[handle & halo::k_slot_mask];
         real_point3d *point;
         uint32_t leaf;
         int16_t cluster;
 
         if (entry->object_index == k_datum_index_none) {
             point = &entry->position;
-        } else if (entry->flags & 0x40) {
-            point = (real_point3d *)(first_person_weapon_interfaces + entry->first_person_weapon_index * 0x1ea0 +
-                entry->marker_index * 0x34 + 0x10b4);
+        } else if (entry->flags & _particle_first_person_bit) {
+            point = &first_person_marker_node(first_person_weapon_interfaces, entry->first_person_weapon_index, entry->marker_index)->position;
         } else {
-            uint8_t *owner = (uint8_t *)halo::objects::object_try_and_get(entry->object_index, 0xffffffff);
+            object *owner = halo::objects::object_try_and_get(entry->object_index, 0xffffffff);
 
             if (owner == 0) {
                 halo::memory::datum_delete(particle_data, handle);
                 continue;
             }
-            point = (real_point3d *)(owner + ((struct object *)owner)->nodes.offset + entry->marker_index * 0x34 + 0x28);
+            point = &object_marker_node(owner, entry->marker_index)->position;
         }
         leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, point);
         entry->location.leaf_index = (int32_t)leaf;
         if (leaf == halo::k_dword_none) {
             cluster = -1;
         } else {
-            cluster = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8);
+            cluster = halo::scenario::structure_leaf_cluster(leaf);
         }
         entry->location.cluster_index = cluster;
         if (cluster == -1) {

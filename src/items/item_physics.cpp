@@ -34,7 +34,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
     if ((item->flags & _item_does_not_accelerate_bit) != 0) {
         return;
     }
-    if (obj->parent_object != (datum_index)0xffffffff) {
+    if (obj->parent_object != k_datum_index_none) {
         return;
     }
 
@@ -74,7 +74,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
     obj->velocity.j += delta->j;
     obj->velocity.k += delta->k;
 
-    if (item->ignore_object_index != (datum_index)0xffffffff ||
+    if (item->ignore_object_index != k_datum_index_none ||
         (item->flags & _item_at_rest_on_structure_bit) == 0 ||
         0.0001f <= delta->i * delta->i + delta->j * delta->j + delta->k * delta->k) {
         real_vector3d cross_axis;

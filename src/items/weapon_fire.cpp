@@ -1,4 +1,5 @@
 #include "halo/core/lcg.hpp"
+#include "halo/items/tag_flags.hpp"
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -53,14 +54,14 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
     trigger = &wd->triggers[trigger_index];
 
-    holder_index = (datum_index)0xffffffff;
-    if (item_obj->parent_object != (datum_index)0xffffffff &&
+    holder_index = k_datum_index_none;
+    if (item_obj->parent_object != k_datum_index_none &&
         halo::objects::object_try_and_get(item_obj->parent_object, _object_mask_unit) != 0) {
         holder_index = item_obj->parent_object;
     }
 
-    selected_damage_tag = (datum_index)0xffffffff;
-    selected_effect_tag = (datum_index)0xffffffff;
+    selected_damage_tag = k_datum_index_none;
+    selected_effect_tag = k_datum_index_none;
     effect_scale_a = 0.0f;
     effect_scale_b = 0.0f;
     misfire_chance = 0.0f;
@@ -81,8 +82,8 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
         if (!is_alternate_shot || wd->alternate_shots_loaded < weapon_tag->maximum_alternate_shots_loaded) {
             int16_t rounds_loaded = magazine->rounds_loaded;
 
-            if ((tag_trigger->rounds_per_shot <= rounds_loaded || (tag_trigger->flags & 4) != 0) &&
-                ((weapon_tag->weapon_flags & 0x800) == 0 || wd->age < 1.0f) &&
+            if ((tag_trigger->rounds_per_shot <= rounds_loaded || trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::can_fire_with_partial_ammo)) &&
+                (!weapon_has(weapon_tag->weapon_flags, weapon_tag_flag::cannot_fire_at_maximum_age) || wd->age < 1.0f) &&
                 (tag_trigger->minimum_rounds_loaded <= rounds_loaded || (trigger->flags & _weapon_trigger_not_pulled_bit) == 0)) {
                 uint8_t emptied = 0;
 
@@ -117,7 +118,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
             uint16_t start_index = trigger->firing_effect_index;
             uint16_t chosen_index = start_index;
 
-            if (tag_trigger->flags & 2) {
+            if (trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::random_firing_effects)) {
                 halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                 chosen_index = (uint16_t)((halo::math::globals().random_seed_global >> 0x10) % (uint32_t)tag_trigger->firing_effects.count);
             }
@@ -184,117 +185,114 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
         }
     }
 
-    if (!has_ammo) {
-        goto tail;
-    }
+    if (has_ammo) {
+        if ((id->flags & _item_held_by_player_bit) != 0 && halo::game::globals().current_engine != 0) {
+            datum_index player = halo::game::player_index_from_unit_index(holder_index);
 
-    if ((id->flags & _item_held_by_player_bit) != 0 && halo::game::globals().current_engine != 0) {
-        datum_index player = halo::game::player_index_from_unit_index(holder_index);
-
-        if (player != (datum_index)0xffffffff) {
-            halo::game::unit_update_active_camouflage_depower(player);
+            if (player != k_datum_index_none) {
+                halo::game::unit_update_active_camouflage_depower(player);
+            }
         }
-    }
 
-    wd->last_fire_game_time = halo::game::globals().game_time->game_time;
+        wd->last_fire_game_time = halo::game::globals().game_time->game_time;
 
-    {
-        int8_t action = is_misfire ? (int8_t)((trigger_index != 0) + 2) : (int8_t)(trigger_index != 0);
-        uint32_t action_handle = halo::interface::local_player_index_for_weapon(item_index);
-        halo::interface::first_person_weapon_process_action(action_handle, action);
-        if ((int16_t)action_handle == -1) {
-            halo::interface::hud_play_pickup_notification(item_index, (int16_t)action);
+        {
+            int8_t action = is_misfire ? (int8_t)((trigger_index != 0) + 2) : (int8_t)(trigger_index != 0);
+            uint32_t action_handle = halo::interface::local_player_index_for_weapon(item_index);
+            halo::interface::first_person_weapon_process_action(action_handle, action);
+            if ((int16_t)action_handle == -1) {
+                halo::interface::hud_play_pickup_notification(item_index, (int16_t)action);
+            }
         }
-    }
 
-    if (tag_trigger->ejection_port_recovery_time > 0.0f && (*(uint8_t *)&tag_trigger->flags & 0x80) == 0) {
-        trigger->ejection_port_recovery = 1.0f;
-    }
-    if (tag_trigger->illumination_recovery_time > 0.0f) {
-        trigger->illumination_recovery = 1.0f;
-    }
-
-    if (weapon_infinite_ammo == 0) {
-        wd->heat = wd->heat + tag_trigger->heat_generated_per_round;
-    }
-    if ((id->flags & _item_held_by_player_bit) != 0 || wd->heat <= weapon_tag->overheated_threshold) {
-        if (wd->heat > 1.0f) {
-            wd->heat = 1.0f;
+        if (tag_trigger->ejection_port_recovery_time > 0.0f && !trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::ejects_during_chamber)) {
+            trigger->ejection_port_recovery = 1.0f;
         }
-    } else {
-        wd->heat = weapon_tag->overheated_threshold;
-    }
-
-    if ((id->flags & _item_held_by_player_bit) != 0 && weapon_bottomless_clip == 0) {
-        real new_age = wd->age + tag_trigger->age_generated_per_round;
-        wd->age = new_age;
-        if (new_age > 1.0f) {
-            wd->age = 1.0f;
-            item_obj->flags = item_obj->flags | _object_changed_bit;
+        if (tag_trigger->illumination_recovery_time > 0.0f) {
+            trigger->illumination_recovery = 1.0f;
         }
-    }
 
-    halo::items::weapon_set_state(item_index, (trigger_index != 0) + 1, 0);
-
-    if (!is_misfire) {
-        if (is_alternate_shot) {
-            wd->alternate_shots_loaded = wd->alternate_shots_loaded + 1;
+        if (weapon_infinite_ammo == 0) {
+            wd->heat = wd->heat + tag_trigger->heat_generated_per_round;
+        }
+        if ((id->flags & _item_held_by_player_bit) != 0 || wd->heat <= weapon_tag->overheated_threshold) {
+            if (wd->heat > 1.0f) {
+                wd->heat = 1.0f;
+            }
         } else {
-            int32_t role;
-            int32_t create_locally = 1;
+            wd->heat = weapon_tag->overheated_threshold;
+        }
 
-            if (halo::networking::globals().game_mode == 1) {
-                if ((tag_trigger->flags & 0x2000) != 0 && weapon_client_side_projectiles == 1) {
-                    role = 3;
-                } else {
-                    create_locally = 0;
-                    role = 0;
-                }
-            } else if (halo::networking::globals().game_mode == 2 && ((tag_trigger->flags & 0x2000) == 0 || weapon_client_side_projectiles != 1)) {
-                role = 0;
+        if ((id->flags & _item_held_by_player_bit) != 0 && weapon_bottomless_clip == 0) {
+            real new_age = wd->age + tag_trigger->age_generated_per_round;
+            wd->age = new_age;
+            if (new_age > 1.0f) {
+                wd->age = 1.0f;
+                item_obj->flags = item_obj->flags | _object_changed_bit;
+            }
+        }
+
+        halo::items::weapon_set_state(item_index, (trigger_index != 0) + 1, 0);
+
+        if (!is_misfire) {
+            if (is_alternate_shot) {
+                wd->alternate_shots_loaded = wd->alternate_shots_loaded + 1;
             } else {
-                role = 3;
+                int32_t role;
+                int32_t create_locally = 1;
+
+                if (halo::networking::globals().game_mode == 1) {
+                    if (trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::projectile_is_client_side_only) && weapon_client_side_projectiles == 1) {
+                        role = 3;
+                    } else {
+                        create_locally = 0;
+                        role = 0;
+                    }
+                } else if (halo::networking::globals().game_mode == 2 && (!trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::projectile_is_client_side_only) || weapon_client_side_projectiles != 1)) {
+                    role = 0;
+                } else {
+                    role = 3;
+                }
+                if (create_locally) {
+                    halo::items::trigger_create_projectiles(item_index, trigger_index, role);
+                }
+                halo::ai::ai_refresh_unit_stimulus_and_alert(holder_index, *(int16_t *)&((struct WeaponTrigger *)tag_trigger)->firing_noise, 1);
             }
-            if (create_locally) {
-                halo::items::trigger_create_projectiles(item_index, trigger_index, role);
+        }
+
+        if (holder_index != k_datum_index_none && selected_damage_tag != k_datum_index_none) {
+            object *holder_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)holder_index].data;
+            uint8_t *holder_bytes = (uint8_t *)holder_obj;
+            damage_data dd;
+            int32_t *zero = (int32_t *)&dd;
+            int32_t i;
+
+            for (i = 0; i < (int32_t)(sizeof(dd) / sizeof(int32_t)); i++) {
+                zero[i] = 0;
             }
-            halo::ai::ai_refresh_unit_stimulus_and_alert(holder_index, *(int16_t *)&((struct WeaponTrigger *)tag_trigger)->firing_noise, 1);
+            dd.damage_effect_tag = selected_damage_tag;
+            dd.flags = dd.flags | 8;
+            dd.responsible_player = k_datum_index_none;
+            dd.responsible_object = k_datum_index_none;
+            dd.team_index = -1;
+            dd.material_type = -1;
+            dd.unknown_1a = -1;
+            dd.location_cluster_index = -1;
+            dd.random_blend = 1.0f;
+            dd.multiplier = 1.0f;
+            dd.direction.i = -*(real *)(holder_bytes + 0x23c);
+            dd.direction.j = -*(real *)(holder_bytes + 0x240);
+            dd.direction.k = -*(real *)(holder_bytes + 0x244);
+            dd.epicentre = holder_obj->bounding_center;
+            dd.origin = holder_obj->bounding_center;
+            halo::objects::object_apply_damage(&dd, holder_index, -1, -1, -1, 0);
+        }
+
+        if (weapon_tag->weapon_type == 3 && trigger_index == 1) {
+            wd->flags = wd->flags | 4;
         }
     }
 
-    if (holder_index != (datum_index)0xffffffff && selected_damage_tag != (datum_index)0xffffffff) {
-        object *holder_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)holder_index].data;
-        uint8_t *holder_bytes = (uint8_t *)holder_obj;
-        damage_data dd;
-        int32_t *zero = (int32_t *)&dd;
-        int32_t i;
-
-        for (i = 0; i < (int32_t)(sizeof(dd) / sizeof(int32_t)); i++) {
-            zero[i] = 0;
-        }
-        dd.damage_effect_tag = selected_damage_tag;
-        dd.flags = dd.flags | 8;
-        dd.responsible_player = (datum_index)0xffffffff;
-        dd.responsible_object = (datum_index)0xffffffff;
-        dd.team_index = -1;
-        dd.material_type = -1;
-        dd.unknown_1a = -1;
-        dd.location_cluster_index = -1;
-        dd.random_blend = 1.0f;
-        dd.multiplier = 1.0f;
-        dd.direction.i = -*(real *)(holder_bytes + 0x23c);
-        dd.direction.j = -*(real *)(holder_bytes + 0x240);
-        dd.direction.k = -*(real *)(holder_bytes + 0x244);
-        dd.epicentre = holder_obj->bounding_center;
-        dd.origin = holder_obj->bounding_center;
-        halo::objects::object_apply_damage(&dd, holder_index, -1, -1, -1, 0);
-    }
-
-    if (weapon_tag->weapon_type == 3 && trigger_index == 1) {
-        wd->flags = wd->flags | 4;
-    }
-
-tail:
     if (weapon_tag->heat_detonation_threshold < wd->heat) {
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         if ((real)(halo::math::globals().random_seed_global >> 0x10) * halo::k_unit_word_scale < weapon_tag->heat_detonation_fraction) {
@@ -304,7 +302,7 @@ tail:
 
     if (has_ammo) {
         if (trigger->effect_state != _weapon_trigger_effect_spewing || is_misfire) {
-            if ((tag_trigger->flags & 1) == 0) {
+            if (!trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::tracks_fired_projectile)) {
                 halo::items::weapon_trigger_finish_shot(item_index, trigger_index);
             } else {
                 trigger->effect_state = _weapon_trigger_effect_tracking;

@@ -135,9 +135,9 @@ void equipment_ref::build_creation_message(uint32_t unused_arg2, uint32_t unused
     message.object_flags = object_flags;
     message.forward = obj->forward;
     message.up = obj->up;
-    message.baseline_index = *((uint8_t *)obj + 0x245);
+    message.baseline_index = ((equipment_object *)obj)->equipment.network_baseline_index;
     {
-        equipment_network_state *net = (equipment_network_state *)((uint8_t *)obj + 0x248);
+        equipment_network_state *net = &((equipment_object *)obj)->equipment.network_state;
         message.position = net->position;
         message.velocity = net->velocity;
         message.angular_velocity = net->angular_velocity;
@@ -172,7 +172,8 @@ int32_t equipment_ref::build_network_update(uint32_t unused_arg2, uint32_t unuse
             uint8_t sequence;
             uint8_t is_first_update;
         } header;
-        equipment_network_state *net = (equipment_network_state *)((uint8_t *)obj + 0x248);
+        equipment_data *equipment = &((equipment_object *)obj)->equipment;
+        equipment_network_state *net = &equipment->network_state;
         int32_t message_type = object_type_definitions[obj->type]->network_delta_message_type;
         void *header_ptr = &header;
         int32_t is_full_snapshot = (update_type == 1);
@@ -187,8 +188,8 @@ int32_t equipment_ref::build_network_update(uint32_t unused_arg2, uint32_t unuse
                 header.item_hash = 0;
             }
         }
-        header.sequence = *((uint8_t *)obj + 0x246);
-        header.baseline_index = *((uint8_t *)obj + 0x245);
+        header.sequence = equipment->network_sequence;
+        header.baseline_index = equipment->network_baseline_index;
         header.is_first_update = (uint8_t)(update_type == 0);
 
         if (!is_full_snapshot) {
@@ -216,10 +217,11 @@ int32_t equipment_ref::build_network_update(uint32_t unused_arg2, uint32_t unuse
     }
 
     if (0 < result) {
-        uint8_t sequence = *((uint8_t *)obj + 0x246) + 1;
-        *((uint8_t *)obj + 0x246) = sequence;
+        uint8_t *network_sequence = &((equipment_object *)obj)->equipment.network_sequence;
+        uint8_t sequence = *network_sequence + 1;
+        *network_sequence = sequence;
         if ((int8_t)sequence == -1) {
-            *((uint8_t *)obj + 0x246) = 0;
+            *network_sequence = 0;
         }
     }
     return result;
@@ -414,7 +416,7 @@ void equipment_ref::new_from_placement(ScenarioEquipment *placement)
     } else {
         obj->flags = obj->flags | _object_at_rest_bit;
     }
-    obj->flags = obj->flags | 0x60000;
+    obj->flags = obj->flags | _object_unknown_20000_bit | _object_definition_flag0_bit;
 
     if ((placement->misc_flags & 4) == 0) {
         id->flags = id->flags | _item_does_not_accelerate_bit;
