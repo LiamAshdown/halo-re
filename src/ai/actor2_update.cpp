@@ -577,8 +577,7 @@ void ActorView::update_crouch_state()
             *flag_35f = 0;
 
             if (combat_status > 8) {
-                target_direction = *(real_vector3d *)((uint8_t *)halo::ai::globals().prop_data->data +
-                                                      (self->target_unit_index & halo::k_slot_mask) * sizeof(prop) + 0xe0);
+                target_direction = *(real_vector3d *)&halo::ai::prop_at(self->target_unit_index)->direction;
             }
             for (prop_index = self->first_prop; prop_index != (datum_index)k_datum_index_none;
                  prop_index = p->next_in_actor) {
@@ -1650,22 +1649,22 @@ uint8_t ActorView::update_melee_combat_action()
                     }
                     if (!no_position) {
                         {
-                            static uint8_t query[0x664];
-                            static uint8_t candidate[0x3c];
+                            static actor_firing_position_query query;
+                            static actor_firing_position_candidate candidate;
                             static path_find_context path_context;
                             uint32_t previous_owner = 0;
                             uint8_t path_ok = 0;
 
-                            memset(query, 0, sizeof(query));
-                            *(int16_t *)((uint8_t *)query + 0x4) = 5;
-                            *(datum_index *)((uint8_t *)query + 0x8) = a->target_unit_index;
-                            *(datum_index *)((uint8_t *)query + 0xc) = target != 0 ? (uint32_t)target->last_perceived_time : k_datum_index_none;
-                            query[0x43] = (uint8_t)(a->target_unit_index != k_datum_index_none);
-                            query[0x14] = hold;
-                            *(uint32_t *)query = halo::ai::actor_get_firing_position_group_mask(actor_index, 5, 0);
-                            ((struct actor_firing_position_query *)query)->search_radius = 20.0f;
-                            position = (int16_t)halo::ai::actor_find_best_firing_position(actor_index, (actor_firing_position_query *)query,
-                                (actor_firing_position_candidate *)candidate, &previous_owner,
+                            memset(&query, 0, sizeof(query));
+                            query.goal_kind = 5;
+                            query.pursuit_target_index = a->target_unit_index;
+                            query.pursuit_last_perceived_time = target != 0 ? (uint32_t)target->last_perceived_time : k_datum_index_none;
+                            query.want_direction_from_target = (uint8_t)(a->target_unit_index != k_datum_index_none);
+                            query.collect_all = hold;
+                            query.group_mask = halo::ai::actor_get_firing_position_group_mask(actor_index, 5, 0);
+                            query.search_radius = 20.0f;
+                            position = (int16_t)halo::ai::actor_find_best_firing_position(actor_index, &query,
+                                &candidate, &previous_owner,
                                 &path_context, &path_ok);
                         }
                     }
@@ -1704,9 +1703,9 @@ uint8_t ActorView::update_melee_combat_action()
 namespace actor_update_movement_destination_local {
 static real_point3d *actor_held_firing_position(struct actor *actor)
 {
-    uint8_t *encounter = (uint8_t *)halo::scenario::globals().scenario->encounters.pointer + (actor->encounter_index & halo::k_slot_mask) * 0xb0;
+    ScenarioEncounter *encounter = &halo::ai::reflexive_data<ScenarioEncounter>(halo::scenario::globals().scenario->encounters)[actor->encounter_index & halo::k_slot_mask];
 
-    return (real_point3d *)(*(uint8_t **)(encounter + 0x9c) + actor->firing_position_index * 0x18);
+    return (real_point3d *)&halo::ai::reflexive_data<ScenarioFiringPosition>(encounter->firing_positions)[actor->firing_position_index];
 }
 }
 

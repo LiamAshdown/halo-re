@@ -1998,7 +1998,13 @@ typedef struct actor_firing_position_query {
     uint32_t group_mask;               // 0x00 ScenarioSquadAttacking bits; actor_get_firing_position_group_mask builds it
     int16_t goal_kind;                 // 0x04 selects table rows: bit (1 << goal_kind) against each rule mask
     int16_t unknown_06;                // 0x06
-    uint8_t unknown_08[8];             // 0x08
+    union {
+        uint8_t unknown_08[8];             // 0x08
+        struct {
+            datum_index pursuit_target_index;       // 0x08 goal_kind 5 (pursuit): the prop's target unit
+            uint32_t pursuit_last_perceived_time;   // 0x0c the target prop's last_perceived_time, or none
+        };
+    };
     uint8_t score_instead_of_reject;   // 0x10 the pursuit rule adds a penalty rather than rejecting
     uint8_t unknown_11[3];             // 0x11
     uint8_t collect_all;               // 0x14 mark rejected candidates instead of clearing valid
