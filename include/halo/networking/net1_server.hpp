@@ -41,7 +41,7 @@ public:
     char build_game_info_packet(network_machine *machine);
     int32_t check_machine_timeout(network_machine *machine);
     int32_t count_connected_machines();
-    uint32_t count_machines_and_resolve_address(uint32_t eax_passthrough, s_network_address *address_out, network_receive_queue **connection);
+    uint8_t count_machines_and_resolve_address(network_channel *channel);
     static void handle_rcon_request(network_player_entry *client, void *message);
     uint8_t heartbeat_tick();
     uint8_t notify_or_resend_challenge(int16_t reason, network_machine *machine);

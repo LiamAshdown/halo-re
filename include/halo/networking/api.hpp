@@ -489,7 +489,7 @@ char network_server_build_full_game_info_packet(network_machine *machine);
 char network_server_build_game_info_packet(network_server_globals *server, network_machine *machine);
 int32_t network_server_check_machine_timeout(network_server_globals *server, network_machine *machine);
 int32_t network_server_count_connected_machines(network_server_globals *server);
-uint32_t network_server_count_machines_and_resolve_address(uint32_t eax_passthrough, s_network_address *address_out, network_server_globals *server, network_receive_queue **connection);
+uint8_t network_server_count_machines_and_resolve_address(network_server_globals *server, network_channel *channel);
 void network_server_handle_rcon_request(network_player_entry *client, void *message);
 uint8_t network_server_heartbeat_tick(network_server_globals *server);
 uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server);

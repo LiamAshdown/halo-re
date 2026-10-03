@@ -1026,9 +1026,9 @@ int32_t network_server_count_connected_machines(network_server_globals *server)
  *
  * @address 0x4e0d30
  */
-uint32_t network_server_count_machines_and_resolve_address(uint32_t eax_passthrough, s_network_address *address_out, network_server_globals *server, network_receive_queue **connection)
+uint8_t network_server_count_machines_and_resolve_address(network_server_globals *server, network_channel *channel)
 {
-    return halo::networking::ServerView(server).count_machines_and_resolve_address(eax_passthrough, address_out, connection);
+    return halo::networking::ServerView(server).count_machines_and_resolve_address(channel);
 }
 
 /**
