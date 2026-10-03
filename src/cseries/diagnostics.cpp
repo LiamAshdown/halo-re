@@ -7,11 +7,9 @@
 #include <string.h>
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
+#include "link/calls.hpp"
 
-extern "C" {
-extern char *network_log_path_resolve(char *requested_path);
 typedef int32_t (__stdcall *sh_get_folder_path_proc)(void *owner, int32_t csidl, void *token, uint32_t flags, char *out_path);
-}
 
 namespace halo::cseries {
 

@@ -14,9 +14,6 @@
 #include "halo/cseries/api.hpp"
 
 
-extern "C" {
-extern int32_t sound_decode_dispatch(int16_t channel_count, void *destination, void *source, int32_t source_size);
-}
 
 namespace halo::cache {
 

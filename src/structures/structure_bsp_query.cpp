@@ -11,12 +11,6 @@
 #include "halo/scenario/api.hpp"
 #include "halo/structures/globals.hpp"
 
-extern "C" {
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
-                                      real_point3d *point);
-extern real_point3d render_camera_global;
-}
-
 namespace halo::structures {
 
 int16_t structure_bsp_query::node_query_recursive(int32_t node_index, real_rectangle3d *parent_bounds, uint32_t *visited_bits, int32_t *output_array, int32_t max_count, real_point3d *point, float radius, real_rectangle3d *query_box, int16_t plane_count, real_plane3d *planes, int16_t inherited_classification)
@@ -211,9 +205,9 @@ uint8_t structure_bsp_query::points_within_band(real_point3d *points, int16_t po
 {
     for (int16_t i = 0; i < point_count; i++) {
         real_point3d *p = &points[i];
-        float distance = globals().camera_forward_x.i * (p->x - render_camera_global.x) +
-                          globals().camera_forward_x.j * (p->y - render_camera_global.y) +
-                          globals().camera_forward_x.k * (p->z - render_camera_global.z);
+        float distance = globals().camera_forward_x.i * (p->x - globals().render_camera_global.x) +
+                          globals().camera_forward_x.j * (p->y - globals().render_camera_global.y) +
+                          globals().camera_forward_x.k * (p->z - globals().render_camera_global.z);
         if (distance <= tolerance) {
             return 1;
         }

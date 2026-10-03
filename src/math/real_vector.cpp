@@ -10,10 +10,8 @@
 
 #include "tags.h"
 #include "halo/physics/api.hpp"
+#include "link/calls.hpp"
 
-extern "C" {
-extern void vector3d_clamp_length(real_vector3d *v, real max_length);
-}
 
 namespace halo::math {
 

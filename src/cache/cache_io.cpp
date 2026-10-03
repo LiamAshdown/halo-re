@@ -8,9 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/shell/api.hpp"
 
-extern "C" {
 typedef int32_t (*read_file_ex_procedure)(void *file, void *buffer, uint32_t bytes_to_read, cache_io_request *overlapped, void *completion_routine);
-}
 
 namespace halo::cache {
 

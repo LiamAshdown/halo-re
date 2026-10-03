@@ -49,4 +49,6 @@ extern void *unknown_007c048c;
 extern render_lighting object_lighting_default;
 extern real_vector3d object_lightmap_probe_direction[1];
 extern real_vector3d object_lighting_probe_sideways[4];
+extern real_point3d render_camera_global;
+extern uint8_t render_frustum_global[];
 }

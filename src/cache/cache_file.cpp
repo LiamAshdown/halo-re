@@ -11,11 +11,9 @@
 #include "halo/memory/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "link/calls.hpp"
 
-extern "C" {
-extern void interface_handle_quit_request(void);
 typedef uint32_t (*get_mapped_file_name_a_t)(void *process, void *address, char *filename, uint32_t size);
-}
 
 namespace halo::cache {
 

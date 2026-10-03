@@ -70,6 +70,8 @@ const Globals &Service::instance()
         ::object_lighting_default,
         ::object_lightmap_probe_direction,
         ::object_lighting_probe_sideways,
+        ::render_camera_global,
+        ::render_frustum_global,
     };
     return state;
 }

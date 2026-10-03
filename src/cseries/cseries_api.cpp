@@ -59,7 +59,6 @@ void profile_path_initialize(void)
  * C entry points for the vendored C GameSpy sources (src/gamespy stays C and cannot call into namespaces).
  */
 extern "C" {
-
 void md5_hex_digest(const uint8_t *data, int32_t length, char *out)
 {
     halo::cseries::md5_hex_digest(data, length, out);

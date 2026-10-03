@@ -12,10 +12,8 @@
 #include "halo/physics/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "link/calls.hpp"
 
-extern "C" {
-extern void value_step_toward_target(float *value, float target, float max_step);
-}
 
 namespace halo::scenario {
 

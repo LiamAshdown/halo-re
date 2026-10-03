@@ -11,11 +11,6 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/structures/globals.hpp"
 
-extern "C" {
-extern real_point3d render_camera_global;
-extern uint8_t render_frustum_global;
-}
-
 namespace halo::structures {
 
 void cluster_flood::camera_portal_flood_recursive(int16_t cluster_index, polygon2d *view_polygon)
@@ -262,7 +257,7 @@ uint8_t cluster_flood::portal_test_and_project(char same_side, int16_t portal_in
         (ModelCollisionGeometryBSP *)halo::scenario::globals().structure_bsp->collision_bsp.pointer;
     ModelCollisionGeometryBSPPlane *plane =
         &((ModelCollisionGeometryBSPPlane *)collision_bsp->planes.pointer)[portal->plane_index];
-    return cluster_flood::portal_project((real_plane3d *)&plane->plane, &render_camera_global, (real_point3d *)portal->vertices.pointer, &render_frustum_global, portal->vertices.count, (int16_t)((same_side == 0) * 2 - 1), out);
+    return cluster_flood::portal_project((real_plane3d *)&plane->plane, &globals().render_camera_global, (real_point3d *)portal->vertices.pointer, globals().render_frustum_global, portal->vertices.count, (int16_t)((same_side == 0) * 2 - 1), out);
 }
 
 int16_t cluster_flood::weather_polyhedra_find_within_radius(int16_t *out, float radius)
@@ -274,9 +269,9 @@ int16_t cluster_flood::weather_polyhedra_find_within_radius(int16_t *out, float 
     for (index = 0; index < (int32_t)bsp->weather_polyhedra.count; index++) {
         ScenarioStructureBSPWeatherPolyhedron *polyhedron =
             (ScenarioStructureBSPWeatherPolyhedron *)(uintptr_t)bsp->weather_polyhedra.pointer + index;
-        float dx = polyhedron->bounding_sphere_center.x - render_camera_global.x;
-        float dy = polyhedron->bounding_sphere_center.y - render_camera_global.y;
-        float dz = polyhedron->bounding_sphere_center.z - render_camera_global.z;
+        float dx = polyhedron->bounding_sphere_center.x - globals().render_camera_global.x;
+        float dy = polyhedron->bounding_sphere_center.y - globals().render_camera_global.y;
+        float dz = polyhedron->bounding_sphere_center.z - globals().render_camera_global.z;
         float reach = radius + polyhedron->bounding_sphere_radius;
 
         if (dx * dx + dz * dz + dy * dy < reach * reach && found < 8) {

@@ -14,10 +14,6 @@
 #include "halo/render/api.hpp"
 #include "halo/structures/globals.hpp"
 
-extern "C" {
-extern int32_t rasterizer_dynamic_index_cache_reserve(int16_t vertex_count);
-extern void *rasterizer_dynamic_index_slot_lock(int32_t geometry_handle);
-}
 
 namespace halo::structures {
 

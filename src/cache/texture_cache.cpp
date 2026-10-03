@@ -13,9 +13,7 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 
-extern "C" {
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);
-}
 
 namespace halo::cache {
 

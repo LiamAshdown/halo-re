@@ -13,9 +13,6 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/structures/globals.hpp"
 
-extern "C" {
-extern real_point3d render_camera_global;
-}
 
 namespace halo::structures {
 
@@ -53,9 +50,9 @@ void detail_object_system::update_render_list(void)
         ? (ScenarioStructureBSPDetailObjectData *)0
         : (ScenarioStructureBSPDetailObjectData *)halo::scenario::globals().structure_bsp->detail_objects.pointer;
 
-    cell_x = (int16_t)(int32_t)lrint((double)(render_camera_global.x * 0.125f - 0.5f));
-    cell_y = (int16_t)(int32_t)lrint((double)(render_camera_global.y * 0.125f - 0.5f));
-    cell_z = (int16_t)(int32_t)lrint((double)(render_camera_global.z * 0.125f - 0.5f));
+    cell_x = (int16_t)(int32_t)lrint((double)(globals().render_camera_global.x * 0.125f - 0.5f));
+    cell_y = (int16_t)(int32_t)lrint((double)(globals().render_camera_global.y * 0.125f - 0.5f));
+    cell_z = (int16_t)(int32_t)lrint((double)(globals().render_camera_global.z * 0.125f - 0.5f));
 
     if (detail_data->bullshit != 0) {
         halo::rasterizer::rasterizer_detail_objects_begin();

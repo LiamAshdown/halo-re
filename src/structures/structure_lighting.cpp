@@ -14,13 +14,6 @@
 #include "halo/objects/api.hpp"
 #include "halo/structures/globals.hpp"
 
-extern "C" {
-extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias);
-extern void bsp_compressed_rendered_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedRenderedVertex *vertex,
-    real_vector3d *out);
-extern void bsp_compressed_lightmap_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedLightmapVertex *vertex,
-    real_vector3d *out);
-}
 
 namespace halo::structures {
 

@@ -69,6 +69,8 @@ struct Globals {
     render_lighting &object_lighting_default;
     real_vector3d (&object_lightmap_probe_direction)[1];
     real_vector3d (&object_lighting_probe_sideways)[4];
+    real_point3d &render_camera_global;
+    uint8_t (&render_frustum_global)[];
 };
 
 /**

@@ -10,10 +10,6 @@
 #include "halo/physics/api.hpp"
 #include "halo/render/api.hpp"
 
-extern "C" {
-extern uint8_t render_frustum_global[];
-}
-
 namespace halo::structures {
 
 void structure_bsp_view::expand_visible_clusters_by_plane()
@@ -26,7 +22,7 @@ void structure_bsp_view::expand_visible_clusters_by_plane()
         ScenarioStructureBSPCluster *cluster = &clusters[globals().visible_clusters[i].cluster_index];
         void *frustum_or_camera;
         if (globals().debug_render_cluster_pvs != 0 || globals().render_cluster_index == -1) {
-            frustum_or_camera = (void *)render_frustum_global;
+            frustum_or_camera = (void *)globals().render_frustum_global;
         } else {
             frustum_or_camera = &globals().visible_clusters[i].frustum;
         }
@@ -91,7 +87,7 @@ void structure_bsp_view::expand_visible_clusters_by_subcluster()
         ScenarioStructureBSPCluster *cluster = &clusters[globals().visible_clusters[i].cluster_index];
         void *frustum_or_camera;
         if (globals().debug_render_cluster_pvs != 0 || globals().render_cluster_index == -1) {
-            frustum_or_camera = (void *)render_frustum_global;
+            frustum_or_camera = (void *)globals().render_frustum_global;
         } else {
             frustum_or_camera = &globals().visible_clusters[i].frustum;
         }

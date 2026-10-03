@@ -13,25 +13,8 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/models/globals.hpp"
-extern "C" { extern rasterizer_window_parameters rasterizer_window; }
+#include "link/calls.hpp"
 
-extern "C" {
-extern void chimera__rasterizer_set_up_node_parts(int32_t node_part_count, uint8_t *node_part_indices);
-extern void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, uint8_t *shader, int16_t frame,
-                                                          rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot,
-                                                          int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer);
-extern void rasterizer_object_shadow_model_draw(const ShaderModel *shader, int16_t frame,
-                                                 rasterizer_index_buffer *index_buffer,
-                                                 rasterizer_vertex_buffer *vertex_buffer);
-extern transparent_geometry_group *rasterizer_transparent_geometry_group_build(
-    transparent_geometry_group_link *link, uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer,
-    int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
-    int32_t dynamic_vertex_slot, const real_point3d *position);
-extern void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, const float *node0,
-    const float *center, int32_t early_out);
-extern void debug_fp_clip_note(const float *world, int32_t effect_type);
-extern void debug_fp_state_arm(int32_t armed);
-}
 
 namespace halo::models {
 
@@ -262,7 +245,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
 
     if ((flags & _model_render_immediate_bit) == 0) {
         halo::rasterizer::rasterizer_model_draw_prepare_states(&context, 0);
-    } else if (rasterizer_window.type == 1 && globals().rasterizer_caps_flag_689 == 0 && halo::rasterizer::fields::object_shadows_enabled != 0) {
+    } else if (halo::rasterizer::globals().window.type == 1 && globals().rasterizer_caps_flag_689 == 0 && halo::rasterizer::fields::object_shadows_enabled != 0) {
         halo::rasterizer::chimera__rasterizer_set_model_skinning((uint8_t)(~(context.flags >> 8) & 1),
                                                 (rasterizer_node_matrices *)&context.node_matrices);
         globals().rasterizer_object_shadow_model_context = &context;
