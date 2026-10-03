@@ -269,10 +269,11 @@ void PlayerUpdateBuilder::remote_player_action_update(uint32_t player_index, uin
         c.action_full_tick != -1) {
         if (now < (uint32_t)(c.action_delta_tick + network_action_resend_interval_ms_alt)) {
             is_full = 0;
-            goto encode;
+        } else {
+            skip_delta = 1;
+            c.action_delta_tick = static_cast<int32_t>(now);
+            is_full = 1;
         }
-        skip_delta = 1;
-        c.action_delta_tick = static_cast<int32_t>(now);
     } else {
         for (i = 0; i < 12; i = i + 1) {
             c.action_baseline[i] = staged[i];
@@ -287,10 +288,9 @@ void PlayerUpdateBuilder::remote_player_action_update(uint32_t player_index, uin
         }
         staged_update_id = (uint8_t)next_id;
         c.action_baseline_id = (uint8_t)next_id;
+        is_full = 1;
     }
-    is_full = 1;
 
-encode:
     if (network_broadcast_event_feed_mode == 0) {
         if (is_full) {
             if (skip_delta != 1) {
@@ -354,73 +354,79 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
     if (-1 < update_id && update_id < 0x40) {
         unit_obj = halo::objects::object_try_and_get(plr->unit, _object_mask_unit);
         if (unit_obj != 0) {
+            bool fall_back = false;
+
             if (unit_obj->parent_object == (datum_index)-1) {
                 now = (uint32_t)halo::game::globals().game_time->game_time;
                 if (now < (uint32_t)(network_transform_resend_interval_ms + c.biped_full_tick) &&
                     c.biped_full_tick != -1) {
                     if (now < (uint32_t)(c.biped_delta_tick +
                             network_vehicle_transform_resend_interval_ms_alt)) {
-                        goto fallback;
+                        fall_back = true;
                     }
                     is_full = 0;
                 } else {
                     is_full = 1;
                 }
-                encoded_size = halo::networking::build_remote_player_vehicle_update(cache, 0, is_full, is_full,
-                    control, network_key);
-            } else {
-                if (halo::game::player_unit_has_parent(plr->unit) != 1) {
-                    goto fallback;
+                if (!fall_back) {
+                    encoded_size = halo::networking::build_remote_player_vehicle_update(cache, 0, is_full, is_full,
+                        control, network_key);
                 }
+            } else if (halo::game::player_unit_has_parent(plr->unit) != 1) {
+                fall_back = true;
+            } else {
                 now = (uint32_t)halo::game::globals().game_time->game_time;
                 if (now < (uint32_t)(network_transform_resend_interval_ms + c.vehicle_full_tick) &&
                     c.vehicle_full_tick != -1) {
                     if (now < (uint32_t)(c.vehicle_delta_tick +
                             network_attachment_transform_resend_interval_ms_alt)) {
-                        goto fallback;
+                        fall_back = true;
                     }
                     is_full = 0;
                 } else {
                     is_full = 1;
                 }
-                encoded_size = halo::networking::build_remote_player_vehicle_attachment_update(cache, 0, is_full,
-                    is_full, control, network_key);
+                if (!fall_back) {
+                    encoded_size = halo::networking::build_remote_player_vehicle_attachment_update(cache, 0, is_full,
+                        is_full, control, network_key);
+                }
             }
 
-            if (0 < encoded_size) {
-                iter.data = halo::game::globals().player_data;
-                iter.next_index = 0;
-                iter.index = k_datum_index_none;
-                iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-                candidate = (player *)halo::memory::data_iterator_next(&iter);
-                while (candidate != 0) {
-                    if (player_index != halo::k_dword_none && candidate->local_player_index == -1) {
-                        for (i = 0; i < 0x10; i = i + 1) {
-                            if (network_server->machines[i].machine_id ==
-                                (int16_t)*(char *)&candidate->machine_index) {
-                                machine = &network_server->machines[i];
-                                if (((machine->flags >> 1 & 1) != 0) &&
-                                    ((machine->flags >> 2 & 1) != 0)) {
-                                    halo::networking::network_session_send_to_machine(machine->machine_id, network_server, 1, network_message_scratch, encoded_size, 1, 0, 0, 1);
+            if (!fall_back) {
+                if (0 < encoded_size) {
+                    iter.data = halo::game::globals().player_data;
+                    iter.next_index = 0;
+                    iter.index = k_datum_index_none;
+                    iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
+                    candidate = (player *)halo::memory::data_iterator_next(&iter);
+                    while (candidate != 0) {
+                        if (player_index != halo::k_dword_none && candidate->local_player_index == -1) {
+                            for (i = 0; i < 0x10; i = i + 1) {
+                                if (network_server->machines[i].machine_id ==
+                                    (int16_t)*(char *)&candidate->machine_index) {
+                                    machine = &network_server->machines[i];
+                                    if (((machine->flags >> 1 & 1) != 0) &&
+                                        ((machine->flags >> 2 & 1) != 0)) {
+                                        halo::networking::network_session_send_to_machine(machine->machine_id, network_server, 1, network_message_scratch, encoded_size, 1, 0, 0, 1);
+                                    }
+                                    break;
                                 }
-                                break;
                             }
                         }
+                        candidate = (player *)halo::memory::data_iterator_next(&iter);
                     }
-                    candidate = (player *)halo::memory::data_iterator_next(&iter);
+                    now = (c.position_counter + 1) & 0x80000007;
+                    if ((int32_t)now < 0) {
+                        now = (now - 1 | 0xfffffff8) + 1;
+                    }
+                    c.position_counter = now;
+                    return;
                 }
-                now = (c.position_counter + 1) & 0x80000007;
-                if ((int32_t)now < 0) {
-                    now = (now - 1 | 0xfffffff8) + 1;
-                }
-                c.position_counter = now;
                 return;
             }
-            return;
         }
     }
 
-fallback:
     halo::networking::build_remote_player_action_update(player_index, network_key, 0, *control);
 }
 
