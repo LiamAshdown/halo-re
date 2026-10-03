@@ -1,5 +1,10 @@
 #include "win32.h"
 #include "halo/interface/ifr2_main.hpp"
+#include "halo/interface/engine_state.hpp"
+#include "saved_games.h"
+#include "input.h"
+
+extern "C" input_event_queue input_event_queue_active;
 #include "crt.h"
 #include <string.h>
 #include <ctype.h>
@@ -34,7 +39,6 @@ extern uint8_t ui_widget_opened;
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
 extern uint8_t controls_input_capture_flags;
-extern int32_t unknown_00712ccc[0x40];
 extern tag_instance *tag_instances;
 extern int64_t performance_frequency;
 extern void display_error(int16_t error_string_index, int32_t unknown, uint8_t modal, uint8_t is_error);
@@ -226,11 +230,7 @@ void InterfaceMain::tick()
 
 shared_tail:
     {
-        int32_t i;
-
-        for (i = 0; i < 0x40; i++) {
-            unknown_00712ccc[i] = 0;
-        }
+        memset(input_event_queue_active.events, 0, sizeof(input_event_queue_active.events));
         if (ui_cursor_changed != 0 || ui_widget_opened != 0) {
             ui_widget_opened = 0;
             if (root == (widget_instance *)0) {

@@ -128,7 +128,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
     float scale = widget->scale;
     widget_instance *ancestor;
     uint8_t in_bounds;
-    int32_t unknown_4a1ff0;
+    int32_t cursor_side;
     uint16_t *text = (uint16_t *)0;
     uint8_t scroll_dir_up = 0;
     uint8_t scroll_dir_down = 0;
@@ -139,7 +139,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
         scale = scale * ancestor->scale;
     }
     in_bounds = widget_instance_point_in_bounds(widget);
-    unknown_4a1ff0 = widget_cursor_side_of_midpoint(widget);
+    cursor_side = widget_cursor_side_of_midpoint(widget);
 
     if (widget->state == 0) {
         return;
@@ -177,7 +177,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
 
             if (in_bounds != 0 && bitmap_tag_data != (uint8_t *)0 && *(int32_t *)(bitmap_tag_data + 0x60) == 4 &&
                 widget_instance_point_in_bounds(widget) != 0 &&
-                (arrow == 0 ? unknown_4a1ff0 <= 0 : unknown_4a1ff0 > 0)) {
+                (arrow == 0 ? cursor_side <= 0 : cursor_side > 0)) {
                 frame = (int16_t)(frame + 2);
             }
             bitmap = bitmap_group_sequence_get_bitmap_data(bitmap_tag, 0, frame);

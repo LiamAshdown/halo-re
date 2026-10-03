@@ -3,6 +3,7 @@
  */
 
 #include "win32.h"
+#include "halo/interface/engine_state.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -30,8 +31,6 @@ extern int32_t chat_listbox_y;
 extern int32_t chat_listbox_width;
 extern int32_t chat_listbox_height;
 extern int32_t chat_dialog_open;
-extern int32_t unknown_006b3914;
-extern int32_t unknown_006b38f4;
 extern int32_t chat_scope_active;
 extern void hud_chat_listbox_clear(void);
 extern uint8_t ui_use_os_cursor;
@@ -132,10 +131,10 @@ void UiScreens::chat_window_reset_position(void)
     chat_listbox_x = chat_window_default_x;
     chat_listbox_y = chat_window_default_y;
     chat_dialog_open = 0;
-    unknown_006b3914 = 0;
+    halo::interface::state::chat_window_unused_6b3914 = 0;
     chat_listbox_width = chat_window_default_width;
     chat_listbox_height = chat_window_default_height;
-    unknown_006b38f4 = 0;
+    halo::interface::state::chat_window_unused_6b38f4 = 0;
     chat_scope_active = -1;
     hud_chat_listbox_clear();
 }

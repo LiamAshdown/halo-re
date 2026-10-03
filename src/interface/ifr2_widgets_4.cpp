@@ -1,4 +1,5 @@
 #include "win32.h"
+#include "halo/interface/engine_state.hpp"
 #include "halo/interface/ifr2_widgets.hpp"
 
 #ifdef interface
@@ -12,7 +13,6 @@ extern uint8_t widget_memory_pool_valid;
 extern widget_instance *ui_root_widget[1];
 extern widget_history_node *ui_widget_history[3];
 extern int16_t network_join_error_code;
-extern float ui_unknown_718fa8;
 extern int16_t quit_confirm_error_string_index;
 extern ui_pending_error ui_pending_error_alternate;
 extern ui_pending_error ui_pending_errors[4];
@@ -71,7 +71,7 @@ void WidgetLifecycle::memory_pool_initialize()
     ui_pending_error_alternate.error_string_index = -1;
     quit_confirm_error_string_index = -1;
     ui_pending_errors[0].error_string_index = -1;
-    ui_unknown_718fa8 = -1.0f;
+    state::screen_fade_progress = -1.0f;
     widget_memory_pool_valid = (allocation != (void *)0);
 }
 

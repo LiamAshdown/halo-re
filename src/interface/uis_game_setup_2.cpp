@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/interface/engine_state.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -27,7 +28,6 @@ extern void multiplayer_settings_select_list_update_item(widget_instance *descri
 extern int16_t local_player_count;
 extern int32_t joystick_slot_devices[4];
 extern char known_campaign_levels_00692acc[];
-extern char unknown_00719779[0x100];
 extern uint8_t pending_difficulty;
 extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t selected_level_active_00719878;
@@ -103,7 +103,7 @@ uint32_t UiGameSetup::start_campaign_from_level_one(void *widget, int16_t *event
 
     pending_difficulty = 1;
     split_screen_quit_prompt_armed = 0;
-    strncpy(unknown_00719779, known_campaign_levels_00692acc, 0xff);
+    strncpy(halo::interface::state::current_campaign_level_path, known_campaign_levels_00692acc, 0xff);
     selected_level_active_00719878 = 0;
     selected_level_pending_00719778 = 1;
     network_game_mode = 0;

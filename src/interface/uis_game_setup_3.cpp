@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/interface/engine_state.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -26,7 +27,6 @@ extern int32_t cached_profile_slot;
 extern char last_profile_name[];
 extern campaign_level_entry known_campaign_levels_00692acc[10];
 extern uint8_t split_screen_quit_prompt_armed;
-extern char unknown_00719779[0x100];
 extern uint8_t selected_level_active_00719878;
 extern uint8_t selected_level_pending_00719778;
 extern uint8_t network_wait_flag_00719739;
@@ -91,7 +91,7 @@ uint8_t UiGameSetup::level_select_confirm_choice(widget_instance *widget)
         return unlocked;
     }
     split_screen_quit_prompt_armed = 0;
-    strncpy(unknown_00719779, known_campaign_levels_00692acc[level_id].path, 0xff);
+    strncpy(halo::interface::state::current_campaign_level_path, known_campaign_levels_00692acc[level_id].path, 0xff);
     selected_level_active_00719878 = 0;
     selected_level_pending_00719778 = 1;
     network_wait_flag_00719739 = 0;

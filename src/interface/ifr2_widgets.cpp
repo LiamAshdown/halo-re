@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_widgets.hpp"
+#include "halo/interface/engine_state.hpp"
 #include "sound.h"
 #include <string.h>
 
@@ -33,7 +34,6 @@ extern int32_t widget_cursor_side_of_midpoint(widget_instance *widget);
 extern void widget_play_sound_effect(int16_t effect_id);
 extern int32_t last_controller_index_00879f50;
 extern virtual_keyboard_globals virtual_keyboard;
-extern float ui_unknown_718fa8;
 extern void widget_instance_render(widget_instance *widget, Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, int32_t flag2);
 extern void interface_draw_cursor(void);
 extern void virtual_keyboard_render(void);
@@ -574,14 +574,14 @@ void WidgetRender::draw_fullscreen_region(int16_t controller_index)
     if (drew_any != 0) {
         interface_draw_cursor();
     }
-    if (0.0f <= ui_unknown_718fa8 && (ui_unknown_718fa8 < 1.0f) != (ui_unknown_718fa8 == 1.0f)) {
+    if (0.0f <= state::screen_fade_progress && (state::screen_fade_progress < 1.0f) != (state::screen_fade_progress == 1.0f)) {
         Rectangle2D rect = {0, 0, 0x1e0, 0x280};
         int32_t fade_color;
 
-        if (0.95f <= ui_unknown_718fa8) {
-            ui_unknown_718fa8 = 1.0f;
+        if (0.95f <= state::screen_fade_progress) {
+            state::screen_fade_progress = 1.0f;
         }
-        fade_color = (int32_t)(ui_unknown_718fa8 * 255.0f + 0.5f);
+        fade_color = (int32_t)(state::screen_fade_progress * 255.0f + 0.5f);
         ui_draw_filled_rectangle((uint32_t)fade_color, &rect);
     }
 }
@@ -776,9 +776,9 @@ void WidgetView::focus_next_child()
 }
 
 /**
- * blam-cc: EDX -> widget Mirror image of FUN_0049c080: starting just before the currently focused child (or at
+ * blam-cc: EDX -> widget Mirror image of focus_next_child: starting just before the currently focused child (or at
  * the last child if none is focused), scans backward through the sibling ring -- wrapping past the first child
- * back to the last -- for an eligible candidate (same test as FUN_0049c080) and focuses it.
+ * back to the last -- for an eligible candidate (same test as focus_next_child) and focuses it.
  *
  * @address 0x49c0f0
  */

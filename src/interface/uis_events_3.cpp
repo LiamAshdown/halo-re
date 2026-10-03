@@ -4,6 +4,7 @@
  */
 
 #include "crt.h"
+#include "halo/interface/engine_state.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -66,7 +67,6 @@ extern heap *widget_memory_pool;
 extern void heap_unlink_block(heap_block *block, heap *self);
 extern uint8_t level_select_flags_0071916b;
 extern char level_select_current_path_00719068[0x106];
-extern char unknown_00719779[];
 extern int16_t level_select_frame_00719168;
 extern uint8_t main_menu_music_pending;
 extern datum_index tag_lookup(tag_group group, char *path);
@@ -607,7 +607,7 @@ uint8_t UiEventHandlers::event_4a1b60(widget_instance *widget, int16_t *event, u
     int16_t selection = 1;
     int32_t i;
 
-    if (level_select_flags_0071916b == 1 && _stricmp(level_select_current_path_00719068, unknown_00719779) == 0) {
+    if (level_select_flags_0071916b == 1 && _stricmp(level_select_current_path_00719068, halo::interface::state::current_campaign_level_path) == 0) {
         selection = level_select_frame_00719168;
     }
     for (i = 0; i < selection && child != 0; i++) {
