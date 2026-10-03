@@ -169,7 +169,7 @@ void ScriptFlowCommands::argument_list(uint32_t unused_param_1, uint32_t thread_
     int32_t *values;
     int32_t i;
 
-    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218);
+    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     frame = thread_record->stack;
     next_node_slot = (datum_index *)((uint8_t *)frame + 0x0e + frame->size);
     frame->size = frame->size + 4;
@@ -221,7 +221,7 @@ void ScriptFlowCommands::arithmetic_reduce(int16_t opcode, uint32_t thread_index
     float *accumulator;
     float value;
 
-    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218);
+    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     frame = thread_record->stack;
     term_count = (int16_t *)((uint8_t *)frame + 0x0e + frame->size);
     frame->size = frame->size + 2;
@@ -278,7 +278,7 @@ check_continue:
  */
 void ScriptFlowCommands::begin(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218);
+    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     hs_stack_frame *frame;
     datum_index *next_expression;
     int32_t *result;
@@ -337,7 +337,7 @@ void ScriptFlowCommands::boolean_and_or(int16_t opcode, uint32_t thread_index, c
     char is_and;
     char child_result;
 
-    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218);
+    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     frame = thread_record->stack;
     next_node_slot = (datum_index *)((uint8_t *)frame + 0x0e + frame->size);
     frame->size = frame->size + 4;
@@ -393,7 +393,7 @@ check_continue:
 void ScriptFlowCommands::comparison(int16_t function_index, uint32_t thread_index, char first)
 {
     uint8_t *syntax = (uint8_t *)hs_syntax_data->data;
-    uint8_t *frame = *(uint8_t **)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218 + 0x10);
+    uint8_t *frame = *(uint8_t **)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread) + 0x10);
     uint32_t call_node = *(uint32_t *)(frame + 4) & halo::k_slot_mask;
     uint32_t name_node = *(uint32_t *)(syntax + call_node * 0x14 + 0x10) & halo::k_slot_mask;
     uint32_t first_argument = *(uint32_t *)(syntax + name_node * 0x14 + 8) & halo::k_slot_mask;

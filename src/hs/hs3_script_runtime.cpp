@@ -113,7 +113,7 @@ void ScriptRuntime::runtime_update() const
     command_thread_pending = 0;
     thread_handle = halo::memory::datum_next(-1, hs_thread_data);
     while (thread_handle != k_datum_index_none) {
-        thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & halo::k_slot_mask) * 0x218);
+        thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
         if (thread->type == 2) {
             command_thread_pending = 1;
         }
@@ -163,7 +163,7 @@ void ScriptRuntime::scenario_scripts_initialize() const
     init_thread = 0;
     if (thread_handle != k_datum_index_none) {
         init_thread = (hs_thread *)((uint8_t *)hs_thread_data->data +
-            (thread_handle & halo::k_slot_mask) * 0x218);
+            (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
         init_thread->stack = (hs_stack_frame *)&init_thread->stack_data;
         init_thread->stack->previous = 0;
         init_thread->stack->size = 0;

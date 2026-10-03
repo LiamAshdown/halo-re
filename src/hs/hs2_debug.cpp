@@ -76,7 +76,7 @@ void DebugCommands::evaluate_help(int16_t function_index, uint32_t thread_index,
  */
 void DebugCommands::evaluate_inspect(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218);
+    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     hs_stack_frame *frame = thread->stack;
     int32_t *result = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
     datum_index argument = syntax_get(syntax_get(frame->syntax_node)->data.first_child)->next_node;

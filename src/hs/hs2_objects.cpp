@@ -203,7 +203,7 @@ void ObjectCommands::evaluate_object_cannot_take_damage(int16_t function_index, 
  */
 void ObjectCommands::evaluate_object_cast(int16_t function_index, uint32_t thread_index, char first)
 {
-    uint8_t *frame = *(uint8_t **)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218 + 0x10);
+    uint8_t *frame = *(uint8_t **)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread) + 0x10);
     uint16_t size = *(uint16_t *)(frame + 0xc);
     datum_index *slot = (datum_index *)(frame + 0xe + (int16_t)size);
     datum_index object_index;

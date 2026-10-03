@@ -28,7 +28,7 @@ int32_t *ArgumentEvaluator::typed_arguments(uint32_t thread_index, int16_t param
     datum_index *next_node_slot;
     int32_t *done;
 
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218);
+    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     frame = thread->stack;
     results = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
     done = results;
@@ -78,7 +78,7 @@ char ArgumentEvaluator::variadic_arguments(uint32_t thread_index, int32_t value,
     datum_index *next_node_slot;
     int i;
 
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218);
+    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     frame = thread->stack;
     evaluated_count = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
     frame->size = frame->size + 4;
