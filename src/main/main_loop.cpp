@@ -23,6 +23,7 @@
 #include "cache.h"
 
 #include "halo/main/main_loop.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" { void game_engine_flush_pending_simulation_ticks(void); }
 extern "C" { uint32_t game_frame_rate_average_update(void); }
@@ -216,7 +217,6 @@ extern "C" { extern int32_t novideo_or_connect; }
 extern "C" { extern int32_t safe_mode; }
 extern "C" { extern int32_t rasterizer_window_requested; }
 extern "C" { extern int32_t checkfpu; }
-extern "C" { extern uint8_t sound_disabled; }
 extern "C" { extern game_state_proc game_state_before_save_proc; }
 extern "C" { extern uint8_t game_state_revert_available; }
 extern "C" { extern uint8_t game_state_write_in_progress; }
@@ -381,7 +381,7 @@ void MainLoop::loop(void)
     game_start_new_single_player_map();
     game_timer_reset();
     network_autojoin_from_command_line();
-    sound_disabled = (uint8_t)shell_nosound;
+    halo::sound::globals().disabled = (uint8_t)shell_nosound;
     if (game_time_force_single_tick == 0 && novideo_or_connect == 0 && safe_mode == 0 &&
         rasterizer_window_requested == 0) {
         movie_play_bink("bungie.bik");
@@ -932,7 +932,7 @@ void MainLoop::loop_shutdown_cleanup(void)
 
 extern "C" { extern uint8_t main_menu_music_pending; }
 extern "C" { extern datum_index tag_lookup(tag_group group, char *path); }
-extern "C" { extern void sound_looping_stop(datum_index sound_tag); }
+extern "C" { extern void halo::sound::sound_looping_stop(datum_index sound_tag); }
 namespace halo::main {
 
 /**
@@ -947,7 +947,7 @@ void MainLoop::menu_music_stop(void)
     if (main_menu_music_pending == 1) {
         datum_index sound_tag = tag_lookup(0x6c736e64 , (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
-            sound_looping_stop(sound_tag);
+            halo::sound::sound_looping_stop(sound_tag);
         }
         main_menu_music_pending = 0;
     }

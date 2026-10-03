@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern data_array *particle_data;
@@ -8,7 +9,6 @@ extern uint8_t particle_next_sequence(datum_index particle_handle);
 extern void particle_impact_response_dispatch(particle *self, tag_group fourcc, datum_index definition_index, real intensity);
 extern void datum_delete(data_array *array, datum_index handle);
 extern datum_index effect_new_with_color(uint32_t definition_index, uint32_t creator, real_vector3d *velocity, int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale, int32_t color, int32_t tint, int32_t force);
-extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern const real_vector3d *global_down3d_pointer;
 extern const real_vector3d *global_forward3d_pointer;
@@ -213,7 +213,7 @@ void particle_ref::impact_response_dispatch(particle *self, tag_group fourcc, da
         placement.forward = *(Vector3D *)global_forward3d_pointer;
         placement.velocity = *(Vector3D *)&velocity;
         *(bsp_leaf_reference *)&placement.leaf_index = self->location;
-        sound_start_at_location(definition_index, &placement, intensity);
+        halo::sound::sound_start_at_location(definition_index, &placement, intensity);
     }
 }
 

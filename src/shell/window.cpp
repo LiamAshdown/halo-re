@@ -2,6 +2,7 @@
 #include "sound.h"
 #include "interface.h"
 #include "main.h"
+#include "halo/sound/api.hpp"
 
 typedef struct win32_bitmap {
     int32_t type;
@@ -23,8 +24,6 @@ extern void chat_close(void);
 extern void chat_submit_input(void);
 extern int32_t render_device_is_ready(void);
 extern void rasterizer_capture_and_present(const int16_t *tile, void *bitmap);
-extern void sound_pause(void);
-extern void sound_resume(void);
 
 extern uint8_t shell_window_proc_bypass;
 extern uint8_t shell_application_inactive;
@@ -45,8 +44,6 @@ extern void *rasterizer_window_icon_dc;
 extern void *rasterizer_window_icon_bitmap;
 
 extern uint8_t sound_paused;
-extern sound_driver *current_sound_driver;
-extern int32_t sound_time;
 
 extern uint8_t chat_dialog_open;
 
@@ -71,12 +68,12 @@ void GameWindow::suspend_focus()
         if (rasterizer_fullscreen == 0 || rasterizer_device == 0) {
             if (sound_paused != 1) {
                 sound_paused = 1;
-                if (current_sound_driver != 0) {
-                    current_sound_driver->set_paused(1);
+                if (halo::sound::globals().current_driver != 0) {
+                    halo::sound::globals().current_driver->set_paused(1);
                 }
             }
         } else {
-            sound_pause();
+            halo::sound::sound_pause();
         }
         input_directinput_unacquire_devices();
         input_reset_state_and_axis_configs();
@@ -142,17 +139,17 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                     }
                     if (shell_window_proc_bypass == 0) {
                         if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
-                            sound_resume();
+                            halo::sound::sound_resume();
                             shell_window_minimized = 0;
                             shell_window_maximized = 1;
                             return DefWindowProcA(hwnd, message, wparam, lparam);
                         }
                         if (sound_paused != 0) {
                             sound_paused = 0;
-                            if (current_sound_driver != 0) {
-                                current_sound_driver->set_paused(0);
+                            if (halo::sound::globals().current_driver != 0) {
+                                halo::sound::globals().current_driver->set_paused(0);
                             }
-                            sound_time = time_query_performance_counter_ms();
+                            halo::sound::globals().time = time_query_performance_counter_ms();
                         }
                     }
                 }
@@ -176,16 +173,16 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                     }
                     if (shell_window_proc_bypass == 0) {
                         if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
-                            sound_resume();
+                            halo::sound::sound_resume();
                             shell_window_minimized = 0;
                             return DefWindowProcA(hwnd, message, wparam, lparam);
                         }
                         if (sound_paused != 0) {
                             sound_paused = 0;
-                            if (current_sound_driver != 0) {
-                                current_sound_driver->set_paused(0);
+                            if (halo::sound::globals().current_driver != 0) {
+                                halo::sound::globals().current_driver->set_paused(0);
                             }
-                            sound_time = time_query_performance_counter_ms();
+                            halo::sound::globals().time = time_query_performance_counter_ms();
                         }
                     }
                 }
@@ -212,15 +209,15 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                 if (shell_window_proc_bypass == 0) {
                     if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
                     resume_focus_fast_path:
-                        sound_resume();
+                        halo::sound::sound_resume();
                         return DefWindowProcA(hwnd, message, wparam, lparam);
                     }
                     if (sound_paused != 0) {
                         sound_paused = 0;
-                        if (current_sound_driver != 0) {
-                            current_sound_driver->set_paused(0);
+                        if (halo::sound::globals().current_driver != 0) {
+                            halo::sound::globals().current_driver->set_paused(0);
                         }
-                        sound_time = time_query_performance_counter_ms();
+                        halo::sound::globals().time = time_query_performance_counter_ms();
                     }
                 }
             }
@@ -346,11 +343,11 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             }
         } else if (message == 0x218) {
             if (wparam == 0) {
-                sound_pause();
+                halo::sound::sound_pause();
                 return 1;
             }
             if (wparam == 7) {
-                sound_resume();
+                halo::sound::sound_resume();
                 return 1;
             }
         }
@@ -426,11 +423,11 @@ void GameWindow::handle_activate_app(uint8_t inactive)
     } else {
         if (shell_window_proc_bypass == 0) {
             if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
-                sound_pause();
+                halo::sound::sound_pause();
             } else if (sound_paused != 1) {
                 sound_paused = 1;
-                if (current_sound_driver != 0) {
-                    current_sound_driver->set_paused(1);
+                if (halo::sound::globals().current_driver != 0) {
+                    halo::sound::globals().current_driver->set_paused(1);
                 }
             }
         }
@@ -455,15 +452,15 @@ void GameWindow::handle_activate_app(uint8_t inactive)
         return;
     }
     if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
-        sound_resume();
+        halo::sound::sound_resume();
         return;
     }
     if (sound_paused != 0) {
         sound_paused = 0;
-        if (current_sound_driver != 0) {
-            current_sound_driver->set_paused(0);
+        if (halo::sound::globals().current_driver != 0) {
+            halo::sound::globals().current_driver->set_paused(0);
         }
-        sound_time = time_query_performance_counter_ms();
+        halo::sound::globals().time = time_query_performance_counter_ms();
     }
 }
 

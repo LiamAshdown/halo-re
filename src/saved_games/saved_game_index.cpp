@@ -10,6 +10,7 @@
 #include "saved_games.h"
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
@@ -67,7 +68,6 @@ extern uint16_t saved_game_display_name_buffer[0x80];
 extern network_thread_record *variant_write_thread;
 extern int16_t savegame_index_write_count;
 extern uint8_t saved_game_index_file_open;
-extern void sound_idle_update(void);
 extern uint32_t game_state_crc;
 extern int16_t local_player_count;
 extern uint32_t cache_file_current_header_crc32;
@@ -1583,7 +1583,7 @@ uint8_t validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_bu
             if (ReadFile(file, chunk_buffer, chunk, (LPDWORD)&bytes_read, 0) != 0 && bytes_read == (uint32_t)chunk) {
                 ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&running_crc, chunk_buffer, chunk);
             }
-            sound_idle_update();
+            halo::sound::sound_idle_update();
             remaining = remaining - chunk;
         }
 

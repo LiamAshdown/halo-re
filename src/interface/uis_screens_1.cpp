@@ -16,11 +16,9 @@
 #include <string.h>
 
 #include "halo/interface/uis_screens.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
-extern void sound_set_master_gain(float gain);
-extern void sound_set_effects_gain(float gain);
-extern void sound_set_music_gain(float gain);
 extern void widget_extended_description_sync_selection(widget_instance *widget);
 extern int32_t chat_window_default_x;
 extern int32_t chat_window_default_y;
@@ -97,13 +95,13 @@ void UiScreens::audio_options_apply_volume_sliders(widget_instance *widget)
     widget_instance *target;
 
     row = widget->first_child;
-    sound_set_master_gain(find_row_spinner_gain(row));
+    halo::sound::sound_set_master_gain(find_row_spinner_gain(row));
 
     row = row->next_sibling;
-    sound_set_effects_gain(find_row_spinner_gain(row));
+    halo::sound::sound_set_effects_gain(find_row_spinner_gain(row));
 
     row = row->next_sibling;
-    sound_set_music_gain(find_row_spinner_gain(row));
+    halo::sound::sound_set_music_gain(find_row_spinner_gain(row));
 
     row = row->next_sibling;
     spinner = row->first_child;

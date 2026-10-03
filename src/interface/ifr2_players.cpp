@@ -2,6 +2,7 @@
 #include "crt.h"
 #include <string.h>
 #include <wchar.h>
+#include "halo/sound/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -53,10 +54,6 @@ extern int32_t safe_mode;
 extern uint8_t directsound_initialized;
 extern uint8_t directsound_eax_available;
 extern uint16_t sound_permutation_limit;
-extern void sound_driver_set_quality(int32_t enabled, uint8_t flag_b7b, uint8_t value_b7d);
-extern void sound_set_master_gain(float gain);
-extern void sound_set_music_gain(float gain);
-extern void sound_set_effects_gain(float gain);
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only, uint16_t *capacity_and_count);
 extern uint8_t player_profile_get(int32_t slot, void *out_profile);
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
@@ -468,7 +465,7 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     } else if (gain > 1.0f) {
         gain = 1.0f;
     }
-    sound_set_master_gain(gain);
+    halo::sound::sound_set_master_gain(gain);
 
     gain = (float)settings[0xb79] * 0.1f;
     if (gain < 0.0f) {
@@ -476,7 +473,7 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     } else if (gain > 1.0f) {
         gain = 1.0f;
     }
-    sound_set_effects_gain(gain);
+    halo::sound::sound_set_effects_gain(gain);
 
     gain = (float)settings[0xb7a] * 0.1f;
     if (gain < 0.0f) {
@@ -484,7 +481,7 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     } else if (gain > 1.0f) {
         gain = 1.0f;
     }
-    sound_set_music_gain(gain);
+    halo::sound::sound_set_music_gain(gain);
 
     sound_permutation_limit = settings[0xb7f];
     if (directsound_initialized == 0 || directsound_eax_available == 0 ||
@@ -493,7 +490,7 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     } else {
         environment_enabled = 1;
     }
-    sound_driver_set_quality(environment_enabled, settings[0xb7b] == 1, settings[0xb7d]);
+    halo::sound::sound_driver_set_quality(environment_enabled, settings[0xb7b] == 1, settings[0xb7d]);
 }
 
 /**

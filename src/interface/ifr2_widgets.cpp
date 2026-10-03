@@ -2,6 +2,7 @@
 #include "halo/interface/engine_state.hpp"
 #include "sound.h"
 #include <string.h>
+#include "halo/sound/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -78,7 +79,6 @@ extern widget_instance *widget_list_get_child_by_index(widget_instance *list, in
 extern void widget_relink_focus_by_tag_id(widget_instance *widget, datum_index child_definition);
 extern datum_index tag_lookup(tag_group group, char *path);
 extern void widget_play_sound_effect_tag(datum_index sound_tag);
-extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index, sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint);
 extern void text_clamp_byte_length_to_character_boundary(char *string, int16_t *length);
 extern void widget_text_edit_clamp_selection(text_edit_state *state);
 extern uint32_t widget_text_edit_get_selection(text_edit_state *state, int16_t *out_start, int16_t *out_end);
@@ -2136,7 +2136,7 @@ void WidgetLifecycle::play_sound_effect_tag(datum_index sound_tag)
         location.type = 0;
         location.scale = 1.0f;
         location.gain = 1.0f;
-        sound_play_new(sound_tag, &location, -1, 0, 0, 0, 0);
+        halo::sound::sound_play_new(sound_tag, &location, -1, 0, 0, 0, 0);
     }
 }
 

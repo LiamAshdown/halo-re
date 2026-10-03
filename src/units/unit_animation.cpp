@@ -4,6 +4,7 @@
 #include "hs.h"
 #include "ai.h"
 #include "crt.h"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern uint8_t *game_state_base;
@@ -47,7 +48,6 @@ extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, rea
 extern void object_set_collision_enabled(uint32_t object_index, uint8_t enable);
 extern real_point3d *global_zero_vector3d_pointer;
 extern real_vector3d *global_forward3d_pointer;
-extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 extern void ai_communication_gate_line_played(int16_t event_id, ai_communication_record *record, datum_index object_index);
 extern void ai_communication_play_event_line(datum_index object_index, int16_t event_id, uint8_t force, datum_index explicit_speaker_actor_index, uint32_t *event_record);
 extern void ai_propagate_communication_reaction(datum_index object_index, ai_communication_order *order);
@@ -1482,7 +1482,7 @@ void UnitView::update_animation_timers()
                 forward = *(Vector3D *)global_forward3d_pointer;
             }
             if (((unit_object *)obj)->unit.current_speech.sound_tag != k_datum_index_none) {
-                ((unit_object *)obj)->unit.speech_sound_handle = sound_start_at_object_marker(unit_index, &position, &forward,
+                ((unit_object *)obj)->unit.speech_sound_handle = halo::sound::sound_start_at_object_marker(unit_index, &position, &forward,
                     ((unit_object *)obj)->unit.current_speech.sound_tag, node, 1.0f, 0);
             }
             ai_communication_gate_line_played(((unit_object *)obj)->unit.current_speech.priority, (ai_communication_record *)(obj + 0x398),

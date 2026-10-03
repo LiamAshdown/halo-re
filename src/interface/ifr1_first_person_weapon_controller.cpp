@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_first_person_weapon_controller.hpp"
 #include <stdint.h>
 #include <string.h>
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -32,7 +33,6 @@ extern void unit_invalidate_local_player_zoom_level(datum_index unit);
 extern int16_t item_type_to_message_stage(int16_t item_type_code);
 extern int16_t item_type_to_animation_stage(int16_t message_stage);
 extern void first_person_weapon_snapshot_pose(int16_t local_player_index, int16_t blend_gap);
-extern void sound_impulse_fade_out(datum_index sound_index);
 extern int16_t current_local_player_index;
 extern int32_t local_player_get_zoom_level(int16_t local_player_index);
 extern void first_person_weapon_set_attached(int16_t local_player_index, uint8_t attached);
@@ -585,7 +585,7 @@ void FirstPersonWeaponController::set_state(uint8_t force_pose_snapshot, int16_t
     }
 
     if (force_pose_snapshot != 0 && fp->frame_sound_index != -1 && fp->frame_sound_state != 1) {
-        sound_impulse_fade_out((datum_index)fp->frame_sound_index);
+        halo::sound::sound_impulse_fade_out((datum_index)fp->frame_sound_index);
         fp->frame_sound_index = -1;
         fp->frame_sound_state = -1;
     }

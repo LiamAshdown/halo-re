@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
 #include <string.h>
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern uint8_t *hud_messaging;
@@ -15,7 +16,6 @@ extern void player_trigger_shield_recharge_effect(uint32_t player_index);
 extern void player_trigger_kill_streak_effect(uint32_t player_index);
 extern void player_trigger_full_health_effect(uint32_t player_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void sound_start_unspatialized(datum_index sound, float gain);
 }
 
 namespace halo::interface {
@@ -97,7 +97,7 @@ void HudMessaging::receive_item_message(void **message)
         return;
     }
     if (sound != (datum_index)-1) {
-        sound_start_unspatialized(sound, 1.0f);
+        halo::sound::sound_start_unspatialized(sound, 1.0f);
     }
 }
 

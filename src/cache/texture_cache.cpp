@@ -5,6 +5,7 @@
 #include "memory.h"
 #include "math.h"
 #include "win32.h"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern data_array *texture_cache_entries;
@@ -14,9 +15,7 @@ extern uint8_t debug_texture_cache_prints;
 extern tag_instance *tag_instances;
 extern cache_io_request *cache_io_requests;
 extern int64_t performance_frequency;
-extern int32_t sound_time;
 extern void console_print_va(const char *format, ...);
-extern uint32_t sound_idle_update(void);
 extern uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap);
 extern void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap);
 extern void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap);
@@ -142,8 +141,8 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
 
                 QueryPerformanceCounter((LARGE_INTEGER *)&counter);
                 elapsed_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-                if (0x84 < (uint32_t)(elapsed_ms - sound_time)) {
-                    sound_idle_update();
+                if (0x84 < (uint32_t)(elapsed_ms - halo::sound::globals().time)) {
+                    halo::sound::sound_idle_update();
                 }
                 if (wait == 0) {
                     return (void *)0;

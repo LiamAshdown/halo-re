@@ -1,4 +1,5 @@
 #include "halo/items/items.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -20,7 +21,6 @@ extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, re
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
-extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 extern void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal, real_point3d *point);
 extern void object_list_membership_set(uint32_t object_index, char add);
 extern real_matrix4x3 *object_get_node_marker_address(uint32_t object_index, int16_t node_index);
@@ -121,7 +121,7 @@ uint8_t item_ref::update()
                     *(real_vector3d *)&placement.velocity = *global_origin3d_pointer;
                     placement.leaf_index = ((item_object *)obj)->base.location_leaf_index;
                     *(int32_t *)&placement.cluster_index = *(int32_t *)&((item_object *)obj)->base.location_cluster_index;
-                    sound_start_at_location(*(datum_index *)&((Item *)tag)->collision_sound.tag_id, &placement, speed_factor);
+                    halo::sound::sound_start_at_location(*(datum_index *)&((Item *)tag)->collision_sound.tag_id, &placement, speed_factor);
                 }
                 if ((hit_type == 2 ||
                      (hit_type == 3 &&

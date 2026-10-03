@@ -1,4 +1,5 @@
 #include "halo/hs/hs1_system_commands.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -19,7 +20,6 @@ extern uint8_t main_globals_byte_00719753;
 extern uint8_t main_globals_byte_00719751;
 extern void camera_debug_load_from_file(void);
 extern void camera_debug_save_to_file(void);
-extern void sound_class_set_muted_by_name(uint8_t enabled, char *name);
 }
 
 namespace halo::hs {
@@ -188,7 +188,7 @@ void SystemCommands::debug_sounds_enable(int16_t function_index, uint32_t thread
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    sound_class_set_muted_by_name(*(uint8_t *)&arguments[1], (char *)arguments[0]);
+    halo::sound::sound_class_set_muted_by_name(*(uint8_t *)&arguments[1], (char *)arguments[0]);
     hs_thread_return(0, thread_index);
     }
 }

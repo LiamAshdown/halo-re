@@ -1,4 +1,5 @@
 #include "halo/game/game2_game_lifecycle.hpp"
+#include "halo/sound/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -53,12 +54,7 @@ extern data_array *effect_data;
 extern data_array *effect_location_data;
 extern void *particle_system_data;
 extern data_array *particle_system_particle_data;
-extern uint8_t sound_disabled;
-extern void *sound_data;
-extern void *looping_sound_data;
 extern void *sound_class_gains;
-extern data_array *game_looping_sound_data;
-extern uint32_t *game_sound_globals_ptr;
 extern int32_t weather_instances;
 extern int32_t weather_instance_count;
 extern data_array *weather_particle_data;
@@ -117,8 +113,6 @@ extern void hs_scripts_free(void);
 extern void cache_flush(cache *self);
 extern void objects_flush_dirty_state(void);
 extern void font_glyph_cache_clear_all(void);
-extern void game_sound_revert_scripting_sounds(void);
-extern void sound_fade_out_and_stop_all(void);
 extern void widget_close_all(void);
 extern uint8_t map_download_in_progress;
 extern uint32_t global_scenario_index;
@@ -316,11 +310,11 @@ void GameLifecycle::start_new_map(void)
     particle_system_particle_data->valid = 1;
     data_delete_all(particle_system_particle_data);
 
-    if (sound_disabled == 0) {
-        *((uint8_t *)sound_data + 0x24) = 1;
-        data_delete_all((data_array *)sound_data);
-        *((uint8_t *)looping_sound_data + 0x24) = 1;
-        data_delete_all((data_array *)looping_sound_data);
+    if (halo::sound::globals().disabled == 0) {
+        *((uint8_t *)halo::sound::globals().sound_data + 0x24) = 1;
+        data_delete_all((data_array *)halo::sound::globals().sound_data);
+        *((uint8_t *)halo::sound::globals().looping_sound_data + 0x24) = 1;
+        data_delete_all((data_array *)halo::sound::globals().looping_sound_data);
     }
 
     record = (uint8_t *)sound_class_gains + 8;
@@ -333,12 +327,12 @@ void GameLifecycle::start_new_map(void)
         i = i - 1;
     } while (i != 0);
 
-    if (game_looping_sound_data != (data_array *)0) {
-        game_looping_sound_data->valid = 1;
-        data_delete_all(game_looping_sound_data);
-        game_sound_globals_ptr[1] = 0xffffffff;
-        game_sound_globals_ptr[0] = 0;
-        game_sound_globals_ptr[2] = 0;
+    if (halo::sound::globals().game_looping_sound_data != (data_array *)0) {
+        halo::sound::globals().game_looping_sound_data->valid = 1;
+        data_delete_all(halo::sound::globals().game_looping_sound_data);
+        ((uint32_t *)halo::sound::globals().game_sound_state)[1] = 0xffffffff;
+        ((uint32_t *)halo::sound::globals().game_sound_state)[0] = 0;
+        ((uint32_t *)halo::sound::globals().game_sound_state)[2] = 0;
     }
 
     weather_instances = -1;
@@ -424,7 +418,7 @@ void GameLifecycle::stop_current_map(void)
     }
     objects_flush_dirty_state();
 
-    had_network_predicted_globals = game_looping_sound_data != (data_array *)0;
+    had_network_predicted_globals = halo::sound::globals().game_looping_sound_data != (data_array *)0;
     unknown_006ac568 = 0;
     unknown_006ac624 = 1.0f;
     unknown_006ac620 = 0;
@@ -438,12 +432,12 @@ void GameLifecycle::stop_current_map(void)
     effect_data->valid = 0;
     effect_location_data->valid = 0;
 
-    if (had_network_predicted_globals && game_looping_sound_data->valid != 0) {
-        game_sound_revert_scripting_sounds();
-        game_looping_sound_data->valid = 0;
+    if (had_network_predicted_globals && halo::sound::globals().game_looping_sound_data->valid != 0) {
+        halo::sound::game_sound_revert_scripting_sounds();
+        halo::sound::globals().game_looping_sound_data->valid = 0;
     }
 
-    sound_fade_out_and_stop_all();
+    halo::sound::sound_fade_out_and_stop_all();
     update_queues_dispose();
 
     if (current_game_engine != (game_engine_definition *)0 && current_game_engine->dispose_from_old_game != (void *)0) {

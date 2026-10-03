@@ -14,6 +14,7 @@
 #include "items.h"
 
 #include "halo/game/game1_notifications.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -63,7 +64,6 @@ extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern tag_instance *tag_instances;
-extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 extern int32_t multiplayer_sound_queue_count;
 extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds];
 extern void game_engine_play_multiplayer_sound(int32_t sound_index, datum_index recipient_player,
@@ -515,7 +515,7 @@ void Notifications::handle_sound_status_event(void *event)
                 sound_index < (int32_t)mp_info->sounds.count) {
                 uint8_t *sound = (uint8_t *)mp_info->sounds.pointer + sound_index * 0x10;
                 if (sound != (uint8_t *)0 && *(int32_t *)(sound + 0xc) != -1) {
-                    sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
+                    halo::sound::sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
                 }
             }
         }

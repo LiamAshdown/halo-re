@@ -18,6 +18,7 @@
 #include "networking.h"
 
 #include "halo/interface/uis_event_handlers.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -70,7 +71,6 @@ extern char level_select_current_path_00719068[0x106];
 extern int16_t level_select_frame_00719168;
 extern uint8_t main_menu_music_pending;
 extern datum_index tag_lookup(tag_group group, char *path);
-extern void sound_looping_stop(datum_index looping_definition);
 extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t ui_event_byte_0071975b;
 extern int32_t movie_playback_abort;
@@ -630,7 +630,7 @@ uint8_t UiEventHandlers::event_4a1bf0(widget_instance *widget, int16_t *event, u
         datum_index music = tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1");
 
         if (music != 0xffffffff) {
-            sound_looping_stop(music);
+            halo::sound::sound_looping_stop(music);
         }
         main_menu_music_pending = 0;
     }

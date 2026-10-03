@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chimera_bridge.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -61,8 +62,6 @@ extern void list_node_prepend(widget_history_node *template_record, widget_histo
 extern void widget_initialize_from_tag(widget_instance *widget, datum_index tag_index, widget_instance *parent,
                                        uint16_t controller_index, UIWidgetDefinition *tag);
 extern void *heap_allocate(uint32_t size, heap *self);
-extern void sound_looping_stop(datum_index sound_tag);
-extern void sound_stop_all(void);
 extern void rasterizer_end_frame(void);
 extern uint8_t rasterizer_reset_device_if_needed(void);
 extern void movie_play_bink(const char *movie_path);
@@ -344,11 +343,11 @@ void ChimeraBridge::main_menu_music(uint8_t finalize_render_frame)
     if (main_menu_music_pending == 1) {
         datum_index sound_tag = tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
-            sound_looping_stop(sound_tag);
+            halo::sound::sound_looping_stop(sound_tag);
         }
         main_menu_music_pending = 0;
     }
-    sound_stop_all();
+    halo::sound::sound_stop_all();
     if (finalize_render_frame != 0) {
         rasterizer_end_frame();
     }

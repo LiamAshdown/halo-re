@@ -1,4 +1,5 @@
 #include "halo/projectiles/projectile.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -22,9 +23,7 @@ extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);
 extern real vector3d_magnitude_squared(real_vector3d *v);
-extern float sound_definition_maximum_distance(datum_index sound_definition);
 extern void vector3d_project_onto_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out);
-extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
@@ -331,7 +330,7 @@ int ProjectileHandle::update()
 
                 if (listener != k_datum_index_none && listener != shooter) {
                     real_point3d *center = (real_point3d *)(OBJECT_DATA(listener) + 0xa0);
-                    real radius = sound_definition_maximum_distance(*(datum_index *)&((Projectile *)tag)->flyby_sound.tag_id);
+                    real radius = halo::sound::sound_definition_maximum_distance(*(datum_index *)&((Projectile *)tag)->flyby_sound.tag_id);
                     real_vector3d to_listener;  
                     real_vector3d projected;    
                     real_vector3d perpendicular; 
@@ -354,7 +353,7 @@ int ProjectileHandle::update()
                         *(real_vector3d *)&placement.velocity = *global_origin3d_pointer;
                         placement.leaf_index = *(int32_t *)&hit.leaf;
                         *(int32_t *)&placement.cluster_index = *(int32_t *)((uint8_t *)&hit.leaf + 4);
-                        sound_start_at_location(*(datum_index *)&((Projectile *)tag)->flyby_sound.tag_id, &placement, 1.0f);
+                        halo::sound::sound_start_at_location(*(datum_index *)&((Projectile *)tag)->flyby_sound.tag_id, &placement, 1.0f);
                         flyby_played = 1;
                     }
                 }

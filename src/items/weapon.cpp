@@ -1,4 +1,5 @@
 #include "halo/items/items.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -20,7 +21,6 @@ extern void weapon_notify_reload_step(datum_index item_index, int16_t magazine_i
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern void *effect_try_and_get(datum_index effect_index);
-extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 extern const real_point3d *global_zero_vector3d_pointer;
 extern const real_vector3d *global_forward3d_pointer;
 extern void weapon_reset_triggers(datum_index item_index);
@@ -37,7 +37,6 @@ extern double floor(double x);
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern void unit_dispatch_seat_overlay_command(uint32_t unit_index, int16_t command);
 extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index, int16_t change_color_index, int16_t u, int16_t v);
-extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 extern void equipment_definition_play_pickup_sound(uint32_t equipment_tag_id);
 extern void object_delete(uint32_t object_index);
 extern void weapon_notify_ammo_pickup(datum_index item_index, int16_t magazine_index, int16_t rounds);
@@ -687,7 +686,7 @@ uint32_t weapon_ref::play_trigger_tag_effect(datum_index tag_id, real scale_a, r
     }
     if (group == 0x736e6421) {
         effect_try_and_get(tag_id);
-        sound_start_at_object_marker(creator, (Point3D *)global_zero_vector3d_pointer,
+        halo::sound::sound_start_at_object_marker(creator, (Point3D *)global_zero_vector3d_pointer,
             (Vector3D *)global_forward3d_pointer, tag_id, -1, a_scale, 0);
     }
     return 0xffffffff;
@@ -1160,7 +1159,7 @@ uint32_t weapon_ref::transfer_ammunition(datum_index source_item_index, int16_t 
                         *source_rounds_unloaded = *source_rounds_unloaded - moved;
                         if (*(datum_index *)&target_tag->pickup_sound.tag_id != (datum_index)0xffffffff &&
                             requesting_player_index != -1) {
-                            sound_start_unspatialized(*(datum_index *)&target_tag->pickup_sound.tag_id, 1.0f);
+                            halo::sound::sound_start_unspatialized(*(datum_index *)&target_tag->pickup_sound.tag_id, 1.0f);
                         }
                         if (*source_rounds_unloaded == 0) {
                             object_delete(source_item_index);

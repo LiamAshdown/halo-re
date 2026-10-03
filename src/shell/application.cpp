@@ -5,6 +5,7 @@
 #include "halo/shell/system.hpp"
 #include "halo/shell/window.hpp"
 #include <excpt.h>
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -72,7 +73,6 @@ extern void network_session_host_start_info_set(char *game_name, char *secret_ke
 
 extern large_integer performance_frequency;
 extern char profile_directory[0x105];
-extern uint8_t sound_disabled;
 extern uint8_t console_debug_flag_0;
 extern uint8_t error_file_enabled;
 extern uint8_t console_debug_flag_4;
@@ -102,13 +102,11 @@ extern void input_directinput_initialize(void);
 extern void math_initialize(void);
 extern uint32_t render_initialize(void);
 extern void game_state_startup(void);
-extern uint32_t sound_initialize(void);
 extern void cache_file_unload(void);
 extern void data_file_close(void);
 extern void input_directinput_release_devices(void);
 extern void periodic_function_tables_free(void);
 extern void rasterizer_shutdown(void);
-extern void sound_dispose(void);
 }
 
 typedef int32_t (__cdecl *eula_show_fn)(const char *registry_path, const char *eula_file, int32_t unknown_2, int32_t unknown_3);
@@ -172,8 +170,8 @@ uint8_t EngineLifecycle::initialize()
     startup_ok = render_initialize();
     if ((uint8_t)startup_ok != 0) {
         input_directinput_initialize();
-        sound_disabled = (uint8_t)shell_nosound;
-        sound_initialize();
+        halo::sound::globals().disabled = (uint8_t)shell_nosound;
+        halo::sound::sound_initialize();
         return 1;
     }
     return (uint8_t)startup_ok;
@@ -202,7 +200,7 @@ void EngineLifecycle::shutdown()
     GlobalFree(sphere_point_table);
     periodic_function_tables_free();
     data_file_close();
-    sound_dispose();
+    halo::sound::sound_dispose();
 
     external_00686b4c = 0xffffffff;
     external_00686b50 = 0;

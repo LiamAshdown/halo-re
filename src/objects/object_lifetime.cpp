@@ -3,6 +3,7 @@
 #include "units.h"
 #include "effects.h"
 #include "networking.h"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time);
@@ -11,11 +12,9 @@ extern void datum_delete(data_array *array, datum_index handle);
 extern void effect_delete(datum_index handle);
 extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index, int16_t change_color_index, int16_t u, int16_t v);
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern data_array *game_looping_sound_data;
 extern int32_t hash_table_get(hash_table *table, uint32_t key);
 extern void light_delete(datum_index light_handle);
 extern datum_index light_new_attached(datum_index light_tag, datum_index owner_object, int16_t marker_index, int16_t marker_index_secondary, int16_t change_color_index);
-extern datum_index looping_sound_new(datum_index object_index, datum_index definition_index, char *marker_name, int16_t function_index);
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
@@ -415,7 +414,7 @@ void halo::objects::ObjectLifetime::create_attachments()
             }
             break;
         case 1:
-            handle = looping_sound_new(object_index, tag, (char *)(attachment + 0x10), first_scale);
+            handle = halo::sound::looping_sound_new(object_index, tag, (char *)(attachment + 0x10), first_scale);
             if (handle != k_datum_index_none) {
                 ((object *)obj)->flags |= 0x400;
             }
@@ -462,7 +461,7 @@ void halo::objects::ObjectLifetime::delete_attachments()
                     light_delete(handle);
                     break;
                 case _object_attachment_type_looping_sound:
-                    datum_delete(game_looping_sound_data, handle);
+                    datum_delete(halo::sound::globals().game_looping_sound_data, handle);
                     break;
                 case _object_attachment_type_effect:
                     effect_delete(handle);

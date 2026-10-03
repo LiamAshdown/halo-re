@@ -16,6 +16,7 @@
 #include "rasterizer.h"
 
 #include "halo/interface/uis_event_handlers.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern int16_t pending_difficulty;
@@ -78,7 +79,6 @@ extern void rasterizer_build_present_parameters(d3d_present_parameters *dest, ra
 extern uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters);
 extern void rasterizer_resize_game_window(int32_t height, int32_t width);
 extern float sound_master_gain;
-extern void sound_set_master_gain(float gain);
 extern void display_mode_get_current(rasterizer_display_mode *out);
 extern uint32_t time_query_performance_counter_ms(void);
 }
@@ -635,7 +635,7 @@ uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, u
         mode.refresh_rate = *(int16_t *)(profile + 0xa6c);
         mode.vsync = (uint8_t)(profile[0xa6f] != 0);
         display_mode_get_current(&ui_video_requested_display_mode_006b7010);
-        sound_set_master_gain(0.05f);
+        halo::sound::sound_set_master_gain(0.05f);
         changed = 0;
         if (rasterizer_display_mode_differs(&mode) != 0) {
             d3d_present_parameters parameters;
@@ -648,7 +648,7 @@ uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, u
             rasterizer_resize_game_window(mode.height, mode.width);
             rasterizer_needs_reset = 0;
         }
-        sound_set_master_gain(gain);
+        halo::sound::sound_set_master_gain(gain);
         widget->creation_time = (int32_t)time_query_performance_counter_ms();
     }
     ui_flag_007196d2 = 0;
@@ -699,7 +699,7 @@ uint8_t UiEventHandlers::event_4bb970(widget_instance *widget, int16_t *event, u
     } else {
         halo::interface::state::frame_rate_limiter_enabled = (uint8_t)(profile[0xa6f] == 2);
     }
-    sound_set_master_gain(0.05f);
+    halo::sound::sound_set_master_gain(0.05f);
     if (rasterizer_display_mode_differs(&ui_video_requested_display_mode_006b7010) != 0) {
         d3d_present_parameters parameters;
 
@@ -710,7 +710,7 @@ uint8_t UiEventHandlers::event_4bb970(widget_instance *widget, int16_t *event, u
         rasterizer_resize_game_window(ui_video_requested_display_mode_006b7010.height, ui_video_requested_display_mode_006b7010.width);
         rasterizer_needs_reset = 0;
     }
-    sound_set_master_gain(gain);
+    halo::sound::sound_set_master_gain(gain);
     return 1;
 }
 

@@ -24,6 +24,7 @@
 #include <stdio.h>
 
 #include "halo/main/views.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" { void render_view_camera_fill(observer_camera *observer, render_view *view); }
 extern "C" { void screenshot_render(render_view *views); }
@@ -50,7 +51,7 @@ extern "C" { extern float rasterizer_default_z_far; }
 extern "C" { extern uint8_t unknown_00873d30; }
 extern "C" { extern double tan(double x); }
 extern "C" { extern double atan2(double y, double x); }
-extern "C" { extern void sound_update(void); }
+extern "C" { extern void halo::sound::sound_update(void); }
 extern "C" { extern void render_frame(Point2DInt *screenshot_tile, render_view *views, int16_t count, Point2DInt *screenshot_page, float time_since_tick, float time_since_frame); }
 namespace halo::main {
 
@@ -74,7 +75,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     render_view *view;
 
     player_effect_reentry_count = player_effect_reentry_count + 1;
-    sound_update();
+    halo::sound::sound_update();
 
     showing_results = (current_game_engine != 0 && (int32_t)game_engine_state_value > 1 &&
                         (int32_t)game_engine_state_value < 4)
@@ -214,7 +215,7 @@ void RenderViews::pregame_view_initialize(void)
 {
     render_camera *camera = &pregame_render_view.rasterizer_camera;
 
-    sound_update();
+    halo::sound::sound_update();
 
     camera->position.x = 0.0f;
     camera->position.y = 0.0f;

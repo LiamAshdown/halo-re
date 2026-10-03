@@ -1,4 +1,5 @@
 #include "halo/hs/hs1_camera_commands.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -22,7 +23,6 @@ extern void cutscene_title_queue(int16_t title_index, float delay_seconds);
 extern cinematic_globals *cinematic_globals_ptr;
 extern game_time_globals *game_time;
 extern float cinematic_saved_music_gain;
-extern void sound_set_music_gain(float gain);
 extern void cutscene_start(void);
 extern void cutscene_stop(void);
 }
@@ -394,7 +394,7 @@ void CinematicCommands::cinematic_skip_start_internal(int16_t function_index, ui
 void CinematicCommands::cinematic_skip_stop_internal(int16_t function_index, uint32_t thread_index, char first)
 {
     if (!(cinematic_saved_music_gain == -1.0f)) {
-        sound_set_music_gain(cinematic_saved_music_gain);
+        halo::sound::sound_set_music_gain(cinematic_saved_music_gain);
         cinematic_saved_music_gain = -1.0f;
     }
     cinematic_globals_ptr->skip_in_progress = 0;

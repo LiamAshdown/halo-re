@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -25,7 +26,6 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index local_player_to_player_index(int16_t local_player_index);
 extern observer_camera *observer_get_camera(int16_t player_index);
 extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out);
-extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index, sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint);
 extern void player_effect_set_camera_impulse(player_effect *self, int16_t local_player_index, real *tag_descriptor, real *direction, float intensity_falloff, float duration_scale);
 extern network_id_table *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
@@ -313,7 +313,7 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
         memset(&location, 0, sizeof(location));
         location.scale = 1.0f;
         location.gain = 1.0f;
-        sound_play_new(*(datum_index *)(tag + 0x120), &location, k_datum_index_none, 0, 0, 0, 0);
+        halo::sound::sound_play_new(*(datum_index *)(tag + 0x120), &location, k_datum_index_none, 0, 0, 0, 0);
     }
     if (damage_amount > 0.0f && dd->responsible_object != k_datum_index_none) {
         datum_index controlling_player;

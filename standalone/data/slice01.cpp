@@ -7,6 +7,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/sound/api.hpp"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -1702,7 +1703,7 @@ SLICE01_SIZE_CHECK(adpcm_step_table, 178);
 
 /* 0x0065e640, 0xc bytes */
 __declspec(align(4)) void * k_sound_decode_procs[3] = {
-    (void *)0x7fff, (void *)sound_adpcm_decode_mono, (void *)sound_adpcm_decode_stereo
+    (void *)0x7fff, (void *)&halo::sound::sound_adpcm_decode_mono, (void *)&halo::sound::sound_adpcm_decode_stereo
 };
 SLICE01_SIZE_CHECK(k_sound_decode_procs, 12);
 

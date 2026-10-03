@@ -1,4 +1,5 @@
 #include "halo/items/items.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern real equipment_network_update_position_tolerance;
@@ -21,7 +22,6 @@ extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operan
 extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern tag_instance *tag_instances;
-extern uint32_t sound_play_new(uint32_t sound_tag_id, void *parameters, uint32_t owner_index, int32_t extra_size, void *extra, uint32_t extra_count, uint32_t allow_deferred);
 extern void *game_time;
 extern int32_t k_equipment_minimum_age_ticks;
 extern int16_t network_game_mode;
@@ -336,7 +336,7 @@ void equipment_ref::definition_play_pickup_sound(uint32_t equipment_tag_id)
         ((sound_location *)parameters)->type = 0;
         ((sound_location *)parameters)->scale = 1.0f;
         ((sound_location *)parameters)->gain = 1.0f;
-        sound_play_new((uint32_t)pickup_sound_tag_id, parameters, 0xffffffff, 0, 0, 0, 0);
+        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, 0xffffffff, 0, 0, 0, 0);
     }
 }
 
@@ -466,7 +466,7 @@ void equipment_ref::pickup_play_sound()
         ((sound_location *)parameters)->type = 0;
         ((sound_location *)parameters)->scale = 1.0f;
         ((sound_location *)parameters)->gain = 1.0f;
-        sound_play_new((uint32_t)pickup_sound_tag_id, parameters, 0xffffffff, 0, 0, 0, 0);
+        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, 0xffffffff, 0, 0, 0, 0);
     }
 }
 

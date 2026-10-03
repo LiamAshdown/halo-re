@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern random_seed random_seed_global;
@@ -18,8 +19,6 @@ extern void effect_random_velocity_vector(effect *self, random_seed *seed, real_
 extern void effect_random_direction_vector(random_seed *seed, real_point3d *out, real min, real max, effect *self, uint32_t a_bitset, uint32_t b_bitset);
 extern datum_index particle_system_new_at_point(uint32_t definition_index, real_point3d *position, real_vector3d *velocity, ColorARGB *color, float scale);
 extern void decal_spawn_for_response(datum_index response_tag_index, uint8_t deterministic, real_point3d *origin, real_vector3d *direction, real radius, int32_t marker_index);
-extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
-extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 extern const ColorRGB *global_white_color;
 extern data_array *effect_location_data;
 extern data_array *object_data;
@@ -149,7 +148,7 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
                     first_person = 1;
                 }
             }
-            sound_start_at_object_marker(object_index, (Point3D *)marker_position, (Vector3D *)marker_forward, tag,
+            halo::sound::sound_start_at_object_marker(object_index, (Point3D *)marker_position, (Vector3D *)marker_forward, tag,
                 (int16_t)effect_event_apply_marker_index(marker), scale, first_person);
         } else {
             sound_placement placement;
@@ -159,7 +158,7 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
             placement.velocity = *(const Vector3D *)global_origin3d_pointer;
             *(uint32_t *)&placement.leaf_index = SELF_FIELD(uint32_t, 0x10);
             *(uint32_t *)&placement.cluster_index = SELF_FIELD(uint32_t, 0x14);
-            sound_start_at_location(tag, &placement, scale);
+            halo::sound::sound_start_at_location(tag, &placement, scale);
         }
     }
 }

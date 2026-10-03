@@ -3,6 +3,7 @@
 #include "halo/shell/window.hpp"
 #include "dialogs.h"
 #include "interface.h"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern void *shell_module_handle;
@@ -27,7 +28,6 @@ extern char strings_dll_invalid_text[k_shell_strings_dll_error_length];
 extern uint32_t shell_startup_tick_count;
 extern void chimera__registry_check_3(void);
 extern void rasterizer_service_deferred_windowed_ops(void);
-extern void sound_stop_all(void);
 extern int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void *module, const char *template_name,
                                          void *parent_window);
 extern int32_t __stdcall fatal_error_dialog_proc(void *dialog, uint32_t message, uint32_t wparam, int32_t lparam);
@@ -231,7 +231,7 @@ void FatalError::shut_down_engine_services()
         shell_window_proc_bypass = 1;
         chimera__registry_check_3();
         rasterizer_service_deferred_windowed_ops();
-        sound_stop_all();
+        halo::sound::sound_stop_all();
         KeystoneLibrary::unload();
     } __except (1) {
     }

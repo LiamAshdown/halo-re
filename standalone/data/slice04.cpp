@@ -7,6 +7,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/sound/api.hpp"
 #include <stdint.h>
 
 extern "C" {
@@ -201,12 +202,12 @@ uint32_t rasterizer_chicago_color_function_stage_states[39] = {
 void * game_state_before_save_proc = function_do_nothing;
 
 /* 0x0069e7b0 size 4: game_state_revert_proc */
-void * game_state_revert_proc = game_sound_revert_scripting_sounds;
+void * game_state_revert_proc = &halo::sound::game_sound_revert_scripting_sounds;
 
 /* 0x0069e7b4 size 52: game_state_after_load_procs */
 void * game_state_after_load_procs[13] = {
-    scenario_structure_bsp_switch_after_load, sound_stop_all,
-    game_sound_reconcile_scripting_state, observer_initialize,
+    scenario_structure_bsp_switch_after_load, &halo::sound::sound_stop_all,
+    &halo::sound::game_sound_reconcile_scripting_state, observer_initialize,
     update_queues_revert, decal_geometry_cache_restore_procs,
     function_do_nothing, function_do_nothing,
     detail_objects_invalidate, game_state_after_load_restore_time,
@@ -263,7 +264,7 @@ void * structure_bsp_activate_procedures[13] = {
     particles_refresh_structure_locations, particle_system_resolve_local_players,
     contrail_refresh_lightmap, decal_rehash_object_decals,
     structure_runtime_decals_mark_dirty, observer_update_location,
-    players_structure_bsp_switch_regroup, sounds_refresh_structure_locations,
+    players_structure_bsp_switch_regroup, &halo::sound::sounds_refresh_structure_locations,
     scenario_objects_place_for_structure_bsp_on_activate,
 };
 
@@ -456,10 +457,10 @@ float directsound_rolloff_factor = 1.0f;
 
 /* 0x0069f4c8 size 64: directsound_driver */
 uint32_t directsound_driver[16] = {
-    0x0u, (uint32_t)sound_driver_initialize, (uint32_t)sound_driver_dispose, (uint32_t)sound_listener_update,
-    (uint32_t)sound_driver_begin_frame, (uint32_t)sound_driver_end_frame, (uint32_t)sound_driver_channel_play, (uint32_t)sound_driver_channel_continue,
-    (uint32_t)sound_driver_channel_stop, (uint32_t)sound_driver_channel_get_state, (uint32_t)sound_driver_set_paused, (uint32_t)sound_driver_stop_all,
-    (uint32_t)sound_driver_channel_set_spatial, (uint32_t)sound_driver_channel_set_parameters, (uint32_t)sound_driver_set_quality, (uint32_t)sound_driver_eax_available,
+    0x0u, (uint32_t)&halo::sound::sound_driver_initialize, (uint32_t)&halo::sound::sound_driver_dispose, (uint32_t)&halo::sound::sound_listener_update,
+    (uint32_t)&halo::sound::sound_driver_begin_frame, (uint32_t)&halo::sound::sound_driver_end_frame, (uint32_t)&halo::sound::sound_driver_channel_play, (uint32_t)&halo::sound::sound_driver_channel_continue,
+    (uint32_t)&halo::sound::sound_driver_channel_stop, (uint32_t)&halo::sound::sound_driver_channel_get_state, (uint32_t)&halo::sound::sound_driver_set_paused, (uint32_t)&halo::sound::sound_driver_stop_all,
+    (uint32_t)&halo::sound::sound_driver_channel_set_spatial, (uint32_t)&halo::sound::sound_driver_channel_set_parameters, (uint32_t)&halo::sound::sound_driver_set_quality, (uint32_t)&halo::sound::sound_driver_eax_available,
 };
 
 /* 0x0069f508 size 8: sound_drivers */

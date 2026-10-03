@@ -12,6 +12,7 @@
 #include <stdint.h>
 
 #include "halo/game/game1_lifecycle.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -29,7 +30,6 @@ extern player_globals *local_player_globals;
 extern data_array *decal_data;
 extern uint8_t *widget_memory_pool;
 extern uint32_t ui_root_widget[13];
-extern data_array *game_looping_sound_data;
 extern uint32_t sound_class_gains;
 extern uint32_t rasterizer_device;
 extern void **rasterizer_decal_vertex_cache;
@@ -111,7 +111,7 @@ void Lifecycle::dispose(void)
     for (i = 0; i < 13; i = i + 1) {
         ui_root_widget[i] = 0;
     }
-    game_looping_sound_data = (data_array *)0;
+    halo::sound::globals().game_looping_sound_data = (data_array *)0;
     sound_class_gains = 0;
 
     if (current_game_engine != (game_engine_definition *)0) {

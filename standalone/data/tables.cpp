@@ -6,6 +6,7 @@
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
 #include "code_refs.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 
@@ -2086,7 +2087,7 @@ uint32_t message_delta_definitions_0069b1a8[909] = {
     /* +0x0960 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0980 */ 0, 0,
     /* +0x0988 */ (uint32_t)"sound_scenery", 0x73736365, 0x2dc01f8, 0x2802e8, 0xffffffffu, 0, 0, 0,
-    /* +0x09a8 */ 0, 0, (uint32_t)sound_scenery_create, 0, (uint32_t)function_do_nothing, 0, 0, 0,
+    /* +0x09a8 */ 0, 0, (uint32_t)&halo::sound::sound_scenery_create, 0, (uint32_t)function_do_nothing, 0, 0, 0,
     /* +0x09c8 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x09e8 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0a08 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[610], 0, 0, 0, 0, 0, 0,

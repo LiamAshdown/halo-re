@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <wchar.h>
+#include "halo/sound/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -36,10 +37,8 @@ extern widget_instance *ui_root_widget[1];
 extern int32_t ui_time_milliseconds;
 extern widget_history_node *ui_widget_history[3];
 extern datum_index tag_lookup(tag_group group, char *path);
-extern void sound_looping_stop(datum_index sound_tag);
 extern void widget_pool_list_free_all(widget_history_node **head);
 extern int32_t main_menu_music_datum;
-extern void sound_looping_start(datum_index sound_tag, int32_t object_index, float gain);
 extern map_list_entry *map_list;
 extern int32_t map_list_count;
 extern int32_t map_list_find_known_map_index(char *map_path);
@@ -192,7 +191,7 @@ void InterfaceMain::on_shown(int32_t fade_milliseconds)
         datum_index sound_tag = tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
 
         if (sound_tag != (datum_index)-1) {
-            sound_looping_stop(sound_tag);
+            halo::sound::sound_looping_stop(sound_tag);
         }
         main_menu_music_pending = 0;
     }
@@ -218,7 +217,7 @@ void InterfaceMain::play_title_music()
     if (main_menu_music_pending == 0 && main_menu_music_datum == 0) {
         sound_tag = tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
-            sound_looping_start(sound_tag, -1, 1.0f);
+            halo::sound::sound_looping_start(sound_tag, -1, 1.0f);
             main_menu_music_pending = 1;
         }
     }

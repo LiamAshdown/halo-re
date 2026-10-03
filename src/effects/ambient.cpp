@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern int16_t weather_particle_system_count;
@@ -16,7 +17,6 @@ extern random_seed random_seed_global;
 extern void vector3d_catmull_rom_interpolate(real_vector3d *source1, real_vector3d *source3, real_vector3d *source2, real_vector3d *out, real_vector3d *source0, float time0, float dt, float time);
 extern int32_t weather_frame_counter;
 extern datum_index effect_new_with_color(datum_index definition_index, datum_index creator_object_index, const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, real_point3d *position, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source, uint8_t force_create);
-extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 uint8_t ambient_color_marker_visible(bsp_leaf_reference *location, real_point3d *position, real_vector3d *out, uint32_t filter_flags);
 void ambient_color_randomize();
 void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
@@ -233,7 +233,7 @@ void material_effects::play_at_marker(uint32_t material_effects_tag, int16_t mat
                 sound_args.bundle_word0 = location_bundle[0];
                 sound_args.bundle_word1 = location_bundle[1];
 
-                sound_start_at_location(*(datum_index *)&entry->sound.tag_id, (sound_placement *)&sound_args,
+                halo::sound::sound_start_at_location(*(datum_index *)&entry->sound.tag_id, (sound_placement *)&sound_args,
                     *(float *)&sound_param);
             }
         }

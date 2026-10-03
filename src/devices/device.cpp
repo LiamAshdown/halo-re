@@ -1,4 +1,5 @@
 #include "halo/devices/device.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -15,7 +16,6 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void *global_forward3d_pointer;
 extern void *global_zero_vector3d_pointer;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 extern uint8_t real_seek_toward_clamped(int wrap, real *velocity, real *value, real target, real accel, real max_speed, real range_min, real range_max);
 extern object *object_iterator_next(object_iterator *iterator);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
@@ -437,7 +437,7 @@ void DeviceHandle::play_state_change_effect(TagID tag_id)
                 (const ColorRGB *)0, (const effect_tint_source *)0);
         } else if (group_tag == k_device_state_change_tag_sound) {
             
-            sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer, (Vector3D *)global_forward3d_pointer,
+            halo::sound::sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer, (Vector3D *)global_forward3d_pointer,
                 *(datum_index *)&tag_id, -1, 1.0f, 0);
         }
     }

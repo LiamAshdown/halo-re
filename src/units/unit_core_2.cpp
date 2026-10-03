@@ -2,6 +2,7 @@
 #include "game.h"
 #include "networking.h"
 #include "effects.h"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern uint8_t *object_network_id_table;
@@ -34,7 +35,6 @@ extern void weapon_set_ready_timer(datum_index item_index, real value);
 extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
 extern void vector3d_rotate_toward_with_acceleration(real_vector3d *direction, real_vector3d *target_direction, real_vector3d *angular_velocity, real maximum_velocity, real acceleration);
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
-extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 extern void vector3d_rotate_toward_bounded(real_vector3d *current, real_vector3d *velocity, real *bounds, real max_velocity, real max_acceleration, real_vector3d *target, real_matrix4x3 *transform);
 }
 
@@ -292,7 +292,7 @@ controls:
                             fraction = (float)(int8_t)obj[0x320] / (float)(*(int16_t *)(weapon_tag + 0x3da) - 1);
                         }
                         if (sound != k_datum_index_none) {
-                            sound_start_unspatialized(sound, fraction);
+                            halo::sound::sound_start_unspatialized(sound, fraction);
                         }
                     }
                 }

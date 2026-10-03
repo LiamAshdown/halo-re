@@ -13,6 +13,7 @@
 #include <stdint.h>
 
 #include "halo/game/game1_clock.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern game_main_globals *main_game_globals;
@@ -24,7 +25,6 @@ extern void particles_update(real tick_delta_time);
 extern void widgets_update_all(real tick_delta_time);
 extern void weather_update(void);
 extern void numeric_countdown_timer_update(void);
-extern void game_sound_update(void);
 extern int16_t network_game_mode;
 extern double floor(double x);
 extern int32_t game_time_force_single_tick;
@@ -80,7 +80,7 @@ void SimulationClock::effects_update(real delta_time)
     if (ticks_this_frame != 0) {
         widgets_update_all(tick_delta_time);
     }
-    game_sound_update();
+    halo::sound::game_sound_update();
     weather_update();
     chimera_contrail_scale = delta_time;
     numeric_countdown_timer_update();

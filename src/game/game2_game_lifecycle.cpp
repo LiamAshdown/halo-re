@@ -1,4 +1,5 @@
 #include "halo/game/game2_game_lifecycle.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -42,7 +43,6 @@ extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_co
 extern void objects_initialize(void);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern void saved_game_files_initialize(void);
-extern void game_sound_initialize(void);
 extern void detail_objects_globals_allocate(void);
 extern object *object_iterator_next(object_iterator *iterator);
 extern uint8_t players_any_without_unit(void);
@@ -150,7 +150,7 @@ void GameLifecycle::initialize(void)
     sound_class_gains = (void *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 0x264;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
-    game_sound_initialize();
+    halo::sound::game_sound_initialize();
 
     size = 0x128;
     player_effect_globals_pointer = (player_effect_globals *)(game_state_cursor + game_state_base);

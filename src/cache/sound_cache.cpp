@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include "crt.h"
 #include "math.h"
+#include "halo/sound/api.hpp"
 
 #define cache_io_sound_decode_thunk ((void (*)(cache_io_completion *))(void *)code_address_cache_io_sound_decode_thunk)
 
@@ -14,7 +15,6 @@ extern "C" {
 extern int32_t sound_decode_buffer_size;
 extern void *sound_decode_buffer;
 extern tag_instance *tag_instances;
-extern int32_t sound_decode_dispatch(int16_t channel_count, void *destination, void *source, int32_t source_size);
 extern data_array *sound_cache_entries;
 extern int32_t sound_cache_page_count;
 extern struct cache *sound_cache;
@@ -28,8 +28,6 @@ extern void sound_cache_entry_in_use(void);
 extern uint8_t code_address_cache_io_sound_decode_thunk[];
 extern cache_io_request *cache_io_requests;
 extern int64_t performance_frequency;
-extern int32_t sound_time;
-extern uint32_t sound_idle_update(void);
 }
 
 namespace halo::cache {
@@ -64,7 +62,7 @@ void sound_cache_manager::decode_permutation(SoundPermutation *permutation)
             Sound *sound_tag = (Sound *)tag_instances[*(datum_index *)&permutation->tag_id_1 & 0xffff].data;
             int16_t channel_count = (int16_t)(1 + (sound_tag->channel_count == 1));
             decode_context = permutation->cache_page;
-            if (sound_decode_dispatch(channel_count, sound_decode_buffer, decode_context,
+            if (halo::sound::sound_decode_dispatch(channel_count, sound_decode_buffer, decode_context,
                                       (int32_t)permutation->samples.size) != 0) {
                 return;
             }
@@ -436,9 +434,9 @@ uint8_t sound_cache_manager::touch(uint8_t allocate_if_missing, uint8_t lock, ui
 
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         elapsed_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-        stall_ms = (uint32_t)(elapsed_ms - sound_time);
+        stall_ms = (uint32_t)(elapsed_ms - halo::sound::globals().time);
         if (0x84 < stall_ms) {
-            sound_idle_update();
+            halo::sound::sound_idle_update();
         }
 
         if (wait_until_loaded == 0) {
