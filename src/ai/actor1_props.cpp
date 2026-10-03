@@ -137,7 +137,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
 {
     using namespace c_actor_apply_unit_definition_properties;
     ActorVariant *variant = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
-    uint8_t *unit = object_get(unit_index);
+    unit_object *unit = (unit_object *)object_get(unit_index);
     Unit *unit_tag = halo::ai::tag_data<Unit>(*(datum_index *)&variant->actor_definition.tag_id);
     int16_t i;
 
@@ -148,22 +148,22 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         ((struct unit_object *)unit)->base.forced_shader_permutation = static_cast<uint16_t>(static_cast<int16_t>(variant->forced_shader_permutation));
     }
     for (i = 0; i < static_cast<int32_t>(variant->change_colors.count); i++) {
-        uint8_t *change_color = *(uint8_t **)&variant->change_colors.pointer + i * 0x20;
+        ActorVariantChangeColors *change_color = &halo::ai::reflexive_data<ActorVariantChangeColors>(variant->change_colors)[i];
 
         if (i < 4) {
-            ColorRGB *working = (ColorRGB *)(unit + 0x188 + i * 0xc);
+            ColorRGB *working = &unit->base.base_change_colors[i];
 
             halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
-            halo::bitmaps::color_interpolate((ColorRGB *)(change_color + 0xc), (ColorRGB *)change_color, working, (color_interpolation_flags)1,
+            halo::bitmaps::color_interpolate((ColorRGB *)&change_color->color_upper_bound, (ColorRGB *)&change_color->color_lower_bound, working, (color_interpolation_flags)1,
                 (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f);
-            *(ColorRGB *)(unit + 0x1b8 + i * 0xc) = *working;
+            *(ColorRGB *)&unit->base.change_colors[i] = *working;
         }
     }
     if (*(datum_index *)&variant->weapon.tag_id != k_datum_index_none) {
         datum_index weapon = actor_create_unit_item(*(datum_index *)&variant->weapon.tag_id, unit_index);
 
         if (weapon != k_datum_index_none && !halo::units::unit_pickup_weapon(2, weapon, unit_index)) {
-            int32_t role = *(int32_t *)(object_get(weapon) + 4);
+            int32_t role = ((object *)object_get(weapon))->network_role;
 
             if (role == 0) {
                 halo::objects::object_delete_unparented(weapon);
@@ -177,13 +177,13 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         int16_t type = variant->grenade_type;
         int16_t minimum = variant->grenade_count[0];
         int32_t range = (int16_t)(variant->grenade_count[1] + 1) - minimum;
-        uint8_t *object = object_get(unit_index);
+        unit_data *unit_state = halo::units::unit_data_of(object_get(unit_index));
 
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
-        object[0x31e + type] = (uint8_t)(object[0x31e + type] +
+        unit_state->grenade_counts[type] = (int8_t)(unit_state->grenade_counts[type] +
             (uint8_t)(((uint32_t)range * (halo::math::globals().random_seed_global >> 0x10)) >> 0x10) + (uint8_t)minimum);
-        object[0x31d] = (uint8_t)type;
-        object[0x31c] = (uint8_t)type;
+        unit_state->desired_grenade_index = (int8_t)type;
+        unit_state->current_grenade_index = (int8_t)type;
     }
     if (*(datum_index *)&variant->equipment.tag_id != k_datum_index_none) {
         int16_t equipment_kind = halo::ai::tag_data<Equipment>(halo::ai::tag_handle(variant->equipment))->powerup_type;

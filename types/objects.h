@@ -456,7 +456,10 @@ typedef struct object {
                                     //       object_regions_initialize_permutations write,
                                     //       object_regions_reset_permutation_lock forces to
                                     //       0 or 1, and model_markers_get_by_name is handed
-    uint8_t unknown_188[0x30];      // 0x188 untouched by this module
+    union {
+        uint8_t unknown_188[0x30];      // 0x188 untouched by this module
+        ColorRGB base_change_colors[4]; // 0x188 apply_unit_definition_properties rolls the actor variant colors here, then copies them to change_colors
+    };
     ColorRGB change_colors[4];      // 0x1b8 object_update_change_colors, clamped to [0,1]
     object_block_reference node_function_values;   // 0x1e8 node_count * 0x20 bytes
     object_block_reference node_function_defaults; // 0x1ec node_count * 0x20 bytes, the source
