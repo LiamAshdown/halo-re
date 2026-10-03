@@ -15,9 +15,8 @@
 
 #include "halo/input/binding_names.hpp"
 #include "halo/input/api.hpp"
+#include "halo/input/state.hpp"
 
-extern "C" { extern char joystick_axis_prefix[0x18]; }
-extern "C" { extern char decimal_suffixes[0x20][3]; }
 namespace halo::input {
 
 /**
@@ -38,13 +37,13 @@ int16_t BindingNames::joystick_axis_name_to_index(char *name, uint8_t *out_direc
     int32_t axis_index;
     int16_t direction_index;
 
-    after_prefix = strstr(name, joystick_axis_prefix);
+    after_prefix = strstr(name, input_state().joystick_axis_prefix);
     if (after_prefix == (char *)0) {
         return -1;
     }
 
     axis_index = 0;
-    suffix = decimal_suffixes[0];
+    suffix = input_state().decimal_suffixes[0];
     while (axis_index < 0x20) {
         match = strstr(after_prefix, suffix);
         if (match != (char *)0) {

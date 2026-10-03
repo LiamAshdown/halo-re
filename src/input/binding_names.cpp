@@ -2,6 +2,7 @@
  * Binding display names and the name to index parsers used by the bind console commands and the controls menu.
  */
 
+#include <cstring>
 #include "tags.h"
 #include "halo/text/api.hpp"
 #include "memory.h"
@@ -19,8 +20,8 @@
 #include "halo/input/binding_names.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/input/state.hpp"
 
-extern "C" { extern uint16_t missing_string_text[]; }
 namespace halo::input {
 
 /**
@@ -42,7 +43,7 @@ void BindingNames::chimera__axis_text(int16_t axis_index, uint8_t direction, uin
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
     halo::input::input_get_axis_direction_name(direction == 0 ? 1 : 0, direction_name);
 
-    source = missing_string_text;
+    source = input_state().missing_string_text;
     if (tag_id != (datum_index)0xffffffff) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if ((int32_t)list->strings.count > 1) {
@@ -79,7 +80,7 @@ void BindingNames::chimera__button_text(int16_t button_index, uint16_t *out_text
 
     tag_id = halo::cache::tag_lookup(0x75737472,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
-    source = missing_string_text;
+    source = input_state().missing_string_text;
     if (tag_id != (datum_index)0xffffffff) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if ((int32_t)list->strings.count > 0) {
@@ -117,7 +118,7 @@ void BindingNames::chimera__pov_text(int16_t pov_index, int16_t direction_index,
     tag_id = halo::cache::tag_lookup(0x75737472,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
 
-    pov_name = missing_string_text;
+    pov_name = input_state().missing_string_text;
     if (tag_id != (datum_index)0xffffffff) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if ((int32_t)list->strings.count > 2) {
@@ -130,7 +131,7 @@ void BindingNames::chimera__pov_text(int16_t pov_index, int16_t direction_index,
     }
 
     direction_entry_index = direction_index + 3;
-    direction_name = missing_string_text;
+    direction_name = input_state().missing_string_text;
     if (tag_id != (datum_index)0xffffffff) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (direction_entry_index >= 0 && direction_entry_index < (int32_t)list->strings.count) {
@@ -148,8 +149,6 @@ void BindingNames::chimera__pov_text(int16_t pov_index, int16_t direction_index,
 
 }
 
-extern "C" { extern char input_action_names[k_input_action_count][0x10]; }
-extern "C" { extern int32_t _stricmp(const char *a, const char *b); }
 namespace halo::input {
 
 /**
@@ -166,7 +165,7 @@ int16_t BindingNames::action_name_to_index(char *name)
     int16_t index;
 
     index = 0;
-    entry = input_action_names[0];
+    entry = input_state().input_action_names[0];
     do {
         if (_stricmp(name, entry) == 0) {
             return index;
@@ -238,7 +237,7 @@ void BindingNames::get_axis_direction_name(int16_t direction_index, uint16_t *ou
 
     tag_id = halo::cache::tag_lookup(0x75737472,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_axis_direction_names");
-    source = missing_string_text;
+    source = input_state().missing_string_text;
     if (tag_id != (datum_index)0xffffffff) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (direction_index >= 0 && direction_index < (int32_t)list->strings.count) {
@@ -324,7 +323,7 @@ void BindingNames::get_keyboard_key_name(int16_t key_index, uint16_t *out_name)
 
     tag_id = halo::cache::tag_lookup(0x75737472,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_keyboard_button_names");
-    source = missing_string_text;
+    source = input_state().missing_string_text;
     if (tag_id != (datum_index)0xffffffff) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (key_index >= 0 && key_index < (int32_t)list->strings.count) {
@@ -364,7 +363,7 @@ void BindingNames::get_mouse_axis_name(int16_t axis_index, uint8_t direction, ui
     tag_id = halo::cache::tag_lookup(0x75737472,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_mouse_button_names");
     lookup_index = axis_index + 8;
-    source = missing_string_text;
+    source = input_state().missing_string_text;
     if (tag_id != (datum_index)0xffffffff) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (lookup_index >= 0 && lookup_index < (int32_t)list->strings.count) {
@@ -405,7 +404,7 @@ void BindingNames::get_mouse_button_name(int16_t button_index, uint16_t *out_nam
 
     tag_id = halo::cache::tag_lookup(0x75737472,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_mouse_button_names");
-    source = missing_string_text;
+    source = input_state().missing_string_text;
     if (tag_id != (datum_index)0xffffffff) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (button_index >= 0 && button_index < (int32_t)list->strings.count) {
@@ -422,7 +421,6 @@ void BindingNames::get_mouse_button_name(int16_t button_index, uint16_t *out_nam
 
 }
 
-extern "C" { extern char pov_direction_names[8][10]; }
 namespace halo::input {
 
 /**
@@ -439,7 +437,7 @@ int16_t BindingNames::joystick_pov_direction_name_to_index(char *name)
     int16_t index;
 
     index = 0;
-    entry = pov_direction_names[0];
+    entry = input_state().pov_direction_names[0];
     while (index < 8) {
         if (_stricmp(name, entry) == 0) {
             return index;

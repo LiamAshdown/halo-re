@@ -2,6 +2,7 @@
  * Binding display names and the name to index parsers used by the bind console commands and the controls menu.
  */
 
+#include <cstring>
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -13,11 +14,8 @@
 
 #include "halo/input/binding_names.hpp"
 #include "halo/input/api.hpp"
+#include "halo/input/state.hpp"
 
-extern "C" { extern char joystick_button_prefix[0x18]; }
-extern "C" { extern char decimal_suffixes[0x20][3]; }
-extern "C" { extern char *strstr(const char *haystack, const char *needle); }
-extern "C" { extern int32_t _stricmp(const char *a, const char *b); }
 namespace halo::input {
 
 /**
@@ -35,13 +33,13 @@ int16_t BindingNames::joystick_button_name_to_index(char *name)
     char *table_entry;
     int16_t index;
 
-    suffix = strstr(name, joystick_button_prefix);
+    suffix = strstr(name, input_state().joystick_button_prefix);
     if (suffix == (char *)0) {
         return -1;
     }
     suffix = suffix + 6;
     index = 0;
-    table_entry = decimal_suffixes[0];
+    table_entry = input_state().decimal_suffixes[0];
     while (index < 0x20) {
         if (_stricmp(suffix, table_entry) == 0) {
             return index;
@@ -54,7 +52,6 @@ int16_t BindingNames::joystick_button_name_to_index(char *name)
 
 }
 
-extern "C" { extern char joystick_pov_prefix[0x18]; }
 namespace halo::input {
 
 /**
@@ -77,14 +74,14 @@ int16_t BindingNames::joystick_pov_name_to_index(char *name, int16_t *out_direct
     int32_t length;
     int16_t direction_index;
 
-    after_prefix = strstr(name, joystick_pov_prefix);
+    after_prefix = strstr(name, input_state().joystick_pov_prefix);
     if (after_prefix == (char *)0) {
         return -1;
     }
 
     match = after_prefix + 1;
     pov_index = 0;
-    suffix = decimal_suffixes[0];
+    suffix = input_state().decimal_suffixes[0];
     while (pov_index < 0x10) {
         rest = strstr(match, suffix);
         if (rest != (char *)0) {

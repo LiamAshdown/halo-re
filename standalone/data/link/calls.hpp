@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 struct real_vector3d;
+struct ColorARGB;
 
 extern "C" {
 void interface_handle_quit_request(void);
@@ -17,5 +18,7 @@ void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, c
 void debug_fp_clip_note(const float *world, int32_t effect_type);
 void debug_fp_state_arm(int32_t armed);
 void value_step_toward_target(float *value, float target, float max_step);
+void console_printf_verbose(ColorARGB *color, char *format, ...);
+uint32_t game_variant_option_default_by_index(uint32_t selector);
 void vector3d_clamp_length(real_vector3d *v, float max_length);
 }
