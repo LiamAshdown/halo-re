@@ -374,7 +374,7 @@ void halo::objects::AntennaView::apply_marker_delta(real_vector3d *out_forward, 
         if (node_index == -1) {
             node_ref->cluster_index = -1;
         } else {
-            node_ref->cluster_index = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
+            node_ref->cluster_index = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer +
                                                  (uint32_t)(node_index & halo::k_leaf_index_mask) * 0x10 + 8);
         }
     }

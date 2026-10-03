@@ -978,7 +978,7 @@ uint8_t UnitView::start_user_animation(datum_index graph_tag, const char *animat
             *(char **)((uint8_t *)halo::cache::globals().tag_instances + (int16_t)graph_tag * 0x20 + 0x10));
         return 0;
     }
-    animation = halo::models::animation_choose_random_permutation(graph_tag, animation, 1);
+    animation = halo::models::animation_choose_random_permutation(graph_tag, animation, (animation_random_stream)1);
     animations = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(graph_tag)].data + 0x78);
     record = animations + animation * 0xb4;
     if (*(int16_t *)(record + 0x20) != 0) {
@@ -1171,7 +1171,7 @@ uint8_t UnitView::try_start_scripted_action_animation(int16_t command, const rea
         return 0;
     }
     object_copy_default_node_transforms(unit_index, priority);
-    animation = halo::models::animation_choose_random_permutation(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id, first_animation, 1);
+    animation = halo::models::animation_choose_random_permutation(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id, first_animation, (animation_random_stream)1);
     object = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     ((struct object *)object)->animation_graph = *(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id;
     ((struct object *)object)->animation_index = animation;
@@ -1228,7 +1228,7 @@ uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_ind
     if (((struct unit_object *)OBJECT_DATA(vehicle_index))->unit.driver_unit_index == unit_index) {
         UnitView((int32_t)vehicle_index).notify_weapon_removed();
     }
-    UnitView(unit_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, halo::models::animation_choose_random_permutation(graph, exit_animation, 1));
+    UnitView(unit_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, halo::models::animation_choose_random_permutation(graph, exit_animation, (animation_random_stream)1));
     object = OBJECT_DATA(unit_index);
     object_tag = TAG_DATA(*(datum_index *)object);
     if (*(int32_t *)&((struct Unit *)object_tag)->base.model.tag_id != -1) {

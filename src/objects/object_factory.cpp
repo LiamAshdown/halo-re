@@ -630,7 +630,7 @@ uint8_t halo::objects::SceneryObject::initialize()
     datum_index graph = *(datum_index *)&((struct Object *)definition)->animation_graph.tag_id;
 
     if (graph != k_datum_index_none && *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(graph)].data + 0x74) > 0) {
-        int16_t animation = halo::models::animation_choose_random_permutation(graph, 0, 1);
+        int16_t animation = halo::models::animation_choose_random_permutation(graph, 0, (animation_random_stream)1);
         if (animation != -1) {
             ((struct object *)object)->animation_index = animation;
             ((struct object *)object)->animation_graph = *(datum_index *)&((struct Object *)definition)->animation_graph.tag_id;
@@ -661,7 +661,7 @@ uint8_t halo::objects::SceneryObject::update()
     uint8_t *object = object_get(object_index);
 
     if ((object[0x1f4] & 1) != 0 &&
-        halo::models::animation_state_advance(((struct object *)object)->animation_graph, object + 0xd0, 0, 1) == 2) {
+        halo::models::animation_state_advance(((struct object *)object)->animation_graph, (animation_state *)(object + 0xd0), 0, (animation_random_stream)1) == 2) {
         ((struct object *)object)->animation_frame -= 1;
     }
     return 1;

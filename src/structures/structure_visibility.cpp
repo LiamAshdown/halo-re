@@ -137,7 +137,7 @@ int16_t structure_visibility::collect_visible_objects(int32_t *out_handles, int1
 
 void structure_visibility::render_camera_update_leaf_and_cluster(real_point3d *camera_position)
 {
-    int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)((void *)(uintptr_t)global_structure_bsp->collision_bsp.pointer), camera_position);
+    int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)((void *)(uintptr_t)halo::scenario::globals().structure_bsp->collision_bsp.pointer), camera_position);
 
     if (leaf == -1 && globals().render_leaf_index < halo::scenario::globals().structure_bsp->leaves.count) {
         leaf = globals().render_leaf_index;
@@ -156,8 +156,8 @@ void structure_visibility::render_camera_update_leaf_and_cluster(real_point3d *c
         halo::structures::globals().render_cluster_index = leaves[halo::structures::globals().render_leaf_index & k_leaf_index_mask].cluster;
         halo::structures::globals().render_cluster_sky_index = clusters[halo::structures::globals().render_cluster_index].sky;
 
-        if (globals().render_cluster_sky_index > -1 && globals().render_cluster_sky_index < global_scenario->skies.count) {
-            ScenarioSky *skies = (ScenarioSky *)global_scenario->skies.pointer;
+        if (globals().render_cluster_sky_index > -1 && globals().render_cluster_sky_index < halo::scenario::globals().scenario->skies.count) {
+            ScenarioSky *skies = (ScenarioSky *)halo::scenario::globals().scenario->skies.pointer;
             if (skies[halo::structures::globals().render_cluster_sky_index].sky.tag_id.index != k_word_none) {
                 sky_tag_id = skies[halo::structures::globals().render_cluster_sky_index].sky.tag_id;
                 have_sky_tag_id = 1;
@@ -204,7 +204,7 @@ uint8_t structure_visibility::mirror_query(void *camera_ref, void *camera, struc
     }
 
     int32_t row_dwords = bit_array_word_count(cluster_count);
-    uint32_t *pvs_row = (uint32_t *)((uint8_t *)global_structure_bsp->cluster_data.pointer +
+    uint32_t *pvs_row = (uint32_t *)((uint8_t *)halo::scenario::globals().structure_bsp->cluster_data.pointer +
                                       row_dwords * globals().render_cluster_index * 4);
 
     for (int16_t cluster_index = 0; cluster_index < cluster_count; pvs_row++) {

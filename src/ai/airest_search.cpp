@@ -770,7 +770,7 @@ uint8_t AiSearch::run(uint8_t ignores_glass, ai_search_obstacle_list *obstacles,
 {
     ai_search_context * context = ptr;
     ai_search_context_init(context, ignores_glass, search_radius_bits, obstacles, origin,
-        (uint32_t)global_structure_bsp, position, surface_index, origin_surface_index, final_leg, ignore_flagged_obstacles);
+        (uint32_t)halo::scenario::globals().structure_bsp, position, surface_index, origin_surface_index, final_leg, ignore_flagged_obstacles);
 
     while (ai_search_step(context) != 0) {
     }

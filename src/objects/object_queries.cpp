@@ -358,7 +358,7 @@ int32_t halo::objects::ObjectQueries::collect_local_player_relevant_objects(real
     if (leaf == k_datum_index_none) {
         return 0;
     }
-    bsp = global_structure_bsp;
+    bsp = halo::scenario::globals().structure_bsp;
     cluster = *(int16_t *)((uint8_t *)bsp->leaves.pointer + (leaf & halo::k_leaf_index_mask) * 0x10 + 8);
     if (cluster == -1) {
         return 0;

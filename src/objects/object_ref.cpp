@@ -29,7 +29,6 @@ extern void console_print_va(const char *format, ...);
 extern double cos(double x);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern real_vector3d *global_origin3d_pointer;
-extern uint8_t *global_scenario;
 extern player_globals *local_player_globals;
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern int32_t network_index_cache_get(hash_table *table, int32_t key);
@@ -381,7 +380,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
                 local_location.cluster_index = -1;
             } else {
 
-                local_location.cluster_index = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
+                local_location.cluster_index = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer +
                                                             (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
             }
             local_location.leaf_index = leaf;
@@ -1486,7 +1485,7 @@ void halo::objects::ObjectRef::release_render_cache_slot()
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
     if (obj->render_cache_slot != -1) {
-        int32_t count = *(int32_t *)(global_scenario + 0x204);
+        int32_t count = *(int32_t *)(halo::scenario::globals().scenario + 0x204);
         int16_t i;
 
         obj->render_cache_slot = -1;

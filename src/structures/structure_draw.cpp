@@ -15,7 +15,6 @@ extern "C" {
 extern void **rasterizer_dynamic_index_buffer;
 extern int32_t rasterizer_dynamic_index_cache_reserve(int16_t vertex_count);
 extern void *rasterizer_dynamic_index_slot_lock(int32_t geometry_handle);
-extern ScenarioStructureBSP *global_structure_bsp;
 extern breakable_surface_globals *breakable_surface_state;
 extern const real_point3d *global_origin3d_pointer;
 extern int16_t render_force_flag;
@@ -118,7 +117,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
         if (*surface_indices < materials[material_count - 1].surfaces + materials[material_count - 1].surface_count) {
             void *bitmap_data = 0;
 
-            if (global_structure_bsp->lightmaps_bitmap.tag_id.index != k_word_none) {
+            if (halo::scenario::globals().structure_bsp->lightmaps_bitmap.tag_id.index != k_word_none) {
                 uint16_t bitmap_index = lightmap->bitmap;
                 Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[halo::scenario::globals().structure_bsp->lightmaps_bitmap.tag_id.index].data;
                 if (bitmap != 0 && bitmap_index < bitmap->bitmap_data.count) {
@@ -152,7 +151,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
                         consumed = (int16_t)(scan - surface_indices);
 
                         if (material->breakable_surface == (uint16_t)-1 ||
-                            (halo::physics::globals().breakable_surface_state->active[global_structure_bsp_index][bit_array_word(material->breakable_surface)] &
+                            (halo::physics::globals().breakable_surface_state->active[halo::scenario::globals().structure_bsp_index][bit_array_word(material->breakable_surface)] &
                              bit_array_mask(material->breakable_surface)) != 0) {
                             if (render::shader_type_is_transparent(shader->shader_type)) {
                                 if (transparent_material_cb != 0) {
@@ -210,7 +209,7 @@ void structure_draw::leaf_portal_vertex_count_debug(int32_t leaf_index, structur
 
 void structure_draw::picked_polygon_refresh(void)
 {
-    structure_bsp_leaf_map *leaf_map = leaf_map_of(global_structure_bsp);
+    structure_bsp_leaf_map *leaf_map = leaf_map_of(halo::scenario::globals().structure_bsp);
 
     globals().picked_surfaces_geometry = structure_draw::build_visible_surface_geometry(globals().visible_surface_indices, globals().surface_visible_bits, (int16_t)globals().visible_surface_count);
     globals().picked_surfaces_valid = globals().picked_surfaces_geometry != -1;
@@ -255,7 +254,7 @@ void structure_draw::picked_polygon_draw(void)
     }
 
     saved_render_flag = render_force_flag;
-    if (global_structure_bsp->lightmaps_bitmap.tag_id.index == k_word_none && saved_render_flag == 0) {
+    if (halo::scenario::globals().structure_bsp->lightmaps_bitmap.tag_id.index == k_word_none && saved_render_flag == 0) {
         render_force_flag = 1;
     }
 

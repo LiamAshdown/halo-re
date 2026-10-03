@@ -240,7 +240,7 @@ int16_t UnitView::detach_child_at_named_seat(char *seat_marker_name)
                 if (((struct unit_object *)OBJECT_DATA(vehicle_index))->unit.driver_unit_index == child_index) {
                     UnitView((int32_t)vehicle_index).notify_weapon_removed();
                 }
-                UnitView(child_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, halo::models::animation_choose_random_permutation(graph, exit_animation, 1));
+                UnitView(child_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, halo::models::animation_choose_random_permutation(graph, exit_animation, (animation_random_stream)1));
                 object = OBJECT_DATA(child_index);
                 object_tag = TAG_DATA(*(datum_index *)object);
                 if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {

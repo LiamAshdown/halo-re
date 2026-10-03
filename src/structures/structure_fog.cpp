@@ -18,7 +18,7 @@ uint32_t structure_fog::resolve_fog_tag(int16_t cluster_index, ScenarioStructure
     }
 
     if (use_sky) {
-        Scenario *halo::scenario::globals().scenario = global_scenario;
+        Scenario *scenario = halo::scenario::globals().scenario;
         uint32_t sky_tag_id = k_dword_none;
         if (scenario->skies.count > 0) {
             sky_tag_id = ((ScenarioSky *)scenario->skies.pointer)[0].sky.tag_id.index |
@@ -72,7 +72,7 @@ void structure_fog::build_fog_environment(int16_t cluster_index, structure_fog_e
     uint32_t fog_tag_id = structure_fog::resolve_fog_tag(cluster_index, halo::scenario::globals().structure_bsp, 0);
     uint8_t from_sky;
     if (fog_tag_id == k_dword_none) {
-        fog_tag_id = structure_fog::resolve_fog_tag(cluster_index, global_structure_bsp, 1);
+        fog_tag_id = structure_fog::resolve_fog_tag(cluster_index, halo::scenario::globals().structure_bsp, 1);
         from_sky = 1;
         if (fog_tag_id == k_dword_none) {
             return;
@@ -93,7 +93,7 @@ void structure_fog::build_fog_environment(int16_t cluster_index, structure_fog_e
         } else {
             out->plane_mode = _structure_fog_plane_bounded;
             ScenarioStructureBSPFogPlane *fog_plane =
-                &((ScenarioStructureBSPFogPlane *)global_structure_bsp->fog_planes.pointer)
+                &((ScenarioStructureBSPFogPlane *)halo::scenario::globals().structure_bsp->fog_planes.pointer)
                     [cluster->fog & k_cluster_fog_index_mask];
             out->plane.normal.i = fog_plane->plane.vector.i;
             out->plane.normal.j = fog_plane->plane.vector.j;

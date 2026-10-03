@@ -628,7 +628,7 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
                 if (weight <= *(float *)permutation) {
                     float t = (float)fmod(fabs(position[1]) + (double)i * (double)0.71210998f, 1.0);
 
-                    halo::bitmaps::color_interpolate((ColorRGB *)&((struct ObjectChangeColorsPermutation *)permutation)->color_upper_bound, (ColorRGB *)(permutation + 4), working, 1, t);
+                    halo::bitmaps::color_interpolate((ColorRGB *)&((struct ObjectChangeColorsPermutation *)permutation)->color_upper_bound, (ColorRGB *)(permutation + 4), working, (color_interpolation_flags)1, t);
                     break;
                 }
             }
@@ -784,7 +784,7 @@ void halo::objects::ObjectUpdater::update_change_colors()
                 float t = *(float *)((uint8_t *)obj + 0x120 + tag_color->scale_by * 4);
 
                 halo::bitmaps::color_interpolate((ColorRGB *)&tag_color->color_upper_bound, (ColorRGB *)((uint8_t *)tag_color + 8), out,
-                    *(uint32_t *)&((struct ObjectChangeColors *)tag_color)->flags, t);
+                    (color_interpolation_flags)(*(uint32_t *)&((struct ObjectChangeColors *)tag_color)->flags), t);
             }
             if (tag_color->darken_by != 0) {
                 float scale = *(float *)((uint8_t *)obj + 0x120 + tag_color->darken_by * 4);

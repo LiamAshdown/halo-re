@@ -174,7 +174,7 @@ int32_t structure_bsp_query::collect_surfaces_in_clusters(int32_t *out_surfaces,
 int16_t structure_bsp_query::query_surfaces(real_rectangle3d *query_box, real_point3d *query_point, int32_t *out_surfaces, int32_t max_count, float radius, int16_t plane_count, real_plane3d *planes, int16_t cluster_count, int16_t *cluster_indices)
 {
     uint32_t visited_bits[k_maximum_visible_surface_bits];
-    int32_t visited_dwords = bit_array_word_count(global_structure_bsp->surfaces.count);
+    int32_t visited_dwords = bit_array_word_count(halo::scenario::globals().structure_bsp->surfaces.count);
     for (int32_t i = 0; i < visited_dwords; i++) {
         visited_bits[i] = 0;
     }
@@ -197,7 +197,7 @@ int16_t structure_bsp_query::query_surfaces(real_rectangle3d *query_box, real_po
         if (leaf != -1) {
             int32_t leaf_index = leaf & k_leaf_index_mask;
             uint16_t leaf_cluster =
-                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index].cluster;
+                ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf_index].cluster;
             if (leaf_cluster != k_word_none) {
                 int16_t flood_clusters[k_maximum_flood_clusters];
                 int32_t flood_count = cluster_flood::seed(query_point, radius, (int16_t)leaf_cluster, flood_clusters, k_maximum_flood_clusters);
@@ -304,7 +304,7 @@ uint8_t structure_bsp_query::resolve_position_to_surface(real_point3d *start_pos
         *position = result.point;
 
         if (structure_bsp_query::leaf_find_material_surface(position, (int32_t)(result.plane_index & k_index_magnitude_mask), out_lightmap_index, out_material_index, out_surface, out_barycentric_u, out_barycentric_v, result.leaf.leaf_index)) {
-            lightmaps = (ScenarioStructureBSPLightmap *)global_structure_bsp->lightmaps.pointer;
+            lightmaps = (ScenarioStructureBSPLightmap *)halo::scenario::globals().structure_bsp->lightmaps.pointer;
             if (lightmaps[*out_lightmap_index].bitmap != k_word_none) {
                 return 1;
             }

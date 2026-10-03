@@ -38,7 +38,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
     for (slot = 0; ; slot = slot + 1) {
         uint32_t saved_seed = halo::math::globals().effect_random_seed;
         ScenarioStructureBSPCluster *cluster =
-            (ScenarioStructureBSPCluster *)((uint8_t *)global_structure_bsp->clusters.pointer + cluster_offset);
+            (ScenarioStructureBSPCluster *)((uint8_t *)halo::scenario::globals().structure_bsp->clusters.pointer + cluster_offset);
         int cluster_has_decals = cluster->first_decal_index != k_word_none && cluster->decal_count != 0;
         int entering;
         int leaving;
@@ -127,7 +127,7 @@ void structure_decals::runtime_decals_evict(void)
     }
     cluster_count = *(int16_t *)&halo::scenario::globals().structure_bsp->clusters.count;
     for (cluster_index = 0; cluster_index < cluster_count; cluster_index++) {
-        ScenarioStructureBSPCluster *cluster = (ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer + cluster_index;
+        ScenarioStructureBSPCluster *cluster = (ScenarioStructureBSPCluster *)halo::scenario::globals().structure_bsp->clusters.pointer + cluster_index;
 
         if (cluster->first_decal_index != k_word_none && cluster->decal_count != 0) {
             halo::effects::decal_evict_object_decals(cluster_index);

@@ -55,7 +55,7 @@ uint8_t RecordedAnimationPlayer::start(int16_t scenario_animation_index, uint16_
 
     player_index_from_unit_index((uint32_t)unit_index);
     record = halo::cutscene::recorded_animation_find_by_object(unit_index, &existing_index);
-    def = (ScenarioRecordedAnimation *)global_scenario->recorded_animations.pointer + scenario_animation_index;
+    def = (ScenarioRecordedAnimation *)halo::scenario::globals().scenario->recorded_animations.pointer + scenario_animation_index;
 
     if (halo::cutscene::recorded_animation_object_is_playing(unit_index) != 0) {
         return 0;

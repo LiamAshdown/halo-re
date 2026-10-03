@@ -762,7 +762,7 @@ uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uin
         int16_t animation;
 
         object_copy_default_node_transforms(unit_index, 6);
-        animation = halo::models::animation_choose_random_permutation(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id, enter_animation, 1);
+        animation = halo::models::animation_choose_random_permutation(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id, enter_animation, (animation_random_stream)1);
         reloaded = OBJECT_DATA(unit_index);
         ((struct object *)reloaded)->animation_graph = *(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id;
         ((struct object *)reloaded)->animation_index = animation;
@@ -2017,7 +2017,7 @@ void UnitView::try_exit_controlled_seat()
             if (((struct unit_object *)OBJECT_DATA(vehicle_index))->unit.driver_unit_index == unit_index) {
                 UnitView((int32_t)vehicle_index).notify_weapon_removed();
             }
-            UnitView(unit_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, halo::models::animation_choose_random_permutation(graph, exit_animation, 1));
+            UnitView(unit_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, halo::models::animation_choose_random_permutation(graph, exit_animation, (animation_random_stream)1));
             object = OBJECT_DATA(unit_index);
             object_tag = TAG_DATA(*(datum_index *)object);
             if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
