@@ -8,7 +8,9 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
+#include "halo/rasterizer/tag_access.hpp"
 #include "halo/render/shader_types.hpp"
+#include "halo/rasterizer/constants.hpp"
 #include "internal/shader_access.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -42,6 +44,13 @@ static_assert(sizeof(ShaderEnvironment) == 0x344);
 static inline ShaderEnvironment *senv(const void *shader)
 {
     return (ShaderEnvironment *)shader;
+}
+
+/** Copies the width and height pair the texture binders report for a bound bitmap. */
+static void copy_bitmap_size(int16_t *destination, const int16_t *source)
+{
+    destination[0] = source[0];
+    destination[1] = source[1];
 }
 
 
@@ -226,7 +235,7 @@ void rasterizer_shader_environment_draw_fixed_function(Shader *shader, int16_t f
     matrix[0] = rasterizer_active_model_context->base_map_u_scale;
     matrix[5] = rasterizer_active_model_context->base_map_v_scale;
     matrix[15] = 1.0f;
-    chimera__rasterizer_set_texture((senv(shader)->shader_environment_flags & k_senv_alpha_tested) ? halo::tag_id_bits(senv(shader)->bump_map.tag_id) : 0xffffffff, 1, 0, 1, frame);
+    chimera__rasterizer_set_texture((senv(shader)->shader_environment_flags & k_senv_alpha_tested) ? halo::tag_id_bits(senv(shader)->bump_map.tag_id) : halo::k_dword_none, 1, 0, 1, frame);
 
     if (rasterizer_active_model_context->flags & _model_draw_fixed_function_fog_bit) {
         render_device().set_vertex_shader(0);
@@ -367,7 +376,7 @@ void rasterizer_shader_environment_draw_pixel_shader(Shader *shader, int16_t fra
             (uint32_t)environment_techniques_no[senv(shader)->detail_map_function]);
     rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->base_map.tag_id), 0, 0, 1, frame, &environment_effect_slot);
     rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->primary_detail_map.tag_id), 0, 1, 2, frame, &environment_effect_slot);
-    rasterizer_resolve_and_cache_submap_b((senv(shader)->shader_environment_flags & k_senv_alpha_tested) ? halo::tag_id_bits(senv(shader)->bump_map.tag_id) : 0xffffffff, 0, 2, 1, frame,
+    rasterizer_resolve_and_cache_submap_b((senv(shader)->shader_environment_flags & k_senv_alpha_tested) ? halo::tag_id_bits(senv(shader)->bump_map.tag_id) : halo::k_dword_none, 0, 2, 1, frame,
         &environment_effect_slot);
     rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->reflection_cube_map.tag_id), 2, 3, 0, frame, &environment_effect_slot);
 
@@ -379,16 +388,16 @@ void rasterizer_shader_environment_draw_pixel_shader(Shader *shader, int16_t fra
     b[1] = senv(shader)->parallel_color.red * context->lighting.reflection_tint.red;
     b[2] = senv(shader)->parallel_color.green * context->lighting.reflection_tint.green;
     b[3] = senv(shader)->parallel_color.blue * context->lighting.reflection_tint.blue;
-    *(uint32_t *)&c10_c12[0] = *(uint32_t *)&senv(shader)->primary_detail_map_scale;
-    *(uint32_t *)&c10_c12[1] = *(uint32_t *)&senv(shader)->primary_detail_map_scale;
+    c10_c12[0] = senv(shader)->primary_detail_map_scale;
+    c10_c12[1] = senv(shader)->primary_detail_map_scale;
     c10_c12[2] = 1.0f;
     c10_c12[3] = 1.0f;
-    *(uint32_t *)&c10_c12[4] = *(uint32_t *)&context->base_map_u_scale;
+    c10_c12[4] = context->base_map_u_scale;
     c10_c12[5] = 0.0f;
     c10_c12[6] = 0.0f;
     c10_c12[7] = 0.0f;
     c10_c12[8] = 0.0f;
-    *(uint32_t *)&c10_c12[9] = *(uint32_t *)&context->base_map_v_scale;
+    c10_c12[9] = context->base_map_v_scale;
     c10_c12[10] = 0.0f;
     c10_c12[11] = 0.0f;
     c13_c14[0] = a[1] - b[1];
@@ -422,7 +431,7 @@ void rasterizer_shader_environment_draw_pixel_shader(Shader *shader, int16_t fra
         if (rasterizer_device_version < halo::d3d9::k_pixel_shader_version_1_4) {
             fog[0] = 1.0f;
             fog[1] = fog[2] = fog[3] = 0.0f;
-            environment_set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int((const float *)&rasterizer_fog_atmospheric_color));
+            environment_set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int(&rasterizer_fog_atmospheric_color.red));
         }
     } else {
         {
@@ -457,7 +466,7 @@ void rasterizer_shader_environment_draw_pixel_shader(Shader *shader, int16_t fra
             add[2] = rasterizer_fog_atmospheric_color.blue * density;
             if (rasterizer_device_version < halo::d3d9::k_pixel_shader_version_1_4) {
                 if (vertex_shader != 0x19) {
-                    environment_set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int((const float *)&rasterizer_fog_atmospheric_color));
+                    environment_set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int(&rasterizer_fog_atmospheric_color.red));
                 } else {
                     for (i = 0; i < 3; i++) {
                         add[i] = environment_clamp01(add[i] - halo::rasterizer::fields::planar_fog_attenuation * negative[i]);
@@ -629,7 +638,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || console_debug_toggle_6893f9 == 0 ||
+    if (halo::rasterizer::fields::rasterizer_debug_mode_word != 0 || console_debug_toggle_6893f9 == 0 ||
         rasterizer_window.has_mirror == 0 || rasterizer_window.type != 1) {
         return;
     }
@@ -696,7 +705,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
                 Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & halo::k_slot_mask].data;
 
                 if (bitmap != 0 && (int32_t)bitmap->bitmap_data.count > 3) {
-                    bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);
+                    bump_bitmap = tag_block_element<BitmapData>(bitmap->bitmap_data, 3);
                 }
             }
         }
@@ -778,16 +787,16 @@ void rasterizer_shader_environment_lightmap_draw(Shader *shader, int16_t frame, 
     if (!halo::rasterizer::fields::rasterizer_environment_diffuse_textures) {
         return;
     }
-    index = (int16_t)(*(uint16_t *)&senv(shader)->shader_environment_type * 3 + *(uint16_t *)&senv(shader)->detail_map_function);
-    index = (int16_t)((uint16_t)(index * 3) + *(uint16_t *)&senv(shader)->micro_detail_map_function + 5);
+    index = (int16_t)(static_cast<uint16_t>(senv(shader)->shader_environment_type) * 3 + static_cast<uint16_t>(senv(shader)->detail_map_function));
+    index = (int16_t)((uint16_t)(index * 3) + static_cast<uint16_t>(senv(shader)->micro_detail_map_function) + 5);
     slot = &rasterizer_effects[index];
     if (slot->effect == 0) {
         return;
     }
-    *(uint32_t *)size[0] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->base_map.tag_id), 0, 0, 1, frame, slot);
-    *(uint32_t *)size[1] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->primary_detail_map.tag_id), 0, 1, 2, frame, slot);
-    *(uint32_t *)size[2] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->secondary_detail_map.tag_id), 0, 2, 2, frame, slot);
-    *(uint32_t *)size[3] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->micro_detail_map.tag_id), 0, 3, 2, frame, slot);
+    copy_bitmap_size(size[0], rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->base_map.tag_id), 0, 0, 1, frame, slot));
+    copy_bitmap_size(size[1], rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->primary_detail_map.tag_id), 0, 1, 2, frame, slot));
+    copy_bitmap_size(size[2], rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->secondary_detail_map.tag_id), 0, 2, 2, frame, slot));
+    copy_bitmap_size(size[3], rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->micro_detail_map.tag_id), 0, 3, 2, frame, slot));
     if (senv(shader)->diffuse_flags & 1) {
         float base_width = (float)size[0][0];
         float base_height = (float)size[0][1];
@@ -811,10 +820,10 @@ void rasterizer_shader_environment_lightmap_draw(Shader *shader, int16_t frame, 
     constants[9] = 1.0f;
     constants[10] = sv3 * senv(shader)->micro_detail_map_scale;
     constants[11] = 0.0f;
-    halo::shaders::shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], (*(double *)&rasterizer_time), const_cast<ShaderEnvironment *>((const ShaderEnvironment *)shader));
+    halo::shaders::shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, const_cast<ShaderEnvironment *>((const ShaderEnvironment *)shader));
 
     render_device().set_vertex_shader_constant_f(10, constants, 3);
-    render_device().set_vertex_declaration((*(uint32_t *)&rasterizer_vertex_declarations));
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[0].declaration);
     render_device().set_vertex_shader(rasterizer_vertex_shaders[slot->vertex_shader_index].shader);
 
     effect = slot->effect;
@@ -969,7 +978,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_lightmap_enabled == 0 || render_force_flag != 0 ||
+    if (halo::rasterizer::fields::rasterizer_debug_mode_word != 0 || halo::rasterizer::fields::specular_lightmap_enabled == 0 || render_force_flag != 0 ||
         rasterizer_lightmap_bitmap_missing != 0 || rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_4) {
         return;
     }
@@ -1010,7 +1019,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
             Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & halo::k_slot_mask].data;
 
             if (bitmap != 0 && (int32_t)bitmap->bitmap_data.count > 3) {
-                bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);
+                bump_bitmap = tag_block_element<BitmapData>(bitmap->bitmap_data, 3);
             }
         }
     }
@@ -1103,7 +1112,7 @@ static void rasterizer_bind_bump_map(uint32_t bump_map_tag, int16_t frame, raste
             if (bitmap == 0 || (int32_t)bitmap->bitmap_data.count <= 3) {
                 return;
             }
-            bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);
+            bump_bitmap = tag_block_element<BitmapData>(bitmap->bitmap_data, 3);
         }
     }
     rasterizer_bind_texture_d3dx(0, bump_bitmap, effect_slot);
@@ -1129,7 +1138,7 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_projected_light_enabled == 0 ||
+    if (halo::rasterizer::fields::rasterizer_debug_mode_word != 0 || halo::rasterizer::fields::specular_projected_light_enabled == 0 ||
         rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_4) {
         return;
     }
@@ -1243,7 +1252,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_enabled == 0 ||
+    if (halo::rasterizer::fields::rasterizer_debug_mode_word != 0 || halo::rasterizer::fields::specular_enabled == 0 ||
         rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         return;
     }
@@ -1305,7 +1314,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
             Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & halo::k_slot_mask].data;
 
             if (bitmap != 0 && (int32_t)bitmap->bitmap_data.count > 3) {
-                bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);
+                bump_bitmap = tag_block_element<BitmapData>(bitmap->bitmap_data, 3);
             }
         }
     }
@@ -1451,7 +1460,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
     render_device().set_vertex_declaration(rasterizer_vertex_declarations[2].declaration);
     render_device().set_vertex_shader(rasterizer_vertex_shaders[13].shader);
 
-    bump_map_tag = (env->shader_environment_flags & 2) != 0 ? 0xffffffff : halo::tag_id_bits(env->bump_map.tag_id);
+    bump_map_tag = (env->shader_environment_flags & k_senv_bump_map_is_specular_mask) != 0 ? halo::k_dword_none : halo::tag_id_bits(env->bump_map.tag_id);
     bump_bitmap = 0;
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != halo::k_dword_none) {
         Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & halo::k_slot_mask].data;
@@ -1471,7 +1480,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
             Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & halo::k_slot_mask].data;
 
             if (bitmap != 0 && (int32_t)bitmap->bitmap_data.count > 3) {
-                bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);
+                bump_bitmap = tag_block_element<BitmapData>(bitmap->bitmap_data, 3);
             }
         }
     }
@@ -1610,14 +1619,12 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
     render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, (shader->shader_environment_flags & 1) != 0 && halo::rasterizer::fields::environment_alpha_testing_enabled != 0);
     render_device().set_vertex_shader(0);
 
-    colour = 0xffffff00u | (uint32_t)(int32_t)(env->material_color.red * 255.0f);
-    colour = (colour << 8) | ((uint32_t)(int32_t)(shader->material_color.green * 255.0f) & 0xff);
-    colour = (colour << 8) | ((uint32_t)(int32_t)(shader->material_color.blue * 255.0f) & 0xff);
+    colour = halo::rasterizer::pack_opaque_color(env->material_color.red, shader->material_color.green, shader->material_color.blue);
     render_device().set_render_state(halo::d3d9::rs::texture_factor, colour);
 
-    self_illumination = (env->shader_environment_flags & 2) ? k_datum_index_none : halo::tag_id_bits(env->bump_map.tag_id);
+    self_illumination = (env->shader_environment_flags & k_senv_bump_map_is_specular_mask) ? k_datum_index_none : halo::tag_id_bits(env->bump_map.tag_id);
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && self_illumination != k_datum_index_none) {
-        int32_t count = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[self_illumination & halo::k_slot_mask].data + 0x60);
+        int32_t count = (int32_t)reinterpret_cast<Bitmap *>(halo::cache::globals().tag_instances[self_illumination & halo::k_slot_mask].data)->bitmap_data.count;
 
         if (count > 0) {
             bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(self_illumination, (int16_t)((int32_t)frame % count));
@@ -1630,10 +1637,10 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
         datum_index fallback = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
         if (fallback != k_datum_index_none) {
-            uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[fallback & halo::k_slot_mask].data;
+            Bitmap *tag = reinterpret_cast<Bitmap *>(halo::cache::globals().tag_instances[fallback & halo::k_slot_mask].data);
 
-            if (tag != 0 && *(int32_t *)(tag + 0x60) > 3) {
-                bitmap = (BitmapData *)(*(uint8_t **)(tag + 0x64) + 0x90);
+            if (tag != 0 && (int32_t)tag->bitmap_data.count > 3) {
+                bitmap = tag_block_element<BitmapData>(tag->bitmap_data, 3);
             }
         }
     }
@@ -1644,13 +1651,13 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
     }
 
     {
-        uint32_t texture;
+        void *texture;
 
         if (rasterizer_environment_lightmap != 0) {
             halo::cache::texture_cache_get(rasterizer_environment_lightmap, 1, 1);
-            texture = *(uint32_t *)((uint8_t *)rasterizer_environment_lightmap + 0x28);
+            texture = bitmap_hardware_texture(*rasterizer_environment_lightmap);
         } else {
-            texture = (uint32_t)rasterizer_capture_surfaces[0];
+            texture = rasterizer_capture_surfaces[0];
         }
         render_device().set_texture(1, texture);
     }
@@ -1702,14 +1709,12 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, (shader->shader_environment_flags & 1) != 0 && halo::rasterizer::fields::environment_alpha_testing_enabled != 0);
     render_device().set_vertex_shader(0);
 
-    colour = 0xffffff00u | (uint32_t)(int32_t)(env->material_color.red * 255.0f);
-    colour = (colour << 8) | ((uint32_t)(int32_t)(shader->material_color.green * 255.0f) & 0xff);
-    colour = (colour << 8) | ((uint32_t)(int32_t)(shader->material_color.blue * 255.0f) & 0xff);
+    colour = halo::rasterizer::pack_opaque_color(env->material_color.red, shader->material_color.green, shader->material_color.blue);
     render_device().set_render_state(halo::d3d9::rs::texture_factor, colour);
 
-    self_illumination = (env->shader_environment_flags & 2) ? k_datum_index_none : halo::tag_id_bits(env->bump_map.tag_id);
+    self_illumination = (env->shader_environment_flags & k_senv_bump_map_is_specular_mask) ? k_datum_index_none : halo::tag_id_bits(env->bump_map.tag_id);
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && self_illumination != k_datum_index_none) {
-        int32_t count = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[self_illumination & halo::k_slot_mask].data + 0x60);
+        int32_t count = (int32_t)reinterpret_cast<Bitmap *>(halo::cache::globals().tag_instances[self_illumination & halo::k_slot_mask].data)->bitmap_data.count;
 
         if (count > 0) {
             bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(self_illumination, (int16_t)((int32_t)frame % count));
@@ -1722,10 +1727,10 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
         datum_index fallback = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
         if (fallback != k_datum_index_none) {
-            uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[fallback & halo::k_slot_mask].data;
+            Bitmap *tag = reinterpret_cast<Bitmap *>(halo::cache::globals().tag_instances[fallback & halo::k_slot_mask].data);
 
-            if (tag != 0 && *(int32_t *)(tag + 0x60) > 3) {
-                bitmap = (BitmapData *)(*(uint8_t **)(tag + 0x64) + 0x90);
+            if (tag != 0 && (int32_t)tag->bitmap_data.count > 3) {
+                bitmap = tag_block_element<BitmapData>(tag->bitmap_data, 3);
             }
         }
     }
@@ -1736,13 +1741,13 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     }
 
     {
-        uint32_t texture;
+        void *texture;
 
         if (rasterizer_environment_lightmap != 0) {
             halo::cache::texture_cache_get(rasterizer_environment_lightmap, 1, 1);
-            texture = *(uint32_t *)((uint8_t *)rasterizer_environment_lightmap + 0x28);
+            texture = bitmap_hardware_texture(*rasterizer_environment_lightmap);
         } else {
-            texture = (uint32_t)rasterizer_capture_surfaces[0];
+            texture = rasterizer_capture_surfaces[0];
         }
         render_device().set_texture(1, texture);
     }
@@ -1759,7 +1764,7 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     set_texture_stage_state(2, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
     render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[13].declaration);
     chimera__rasterizer_draw_dynamic_triangles_static_vertices2(primitive_count, vertex_buffer, dynamic_index_slot,
-        first_primitive, (rasterizer_vertex_buffer *)((uint8_t *)vertex_buffer + (halo::rasterizer::fields::environment_effect_variant == 0 ? 20 : 0)));
+        first_primitive, vertex_buffer + (halo::rasterizer::fields::environment_effect_variant == 0 ? 1 : 0));
 }
 
 }  // namespace rasterizer_shader_environment_self_illumination_draw_two_stream_impl
@@ -1808,7 +1813,7 @@ void rasterizer_shader_environment_technique_draw(rasterizer_vertex_buffer *vert
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::environment_multipurpose_enabled == 0 || halo::rasterizer::fields::specular_enabled == 0 ||
+    if (halo::rasterizer::fields::rasterizer_debug_mode_word != 0 || halo::rasterizer::fields::environment_multipurpose_enabled == 0 || halo::rasterizer::fields::specular_enabled == 0 ||
         render_force_flag != 0 || rasterizer_environment_lightmap_missing != 0) {
         return;
     }

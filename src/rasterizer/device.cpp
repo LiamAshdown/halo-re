@@ -198,7 +198,7 @@ void rasterizer_begin_frame(rasterizer_window_parameters *source)
     rasterizer_set_fog_constants(&source->fog);
 
     {
-        uint32_t clear_color = (halo::rasterizer::fields::rasterizer_debug_mode == 1) ? 0 : halo::interface::color_rgb_float_to_int((const float *)(&rasterizer_window.fog.atmospheric_color));
+        uint32_t clear_color = (halo::rasterizer::fields::rasterizer_debug_mode == 1) ? 0 : halo::interface::color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color.red);
         if (rasterizer_window.type == 1 || rasterizer_window.type == 2) {
             rasterizer_render_target_set_active(rasterizer_window.type, clear_color, source->clear_target == 0);
         }

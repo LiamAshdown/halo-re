@@ -10,6 +10,7 @@
 #include "internal/shader_access.hpp"
 #include <cstring>
 #include "internal/state.hpp"
+#include "halo/rasterizer/constants.hpp"
 #include "halo/shaders/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/render/api.hpp"
@@ -1538,11 +1539,11 @@ int32_t transparent_geometry_pool_initialize(void)
         transparent_geometry_group_sorted_indices != nullptr && secondary_pool != 0) {
         uint32_t result = rasterizer_misc_vertex_buffer_create();
         if ((uint8_t)result != 0) {
-            return (int32_t)((result & 0xffffff00) | 1);
+            return (int32_t)halo::rasterizer::replace_low_byte(result, 1);
         }
-        return (int32_t)(result & 0xffffff00);
+        return (int32_t)halo::rasterizer::replace_low_byte(result, 0);
     }
-    return (int32_t)(secondary_pool & 0xffffff00);
+    return (int32_t)halo::rasterizer::replace_low_byte(secondary_pool, 0);
 }
 
 }  // namespace halo::rasterizer

@@ -371,7 +371,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
     if (decals_for_all_responses == 0 && rasterizer_decal_layer != 3) {
         layer_enabled = 0;
     }
-    if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || !layer_enabled) {
+    if (halo::rasterizer::fields::rasterizer_debug_mode_word != 0 || !layer_enabled) {
         return;
     }
 

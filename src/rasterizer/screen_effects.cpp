@@ -257,7 +257,7 @@ void rasterizer_fog_screen_overlay_set_states(void)
 
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         render_device().set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled);
-        fog_color = halo::interface::color_rgb_float_to_int((const float *)(&rasterizer_window.fog.atmospheric_color));
+        fog_color = halo::interface::color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color.red);
         render_device().set_render_state(halo::d3d9::rs::fog_color, fog_color);
         rasterizer_set_shader_stage_config(5);
         return;

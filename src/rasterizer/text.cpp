@@ -7,6 +7,7 @@
 #include "halo/render/d3d9.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
+#include "halo/rasterizer/constants.hpp"
 #include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/cache/api.hpp"
@@ -579,10 +580,10 @@ int32_t text_font_system_initialize(void)
         if ((uint8_t)result != 0) {
             g_font_glyph_cache.atlas = (uint32_t)(uintptr_t)atlas;
             g_font_glyph_cache.initialized = 1;
-            return (int32_t)((result & 0xffffff00) | 1);
+            return (int32_t)halo::rasterizer::replace_low_byte(result, 1);
         }
     }
-    return (int32_t)(result & 0xffffff00);
+    return (int32_t)halo::rasterizer::replace_low_byte(result, 0);
 }
 
 }  // namespace halo::rasterizer

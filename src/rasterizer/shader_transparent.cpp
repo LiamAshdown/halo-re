@@ -7,6 +7,7 @@
 #include "halo/render/d3d9.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/rasterizer/globals.hpp"
+#include "halo/rasterizer/tag_access.hpp"
 #include "internal/shader_access.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -468,7 +469,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
                 Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & halo::k_slot_mask].data;
 
                 if (bitmap != 0 && (int32_t)bitmap->bitmap_data.count > 3) {
-                    bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);
+                    bump_bitmap = tag_block_element<BitmapData>(bitmap->bitmap_data, 3);
                 }
             }
         }
@@ -2176,7 +2177,7 @@ void rasterizer_water_ripple_draw(rasterizer_vertex_buffer *vertex_buffer, const
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || rasterizer_fog_enabled == 0 ||
+    if (halo::rasterizer::fields::rasterizer_debug_mode_word != 0 || rasterizer_fog_enabled == 0 ||
         rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1 || effect == 0) {
         return;
     }

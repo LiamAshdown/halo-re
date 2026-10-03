@@ -885,7 +885,7 @@ void rasterizer_shader_model_draw_fixed_function(Shader *shader, int16_t frame, 
             rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, &processed, primitive_count, 0,
                                                       dynamic_vertex_slot);
 
-            set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int((const float *)(&rasterizer_window.fog.atmospheric_color)));
+            set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color.red));
             set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
             set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
             set_render_state(halo::d3d9::rs::blend_op, 1);
@@ -1270,7 +1270,7 @@ void rasterizer_shader_model_draw_pixel_shader(Shader *shader, int16_t frame, ra
     } else if (true_atmospheric_fog) {
         if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_4) {
             set_render_state(halo::d3d9::rs::fog_enable, 1);
-            set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int((const float *)(&rasterizer_window.fog.atmospheric_color)));
+            set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color.red));
         } else {
 
             fog_add = animated;
