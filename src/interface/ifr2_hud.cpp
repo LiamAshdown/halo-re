@@ -17,6 +17,7 @@
 #include "tags.h"
 #include "units.h"
 #include "game.h"
+#include "halo/interface/flags.hpp"
 
 #ifdef interface
 #undef interface
@@ -335,7 +336,7 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
                     continue;
                 }
                 scale = 1.0f;
-                if (halo::game::globals().local_player_globals->local_player_count > 1 && (overlay->scaling_flags & 2) == 0) {
+                if (halo::game::globals().local_player_globals->local_player_count > 1 && !halo::interface::has_bit(overlay->scaling_flags, halo::tags::hud_interface_scaling_tag_flag::don_t_scale_size)) {
                     scale = 0.5f;
                 }
                 sequence = 0;
@@ -403,7 +404,7 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
                     } else {
                         frame = 0;
                     }
-                    if ((overlay->flags & 1) != 0 && *state != -1) {
+                    if (halo::interface::has_bit(overlay->flags, halo::tags::weapon_hud_interface_crosshair_overlay_tag_flag::flashes_when_active) && *state != -1) {
                         color = halo::interface::hud_meter_flash_color_blend((const hud_flash_parameters *)&overlay->default_color, *state);
                     } else {
                         color = *(uint32_t *)&overlay->default_color;
@@ -481,7 +482,7 @@ void WeaponHud::draw_elements(datum_index hud_tag, int16_t local_player_index, c
     memset(numbers, 0, sizeof(numbers));
     memset(values, 0, sizeof(values));
 
-    if ((hud->flags & 1) != 0 && parent_state_flags != 0 && parent_overlay_types != 0 &&
+    if (halo::interface::has_bit(hud->flags, halo::tags::weapon_hud_interface_tag_flag::use_parent_hud_flashing_parameters) && parent_state_flags != 0 && parent_overlay_types != 0 &&
         parent_numbers != 0) {
         memcpy(state_flags, parent_state_flags, sizeof(state_flags));
         memcpy(overlay_types, parent_overlay_types, sizeof(overlay_types));
@@ -631,7 +632,7 @@ void WeaponHud::draw_elements(datum_index hud_tag, int16_t local_player_index, c
             continue;
         }
         divisor = 1;
-        if ((element->weapon_specific_flags & 1) != 0) {
+        if (halo::interface::has_bit(element->weapon_specific_flags, halo::tags::weapon_hud_interface_number_weapon_specific_tag_flag::divide_number_by_clip_size)) {
             divisor = ((WeaponMagazine *)weapon_tag->magazines.pointer)->rounds_loaded_maximum;
         }
         if (element->number_of_fractional_digits != 0) {

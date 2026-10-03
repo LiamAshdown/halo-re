@@ -16,6 +16,7 @@
 #include "interface.h"
 #include "units.h"
 #include "items.h"
+#include "halo/interface/flags.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -403,7 +404,7 @@ void FirstPersonWeaponController::update_zoom_static_tint(uint8_t enabled)
         (halo::interface::tag_data<WeaponHUDInterface>(hud_interface))->screen_effect.pointer;
 
     if ((int16_t)halo::game::local_player_get_zoom_level(current_local_player_index) == -1 &&
-        (effect->mask_flags & 1) != 0) {
+        halo::interface::has_bit(effect->mask_flags, halo::tags::weapon_hud_interface_screen_effect_definition_mask_tag_flag::only_when_zoomed)) {
         return;
     }
     if (halo::main::render_local_view_count() > 1) {
@@ -412,7 +413,7 @@ void FirstPersonWeaponController::update_zoom_static_tint(uint8_t enabled)
     if (*(datum_index *)&effect->mask_fullscreen.tag_id == (datum_index)-1) {
         return;
     }
-    if ((effect->desaturation_flags & 2) == 0) {
+    if (!halo::interface::has_bit(effect->desaturation_flags, halo::tags::weapon_hud_interface_screen_effect_definition_desaturation_tag_flag::connect_to_flashlight)) {
         return;
     }
 

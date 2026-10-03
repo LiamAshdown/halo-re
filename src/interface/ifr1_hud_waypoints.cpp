@@ -10,6 +10,7 @@
 #include "halo/units/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/flags.hpp"
 
 extern "C" {
 extern hud_waypoint_state *hud_waypoints;
@@ -307,7 +308,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
             visibility = 1;
             x = x * k;
             y = y * k;
-            if ((arrow->flags & 1) == 0) {
+            if (!halo::interface::has_bit(arrow->flags, halo::tags::hud_globals_waypoint_arrow_tag_flag::dont_rotate_when_pointing_offscreen)) {
                 rotation = -atan2f(x, y);
             }
         }

@@ -20,6 +20,7 @@
 #include "units.h"
 #include "tags.h"
 #include "tags.h"
+#include "halo/interface/flags.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -784,7 +785,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
     zoomed = (desired_zoom_level != -1);
     memset(&parameters, 0, sizeof(parameters));
 
-    if (zoomed || (effect->mask_flags & 1) == 0) {
+    if (zoomed || !halo::interface::has_bit(effect->mask_flags, halo::tags::weapon_hud_interface_screen_effect_definition_mask_tag_flag::only_when_zoomed)) {
         datum_index mask = (halo::main::render_local_view_count() > 1) ? *(datum_index *)&effect->mask_splitscreen.tag_id
                                                 : *(datum_index *)&effect->mask_fullscreen.tag_id;
         if (mask != (datum_index)-1) {
@@ -795,7 +796,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
         }
     }
 
-    if (halo::main::render_local_view_count() <= 1 && (zoomed || (effect->convolution_flags & 1) == 0)) {
+    if (halo::main::render_local_view_count() <= 1 && (zoomed || !halo::interface::has_bit(effect->convolution_flags, halo::tags::weapon_hud_interface_screen_effect_definition_mask_tag_flag::only_when_zoomed))) {
         if (effect->convolution_fov_in_bounds[0] == effect->convolution_fov_in_bounds[1]) {
             amount = effect->convolution_radius_out_bounds[1];
         } else {
@@ -811,9 +812,9 @@ void FirstPersonWeaponController::update_screen_effects(void)
         }
     }
 
-    if (zoomed || (effect->even_more_flags & 1) == 0) {
+    if (zoomed || !halo::interface::has_bit(effect->even_more_flags, halo::tags::weapon_hud_interface_screen_effect_definition_night_vision_tag_flag::only_when_zoomed)) {
         float value = effect->night_vision_intensity;
-        if ((effect->even_more_flags & 2) != 0) {
+        if (halo::interface::has_bit(effect->even_more_flags, halo::tags::weapon_hud_interface_screen_effect_definition_night_vision_tag_flag::connect_to_flashlight)) {
             value = clamp_unit(intensity) * value;
         }
         value = script_source_value((uint16_t)effect->night_vision_script_source) * value;
@@ -822,9 +823,9 @@ void FirstPersonWeaponController::update_screen_effects(void)
         }
     }
 
-    if (zoomed || (effect->desaturation_flags & 1) == 0) {
+    if (zoomed || !halo::interface::has_bit(effect->desaturation_flags, halo::tags::weapon_hud_interface_screen_effect_definition_desaturation_tag_flag::only_when_zoomed)) {
         float value = effect->desaturation_intensity;
-        if ((effect->desaturation_flags & 2) != 0) {
+        if (halo::interface::has_bit(effect->desaturation_flags, halo::tags::weapon_hud_interface_screen_effect_definition_desaturation_tag_flag::connect_to_flashlight)) {
             value = clamp_unit(intensity) * value;
         }
         value = script_source_value((uint16_t)effect->desaturation_script_source) * value;

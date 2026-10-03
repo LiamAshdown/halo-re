@@ -16,6 +16,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/flags.hpp"
 
 #ifdef interface
 #undef interface
@@ -154,7 +155,7 @@ void WidgetLifecycle::close()
                     ui_event_function fn = (ui_event_function)ui_event_function_table[function];
                     uint8_t handled = 0;
 
-                    if (fn(widget, nullptr, &handled) == 1 && (handler->flags & 0x08) != 0 &&
+                    if (fn(widget, nullptr, &handled) == 1 && halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::open_widget) &&
                         *(uint32_t *)&handler->widget_tag.tag_id != halo::k_dword_none) {
                         halo::interface::widget_reopen_as_root_with_history(widget, *(datum_index *)&handler->widget_tag.tag_id);
                     }
@@ -309,7 +310,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
     uint8_t ok = 1;
     int32_t i;
 
-    if ((tag->flags_2 & 2) != 0) {
+    if (halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag)) {
         UnicodeStringList *list =
             halo::interface::tag_data<UnicodeStringList>(*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id);
 
@@ -350,7 +351,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
                 uint16_t controller = widget->controller_index;
                 widget_instance *child;
 
-                if ((entry->flags & 1) != 0 && entry->custom_controller_index < 4) {
+                if (halo::interface::has_bit(entry->flags, halo::tags::child_widget_reference_tag_flag::use_custom_controller_index) && entry->custom_controller_index < 4) {
                     controller = entry->custom_controller_index;
                 }
                 child = halo::interface::chimera__load_ui_widget(nullptr, child_tag_index, widget, controller,
@@ -397,7 +398,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
             widget->selection_index = 0;
             widget->scroll_blink = 0;
             widget->selection_direction = 0;
-        } else if ((tag->flags & 1) == 0) {
+        } else if (!halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::pass_unhandled_events_to_focused_child)) {
             return ok;
         }
         {
@@ -643,12 +644,12 @@ void WidgetList::extended_description_sync_selection()
             if (list_child->widget_type == uiwidgettype_spinner_list) {
                 list_tag = halo::interface::tag_data<UIWidgetDefinition>(list_child->definition);
                 if (sibling == focused) {
-                    if ((list_tag->flags_2 & 4) == 0) {
+                    if (!halo::interface::has_bit(list_tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_only_one_tooltip)) {
                         index = index + list_child->selection_index;
                     }
                     goto enable;
                 }
-                if ((list_tag->flags_2 & 4) != 0) {
+                if (halo::interface::has_bit(list_tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_only_one_tooltip)) {
                     index = index + 1;
                 } else {
                     index = index + (uint16_t)list_child->item_count;
@@ -725,7 +726,7 @@ void WidgetView::focus_next_child()
     while (candidate != current) {
         UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(candidate->definition);
 
-        if ((tag->game_data_inputs.count > 0 || (tag->flags & 1) != 0 ||
+        if ((tag->game_data_inputs.count > 0 || halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::pass_unhandled_events_to_focused_child) ||
              widget->widget_type == 2 || widget->widget_type == 3) &&
             candidate->hidden == 0) {
             widget->focused_child = candidate;
@@ -783,7 +784,7 @@ void WidgetView::focus_previous_child()
                 return;
             }
             tag = halo::interface::tag_data<UIWidgetDefinition>(candidate->definition);
-            if ((tag->game_data_inputs.count > 0 || (tag->flags & 1) != 0 ||
+            if ((tag->game_data_inputs.count > 0 || halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::pass_unhandled_events_to_focused_child) ||
                  widget->widget_type == 2 || widget->widget_type == 3) &&
                 candidate->hidden == 0) {
                 widget->focused_child = candidate;
@@ -848,7 +849,7 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
         }
     }
 
-    if ((tag->flags_2 & 2) != 0 && parent != (widget_instance *)0 && tag_index == parent->definition) {
+    if (halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag) && parent != (widget_instance *)0 && tag_index == parent->definition) {
         widget->widget_type = 1;
     }
     widget->controller_index = controller_index;
@@ -1112,7 +1113,7 @@ after_close_check:
             if (list_nav_done != 0) {
                 goto dispatch_to_children;
             }
-            if ((tag->flags & 8) != 0 && widget->focused_child != (widget_instance *)0 && handled == 0) {
+            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_up_down_tabs_thru_children) && widget->focused_child != (widget_instance *)0 && handled == 0) {
                 if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
                     int8_t code = (int8_t)event[2];
 
@@ -1148,7 +1149,7 @@ after_close_check:
             goto tab_commit;
 
         dpad_lr_nav:
-            if ((tag->flags & 0x10) != 0 && widget->focused_child != (widget_instance *)0 && handled == 0) {
+            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_left_right_tabs_thru_children) && widget->focused_child != (widget_instance *)0 && handled == 0) {
                 if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
                     int8_t code = (int8_t)event[2];
 
@@ -1172,7 +1173,7 @@ after_close_check:
                 }
             }
         dpad_lr_nav_done:
-            if ((tag->flags & 0x20) != 0 && (widget->widget_type == 2 || widget->widget_type == 3) &&
+            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_up_down_tabs_thru_list_items) && (widget->widget_type == 2 || widget->widget_type == 3) &&
                 list_nav_done == 0 && handled == 0) {
                 if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
                     int8_t code = (int8_t)event[2];
@@ -1201,7 +1202,7 @@ after_close_check:
                 }
             }
         dpad_ud_nav:
-            if ((tag->flags & 0x40) != 0 && (widget->widget_type == 2 || widget->widget_type == 3) &&
+            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_left_right_tabs_thru_list_items) && (widget->widget_type == 2 || widget->widget_type == 3) &&
                 list_nav_done == 0 && handled == 0) {
                 if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
                     int8_t code = (int8_t)event[2];
@@ -1334,7 +1335,7 @@ dispatch_to_children:
         }
     }
 
-    if (handled == 1 && (tag->flags & 0x800) != 0) {
+    if (handled == 1 && halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::return_to_main_menu_if_no_history)) {
         int32_t i;
 
         for (i = 0; i < 1; i++) {
@@ -1379,7 +1380,7 @@ uint8_t WidgetView::is_input_eligible()
         UIWidgetDefinition *definition = (UIWidgetDefinition *)tag_data;
 
         tag_source = cursor;
-        if ((definition->flags & 1) == 0 && cursor->widget_type != 2 && cursor->widget_type != 3) {
+        if (!halo::interface::has_bit(definition->flags, halo::tags::ui_widget_definition_tag_flag::pass_unhandled_events_to_focused_child) && cursor->widget_type != 2 && cursor->widget_type != 3) {
             result = 0;
         } else {
             result = 1;
@@ -1511,7 +1512,7 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
         scale = scale * ancestor->scale;
     }
 
-    if ((int8_t)flag2 == 0 && (tag->flags & 0x2000) != 0) {
+    if ((int8_t)flag2 == 0 && halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::always_use_nifty_render_fx)) {
         flag2 = (flag2 & ~0xff) | 1;
     }
 
@@ -1559,7 +1560,7 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
                 clip.right = (int16_t)(dest->right + x);
                 clip_arg = &clip;
             }
-            if ((tag->flags & 4) != 0) {
+            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::flash_background_bitmap)) {
                 double t = (double)ui_time_milliseconds;
 
                 if (ui_time_milliseconds < 0) t += 4294967296.0;
@@ -1580,18 +1581,18 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
     if (widget->widget_type == 1) {
         uint32_t use_flag1 = flag1;
 
-        if ((tag->flags_1 & 8) == 0) {
+        if (!halo::interface::has_bit(tag->flags_1, halo::tags::ui_widget_definition_flags1_tag_flag::don_t_do_that_weird_focus_test)) {
             use_flag1 = halo::interface::widget_instance_is_top_of_stack(widget);
         }
         halo::interface::widget_instance_render_text_box(widget, tag, dest, offset_xy, use_flag1 & 0xff);
     } else if (widget->widget_type == 2) {
         halo::interface::widget_instance_render_list_head(widget, tag, dest, offset_xy, flag1);
-        if ((tag->flags_2 & 2) != 0 && tag->child_widgets.count == 0) {
+        if (halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag) && tag->child_widgets.count == 0) {
             goto post_render;
         }
     } else if (widget->widget_type == 3) {
         halo::interface::widget_instance_render_column_list_items(widget, tag, dest, offset_xy, flag1);
-        if ((tag->flags_2 & 1) != 0) {
+        if (halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_generated_in_code)) {
             goto post_render;
         }
     }
@@ -1652,7 +1653,7 @@ void WidgetRender::render_column_list_items(UIWidgetDefinition *tag, Rectangle2D
         halo::interface::widget_instance_render(widget->extended_description, dest, offset_xy, 0, 1);
     }
 
-    if ((tag->flags_2 & 1) == 0) {
+    if (!halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_generated_in_code)) {
         widget->scroll_blink = 0;
         return;
     }
@@ -1865,7 +1866,7 @@ uint8_t WidgetList::select_next()
         goto commit;
     }
 
-    if (widget->widget_type != 2 || (tag->flags_2 & 2) == 0 || tag->child_widgets.count != 0) {
+    if (widget->widget_type != 2 || !halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag) || tag->child_widgets.count != 0) {
         widget_instance *child;
 
         if ((widget->focused_child == (widget_instance *)0 ||
@@ -1955,7 +1956,7 @@ uint8_t WidgetList::select_previous()
         goto commit;
     }
 
-    if (widget->widget_type == 2 && (tag->flags_2 & 2) != 0 && tag->child_widgets.count == 0) {
+    if (widget->widget_type == 2 && halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag) && tag->child_widgets.count == 0) {
         widget->selection_index = widget->selection_index - 1;
         if (widget->selection_index < 0) {
             widget->selection_index = widget->item_count - 1;
@@ -2181,7 +2182,7 @@ widget_instance * WidgetLifecycle::reopen_as_root_with_history(datum_index open_
     datum_index parent_definition;
     int16_t sibling_index;
 
-    if ((open_definition->flags & 0x1000) == 0) {
+    if (!halo::interface::has_bit(open_definition->flags, halo::tags::ui_widget_definition_tag_flag::always_use_tag_controller_index)) {
         switch (open_definition->controller_index) {
         case 0: controller_index = 0; break;
         case 1: controller_index = 1; break;

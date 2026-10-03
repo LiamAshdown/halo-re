@@ -18,6 +18,7 @@
 #include "tags.h"
 #include "units.h"
 #include "objects.h"
+#include "halo/interface/flags.hpp"
 
 extern "C" {
 extern HUDGlobals *hud_globals_tag_data;
@@ -656,7 +657,7 @@ void HudFrame::render_unit_interface(player *p)
                 if ((overlay_types & (1u << *(uint8_t *)&overlay->type)) == 0) {
                     continue;
                 }
-                if ((overlay->flags & 1) != 0) {
+                if (halo::interface::has_bit(overlay->flags, halo::tags::unit_hud_interface_auxiliary_overlay_tag_flag::use_team_color)) {
                     *(uint32_t *)&overlay->default_color = halo::interface::color_rgb_float_to_int((const float *)(((struct object *)object)->unknown_188)) | 0xff000000;
                 }
                 halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)&hud->auxiliary_overlay_anchor,

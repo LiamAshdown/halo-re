@@ -26,6 +26,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/flags.hpp"
 
 extern "C" {
 extern uint8_t ui_list_has_default;
@@ -278,7 +279,7 @@ int32_t UiLists::list_widget_compute_scroll_start(widget_instance *widget)
     }
 
     item_count = (uint16_t)widget->item_count;
-    needs_paging = ((tag_data->flags_2 & 8) == 0 && (visible_rows - 1 < item_count)) ? 0 : 1;
+    needs_paging = (!halo::interface::has_bit(tag_data->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_single_preview_no_scroll) && (visible_rows - 1 < item_count)) ? 0 : 1;
     window_size = visible_rows - (needs_paging ? 1 : 3);
     if (item_count < window_size) {
         window_size = item_count;
@@ -402,7 +403,7 @@ forced_rebuild:
         if (has_embedded_spinner) {
             visible_rows = visible_rows - 1;
         }
-        single_page = ((tag_data->flags_2 & 8) != 0) || (visible_rows - 1 >= item_count);
+        single_page = (halo::interface::has_bit(tag_data->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_single_preview_no_scroll)) || (visible_rows - 1 >= item_count);
         window_size = visible_rows - (single_page ? 1 : 3);
         if (item_count < window_size) {
             window_size = item_count;
@@ -608,7 +609,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
     uint8_t close_all = 0;
     int32_t action_kind = 0;
 
-    if ((handler->flags & 0x400) != 0 && handler->script.string[0] != 0) {
+    if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::run_scenario_script) && handler->script.string[0] != 0) {
         int16_t script_index = halo::hs::hs_script_find_by_name(handler->script.string);
 
         if (script_index != -1) {
@@ -628,7 +629,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
         }
     }
     {
-        if ((handler->flags & 0x40) != 0 && handled == 0) {
+        if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::give_focus_to_widget) && handled == 0) {
             if (*(uint32_t *)&handler->widget_tag.tag_id == 0xffffffffu) {
                 ok = 0;
             } else {
@@ -645,14 +646,14 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
                 action_kind = 1;
             }
         }
-        if ((handler->flags & 0x20) != 0 && handled == 0 &&
+        if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::reload_other_widget) && handled == 0 &&
             *(uint32_t *)&handler->widget_tag.tag_id == 0xffffffffu) {
             ok = 0;
         }
-        if ((handler->flags & 1) != 0 && handled == 0) {
+        if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::close_current_widget) && handled == 0) {
             close_current = 1;
         }
-        if ((handler->flags & 2) != 0 && handled == 0 &&
+        if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::close_other_widget) && handled == 0 &&
             *(uint32_t *)&handler->widget_tag.tag_id != 0xffffffffu) {
             widget_instance *found = (widget_instance *)0;
             int32_t i;
@@ -673,10 +674,10 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
                 halo::interface::widget_close(found);
             }
         }
-        if ((handler->flags & 4) != 0 && handled == 0) {
+        if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::close_all_widgets) && handled == 0) {
             close_all = 1;
         }
-        if ((handler->flags & 8) != 0 && *(uint32_t *)&handler->widget_tag.tag_id != 0xffffffffu) {
+        if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::open_widget) && *(uint32_t *)&handler->widget_tag.tag_id != 0xffffffffu) {
             if (halo::interface::widget_reopen_as_root_with_history(widget, *(datum_index *)&handler->widget_tag.tag_id) == 0) {
                 ok = 0;
             } else {
@@ -684,7 +685,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
                 handled = 1;
             }
         }
-        if ((handler->flags & 0x100) != 0 && handled == 0 &&
+        if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::replace_self_w_widget) && handled == 0 &&
             *(uint32_t *)&handler->widget_tag.tag_id != 0xffffffffu) {
             widget_instance *replacement =
                 halo::interface::chimera__load_ui_widget(nullptr, *(datum_index *)&handler->widget_tag.tag_id,
@@ -732,7 +733,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
                 close_self_via_root = 1;
             }
         }
-        if ((handler->flags & 0x200) != 0) {
+        if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::go_back_to_previous_widget)) {
             halo::interface::widget_instance_close_and_restore_previous(widget);
             if (action_kind == 0) action_kind = 3;
             handled = 1;
@@ -792,14 +793,14 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
 
 after_close:
 after_run_function:
-    if ((handler->flags & 0x800) != 0 && tag->conditional_widgets.count > 0) {
+    if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::try_to_branch_on_failure) && tag->conditional_widgets.count > 0) {
         uint8_t *entries = (uint8_t *)tag->conditional_widgets.pointer;
         int32_t i;
 
         for (i = 0; i < tag->conditional_widgets.count; i++) {
             ConditionalWidgetReference *entry = (ConditionalWidgetReference *)(entries + i * 0x50);
 
-            if (function_failed == 1 && (entry->flags & 1) != 0 && handled == 0) {
+            if (function_failed == 1 && halo::interface::has_bit(entry->flags, halo::tags::conditional_widget_reference_tag_flag::load_if_event_handler_function_fails) && handled == 0) {
                 datum_index open_tag = *(uint32_t *)&entry->widget_tag.tag_id;
 
                 if (open_tag != (datum_index)-1 && halo::interface::widget_reopen_as_root_with_history(widget, open_tag) != 0) {

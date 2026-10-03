@@ -13,6 +13,7 @@
 #include "halo/render/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/flags.hpp"
 
 extern "C" {
 extern HUDGlobals *hud_messaging_parameters;
@@ -162,7 +163,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                 packed_color = halo::interface::hud_meter_flash_color_blend(
                     (const hud_flash_parameters *)&hud_globals_tag_data->hud_help_default_color,
                     hud_messaging->help_text_flash_start_time);
-            } else if ((hud_globals_tag_data->hud_help_flash_flags & 1) != 0) {
+            } else if (halo::interface::has_bit(hud_globals_tag_data->hud_help_flash_flags, halo::tags::hud_interface_flash_tag_flag::reverse_default_flashing_colors)) {
                 packed_color = *(uint32_t *)&hud_globals_tag_data->hud_help_flashing_color;
             } else {
                 packed_color = *(uint32_t *)&hud_globals_tag_data->hud_help_default_color;
