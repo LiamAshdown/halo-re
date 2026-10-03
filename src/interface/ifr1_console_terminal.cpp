@@ -45,7 +45,7 @@ static auto &controls_input_capture_flags = halo::link::ref<uint8_t>(halo::ui::v
 static auto &key_event_read_index = halo::link::ref<int16_t>(halo::ui::vars().key_event_read_index);
 static auto &key_event_count = halo::link::ref<int16_t>(halo::ui::vars().key_event_count);
 static auto &key_events = halo::link::ref<ui_key_event []>(halo::ui::vars().key_events);
-static auto &console_last_line = halo::link::ref<char [0x100]>(halo::ui::vars().console_last_line);
+static auto &console_last_line = halo::link::ref<char [halo::interface::k_text_buffer_chars]>(halo::ui::vars().console_last_line);
 static auto &console_last_cursor_column = halo::link::ref<int32_t>(halo::ui::vars().console_last_cursor_column);
 #include "halo/interface/records.hpp"
 #include "halo/interface/wide_text.hpp"

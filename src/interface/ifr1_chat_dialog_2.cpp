@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chat_dialog.hpp"
+#include "halo/interface/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
@@ -23,7 +24,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 
-static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &network_message_scratch = halo::link::ref<uint8_t [halo::interface::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &chat_local_prompt_string = halo::link::ref<const uint16_t []>(halo::ui::vars().chat_local_prompt_string);
 static auto &chat_dialog_open = halo::link::ref<uint8_t>(halo::ui::vars().chat_dialog_open);
@@ -39,7 +40,6 @@ static auto &chat_gui_set_property_int = halo::link::ref<chat_gui_set_property_i
 static auto &chat_gui_set_state = halo::link::ref<chat_gui_set_state_fn>(halo::ui::vars().chat_gui_set_state);
 static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
 static auto &chat_gui_active = halo::link::ref<uint8_t>(halo::ui::vars().chat_gui_active);
-#include "halo/interface/constants.hpp"
 #include "halo/interface/wide_text.hpp"
 
 typedef struct chat_relay_message {

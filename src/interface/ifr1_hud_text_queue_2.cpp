@@ -12,7 +12,6 @@
 #include "halo/interface/constants.hpp"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
-#include "halo/interface/wide_text.hpp"
 
 static auto &hud_text_message_time_base = halo::link::ref<int32_t>(halo::ui::vars().hud_text_message_time_base);
 static auto &hud_text_message_queue = halo::link::ref<growable_array>(halo::ui::vars().hud_text_message_queue);
@@ -23,6 +22,7 @@ static auto &hud_text_draw_font_tag_id = halo::link::ref<int32_t>(halo::ui::vars
 static auto &hud_text_draw_color_or_flags = halo::link::ref<uint32_t>(halo::ui::vars().hud_text_draw_color_or_flags);
 static auto &hud_text_draw_unknown_4730 = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_unknown_4730);
 static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
+#include "halo/interface/wide_text.hpp"
 
 namespace halo::interface {
 

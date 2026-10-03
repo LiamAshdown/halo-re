@@ -7,28 +7,17 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/interface/api.hpp"
-#include "rasterizer.h"
-#include "halo/interface/com_object.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/shell/standalone.hpp"
+#include "halo/shell/api.hpp"
 
-namespace {
-
-constexpr uint32_t k_d3d_slot_get_viewport = 48;
-constexpr uint32_t k_d3d_slot_get_render_state = 58;
-constexpr uint32_t k_d3d_slot_get_texture = 64;
-constexpr uint32_t k_d3d_slot_get_vertex_shader = 93;
-constexpr uint32_t k_d3d_slot_get_vertex_shader_constants = 95;
-constexpr uint32_t k_d3d_slot_get_pixel_shader = 108;
-constexpr uint32_t k_d3d_slot_get_pixel_shader_constants = 110;
-constexpr uint32_t k_debug_unread_pattern = 0xdeadbeef;
-
-}  // namespace
-
-extern "C" {
-extern rasterizer_window_parameters rasterizer_window;
-extern void __cdecl halo::shell::standalone_log(const char *format, ...);
-extern first_person_weapon_interface *first_person_weapon_interfaces;
-extern team_pair_globals *team_pair_data;
-extern real_point3d camera_position;
+static auto &rasterizer_window = halo::link::ref<uint8_t []>(halo::rasterizer::vars().rasterizer_window);
+static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
+static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
+static auto &camera_position = halo::link::ref<real_point3d>(halo::ui::vars().camera_position);
 
 int32_t debug_fp_state_armed;
 
@@ -68,14 +57,14 @@ void PlayDiagnostics::run(void)
         return;
     }
     if (fp->unit_index != (datum_index)halo::k_dword_none) {
-        unit_object *unit = halo::interface::object_record<unit_object>(fp->unit_index);
+        uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + 8 + (fp->unit_index & halo::k_slot_mask) * 0xc);
 
-        player_team = unit->base.owner_team;
+        player_team = ((unit_object *)unit)->base.owner_team;
     }
     halo::shell::standalone_log("DIAG fp attached=%d unit=%08x weapon=%08x state=%d anim=%d frame=%d weapon_hud=%d device_hud=%d "
                    "anim14=%d",
-        raw[0], fp->unit_index, fp->weapon_index, fp->state, fp->current_animation, *(int16_t *)fp->current_animation_frame,
-        fp->weapon_hud_valid, fp->device_hud_valid, fp->animation_index);
+        raw[0], fp->unit_index, fp->weapon_index, fp->state, ((struct first_person_weapon_interface *)raw)->current_animation, *(int16_t *)(raw + 0x18),
+        raw[0x1d8c], raw[0x1e0e], ((struct first_person_weapon_interface *)raw)->animation_index);
     if (player_team >= 0 && player_team < 10) {
         int32_t ab = player_team * 10 + 2;
         int32_t ba = 2 * 10 + player_team;
@@ -98,7 +87,7 @@ void PlayDiagnostics::run(void)
             o->unknown_09, o->active, o->status, o->unknown_0c, o->refcount, o->timer);
     }
     {
-        float *node0 = reinterpret_cast<float *>(fp->node_matrices);
+        float *node0 = (float *)(raw + 0x108c);
 
         halo::shell::standalone_log("DIAG gun node0 pos=(%.3f %.3f %.3f) scale=%.3f fwd=(%.3f %.3f %.3f) camera=(%.3f %.3f %.3f)",
             node0[10], node0[11], node0[12], node0[0], node0[1], node0[2], node0[3],
@@ -176,8 +165,8 @@ void PlayDiagnostics::fp_render_model_note(uint32_t model_tag, float pixels, int
  */
 void PlayDiagnostics::fp_clip_note(const float *world, int32_t effect_type)
 {
-    const float *view = &rasterizer_window.frustum.world_to_view.forward.i;
-    const float *projection = &rasterizer_window.frustum.projection[0][0];
+    const float *view = (const float *)(rasterizer_window + 0x70);
+    const float *projection = (const float *)(rasterizer_window + 0x1a0);
     float v[3], clip[4];
     int32_t i;
 
@@ -235,7 +224,7 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
             for (k = 0; k < 32; k++) {
                 c[k] = -999.0f;
             }
-            ((debug_get_ps_constants_fn)(halo::interface::com_vtable(halo::rasterizer::globals().device))[k_d3d_slot_get_pixel_shader_constants])(halo::rasterizer::globals().device, 0, c, 8);
+            ((debug_get_ps_constants_fn)(*(void ***)halo::rasterizer::globals().device)[0x1b8 / 4])(halo::rasterizer::globals().device, 0, c, 8);
             halo::shell::standalone_log("DIAG fpps %s %s count=%u c0=(%.2f %.2f %.2f %.2f) c1=(%.2f %.2f %.2f %.2f) c2=(%.2f %.2f %.2f "
                            "%.2f) c3=(%.2f %.2f %.2f %.2f) c4=(%.2f %.2f %.2f %.2f) c5=(%.2f %.2f %.2f %.2f) c6=(%.2f %.2f "
                            "%.2f %.2f) c7=(%.2f %.2f %.2f %.2f)", debug_fp_state_armed ? "FP" : "other", site,
@@ -248,18 +237,18 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
         return;
     }
     debug_fp_state_lines++;
-    vtable = halo::interface::com_vtable(halo::rasterizer::globals().device);
+    vtable = *(void ***)halo::rasterizer::globals().device;
     for (i = 0; i < 16; i++) {
-        rs[i] = k_debug_unread_pattern;
-        ((debug_get_render_state_fn)vtable[k_d3d_slot_get_render_state])(halo::rasterizer::globals().device, states[i], &rs[i]);
+        rs[i] = 0xdeadbeef;
+        ((debug_get_render_state_fn)vtable[0xe8 / 4])(halo::rasterizer::globals().device, states[i], &rs[i]);
     }
     for (i = 0; i < 6; i++) {
         viewport[i] = 0;
     }
-    ((debug_get_viewport_fn)vtable[k_d3d_slot_get_viewport])(halo::rasterizer::globals().device, viewport);
-    ((debug_get_pointer_fn)vtable[k_d3d_slot_get_vertex_shader])(halo::rasterizer::globals().device, &vs);
-    ((debug_get_pointer_fn)vtable[k_d3d_slot_get_pixel_shader])(halo::rasterizer::globals().device, &ps);
-    ((debug_get_texture_fn)vtable[k_d3d_slot_get_texture])(halo::rasterizer::globals().device, 0, &tex0);
+    ((debug_get_viewport_fn)vtable[0xc0 / 4])(halo::rasterizer::globals().device, viewport);
+    ((debug_get_pointer_fn)vtable[0x174 / 4])(halo::rasterizer::globals().device, &vs);
+    ((debug_get_pointer_fn)vtable[0x1b0 / 4])(halo::rasterizer::globals().device, &ps);
+    ((debug_get_texture_fn)vtable[0x100 / 4])(halo::rasterizer::globals().device, 0, &tex0);
     if (debug_fp_state_lines <= 4) {
         typedef int32_t (__stdcall *debug_get_vs_constants_fn)(void *self, uint32_t start, float *data, uint32_t count);
         float c[16];
@@ -270,7 +259,7 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
         for (k = 0; k < 16; k++) {
             c[k] = 0.0f;
         }
-        ((debug_get_vs_constants_fn)vtable[k_d3d_slot_get_vertex_shader_constants])(halo::rasterizer::globals().device, 0, c, 4);
+        ((debug_get_vs_constants_fn)vtable[0x17c / 4])(halo::rasterizer::globals().device, 0, c, 4);
         halo::shell::standalone_log("DIAG fpvs c0=(%.3f %.3f %.3f %.3f) c1=(%.3f %.3f %.3f %.3f) c2=(%.3f %.3f %.3f %.3f) "
                        "c3=(%.3f %.3f %.3f %.3f)", c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8], c[9], c[10],
             c[11], c[12], c[13], c[14], c[15]);
@@ -295,9 +284,9 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
         rs[0], rs[1], rs[2], rs[3], rs[4], rs[5], rs[6], rs[7], rs[8], rs[9], rs[10], rs[11], rs[12], rs[13], rs[14],
         rs[15], viewport[0], viewport[1], viewport[2], viewport[3], *(float *)&viewport[4], *(float *)&viewport[5],
         vs, ps, tex0);
-    if (vs != 0) ((int32_t (__stdcall *)(void *))(halo::interface::com_vtable(vs))[2])(vs);
-    if (ps != 0) ((int32_t (__stdcall *)(void *))(halo::interface::com_vtable(ps))[2])(ps);
-    if (tex0 != 0) ((int32_t (__stdcall *)(void *))(halo::interface::com_vtable(tex0))[2])(tex0);
+    if (vs != 0) ((int32_t (__stdcall *)(void *))(*(void ***)vs)[2])(vs);
+    if (ps != 0) ((int32_t (__stdcall *)(void *))(*(void ***)ps)[2])(ps);
+    if (tex0 != 0) ((int32_t (__stdcall *)(void *))(*(void ***)tex0)[2])(tex0);
 }
 
 /**
@@ -331,7 +320,7 @@ void PlayDiagnostics::fp_pre_draw(void)
     if (!debug_fp_state_armed || halo::rasterizer::globals().device == 0) {
         return;
     }
-    ((debug_set_render_state_fn)(halo::interface::com_vtable(halo::rasterizer::globals().device))[0xe4 / 4])(halo::rasterizer::globals().device, 15, 0);
+    ((debug_set_render_state_fn)(*(void ***)halo::rasterizer::globals().device)[0xe4 / 4])(halo::rasterizer::globals().device, 15, 0);
 }
 
 }

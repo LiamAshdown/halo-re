@@ -36,6 +36,11 @@
 #include "halo/interface/constants.hpp"
 #include "halo/interface/wide_text.hpp"
 #include "halo/interface/color_bits.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/core/x87.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;

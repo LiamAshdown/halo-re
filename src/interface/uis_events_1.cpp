@@ -4,6 +4,7 @@
  */
 
 #include "crt.h"
+#include "halo/interface/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "halo/main/main_globals_fields.hpp"
@@ -40,13 +41,13 @@ static auto &local_team_00714dd8 = halo::link::ref<uint8_t>(halo::ui::vars().loc
 static auto &coop_profile_globals_block_00714ddc = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().coop_profile_globals_block_00714ddc);
 static auto &game_variant_history_current = halo::link::ref<int32_t>(halo::ui::vars().game_variant_history_current);
 static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
-static auto &map_list = halo::link::ref<uint8_t *>(halo::ui::vars().map_list);
+static auto &map_list = halo::link::ref<map_list_entry *>(halo::ui::vars().map_list);
 static auto &map_list_count = halo::link::ref<int32_t>(halo::ui::vars().map_list_count);
 static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
 static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
 static auto &ui_list_has_default = halo::link::ref<uint8_t>(halo::ui::vars().ui_list_has_default);
 static auto &profile_slot_lookup_cache_00692ac8 = halo::link::ref<int32_t>(halo::ui::vars().profile_slot_lookup_cache_00692ac8);
-static auto &variant_carousel_slots = halo::link::ref<uint8_t [0x1d4]>(halo::ui::vars().variant_carousel_slots);
+static auto &variant_carousel_slots = halo::link::ref<uint8_t [halo::interface::k_variant_carousel_bytes]>(halo::ui::vars().variant_carousel_slots);
 static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
 static auto &playlist_profiles_need_defaults = halo::link::ref<uint8_t>(halo::ui::vars().playlist_profiles_need_defaults);
 static auto &quit_confirm_error_string_index = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_string_index);
@@ -56,8 +57,7 @@ static auto &quit_confirm_error_is_error = halo::link::ref<uint8_t>(halo::ui::va
 static auto &game_variant_saved_default = halo::link::ref<uint8_t [0x98]>(halo::ui::vars().game_variant_saved_default);
 static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
 static auto &network_host_edit_field_00719410 = halo::link::ref<int32_t>(halo::ui::vars().network_host_edit_field_00719410);
-static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
-#include "halo/interface/constants.hpp"
+static auto &ui_widget_history = halo::link::ref<widget_history_node * [3]>(halo::ui::vars().ui_widget_history);
 #include "halo/interface/widget_pool.hpp"
 #include "halo/interface/wide_text.hpp"
 

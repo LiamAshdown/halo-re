@@ -19,7 +19,6 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
-#include "halo/interface/wide_text.hpp"
 
 static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
 static auto &map_list = halo::link::ref<map_list_entry *>(halo::ui::vars().map_list);
@@ -32,6 +31,7 @@ static auto &resolution_row_count_table_0065bfb4 = halo::link::ref<int32_t [5]>(
 static auto &resolution_index_table_0065bf74 = halo::link::ref<int32_t []>(halo::ui::vars().resolution_index_table_0065bf74);
 static auto &sv_maxplayers_value = halo::link::ref<int32_t>(halo::ui::vars().sv_maxplayers_value);
 static auto &network_game_info_packet_flag = halo::link::ref<uint8_t>(halo::ui::vars().network_game_info_packet_flag);
+#include "halo/interface/wide_text.hpp"
 
 namespace halo::ui {
 

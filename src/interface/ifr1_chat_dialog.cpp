@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chat_dialog.hpp"
+#include "halo/interface/constants.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include <string.h>
@@ -35,8 +36,7 @@ static auto &chat_hotkey_team = halo::link::ref<uint8_t>(halo::ui::vars().chat_h
 static auto &chat_hotkey_vehicle = halo::link::ref<uint8_t>(halo::ui::vars().chat_hotkey_vehicle);
 static auto &chat_gui_find_child = halo::link::ref<chat_gui_find_child_fn>(halo::ui::vars().chat_gui_find_child);
 static auto &keystone_control_get_attribute = halo::link::ref<chat_gui_get_property_string_fn>(halo::ui::vars().keystone_control_get_attribute);
-static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
-#include "halo/interface/constants.hpp"
+static auto &network_message_scratch = halo::link::ref<uint8_t [halo::interface::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
 #include "halo/interface/wide_text.hpp"
 #include "halo/interface/com_object.hpp"
 

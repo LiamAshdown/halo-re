@@ -23,6 +23,9 @@
 #include "saved_games.h"
 #include "halo/interface/widget_pool.hpp"
 #include "halo/interface/wide_text.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
 extern "C" {
 extern int32_t ui_list_current;

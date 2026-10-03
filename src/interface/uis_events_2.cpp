@@ -34,7 +34,7 @@
 static auto &network_client = halo::link::ref<uint8_t *>(halo::networking::vars().network_client);
 static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
 static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
-static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
+static auto &ui_widget_history = halo::link::ref<widget_history_node * [3]>(halo::ui::vars().ui_widget_history);
 static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
 static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
 static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);

@@ -23,9 +23,6 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/core/libm.hpp"
-#include "halo/interface/constants.hpp"
-#include "halo/interface/game_state_block.hpp"
-#include "halo/interface/color_bits.hpp"
 
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
 static auto &render_viewport_top = halo::link::ref<int16_t>(halo::ui::vars().render_viewport_top);
@@ -43,6 +40,9 @@ static auto &hud_waypoints = halo::link::ref<hud_waypoint_state *>(halo::ui::var
 static auto &motion_sensor = halo::link::ref<motion_sensor_globals *>(halo::ui::vars().motion_sensor);
 static auto &hud_messaging_parameters = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_messaging_parameters);
 static auto &game_engine_state_value = halo::link::ref<int32_t>(halo::game::vars().game_engine_state_value);
+#include "halo/interface/constants.hpp"
+#include "halo/interface/game_state_block.hpp"
+#include "halo/interface/color_bits.hpp"
 
 static int32_t hud_alpha_round(float value)
 {

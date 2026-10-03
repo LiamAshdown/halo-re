@@ -13,8 +13,6 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
-#include "halo/interface/constants.hpp"
-#include "halo/interface/flags.hpp"
 
 static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::vars().current_local_player_index);
 static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
@@ -22,6 +20,8 @@ static auto &hud_flags = halo::link::ref<hud_globals_flags *>(halo::ui::vars().h
 static auto &current_game_engine = halo::link::ref<uint8_t>(halo::game::vars().current_game_engine);
 static auto &motion_sensor_override_value = halo::link::ref<uint8_t>(halo::ui::vars().motion_sensor_override_value);
 static auto &cinematic_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().cinematic_globals_ptr);
+#include "halo/interface/constants.hpp"
+#include "halo/interface/flags.hpp"
 
 static unit_object *unit_get(datum_index object_index)
 {

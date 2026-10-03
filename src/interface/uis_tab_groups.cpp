@@ -18,7 +18,7 @@
 
 static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::ui::vars().ui_split_screen);
 static auto &input_device_count = halo::link::ref<int32_t>(halo::ui::vars().input_device_count);
-static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
 
 namespace halo::ui {
 

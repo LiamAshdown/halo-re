@@ -4,6 +4,7 @@
  */
 
 #include "crt.h"
+#include "halo/interface/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/interface/engine_state.hpp"
@@ -55,15 +56,14 @@ static auto &network_host_edit_field_00719410 = halo::link::ref<int32_t>(halo::u
 static auto &profile_slot_id = halo::link::ref<int16_t []>(halo::ui::vars().profile_slot_id);
 static auto &local_team_00714dd8 = halo::link::ref<uint8_t []>(halo::ui::vars().local_team_00714dd8);
 static auto &coop_profile_globals_block_00714ddc = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().coop_profile_globals_block_00714ddc);
-static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
+static auto &ui_widget_history = halo::link::ref<widget_history_node * [3]>(halo::ui::vars().ui_widget_history);
 static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
 static auto &level_select_flags_0071916b = halo::link::ref<uint8_t>(halo::ui::vars().level_select_flags_0071916b);
-static auto &level_select_current_path_00719068 = halo::link::ref<char [0x106]>(halo::ui::vars().level_select_current_path_00719068);
+static auto &level_select_current_path_00719068 = halo::link::ref<char [halo::interface::k_level_select_path_chars]>(halo::ui::vars().level_select_current_path_00719068);
 static auto &level_select_frame_00719168 = halo::link::ref<int16_t>(halo::ui::vars().level_select_frame_00719168);
 static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
 static auto &ui_event_byte_0071975b = halo::link::ref<uint8_t>(halo::ui::vars().ui_event_byte_0071975b);
 static auto &input_event_queue_active = halo::link::ref<uint8_t>(halo::ui::vars().input_event_queue_active);
-#include "halo/interface/constants.hpp"
 #include "halo/interface/widget_pool.hpp"
 #include "halo/interface/wide_text.hpp"
 

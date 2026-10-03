@@ -24,7 +24,7 @@
 
 static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
 static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
-static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
 static auto &cached_profile_slot = halo::link::ref<int32_t>(halo::ui::vars().cached_profile_slot);
 static auto &last_profile_name = halo::link::ref<char []>(halo::ui::vars().last_profile_name);
 static auto &known_campaign_levels_00692acc = halo::link::ref<campaign_level_entry [10]>(halo::ui::vars().known_campaign_levels_00692acc);

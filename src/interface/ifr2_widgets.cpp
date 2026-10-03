@@ -31,15 +31,15 @@
 #endif
 
 static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
-static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
-static auto &ui_event_function_table = halo::link::ref<void *[0xbe]>(halo::ui::vars().ui_event_function_table);
+static auto &ui_root_widget = halo::link::ref<widget_instance * [1]>(halo::ui::vars().ui_root_widget);
+static auto &ui_event_function_table = halo::link::ref<void * [0xbe]>(halo::ui::vars().ui_event_function_table);
 static auto &ui_pause_depth = halo::link::ref<int16_t>(halo::ui::vars().ui_pause_depth);
 static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::ui::vars().ui_split_screen);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
+static auto &ui_widget_history = halo::link::ref<widget_history_node * [3]>(halo::ui::vars().ui_widget_history);
 static auto &controls_capture_row = halo::link::ref<int32_t>(halo::ui::vars().controls_capture_row);
 static auto &controls_input_capture_flags = halo::link::ref<uint8_t>(halo::ui::vars().controls_input_capture_flags);
-static auto &controls_input_capture_buffer = halo::link::ref<uint8_t [0x290]>(halo::ui::vars().controls_input_capture_buffer);
+static auto &controls_input_capture_buffer = halo::link::ref<uint8_t [halo::interface::k_controls_capture_buffer_size]>(halo::ui::vars().controls_input_capture_buffer);
 static auto &widget_creating_children = halo::link::ref<uint8_t>(halo::ui::vars().widget_creating_children);
 static auto &ui_cursor_x = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_x);
 static auto &last_controller_index_00879f50 = halo::link::ref<int32_t>(halo::ui::vars().last_controller_index_00879f50);
@@ -48,7 +48,7 @@ static auto &ui_time_milliseconds = halo::link::ref<int32_t>(halo::ui::vars().ui
 static auto &ui_restoring_previous_widget = halo::link::ref<uint8_t>(halo::ui::vars().ui_restoring_previous_widget);
 static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
 static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
-static auto &game_data_input_function_table = halo::link::ref<void *[0x3b]>(halo::ui::vars().game_data_input_function_table);
+static auto &game_data_input_function_table = halo::link::ref<void * [0x3b]>(halo::ui::vars().game_data_input_function_table);
 static auto &override_color_00879f40 = halo::link::ref<float>(halo::ui::vars().override_color_00879f40);
 static auto &override_color_00879f44 = halo::link::ref<float>(halo::ui::vars().override_color_00879f44);
 static auto &override_color_00879f48 = halo::link::ref<float>(halo::ui::vars().override_color_00879f48);

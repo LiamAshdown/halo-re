@@ -37,7 +37,7 @@
 
 static auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);
 static auto &ui_restoring_previous_widget = halo::link::ref<uint8_t>(halo::ui::vars().ui_restoring_previous_widget);
-static auto &campaign_level_paths = halo::link::ref<char *[]>(halo::ui::vars().campaign_level_paths);
+static auto &campaign_level_paths = halo::link::ref<char * []>(halo::ui::vars().campaign_level_paths);
 static auto &network_wait_flag_00719739 = halo::link::ref<uint8_t>(halo::ui::vars().network_wait_flag_00719739);
 static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
 static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
@@ -50,8 +50,8 @@ static auto &network_host_edit_field_00719410 = halo::link::ref<int32_t>(halo::u
 static auto &controls_capture_row = halo::link::ref<int32_t>(halo::ui::vars().controls_capture_row);
 static auto &controls_menu_list_mode = halo::link::ref<uint8_t>(halo::ui::vars().controls_menu_list_mode);
 static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
-static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
-static auto &input_controls_live_006b3a48 = halo::link::ref<uint8_t [0x890]>(halo::ui::vars().input_controls_live_006b3a48);
+static auto &saved_item_working_copy = halo::link::ref<saved_player_profile>(halo::ui::vars().saved_item_working_copy);
+static auto &input_controls_live_006b3a48 = halo::link::ref<controls_edit_buffer>(halo::ui::vars().input_controls_live_006b3a48);
 static auto &ui_flag_00719444 = halo::link::ref<uint8_t>(halo::ui::vars().ui_flag_00719444);
 static auto &controls_device_label_count = halo::link::ref<int32_t>(halo::ui::vars().controls_device_label_count);
 static auto &controls_device_labels = halo::link::ref<uint8_t []>(halo::ui::vars().controls_device_labels);

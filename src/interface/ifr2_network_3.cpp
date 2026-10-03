@@ -21,7 +21,7 @@
 #undef interface
 #endif
 
-static auto &server_list_entries_006b380c = halo::link::ref<void *[9]>(halo::ui::vars().server_list_entries_006b380c);
+static auto &server_list_entries_006b380c = halo::link::ref<network_game_search_entry * [9]>(halo::ui::vars().server_list_entries_006b380c);
 static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
 static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
 static auto &chat_local_prompt_string = halo::link::ref<uint16_t []>(halo::ui::vars().chat_local_prompt_string);

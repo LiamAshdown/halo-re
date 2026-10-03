@@ -18,6 +18,11 @@
 #include "tags.h"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/wide_text.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/units/vars.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;

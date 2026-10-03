@@ -27,7 +27,6 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/render/vars.hpp"
-#include "halo/interface/layout_checks.hpp"
 
 static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
@@ -38,6 +37,8 @@ static auto &camera_position_z = halo::link::ref<float>(halo::effects::vars().ca
 static auto &camera_field_of_view = halo::link::ref<float>(halo::ui::vars().camera_field_of_view);
 static auto &rasterizer_device_version = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_device_version);
 static auto &rasterizer_caps_flag_68a = halo::link::ref<uint8_t>(halo::ui::vars().rasterizer_caps_flag_68a);
+#include "halo/interface/layout_checks.hpp"
+#include "halo/units/api.hpp"
 
 static float clamp_unit(float value)
 {

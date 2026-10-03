@@ -1,23 +1,24 @@
 #include "halo/interface/ifr1_gamepad_bindings.hpp"
+#include "halo/interface/constants.hpp"
 #include <string.h>
 #include <wchar.h>
 #include "halo/memory/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "input.h"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 
 static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
-static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
+static auto &saved_item_working_copy = halo::link::ref<saved_player_profile>(halo::ui::vars().saved_item_working_copy);
 static auto &controls_assigned_gamepad_count = halo::link::ref<int32_t>(halo::ui::vars().controls_assigned_gamepad_count);
 static auto &controls_assigned_gamepads = halo::link::ref<controls_gamepad_record [4]>(halo::ui::vars().controls_assigned_gamepads);
 static auto &controls_available_gamepads = halo::link::ref<controls_gamepad_record [8]>(halo::ui::vars().controls_available_gamepads);
 static auto &controls_available_gamepad_count = halo::link::ref<int32_t>(halo::ui::vars().controls_available_gamepad_count);
 static auto &input_device_count = halo::link::ref<int32_t>(halo::ui::vars().input_device_count);
-static auto &input_devices = halo::link::ref<uint8_t []>(halo::ui::vars().input_devices);
+static auto &input_devices = halo::link::ref<input_device [8]>(halo::ui::vars().input_devices);
 static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
-#include "input.h"
 #include "halo/interface/widget_pool.hpp"
 #include "halo/interface/wide_text.hpp"
 

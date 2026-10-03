@@ -24,9 +24,6 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
-#include "halo/interface/constants.hpp"
-#include "halo/interface/widget_pool.hpp"
-#include "halo/interface/wide_text.hpp"
 
 static auto &profile_slot_lookup_cache_00692ac8 = halo::link::ref<int32_t>(halo::ui::vars().profile_slot_lookup_cache_00692ac8);
 static auto &profile_carousel_slots = halo::link::ref<profile_carousel_slot [3]>(halo::ui::vars().profile_carousel_slots);
@@ -51,6 +48,9 @@ static auto &quit_confirm_error_is_error = halo::link::ref<uint8_t>(halo::ui::va
 static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
 static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
 static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
+#include "halo/interface/constants.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 namespace halo::ui {
 

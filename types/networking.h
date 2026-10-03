@@ -736,29 +736,6 @@ typedef struct network_client_globals {
 // global 0x0071c2dc: uint8_t shortens the disconnect timeout when clear (0x4ddd20)
 // global 0x0071c2de: uint8_t host-handoff request flag (0x4de390, 0x4dded0)
 
-// ---------------------------------------------------------------------------
-// network_game_search_entry  (0x4da7d0 add-or-update, 0x4da770 freshness test,
-// 0x4db9a0 beacon decode)
-// The LAN browse list. Nine fixed slots; an entry older than six seconds is wiped
-// before the incoming announcement is matched against the list.
-// ---------------------------------------------------------------------------
-typedef struct network_game_search_entry {
-    uint32_t identity[6];      // 0x000 copied verbatim from the announcement header
-    int32_t received_ms;       // 0x018 QPC milliseconds, the freshness stamp
-    uint16_t name[64];         // 0x01c UTF-16, wcsncpy of 0x3f then a forced NUL
-    uint32_t info[33];         // 0x09c 0x21 dwords lifted from announcement+0xd0
-    int16_t game_engine_index; // 0x120
-    int16_t player_count;      // 0x122 from announcement+0x156
-    int16_t unknown_124;       // 0x124
-    int16_t unknown_126;       // 0x126 from announcement+0x15a
-    int16_t unknown_128;       // 0x128
-    int16_t unknown_12a;       // 0x12a
-    uint8_t joinable;          // 0x12c needs announcement flag bit1 and under 16 players
-    uint8_t in_use;            // 0x12d
-    uint8_t stats_logging;     // 0x12e announcement flag bit2
-    uint8_t unknown_12f;       // 0x12f set when engine 3 and announcement flag bit3
-} network_game_search_entry;   // size 0x130
-
 // network_game_announcement (0x160 bytes read): the host's broadcast that network_game_search_entry
 // results_add_or_update (0x4da7d0) copies into the search results. Only the fields it reads are named.
 typedef struct network_game_announcement {

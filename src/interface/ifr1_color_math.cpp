@@ -6,6 +6,7 @@
 #include "halo/core/x87.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/api.hpp"
 
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 

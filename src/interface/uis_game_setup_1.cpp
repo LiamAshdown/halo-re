@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/interface/constants.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
@@ -32,13 +33,13 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 
-static auto &level_select_current_path_00719068 = halo::link::ref<char [0x106]>(halo::ui::vars().level_select_current_path_00719068);
+static auto &level_select_current_path_00719068 = halo::link::ref<char [halo::interface::k_level_select_path_chars]>(halo::ui::vars().level_select_current_path_00719068);
 static auto &level_select_entries = halo::link::ref<level_select_entry [10]>(halo::ui::vars().level_select_entries);
 static auto &cached_saved_game_something = halo::link::ref<int32_t>(halo::ui::vars().cached_saved_game_something);
 static auto &level_select_flags_0071916a = halo::link::ref<uint8_t>(halo::ui::vars().level_select_flags_0071916a);
 static auto &level_select_flags_0071916b = halo::link::ref<uint8_t>(halo::ui::vars().level_select_flags_0071916b);
 static auto &level_select_flags_0071916c = halo::link::ref<uint8_t>(halo::ui::vars().level_select_flags_0071916c);
-static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
 static auto &known_solo_level_index_00712f00 = halo::link::ref<int16_t>(halo::ui::vars().known_solo_level_index_00712f00);
 static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
 static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
@@ -51,14 +52,13 @@ static auto &quit_confirm_error_string_index = halo::link::ref<int16_t>(halo::ui
 static auto &quit_confirm_error_unknown_ae = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_unknown_ae);
 static auto &quit_confirm_error_modal = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_modal);
 static auto &quit_confirm_error_is_error = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_is_error);
-static auto &coop_profile_globals_block_00714ddc = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().coop_profile_globals_block_00714ddc);
+static auto &coop_profile_globals_block_00714ddc = halo::link::ref<saved_player_profile>(halo::ui::vars().coop_profile_globals_block_00714ddc);
 static auto &map_list = halo::link::ref<map_list_entry *>(halo::ui::vars().map_list);
 static auto &map_list_count = halo::link::ref<int32_t>(halo::ui::vars().map_list_count);
 static auto &save_in_progress_00719010 = halo::link::ref<uint8_t>(halo::ui::vars().save_in_progress_00719010);
 static auto &cached_profile_slot = halo::link::ref<int32_t>(halo::ui::vars().cached_profile_slot);
 static auto &network_wait_flag_00719739 = halo::link::ref<uint8_t>(halo::ui::vars().network_wait_flag_00719739);
 static auto &last_profile_name = halo::link::ref<char []>(halo::ui::vars().last_profile_name);
-#include "halo/interface/constants.hpp"
 #include "halo/interface/wide_text.hpp"
 
 namespace halo::ui {
