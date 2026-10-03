@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 extern "C" {
@@ -138,7 +139,7 @@ void AiCommunication::broadcast_communication_event(int16_t gate, real_point3d *
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
-#define ACTOR_DATA(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR_DATA(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define ai_globals_ptr (*reinterpret_cast<uint8_t * *>(&ai_globals_ptr))
 namespace {
 
@@ -791,7 +792,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             float sum = 0.0f;
             int16_t i = 0;
 
-            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
             pick = (float)(int32_t)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f * total;
             while (i < count - 1) {
                 sum += candidates[i].score;
@@ -1077,7 +1078,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
             continue;
         }
         if (explicit_speaker_actor_index != k_datum_index_none) {
-            speaker_unit = *(datum_index *)((uint8_t *)actor_data->data + (explicit_speaker_actor_index & halo::k_slot_mask) * 0x724 + 0x18);
+            speaker_unit = *(datum_index *)((uint8_t *)actor_data->data + (explicit_speaker_actor_index & halo::k_slot_mask) * k_actor_size + 0x18);
         } else {
             int16_t mode = *(int16_t *)(row + 0x4);
             datum_index found;
@@ -1089,7 +1090,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
                 }
             } else if (mode == 2 || mode == 4) {
                 uint8_t *actor = object_actor != k_datum_index_none
-                    ? (uint8_t *)actor_data->data + (object_actor & halo::k_slot_mask) * 0x724 : 0;
+                    ? (uint8_t *)actor_data->data + (object_actor & halo::k_slot_mask) * k_actor_size : 0;
 
                 if (mode == 2 && actor != 0 && ((struct actor *)actor)->encounter_index != k_datum_index_none) {
                     found = ai_communication_select_speaker_in_reference(9.0f, -1, (uint16_t)class_index,
@@ -1103,7 +1104,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
                 if (found == k_datum_index_none) {
                     continue;
                 }
-                speaker_unit = *(datum_index *)((uint8_t *)actor_data->data + (found & halo::k_slot_mask) * 0x724 + 0x18);
+                speaker_unit = *(datum_index *)((uint8_t *)actor_data->data + (found & halo::k_slot_mask) * k_actor_size + 0x18);
             } else {
                 continue;
             }
@@ -1750,8 +1751,8 @@ void AiCommunication::target_result_reset(ai_communication_target_result *record
     record->unknown_08 = -1;
 }
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -1790,8 +1791,8 @@ uint8_t DialogueCondition_42f4f0::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -1825,8 +1826,8 @@ uint8_t DialogueCondition_42f560::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -1866,8 +1867,8 @@ uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -1898,8 +1899,8 @@ uint8_t DialogueCondition_42f650::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -1936,8 +1937,8 @@ uint8_t DialogueCondition_42f690::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -1981,8 +1982,8 @@ uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -2013,8 +2014,8 @@ uint8_t DialogueCondition_42f7b0::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -2215,7 +2216,7 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
                 if ((ai_communication_quiet_until_tick <= game_time->game_time ||
                      (*(uint8_t *)(entry + 5) & 1) != 0) &&
                     0.0f < *(float *)(entry + 9)) {
-                    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                     if ((float)((uint32_t)halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f <
                         *(float *)(entry + 9)) {
                         target_kind = *(int16_t *)(entry + 1);

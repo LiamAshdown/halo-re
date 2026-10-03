@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 extern "C" {
@@ -706,7 +707,7 @@ void ReferenceView::invoke_squad_callback_406f80()
     a = ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
         actor_swarm_for_each_component(iterator.actor_index, 0, (actor_swarm_member_callback)actor_obey_member_advance, 0,
-            (uint16_t *)((uint8_t *)actor_data->data + (iterator.actor_index & halo::k_slot_mask) * 0x724 + 0x9c));
+            (uint16_t *)((uint8_t *)actor_data->data + (iterator.actor_index & halo::k_slot_mask) * k_actor_size + 0x9c));
         a = ai_reference_actor_iterator_next(&iterator);
     }
 }
@@ -880,7 +881,7 @@ void ReferenceView::refill_grenades()
             ((unit_object *)unit)->base.shield_vitality = (((unit_object *)unit)->base.maximum_shield_vitality <= 0.0f) ? k_real_zero : k_real_one;
 
             if (*(int16_t *)(variant_data + 0x180) != -1) {
-                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                 rolled = (int32_t)((uint32_t)(((int32_t)(int16_t)(*(int16_t *)(variant_data + 0x1d2) + 1) -
                                      (int32_t)(int16_t)*(uint16_t *)(variant_data + 0x1d0)) *
                                     (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10) +

@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
@@ -106,7 +107,7 @@ extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t subs
 extern float weapon_trigger_get_average_damage(datum_index weapon_tag_id, float *out_max_rate_of_fire);
 static float aim_wander_random_fraction(void)
 {
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     return (float)(int32_t)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f;
 }
 }
@@ -120,7 +121,7 @@ static float aim_wander_random_fraction(void)
 void ActorView::update_aim_wander()
 {
     using namespace actor_update_aim_wander_local;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *variant = (uint8_t *)actor_get_actor_definition(actor_index);
     int16_t team = ((actor *)a)->team;
     uint8_t *burst = 0;
@@ -208,7 +209,7 @@ void ActorView::update_aim_wander()
     }
 
     if (((ActorVariant *)variant)->bombardment_range > 0.0f && ((struct actor *)a)->firing_target_type == 1) {
-        uint8_t *prop = (uint8_t *)prop_data->data + (((struct actor *)a)->firing_target_prop_index & halo::k_slot_mask) * 0x138;
+        uint8_t *prop = (uint8_t *)prop_data->data + (((struct actor *)a)->firing_target_prop_index & halo::k_slot_mask) * k_prop_size;
         int16_t kind = ((struct prop *)prop)->state;
 
         bombard = (kind < 2 || kind > 3 || ((struct prop *)prop)->visual_perception == 0) ? 1 : 0;
@@ -227,7 +228,7 @@ void ActorView::update_aim_wander()
         side.k = dx * 0.0f - dy * 0.0f;
     }
     halo::math::vector3d_normalize_with_length(side);
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     if ((uint16_t)(halo::math::globals().random_seed_global >> 16) > 0x8000) {
         side.i = -side.i;
         side.j = -side.j;
@@ -298,7 +299,7 @@ void ActorView::update_aim_wander()
         int32_t code;
 
         if (((struct actor *)a)->firing_target_type == 1) {
-            uint8_t *prop = (uint8_t *)prop_data->data + (((struct actor *)a)->firing_target_prop_index & halo::k_slot_mask) * 0x138;
+            uint8_t *prop = (uint8_t *)prop_data->data + (((struct actor *)a)->firing_target_prop_index & halo::k_slot_mask) * k_prop_size;
 
             prop_flag = prop[0x61];
             object = ((struct prop *)prop)->object_index;
@@ -798,7 +799,7 @@ extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_dat
 uint8_t ActorView::update_danger_avoidance()
 {
     using namespace actor_update_danger_avoidance_local;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t result = 0;
     uint8_t crossing = 0;
     uint8_t in_danger;
@@ -1138,7 +1139,7 @@ static uint8_t ult_lane(real_point3d *point, uint8_t *forward, uint8_t *axis, fl
 void ActorView::update_look_target()
 {
     using namespace actor_update_look_target_local;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[((actor *)a)->actor_definition_tag & halo::k_slot_mask].data;
     uint8_t *cache_a = a + 0x5a4;
     uint8_t *cache_b = a + 0x5b0;
@@ -1617,7 +1618,7 @@ static uint8_t actor_combat_commit_position(datum_index actor_index, uint8_t *a,
 uint8_t ActorView::update_melee_combat_action()
 {
     using namespace actor_update_melee_combat_action_local;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[D(a, 0x58) & halo::k_slot_mask].data;
     datum_index encounter_index = D(a, 0x34);
     uint8_t *encounter = encounter_index != k_datum_index_none
@@ -1661,7 +1662,7 @@ uint8_t ActorView::update_melee_combat_action()
 
     {
         uint8_t *target = D(a, 0x270) != k_datum_index_none
-            ? (uint8_t *)prop_data->data + (D(a, 0x270) & halo::k_slot_mask) * 0x138 : 0;
+            ? (uint8_t *)prop_data->data + (D(a, 0x270) & halo::k_slot_mask) * k_prop_size : 0;
         uint8_t hold = 0;
         uint8_t advance = 0;
         uint8_t pressed = 0;
@@ -1854,7 +1855,7 @@ static real_point3d *actor_held_firing_position(uint8_t *actor)
 uint8_t ActorView::update_movement_destination()
 {
     using namespace actor_update_movement_destination_local;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag;
     uint8_t *definition;
 
@@ -1886,7 +1887,7 @@ uint8_t ActorView::update_movement_destination()
             }
             if (A_B(0x504) != 0 && A_B(0x1fc) == 0) {
                 if (A_D(0x270) != halo::k_dword_none) {
-                    uint8_t *target = (uint8_t *)prop_data->data + (A_D(0x270) & halo::k_slot_mask) * 0x138;
+                    uint8_t *target = (uint8_t *)prop_data->data + (A_D(0x270) & halo::k_slot_mask) * k_prop_size;
 
                     drop = ((prop *)target)->distance < *(float *)(definition + 0xa0);
                 }
@@ -1912,7 +1913,7 @@ uint8_t ActorView::update_movement_destination()
             selected = actor_select_firing_position(actor_index, &query, &candidate, &previous_owner, &path_context,
                 &path_ok);
             claimed = actor_claim_firing_position(actor_index, previous_owner, &path_context, selected, path_ok);
-            actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+            actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
             if (claimed == -1) {
                 A_W(0x9c) = 0;
             } else if (claimed != previous) {
@@ -1936,7 +1937,7 @@ uint8_t ActorView::update_movement_destination()
         return 0;
     }
     {
-        uint8_t *target = (uint8_t *)prop_data->data + (A_D(0x270) & halo::k_slot_mask) * 0x138;
+        uint8_t *target = (uint8_t *)prop_data->data + (A_D(0x270) & halo::k_slot_mask) * k_prop_size;
         uint8_t engaged = 1;
 
         if (actor_has_unshielded_threat_weapon(actor_index)) {
@@ -1984,7 +1985,7 @@ extern int16_t actor_claim_firing_position(datum_index actor_index, datum_index 
 uint8_t ActorView::update_path_if_needed()
 {
     using namespace actor_update_path_if_needed_local;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
 
     if (actor[0x4c] != 0) {
         static actor_firing_position_query query;
@@ -2000,7 +2001,7 @@ uint8_t ActorView::update_path_if_needed()
         selected = actor_select_firing_position(actor_index, &query, &candidate, &previous_owner, &path_context,
             &path_ok);
         actor_claim_firing_position(actor_index, previous_owner, &path_context, selected, path_ok);
-        actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+        actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     }
     return ((struct actor *)actor)->danger_type == 0;
 }
@@ -2229,7 +2230,7 @@ extern int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3
 void ActorView::update_target_lead_position()
 {
     using namespace actor_update_target_lead_position_local;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     real_point3d *point = (real_point3d *)(a + 0x168);
     datum_index vehicle;
 

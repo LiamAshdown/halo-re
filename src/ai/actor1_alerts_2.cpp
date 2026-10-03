@@ -34,7 +34,7 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
 {
     using namespace c_actor_investigate_disturbance_update;
     uint32_t actor_index = datum;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     void *vehicle = object_try_and_get(*(datum_index *)&((struct actor *)act)->mode_data, 2);
 
     if (((actor *)act)->active_unit_index != k_datum_index_none) {

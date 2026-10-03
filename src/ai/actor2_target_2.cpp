@@ -104,7 +104,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
         actor_danger_register_point(actor_index, target, radius, (float)sqrt((double)distance_squared), (char)enemies, 0);
     }
     if (target_actor_index != k_datum_index_none) {
-        target_actor = (uint8_t *)actor_data->data + (target_actor_index & halo::k_slot_mask) * 0x724;
+        target_actor = (uint8_t *)actor_data->data + (target_actor_index & halo::k_slot_mask) * k_actor_size;
     }
 
     if (!controlled) {
@@ -275,7 +275,7 @@ extern void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index o
 void ActorView::target_evaluate_squad_link(datum_index object_index, int16_t *candidates_a, int16_t *candidates_b)
 {
     using namespace actor_target_evaluate_squad_link_local;
-    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
 
     while (object_index != k_datum_index_none) {
         uint8_t *object = OBJ(object_index);

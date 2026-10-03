@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 extern "C" {
@@ -129,7 +130,7 @@ uint8_t EncounterView::drift_zone_bias(int16_t squad_offset, float bias)
         floor = -squad->major_upgrade_error;
     }
 
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     hit = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f < floor + bias;
     step = (float)hit - bias;
 
@@ -1895,7 +1896,7 @@ void EncounterView::process_squad_reinforcements()
         } while (squad_index < (int32_t)encounter_definition->squads.count);
 
         if ((0 < ready_count) && (self->respawn_delay_ticks == 0)) {
-            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
             squad_index = 0;
             roll = (uint32_t)(((uint64_t)(halo::math::globals().random_seed_global >> 0x10) * (uint32_t)ready_count) >> 0x10);
 
@@ -2786,7 +2787,7 @@ void EncounterView::spawn_squads(int16_t platoon_filter, int16_t squad_filter)
                 case 2:
 leader_coin_flip:
                     if (actor_type == 7) {
-                        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                         leader_chance = 100 + (int32_t)(halo::math::globals().random_seed_global >> 0x1f);
                     }
                     break;
@@ -2973,7 +2974,7 @@ uint32_t EncounterView::squad_spawn_reinforcement(int16_t squad_index)
                 squad_state->respawn_budget = squad_state->respawn_budget - 1;
             }
 
-            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
             {
                 float lo = *(float *)((uint8_t *)encounter_definition + 0x2c);
                 float hi = *(float *)((uint8_t *)encounter_definition + 0x30);
@@ -2983,7 +2984,7 @@ uint32_t EncounterView::squad_spawn_reinforcement(int16_t squad_index)
                 self->respawn_delay_ticks = (int16_t)(int32_t)randomized;
             }
 
-            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
             {
                 float lo = *(float *)((uint8_t *)squad_definition + 0x8c);
                 float hi = *(float *)((uint8_t *)squad_definition + 0x90);
@@ -3685,7 +3686,7 @@ int16_t EncounterView::pick_random_starting_location(int16_t squad_index)
         } while (location_index < squad_definition->starting_locations.count);
 
         if (0 < available) {
-            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
             draw = (uint32_t)(((halo::math::globals().random_seed_global >> 0x10) * (int32_t)available) >> 0x10);
             cursor = 0;
             if (0 < squad_definition->starting_locations.count) {
@@ -3742,7 +3743,7 @@ int16_t EncounterView::pick_random_starting_location(int16_t squad_index)
 
         if (any_unavailable == 0 || free_available != 0) {
             if (0 < free_available) {
-                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                 draw = (uint32_t)(((halo::math::globals().random_seed_global >> 0x10) * (int32_t)free_available) >> 0x10);
                 {
                     uint32_t pick = 0;

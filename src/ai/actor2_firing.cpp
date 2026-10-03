@@ -1034,7 +1034,7 @@ extern int32_t ai_weighted_random_index(int16_t weight_offset, void *base, int16
 int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_index, uint8_t *direction_flag)
 {
     using namespace actor_select_move_position_local;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *squad;
     uint8_t *positions;
     int32_t count;
@@ -1079,7 +1079,7 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
             eligible = 0;
         }
         for (prop_index = ((actor *)a)->first_prop; prop_index != k_datum_index_none;) {
-            uint8_t *pr = (uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * 0x138;
+            uint8_t *pr = (uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size;
             int16_t kind = ((prop *)pr)->state;
 
             prop_index = ((prop *)pr)->next_in_actor;

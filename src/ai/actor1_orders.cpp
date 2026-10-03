@@ -2,13 +2,14 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 namespace c_actor_build_guard_mode_data {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * 0x724)
+#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
@@ -318,7 +319,7 @@ int32_t halo::ai::order_builder::grenade_or_melee(uint32_t resolved_target, uint
     }
 
     if ((int16_t)order_code > 8 && (int16_t)order_code < 0xd) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         if ((float)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f < 0.4f) {
             order[1] = 0x2d;
             return 1;
@@ -422,7 +423,7 @@ extern "C" uint8_t actor_build_order_investigate_encounter_point(uint32_t vehicl
 uint8_t halo::ai::order_builder::investigate_encounter_point(uint32_t vehicle_index, uint32_t actor_index, int16_t seat_index, uint8_t *order)
 {
     using namespace c_actor_build_order_investigate_encounter_point;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *vehicle;
     real_point3d entry;
     real_vector3d direction;
@@ -629,7 +630,7 @@ int32_t halo::ai::order_builder::random_wait(uint8_t byte_a, uint32_t *order)
         *(int16_t *)((uint8_t *)order + 0xe) = 0;
         *(int16_t *)((uint8_t *)order + 0xc) = 0x78;
         *((uint8_t *)order + 3) = 1;
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         *(int16_t *)(order + 4) = (int16_t)(((halo::math::globals().random_seed_global >> 0x10) * 300) >> 0x10) + 300;
         return 1;
     }
@@ -707,7 +708,7 @@ extern "C" uint8_t actor_build_order_search_object(uint32_t vehicle_index, uint3
 uint8_t halo::ai::order_builder::search_object(uint32_t vehicle_index, uint32_t actor_index, float radius_a, float radius_b, uint8_t *order)
 {
     using namespace c_actor_build_order_search_object;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     real_point3d entry;
     real_vector3d direction;
     real_point3d hint;

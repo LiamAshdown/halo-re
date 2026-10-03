@@ -4,6 +4,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
@@ -189,15 +190,15 @@ int32_t ActorOps::pick_dialogue_variant_a(int16_t category)
     int32_t ticks;
 
     if (category == 1) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         value = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * k_random_scale_65536
               + actor_dialogue_variant_offset_1a;
     } else if (category == 2) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         value = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * k_random_scale_65536 * actor_dialogue_variant_scale_2a
               + actor_dialogue_variant_offset_2a;
     } else if (category == 3) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         value = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * k_random_scale_65536 * k_real_point_six
               + actor_dialogue_variant_offset_3a;
     }
@@ -235,11 +236,11 @@ int32_t ActorOps::pick_dialogue_variant_b(int16_t category)
     int32_t ticks;
 
     if (category == 1) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         value = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * k_random_scale_65536 * actor_dialogue_variant_scale_1b
               + k_real_one;
     } else if (category > 1 && category <= 3) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         value = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * k_random_scale_65536 * actor_dialogue_variant_scale_23b
               + k_real_point_six;
     }
@@ -271,7 +272,7 @@ extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_dat
 uint8_t ActorOps::play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index, char *seat_name, int16_t seat_flags, int16_t count)
 {
     using namespace actor_play_first_valid_vocalization_local;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     int16_t local_list[16];
     uint8_t order[k_actor_mode_data_size];
     int16_t i;
@@ -1425,7 +1426,7 @@ void TargetView::scan_backup_and_panic_reaction(datum_index actor_index)
     relevant = actor_get_relevant_squad_member_target(actor_index, target_prop_index, 1);
 
     if (target->actor_type == actor_tag->leader_type && self->pending_panic_type < 8) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         if ((float)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f < actor_tag->leader_killed_panic_chance) {
             self->pending_panic_type = 8;
             self->pending_panic_prop_index = relevant;

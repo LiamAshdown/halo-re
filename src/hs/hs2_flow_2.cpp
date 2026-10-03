@@ -1,5 +1,6 @@
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/math/api.hpp"
+#include "halo/core/lcg.hpp"
 
 
 #ifdef __cplusplus
@@ -32,7 +33,7 @@ void FlowCommands::evaluate_random_range(int16_t function_index, uint32_t thread
         int16_t high = arguments[2];
         uint16_t result;
 
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         result = (uint16_t)(((uint32_t)((int32_t)high - (int32_t)low) * (halo::math::globals().random_seed_global >> 0x10)) >> 0x10);
         result = (uint16_t)(result + (uint16_t)low);
         hs_thread_return((int32_t)result, thread_index);
@@ -56,7 +57,7 @@ void FlowCommands::evaluate_real_random_range(int16_t function_index, uint32_t t
     float high = *(float *)&arguments[1];
     float result;
 
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     result = (high - low) * ((float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f) + low;
     hs_thread_return(*(int32_t *)&result, thread_index);
     }

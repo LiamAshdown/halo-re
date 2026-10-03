@@ -2,13 +2,14 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 namespace c_actor_mode_charge_enter {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 extern void *actor_get_actor_definition(datum_index actor_index);
 }
@@ -49,9 +50,9 @@ extern data_array *prop_data;
 extern data_array *object_data;
 extern game_time_globals *game_time;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
@@ -395,7 +396,7 @@ namespace c_actor_mode_charge_tick {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -429,7 +430,7 @@ namespace c_actor_mode_charge_update {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
 extern game_time_globals *game_time;
@@ -524,7 +525,7 @@ void halo::ai::fight_mode::tick()
 {
     using namespace c_actor_mode_fight_tick;
     uint32_t actor_index = datum;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     int16_t countdown = *(int16_t *)&((struct actor *)actor)->mode_data;
 
     if (countdown <= 0 || actor[0x484] == 0) {
@@ -560,7 +561,7 @@ void halo::ai::fight_mode::update()
 {
     using namespace c_actor_mode_fight_update;
     uint32_t actor_index = datum;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
 
     actor[0x426] = actor[0x358];
     ((struct actor *)actor)->flee_reason = 5;
@@ -585,7 +586,7 @@ namespace c_actor_mode_flee_enter {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 extern void unit_initialize_random_turn_angle(uint32_t object_index);
 }
@@ -626,7 +627,7 @@ namespace c_actor_mode_flee_exit {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 extern data_array *object_data;
 }
@@ -664,7 +665,7 @@ namespace c_actor_mode_flee_get_look_weights {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 extern const float *hud_text_message_normal_color;
 extern const float *actor_mode_default_look_weights;
@@ -703,7 +704,7 @@ namespace c_actor_mode_flee_movement_cancelled {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -739,8 +740,8 @@ extern data_array *prop_data;
 extern data_array *object_data;
 extern game_time_globals *game_time;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
@@ -900,7 +901,7 @@ namespace c_actor_mode_flee_replace_reference {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -934,7 +935,7 @@ namespace c_actor_mode_flee_tick {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 extern game_time_globals *game_time;
 extern void unit_initialize_random_turn_angle(uint32_t object_index);
@@ -983,9 +984,9 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
 extern void actor_movement_action_stop(datum_index actor_index);
 extern uint8_t actor_movement_set_destination_firing_position(datum_index actor_index, int16_t formation_slot,
@@ -1069,7 +1070,7 @@ namespace c_actor_mode_guard_enter {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 extern void actor_target_reset_seen_flags(datum_index actor_index);
 extern void actor_target_reset_shot_counters(datum_index actor_index);
@@ -1108,7 +1109,7 @@ namespace c_actor_mode_guard_exit {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -1143,7 +1144,7 @@ namespace c_actor_mode_guard_get_look_weights {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 extern const float *actor_mode_guard_look_weights_idle;
 extern const float *actor_mode_guard_look_weights_a6;
@@ -1193,7 +1194,7 @@ namespace c_actor_mode_guard_movement_cancelled {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -1236,7 +1237,7 @@ namespace c_actor_mode_guard_replace_reference {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -1276,7 +1277,7 @@ namespace c_actor_mode_guard_target_cleared {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -1310,7 +1311,7 @@ namespace c_actor_mode_guard_tick {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
@@ -1408,9 +1409,9 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
@@ -1556,7 +1557,7 @@ namespace c_actor_mode_uncover_enter {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
@@ -1592,14 +1593,14 @@ void halo::ai::uncover_mode::enter()
             hi = *(float *)(actor_tag + 0x348);
         }
     }
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     t = (float)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f;
     ticks = (int32_t)(((hi - lo) * t + lo) * 30.0f);
     ((struct actor *)act)->mode_data.uncover.duration_ticks = ticks;
     ((struct actor *)act)->mode_data.uncover.remaining_ticks = ticks;
     if (((struct actor *)act)->mode_data.uncover.stage == 0 && ((actor *)act)->target_unit_index != k_datum_index_none &&
         ((struct actor *)act)->combat_status < 3) {
-        uint8_t *target = (uint8_t *)prop_data->data + (((actor *)act)->target_unit_index & halo::k_slot_mask) * 0x138;
+        uint8_t *target = (uint8_t *)prop_data->data + (((actor *)act)->target_unit_index & halo::k_slot_mask) * k_prop_size;
 
         ai_communication_broadcast(0x15, ((actor *)act)->unit_index, ((prop *)target)->object_index, -1, -1, -1, 0);
     }
@@ -1617,7 +1618,7 @@ namespace c_actor_mode_uncover_get_look_weights {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 extern const float *actor_mode_uncover_look_weights_active;
 extern const float *hud_text_message_hold_color;
@@ -1656,7 +1657,7 @@ namespace c_actor_mode_uncover_movement_cancelled {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 

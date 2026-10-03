@@ -3,6 +3,7 @@
 #include "game.h"
 #include "halo/math/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 #ifdef __cplusplus
@@ -263,7 +264,7 @@ void FlowCommands::evaluate_random(hs_thread *thread, uint32_t thread_index, cha
         }
     }
 
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     scan = 0;
     child_count = state->child_count;
     chosen_index = child_count;

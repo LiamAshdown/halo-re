@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 namespace c_actor_check_burst_length_exceeded {
@@ -69,7 +70,7 @@ void halo::ai::combat_ops::check_melee_target_reachable(int16_t *order)
     using namespace c_actor_check_melee_target_reachable;
     uint32_t actor_index = datum;
     uint8_t *record = (uint8_t *)order;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & halo::k_slot_mask].data;
     static actor_firing_position_query query;
     static path_find_context path_context;
@@ -107,7 +108,7 @@ void halo::ai::combat_ops::check_melee_target_reachable(int16_t *order)
 
     if (claimed != -1 && *(datum_index *)(record + 0x1c) != k_datum_index_none) {
         datum_index prop_index = *(datum_index *)(record + 0x1c);
-        uint8_t *target = (uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * 0x138;
+        uint8_t *target = (uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size;
         uint32_t ignore_object;
         uint32_t request[0x12];
         uint8_t *goal = (uint8_t *)candidate.position;
@@ -120,7 +121,7 @@ void halo::ai::combat_ops::check_melee_target_reachable(int16_t *order)
         if (ignore_object == halo::k_dword_none) {
             ignore_object = *(uint32_t *)&((prop *)target)->object_index;
         }
-        actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+        actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
         memset(request, 0, sizeof(request));
         request[0] = *(uint32_t *)&((Actor *)actor_tag)->pathfinding_radius;
         ((uint8_t *)request)[4] = 0;
@@ -539,7 +540,7 @@ void halo::ai::combat_ops::choose_random_point_near(real_point3d *inout_point, f
     base.y = halo::math::globals().global_up3d_pointer->j * 1.5f + inout_point->y;
     base.z = halo::math::globals().global_up3d_pointer->k * 1.5f + inout_point->z;
 
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     {
         uint32_t roll = halo::math::globals().random_seed_global >> 0x10;
         double angle = (double)roll * 1.5259022e-05 * 6.2831855 - 3.1415927;
@@ -858,7 +859,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
 {
     using namespace c_actor_evaluate_custom_charge_trigger;
     datum_index actor_index = datum;
-    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     const uint8_t *variant = (const uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((actor *)self)->actor_variant_tag & halo::k_slot_mask].data;
     const uint8_t *def = (const uint8_t *)actor_get_actor_definition(actor_index);
     uint32_t unit_index = *(uint32_t *)&((actor *)self)->unit_index;
@@ -878,7 +879,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     }
     unit = (const uint8_t *)((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
     if (*(uint32_t *)&((actor *)self)->target_unit_index != halo::k_dword_none) {
-        target = (const uint8_t *)prop_data->data + (*(uint32_t *)&((actor *)self)->target_unit_index & halo::k_slot_mask) * 0x138;
+        target = (const uint8_t *)prop_data->data + (*(uint32_t *)&((actor *)self)->target_unit_index & halo::k_slot_mask) * k_prop_size;
     }
     if (unit[0x2a3] == 0x17 && self[0x378] == 0) {
         goto return_true;
@@ -923,7 +924,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         } else if ((variant[0] & 8) != 0 && (int8_t)self[0x245] > 0) {
 
             const uint8_t *axis_prop = (const uint8_t *)prop_data->data +
-                (*(uint32_t *)&((actor *)self)->target_unit_index & halo::k_slot_mask) * 0x138;
+                (*(uint32_t *)&((actor *)self)->target_unit_index & halo::k_slot_mask) * k_prop_size;
             actor_prop_iterator iterator;
             uint32_t cursor;
             int32_t ahead = 0, level = 0, behind = 0;
@@ -931,7 +932,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
             actor_prop_iterator_init(actor_index, &iterator);
             cursor = iterator.next;
             while (cursor != halo::k_dword_none) {
-                const uint8_t *p = (const uint8_t *)prop_data->data + (cursor & halo::k_slot_mask) * 0x138;
+                const uint8_t *p = (const uint8_t *)prop_data->data + (cursor & halo::k_slot_mask) * k_prop_size;
                 int16_t kind = *(const int16_t *)(p + 0x24);
                 uint32_t owner;
                 const uint8_t *other;
@@ -948,7 +949,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 if (owner == halo::k_dword_none) {
                     continue;
                 }
-                other = (const uint8_t *)actor_data->data + (owner & halo::k_slot_mask) * 0x724;
+                other = (const uint8_t *)actor_data->data + (owner & halo::k_slot_mask) * k_actor_size;
                 if (other[0x362] == 0) {
                     continue;
                 }
@@ -988,7 +989,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
             int16_t without = 0, with = 0;
 
             while (cursor != halo::k_dword_none) {
-                const uint8_t *p = (const uint8_t *)prop_data->data + (cursor & halo::k_slot_mask) * 0x138;
+                const uint8_t *p = (const uint8_t *)prop_data->data + (cursor & halo::k_slot_mask) * k_prop_size;
                 int16_t kind = *(const int16_t *)(p + 0x24);
                 uint32_t owner;
                 const uint8_t *other;
@@ -1001,7 +1002,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 if (owner == halo::k_dword_none) {
                     continue;
                 }
-                other = (const uint8_t *)actor_data->data + (owner & halo::k_slot_mask) * 0x724;
+                other = (const uint8_t *)actor_data->data + (owner & halo::k_slot_mask) * k_actor_size;
                 if (*(const int16_t *)(other + 0x4) != ((actor *)self)->type ||
                     *(const int16_t *)(other + 0x6e) < 5) {
                     continue;
@@ -1016,7 +1017,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                                (-chance) * (float)(int32_t)without) * 0.5f;
         }
 
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         self[0x362] = 1;
         roll = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
         decision = (roll >= chance) ? 0 : 1;
@@ -1398,7 +1399,7 @@ datum_index halo::ai::combat_ops::get_squad_recent_attacker_target(char require_
 {
     using namespace c_actor_get_squad_recent_attacker_target;
     datum_index actor_index = datum;
-    datum_index unit_index = *(datum_index *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724 + 0x18);
+    datum_index unit_index = *(datum_index *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size + 0x18);
     datum_index best_prop = k_datum_index_none;
     uint32_t best_tick = 0;
     uint8_t *record;
@@ -1436,7 +1437,7 @@ datum_index halo::ai::combat_ops::get_squad_recent_attacker_target(char require_
         if (prop_index == k_datum_index_none) {
             continue;
         }
-        p = (uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * 0x138;
+        p = (uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size;
         if (*(int16_t *)(p + 0x24) < 2 || *(int16_t *)(p + 0x24) > 3) {
             continue;
         }

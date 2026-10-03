@@ -21,7 +21,7 @@ extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_se
 
 extern double sqrt(double x);
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
@@ -547,7 +547,7 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
                     }
                 } else {
 
-                    const uint8_t *target_prop = (const uint8_t *)prop_data->data + (target & halo::k_slot_mask) * 0x138;
+                    const uint8_t *target_prop = (const uint8_t *)prop_data->data + (target & halo::k_slot_mask) * k_prop_size;
                     real max_time = 0.7f;
                     real half_gravity;
                     real horizontal_speed;
@@ -721,7 +721,7 @@ extern uint8_t unit_find_weapon_marker_transform(uint32_t unit_index, uint32_t v
     real_point3d *out_entry, real_point3d *out_seat, real_point3d *out_hint);
 extern void object_get_position(real_point3d *out_position, datum_index object_index);
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
 static uint8_t *actor_try_get(datum_index handle)
@@ -797,7 +797,7 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
         distance = (float)sqrt((entry.y - ay) * (entry.y - ay) + (entry.x - ax) * (entry.x - ax));
     }
     for (prop_index = ((actor *)act)->first_prop; prop_index != k_datum_index_none;) {
-        uint8_t *prop = (uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * 0x138;
+        uint8_t *prop = (uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size;
         datum_index other_index = ((struct prop *)prop)->owner_actor_index;
 
         prop_index = ((struct prop *)prop)->next_in_actor;

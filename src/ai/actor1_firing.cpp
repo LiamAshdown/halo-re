@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 namespace c_actor_claim_firing_position {
@@ -598,7 +599,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         actor_firing_position_candidate *c;
         uint32_t roll;
 
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         roll = ((halo::math::globals().random_seed_global >> 0x10) * (uint32_t)(int32_t)candidate_count) >> 0x10;
         *out_path_ok = 0;
         best_index = roll;

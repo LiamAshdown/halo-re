@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
@@ -183,7 +184,7 @@ extern void ai_actor_link_to_unassigned_list(datum_index actor_index);
 extern void encounter_add_actor(int16_t squad_index, datum_index actor_index, datum_index encounter_index,
     uint8_t keep_team);
 extern uint8_t actor_link_to_unit_cluster(datum_index actor_index, datum_index unit_index);
-#define ACTOR_AT(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * 0x724)
+#define ACTOR_AT(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -479,7 +480,7 @@ uint8_t ActorView::probe_step_direction(float step_distance, real_vector2d *dire
         break;
     case 4: {
         uint32_t rng;
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         rng = (uint32_t)halo::math::globals().random_seed_global;
         if ((uint16_t)(rng >> 0x10) <= 0x8000) {
             probe.i = direction->j;
@@ -536,7 +537,7 @@ extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
 uint8_t ActorView::process_order_request(uint16_t order_code)
 {
     using namespace actor_process_order_request_local;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     int16_t mode = ((actor *)act)->mode;
     uint8_t order[k_actor_mode_data_size];
     int16_t code = (int16_t)order_code;
@@ -660,7 +661,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
 namespace actor_process_pending_command_list_local {
 extern "C" {
 extern data_array *actor_data;
-#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * 0x724)
+#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
@@ -863,7 +864,7 @@ static void biped_free_local_player_history(uint8_t *self)
 uint8_t ActorView::process_vehicle_seat_exit()
 {
     using namespace actor_process_vehicle_seat_exit_local;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     datum_index driving = ((actor *)act)->active_unit_index;
     uint8_t wanted = 0;
     uint8_t forced = 0;
@@ -879,7 +880,7 @@ uint8_t ActorView::process_vehicle_seat_exit()
         datum_index prop_index = ((actor *)act)->first_prop;
 
         while (prop_index != k_datum_index_none) {
-            uint8_t *p = (uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * 0x138;
+            uint8_t *p = (uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size;
             int16_t kind = ((prop *)p)->state;
 
             prop_index = ((prop *)p)->next_in_actor;
@@ -1052,7 +1053,7 @@ void ActorView::propagate_unit_field(int16_t value)
 namespace actor_raise_timer_5f6_local {
 extern "C" {
 extern data_array *actor_data;
-#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * 0x724)
+#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
@@ -1513,7 +1514,7 @@ extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing
 uint8_t ActorView::request_move_and_face()
 {
     using namespace actor_request_move_and_face_local;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & halo::k_slot_mask].data;
 
     if (actor[6] != 0) {
@@ -1552,7 +1553,7 @@ uint8_t ActorView::request_move_and_face()
         found = (int16_t)actor_find_best_firing_position(actor_index, &query, &candidate, &previous_owner,
             &path_context, &path_ok);
         claimed = actor_claim_firing_position(actor_index, previous_owner, &path_context, found, path_ok);
-        actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+        actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
         actor[0xaa] = 0;
         actor[0xb0] = 0;
         if (claimed == -1) {
@@ -1595,7 +1596,7 @@ void ActorView::reseed_movement_pause_timer()
     actor_select_stance_offset_pair(actor_index, (uint8_t *)definition, &entry_a, &entry_b);
     upper = *(float *)(entry_a + 0x20);
     lower = *(float *)(entry_a + 0x1c);
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     fraction = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
     pause = fraction * (upper - lower) + lower;
     pause = weapon_get_zoom_fov_resolved(0xe, ((struct actor *)self)->team) * pause;
@@ -2515,7 +2516,7 @@ uint8_t ActorView::should_hold_position(uint8_t *definition)
         float hi = *(float *)(definition + 0x84);
         float r;
 
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         r = (float)(int32_t)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f;
         self->firing_state_timer = (int16_t)(int32_t)(((hi - lo) * r + lo) * 30.0f);
     }
@@ -2620,7 +2621,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
                 float angle;
                 uint32_t random_bits;
 
-                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                 random_bits = halo::math::globals().random_seed_global >> 16;
                 angle = (float)(int32_t)random_bits * 1.5259022e-05f * 6.2831855f;
                 object_placement_data_initialize(&placement, (datum_index)variant[8], (datum_index)k_datum_index_none);
@@ -2793,7 +2794,7 @@ typedef struct actor_dodge_entry {
     float bias;
 } actor_dodge_entry;
 extern const actor_dodge_entry actor_dodge_table[];
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -3010,9 +3011,9 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 }
 

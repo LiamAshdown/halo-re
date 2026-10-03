@@ -108,7 +108,7 @@ static uint8_t *object_get(datum_index object_index)
 void ActorView::refresh_combat_context()
 {
     using namespace actor_refresh_combat_context_local;
-    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)self)->actor_definition_tag & halo::k_slot_mask].data;
     uint8_t *unit;
     uint8_t *parent = 0;

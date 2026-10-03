@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 namespace c_actor_compute_grenade_throw_vector {
@@ -28,13 +29,13 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
 {
     using namespace c_actor_compute_grenade_throw_vector;
     datum_index actor_index = datum;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint32_t target_object = halo::k_dword_none;
     real_vector3d direction;
     float speed;
 
     if (*(datum_index *)&((struct actor *)a)->grenade_target_prop_index != k_datum_index_none) {
-        uint8_t *p = (uint8_t *)prop_data->data + (*(datum_index *)&((struct actor *)a)->grenade_target_prop_index & halo::k_slot_mask) * 0x138;
+        uint8_t *p = (uint8_t *)prop_data->data + (*(datum_index *)&((struct actor *)a)->grenade_target_prop_index & halo::k_slot_mask) * k_prop_size;
         int16_t kind = ((prop *)p)->state;
 
         if (kind >= 2 && kind <= 3) {
@@ -111,7 +112,7 @@ void halo::ai::grenade_ops::died_unit_grenade_count_mod(object *unit_object, con
         float max_fraction = *(const float *)(actor_tag_data + 0x1dc);
 
         if (min_fraction > 0.0f || max_fraction > 0.0f) {
-            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
             halo::items::weapon_set_loaded_ammo_fraction(weapon_object_index,
                 (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f * (max_fraction - min_fraction) + min_fraction);
         }
@@ -122,7 +123,7 @@ void halo::ai::grenade_ops::died_unit_grenade_count_mod(object *unit_object, con
 
             if (min_count > 0 || max_count > 0) {
                 int16_t count;
-                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
 
                 count = (int16_t)((uint32_t)(((int32_t)(int16_t)(max_count + 1) - min_count) * (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10) + min_count;
                 halo::items::weapon_set_ammo_counts(weapon_object_index, &count);

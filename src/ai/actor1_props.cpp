@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 namespace c_actor_allocate_paired_prop {
@@ -166,7 +167,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         if (i < 4) {
             ColorRGB *working = (ColorRGB *)(unit + 0x188 + i * 0xc);
 
-            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
             color_interpolate((ColorRGB *)(change_color + 0xc), (ColorRGB *)change_color, working, 1,
                 (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f);
             *(ColorRGB *)(unit + 0x1b8 + i * 0xc) = *working;
@@ -192,7 +193,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         int32_t range = (int16_t)(*(int16_t *)(variant + 0x1d2) + 1) - minimum;
         uint8_t *object = object_get(unit_index);
 
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         object[0x31e + type] = (uint8_t)(object[0x31e + type] +
             (uint8_t)(((uint32_t)range * (halo::math::globals().random_seed_global >> 0x10)) >> 0x10) + (uint8_t)minimum);
         object[0x31d] = (uint8_t)type;
@@ -567,7 +568,7 @@ extern double fabs(double x);
 extern uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *direction, float step_distance,
                                             float step_up, uint8_t *out_flag, void *extra_param);
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
@@ -735,7 +736,7 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
         return k_prop_admit_keep;
     }
     if (owner_index != k_datum_index_none) {
-        owner = (uint8_t *)actor_data->data + (owner_index & halo::k_slot_mask) * 0x724;
+        owner = (uint8_t *)actor_data->data + (owner_index & halo::k_slot_mask) * k_actor_size;
     }
     if (owner != 0 && (owner[8] == 0 || owner[0x13] != 0)) {
         return k_prop_admit_drop;
@@ -824,7 +825,7 @@ datum_index halo::ai::prop_ops::find_or_allocate_prop(uint32_t object_index, cha
 {
     using namespace c_actor_find_or_allocate_prop;
     datum_index actor_index = datum;
-    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     datum_index cursor = ((actor *)self)->first_prop;
     datum_index drop_choice = k_datum_index_none;
     datum_index far_choice = k_datum_index_none;
@@ -835,7 +836,7 @@ datum_index halo::ai::prop_ops::find_or_allocate_prop(uint32_t object_index, cha
 
     while (cursor != k_datum_index_none) {
         datum_index current = cursor;
-        uint8_t *p = (uint8_t *)prop_data->data + (cursor & halo::k_slot_mask) * 0x138;
+        uint8_t *p = (uint8_t *)prop_data->data + (cursor & halo::k_slot_mask) * k_prop_size;
         int16_t prop_kind = ((prop *)p)->state;
         float distance = ((prop *)p)->distance;
         uint8_t far_flag;
@@ -869,7 +870,7 @@ datum_index halo::ai::prop_ops::find_or_allocate_prop(uint32_t object_index, cha
     if (result == k_datum_index_none) {
         result = halo::memory::datum_new(prop_data);
     } else {
-        uint8_t *p = (uint8_t *)prop_data->data + (result & halo::k_slot_mask) * 0x138;
+        uint8_t *p = (uint8_t *)prop_data->data + (result & halo::k_slot_mask) * k_prop_size;
         int16_t salt = *(int16_t *)p;
 
         actor_replace_object_reference(actor_index, halo::k_dword_none, result);
@@ -1183,7 +1184,7 @@ extern datum_index actor_find_or_create_shared_prop(datum_index object_index, da
 extern void actor_queue_directional_reaction_event(const real_vector3d *direction, datum_index target_prop_index,
     datum_index actor_index);
 
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 }
 

@@ -531,7 +531,7 @@ extern uint8_t scenario_location_background_sound_is_deafening_to_ais(bsp_leaf_r
 uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref, int16_t gate, real_point3d *listener_position)
 {
     using namespace actor_target_hearing_check_local;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *listener = (uint8_t *)target_ref;
     int16_t listener_cluster;
     int16_t source_cluster;
@@ -691,7 +691,7 @@ extern void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_i
 void TargetView::target_reset_combat_flags(datum_index actor_index, uint32_t unused, uint8_t already_noticed)
 {
     using namespace actor_target_reset_combat_flags_local;
-    uint8_t *p = (uint8_t *)prop_data->data + (target_prop_index & halo::k_slot_mask) * 0x138;
+    uint8_t *p = (uint8_t *)prop_data->data + (target_prop_index & halo::k_slot_mask) * k_prop_size;
 
     (void)unused;
     p[0xba] = 0;

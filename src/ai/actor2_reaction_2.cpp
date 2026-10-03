@@ -9,7 +9,7 @@ namespace halo::ai {
 namespace actor_react_to_disturbance_local {
 extern "C" {
 extern data_array *actor_data;
-#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * 0x724)
+#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
@@ -59,7 +59,7 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
     }
     actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
     if (D(0x2f4) != halo::k_dword_none) {
-        uint8_t *prop = (uint8_t *)prop_data->data + (D(0x2f4) & halo::k_slot_mask) * 0x138;
+        uint8_t *prop = (uint8_t *)prop_data->data + (D(0x2f4) & halo::k_slot_mask) * k_prop_size;
 
         object = ((struct prop *)prop)->object_index;
         reason = (prop[0x60] != 0) + 2;

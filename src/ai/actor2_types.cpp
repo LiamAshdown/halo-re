@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
@@ -40,7 +41,7 @@ extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
 void ActorView::type_crew_update()
 {
     using namespace actor_type_crew_update_local;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
 
     if (((struct actor *)actor)->mode == 0 && ((struct actor *)actor)->awareness_level != 0) {
         actor_process_order_request(actor_index, halo::k_word_none);
@@ -144,7 +145,7 @@ extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t 
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -269,7 +270,7 @@ extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t 
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -366,7 +367,7 @@ extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
 extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -447,7 +448,7 @@ extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
 extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -545,7 +546,7 @@ extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t 
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 extern int32_t actor_order_code_is_grenade_throw(int16_t order_code);
 extern uint8_t actor_consider_grenade_throw(datum_index actor_index);
 }
@@ -657,7 +658,7 @@ extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t par
 extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -736,8 +737,8 @@ extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
 extern double fabs(double x);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 #define SWARM(h) ((uint8_t *)swarm_data->data + ((h) & halo::k_slot_mask) * 0x98)
 #define COMPONENT(h) ((uint8_t *)swarm_component_data->data + ((h) & halo::k_slot_mask) * 0x40)
@@ -747,7 +748,7 @@ extern double fabs(double x);
 #define U32(p, o) (*(uint32_t *)((uint8_t *)(p) + (o)))
 static uint32_t swarm_random_next(void)
 {
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     return halo::math::globals().random_seed_global >> 16;
 }
 static void copy3(real_vector3d *out, const void *in)
@@ -1244,7 +1245,7 @@ extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
 extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -1332,7 +1333,7 @@ extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t 
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -1456,7 +1457,7 @@ extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t 
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -1552,7 +1553,7 @@ extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
 extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
 extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -1616,7 +1617,7 @@ extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t 
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 

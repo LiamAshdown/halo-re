@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 extern "C" {
@@ -177,7 +178,7 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 /**
  * Behaviour of ai alert actors in grenade radius, moved unchanged from the original free function.
  *
@@ -660,7 +661,7 @@ int16_t AiSystem::pick_weighted_candidate(ai_scored_candidate *table, ai_scored_
 
     chosen = last_valid;
     if (1 < valid_count) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         running = 0.0f;
         for (i = 0; i < 4; i = i + 1) {
             entry = &table[i * 2];
@@ -724,7 +725,7 @@ void AiSystem::process_vehicle_entry_queue()
             actor_index = actor_place_new_unit(gunner_tag, k_datum_index_none, -1, 0, 0, &request);
             if (actor_index != k_datum_index_none) {
                 unit_enter_vehicle_seat(vehicle_index, seat_index,
-                    *(datum_index *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724 + 0x18));
+                    *(datum_index *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size + 0x18));
             }
         }
     }
@@ -831,8 +832,8 @@ void AiSystem::reset_all_actors_perception()
     }
 }
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJ(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 #define ai_globals_ptr (*reinterpret_cast<uint8_t * *>(&ai_globals_ptr))
 namespace {
@@ -1245,7 +1246,7 @@ int32_t AiSystem::weighted_random_index(int16_t weight_offset, void *base, int16
         int16_t chosen = 0;
 
         cursor = (uint8_t *)base + weight_offset;
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         roll = (float)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f * total;
 
         while ((exclude_mask[chosen >> 5] & (1u << (chosen & 0x1f))) != 0 ||

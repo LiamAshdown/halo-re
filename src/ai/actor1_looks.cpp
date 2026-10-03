@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
@@ -31,7 +32,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
 {
     using namespace c_actor_apply_queued_look_to_unit;
     datum_index actor_index = datum;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint32_t unit_index = *(uint32_t *)&((struct actor *)actor)->unit_index;
     uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
     unit_control_data control;
@@ -235,7 +236,7 @@ extern "C" int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint3
 int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target, uint8_t stance_a, uint8_t check_facing, uint16_t range_class)
 {
     using namespace c_actor_dispatch_look_handler_by_posture;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & halo::k_slot_mask].data;
     uint8_t *definition;
     float *from = (float *)origin;
@@ -502,7 +503,7 @@ int32_t halo::ai::look_ops::look_get_wait_ticks(int16_t mode, uint32_t flags, fl
     }
 
     if (((lo < 0.0f) == (lo == 0.0f)) || ((hi < 0.0f) == (hi == 0.0f))) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         rng = halo::math::globals().random_seed_global;
         fraction = (hi - lo) * (float)(rng >> 0x10) * 1.5259022e-05f + lo;
     } else {
@@ -574,11 +575,11 @@ uint8_t halo::ai::look_ops::look_pick_random_point_in_cone(void *origin, float y
     }
 
     for (attempt = 0; attempt < 10; attempt++) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         rng = halo::math::globals().random_seed_global;
         yaw = (float)(rng >> 0x10) * 1.5259022e-05f * (yaw_max - yaw_min) + yaw_min;
 
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         rng = halo::math::globals().random_seed_global;
         pitch = (float)(rng >> 0x10) * 1.5259022e-05f * (pitch_max - pitch_min) + pitch_min;
 

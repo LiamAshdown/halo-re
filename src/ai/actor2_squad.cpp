@@ -169,7 +169,7 @@ extern const char k_empty_string[];
 char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state)
 {
     using namespace actor_squad_action_execute_local;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     uint8_t *variant_tag = TAG_DATA(((actor *)act)->actor_variant_tag);
     ScenarioCommandList *list = &((ScenarioCommandList *)global_scenario->command_lists.pointer)[command_list_index];
@@ -731,7 +731,7 @@ extern uint32_t unit_get_biped_specific_value(uint32_t object_index);
 uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state)
 {
     using namespace actor_squad_action_is_complete_local;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     ScenarioCommandList *list = &((ScenarioCommandList *)global_scenario->command_lists.pointer)[command_list_index];
     datum_index unit_index = ((actor *)act)->unit_index;
     ScenarioCommand *entry;

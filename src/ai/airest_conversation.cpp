@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 
 extern "C" {
@@ -288,7 +289,7 @@ uint8_t ConversationView::current_line_is_ready()
                     if (!(flags & 0x20) && !((flags & 0x10) && actor_index == *(datum_index *)(inst + 0x50))) {
                         continue;
                     }
-                    a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+                    a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
                     if (((actor *)a)->mode == 0xc && *(datum_index *)(a + 0xa8) != k_datum_index_none &&
                         !a[0xa1] && !a[0xa0]) {
                         blocked = 1;
@@ -844,7 +845,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
                 }
                 chosen_variant = variant_candidates[0];
                 if (variant_candidate_count != 1) {
-                    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                     chosen_variant = (uint32_t)variant_candidates
                         [(int16_t)(((int32_t)variant_candidate_count *
                                     (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10)];
@@ -1311,7 +1312,7 @@ finished_check:
                 if (!(*(uint32_t *)(inst + 0x14) & (1u << i)) || actor_index == k_datum_index_none) {
                     continue;
                 }
-                a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+                a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
                 unit = ((actor *)a)->unit_index;
                 ((actor *)a)->conversation_index = handle;
                 ((actor *)a)->conversation_participant = k_datum_index_none;

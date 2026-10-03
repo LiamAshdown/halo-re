@@ -507,7 +507,7 @@ extern uint8_t path_find_trace_bsp_boundary(void *map, uint8_t ignore_permission
 void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datum_index actor_index, uint8_t want_avoid_check, float avoid_threshold, uint8_t order_failed, float steering_maximum, float oversteer_min, float oversteer_max, float avoidance_scale, float throttle_maximum, real_vector3d *desired_direction, real_vector3d *out_direction, int16_t *out_axis, real_vector3d *out_heading, uint8_t *out_flag_507, uint8_t *out_flag_506)
 {
     using namespace actor_movement_apply_steering_local;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     real_vector3d *facing = (real_vector3d *)(act + 0x174);
     float max_turn_cos = 0.8660254f;
