@@ -20,6 +20,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 #define k_degrees_to_radians 0.017453292f
 #define k_seconds_per_tick   0.033333335f
@@ -33,7 +34,6 @@ extern player_control_globals *player_control_globals_ptr;
 extern game_time_globals *game_time;
 extern Globals *global_globals;
 extern int16_t network_game_mode;
-extern game_main_globals *main_game_globals;
 extern local_player_input_state local_player_input_states[k_maximum_local_players];
 extern real look_yaw_rate_setting[k_maximum_local_players];
 extern real look_pitch_rate_setting[k_maximum_local_players];
@@ -57,7 +57,6 @@ extern uint8_t game_engine_input_source_flag;
 extern uint8_t *cinematic_globals_ptr;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
-extern main_globals main_globals_data;
 extern real weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
 }
 
@@ -278,7 +277,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
                 if (adhesion < 0.0f) { adhesion = 0.0f; } else if (adhesion > 1.0f) { adhesion = 1.0f; }
                 adhesion = adhesion * control->aim_assist_weight;
 
-                if (main_game_globals->players_are_double_speed != 0) {
+                if (halo::main::globals().game_globals->players_are_double_speed != 0) {
                     time_scale = time_scale * 0.5f;
                 }
                 magnetism_yaw = look_yaw_pitch_rate[0] * time_scale;
@@ -440,7 +439,7 @@ void LocalControl::digitize_control_input(player_control_input *input)
         *(int8_t *)(cinematic_globals_ptr + 10) != 0) {
         split_screen_quit_prompt_string = 0xffff;
         network_join_error_reason = 0;
-        main_globals_data.revert_map_if_allowed = 1;
+        halo::main::globals().main_globals.revert_map_if_allowed = 1;
     }
 
     if (control_flags & 0x40) { *flags |= _player_action_jump; }

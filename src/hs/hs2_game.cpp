@@ -22,7 +22,6 @@ extern uint8_t *player_effect_globals_pointer;
 extern game_time_globals *game_time;
 extern void network_game_host_start(char *map_name, char *variant_name, uint8_t disconnect_timeout_flag);
 extern uint32_t game_safe_to_pause(void);
-extern game_main_globals *main_game_globals;
 extern int16_t pending_difficulty;
 extern int16_t local_player_count;
 extern uint8_t network_join_error_reason;
@@ -45,7 +44,6 @@ extern uint8_t *object_globals_pointer;
 extern uint8_t unknown_00719738;
 extern uint8_t profile_globals_block[0x60a4];
 extern uint8_t ui_event_byte_0071975b;
-extern int32_t movie_playback_abort;
 extern uint8_t split_screen_quit_prompt_armed;
 extern char hs_evaluate_variadic_arguments(uint32_t thread_index, int32_t value, uint32_t *out_count, int32_t **out_values);
 extern void rcon(int32_t argument_count, char **arguments);
@@ -171,7 +169,7 @@ void GameCommands::evaluate_game_all_quiet(int16_t function_index, uint32_t thre
  */
 void GameCommands::evaluate_game_difficulty_get(int16_t function_index, uint32_t thread_index, char first)
 {
-    int16_t difficulty = main_game_globals->difficulty;
+    int16_t difficulty = halo::main::globals().game_globals->difficulty;
 
     if (difficulty <= 1) {
         difficulty = 1;
@@ -187,7 +185,7 @@ void GameCommands::evaluate_game_difficulty_get(int16_t function_index, uint32_t
  */
 void GameCommands::evaluate_game_difficulty_get_real(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)(uint16_t)main_game_globals->difficulty, thread_index);
+    hs_thread_return((int32_t)(uint16_t)halo::main::globals().game_globals->difficulty, thread_index);
 }
 
 /**
@@ -545,7 +543,7 @@ void GameCommands::evaluate_profile_unlock_solo_levels(int16_t function_index, u
 void GameCommands::evaluate_quit(int16_t function_index, uint32_t thread_index, char first)
 {
     ui_event_byte_0071975b = 1;
-    movie_playback_abort = 1;
+    halo::main::globals().movie_playback_abort = 1;
     split_screen_quit_prompt_armed = 0;
     hs_thread_return(0, thread_index);
 }

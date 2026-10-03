@@ -17,9 +17,9 @@
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
-extern game_main_globals *main_game_globals;
 extern game_time_globals *game_time;
 extern real chimera_contrail_scale;
 extern void widgets_update_all(real tick_delta_time);
@@ -61,7 +61,7 @@ void SimulationClock::effects_update(real delta_time)
     int16_t ticks_this_frame;
     real tick_delta_time;
 
-    scale = (main_game_globals->players_are_double_speed == 0) ? 1.0f : 0.5f;
+    scale = (halo::main::globals().game_globals->players_are_double_speed == 0) ? 1.0f : 0.5f;
     ticks_this_frame = game_time->ticks_this_frame;
     tick_delta_time = (real)ticks_this_frame * scale * 0.033333335f;
     delta_time = scale * delta_time;

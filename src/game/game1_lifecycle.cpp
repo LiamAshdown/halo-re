@@ -16,6 +16,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -34,9 +35,7 @@ extern uint32_t sound_class_gains;
 extern uint32_t rasterizer_device;
 extern void **rasterizer_decal_vertex_cache;
 extern uint32_t object_render_state_cache;
-extern uint8_t console_win32_attached;
 extern uint32_t *terminal_messages;
-extern uint8_t terminal_initialized;
 extern void *game_state_write_buffer;
 extern uint32_t input_event_queue_active[0x43];
 extern uint32_t input_globals[0x97c];
@@ -152,8 +151,8 @@ void Lifecycle::dispose(void)
     object_render_state_cache = 0;
     objects_dispose();
 
-    if (console_win32_attached != 0) {
-        console_win32_attached = 0;
+    if (halo::main::globals().console_win32_attached != 0) {
+        halo::main::globals().console_win32_attached = 0;
     }
     if (terminal_messages != (uint32_t *)0) {
         if (*((uint8_t *)terminal_messages + 9 * 4) != 0) {
@@ -164,7 +163,7 @@ void Lifecycle::dispose(void)
         }
         GlobalFree(terminal_messages);
     }
-    terminal_initialized = 0;
+    halo::main::globals().terminal_initialized = 0;
     halo::saved_games::saved_game_files_dispose();
 
     for (i = 0; i < 0x43; i = i + 1) {

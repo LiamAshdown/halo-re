@@ -9,8 +9,6 @@
 
 extern "C" {
 extern char *rasterizer_shader_file_name;
-extern game_main_globals *main_game_globals;
-extern main_globals main_globals_data;
 extern int16_t local_player_count;
 extern int32_t cached_profile_slot;
 extern char last_profile_name[];
@@ -54,17 +52,17 @@ void CacheFileMaps::switch_map_by_path(char *path, uint8_t apply_state)
                 goto open_by_name;
             }
         }
-        globals = main_game_globals;
+        globals = halo::main::globals().game_globals;
         if (apply_state == 0) {
             return;
         }
-        main_game_globals->map_loading_in_progress = 0;
+        halo::main::globals().game_globals->map_loading_in_progress = 0;
         *(uint32_t *)&globals->map_load_progress = 0x3f800000;
     }
 
     if (apply_state != 0) {
-        main_globals_data.pending_cache_file_name[0] = 0;
-        main_globals_data.cache_file_open_pending = 0;
+        halo::main::globals().main_globals.pending_cache_file_name[0] = 0;
+        halo::main::globals().main_globals.cache_file_open_pending = 0;
         if (halo::cache::globals().map_download_in_progress != 0) {
             halo::cache::cache_file_download_finish();
         }

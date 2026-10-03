@@ -7,6 +7,13 @@
 
 #include <stdint.h>
 
+struct console_globals;
+struct data_array;
+struct game_main_globals;
+struct main_globals;
+struct terminal_console;
+typedef uint32_t datum_index;
+
 struct Rectangle2D;
 struct network_scenario_load_request;
 struct observer;
@@ -14,6 +21,28 @@ struct observer_camera;
 struct render_view;
 
 namespace halo::main {
+
+/**
+ * The engine globals the main module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    game_main_globals *&game_globals;
+    uint8_t &menu_music_pending;
+    int32_t &movie_playback_abort;
+    uint8_t &terminal_initialized;
+    datum_index &console_message_head;
+    datum_index &console_message_tail;
+    int32_t &console_rcon_handle;
+    uint8_t &console_win32_attached;
+    int32_t &console_caret_blink_time;
+    main_globals &main_globals;
+    console_globals &console_globals;
+    terminal_console *&console_active;
+    data_array *&terminal_messages;
+};
+
+Globals &globals();
 
 void campaign_level_advance();
 int campaign_level_find_index_for_path(char *path);

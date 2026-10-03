@@ -7,28 +7,23 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
-extern uint8_t terminal_initialized;
-extern data_array *terminal_messages;
 extern char console_echo_prefix[];
 extern datum_index console_message_new(void);
 extern void chimera__console_out_copy(char *text);
-extern int32_t console_rcon_handle;
 extern uint8_t console_rcon_out_reentrant_guard;
-extern uint8_t console_win32_attached;
 extern void *console_output_handle;
 extern void chimera__rcon_out(int32_t rcon_handle);
 extern void console_clear_bottom_line(int32_t clear_all);
 extern void console_draw_input_line(void);
 extern void string_replace_all_in_place(char *buffer, char *search, char *replacement);
-extern terminal_console *console_active;
 extern char console_window_title[0x20];
 extern void console_position_cursor(void);
 extern Globals *global_globals;
 extern uint8_t console_caret_visible;
 extern uint8_t console_show_messages;
-extern datum_index console_message_head;
 extern uint16_t hud_text_draw_color_or_flags;
 extern int16_t hud_text_draw_column;
 extern uint32_t hud_text_draw_unknown_4730;
@@ -41,13 +36,11 @@ extern int16_t hud_text_draw_background_mode;
 extern uint32_t text_tab_stops;
 extern uint32_t hud_text_draw_box_field_474e;
 extern int16_t render_viewport_top[6];
-extern datum_index console_message_tail;
 extern void console_message_delete(datum_index message);
 extern void widget_text_edit_clamp_selection(text_edit_state *state);
 extern void console_restore_cursor(void);
 extern uint32_t strlen(const char *s);
 extern void *console_input_handle;
-extern int32_t console_caret_blink_time;
 extern uint8_t controls_input_capture_flags;
 extern int16_t key_event_read_index;
 extern int16_t key_event_count;
@@ -73,7 +66,7 @@ void ConsoleTerminal::out(ColorARGB *color, char *format, va_list args)
     datum_index message_handle;
     console_message *message;
 
-    if (terminal_initialized == 0) {
+    if (halo::main::globals().terminal_initialized == 0) {
         return;
     }
 
@@ -82,7 +75,7 @@ void ConsoleTerminal::out(ColorARGB *color, char *format, va_list args)
         return;
     }
 
-    message = (console_message *)((char *)terminal_messages->data +
+    message = (console_message *)((char *)halo::main::globals().terminal_messages->data +
                                    (uint16_t)message_handle * sizeof(console_message));
     message->age = 0;
     if (color == (ColorARGB *)0) {
@@ -110,12 +103,12 @@ void ConsoleTerminal::out_copy(char *text)
     uint32_t chars_written;
     uint32_t length;
 
-    if (console_rcon_handle != -1 && console_rcon_out_reentrant_guard == 0) {
+    if (halo::main::globals().console_rcon_handle != -1 && console_rcon_out_reentrant_guard == 0) {
         console_rcon_out_reentrant_guard = 1;
-        chimera__rcon_out(console_rcon_handle);
+        chimera__rcon_out(halo::main::globals().console_rcon_handle);
         console_rcon_out_reentrant_guard = 0;
     }
-    if (console_win32_attached != 0) {
+    if (halo::main::globals().console_win32_attached != 0) {
         line[0] = '\0';
         strncpy(line, text, 0x100);
         string_replace_all_in_place(line, console_echo_prefix, state::console_tab_text);
@@ -140,7 +133,7 @@ void ConsoleTerminal::clear_bottom_line(uint8_t clear_text)
     win32_coord bottom_left;
     uint32_t written;
 
-    if (console_win32_attached != 0 &&
+    if (halo::main::globals().console_win32_attached != 0 &&
         GetConsoleScreenBufferInfo(console_output_handle, &info) != 0) {
         bottom_left.X = 0;
         bottom_left.Y = (int16_t)(info.dwSize.Y - 1);
@@ -167,7 +160,7 @@ void ConsoleTerminal::clear_screen(void)
     win32_coord origin = {0, 0};
     uint32_t written;
 
-    if (console_win32_attached != 0 &&
+    if (halo::main::globals().console_win32_attached != 0 &&
         GetConsoleScreenBufferInfo(console_output_handle, &info) != 0) {
         if (FillConsoleOutputCharacterA(console_output_handle, ' ',
                                          (int32_t)info.dwSize.Y * (int32_t)info.dwSize.X,
@@ -190,15 +183,15 @@ void ConsoleTerminal::close(terminal_console *console)
     win32_console_cursor_info info;
     int32_t ok;
 
-    if (console == console_active) {
-        if (console_win32_attached != 0) {
+    if (console == halo::main::globals().console_active) {
+        if (halo::main::globals().console_win32_attached != 0) {
             ok = GetConsoleCursorInfo(console_output_handle, &info);
             if (ok != 0) {
                 info.bVisible = 0;
                 SetConsoleCursorInfo(console_output_handle, &info);
             }
         }
-        console_active = (terminal_console *)0;
+        halo::main::globals().console_active = (terminal_console *)0;
     }
 }
 
@@ -215,9 +208,9 @@ void ConsoleTerminal::draw_input_line(void)
     uint32_t written;
     uint32_t length;
 
-    if (console_win32_attached != 0 && console_active != (terminal_console *)0) {
-        _snprintf(line, 0x11e, "%s %s", console_window_title, console_active->input);
-        strcpy(line + strlen(console_window_title), console_active->input);
+    if (halo::main::globals().console_win32_attached != 0 && halo::main::globals().console_active != (terminal_console *)0) {
+        _snprintf(line, 0x11e, "%s %s", console_window_title, halo::main::globals().console_active->input);
+        strcpy(line + strlen(console_window_title), halo::main::globals().console_active->input);
         if (GetConsoleScreenBufferInfo(console_output_handle, &info) != 0) {
             bottom_left.X = 0;
             bottom_left.Y = (int16_t)(info.dwSize.Y - 1);
@@ -259,29 +252,29 @@ void ConsoleTerminal::draw_overlay(void)
                              : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
     font_terminal_id = *(int32_t *)&interface_bitmaps->font_terminal.tag_id;
 
-    if (terminal_initialized == 0) {
+    if (halo::main::globals().terminal_initialized == 0) {
         return;
     }
 
     font = (Font *)halo::cache::globals().tag_instances[(uint16_t)font_terminal_id].data;
     line_height = font->ascending_height + font->descending_height + font->leading_height;
 
-    if (console_active != (terminal_console *)0) {
-        console_active->prompt[0x1f] = '\0';
-        console_active->input[0xff] = '\0';
-        strcpy(line, console_active->prompt);
-        strcat(line, console_active->input);
+    if (halo::main::globals().console_active != (terminal_console *)0) {
+        halo::main::globals().console_active->prompt[0x1f] = '\0';
+        halo::main::globals().console_active->input[0xff] = '\0';
+        strcpy(line, halo::main::globals().console_active->prompt);
+        strcat(line, halo::main::globals().console_active->input);
 
-        hud_text_draw_color_a = console_active->color.alpha;
-        hud_text_draw_color_r = console_active->color.red;
-        hud_text_draw_color_g = console_active->color.green;
-        hud_text_draw_color_b = console_active->color.blue;
+        hud_text_draw_color_a = halo::main::globals().console_active->color.alpha;
+        hud_text_draw_color_r = halo::main::globals().console_active->color.red;
+        hud_text_draw_color_g = halo::main::globals().console_active->color.green;
+        hud_text_draw_color_b = halo::main::globals().console_active->color.blue;
         hud_text_draw_color_or_flags = 0xffff;
         hud_text_draw_column = 0;
         hud_text_draw_unknown_4730 = 0;
 
         if (console_caret_visible != 0) {
-            cursor = console_active->edit.cursor + (int16_t)strlen(console_active->prompt);
+            cursor = halo::main::globals().console_active->edit.cursor + (int16_t)strlen(halo::main::globals().console_active->prompt);
             if (line[cursor] == '\0') {
                 line[cursor + 1] = '\0';
             }
@@ -302,9 +295,9 @@ void ConsoleTerminal::draw_overlay(void)
 
     if (console_show_messages != 0) {
         y = 0x1e0 - line_height;
-        message_handle = console_message_head;
+        message_handle = halo::main::globals().console_message_head;
         while (message_handle != (datum_index)0xffffffff && y != line_height && y - line_height >= 0) {
-            message = (console_message *)((char *)terminal_messages->data +
+            message = (console_message *)((char *)halo::main::globals().terminal_messages->data +
                                            (uint16_t)message_handle * sizeof(console_message));
             hud_text_draw_color_r = message->color.red;
             hud_text_draw_color_g = message->color.green;
@@ -353,24 +346,24 @@ void ConsoleTerminal::message_delete(datum_index message)
     datum_index next;
     datum_index previous;
 
-    record = (console_message *)((char *)terminal_messages->data +
+    record = (console_message *)((char *)halo::main::globals().terminal_messages->data +
                                   (uint16_t)message * sizeof(console_message));
     next = record->next;
     previous = record->previous;
     if (next == (datum_index)0xffffffff) {
-        console_message_tail = previous;
+        halo::main::globals().console_message_tail = previous;
     } else {
-        ((console_message *)((char *)terminal_messages->data +
+        ((console_message *)((char *)halo::main::globals().terminal_messages->data +
                               (uint16_t)next * sizeof(console_message)))->previous = previous;
     }
     if (previous != (datum_index)0xffffffff) {
-        ((console_message *)((char *)terminal_messages->data +
+        ((console_message *)((char *)halo::main::globals().terminal_messages->data +
                               (uint16_t)previous * sizeof(console_message)))->next = next;
-        halo::memory::datum_delete(terminal_messages, message);
+        halo::memory::datum_delete(halo::main::globals().terminal_messages, message);
         return;
     }
-    console_message_head = next;
-    halo::memory::datum_delete(terminal_messages, message);
+    halo::main::globals().console_message_head = next;
+    halo::memory::datum_delete(halo::main::globals().terminal_messages, message);
 }
 
 /**
@@ -385,9 +378,9 @@ void ConsoleTerminal::message_expire_old(void)
     datum_index next;
     console_message *record;
 
-    current = console_message_head;
+    current = halo::main::globals().console_message_head;
     while (current != (datum_index)0xffffffff) {
-        record = (console_message *)((char *)terminal_messages->data +
+        record = (console_message *)((char *)halo::main::globals().terminal_messages->data +
                                       (uint16_t)current * sizeof(console_message));
         next = record->next;
         record->age = record->age + 1;
@@ -410,22 +403,22 @@ datum_index ConsoleTerminal::message_new(void)
     datum_index new_message;
     console_message *record;
 
-    if (terminal_messages->last_index == 0x20) {
-        console_message_delete(console_message_tail);
+    if (halo::main::globals().terminal_messages->last_index == 0x20) {
+        console_message_delete(halo::main::globals().console_message_tail);
     }
-    new_message = halo::memory::datum_new(terminal_messages);
-    old_head = console_message_head;
-    record = (console_message *)((char *)terminal_messages->data +
+    new_message = halo::memory::datum_new(halo::main::globals().terminal_messages);
+    old_head = halo::main::globals().console_message_head;
+    record = (console_message *)((char *)halo::main::globals().terminal_messages->data +
                                   (uint16_t)new_message * sizeof(console_message));
-    record->next = console_message_head;
+    record->next = halo::main::globals().console_message_head;
     record->previous = (datum_index)0xffffffff;
-    console_message_head = new_message;
+    halo::main::globals().console_message_head = new_message;
     if (old_head != (datum_index)0xffffffff) {
-        ((console_message *)((char *)terminal_messages->data +
+        ((console_message *)((char *)halo::main::globals().terminal_messages->data +
                               (uint16_t)old_head * sizeof(console_message)))->previous =
             new_message;
     } else {
-        console_message_tail = new_message;
+        halo::main::globals().console_message_tail = new_message;
     }
     return new_message;
 }
@@ -444,9 +437,9 @@ uint8_t ConsoleTerminal::open(terminal_console *console)
     int32_t opened;
 
     opened = 0;
-    if (console_active == (terminal_console *)0) {
+    if (halo::main::globals().console_active == (terminal_console *)0) {
         console->edit.text = console->input;
-        console_active = console;
+        halo::main::globals().console_active = console;
         console->edit.maximum_length = 0xff;
         widget_text_edit_clamp_selection(&console->edit);
         console->edit.cursor = (int16_t)strlen(console->edit.text);
@@ -469,9 +462,9 @@ void ConsoleTerminal::position_cursor(void)
     win32_console_screen_buffer_info info;
     win32_coord position;
 
-    if (console_win32_attached != 0 && console_active != (terminal_console *)0 &&
+    if (halo::main::globals().console_win32_attached != 0 && halo::main::globals().console_active != (terminal_console *)0 &&
         GetConsoleScreenBufferInfo(console_output_handle, &info) != 0) {
-        position.X = (int16_t)(console_active->edit.cursor + (int32_t)strlen(console_window_title));
+        position.X = (int16_t)(halo::main::globals().console_active->edit.cursor + (int32_t)strlen(console_window_title));
         if (info.dwSize.X - 1 < (int32_t)position.X) {
             position.X = (int16_t)(info.dwSize.X - 1);
         }
@@ -495,7 +488,7 @@ void ConsoleTerminal::printf_verbose(ColorARGB *color, char *format, va_list arg
     datum_index message_handle;
     console_message *message;
 
-    if (halo::cseries::globals().debug_log_level <= 3 || terminal_initialized == 0) {
+    if (halo::cseries::globals().debug_log_level <= 3 || halo::main::globals().terminal_initialized == 0) {
         return;
     }
 
@@ -504,7 +497,7 @@ void ConsoleTerminal::printf_verbose(ColorARGB *color, char *format, va_list arg
         return;
     }
 
-    message = (console_message *)((char *)terminal_messages->data +
+    message = (console_message *)((char *)halo::main::globals().terminal_messages->data +
                                    (uint16_t)message_handle * sizeof(console_message));
     message->age = 0;
     if (color == (ColorARGB *)0) {
@@ -532,7 +525,7 @@ void ConsoleTerminal::process_input_events(void)
     uint32_t i;
     win32_input_record record;
 
-    if (console_win32_attached == 0) {
+    if (halo::main::globals().console_win32_attached == 0) {
         return;
     }
     if (GetNumberOfConsoleInputEvents(console_input_handle, (LPDWORD)&event_count) == 0) {
@@ -568,31 +561,31 @@ uint8_t ConsoleTerminal::process_queued_input(void)
     int32_t now_ms;
     ui_key_event event;
 
-    if (console_active == (terminal_console *)0) {
+    if (halo::main::globals().console_active == (terminal_console *)0) {
         return 0;
     }
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
-    console_active->key_event_count = 0;
+    halo::main::globals().console_active->key_event_count = 0;
 
     while (controls_input_capture_flags != 1 && (controls_input_capture_flags & 8) == 0 &&
            (controls_input_capture_flags & 4) != 0 &&
            key_event_read_index < key_event_count) {
         event = key_events[key_event_read_index];
         key_event_read_index = key_event_read_index + 1;
-        if (console_active->key_event_count < 0x20) {
-            console_active->key_events[console_active->key_event_count] = event;
-            console_active->key_event_count = console_active->key_event_count + 1;
+        if (halo::main::globals().console_active->key_event_count < 0x20) {
+            halo::main::globals().console_active->key_events[halo::main::globals().console_active->key_event_count] = event;
+            halo::main::globals().console_active->key_event_count = halo::main::globals().console_active->key_event_count + 1;
         }
-        widget_text_edit_process_key(&console_active->edit, &event);
+        widget_text_edit_process_key(&halo::main::globals().console_active->edit, &event);
         console_caret_visible = 1;
-        console_caret_blink_time = now_ms;
+        halo::main::globals().console_caret_blink_time = now_ms;
     }
 
-    if (console_caret_blink_time + 500 < now_ms) {
+    if (halo::main::globals().console_caret_blink_time + 500 < now_ms) {
         console_caret_visible = (console_caret_visible == 0);
-        console_caret_blink_time = now_ms;
+        halo::main::globals().console_caret_blink_time = now_ms;
     }
     return 1;
 }
@@ -608,13 +601,13 @@ void ConsoleTerminal::restore_cursor(void)
     win32_console_cursor_info info;
     int32_t ok;
 
-    if (console_win32_attached != 0) {
+    if (halo::main::globals().console_win32_attached != 0) {
         ok = GetConsoleCursorInfo(console_output_handle, &info);
         if (ok != 0) {
             info.bVisible = 1;
             SetConsoleCursorInfo(console_output_handle, &info);
         }
-        strncpy(console_window_title, console_active->prompt, 0x1f);
+        strncpy(console_window_title, halo::main::globals().console_active->prompt, 0x1f);
         console_draw_input_line();
     }
 }
@@ -628,13 +621,13 @@ void ConsoleTerminal::restore_cursor(void)
  */
 void ConsoleTerminal::update_display(void)
 {
-    if (console_win32_attached != 0 && console_active != (terminal_console *)0) {
-        if (strcmp(console_last_line, console_active->input) != 0) {
+    if (halo::main::globals().console_win32_attached != 0 && halo::main::globals().console_active != (terminal_console *)0) {
+        if (strcmp(console_last_line, halo::main::globals().console_active->input) != 0) {
             console_draw_input_line();
-            strncpy(console_last_line, console_active->input, 0xff);
+            strncpy(console_last_line, halo::main::globals().console_active->input, 0xff);
         }
-        if (console_last_cursor_column != (int32_t)console_active->edit.cursor) {
-            console_last_cursor_column = (int32_t)console_active->edit.cursor;
+        if (console_last_cursor_column != (int32_t)halo::main::globals().console_active->edit.cursor) {
+            console_last_cursor_column = (int32_t)halo::main::globals().console_active->edit.cursor;
             console_position_cursor();
         }
     }

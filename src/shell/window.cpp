@@ -7,6 +7,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/main/api.hpp"
 
 typedef struct win32_bitmap {
     int32_t type;
@@ -29,8 +30,6 @@ extern uint8_t shell_window_maximized;
 extern void *shell_arrow_cursor;
 extern int32_t nowindowskey;
 
-extern main_globals main_globals_data;
-extern int32_t movie_playback_abort;
 extern int32_t game_time_force_single_tick;
 
 extern int32_t rasterizer_window_requested;
@@ -112,9 +111,9 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
         case 2:
         case 0x10:
             PostQuitMessage(0);
-            main_globals_data.return_to_main_menu = 0;
-            main_globals_data.quit = 1;
-            movie_playback_abort = 1;
+            halo::main::globals().main_globals.return_to_main_menu = 0;
+            halo::main::globals().main_globals.quit = 1;
+            halo::main::globals().movie_playback_abort = 1;
             return DefWindowProcA(hwnd, message, wparam, lparam);
 
         case 5:

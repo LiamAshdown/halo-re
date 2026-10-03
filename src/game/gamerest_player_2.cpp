@@ -73,7 +73,6 @@ extern int16_t global_structure_bsp_index;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t global_007102d8;
 extern uint8_t network_join_error_reason;
-extern main_globals main_globals_data;
 extern uint8_t *main_game_globals;
 extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type, datum_index subject, char broadcast);
 extern void player_kill_streak_tick(datum_index player_handle);
@@ -714,7 +713,7 @@ void StructureBsp::switch_structure_bsp()
         }
     } else if (current_game_engine == 0 && global_007102d8 == 0) {
         network_join_error_reason = 0;
-        main_globals_data.lost_map = 1;
+        halo::main::globals().main_globals.lost_map = 1;
         global_007102d8 = 1;
     }
 }

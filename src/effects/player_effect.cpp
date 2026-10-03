@@ -6,6 +6,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -16,7 +17,6 @@ extern void player_effect_apply_continuous_damage(uint32_t tag_reference, int16_
 extern player_effect_globals *player_effect_globals_pointer;
 extern game_time_globals *game_time;
 extern const ColorARGB *global_white_argb;
-extern console_globals console_globals_data;
 extern int16_t screen_flash_pass[8];
 extern int32_t player_effect_reentry_count;
 extern double atan2(double y, double x);
@@ -157,7 +157,7 @@ void player_effect_ref::build_screen_flash(uint32_t *out, int16_t local_player_i
 {
     player_effect_globals *globals = player_effect_globals_pointer;
 
-    if (console_globals_data.active != 0) {
+    if (halo::main::globals().console_globals.active != 0) {
         return;
     }
 

@@ -21,6 +21,7 @@
 #include "halo/interface/uis_event_handlers.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern uint8_t level_select_entries[0x50];
@@ -52,7 +53,6 @@ extern int32_t network_game_server_host_create(void);
 extern int32_t game_variant_history_current;
 extern void game_engine_apply_current_custom_variant(void);
 extern void game_engine_sync_variant_defaults(void);
-extern uint8_t main_menu_music_pending;
 extern int32_t selected_saved_item;
 extern void main_menu_play_title_music(void);
 extern void network_dispatch_initialize(void);
@@ -369,7 +369,7 @@ uint8_t UiEventHandlers::event_49d540(widget_instance *widget, int16_t *event, u
         network_server = 0;
         network_server_host_valid = 0;
     }
-    music_pending = main_menu_music_pending;
+    music_pending = halo::main::globals().menu_music_pending;
     network_disconnect_timeout_flag = 0;
     network_game_mode = 0;
     save_in_progress_00719010 = 0;

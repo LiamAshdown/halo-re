@@ -5,6 +5,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern uint8_t chat_dialog_open;
@@ -28,7 +29,6 @@ extern wchar_t *text_string_list_get_string(datum_index tag, int16_t index);
 extern wchar_t *string_format_wide_va(wchar_t *dest, const wchar_t *format, ...);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern void chimera__multiplayer_message(const wchar_t *text);
-extern console_globals console_globals_data;
 extern uint8_t chat_hotkey_all;
 extern uint8_t chat_hotkey_team;
 extern uint8_t chat_hotkey_vehicle;
@@ -249,7 +249,7 @@ void ChatDialog::dispatch_incoming(void *event)
  */
 uint8_t ChatDialog::poll_hotkeys(void)
 {
-    if (console_globals_data.active == 0) {
+    if (halo::main::globals().console_globals.active == 0) {
         if (chat_hotkey_all == 1) {
             chimera__chat_open(0);
             hud_chat_listbox_update();

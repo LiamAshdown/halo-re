@@ -18,6 +18,7 @@
 #include "halo/networking/net2_autopatch.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern int32_t autopatch_update_check_state;
@@ -43,8 +44,6 @@ extern char autopatch_proxy_server[0x100];
 extern char autopatch_update_url[0x100];
 extern char autopatch_update_version[0x100];
 extern char * shell_command_line;
-extern main_globals main_globals_data;
-extern int32_t movie_playback_abort;
 extern uint8_t autopatch_proxy_ready;
 extern void ghttpSetProxy(void *proxy_settings);
 extern uint8_t ai_update_stagger[11];
@@ -622,9 +621,9 @@ uint8_t AutopatchUpdater::launch_updater(void)
     sprintf(line, "%s waitprocessid=%d", "haloupdate.exe", GetCurrentProcessId());
 
     if (CreateProcessA(0, line, 0, 0, 0, 0x4000020, 0, 0, (LPSTARTUPINFOA)&startup, (LPPROCESS_INFORMATION)&process)) {
-        main_globals_data.return_to_main_menu = 0;
-        main_globals_data.quit = 1;
-        movie_playback_abort = 1;
+        halo::main::globals().main_globals.return_to_main_menu = 0;
+        halo::main::globals().main_globals.quit = 1;
+        halo::main::globals().movie_playback_abort = 1;
         return 1;
     }
 

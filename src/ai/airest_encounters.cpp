@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -74,7 +75,6 @@ extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counter
 extern double sqrt(double x);
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
-extern game_main_globals *main_game_globals;
 extern int16_t ai_squad_resolve_actor_type(ScenarioSquad *squad);
 extern void encounter_recompute_morale(datum_index encounter_index);
 extern void encounters_update_activation(void);
@@ -2745,7 +2745,7 @@ void EncounterView::spawn_squads(int16_t platoon_filter, int16_t squad_filter)
 
                 leader_chance = 0;
                 spawn_count = 0;
-                switch (main_game_globals->difficulty) {
+                switch (halo::main::globals().game_globals->difficulty) {
                 case 0:
                 case 1:
                     spawn_count = (int32_t)(uint16_t)squad->normal_diff_count;

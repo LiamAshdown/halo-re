@@ -41,7 +41,6 @@ extern uint8_t ui_input_batch_mode;
 extern uint8_t loading_thread_result;
 extern loading_thread_record *loading_thread;
 extern int16_t network_join_error_code;
-extern uint8_t main_menu_music_pending;
 extern datum_index cached_saved_game_something;
 extern void player_profile_check_storage_and_defaults(void);
 extern void widget_close_all(void);
@@ -248,7 +247,7 @@ void ChimeraBridge::load_main_menu(void)
         display_error(network_join_error_code, -1, 1, 0);
         network_join_error_code = -1;
     }
-    if (main_menu_music_pending == 0) {
+    if (halo::main::globals().menu_music_pending == 0) {
         main_menu_play_title_music();
     }
     cached_saved_game_something = (datum_index)-1;
@@ -337,12 +336,12 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
  */
 void ChimeraBridge::main_menu_music(uint8_t finalize_render_frame)
 {
-    if (main_menu_music_pending == 1) {
+    if (halo::main::globals().menu_music_pending == 1) {
         datum_index sound_tag = halo::cache::tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             halo::sound::sound_looping_stop(sound_tag);
         }
-        main_menu_music_pending = 0;
+        halo::main::globals().menu_music_pending = 0;
     }
     halo::sound::sound_stop_all();
     if (finalize_render_frame != 0) {
@@ -352,7 +351,7 @@ void ChimeraBridge::main_menu_music(uint8_t finalize_render_frame)
     if (finalize_render_frame != 0) {
         halo::rasterizer::rasterizer_reset_device_if_needed();
     }
-    if (main_menu_music_pending == 0) {
+    if (halo::main::globals().menu_music_pending == 0) {
         main_menu_play_title_music();
     }
 }

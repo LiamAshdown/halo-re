@@ -5,6 +5,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -12,7 +13,6 @@ extern game_time_globals *game_time;
 extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern real_vector3d *global_origin3d_pointer;
-extern game_main_globals *main_game_globals;
 extern void projectile_update_function_values(datum_index projectile_index);
 extern void projectile_request_state(datum_index projectile_index, int16_t requested_state);
 extern uint8_t projectile_collision_test(uint32_t object_index, real_point3d *target, void *out_record);
@@ -158,7 +158,7 @@ int ProjectileHandle::update()
             real angle_b;
 
             if (((1u << (tracked_object->type & 0x1f)) & 3) && ((unit_data *)((uint8_t *)tracked_object + k_unit_data_offset))->controlling_player != k_datum_index_none) {
-                turn *= weapon_get_zoom_fov(k_guided_zoom_table_index, main_game_globals->difficulty);
+                turn *= weapon_get_zoom_fov(k_guided_zoom_table_index, halo::main::globals().game_globals->difficulty);
             }
             {
                 real dx = self->base.bounding_center.x - tracked_object->bounding_center.x;

@@ -4,6 +4,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern uint8_t network_message_scratch[0x7ff8];
@@ -24,7 +25,6 @@ extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network
 extern datum_index player_get_vehicle(datum_index player_index);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t chat_dialog_open;
-extern console_globals console_globals_data;
 extern int32_t chat_scope_active;
 extern wchar_t empty_string;
 extern void *chat_gui_root_handle;
@@ -207,7 +207,7 @@ void ChatDialog::open(int32_t chat_scope)
     void *gui_object;
     void *child;
 
-    if (chat_dialog_open != 0 || console_globals_data.active != 0 || chat_gui_find_object == 0) {
+    if (chat_dialog_open != 0 || halo::main::globals().console_globals.active != 0 || chat_gui_find_object == 0) {
         return;
     }
 

@@ -7,6 +7,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -31,7 +32,6 @@ extern uint16_t progress_screen_subtext[0x20];
 extern datum_index interface_loading_screen_request_id;
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);
 extern uint8_t ui_cursor_changed;
-extern uint8_t main_menu_music_pending;
 extern widget_instance *ui_root_widget[1];
 extern int32_t ui_time_milliseconds;
 extern widget_history_node *ui_widget_history[3];
@@ -45,13 +45,6 @@ extern uint16_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
-extern data_array *terminal_messages;
-extern uint8_t terminal_initialized;
-extern terminal_console *console_active;
-extern datum_index console_message_head;
-extern datum_index console_message_tail;
-extern int32_t console_caret_blink_time;
-extern int32_t console_rcon_handle;
 }
 
 namespace halo::interface {
@@ -182,13 +175,13 @@ void InterfaceMain::update_for_resolution_change(int32_t new_cursor_x, int32_t n
  */
 void InterfaceMain::on_shown(int32_t fade_milliseconds)
 {
-    if (main_menu_music_pending == 1) {
+    if (halo::main::globals().menu_music_pending == 1) {
         datum_index sound_tag = halo::cache::tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
 
         if (sound_tag != (datum_index)-1) {
             halo::sound::sound_looping_stop(sound_tag);
         }
-        main_menu_music_pending = 0;
+        halo::main::globals().menu_music_pending = 0;
     }
     if (ui_root_widget[0] != (widget_instance *)0 && ui_root_widget[0]->is_error_dialog == 0) {
         ui_root_widget[0]->milliseconds_auto_close_fade = fade_milliseconds;
@@ -209,11 +202,11 @@ void InterfaceMain::play_title_music()
 {
     datum_index sound_tag;
 
-    if (main_menu_music_pending == 0 && main_menu_music_datum == 0) {
+    if (halo::main::globals().menu_music_pending == 0 && main_menu_music_datum == 0) {
         sound_tag = halo::cache::tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             halo::sound::sound_looping_start(sound_tag, -1, 1.0f);
-            main_menu_music_pending = 1;
+            halo::main::globals().menu_music_pending = 1;
         }
     }
 }
@@ -348,15 +341,15 @@ void InterfaceMain::string_replace_all_in_place(char *buffer, char *search, char
  */
 void InterfaceMain::initialize_terminal()
 {
-    terminal_messages = halo::memory::data_new(sizeof(console_message), (char *)"terminal output", 0x20);
-    terminal_initialized = 1;
-    terminal_messages->valid = 1;
-    halo::memory::data_delete_all(terminal_messages);
-    console_active = (terminal_console *)0;
-    console_message_head = (datum_index)0xffffffff;
-    console_message_tail = (datum_index)0xffffffff;
-    console_caret_blink_time = 0;
-    console_rcon_handle = (int32_t)0xffffffff;
+    halo::main::globals().terminal_messages = halo::memory::data_new(sizeof(console_message), (char *)"terminal output", 0x20);
+    halo::main::globals().terminal_initialized = 1;
+    halo::main::globals().terminal_messages->valid = 1;
+    halo::memory::data_delete_all(halo::main::globals().terminal_messages);
+    halo::main::globals().console_active = (terminal_console *)0;
+    halo::main::globals().console_message_head = (datum_index)0xffffffff;
+    halo::main::globals().console_message_tail = (datum_index)0xffffffff;
+    halo::main::globals().console_caret_blink_time = 0;
+    halo::main::globals().console_rcon_handle = (int32_t)0xffffffff;
 }
 
 } // namespace halo::interface

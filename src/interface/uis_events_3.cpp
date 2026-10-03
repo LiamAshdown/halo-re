@@ -24,6 +24,7 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -65,11 +66,9 @@ extern heap *widget_memory_pool;
 extern uint8_t level_select_flags_0071916b;
 extern char level_select_current_path_00719068[0x106];
 extern int16_t level_select_frame_00719168;
-extern uint8_t main_menu_music_pending;
 extern void sound_looping_stop(datum_index looping_definition);
 extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t ui_event_byte_0071975b;
-extern int32_t movie_playback_abort;
 extern uint8_t input_event_queue_active;
 }
 
@@ -621,13 +620,13 @@ uint8_t UiEventHandlers::event_4a1b60(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a1bf0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    if (main_menu_music_pending == 1) {
+    if (halo::main::globals().menu_music_pending == 1) {
         datum_index music = halo::cache::tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1");
 
         if (music != 0xffffffff) {
             halo::sound::sound_looping_stop(music);
         }
-        main_menu_music_pending = 0;
+        halo::main::globals().menu_music_pending = 0;
     }
     return 1;
 }
@@ -641,7 +640,7 @@ uint8_t UiEventHandlers::event_4a1c80(widget_instance *widget, int16_t *event, u
 {
     split_screen_quit_prompt_armed = 0;
     ui_event_byte_0071975b = 1;
-    movie_playback_abort = 1;
+    halo::main::globals().movie_playback_abort = 1;
     return 1;
 }
 

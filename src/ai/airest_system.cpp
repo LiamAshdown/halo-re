@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -28,7 +29,6 @@ extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_i
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index, char create_if_missing, uint32_t flag);
 extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index, int16_t grenade_type);
 extern int ai_squad_priority_compare(const ai_priority_target_record *record_a, const ai_priority_target_record *record_b);
-extern game_main_globals *main_game_globals;
 extern void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b, uint8_t unknown_09, int16_t threshold, int16_t timer_reset, uint8_t unknown_0c);
 extern void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
@@ -360,7 +360,7 @@ void AiSystem::category_matches_wildcard(int16_t category, int16_t other_categor
         other = team_a;
     }
     if (other == 2 || other == 5) {
-        timer = k_forgiveness_ticks[main_game_globals->difficulty & 3];
+        timer = k_forgiveness_ticks[halo::main::globals().game_globals->difficulty & 3];
         human = other == 2;
         betrayable = 1;
         threshold = 5;
@@ -404,11 +404,11 @@ void AiSystem::get_difficulty_request(int16_t request_code, uint8_t *out_flag_a,
     switch (request_code) {
     case 1:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1d, main_game_globals->difficulty);
+        *out_value = weapon_get_zoom_fov(0x1d, halo::main::globals().game_globals->difficulty);
         break;
     case 2:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1e, main_game_globals->difficulty);
+        *out_value = weapon_get_zoom_fov(0x1e, halo::main::globals().game_globals->difficulty);
         break;
     case 3:
         *out_flag_a = 0;
@@ -420,7 +420,7 @@ void AiSystem::get_difficulty_request(int16_t request_code, uint8_t *out_flag_a,
         break;
     default:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1c, main_game_globals->difficulty);
+        *out_value = weapon_get_zoom_fov(0x1c, halo::main::globals().game_globals->difficulty);
         break;
     }
 }

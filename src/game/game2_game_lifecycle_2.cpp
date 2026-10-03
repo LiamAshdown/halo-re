@@ -17,7 +17,6 @@ typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uin
 extern "C" {
 extern ai_update_stagger_state *ai_update_stagger;
 extern int16_t network_game_mode;
-extern game_main_globals *main_game_globals;
 extern int32_t network_scenario_round_counter_a;
 extern int32_t network_scenario_round_counter_b;
 extern void game_engine_flag_local_player_units(void);
@@ -136,7 +135,7 @@ void GameLifecycle::simulate_tick(uint32_t predict_pass)
 
 after_role_update:
     {
-        float seconds_per_tick = (main_game_globals->players_are_double_speed == 0) ? 0.033333335f : 0.016666668f;
+        float seconds_per_tick = (halo::main::globals().game_globals->players_are_double_speed == 0) ? 0.033333335f : 0.016666668f;
         halo::effects::effects_update_all(seconds_per_tick);
     }
 
@@ -187,7 +186,7 @@ void GameLifecycle::start_new_map(void)
     uint32_t *dst;
     uint8_t *record;
 
-    halo::math::globals().random_seed_global = main_game_globals->random_seed;
+    halo::math::globals().random_seed_global = halo::main::globals().game_globals->random_seed;
 
     if (current_game_engine != (game_engine_definition *)0) {
         if (current_game_engine->dispose != (void *)0) {
@@ -342,7 +341,7 @@ void GameLifecycle::start_new_map(void)
     *((uint8_t *)recorded_animations + 0x24) = 1;
     halo::memory::data_delete_all((data_array *)recorded_animations);
 
-    main_game_globals->active = 1;
+    halo::main::globals().game_globals->active = 1;
     *object_globals_pointer = 1;
     scenario_objects_place(global_scenario);
     *object_globals_pointer = 0;
@@ -422,7 +421,7 @@ void GameLifecycle::stop_current_map(void)
     }
 
     widget_close_all();
-    main_game_globals->active = 0;
+    halo::main::globals().game_globals->active = 0;
 }
 
 /**
@@ -436,9 +435,9 @@ void GameLifecycle::unload_map(void)
     int16_t status;
 
     if (halo::cache::globals().map_download_in_progress != 0) {
-        main_game_globals->map_loading_in_progress = 1;
+        halo::main::globals().game_globals->map_loading_in_progress = 1;
         do {
-            status = halo::cache::cache_file_download_status_get(&main_game_globals->map_load_progress, 0);
+            status = halo::cache::cache_file_download_status_get(&halo::main::globals().game_globals->map_load_progress, 0);
             halo::main::render_pregame_view_initialize();
             halo::main::movie_capture_frame_export();
         } while (status == 0);
@@ -448,7 +447,7 @@ void GameLifecycle::unload_map(void)
         }
         halo::cache::cache_file_download_finish();
     }
-    if (main_game_globals->map_loaded != 0) {
+    if (halo::main::globals().game_globals->map_loaded != 0) {
         halo::cache::cache_file_unload();
         global_scenario_game_globals->structure_bsp_index = -1;
         global_scenario_index = 0xffffffff;
@@ -458,7 +457,7 @@ void GameLifecycle::unload_map(void)
         global_structure_collision_bsp = (void *)0;
         global_collision_bsp = (void *)0;
         global_globals = (Globals *)0;
-        main_game_globals->map_loaded = 0;
+        halo::main::globals().game_globals->map_loaded = 0;
     }
 }
 

@@ -6,6 +6,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -20,7 +21,6 @@ extern double sin(double x);
 extern double sqrt(double x);
 extern double fabs(double x);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-extern game_main_globals *main_game_globals;
 extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index);
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
@@ -108,7 +108,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
     biped_flags = tag->biped_flags;
     speed_scale = 1.0f;
     if ((biped_flags & 0x00000800) != 0 && unit->aiming_speed == 0) {
-        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8, main_game_globals->difficulty) + 1.0f;
+        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
     }
 
     if ((biped_flags & 0x00000004) == 0 ||
@@ -504,7 +504,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
     biped_flags = tag->biped_flags;
     speed_scale = 1.0f;
     if ((biped_flags & 0x00000800) != 0 && unit->aiming_speed == 0) {
-        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8, main_game_globals->difficulty) + 1.0f;
+        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
     }
 
     if ((biped_flags & 0x00000004) == 0 ||

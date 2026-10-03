@@ -35,7 +35,6 @@ extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_pr
 extern void *memset(void *dest, int32_t value, uint32_t count);
 extern void *memcpy(void *dest, const void *src, uint32_t count);
 extern char unknown_00719779[];
-extern game_main_globals *main_game_globals;
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern char savegames_directory[0x100];
 extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry);
@@ -733,7 +732,7 @@ void mark_level_visited_and_select(int16_t local_player_index)
     saved_player_profile profile;
 
     current_level = halo::main::campaign_level_find_index_for_path(unknown_00719779);
-    difficulty = main_game_globals->difficulty;
+    difficulty = halo::main::globals().game_globals->difficulty;
 
     if (local_player_index < 0 || 1 <= local_player_index) {
         return;

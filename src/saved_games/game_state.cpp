@@ -32,7 +32,6 @@ extern uint8_t game_state_header_valid;
 extern uint8_t game_state_revert_available;
 extern datum_index global_scenario_index;
 extern int16_t local_player_count;
-extern game_main_globals *main_game_globals;
 extern uint32_t cache_file_current_header_crc32;
 extern uint32_t game_state_crc;
 extern void *game_state_persistent_storage;
@@ -142,7 +141,7 @@ void build_header(void)
     header->build_version[12] = '1'; header->build_version[13] = '\0';
 
     header->local_player_count = local_player_count;
-    header->difficulty = main_game_globals->difficulty;
+    header->difficulty = halo::main::globals().game_globals->difficulty;
     header->map_checksum = cache_file_current_header_crc32;
     header->allocation_checksum = game_state_crc;
 }
@@ -213,7 +212,7 @@ void load_checkpoint(void)
 
     game_state_revert_proc();
     halo::saved_games::game_state_read_persistent_storage_block(k_game_state_size, game_state_base);
-    main_game_globals->difficulty = pending_difficulty;
+    halo::main::globals().game_globals->difficulty = pending_difficulty;
     halo::saved_games::game_state_dispatch_load_callbacks();
     halo::saved_games::game_state_perform_save(0);
 }
