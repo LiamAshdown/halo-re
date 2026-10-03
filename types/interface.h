@@ -101,11 +101,16 @@ typedef struct widget_instance {
     void *text;                        // 0x3c text_box: heap block freed by widget_close; list: see below
     int16_t selection_index;           // 0x40 -1 for a text_box, 0 for a list
     int16_t scroll_blink;              // 0x42 advanced by widget_instance_render_list_head
-    void *list_items;                  // 0x44 built by ui_build_profile_list, freed by 0x49df70; text_box: see below
-    uint16_t item_count;               // 0x48 incremented once per child created from the tag
-    int16_t unknown_4a;                // 0x4a
-    struct widget_instance *extended_description; // 0x4c definition + 0x1b0, closed recursively
-    void *list_render_data;            // 0x50 list types only, freed by widget_close
+    union {
+        struct {
+            void *list_items;          // 0x44 built by ui_build_profile_list, freed by 0x49df70
+            uint16_t item_count;       // 0x48 incremented once per child created from the tag
+            int16_t unknown_4a;        // 0x4a
+            struct widget_instance *extended_description; // 0x4c definition + 0x1b0, closed recursively
+            void *list_render_data;    // 0x50 list types only, freed by widget_close
+        };
+        ColorARGB text_color_override; // 0x44 text_box: the color override, alpha 0.0 means use the tag color
+    };
     int16_t selection_direction;       // 0x54 -1/+1 set by widget_list_select_previous/next, cyclable_list_nudge,
                                        //    ui_event_4a1dc0; video_options_menu_update steps gamma by it;
                                        //    render_list_head clears it

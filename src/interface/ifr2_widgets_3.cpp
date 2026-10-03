@@ -35,8 +35,6 @@ namespace halo::interface {
  */
 void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, int32_t offset_xy, uint8_t is_top_of_stack)
 {
-    uint8_t *w = (uint8_t *)widget;
-    uint8_t *t = (uint8_t *)tag;
     int32_t i;
 
     if (halo::interface::tag_handle(tag->text_label_unicode_strings_list.tag_id) != halo::k_dword_none) {
@@ -46,7 +44,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         uint16_t *buf;
 
         if (index == -1) {
-            index = *(int16_t *)&((struct UIWidgetDefinition *)t)->string_list_index;
+            index = (int16_t)tag->string_list_index;
         }
         src = halo::text::text_string_list_get_string(halo::interface::tag_handle(tag->text_label_unicode_strings_list.tag_id), index);
         byte_len = wcslen((const wchar_t *)src) * 2;
@@ -55,13 +53,8 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         if (buf == nullptr) {
             widget->text = ui_out_of_memory_text;
         } else {
-            uint8_t *dst8 = (uint8_t *)buf;
-            uint8_t *src8 = (uint8_t *)src;
-
-            for (i = 0; i < (int32_t)byte_len; i++) {
-                dst8[i] = src8[i];
-            }
-            *(uint16_t *)((uint8_t *)widget->text + byte_len) = 0;
+            memcpy(buf, src, byte_len);
+            buf[byte_len / 2] = 0;
         }
     }
 
@@ -70,10 +63,10 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
     }
 
     for (i = 0; i < tag->search_and_replace_functions.count; i++) {
-        uint8_t *entry = (uint8_t *)tag->search_and_replace_functions.pointer + i * 0x22;
+        SearchAndReplaceReference *entry = (SearchAndReplaceReference *)tag->search_and_replace_functions.pointer + i;
 
-        if (entry != nullptr && *entry != 0) {
-            int16_t fn = *(int16_t *)(entry + 0x20);
+        if (entry != nullptr && entry->search_string.string[0] != 0) {
+            int16_t fn = entry->replace_function;
             const uint16_t *replacement;
             uint16_t search[0x20];
 
@@ -82,7 +75,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
             } else {
                 replacement = (const uint16_t *)((ui_search_replace_function)ui_replace_function_table[fn])(widget);
             }
-            halo::interface::ui_string_replace_all((wchar_t *)(halo::text::string_convert_ascii_to_unicode(search, 0x40, (const char *)entry)), (uint16_t *)replacement,
+            halo::interface::ui_string_replace_all((wchar_t *)(halo::text::string_convert_ascii_to_unicode(search, 0x40, entry->search_string.string)), (uint16_t *)replacement,
                                   (wchar_t **)&widget->text);
         }
     }
@@ -106,26 +99,26 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         ColorARGB highlight;
 
         rects[1] = (dest != (Rectangle2D *)0) ? *dest : tag->bounds;
-        rects[0].top = (int16_t)(tag->bounds.top + y + ((struct UIWidgetDefinition *)t)->vert_offset);
-        rects[0].left = (int16_t)(tag->bounds.left + x + ((struct UIWidgetDefinition *)t)->horiz_offset);
+        rects[0].top = (int16_t)(tag->bounds.top + y + tag->vert_offset);
+        rects[0].left = (int16_t)(tag->bounds.left + x + tag->horiz_offset);
         rects[0].bottom = (int16_t)(tag->bounds.bottom + y);
         rects[0].right = (int16_t)(tag->bounds.right + x);
 
-        if (*(float *)&((struct widget_instance *)w)->list_items != 0.0f) {
-            color = *(ColorARGB *)&((struct widget_instance *)w)->list_items;
+        if (widget->text_color_override.alpha != 0.0f) {
+            color = widget->text_color_override;
             color.alpha = color.alpha * scale;
         } else if (is_top_of_stack != 0) {
             color = *halo::interface::ui_get_saved_pulse_color(&highlight);
-            color.alpha = *(float *)&((struct UIWidgetDefinition *)t)->text_color * scale;
+            color.alpha = tag->text_color.alpha * scale;
         } else {
-            color = ((struct UIWidgetDefinition *)t)->text_color;
+            color = tag->text_color;
             if (color.red == 1.0f && color.green == 1.0f && color.blue == 1.0f) {
                 color = *halo::interface::ui_get_saved_pulse_color(&highlight);
-                color.alpha = *(float *)&((struct UIWidgetDefinition *)t)->text_color;
+                color.alpha = tag->text_color.alpha;
             }
             color.alpha = color.alpha * scale;
         }
-        if (*(uint8_t *)&((struct widget_instance *)w)->selection_direction != 0 || halo::interface::has_bit(((struct UIWidgetDefinition *)t)->flags_1, halo::tags::ui_widget_definition_flags1_tag_flag::flashing)) {
+        if ((uint8_t)widget->selection_direction != 0 || halo::interface::has_bit(tag->flags_1, halo::tags::ui_widget_definition_flags1_tag_flag::flashing)) {
             double time = (double)ui_time_milliseconds;
 
             if (ui_time_milliseconds < 0) {
