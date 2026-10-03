@@ -42,7 +42,7 @@ __declspec(allocate(".geq$0065b638")) __declspec(align(16)) uint8_t eq_pad_0065b
 #pragma section(".geq$0065b638v", read, write)
 __declspec(allocate(".geq$0065b638v")) __declspec(align(8)) uint32_t hs_enum_definitions[10] = {
     0x00000004u, (uint32_t)&message_delta_definitions_006872b8[39], 0x0000000au, (uint32_t)&message_delta_definitions_006872b8[43], 0x0000000cu, (uint32_t)&hs_enum_definitions_006853f8[24], 0x00000010u, (uint32_t)&hs_enum_definitions_006853f8[0],
-    0x00000005u, (uint32_t)"HPf"
+    0x00000005u, (uint32_t)&message_delta_definitions_00688670[252]
 };
 
 /** 0x0065d440..0x0065d520: message_delta_definitions */
@@ -80,6 +80,10 @@ __declspec(allocate(".geq$00673560v")) __declspec(align(16)) uint32_t out_of_ran
     (uint32_t)((uint8_t *)&out_of_range_throw_info + 0x20), 0x00000000u, (uint32_t)&length_error_throw_info_0069ff2c[8], 0x00000000u, 0xffffffffu,
     0x00000000u, 0x0000000cu, (uint32_t)&halo::shell::exception_copy_construct
 };
+
+/** 0x006851f0: a pointer to the white hud colour entry, referenced by a hs function table row */
+#pragma section(".geq$006851f0v", read, write)
+__declspec(allocate(".geq$006851f0v")) __declspec(align(4)) uint32_t hud_text_message_color_006851f0[1] = {(uint32_t)&global_white_argb_00655138[8]};
 
 /** 0x006851f4..0x006853f8: hud_text_message_hold_color, global_white_argb, hud_text_message_normal_color and 6 more */
 #pragma section(".geq$006851f4", read, write)

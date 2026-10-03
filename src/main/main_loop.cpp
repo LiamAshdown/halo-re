@@ -3,6 +3,8 @@
  */
 
 #include "tags.h"
+#include "halo/shell/standalone.hpp"
+#include <stdlib.h>
 #include "halo/scenario/api.hpp"
 #include "memory.h"
 #include "math.h"
@@ -481,6 +483,35 @@ void frame_render(uint8_t render_frame, uint32_t frame_average)
     }
 }
 
+extern "C" __declspec(dllimport) void *__stdcall GetProcessHeap(void);
+extern "C" __declspec(dllimport) int __stdcall HeapValidate(void *heap, unsigned long flags, const void *block);
+
+namespace {
+
+/**
+ * Optional heap diagnostic, enabled with the environment variable HALO_HEAPCHECK=1: validates the process heap and logs the
+ * first checkpoint at which it is found corrupt, so a heap overrun can be narrowed to the frame phase that caused it.
+ */
+void heap_checkpoint(const char *phase)
+{
+    static const bool enabled = getenv("HALO_HEAPCHECK") != nullptr;
+    static bool reported = false;
+    static uint32_t frame = 0;
+
+    if (!enabled || reported) {
+        return;
+    }
+    if (phase[0] == 'b') {
+        frame++;
+    }
+    if (HeapValidate(GetProcessHeap(), 0, nullptr) == 0) {
+        reported = true;
+        halo::shell::standalone_log("HEAP CORRUPT detected at %s of main loop frame %u", phase, frame);
+    }
+}
+
+}  // namespace
+
 /**
  * Runs one iteration of the frame body: network update, pacing, interface tick, idle tracking, simulation and render.
  * Returns true when the main loop must stop.
@@ -494,14 +525,17 @@ bool update_and_render_frame(int16_t connection, uint32_t frame_average)
         return false;
     }
 
+    heap_checkpoint("begin");
     render_frame = 1;
     if (frame_update_network(connection)) {
         return true;
     }
+    heap_checkpoint("network update");
 
     halo::main::main_loop_frame_pacer();
     halo::interface::ui_cursor_update();
     halo::interface::interface_tick();
+    heap_checkpoint("interface tick");
 
     frame_track_idle_time();
 
@@ -526,8 +560,10 @@ bool update_and_render_frame(int16_t connection, uint32_t frame_average)
     if (halo::main::console_process_key_events() == 0 || main_globals_data.game_connection != 0) {
         frame_simulate(render_frame);
     }
+    heap_checkpoint("simulate");
 
     frame_render(render_frame, frame_average);
+    heap_checkpoint("render");
     return false;
 }
 

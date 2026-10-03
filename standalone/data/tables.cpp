@@ -31,6 +31,7 @@ extern char console_message_default_color[];
 extern char global_white_argb[];
 extern char hud_text_message_hold_color[];
 extern char hud_text_message_normal_color[];
+extern uint32_t hud_text_message_color_006851f0[1];
 
 /* 0x0063acac..0x0063cd8c */
 uint32_t table_0063acac[2104] = {
@@ -339,7 +340,7 @@ uint32_t global_white_argb_00655138[387] = {
     /* +0x00d0 */ 0x3f800000, 0x3f000000, 0x3f800000, 0x3f547ae1,
     /* +0x00e0 */ 0x3f800000, 0, 0x3ec7ae14, 0,
     /* +0x00f0 */ 0x3f800000, 0x3f800000, 0x3f2147ae, 0x3ef5c28f,
-    /* +0x0100 */ 0x3f800000, 0x3f4f5c29, 0x3e051eb8, 0x3f0f5c29, 0, (uint32_t)"none", (uint32_t)"XQe", 0,
+    /* +0x0100 */ 0x3f800000, 0x3f4f5c29, 0x3e051eb8, 0x3f0f5c29, 0, (uint32_t)"none", (uint32_t)&hud_text_message_color_006851f0, 0,
     /* +0x0120 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0140 */ 0, 0, 0x1, (uint32_t)"sleep", (uint32_t)hud_text_message_hold_color, 0, 0, 0,
     /* +0x0160 */ 0, 0, (uint32_t)&halo::ai::actor_mode_sleep_update, 0, 0, 0, 0, 0,
