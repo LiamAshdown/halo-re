@@ -36,17 +36,6 @@ extern real_vector3d *shared_constant_vector_696704;
 }
 
 /**
- * Calls halo::cache::texture_cache_get with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static int32_t texture_cache_get_unresolved(uint32_t a, uint32_t b)
-{
-    using call_t = int32_t (*)(uint32_t a, uint32_t b);
-    return reinterpret_cast<call_t>(&halo::cache::texture_cache_get)(a, b);
-}
-
-/**
  * Creates the light volume data array.
  *
  * Original register convention: none.
@@ -441,7 +430,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
     {
         uint32_t shader_something = *(uint32_t *)(
             (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(tag + 0x40) & 0xffff].data + 100);
-        int32_t device = texture_cache_get_unresolved(0, 1);
+        int32_t device = (int32_t)(uintptr_t)halo::cache::texture_cache_get((BitmapData *)(uintptr_t)shader_something, 0, 1);
 
         int16_t shard;
         if (device == 0) {
