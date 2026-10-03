@@ -1,4 +1,5 @@
 #include "halo/projectiles/projectile.hpp"
+#include "halo/projectiles/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -14,16 +15,12 @@ extern ProjectileMaterialResponse projectile_default_material_response;
 extern int16_t network_game_mode;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
-extern void projectile_compute_deceleration(uint32_t object_index);
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index);
-extern void projectile_send_attach(datum_index projectile_index, datum_index parent_object_index, int16_t marker_index);
-extern void projectile_request_state(datum_index projectile_index, int16_t requested_state);
 extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const void *color, const void *tint_source);
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
 extern void breakable_surface_apply_damage(damage_data *request, uint32_t packed_leaf_and_flags, int32_t surface_index);
-void projectile_response(datum_index projectile_index, collision_result *hit, real_point3d *out_position, real_vector3d *velocity);
 }
 
 namespace halo::projectiles {
@@ -459,7 +456,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
 
 }
 
-extern "C" {
+namespace halo::projectiles {
 
 void projectile_response(datum_index projectile_index, collision_result *hit, real_point3d *out_position, real_vector3d *velocity)
 {

@@ -1,4 +1,5 @@
 #include "halo/projectiles/projectile.hpp"
+#include "halo/projectiles/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
@@ -10,10 +11,6 @@ extern "C" {
 extern data_array *object_data;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t network_game_mode;
-extern void projectile_compute_rotation(uint32_t object_index);
-extern void projectile_update_function_values(uint32_t object_index);
-extern void projectile_compute_deceleration(uint32_t object_index);
-extern real projectile_deceleration_from_range(Projectile *tag, real r0, real r1);
 extern double sqrt(double x);
 extern double fsin(double x);
 extern double fcos(double x);
@@ -35,14 +32,6 @@ extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d 
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
 extern game_time_globals *game_time;
 extern int32_t k_projectile_minimum_age_ticks;
-uint8_t projectile_new(uint32_t object_index);
-uint8_t projectile_collision_test(uint32_t object_index, real_point3d *target, void *out_record);
-void projectile_detonate(uint32_t object_index, char first_collision, real remaining_tick_fraction);
-uint8_t projectile_force_detonate(uint32_t object_index);
-uint8_t projectile_is_old_enough(uint32_t object_index);
-void projectile_notify_object_deleted(uint32_t object_index, datum_index dying_object_index);
-uint8_t object_type_definition_return_false(void);
-uint8_t object_type_definition_return_true(void);
 }
 
 namespace halo::projectiles {
@@ -648,7 +637,7 @@ uint8_t ObjectTypeStubs::return_true()
 
 }
 
-extern "C" {
+namespace halo::projectiles {
 
 uint8_t projectile_new(uint32_t object_index)
 {

@@ -1,4 +1,5 @@
 #include "halo/objects/object_ref.hpp"
+#include "halo/projectiles/api.hpp"
 #include "halo/models/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "game.h"
@@ -59,7 +60,6 @@ extern uint8_t object_type_definitions_query_0x44(uint32_t object_index);
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern data_array *player_data;
 extern int32_t player_index_from_unit_index(datum_index object_index);
-extern void projectile_compute_rotation(uint32_t object_index);
 extern double sqrt(double x);
 extern int32_t time_query_performance_counter_ms(void);
 }
@@ -118,7 +118,7 @@ void halo::objects::ObjectRef::apply_impulse_and_spin(real_vector3d *delta_veloc
     obj->angular_velocity.j = sample.y * spin_scale + obj->angular_velocity.j;
     obj->angular_velocity.k = sample.z * spin_scale + obj->angular_velocity.k;
 
-    projectile_compute_rotation(object_index);
+    halo::projectiles::projectile_compute_rotation(object_index);
     obj->flags = obj->flags & ~(uint32_t)_object_at_rest_bit;
 }
 

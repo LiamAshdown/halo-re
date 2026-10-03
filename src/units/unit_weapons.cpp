@@ -1,4 +1,5 @@
 #include <string.h>
+#include "halo/projectiles/api.hpp"
 #include "halo/models/api.hpp"
 #include "halo/units/unit.hpp"
 #include "game.h"
@@ -52,7 +53,6 @@ extern uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real
 extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity);
 extern uint8_t object_is_delete_pending(uint32_t object_index);
 extern void object_type_override_call_0x68(uint32_t object_index);
-extern int32_t projectile_send_creation(uint32_t projectile_index);
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
 extern uint8_t *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
@@ -1358,7 +1358,7 @@ void UnitView::release_thrown_grenade(uint8_t early)
     if (((unit_object *)unit)->base.network_role == 0 && network_game_mode == 2 && !object_is_delete_pending(grenade)) {
         *(int32_t *)(OBJECT_DATA(grenade) + 0x4) = 0;
         object_type_override_call_0x68(grenade);
-        int32_t bits = projectile_send_creation(grenade);
+        int32_t bits = halo::projectiles::projectile_send_creation(grenade);
 
         if (bits > 0) {
             network_session_broadcast_to_flagged(bits, network_server, 1, network_message_scratch, 1, 0, 0, 3);
