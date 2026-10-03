@@ -425,11 +425,7 @@ typedef struct player_update_queue {
 // the server ring is 32 deep at 0x006f1d94 and indexed (tick & 0x1f), the client ring is
 // 128 deep at 0x006f7ed4 and indexed (tick & 0x7f). Only the two header fields are named
 // here; the body is the packed per-player payload the network module encodes.
-typedef struct update_record {
-    int32_t tick;              // 0x00
-    uint16_t player_count;     // 0x04
-    uint8_t body[0x308 - 0x06];// 0x06
-} update_record;               // size 0x308 == k_update_record_size
+// update_record: see after player_action
 
 // One element of the "update server queues" data_array (16 x 0x64). 0x472c90 creates the
 // datum and immediately calls player_update_queue_create on it, and every ring access in
@@ -437,7 +433,9 @@ typedef struct update_record {
 // record exactly.
 typedef struct update_server_queue {
     int16_t identifier;                // 0x00 datum_header
-    uint8_t unknown_02[0x28 - 0x02];   // 0x02
+    uint8_t pad_02[2];                 // 0x02
+    int32_t history_tick;              // 0x04 next tick UpdateServer::queue_get_history_entry replays for this player
+    uint8_t unknown_08[0x28 - 0x08];   // 0x08
     player_update_queue queue;         // 0x28
 } update_server_queue;                 // size 0x64
 
@@ -853,6 +851,33 @@ typedef struct player_action {
     int16_t zoom_level;            // 0x1c local_player_control::desired_zoom_level
     int16_t pad_1e;                // 0x1e left uninitialized by 0x471ae0
 } player_action;                   // size 0x20
+
+typedef struct update_record {
+    int32_t tick;              // 0x00
+    uint16_t player_count;     // 0x04
+    uint8_t pad_06[2];         // 0x06
+    player_action actions[16]; // 0x08 one per player, in update_client_queues order
+    client_update_carry carry[16]; // 0x208
+} update_record;               // size 0x308 == k_update_record_size
+
+// One element of the "update client queues" data_array (16 x 0x28): the latest control record received for a
+// player. 0x4730d0 refreshes it from the tick's player_action and turns it back into one, keeping the
+// control flags of the previous tick (masked by 0x4d0) to derive the newly pressed ones.
+typedef struct update_client_queue_entry {
+    int16_t identifier;            // 0x00 datum_header
+    uint8_t pad_02[2];             // 0x02
+    uint32_t control_flags;        // 0x04 player_action::control_flags
+    uint32_t held_control_flags;   // 0x08 control_flags & 0x4d0 of the previous tick
+    float desired_yaw;             // 0x0c player_action::desired_yaw
+    float desired_pitch;           // 0x10
+    float throttle_x;              // 0x14
+    float throttle_y;              // 0x18
+    float primary_trigger;         // 0x1c
+    int16_t weapon_index;          // 0x20
+    int16_t grenade_index;         // 0x22
+    int16_t zoom_level;            // 0x24
+    uint8_t pad_26[2];             // 0x26
+} update_client_queue_entry;       // size 0x28
 
 // ---------------------------------------------------------------------------
 // player_update_record  (0x2c bytes, the record type of player_update_queue)
