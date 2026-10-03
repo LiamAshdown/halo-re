@@ -64,4 +64,16 @@ inline constexpr int16_t k_scroll_blink_long = 15;
 /** The word a widget input event stores in an argument slot that holds no value. */
 inline constexpr int16_t k_event_argument_unset = INT16_MIN;
 
+/** Collision mask of the line-of-sight test the HUD waypoints use to decide whether a target is occluded. */
+inline constexpr uint32_t k_hud_sight_line_collision_mask = 0xc2ad;
+
+/** The float "indefinite" NaN the HUD number evaluation stores for a value that is not available. */
+inline constexpr uint32_t k_float_indefinite_bits = 0xffc00000;
+
+/** Value of a weapon HUD element flash time that still holds its tag default (compared as the raw bits of the float). */
+inline constexpr int32_t k_weapon_hud_flash_unset_bits = 0x3f80;
+
+/** Size of the motion sensor state record, in 32-bit words. */
+inline constexpr int32_t k_motion_sensor_dwords = 348;
+
 }  // namespace halo::interface
