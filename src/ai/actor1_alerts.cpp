@@ -869,28 +869,65 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
         fallback = 1;
     }
     mode = a->mode;
+    auto guard = [&]() -> char {
+        if (a->mode == 3) {
+            return changed;
+        }
+        *(uint32_t *)&consideration = 0;
+        halo::ai::actor_set_mode(actor_index, 3, &consideration);
+        return 1;
+    };
+    auto settle = [&]() -> char {
+        if (fallback || changed) {
+            return changed;
+        }
+        return guard();
+    };
+    auto consider = [&]() -> char {
+        if (halo::ai::actor_consider_combat_mode(actor_index, 0, &consideration)) {
+            halo::ai::actor_set_mode(actor_index, 0xa, &consideration);
+            changed = 1;
+            return settle();
+        }
+        return guard();
+    };
+    auto consider_zero = [&]() -> char {
+        if (mode == 0xa) {
+            return settle();
+        }
+        return consider();
+    };
+    auto decide = [&]() -> char {
+        if (!fallback) {
+            return guard();
+        }
+        if (hold) {
+            return consider();
+        }
+        return consider_zero();
+    };
     if (mode == 0xa) {
         int16_t state = a->mode_data.charge.stage;
 
         if (state == 2 || state == 3) {
             if (!a->mode_data.flee.unknown_07 && !a->mode_data.charge.done && !a->mode_data.charge.approach_failed) {
                 fallback = 1;
-                goto consider_zero;
+                return consider_zero();
             }
             hold = 1;
-            goto decide;
+            return decide();
         }
         if (a->charge_disallowed) {
-            goto guard;
+            return guard();
         }
         if (state == 4 || state == 5) {
             if (a->mode_data.charge.approach_failed || a->vehicle_driving_type <= 1) {
                 hold = 1;
-                goto decide;
+                return decide();
             }
             fallback = 1;
             if (state != 4) {
-                goto consider_zero;
+                return consider_zero();
             }
             {
                 Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)OBJECT_DATA(a->active_unit_index));
@@ -898,51 +935,23 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
 
                 if (a->movement_completed && a->active_movement.type == 5 &&
                     halo::bit_cast<datum_index>(a->active_movement.destination.x) == a->target_unit_index) {
-                    goto guard;
+                    return guard();
                 }
                 if (distance < vehicle_range) {
-                    goto guard;
+                    return guard();
                 }
                 if (!(vehicle_range + vehicle_range > distance)) {
-                    goto consider_zero;
+                    return consider_zero();
                 }
                 if (a->facing.k * p->direction.z + a->facing.j * p->direction.y +
                         p->direction.x * a->facing.i >= 0.5f) {
-                    goto consider_zero;
+                    return consider_zero();
                 }
-                goto guard;
+                return guard();
             }
         }
     }
-decide:
-    if (!fallback) {
-        goto guard;
-    }
-    if (hold) {
-        goto consider;
-    }
-consider_zero:
-    if (mode == 0xa) {
-        goto settle;
-    }
-consider:
-    if (halo::ai::actor_consider_combat_mode(actor_index, 0, &consideration)) {
-        halo::ai::actor_set_mode(actor_index, 0xa, &consideration);
-        changed = 1;
-    } else {
-        goto guard;
-    }
-settle:
-    if (fallback || changed) {
-        return changed;
-    }
-guard:
-    if (a->mode == 3) {
-        return changed;
-    }
-    *(uint32_t *)&consideration = 0;
-    halo::ai::actor_set_mode(actor_index, 3, &consideration);
-    return 1;
+    return decide();
 }
 
 namespace halo::ai {
@@ -971,6 +980,7 @@ uint8_t halo::ai::alert_ops::is_within_alert_range(uint8_t always_in_range, floa
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     object *obj = halo::ai::object_at(object_index);
     uint8_t result = 0;
+    bool skip_vitality_gate = false;
 
     if ((obj->vitality_flags & _object_health_frozen_bit) == 0) {
         if (always_in_range == 0) {
@@ -993,14 +1003,14 @@ uint8_t halo::ai::alert_ops::is_within_alert_range(uint8_t always_in_range, floa
                     result = 0;
                 }
             }
-            goto check_upright;
+            skip_vitality_gate = true;
+        } else {
+            result = 1;
         }
-        result = 1;
     }
-    if (vitality_only != 0) {
+    if (!skip_vitality_gate && vitality_only != 0) {
         return result;
     }
-check_upright:
     if (obj->up.k < 0.5f) {
         return 0;
     }
