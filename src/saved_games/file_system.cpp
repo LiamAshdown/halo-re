@@ -9,6 +9,7 @@
 #include "saved_games.h"
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
+#include "halo/saved_games/layout.hpp"
 
 extern "C" {
 extern file_enumeration_position file_enumeration_pos;
@@ -98,14 +99,14 @@ uint8_t halo::saved_games::FileReference::create()
         created = CreateDirectoryA(ref->path, 0);
         if (created == 0) {
             error = GetLastError();
-            if (error != 0xb7) {
+            if (error != win32::k_error_already_exists) {
                 saved_games_report_last_error();
                 return 0;
             }
         }
     } else {
-        handle = CreateFileA(full_path, 0x40000000, 0, 0, 2, 0x80, 0);
-        if (handle == (void *)-1) {
+        handle = CreateFileA(full_path, win32::k_generic_write, win32::k_file_share_none, 0, win32::k_create_always, win32::k_file_attribute_normal, 0);
+        if (handle == win32::invalid_handle()) {
             saved_games_report_last_error();
             return 0;
         }
@@ -133,7 +134,7 @@ uint8_t halo::saved_games::FileReference::remove()
             return 1;
         }
     } else {
-        ok = SetFileAttributesA(full_path, 0x80);
+        ok = SetFileAttributesA(full_path, win32::k_file_attribute_normal);
         if (ok != 0) {
             ok = DeleteFileA(full_path);
             if (ok != 0) {
@@ -160,7 +161,7 @@ uint8_t halo::saved_games::FileReference::exists()
 
     path_build_full(ref->path, full_path, ref->location);
     attributes = GetFileAttributesA(full_path);
-    if (attributes != 0xffffffff) {
+    if (attributes != win32::k_invalid_file_attributes) {
         return 1;
     }
     error = GetLastError();
@@ -185,7 +186,7 @@ uint32_t halo::saved_games::FileReference::get_size()
     uint32_t size;
 
     size = GetFileSize(ref->handle, 0);
-    if (size == 0xffffffff) {
+    if (size == win32::k_invalid_file_size) {
         saved_games_report_last_error();
     }
     return size;
@@ -233,19 +234,19 @@ uint8_t halo::saved_games::FileReference::open(uint8_t mode)
     path_build_full(ref->path, full_path, ref->location);
     desired_access = 0;
     if ((mode & _file_open_read) != 0) {
-        desired_access = 0x80000000;
+        desired_access = win32::k_generic_read;
     }
     if ((mode & _file_open_write) != 0) {
-        desired_access = desired_access | 0x40000000;
+        desired_access = desired_access | win32::k_generic_write;
     }
-    handle = CreateFileA(full_path, desired_access, 1, 0, 3, 0x80, 0);
-    if (handle != (void *)-1) {
+    handle = CreateFileA(full_path, desired_access, win32::k_file_share_read, 0, win32::k_open_existing, win32::k_file_attribute_normal, 0);
+    if (handle != win32::invalid_handle()) {
         ref->handle = handle;
         if ((mode & _file_open_append) == 0) {
             return 1;
         }
-        seek_result = SetFilePointer(handle, 0, 0, 2);
-        if (seek_result != 0xffffffff) {
+        seek_result = SetFilePointer(handle, 0, 0, win32::k_file_end);
+        if (seek_result != win32::k_invalid_set_file_pointer) {
             return 1;
         }
         CloseHandle(ref->handle);
@@ -273,7 +274,7 @@ uint8_t halo::saved_games::FileReference::read(void *buffer, uint32_t size)
         if (bytes_read == size) {
             return 1;
         }
-        SetLastError(0x26);
+        SetLastError(win32::k_error_handle_eof);
     }
     saved_games_report_last_error();
     return 0;
@@ -290,11 +291,11 @@ uint8_t halo::saved_games::FileReference::seek(int32_t offset)
     file_reference_record *ref = self;
     uint32_t result;
 
-    result = SetFilePointer(ref->handle, offset, 0, 0);
-    if (result == 0xffffffff) {
+    result = SetFilePointer(ref->handle, offset, 0, win32::k_file_begin);
+    if (result == win32::k_invalid_set_file_pointer) {
         saved_games_report_last_error();
     }
-    return result != 0xffffffff;
+    return result != win32::k_invalid_set_file_pointer;
 }
 
 /**
@@ -429,7 +430,7 @@ uint8_t find_next(file_reference_record *out_entry, uint32_t *out_write_time)
             search_path[0xff] = '\0';
             handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&file_enumeration_find_data);
             file_enumeration_handles[depth] = handle;
-            if (handle == (void *)-1) {
+            if (handle == win32::invalid_handle()) {
                 goto pop_level;
             }
         } else {
@@ -451,7 +452,7 @@ pop_level:
 
 have_entry:
         location = file_enumeration_pos.location;
-        if ((file_enumeration_find_data.dwFileAttributes & 0x10) == 0) {
+        if ((file_enumeration_find_data.dwFileAttributes & win32::k_file_attribute_directory) == 0) {
             if ((file_enumeration_flags_value & 2) == 0) {
                 memset(out_entry, 0, sizeof(*out_entry));
                 out_entry->signature = k_file_reference_signature;
@@ -776,7 +777,7 @@ void report_last_error(void)
     char scratch[0x800];
 
     message_id = GetLastError();
-    FormatMessageA(0x12ff, 0, message_id, 0, (LPSTR)scratch, 0x800, 0);
+    FormatMessageA(win32::k_format_message_system_message, 0, message_id, 0, (LPSTR)scratch, sizeof(scratch), 0);
     SetLastError(0);
     return;
 }

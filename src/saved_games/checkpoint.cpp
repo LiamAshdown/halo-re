@@ -9,6 +9,7 @@
 #include "saved_games.h"
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
+#include "halo/saved_games/layout.hpp"
 
 extern "C" {
 extern int32_t saved_player_profile_slots_handle;
@@ -56,14 +57,14 @@ int32_t enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, ch
 
     entries = (checkpoint_file_entry *)GlobalAlloc(0, k_maximum_checkpoint_files * sizeof(checkpoint_file_entry));
     saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
-    sprintf(search_path, "%s%s", directory, "checkpoints\\*.sav");
+    sprintf(search_path, "%s%s%s", directory, k_checkpoints_directory, "*.sav");
 
     found_count = 0;
     find_handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&find_data);
-    if (find_handle != (void *)0xffffffff) {
+    if (find_handle != win32::invalid_handle()) {
         entry = entries;
         do {
-            sprintf(name, "%s%s", "checkpoints\\", find_data.cFileName);
+            sprintf(name, "%s%s", k_checkpoints_directory, find_data.cFileName);
             extension = strchr(name, '.');
             if (extension != 0) {
                 *extension = 0;
@@ -71,7 +72,7 @@ int32_t enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, ch
 
             level = game_checkpoint_read_stats_file(&difficulty, name, &game_time_ticks, &time);
             if (level != -1) {
-                if (strstr(name, "autosave") == 0 || include_autosaves != 0) {
+                if (strstr(name, k_autosave_name) == 0 || include_autosaves != 0) {
                     entry->level_index = level;
                     entry->game_time = game_time_ticks;
                     entry->difficulty = difficulty;
@@ -82,9 +83,9 @@ int32_t enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, ch
 
                     basename = strchr(name, '\\') + 1;
                     sprintf(entry->name, "%s", basename);
-                    if (strstr(basename, "autosave") == basename && basename[8] == 0) {
+                    if (strstr(basename, k_autosave_name) == basename && basename[sizeof(k_autosave_name) - 1] == 0) {
                         entry->kind = _checkpoint_kind_autosave;
-                    } else if (strstr(basename, "autosave1") == basename && basename[9] == 0) {
+                    } else if (strstr(basename, k_autosave1_name) == basename && basename[sizeof(k_autosave1_name) - 1] == 0) {
                         entry->kind = _checkpoint_kind_autosave1;
                     }
 
@@ -134,11 +135,11 @@ uint8_t get_next_filename(char *out_name, char *directory)
     win32_find_dataa find_data;
     void *find_handle;
 
-    for (index = 0; index <= 99; index = index + 1) {
-        sprintf(out_name, "checkpoints\\checkpoint%d", index);
+    for (index = 0; index < k_maximum_checkpoint_slots; index = index + 1) {
+        sprintf(out_name, "%scheckpoint%d", k_checkpoints_directory, index);
         sprintf(path, "%s%s.sav", directory, out_name);
         find_handle = FindFirstFileA(path, (LPWIN32_FIND_DATAA)&find_data);
-        if (find_handle == (void *)0xffffffff) {
+        if (find_handle == win32::invalid_handle()) {
             return 1;
         }
         FindClose(find_handle);
@@ -238,7 +239,7 @@ uint8_t reclaim_slot_callback(int32_t index, const char *name, int32_t level_ind
     char *out_name = (char *)user_data;
 
     if (out_name[0] == 0) {
-        sprintf(out_name, "checkpoints\\%s", name);
+        sprintf(out_name, "%s%s", k_checkpoints_directory, name);
     }
     return 1;
 }
@@ -262,7 +263,7 @@ uint8_t save_new(void)
     if (game_checkpoint_get_next_filename(target_name, directory) == 0) {
         return 0;
     }
-    return saved_game_copy_files_to_target(directory, (char *)"savegame", target_name);
+    return saved_game_copy_files_to_target(directory, (char *)k_savegame_name, target_name);
 }
 
 /**
@@ -337,16 +338,16 @@ uint8_t load_checkpoint(char *name)
     saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
 
     if (name == 0 || *name == 0) {
-        name = (char *)"autosave";
+        name = (char *)k_autosave_name;
     } else if (*name == '*') {
         game_checkpoint_enumerate_files(1, 1, game_checkpoint_print_list_entry, 0);
         return 1;
     }
 
-    if (strstr(name, "checkpoints\\") != 0) {
+    if (strstr(name, k_checkpoints_directory) != 0) {
         return saved_game_load_checkpoint_by_name(name);
     }
-    sprintf(full_name, "checkpoints\\%s", name);
+    sprintf(full_name, "%s%s", k_checkpoints_directory, name);
     return saved_game_load_checkpoint_by_name(full_name);
 }
 
@@ -373,7 +374,7 @@ uint8_t load_checkpoint_by_name(char *name)
     saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     sprintf(path, "%s%s.sav", directory, name);
     find_handle = FindFirstFileA(path, (LPWIN32_FIND_DATAA)&find_data);
-    if (find_handle == (void *)0xffffffff) {
+    if (find_handle == win32::invalid_handle()) {
         return 0;
     }
     FindClose(find_handle);
@@ -389,8 +390,8 @@ uint8_t load_checkpoint_by_name(char *name)
         map_path = campaign_level_paths[level];
     }
     main_queue_map_change(map_path);
-    if (memcmp(name, "savegame", 9) != 0) {
-        saved_game_copy_files_to_target(directory, name, (char *)"savegame");
+    if (memcmp(name, k_savegame_name, sizeof(k_savegame_name)) != 0) {
+        saved_game_copy_files_to_target(directory, name, (char *)k_savegame_name);
     }
     return 1;
 }

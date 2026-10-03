@@ -9,6 +9,11 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "halo/saved_games/saved_games.hpp"
+#include "halo/saved_games/layout.hpp"
+
+static_assert(sizeof(data_array) == halo::saved_games::k_game_state_block_header_size);
+static_assert(sizeof(memory_pool) == halo::saved_games::k_game_state_block_header_size);
+static_assert(sizeof(game_state_header) == k_game_state_header_size);
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -94,8 +99,8 @@ void *allocate_buffer(int32_t cpu_size, int32_t extra_size)
     game_state_size = cpu_size + extra_size;
     game_state_write_buffer_allocated = 1;
     game_state_write_buffer = (uint8_t *)GlobalAlloc(0, game_state_size);
-    _snprintf(game_state_persistent_storage_path, 0xff, "%s\\%s", profile_directory, "savegame.bin");
-    _snprintf(game_state_core_directory, 0xff, "%s\\%s", profile_directory, "core");
+    _snprintf(game_state_persistent_storage_path, k_path_maximum_length, "%s\\%s", profile_directory, k_game_state_file_name);
+    _snprintf(game_state_core_directory, k_path_maximum_length, "%s\\%s", profile_directory, "core");
     game_state_write_in_progress = 0;
     game_state_write_event = CreateEventA(0, 0, 0, 0);
     _beginthread((void (*)(void *))game_state_save_thread_proc, 0x1000, 0);
@@ -122,7 +127,7 @@ void build_header(void)
     game_state_revert_time = -1;
     header = game_state_header_ptr;
     zero = (uint32_t *)header;
-    for (count = 0x53; count != 0; count = count - 1) {
+    for (count = k_game_state_header_size / sizeof(uint32_t); count != 0; count = count - 1) {
         *zero = 0;
         zero = zero + 1;
     }
@@ -155,15 +160,15 @@ void build_header(void)
  */
 void create_persistent_storage_file(void)
 {
-    game_state_persistent_storage = CreateFileA(game_state_persistent_storage_path, 0xc0000000, 0, 0,
-        4 , 0x8000000 , 0);
-    if (game_state_persistent_storage != (void *)0xffffffff &&
-        SetFilePointer(game_state_persistent_storage, k_game_state_file_size, 0, 0) != 0xffffffff &&
+    game_state_persistent_storage = CreateFileA(game_state_persistent_storage_path, win32::k_generic_read_write, win32::k_file_share_none, 0,
+        win32::k_open_always, win32::k_file_flag_sequential_scan, 0);
+    if (game_state_persistent_storage != win32::invalid_handle() &&
+        SetFilePointer(game_state_persistent_storage, k_game_state_file_size, 0, win32::k_file_begin) != win32::k_invalid_set_file_pointer &&
         SetEndOfFile(game_state_persistent_storage) != 0) {
         game_state_persistent_storage_created = 1;
         return;
     }
-    shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+    shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
 }
 
 /**
@@ -255,24 +260,24 @@ data_array *make(char *name, int16_t maximum_count, int16_t element_size)
     uint8_t *zero;
     int32_t i;
 
-    block_size = (int32_t)maximum_count * (int32_t)element_size + 0x38;
+    block_size = (int32_t)maximum_count * (int32_t)element_size + k_game_state_block_header_size;
     array = (data_array *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + block_size;
     crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
 
     zero = (uint8_t *)array;
-    for (i = 0xe; i != 0; i = i - 1) {
+    for (i = k_game_state_block_header_size / 4; i != 0; i = i - 1) {
         zero[0] = 0;
         zero[1] = 0;
         zero[2] = 0;
         zero[3] = 0;
         zero = zero + 4;
     }
-    strncpy(array->name, name, 0x1f);
+    strncpy(array->name, name, sizeof(array->name) - 1);
     array->maximum_count = maximum_count;
     array->size = element_size;
     array->signature = k_data_array_signature;
-    array->data = (uint8_t *)array + 0x38;
+    array->data = (uint8_t *)array + k_game_state_block_header_size;
     array->valid = 0;
     return array;
 }
@@ -290,19 +295,19 @@ memory_pool *new_pool(char *name, int32_t pool_size)
     uint32_t *zero;
     int32_t i;
 
-    block_size = pool_size + 0x38;
+    block_size = pool_size + k_game_state_block_header_size;
     pool = (memory_pool *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + block_size;
     crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
 
     zero = (uint32_t *)pool;
-    for (i = 0xe; i != 0; i = i - 1) {
+    for (i = k_game_state_block_header_size / 4; i != 0; i = i - 1) {
         *zero = 0;
         zero = zero + 1;
     }
     pool->signature = k_memory_pool_signature;
-    strncpy(pool->name, name, 0x1f);
-    pool->base = (uint8_t *)pool + 0x38;
+    strncpy(pool->name, name, sizeof(pool->name) - 1);
+    pool->base = (uint8_t *)pool + k_game_state_block_header_size;
     pool->first_block = 0;
     pool->last_block = 0;
     pool->size = pool_size;
@@ -329,7 +334,7 @@ void *open_persistent_storage(char *name)
 
     if (name == 0) {
         if (saved_game_get_directory_by_handle(saved_player_profile_slots_handle, path) == 0) {
-            return (void *)0xffffffff;
+            return win32::invalid_handle();
         }
         saved_game_get_directory_by_handle(saved_player_profile_slots_handle, path);
     } else {
@@ -339,9 +344,9 @@ void *open_persistent_storage(char *name)
     end = path + strlen(path);
     strcpy(end, "savegame.bin");
 
-    file = CreateFileA(path, 0xc0000000, 0, 0, 4 , 0, 0);
-    if (file == (void *)0xffffffff) {
-        return (void *)0xffffffff;
+    file = CreateFileA(path, win32::k_generic_read_write, win32::k_file_share_none, 0, win32::k_open_always, 0, 0);
+    if (file == win32::invalid_handle()) {
+        return win32::invalid_handle();
     }
 
     file_size = GetFileSize(file, 0);
@@ -349,14 +354,14 @@ void *open_persistent_storage(char *name)
         memset(zero_block, 0, sizeof(zero_block));
         if (WriteFile(file, zero_block, k_game_state_file_initial_block, (LPDWORD)&bytes_written, 0) == 0 ||
             bytes_written != k_game_state_file_initial_block ||
-            SetFilePointer(file, k_game_state_file_size, 0, 0) == 0xffffffff ||
+            SetFilePointer(file, k_game_state_file_size, 0, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
             SetEndOfFile(file) == 0) {
-            shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+            shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
             if (saved_game_get_directory_by_handle(saved_player_profile_slots_handle, delete_path) != 0) {
                 DeleteFileA(delete_path);
             }
             CloseHandle(file);
-            return (void *)0xffffffff;
+            return win32::invalid_handle();
         }
     }
     return file;
@@ -371,7 +376,7 @@ void *open_persistent_storage(char *name)
 void perform_revert(void)
 {
     if (game_state_revert_available == 0 && unknown_00746fa4 == 0) {
-        split_screen_quit_prompt_string = 0xffff;
+        split_screen_quit_prompt_string = k_word_none;
         network_join_error_reason = 0;
         unknown_00719738 = 1;
         main_globals_byte_0071974f = 0;
@@ -461,12 +466,12 @@ uint8_t read_persistent_storage(void)
         Sleep(0);
     }
 
-    if (SetFilePointer(game_state_persistent_storage, 0, 0, 0) != 0xffffffff &&
+    if (SetFilePointer(game_state_persistent_storage, 0, 0, win32::k_file_begin) != win32::k_invalid_set_file_pointer &&
         ReadFile(game_state_persistent_storage, game_state_snapshot_source, game_state_size, (LPDWORD)&bytes_read, 0) != 0 &&
         bytes_read == game_state_size) {
         return 1;
     }
-    shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+    shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
     return 0;
 }
 
@@ -484,14 +489,14 @@ void read_persistent_storage_block(int32_t size, void *buffer)
     char directory[264];
 
     file = game_state_open_persistent_storage(0);
-    if (file == (void *)0xffffffff) {
+    if (file == win32::invalid_handle()) {
         return;
     }
 
-    if (SetFilePointer(file, 0, 0, 0) == 0xffffffff ||
+    if (SetFilePointer(file, 0, 0, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
         ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0) == 0 ||
         bytes_read != (uint32_t)size) {
-        shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+        shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
         if (saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory) != 0) {
             DeleteFileA(directory);
         }
@@ -512,11 +517,11 @@ void read_profile_file(char *name, int32_t size, void *buffer)
     uint32_t bytes_read;
 
     sprintf(path, "%s\\%s", game_state_core_directory, name);
-    file = CreateFileA(path, 0x80000000, 0, 0, 3 , 0x80 , 0);
-    if (file == (void *)0xffffffff ||
+    file = CreateFileA(path, win32::k_generic_read, win32::k_file_share_none, 0, win32::k_open_existing, win32::k_file_attribute_normal, 0);
+    if (file == win32::invalid_handle() ||
         ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0) == 0 ||
         bytes_read != (uint32_t)size) {
-        shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+        shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
     }
     CloseHandle(file);
 }
@@ -536,8 +541,8 @@ uint8_t read_profile_header(char *name, int32_t size, void *buffer)
 
     result = 0;
     sprintf(path, "%s\\%s", game_state_core_directory, name);
-    file = CreateFileA(path, 0x80000000, 0, 0, 3 , 0x80 , 0);
-    if (file != (void *)0xffffffff) {
+    file = CreateFileA(path, win32::k_generic_read, win32::k_file_share_none, 0, win32::k_open_existing, win32::k_file_attribute_normal, 0);
+    if (file != win32::invalid_handle()) {
         if (ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0) != 0 && bytes_read == (uint32_t)size) {
             result = 1;
         }
@@ -561,7 +566,7 @@ void save_thread_proc(void)
     char directory[264];
 
     while (1) {
-        WaitForSingleObject(game_state_write_event, 0xffffffff);
+        WaitForSingleObject(game_state_write_event, win32::k_infinite);
         is_checkpoint = game_state_write_is_checkpoint;
         remaining = game_state_size;
         game_state_write_in_progress = 1;
@@ -570,8 +575,8 @@ void save_thread_proc(void)
         if (SetFilePointer(game_state_persistent_storage, 0, 0, 0) != 0xffffffff) {
             while (0 < remaining) {
                 chunk = remaining;
-                if (0x3fff < remaining) {
-                    chunk = 0x4000;
+                if (k_game_state_write_chunk_size - 1 < remaining) {
+                    chunk = k_game_state_write_chunk_size;
                 }
                 WriteFile(game_state_persistent_storage, game_state_write_buffer + (game_state_size - remaining),
                     chunk, (LPDWORD)&bytes_written, 0);
@@ -581,7 +586,7 @@ void save_thread_proc(void)
         }
 
         if (remaining != 0) {
-            shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+            shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
             game_state_write_in_progress = 0;
             continue;
         }
@@ -612,7 +617,7 @@ void startup(void)
     int32_t header_size;
     uint8_t *header_base;
 
-    game_state_crc = 0xffffffff;
+    game_state_crc = k_crc32_seed;
     game_state_base = (uint8_t *)game_state_allocate_buffer(k_game_state_cpu_size, k_game_state_extra_size);
     game_state_create_persistent_storage_file();
     header_base = game_state_cursor + game_state_base;
@@ -642,25 +647,25 @@ void write_persistent_storage(uint32_t *crc_slot, uint8_t *buffer, int32_t heade
     char directory[264];
 
     file = game_state_open_persistent_storage(0);
-    if (file == (void *)0xffffffff) {
+    if (file == win32::invalid_handle()) {
         return;
     }
 
     *crc_slot = 0;
-    running_crc = 0xffffffff;
+    running_crc = k_crc32_seed;
     crc32_update(&running_crc, buffer, total_size);
     *crc_slot = running_crc;
 
     memcpy(header_backup, buffer, header_size);
     memset(buffer, 0, header_size);
 
-    if (SetFilePointer(file, 0, 0, 0) == 0xffffffff ||
+    if (SetFilePointer(file, 0, 0, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
         WriteFile(file, buffer, total_size, (LPDWORD)&bytes_written, 0) == 0 ||
         bytes_written != (uint32_t)total_size ||
-        SetFilePointer(file, 0, 0, 0) == 0xffffffff ||
+        SetFilePointer(file, 0, 0, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
         WriteFile(file, header_backup, header_size, (LPDWORD)&bytes_written, 0) == 0 ||
         bytes_written != (uint32_t)header_size) {
-        shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+        shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
         if (saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory) != 0) {
             DeleteFileA(directory);
         }
@@ -686,8 +691,8 @@ uint8_t write_profile_file(int32_t size, char *name, const void *buffer)
     result = 0;
     CreateDirectoryA(game_state_core_directory, 0);
     sprintf(path, "%s\\%s", game_state_core_directory, name);
-    file = CreateFileA(path, 0x40000000, 0, 0, 2 , 0x80 , 0);
-    if (file != (void *)0xffffffff) {
+    file = CreateFileA(path, win32::k_generic_write, win32::k_file_share_none, 0, win32::k_create_always, win32::k_file_attribute_normal, 0);
+    if (file != win32::invalid_handle()) {
         if (WriteFile(file, buffer, size, (LPDWORD)&bytes_written, 0) != 0 && bytes_written == (uint32_t)size) {
             result = 1;
         }
