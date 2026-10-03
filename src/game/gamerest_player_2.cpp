@@ -199,14 +199,14 @@ void PlayerView::respawn()
                 halo::networking::network_session_broadcast_to_flagged(encoded_bits, (network_server_globals *)halo::networking::globals().server,
                     1, &network_message_scratch, 1, 0, 0, 3);
             }
-            *(uint32_t *)(p + 0x68) = 0;
+            memset(((player *)p)->kill_streak, 0, sizeof(((player *)p)->kill_streak));
             halo::game::game_engine_send_unit_weapon_loadout(new_unit, player_index, team, -1);
         }
     }
 
 reset_player_state:
     p = halo::game::player_at(player_index);
-    *(uint32_t *)(p + 0x68) = 0;
+    memset(((player *)p)->kill_streak, 0, sizeof(((player *)p)->kill_streak));
     *(uint16_t *)&((player *)p)->interaction_type = 0;
     ((player *)p)->interaction_object = k_datum_index_none;
     if (((player *)p)->local_player_index != -1) {

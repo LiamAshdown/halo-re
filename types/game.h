@@ -625,7 +625,8 @@ typedef struct player {
     int32_t unknown_f0;                // 0xf0 start of a 0xc-dword run the local constructor
     datum_index unknown_f4;            // 0xf4 zeroes; the network constructor writes -1 here
     int32_t unknown_f8;                // 0xf8
-    uint8_t unknown_fc[0x104 - 0xfc];  // 0xfc
+    int32_t unknown_fc;                // 0xfc
+    int32_t unknown_100;               // 0x100
     int32_t unknown_104;               // 0x104 network constructor writes -1
     uint8_t connection_quality_started; // 0x108 network_client_check_connection_quality: 0 until the first sample,
                                         //    then 1 (constructor writes 0)

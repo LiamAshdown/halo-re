@@ -180,7 +180,7 @@ int32_t King::get_score(datum_index player, int32_t team_mode)
     if (team_mode != 0) {
         return king_bucket_credit_ticks[p->team];
     }
-    return *(int16_t *)(p + 0xc4);
+    return p->objective_time_words.low;
 }
 
 /**

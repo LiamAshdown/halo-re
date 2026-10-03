@@ -70,6 +70,42 @@ inline EquipmentPowerupType_t equipment_powerup_type(const void *equipment_tag) 
 static_assert(offsetof(Weapon, weapon_flags) == 0x308);
 static_assert(offsetof(Equipment, powerup_type) == 0x308);
 
+/**
+ * The server's per-player cache of what it last broadcast about a remote player, laid over the update queue and
+ * position bookkeeping of the player record (+0x120 .. +0x1c8). Each message family keeps the tick of its last delta
+ * and of its last full send, the update id it stamped, and the 3-, 12- or 16-dword baseline the next delta is
+ * coded against.
+ */
+struct remote_player_update_cache {
+    int32_t action_delta_tick;        // 0x120
+    int32_t action_full_tick;         // 0x124
+    uint32_t action_update_id;        // 0x128
+    uint8_t action_baseline_id;       // 0x12c
+    uint8_t pad_12d[3];               // 0x12d
+    uint32_t action_baseline[12];     // 0x130
+    uint32_t position_counter;        // 0x160
+    int32_t biped_delta_tick;         // 0x164
+    int32_t biped_full_tick;          // 0x168
+    uint32_t biped_update_id;         // 0x16c
+    uint32_t biped_baseline[3];       // 0x170
+    int32_t vehicle_delta_tick;       // 0x17c
+    int32_t vehicle_full_tick;        // 0x180
+    uint32_t vehicle_update_id;       // 0x184
+    uint32_t vehicle_baseline[16];    // 0x188
+};
+
+inline remote_player_update_cache &remote_update_cache(player *p) noexcept {
+    return *reinterpret_cast<remote_player_update_cache *>(reinterpret_cast<uint8_t *>(p) + 0x120);
+}
+
+static_assert(offsetof(remote_player_update_cache, action_baseline_id) == 0x12c - 0x120);
+static_assert(offsetof(remote_player_update_cache, action_baseline) == 0x130 - 0x120);
+static_assert(offsetof(remote_player_update_cache, position_counter) == 0x160 - 0x120);
+static_assert(offsetof(remote_player_update_cache, biped_baseline) == 0x170 - 0x120);
+static_assert(offsetof(remote_player_update_cache, vehicle_delta_tick) == 0x17c - 0x120);
+static_assert(offsetof(remote_player_update_cache, vehicle_baseline) == 0x188 - 0x120);
+static_assert(sizeof(remote_player_update_cache) == 0x1c8 - 0x120);
+
 static_assert(sizeof(player) == 0x200);
 static_assert(offsetof(unit_object, unit.weapons) == 0x2f8);
 static_assert(offsetof(unit_object, unit.current_weapon_index) == 0x2f2);
