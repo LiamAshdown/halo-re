@@ -676,7 +676,6 @@ static void texel_size(const BitmapData *bitmap, float *u, float *v)
  */
 void rasterizer_screen_effect_compute_uv_transform(uint32_t width, uint32_t height, weapon_screen_effect_parameters *params, int16_t pass, int16_t pass_count, uint8_t shift_down)
 {
-    uint8_t *raw = (uint8_t *)params;
     BitmapData frame;
     const BitmapData *mask;
     const BitmapData *map_b;
@@ -717,9 +716,9 @@ void rasterizer_screen_effect_compute_uv_transform(uint32_t width, uint32_t heig
 
     mask_used = mask_bitmap != NULL && (pass > 0 || pass_count == 1 || params->convolution_type != 0);
     mask = mask_used ? mask_bitmap : &frame;
-    has_extra_maps = raw[0x23];
-    map_b = has_extra_maps ? (const BitmapData *)(uintptr_t)*(uint32_t *)(raw + 0x28) : &frame;
-    map_c = has_extra_maps ? (const BitmapData *)(uintptr_t)*(uint32_t *)(raw + 0x34) : &frame;
+    has_extra_maps = params->has_extra_maps;
+    map_b = has_extra_maps ? (const BitmapData *)(uintptr_t)params->extra_map_b : &frame;
+    map_c = has_extra_maps ? (const BitmapData *)(uintptr_t)params->extra_map_c : &frame;
 
     texel_size(mask, &mask_u, &mask_v);
     texel_size(map_b, &b_u, &b_v);
@@ -926,7 +925,6 @@ static uint32_t select_filter_technique(const weapon_screen_effect_parameters *p
 void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
 {
     weapon_screen_effect_parameters *p;
-    uint8_t *raw;
     int16_t pass_count;
     int16_t pass;
     int16_t source;
@@ -939,9 +937,8 @@ void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
     if (p == NULL) {
         return;
     }
-    raw = (uint8_t *)p;
     if (p->convolution_type == 0 && p->mask_bitmap_data == 0 && !(p->night_vision_intensity > 0.0f) &&
-        !(p->desaturation_intensity > 0.0f) && raw[0x23] == 0) {
+        !(p->desaturation_intensity > 0.0f) && p->has_extra_maps == 0) {
         return;
     }
     if (!console_debug_toggle_689428 || rasterizer_window.type != 1) {
@@ -1000,9 +997,9 @@ void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
 
             rasterizer_render_target_bind_effect_texture(source, &rasterizer_effects[114], 0);
             set_sampler_states(0, 3, 1, 1);
-            rasterizer_bind_texture_d3dx(1, (BitmapData *)(uintptr_t)*(uint32_t *)(raw + 0x28), &rasterizer_effects[114]);
+            rasterizer_bind_texture_d3dx(1, (BitmapData *)(uintptr_t)p->extra_map_b, &rasterizer_effects[114]);
             set_sampler_states(1, 3, 1, 1);
-            rasterizer_bind_texture_d3dx(2, (BitmapData *)(uintptr_t)*(uint32_t *)(raw + 0x34), &rasterizer_effects[114]);
+            rasterizer_bind_texture_d3dx(2, (BitmapData *)(uintptr_t)p->extra_map_c, &rasterizer_effects[114]);
             set_sampler_states(2, 1, 2, 1);
         } else {
             int16_t stage;
@@ -1060,15 +1057,15 @@ void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
             rasterizer_render_target_set_active(destination, 0, 0);
         }
 
-        if (raw[0x23]) {
+        if (p->has_extra_maps) {
             uint32_t technique = screen_effect_techniques[0];
 
             if (pass == 1) {
                 static const int32_t k_noise_scales[3] = { 1, 2, 4 };
                 float noise[4];
-                float amount = *(float *)(raw + 0x2c);
+                float amount = p->noise_amount;
 
-                noise[0] = (float)k_noise_scales[*(int16_t *)(raw + 0x24)];
+                noise[0] = (float)k_noise_scales[p->noise_type];
                 noise[1] = noise[0];
                 noise[2] = noise[0];
                 noise[3] = amount < 0.0f ? 0.0f : (amount > 1.0f ? 1.0f : amount);
@@ -1179,7 +1176,6 @@ static void draw_screen_quad(void)
 void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_parameters *input)
 {
     weapon_screen_effect_parameters *p;
-    uint8_t *raw;
     int32_t width, height;
     int i, j;
 
@@ -1187,9 +1183,8 @@ void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_paramet
     if (p == NULL) {
         return;
     }
-    raw = (uint8_t *)p;
     if (p->convolution_type == 0 && p->mask_bitmap_data == 0 && !(p->night_vision_intensity > 0.0f) &&
-        !(p->desaturation_intensity > 0.0f) && raw[0x23] == 0) {
+        !(p->desaturation_intensity > 0.0f) && p->has_extra_maps == 0) {
         return;
     }
     if (!console_debug_toggle_689428 || rasterizer_window.type != 1) {
@@ -1231,7 +1226,7 @@ void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_paramet
     rasterizer_screen_effect_quad[3].u = 0.0f;
     rasterizer_screen_effect_quad[3].v = 0.0f;
 
-    if (raw[0x23]) {
+    if (p->has_extra_maps) {
         int16_t pass_count = (int16_t)((uint16_t)(p->convolution_extra_passes + 1) << 1);
         int16_t pass;
         float identity[4][4];
@@ -1246,9 +1241,9 @@ void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_paramet
                 }
             }
             rasterizer_screen_effect_compute_uv_transform((uint32_t)width, (uint32_t)height, p, 1, pass_count, 1);
-            rasterizer_bind_texture_d3d9(0, (BitmapData *)(uintptr_t)*(uint32_t *)(raw + 0x28));
+            rasterizer_bind_texture_d3d9(0, (BitmapData *)(uintptr_t)p->extra_map_b);
             set_sampler_states(0, 3, 1, 1);
-            rasterizer_bind_texture_d3d9(1, (BitmapData *)(uintptr_t)*(uint32_t *)(raw + 0x34));
+            rasterizer_bind_texture_d3d9(1, (BitmapData *)(uintptr_t)p->extra_map_c);
             set_sampler_states(1, 1, 2, 1);
             set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
             set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);

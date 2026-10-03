@@ -870,7 +870,13 @@ typedef struct weapon_screen_effect_parameters {
     uint8_t desaturation_additive;     // 0x20 desaturation_flags bit 2
     uint8_t night_vision_masked;       // 0x21 night vision flags bit 2
     uint8_t desaturation_masked;       // 0x22 desaturation_flags bit 3
-    uint8_t unknown_23[0x15];          // 0x23 never written by 0x494730
+    uint8_t has_extra_maps;            // 0x23 read by the rasterizer: a second and third map follow
+    int16_t noise_type;                // 0x24 index into the noise scale table (1, 2, 4)
+    uint16_t unknown_26;               // 0x26 never written by 0x494730
+    uint32_t extra_map_b;              // 0x28 BitmapData * second map
+    float noise_amount;                // 0x2c noise alpha, clamped to 0..1 by the rasterizer
+    uint32_t unknown_30;               // 0x30 never written by 0x494730
+    uint32_t extra_map_c;              // 0x34 BitmapData * third map
 } weapon_screen_effect_parameters;     // size 0x38
 
 // ---------------------------------------------------------------------------
