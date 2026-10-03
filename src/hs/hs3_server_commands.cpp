@@ -78,7 +78,7 @@ void ServerCommands::evaluate_sv_get_player_action_queue_length(int16_t function
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::game::game_engine_find_player_by_name((char *)arguments[0]);
@@ -96,7 +96,7 @@ void ServerCommands::evaluate_sv_kick(int16_t function_index, uint32_t thread_in
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::networking::sv_kick((char *)arguments[0]);
@@ -114,7 +114,7 @@ void ServerCommands::evaluate_sv_map(int16_t function_index, uint32_t thread_ind
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::networking::sv_map((uint32_t)arguments[0], (uint16_t **)arguments[1]);
@@ -168,7 +168,7 @@ void ServerCommands::evaluate_sv_mapcycle_add(int16_t function_index, uint32_t t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::interface::chimera__console_out(0, (char *)"sv_mapcycle_add is a dedicated server-only function!");
@@ -198,7 +198,7 @@ void ServerCommands::evaluate_sv_mapcycle_del(int16_t function_index, uint32_t t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::interface::chimera__console_out(0, (char *)"sv_mapcycle_del is a dedicated server-only function!");
@@ -275,7 +275,7 @@ void ServerCommands::evaluate_sv_unban(int16_t function_index, uint32_t thread_i
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         int32_t index = arguments[0];

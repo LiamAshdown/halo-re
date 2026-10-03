@@ -21,7 +21,7 @@ void UnitCommands::evaluate_unit_aim_without_turning(int16_t function_index, uin
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         if (arguments[0] != -1) {
@@ -47,7 +47,7 @@ void UnitCommands::evaluate_unit_can_blink(int16_t function_index, uint32_t thre
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         if (arguments[0] != -1) {
@@ -73,7 +73,7 @@ void UnitCommands::evaluate_unit_close(int16_t function_index, uint32_t thread_i
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     if ((datum_index)arguments[0] != k_datum_index_none) {
@@ -93,7 +93,7 @@ void UnitCommands::evaluate_unit_custom_animation_at_frame(int16_t function_inde
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::hs::hs_thread_return((int32_t)halo::units::unit_set_custom_animation_frame((uint32_t)arguments[0], *(uint8_t *)&arguments[3],
@@ -111,7 +111,7 @@ void UnitCommands::evaluate_unit_doesnt_drop_items(int16_t function_index, uint3
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::units::unit_mark_zone_occupants_flag((uint32_t)arguments[0]);
@@ -128,7 +128,7 @@ void UnitCommands::evaluate_unit_enter_vehicle(int16_t function_index, uint32_t 
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::units::unit_detach_and_enter_named_seat((uint32_t)arguments[0], (uint32_t)arguments[1], (char *)arguments[2]);
@@ -146,7 +146,7 @@ void UnitCommands::evaluate_unit_exit_vehicle(int16_t function_index, uint32_t t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::units::unit_try_exit_controlled_seat((uint32_t)arguments[0]);
@@ -164,7 +164,7 @@ void UnitCommands::evaluate_unit_get_current_flashlight_state(int16_t function_i
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         uint8_t on = 0;
@@ -188,7 +188,7 @@ void UnitCommands::evaluate_unit_get_custom_animation_time(int16_t function_inde
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::hs::hs_thread_return((int32_t)(uint16_t)halo::units::unit_get_custom_animation_time_remaining((uint32_t)arguments[0]), thread_index);
@@ -205,7 +205,7 @@ void UnitCommands::evaluate_unit_get_health(int16_t function_index, uint32_t thr
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     uint8_t *object = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], halo::k_dword_none);
@@ -228,7 +228,7 @@ void UnitCommands::evaluate_unit_get_shield(int16_t function_index, uint32_t thr
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     uint8_t *object = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], halo::k_dword_none);
@@ -251,7 +251,7 @@ void UnitCommands::evaluate_unit_get_total_grenade_count(int16_t function_index,
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 3);
@@ -274,7 +274,7 @@ void UnitCommands::evaluate_unit_has_weapon(int16_t function_index, uint32_t thr
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         uint8_t has = 0;
@@ -296,7 +296,7 @@ void UnitCommands::evaluate_unit_has_weapon_readied(int16_t function_index, uint
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         uint8_t readied = halo::units::unit_current_weapon_is_type((uint32_t)arguments[0], (datum_index)arguments[1]);
@@ -314,7 +314,7 @@ void UnitCommands::evaluate_unit_impervious(int16_t function_index, uint32_t thr
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::ai::ai_object_list_set_unit_flag_800000((datum_index)arguments[0], *(char *)&arguments[1]);
@@ -332,7 +332,7 @@ void UnitCommands::evaluate_unit_is_playing_custom_animation(int16_t function_in
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         uint8_t playing = 0;
@@ -356,7 +356,7 @@ void UnitCommands::evaluate_unit_kill_silent(int16_t function_index, uint32_t th
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         uint8_t *unit = (uint8_t *)halo::ai::object_at(arguments[0]);
@@ -376,7 +376,7 @@ void UnitCommands::evaluate_unit_open(int16_t function_index, uint32_t thread_in
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     if ((datum_index)arguments[0] != k_datum_index_none) {
@@ -396,7 +396,7 @@ void UnitCommands::evaluate_unit_set_current_vitality(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::units::unit_update_vitality_fractions((uint32_t)arguments[0], *(float *)&arguments[1], *(float *)&arguments[2]);
@@ -414,7 +414,7 @@ void UnitCommands::evaluate_unit_set_desired_flashlight_state(int16_t function_i
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         if (arguments[0] != -1) {
@@ -436,7 +436,7 @@ void UnitCommands::evaluate_unit_set_emotion(int16_t function_index, uint32_t th
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     datum_index unit = (datum_index)arguments[0];
@@ -459,7 +459,7 @@ void UnitCommands::evaluate_unit_set_emotion_animation(int16_t function_index, u
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::units::unit_scripting_set_emotion_animation((uint32_t)arguments[0], (const char *)arguments[1]);
@@ -478,7 +478,7 @@ void UnitCommands::evaluate_unit_set_enterable_by_player(int16_t function_index,
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
@@ -504,7 +504,7 @@ void UnitCommands::evaluate_unit_set_maximum_vitality(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     datum_index unit = (datum_index)arguments[0];
@@ -529,7 +529,7 @@ void UnitCommands::evaluate_unit_set_seat(int16_t function_index, uint32_t threa
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     datum_index unit = (datum_index)arguments[0];
@@ -568,7 +568,7 @@ void UnitCommands::evaluate_unit_stop_custom_animation(int16_t function_index, u
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     datum_index unit = (datum_index)arguments[0];
@@ -591,7 +591,7 @@ void UnitCommands::evaluate_unit_suspended(int16_t function_index, uint32_t thre
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::units::unit_reset_velocity_and_ground_flag((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
@@ -609,7 +609,7 @@ void UnitCommands::evaluate_units_set_current_vitality(int16_t function_index, u
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::ai::ai_object_list_update_vitality_fractions((datum_index)arguments[0], *(float *)&arguments[1], *(float *)&arguments[2]);
@@ -628,7 +628,7 @@ void UnitCommands::evaluate_units_set_desired_flashlight_state(int16_t function_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::units::unit_mark_zone_list_alt_flag((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
@@ -646,7 +646,7 @@ void UnitCommands::evaluate_units_set_maximum_vitality(int16_t function_index, u
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::ai::ai_object_list_initialize_shield_stun_thresholds((datum_index)arguments[0], *(float *)&arguments[1], *(float *)&arguments[2]);

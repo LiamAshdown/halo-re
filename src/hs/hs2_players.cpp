@@ -181,7 +181,7 @@ void PlayerCommands::evaluate_player_add_equipment(int16_t function_index, uint3
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::game::unit_apply_starting_profile(*(int16_t *)&arguments[1], (datum_index)arguments[0], *(uint8_t *)&arguments[2]);
@@ -199,7 +199,7 @@ void PlayerCommands::evaluate_player_camera_control(int16_t function_index, uint
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     uint8_t enable = *(uint8_t *)&arguments[0];
@@ -223,7 +223,7 @@ void PlayerCommands::evaluate_player_effect_set_max_rotation(int16_t function_in
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     *(float *)(player_effect_globals_pointer + 0x10c) = *(float *)&arguments[0] * 0.017453292f;
@@ -243,7 +243,7 @@ void PlayerCommands::evaluate_player_effect_set_max_translation(int16_t function
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     *(int32_t *)(player_effect_globals_pointer + 0x104) = arguments[1];
@@ -263,7 +263,7 @@ void PlayerCommands::evaluate_player_enable_input(int16_t function_index, uint32
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::game::globals().local_player_globals->input_disabled = (uint8_t)(*(uint8_t *)&arguments[0] == 0);

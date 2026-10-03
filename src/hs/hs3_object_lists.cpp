@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs3_objects.hpp"
 #include "crt.h"
 #include "halo/memory/api.hpp"
@@ -23,13 +24,11 @@ int32_t ObjectLists::get_first(datum_index header_index, object_list_iterator *i
     object_list_reference *node;
 
     if (header_index != k_datum_index_none) {
-        header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
-            (header_index & halo::k_slot_mask) * 0x0c);
+        header = halo::hs::object_list_header_at(header_index);
         first = header->first_reference;
         *iterator_out = first;
         if (first != k_datum_index_none) {
-            node = (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
-                (first & halo::k_slot_mask) * 0x0c);
+            node = halo::hs::object_list_reference_at(first);
             *iterator_out = node->next;
             return node->object_index;
         }
@@ -55,15 +54,13 @@ int32_t ObjectLists::nth_reference(datum_index header_index, int16_t n) const
     object_index = -1;
     next = halo::k_dword_none;
     if (header_index != k_datum_index_none) {
-        header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
-            (header_index & halo::k_slot_mask) * 0x0c);
+        header = halo::hs::object_list_header_at(header_index);
         next = header->first_reference;
         if (next == k_datum_index_none) {
             object_index = -1;
             next = halo::k_dword_none;
         } else {
-            reference = (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
-                (next & halo::k_slot_mask) * 0x0c);
+            reference = halo::hs::object_list_reference_at(next);
             object_index = reference->object_index;
             next = reference->next;
         }
@@ -75,8 +72,7 @@ int32_t ObjectLists::nth_reference(datum_index header_index, int16_t n) const
             object_index = -1;
             next = halo::k_dword_none;
         } else {
-            reference = (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
-                (next & halo::k_slot_mask) * 0x0c);
+            reference = halo::hs::object_list_reference_at(next);
             object_index = reference->object_index;
             next = reference->next;
         }
@@ -97,12 +93,10 @@ void ObjectLists::reference_add(datum_index header_index, datum_index object_ind
     datum_index node_index;
     object_list_reference *node;
 
-    header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
-        (header_index & halo::k_slot_mask) * 0x0c);
+    header = halo::hs::object_list_header_at(header_index);
     node_index = halo::memory::datum_new(halo::objects::globals().object_list_reference_data);
     if (node_index != k_datum_index_none) {
-        node = (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
-            (node_index & halo::k_slot_mask) * 0x0c);
+        node = halo::hs::object_list_reference_at(node_index);
         node->object_index = object_index;
         node->next = header->first_reference;
         header->first_reference = node_index;
@@ -142,8 +136,7 @@ void ObjectLists::dispose_empty() const
 
     header_index = halo::memory::datum_next(-1, halo::objects::globals().object_list_header_data);
     while (header_index != k_datum_index_none) {
-        header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
-            (header_index & halo::k_slot_mask) * 0x0c);
+        header = halo::hs::object_list_header_at(header_index);
         if (header->reference_count == 0) {
             halo::hs::object_list_reference_chain_delete(halo::objects::globals().object_list_reference_data, header->first_reference);
             halo::memory::datum_delete(halo::objects::globals().object_list_header_data, header_index);

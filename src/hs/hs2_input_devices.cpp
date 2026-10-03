@@ -30,7 +30,7 @@ void InputDeviceCommands::evaluate_input_activate_joy(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     int32_t joystick = *(int16_t *)&arguments[0];
@@ -57,7 +57,7 @@ void InputDeviceCommands::evaluate_input_find_default(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::input::test_input_device_defaults_find((char *)arguments[0]);
@@ -75,7 +75,7 @@ void InputDeviceCommands::evaluate_input_find_joystick(int16_t function_index, u
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::hs::hs_thread_return((int32_t)(uint16_t)(-1), thread_index);
@@ -103,7 +103,7 @@ void InputDeviceCommands::evaluate_input_is_joy_active(int16_t function_index, u
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         int32_t device = (int16_t)arguments[0];

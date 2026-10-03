@@ -21,7 +21,7 @@ void FlowCommands::evaluate_random_range(int16_t function_index, uint32_t thread
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int16_t *arguments = (int16_t *)halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         int16_t low = arguments[0];
@@ -45,7 +45,7 @@ void FlowCommands::evaluate_real_random_range(int16_t function_index, uint32_t t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     float low = *(float *)&arguments[0];

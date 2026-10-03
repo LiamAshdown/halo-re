@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/ai/records.hpp"
 #include "halo/hs/hs3_machine.hpp"
 #include "halo/scenario/api.hpp"
@@ -93,7 +94,7 @@ void ScriptRuntime::runtime_update() const
     command_thread_pending = 0;
     thread_handle = halo::memory::datum_next(-1, halo::hs::globals().thread_data);
     while (thread_handle != k_datum_index_none) {
-        thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
+        thread = halo::hs::thread_at(thread_handle);
         if (thread->type == 2) {
             command_thread_pending = 1;
         }
@@ -142,8 +143,7 @@ void ScriptRuntime::scenario_scripts_initialize() const
     thread_handle = halo::memory::datum_new(halo::hs::globals().thread_data);
     init_thread = 0;
     if (thread_handle != k_datum_index_none) {
-        init_thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data +
-            (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
+        init_thread = halo::hs::thread_at(thread_handle);
         init_thread->stack = (hs_stack_frame *)&init_thread->stack_data;
         init_thread->stack->previous = 0;
         init_thread->stack->size = 0;
@@ -189,8 +189,7 @@ void ScriptRuntime::scenario_scripts_initialize() const
                 if (globals[i].type == 0x17) {
                     list_handle = halo::hs::hs_global_get_value(reference);
                     if (list_handle != -1) {
-                        list_header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
-                            (list_handle & halo::k_slot_mask) * 0x0c);
+                        list_header = halo::hs::object_list_header_at(list_handle);
                         list_header->reference_count = list_header->reference_count + 1;
                     }
                 }

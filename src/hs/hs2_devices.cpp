@@ -24,7 +24,7 @@ void DeviceCommands::evaluate_device_set_position(int16_t function_index, uint32
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     datum_index device = (datum_index)arguments[0];
@@ -52,7 +52,7 @@ void DeviceCommands::evaluate_device_set_position_immediate(int16_t function_ind
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     datum_index device = (datum_index)arguments[0];
@@ -78,7 +78,7 @@ void DeviceCommands::evaluate_device_set_power(int16_t function_index, uint32_t 
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     datum_index device = (datum_index)arguments[0];

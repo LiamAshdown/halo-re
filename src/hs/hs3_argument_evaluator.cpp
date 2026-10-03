@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs3_machine.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
@@ -24,7 +25,7 @@ int32_t *ArgumentEvaluator::typed_arguments(uint32_t thread_index, int16_t param
     datum_index *next_node_slot;
     int32_t *done;
 
-    thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    thread = halo::hs::thread_at(thread_index);
     frame = thread->stack;
     results = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
     done = results;
@@ -40,12 +41,11 @@ int32_t *ArgumentEvaluator::typed_arguments(uint32_t thread_index, int16_t param
 
     if (first != 0) {
         *index = 0;
-        node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
-            (frame->syntax_node & halo::k_slot_mask) * 0x14);
-        *next_node_slot = ((hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node->data.first_child & halo::k_slot_mask) * 0x14))->next_node;
+        node = halo::hs::syntax_node_at(frame->syntax_node);
+        *next_node_slot = (halo::hs::syntax_node_at(node->data.first_child))->next_node;
     }
 
-    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (*next_node_slot & halo::k_slot_mask) * 0x14);
+    node = halo::hs::syntax_node_at(*next_node_slot);
     if (*index < parameter_count && node->type == expected_types[*index]) {
         halo::hs::hs_thread_push(*next_node_slot, thread_index, &results[*index]);
 
@@ -74,7 +74,7 @@ char ArgumentEvaluator::variadic_arguments(uint32_t thread_index, int32_t value,
     datum_index *next_node_slot;
     int i;
 
-    thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    thread = halo::hs::thread_at(thread_index);
     frame = thread->stack;
     evaluated_count = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
     frame->size = frame->size + 4;
@@ -93,9 +93,8 @@ char ArgumentEvaluator::variadic_arguments(uint32_t thread_index, int32_t value,
 
     if ((char)value != 0) {
         *argument_count = 0;
-        node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
-            (frame->syntax_node & halo::k_slot_mask) * 0x14);
-        *next_node_slot = ((hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node->data.first_child & halo::k_slot_mask) * 0x14))->next_node;
+        node = halo::hs::syntax_node_at(frame->syntax_node);
+        *next_node_slot = (halo::hs::syntax_node_at(node->data.first_child))->next_node;
         *evaluated_count = 0;
         for (i = 0; i < 0x20; i++) {
             values[i] = 0;
@@ -105,7 +104,7 @@ char ArgumentEvaluator::variadic_arguments(uint32_t thread_index, int32_t value,
     if (*next_node_slot != k_datum_index_none && *argument_count < 0x20) {
 
         halo::hs::hs_thread_push(*next_node_slot, thread_index, &value);
-        node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (*next_node_slot & halo::k_slot_mask) * 0x14);
+        node = halo::hs::syntax_node_at(*next_node_slot);
         *next_node_slot = node->next_node;
         values[*evaluated_count] = value;
         *argument_count = *argument_count + 1;

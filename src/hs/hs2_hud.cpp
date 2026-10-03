@@ -32,7 +32,7 @@ void HudCommands::evaluate_display_scenario_help(int16_t function_index, uint32_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::interface::player_help_screen_select_by_name(*(int16_t *)&arguments[0]);
@@ -50,7 +50,7 @@ void HudCommands::evaluate_enable_hud_help_flash(int16_t function_index, uint32_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     uint8_t enable = *(uint8_t *)&arguments[0];
@@ -73,7 +73,7 @@ void HudCommands::evaluate_hud_blink_health(int16_t function_index, uint32_t thr
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
@@ -95,7 +95,7 @@ void HudCommands::evaluate_hud_blink_motion_sensor(int16_t function_index, uint3
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
@@ -117,7 +117,7 @@ void HudCommands::evaluate_hud_blink_shield(int16_t function_index, uint32_t thr
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
@@ -193,7 +193,7 @@ void HudCommands::evaluate_hud_set_help_text(int16_t function_index, uint32_t th
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::interface::hud_set_help_text(*(int16_t *)&arguments[0]);
@@ -211,7 +211,7 @@ void HudCommands::evaluate_hud_set_objective_text(int16_t function_index, uint32
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::interface::hud_set_objective_text(*(int16_t *)&arguments[0]);
@@ -229,7 +229,7 @@ void HudCommands::evaluate_hud_set_timer_position(int16_t function_index, uint32
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     int16_t corner = *(int16_t *)&arguments[2];
@@ -251,7 +251,7 @@ void HudCommands::evaluate_hud_set_timer_time(int16_t function_index, uint32_t t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::interface::hud_set_timer_time(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1]);
@@ -269,7 +269,7 @@ void HudCommands::evaluate_hud_show_crosshair(int16_t function_index, uint32_t t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
@@ -291,7 +291,7 @@ void HudCommands::evaluate_hud_show_health(int16_t function_index, uint32_t thre
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
@@ -313,7 +313,7 @@ void HudCommands::evaluate_hud_show_motion_sensor(int16_t function_index, uint32
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
@@ -335,7 +335,7 @@ void HudCommands::evaluate_hud_show_shield(int16_t function_index, uint32_t thre
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
@@ -357,7 +357,7 @@ void HudCommands::evaluate_numeric_countdown_timer_get(int16_t function_index, u
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::hs::hs_thread_return((int32_t)(uint16_t)(halo::shaders::numeric_countdown_timer::get_digit((int16_t)arguments[0])), thread_index);
@@ -386,7 +386,7 @@ void HudCommands::evaluate_numeric_countdown_timer_set(int16_t function_index, u
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::shaders::globals().numeric_countdown_timer_remaining_ms = arguments[0];
@@ -419,7 +419,7 @@ void HudCommands::evaluate_pause_hud_timer(int16_t function_index, uint32_t thre
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::interface::hud_pause_timer(*(uint8_t *)&arguments[0]);
@@ -437,7 +437,7 @@ void HudCommands::evaluate_show_hud(int16_t function_index, uint32_t thread_inde
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     uint8_t show = *(uint8_t *)&arguments[0];
@@ -457,7 +457,7 @@ void HudCommands::evaluate_show_hud_help_text(int16_t function_index, uint32_t t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     uint8_t show = *(uint8_t *)&arguments[0];
@@ -477,7 +477,7 @@ void HudCommands::evaluate_show_hud_timer(int16_t function_index, uint32_t threa
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     hud_messaging[0x487] = *(uint8_t *)&arguments[0];

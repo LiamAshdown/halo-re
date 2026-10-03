@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/input/api.hpp"
@@ -38,7 +39,7 @@ extern uint8_t *cinematic_screen_effect_state;
 
 static hs_syntax_node *syntax_get(datum_index node)
 {
-    return (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node & halo::k_slot_mask) * 0x14);
+    return halo::hs::syntax_node_at(node);
 }
 
 namespace halo::hs {
@@ -53,7 +54,7 @@ void DebugCommands::evaluate_help(int16_t function_index, uint32_t thread_index,
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::hs::hs_help_print_function((char *)arguments[0]);
@@ -69,7 +70,7 @@ void DebugCommands::evaluate_help(int16_t function_index, uint32_t thread_index,
  */
 void DebugCommands::evaluate_inspect(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread *thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    hs_thread *thread = halo::hs::thread_at(thread_index);
     hs_stack_frame *frame = thread->stack;
     int32_t *result = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
     datum_index argument = syntax_get(syntax_get(frame->syntax_node)->data.first_child)->next_node;
@@ -103,7 +104,7 @@ void DebugCommands::evaluate_list_count(int16_t function_index, uint32_t thread_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     datum_index list = (datum_index)arguments[0];
@@ -126,7 +127,7 @@ void DebugCommands::evaluate_list_get(int16_t function_index, uint32_t thread_in
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::hs::hs_thread_return(halo::hs::object_list_nth_reference((datum_index)arguments[0], *(int16_t *)&arguments[1]), thread_index);
@@ -143,7 +144,7 @@ void DebugCommands::evaluate_message_metrics_dump(int16_t function_index, uint32
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::networking::message_delta_metrics_dump((char *)arguments[0]);
@@ -173,7 +174,7 @@ void DebugCommands::evaluate_net_graph_show(int16_t function_index, uint32_t thr
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::hs::hs_thread_return((int32_t)(uint8_t)(halo::networking::network_bandwidth_graph_set_units_command((const char *)arguments[0], (const char *)arguments[1])), thread_index);
@@ -190,7 +191,7 @@ void DebugCommands::evaluate_print(int16_t function_index, uint32_t thread_index
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::interface::console_printf_verbose((ColorARGB *)actor_mode_default_look_weights, (char *)arguments[0]);
@@ -220,7 +221,7 @@ void DebugCommands::evaluate_rasterizer_fixed_function_ambient(int16_t function_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         uint32_t level = (uint32_t)arguments[0] & 0xff;
@@ -260,7 +261,7 @@ void DebugCommands::evaluate_rasterizer_model_ambient_reflection_tint(int16_t fu
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         if (rasterizer_model_ambient_reflection_tint != 0) {
@@ -283,7 +284,7 @@ void DebugCommands::evaluate_render_lights(int16_t function_index, uint32_t thre
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     uint8_t value = *(uint8_t *)&arguments[0];
@@ -327,7 +328,7 @@ void DebugCommands::evaluate_script_screen_effect_set_value(int16_t function_ind
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         int16_t slot = *(int16_t *)&arguments[0];
@@ -349,7 +350,7 @@ void DebugCommands::evaluate_set_gamma(int16_t function_index, uint32_t thread_i
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::rasterizer::globals().gamma_exponent = arguments[0];

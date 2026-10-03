@@ -37,7 +37,7 @@ void ScriptCommands::evaluate_switch_bsp(int16_t function_index, uint32_t thread
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::scenario::structure_bsp_switcher::switch_to(*(int16_t *)&arguments[0]);
@@ -55,7 +55,7 @@ void ScriptCommands::evaluate_thread_sleep(int16_t function_index, uint32_t thre
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         Sleep((uint32_t)arguments[0]);
@@ -73,7 +73,7 @@ void ScriptCommands::evaluate_track_remote_player_position_updates(int16_t funct
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::networking::player_update_history_log_set_name_filter((char *)arguments[0]);
@@ -91,7 +91,7 @@ void ScriptCommands::evaluate_ui_widget_show_path(int16_t function_index, uint32
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     ui_widget_show_path_flag = *(uint8_t *)&arguments[0];
@@ -109,7 +109,7 @@ void ScriptCommands::evaluate_unbind(int16_t function_index, uint32_t thread_ind
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::input::hs_unbind_control((const char *)arguments[0], (const char *)arguments[1]);

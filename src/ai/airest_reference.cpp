@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/ai/airest_reference.hpp"
 #include "halo/models/api.hpp"
 
@@ -316,7 +317,7 @@ datum_index ReferenceView::build_object_list()
         header_index = halo::memory::datum_new(halo::objects::globals().object_list_header_data);
         if (header_index != (datum_index)k_datum_index_none) {
             object_list_header *header =
-                (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data + (header_index & halo::k_slot_mask) * 0x0c);
+                halo::hs::object_list_header_at(header_index);
             ai_reference_actor_iterator iterator;
             actor *a;
 

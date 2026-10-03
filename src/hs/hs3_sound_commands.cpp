@@ -23,7 +23,7 @@ void SoundCommands::evaluate_sound_looping_set_scale(int16_t function_index, uin
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::sound::sound_looping_set_scale((datum_index)arguments[0], *(float *)&arguments[1]);
@@ -41,7 +41,7 @@ void SoundCommands::evaluate_sound_looping_start(int16_t function_index, uint32_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::sound::sound_looping_start((datum_index)arguments[0], (datum_index)arguments[1], *(float *)&arguments[2]);
@@ -59,7 +59,7 @@ void SoundCommands::evaluate_sound_looping_stop(int16_t function_index, uint32_t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::sound::sound_looping_stop((datum_index)arguments[0]);
@@ -77,7 +77,7 @@ void SoundCommands::evaluate_sound_set_effects_gain(int16_t function_index, uint
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::sound::sound_set_effects_gain(*(float *)&arguments[0]);
@@ -95,7 +95,7 @@ void SoundCommands::evaluate_sound_set_env(int16_t function_index, uint32_t thre
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     void **vtable = *(void ***)global_sound_effect_object;
@@ -115,7 +115,7 @@ void SoundCommands::evaluate_sound_set_factor(int16_t function_index, uint32_t t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     float factor = *(float *)&arguments[0];
@@ -137,7 +137,7 @@ void SoundCommands::evaluate_sound_set_gain(int16_t function_index, uint32_t thr
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         float *gain = halo::hs::hs_sound_get_gain_reference((char *)arguments[0]);
@@ -159,7 +159,7 @@ void SoundCommands::evaluate_sound_set_master_gain(int16_t function_index, uint3
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::sound::sound_set_master_gain(*(float *)&arguments[0]);
@@ -177,7 +177,7 @@ void SoundCommands::evaluate_sound_set_music_gain(int16_t function_index, uint32
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::sound::sound_set_music_gain(*(float *)&arguments[0]);
@@ -195,7 +195,7 @@ void SoundCommands::evaluate_sound_set_rolloff(int16_t function_index, uint32_t 
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     float factor = *(float *)&arguments[0];
@@ -217,7 +217,7 @@ void SoundCommands::evaluate_sound_set_supplementary_buffers(int16_t function_in
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         int16_t count = (int16_t)arguments[0];

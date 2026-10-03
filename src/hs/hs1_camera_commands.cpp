@@ -32,7 +32,7 @@ void CameraCommands::run_camera_control(int16_t function_index, uint32_t thread_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::camera::camera_control(*(uint8_t *)&arguments[0]);
@@ -49,7 +49,7 @@ void CameraCommands::camera_set(int16_t function_index, uint32_t thread_index, c
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::camera::camera_debug_start(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1], k_datum_index_none);
@@ -66,7 +66,7 @@ void CameraCommands::camera_set_animation(int16_t function_index, uint32_t threa
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::camera::camera_script_set_animation((datum_index)arguments[0], (char *)arguments[1]);
@@ -83,7 +83,7 @@ void CameraCommands::camera_set_dead(int16_t function_index, uint32_t thread_ind
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
@@ -104,7 +104,7 @@ void CameraCommands::camera_set_first_person(int16_t function_index, uint32_t th
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
@@ -125,7 +125,7 @@ void CameraCommands::camera_set_relative(int16_t function_index, uint32_t thread
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::camera::camera_debug_start(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1], (datum_index)arguments[2]);
@@ -187,7 +187,7 @@ void CinematicCommands::run_cinematic_screen_effect_set_convolution(int16_t func
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::render::cinematic_screen_effect_set_convolution(*(int16_t *)&arguments[1], *(int16_t *)&arguments[0], *(float *)&arguments[2],
@@ -206,7 +206,7 @@ void CinematicCommands::run_cinematic_screen_effect_set_filter(int16_t function_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::render::cinematic_screen_effect_set_filter(*(float *)&arguments[0], *(float *)&arguments[1], *(float *)&arguments[2],
@@ -225,7 +225,7 @@ void CinematicCommands::cinematic_screen_effect_set_filter_desaturation_tint(int
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     if (cinematic_screen_effect_state != 0) {
@@ -246,7 +246,7 @@ void CinematicCommands::run_cinematic_screen_effect_set_video(int16_t function_i
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::render::cinematic_screen_effect_set_video((int16_t)arguments[0], *(float *)&arguments[1]);
@@ -263,7 +263,7 @@ void CinematicCommands::cinematic_screen_effect_start(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     if (cinematic_screen_effect_state != 0) {
@@ -303,7 +303,7 @@ void CinematicCommands::cinematic_set_near_clip_distance(int16_t function_index,
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     if (cinematic_screen_effect_state != 0) {
@@ -322,7 +322,7 @@ void CinematicCommands::cinematic_set_title(int16_t function_index, uint32_t thr
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::cutscene::cutscene_title_queue(*(int16_t *)&arguments[0], 0.0f);
@@ -339,7 +339,7 @@ void CinematicCommands::cinematic_set_title_delayed(int16_t function_index, uint
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::cutscene::cutscene_title_queue(*(int16_t *)&arguments[0], *(float *)&arguments[1]);
@@ -356,7 +356,7 @@ void CinematicCommands::cinematic_show_letterbox(int16_t function_index, uint32_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     uint8_t show = *(uint8_t *)&arguments[0];
@@ -426,7 +426,7 @@ void CinematicCommands::cinematic_suppress_bsp_object_creation(int16_t function_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::cutscene::globals().cinematic_globals->suppress_bsp_object_creation = *(uint8_t *)&arguments[0];

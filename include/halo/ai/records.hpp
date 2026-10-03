@@ -15,6 +15,8 @@
 #include "ai.h"
 #include "halo/ai/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/cache/api.hpp"
+#include "halo/cache/globals.hpp"
 #include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
@@ -52,6 +54,19 @@ inline swarm *swarm_at(uint32_t handle)
 inline object *object_at(uint32_t handle)
 {
     return static_cast<object_header *>(halo::objects::globals().object_data->data)[handle & k_slot_mask].data;
+}
+
+/** Returns the datum handle of the tag a tag-reference field names. */
+inline datum_index tag_handle(const TagDependency &reference)
+{
+    return __builtin_bit_cast(datum_index, reference.tag_id);
+}
+
+/** Returns the loaded tag data of the tag that `handle` names, typed as the tag structure `T` (slot bits only, no validity check). */
+template <typename T>
+inline T *tag_data(uint32_t handle)
+{
+    return static_cast<T *>(halo::cache::globals().tag_instances[handle & k_slot_mask].data);
 }
 
 }  // namespace halo::ai

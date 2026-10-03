@@ -20,7 +20,7 @@ void VolumeCommands::evaluate_volume_teleport_players_not_inside(int16_t functio
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::hs::hs_reposition_players_outside_trigger_volume(*(uint16_t *)&arguments[0], *(uint16_t *)&arguments[1]);
@@ -38,7 +38,7 @@ void VolumeCommands::evaluate_volume_test_object(int16_t function_index, uint32_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         uint8_t inside = 0;
@@ -62,7 +62,7 @@ void VolumeCommands::evaluate_volume_test_objects(int16_t function_index, uint32
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::hs::hs_thread_return((int32_t)(uint8_t)halo::hs::hs_object_list_test_trigger_volume(*(int16_t *)&arguments[0], (datum_index)arguments[1], 0),
@@ -80,7 +80,7 @@ void VolumeCommands::evaluate_volume_test_objects_all(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::hs::hs_thread_return((int32_t)(uint8_t)halo::hs::hs_object_list_test_trigger_volume(*(int16_t *)&arguments[0], (datum_index)arguments[1], 1),

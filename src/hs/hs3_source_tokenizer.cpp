@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs3_parser.hpp"
 #include <stdio.h>
 #include <stdlib.h>
@@ -251,7 +252,7 @@ void SourceTokenizer::tokenize_primitive(char **cursor, datum_index node_index) 
     char c;
     int16_t i;
 
-    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * halo::hs::globals().syntax_data->size);
+    node = halo::hs::syntax_node_at(node_index);
     start = *cursor;
     if (*start == '"') {
         *cursor = start + 1;

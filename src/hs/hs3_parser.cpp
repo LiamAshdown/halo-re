@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs3_parser.hpp"
 #include "halo/scenario/api.hpp"
 #include <stdio.h>
@@ -79,7 +80,7 @@ char Parser::hs_parse(datum_index node_index, hs_type_t expected_type) const
  */
 char Parser::parse_ai(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    hs_syntax_node *node = halo::hs::syntax_node_at(node_index);
     uint8_t found = halo::ai::ai_reference_parse(halo::hs::globals().compiled_source + node->source_offset, halo::scenario::globals().scenario,
         (uint32_t *)&node->data);
 
@@ -184,7 +185,7 @@ char Parser::parse_begin(int16_t function_index, datum_index node_index) const
  */
 char Parser::parse_boolean(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    hs_syntax_node *node = halo::hs::syntax_node_at(node_index);
     char *token = halo::hs::globals().compiled_source + node->source_offset;
 
     if (strcmp(token, "false") == 0 || strcmp(token, "off") == 0 || strcmp(token, "0") == 0) {
@@ -549,7 +550,7 @@ char Parser::parse_inspect(int16_t function_index, datum_index node_index) const
  */
 char Parser::parse_integer(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    hs_syntax_node *node = halo::hs::syntax_node_at(node_index);
     char *p = halo::hs::globals().compiled_source + node->source_offset;
     char valid = 1;
     int32_t value;
@@ -746,7 +747,7 @@ char Parser::parse_nonprimitive(datum_index node_index) const
  */
 char Parser::parse_object(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    hs_syntax_node *node = halo::hs::syntax_node_at(node_index);
     char result;
 
     if (strcmp(halo::hs::globals().compiled_source + node->source_offset, "none") == 0) {
@@ -767,7 +768,7 @@ char Parser::parse_object(datum_index node_index) const
  */
 char Parser::parse_object_list(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    hs_syntax_node *node = halo::hs::syntax_node_at(node_index);
     char result;
 
     node->index_union = 0x2b;
@@ -792,7 +793,7 @@ char Parser::parse_object_name(datum_index node_index) const
     int16_t match_index;
 
     scenario = halo::scenario::globals().scenario;
-    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    node = halo::hs::syntax_node_at(node_index);
 
     match_index = halo::scenario::scenario_object_name_find_index(scenario, halo::hs::globals().compiled_source + node->source_offset);
     if (match_index == -1) {
@@ -827,7 +828,7 @@ char Parser::parse_primitive(datum_index node_index) const
     char result;
     char (*procedure)(datum_index);
 
-    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * halo::hs::globals().syntax_data->size);
+    node = halo::hs::syntax_node_at(node_index);
     node_type = node->type;
     result = 0;
 
@@ -879,7 +880,7 @@ char Parser::parse_real(datum_index node_index) const
     char valid;
     char has_dot;
 
-    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * halo::hs::globals().syntax_data->size);
+    node = halo::hs::syntax_node_at(node_index);
     p = halo::hs::globals().compiled_source + node->source_offset;
     has_dot = 0;
     valid = 1;
@@ -923,7 +924,7 @@ char Parser::parse_scenario_datum(datum_index node_index, int16_t name_offset, T
     int16_t i;
     char *element;
 
-    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    node = halo::hs::syntax_node_at(node_index);
 
     for (i = 0; i < (int16_t)array->count; i++) {
         element = (char *)array->pointer + i * stride;
@@ -946,7 +947,7 @@ char Parser::parse_scenario_datum(datum_index node_index, int16_t name_offset, T
  */
 char Parser::parse_script(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    hs_syntax_node *node = halo::hs::syntax_node_at(node_index);
     int16_t script_index = halo::hs::hs_script_find_by_name(halo::hs::globals().compiled_source + node->source_offset);
 
     if (script_index != -1) {
@@ -1100,7 +1101,7 @@ char Parser::parse_starting_profile(datum_index node_index) const
  */
 char Parser::parse_string(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    hs_syntax_node *node = halo::hs::syntax_node_at(node_index);
     node->data.string_value = (int32_t)(halo::hs::globals().compiled_source + node->source_offset);
     return 1;
 }
@@ -1137,7 +1138,7 @@ char Parser::parse_tag_reference(datum_index node_index) const
     ScenarioReference *reference;
     char *token_text;
 
-    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * halo::hs::globals().syntax_data->size);
+    node = halo::hs::syntax_node_at(node_index);
     count = (int32_t)halo::scenario::globals().scenario->references.count;
     token_text = halo::hs::globals().compiled_source + node->source_offset;
     for (i = 0; i < count; i = i + 1) {
@@ -1193,8 +1194,7 @@ char Parser::parse_two_numeric_arguments(int16_t function_index, datum_index nod
                     type = _hs_type_real;
                     arguments[0] = arguments[1];
                 } else {
-                    type = ((hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
-                            (arguments[1] & halo::k_slot_mask) * halo::hs::globals().syntax_data->size))->type;
+                    type = (halo::hs::syntax_node_at(arguments[1]))->type;
                 }
                 ok = halo::hs::hs_parse(arguments[0], type);
                 if (ok != 0) {
@@ -1202,8 +1202,7 @@ char Parser::parse_two_numeric_arguments(int16_t function_index, datum_index nod
                 }
             }
         } else {
-            type = ((hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
-                    (arguments[0] & halo::k_slot_mask) * halo::hs::globals().syntax_data->size))->type;
+            type = (halo::hs::syntax_node_at(arguments[0]))->type;
             ok = halo::hs::hs_parse(arguments[1], type);
             if (ok != 0) {
                 return 1;
@@ -1232,8 +1231,7 @@ char Parser::parse_two_object_arguments(int16_t function_index, datum_index node
     }
     ok = halo::hs::hs_parse(arguments[0], 0);
     if (ok != 0) {
-        type = ((hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
-                (arguments[0] & halo::k_slot_mask) * halo::hs::globals().syntax_data->size))->type;
+        type = (halo::hs::syntax_node_at(arguments[0]))->type;
         if (((0x1f < type) && (type < 0x25)) || ((5 < type) && (type < 9))) {
             ok = halo::hs::hs_parse(arguments[1], type);
             return ok != 0;
@@ -1244,8 +1242,7 @@ char Parser::parse_two_object_arguments(int16_t function_index, datum_index node
     }
     ok = halo::hs::hs_parse(arguments[1], 0);
     if (ok != 0) {
-        type = ((hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
-                (arguments[1] & halo::k_slot_mask) * halo::hs::globals().syntax_data->size))->type;
+        type = (halo::hs::syntax_node_at(arguments[1]))->type;
         if (((0x1f < type) && (type < 0x25)) || ((5 < type) && (type < 9))) {
             goto second_pass;
         }
@@ -1295,7 +1292,7 @@ char Parser::parse_variable(datum_index node_index) const
     char compatible;
     char *global_name;
 
-    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * halo::hs::globals().syntax_data->size);
+    node = halo::hs::syntax_node_at(node_index);
     global = halo::hs::hs_find_global_by_name(halo::hs::globals().compiled_source + node->source_offset);
     node->data.global_reference = (int16_t)global;
     if ((int16_t)global == -1) {
@@ -1375,7 +1372,7 @@ char Parser::report_expected_enum_values(datum_index node_index) const
     int16_t last_index;
     int16_t i;
 
-    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    node = halo::hs::syntax_node_at(node_index);
     def = &hs_enum_definitions[node->type - 0x20];
 
     match_index = 0;

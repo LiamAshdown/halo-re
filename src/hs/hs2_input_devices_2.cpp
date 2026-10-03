@@ -24,7 +24,7 @@ void InputDeviceCommands::evaluate_input_deactivate_joy(int16_t function_index, 
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         int32_t device = (int16_t)arguments[0];

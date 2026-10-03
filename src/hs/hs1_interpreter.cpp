@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs1_interpreter.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/input/api.hpp"
@@ -13,7 +14,7 @@ extern int16_t hs_comparison_types[2];
 
 static hs_syntax_node *syntax_get(datum_index node)
 {
-    return (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node & halo::k_slot_mask) * 0x14);
+    return halo::hs::syntax_node_at(node);
 }
 
 namespace halo::hs {
@@ -82,8 +83,7 @@ datum_index ScriptCasts::object_name_to_object_list(int32_t name_index)
     }
     header_index = halo::memory::datum_new(halo::objects::globals().object_list_header_data);
     if (header_index != k_datum_index_none) {
-        object_list_header *header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
-            (header_index & halo::k_slot_mask) * 0x0c);
+        object_list_header *header = halo::hs::object_list_header_at(header_index);
 
         header->count = 0;
         header->first_reference = k_datum_index_none;
@@ -161,7 +161,7 @@ void ScriptFlowCommands::argument_list(uint32_t unused_param_1, uint32_t thread_
     int32_t *values;
     int32_t i;
 
-    thread_record = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    thread_record = halo::hs::thread_at(thread_index);
     frame = thread_record->stack;
     next_node_slot = (datum_index *)((uint8_t *)frame + 0x0e + frame->size);
     frame->size = frame->size + 4;
@@ -175,9 +175,8 @@ void ScriptFlowCommands::argument_list(uint32_t unused_param_1, uint32_t thread_
     frame->size = frame->size + 0x80;
 
     if ((char)value != 0) {
-        node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
-            (frame->syntax_node & halo::k_slot_mask) * 0x14);
-        *next_node_slot = ((hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node->data.first_child & halo::k_slot_mask) * 0x14))->next_node;
+        node = halo::hs::syntax_node_at(frame->syntax_node);
+        *next_node_slot = (halo::hs::syntax_node_at(node->data.first_child))->next_node;
         *count = 0;
         for (i = 0; i < 0x20; i++) {
             values[i] = 0;
@@ -186,7 +185,7 @@ void ScriptFlowCommands::argument_list(uint32_t unused_param_1, uint32_t thread_
 
     if (*next_node_slot != k_datum_index_none && *count < 0x20) {
         halo::hs::hs_thread_push(*next_node_slot, thread_index, &value);
-        node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (*next_node_slot & halo::k_slot_mask) * 0x14);
+        node = halo::hs::syntax_node_at(*next_node_slot);
         *next_node_slot = node->next_node;
         values[*count] = value;
         *count = *count + 1;
@@ -213,7 +212,7 @@ void ScriptFlowCommands::arithmetic_reduce(int16_t opcode, uint32_t thread_index
     float *accumulator;
     float value;
 
-    thread_record = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    thread_record = halo::hs::thread_at(thread_index);
     frame = thread_record->stack;
     term_count = (int16_t *)((uint8_t *)frame + 0x0e + frame->size);
     frame->size = frame->size + 2;
@@ -232,9 +231,8 @@ void ScriptFlowCommands::arithmetic_reduce(int16_t opcode, uint32_t thread_index
 
     if (first != 0) {
         *term_count = 0;
-        node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
-            (frame->syntax_node & halo::k_slot_mask) * 0x14);
-        *next_node_slot = ((hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node->data.first_child & halo::k_slot_mask) * 0x14))->next_node;
+        node = halo::hs::syntax_node_at(frame->syntax_node);
+        *next_node_slot = (halo::hs::syntax_node_at(node->data.first_child))->next_node;
         goto check_continue;
     }
 
@@ -259,7 +257,7 @@ check_continue:
         return;
     }
     halo::hs::hs_thread_push(*next_node_slot, thread_index, child_value);
-    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (*next_node_slot & halo::k_slot_mask) * 0x14);
+    node = halo::hs::syntax_node_at(*next_node_slot);
     *next_node_slot = node->next_node;
 }
 
@@ -270,7 +268,7 @@ check_continue:
  */
 void ScriptFlowCommands::begin(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread *thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    hs_thread *thread = halo::hs::thread_at(thread_index);
     hs_stack_frame *frame;
     datum_index *next_expression;
     int32_t *result;
@@ -303,7 +301,7 @@ void ScriptFlowCommands::bind(int16_t function_index, uint32_t thread_index, cha
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::input::hs_bind_control((const char *)arguments[0], (const char *)arguments[1], (const char *)arguments[2]);
@@ -329,7 +327,7 @@ void ScriptFlowCommands::boolean_and_or(int16_t opcode, uint32_t thread_index, c
     char is_and;
     char child_result;
 
-    thread_record = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    thread_record = halo::hs::thread_at(thread_index);
     frame = thread_record->stack;
     next_node_slot = (datum_index *)((uint8_t *)frame + 0x0e + frame->size);
     frame->size = frame->size + 4;
@@ -344,9 +342,8 @@ void ScriptFlowCommands::boolean_and_or(int16_t opcode, uint32_t thread_index, c
     frame->size = frame->size + 1;
 
     if (first != 0) {
-        node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
-            (frame->syntax_node & halo::k_slot_mask) * 0x14);
-        *next_node_slot = ((hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node->data.first_child & halo::k_slot_mask) * 0x14))->next_node;
+        node = halo::hs::syntax_node_at(frame->syntax_node);
+        *next_node_slot = (halo::hs::syntax_node_at(node->data.first_child))->next_node;
         *result = is_and;
         goto check_continue;
     }
@@ -370,7 +367,7 @@ void ScriptFlowCommands::boolean_and_or(int16_t opcode, uint32_t thread_index, c
 check_continue:
     if (*next_node_slot != k_datum_index_none && (*result != 0) == (is_and != 0)) {
         halo::hs::hs_thread_push(*next_node_slot, thread_index, child_value);
-        node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (*next_node_slot & halo::k_slot_mask) * 0x14);
+        node = halo::hs::syntax_node_at(*next_node_slot);
         *next_node_slot = node->next_node;
         return;
     }

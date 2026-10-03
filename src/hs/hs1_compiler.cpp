@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs1_compiler.hpp"
 #include "halo/text/api.hpp"
 #include <string.h>
@@ -274,7 +275,7 @@ void ScriptCompiler::compile(int32_t source_length, char *source_text, char **er
         if (halo::hs::globals().compile_error != 0) {
             break;
         }
-        node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * halo::hs::globals().syntax_data->size);
+        node = halo::hs::syntax_node_at(node_index);
         success = 1;
         if (node->type == 0) {
             node->type = _hs_type_special_form;

@@ -35,7 +35,7 @@ void NavPointCommands::activate_nav_point_flag(int16_t function_index, uint32_t 
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         datum_index player = halo::game::player_index_from_unit_index((datum_index)arguments[1]);
@@ -57,7 +57,7 @@ void NavPointCommands::activate_nav_point_object(int16_t function_index, uint32_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     datum_index player = halo::game::player_index_from_unit_index((datum_index)arguments[1]);
@@ -80,7 +80,7 @@ void NavPointCommands::activate_team_nav_point_flag(int16_t function_index, uint
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::interface::hud_waypoint_activate_for_team((datum_index)(int32_t)*(int16_t *)&arguments[2], *(int16_t *)&arguments[0],
@@ -98,7 +98,7 @@ void NavPointCommands::activate_team_nav_point_object(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::interface::hud_waypoint_activate_for_team((datum_index)arguments[2], *(int16_t *)&arguments[0], *(int16_t *)&arguments[1], 1,
@@ -116,7 +116,7 @@ void NavPointCommands::deactivate_nav_point_flag(int16_t function_index, uint32_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         datum_index player = halo::game::player_index_from_unit_index((datum_index)arguments[0]);
@@ -137,7 +137,7 @@ void NavPointCommands::deactivate_nav_point_object(int16_t function_index, uint3
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         datum_index player = halo::game::player_index_from_unit_index((datum_index)arguments[0]);
@@ -158,7 +158,7 @@ void NavPointCommands::deactivate_team_nav_point_flag(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::interface::hud_waypoint_deactivate_for_team(0, *(int16_t *)&arguments[0], (datum_index)(int32_t)*(int16_t *)&arguments[1]);
@@ -175,7 +175,7 @@ void NavPointCommands::deactivate_team_nav_point_object(int16_t function_index, 
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::interface::hud_waypoint_deactivate_for_team(1, *(int16_t *)&arguments[0], (datum_index)arguments[1]);
@@ -214,7 +214,7 @@ void WorldStateCommands::breakable_surfaces_enable(int16_t function_index, uint3
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         breakable_surface_state[0] = *(uint8_t *)&arguments[0];
@@ -244,7 +244,7 @@ void WorldStateCommands::custom_animation(int16_t function_index, uint32_t threa
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::hs::hs_thread_return((int32_t)halo::units::unit_start_user_animation((uint32_t)arguments[0], (datum_index)arguments[1],
@@ -262,7 +262,7 @@ void WorldStateCommands::custom_animation_list(int16_t function_index, uint32_t 
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::hs::hs_thread_return((int32_t)halo::ai::ai_object_list_start_user_animation_until_failure((datum_index)arguments[0],
@@ -308,7 +308,7 @@ void CheatCommands::cheat_active_camouflage_local_player(int16_t function_index,
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::game::cheat_make_player_invincible(*(int16_t *)arguments);
@@ -407,7 +407,7 @@ void DamageCommands::damage_new(int16_t function_index, uint32_t thread_index, c
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::hs::hs_damage_apply_at_location(*(int16_t *)&arguments[1], (uint32_t)arguments[0]);
@@ -424,7 +424,7 @@ void DamageCommands::damage_object(int16_t function_index, uint32_t thread_index
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::hs::hs_damage_apply_with_sound((datum_index)arguments[1], (uint32_t)arguments[0]);
@@ -457,7 +457,7 @@ void DeviceCommands::device_get_position(int16_t function_index, uint32_t thread
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     datum_index device = (datum_index)arguments[0];
@@ -479,7 +479,7 @@ void DeviceCommands::device_get_power(int16_t function_index, uint32_t thread_in
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         int32_t power = 0;
@@ -500,7 +500,7 @@ void DeviceCommands::device_group_change_only_once_more_set(int16_t function_ind
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         int16_t group = *(int16_t *)&arguments[0];
@@ -528,7 +528,7 @@ void DeviceCommands::device_group_get(int16_t function_index, uint32_t thread_in
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         float value = *(float *)((uint8_t *)halo::devices::globals().device_groups->data + (uint16_t)*(uint16_t *)&arguments[0] * 8 + 4);
@@ -545,7 +545,7 @@ void DeviceCommands::device_group_set(int16_t function_index, uint32_t thread_in
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::hs::hs_thread_return((int32_t)halo::devices::device_group_set_value(*(uint16_t *)&arguments[0], *(float *)&arguments[1]), thread_index);
@@ -561,7 +561,7 @@ void DeviceCommands::device_group_set_immediate(int16_t function_index, uint32_t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::devices::device_group_set_value_immediate(*(uint16_t *)&arguments[0], *(float *)&arguments[1]);
@@ -578,7 +578,7 @@ void DeviceCommands::device_one_sided_set(int16_t function_index, uint32_t threa
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         uint8_t *device = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 0x80);
@@ -603,7 +603,7 @@ void DeviceCommands::device_operates_automatically_set(int16_t function_index, u
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     uint8_t *device = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 0x80);
@@ -628,7 +628,7 @@ void DeviceCommands::device_set_never_appears_locked(int16_t function_index, uin
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {

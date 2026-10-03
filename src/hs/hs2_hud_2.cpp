@@ -24,7 +24,7 @@ void HudCommands::evaluate_hud_set_timer_warning_time(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     uint16_t seconds = (uint16_t)(*(uint16_t *)&arguments[0] * 0x3c + *(uint16_t *)&arguments[1]);

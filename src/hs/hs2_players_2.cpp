@@ -39,7 +39,7 @@ void PlayerCommands::evaluate_player_effect_start(int16_t function_index, uint32
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     float scaled = *(float *)&arguments[1] * 30.0f;
@@ -63,7 +63,7 @@ void PlayerCommands::evaluate_player_effect_stop(int16_t function_index, uint32_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     float scaled = *(float *)&arguments[0] * 30.0f;
