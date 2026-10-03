@@ -39,8 +39,9 @@
 #include "halo/main/network.hpp"
 #include "halo/main/views.hpp"
 #include "halo/main/timedemo.hpp"
+#include "halo/main/api.hpp"
 
-extern "C" {
+namespace halo::main {
 
 void campaign_level_advance()
 {

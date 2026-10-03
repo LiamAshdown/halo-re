@@ -6,6 +6,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/main/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -40,7 +41,6 @@ extern uint8_t default_profile_data[0x1ffc];
 extern char k_empty_string[];
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
-extern uint8_t network_game_client_connect_to_address_async(const char *address, const char *password);
 extern uint8_t local_team_00714dd8;
 extern void network_game_settings_ack_send(void *client, int32_t unknown);
 extern uint8_t network_player_entry_validate(void);
@@ -307,7 +307,7 @@ uint8_t NetworkSetup::autojoin_from_command_line()
     if (!halo::shell::command_line_check_flag("-password", &password) || password == 0) {
         password = k_empty_string;
     }
-    network_game_client_connect_to_address_async(address, password);
+    halo::main::network_game_client_connect_to_address_async((char *)address, (char *)password);
     return 1;
 }
 

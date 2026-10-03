@@ -20,6 +20,7 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern int16_t pending_difficulty;
@@ -29,7 +30,6 @@ extern uint8_t autopatch_launch_updater(void);
 extern uint8_t ui_restoring_previous_widget;
 extern void widget_instance_close_and_restore_previous(widget_instance *widget);
 extern char *campaign_level_paths[];
-extern void main_queue_map_change(char *map_name);
 extern uint8_t network_wait_flag_00719739;
 extern growable_array ui_lists[3];
 extern int32_t ui_list_current;
@@ -194,7 +194,7 @@ uint8_t UiEventHandlers::event_4a41a0(widget_instance *widget, int16_t *event, u
         widget_instance_close_and_restore_previous(widget);
         return 1;
     }
-    main_queue_map_change(campaign_level_paths[0]);
+    halo::main::main_queue_map_change(campaign_level_paths[0]);
     network_wait_flag_00719739 = 0;
     return (uint8_t)(ui_restoring_previous_widget != 0);
 }

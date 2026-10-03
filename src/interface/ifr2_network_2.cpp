@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_network.hpp"
+#include "halo/main/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -20,7 +21,6 @@ extern uint8_t network_join_error_reason;
 extern void widget_close_all(void);
 extern void network_game_server_host_dispose(void *host);
 extern void network_client_globals_dispose(void);
-extern void main_queue_map_change_by_name_or_clear(char *map_name);
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection);
 extern void game_engine_ensure_variant_history_has_entry(void);
@@ -53,7 +53,7 @@ void NetworkSetup::game_host_start(char *map_name, char *variant_name, uint8_t d
     }
     network_client_globals_dispose();
     network_game_mode = 0;
-    main_queue_map_change_by_name_or_clear(map_name);
+    halo::main::main_queue_map_change_by_name_or_clear(map_name);
 
     game_engine_get_variant_by_name(variant_name, &variant);
     game_variant_saved_default = variant;

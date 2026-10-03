@@ -6,6 +6,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -52,7 +53,6 @@ extern uint8_t rasterizer_caps_flag_68a;
 extern game_engine_definition *current_game_engine;
 extern game_engine_state game_engine_state_value;
 extern int32_t local_player_get_weapon_hud_interface(float *out_intensity);
-extern int16_t render_local_view_count(void);
 extern void rasterizer_screen_effect_render(weapon_screen_effect_parameters *parameters);
 extern void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_parameters *parameters);
 extern void hud_update_player(void);
@@ -820,7 +820,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
     memset(&parameters, 0, sizeof(parameters));
 
     if (zoomed || (effect->mask_flags & 1) == 0) {
-        datum_index mask = (render_local_view_count() > 1) ? *(datum_index *)&effect->mask_splitscreen.tag_id
+        datum_index mask = (halo::main::render_local_view_count() > 1) ? *(datum_index *)&effect->mask_splitscreen.tag_id
                                                 : *(datum_index *)&effect->mask_fullscreen.tag_id;
         if (mask != (datum_index)-1) {
             parameters.mask_bitmap_data =
@@ -830,7 +830,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
         }
     }
 
-    if (render_local_view_count() <= 1 && (zoomed || (effect->convolution_flags & 1) == 0)) {
+    if (halo::main::render_local_view_count() <= 1 && (zoomed || (effect->convolution_flags & 1) == 0)) {
         if (effect->convolution_fov_in_bounds[0] == effect->convolution_fov_in_bounds[1]) {
             amount = effect->convolution_radius_out_bounds[1];
         } else {

@@ -5,6 +5,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -53,7 +54,6 @@ extern float zoom_static_tint_g;
 extern float zoom_static_tint_b;
 extern int32_t local_player_get_weapon_hud_interface(float *out_intensity);
 extern int32_t local_player_get_zoom_level(int16_t local_player_index);
-extern int16_t render_local_view_count(void);
 }
 
 #define FP_FLOAT(fp, offset) (*(float *)((uint8_t *)(fp) + (offset)))
@@ -427,7 +427,7 @@ void FirstPersonWeaponController::update_zoom_static_tint(uint8_t enabled)
         (effect->mask_flags & 1) != 0) {
         return;
     }
-    if (render_local_view_count() > 1) {
+    if (halo::main::render_local_view_count() > 1) {
         return;
     }
     if (*(datum_index *)&effect->mask_fullscreen.tag_id == (datum_index)-1) {

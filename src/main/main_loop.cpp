@@ -33,14 +33,8 @@
 #include "halo/render/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/main/api.hpp"
 
-extern "C" { void game_engine_flush_pending_simulation_ticks(void); }
-extern "C" { uint32_t game_frame_rate_average_update(void); }
-extern "C" { void game_timer_reset(void); }
-extern "C" { void main_ensure_local_players(void); }
-extern "C" { void main_loop_frame_pacer(void); }
-extern "C" { void main_loop_shutdown_cleanup(void); }
-extern "C" { void main_menu_return_and_reset(void); }
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern game_time_globals *game_time; }
@@ -259,28 +253,20 @@ extern "C" { extern int32_t main_render_skip_threshold_ms; }
 extern "C" { extern int32_t rasterizer_present_counter_low; }
 extern "C" { extern int32_t rasterizer_present_counter_high; }
 extern "C" { extern rasterizer_frame_statistics rasterizer_frame_statistics_state; }
-extern "C" { extern void console_initialize(void); }
 extern "C" { extern uint32_t network_bandwidth_graph_reset(void); }
 extern "C" { extern void ui_chat_window_reset_position(void); }
 extern "C" { extern void game_initialize(void); }
 extern "C" { extern void map_list_add_entry(char *path, int32_t map_id); }
 extern "C" { extern void network_banlist_load(void); }
-extern "C" { extern void chimera__exec_init(void); }
-extern "C" { extern void game_start_new_single_player_map(void); }
 extern "C" { extern uint8_t network_autojoin_from_command_line(void); }
-extern "C" { extern void movie_play_bink(const char *movie_path); }
-extern "C" { extern void main_switch_structure_bsp_and_notify(void); }
-extern "C" { extern void campaign_level_advance(void); }
 extern "C" { extern uint8_t game_engine_attach_players_to_new_bsp(void); }
 extern "C" { extern void hud_display_checkpoint_message(uint8_t is_begin); }
-extern "C" { extern void main_level_transition_update(void); }
 extern "C" { extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index); }
 extern "C" { extern void game_stop_current_map(void); }
 extern "C" { extern void game_start_new_map(void); }
 extern "C" { extern void game_engine_init_tick_record_for_mode(void); }
 extern "C" { extern void game_engine_reset_all_players(void); }
 extern "C" { extern void console_print_error_va(uint8_t clear_first, const char *format, ...); }
-extern "C" { extern void network_game_client_connect_to_resolved_address(void); }
 extern "C" { extern void network_session_host_update(void); }
 extern "C" { extern void gcd_think(void); }
 extern "C" { extern uint32_t network_update(void); }
@@ -296,18 +282,12 @@ extern "C" { extern void console_process_input_events(void); }
 extern "C" { extern uint8_t console_process_queued_input(void); }
 extern "C" { extern void console_message_expire_old(void); }
 extern "C" { extern void console_update_display(void); }
-extern "C" { extern uint8_t console_process_key_events(void); }
 extern "C" { extern int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, char keep_remainder); }
 extern "C" { extern void game_engine_update_local_player_control(int16_t local_player_index, float delta_time, int32_t ticks_this_frame); }
 extern "C" { extern uint8_t chat_poll_hotkeys(void); }
 extern "C" { extern char update_server_send_update(int32_t ticks, uint8_t frame_time_overflow); }
 extern "C" { extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask, const char *format, ...); }
 extern "C" { extern void game_engine_update_end_game_sequence(float delta_time); }
-extern "C" { extern void main_save_map_private(void); }
-extern "C" { extern void timedemo_benchmark_update(void); }
-extern "C" { extern void render_frame_all_views(float time_since_tick, float time_since_frame); }
-extern "C" { extern void render_pregame_view_initialize(void); }
-extern "C" { extern void movie_capture_frame_export(void); }
 namespace halo::main {
 
 /**
@@ -359,7 +339,7 @@ void MainLoop::loop(void)
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     main_globals_data.last_activity_time_ms = (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
 
-    console_initialize();
+    halo::main::console_initialize();
     network_bandwidth_graph_reset();
     ui_chat_window_reset_position();
     game_initialize();
@@ -376,21 +356,21 @@ void MainLoop::loop(void)
     network_buffer_pair_pool.count = 0;
     network_buffer_pair_pool.data = 0;
 
-    chimera__exec_init();
-    game_start_new_single_player_map();
-    game_timer_reset();
+    halo::main::chimera__exec_init();
+    halo::main::game_start_new_single_player_map();
+    halo::main::game_timer_reset();
     network_autojoin_from_command_line();
     halo::sound::globals().disabled = (uint8_t)shell_nosound;
     if (game_time_force_single_tick == 0 && novideo_or_connect == 0 && safe_mode == 0 &&
         rasterizer_window_requested == 0) {
-        movie_play_bink("bungie.bik");
-        movie_play_bink("gearbox.bik");
-        movie_play_bink("mgs.bik");
+        halo::main::movie_play_bink("bungie.bik");
+        halo::main::movie_play_bink("gearbox.bik");
+        halo::main::movie_play_bink("mgs.bik");
     }
     main_unknown_696570 = 0;
 
     for (;;) {
-        frame_average = game_frame_rate_average_update();
+        frame_average = halo::main::game_frame_rate_average_update();
         if (checkfpu != 0) {
             fpu_control = 0x7e;
 #if defined(_MSC_VER)
@@ -402,7 +382,7 @@ void MainLoop::loop(void)
         }
 
         if (main_globals_data.switch_structure_bsp_index != -1) {
-            main_switch_structure_bsp_and_notify();
+            halo::main::main_switch_structure_bsp_and_notify();
         }
         if (main_globals_data.lost_map != 0 && game_time->paused == 0) {
             previous_frames = main_globals_data.lost_map_frames;
@@ -414,7 +394,7 @@ void MainLoop::loop(void)
             }
         }
         if (main_globals_data.won_map != 0) {
-            campaign_level_advance();
+            halo::main::campaign_level_advance();
         }
         if (main_globals_data.respawn_coop_players != 0 && game_time->paused == 0 &&
             halo::cutscene::globals().cinematic_globals->in_progress == 0) {
@@ -436,7 +416,7 @@ void MainLoop::loop(void)
             main_globals_data.save_map_write_pending = 0;
         }
         if (main_globals_data.level_transition != 0) {
-            main_level_transition_update();
+            halo::main::main_level_transition_update();
         }
         if (main_globals_data.revert_map != 0) {
             halo::saved_games::game_state_perform_revert();
@@ -461,7 +441,7 @@ void MainLoop::loop(void)
             input_globals.idle = 1;
             input_globals.system_key_states[2] = 0;
             game_start_new_map();
-            main_ensure_local_players();
+            halo::main::main_ensure_local_players();
             game_engine_init_tick_record_for_mode();
             game_engine_reset_all_players();
             ui_pause_pending_count_00718fa0 = 0x1e;
@@ -480,13 +460,13 @@ void MainLoop::loop(void)
             main_globals_data.load_core = 0;
         }
         if (main_globals_data.return_to_main_menu != 0) {
-            main_menu_return_and_reset();
+            halo::main::main_menu_return_and_reset();
         }
         if (main_globals_data.unknown_058 != 0) {
             main_globals_data.unknown_058 = 0;
         }
         if (main_globals_data.skip_ticks != 0) {
-            game_engine_flush_pending_simulation_ticks();
+            halo::main::game_engine_flush_pending_simulation_ticks();
         }
         if (main_globals_data.cache_file_open_pending != 0) {
             if (halo::cache::globals().map_download_in_progress != 0) {
@@ -502,7 +482,7 @@ void MainLoop::loop(void)
         }
     cache_file_open_done:
         if (main_globals_data.connect_pending != 0) {
-            network_game_client_connect_to_resolved_address();
+            halo::main::network_game_client_connect_to_resolved_address();
         }
 
         connection = main_globals_data.game_connection;
@@ -576,7 +556,7 @@ void MainLoop::loop(void)
             break;
         }
 
-        main_loop_frame_pacer();
+        halo::main::main_loop_frame_pacer();
         ui_cursor_update();
         interface_tick();
 
@@ -614,10 +594,10 @@ void MainLoop::loop(void)
 
         if (game_time->initialized == 0 || (game_time->active == 0 && game_time->paused == 0)) {
             if (game_time_force_single_tick == 0 && shell_application_inactive == 0) {
-                render_pregame_view_initialize();
+                halo::main::render_pregame_view_initialize();
             }
             if (main_globals_data.disable_frame_output == 0) {
-                movie_capture_frame_export();
+                halo::main::movie_capture_frame_export();
             }
             goto frame_end;
         }
@@ -630,7 +610,7 @@ void MainLoop::loop(void)
             }
             console_update_display();
         }
-        if (console_process_key_events() == 0 || main_globals_data.game_connection != 0) {
+        if (halo::main::console_process_key_events() == 0 || main_globals_data.game_connection != 0) {
             delta = (float)main_globals_data.time_is_running * main_globals_data.frame_delta_time;
             ticks = game_engine_accumulate_simulation_ticks(delta, 1);
             memset(update_client_staged, 0, sizeof(update_client_staged));
@@ -694,7 +674,7 @@ void MainLoop::loop(void)
         }
 
         if (main_globals_data.save_map != 0) {
-            main_save_map_private();
+            halo::main::main_save_map_private();
         }
         if (main_render_skip_threshold_ms != -1) {
             if (main_render_skip_threshold_ms <= 0x14) {
@@ -710,7 +690,7 @@ void MainLoop::loop(void)
                 goto frame_end;
             }
             timedemo_globals_data.last_game_time = game_time->game_time;
-            timedemo_benchmark_update();
+            halo::main::timedemo_benchmark_update();
         } else if (render_frame == 0) {
             present_counter = ((uint64_t)(uint32_t)rasterizer_present_counter_high << 32 |
                 (uint32_t)rasterizer_present_counter_low) + 1;
@@ -743,11 +723,11 @@ void MainLoop::loop(void)
             leftover_time = 0.0f;
             frame_delta = 0.0f;
         }
-        render_frame_all_views(leftover_time, frame_delta);
+        halo::main::render_frame_all_views(leftover_time, frame_delta);
         main_globals_data.render_counter_low = (uint32_t)counter;
         main_globals_data.render_counter_high = (uint32_t)(counter >> 32);
         if (main_globals_data.disable_frame_output == 0) {
-            movie_capture_frame_export();
+            halo::main::movie_capture_frame_export();
         }
 
     frame_end:
@@ -777,7 +757,7 @@ void MainLoop::loop(void)
             frame_rate_average_data.history[0] = k_main_frame_time_clamp_ms;
         }
     }
-    main_loop_shutdown_cleanup();
+    halo::main::main_loop_shutdown_cleanup();
 }
 
 }
@@ -884,7 +864,6 @@ extern "C" { extern void network_buffer_pair_pool_clear(void); }
 extern "C" { extern void network_client_globals_dispose(void); }
 extern "C" { extern void network_game_server_host_dispose(network_server_globals *server); }
 extern "C" { extern void game_dispose(void); }
-extern "C" { extern void console_deactivate(void); }
 namespace halo::main {
 
 /**
@@ -916,14 +895,14 @@ void MainLoop::loop_shutdown_cleanup(void)
             network_server_host_valid = 0;
             game_stop_current_map();
             game_dispose();
-            console_deactivate();
+            halo::main::console_deactivate();
             chat_close();
             return;
         }
     }
     game_stop_current_map();
     game_dispose();
-    console_deactivate();
+    halo::main::console_deactivate();
     chat_close();
 }
 
@@ -967,7 +946,6 @@ extern "C" { extern int32_t interface_loading_screen_request_id; }
 extern "C" { extern uint8_t ui_network_wait_timed_out; }
 extern "C" { extern uint8_t ui_network_wait_active; }
 extern "C" { extern int32_t ui_network_wait_start_time; }
-extern "C" { extern void chimera__load_ui_map(char play_title_music); }
 extern "C" { extern void chimera__load_main_menu(void); }
 extern "C" { extern void hud_chat_listbox_clear(void); }
 extern "C" { extern void update_queues_dispose(void); }
@@ -991,7 +969,7 @@ namespace halo::main {
 void MainLoop::menu_return_and_reset(void)
 {
     if (main_globals_data.main_menu_scenario_loaded == 0) {
-        chimera__load_ui_map(0);
+        halo::main::chimera__load_ui_map(0);
     }
     chimera__load_main_menu();
     if (global_scenario != 0) {

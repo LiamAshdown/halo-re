@@ -10,6 +10,7 @@
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern int32_t saved_player_profile_slots_handle;
@@ -21,9 +22,7 @@ extern char network_ban_file_read_mode_string[];
 extern uint8_t game_state_write_in_progress;
 extern game_time_globals *game_time;
 extern char network_summary_log_mode_string[];
-extern int16_t campaign_level_find_index_for_path(char *scenario_name);
 extern int16_t pending_difficulty;
-extern void main_queue_map_change(char *map_name);
 }
 
 namespace halo::saved_games::checkpoint {
@@ -288,7 +287,7 @@ void write_stats_file(char *scenario_name, int32_t difficulty)
     file = fopen(path, network_summary_log_mode_string);
     if (file != 0) {
         GetLocalTime((LPSYSTEMTIME)&now);
-        level = campaign_level_find_index_for_path(scenario_name);
+        level = halo::main::campaign_level_find_index_for_path(scenario_name);
         fprintf((FILE *)file, "%d,%d,%d\n", (int32_t)level, difficulty, game_time->game_time);
         fprintf((FILE *)file, "%hu,%hu,%hu\n", now.month, now.day, now.year);
         fprintf((FILE *)file, "%hu,%hu,%hu\n", now.hour, now.minute, now.second);
@@ -389,7 +388,7 @@ uint8_t load_checkpoint_by_name(char *name)
     if (level >= 0 && level < 10) {
         map_path = campaign_level_paths[level];
     }
-    main_queue_map_change(map_path);
+    halo::main::main_queue_map_change(map_path);
     if (memcmp(name, "savegame", 9) != 0) {
         halo::saved_games::saved_game_copy_files_to_target(directory, name, (char *)"savegame");
     }

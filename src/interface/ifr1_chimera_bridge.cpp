@@ -4,6 +4,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -64,7 +65,6 @@ extern void sound_looping_stop(datum_index sound_tag);
 extern void sound_stop_all(void);
 extern void rasterizer_end_frame(void);
 extern uint8_t rasterizer_reset_device_if_needed(void);
-extern void movie_play_bink(const char *movie_path);
 }
 
 namespace halo::interface {
@@ -351,7 +351,7 @@ void ChimeraBridge::main_menu_music(uint8_t finalize_render_frame)
     if (finalize_render_frame != 0) {
         rasterizer_end_frame();
     }
-    movie_play_bink("ending.bik");
+    halo::main::movie_play_bink("ending.bik");
     if (finalize_render_frame != 0) {
         rasterizer_reset_device_if_needed();
     }

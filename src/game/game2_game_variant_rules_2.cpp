@@ -1,6 +1,7 @@
 #include "halo/game/game2_variants.hpp"
 #include "interface.h"
 #include "main.h"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern game_variant game_engine_pending_variant;
@@ -11,7 +12,6 @@ extern network_client_globals *network_client;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
 extern main_globals main_globals_data;
-extern void main_queue_map_change_by_name_or_clear(void);
 extern void network_game_broadcast_player_set_changed(void *session);
 }
 
@@ -30,7 +30,7 @@ void GameVariantRules::sync_variant_defaults(void)
     void *session;
     uint8_t hosting;
 
-    main_queue_map_change_by_name_or_clear();
+    halo::main::main_queue_map_change_by_name_or_clear((char *)"");
 
     session = network_server;
     hosting = (session != 0);

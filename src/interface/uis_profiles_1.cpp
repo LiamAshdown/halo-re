@@ -18,6 +18,7 @@
 #include "halo/interface/uis_profiles.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern int32_t profile_slot_lookup_cache_00692ac8;
@@ -48,7 +49,6 @@ extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t network_join_error_reason;
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern void saved_item_select(int32_t selection_id);
-extern void main_queue_map_change(void);
 extern void widget_play_sound_effect(int16_t effect_id);
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item);
@@ -191,7 +191,7 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
             if (new_profile_name_flag_0071916e != 0) {
                 saved_item_select(-1);
             }
-            main_queue_map_change();
+            halo::main::main_queue_map_change((char *)"");
             new_profile_name_entry_player_00692b00 = -1;
             network_wait_flag_00719739 = 0;
             return 1;

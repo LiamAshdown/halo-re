@@ -16,6 +16,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern int32_t ui_list_current;
@@ -31,7 +32,6 @@ extern int32_t saved_player_profile_slots_handle;
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity);
-extern uint8_t network_game_client_connect_to_address_async(char *name, char *address);
 extern void saved_item_select(int32_t profile_index);
 extern uint8_t saved_item_has_unsaved_changes(void);
 extern uint8_t player_profile_save(void);
@@ -154,7 +154,7 @@ uint8_t UiNetworkMenu::network_client_connect_and_save(void)
 
     string_convert_unicode_to_ascii((uint8_t *)name, network_host_name_field_00719238, 0x20);
     string_convert_unicode_to_ascii((uint8_t *)port, network_host_subname_007191f0, 9);
-    result = network_game_client_connect_to_address_async(name, port);
+    result = halo::main::network_game_client_connect_to_address_async(name, port);
     if (result == 0 || saved_player_profile_slots_handle == -1) {
         return result;
     }

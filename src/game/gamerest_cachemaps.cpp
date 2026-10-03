@@ -5,6 +5,7 @@
 #include <string.h>
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern char *rasterizer_shader_file_name;
@@ -14,7 +15,6 @@ extern int16_t local_player_count;
 extern int32_t saved_player_profile_slots_handle;
 extern int32_t cached_profile_slot;
 extern char last_profile_name[];
-extern void main_queue_cache_file_open(void);
 }
 
 namespace halo::game {
@@ -46,7 +46,7 @@ void CacheFileMaps::switch_map_by_path(char *path, uint8_t apply_state)
             if (halo::cache::cache_file_download_matches(path) == 0) {
                 if (apply_state == 0) {
                     halo::cache::cache_file_download_stop();
-                    main_queue_cache_file_open();
+                    halo::main::main_queue_cache_file_open((char *)path);
                 } else {
                     halo::cache::cache_file_download_finish();
                 }

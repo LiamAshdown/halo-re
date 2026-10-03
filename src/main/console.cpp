@@ -24,15 +24,9 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/main/api.hpp"
 
-extern "C" { void console_autocomplete_command(void); }
-extern "C" { uint32_t console_command_context_mask(uint32_t context_flags); }
-extern "C" { void console_deactivate(void); }
-extern "C" { uint8_t console_exec_file_run(const char *file_name); }
 extern "C" { void console_out_printf(uint8_t clear_first, const char *format, ...); }
-extern "C" { uint32_t console_paste_clipboard_text(void); }
-extern "C" { char console_process_command(char *command_line, uint32_t context_flags); }
-extern "C" { void console_toggle(void); }
 
 extern "C" { extern int32_t rasterizer_window_requested; }
 namespace halo::main {
@@ -58,9 +52,9 @@ void Console::chimera__exec_init(void)
     } else {
         strncpy(exec_file_name, "init.txt", 0x7f);
     }
-    ran_script = console_exec_file_run(exec_file_name);
+    ran_script = halo::main::console_exec_file_run(exec_file_name);
     if (!ran_script && rasterizer_window_requested != 0) {
-        console_process_command((char *)"map_name b30", 0);
+        halo::main::console_process_command((char *)"map_name b30", 0);
     }
 }
 
@@ -305,7 +299,7 @@ uint8_t Console::exec_file_run(const char *file_name)
     }
     while (fgets(line, k_console_exec_line_length - 1, file) != 0) {
         strtok(line, "\r\n\t");
-        console_process_command(line, k_console_context_exec_file);
+        halo::main::console_process_command(line, k_console_context_exec_file);
     }
     fclose(file);
     return 1;
@@ -521,7 +515,7 @@ char Console::process_command(char *command_line, uint32_t context_flags)
     }
     console_globals_data.history_browse_index = -1;
 
-    context_mask = console_command_context_mask(context_flags);
+    context_mask = halo::main::console_command_context_mask(context_flags);
     if (standalone_devmode()) {
         context_mask = 0;
     }
@@ -561,30 +555,30 @@ uint8_t Console::process_key_events(void)
 
     if (console_globals_data.enabled != 0 && chat_dialog_open == 0) {
         if (input_globals.system_key_states[0] == 1) {
-            console_toggle();
+            halo::main::console_toggle();
             return console_globals_data.active;
         }
         if (console_globals_data.active != 0) {
             if (halo::input::input_get_mouse_button_state(2) == 1) {
-                console_paste_clipboard_text();
+                halo::main::console_paste_clipboard_text();
             }
             for (i = 0; i < console_globals_data.terminal.key_event_count; i++) {
                 key_code = console_globals_data.terminal.key_events[i].key_code;
                 switch (key_code) {
                 case 6:
-                    console_paste_clipboard_text();
+                    halo::main::console_paste_clipboard_text();
                     break;
 
                 case _input_key_tab:
-                    console_autocomplete_command();
+                    halo::main::console_autocomplete_command();
                     break;
 
                 case _input_key_enter:
                 case _input_key_numpad_enter:
                     if (console_globals_data.terminal.input[0] == 0) {
-                        console_deactivate();
+                        halo::main::console_deactivate();
                     } else {
-                        console_process_command(console_globals_data.terminal.input, 0);
+                        halo::main::console_process_command(console_globals_data.terminal.input, 0);
                         console_globals_data.terminal.input[0] = 0;
                         console_globals_data.terminal.edit.cursor = 0;
                         console_globals_data.terminal.edit.selection_anchor = -1;
@@ -630,7 +624,7 @@ namespace halo::main {
 void Console::process_rcon_command(int32_t rcon_handle, char *command_line)
 {
     console_rcon_handle = rcon_handle;
-    console_process_command(command_line, 0);
+    halo::main::console_process_command(command_line, 0);
     console_rcon_handle = -1;
 }
 
@@ -650,7 +644,7 @@ namespace halo::main {
 void Console::toggle(void)
 {
     if (console_globals_data.active != 0) {
-        console_deactivate();
+        halo::main::console_deactivate();
         return;
     }
     if (console_globals_data.enabled != 0 && virtual_keyboard == 0) {

@@ -32,10 +32,8 @@
 #include "halo/cseries/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
-extern "C" { void render_view_camera_fill(observer_camera *observer, render_view *view); }
-extern "C" { void screenshot_render(render_view *views); }
-extern "C" { void viewport_split_rect_compute(int32_t view_count, int32_t view_index, Rectangle2D *window, Rectangle2D *out_viewport); }
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern render_view render_views[2]; }
@@ -96,7 +94,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     resolved_local_player_index = -1;
     for (i = 0; i < view_count; i++) {
         view = &render_views[i];
-        viewport_split_rect_compute(view_count, i, &view->rasterizer_camera.window_bounds,
+        halo::main::viewport_split_rect_compute(view_count, i, &view->rasterizer_camera.window_bounds,
                                      &view->rasterizer_camera.viewport_bounds);
 
         if (showing_results || i >= view_count) {
@@ -121,7 +119,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
             resolved_local_player_index = candidate;
         }
 
-        render_view_camera_fill(view->local_player_index != -1
+        halo::main::render_view_camera_fill(view->local_player_index != -1
                                      ? &halo::camera::globals().observers[view->local_player_index].camera
                                      : 0,
                                  view);
@@ -129,7 +127,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     }
 
     view = &render_views[view_count];
-    viewport_split_rect_compute(1, 0, &view->rasterizer_camera.window_bounds,
+    halo::main::viewport_split_rect_compute(1, 0, &view->rasterizer_camera.window_bounds,
                                  &view->rasterizer_camera.viewport_bounds);
     view->local_player_index = -1;
     view->nonplayer = 1;
@@ -167,7 +165,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     } else {
         main_globals_data.screenshot_tile_count = 1;
     }
-    screenshot_render(render_views);
+    halo::main::screenshot_render(render_views);
     halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count - 1;
 }
 
@@ -233,7 +231,7 @@ void RenderViews::pregame_view_initialize(void)
     camera->vertical_field_of_view =
         (float)(2.0 * atan2(tan(0.6981316804885864) * 0.6375f, 1.0));
 
-    viewport_split_rect_compute(1, 0, &camera->window_bounds, &camera->viewport_bounds);
+    halo::main::viewport_split_rect_compute(1, 0, &camera->window_bounds, &camera->viewport_bounds);
 
     camera->z_near = 0.01f;
     camera->z_far = 1.0f;
@@ -323,7 +321,6 @@ void RenderViews::view_camera_fill(observer_camera *observer, render_view *view)
 extern "C" { extern int16_t screenshot_scale; }
 extern "C" { extern Rectangle2D game_window_top_left; }
 extern "C" { extern void console_print_error_va(uint8_t clear_first, const char *format, ...); }
-extern "C" { extern void console_deactivate(void); }
 extern "C" { extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); }
 extern "C" { extern char * targa_export(BitmapData *bitmap, file_reference_record *destination); }
 extern "C" { extern uint32_t bitmap_data_calculate_pixel_data_size(BitmapData *bitmap); }
@@ -383,7 +380,7 @@ void RenderViews::screenshot_render(render_view *views)
 
     if (*(void **)&((struct BitmapData *)bitmap)->pixel_base != 0) {
         console_print_error_va(1, "");
-        console_deactivate();
+        halo::main::console_deactivate();
 
         for (page_row = 0; page_row < main_globals_data.screenshot_tile_count; page_row++) {
             for (page_col = 0; page_col < main_globals_data.screenshot_tile_count; page_col++) {

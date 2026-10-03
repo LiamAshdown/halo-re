@@ -9,6 +9,7 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -97,8 +98,6 @@ extern void *global_structure_bsp;
 extern void *global_structure_collision_bsp;
 extern void *global_collision_bsp;
 extern Globals *global_globals;
-extern void render_pregame_view_initialize(void);
-extern void movie_capture_frame_export(void);
 extern void interface_handle_quit_request(void);
 }
 
@@ -441,8 +440,8 @@ void GameLifecycle::unload_map(void)
         main_game_globals->map_loading_in_progress = 1;
         do {
             status = halo::cache::cache_file_download_status_get(&main_game_globals->map_load_progress, 0);
-            render_pregame_view_initialize();
-            movie_capture_frame_export();
+            halo::main::render_pregame_view_initialize();
+            halo::main::movie_capture_frame_export();
         } while (status == 0);
         widget_close_all();
         if (status == 2) {

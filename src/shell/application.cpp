@@ -12,6 +12,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -70,7 +71,6 @@ extern uint8_t port_overridden;
 extern uint32_t network_local_address;
 extern uint32_t connect_address;
 
-extern void main_loop(void);
 extern void network_session_host_start_info_set(char *game_name, char *secret_key, char *ip_address, int32_t port);
 
 
@@ -465,7 +465,7 @@ void Application::run_engine()
     memset(secret_key, 0, sizeof(secret_key));
     memcpy(secret_key, "e4Rd9J", 7);
     network_session_host_start_info_set((char *)"halor", secret_key, (char *)ip_value, (int32_t)network_game_socket_port);
-    main_loop();
+    halo::main::main_loop();
     EngineLifecycle::shutdown();
 }
 

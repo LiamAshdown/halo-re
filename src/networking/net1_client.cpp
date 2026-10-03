@@ -8,6 +8,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern network_client_globals *network_client;
@@ -62,8 +63,6 @@ extern void network_channel_remote_address_or_default(network_channel *channel, 
 extern uint8_t network_server_host_valid;
 extern uint32_t split_screen_quit_prompt_string;
 extern uint32_t network_join_error_reason;
-extern void main_menu_music_stop(void);
-extern void chimera__load_ui_map(char reset);
 extern void network_game_server_host_dispose(network_server_globals *host);
 extern char network_client_state_dispatch(void);
 extern int32_t network_client_connect_progress_percent(void);
@@ -637,7 +636,7 @@ char ClientView::update_dispatch()
     result = 1;
     if (network_host_handoff_requested == 1) {
         network_game_mode = 0;
-        main_menu_music_stop();
+        halo::main::main_menu_music_stop();
         if (network_server != 0) {
             session = &network_server->session;
         } else if (network_client != 0) {
@@ -646,7 +645,7 @@ char ClientView::update_dispatch()
             session = 0;
         }
         if (session->map_loaded != 0) {
-            chimera__load_ui_map(1);
+            halo::main::chimera__load_ui_map(1);
         }
         session->map_loaded = 0;
         network_client_globals_dispose();
