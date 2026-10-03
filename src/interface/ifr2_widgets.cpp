@@ -456,17 +456,18 @@ uint32_t WidgetList::cyclable_list_nudge()
 {
     int32_t side = halo::interface::widget_cursor_side_of_midpoint(widget);
     int32_t new_index;
+    bool changed = false;
 
     if (side < 1) {
         new_index = widget->selection_index - 1;
         if (new_index < 0) {
             new_index = (uint16_t)widget->item_count - 1;
         }
-        if (new_index == widget->selection_index) {
-            goto play_and_return;
+        if (new_index != widget->selection_index) {
+            ((struct widget_instance *)widget)->scroll_blink = -halo::interface::k_scroll_blink_ticks;
+            ((struct widget_instance *)widget)->selection_direction = -1;
+            changed = true;
         }
-        ((struct widget_instance *)widget)->scroll_blink = -halo::interface::k_scroll_blink_ticks;
-        ((struct widget_instance *)widget)->selection_direction = -1;
     } else {
         if (side != 1) {
             return 1;
@@ -475,16 +476,17 @@ uint32_t WidgetList::cyclable_list_nudge()
         if (new_index >= (uint16_t)widget->item_count) {
             new_index = 0;
         }
-        if (new_index == widget->selection_index) {
-            goto play_and_return;
+        if (new_index != widget->selection_index) {
+            ((struct widget_instance *)widget)->scroll_blink = halo::interface::k_scroll_blink_ticks;
+            ((struct widget_instance *)widget)->selection_direction = 1;
+            changed = true;
         }
-        ((struct widget_instance *)widget)->scroll_blink = halo::interface::k_scroll_blink_ticks;
-        ((struct widget_instance *)widget)->selection_direction = 1;
     }
-    widget->selection_index = (int16_t)new_index;
+    if (changed) {
+        widget->selection_index = (int16_t)new_index;
+        halo::interface::widget_play_sound_effect(0);
+    }
     halo::interface::widget_play_sound_effect(0);
-
-play_and_return:
     halo::interface::widget_play_sound_effect(0);
     return 1;
 }
@@ -618,58 +620,55 @@ void WidgetList::extended_description_sync_selection()
 
     description = widget->extended_description;
     focused = widget->focused_child;
-    if (focused == 0) {
-        goto disable;
-    }
-
-    sibling = widget->first_child;
     index = 0;
-    if (sibling == 0) {
-        goto enable;
-    }
 
-    do {
-        if (sibling->widget_type == uiwidgettype_column_list && sibling->next_sibling == 0) {
-            goto disable;
+    auto scan = [&]() -> bool {
+        if (focused == 0) {
+            return false;
         }
 
-        list_child = sibling->first_child;
-        for (; list_child != 0; list_child = list_child->next_sibling) {
-            if (list_child->widget_type == uiwidgettype_spinner_list) {
-                list_tag = halo::interface::tag_data<UIWidgetDefinition>(list_child->definition);
-                if (sibling == focused) {
-                    if (!halo::interface::has_bit(list_tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_only_one_tooltip)) {
-                        index = index + list_child->selection_index;
-                    }
-                    goto enable;
-                }
-                if (halo::interface::has_bit(list_tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_only_one_tooltip)) {
-                    index = index + 1;
-                } else {
-                    index = index + (uint16_t)list_child->item_count;
-                }
-                goto next_sibling;
+        sibling = widget->first_child;
+        if (sibling == 0) {
+            return true;
+        }
+
+        do {
+            bool found_spinner = false;
+
+            if (sibling->widget_type == uiwidgettype_column_list && sibling->next_sibling == 0) {
+                return false;
             }
-        }
-        if (sibling == focused) {
-            break;
-        }
-next_sibling:
-        sibling = sibling->next_sibling;
-    } while (sibling != 0);
 
-    if (index == -1) {
-        goto disable;
+            for (list_child = sibling->first_child; list_child != 0; list_child = list_child->next_sibling) {
+                if (list_child->widget_type == uiwidgettype_spinner_list) {
+                    list_tag = halo::interface::tag_data<UIWidgetDefinition>(list_child->definition);
+                    const bool one_tooltip = halo::interface::has_bit(list_tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_only_one_tooltip);
+                    if (sibling == focused) {
+                        if (!one_tooltip) {
+                            index = index + list_child->selection_index;
+                        }
+                        return true;
+                    }
+                    index = index + (one_tooltip ? 1 : (uint16_t)list_child->item_count);
+                    found_spinner = true;
+                    break;
+                }
+            }
+            if (!found_spinner && sibling == focused) {
+                break;
+            }
+            sibling = sibling->next_sibling;
+        } while (sibling != 0);
+
+        return index != -1;
+    };
+
+    if (scan()) {
+        description->selection_index = (int16_t)index;
+        description->state = 1;
+    } else {
+        description->state = 0;
     }
-
-enable:
-    description->selection_index = (int16_t)index;
-    description->state = 1;
-    return;
-
-disable:
-    description->state = 0;
-    return;
 }
 
 /**
@@ -1001,15 +1000,14 @@ void WidgetView::handle_input_event(UIWidgetDefinition *tag, int16_t *event, uin
                     break;
                 }
             }
-            if (i > 3) {
-                goto after_close_check;
+            if (i <= 3) {
+                ancestor = widget;
+                while (ancestor->parent != (widget_instance *)0) {
+                    ancestor = ancestor->parent;
+                }
+                halo::interface::widget_close(ancestor);
+                handled = 1;
             }
-            ancestor = widget;
-            while (ancestor->parent != (widget_instance *)0) {
-                ancestor = ancestor->parent;
-            }
-            halo::interface::widget_close(ancestor);
-            handled = 1;
         } else if (halo::input::globals().joystick_slot_devices[controller] != -1) {
             ancestor = widget;
             while (ancestor->parent != (widget_instance *)0) {
@@ -1019,7 +1017,6 @@ void WidgetView::handle_input_event(UIWidgetDefinition *tag, int16_t *event, uin
             handled = 1;
         }
     }
-after_close_check:
 
     if (controller_matches && handled == 0 && event[0] == 3 && halo::interface::event_state(event) == 1) {
         int8_t code = (int8_t)event[2];
@@ -1064,6 +1061,8 @@ after_close_check:
         widget->state = 0;
     }
     if (handled == 0) {
+        bool closed_by_timer = false;
+
         if (widget->milliseconds_to_auto_close != 0) {
             int32_t fade = widget->milliseconds_auto_close_fade;
             int32_t close_at = ui_time_milliseconds - widget->creation_time;
@@ -1076,9 +1075,8 @@ after_close_check:
                 }
                 halo::interface::widget_close(ancestor);
                 handled = 1;
-                goto dispatch_to_children;
-            }
-            if (fade != 0) {
+                closed_by_timer = true;
+            } else if (fade != 0) {
                 int32_t remaining = close_at - widget->milliseconds_to_auto_close;
 
                 if (remaining > 0) {
@@ -1091,143 +1089,131 @@ after_close_check:
                 }
             }
         }
-        {
+        if (!closed_by_timer) {
             int16_t *word_5a = (int16_t *)&widget->unknown_5a[0];
             int16_t *word_5c = (int16_t *)&widget->unknown_5a[2];
 
             if (*word_5a < 0) *word_5a = 0;
             if (*word_5c < 0) *word_5c = 0;
-        }
-        if (widget->widget_type == uiwidgettype_spinner_list) {
-            halo::interface::widget_spinner_list_sync_selected(widget, tag);
-        } else if (widget->widget_type == uiwidgettype_column_list) {
-            halo::interface::widget_column_list_sync_selected(widget);
-        }
-        if (controller_matches) {
-            if (list_nav_done != 0) {
-                goto dispatch_to_children;
+
+            if (widget->widget_type == uiwidgettype_spinner_list) {
+                halo::interface::widget_spinner_list_sync_selected(widget, tag);
+            } else if (widget->widget_type == uiwidgettype_column_list) {
+                halo::interface::widget_column_list_sync_selected(widget);
             }
+        }
+        if (!closed_by_timer && controller_matches && list_nav_done == 0) {
+            const bool is_list_widget = widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list;
+            const bool key_down = event[0] == 3 && halo::interface::event_state(event) == 1;
+            enum class tab_step { none, next, previous };
+            tab_step step = tab_step::none;
+            bool tabbed = false;
+
+            auto commit_nav = [&]() {
+                if (sound_effect == 0) {
+                    sound_effect = 1;
+                }
+                list_nav_done = 1;
+            };
+
             if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_up_down_tabs_thru_children) && widget->focused_child != (widget_instance *)0 && handled == 0) {
-                if (event[0] == 3 && halo::interface::event_state(event) == 1) {
+                if (key_down) {
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\b') {
-                        goto tab_forward;
+                        step = tab_step::previous;
+                    } else if (code == '\t') {
+                        step = tab_step::next;
                     }
-                    if (code != '\t') {
-                        goto dpad_lr_nav;
-                    }
-                    halo::interface::widget_focus_next_child(widget);
-                    goto tab_commit;
                 } else if (event[0] == 1) {
                     if (event[3] != halo::interface::k_event_argument_unset) {
                         if (event[3] == halo::interface::k_action_none) {
-                            goto tab_forward;
+                            step = tab_step::previous;
                         }
-                        goto dpad_lr_nav;
+                    } else {
+                        step = tab_step::next;
                     }
-                    goto tab_back;
                 }
             }
-            goto dpad_lr_nav;
-        tab_back:
-            halo::interface::widget_focus_next_child(widget);
-        tab_commit:
-            if (sound_effect == 0) {
-                sound_effect = 1;
+            if (step != tab_step::none) {
+                if (step == tab_step::next) {
+                    halo::interface::widget_focus_next_child(widget);
+                } else {
+                    halo::interface::widget_focus_previous_child(widget);
+                }
+                commit_nav();
+                tabbed = true;
             }
-            list_nav_done = 1;
-            goto dpad_lr_nav_done;
-        tab_forward:
-            halo::interface::widget_focus_previous_child(widget);
-            goto tab_commit;
 
-        dpad_lr_nav:
-            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_left_right_tabs_thru_children) && widget->focused_child != (widget_instance *)0 && handled == 0) {
-                if (event[0] == 3 && halo::interface::event_state(event) == 1) {
+            if (!tabbed && halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_left_right_tabs_thru_children) && widget->focused_child != (widget_instance *)0 && handled == 0) {
+                if (key_down) {
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\n') {
                         halo::interface::widget_focus_previous_child(widget);
-                        goto tab_commit;
-                    }
-                    if (code == '\v') {
+                        commit_nav();
+                    } else if (code == '\v') {
                         halo::interface::widget_focus_next_child(widget);
-                        goto tab_commit;
+                        commit_nav();
                     }
                 } else if (event[0] == 1) {
                     if (event[2] == halo::interface::k_event_argument_unset) {
                         halo::interface::widget_focus_previous_child(widget);
-                        goto tab_commit;
-                    }
-                    if (event[2] == halo::interface::k_action_none) {
+                        commit_nav();
+                    } else if (event[2] == halo::interface::k_action_none) {
                         halo::interface::widget_focus_next_child(widget);
-                        goto tab_commit;
+                        commit_nav();
                     }
                 }
             }
-        dpad_lr_nav_done:
-            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_up_down_tabs_thru_list_items) && (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
+
+            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_up_down_tabs_thru_list_items) && is_list_widget &&
                 list_nav_done == 0 && handled == 0) {
-                if (event[0] == 3 && halo::interface::event_state(event) == 1) {
+                if (key_down) {
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\b') {
                         halo::interface::widget_list_select_previous(widget);
+                        commit_nav();
                     } else if (code == '\t') {
                         halo::interface::widget_list_select_next(widget);
-                    } else {
-                        goto dpad_ud_nav;
+                        commit_nav();
                     }
-                    if (sound_effect == 0) {
-                        sound_effect = 1;
-                    }
-                    list_nav_done = 1;
                 } else if (event[0] == 1) {
                     if (event[3] == halo::interface::k_event_argument_unset) {
                         halo::interface::widget_list_select_next(widget);
-                        if (sound_effect == 0) sound_effect = 1;
-                        list_nav_done = 1;
+                        commit_nav();
                     } else if (event[3] == halo::interface::k_action_none) {
                         halo::interface::widget_list_select_previous(widget);
-                        if (sound_effect == 0) sound_effect = 1;
-                        list_nav_done = 1;
+                        commit_nav();
                     }
                 }
             }
-        dpad_ud_nav:
-            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_left_right_tabs_thru_list_items) && (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
+            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_left_right_tabs_thru_list_items) && is_list_widget &&
                 list_nav_done == 0 && handled == 0) {
-                if (event[0] == 3 && halo::interface::event_state(event) == 1) {
+                if (key_down) {
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\n') {
                         halo::interface::widget_list_select_previous(widget);
+                        commit_nav();
                     } else if (code == '\v') {
                         halo::interface::widget_list_select_next(widget);
-                    } else {
-                        goto dispatch_to_children;
+                        commit_nav();
                     }
-                    if (sound_effect == 0) sound_effect = 1;
-                    list_nav_done = 1;
                 } else if (event[0] == 1) {
                     if (event[2] == halo::interface::k_event_argument_unset) {
                         halo::interface::widget_list_select_previous(widget);
-                        if (sound_effect == 0) sound_effect = 1;
-                        list_nav_done = 1;
+                        commit_nav();
                     } else if (event[2] == halo::interface::k_action_none) {
                         halo::interface::widget_list_select_next(widget);
-                        if (sound_effect == 0) sound_effect = 1;
-                        list_nav_done = 1;
+                        commit_nav();
                     }
                 }
             }
-            goto dispatch_to_children;
         }
     }
-    goto dispatch_to_children;
 
-dispatch_to_children:
 
     if (controller_matches && tag->event_handlers.count > 0) {
         EventHandlerReference *entry_base = halo::interface::reflexive_elements<EventHandlerReference>(tag->event_handlers);
@@ -1249,7 +1235,7 @@ dispatch_to_children:
                     case 0x11: match = (event[3] == halo::interface::k_event_argument_unset); break;
                     case 0x12: match = (event[2] == halo::interface::k_event_argument_unset); break;
                     case 0x13: match = (event[2] == halo::interface::k_action_none); break;
-                    default: goto scan_next;
+                    default: break;
                     }
                     break;
                 case 2:
@@ -1258,7 +1244,7 @@ dispatch_to_children:
                     case 0x15: match = (event[3] == halo::interface::k_event_argument_unset); break;
                     case 0x16: match = (event[2] == halo::interface::k_event_argument_unset); break;
                     case 0x17: match = (event[2] == halo::interface::k_action_none); break;
-                    default: goto scan_next;
+                    default: break;
                     }
                     break;
                 case 3:
@@ -1273,7 +1259,7 @@ dispatch_to_children:
                         case 0x1d: match = ((int8_t)event[2] == 1); break;
                         case 0x1e: match = ((int8_t)event[2] == 2); break;
                         case 0x1f: match = ((int8_t)event[2] == 3); break;
-                        default: goto scan_next;
+                        default: break;
                         }
                     }
                     break;
@@ -1288,7 +1274,6 @@ dispatch_to_children:
                     halo::interface::ui_widget_list_item_activate(widget, tag, event, entry, &handled);
                 }
             }
-        scan_next:
             handler_scan_count = handler_scan_count + 1;
         }
     }
@@ -1571,6 +1556,8 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
         }
     }
 
+    bool render_children = true;
+
     if (widget->widget_type == uiwidgettype_text_box) {
         uint32_t use_flag1 = flag1;
 
@@ -1581,16 +1568,16 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
     } else if (widget->widget_type == uiwidgettype_spinner_list) {
         halo::interface::widget_instance_render_list_head(widget, tag, dest, offset_xy, flag1);
         if (halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag) && tag->child_widgets.count == 0) {
-            goto post_render;
+            render_children = false;
         }
     } else if (widget->widget_type == uiwidgettype_column_list) {
         halo::interface::widget_instance_render_column_list_items(widget, tag, dest, offset_xy, flag1);
         if (halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_generated_in_code)) {
-            goto post_render;
+            render_children = false;
         }
     }
 
-    {
+    if (render_children) {
         widget_instance *child;
 
         for (child = widget->first_child; child != (widget_instance *)0; child = child->next_sibling) {
@@ -1606,7 +1593,6 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
         }
     }
 
-post_render:
     if (tag->event_handlers.count > 0) {
         EventHandlerReference *entry = halo::interface::reflexive_elements<EventHandlerReference>(tag->event_handlers);
 
@@ -1784,6 +1770,7 @@ void WidgetList::scroll_window(int32_t out[3], widget_instance *widget)
 {
     int32_t item_count = (uint16_t)widget->item_count;
     int16_t selection = widget->selection_index;
+    bool wrap_tail = true;
 
     if (widget->focused_child == widget->first_child) {
         out[0] = selection;
@@ -1798,17 +1785,19 @@ void WidgetList::scroll_window(int32_t out[3], widget_instance *widget)
             if (out[1] < 0) out[1] = item_count - 1;
             out[0] = out[1] - 1;
             if (out[0] < 0) out[0] = item_count - 1;
-            goto clamp;
+            wrap_tail = false;
+        } else {
+            out[1] = selection;
+            out[0] = selection - 1;
+            if (out[0] < 0) out[0] = item_count - 1;
         }
-        out[1] = selection;
-        out[0] = selection - 1;
-        if (out[0] < 0) out[0] = item_count - 1;
     }
-    out[2] = out[1] + 1;
-    if (out[2] == item_count) {
-        out[2] = 0;
+    if (wrap_tail) {
+        out[2] = out[1] + 1;
+        if (out[2] == item_count) {
+            out[2] = 0;
+        }
     }
-clamp:
     if (item_count <= out[0]) out[0] = -1;
     if (item_count <= out[1]) out[1] = -1;
     if (item_count <= out[2]) out[2] = -1;
@@ -1853,10 +1842,14 @@ uint8_t WidgetList::select_next()
                 }
             }
         } else {
-            goto commit;
+            widget->selection_direction = 1;
+            widget->scroll_blink = halo::interface::k_scroll_blink_long;
+            return 1;
         }
         widget->selection_index = next_index;
-        goto commit;
+        widget->selection_direction = 1;
+        widget->scroll_blink = halo::interface::k_scroll_blink_long;
+        return 1;
     }
 
     if (widget->widget_type != uiwidgettype_spinner_list || !halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag) || tag->child_widgets.count != 0) {
@@ -1899,7 +1892,6 @@ uint8_t WidgetList::select_next()
         return 1;
     }
 
-commit:
     widget->selection_direction = 1;
     widget->scroll_blink = halo::interface::k_scroll_blink_long;
     return 1;
@@ -1946,7 +1938,9 @@ uint8_t WidgetList::select_previous()
             widget->selection_direction = halo::k_word_none;
             return 1;
         }
-        goto commit;
+        widget->scroll_blink = -halo::interface::k_scroll_blink_long;
+        widget->selection_direction = halo::k_word_none;
+        return 1;
     }
 
     if (widget->widget_type == uiwidgettype_spinner_list && halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag) && tag->child_widgets.count == 0) {
@@ -1957,7 +1951,9 @@ uint8_t WidgetList::select_previous()
             widget->selection_direction = halo::k_word_none;
             return 1;
         }
-        goto commit;
+        widget->scroll_blink = -halo::interface::k_scroll_blink_long;
+        widget->selection_direction = halo::k_word_none;
+        return 1;
     }
 
     {
@@ -2044,7 +2040,6 @@ uint8_t WidgetList::select_previous()
         }
     }
 
-commit:
     widget->scroll_blink = -halo::interface::k_scroll_blink_long;
     widget->selection_direction = halo::k_word_none;
     return 1;
