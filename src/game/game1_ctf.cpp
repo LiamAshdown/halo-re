@@ -390,14 +390,14 @@ int32_t Ctf::initialize_flags(void)
 
         {
             custom_waypoint *w = &custom_waypoints[usage_id];
-            w->active = 0;
+            w->owner = (datum_index)halo::k_dword_none;
             w->icon = halo::interface::hud_waypoint_arrow_find("flag_blue");
             w->active = 1;
             w->position.x = flag->position.x;
             w->position.y = flag->position.y;
             w->position.z = flag->position.z;
+            w->player = (datum_index)halo::k_dword_none;
             w->team = (int16_t)halo::k_word_none;
-            w->owner = (datum_index)halo::k_dword_none;
             w->position.z += 0.63f;
         }
     }

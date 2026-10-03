@@ -49,8 +49,8 @@ public:
      *
      * @address 0x4e7b50
      */
-    static void remote_player_transform_update(uint32_t player_index, player_action *control,
-    int32_t network_key);
+    static void remote_player_transform_update(uint32_t player_index, uint32_t network_key,
+    uint8_t update_id_byte, player_action control);
 
     /**
      * Builds a message-0x2a (remote-player secondary/attached-vehicle transform) update for cache from control. Like build_remote_player_vehicle_update, stages a direction vector from control's yaw/pitch, then chases cache's unit (+0x34) to its parent vehicle object and stages that vehicle's own transform.

@@ -3,6 +3,8 @@
  */
 
 #include "halo/core/slot_mask.hpp"
+#include "halo/core/x87.hpp"
+#include "halo/core/libm.hpp"
 #include "halo/scenario/leaf.hpp"
 #include "halo/physics/layout.hpp"
 #include "halo/core/datum.hpp"
@@ -1022,11 +1024,9 @@ void ObjectPhysics::mass_point_resolve_ground_contact(uint32_t exclude_object_in
 namespace halo::physics {
 
 /**
- * VERIFIED (logic) against disassembly 0x5096f0..0x5097d2 (2026-09-30): register/stack roles (EAX axis, ESI up, EDI forward,
- * stack fallback_forward/fallback_up), the fcos/fsin call order into matrix4x3_from_axis_angle, both transforms, the
- * forward renormalise, the Gram-Schmidt step and the zero-length fallback copy match. Known deviation: the original feeds
- * fsin/fcos the UNROUNDED extended-precision length returned in st(0); the C rounds it to float first, which only
- * matters for large random axes (angle > ~1e3 rad), as the difftest uses.
+ * Register/stack roles: EAX axis, ESI up, EDI forward, stack fallback_forward/fallback_up. The original feeds fsin/fcos the
+ * unrounded length that vector3d_normalize_with_length leaves in st(0), so the length is recomputed here in double and run
+ * through halo::x87::fsin/fcos (the float result of the normalise only decides the zero-length case).
  * Rotates forward and up in place by the small rotation axis gives this tick (treating the
  * axis's length as the rotation angle in radians), then re-orthonormalizes up against forward
  * (Gram-Schmidt: subtract up's projection onto forward, renormalize) to correct drift.
@@ -1036,11 +1036,14 @@ namespace halo::physics {
 void ObjectPhysics::mass_point_update_orientation(real_vector3d *axis, real_vector3d *up, real_vector3d *forward, real_vector3d *fallback_forward, real_vector3d *fallback_up)
 {
     real_vector3d local_axis = *axis;
+    const double exact_length = halo::libm::sqrt((double)axis->i * axis->i + (double)axis->j * axis->j + (double)axis->k * axis->k);
     real length = halo::math::vector3d_normalize_with_length(local_axis);
 
     if (length != 0.0f) {
         real_matrix4x3 rotation;
-        halo::math::matrix4x3_from_axis_angle(rotation, local_axis, (real)halo::libm::sin((double)length), (real)halo::libm::cos((double)length));
+        const real cosine = (real)halo::x87::fcos(exact_length);
+        const real sine = (real)halo::x87::fsin(exact_length);
+        halo::math::matrix4x3_from_axis_angle(rotation, local_axis, sine, cosine);
         halo::math::matrix4x3_transform_vector(*forward, *fallback_forward, rotation);
         halo::math::matrix4x3_transform_vector(*up, *fallback_up, rotation);
         halo::math::vector3d_normalize_with_length(*forward);

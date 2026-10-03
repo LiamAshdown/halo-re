@@ -203,16 +203,16 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
     position_valid = halo::items::item_get_effective_position((datum_index)flag_handle, &item_position);
 
     if ((game_engine_variant.engine.ctf.single_flag_time < 1 || ctf_active_team == team) && position_valid == 1) {
-        int16_t icon;
+        uint32_t player_filter;
 
         halo::game::custom_waypoint_register(holder_player_index, (int16_t)team, &item_position, "flag_blue", 0.0f,
             (datum_index)halo::k_dword_none, (int16_t)other_team);
-        icon = halo::interface::hud_waypoint_arrow_find("flag_blue");
+        memcpy(&player_filter, &item_position.z, sizeof(player_filter));
 
-        if (icon != -1) {
+        if (player_filter != halo::k_dword_none) {
             real_point3d other_stand = *ctf_team_flag_stand_position[other_team];
             halo::game::custom_waypoint_register((datum_index)halo::k_dword_none, (int16_t)(team + 2), &other_stand,
-                "flag_blue", 0.3f, (datum_index)(uint16_t)icon, (int16_t)0xffffffff);
+                "default", 0.3f, (datum_index)player_filter, (int16_t)0xffffffff);
         } else {
             custom_waypoints[team + 2] = CTF_CUSTOM_WAYPOINT_ZERO;
         }

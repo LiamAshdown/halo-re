@@ -319,7 +319,7 @@ void UiControlsMenu::controls_populate_sensitivity_row(widget_instance *widget, 
 uint32_t UiControlsMenu::controls_sensitivity_row_refresh(widget_instance *widget, const saved_player_profile *profile_record)
 {
     halo::interface::ui_controls_populate_sensitivity_row(widget, profile_record);
-    halo::interface::widget_play_sound_effect(0);
+    halo::interface::widget_play_sound_effect(2);
     return 1;
 }
 

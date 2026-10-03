@@ -384,9 +384,9 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
 
     halo::objects::flag_pole_get_marker_positions(entry, &node_ref, marker_positions, row_table,
                                     row_start_scratch, column_marker_index, tag);
-    real_point3d water_probe_point = {0.0f, 0.0f, 0.0f};
     int16_t water_probe_weather = -1;
-    moving = halo::scenario::scenario_location_get_water_and_weather(&water_probe_point, &node_ref, &water_probe_weather);
+    int32_t last_marker = (int32_t)tag->attachment_points.count - 1;
+    moving = halo::scenario::scenario_location_get_water_and_weather(&marker_positions[last_marker < 0 ? 0 : last_marker], &node_ref, &water_probe_weather);
 
     if (entry->invalid == 0) {
 

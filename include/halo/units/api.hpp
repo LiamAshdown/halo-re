@@ -85,7 +85,6 @@ datum_index unit_build_seat_occupant_zone_list(uint32_t unit_index);
 uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index);
 uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vector3d *world_direction, uint8_t use_aiming_bounds);
 void unit_clear_selected_equipment(uint32_t unit_index);
-void unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_notify, datum_index sound_definition_index);
 int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode);
 int16_t unit_count_deployed_weapons(uint32_t unit_index);
 uint8_t unit_current_weapon_is_type(uint32_t unit_index, datum_index weapon_tag_id);

@@ -273,8 +273,8 @@ void Ctf::return_all_flags(void)
             lowest_usage_id = usage_id;
         }
         ctf_globals_live.flag_id_mask |= 1u << (usage_id & 0x1f);
-        halo::game::custom_waypoint_register((datum_index)0, (int16_t)0, (real_point3d *)0, "flag_blue", 0.0f,
-            (datum_index)halo::k_dword_none, (int16_t)halo::k_word_none);
+        halo::game::custom_waypoint_register(halo::k_dword_none, (int16_t)usage_id, (real_point3d *)&flags[i].position, "flag_blue", 0.0f,
+            halo::k_dword_none, (int16_t)halo::k_word_none);
     }
 
     if (game_engine_variant.engine.race.race_type == 2) {

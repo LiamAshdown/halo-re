@@ -255,9 +255,13 @@ wchar_t * GameRuntime::get_random_player_name()
     tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::mutable_literal(halo::tag_paths::random_player_names));
     if (tag_id != halo::k_dword_none) {
         definition = *(void **)((uint8_t *)halo::cache::globals().tag_instances + (tag_id & halo::k_datum_slot_mask) * 0x20 + 0x14);
-        if (definition != 0 && *(int32_t *)definition != 0) {
-            halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
-            return reinterpret_cast<wchar_t *>(halo::text::text_string_list_get_string((int32_t)tag_id, 0));
+        if (definition != 0) {
+            int32_t last_index = (int16_t)(*(uint16_t *)definition - 1);
+            uint32_t seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
+
+            halo::math::globals().effect_random_seed = seed;
+            return reinterpret_cast<wchar_t *>(halo::text::text_string_list_get_string(
+                (int32_t)tag_id, (int16_t)(((seed >> 16) * (uint32_t)last_index) >> 16)));
         }
     }
     return &empty_string;

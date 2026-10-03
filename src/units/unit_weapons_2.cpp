@@ -17,24 +17,6 @@ static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::unit
 
 namespace halo::units {
 
-/**
- * Engine function unit_clear_weapon_switch_state.
- *
- * Original register convention: see file header.
- *
- * @address 0x565a70
- */
-void halo::units::unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_notify, datum_index sound_definition_index)
-{
-    if (!skip_notify) {
-        halo::sound::sound_start_unspatialized(sound_definition_index, 1.0f);
-    }
-    unit->zoom_level = -1;
-    unit->desired_zoom_level = -1;
-    unit->integrated_night_vision_power = 0.0f;
-    halo::game::unit_invalidate_local_player_zoom_level(k_datum_index_none);
-}
-
 namespace unit_spawn_with_starting_weapons_local {
 
 typedef struct vehicle_network_create_message {

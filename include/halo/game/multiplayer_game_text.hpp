@@ -4,7 +4,11 @@
 
 namespace halo::game::mp_text {
 
-/** Indices into the "ui\\multiplayer_game_text" unicode string list used by the scoreboard and engine HUD. */
+/**
+ * Indices into the "ui\\multiplayer_game_text" unicode string list used by the scoreboard and engine HUD. Every index was
+ * checked against the retail bounds checks and string fetches; the string contents live in the map files, so the names
+ * describe how the callers use each entry.
+ */
 inline constexpr int16_t k_team_label_a = 0xc;
 inline constexpr int16_t k_team_label_b = 0xd;
 inline constexpr int16_t k_lives_none_left = 0x34;

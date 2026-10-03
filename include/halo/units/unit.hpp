@@ -317,7 +317,6 @@ uint8_t unit_seat_index_is_valid(uint32_t other_object_index, uint32_t unit_inde
 uint8_t unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_index, uint32_t vehicle_index, uint32_t *out_occupant_index);
 int32_t object_find_nearest_biped(int32_t reference_object_index);
 int32_t object_find_next_untargeted(int32_t starting_object_index);
-void unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_notify, datum_index sound_definition_index);
 void unit_inventory_get_weapon(void);
 uint8_t unit_lacks_weapon_type_of(uint32_t reference_object_index, uint32_t unit_index);
 uint8_t unit_local_player_weapon_flag_check(void);
@@ -394,7 +393,6 @@ void unit_choose_dialogue_variant(uint32_t unit_index);
 uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vector3d *world_direction, uint8_t use_aiming_bounds);
 void unit_clear_ground_adjust_dirty(uint32_t object_index);
 void unit_clear_selected_equipment(uint32_t unit_index);
-void unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_notify, datum_index sound_definition_index);
 int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode);
 void unit_compute_marker_offset_position(uint32_t object_index, real_vector3d *reference_direction, int16_t mode, real_point3d *out_position, float *base_position, float *offsets);
 int16_t unit_count_deployed_weapons(uint32_t unit_index);

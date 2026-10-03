@@ -484,10 +484,9 @@ uint32_t WidgetList::cyclable_list_nudge()
     }
     if (changed) {
         widget->selection_index = (int16_t)new_index;
-        halo::interface::widget_play_sound_effect(0);
+        halo::interface::widget_play_sound_effect(1);
     }
-    halo::interface::widget_play_sound_effect(0);
-    halo::interface::widget_play_sound_effect(0);
+    halo::interface::widget_play_sound_effect(1);
     return 1;
 }
 
