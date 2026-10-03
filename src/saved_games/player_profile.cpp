@@ -8,6 +8,7 @@
 #include "networking.h"
 #include "rasterizer.h"
 #include "interface.h"
+#include "halo/hs/script_globals.hpp"
 #include "saved_games.h"
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
@@ -47,7 +48,6 @@ extern uint32_t rasterizer_device_version;
 extern uint32_t video_memory;
 extern uint32_t config_disable_specular;
 extern uint8_t width640;
-extern uint8_t unknown_006894ba;
 extern uint8_t rasterizer_decal_zbias_active(void);
 extern uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height_out, long *refresh_out);
 extern void display_mode_get_current(rasterizer_display_mode *out);
@@ -523,7 +523,7 @@ uint8_t halo::saved_games::PlayerProfile::set_default_video_options(uint8_t allo
         profile->refresh_rate = (int16_t)mode.refresh_rate;
         profile->frame_rate_mode = 0;
         if (mode.vsync != 0) {
-            profile->frame_rate_mode = (unknown_006894ba != 0) + 1;
+            profile->frame_rate_mode = (halo::hs::globals::framerate_throttle != 0) + 1;
             return 1;
         }
     } else {

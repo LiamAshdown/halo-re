@@ -1,3 +1,5 @@
+#include "halo/hs/script_globals.hpp"
+#include "halo/main/main_globals_fields.hpp"
 #include "crt.h"
 #include "win32.h"
 #include "tags.h"
@@ -47,14 +49,9 @@ extern int32_t saved_player_profile_slots_handle;
 extern char *strcpy(char *dest, const char *source);
 extern uint32_t strlen(const char *str);
 extern void *memset(void *dest, int32_t value, uint32_t count);
-extern uint8_t unknown_00746fa4;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
-extern uint8_t unknown_00719738;
-extern uint8_t main_globals_byte_0071974f;
 extern game_state_proc game_state_before_save_proc;
-extern uint8_t unknown_00719769;
-extern uint8_t unknown_0071976a;
 extern uint8_t game_state_write_is_checkpoint;
 extern void *memcpy(void *dest, const void *src, uint32_t count);
 extern uint8_t game_state_write_completed;
@@ -370,11 +367,11 @@ void *open_persistent_storage(char *name)
  */
 void perform_revert(void)
 {
-    if (game_state_revert_available == 0 && unknown_00746fa4 == 0) {
+    if (game_state_revert_available == 0 && halo::hs::globals::recover_saved_games_hack == 0) {
         split_screen_quit_prompt_string = 0xffff;
         network_join_error_reason = 0;
-        unknown_00719738 = 1;
-        main_globals_byte_0071974f = 0;
+        halo::main::fields::reset_map = 1;
+        halo::main::fields::lost_map = 0;
         return;
     }
 
@@ -398,11 +395,11 @@ void perform_save(uint8_t is_checkpoint)
     uint8_t result;
 
     game_state_before_save_proc();
-    unknown_00719769 = 0;
-    unknown_0071976a = 0;
+    halo::main::fields::time_is_running = 0;
+    halo::main::fields::reset_frame_timers = 0;
     result = game_state_queue_write(is_checkpoint);
     game_state_revert_available = result != 0;
-    unknown_0071976a = 1;
+    halo::main::fields::reset_frame_timers = 1;
 }
 
 /**

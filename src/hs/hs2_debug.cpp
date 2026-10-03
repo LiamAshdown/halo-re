@@ -1,3 +1,4 @@
+#include "halo/rasterizer/globals.hpp"
 #include "halo/hs/hs2_commands.hpp"
 
 
@@ -25,7 +26,6 @@ extern uint32_t network_bandwidth_graph_set_units_command(const char *units_name
 extern void *actor_mode_default_look_weights;
 extern void console_printf_verbose(ColorARGB *color, char *format, ...);
 extern void input_print_bound_controls(void);
-extern uint32_t renderer_unknown_69c684;
 extern uint32_t lens_flare_object_visibility_table[0x8c0];
 extern uint32_t lens_flare_marker_visibility[0x4002];
 extern int32_t lens_flare_instance_count;
@@ -229,7 +229,7 @@ void DebugCommands::evaluate_rasterizer_fixed_function_ambient(int16_t function_
     if (arguments != 0) {
         uint32_t level = (uint32_t)arguments[0] & 0xff;
 
-        renderer_unknown_69c684 = 0xff000000 | (level << 16) | (level << 8) | level;
+        halo::rasterizer::globals::fixed_function_ambient_color = 0xff000000 | (level << 16) | (level << 8) | level;
         hs_thread_return(0, thread_index);
     }
 }

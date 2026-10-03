@@ -1,3 +1,4 @@
+#include "halo/main/main_globals_fields.hpp"
 #include "halo/hs/hs2_commands.hpp"
 
 #include "objects.h"
@@ -24,7 +25,6 @@ extern game_main_globals *main_game_globals;
 extern int16_t pending_difficulty;
 extern int16_t local_player_count;
 extern uint8_t network_join_error_reason;
-extern uint8_t main_globals_byte_0071974f;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t main_globals_byte_0071973a;
 extern int32_t game_state_revert_time;
@@ -41,7 +41,6 @@ extern void game_engine_set_variant_by_name(const char *name);
 extern uint8_t main_globals_byte_0071974e;
 extern uint8_t *object_globals_pointer;
 extern void main_queue_map_change(char *map_name);
-extern uint8_t unknown_00719738;
 extern uint8_t main_queue_map_change_by_name_or_clear(char *name);
 extern void saved_game_delete_by_display_name(const char *name);
 extern uint8_t profile_globals_block[0x60a4];
@@ -235,7 +234,7 @@ void GameCommands::evaluate_game_is_cooperative(int16_t function_index, uint32_t
 void GameCommands::evaluate_game_lost(int16_t function_index, uint32_t thread_index, char first)
 {
     network_join_error_reason = 0;
-    main_globals_byte_0071974f = 1;
+    halo::main::fields::lost_map = 1;
     hs_thread_return(0, thread_index);
 }
 
@@ -248,7 +247,7 @@ void GameCommands::evaluate_game_lost(int16_t function_index, uint32_t thread_in
 void GameCommands::evaluate_game_revert(int16_t function_index, uint32_t thread_index, char first)
 {
     network_join_error_reason = 0;
-    main_globals_byte_0071974f = 0;
+    halo::main::fields::lost_map = 0;
     split_screen_quit_prompt_string = 0xffff;
     main_globals_byte_0071973a = 1;
     hs_thread_return(0, thread_index);
@@ -477,9 +476,9 @@ void GameCommands::evaluate_map_name(int16_t function_index, uint32_t thread_ind
 void GameCommands::evaluate_map_reset(int16_t function_index, uint32_t thread_index, char first)
 {
     network_join_error_reason = 0;
-    main_globals_byte_0071974f = 0;
+    halo::main::fields::lost_map = 0;
     split_screen_quit_prompt_string = 0xffff;
-    unknown_00719738 = 1;
+    halo::main::fields::reset_map = 1;
     hs_thread_return(0, thread_index);
 }
 
