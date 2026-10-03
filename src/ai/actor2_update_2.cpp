@@ -21,9 +21,6 @@ static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
 #define W(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
 #define D(p, o) (*(datum_index *)((uint8_t *)(p) + (o)))
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 
 /**
@@ -35,7 +32,7 @@ void ActorView::update_firing_state()
 {
     using namespace actor_update_firing_state_local;
     actor *a = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(a->actor_definition_tag);
+    uint8_t *actor_tag = halo::ai::tag_bytes(a->actor_definition_tag);
     ActorVariant *variant = halo::ai::tag_data<ActorVariant>(a->actor_variant_tag);
     uint8_t *def = (uint8_t *)halo::ai::actor_get_actor_definition(actor_index);
     uint8_t *weapon_tag = 0;
@@ -51,7 +48,7 @@ void ActorView::update_firing_state()
 
     weapon = halo::ai::actor_get_threat_weapon_object_index(actor_index);
     if (weapon != k_datum_index_none) {
-        weapon_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(weapon));
+        weapon_tag = halo::ai::tag_bytes(*(datum_index *)halo::ai::object_bytes(weapon));
     }
     weapon = halo::ai::actor_get_threat_weapon_object_index(actor_index);
 
@@ -98,7 +95,7 @@ void ActorView::update_firing_state()
         if (a->throw_grenade) {
             int16_t grenade = variant->grenade_type;
 
-            if (grenade != -1 && *(int8_t *)(OBJECT_DATA(a->unit_index) + 0x31e + grenade) == 0) {
+            if (grenade != -1 && *(int8_t *)(halo::ai::object_bytes(a->unit_index) + 0x31e + grenade) == 0) {
                 halo::units::unit_set_grenade_type_and_count_delta(a->unit_index, grenade, 1);
             }
             a->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::grenade);
@@ -114,7 +111,7 @@ void ActorView::update_firing_state()
         }
 
         if (*(int16_t *)((uint8_t *)def + 0x154) > 0 && a->firing_state != 2 && !(a->special_fire_timer > 0) && !(a->special_fire_strafe_cooldown > 0)) {
-            uint8_t *threat_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(weapon));
+            uint8_t *threat_tag = halo::ai::tag_bytes(*(datum_index *)halo::ai::object_bytes(weapon));
             uint8_t allowed;
 
             halo::game::weapon_get_zoom_fov_resolved(0x12, a->team);
@@ -362,7 +359,7 @@ void ActorView::update_firing_state()
                 a->line_of_fire_blocked_ticks += 1;
                 a->firing_state_timer += 1;
                 if (a->line_of_fire_blocked_ticks >= 0x2d && a->target_combat_status >= 7) {
-                    datum_index in_the_way = blocking_prop != -1 ? D(PROP(blocking_prop), 0x18) : k_datum_index_none;
+                    datum_index in_the_way = blocking_prop != -1 ? D(halo::ai::prop_bytes(blocking_prop), 0x18) : k_datum_index_none;
 
                     halo::ai::ai_communication_broadcast(0xe, a->unit_index, in_the_way, 2, k_datum_index_none, k_datum_index_none, 0);
                     a->line_of_fire_blocked_ticks = 0;
@@ -414,8 +411,5 @@ void ActorView::update_firing_state()
 }
 
 #undef D
-#undef PROP
-#undef OBJECT_DATA
-#undef TAG_DATA
 
 }

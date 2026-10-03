@@ -13,7 +13,6 @@
 namespace halo::ai {
 
 namespace actor_mode_uncover_tick_local {
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 
 /**
@@ -62,7 +61,7 @@ void ActorView::mode_uncover_tick()
     kind = act->mode_data.uncover.stage;
     if (kind == 0) {
         if (act->target_unit_index != k_datum_index_none) {
-            target_visible = (uint8_t)(((struct prop *)PROP(act->target_unit_index))->visual_perception > 0);
+            target_visible = (uint8_t)(((struct prop *)halo::ai::prop_bytes(act->target_unit_index))->visual_perception > 0);
             keep_going = (uint8_t)!(target_visible && act->target_combat_status < 5);
         }
     } else {
@@ -84,7 +83,6 @@ void ActorView::mode_uncover_tick()
     act->mode_data.uncover.done = done;
 }
 
-#undef PROP
 
 namespace actor_mode_uncover_update_local {
 }
@@ -142,7 +140,6 @@ void ActorView::mode_uncover_update()
 
 namespace actor_mode_vehicle_enter_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -195,8 +192,6 @@ void ActorView::mode_vehicle_update()
 
 
 namespace actor_mode_wait_process_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 

@@ -527,7 +527,6 @@ namespace c_actor_find_danger_escape {
 static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(halo::ai::vars().global_forward2d_pointer);
 
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 }
 
 
@@ -542,7 +541,7 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
     using namespace c_actor_find_danger_escape;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    Unit *unit_tag = halo::ai::tag_data<Unit>(*(datum_index *)OBJECT_DATA(act->unit_index));
+    Unit *unit_tag = halo::ai::tag_data<Unit>(*(datum_index *)halo::ai::object_bytes(act->unit_index));
     float step = unit_tag->distance_of_dive_anim;
     int16_t kind = -1;
     uint8_t blocked = 0;
@@ -658,7 +657,6 @@ uint8_t actor_find_danger_escape(datum_index actor_index, uint32_t *out_word, ui
 }
 }
 
-#undef OBJECT_DATA
 
 namespace c_actor_find_or_allocate_prop {
 enum {

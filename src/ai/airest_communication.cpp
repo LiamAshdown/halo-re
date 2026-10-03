@@ -96,7 +96,6 @@ void AiCommunication::broadcast_communication_event(int16_t gate, real_point3d *
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define ACTOR_DATA(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define AI_STATE_BYTES (*reinterpret_cast<uint8_t **>(&halo::ai::globals().state))
 namespace {
@@ -198,7 +197,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
     }
 
     if (unit_index != k_datum_index_none) {
-        unit = (unit_object *)OBJECT_DATA(unit_index);
+        unit = (unit_object *)halo::ai::object_bytes(unit_index);
         unit_team = (unit_team & 0xffff0000u) | static_cast<uint16_t>(unit->base.owner_team);
         unit_actor_index = unit->unit.actor_index;
         unit_class = broadcast_team_class((int16_t)unit_team);
@@ -222,7 +221,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         }
     }
     if (object_a != k_datum_index_none) {
-        other = (unit_object *)OBJECT_DATA(object_a);
+        other = (unit_object *)halo::ai::object_bytes(object_a);
         other_actor_index = other->unit.actor_index;
         other_team_or_class = static_cast<uint16_t>(other->base.owner_team);
         other_class = broadcast_team_class((int16_t)other_team_or_class);
@@ -521,7 +520,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         if (speaker_unit == k_datum_index_none) {
             reject = 1;
         } else {
-            unit_object *object = (unit_object *)OBJECT_DATA(speaker_unit);
+            unit_object *object = (unit_object *)halo::ai::object_bytes(speaker_unit);
 
             if ((static_cast<uint8_t>(object->base.vitality_flags) & 4) || ((struct object *)object)->type == 1) {
                 reject = 1;
@@ -803,7 +802,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             halo::units::unit_commit_speech(speaker_unit, (unit_speech *)speech, chosen->check_result);
 
             if ((uint16_t)chosen->animation != halo::k_word_none) {
-                unit_object *object = (unit_object *)OBJECT_DATA(speaker_unit);
+                unit_object *object = (unit_object *)halo::ai::object_bytes(speaker_unit);
                 real_vector2d direction;
 
                 direction.i = ((struct object *)object)->forward.i;
@@ -842,7 +841,6 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
     }
 }
 
-#undef OBJECT_DATA
 #undef ACTOR_DATA
 #undef AI_STATE_BYTES
 
@@ -989,7 +987,6 @@ int16_t AiCommunication::line_fade_multiplier(uint32_t unit_index, int16_t prior
     return status;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define ai_communication_event_definitions (reinterpret_cast<uint8_t *>(ai_communication_event_definitions))
 namespace {
 
@@ -1027,7 +1024,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
         if (*(int16_t *)row != event_id) {
             continue;
         }
-        object = (unit_object *)OBJECT_DATA(object_index);
+        object = (unit_object *)halo::ai::object_bytes(object_index);
         object_actor = object->unit.actor_index;
         class_index = *(int16_t *)(row + 0xa);
         priority = ai_communication_class_priority[class_index];
@@ -1072,7 +1069,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
         if (speaker_unit == k_datum_index_none) {
             continue;
         }
-        speaker = (unit_object *)OBJECT_DATA(speaker_unit);
+        speaker = (unit_object *)halo::ai::object_bytes(speaker_unit);
         if (speaker->unit.controlling_player != k_datum_index_none) {
             continue;
         }
@@ -1119,7 +1116,6 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
     }
 }
 
-#undef OBJECT_DATA
 #undef ai_communication_event_definitions
 
 #define global_structure_bsp (*reinterpret_cast<ScenarioStructureBSP * *>(&global_structure_bsp))
@@ -1864,8 +1860,6 @@ uint8_t DialogueCondition_42f690::test(datum_index object_index, uint32_t param_
 }
 
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
@@ -1892,21 +1886,19 @@ uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t param_
     if (own_actor == k_datum_index_none || actor_index == k_datum_index_none) {
         return 0;
     }
-    a_target = ((struct actor *)ACTOR(own_actor))->target_unit_index;
+    a_target = ((struct actor *)halo::ai::actor_bytes(own_actor))->target_unit_index;
     if (a_target == k_datum_index_none) {
         return 0;
     }
-    b_target = ((struct actor *)ACTOR(actor_index))->target_unit_index;
+    b_target = ((struct actor *)halo::ai::actor_bytes(actor_index))->target_unit_index;
     if (b_target == k_datum_index_none) {
         return 0;
     }
-    return (uint8_t)(((struct prop *)PROP(a_target))->object_index == ((struct prop *)PROP(b_target))->object_index);
+    return (uint8_t)(((struct prop *)halo::ai::prop_bytes(a_target))->object_index == ((struct prop *)halo::ai::prop_bytes(b_target))->object_index);
 }
 
 }
 
-#undef ACTOR
-#undef PROP
 #undef OBJECT
 
 namespace {
@@ -1991,7 +1983,6 @@ void AiCommunication::dispatch_queued_order(ai_queued_order *order, datum_index 
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 /**
  * Behaviour of ai propagate communication reaction, moved unchanged from the original free function.
  *
@@ -2017,7 +2008,7 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
     if (((struct actor_squad_order_header *)o)->type == 0 && *(int16_t *)(o + 0xc) <= 0) {
         return;
     }
-    obj = OBJECT_DATA(object_index);
+    obj = halo::ai::object_bytes(object_index);
     object_team = ((object *)obj)->owner_team;
     location = obj + 0x98;
     halo::objects::object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1);
@@ -2026,7 +2017,7 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
         gate = 3;
     }
     if (((object *)obj)->parent_object != k_datum_index_none) {
-        location = OBJECT_DATA(halo::objects::object_get_root_object_index(object_index)) + 0x98;
+        location = halo::ai::object_bytes(halo::objects::object_get_root_object_index(object_index)) + 0x98;
     }
     if (!halo::ai::globals().state->actors_valid) {
         return;
@@ -2090,7 +2081,6 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
     }
 }
 
-#undef OBJECT_DATA
 
 static inline void * object_try_and_get__ai_select_communication_target(datum_index object_index, int32_t kind)
 {

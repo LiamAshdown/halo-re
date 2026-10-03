@@ -19,7 +19,6 @@
 #include "halo/core/libm.hpp"
 
 namespace c_actor_attempt_grenade_throw {
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 
 static uint32_t actor_death_random_16(void)
 {
@@ -47,7 +46,7 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
     real roll;
 
     if (a->awareness_level == 3 && a->combat_status >= 2) {
-        unit = OBJECT_DATA(a->unit_index);
+        unit = halo::ai::object_bytes(a->unit_index);
         if (((((unit_object *)unit)->unit.flags >> 6) & 1) &&
             halo::units::unit_get_weapon_object_index(a->unit_index, ((unit_object *)unit)->unit.current_weapon_index) != k_datum_index_none &&
             ((struct unit_object *)unit)->unit.delayed_weapon_drop_ticks > 0) {
@@ -87,7 +86,7 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
     }
 
     roll = (real)(int32_t)actor_death_random_16() * 1.5259022e-05f;
-    unit = OBJECT_DATA(a->unit_index);
+    unit = halo::ai::object_bytes(a->unit_index);
     weapon = ((unit_object *)unit)->unit.current_weapon_index != -1 ? *(datum_index *)(unit + 0x2f8 + ((unit_object *)unit)->unit.current_weapon_index * 4)
                                               : k_datum_index_none;
     if (!halo::ai::globals().state->grenades_enabled || roll < variant->don_t_drop_grenades_chance) {
@@ -125,7 +124,6 @@ void actor_attempt_grenade_throw(datum_index actor_index)
 }
 }
 
-#undef OBJECT_DATA
 
 namespace c_actor_can_throw_grenade_at_target {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);

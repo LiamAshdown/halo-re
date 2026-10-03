@@ -84,4 +84,28 @@ inline T *tag_data(uint32_t handle)
     return static_cast<T *>(halo::cache::globals().tag_instances[handle & k_slot_mask].data);
 }
 
+/** Returns the actor record that `handle` indexes as raw bytes, for offset-based field access that has no typed member yet. */
+inline uint8_t *actor_bytes(uint32_t handle)
+{
+    return reinterpret_cast<uint8_t *>(actor_at(handle));
+}
+
+/** Returns the prop record that `handle` indexes as raw bytes. */
+inline uint8_t *prop_bytes(uint32_t handle)
+{
+    return reinterpret_cast<uint8_t *>(prop_at(handle));
+}
+
+/** Returns the object record that `handle` indexes as raw bytes. */
+inline uint8_t *object_bytes(uint32_t handle)
+{
+    return reinterpret_cast<uint8_t *>(object_at(handle));
+}
+
+/** Returns the loaded tag data of the tag that `handle` names as raw bytes. */
+inline uint8_t *tag_bytes(uint32_t handle)
+{
+    return static_cast<uint8_t *>(halo::cache::globals().tag_instances[handle & k_slot_mask].data);
+}
+
 }  // namespace halo::ai

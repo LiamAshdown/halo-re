@@ -1144,7 +1144,6 @@ uint8_t AiObjects::pursuit_note_object(datum_index object_index, datum_index enc
     return added;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 /**
  * Behaviour of ai refresh unit stimulus and alert, moved unchanged from the original free function.
  *
@@ -1158,7 +1157,7 @@ void AiObjects::refresh_unit_stimulus_and_alert(datum_index object_index, int16_
     if (!halo::ai::globals().state->actors_valid || object_index == k_datum_index_none || priority <= 0) {
         return;
     }
-    obj = (unit_object *)OBJECT_DATA(object_index);
+    obj = (unit_object *)halo::ai::object_bytes(object_index);
     now = halo::game::globals().game_time->game_time;
     if (!(stimulus_value > obj->unit.ai_stimulus_type) && !(now > static_cast<int32_t>(obj->unit.ai_stimulus_tick) + 0x1e)) {
         return;
@@ -1169,7 +1168,7 @@ void AiObjects::refresh_unit_stimulus_and_alert(datum_index object_index, int16_
         datum_index child;
 
         for (child = ((object *)obj)->first_child_object; child != k_datum_index_none;) {
-            uint8_t *c = OBJECT_DATA(child);
+            uint8_t *c = halo::ai::object_bytes(child);
 
             if (((struct object *)c)->type == 0) {
                 halo::ai::ai_alert_actors_in_grenade_radius(child, stimulus_value, priority);
@@ -1181,7 +1180,6 @@ void AiObjects::refresh_unit_stimulus_and_alert(datum_index object_index, int16_
     }
 }
 
-#undef OBJECT_DATA
 
 /**
  * Behaviour of ai unit clear actor vocalization, moved unchanged from the original free function.

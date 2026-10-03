@@ -1293,17 +1293,15 @@ void ReferenceView::squad_set_automatic_migration(uint8_t value)
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask])
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 namespace {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
 {
-    uint8_t *self = OBJECT_DATA(object_index);
-    unit_object *vehicle = (unit_object *)OBJECT_DATA(vehicle_index);
+    uint8_t *self = halo::ai::object_bytes(object_index);
+    unit_object *vehicle = (unit_object *)halo::ai::object_bytes(vehicle_index);
     uint8_t *nodes = self + ((struct object *)self)->nodes.offset;
-    uint8_t *seat = *(uint8_t **)(TAG_DATA(vehicle->base.definition_tag) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
+    uint8_t *seat = *(uint8_t **)(halo::ai::tag_bytes(vehicle->base.definition_tag) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
     uint8_t *model_nodes;
     object_marker marker;
     real_point3d offset;
@@ -1315,7 +1313,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
     offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
-    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
+    model_nodes = *(uint8_t **)(halo::ai::tag_bytes(*(datum_index *)(halo::ai::tag_bytes(*(datum_index *)self) + 0x34)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && vehicle->unit.animation_state != 0x25 &&
         ((struct object *)self)->parent_object != k_datum_index_none) {
@@ -1335,7 +1333,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     position.z = offset.z + ((struct object *)self)->position.z - default_translation.z;
     halo::objects::object_set_position_and_orientation(object_index, 0, 0, &position);
     {
-        uint8_t *reloaded = OBJECT_DATA(object_index);
+        uint8_t *reloaded = halo::ai::object_bytes(object_index);
 
         halo::math::matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
@@ -1343,8 +1341,8 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     *(real_vector3d *)&((struct object *)self)->forward.i = basis.forward;
     *(real_vector3d *)&((struct object *)self)->up.i = basis.up;
     {
-        unit_object *object = (unit_object *)OBJECT_DATA(object_index);
-        uint8_t *object_tag = TAG_DATA(object->base.definition_tag);
+        unit_object *object = (unit_object *)halo::ai::object_bytes(object_index);
+        uint8_t *object_tag = halo::ai::tag_bytes(object->base.definition_tag);
 
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (static_cast<uint8_t>(object->base.flags) & 1) != 0) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
@@ -1452,29 +1450,29 @@ void ReferenceView::units_exit_vehicles()
             continue;
         }
         if (((struct object *)self)->type == 1) {
-            uint8_t *me = OBJECT_DATA(unit_index);
+            uint8_t *me = halo::ai::object_bytes(unit_index);
 
             if (((struct object *)me)->parent_object != k_datum_index_none && *(int16_t *)(me + 0x2f0) != -1) {
                 biped_detach_from_seat(unit_index, ((struct object *)me)->parent_object);
             }
             biped_free_local_player_history(me);
         } else if (!halo::units::unit_state_is_scripted_animation((unit_data *)(self + k_unit_data_offset))) {
-            uint8_t *self_tag = TAG_DATA(*(datum_index *)self);
+            uint8_t *self_tag = halo::ai::tag_bytes(*(datum_index *)self);
             datum_index graph = *(datum_index *)(self_tag + 0x44);
-            uint8_t *seat_block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)self[0x2a0] * 0x64;
+            uint8_t *seat_block = *(uint8_t **)(halo::ai::tag_bytes(graph) + 0x10) + (int8_t)self[0x2a0] * 0x64;
 
             if (*(int32_t *)(seat_block + 0x40) > 8 && (*(int16_t **)(seat_block + 0x44))[8] != -1) {
                 int16_t exit_animation = (*(int16_t **)(seat_block + 0x44))[8];
                 unit_object *object;
                 uint8_t *object_tag;
 
-                if (*(datum_index *)(OBJECT_DATA(vehicle_index) + 0x324) == unit_index) {
+                if (*(datum_index *)(halo::ai::object_bytes(vehicle_index) + 0x324) == unit_index) {
                     halo::units::unit_notify_weapon_removed((int32_t)vehicle_index);
                 }
                 halo::units::unit_set_custom_animation(unit_index, *(datum_index *)(self_tag + 0x44),
                     halo::models::animation_choose_random_permutation(graph, exit_animation, static_cast<animation_random_stream>(1)));
-                object = (unit_object *)OBJECT_DATA(unit_index);
-                object_tag = TAG_DATA(object->base.definition_tag);
+                object = (unit_object *)halo::ai::object_bytes(unit_index);
+                object_tag = halo::ai::tag_bytes(object->base.definition_tag);
                 if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
                     if ((static_cast<uint8_t>(object->base.flags) & 1) != 0) {
                         halo::objects::object_for_each_light_attachment(unit_index, 0, 1);
@@ -1494,9 +1492,7 @@ void ReferenceView::units_exit_vehicles()
     }
 }
 
-#undef OBJECT_DATA
 #undef OBJECT_HEADER
-#undef TAG_DATA
 
 /**
  * Behaviour of squad members assign team and request order, moved unchanged from the original free

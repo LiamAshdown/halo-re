@@ -26,7 +26,6 @@
 namespace halo::ai {
 
 namespace actor_target_data_acquire_local {
-#define PROP(h) (halo::ai::prop_at((h)))
 }
 
 /**
@@ -47,13 +46,13 @@ uint8_t ActorView::target_data_acquire(datum_index object_index, datum_index own
     if (resolved == k_datum_index_none) {
         return 1;
     }
-    target = PROP(resolved);
+    target = halo::ai::prop_at(resolved);
     current = resolved;
     if (target->state >= 2 && target->state <= 3) {
         result = 0;
     } else if (target->pair_index != k_datum_index_none) {
         datum_index pair = target->pair_index;
-        prop *paired = PROP(pair);
+        prop *paired = halo::ai::prop_at(pair);
         uint8_t fresh = 0;
 
         if (pair_reference != k_datum_index_none) {
@@ -67,14 +66,14 @@ uint8_t ActorView::target_data_acquire(datum_index object_index, datum_index own
         halo::ai::actor_target_data_refresh(actor_index, pair, scratch, (char)fresh, 1);
         halo::ai::actor_target_update_tracking_speed(actor_index, pair, scratch);
         current = pair;
-        target = PROP(pair);
+        target = halo::ai::prop_at(pair);
     } else {
         datum_index created;
 
         if (pair_reference != k_datum_index_none) {
             created = halo::ai::actor_allocate_paired_prop_with_kind(actor_index, resolved, pair_reference);
             if (created != k_datum_index_none) {
-                prop *copy = PROP(created);
+                prop *copy = halo::ai::prop_at(created);
 
                 copy->object_index = target->object_index;
                 copy->owner_actor_index = target->owner_actor_index;
@@ -88,11 +87,11 @@ uint8_t ActorView::target_data_acquire(datum_index object_index, datum_index own
             return 0;
         }
         current = created;
-        target = PROP(created);
+        target = halo::ai::prop_at(created);
     }
 
     if (owner_reference == k_datum_index_none ||
-        (pair_reference != k_datum_index_none && PROP(pair_reference)->visual_perception >= 2)) {
+        (pair_reference != k_datum_index_none && halo::ai::prop_at(pair_reference)->visual_perception >= 2)) {
         target->has_current_information = 1;
         target->information_age = 0;
         target->information_source_actor = owner_reference;
@@ -102,7 +101,6 @@ uint8_t ActorView::target_data_acquire(datum_index object_index, datum_index own
     return result;
 }
 
-#undef PROP
 
 namespace actor_target_data_refresh_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);

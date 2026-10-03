@@ -24,7 +24,6 @@ static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo
 
 
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 }
 
 
@@ -39,7 +38,7 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
     using namespace c_actor_avoid_obstacle_and_project;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    object *vehicle = (object *)OBJECT_DATA(vehicle_index);
+    object *vehicle = (object *)halo::ai::object_bytes(vehicle_index);
     Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(vehicle->definition_tag);
     real_point3d point = *entry;
     uint8_t near_line = in_out_near_line != 0 ? *in_out_near_line : 0;
@@ -183,7 +182,6 @@ uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index ve
 }
 }
 
-#undef OBJECT_DATA
 
 namespace c_actor_avoidance_build_direction_tables {
 static auto &actor_avoidance_samples_a = halo::link::ref<float [16][7]>(halo::ai::vars().actor_avoidance_samples_a);
@@ -672,7 +670,6 @@ void actor_delete_swarm(datum_index actor_index)
 namespace c_actor_evaluate_search_node {
 
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
 static actor *actor_try_get(datum_index handle)
 {
@@ -722,7 +719,7 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
     if (halo::units::unit_is_seat_occupied((int32_t)vehicle_index, seat_index)) {
         return 0;
     }
-    if ((TAG_DATA(act->actor_definition_tag)[0x4] & 8) && !halo::units::unit_seat_flag_bit10(vehicle_index, seat_index)) {
+    if ((halo::ai::tag_bytes(act->actor_definition_tag)[0x4] & 8) && !halo::units::unit_seat_flag_bit10(vehicle_index, seat_index)) {
         return 0;
     }
     if (!halo::units::unit_find_weapon_marker_transform(act->unit_index, vehicle_index, seat_index, &entry, &seat,
@@ -805,7 +802,6 @@ uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_
 }
 }
 
-#undef TAG_DATA
 
 namespace c_actor_fill_unit_position_context {
 static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);

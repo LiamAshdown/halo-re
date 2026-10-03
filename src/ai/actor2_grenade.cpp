@@ -322,7 +322,6 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
 namespace actor_try_grenade_evasion_local {
 extern "C" {
 extern game_time_globals *game_time;
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 extern actor_mode_definition actor_mode_definitions[16];
 }
 }
@@ -336,7 +335,7 @@ uint8_t ActorView::try_grenade_evasion(uint8_t allow_pain_reaction, uint8_t use_
 {
     using namespace actor_try_grenade_evasion_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    uint8_t *actor_tag = halo::ai::tag_bytes(act->actor_definition_tag);
     int16_t grade;
     int32_t now;
 
@@ -365,11 +364,9 @@ uint8_t ActorView::try_grenade_evasion(uint8_t allow_pain_reaction, uint8_t use_
     return 0;
 }
 
-#undef TAG_DATA
 
 namespace actor_update_grenade_and_morale_reactions_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 
 /**
@@ -381,7 +378,7 @@ char ActorView::update_grenade_and_morale_reactions()
 {
     using namespace actor_update_grenade_and_morale_reactions_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *variant = TAG_DATA(act->actor_variant_tag);
+    uint8_t *variant = halo::ai::tag_bytes(act->actor_variant_tag);
     Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     int32_t now = game_time->game_time;
     char result = 0;
@@ -464,7 +461,6 @@ char ActorView::update_grenade_and_morale_reactions()
     return result;
 }
 
-#undef TAG_DATA
 
 namespace actor_update_grenade_eligibility_state_local {
 }
@@ -520,8 +516,6 @@ void ActorView::update_grenade_eligibility_state()
 
 namespace actor_update_grenade_throw_decision_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 
 /**
@@ -533,7 +527,7 @@ uint8_t ActorView::update_grenade_throw_decision()
 {
     using namespace actor_update_grenade_throw_decision_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *variant = TAG_DATA(act->actor_variant_tag);
+    uint8_t *variant = halo::ai::tag_bytes(act->actor_variant_tag);
     int16_t mode = act->mode;
     uint8_t result = 0;
 
@@ -561,7 +555,6 @@ uint8_t ActorView::update_grenade_throw_decision()
     return result;
 }
 
-#undef TAG_DATA
 
 namespace actor_validate_grenade_ally_candidate_local {
 static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);

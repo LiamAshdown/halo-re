@@ -130,7 +130,6 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 /**
  * Behaviour of ai alert actors in grenade radius, moved unchanged from the original free function.
  *
@@ -138,7 +137,7 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
  */
 void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t stimulus, int16_t gate)
 {
-    uint8_t *source = OBJECT_DATA(source_unit_index);
+    uint8_t *source = halo::ai::object_bytes(source_unit_index);
     uint8_t *location = source + 0x98;
     datum_index owner_actor = *(datum_index *)(source + 0x1f8);
     uint32_t cluster_bits[16];
@@ -153,7 +152,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
         owner_actor = *(datum_index *)(source + 0x1f4);
     }
     if (((struct object *)source)->parent_object != k_datum_index_none) {
-        location = OBJECT_DATA(halo::objects::object_get_root_object_index(source_unit_index)) + 0x98;
+        location = halo::ai::object_bytes(halo::objects::object_get_root_object_index(source_unit_index)) + 0x98;
     }
     cluster_count = *(int32_t *)(halo::scenario::globals().structure_bsp + 0x134);
     memset(cluster_bits, 0, sizeof(cluster_bits));
@@ -214,7 +213,6 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
     }
 }
 
-#undef OBJECT_DATA
 
 /**
  * Behaviour of ai build priority target list, moved unchanged from the original free function.
@@ -638,7 +636,6 @@ int16_t AiSystem::pick_weighted_candidate(ai_scored_candidate *table, ai_scored_
     return chosen;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 /**
  * Behaviour of ai process vehicle entry queue, moved unchanged from the original free function.
  *
@@ -650,7 +647,7 @@ void AiSystem::process_vehicle_entry_queue()
 
     for (queue_index = 0; queue_index < halo::ai::globals().state->vehicle_entry_count; queue_index++) {
         datum_index vehicle_index = halo::ai::globals().state->vehicle_entry_queue[queue_index];
-        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)OBJECT_DATA(vehicle_index) & halo::k_slot_mask].data;
+        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)halo::ai::object_bytes(vehicle_index) & halo::k_slot_mask].data;
         int16_t seat_index;
 
         for (seat_index = 0; seat_index < *(int32_t *)(vehicle_tag + 0x2e4); seat_index++) {
@@ -664,11 +661,11 @@ void AiSystem::process_vehicle_entry_queue()
             }
             memset(&request, 0, 0x1c);
             *(int16_t *)((uint8_t *)&request + 0x1a) = -1;
-            vehicle = (object *)OBJECT_DATA(vehicle_index);
+            vehicle = (object *)halo::ai::object_bytes(vehicle_index);
             if (((vehicle_object *)vehicle)->base.parent_object == k_datum_index_none) {
                 request.position = *(real_point3d *)&((vehicle_object *)vehicle)->base.position.x;
             } else {
-                uint8_t *parent = OBJECT_DATA(((vehicle_object *)vehicle)->base.parent_object);
+                uint8_t *parent = halo::ai::object_bytes(((vehicle_object *)vehicle)->base.parent_object);
 
                 halo::math::matrix4x3_transform_point(request.position, *&vehicle->position,
                     *(real_matrix4x3 *)(parent + ((struct object *)parent)->nodes.offset + (int8_t)vehicle->parent_marker_index * 0x34));
@@ -683,7 +680,6 @@ void AiSystem::process_vehicle_entry_queue()
     halo::ai::globals().state->vehicle_entry_count = 0;
 }
 
-#undef OBJECT_DATA
 
 /**
  * Behaviour of ai recompute all relationship flags, moved unchanged from the original free function.
@@ -783,7 +779,6 @@ void AiSystem::reset_all_actors_perception()
     }
 }
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define OBJ(h) ((uint8_t *)halo::ai::object_at((h)))
 #define AI_STATE_BYTES (*reinterpret_cast<uint8_t **>(&halo::ai::globals().state))
 namespace {
@@ -953,11 +948,11 @@ void AiSystem::reset_fire_group_assignments()
     }
 
     for (actor_index = *(datum_index *)(AI_STATE_BYTES + 8); actor_index != k_datum_index_none;) {
-        datum_index following = ((struct actor *)ACTOR(actor_index))->next_in_encounter;
+        datum_index following = ((struct actor *)halo::ai::actor_bytes(actor_index))->next_in_encounter;
         datum_index prop_index;
 
         halo::ai::actor_clear_target_state(actor_index);
-        for (prop_index = ((struct actor *)ACTOR(actor_index))->first_prop; prop_index != k_datum_index_none;) {
+        for (prop_index = ((struct actor *)halo::ai::actor_bytes(actor_index))->first_prop; prop_index != k_datum_index_none;) {
             prop *p = halo::ai::prop_at(prop_index);
 
             prop_index = p->next_in_actor;
@@ -969,7 +964,6 @@ void AiSystem::reset_fire_group_assignments()
     }
 }
 
-#undef ACTOR
 #undef OBJ
 #undef AI_STATE_BYTES
 

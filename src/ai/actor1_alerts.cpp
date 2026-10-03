@@ -572,7 +572,6 @@ uint8_t actor_escalate_check_leader_flag(datum_index actor_index)
 namespace c_actor_escalate_check_shield_damage {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 
 
@@ -587,7 +586,7 @@ uint8_t halo::ai::alert_ops::escalate_check_shield_damage()
     using namespace c_actor_escalate_check_shield_damage;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    uint8_t *actor_tag = halo::ai::tag_bytes(act->actor_definition_tag);
 
     if (!act->unknown_2e8[4] || !(act->recent_body_damage > ((Actor *)actor_tag)->berserk_damage_amount) ||
         !(act->body_vitality < ((Actor *)actor_tag)->berserk_damage_threshold)) {
@@ -607,13 +606,10 @@ uint8_t actor_escalate_check_shield_damage(datum_index actor_index)
 }
 }
 
-#undef TAG_DATA
 
 namespace c_actor_escalate_check_target_close {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 
 
@@ -632,8 +628,8 @@ uint8_t halo::ai::alert_ops::escalate_check_target_close()
     if (act->combat_status < 5) {
         return 0;
     }
-    if (!(((struct prop *)PROP(act->target_unit_index))->distance <
-          *(float *)(TAG_DATA(act->actor_definition_tag) + 0x3a0))) {
+    if (!(((struct prop *)halo::ai::prop_bytes(act->target_unit_index))->distance <
+          *(float *)(halo::ai::tag_bytes(act->actor_definition_tag) + 0x3a0))) {
         return 0;
     }
     if (act->escalation_level <= 2) {
@@ -649,14 +645,10 @@ uint8_t actor_escalate_check_target_close(datum_index actor_index)
 }
 }
 
-#undef PROP
-#undef TAG_DATA
 
 namespace c_actor_escalate_check_weapon_range {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
 }
 
@@ -672,13 +664,13 @@ uint8_t halo::ai::alert_ops::escalate_check_weapon_range()
     using namespace c_actor_escalate_check_weapon_range;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    uint8_t *actor_tag = halo::ai::tag_bytes(act->actor_definition_tag);
     ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
 
     if (static_cast<datum_index>(act->stuck_projectile_index) == k_datum_index_none || act->combat_status < 5) {
         return 0;
     }
-    if (!(((struct prop *)PROP(act->target_unit_index))->distance < definition->berserk_firing_ranges[1])) {
+    if (!(((struct prop *)halo::ai::prop_bytes(act->target_unit_index))->distance < definition->berserk_firing_ranges[1])) {
         return 0;
     }
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
@@ -698,8 +690,6 @@ uint8_t actor_escalate_check_weapon_range(datum_index actor_index)
 }
 }
 
-#undef PROP
-#undef TAG_DATA
 
 namespace c_actor_escalate_to_guard_or_combat {
 
@@ -744,8 +734,6 @@ namespace c_actor_evaluate_combat_state_transition {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 }
 
 
@@ -761,7 +749,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
     uint32_t actor_index = datum;
     actor *a = halo::ai::actor_at(actor_index);
     Actor *actor_tag = halo::ai::tag_data<Actor>(a->actor_definition_tag);
-    uint8_t *variant = TAG_DATA(a->actor_variant_tag);
+    uint8_t *variant = halo::ai::tag_bytes(a->actor_variant_tag);
     ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
     uint8_t changed = 0;
     uint8_t fallback = 0;
@@ -846,7 +834,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 uint8_t ready = 1;
 
                 if (a->last_vehicle_charge_time != -1) {
-                    Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)OBJECT_DATA(a->active_unit_index));
+                    Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)halo::ai::object_bytes(a->active_unit_index));
 
                     ready = (float)game_time->game_time >
                         vehicle_tag->ai_charge_repeat_timeout * 30.0f + (float)a->last_vehicle_charge_time;
@@ -930,7 +918,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 return consider_zero();
             }
             {
-                Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)OBJECT_DATA(a->active_unit_index));
+                Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)halo::ai::object_bytes(a->active_unit_index));
                 float vehicle_range = vehicle_tag->ai_strafing_abort_range;
 
                 if (a->movement_completed && a->active_movement.type == 5 &&
@@ -961,8 +949,6 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
 }
 }
 
-#undef OBJECT_DATA
-#undef TAG_DATA
 
 namespace c_actor_is_within_alert_range {
 }

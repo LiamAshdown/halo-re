@@ -279,7 +279,6 @@ void actor_mode_avoid_update(datum_index actor_index)
 
 
 namespace c_actor_mode_converse_exit {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 }
 
@@ -294,7 +293,7 @@ void halo::ai::converse_mode::exit()
 {
     using namespace c_actor_mode_converse_exit;
     datum_index actor_index = datum;
-    datum_index conversation = ((struct actor *)ACTOR(actor_index))->conversation_index;
+    datum_index conversation = ((struct actor *)halo::ai::actor_bytes(actor_index))->conversation_index;
 
     if (conversation != k_datum_index_none) {
         halo::ai::ai_conversation_stop(conversation, 0, 0);
@@ -308,7 +307,6 @@ void actor_mode_converse_exit(datum_index actor_index)
 }
 }
 
-#undef ACTOR
 
 namespace c_actor_mode_converse_process {
 
