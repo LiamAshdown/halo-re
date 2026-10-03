@@ -862,7 +862,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
         p = halo::ai::prop_at(a->target_unit_index);
         distance = p->distance;
 
-        if (a->mode == 0xa && *(int16_t *)((uint8_t *)a + 0xa0) == 1) {
+        if (a->mode == 0xa && a->mode_data.charge.stage == 1) {
             uint8_t engaged = p->seen || (p->shooting && (int8_t)p->distance_class <= 1);
 
             if (!engaged && ((Actor *)actor_tag)->stalking_discovery_time > 0.0f &&
@@ -883,7 +883,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
 
         if (!(halo::ai::actor_has_unshielded_threat_weapon(actor_index) &&
               (p->relationship_object_index != k_datum_index_none || p->swarm_owned)) &&
-            !(a->mode == 0xa && (*(int16_t *)((uint8_t *)a + 0xa0) == 2 || *(int16_t *)((uint8_t *)a + 0xa0) == 3)) &&
+            !(a->mode == 0xa && (a->mode_data.charge.stage == 2 || a->mode_data.charge.stage == 3)) &&
             !changed && !a->swarm && a->active_unit_index == k_datum_index_none &&
             a->firing_state != 2) {
             int32_t now = game_time->game_time;
