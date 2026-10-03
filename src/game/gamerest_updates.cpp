@@ -137,8 +137,8 @@ void UpdateClient::dispose()
 }
 
 /**
- * UNSURE: see header. Copies the staged 8-dword entry into every element of `out` (0x20 bytes
- * each, one per iterated element), overwriting dword 0 with a masked value derived from
+ * Copies the staged 8-dword entry into every element of `out` (0x20 bytes
+ * each, one per element of the client update queue array), overwriting dword 0 with a masked value derived from
  * update_client_unknown_ec8, and decrements update_client_unknown_ec4 the first time through.
  * Advances update_client_base_tick and returns a packed (0, success) result.
  *
@@ -154,7 +154,7 @@ uint32_t UpdateClient::distribute_staged_entry(uint8_t *out_bytes)
 
     update_client_unknown_ec8 = update_client_staged[0] & k_held_control_flags_mask;
 
-    iter.data = 0;
+    iter.data = update_client_queues;
     iter.next_index = 0;
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;

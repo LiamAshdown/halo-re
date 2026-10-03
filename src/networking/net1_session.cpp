@@ -482,7 +482,8 @@ uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, ui
 }
 
 /**
- * this module, 0x4e19c0
+ * Stages one {desired team, ping} pair per live player and, when at least one exists, encodes message 0x35 and
+ * broadcasts it to every session machine through 0x4e19c0.
  *
  * @address 0x4deec0
  */
@@ -499,15 +500,15 @@ void GameRuntime::map_cycle_list_broadcast()
         entries[count] = 0;
     }
     count = 0;
-    iterator.data = 0;
+    iterator.data = player_data;
     iterator.next_index = 0;
-    iterator.index = 0;
+    iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     item = halo::memory::data_iterator_next(&iterator);
     if (item != 0) {
         do {
-            scratch[count].unknown_00 = *(uint8_t *)((uint8_t *)item + 0x67);
-            scratch[count].unknown_04 = *(uint32_t *)&((struct item_object *)item)->base.maximum_shield_vitality;
+            scratch[count].unknown_00 = (uint8_t)((player *)item)->team_index_desired;
+            scratch[count].unknown_04 = (uint32_t)((player *)item)->ping;
             entries[count] = &scratch[count];
             count = count + 1;
             item = halo::memory::data_iterator_next(&iterator);

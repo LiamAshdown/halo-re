@@ -330,12 +330,12 @@ typedef struct network_timer_pair {
 // ---------------------------------------------------------------------------
 // network_map_cycle_entry  (0x4deec0 network_map_cycle_list_broadcast)
 // The 8-byte record staged per iterated item into the scratch array at 0x00861d60
-// before the type 0x35 broadcast. The source item type is not established.
+// before the type 0x35 broadcast, one per player (player_data): the desired team and the ping.
 // ---------------------------------------------------------------------------
 typedef struct network_map_cycle_entry {
-    uint8_t unknown_00;        // 0x00 from item+0x67
+    uint8_t unknown_00;        // 0x00 from player.team_index_desired (+0x67)
     uint8_t pad_01[3];         // 0x01
-    uint32_t unknown_04;       // 0x04 from item+0xdc
+    uint32_t unknown_04;       // 0x04 from player.ping (+0xdc)
 } network_map_cycle_entry;     // size 0x08
 
 // ---------------------------------------------------------------------------
