@@ -26,7 +26,7 @@ void HsPlayerFunctions::vehicle_gunner_evaluate(int16_t function_index, uint32_t
         datum_index gunner = (datum_index)halo::k_dword_none;
 
         if (unit_obj != 0) {
-            gunner = ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->gunner_unit_index;
+            gunner = (halo::game::unit_data_of(unit_obj))->gunner_unit_index;
         }
         halo::hs::hs_thread_return((int32_t)gunner, thread_index);
     }

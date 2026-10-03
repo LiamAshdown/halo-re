@@ -4,6 +4,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/game/records.hpp"
 
 
 namespace halo::game {
@@ -34,7 +35,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
     }
 
     obj = halo::objects::object_try_and_get(unit_handle, _object_mask_unit);
-    unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit = halo::game::unit_data_of(obj);
     if (unit->controlling_player == (datum_index)-1) {
         return;
     }

@@ -50,7 +50,7 @@ namespace halo::game {
  */
 void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
 {
-    item_data *item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
+    item_data *item = halo::game::item_data_of(flag_obj);
     int32_t team;
     int32_t other_team;
     datum_index holder_player_index;
@@ -80,7 +80,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                             object *unit_obj = halo::objects::object_try_and_get(carrier->unit, _object_mask_unit);
                             if (unit_obj != (object *)0) {
                                 unit_data *unit =
-                                    (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+                                    halo::game::unit_data_of(unit_obj);
                                 datum_index current_weapon =
                                     halo::units::unit_get_weapon_object_index((uint32_t)carrier->unit, unit->current_weapon_index);
                                 if (current_weapon != (datum_index)flag_handle) {
@@ -135,7 +135,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                     ctf_active_team = (uint8_t)toggled;
                     flag_handle = *(uint32_t *)((uint8_t *)&ctf_team_flag_object[0] + (int16_t)toggled * 4);
                     flag_obj = halo::game::object_at(flag_handle);
-                    item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
+                    item = halo::game::item_data_of(flag_obj);
                     halo::game::game_engine_queue_multiplayer_sound(0x25 + (((struct object *)flag_obj)->owner_team != 0), halo::k_dword_none, 1);
                     halo::game::game_engine_ctf_reset_team_return_credit(flag_handle);
                     custom_waypoints[2] = CTF_CUSTOM_WAYPOINT_ZERO;
@@ -247,7 +247,7 @@ void CtfEngine::clear_carrier(datum_index flag_object_index, real_point3d *posit
     unknown_22c = &((weapon_object *)flag_obj)->weapon.flags;
     *unknown_22c = *unknown_22c & ~(uint32_t)_weapon_game_expiry_armed_bit;
 
-    item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
+    item = halo::game::item_data_of(flag_obj);
     item->held_game_time = game_time->game_time;
     item->ignore_object_index = (datum_index)halo::k_dword_none;
 }

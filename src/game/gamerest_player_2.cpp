@@ -264,7 +264,7 @@ void PlayerView::compute_view_forward_vector(real *yaw_pitch, real_vector3d *out
         return;
     }
 
-    unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit = halo::game::unit_data_of(unit_obj);
     parent_definition = (Unit *)halo::game::tag_data_at(parent_obj->definition_tag);
     seat = &((UnitSeat *)parent_definition->seats.pointer)[unit->vehicle_seat_index];
     if ((seat->flags & 0x10) != 0) {
@@ -354,7 +354,7 @@ int16_t PlayerView::pick_random_starting_location()
 void KillStreak::begin(int16_t slot)
 {
     player *p = halo::game::player_at(player_handle);
-    unit_data *unit = (unit_data *)((uint8_t *)halo::game::object_at(p->unit) + k_unit_data_offset);
+    unit_data *unit = halo::game::unit_data_of(halo::game::object_at(p->unit));
 
     if (slot == 0) {
         unit->flags = unit->flags | _unit_flag_unknown_10;
@@ -372,7 +372,7 @@ void KillStreak::continue_streak(int16_t slot)
 {
     if (slot == 0) {
         player *p = halo::game::player_at(player_handle);
-        unit_data *unit = (unit_data *)((uint8_t *)halo::game::object_at(p->unit) + k_unit_data_offset);
+        unit_data *unit = halo::game::unit_data_of(halo::game::object_at(p->unit));
         unit->flags = unit->flags | 0x20;
     }
 }
@@ -497,7 +497,7 @@ void Players::server_catchup_on_client_updates()
                 continue;
             }
             unit_obj = object_from_index(plr->unit);
-            unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+            unit = halo::game::unit_data_of(unit_obj);
             if ((unit->flags & 0x40) == 0) {
                 continue;
             }

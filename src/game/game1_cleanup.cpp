@@ -52,7 +52,7 @@ void ObjectCleanup::cleanup_dropped_objects(void)
 
     obj = halo::objects::object_iterator_next(&iterator);
     while (obj != 0) {
-        item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
+        item_data *item = halo::game::item_data_of(obj);
 
         if ((int32_t)item->held_game_time < now - 900 &&
             (item->flags & _item_in_inventory_bit) == 0) {
@@ -136,7 +136,7 @@ void ObjectCleanup::cleanup_stray_items(void)
             }
 
             if (!keep) {
-                item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
+                item_data *item = halo::game::item_data_of(obj);
                 if ((item->flags & (_item_in_inventory_bit | _item_unknown_40_bit)) == 0) {
                     if (obj->network_role == 0) {
                         halo::objects::object_delete_unparented(iter.handle);

@@ -558,14 +558,14 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                 if (now % respawn_interval == 0 || force_respawn == 1) {
                     if (equipment->spawned_item != halo::k_dword_none) {
                         object *existing = halo::objects::object_try_and_get((datum_index)equipment->spawned_item, _object_mask_item);
-                        if (existing != 0 && (((item_data *)((uint8_t *)existing + sizeof(object)))->flags & 0x40) != 0) {
+                        if (existing != 0 && ((halo::game::item_data_of(existing))->flags & 0x40) != 0) {
                             float dx = existing->position.x - equipment->position.x;
                             float dy = existing->position.y - equipment->position.y;
                             float dz = existing->position.z - equipment->position.z;
                             float dist = (float)halo::libm::sqrt((double)(dx * dx + dy * dy + dz * dz));
 
                             if (dist <= 0.5f || (existing->flags & 0x20) == 0) {
-                                ((item_data *)((uint8_t *)existing + sizeof(object)))->held_game_time =
+                                (halo::game::item_data_of(existing))->held_game_time =
                                     respawn_interval - 900 + now;
                                 continue;
                             }
@@ -591,7 +591,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                         new_object = halo::objects::object_new_with_datum_role_control(&placement, 3);
                         if (new_object != (datum_index)halo::k_dword_none) {
                             object *obj = halo::game::object_at(new_object);
-                            item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
+                            item_data *item = halo::game::item_data_of(obj);
 
                             halo::objects::object_list_membership_set(new_object, 0);
                             if (((uint8_t *)equipment)[0] & 1) {
@@ -914,7 +914,7 @@ void EnginePlacement::update_item_scale_and_pickup(void)
 
     obj = halo::objects::object_iterator_next(&iterator);
     while (obj != 0) {
-        item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
+        item_data *item = halo::game::item_data_of(obj);
 
         if ((item->flags & _item_in_inventory_bit) == 0) {
             Item *tag = (Item *)halo::game::tag_data_at(obj->definition_tag);

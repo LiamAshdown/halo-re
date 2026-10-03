@@ -180,7 +180,7 @@ void Koth::alt_scorer_tick(uint32_t player_index)
  */
 void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
 {
-    item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
+    item_data *item = halo::game::item_data_of(obj);
     real_point3d position;
     object_header *hdr;
     int32_t tick;

@@ -12,6 +12,7 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#include "items.h"
 
 #include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
@@ -50,6 +51,16 @@ inline unit_object *unit_at(uint32_t handle) noexcept { return reinterpret_cast<
 /** The weapon datum in the unit's current weapon slot, or none when the unit is unarmed. */
 inline datum_index unit_current_weapon(const unit_data &unit) noexcept {
     return unit.current_weapon_index != -1 ? unit.weapons[unit.current_weapon_index] : static_cast<datum_index>(k_datum_index_none);
+}
+
+/** The unit_data block of a unit object (it starts right after the object header). */
+inline unit_data *unit_data_of(const void *unit_object_pointer) noexcept {
+    return const_cast<unit_data *>(&static_cast<const unit_object *>(unit_object_pointer)->unit);
+}
+
+/** The item_data block of an item (weapon, equipment, garbage) object. */
+inline item_data *item_data_of(const void *item_object_pointer) noexcept {
+    return const_cast<item_data *>(&static_cast<const item_object *>(item_object_pointer)->item);
 }
 
 /** The loaded tag data of a tag datum handle. */
@@ -107,6 +118,8 @@ static_assert(offsetof(remote_player_update_cache, vehicle_baseline) == 0x188 - 
 static_assert(sizeof(remote_player_update_cache) == 0x1c8 - 0x120);
 
 static_assert(sizeof(player) == 0x200);
+static_assert(offsetof(unit_object, unit) == k_unit_data_offset);
+static_assert(offsetof(item_object, item) == k_item_data_offset);
 static_assert(offsetof(Unit, seats) == 0x2e4);
 static_assert(offsetof(UnitSeat, marker_name) == 0x24);
 static_assert(offsetof(UnitSeat, yaw_minimum) == 0xf0);

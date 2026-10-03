@@ -128,7 +128,7 @@ void EnginePlayerSync::players_update_client(void)
 
         if (plr->unit != (datum_index)-1) {
             object *unit_obj = halo::game::object_at(plr->unit);
-            unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+            unit_data *unit = halo::game::unit_data_of(unit_obj);
 
             if ((unit->flags & 0x40) != 0) {
                 if (local_player_globals->input_disabled == 0) {
@@ -261,7 +261,7 @@ void EnginePlayerSync::players_update_server(void)
 
         if (plr->unit != (datum_index)-1) {
             object *unit_obj = halo::game::object_at(plr->unit);
-            unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+            unit_data *unit = halo::game::unit_data_of(unit_obj);
 
             if ((unit->flags & 0x40) != 0) {
                 if (local_player_globals->input_disabled == 0) {
@@ -394,7 +394,7 @@ void EnginePlayerSync::server_update_player_positions(void)
                     float pos_y = *(float *)((uint8_t *)plr + 0xfc);
                     float pos_z = *(float *)((uint8_t *)plr + 0x100);
                     unsigned long ticks = GetTickCount();
-                    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+                    unit_data *unit = halo::game::unit_data_of(unit_obj);
 
                     halo::networking::network_player_update_history_log_write(
                         "[%d]: [%d]:\t Completed [%d] ([%f] [%f] [%f]), ([%f] [%f]), ([%f] [%f])\n",
@@ -490,7 +490,7 @@ void EnginePlayerSync::send_unit_weapon_loadout(uint32_t unit_index, datum_index
     int i;
 
     obj = (object *)halo::game::object_at(unit_index);
-    unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit = halo::game::unit_data_of(obj);
 
     fields.player_hash = 0;
     if (player_handle != (datum_index)halo::k_dword_none) {
@@ -607,7 +607,7 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
         }
 
         unit_object = halo::game::object_at(control->unit);
-        unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
+        unit = halo::game::unit_data_of(unit_object);
 
         current_weapon = (datum_index)-1;
         if (unit->current_weapon_index != -1) {

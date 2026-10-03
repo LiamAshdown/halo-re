@@ -338,8 +338,8 @@ void PlayerView::check_assassination_opportunity(uint32_t candidate_object)
     halo::units::unit_get_camera_position(p->unit, &camera_position);
 
     if (halo::math::ray_intersects_sphere_test(candidate->bounding_center, camera_position,
-            *(&((unit_data *)((uint8_t *)unit + k_unit_data_offset))->aiming_vector), candidate->bounding_radius)) {
-        if (halo::devices::device_frontfacing(candidate_object, &((unit_data *)((uint8_t *)unit + k_unit_data_offset))->aiming_vector)) {
+            *(&(halo::game::unit_data_of(unit))->aiming_vector), candidate->bounding_radius)) {
+        if (halo::devices::device_frontfacing(candidate_object, &(halo::game::unit_data_of(unit))->aiming_vector)) {
             if (halo::devices::device_can_change_position(candidate_object)) {
                 PlayerView(player_index).set_pending_interaction_action(10, (int16_t)halo::k_word_none, candidate_object);
             }
@@ -928,7 +928,7 @@ void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
     {
         object_header *unit_header = &((object_header *)halo::objects::globals().object_data->data)[saved_unit & halo::k_datum_slot_mask];
         object *unit_obj = unit_header->data;
-        unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+        unit_data *unit = halo::game::unit_data_of(unit_obj);
         datum_index weapon_handle = (datum_index)-1;
 
         if (unit->current_weapon_index != -1) {
@@ -1387,7 +1387,7 @@ uint8_t PlayerView::current_weapon_prevents_camo_depower()
     }
 
     unit_obj = halo::game::object_at(p->unit);
-    unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit = halo::game::unit_data_of(unit_obj);
     weapon_slot = unit->current_weapon_index;
     if (weapon_slot == -1) {
         return 0;
@@ -1498,7 +1498,7 @@ void PlayerView::update_active_camouflage_depower()
     }
 
     unit_obj = halo::game::object_at(unit_handle);
-    unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit = halo::game::unit_data_of(unit_obj);
     weapon_slot = unit->current_weapon_index;
 
     weapon_handle = halo::units::unit_get_weapon_object_index(unit_handle, weapon_slot);
@@ -1565,7 +1565,7 @@ uint8_t KillStreak::add_kill_streak(int32_t slot, int16_t amount)
     }
     if (slot == 0) {
         object *unit = halo::objects::object_try_and_get(p->unit, _object_mask_unit);
-        if (unit == 0 || (((unit_data *)((uint8_t *)unit + k_unit_data_offset))->flags & _unit_flag_unknown_10) != 0) {
+        if (unit == 0 || ((halo::game::unit_data_of(unit))->flags & _unit_flag_unknown_10) != 0) {
             return 0;
         }
     }
@@ -1654,7 +1654,7 @@ void KillStreak::set_max(int16_t slot, int16_t value)
     int16_t *streak = &p->kill_streak[slot];
 
     if (*streak == 0 && slot == 0) {
-        unit_data *unit = (unit_data *)((uint8_t *)halo::game::object_at(p->unit) + k_unit_data_offset);
+        unit_data *unit = halo::game::unit_data_of(halo::game::object_at(p->unit));
         unit->flags = unit->flags | _unit_flag_unknown_10;
         unit->active_camouflage_regrowth = slot;
     }
@@ -1681,7 +1681,7 @@ void KillStreak::tick()
         if (0 < p->kill_streak[slot]) {
             p->kill_streak[slot] = p->kill_streak[slot] - 1;
             if (p->kill_streak[slot] == 0 && slot == 0) {
-                unit_data *unit = (unit_data *)((uint8_t *)halo::game::object_at(p->unit) + k_unit_data_offset);
+                unit_data *unit = halo::game::unit_data_of(halo::game::object_at(p->unit));
                 unit->flags = unit->flags & ~_unit_flag_unknown_10;
             }
         }
@@ -1834,7 +1834,7 @@ uint8_t LocalPlayerUnit::get_current_weapon_autoaim_cone(int16_t require_zoomed,
         return 0;
     }
     unit_obj = halo::game::object_at(unit_index);
-    unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit = halo::game::unit_data_of(unit_obj);
     if (unit->current_weapon_index == -1) {
         return 0;
     }
@@ -2510,7 +2510,7 @@ void Players::client_catchup_on_server_updates()
 
                 {
                     object *unit_obj = halo::game::object_at(plr->unit);
-                    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+                    unit_data *unit = halo::game::unit_data_of(unit_obj);
                     unit_control_data control;
                     uint8_t apply = 0;
 
@@ -2864,7 +2864,7 @@ void LocalPlayers::set_controlled_unit(datum_index new_unit, int16_t local_playe
 
     if (old_unit != (datum_index)-1) {
         obj = halo::game::object_at(old_unit);
-        unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+        unit = halo::game::unit_data_of(obj);
         unit->controlling_player = (datum_index)-1;
         halo::units::unit_refresh_targeting_flag_and_weapons(old_unit, 0);
     }
@@ -2876,7 +2876,7 @@ void LocalPlayers::set_controlled_unit(datum_index new_unit, int16_t local_playe
         if (local_player_index != -1 && local_player_index <= 0) {
             owner = local_player_globals->local_players[local_player_index];
         }
-        unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+        unit = halo::game::unit_data_of(obj);
         unit->controlling_player = owner;
     }
 

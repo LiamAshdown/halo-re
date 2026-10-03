@@ -9,6 +9,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
@@ -751,7 +752,7 @@ void PlayerNetworkState::apply_first_position_update(uint32_t field0)
     }
 
     {
-        unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+        unit_data *unit = halo::game::unit_data_of(unit_obj);
         uint8_t seated = halo::game::player_unit_has_parent(unit->controlling_player);
         *(uint32_t *)((uint8_t *)unit_obj + 0x4bc) = field0;
         if (seated == 0) {

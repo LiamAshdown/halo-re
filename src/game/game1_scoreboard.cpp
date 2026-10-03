@@ -632,7 +632,7 @@ datum_index Scoreboard::find_player_holding_object(datum_index target_object)
     while (p != (player *)0) {
         if (p->unit != (datum_index)halo::k_dword_none) {
             object *unit_obj = halo::game::object_at((uint32_t)p->unit);
-            unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+            unit_data *unit = halo::game::unit_data_of(unit_obj);
             int32_t i;
             for (i = 0; i < k_maximum_weapons_per_unit; i++) {
                 if (unit->weapons[i] == target_object) {

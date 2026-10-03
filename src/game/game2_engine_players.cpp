@@ -787,12 +787,12 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
             target_obj->parent_object != current_parent_obj->parent_object &&
             halo::networking::globals().game_mode != halo::networking::k_game_mode_client) {
             object *unit_obj = halo::game::object_at(unit_handle);
-            unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+            unit_data *unit = halo::game::unit_data_of(unit_obj);
             datum_index driver = unit->driver_unit_index;
 
             if (driver != (datum_index)-1 && *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) != -1) {
                 object *driver_obj = halo::game::object_at(driver);
-                unit_data *driver_unit = (unit_data *)((uint8_t *)driver_obj + k_unit_data_offset);
+                unit_data *driver_unit = halo::game::unit_data_of(driver_obj);
                 Unit *driver_tag = (Unit *)halo::game::tag_data_at(driver_obj->definition_tag);
                 real_matrix4x3 local_transform;
                 real_matrix4x3 result_transform;
@@ -965,7 +965,7 @@ void EnginePlayers::reset_all_unit_grenade_counts(void)
     while (p != (player *)0) {
         if (p->unit != (datum_index)halo::k_dword_none) {
             object *unit_obj = halo::game::object_at(p->unit);
-            unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+            unit_data *unit = halo::game::unit_data_of(unit_obj);
             unit->grenade_counts[0] = 0;
             unit->grenade_counts[1] = 0;
         }

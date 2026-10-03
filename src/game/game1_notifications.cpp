@@ -295,7 +295,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                         p->team_index = (int8_t)message.team;
                         unit_obj->owner_linkage = (uint32_t)owner_handle;
                         unit_obj->owner_team = (int16_t)p->team;
-                        ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->controlling_player = owner_handle;
+                        (halo::game::unit_data_of(unit_obj))->controlling_player = owner_handle;
                         halo::units::unit_refresh_targeting_flag_and_weapons(new_unit, 1);
 
                         if (p->local_player_index == -1) {
@@ -323,7 +323,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                         halo::game::game_engine_apply_player_grenade_counts(player_handle);
 
                         {
-                            unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+                            unit_data *unit = halo::game::unit_data_of(unit_obj);
                             int32_t i;
                             for (i = 0; i < 4; i++) {
                                 int32_t weapon = message.weapon_pooled_ids[i] != 0
@@ -531,7 +531,7 @@ void Notifications::multiplayer_sound_queue_tick(void)
 void Notifications::notify_item_expired(datum_index object_index)
 {
     object *obj = halo::game::object_at(object_index);
-    item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
+    item_data *item = halo::game::item_data_of(obj);
     uint32_t *extension_flags = &((weapon_object *)obj)->weapon.flags;
 
     if (obj->parent_object == (datum_index)halo::k_dword_none &&
