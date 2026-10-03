@@ -33,6 +33,7 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/units/records.hpp"
 
 
 namespace {
@@ -911,7 +912,7 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
                 }
             }
 
-            ((vehicle_data *)((uint8_t *)self + k_unit_object_size))->active_marker_mask = hit_mask;
+            (halo::units::vehicle_data_of(self))->active_marker_mask = hit_mask;
         }
     }
 
@@ -1192,7 +1193,7 @@ uint8_t ObjectPhysics::resolve_mass_point_overlap(object_physics_context *self, 
         object *other_object = ((object_header *)halo::objects::globals().object_data->data)[other->object_index & halo::k_slot_mask].data;
 
         if (self_object->network_role != 1 || halo::units::unit_any_flagged_seat_occupied(self->object_index) == 1) {
-            vehicle_data *self_vehicle = (vehicle_data *)((uint8_t *)self_object + k_unit_object_size);
+            vehicle_data *self_vehicle = halo::units::vehicle_data_of(self_object);
             self_vehicle->accumulated_force.i += self_force.i;
             self_vehicle->accumulated_force.j += self_force.j;
             self_vehicle->accumulated_force.k += self_force.k;
@@ -1205,7 +1206,7 @@ uint8_t ObjectPhysics::resolve_mass_point_overlap(object_physics_context *self, 
 
         if (other_definition->radius <= 0.0f &&
             (other_object->network_role != 1 || halo::units::unit_any_flagged_seat_occupied(other->object_index) == 1)) {
-            vehicle_data *other_vehicle = (vehicle_data *)((uint8_t *)other_object + k_unit_object_size);
+            vehicle_data *other_vehicle = halo::units::vehicle_data_of(other_object);
             other_vehicle->accumulated_force.i += other_force.i;
             other_vehicle->accumulated_force.j += other_force.j;
             other_vehicle->accumulated_force.k += other_force.k;

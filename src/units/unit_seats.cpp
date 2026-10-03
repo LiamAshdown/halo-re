@@ -1483,7 +1483,7 @@ void UnitView::try_exit_controlled_seat()
         biped_free_local_player_history(halo::objects::object_as<unit_object>(unit_index));
         return;
     }
-    if (!::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(self) + k_unit_data_offset))) {
+    if (!::halo::units::unit_state_is_scripted_animation(halo::units::unit_data_of(self))) {
         Unit *self_tag = halo::objects::tag_as<Unit>(*(datum_index *)self);
         datum_index graph = halo::objects::tag_handle(self_tag->base.animation_graph);
         const ModelAnimationsAnimationGraphUnitSeat &seat_block = halo::objects::block_element<ModelAnimationsAnimationGraphUnitSeat>(

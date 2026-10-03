@@ -1191,7 +1191,7 @@ uint8_t halo::units::unit_try_start_seat_exit_animation(uint8_t force_flag, uint
         UnitView(unit_index).detach_from_seat(1, force_flag, 1);
         return 0;
     }
-    if (::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(self) + k_unit_data_offset))) {
+    if (::halo::units::unit_state_is_scripted_animation(halo::units::unit_data_of(self))) {
         return 0;
     }
     self_tag = halo::objects::tag_as<Unit>(*(datum_index *)self);

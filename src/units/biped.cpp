@@ -431,7 +431,7 @@ uint8_t BipedView::update()
                 if (self->base.type == _object_type_vehicle) {
                     biped_detach_from_seat(object_index, vehicle_index);
                     biped_free_local_player_history(self);
-                } else if (!::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(self) + k_unit_data_offset))) {
+                } else if (!::halo::units::unit_state_is_scripted_animation(halo::units::unit_data_of(self))) {
                     Unit *self_tag = halo::objects::tag_as<Unit>(*(datum_index *)self);
                     datum_index graph = halo::objects::tag_handle(self_tag->base.animation_graph);
                     uint8_t *seat_block = *(uint8_t **)(halo::objects::tag_record_bytes(graph) + 0x10) + (int8_t)(uint8_t)self->unit.animation_definition_index * 0x64;

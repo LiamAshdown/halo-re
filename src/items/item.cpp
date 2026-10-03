@@ -7,6 +7,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/items/records.hpp"
+#include "halo/units/records.hpp"
 
 
 namespace halo::items {
@@ -102,7 +103,7 @@ void item_ref::set_holder(datum_index holder_index)
     {
         uint32_t original_flags = item->flags;
         object *holder = ((object_header *)halo::objects::globals().object_data->data)[holder_index & halo::k_slot_mask].data;
-        unit_data *holder_unit = (unit_data *)((uint8_t *)holder + k_unit_data_offset);
+        unit_data *holder_unit = halo::units::unit_data_of(holder);
 
         item->flags = (original_flags & ~(uint32_t)_item_unknown_40_bit) | _item_in_inventory_bit;
 

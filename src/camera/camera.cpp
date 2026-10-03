@@ -12,6 +12,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/camera/vars.hpp"
+#include "halo/units/records.hpp"
 
 static auto &camera_director_globals = halo::link::ref<director_globals>(halo::camera::vars().camera_director_globals);
 static auto &directors = halo::link::ref<director [1]>(halo::camera::vars().directors);
@@ -272,17 +273,17 @@ int16_t CameraSystem::get_seat_camera_state(datum_index unit, int16_t *out_state
         if ((1 << (parent_object->type & 0x1f)) & 3) {
             Unit *parent_unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(parent_object->definition_tag)].data;
             uint8_t *seats = (uint8_t *)parent_unit_tag->seats.pointer;
-            int16_t seat_index = ((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->vehicle_seat_index;
+            int16_t seat_index = (halo::units::unit_data_of(unit_object))->vehicle_seat_index;
             uint32_t seat_flags = *(uint32_t *)(seats + (int32_t)seat_index * sizeof(UnitSeat));
 
             result = (seat_flags & 0x10) != 0; 
 
             if ((seat_flags & 0x40) != 0) { 
-                if (((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->animation_state == _unit_animation_state_seat_enter) {
+                if ((halo::units::unit_data_of(unit_object))->animation_state == _unit_animation_state_seat_enter) {
                     *out_state = _director_seat_camera_entering;
                     return 1;
                 }
-                if (((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->animation_state == _unit_animation_state_seat_exit) {
+                if ((halo::units::unit_data_of(unit_object))->animation_state == _unit_animation_state_seat_exit) {
                     *out_state = _director_seat_camera_exiting;
                     return 1;
                 }

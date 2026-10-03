@@ -22,6 +22,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/units/records.hpp"
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
@@ -99,7 +100,7 @@ int16_t UnitView::detach_child_at_named_seat(char *seat_marker_name)
             biped_free_local_player_history(halo::objects::object_as<unit_object>(child_index));
             continue;
         }
-        if (!::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(self) + k_unit_data_offset))) {
+        if (!::halo::units::unit_state_is_scripted_animation(halo::units::unit_data_of(self))) {
             Unit *self_tag = halo::objects::tag_as<Unit>(*(datum_index *)self);
             datum_index graph = halo::objects::tag_handle(self_tag->base.animation_graph);
             uint8_t *seat_block = *(uint8_t **)(halo::objects::tag_record_bytes(graph) + 0x10) + (int8_t)(uint8_t)self->unit.animation_definition_index * 0x64;

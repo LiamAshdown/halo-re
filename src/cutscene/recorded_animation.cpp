@@ -11,6 +11,7 @@
 #include "halo/core/link.hpp"
 #include "halo/cutscene/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/units/records.hpp"
 
 static auto &recorded_animations = halo::link::ref<data_array *>(halo::game::vars().recorded_animations);
 static auto &recorded_animation_codecs_by_version = halo::link::ref<recorded_animation_codec *[4]>(halo::cutscene::vars().recorded_animation_codecs_by_version);
@@ -257,7 +258,7 @@ void RecordedAnimationPlayer::update_all()
             }
             if (((record->flags & _recorded_animation_flag_mark_object_when_finished) != 0) && (record->unit_index != (datum_index)k_datum_index_none)) {
                 object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(record->unit_index)].data;
-                biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
+                biped_data *biped = halo::units::biped_data_of(obj);
                 halo::objects::object_get_position((real_point3d *)&biped->bump_object_index, record->unit_index);
                 biped->flags = biped->flags | to_bits(biped_playback_flags::jumping);
             }

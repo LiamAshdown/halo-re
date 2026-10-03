@@ -242,14 +242,14 @@ uint8_t UnitView::update()
             if (test_flag(obj->base.vitality_flags, objects::vitality_flag::region_response_400)) {
                 UnitView(unit_index).drop_current_weapon(1);
             } else if (obj->unit.desired_weapon_index != obj->unit.current_weapon_index &&
-                       !::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(obj) + k_unit_data_offset))) {
+                       !::halo::units::unit_state_is_scripted_animation(halo::units::unit_data_of(obj))) {
                 datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)halo::objects::object_record_bytes(unit_index))->unit.desired_weapon_index);
 
                 if (weapon != k_datum_index_none && UnitView(unit_index).check_weapon_use_permission(weapon)) {
                     UnitView(unit_index).ready_desired_weapon(1);
                 }
             }
-            if ((uint8_t)obj->unit.desired_grenade_index != (uint8_t)obj->unit.current_grenade_index && !::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(obj) + k_unit_data_offset))) {
+            if ((uint8_t)obj->unit.desired_grenade_index != (uint8_t)obj->unit.current_grenade_index && !::halo::units::unit_state_is_scripted_animation(halo::units::unit_data_of(obj))) {
                 int16_t grenade = UnitView(unit_index).find_next_grenade_type_with_count((int16_t)(int8_t)(uint8_t)obj->unit.desired_grenade_index, 0);
 
                 if (grenade != -1) {
@@ -405,7 +405,7 @@ uint8_t UnitView::update()
                 if (test_flag(obj->unit.control_flags, units::unit_control_flag::reload)) {
                     control |= 8;
                 }
-                if (::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(obj) + k_unit_data_offset)) && !flashing) {
+                if (::halo::units::unit_state_is_scripted_animation(halo::units::unit_data_of(obj)) && !flashing) {
                     control |= 0x10;
                 }
                 if (obj->base.type == _object_type_biped && (int8_t)halo::units::biped_data_of(obj)->melee_ticks > 0) {

@@ -13,6 +13,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/projectiles/vars.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/projectiles/records.hpp"
 
 static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
@@ -42,7 +43,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
 
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(projectile_index)].data;
     Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    projectile_data *pd = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+    projectile_data *pd = halo::projectiles::projectile_data_of(obj);
 
     int16_t new_material_index = hit->material_type; 
         
@@ -391,7 +392,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
             int16_t sibling_count = 0;
             while (sibling_index != (datum_index)k_datum_index_none) {
                 object *sibling = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(sibling_index)].data;
-                projectile_data *sibling_pd = (projectile_data *)((uint8_t *)sibling + k_projectile_data_offset);
+                projectile_data *sibling_pd = halo::projectiles::projectile_data_of(sibling);
                 if (sibling->definition_tag == obj->definition_tag &&
                     (sibling_pd->flags & _projectile_super_detonation_counted_bit) == 0) {
                     sibling_pd->arming_timer = 0.0f;

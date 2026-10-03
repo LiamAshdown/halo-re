@@ -14,6 +14,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/units/records.hpp"
 
 static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 
@@ -139,7 +140,7 @@ int ProjectileHandle::update()
             real angle_a;
             real angle_b;
 
-            if (((1u << (tracked_object->type & 0x1f)) & 3) && ((unit_data *)((uint8_t *)tracked_object + k_unit_data_offset))->controlling_player != k_datum_index_none) {
+            if (((1u << (tracked_object->type & 0x1f)) & 3) && (halo::units::unit_data_of(tracked_object))->controlling_player != k_datum_index_none) {
                 turn *= halo::game::weapon_get_zoom_fov(k_guided_zoom_table_index, halo::main::globals().game_globals->difficulty);
             }
             {

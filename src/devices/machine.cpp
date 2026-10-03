@@ -8,6 +8,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/devices/vars.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/units/records.hpp"
 
 static auto &device_groups = halo::link::ref<data_array *>(halo::devices::vars().device_groups);
 static auto &team_pair_data = halo::link::ref<void *>(halo::ai::vars().team_pair_data);
@@ -224,7 +225,7 @@ uint32_t MachineHandle::update()
                     int16_t i;
                     for (i = 0; i < rider_count; i++) {
                         object *rider = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(riders[i])].data;
-                        biped_data *rider_biped = (biped_data *)((uint8_t *)rider + k_unit_object_size);
+                        biped_data *rider_biped = halo::units::biped_data_of(rider);
                         if (rider_biped->last_ground_object_index == object_index) { 
                             real_point3d p = rider->position;
                             halo::objects::object_unlink_cluster_or_notify_parent(riders[i]);

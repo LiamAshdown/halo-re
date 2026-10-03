@@ -134,7 +134,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
                 biped_free_local_player_history(me);
                 return false;
             }
-            if (::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(self) + k_unit_data_offset))) {
+            if (::halo::units::unit_state_is_scripted_animation(halo::units::unit_data_of(self))) {
                 return false;
             }
             {
