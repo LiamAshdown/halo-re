@@ -522,8 +522,8 @@ uint16_t ActorOps::target_hearing_check(const bsp_leaf_reference *record, int16_
     } else if (gate == 3) {
         range = range * 0.7f;
     }
-    if (halo::scenario::location_view((bsp_leaf_reference *)(listener + 0x24)).background_sound_is_deafening_to_ais() ||
-        halo::scenario::location_view((bsp_leaf_reference *)record).background_sound_is_deafening_to_ais()) {
+    if (halo::scenario::location_view(const_cast<bsp_leaf_reference *>(&listener->location)).background_sound_is_deafening_to_ais() ||
+        halo::scenario::location_view(const_cast<bsp_leaf_reference *>(record)).background_sound_is_deafening_to_ais()) {
         range = range * 0.25f;
     }
     if (stance != 0 && stance != 1) {
