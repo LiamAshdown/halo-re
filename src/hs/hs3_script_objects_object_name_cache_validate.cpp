@@ -1,0 +1,41 @@
+#include "halo/hs/hs3_objects.hpp"
+
+extern "C" {
+extern char hs_object_hierarchy_test(datum_index object_index);
+extern void object_delete(datum_index object_index);
+extern void object_new_from_scenario_name(int16_t object_name_index);
+extern datum_index *object_name_list;
+}
+
+namespace halo::hs::part3 {
+
+/**
+ * If `object_name_index` currently caches a resolved object that fails hs_object_hierarchy_test, invalidates it
+ * via object_delete. Either way, if the slot is still out of range or unresolved afterward, falls through to the
+ * object_new_from_scenario_name resolve path.
+ *
+ * @address 0x487d20
+ */
+void ScriptObjects::object_name_cache_validate(int16_t object_name_index) const
+{
+    datum_index cached;
+
+    if (object_name_index == -1) {
+        return;
+    }
+    if (-1 < object_name_index) {
+        if (object_name_index < 0x200) {
+            cached = object_name_list[object_name_index];
+            if (cached != k_datum_index_none && hs_object_hierarchy_test(cached) == 0) {
+                object_delete(cached);
+            }
+        }
+        if (-1 < object_name_index && object_name_index < 0x200 &&
+            object_name_list[object_name_index] != k_datum_index_none) {
+            return;
+        }
+    }
+    object_new_from_scenario_name(object_name_index);
+}
+
+}
