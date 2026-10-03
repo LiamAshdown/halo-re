@@ -141,7 +141,7 @@ void ActorOps::notify_weapon_pickup_once(datum_index object_index)
     actor *a;
 
     obj = halo::ai::object_at(object_index);
-    unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit = halo::units::unit_data_of(obj);
     actor_index = unit->actor_index;
     if (actor_index != (datum_index)k_datum_index_none) {
         a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
@@ -915,7 +915,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
 
     if (target->enemy == 0) {
         object *tracked = halo::ai::object_at(target->object_index);
-        unit_data *unit = (unit_data *)((uint8_t *)tracked + k_unit_data_offset);
+        unit_data *unit = halo::units::unit_data_of(tracked);
 
         halo::ai::actor_queue_search_and_relay_perception(target_prop_index, actor_index);
 

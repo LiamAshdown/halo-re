@@ -1035,7 +1035,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
     while (p != 0) {
         if (p->is_parented && p->enemy) {
             tracked_object = halo::ai::object_at(p->object_index);
-            if (((unit_data *)((uint8_t *)tracked_object + k_unit_data_offset))->controlling_player !=
+            if (halo::units::unit_data_of(tracked_object)->controlling_player !=
                 (datum_index)k_datum_index_none) {
                 a = &((actor *)halo::ai::globals().actor_data->data)[p->actor_index & halo::k_slot_mask];
                 linked_unit_index = a->swarm ? a->cluster_unit_index : a->unit_index;

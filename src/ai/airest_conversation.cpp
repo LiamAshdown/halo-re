@@ -1036,8 +1036,7 @@ uint8_t ConversationView::resolve_participants(uint8_t *out_keep_trying)
                     if (instance->participant_actor[j] != (datum_index)k_datum_index_none) {
                         prop_index = halo::ai::actor_find_prop_for_object(player_unit, instance->participant_actor[j]);
                         if (prop_index != (datum_index)k_datum_index_none) {
-                            p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data +
-                                         (prop_index & halo::k_slot_mask) * k_prop_size);
+                            p = halo::ai::prop_at(prop_index);
                             if (1 < p->state && p->state < 4 && p->distance < nearest) {
                                 nearest = p->distance;
                             }
@@ -1095,8 +1094,7 @@ uint8_t ConversationView::resolve_participants(uint8_t *out_keep_trying)
         if (actor_handle == (datum_index)k_datum_index_none) {
             continue;
         }
-        unit_index = ((actor *)((uint8_t *)halo::ai::globals().actor_data->data +
-                                (actor_handle & halo::k_slot_mask) * k_actor_size))->unit_index;
+        unit_index = (halo::ai::actor_at(actor_handle))->unit_index;
         unit_object = halo::ai::object_at(unit_index);
 
         object_name = (int16_t)participants[i].set_new_name;

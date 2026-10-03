@@ -40,7 +40,7 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
     if (vehicle_object_index != (datum_index)k_datum_index_none) {
         vehicle_obj = (object *)halo::objects::object_try_and_get(vehicle_object_index, 3);
         if (vehicle_obj != 0) {
-            vehicle_unit = (unit_data *)((uint8_t *)vehicle_obj + k_unit_data_offset);
+            vehicle_unit = halo::units::unit_data_of(vehicle_obj);
             occupant = (datum_index)k_datum_index_none;
             if (seat_selector != 9) {
                 occupant = vehicle_unit->gunner_unit_index;

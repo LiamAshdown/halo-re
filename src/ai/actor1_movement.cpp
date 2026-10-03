@@ -517,7 +517,7 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
                     }
                 } else {
 
-                    prop *target_prop = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data + (target & halo::k_slot_mask) * k_prop_size);
+                    prop *target_prop = halo::ai::prop_at(target);
                     real max_time = 0.7f;
                     real half_gravity;
                     real horizontal_speed;

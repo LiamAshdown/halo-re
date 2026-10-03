@@ -444,11 +444,11 @@ void Encounters::merge(uint32_t source_reference, uint32_t target_encounter_inde
         if (!(state->living_count > 0) && source_enc->squads_carried_over == 0) {
             continue;
         }
-        squad = (ScenarioSquad *)(*(uint8_t **)&source_definition->squads.pointer + iterator.cursor * 0xe8);
+        squad = &halo::ai::reflexive_data<ScenarioSquad>(source_definition->squads)[iterator.cursor];
         palette_index = static_cast<int16_t>(squad->actor_type);
         if (palette_index >= 0 && (int32_t)palette_index < static_cast<int32_t>(halo::scenario::globals().scenario->actor_palette.count)) {
-            uint8_t *entry = halo::ai::reflexive_data<uint8_t>(halo::scenario::globals().scenario->actor_palette) + palette_index * 0x10;
-            datum_index variant_tag = *(datum_index *)(entry + 0xc);
+            ScenarioActorPalette *entry = &halo::ai::reflexive_data<ScenarioActorPalette>(halo::scenario::globals().scenario->actor_palette)[palette_index];
+            datum_index variant_tag = halo::ai::tag_handle(entry->reference);
 
             if (variant_tag != (datum_index)k_datum_index_none &&
                 halo::cache::globals().tag_instances[(int16_t)variant_tag].group_tag == 0x61637476 /* 'actv' */) {
@@ -1199,17 +1199,17 @@ void EncounterView::decay_squad_spawn_delays()
 int32_t Encounters::definition_find_platoon_index_by_name(ScenarioEncounter *encounter_definition, char *name)
 {
     int32_t index;
-    uint8_t *cursor;
+    ScenarioPlatoon *cursor;
 
     if (encounter_definition->platoons.count <= 0) {
         return -1;
     }
 
     index = 0;
-    cursor = (uint8_t *)encounter_definition->platoons.pointer;
-    while (_strnicmp((char *)cursor, name, 0x20) != 0) {
+    cursor = halo::ai::reflexive_data<ScenarioPlatoon>(encounter_definition->platoons);
+    while (_strnicmp(cursor->name.string, name, 0x20) != 0) {
         index = index + 1;
-        cursor += sizeof(ScenarioPlatoon);
+        cursor++;
         if (encounter_definition->platoons.count <= index) {
             return -1;
         }
@@ -1226,17 +1226,17 @@ int32_t Encounters::definition_find_platoon_index_by_name(ScenarioEncounter *enc
 int32_t Encounters::definition_find_squad_index_by_name(ScenarioEncounter *encounter_definition, char *name)
 {
     int32_t index;
-    uint8_t *cursor;
+    ScenarioSquad *cursor;
 
     if (encounter_definition->squads.count <= 0) {
         return -1;
     }
 
     index = 0;
-    cursor = (uint8_t *)encounter_definition->squads.pointer;
-    while (_strnicmp((char *)cursor, name, 0x20) != 0) {
+    cursor = halo::ai::reflexive_data<ScenarioSquad>(encounter_definition->squads);
+    while (_strnicmp(cursor->name.string, name, 0x20) != 0) {
         index = index + 1;
-        cursor += sizeof(ScenarioSquad);
+        cursor++;
         if (encounter_definition->squads.count <= index) {
             return -1;
         }
@@ -1896,7 +1896,7 @@ void EncounterView::propagate_platoon_state_to_actors()
         if (platoon_index != -1) {
             platoon_state = &halo::ai::globals().platoon_states[(int16_t)(self->first_platoon + platoon_index)];
             attacking_flag = platoon_state->defending;
-            if ((((uint8_t *)platoon_state)[1] == 0) || (((uint8_t *)platoon_state)[2] != 0)) {
+            if ((platoon_state->maneuvering == 0) || (platoon_state->maneuver_disabled != 0)) {
                 ready = 0;
             } else {
                 ready = 1;
@@ -2269,7 +2269,7 @@ void EncounterView::redistribute_squads_toward_targets()
                     squad_active_mask[word] |= bit;
 
                     if ((platoon_index < 0) || (encounter_definition->platoons.count <= (uint32_t)platoon_index) ||
-                        (((uint8_t *)&halo::ai::globals().platoon_states[(int16_t)(self->first_platoon + platoon_index)])[0] == 0)) {
+                        (halo::ai::globals().platoon_states[(int16_t)(self->first_platoon + platoon_index)].defending == 0)) {
                         trigger = squad_definition->attacking | squad_definition->attacking_search | squad_definition->attacking_guard;
                     } else {
                         trigger = squad_definition->defending | squad_definition->defending_search | squad_definition->defending_guard;
@@ -2952,11 +2952,11 @@ void EncounterView::update_platoon_defending_flag()
             platoon_state = &halo::ai::globals().platoon_states[(int16_t)(self->first_platoon + platoon_index)];
 
             if (0 < platoon_state->living_count) {
-                if (((uint8_t *)platoon_state)[1] == 0) {
-                    ((uint8_t *)platoon_state)[1] = halo::ai::encounter_evaluate_platoon_condition(encounter_index,
+                if (platoon_state->maneuvering == 0) {
+                    platoon_state->maneuvering = halo::ai::encounter_evaluate_platoon_condition(encounter_index,
                         (const ai_platoon_condition *)&((ScenarioPlatoon *)encounter_definition->platoons.pointer)[platoon_index].maneuver_when);
                 }
-                if ((((uint8_t *)platoon_state)[2] != 0) || (((uint8_t *)platoon_state)[1] == 0)) {
+                if ((platoon_state->maneuver_disabled != 0) || (platoon_state->maneuvering == 0)) {
                     not_defending = ~(uint8_t)(((ScenarioPlatoon *)encounter_definition->platoons.pointer)[platoon_index].flags >> 2) & 1;
                     if ((platoon_state->defending != not_defending) &&
                         (halo::ai::encounter_evaluate_platoon_condition(encounter_index,
@@ -3110,7 +3110,6 @@ void Encounters::reset()
     Scenario *scenario;
     int32_t i;
     int16_t encounter_index;
-    uint32_t *zero;
     int16_t platoon_cursor;
     int16_t squad_cursor;
 
@@ -3123,16 +3122,8 @@ void Encounters::reset()
     halo::ai::globals().pursuit_data->valid = 1;
     halo::memory::data_delete_all(halo::ai::globals().pursuit_data);
 
-    zero = (uint32_t *)halo::ai::globals().squad_states;
-    for (i = 0x2000; i != 0; i = i - 1) {
-        *zero = 0;
-        zero = zero + 1;
-    }
-    zero = (uint32_t *)halo::ai::globals().platoon_states;
-    for (i = 0x400; i != 0; i = i - 1) {
-        *zero = 0;
-        zero = zero + 1;
-    }
+    memset(halo::ai::globals().squad_states, 0, 0x2000 * sizeof(uint32_t));
+    memset(halo::ai::globals().platoon_states, 0, 0x400 * sizeof(uint32_t));
 
     encounter_index = 0;
     if (0 < scenario->encounters.count) {
@@ -3506,7 +3497,7 @@ datum_index Encounters::find_nearest_squad_member(datum_index actor_index, const
             dz = rz - component->position.z;
             dist_sq = dx * dx + dy * dy + dz * dz;
 
-            if ((*((uint8_t *)component + 2) & 2) == 0) {
+            if ((component->flags & 2) == 0) {
                 if (group->unit_index[i] == exclude_index) {
                     dist_sq = dist_sq * 0.36f;
                 }
@@ -3542,17 +3533,17 @@ datum_index Encounters::find_nearest_squad_member(datum_index actor_index, const
 int32_t Encounters::find_encounter_index_by_name(Scenario *scenario, char *name)
 {
     int32_t index;
-    uint8_t *cursor;
+    ScenarioEncounter *cursor;
 
     if (scenario->encounters.count <= 0) {
         return -1;
     }
 
     index = 0;
-    cursor = (uint8_t *)scenario->encounters.pointer;
-    while (_strnicmp((char *)cursor, name, 0x20) != 0) {
+    cursor = halo::ai::reflexive_data<ScenarioEncounter>(scenario->encounters);
+    while (_strnicmp(cursor->name.string, name, 0x20) != 0) {
         index = index + 1;
-        cursor += sizeof(ScenarioEncounter);
+        cursor++;
         if (scenario->encounters.count <= index) {
             return -1;
         }

@@ -106,7 +106,7 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
     object *unit_object = header->data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_object);
 
     if (unit->actor_index == actor_index) {
         return;
@@ -747,7 +747,7 @@ uint8_t halo::ai::actor_ref::get_ranged_attack_vector(datum_index target_prop_in
     }
 
     unit_obj = halo::ai::object_at(target->object_index);
-    unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit = halo::units::unit_data_of(unit_obj);
     *out_vector = unit->aiming_vector;
 
     if (target->shooting == 0 && (int8_t)self->tally.unit_props > 0) {
@@ -974,7 +974,7 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
     object *unit_object = header->data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_object);
     datum_index new_component = (datum_index)k_datum_index_none;
 
     if (unit->swarm_actor_index == actor_index) {

@@ -99,7 +99,7 @@ void ActorOps::react_to_threat_event(datum_index self_object_index, datum_index 
     if (other_object_index != (datum_index)k_datum_index_none) {
         vehicle_obj = (object *)halo::objects::object_try_and_get(other_object_index, 3);
         if (vehicle_obj != 0) {
-            vehicle_unit = (unit_data *)((uint8_t *)vehicle_obj + k_unit_data_offset);
+            vehicle_unit = halo::units::unit_data_of(vehicle_obj);
             relationship_object_index = (datum_index)k_datum_index_none;
             if ((int16_t)event_kind != 9) {
                 relationship_object_index = vehicle_unit->gunner_unit_index;
@@ -117,7 +117,7 @@ void ActorOps::react_to_threat_event(datum_index self_object_index, datum_index 
     }
 
     if (suppress_vehicle_relay == 0 && (int16_t)event_kind != 1) {
-        actor_object_index = ((unit_data *)((uint8_t *)self_obj + k_unit_data_offset))->actor_index;
+        actor_object_index = halo::units::unit_data_of(self_obj)->actor_index;
         if (actor_object_index != (datum_index)k_datum_index_none) {
             halo::ai::actor_mark_prop_seen_with_delta(relationship_object_index, actor_object_index, magnitude,
                 (const real_vector3d *)extra_param);

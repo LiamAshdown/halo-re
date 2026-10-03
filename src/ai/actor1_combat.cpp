@@ -167,7 +167,7 @@ uint8_t halo::ai::combat_ops::check_vehicle_target_available(datum_index vehicle
         return 0;
     }
     vehicle_object = halo::ai::object_at(vehicle_object_index);
-    vehicle_unit = (unit_data *)((uint8_t *)vehicle_object + k_unit_data_offset);
+    vehicle_unit = halo::units::unit_data_of(vehicle_object);
     if (vehicle_unit->controlling_player == (datum_index)k_datum_index_none) {
         return 0;
     }
@@ -839,7 +839,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     }
     unit = (unit_object *)halo::ai::object_at(unit_index);
     if (self->target_unit_index != halo::k_dword_none) {
-        target = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data + (self->target_unit_index & halo::k_slot_mask) * k_prop_size);
+        target = halo::ai::prop_at(self->target_unit_index);
     }
     if (static_cast<uint8_t>(unit->unit.animation_state) == 0x17 && self->berserking == 0) {
         self->charge_trigger_active = 0;
@@ -894,8 +894,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
             self->charge_trigger_delay -= 1;
         } else if ((static_cast<uint8_t>(variant->flags) & 8) != 0 && (int8_t)self->tally.group_c_total > 0) {
 
-            prop *axis_prop = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data +
-                (self->target_unit_index & halo::k_slot_mask) * k_prop_size);
+            prop *axis_prop = halo::ai::prop_at(self->target_unit_index);
             actor_prop_iterator iterator;
             uint32_t cursor;
             int32_t ahead = 0, level = 0, behind = 0;
@@ -903,7 +902,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
             halo::ai::actor_prop_iterator_init(actor_index, &iterator);
             cursor = iterator.next;
             while (cursor != halo::k_dword_none) {
-                prop *p = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data + (cursor & halo::k_slot_mask) * k_prop_size);
+                prop *p = halo::ai::prop_at(cursor);
                 int16_t kind = p->state;
                 uint32_t owner;
                 actor *other;
@@ -920,7 +919,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 if (owner == halo::k_dword_none) {
                     continue;
                 }
-                other = (actor *)((const uint8_t *)halo::ai::globals().actor_data->data + (owner & halo::k_slot_mask) * k_actor_size);
+                other = halo::ai::actor_at(owner);
                 if (other->charge_trigger_active == 0) {
                     continue;
                 }
@@ -961,7 +960,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
             int16_t without = 0, with = 0;
 
             while (cursor != halo::k_dword_none) {
-                prop *p = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data + (cursor & halo::k_slot_mask) * k_prop_size);
+                prop *p = halo::ai::prop_at(cursor);
                 int16_t kind = p->state;
                 uint32_t owner;
                 actor *other;
@@ -974,7 +973,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 if (owner == halo::k_dword_none) {
                     continue;
                 }
-                other = (actor *)((const uint8_t *)halo::ai::globals().actor_data->data + (owner & halo::k_slot_mask) * k_actor_size);
+                other = halo::ai::actor_at(owner);
                 if (other->type != self->type ||
                     other->combat_status < 5) {
                     continue;
@@ -1261,7 +1260,7 @@ datum_index halo::ai::combat_ops::get_relevant_squad_member_target(uint32_t unus
                     if ((1 << (attacker_header->type & 0x1f) & 3) != 0) {
                         attacker_obj = attacker_header->data;
                         if (attacker_obj != (object *)0) {
-                            attacker_unit = (unit_data *)((uint8_t *)attacker_obj + k_unit_data_offset);
+                            attacker_unit = halo::units::unit_data_of(attacker_obj);
                             resolved_object = attacker_unit->gunner_unit_index;
                             if (resolved_object == k_datum_index_none) {
                                 resolved_object = responsible;

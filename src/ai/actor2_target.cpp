@@ -816,7 +816,7 @@ void ActorView::target_scan_potential_targets()
                                                                                : enc->last_idle_time;
                         if (gate != -1) {
                             object_header *ohdr = (object_header *)halo::objects::globals().object_data->data + (p->object_index & halo::k_slot_mask);
-                            unit_data *u = (unit_data *)((uint8_t *)ohdr->data + k_unit_data_offset);
+                            unit_data *u = halo::units::unit_data_of(ohdr->data);
                             int32_t last_seen = u->death_time;
                             if (last_seen == -1 || last_seen < gate) {
                                 accept = 0;
@@ -893,7 +893,7 @@ void ActorView::target_scan_potential_targets()
                         if (uobj->cluster_stamp != stamp) {
                             uobj->cluster_stamp = stamp;
                         }
-                        u = ((unit_data *)((uint8_t *)uobj + k_unit_data_offset))->swarm_next_unit_index;
+                        u = halo::units::unit_data_of(uobj)->swarm_next_unit_index;
                     }
                 } else {
                     swarm *sw2 = &((swarm *)halo::ai::globals().swarm_data->data)[cluster_head & halo::k_slot_mask];
@@ -1197,7 +1197,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, acto
               : &((encounter *)halo::ai::globals().encounter_data->data)[self->encounter_index & halo::k_slot_mask];
     p = &((prop *)halo::ai::globals().prop_data->data)[target_prop_index & halo::k_slot_mask];
     unit_obj = halo::ai::object_at(p->object_index);
-    unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit = halo::units::unit_data_of(unit_obj);
     tick = halo::game::globals().game_time->game_time;
 
     team_gate = 0;
@@ -1558,7 +1558,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, acto
                 encounter *e = &((encounter *)halo::ai::globals().encounter_data->data)[enc_idx & halo::k_slot_mask];
                 int32_t gate = (e->last_idle_time <= self->found_body_time) ? self->found_body_time : e->last_idle_time;
                 object_header *ohdr = (object_header *)halo::objects::globals().object_data->data + (p->object_index & halo::k_slot_mask);
-                unit_data *u2 = (unit_data *)((uint8_t *)ohdr->data + k_unit_data_offset);
+                unit_data *u2 = halo::units::unit_data_of(ohdr->data);
                 int32_t last_seen = u2->death_time;
                 ok = (gate == -1 || (last_seen != -1 && gate <= last_seen));
                 if (!ok) {
