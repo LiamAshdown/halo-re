@@ -590,7 +590,7 @@ uint32_t Koth::dispatch_player_scoring(uint32_t player_index)
             if (weapon != (datum_index)halo::k_dword_none) {
                 object *weapon_obj = halo::game::object_at(weapon);
                 uint32_t *tag_data = (uint32_t *)halo::game::tag_data_at(weapon_obj->definition_tag);
-                if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
+                if ((halo::game::weapon_flag_set(tag_data, halo::tags::weapon_tag_flag::must_be_readied)) != 0) {
                     int32_t score = king_alt_player_score[idx];
                     if (score > 0 && score % 0x96 == 0 && score < king_alt_score_target) {
                         halo::game::game_engine_queue_multiplayer_sound(0x2a, halo::k_dword_none, 0);
@@ -1179,7 +1179,7 @@ void Koth::update_occupant_table(uint32_t index)
             if (weapon != (datum_index)halo::k_dword_none) {
                 object *weapon_obj = halo::game::object_at(weapon);
                 uint32_t *tag_data = (uint32_t *)halo::game::tag_data_at(weapon_obj->definition_tag);
-                if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
+                if ((halo::game::weapon_flag_set(tag_data, halo::tags::weapon_tag_flag::must_be_readied)) != 0) {
                     int16_t team = ((struct object *)weapon_obj)->owner_team;
                     king_hill_occupant_table[team] = index;
                 }

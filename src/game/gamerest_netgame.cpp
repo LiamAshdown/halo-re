@@ -163,7 +163,7 @@ notify_teams:
     {
         int16_t obj_type = *(int16_t *)halo::game::tag_data_at((uint32_t)flag_obj->definition_tag);
         object_type_definition *type_def = object_type_definitions[obj_type];
-        if ((*(uint32_t *)((uint8_t *)type_def + 0x308) >> 3 & 1) == 0) {
+        if ((halo::game::weapon_flag_set(type_def, halo::tags::weapon_tag_flag::must_be_readied)) == 0) {
             goto weapon_coordination;
         }
     }

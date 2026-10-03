@@ -124,7 +124,7 @@ void ObjectCleanup::cleanup_stray_items(void)
                     if (hdr->data != (object *)0) {
                         uint32_t *tag_data = (uint32_t *)halo::game::tag_data_at(obj->definition_tag);
 
-                        if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0 &&
+                        if ((halo::game::weapon_flag_set(tag_data, halo::tags::weapon_tag_flag::must_be_readied)) != 0 &&
                             game_engine_variant.game_engine_index != _game_engine_oddball) {
                             goto next;
                         }

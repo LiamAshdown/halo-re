@@ -441,11 +441,11 @@ void PlayerView::check_vehicle_boarding_interaction(uint32_t candidate_object)
     }
     weapon_count = halo::units::unit_count_deployed_weapons(unit_index);
     keep_current = 0;
-    if (weapon_count >= 2 && current_weapon != k_datum_index_none && (weapon_tag[0x308] & 0x10) == 0 &&
-        (halo::game::tag_data_at(*(datum_index *)halo::game::object_bytes(current_weapon))[0x308] & 0x10) != 0) {
+    if (weapon_count >= 2 && current_weapon != k_datum_index_none && halo::game::weapon_flag_set(weapon_tag, halo::tags::weapon_tag_flag::doesn_t_count_toward_maximum) == 0 &&
+        halo::game::weapon_flag_set(halo::game::tag_data_at(*(datum_index *)halo::game::object_bytes(current_weapon)), halo::tags::weapon_tag_flag::doesn_t_count_toward_maximum) != 0) {
         keep_current = 1;
     }
-    if (dual_flagged && (weapon_tag[0x308] & 8)) {
+    if (dual_flagged && halo::game::weapon_flag_set(weapon_tag, halo::tags::weapon_tag_flag::must_be_readied)) {
         return;
     }
     if (PlayerView(unit_index).is_busy_with_interaction(candidate_object)) {
@@ -521,14 +521,14 @@ void PlayerView::check_vehicle_boarding_interaction_lightweight(uint32_t candida
     current_weapon = halo::units::unit_get_weapon_object_index((uint32_t)p->unit,
         *(int16_t *)((uint8_t *)halo::game::object_at(p->unit) + 0x2f2));
     weapon_count = halo::units::unit_count_deployed_weapons((uint32_t)p->unit);
-    if (weapon_count >= 2 && current_weapon != (datum_index)halo::k_dword_none && (weapon_tag[0x308] & 0x10) == 0) {
+    if (weapon_count >= 2 && current_weapon != (datum_index)halo::k_dword_none && halo::game::weapon_flag_set(weapon_tag, halo::tags::weapon_tag_flag::doesn_t_count_toward_maximum) == 0) {
         object *held = halo::game::object_at(current_weapon);
 
-        if ((((uint8_t *)halo::game::tag_data_at(held->definition_tag))[0x308] & 0x10) != 0) {
+        if (halo::game::weapon_flag_set((uint8_t *)halo::game::tag_data_at(held->definition_tag), halo::tags::weapon_tag_flag::doesn_t_count_toward_maximum) != 0) {
             holds_exclusive = 1;
         }
     }
-    if (unit_flag_1800 && (weapon_tag[0x308] & 8) != 0) {
+    if (unit_flag_1800 && halo::game::weapon_flag_set(weapon_tag, halo::tags::weapon_tag_flag::must_be_readied) != 0) {
         return;
     }
     if (PlayerView((uint32_t)p->unit).is_busy_with_interaction(candidate_object) != 0 || holds_exclusive) {
@@ -1380,7 +1380,7 @@ uint8_t PlayerView::is_busy_with_interaction(uint32_t candidate_object)
 
         datum_index definition_tag = *(datum_index *)tag_data;
         uint8_t *weapon_tag_data = (uint8_t *)halo::game::tag_data_at(definition_tag);
-        if ((weapon_tag_data[0x308] & 0x10) != 0) {
+        if (halo::game::weapon_flag_set(weapon_tag_data, halo::tags::weapon_tag_flag::doesn_t_count_toward_maximum)) {
             return 1;
         }
     }
@@ -1473,7 +1473,7 @@ uint8_t PlayerView::has_must_be_readied_weapon()
         if (weapon != (datum_index)halo::k_dword_none) {
             object *weapon_obj = halo::game::object_at(weapon);
             uint8_t *weapon_tag_data = (uint8_t *)halo::game::tag_data_at(weapon_obj->definition_tag);
-            if (((*(uint32_t *)(weapon_tag_data + 0x308) >> 3) & 1) != 0) {
+            if ((halo::game::weapon_flag_set(weapon_tag_data, halo::tags::weapon_tag_flag::must_be_readied)) != 0) {
                 return 1;
             }
         }

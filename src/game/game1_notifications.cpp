@@ -571,7 +571,7 @@ uint8_t Notifications::notify_weapon_ready_state_change(datum_index unit_index, 
         return 1;
     }
     weapon_definition = (Object *)halo::game::tag_data_at(((object_header *)halo::objects::globals().object_data->data)[weapon_index & halo::k_datum_slot_mask].data->definition_tag);
-    if (((*(uint32_t *)((uint8_t *)weapon_definition + 0x308) >> 3) & 1) == 0) {
+    if ((halo::game::weapon_flag_set(weapon_definition, halo::tags::weapon_tag_flag::must_be_readied)) == 0) {
         return 1;
     }
     if ((((struct weapon_object *)weapon)->weapon.flags & 0x20) != 0) {

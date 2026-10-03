@@ -263,10 +263,10 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
         if (tag_data == 0) {
             return handle;
         }
-        if (*(int16_t *)(tag_data + 0x308) == 2) {
+        if (halo::game::equipment_powerup_type(tag_data) == equipmentpoweruptype_over_shield) {
             return (!halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::shields_disabled)) ? handle : halo::k_dword_none;
         }
-        if (*(int16_t *)(tag_data + 0x308) != 3) {
+        if (halo::game::equipment_powerup_type(tag_data) != equipmentpoweruptype_active_camouflage) {
             return handle;
         }
         return (!halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::invisible_players)) ? handle : halo::k_dword_none;
@@ -935,7 +935,7 @@ void EnginePlacement::update_item_scale_and_pickup(void)
             object_header *hdr = (object_header *)halo::memory::datum_get(iterator.handle, halo::objects::globals().object_data);
 
             if (hdr != 0 && (1u << hdr->type) == _object_mask_weapon && hdr->data != 0 &&
-                ((*(uint32_t *)((uint8_t *)halo::game::tag_data_at(obj->definition_tag) + 0x308) >> 3) & 1) != 0) {
+                (halo::game::weapon_flag_set(halo::game::tag_data_at(obj->definition_tag), halo::tags::weapon_tag_flag::must_be_readied)) != 0) {
                 halo::game::game_engine_notify_item_expired(iterator.handle);
                 ((void (*)(datum_index, object *))current_game_engine->object_in_play_update)(
                     iterator.handle, hdr->data);
