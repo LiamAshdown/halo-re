@@ -1,0 +1,84 @@
+#pragma once
+
+#include <cstdint>
+
+extern "C" {
+extern int32_t DAT_00719484;
+extern uint8_t DAT_00719488;
+extern wchar_t DAT_00719498[0x100];
+extern uint16_t DAT_00719696;
+extern int32_t DAT_00719698;
+extern int32_t DAT_007196a0;
+extern int32_t DAT_006953fc;
+extern int32_t DAT_00695420;
+extern uint8_t DAT_00695424[10];
+}
+
+namespace halo::networking::browser_state {
+
+/**
+ * Server-browser scroll arrow highlight counter: set to +0x10 or -0x10 when the list is scrolled down or up and
+ * decayed towards zero by 4 on every browser tick; its sign selects which arrow is drawn highlighted.
+ *
+ * @address 0x00719484
+ */
+inline int32_t &scroll_arrow_flash = ::DAT_00719484;
+
+/**
+ * Non-zero while a server-list refresh is in flight (set when a refresh is requested or auxiliary updates are
+ * pending, cleared when the query engine goes idle).
+ *
+ * @address 0x00719488
+ */
+inline uint8_t &refresh_in_flight = ::DAT_00719488;
+
+/**
+ * Wide-character message of the join-game ticker: the downloaded message of the day or the stock ticker label.
+ *
+ * @address 0x00719498
+ */
+inline wchar_t (&ticker_message)[0x100] = ::DAT_00719498;
+
+/**
+ * Zero terminator word that follows the ticker message copy of 0xff characters.
+ *
+ * @address 0x00719696
+ */
+inline uint16_t &ticker_message_terminator = ::DAT_00719696;
+
+/**
+ * State of the message-of-the-day download: 0 none, 1 downloading, 2 failed or cancelled, 3 finished.
+ *
+ * @address 0x00719698
+ */
+inline int32_t &motd_download_state = ::DAT_00719698;
+
+/**
+ * Cleared on every browser tick while a query engine exists; never read.
+ *
+ * @address 0x007196a0
+ */
+inline int32_t &tick_reset_flag = ::DAT_007196a0;
+
+/**
+ * Time in milliseconds at which the server list is next refreshed automatically.
+ *
+ * @address 0x006953fc
+ */
+inline int32_t &next_auto_refresh_ms = ::DAT_006953fc;
+
+/**
+ * Index of the autopatch download slot carrying the message-of-the-day request, or -1.
+ *
+ * @address 0x00695420
+ */
+inline int32_t &motd_download_slot = ::DAT_00695420;
+
+/**
+ * Query-engine key ids requested from the master server when the list is refreshed.
+ *
+ * @address 0x00695424
+ */
+inline uint8_t (&master_query_key_ids)[10] = ::DAT_00695424;
+
+}
