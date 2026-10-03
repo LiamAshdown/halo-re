@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 
 extern "C" {
@@ -444,10 +445,10 @@ void rasterizer_editbox_log_dump(void)
     int32_t document;
 
     if (chat_gui_root_handle == (void *)0) {
-        if (unknown_00721ea0 == (void *)0) {
+        if (halo::rasterizer::globals::keystone_create == (void *)0) {
             return;
         }
-        chat_gui_root_handle = unknown_00721ea0(shell_window, rasterizer_device, keystone_current_directory, 0, 0, 0, 0);
+        chat_gui_root_handle = halo::rasterizer::globals::keystone_create(shell_window, rasterizer_device, keystone_current_directory, 0, 0, 0, 0);
         if (chat_gui_root_handle == (void *)0) {
             return;
         }
@@ -469,13 +470,13 @@ void rasterizer_editbox_log_dump(void)
     wcscat(log_path, height_text);
     wcscat(log_path, L"log.ksml");
 
-    unknown_00721eb4(chat_gui_root_handle, editbox_path, chat_gui_find_object_arg, 0x10000000,   rect_zero, 0, 0, 0, 0, 0, 0);
-    document = unknown_00721eb8(chat_gui_root_handle, chat_gui_find_object_arg);
+    halo::rasterizer::globals::keystone_create_window(chat_gui_root_handle, editbox_path, chat_gui_find_object_arg, 0x10000000,   rect_zero, 0, 0, 0, 0, 0, 0);
+    document = halo::rasterizer::globals::keystone_get_window(chat_gui_root_handle, chat_gui_find_object_arg);
     if (document != 0) {
-        unknown_00721edc(document, 0);
-        unknown_00721ec8(document);
+        halo::rasterizer::globals::keystone_window_show(document, 0);
+        halo::rasterizer::globals::keystone_window_release(document);
     }
-    unknown_00721eb4(chat_gui_root_handle, log_path, chat_listbox_gui_find_object_arg, 0x10000000,   rect_zero, 0, 0, 0, 0, 0, 0);
+    halo::rasterizer::globals::keystone_create_window(chat_gui_root_handle, log_path, chat_listbox_gui_find_object_arg, 0x10000000,   rect_zero, 0, 0, 0, 0, 0, 0);
 }
 
 namespace text_draw_glyph_callback_impl {

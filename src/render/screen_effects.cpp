@@ -1,3 +1,4 @@
+#include "halo/rasterizer/globals.hpp"
 #include "crt.h"
 #include "win32.h"
 #include "tags.h"
@@ -64,7 +65,6 @@ extern void network_bandwidth_graph_update(void);
 extern Rectangle2D game_window_top_left;
 extern int32_t frame_graph_window_width;
 extern int32_t frame_graph_window_height;
-extern uint16_t unknown_006893e2;
 extern uint32_t frame_statistics_times[60];
 extern uint8_t frame_statistics_dropped[60];
 extern int16_t frame_statistics_count;
@@ -816,7 +816,7 @@ void sample(rasterizer_frame_statistics *statistics, uint8_t dropped)
     int16_t dropped_count;
     int16_t i;
 
-    if ((console_debug_toggle_6893e0 == 0 && unknown_006893e2 == 0) || statistics == 0) {
+    if ((console_debug_toggle_6893e0 == 0 && halo::rasterizer::globals::frame_statistics_level == 0) || statistics == 0) {
         frame_statistics_count = 0;
         return;
     }

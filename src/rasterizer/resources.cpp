@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 
 extern "C" {
@@ -525,23 +526,23 @@ void rasterizer_ksml_ui_shutdown(void)
 {
     int32_t document;
 
-    if (chat_gui_root_handle == (void *)0 || unknown_00721eb8 == (void *)0 || unknown_00721ec8 == (void *)0) {
+    if (chat_gui_root_handle == (void *)0 || halo::rasterizer::globals::keystone_get_window == (void *)0 || halo::rasterizer::globals::keystone_window_release == (void *)0) {
         return;
     }
 
-    document = unknown_00721eb8(chat_gui_root_handle, chat_gui_find_object_arg);
+    document = halo::rasterizer::globals::keystone_get_window(chat_gui_root_handle, chat_gui_find_object_arg);
     if (document != 0) {
-        unknown_00721ec8(document);
-        unknown_00721ec8(document);
+        halo::rasterizer::globals::keystone_window_release(document);
+        halo::rasterizer::globals::keystone_window_release(document);
     }
 
-    document = unknown_00721eb8(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
+    document = halo::rasterizer::globals::keystone_get_window(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
     if (document != 0) {
-        unknown_00721ec8(document);
-        unknown_00721ec8(document);
+        halo::rasterizer::globals::keystone_window_release(document);
+        halo::rasterizer::globals::keystone_window_release(document);
     }
 
-    unknown_00721eac(chat_gui_root_handle);
+    halo::rasterizer::globals::keystone_release(chat_gui_root_handle);
     chat_gui_root_handle = (void *)0;
 }
 
@@ -616,7 +617,7 @@ uint8_t rasterizer_misc_vertex_buffer_create(void)
     int32_t count;
 
     sw_flag = (rasterizer_software_vertex_processing != 0) ? 0x10u : 0u;
-    usage = sw_flag | unknown_006e1b58;
+    usage = sw_flag | rasterizer_vertex_declarations[16].usage;
 
     buffer = 0;
     hr = render_device().create_vertex_buffer(0x10000, usage, 0, (usage & 0x210) != 0 ? 2 : 1, &buffer, 0);

@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 
 extern "C" {
@@ -973,7 +974,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
         rasterizer_camouflage_fade = 1.0f - amount;
         if (console_debug_toggle_6893ec != 0) {
             rasterizer_render_states_dirty = 1;
-            unknown_0071d1fa = 0;
+            halo::rasterizer::globals::sky_pass_active = 0;
             if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
                 rasterizer_set_render_state(0x89, 1);
             }
@@ -1127,7 +1128,7 @@ void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_pe
     group->lighting_extra = 0;
 
     if (shader->shader_type == 8) {
-        unknown_0071d276 = 1;
+        halo::rasterizer::globals::transparent_group_created = 1;
     }
     if (shader->shader_type == 8 && (*((uint8_t *)shader + 0x28) & 8) != 0) {
         group->flags = group->flags | 2;

@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 
 extern "C" {
@@ -1919,9 +1920,9 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
     }
 
     z_write = (uint8_t)((raw[0] & 0x10) == 0 && (*(uint16_t *)(water + 0x28) & 8) == 0);
-    if (unknown_0071d275 != 0) {
+    if (halo::rasterizer::globals::water_ripple_update_pending != 0) {
         rasterizer_water_update_ripple_texture(water);
-        unknown_0071d275 = 0;
+        halo::rasterizer::globals::water_ripple_update_pending = 0;
     }
 
     effect = (void *)rasterizer_effects[102].effect;
@@ -2274,7 +2275,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
         set_render_state(0x1c, 0);
         set_linear_clamped_stage(0);
         render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[8].declaration);
-        render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10u : 0u) | renderer_unknown_6e1af8) & 0x10);
+        render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10u : 0u) | rasterizer_vertex_declarations[8].usage) & 0x10);
         render_device().set_vertex_shader(rasterizer_vertex_shaders[0].shader);
 
         ripple_count = *(int16_t *)(water + 0xd8);

@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 
 extern "C" {
@@ -230,7 +231,7 @@ void rasterizer_decal_pass_begin(int16_t stage)
     rasterizer_decal_blend_mode = 0xffff;
     rasterizer_decal_bitmap_frame = 0xffff;
     rasterizer_decal_bitmap_tag = 0xffffffff;
-    unknown_0071d1c4 = 0;
+    halo::rasterizer::globals::decal_fog_state_applied = 0;
     rasterizer_decal_layer = stage;
 
     {
@@ -271,11 +272,11 @@ void rasterizer_decal_pass_begin(int16_t stage)
         render_device().set_render_state(0x18, 0x7f);
         rasterizer_set_shader_stage_config(4);
     } else {
-        if ((console_debug_toggle_689441 == 0 || rasterizer_window.fog.atmospheric_maximum_density != 1.0f) && unknown_0071d1c4 == 0) {
+        if ((console_debug_toggle_689441 == 0 || rasterizer_window.fog.atmospheric_maximum_density != 1.0f) && halo::rasterizer::globals::decal_fog_state_applied == 0) {
             render_device().set_render_state(0xf, 0);
             goto stream_source;
         }
-        unknown_0071d1c4 = 1;
+        halo::rasterizer::globals::decal_fog_state_applied = 1;
         render_device().set_render_state(0xf, 1);
         render_device().set_render_state(0x18, 0);
     }

@@ -1,3 +1,4 @@
+#include "halo/rasterizer/globals.hpp"
 #include "crt.h"
 #include "win32.h"
 #include "tags.h"
@@ -20,7 +21,6 @@
 extern "C" {
 extern data_array *object_data;
 extern cinematic_globals *cinematic_globals_ptr;
-extern int32_t unknown_00689450;
 extern render_frustum render_frustum_global;
 extern data_array *object_render_state_cache;
 extern render_lighting render_uncached_object_lighting;
@@ -70,7 +70,6 @@ extern void rasterizer_render_target_set_active(int16_t target_index, uint32_t c
 extern int16_t rendered_object_count;
 extern datum_index rendered_objects[0x100];
 extern uint8_t rasterizer_render_states_dirty;
-extern uint8_t unknown_0071d1fa;
 extern uint8_t console_debug_toggle_6893ee;
 extern void first_person_weapon_update_lighting(void);
 extern int32_t object_cluster_stamp;
@@ -469,9 +468,9 @@ real compute_level_of_detail_pixels(datum_index object_index)
     }
 
     radius = obj->bounding_radius;
-    if ((int16_t)unknown_00689450 == 1) {
+    if ((int16_t)halo::rasterizer::globals::object_lod_quality == 1) {
         radius = radius * 0.5f;
-    } else if ((int16_t)unknown_00689450 == 0) {
+    } else if ((int16_t)halo::rasterizer::globals::object_lod_quality == 0) {
         radius = radius * 0.25f;
     }
 
@@ -907,7 +906,7 @@ void s(void)
 
     if (console_debug_toggle_6893ec != 0) {
         rasterizer_render_states_dirty = 1;
-        unknown_0071d1fa = 0;
+        halo::rasterizer::globals::sky_pass_active = 0;
         if (rasterizer_device_version < 0xffff0101) {
             void **vtable = *(void ***)rasterizer_device;
             d3d_set_render_state_fn set_render_state = (d3d_set_render_state_fn)vtable[0xe4 / 4];

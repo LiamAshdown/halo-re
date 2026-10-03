@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 
 extern "C" {
@@ -327,7 +328,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
 
     if (pixel_shader_fog) {
         vertex_shader = 0x1c;
-    } else if (unknown_0071d1fb) {
+    } else if (halo::rasterizer::globals::planar_fog_vertex_shader_active) {
         vertex_shader = 0x19;
     } else if (*(int16_t *)(context + 0x50) > 0) {
         vertex_shader = 0x1a;
@@ -442,7 +443,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
                     environment_set_render_state(0x22, color_rgb_float_to_int(&rasterizer_fog_atmospheric_color));
                 } else {
                     for (i = 0; i < 3; i++) {
-                        add[i] = environment_clamp01(add[i] - unknown_007c047c * negative[i]);
+                        add[i] = environment_clamp01(add[i] - halo::rasterizer::globals::planar_fog_attenuation * negative[i]);
                     }
                     environment_set_render_state(0x22, color_pack_argb_from_real((ColorARGB *)fog));
                 }
@@ -1474,9 +1475,9 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
 
     map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->map.tag_id;
     if (map_tag == 0xffffffff) {
-        effect_index = (int16_t)(2 + (unknown_006e0a04 != 0 ? 1 : 0));
+        effect_index = (int16_t)(2 + (halo::rasterizer::globals::environment_effect_variant != 0 ? 1 : 0));
     } else {
-        effect_index = (int16_t)(unknown_006e0a04 != 0 ? 1 : 0);
+        effect_index = (int16_t)(halo::rasterizer::globals::environment_effect_variant != 0 ? 1 : 0);
     }
     effect_slot = &rasterizer_effects[effect_index];
     effect = (void *)effect_slot->effect;
@@ -1608,7 +1609,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
     for (pass = 0; pass < pass_count; pass++) {
         render_device().effect_pass(effect, pass);
         chimera__rasterizer_draw_dynamic_triangles_static_vertices2(primitive_count, vertex_buffer, dynamic_index_slot, first_primitive,
-                                                                    vertex_buffer + (unknown_006e0a04 == 0 ? 1 : 0));
+                                                                    vertex_buffer + (halo::rasterizer::globals::environment_effect_variant == 0 ? 1 : 0));
     }
     render_device().effect_end(effect);
 }
@@ -1802,7 +1803,7 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     set_texture_stage_state(2, 4, 1);
     render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[13].declaration);
     chimera__rasterizer_draw_dynamic_triangles_static_vertices2(primitive_count, vertex_buffer, dynamic_index_slot,
-        first_primitive, (rasterizer_vertex_buffer *)((uint8_t *)vertex_buffer + (unknown_006e0a04 == 0 ? 20 : 0)));
+        first_primitive, (rasterizer_vertex_buffer *)((uint8_t *)vertex_buffer + (halo::rasterizer::globals::environment_effect_variant == 0 ? 20 : 0)));
 }
 #undef DEVICE_CALL
 

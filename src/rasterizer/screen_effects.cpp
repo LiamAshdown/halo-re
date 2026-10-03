@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 
 extern "C" {
@@ -48,8 +49,8 @@ void chimera__cinematic_screen_effect(rasterizer_frame_time *time_source)
 
     rasterizer_time = *time_source;
 
-    unknown_0071d275 = (uint8_t)(1 - (rasterizer_caps.pixel_shader_version < 0xffff0101));
-    unknown_0071d276 = 0;
+    halo::rasterizer::globals::water_ripple_update_pending = (uint8_t)(1 - (rasterizer_caps.pixel_shader_version < 0xffff0101));
+    halo::rasterizer::globals::transparent_group_created = 0;
 
     lens_flare_update_visibility();
 
@@ -2461,9 +2462,9 @@ void rasterizer_underwater_tint_jitter_update(BitmapData *lightmap)
     }
 
     if (render_force_flag == 2) {
-        rasterizer_underwater_tint_jitter_b = renderer_unknown_68940c;
-        rasterizer_underwater_tint_jitter_g = renderer_unknown_68940c;
-        rasterizer_underwater_tint_jitter_r = renderer_unknown_68940c;
+        rasterizer_underwater_tint_jitter_b = halo::rasterizer::globals::underwater_tint_jitter_forced_value;
+        rasterizer_underwater_tint_jitter_g = halo::rasterizer::globals::underwater_tint_jitter_forced_value;
+        rasterizer_underwater_tint_jitter_r = halo::rasterizer::globals::underwater_tint_jitter_forced_value;
         return;
     }
 
@@ -2509,7 +2510,7 @@ void rasterizer_underwater_tint_set_states(void)
         render_device().set_render_state(0x89, 1);
         render_device().set_render_state(0x1c, rasterizer_fog_enabled);
         render_device().set_render_state(0x22, 0xffffffff);
-        render_device().set_render_state(0x8b, renderer_unknown_69c684);
+        render_device().set_render_state(0x8b, halo::rasterizer::globals::fixed_function_ambient_color);
 
         render_device().set_sampler_state(1, 1, 3);
         render_device().set_sampler_state(1, 2, 3);

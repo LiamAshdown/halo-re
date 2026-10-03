@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 
 extern "C" {
@@ -457,14 +458,14 @@ void rasterizer_prepare_lighting_constants(render_lighting *lighting)
     float ambient_red, ambient_green, ambient_blue;
     int16_t i;
 
-    if (unknown_00689418 > 0.0f) {
+    if (halo::rasterizer::globals::model_lighting_ambient_override > 0.0f) {
         float *words = (float *)&block;
         int32_t w;
 
         for (w = 0; w < 0x2c; w++) {
             words[w] = 0.0f;
         }
-        ambient_red = ambient_green = ambient_blue = unknown_00689418;
+        ambient_red = ambient_green = ambient_blue = halo::rasterizer::globals::model_lighting_ambient_override;
     } else {
         for (i = 0; i < 2; i++) {
             int32_t light_index = (i < lighting->point_light_count) ? lighting->point_light_indices[i] : -1;
@@ -501,7 +502,7 @@ void rasterizer_prepare_lighting_constants(render_lighting *lighting)
     block.ambient[3] = 0.0f;
 
     if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
-        float boost = (float)(renderer_unknown_69c684 & 0xff) * 0.003921569f;
+        float boost = (float)(halo::rasterizer::globals::fixed_function_ambient_color & 0xff) * 0.003921569f;
         uint32_t red = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.red + boost + ambient_red) * 255.0f);
         uint32_t green = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.green + boost + ambient_green) * 255.0f);
         uint32_t blue = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.blue + boost + ambient_blue) * 255.0f);
@@ -772,7 +773,7 @@ void rasterizer_set_shader_stage_config(int16_t mode)
     uint32_t final_state;
     uint32_t final_value;
 
-    if (unknown_006893ef == 0) {
+    if (halo::rasterizer::globals::shader_stage_config_enabled == 0) {
         mode = 0;
     }
     if (mode == rasterizer_shader_stage_config) {
