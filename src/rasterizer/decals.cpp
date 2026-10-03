@@ -10,6 +10,9 @@
 #include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
+#include "halo/rasterizer/constants.hpp"
+#include "halo/rasterizer/tag_access.hpp"
+#include <cstring>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
@@ -26,6 +29,12 @@ static_assert(sizeof(decal) == 0x38, "decal record size");
 namespace {
 
 constexpr int k_decal_grid_columns = 0x200;
+constexpr int32_t k_decal_cache_block_count = 0xa00;
+constexpr int16_t k_decal_cache_maximum_count = 0x800;
+
+/** Game state bytes of the decal vertex cache: the cache header and one entry per decal. */
+constexpr uint32_t k_decal_cache_region_bytes = sizeof(::cache) + k_decal_cache_maximum_count * sizeof(cache_entry);
+static_assert(k_decal_cache_region_bytes == 0xe07c, "decal vertex cache region size");
 
 }  // namespace
 
@@ -61,37 +70,30 @@ void decal_and_font_system_reset(void)
     int32_t i;
 
     if (global_globals->rasterizer_data.count == 0) {
-        rasterizer_globals_data = (GlobalsRasterizerData *)((void *)0);
+        rasterizer_globals_data = (GlobalsRasterizerData *)nullptr;
     } else {
         rasterizer_globals_data = (GlobalsRasterizerData *)(uintptr_t)global_globals->rasterizer_data.pointer;
     }
 
-    for (i = 0; i < 0x8c0; i++) {
-        ((uint32_t *)lens_flare_object_visibility_table)[i] = 0;
-    }
-    for (i = 0; i < 0x4002; i++) {
-        ((uint32_t *)lens_flare_marker_visibility)[i] = 0;
-    }
+    std::memset(&lens_flare_object_visibility_table, 0, sizeof(lens_flare_object_visibility_table));
+    std::memset(&lens_flare_marker_visibility, 0, sizeof(lens_flare_marker_visibility));
     lens_flare_instance_count = 0;
     font_glyph_cache_clear_all();
 
     if (cinematic_screen_effect_state != (cinematic_screen_effect_globals *)0) {
-        for (i = 0; i < 0x1e; i++) {
-            ((uint32_t *)cinematic_screen_effect_state)[i] = 0;
+        std::memset(cinematic_screen_effect_state, 0, sizeof(*cinematic_screen_effect_state));
+        for (i = 0; i < 4; i++) {
+            cinematic_screen_effect_state->script_values[i] = 1.0f;
         }
-        ((uint32_t *)cinematic_screen_effect_state)[0x19] = 0x3f800000;
-        ((uint32_t *)cinematic_screen_effect_state)[0x1a] = 0x3f800000;
-        ((uint32_t *)cinematic_screen_effect_state)[0x1b] = 0x3f800000;
-        ((uint32_t *)cinematic_screen_effect_state)[0x1c] = 0x3f800000;
     }
-    if (rasterizer_model_ambient_reflection_tint != (float *)0) {
+    if (rasterizer_model_ambient_reflection_tint != nullptr) {
         rasterizer_model_ambient_reflection_tint[0] = 0;
         rasterizer_model_ambient_reflection_tint[1] = 0;
         rasterizer_model_ambient_reflection_tint[2] = 0;
         rasterizer_model_ambient_reflection_tint[3] = 0;
     }
     if (cinematic_screen_effect_state != (cinematic_screen_effect_globals *)0) {
-        ((uint32_t *)cinematic_screen_effect_state)[0x1d] = 0;
+        cinematic_screen_effect_state->near_clip_distance = 0.0f;
     }
 }
 
@@ -103,8 +105,8 @@ void decal_and_font_system_reset(void)
  */
 void decal_geometry_cache_restore_procs(void)
 {
-    rasterizer_decal_vertex_cache_handle->release_procedure = (void *)decal_vertex_cache_release;
-    rasterizer_decal_vertex_cache_handle->in_use_procedure = (void *)decal_vertex_cache_in_use;
+    rasterizer_decal_vertex_cache_handle->release_procedure = reinterpret_cast<void *>(decal_vertex_cache_release);
+    rasterizer_decal_vertex_cache_handle->in_use_procedure = reinterpret_cast<void *>(decal_vertex_cache_in_use);
 }
 
 /**
@@ -115,7 +117,7 @@ void decal_geometry_cache_restore_procs(void)
  */
 uint8_t decal_vertex_cache_in_use(datum_index handle)
 {
-    decal *element = (decal *)((uint8_t *)decal_data->data + (uint32_t)(handle & halo::k_slot_mask) * sizeof(decal));
+    decal *element = &reinterpret_cast<decal *>(decal_data->data)[handle & halo::k_slot_mask];
 
     decal_vertex_cache_last_queried = handle;
     return (element->flags & 3) != 0;
@@ -178,16 +180,16 @@ namespace rasterizer_decal_index_buffer_initialize_impl {
  */
 uint8_t rasterizer_decal_index_buffer_initialize(void)
 {
-    uint32_t usage = (rasterizer_software_vertex_processing != 0 ? 0x10u : 0u) | 0x208;
+    uint32_t usage = (rasterizer_software_vertex_processing != 0 ? halo::d3d9::k_usage_software_processing : 0u) | halo::d3d9::k_usage_dynamic | halo::d3d9::k_usage_write_only;
     uint8_t ok = 1;
     int32_t type;
 
-    if (render_device().create_index_buffer(0x30000, usage, 0x65, 2, &rasterizer_dynamic_index_buffer, 0) < 0) {
+    if (render_device().create_index_buffer(k_dynamic_index_buffer_bytes, usage, k_format_index16, halo::d3d9::k_pool_system_memory, &rasterizer_dynamic_index_buffer, 0) < 0) {
         ok = 0;
     }
-    if (rasterizer_dynamic_index_buffer == (void *)0 || !ok) {
+    if (rasterizer_dynamic_index_buffer == nullptr || !ok) {
         ok = 0;
-        rasterizer_dynamic_index_buffer = (void *)0;
+        rasterizer_dynamic_index_buffer = nullptr;
     }
 
     for (type = 0; ok && (int16_t)type < k_rasterizer_vertex_type_count; type++) {
@@ -234,28 +236,26 @@ void rasterizer_decal_pass_begin(int16_t stage)
     if (decals_for_all_responses == 0 && stage != 3) {
         proceed = 0;
     }
-    if (*(int16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || !proceed) {
+    if (halo::rasterizer::fields::rasterizer_debug_mode_word != 0 || !proceed) {
         rasterizer_decal_layer = stage;
         return;
     }
 
-    rasterizer_decal_blend_mode = 0xffff;
-    rasterizer_decal_bitmap_frame = 0xffff;
-    rasterizer_decal_bitmap_tag = 0xffffffff;
+    rasterizer_decal_blend_mode = halo::k_word_none;
+    rasterizer_decal_bitmap_frame = halo::k_word_none;
+    rasterizer_decal_bitmap_tag = halo::k_dword_none;
     halo::rasterizer::fields::decal_fog_state_applied = 0;
     rasterizer_decal_layer = stage;
 
     {
-        TagID *fallback_tag_id = (TagID *)((uint8_t *)rasterizer_globals_data + 0xb8);
-        if (*(uint32_t *)fallback_tag_id != halo::k_dword_none) {
+        const TagID *fallback_tag_id = &rasterizer_globals_data->default_2d.tag_id;
+        if (halo::tag_id_bits(*fallback_tag_id) != halo::k_dword_none) {
             Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[fallback_tag_id->index].data;
             if (bitmap != (Bitmap *)0 && bitmap->bitmap_data.count > 1) {
-                uint8_t *first_submap = (uint8_t *)bitmap->bitmap_data.pointer;
-                if (first_submap != (uint8_t *)(uint32_t)-0x30) {
-                    rasterizer_bind_texture_d3d9(0, (BitmapData *)(first_submap + 0x30));
-                    rasterizer_bound_bitmap_size_a[0] = *(int16_t *)(first_submap + 0x34);
-                    rasterizer_bound_bitmap_size_a[1] = *(int16_t *)(first_submap + 0x36);
-                }
+                BitmapData *second_submap = tag_block_element<BitmapData>(bitmap->bitmap_data, 1);
+                rasterizer_bind_texture_d3d9(0, second_submap);
+                rasterizer_bound_bitmap_size_a[0] = static_cast<int16_t>(second_submap->width);
+                rasterizer_bound_bitmap_size_a[1] = static_cast<int16_t>(second_submap->height);
             }
         }
     }
@@ -312,7 +312,7 @@ void * rasterizer_decal_vertex_cache_lock(uint32_t decal_index, int32_t byte_cou
 {
     ::cache *cache = rasterizer_decal_vertex_cache_handle;
     data_array *blocks = cache->entries;
-    uint32_t offset = (uint32_t)((cache_entry *)((uint8_t *)blocks->data + (decal_index & halo::k_slot_mask) * sizeof(cache_entry)))->offset
+    uint32_t offset = (uint32_t)reinterpret_cast<cache_entry *>(blocks->data)[decal_index & halo::k_slot_mask].offset
                       << (cache->block_shift & 0x1f);
     void *buffer = rasterizer_decal_vertex_cache;
     void *data = 0;
@@ -371,14 +371,14 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
     if (decals_for_all_responses == 0 && rasterizer_decal_layer != 3) {
         layer_enabled = 0;
     }
-    if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || !layer_enabled) {
+    if (halo::rasterizer::fields::rasterizer_debug_mode_word != 0 || !layer_enabled) {
         return;
     }
 
     decal_index = decal_grid_block[rasterizer_decal_layer * k_decal_grid_columns + cluster_index];
     while (decal_index != halo::k_dword_none) {
-        decal *record = (decal *)((uint8_t *)decal_data->data + (decal_index & halo::k_slot_mask) * sizeof(decal));
-        uint32_t definition_tag = *(uint32_t *)&record->definition_index;
+        decal *record = &reinterpret_cast<decal *>(decal_data->data)[decal_index & halo::k_slot_mask];
+        uint32_t definition_tag = static_cast<uint32_t>(record->definition_index);
         Decal *definition = (Decal *)halo::cache::globals().tag_instances[definition_tag & halo::k_slot_mask].data;
         int16_t type = definition->framebuffer_blend_function;
 
@@ -395,7 +395,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
         if (succeeded) {
             ::cache *cache = rasterizer_decal_vertex_cache_handle;
             data_array *blocks = cache->entries;
-            uint32_t first_offset = (uint32_t)((cache_entry *)((uint8_t *)blocks->data + (decal_index & halo::k_slot_mask) * sizeof(cache_entry)))->offset
+            uint32_t first_offset = (uint32_t)reinterpret_cast<cache_entry *>(blocks->data)[decal_index & halo::k_slot_mask].offset
                                     << (cache->block_shift & 0x1f);
             uint32_t color = record->color;
             uint32_t alpha = (record->alpha * (color >> 24) + 0x7f) >> 8;
@@ -426,7 +426,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
                 rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
                 break;
             case 2:
-                rasterizer_set_render_state(halo::d3d9::rs::texture_factor, 0x7f7f7f7f);
+                rasterizer_set_render_state(halo::d3d9::rs::texture_factor, halo::d3d9::color_argb(0x7f, 0x7f, 0x7f, 0x7f));
                 rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::multiply_add);
                 rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
                 rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::current);
@@ -453,7 +453,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
                 rasterizer_set_texture_stage_state(2, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
                 break;
             case 7:
-                rasterizer_set_render_state(halo::d3d9::rs::texture_factor, 0xffff0000);
+                rasterizer_set_render_state(halo::d3d9::rs::texture_factor, halo::d3d9::color_argb(0xff, 0xff, 0, 0));
                 rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
                 rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::tfactor);
                 rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
@@ -468,7 +468,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
             primitive_count = record->triangle_count * 2;
             first_vertex = (int32_t)(long long)((double)(first_offset >> 4) * 1.5);
 
-            frame = *(int8_t *)&record->sprite_bitmap_index;
+            frame = static_cast<int8_t>(record->sprite_bitmap_index);
             if (rasterizer_decal_bitmap_tag != halo::tag_id_bits(definition->map.tag_id) ||
                 rasterizer_decal_bitmap_frame != (int16_t)frame) {
                 rasterizer_decal_bitmap_tag = halo::tag_id_bits(definition->map.tag_id);
@@ -486,8 +486,8 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
             if (render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_decal].declaration) < 0) {
                 succeeded = 0;
             }
-            if (render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
-                                        rasterizer_vertex_declarations[_rasterizer_vertex_type_decal].usage) & 0x10) < 0) {
+            if (render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? halo::d3d9::k_usage_software_processing : 0) |
+                                        rasterizer_vertex_declarations[_rasterizer_vertex_type_decal].usage) & halo::d3d9::k_usage_software_processing) < 0) {
                 succeeded = 0;
             }
             if (render_device().set_vertex_shader(rasterizer_vertex_shaders[2].shader) < 0) {
@@ -503,7 +503,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
                 succeeded = 0;
             }
         }
-        decal_index = *(uint32_t *)&record->next_decal;
+        decal_index = static_cast<uint32_t>(record->next_decal);
     }
 }
 
@@ -520,21 +520,20 @@ namespace rasterizer_decals_initialize_impl {
 void rasterizer_decals_initialize(void)
 {
     void *buffer = 0;
-    uint32_t usage = (rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
-                     rasterizer_vertex_declarations[_rasterizer_vertex_type_decal].usage | 0x200;
-    uint32_t pool = (usage & 0x10) != 0 || (usage & 0x200) != 0 ? 2 : 1;
-    uint32_t region_size = 0xe07c;
+    uint32_t usage = dynamic_vertex_buffer_usage(rasterizer_vertex_declarations[_rasterizer_vertex_type_decal].usage, rasterizer_software_vertex_processing != 0);
+    uint32_t pool = vertex_buffer_pool_for_usage(usage);
+    uint32_t region_size = k_decal_cache_region_bytes;
     uint8_t *block;
-    int32_t hr = render_device().create_vertex_buffer(0x3c000, usage, 0, pool, &buffer, 0);
+    int32_t hr = render_device().create_vertex_buffer(k_decal_vertex_buffer_bytes, usage, 0, pool, &buffer, 0);
 
     rasterizer_decal_vertex_cache = hr < 0 ? 0 : buffer;
 
     block = game_state_base + game_state_cursor;
-    game_state_cursor = game_state_cursor + 0xe07c;
+    game_state_cursor = game_state_cursor + k_decal_cache_region_bytes;
     halo::memory::crc32_update(&game_state_crc, &region_size, 4);
 
-    halo::memory::cache_new((char *)"decal vertex cache", (::cache *)block, 0xa00, 6, 0x800, (void *)decal_vertex_cache_release,
-              (void *)decal_vertex_cache_in_use);
+    halo::memory::cache_new((char *)"decal vertex cache", (::cache *)block, k_decal_cache_block_count, 6, k_decal_cache_maximum_count, reinterpret_cast<void *>(decal_vertex_cache_release),
+              reinterpret_cast<void *>(decal_vertex_cache_in_use));
     rasterizer_decal_vertex_cache_handle = (::cache *)block;
 }
 

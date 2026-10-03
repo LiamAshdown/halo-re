@@ -11,6 +11,8 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "halo/rasterizer/layout_checks.hpp"
+#include "halo/rasterizer/draw_procedures.hpp"
 #include "render.h"
 #include "interface.h"
 #include <string.h>
@@ -122,7 +124,7 @@ inline auto &screenshot_scale = halo::link::ref<int16_t>(halo::main::vars().scre
 inline auto &lens_flare_instances = halo::link::ref<lens_flare_instance [0x400]>(halo::rasterizer::vars().lens_flare_instances);
 inline auto &lens_flare_instance_overflow = halo::link::ref<uint8_t>(halo::rasterizer::vars().lens_flare_instance_overflow);
 inline auto &lens_flare_occlusion_queries_supported = halo::link::ref<uint8_t>(halo::rasterizer::vars().lens_flare_occlusion_queries_supported);
-inline auto &rasterizer_effect_pool_scratch = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_effect_pool_scratch);
+inline auto &rasterizer_effect_pool_scratch = halo::link::ref<void **>(halo::rasterizer::vars().rasterizer_effect_pool_scratch);
 inline auto &rasterizer_caps_flag_68a = halo::link::ref<uint8_t>(halo::ui::vars().rasterizer_caps_flag_68a);
 inline auto &config_decal_z_bias = halo::link::ref<uint32_t>(halo::shell::vars().config_decal_z_bias);
 inline auto &config_decal_slope_z_bias = halo::link::ref<uint32_t>(halo::shell::vars().config_decal_slope_z_bias);
@@ -235,11 +237,11 @@ inline auto &rasterizer_ui_render_failed = halo::link::ref<int32_t>(halo::raster
 inline auto &console_debug_toggle_68941d = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_68941d);
 inline auto &rasterizer_fog_enabled = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_fog_enabled);
 inline auto &video_gamma_current = halo::link::ref<int32_t>(halo::ui::vars().video_gamma_current);
-inline auto &rasterizer_frustum_z_values = halo::link::ref<uint32_t [2]>(halo::rasterizer::vars().rasterizer_frustum_z_values);
+inline auto &rasterizer_frustum_z_values = halo::link::ref<float [2]>(halo::rasterizer::vars().rasterizer_frustum_z_values);
 inline auto &k_render_identity_matrix_ptr = halo::link::ref<real_matrix4x3 *>(halo::effects::vars().k_render_identity_matrix_ptr);
-inline auto &rasterizer_depth_prepass_vertex_shader = halo::link::ref<uint32_t>(halo::rasterizer::vars().rasterizer_depth_prepass_vertex_shader);
+inline auto &rasterizer_depth_prepass_vertex_shader = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_depth_prepass_vertex_shader);
 inline auto &rasterizer_capture_surfaces = halo::link::ref<void *[4]>(halo::rasterizer::vars().rasterizer_capture_surfaces);
-inline auto &rasterizer_glass_draw_procedures = halo::link::ref<void *[3]>(halo::rasterizer::vars().rasterizer_glass_draw_procedures);
+inline auto &rasterizer_glass_draw_procedures = halo::link::ref<halo::rasterizer::glass_draw_procedures>(halo::rasterizer::vars().rasterizer_glass_draw_procedures);
 inline auto &rasterizer_bound_bitmap_size_b = halo::link::ref<int16_t [2]>(halo::rasterizer::vars().rasterizer_bound_bitmap_size_b);
 inline auto &rasterizer_direct3d = halo::link::ref<void *>(halo::ui::vars().rasterizer_direct3d);
 inline auto &rasterizer_caps_flag_688 = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_caps_flag_688);
@@ -311,7 +313,7 @@ inline auto &rasterizer_screen_effect_quad = halo::link::ref<rasterizer_dynamic_
 inline auto &screen_flash_techniques = halo::link::ref<void *[6]>(halo::rasterizer::vars().screen_flash_techniques);
 inline auto &rasterizer_screen_flash_effect = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_screen_flash_effect);
 inline auto &console_debug_toggle_689427 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689427);
-inline auto &rasterizer_water_draw_procedure = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_water_draw_procedure);
+inline auto &rasterizer_water_draw_procedure = halo::link::ref<halo::rasterizer::group_draw_procedure>(halo::rasterizer::vars().rasterizer_water_draw_procedure);
 inline auto &console_debug_toggle_6893fc = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_6893fc);
 inline auto &global_white_color = halo::link::ref<const ColorRGB *>(halo::effects::vars().global_white_color);
 inline auto &rasterizer_shader_stage_config = halo::link::ref<int16_t>(halo::rasterizer::vars().rasterizer_shader_stage_config);
@@ -322,8 +324,8 @@ inline auto &environment_techniques_plain = halo::link::ref<int32_t [12]>(halo::
 inline auto &environment_techniques_reflection = halo::link::ref<int32_t [24]>(halo::rasterizer::vars().environment_techniques_reflection);
 inline auto &environment_techniques_change_color = halo::link::ref<int32_t [24]>(halo::rasterizer::vars().environment_techniques_change_color);
 inline auto &rasterizer_shader_technique_name_suffixes = halo::link::ref<const char [][0x80]>(halo::rasterizer::vars().rasterizer_shader_technique_name_suffixes);
-inline auto &shader_environment_draw_simple = halo::link::ref<void *>(halo::rasterizer::vars().shader_environment_draw_simple);
-inline auto &shader_environment_draw = halo::link::ref<void *>(halo::rasterizer::vars().shader_environment_draw);
+inline auto &shader_environment_draw_simple = halo::link::ref<halo::rasterizer::part_draw_procedure>(halo::rasterizer::vars().shader_environment_draw_simple);
+inline auto &shader_environment_draw = halo::link::ref<halo::rasterizer::part_draw_procedure>(halo::rasterizer::vars().shader_environment_draw);
 inline auto &rasterizer_device_version = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_device_version);
 inline auto &rasterizer_camera_position = halo::link::ref<float [3]>(halo::rasterizer::vars().rasterizer_camera_position);
 inline auto &rasterizer_camera_forward = halo::link::ref<float [3]>(halo::rasterizer::vars().rasterizer_camera_forward);
@@ -336,7 +338,7 @@ inline auto &rasterizer_fog_plane = halo::link::ref<float [4]>(halo::rasterizer:
 inline auto &rasterizer_fog_planar_color = halo::link::ref<ColorRGB>(halo::rasterizer::vars().rasterizer_fog_planar_color);
 inline auto &environment_effect_slot = halo::link::ref<rasterizer_effect_slot>(halo::rasterizer::vars().environment_effect_slot);
 inline auto &environment_techniques_ps14 = halo::link::ref<uint32_t []>(halo::rasterizer::vars().environment_techniques_ps14);
-inline auto &rasterizer_model_vertex_declaration = halo::link::ref<uint32_t>(halo::rasterizer::vars().rasterizer_model_vertex_declaration);
+inline auto &rasterizer_model_vertex_declaration = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_model_vertex_declaration);
 inline auto &rasterizer_lightmap_bitmap_missing = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_lightmap_bitmap_missing);
 inline auto &rasterizer_lightmap_bitmap = halo::link::ref<BitmapData *>(halo::rasterizer::vars().rasterizer_lightmap_bitmap);
 inline auto &rasterizer_environment_lightmap = halo::link::ref<BitmapData *>(halo::rasterizer::vars().rasterizer_environment_lightmap);

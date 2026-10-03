@@ -9,6 +9,8 @@
 #include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
+#include "halo/core/lcg.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
@@ -25,6 +27,8 @@
 namespace {
 
 constexpr const char *k_halo_registry_key = "Software\\Microsoft\\Microsoft Games\\Halo";
+constexpr uint32_t k_motion_sensor_background_color = halo::d3d9::color_argb(0xff, 0x74, 0xb9, 0xff);
+constexpr uint32_t k_motion_sensor_blip_color = halo::d3d9::color_argb(0xff, 0x66, 0xcc, 0x66);
 constexpr uint32_t k_filter_cap_min_anisotropic = 0x400;
 constexpr uint32_t k_filter_cap_mag_anisotropic = 0x4000000;
 constexpr uint32_t k_blend_cap_blend_factor = 0x2000;
@@ -60,9 +64,9 @@ void chimera__cinematic_screen_effect(rasterizer_frame_time *time_source)
 
     lens_flare_update_visibility();
 
-    *(int32_t *)((uint8_t *)halo::cache::globals().texture_cache + 0x30) += 1;
+    halo::cache::globals().texture_cache->age = halo::cache::globals().texture_cache->age + 1;
     if (decals_for_all_responses != 0) {
-        *(int32_t *)(rasterizer_decal_vertex_cache_handle + 0x30) = *(int32_t *)(rasterizer_decal_vertex_cache_handle + 0x30) + 1;
+        rasterizer_decal_vertex_cache_handle->age = rasterizer_decal_vertex_cache_handle->age + 1;
         halo::effects::decals_update_fade();
     }
 }
@@ -86,7 +90,7 @@ void chimera__gamma(void)
     }
 
     exponent = (float)(halo::libm::log((double)rasterizer_gamma_exponent * 0.003921568859368563) / halo::libm::log(0.5));
-    for (i = 0; i < 0x100; i++) {
+    for (i = 0; i < k_gamma_ramp_entries; i++) {
         ramp_value = (int16_t)(int32_t)(halo::libm::pow((double)i * 0.003921568859368563, exponent) * 65535.0);
         rasterizer_game_gamma_ramp.red[i] = ramp_value;
         rasterizer_game_gamma_ramp.green[i] = ramp_value;
@@ -174,7 +178,7 @@ void chimera__registry_check_4(void)
         ReleaseDC(rasterizer_window_handle, dc);
     } else {
         int32_t j;
-        for (j = 0; j < 0x100; j++) {
+        for (j = 0; j < k_gamma_ramp_entries; j++) {
             uint16_t value = (uint16_t)(j << 8);
             rasterizer_desktop_gamma_ramp.red[j] = value;
             rasterizer_desktop_gamma_ramp.green[j] = value;
@@ -182,7 +186,7 @@ void chimera__registry_check_4(void)
         }
     }
 
-    rasterizer_gamma_brightness_to_exponent((rasterizer_gamma_settings *)&rasterizer_desktop_gamma_ramp);
+    rasterizer_gamma_brightness_to_exponent(&rasterizer_desktop_gamma_ramp);
 
     gamma_flag = 1;
     RegCreateKeyExA(HKEY_CURRENT_USER, k_halo_registry_key, 0, (LPSTR)0,
@@ -257,7 +261,7 @@ void rasterizer_fog_screen_overlay_set_states(void)
 
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         render_device().set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled);
-        fog_color = halo::interface::color_rgb_float_to_int((const float *)(&rasterizer_window.fog.atmospheric_color));
+        fog_color = halo::interface::color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color.red);
         render_device().set_render_state(halo::d3d9::rs::fog_color, fog_color);
         rasterizer_set_shader_stage_config(5);
         return;
@@ -282,7 +286,7 @@ void rasterizer_fog_screen_overlay_set_states(void)
 }  // namespace rasterizer_fog_screen_overlay_set_states_impl
 
 /** Byte offset of red[128] in the d3d gamma ramp, the sample the brightness exponent is derived from (settings is a byte pointer). */
-static constexpr size_t k_gamma_ramp_mid_red_byte_offset = 128 * sizeof(uint16_t);
+
 
 /**
  * inline fldl2e / f2xm1 / fscale
@@ -291,7 +295,7 @@ static constexpr size_t k_gamma_ramp_mid_red_byte_offset = 128 * sizeof(uint16_t
  *
  * @address 0x522890
  */
-void rasterizer_gamma_brightness_to_exponent(rasterizer_gamma_settings *settings)
+void rasterizer_gamma_brightness_to_exponent(d3d_gamma_ramp *settings)
 {
     uint16_t brightness;
     double brightness_norm;
@@ -299,7 +303,7 @@ void rasterizer_gamma_brightness_to_exponent(rasterizer_gamma_settings *settings
     double exponent;
     double scaled;
 
-    brightness = *(uint16_t *)(settings + k_gamma_ramp_mid_red_byte_offset);
+    brightness = settings->red[k_gamma_ramp_entries / 2];
     brightness_norm = (double)brightness * 1.5259021896696422e-05;
     ratio = halo::libm::log(0.5) / halo::libm::log(0.5019607843137255);
     exponent = halo::libm::log(brightness_norm) * ratio;
@@ -382,7 +386,7 @@ void rasterizer_motion_sensor_begin(void)
         return;
     }
 
-    surface = (void *)(uintptr_t)rasterizer_render_targets[5].surface;
+    surface = rasterizer_render_targets[5].surface;
     rasterizer_motion_sensor_ready = 1;
     render_device().set_render_target(0, (uint32_t)(uintptr_t)surface);
     rasterizer_active_render_target = 5;
@@ -464,7 +468,7 @@ void rasterizer_motion_sensor_blip_draw(const float *position, const float *colo
     x = position[0] * -0.03125f;
     y = position[1] * -0.03125f;
     packed = (uint32_t)(int32_t)(brightness * color[0] * 255.0f);
-    packed = (packed | 0xffffff00) << 8;
+    packed = (packed | ~0xffu) << 8;
     packed = (packed | ((uint32_t)(int32_t)(brightness * color[1] * 255.0f) & 0xff)) << 8;
     packed = packed | ((uint32_t)(int32_t)(brightness * color[2] * 255.0f) & 0xff);
 
@@ -598,10 +602,10 @@ void rasterizer_motion_sensor_end(const float *position, float sweep)
         float near_u = t + 0.5f;
         float far_u = 0.5f - t;
 
-        set_vertex(&vertices[0], -1.015625f, 1.046875f, 0xff74b9ff, near_u, far_u);
-        set_vertex(&vertices[1], 1.046875f, 1.046875f, 0xff74b9ff, far_u, far_u);
-        set_vertex(&vertices[2], 1.046875f, -1.015625f, 0xff74b9ff, far_u, near_u);
-        set_vertex(&vertices[3], -1.015625f, -1.015625f, 0xff74b9ff, near_u, near_u);
+        set_vertex(&vertices[0], -1.015625f, 1.046875f, k_motion_sensor_background_color, near_u, far_u);
+        set_vertex(&vertices[1], 1.046875f, 1.046875f, k_motion_sensor_background_color, far_u, far_u);
+        set_vertex(&vertices[2], 1.046875f, -1.015625f, k_motion_sensor_background_color, far_u, near_u);
+        set_vertex(&vertices[3], -1.015625f, -1.015625f, k_motion_sensor_background_color, near_u, near_u);
         draw_fan(vertices);
     }
 
@@ -617,10 +621,10 @@ void rasterizer_motion_sensor_end(const float *position, float sweep)
     set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
     set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
     set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
-    set_vertex(&vertices[0], -1.015625f, 1.046875f, 0xff66cc66, 1.0f, 0.0f);
-    set_vertex(&vertices[1], 1.046875f, 1.046875f, 0xff66cc66, 0.0f, 0.0f);
-    set_vertex(&vertices[2], 1.046875f, -1.015625f, 0xff66cc66, 0.0f, 1.0f);
-    set_vertex(&vertices[3], -1.015625f, -1.015625f, 0xff66cc66, 1.0f, 1.0f);
+    set_vertex(&vertices[0], -1.015625f, 1.046875f, k_motion_sensor_blip_color, 1.0f, 0.0f);
+    set_vertex(&vertices[1], 1.046875f, 1.046875f, k_motion_sensor_blip_color, 0.0f, 0.0f);
+    set_vertex(&vertices[2], 1.046875f, -1.015625f, k_motion_sensor_blip_color, 0.0f, 1.0f);
+    set_vertex(&vertices[3], -1.015625f, -1.015625f, k_motion_sensor_blip_color, 1.0f, 1.0f);
     draw_fan(vertices);
 
     rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
@@ -695,12 +699,12 @@ void rasterizer_screen_effect_compute_uv_transform(uint32_t width, uint32_t heig
     float m[8][4];
     int i;
 
-    frame.bitmap_class = 0x6269746d;
+    frame.bitmap_class = halo::fourcc('b', 'i', 't', 'm');
     frame.width = (uint16_t)width;
     frame.height = (uint16_t)height;
     frame.depth = 1;
     frame.type = 0;
-    frame.format = (BitmapDataFormat_t)0xffff;
+    frame.format = static_cast<BitmapDataFormat_t>(-1);
     frame.flags = halo::shell::globals().linear_texture_addressing_zoom ? 0x10 : 0;
     frame.registration_point.x = 0;
     frame.registration_point.y = 0;
@@ -712,10 +716,8 @@ void rasterizer_screen_effect_compute_uv_transform(uint32_t width, uint32_t heig
     frame.bitmap_tag_id.index = 0;
     frame.bitmap_tag_id.id = 0;
     frame.pointer = 0;
-    for (i = 0; i < 4; i++) {
-        ((uint8_t *)&frame.hardware_texture)[i] = 0;
-        ((uint8_t *)&frame.pixel_base)[i] = 0;
-    }
+    frame.hardware_texture = 0;
+    frame.pixel_base = nullptr;
 
     mask_used = mask_bitmap != NULL && (pass > 0 || pass_count == 1 || params->convolution_type != 0);
     mask = mask_used ? mask_bitmap : &frame;
@@ -847,7 +849,7 @@ uint8_t rasterizer_screen_effect_init_shaders(void)
 
     for (i = 0; i < k_rasterizer_screen_effect_techniques; i++) {
         screen_effect_techniques[i] = (int32_t)(uintptr_t)rasterizer_shader_technique_for_name(
-            (void *)(uintptr_t)rasterizer_effects[114].effect, k_video_technique_names[i]);
+            rasterizer_effects[114].effect, k_video_technique_names[i]);
         if (screen_effect_techniques[i] == 0) {
             return 0;
         }
@@ -877,7 +879,7 @@ static void set_sampler_states(uint32_t sampler, uint32_t address, uint32_t filt
     set_sampler_state(sampler, halo::d3d9::ss::mip_filter, mip_filter);
 }
 
-static void *screen_effect(void) { return (void *)(uintptr_t)rasterizer_effects[114].effect; }
+static void *screen_effect(void) { return rasterizer_effects[114].effect; }
 
 static void draw_screen_quad(void)
 {
@@ -891,7 +893,7 @@ static void set_technique(uint32_t technique)
 
 static void set_vector(int handle_index, const float *vector)
 {
-    uint32_t *handles = (uint32_t *)(uintptr_t)rasterizer_effects[114].constant_handles;
+    void **handles = rasterizer_effects[114].constant_handles;
 
     render_device().effect_set_vector(screen_effect(), handles[handle_index], vector);
 }
@@ -1638,7 +1640,7 @@ static void set_quad_vertex(int i, float x, float y, float u, float v)
 int16_t rasterizer_sun_glow_blur(int16_t first, int16_t second, int16_t passes)
 {
     int16_t pass;
-    uint32_t effect = rasterizer_effects[76].effect;
+    void *effect = rasterizer_effects[76].effect;
 
     if (effect == NULL || passes <= 0) {
         return (passes & 1) ? second : first;
@@ -1666,7 +1668,7 @@ int16_t rasterizer_sun_glow_blur(int16_t first, int16_t second, int16_t passes)
         uint32_t effect_passes;
 
         for (stage = 0; stage < 4; stage++) {
-            uint32_t texture = (source < 9 && source >= 0) ? rasterizer_render_targets[source].texture : 0;
+            void *texture = (source < 9 && source >= 0) ? rasterizer_render_targets[source].texture : NULL;
 
             render_device().set_texture(stage, texture);
             render_device().set_sampler_state(stage, halo::d3d9::ss::mip_filter, 1);
@@ -1721,7 +1723,7 @@ void rasterizer_sun_glow_capture(const float *rect, int16_t target_index)
 {
     float constants[8][4];
     float width, height;
-    uint32_t effect;
+    void *effect;
     int i, j;
 
     render_device().set_texture(0, rasterizer_render_targets[1].texture);
@@ -1992,7 +1994,7 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
     set_screen_constants(1.0f, 0.0f, 1.0f, 0.0f, 0.0f);
 
     vector3d_unpack_normal_11_11_10(&direction, instance->packed_direction);
-    radius = *(const float *)((const uint8_t *)(uintptr_t)instance->definition + 0x10);
+    radius = reinterpret_cast<const LensFlare *>(static_cast<uintptr_t>(instance->definition))->occlusion_radius;
     point.x = direction.i * radius + instance->position.x;
     point.y = direction.j * radius + instance->position.y;
     point.z = direction.k * radius + instance->position.z;
@@ -2049,7 +2051,7 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
     set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
     draw_quad();
 
-    effect = (void *)(uintptr_t)rasterizer_effects[77].effect;
+    effect = rasterizer_effects[77].effect;
     if (effect != NULL) {
         uint32_t passes;
         uint32_t pass;
@@ -2075,16 +2077,16 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
             float grow = (float)quad * 0.0625f * 80.0f - 4.0f;
             uint32_t alpha = (uint32_t)(int32_t)(falloff / (float)(quad + 1) * 255.0f);
 
-            set_quad_color_and_uv((alpha << 24) | 0x00ffffff);
+            set_quad_color_and_uv(halo::d3d9::color_argb(alpha, 0xff, 0xff, 0xff));
             set_quad_position(rect[0] - grow, rect[2] - grow, rect[1] + grow, rect[3] + grow, 0.0f);
-            effect = (void *)(uintptr_t)rasterizer_effects[77].effect;
+            effect = rasterizer_effects[77].effect;
             render_device().effect_begin(effect, &passes, 3);
             for (pass = 0; pass < passes; pass++) {
-                effect = (void *)(uintptr_t)rasterizer_effects[77].effect;
+                effect = rasterizer_effects[77].effect;
                 render_device().effect_pass(effect, pass);
                 draw_quad();
             }
-            effect = (void *)(uintptr_t)rasterizer_effects[77].effect;
+            effect = rasterizer_effects[77].effect;
             render_device().effect_end(effect);
         }
     }
@@ -2229,22 +2231,22 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
     }
 
     if (state->meter_parameters != NULL) {
-        const uint32_t *meter = (const uint32_t *)state->meter_parameters;
+        const hud_meter_color_block *meter = static_cast<const hud_meter_color_block *>(state->meter_parameters);
 
         for (stage = 0; stage < 3 && state->maps[stage] != NULL; stage++) {
             halo::cache::texture_cache_get(state->maps[stage], 1, 1);
-            set_texture(stage, *(const uint32_t *)((const uint8_t *)state->maps[stage] + 0x28));
+            set_texture(stage, state->maps[stage]->hardware_texture);
         }
         render_device().set_pixel_shader(0);
         set_render_state(halo::d3d9::rs::alpha_test_enable, 1);
         set_render_state(halo::d3d9::rs::alpha_func, 4);
-        set_render_state(halo::d3d9::rs::alpha_ref, ((const uint8_t *)meter)[3]);
+        set_render_state(halo::d3d9::rs::alpha_ref, static_cast<uint8_t>(meter->primary >> 24));
         set_render_state(halo::d3d9::rs::color_write_enable, 0xf);
         set_render_state(halo::d3d9::rs::alpha_blend_enable, 1);
         set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::one);
         set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
         set_render_state(halo::d3d9::rs::blend_op, 1);
-        set_render_state(halo::d3d9::rs::texture_factor, meter[0]);
+        set_render_state(halo::d3d9::rs::texture_factor, meter->primary);
         set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
         set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
         set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::tfactor);
@@ -2254,7 +2256,7 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
         set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
         draw_quad(vertices);
         set_render_state(halo::d3d9::rs::alpha_func, 5);
-        set_render_state(halo::d3d9::rs::texture_factor, meter[2]);
+        set_render_state(halo::d3d9::rs::texture_factor, meter->empty);
         set_render_state(halo::d3d9::rs::color_write_enable, 0xf);
         set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate2x);
         set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
@@ -2304,7 +2306,7 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
         {
             const ColorRGB *tint1 = (state->map_tints[1] != NULL) ? state->map_tints[1] : global_white_color;
             const ColorRGB *tint2 = (state->map_tints[2] != NULL) ? state->map_tints[2] : global_white_color;
-            const float *extra = (const float *)state->unknown_64;
+            const float *extra = reinterpret_cast<const float *>(state->unknown_64);
 
             pixel[0][0] = tint0->red; pixel[0][1] = tint0->green; pixel[0][2] = tint0->blue; pixel[0][3] = fade0;
             pixel[1][0] = tint1->red; pixel[1][1] = tint1->green; pixel[1][2] = tint1->blue;
@@ -2338,13 +2340,13 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
     }
 
     if (ok && slot != NULL && slot->effect != 0) {
-        uint32_t effect = slot->effect;
+        void *effect = slot->effect;
         uint32_t passes;
         uint32_t pass;
 
         for (stage = 0; stage < 3 && state->maps[stage] != NULL; stage++) {
             halo::cache::texture_cache_get(state->maps[stage], 1, 1);
-            render_device().effect_set_texture(effect, slot->texture_handles[stage], *(const uint32_t *)((const uint8_t *)state->maps[stage] + 0x28));
+            render_device().effect_set_texture(effect, slot->texture_handles[stage], state->maps[stage]->hardware_texture);
         }
         if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
             set_render_state(halo::d3d9::rs::texture_factor, pack_argb(pixel[0][3], pixel[0][0], pixel[0][1], pixel[0][2]));
@@ -2390,12 +2392,12 @@ void rasterizer_underwater_tint_jitter_update(BitmapData *lightmap)
         return;
     }
 
-    state = (uint32_t)lightmap * 0x19660d + 0x3c6ef35f;
-    rasterizer_underwater_tint_jitter_r = (float)(state >> 0x10) * 1.5259022e-05f;
-    state = state * 0x19660d + 0x3c6ef35f;
-    rasterizer_underwater_tint_jitter_g = (float)(state >> 0x10) * 1.5259022e-05f;
-    state = state * 0x19660d + 0x3c6ef35f;
-    rasterizer_underwater_tint_jitter_b = (float)(state >> 0x10) * 1.5259022e-05f;
+    state = halo::advance_random_seed(static_cast<uint32_t>(reinterpret_cast<uintptr_t>(lightmap)));
+    rasterizer_underwater_tint_jitter_r = (float)(state >> halo::k_random_high_shift) * halo::k_unit_word_scale;
+    state = halo::advance_random_seed(state);
+    rasterizer_underwater_tint_jitter_g = (float)(state >> halo::k_random_high_shift) * halo::k_unit_word_scale;
+    state = halo::advance_random_seed(state);
+    rasterizer_underwater_tint_jitter_b = (float)(state >> halo::k_random_high_shift) * halo::k_unit_word_scale;
 }
 
 namespace rasterizer_underwater_tint_set_states_impl {

@@ -7,6 +7,11 @@
 #include "halo/render/d3d9.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
+#include "halo/rasterizer/constants.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/rasterizer/constants.hpp"
 #include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/cache/api.hpp"
@@ -20,9 +25,20 @@
 
 namespace {
 
-constexpr uint32_t k_bitmap_signature = 0x6269746d;
+constexpr uint32_t k_bitmap_signature = halo::fourcc('b', 'i', 't', 'm');
 constexpr uint16_t k_font_atlas_format = 9;
-constexpr uint16_t k_font_atlas_flags = 0x41;
+constexpr uint16_t k_font_atlas_flags = static_cast<uint16_t>(halo::tags::bitmap_data_tag_flag::power_of_two_dimensions) | static_cast<uint16_t>(halo::tags::bitmap_data_tag_flag::unused);
+
+/** Slots of the glyph ring, the texel a glyph border is filled with (white, no alpha) and the reference screen size. */
+constexpr int32_t k_glyph_cache_slots = 512;
+constexpr int32_t k_glyph_cache_slot_mask = k_glyph_cache_slots - 1;
+constexpr int32_t k_glyph_atlas_edge = 512;
+constexpr uint16_t k_glyph_texel_white = 0x0fff;
+constexpr int16_t k_reference_screen_width = 640;
+constexpr int16_t k_reference_screen_height = 480;
+
+/** Flags the keystone documents of the chat box are created with. */
+constexpr uint32_t k_keystone_window_flags = 0x10000000;
 
 }  // namespace
 
@@ -50,14 +66,14 @@ void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_re
     }
 
     rasterizer_frame_index = rasterizer_frame_index + 1;
-    atlas = (g_font_glyph_cache.initialized != 0) ? (BitmapData *)(uintptr_t)g_font_glyph_cache.atlas : (BitmapData *)0;
+    atlas = (g_font_glyph_cache.initialized != 0) ? g_font_glyph_cache.atlas : (BitmapData *)0;
     if (atlas == (BitmapData *)0 || *text == 0) {
         return;
     }
 
     wcslen((const wchar_t *)text);
 
-    if (dest_rect_override == (int32_t *)0) {
+    if (dest_rect_override == nullptr) {
         int16_t neg_origin_x = (int16_t)(-render_viewport_top[0]);
         dest_rect[0] = (uint16_t)(int16_t)(screen_safe_area_right[0] + neg_origin_x) |
                        ((uint16_t)(int16_t)(screen_safe_area_right[1] - render_viewport_top[1]) << 16);
@@ -73,11 +89,11 @@ void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_re
         clip_rect[1] = (uint16_t)(int16_t)(render_viewport_bottom[0] - render_viewport_top[0]) |
                        ((uint16_t)(int16_t)(render_viewport_bottom[1] - render_viewport_top[1]) << 16);
     } else {
-        int16_t *r = (int16_t *)clip_rect_override;
-        int16_t clip_w = (r[2] > 0x1df) ? 0x1e0 : r[2];
-        int16_t clip_h = (r[3] > 0x27f) ? 0x280 : r[3];
-        int16_t x0 = (r[0] < 0) ? 0 : r[0];
-        int16_t y0 = (r[1] < 0) ? 0 : r[1];
+        const Rectangle2D *r = clip_rect_override;
+        int16_t clip_w = (r->bottom >= k_reference_screen_height) ? k_reference_screen_height : r->bottom;
+        int16_t clip_h = (r->right >= k_reference_screen_width) ? k_reference_screen_width : r->right;
+        int16_t x0 = (r->top < 0) ? 0 : r->top;
+        int16_t y0 = (r->left < 0) ? 0 : r->left;
         clip_rect[0] = (uint16_t)x0 | ((uint16_t)y0 << 16);
         clip_rect[1] = (uint16_t)clip_w | ((uint16_t)clip_h << 16);
     }
@@ -91,7 +107,7 @@ void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_re
     glyph_state.map_texel_scales[0].y = 1.0f / (float)(int32_t)(int16_t)atlas->height;
 
     rasterizer_draw_text_begin(&glyph_state);
-    halo::text::wide_text_strategy::instance().wrap_and_draw(static_cast<text_glyph_draw_proc>((void *)text_draw_glyph_callback), reinterpret_cast<Rectangle2D *>(dest_rect), reinterpret_cast<Point2DInt *>(position_or_color1), reinterpret_cast<Rectangle2D *>(clip_rect), position_or_color2, reinterpret_cast<void *>(const_cast<int16_t *>(text)));
+    halo::text::wide_text_strategy::instance().wrap_and_draw(reinterpret_cast<text_glyph_draw_proc>(text_draw_glyph_callback), reinterpret_cast<Rectangle2D *>(dest_rect), reinterpret_cast<Point2DInt *>(position_or_color1), reinterpret_cast<Rectangle2D *>(clip_rect), position_or_color2, reinterpret_cast<void *>(const_cast<int16_t *>(text)));
     rasterizer_draw_text_end();
 }
 
@@ -114,12 +130,12 @@ void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rec
     }
 
     rasterizer_frame_index = rasterizer_frame_index + 1;
-    atlas = (g_font_glyph_cache.initialized != 0) ? (BitmapData *)(uintptr_t)g_font_glyph_cache.atlas : (BitmapData *)0;
+    atlas = (g_font_glyph_cache.initialized != 0) ? g_font_glyph_cache.atlas : (BitmapData *)0;
     if (atlas == (BitmapData *)0 || *text == '\0') {
         return;
     }
 
-    if (dest_rect_override == (int32_t *)0) {
+    if (dest_rect_override == nullptr) {
         dest_rect[0] = ((int32_t)screen_safe_area_right[0] - render_viewport_top[0]) |
                        (((int32_t)screen_safe_area_right[1] - render_viewport_top[1]) << 16);
         dest_rect[1] = ((int32_t)screen_safe_area_bottom[0] - render_viewport_top[0]) |
@@ -134,13 +150,13 @@ void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rec
         clip_rect[1] = ((int32_t)render_viewport_bottom[0] - render_viewport_top[0]) |
                        (((int32_t)render_viewport_bottom[1] - render_viewport_top[1]) << 16);
     } else {
-        int16_t *r = (int16_t *)clip_rect_override;
+        const Rectangle2D *r = clip_rect_override;
         int32_t width = render_viewport_bottom[0] - render_viewport_top[0];
         int32_t height = render_viewport_bottom[1] - render_viewport_top[1];
-        int32_t clip_w = (r[2] < width) ? r[2] : width;
-        int32_t clip_h = (r[3] < height) ? r[3] : height;
-        int16_t x0 = (r[0] < 0) ? 0 : r[0];
-        int16_t y0 = (r[1] < 0) ? 0 : r[1];
+        int32_t clip_w = (r->bottom < width) ? r->bottom : width;
+        int32_t clip_h = (r->right < height) ? r->right : height;
+        int16_t x0 = (r->top < 0) ? 0 : r->top;
+        int16_t y0 = (r->left < 0) ? 0 : r->left;
         clip_rect[0] = (uint16_t)x0 | ((uint16_t)y0 << 16);
         clip_rect[1] = (uint16_t)(int16_t)clip_w | ((uint16_t)(int16_t)clip_h << 16);
     }
@@ -154,7 +170,7 @@ void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rec
     glyph_state.map_texel_scales[0].y = 1.0f / (float)(int32_t)(int16_t)atlas->height;
 
     rasterizer_draw_text_begin(&glyph_state);
-    halo::text::narrow_text_strategy::instance().wrap_and_draw(static_cast<text_glyph_draw_proc>((void *)text_draw_glyph_callback), reinterpret_cast<Rectangle2D *>(dest_rect), reinterpret_cast<Point2DInt *>(position_or_color1), reinterpret_cast<Rectangle2D *>(clip_rect), position_or_color2, reinterpret_cast<void *>(const_cast<char *>(text)));
+    halo::text::narrow_text_strategy::instance().wrap_and_draw(reinterpret_cast<text_glyph_draw_proc>(text_draw_glyph_callback), reinterpret_cast<Rectangle2D *>(dest_rect), reinterpret_cast<Point2DInt *>(position_or_color1), reinterpret_cast<Rectangle2D *>(clip_rect), position_or_color2, reinterpret_cast<void *>(const_cast<char *>(text)));
     rasterizer_draw_text_end();
 }
 
@@ -184,10 +200,10 @@ static void font_glyph_cache_evict_oldest(void)
     font_glyph_cache_entry *entry = &g_font_glyph_cache.entries[(int16_t)g_font_glyph_cache.oldest_slot];
 
     if (entry->character != 0) {
-        ((FontCharacter *)(uintptr_t)entry->character)->hardware_character_index = 0xffff;
-        entry->character = 0;
+        entry->character->hardware_character_index = halo::k_word_none;
+        entry->character = nullptr;
     }
-    g_font_glyph_cache.oldest_slot = (uint16_t)((g_font_glyph_cache.oldest_slot + 1) & 0x1ff);
+    g_font_glyph_cache.oldest_slot = (uint16_t)((g_font_glyph_cache.oldest_slot + 1) & k_glyph_cache_slot_mask);
 }
 
 /**
@@ -211,15 +227,15 @@ void font_glyph_cache_allocate_and_upload(Font *font, FontCharacter *character)
     if ((int16_t)character->hardware_character_index != -1) {
         return;
     }
-    *(int16_t *)((uint8_t *)character + 0xe) = (int16_t)rasterizer_frame_index;
+    character->last_used_frame = (int16_t)rasterizer_frame_index;
 
-    if (character->bitmap_width + g_font_glyph_cache.cursor_x + 2 > 0x200) {
+    if (character->bitmap_width + g_font_glyph_cache.cursor_x + 2 > k_glyph_atlas_edge) {
         g_font_glyph_cache.cursor_y = (int16_t)(g_font_glyph_cache.cursor_y + g_font_glyph_cache.row_height);
         g_font_glyph_cache.cursor_x = 0;
         g_font_glyph_cache.row_height = 0;
     }
 
-    if (character->bitmap_height + g_font_glyph_cache.cursor_y + 2 >= 0x200) {
+    if (character->bitmap_height + g_font_glyph_cache.cursor_y + 2 >= k_glyph_atlas_edge) {
         g_font_glyph_cache.cursor_y = 0;
         g_font_glyph_cache.cursor_x = 0;
         g_font_glyph_cache.row_height = 0;
@@ -246,27 +262,27 @@ void font_glyph_cache_allocate_and_upload(Font *font, FontCharacter *character)
         g_font_glyph_cache.row_height = (int16_t)(character->bitmap_height + 2);
     }
 
-    if (((g_font_glyph_cache.next_slot + 1) & 0x1ff) == g_font_glyph_cache.oldest_slot) {
+    if (((g_font_glyph_cache.next_slot + 1) & k_glyph_cache_slot_mask) == g_font_glyph_cache.oldest_slot) {
         font_glyph_cache_evict_oldest();
     }
 
     slot = (int16_t)g_font_glyph_cache.next_slot;
     character->hardware_character_index = (uint16_t)slot;
     entry = &g_font_glyph_cache.entries[slot];
-    entry->character = (uint32_t)(uintptr_t)character;
+    entry->character = character;
     entry->x = g_font_glyph_cache.cursor_x;
     entry->y = g_font_glyph_cache.cursor_y;
 
-    pixels = (uint8_t *)(font->pixels.pointer + character->pixels_offset);
+    pixels = reinterpret_cast<uint8_t *>(static_cast<uintptr_t>(font->pixels.pointer) + character->pixels_offset);
     for (row = 0; row < character->bitmap_height + 2; row++) {
-        atlas = (BitmapData *)g_font_glyph_cache.atlas;
+        atlas = g_font_glyph_cache.atlas;
         texel = static_cast<uint16_t *>(halo::bitmaps::bitmap_data_view(atlas).get_row_address(0, (uint16_t)entry->x, (uint16_t)(entry->y + row)));
         for (column = 0; column < character->bitmap_width + 2; column++) {
             if (row < 1 || row > character->bitmap_height ||
                 column < 1 || column > character->bitmap_width) {
-                *texel = 0x0fff;
+                *texel = k_glyph_texel_white;
             } else {
-                *texel = (uint16_t)((*pixels << 8) | 0x0fff);
+                *texel = (uint16_t)((*pixels << 8) | k_glyph_texel_white);
                 pixels++;
             }
             texel++;
@@ -276,7 +292,7 @@ void font_glyph_cache_allocate_and_upload(Font *font, FontCharacter *character)
     entry->x++;
     entry->y++;
 
-    atlas = (BitmapData *)g_font_glyph_cache.atlas;
+    atlas = g_font_glyph_cache.atlas;
     switch (atlas->type) {
     case 0:
         rasterizer_bitmap_upload_2d_mipmaps(atlas);
@@ -290,7 +306,7 @@ void font_glyph_cache_allocate_and_upload(Font *font, FontCharacter *character)
     }
 
     g_font_glyph_cache.cursor_x = (int16_t)(g_font_glyph_cache.cursor_x + character->bitmap_width + 2);
-    g_font_glyph_cache.next_slot = (uint16_t)((g_font_glyph_cache.next_slot + 1) & 0x1ff);
+    g_font_glyph_cache.next_slot = (uint16_t)((g_font_glyph_cache.next_slot + 1) & k_glyph_cache_slot_mask);
 }
 
 /**
@@ -305,11 +321,11 @@ void font_glyph_cache_clear_all(void)
     if (g_font_glyph_cache.initialized == 0) {
         return;
     }
-    for (i = 0; i < 0x200; i++) {
+    for (i = 0; i < k_glyph_cache_slots; i++) {
         if (g_font_glyph_cache.entries[i].character != 0) {
-            ((FontCharacter *)(uintptr_t)g_font_glyph_cache.entries[i].character)->hardware_character_index = 0xffff;
+            g_font_glyph_cache.entries[i].character->hardware_character_index = halo::k_word_none;
         }
-        g_font_glyph_cache.entries[i].character = 0;
+        g_font_glyph_cache.entries[i].character = nullptr;
     }
 }
 
@@ -444,23 +460,23 @@ void rasterizer_editbox_log_dump(void)
     wchar_t editbox_path[64];
     wchar_t log_path[64];
     wchar_t height_text[32];
-    void *rect_zero[4];
+    int32_t rect_zero[4];
     int32_t document;
 
-    if (chat_gui_root_handle == (void *)0) {
-        if (halo::rasterizer::fields::keystone_create == (void *)0) {
+    if (chat_gui_root_handle == nullptr) {
+        if (halo::rasterizer::fields::keystone_create == nullptr) {
             return;
         }
         chat_gui_root_handle = halo::rasterizer::fields::keystone_create(shell_window, rasterizer_device, keystone_current_directory, 0, 0, 0, 0);
-        if (chat_gui_root_handle == (void *)0) {
+        if (chat_gui_root_handle == nullptr) {
             return;
         }
     }
 
-    rect_zero[0] = (void *)0;
-    rect_zero[1] = (void *)0;
-    rect_zero[2] = (void *)(uintptr_t)rasterizer_present_parameters.back_buffer_width;
-    rect_zero[3] = (void *)(uintptr_t)rasterizer_present_parameters.back_buffer_height;
+    rect_zero[0] = 0;
+    rect_zero[1] = 0;
+    rect_zero[2] = static_cast<int32_t>(rasterizer_present_parameters.back_buffer_width);
+    rect_zero[3] = static_cast<int32_t>(rasterizer_present_parameters.back_buffer_height);
 
     wcscpy(log_path, L"content/");
     wcscpy(editbox_path, L"content/");
@@ -473,13 +489,13 @@ void rasterizer_editbox_log_dump(void)
     wcscat(log_path, height_text);
     wcscat(log_path, L"log.ksml");
 
-    halo::rasterizer::fields::keystone_create_window(chat_gui_root_handle, editbox_path, chat_gui_find_object_arg, 0x10000000,   rect_zero, 0, 0, 0, 0, 0, 0);
+    halo::rasterizer::fields::keystone_create_window(chat_gui_root_handle, editbox_path, chat_gui_find_object_arg, k_keystone_window_flags, rect_zero, 0, 0, 0, 0, 0, 0);
     document = halo::rasterizer::fields::keystone_get_window(chat_gui_root_handle, chat_gui_find_object_arg);
     if (document != 0) {
         halo::rasterizer::fields::keystone_window_show(document, 0);
         halo::rasterizer::fields::keystone_window_release(document);
     }
-    halo::rasterizer::fields::keystone_create_window(chat_gui_root_handle, log_path, chat_listbox_gui_find_object_arg, 0x10000000,   rect_zero, 0, 0, 0, 0, 0, 0);
+    halo::rasterizer::fields::keystone_create_window(chat_gui_root_handle, log_path, chat_listbox_gui_find_object_arg, k_keystone_window_flags, rect_zero, 0, 0, 0, 0, 0, 0);
 }
 
 namespace text_draw_glyph_callback_impl {
@@ -509,7 +525,7 @@ void text_draw_glyph_callback(void *state, void *font, uint8_t *character, uint3
     if ((int16_t)((FontCharacter *)character)->hardware_character_index == -1) {
         return;
     }
-    shadow_color = text_shadow_color_argb != 0 ? text_shadow_color_argb : (color & 0xff000000);
+    shadow_color = text_shadow_color_argb != 0 ? text_shadow_color_argb : (color & k_color_alpha_mask);
     for (pass = 0; pass < 2; pass++) {
         int16_t slot = (int16_t)((FontCharacter *)character)->hardware_character_index;
         int16_t u0 = (int16_t)(g_font_glyph_cache.entries[slot].x + source_x);
@@ -577,12 +593,12 @@ int32_t text_font_system_initialize(void)
 
         result = rasterizer_bitmap_create_hardware_texture(atlas);
         if ((uint8_t)result != 0) {
-            g_font_glyph_cache.atlas = (uint32_t)(uintptr_t)atlas;
+            g_font_glyph_cache.atlas = atlas;
             g_font_glyph_cache.initialized = 1;
-            return (int32_t)((result & 0xffffff00) | 1);
+            return (int32_t)halo::rasterizer::replace_low_byte(result, 1);
         }
     }
-    return (int32_t)(result & 0xffffff00);
+    return (int32_t)halo::rasterizer::replace_low_byte(result, 0);
 }
 
 }  // namespace halo::rasterizer

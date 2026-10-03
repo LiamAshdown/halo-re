@@ -8,6 +8,8 @@
 #include "internal/state.hpp"
 #include "d3d.h"
 #include "halo/shell/api.hpp"
+#include "halo/rasterizer/constants.hpp"
+#include "halo/rasterizer/d3dx.hpp"
 
 
 
@@ -15,9 +17,9 @@
 namespace halo::rasterizer {
 
 
-static uint32_t get_param(uint32_t effect, const char *name)
+static void *get_param(void *effect, const char *name)
 {
-    return (uint32_t)render_device().effect_get_parameter_by_name(effect, 0, name);
+    return d3d_handle(render_device().effect_get_parameter_by_name(effect, 0, name));
 }
 
 /**
@@ -32,14 +34,14 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     int32_t hr;
     uint8_t success;
     int i;
-    uint32_t *handles;
+    void **handles;
 
     saved_locale = GetThreadLocale();
-    SetThreadLocale(0x409);
+    SetThreadLocale(k_locale_english_us);
 
     rasterizer_effect_defines[0].name = "PS_2_0_TARGET";
     rasterizer_effect_defines[0].definition = "ps_2_a";
-    if (halo::shell::globals().force_shader != 0x270e) {
+    if (halo::shell::globals().force_shader != k_force_shader_ps_2_a) {
         rasterizer_effect_defines[0].definition = "ps_2_0";
     }
     rasterizer_effect_defines[1].name = 0;
@@ -62,9 +64,9 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     for (i = 116; i <= 121; i++) {
-        uint32_t effect = rasterizer_effects[i].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0x14);
-        rasterizer_effects[i].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[i].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0x14));
+        rasterizer_effects[i].constant_handles = handles;
         handles[0] = get_param(effect, "c_primary_change_color");
         handles[1] = get_param(effect, "c_fog_color_correction_0");
         handles[2] = get_param(effect, "c_fog_color_correction_E");
@@ -73,27 +75,27 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     for (i = 32; i <= 34; i++) {
-        uint32_t effect = rasterizer_effects[i].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0xc);
-        rasterizer_effects[i].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[i].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0xc));
+        rasterizer_effects[i].constant_handles = handles;
         handles[0] = get_param(effect, "c_eye_forward");
         handles[1] = get_param(effect, "c_view_perpendicular_color");
         handles[2] = get_param(effect, "c_view_parallel_color");
     }
 
     for (i = 37; i <= 39; i++) {
-        uint32_t effect = rasterizer_effects[i].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0xc);
-        rasterizer_effects[i].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[i].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0xc));
+        rasterizer_effects[i].constant_handles = handles;
         handles[0] = get_param(effect, "c_eye_forward");
         handles[1] = get_param(effect, "c_view_perpendicular_color");
         handles[2] = get_param(effect, "c_view_parallel_color");
     }
 
     {
-        uint32_t effect = rasterizer_effects[106].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0x10);
-        rasterizer_effects[106].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[106].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0x10));
+        rasterizer_effects[106].constant_handles = handles;
         handles[0] = get_param(effect, "c_eye_forward");
         handles[1] = get_param(effect, "c_view_perpendicular_color");
         handles[2] = get_param(effect, "c_view_parallel_color");
@@ -101,27 +103,27 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     {
-        uint32_t effect = rasterizer_effects[107].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0xc);
-        rasterizer_effects[107].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[107].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0xc));
+        rasterizer_effects[107].constant_handles = handles;
         handles[0] = get_param(effect, "c_eye_forward");
         handles[1] = get_param(effect, "c_view_perpendicular_color");
         handles[2] = get_param(effect, "c_view_parallel_color");
     }
 
     {
-        uint32_t effect = rasterizer_effects[108].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0xc);
-        rasterizer_effects[108].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[108].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0xc));
+        rasterizer_effects[108].constant_handles = handles;
         handles[0] = get_param(effect, "c_eye_forward");
         handles[1] = get_param(effect, "c_view_perpendicular_color");
         handles[2] = get_param(effect, "c_view_parallel_color");
     }
 
     {
-        uint32_t effect = rasterizer_effects[0].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0x18);
-        rasterizer_effects[0].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[0].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0x18));
+        rasterizer_effects[0].constant_handles = handles;
         handles[0] = get_param(effect, "c_material_color");
         handles[1] = get_param(effect, "c_plasma_animation");
         handles[2] = get_param(effect, "c_primary_color");
@@ -131,24 +133,24 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     for (i = 1; i <= 3; i++) {
-        uint32_t effect = rasterizer_effects[i].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 4);
-        rasterizer_effects[i].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[i].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 4));
+        rasterizer_effects[i].constant_handles = handles;
         handles[0] = get_param(effect, "c_material_color");
     }
 
     {
-        uint32_t effect = rasterizer_effects[114].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 8);
-        rasterizer_effects[114].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[114].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 8));
+        rasterizer_effects[114].constant_handles = handles;
         handles[0] = get_param(effect, "c_desaturation_tint");
         handles[1] = get_param(effect, "c_light_enhancement");
     }
 
     for (i = 40; i <= 43; i++) {
-        uint32_t effect = rasterizer_effects[i].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0x10);
-        rasterizer_effects[i].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[i].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0x10));
+        rasterizer_effects[i].constant_handles = handles;
         handles[0] = get_param(effect, "c_specular_brightness");
         handles[1] = get_param(effect, "c_view_perpendicular_color");
         handles[2] = get_param(effect, "c_view_parallel_color");
@@ -168,6 +170,10 @@ namespace rasterizer_dx9_vertex_declarations_create_impl {
  */
 uint8_t rasterizer_dx9_vertex_declarations_create(void)
 {
+    constexpr uint32_t k_usage_software_write_only = halo::d3d9::k_usage_software_processing | halo::d3d9::k_usage_write_only;
+    constexpr uint32_t k_usage_dynamic_write_only = halo::d3d9::k_usage_dynamic | halo::d3d9::k_usage_write_only;
+    constexpr uint32_t k_usage_dynamic_software = k_usage_dynamic_write_only | halo::d3d9::k_usage_software_processing;
+
     int32_t hr[19];
     uint8_t ok;
     int i;
@@ -202,52 +208,52 @@ uint8_t rasterizer_dx9_vertex_declarations_create(void)
         }
     }
 
-    rasterizer_vertex_declarations[14].usage = 8;
-    rasterizer_vertex_declarations[13].usage = 8;
-    rasterizer_vertex_declarations[12].usage = 8;
+    rasterizer_vertex_declarations[14].usage = halo::d3d9::k_usage_write_only;
+    rasterizer_vertex_declarations[13].usage = halo::d3d9::k_usage_write_only;
+    rasterizer_vertex_declarations[12].usage = halo::d3d9::k_usage_write_only;
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
-        rasterizer_vertex_declarations[6].usage = 0x218;
-        rasterizer_vertex_declarations[7].usage = 0x218;
-        rasterizer_vertex_declarations[8].usage = 0x218;
-        rasterizer_vertex_declarations[9].usage = 0x218;
-        rasterizer_vertex_declarations[0].usage = 0x18;
-        rasterizer_vertex_declarations[1].usage = 0x18;
-        rasterizer_vertex_declarations[2].usage = 0x18;
-        rasterizer_vertex_declarations[3].usage = 0x18;
-        rasterizer_vertex_declarations[4].usage = 0x18;
-        rasterizer_vertex_declarations[5].usage = 0x18;
-        rasterizer_vertex_declarations[10].usage = 0x18;
-        rasterizer_vertex_declarations[11].usage = 0x18;
-        rasterizer_vertex_declarations[16].usage = 0x18;
+        rasterizer_vertex_declarations[6].usage = k_usage_dynamic_software;
+        rasterizer_vertex_declarations[7].usage = k_usage_dynamic_software;
+        rasterizer_vertex_declarations[8].usage = k_usage_dynamic_software;
+        rasterizer_vertex_declarations[9].usage = k_usage_dynamic_software;
+        rasterizer_vertex_declarations[0].usage = k_usage_software_write_only;
+        rasterizer_vertex_declarations[1].usage = k_usage_software_write_only;
+        rasterizer_vertex_declarations[2].usage = k_usage_software_write_only;
+        rasterizer_vertex_declarations[3].usage = k_usage_software_write_only;
+        rasterizer_vertex_declarations[4].usage = k_usage_software_write_only;
+        rasterizer_vertex_declarations[5].usage = k_usage_software_write_only;
+        rasterizer_vertex_declarations[10].usage = k_usage_software_write_only;
+        rasterizer_vertex_declarations[11].usage = k_usage_software_write_only;
+        rasterizer_vertex_declarations[16].usage = k_usage_software_write_only;
     } else {
-        rasterizer_vertex_declarations[0].usage = 8;
-        rasterizer_vertex_declarations[1].usage = 8;
-        rasterizer_vertex_declarations[2].usage = 8;
-        rasterizer_vertex_declarations[3].usage = 8;
-        rasterizer_vertex_declarations[4].usage = 8;
-        rasterizer_vertex_declarations[5].usage = 8;
-        rasterizer_vertex_declarations[6].usage = 0x208;
-        rasterizer_vertex_declarations[7].usage = 0x208;
-        rasterizer_vertex_declarations[8].usage = 0x208;
-        rasterizer_vertex_declarations[9].usage = 0x208;
-        rasterizer_vertex_declarations[10].usage = 8;
-        rasterizer_vertex_declarations[11].usage = 8;
-        rasterizer_vertex_declarations[16].usage = 8;
+        rasterizer_vertex_declarations[0].usage = halo::d3d9::k_usage_write_only;
+        rasterizer_vertex_declarations[1].usage = halo::d3d9::k_usage_write_only;
+        rasterizer_vertex_declarations[2].usage = halo::d3d9::k_usage_write_only;
+        rasterizer_vertex_declarations[3].usage = halo::d3d9::k_usage_write_only;
+        rasterizer_vertex_declarations[4].usage = halo::d3d9::k_usage_write_only;
+        rasterizer_vertex_declarations[5].usage = halo::d3d9::k_usage_write_only;
+        rasterizer_vertex_declarations[6].usage = k_usage_dynamic_write_only;
+        rasterizer_vertex_declarations[7].usage = k_usage_dynamic_write_only;
+        rasterizer_vertex_declarations[8].usage = k_usage_dynamic_write_only;
+        rasterizer_vertex_declarations[9].usage = k_usage_dynamic_write_only;
+        rasterizer_vertex_declarations[10].usage = halo::d3d9::k_usage_write_only;
+        rasterizer_vertex_declarations[11].usage = halo::d3d9::k_usage_write_only;
+        rasterizer_vertex_declarations[16].usage = halo::d3d9::k_usage_write_only;
     }
-    rasterizer_vertex_declarations[15].usage = 0x208;
-    rasterizer_vertex_declarations[17].usage = 0x208;
-    rasterizer_vertex_declarations[18].usage = 0x208;
+    rasterizer_vertex_declarations[15].usage = k_usage_dynamic_write_only;
+    rasterizer_vertex_declarations[17].usage = k_usage_dynamic_write_only;
+    rasterizer_vertex_declarations[18].usage = k_usage_dynamic_write_only;
 
     D3DXFVFFromDeclarator((const D3DVERTEXELEMENT9 *)vertex_elements_model_processed,
         (DWORD *)&rasterizer_vertex_declarations[15].fvf);
 
-    rasterizer_vertex_declarations[17].fvf = 0x144;
-    rasterizer_vertex_declarations[18].fvf = 0x1c4;
+    rasterizer_vertex_declarations[17].fvf = halo::d3d9::k_fvf_xyzrhw_diffuse_tex1;
+    rasterizer_vertex_declarations[18].fvf = halo::d3d9::k_fvf_xyzrhw_diffuse_specular_tex1;
 
     if (rasterizer_caps.max_streams < 2) {
         int32_t hr19 = render_device().create_vertex_declaration(vertex_elements_environment_single_stream_ff, &rasterizer_vertex_declarations[19].declaration);
         ok = (hr19 >= 0) && ok;
-        rasterizer_vertex_declarations[19].usage = 8;
+        rasterizer_vertex_declarations[19].usage = halo::d3d9::k_usage_write_only;
     }
 
     return ok;
@@ -260,10 +266,6 @@ namespace rasterizer_render_loading_screen_impl {
 
 
 
-typedef int32_t (__stdcall *d3d_device_call6_fn)(void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d,
-                                        uint32_t color, uint32_t e);
-
-
 /**
  * Loads and presents a loading/splash screen resource (mode == 1), falling back to clearing the screen white
  * for any other mode that reaches the tail path (mode == 0, or a failed load).
@@ -274,36 +276,28 @@ typedef int32_t (__stdcall *d3d_device_call6_fn)(void *device, uint32_t a, uint3
  */
 void rasterizer_render_loading_screen(int32_t mode)
 {
-    void **vtable;
-
     if (mode != 0) {
         void *splash = 0;
         void *render_target = 0;
         int32_t hr;
 
-        if (mode != 1 || rasterizer_device == (void *)0) {
+        if (mode != 1 || rasterizer_device == nullptr) {
             return;
         }
-        vtable = *(void ***)rasterizer_device;
-        hr = render_device().create_offscreen_plain_surface(0x280, 0x1e0, 0x16, 0, &splash, 0);
+        hr = render_device().create_offscreen_plain_surface(k_loading_screen_width, k_loading_screen_height, halo::d3d9::k_format_x8r8g8b8, halo::d3d9::k_pool_default, &splash, 0);
         if (hr >= 0) {
-            hr = D3DXLoadSurfaceFromResourceA((LPDIRECT3DSURFACE9)splash, 0, 0, (HMODULE)halo::shell::globals().module_handle, MAKEINTRESOURCEA(0x86), 0,
-                                              0xffffffff  , 0, 0);
+            hr = D3DXLoadSurfaceFromResourceA((LPDIRECT3DSURFACE9)splash, 0, 0, (HMODULE)halo::shell::globals().module_handle, MAKEINTRESOURCEA(k_loading_screen_resource_id), 0,
+                                              halo::rasterizer::d3dx::k_default, 0, 0);
             if (hr >= 0) {
-                vtable = *(void ***)rasterizer_device;
                 render_device().get_render_target(0, &render_target);
 
-                vtable = *(void ***)rasterizer_device;
-                render_device().stretch_rect((uint32_t)splash, 0, render_target, 0, 0);
-                rasterizer_capture_and_present((const int16_t *)0, (BitmapData *)0);
+                render_device().stretch_rect(splash, 0, render_target, 0, 0);
+                rasterizer_capture_and_present(nullptr, (BitmapData *)0);
 
-                vtable = *(void ***)rasterizer_device;
-                render_device().stretch_rect((uint32_t)splash, 0, render_target, 0, 0);
+                render_device().stretch_rect(splash, 0, render_target, 0, 0);
 
-                vtable = *(void ***)render_target;
                 render_device().release(render_target);
             }
-            vtable = *(void ***)splash;
             render_device().release(splash);
             if (hr >= 0) {
                 return;
@@ -311,12 +305,10 @@ void rasterizer_render_loading_screen(int32_t mode)
         }
     }
 
-    if (rasterizer_device != (void *)0) {
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_device_call6_fn)vtable[0xac / 4])(rasterizer_device, 0, 0, 7, 0, 0x3f800000, 0);
-        rasterizer_capture_and_present((const int16_t *)0, (BitmapData *)0);
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_device_call6_fn)vtable[0xac / 4])(rasterizer_device, 0, 0, 7, 0, 0x3f800000, 0);
+    if (rasterizer_device != nullptr) {
+        render_device().clear(0, 0, halo::d3d9::k_clear_target | halo::d3d9::k_clear_zbuffer | halo::d3d9::k_clear_stencil, 0, 1.0f, 0);
+        rasterizer_capture_and_present(nullptr, (BitmapData *)0);
+        render_device().clear(0, 0, halo::d3d9::k_clear_target | halo::d3d9::k_clear_zbuffer | halo::d3d9::k_clear_stencil, 0, 1.0f, 0);
     }
 }
 

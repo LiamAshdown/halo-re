@@ -141,8 +141,8 @@ typedef struct rasterizer_vertex_buffer {
     int32_t count;                  // 0x04 vertex count
     int16_t unknown_08;             // 0x08 zeroed by the constructor
     int16_t unknown_0a;             // 0x0a zeroed by the constructor
-    uint32_t data;                  // 0x0c void* source vertices (tag data)
-    uint32_t hardware_buffer;       // 0x10 void* IDirect3DVertexBuffer9, from the 0x530570 wrapper
+    void *data;                     // 0x0c source vertices (tag data)
+    void *hardware_buffer;          // 0x10 IDirect3DVertexBuffer9, from the 0x530570 wrapper
 } rasterizer_vertex_buffer;         // size 0x14
 
 // ---------------------------------------------------------------------------
@@ -156,8 +156,8 @@ typedef struct rasterizer_index_buffer {
     int16_t type;                   // 0x00 TriangleBufferType
     int16_t unknown_02;             // 0x02 alignment
     int32_t count;                  // 0x04 primitive count
-    uint32_t data;                  // 0x08 void* source indices (tag data)
-    uint32_t hardware_buffer;       // 0x0c void* IDirect3DIndexBuffer9
+    const void *data;               // 0x08 source indices (tag data)
+    void *hardware_buffer;          // 0x0c IDirect3DIndexBuffer9
 } rasterizer_index_buffer;          // size 0x10
 
 // ---------------------------------------------------------------------------
@@ -169,7 +169,7 @@ typedef struct rasterizer_index_buffer {
 // usage straight to CreateVertexBuffer.
 // ---------------------------------------------------------------------------
 typedef struct rasterizer_vertex_declaration {
-    uint32_t declaration;           // 0x00 void* IDirect3DVertexDeclaration9
+    void *declaration;              // 0x00 IDirect3DVertexDeclaration9
     uint32_t fvf;                   // 0x04 always 0 in this build
     uint32_t usage;                 // 0x08 D3DUSAGE bits for buffers of this type
 } rasterizer_vertex_declaration;    // size 0x0c
@@ -183,7 +183,7 @@ typedef struct rasterizer_vertex_declaration {
 // is the device reset path for default-pool buffers.
 // ---------------------------------------------------------------------------
 typedef struct rasterizer_vertex_buffer_slot {
-    uint32_t hardware_buffer;       // 0x00 void* IDirect3DVertexBuffer9, NULL when free
+    void *hardware_buffer;          // 0x00 IDirect3DVertexBuffer9, NULL when free
     int32_t vertex_type;            // 0x04 rasterizer_vertex_type (EAX of 0x530570)
     uint32_t length;                // 0x08 bytes
     uint32_t fvf;                   // 0x0c
@@ -213,7 +213,7 @@ typedef struct rasterizer_dynamic_vertex_slot {
     int16_t unknown_02;             // 0x02 alignment
     int32_t first_vertex;           // 0x04
     int32_t vertex_count;           // 0x08
-    uint32_t locked_vertices;       // 0x0c void* Lock result, NULL on failure
+    void *locked_vertices;          // 0x0c Lock result, NULL on failure
 } rasterizer_dynamic_vertex_slot;   // size 0x10
 
 // ---------------------------------------------------------------------------
@@ -224,7 +224,7 @@ typedef struct rasterizer_dynamic_vertex_slot {
 typedef struct rasterizer_dynamic_index_slot {
     int32_t first_index;            // 0x00
     int32_t index_count;            // 0x04
-    int32_t locked_indices;         // 0x08 0x08 out pointer of the index buffer Lock in
+    void *locked_indices;           // 0x08 out pointer of the index buffer Lock in
                                     //    rasterizer_dynamic_index_slot_lock, which returns it; the sibling
                                     //    rasterizer_dynamic_vertex_slot keeps locked_vertices
 } rasterizer_dynamic_index_slot;    // size 0x0c
@@ -237,10 +237,10 @@ typedef struct rasterizer_dynamic_index_slot {
 // that 0x5202f0/0x520e50/0x531ed0 read through +0x18.
 // ---------------------------------------------------------------------------
 typedef struct rasterizer_effect_slot {
-    uint32_t effect;                // 0x00 void* ID3DXEffect
+    void *effect;                   // 0x00 ID3DXEffect
     int32_t vertex_shader_index;    // 0x04 index into rasterizer_vertex_shaders (0x0069e350)
-    uint32_t texture_handles[4];    // 0x08 void* D3DXHANDLE Texture0..Texture3
-    uint32_t constant_handles;      // 0x18 void** GlobalAlloc array of named constant handles
+    void *texture_handles[4];       // 0x08 D3DXHANDLE Texture0..Texture3
+    void **constant_handles;        // 0x18 GlobalAlloc array of named constant handles
     uint32_t unknown_1c;            // 0x1c no reader found
 } rasterizer_effect_slot;           // size 0x20
 
@@ -250,7 +250,7 @@ typedef struct rasterizer_effect_slot {
 // creates the rest from shaders\vsh.bin with CreateVertexShader (device +0x16c).
 // ---------------------------------------------------------------------------
 typedef struct rasterizer_vertex_shader {
-    uint32_t shader;                // 0x00 void* IDirect3DVertexShader9
+    void *shader;                   // 0x00 IDirect3DVertexShader9
     int32_t enabled;                // 0x04 static initialised data; 0 skips the chunk
 } rasterizer_vertex_shader;         // size 0x08
 
@@ -265,8 +265,8 @@ typedef struct rasterizer_render_target {
     uint32_t width;                 // 0x00
     uint32_t height;                // 0x04
     uint32_t format;                // 0x08 D3DFORMAT; 0x15 A8R8G8B8
-    uint32_t surface;               // 0x0c void* IDirect3DSurface9
-    uint32_t texture;               // 0x10 void* IDirect3DTexture9
+    void *surface;                  // 0x0c IDirect3DSurface9
+    void *texture;                  // 0x10 IDirect3DTexture9
 } rasterizer_render_target;         // size 0x14
 
 // ---------------------------------------------------------------------------
@@ -292,6 +292,23 @@ typedef struct d3d_present_parameters {
     uint32_t fullscreen_refresh_rate; // 0x30 (used)
     uint32_t presentation_interval; // 0x34 (used) 1 means vsync, 0x80000000 immediate
 } d3d_present_parameters;           // size 0x38
+
+// D3DLIGHT9 as handed to IDirect3DDevice9::SetLight by rasterizer_light_set 0x526760.
+typedef struct d3d_light9 {
+    uint32_t type;                  // 0x00 D3DLIGHTTYPE: 1 point, 2 spot
+    float diffuse[4];               // 0x04 r, g, b, a
+    float specular[4];              // 0x14
+    float ambient[4];               // 0x24
+    real_point3d position;          // 0x34
+    real_vector3d direction;        // 0x40
+    float range;                    // 0x4c
+    float falloff;                  // 0x50
+    float attenuation0;             // 0x54
+    float attenuation1;             // 0x58
+    float attenuation2;             // 0x5c
+    float theta;                    // 0x60
+    float phi;                      // 0x64
+} d3d_light9;                       // size 0x68
 
 // D3DCAPS9 as filled by IDirect3D9::GetDeviceCaps (+0x38, called in rasterizer_initialize_direct3d
 // 0x5169c0 with the literal address 0x007c10c0). Fields read by this module are marked.
@@ -385,7 +402,7 @@ typedef struct d3d_gamma_ramp {
 // the texel sampler 0x524590.
 typedef struct d3d_locked_rect {
     int32_t pitch;                  // 0x00
-    uint32_t bits;                  // 0x04 void*
+    uint8_t *bits;                  // 0x04 first byte of the locked rectangle
 } d3d_locked_rect;                  // size 0x08
 
 // D3DSURFACE_DESC, filled by IDirect3DSurface9::GetDesc (+0x30) in rasterizer_end_frame 0x517b90.
@@ -727,10 +744,11 @@ typedef struct rasterizer_geometry_group_parameters {
                                     //      values in FUN_00519f70
     int32_t sort_key;               // 0x0c copied into group.sort_key when mode != 0
     real_point3d position;          // 0x10 copied into group.position when mode != 0
-    uint32_t shader;                // 0x1c void* Shader tag data of the overlay pass (0x52b050
+    struct Shader *shader;          // 0x1c Shader tag data of the overlay pass (0x52b050
                                     //      tests shader_type 0xb and +0x2c)
-    uint32_t unknown_20;            // 0x20
-    uint32_t function_values;       // 0x24 float* indexed [n - 1] by the overlay shader in 0x52b050
+    uint32_t change_colors;         // 0x20 ColorRGB*; with function_values the render_animation pair copied to
+                                    //      group.lighting_extra by 0x52b050
+    const float *function_values;   // 0x24 indexed [n - 1] by the overlay shader in 0x52b050
                                     //      and 0x533850
 } rasterizer_geometry_group_parameters; // size 0x28
 
@@ -809,7 +827,7 @@ typedef struct transparent_geometry_group {
     uint32_t object_index;          // 0x04 0x04 copied from rasterizer_model_draw_context.object_index (render_model)
                                     //    by rasterizer_transparent_geometry_group_build, 0 for non model groups
     int32_t sort_key;               // 0x08 compare tiebreak; draw batches runs of equal keys
-    uint32_t shader;                // 0x0c void* Shader tag data; NULL means a callback group
+    struct Shader *shader;          // 0x0c Shader tag data; NULL means a callback group
     uint16_t shader_permutation;    // 0x10 passed as the bitmap index to set_texture
     uint16_t unknown_12;            // 0x12 never written
     rasterizer_geometry_group_parameters parameters; // 0x14
@@ -821,21 +839,23 @@ typedef struct transparent_geometry_group {
                                     //    v_scale; glass reflection uses both as bump scale constants
     int32_t dynamic_index_slot;     // 0x44 rasterizer_dynamic_index_slot index; a negative
                                     //      value is minus a primitive kind (3 or 4 are quads)
-    uint32_t index_buffer;          // 0x48 rasterizer_index_buffer* static indices; for a callback group
-                                    //      (shader NULL) this is the callback procedure
+    union {
+        struct rasterizer_index_buffer *index_buffer; // 0x48 static indices
+        void (*callback)(int32_t argument, int32_t count); // 0x48 callback group (shader NULL): the procedure
+    };
     int32_t first_index;            // 0x4c callback argument for a callback group
     int32_t primitive_count;        // 0x50
     int32_t dynamic_vertex_slot;    // 0x54 rasterizer_dynamic_vertex_slot index, -1 none
-    uint32_t vertex_buffer;         // 0x58 rasterizer_vertex_buffer* static vertices; +0x14 is the lightmap
+    struct rasterizer_vertex_buffer *vertex_buffer; // 0x58 static vertices; +0x14 is the lightmap
                                     //      stream when it points into a BSP material
-    uint32_t lightmap_bitmap;       // 0x5c void* BitmapData; its +0x28 texture gates the lightmap pass
+    struct BitmapData *lightmap_bitmap; // 0x5c BitmapData; its +0x28 texture gates the lightmap pass
     uint32_t node_matrices;         // 0x60 real_matrix4x3* skinning source, NULL uses the identity at 0x0069673c
     int16_t node_count;             // 0x64
     int16_t unknown_66;             // 0x66 never written
-    uint32_t node_part_indices;     // 0x68 uint8_t* 0x0071d19c when node_parts_bit is set
+    uint8_t *node_part_indices;     // 0x68 0x0071d19c when node_parts_bit is set
     int32_t node_part_count;        // 0x6c 0x0071d1a0
-    uint32_t lighting;              // 0x70 render_lighting*
-    uint32_t lighting_extra;        // 0x74 render_animation* (render.h): the {change_colors,
+    struct render_lighting *lighting; // 0x70
+    struct render_animation *lighting_extra; // 0x74 (render.h): the {change_colors,
                                     //      function_values} pair at model draw context +0x84
                                     //      (R43); 0x53fe50 reads function_values at +4 through it
                                     //      (0x53242a, 0x534347)
@@ -957,7 +977,7 @@ typedef struct rasterizer_detail_object_draw {
     int16_t cell_y;                 // 0x0a
     float base_z;                   // 0x0c instance z = (base_z + plane . (x, y, z, 1)) * 8
     int32_t first_vertex;           // 0x10 DrawPrimitive start vertex, written by the fill
-    uint32_t z_reference;           // 0x14 float[4]* plane the instance bytes are projected on
+    const float *z_reference;       // 0x14 float[4] plane the instance bytes are projected on
 } rasterizer_detail_object_draw;    // size 0x18
 
 // A detail object instance as packed in the BSP (6 bytes, read by 0x51b150): x, y, z offsets
@@ -980,13 +1000,13 @@ typedef struct rasterizer_detail_object_vertex {
 } rasterizer_detail_object_vertex;  // size 0x14
 
 typedef struct rasterizer_detail_object_batch {
-    uint32_t draws;                 // 0x00 rasterizer_detail_object_draw*
+    struct rasterizer_detail_object_draw *draws; // 0x00
     int16_t draw_count;             // 0x04
     int16_t collection_palette_index; // 0x06 Scenario.detail_object_collection_palette index
 } rasterizer_detail_object_batch;   // size 0x08
 
 typedef struct rasterizer_detail_object_batches {
-    uint32_t batches;               // 0x00 rasterizer_detail_object_batch*
+    struct rasterizer_detail_object_batch *batches; // 0x00
     int16_t batch_count;            // 0x04
     int16_t unknown_06;             // 0x06
 } rasterizer_detail_object_batches; // size 0x08 (only the first 6 bytes are read)
@@ -999,7 +1019,7 @@ typedef struct rasterizer_detail_object_batches {
 // FontCharacter.hardware_character_index (+0xc) and the frame stamp 0x0069c694 at +0xe.
 // ---------------------------------------------------------------------------
 typedef struct font_glyph_cache_entry {
-    uint32_t character;             // 0x00 void* FontCharacter tag data, NULL when free
+    struct FontCharacter *character; // 0x00 FontCharacter tag data, NULL when free
     int16_t x;                      // 0x04 atlas position plus the one texel border
     int16_t y;                      // 0x06
 } font_glyph_cache_entry;           // size 0x08
@@ -1012,7 +1032,7 @@ typedef struct font_glyph_cache {
     int16_t cursor_x;               // 0x0006
     int16_t cursor_y;               // 0x0008
     int16_t row_height;             // 0x000a tallest glyph of the current row plus 2
-    uint32_t atlas;                 // 0x000c void* BitmapData (GlobalAlloc 0x30) with pixels at +0x2c
+    struct BitmapData *atlas;       // 0x000c BitmapData (GlobalAlloc 0x30) with pixels at +0x2c
     font_glyph_cache_entry entries[0x200]; // 0x0010
 } font_glyph_cache;                 // size 0x1010
 

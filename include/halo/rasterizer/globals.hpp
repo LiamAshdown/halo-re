@@ -5,6 +5,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
 #include "halo/render/vars.hpp"
+#include "halo/rasterizer/draw_procedures.hpp"
 
 /**
  * Link names of the engine globals of the rasterizer that the original image keeps as anonymous data. The
@@ -351,21 +352,21 @@ inline float &planar_fog_attenuation = unknown_007c047c;
  *
  * @address 0x7c048c
  */
-inline void *&environment_self_illumination_draw = unknown_007c048c;
+inline halo::rasterizer::surface_draw_procedure &environment_self_illumination_draw = halo::link::ref<halo::rasterizer::surface_draw_procedure>(halo::rasterizer::vars().unknown_007c048c);
 
 /**
  * Draw routine for lightmapped environment surfaces, picked by the hardware code path selection.
  *
  * @address 0x7c0490
  */
-inline void *&environment_lightmap_draw = unknown_007c0490;
+inline halo::rasterizer::surface_draw_procedure &environment_lightmap_draw = halo::link::ref<halo::rasterizer::surface_draw_procedure>(halo::rasterizer::vars().unknown_007c0490);
 
 /**
  * Draw routine for light cones: the light cone draw on capable hardware, else an empty function.
  *
  * @address 0x7c0494
  */
-inline void *&light_cone_draw = unknown_007c0494;
+inline halo::rasterizer::surface_draw_procedure &light_cone_draw = halo::link::ref<halo::rasterizer::surface_draw_procedure>(halo::rasterizer::vars().unknown_007c0494);
 
 /**
  * Keystone library entry "KeystoneCreate": creates the UI engine for a window and device. Null when the
@@ -431,6 +432,13 @@ inline uint8_t &rasterizer_fps = console_debug_toggle_6893e0;
  * @address 0x6893e4
  */
 inline uint8_t &rasterizer_debug_mode = console_debug_toggle_6893e4;
+
+/**
+ * The same toggle read as the 16 bit value the retail tests compare: the debug mode byte and the byte after it.
+ *
+ * @address 0x6893e4
+ */
+inline uint16_t &rasterizer_debug_mode_word = halo::link::ref<uint16_t>(halo::rasterizer::vars().console_debug_toggle_6893e4);
 
 /**
  * hs global "rasterizer_wireframe": draw everything as wireframe (fill mode 2) and skip text backdrops.

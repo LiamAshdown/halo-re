@@ -121,6 +121,55 @@ enum class device_method : uint32_t {
     set_pixel_shader = 107,
     get_pixel_shader = 108,
     set_pixel_shader_constant_f = 109,
+    get_pixel_shader_constant_f = 110,
+    set_pixel_shader_constant_i = 111,
+    get_pixel_shader_constant_i = 112,
+    set_pixel_shader_constant_b = 113,
+    get_pixel_shader_constant_b = 114,
+    draw_rect_patch = 115,
+    draw_tri_patch = 116,
+    delete_patch = 117,
+    create_query = 118,
+};
+
+/** Index of an IDirect3D9 (factory object) method in its method table. */
+enum class direct3d_method : uint32_t {
+    release = 2,
+    get_adapter_count = 4,
+    get_adapter_display_mode = 8,
+    check_device_format = 10,
+    get_device_caps = 14,
+    create_device = 16,
+};
+
+/** Index of a method of IDirect3DTexture9, IDirect3DVolumeTexture9 and IDirect3DCubeTexture9. */
+enum class texture_method : uint32_t {
+    get_surface_level = 18,
+    lock_rect = 19,
+    unlock_rect = 20,
+    lock_box = 19,
+    unlock_box = 20,
+    get_cube_map_surface = 18,
+};
+
+/** Index of a method of IDirect3DQuery9. */
+enum class query_method : uint32_t {
+    issue = 6,
+    get_data = 7,
+};
+
+/** Index of a method of ID3DXEffect (the method table the effect framework hands out). */
+enum class effect_method : uint32_t {
+    get_parameter_by_name = 9,
+    get_technique_by_name = 13,
+    set_vector = 34,
+    set_texture = 52,
+    set_technique = 59,
+    validate_technique = 61,
+    find_next_valid_technique = 62,
+    begin = 64,
+    begin_pass = 65,
+    end = 66,
 };
 
 /** Index of a method shared by IDirect3DVertexBuffer9 and IDirect3DIndexBuffer9. */
@@ -294,6 +343,10 @@ inline constexpr uint32_t k_pixel_shader_version_1_3 = 0xffff0103;
 inline constexpr uint32_t k_pixel_shader_version_1_4 = 0xffff0104;
 inline constexpr uint32_t k_pixel_shader_version_2_0 = 0xffff0200;
 
+/** D3DTRANSFORMSTATETYPE: D3DTS_WORLD and D3DTS_TEXTURE1. */
+inline constexpr uint32_t k_transform_world = 0x100;
+inline constexpr uint32_t k_transform_texture1 = 17;
+
 /** D3DLIGHTTYPE values. */
 inline constexpr uint32_t k_light_point = 1;
 inline constexpr uint32_t k_light_spot = 2;
@@ -301,12 +354,21 @@ inline constexpr uint32_t k_light_spot = 2;
 /** D3DCOLORWRITEENABLE_RED | GREEN | BLUE | ALPHA. */
 inline constexpr uint32_t k_color_write_all = 0xf;
 
-/** D3DUSAGE_SOFTWAREPROCESSING. */
+/** D3DUSAGE_SOFTWAREPROCESSING, D3DUSAGE_WRITEONLY and D3DUSAGE_DYNAMIC. */
 inline constexpr uint32_t k_usage_software_processing = 0x10;
+inline constexpr uint32_t k_usage_write_only = 0x8;
+inline constexpr uint32_t k_usage_dynamic = 0x200;
+
+/** D3DPOOL_DEFAULT, D3DPOOL_MANAGED and D3DPOOL_SYSTEMMEM. */
+inline constexpr uint32_t k_pool_default = 0;
+inline constexpr uint32_t k_pool_managed = 1;
+inline constexpr uint32_t k_pool_system_memory = 2;
 
 /** D3DLOCK_NOOVERWRITE and D3DLOCK_DISCARD. */
 inline constexpr uint32_t k_lock_no_overwrite = 0x1000;
 inline constexpr uint32_t k_lock_discard = 0x2000;
+inline constexpr uint32_t k_lock_read_only = 0x10;
+inline constexpr uint32_t k_lock_no_dirty_update = 0x800;
 
 /** D3DPRIMITIVETYPE values. */
 inline constexpr uint32_t k_primitive_line_strip = 3;
@@ -342,12 +404,16 @@ constexpr bool has_texture_cap(uint32_t texture_caps, texture_cap cap) noexcept
 /** Index of a method of IDirect3DSurface9. */
 enum class surface_method : uint32_t {
     release = 2,
+    get_desc = 12,
     lock_rect = 13,
     unlock_rect = 14,
 };
 
 /** D3DFMT_X8R8G8B8. */
 inline constexpr uint32_t k_format_x8r8g8b8 = 22;
+
+/** D3DERR_NOTAVAILABLE. */
+inline constexpr int32_t k_error_not_available = static_cast<int32_t>(0x8876086a);
 
 /** D3DERR_DEVICENOTRESET. */
 inline constexpr int32_t k_error_device_not_reset = static_cast<int32_t>(0x88760869);
@@ -360,7 +426,38 @@ inline constexpr uint32_t k_format_a8r8g8b8 = 21;
 inline constexpr uint32_t k_format_d24s8 = 75;
 
 /** D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1. */
-inline constexpr uint32_t k_fvf_xyzrhw_diffuse_tex1 = 0x144;
+inline constexpr uint32_t k_fvf_xyzrhw = 0x4;
+inline constexpr uint32_t k_fvf_diffuse = 0x40;
+inline constexpr uint32_t k_fvf_specular = 0x80;
+inline constexpr uint32_t k_fvf_tex1 = 0x100;
+inline constexpr uint32_t k_fvf_xyzrhw_diffuse_tex1 = k_fvf_xyzrhw | k_fvf_diffuse | k_fvf_tex1;
+inline constexpr uint32_t k_fvf_xyzrhw_diffuse_specular_tex1 = k_fvf_xyzrhw | k_fvf_diffuse | k_fvf_specular | k_fvf_tex1;
+
+/**
+ * D3DPS_VERSION: the pixel shader version word the device caps report (0xffff in the high half, then major and
+ * minor). The major number is merged into the low byte of the 0xff pattern before the shift, as the original does.
+ */
+constexpr uint32_t pixel_shader_version(uint32_t major, uint32_t minor) noexcept
+{
+    return ((major | ~0xffu) << 8) | minor;
+}
+
+/** The major and minor part of a pixel shader version word. */
+constexpr uint32_t pixel_shader_version_major_minor(uint32_t version) noexcept
+{
+    return version & 0xffffu;
+}
+
+/** D3DCLEAR_TARGET, D3DCLEAR_ZBUFFER and D3DCLEAR_STENCIL. */
+inline constexpr uint32_t k_clear_target = 1;
+inline constexpr uint32_t k_clear_zbuffer = 2;
+inline constexpr uint32_t k_clear_stencil = 4;
+
+/** D3DCOLOR_ARGB: one 8 bit channel per byte. */
+constexpr uint32_t color_argb(uint32_t alpha, uint32_t red, uint32_t green, uint32_t blue) noexcept
+{
+    return (alpha << 24) | (red << 16) | (green << 8) | blue;
+}
 
 /** D3DERR_DEVICELOST and D3DERR_DRIVERINTERNALERROR. */
 inline constexpr int32_t k_error_device_lost = static_cast<int32_t>(0x88760868);

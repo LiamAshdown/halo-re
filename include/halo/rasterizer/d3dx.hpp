@@ -8,6 +8,9 @@
 
 namespace halo::rasterizer::d3dx {
 
+/** D3DX_DEFAULT: the library chooses the filter. */
+inline constexpr uint32_t k_default = ~0u;
+
 /** Size in bytes of one vertex with the given FVF code. */
 uint32_t fvf_vertex_size(uint32_t fvf);
 

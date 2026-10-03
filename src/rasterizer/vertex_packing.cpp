@@ -36,6 +36,17 @@ void bsp_compressed_rendered_vertex_unpack_normal(ScenarioStructureBSPMaterialCo
     *out = *vector3d_unpack_normal_11_11_10(&unpacked, vertex->normal);
 }
 
+namespace {
+
+/** An 11:11:10 packed direction keeps 11 bits for each of x and y and the remaining 10 bits for z. */
+constexpr int32_t k_normal_xy_bits = 11;
+constexpr uint32_t k_normal_xy_mask = (1u << k_normal_xy_bits) - 1u;
+constexpr int32_t k_normal_z_shift = 2 * k_normal_xy_bits;
+constexpr uint32_t k_normal_z_mask = ~((1u << k_normal_z_shift) - 1u);
+constexpr int32_t k_normal_sign_shift = 32 - k_normal_xy_bits;
+
+}  // namespace
+
 static float clamp_unit(float v)
 {
     if (v < -1.0f) return -1.0f;
@@ -67,7 +78,7 @@ uint32_t vector3d_pack_normal_11_11_10(real_vector3d *direction)
     cz = clamp_unit(direction->k);
     zi = (int32_t)(float)halo::libm::floor((double)(cz * 511.5f));
 
-    return (uint32_t)(((zi << 0xb | (yi & 0x7ff)) << 0xb) | (xi & 0x7ff));
+    return (uint32_t)(((zi << k_normal_xy_bits | (yi & k_normal_xy_mask)) << k_normal_xy_bits) | (xi & k_normal_xy_mask));
 }
 
 /**
@@ -80,9 +91,9 @@ uint32_t vector3d_pack_normal_11_11_10(real_vector3d *direction)
  */
 real_vector3d * vector3d_unpack_normal_11_11_10(real_vector3d *out, uint32_t packed)
 {
-    out->i = ((float)(int32_t)(packed << 0x15) * 9.536743e-07f + 1.0f) * 0.0004885198f;
-    out->j = ((float)(int32_t)((packed >> 0xb) << 0x15) * 9.536743e-07f + 1.0f) * 0.0004885198f;
-    out->k = ((float)(int32_t)(packed & 0xffc00000) * 4.7683716e-07f + 1.0f) * 0.0009775171f;
+    out->i = ((float)(int32_t)(packed << k_normal_sign_shift) * 9.536743e-07f + 1.0f) * 0.0004885198f;
+    out->j = ((float)(int32_t)((packed >> k_normal_xy_bits) << k_normal_sign_shift) * 9.536743e-07f + 1.0f) * 0.0004885198f;
+    out->k = ((float)(int32_t)(packed & k_normal_z_mask) * 4.7683716e-07f + 1.0f) * 0.0009775171f;
     return out;
 }
 

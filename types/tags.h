@@ -1997,7 +1997,7 @@ typedef struct FontCharacter {
     int16_t bitmap_origin_x;
     int16_t bitmap_origin_y;
     uint16_t hardware_character_index;
-    uint8_t _pad_e[2];
+    int16_t last_used_frame;  // retail PC runtime: frame stamp the glyph cache writes when it packs the glyph
     int32_t pixels_offset;
 } FontCharacter;  // size 0x14
 typedef struct Font {

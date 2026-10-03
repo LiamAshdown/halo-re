@@ -10,6 +10,9 @@
 #include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
+#include "halo/rasterizer/constants.hpp"
+#include "halo/rasterizer/tag_access.hpp"
+#include "halo/core/bit_cast.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -65,7 +68,7 @@ void lens_flare_add_instance(lens_flare_instance *candidate)
         return;
     }
 
-    if (lens_flare_instance_count >= 0x400) {
+    if (lens_flare_instance_count >= k_lens_flare_maximum_instances) {
         if (lens_flare_instance_overflow == 0) {
             lens_flare_instance_overflow = 1;
         }
@@ -78,7 +81,7 @@ void lens_flare_add_instance(lens_flare_instance *candidate)
             rasterizer_window.camera.forward.k * (candidate->position.z - rasterizer_window.camera.position.z);
 
     if ((definition->far_fade_distance != 0.0f && depth >= definition->far_fade_distance) ||
-        (candidate->color & 0xff000000) == 0) {
+        (candidate->color & k_color_alpha_mask) == 0) {
         return;
     }
 
@@ -88,14 +91,14 @@ void lens_flare_add_instance(lens_flare_instance *candidate)
     if (candidate->object_index == -1) {
         uint16_t marker_visibility_high = (uint16_t)candidate->visibility_high;
 
-        if (marker_visibility_high != 0xffff) {
+        if (marker_visibility_high != halo::k_word_none) {
             int16_t marker_offset = (int16_t)candidate->visibility_low;
             lens_flare_instances[new_index].visibility_low = marker_offset + 8;
             lens_flare_instances[new_index].visibility_high =
-                (int16_t)(marker_visibility_high | (uint16_t)(marker_offset >> 0xf) | 0x8000);
+                (int16_t)(marker_visibility_high | (uint16_t)(marker_offset >> 15) | k_lens_flare_marker_flag);
             return;
         }
-        lens_flare_instances[new_index].visibility_high = (int16_t)0x8000;
+        lens_flare_instances[new_index].visibility_high = (int16_t)k_lens_flare_marker_flag;
     } else {
         if (candidate->object_index != lens_flare_object_visibility_table[lens_flare_instances[new_index].visibility_high].object_index) {
             int16_t object_index = lens_flare_instances[new_index].object_index;
@@ -185,13 +188,12 @@ uint8_t * lens_flare_get_visibility_byte(lens_flare_instance *flare)
 {
     if (flare->visibility_high < 0) {
         return lens_flare_marker_visibility +
-               (flare->window_flags & 0xffffff7f) +
-               (((uint32_t)(uint16_t)flare->visibility_high & 0x7fff) << 0x10 |
+               (flare->window_flags & ~_lens_flare_window_flag_80_bit) +
+               (((uint32_t)(uint16_t)flare->visibility_high & k_lens_flare_marker_offset_mask) << 16 |
                 (uint32_t)(int32_t)flare->visibility_low);
     }
-    return (uint8_t *)lens_flare_object_visibility_table +
-           (flare->window_flags & 0xffffff7f) + (int32_t)flare->visibility_high * 10 + 2 +
-           (int32_t)flare->visibility_low;
+    return lens_flare_object_visibility_table[flare->visibility_high].visibility +
+           (flare->window_flags & ~_lens_flare_window_flag_80_bit) + (int32_t)flare->visibility_low;
 }
 
 static float lens_flare_clamp01(float x)
@@ -223,7 +225,7 @@ void lens_flare_render_all(void)
         return;
     }
     if (lens_flare_occlusion_queries_supported != 1) {
-        chimera__rasterizer_set_frustum_z_func(0x3d000200, 0x45800000);
+        chimera__rasterizer_set_frustum_z_func(k_lens_flare_frustum_z_near, k_lens_flare_frustum_z_far);
     }
     rasterizer_lens_flare_batching_select_mode(5, 0);
 
@@ -327,7 +329,7 @@ void lens_flare_render_all(void)
             if (reflection->tint_color.alpha == 0.0f && reflection->tint_color.red == 0.0f &&
                 reflection->tint_color.green == 0.0f && reflection->tint_color.blue == 0.0f) {
                 colour = ((uint32_t)color_channel_real_to_byte(brightness) << 24) |
-                         (instance->color & 0xffffff);
+                         (instance->color & k_color_rgb_mask);
                 specular = 1.0f;
             } else {
                 ColorARGB tint;
@@ -394,14 +396,12 @@ void lens_flare_render_all(void)
 
     rasterizer_set_shader_stage_config(0);
     if (lens_flare_occlusion_queries_supported != 1) {
-        chimera__rasterizer_set_frustum_z_func(0, 0);
+        chimera__rasterizer_set_frustum_z_func(0.0f, 0.0f);
     }
     rasterizer_lens_flare_batch_flush_all();
 
-    if (rasterizer_effect_pool_scratch != 0 && *(void **)rasterizer_effect_pool_scratch != 0) {
-        void *obj = *(void **)rasterizer_effect_pool_scratch;
-        void **vtable = *(void ***)obj;
-        ((void (__stdcall *)(void *))vtable[0x108 / 4])(obj);
+    if (rasterizer_effect_pool_scratch != 0 && *rasterizer_effect_pool_scratch != 0) {
+        render_device().effect_end(*rasterizer_effect_pool_scratch);
     }
     rasterizer_effect_pool_scratch = 0;
     {
@@ -592,7 +592,7 @@ static int key_equal(const lens_flare_batch_key *a, const lens_flare_batch_key *
     return a->bitmap_tag_index == b->bitmap_tag_index &&
            a->second_bitmap_tag_index == b->second_bitmap_tag_index &&
            a->bitmap_index == b->bitmap_index &&
-           *(const uint32_t *)&a->shader_stage_config == *(const uint32_t *)&b->shader_stage_config;
+           a->shader_stage_config == b->shader_stage_config && a->unknown_0e == b->unknown_0e;
 }
 
 /**
@@ -677,7 +677,7 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
         set_render_state(halo::d3d9::rs::z_func, 4);
         set_render_state(halo::d3d9::rs::z_write_enable, console_debug_toggle_689425);
         set_render_state(halo::d3d9::rs::fog_enable, 0);
-        set_render_state(halo::d3d9::rs::texture_factor, 0xffff0000);
+        set_render_state(halo::d3d9::rs::texture_factor, halo::d3d9::color_argb(0xff, 0xff, 0, 0));
 
         set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
         set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::tfactor);
@@ -688,7 +688,7 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
 
         render_device().set_vertex_shader(0);
         render_device().set_pixel_shader(0);
-        render_device().set_fvf(0x144);
+        render_device().set_fvf(halo::d3d9::k_fvf_xyzrhw_diffuse_tex1);
         return;
     }
     if (mode != 5) {
@@ -716,7 +716,7 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
         uint32_t pass_count = 0;
         render_device().effect_begin(halo::rasterizer::fields::lens_flare_effect, &pass_count, 3);
 
-        render_device().effect_pass(*(void **)rasterizer_effect_pool_scratch, 0);
+        render_device().effect_pass(*rasterizer_effect_pool_scratch, 0);
     } else {
         set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
         set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
@@ -737,7 +737,7 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
     set_sampler_state(0, halo::d3d9::ss::min_filter, 2);
     set_sampler_state(0, halo::d3d9::ss::mip_filter, 2);
     render_device().set_vertex_shader(0);
-    render_device().set_fvf(0x1c4);
+    render_device().set_fvf(halo::d3d9::k_fvf_xyzrhw_diffuse_specular_tex1);
 
     rasterizer_set_shader_stage_config(0);
 
@@ -750,7 +750,7 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
     lens_flare_applied_key.second_bitmap_tag_index = 0;
     lens_flare_applied_key.bitmap_index = 0;
     lens_flare_applied_key.shader_stage_config = 0;
-    lens_flare_vertex_specular = 0xffffffff;
+    lens_flare_vertex_specular = halo::d3d9::k_color_white;
 }
 
 }  // namespace rasterizer_lens_flare_batching_select_mode_impl
@@ -783,7 +783,7 @@ uint8_t rasterizer_lens_flare_occlusion_queries_create(void)
         hr = render_device().create_query(9, &query);
         if (hr < 0) {
             ok = 0;
-            if (hr == (int32_t)0x8876086a) {
+            if (hr == halo::d3d9::k_error_not_available) {
                 lens_flare_occlusion_queries_supported = 0;
             }
         } else {
@@ -864,7 +864,7 @@ void rasterizer_lens_flare_occlusion_sample_add(void *procedure, const real_poin
     dz = position->z - rasterizer_window.camera.position.z;
 
     group->dynamic_index_slot = -1;
-    group->index_buffer = (uint32_t)procedure;
+    group->callback = reinterpret_cast<void (*)(int32_t, int32_t)>(procedure);
     group->first_index = (int32_t)id_1;
     group->primitive_count = (int32_t)id_2;
     group->dynamic_vertex_slot = -1;
@@ -919,7 +919,7 @@ static void set_vertex(rasterizer_screen_vertex *vertex, int16_t x, int16_t y, f
     vertex->y = (float)y;
     vertex->z = z;
     vertex->rhw = rhw;
-    vertex->diffuse = 0xffffffff;
+    vertex->diffuse = halo::d3d9::k_color_white;
     vertex->u = u;
     vertex->v = v;
 }
@@ -1125,7 +1125,7 @@ void rasterizer_lens_flare_quad_add(const float *scale, uint32_t diffuse, const 
 void structure_cluster_add_lens_flares(int16_t cluster_index)
 {
     ScenarioStructureBSP *bsp;
-    const uint8_t *cluster;
+    const ScenarioStructureBSPCluster *cluster;
     uint32_t marker_ordinal;
 
     if (halo::rasterizer::fields::decals_and_lens_flares_enabled == 0 || halo::rasterizer::fields::screenshot_tile_count > 1 || (halo::rasterizer::fields::screenshot_tile_count == 1 && screenshot_scale > 1)) {
@@ -1133,12 +1133,12 @@ void structure_cluster_add_lens_flares(int16_t cluster_index)
     }
 
     bsp = global_structure_bsp;
-    cluster = (const uint8_t *)((struct ScenarioStructureBSP *)bsp)->clusters.pointer + cluster_index * 0x68;
-    for (marker_ordinal = 0; marker_ordinal < *(const uint16_t *)(cluster + 0x42); marker_ordinal++) {
-        uint32_t marker_index = *(const uint16_t *)(cluster + 0x40) + marker_ordinal;
+    cluster = tag_block_element<ScenarioStructureBSPCluster>(bsp->clusters, cluster_index);
+    for (marker_ordinal = 0; marker_ordinal < cluster->lens_flare_marker_count; marker_ordinal++) {
+        uint32_t marker_index = cluster->first_lens_flare_marker_index + marker_ordinal;
         const ScenarioStructureBSPLensFlareMarker *marker =
-            (const ScenarioStructureBSPLensFlareMarker *)((struct ScenarioStructureBSP *)bsp)->lens_flare_markers.pointer + marker_index;
-        const uint8_t *palette = (const uint8_t *)((struct ScenarioStructureBSP *)bsp)->lens_flares.pointer + marker->lens_flare_index * 0x10;
+            tag_block_element<ScenarioStructureBSPLensFlareMarker>(bsp->lens_flare_markers, marker_index);
+        const ScenarioStructureBSPLensFlare *palette = tag_block_element<ScenarioStructureBSPLensFlare>(bsp->lens_flares, marker->lens_flare_index);
         real_vector3d direction;
         real_vector3d up;
         lens_flare_instance candidate;
@@ -1152,11 +1152,11 @@ void structure_cluster_add_lens_flares(int16_t cluster_index)
 
         candidate.packed_direction = vector3d_pack_normal_11_11_10(&direction);
         candidate.packed_up = vector3d_pack_normal_11_11_10(&up);
-        candidate.definition = (uint32_t)halo::cache::globals().tag_instances[*(const uint32_t *)(palette + 0xc) & halo::k_slot_mask].data;
+        candidate.definition = (uint32_t)halo::cache::globals().tag_instances[halo::tag_id_bits(palette->lens.tag_id) & halo::k_slot_mask].data;
         candidate.position.x = marker->position.x;
         candidate.position.y = marker->position.y;
         candidate.position.z = marker->position.z;
-        candidate.color = 0xffffffff;
+        candidate.color = halo::d3d9::k_color_white;
         candidate.object_index = -1;
         candidate.visibility_high = (int16_t)((int32_t)marker_index >> 16);
         candidate.visibility_low = (int16_t)marker_index;
