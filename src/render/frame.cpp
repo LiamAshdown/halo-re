@@ -25,6 +25,7 @@
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern int32_t render_frame_index;
@@ -50,8 +51,6 @@ extern game_engine_definition *current_game_engine;
 extern game_engine_state game_engine_state_value;
 extern player_globals *local_player_globals;
 extern int16_t unknown_00719aac;
-extern void halo::scenario::scenario_sky_fog_state_update(int16_t sky_index, int16_t local_player_index,
-    real_point3d *camera_position, render_fog *out);
 extern void widget_draw_fullscreen_region(int16_t controller_index);
 }
 
@@ -194,8 +193,7 @@ void player_frame(Point2DInt *screenshot_tile, render_view *view)
     halo::structures::render_camera_update_leaf_and_cluster(&source_camera->position);
 
     render_fog_state.unknown_02 = 0;
-    halo::scenario::scenario_sky_fog_state_update(halo::structures::globals().render_cluster_sky_index, view->local_player_index, &source_camera->position,
-                                  &render_fog_state);
+    halo::scenario::scenario_query::sky_fog_state_update(halo::structures::globals().render_cluster_sky_index, view->local_player_index, &source_camera->position, &render_fog_state);
 
     halo::structures::structure_bsp_build_fog_environment(halo::structures::globals().render_cluster_index,
                                          (structure_fog_environment *)&render_fog_state);

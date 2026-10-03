@@ -20,6 +20,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -278,7 +279,7 @@ uint32_t halo::units::unit_find_placement_position(uint32_t anchor_object, uint3
                 continue;
             }
         }
-        halo::scenario::scenario_location_from_point(&location, &point);
+        halo::scenario::location_view(&location).from_point(&point);
         if (!(*(uint32_t *)(tag + 0x2f4) & 0x8)) {
             point.z = point.z - *(float *)(tag + 0x42c);
         }

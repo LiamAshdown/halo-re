@@ -19,6 +19,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" { void halo::physics::collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index, real_point3d *origin, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 extern "C" { uint8_t halo::physics::collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
@@ -421,7 +422,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                     point->x += result->plane.normal.i * 0.00024414062f;
                     point->y += result->plane.normal.j * 0.00024414062f;
                     point->z += result->plane.normal.k * 0.00024414062f;
-                    halo::scenario::scenario_location_from_point((bsp_leaf_reference *)last_leaf_ref, point);
+                    halo::scenario::location_view((bsp_leaf_reference *)last_leaf_ref).from_point(point);
                     if (last_leaf_ref->leaf_index == -1) {
                         float facing = delta->i * result->plane.normal.i + delta->j * result->plane.normal.j +
                             delta->k * result->plane.normal.k;

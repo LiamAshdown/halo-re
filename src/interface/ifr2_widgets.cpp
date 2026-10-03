@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/text/text.hpp"
 
 #ifdef interface
 #undef interface
@@ -2446,11 +2447,11 @@ void TextEdit::process_key(ui_key_event *event)
             }
             if (event->key_code == _ui_edit_key_left_arrow) {
                 if (state->cursor > 0) {
-                    halo::text::text_find_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
+                    halo::text::dbcs_text::find_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
                 }
             } else {
                 if ((size_t)state->cursor < strlen(state->text)) {
-                    halo::text::text_get_next_character(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
+                    halo::text::dbcs_text::get_next_character(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
                 }
             }
             if (state->selection_anchor == state->cursor) {
@@ -2500,7 +2501,7 @@ void TextEdit::process_key(ui_key_event *event)
             halo::text::text_clamp_byte_length_to_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
             return;
         }
-        halo::text::text_find_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
+        halo::text::dbcs_text::find_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
         src = state->text + old_cursor;
         tail_len = (int32_t)strlen(src);
         dst = state->text + state->cursor;
@@ -2512,7 +2513,7 @@ void TextEdit::process_key(ui_key_event *event)
             return;
         }
         scratch_offset = state->cursor;
-        halo::text::text_get_next_character(reinterpret_cast<uint8_t *>(state->text), &scratch_offset);
+        halo::text::dbcs_text::get_next_character(reinterpret_cast<uint8_t *>(state->text), &scratch_offset);
         src = state->text + scratch_offset;
         tail_len = (int32_t)strlen(src);
         dst = state->text + state->cursor;

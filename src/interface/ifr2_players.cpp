@@ -10,6 +10,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/text/text.hpp"
 
 #ifdef interface
 #undef interface
@@ -120,7 +121,7 @@ void LocalPlayers::state_reset()
     GlobalsInterfaceBitmaps *interface_bitmaps;
 
     hud_state_reset();
-    halo::text::text_language_initialize_from_string_list();
+    halo::text::text_context::language_initialize_from_string_list();
 
     fp = &first_person_weapon_interfaces[0];
     memset(fp, 0, sizeof(*fp));

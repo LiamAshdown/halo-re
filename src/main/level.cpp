@@ -28,6 +28,13 @@
 #include "halo/main/layout.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
+#include "halo/scenario/scenario.hpp"
 
 
 extern "C" { extern main_globals main_globals_data; }
@@ -238,8 +245,8 @@ void LevelControl::scenario_session_begin(network_scenario_load_request *request
     int64_t counter_ms;
     uint8_t already_initialized;
 
-    halo::input::input_reset_state_and_axis_configs();
-    halo::input::input_bind_capture_reset();
+    halo::input::GameActions::reset_state_and_axis_configs();
+    halo::input::Bindings::bind_capture_reset();
     cache_file_switch_map_by_path(request->map_name, 1);
 
     memcpy(main_game_globals + 8, request, sizeof(network_scenario_load_request));
@@ -641,7 +648,7 @@ void LevelControl::switch_structure_bsp_and_notify(void)
     uint8_t *entry;
     int32_t i;
 
-    halo::scenario::scenario_structure_bsp_switch(main_globals_data.switch_structure_bsp_index);
+    halo::scenario::structure_bsp_switcher::switch_to(main_globals_data.switch_structure_bsp_index);
     main_globals_data.switch_structure_bsp_index = -1;
 
     message_id = (int16_t)hud_globals_tag_data->loading_end_text;

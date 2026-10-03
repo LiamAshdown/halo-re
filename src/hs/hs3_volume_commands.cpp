@@ -4,6 +4,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 
 namespace halo::hs::part3 {
@@ -44,7 +45,7 @@ void VolumeCommands::evaluate_volume_test_object(int16_t function_index, uint32_
         if ((uint32_t)arguments[1] != halo::k_dword_none) {
             uint8_t *object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[arguments[1] & halo::k_slot_mask].data;
 
-            inside = halo::scenario::scenario_trigger_volume_contains_point(*(int16_t *)&arguments[0], (real_point3d *)(object + 0xa0));
+            inside = halo::scenario::scenario_query::trigger_volume_contains_point(*(int16_t *)&arguments[0], (real_point3d *)(object + 0xa0));
         }
         halo::hs::hs_thread_return((int32_t)inside, thread_index);
     }

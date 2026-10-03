@@ -13,6 +13,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/structures/globals.hpp"
+#include "halo/cseries/cseries.hpp"
 
 
 namespace halo::structures {
@@ -75,7 +76,7 @@ void structure_draw::leaf_faces_gather_list(int16_t face_count, ScenarioStructur
     ScenarioStructureBSPSurface *surfaces = (ScenarioStructureBSPSurface *)halo::scenario::globals().structure_bsp->surfaces.pointer;
     int32_t i;
 
-    halo::cseries::qsort_dword_array((uint32_t)(int32_t)face_count, face_indices, structure_leaf_face_index_compare);
+    halo::cseries::dword_sort::sort((uint32_t)(int32_t)face_count, face_indices, structure_leaf_face_index_compare);
 
     for (i = 0; i < face_count; i = i + 1) {
         out_faces[i] = surfaces[face_indices[i]];

@@ -9,6 +9,7 @@
 #include "halo/tags/flags.hpp"
 #include "halo/units/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/cseries/cseries.hpp"
 
 namespace c_actor_claim_firing_position {
 }
@@ -609,7 +610,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         }
         qsort_candidate_base = candidates;
         qsort_candidate_count = candidate_count;
-        halo::cseries::qsort_dword_array((uint32_t)(int32_t)candidate_count, sort_index, halo::ai::actor_firing_position_compare);
+        halo::cseries::dword_sort::sort((uint32_t)(int32_t)candidate_count, sort_index, halo::ai::actor_firing_position_compare);
 
         query->baseline_accept = halo::ai::actor_firing_position_probe_reject_rules(query, actor_index);
 

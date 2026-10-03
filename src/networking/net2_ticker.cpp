@@ -13,6 +13,7 @@
 #include "halo/networking/net2_ticker.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/text/text.hpp"
 
 extern "C" {
 extern heap * widget_memory_pool;
@@ -58,7 +59,7 @@ void TickerTextBuffer::advance(uint8_t *widget, ticker_text_buffer *self)
     hud_text_draw_column = 0;
     hud_text_draw_unknown_4730 = 0;
 
-    fit_count = halo::text::text_measure_string_fit_width(self->text + self->scroll_cursor, max_width);
+    fit_count = halo::text::text_context::measure_string_fit_width(self->text + self->scroll_cursor, max_width);
     if (fit_count == 0) {
         if (self->scroll_cursor == 0) {
 
@@ -75,7 +76,7 @@ void TickerTextBuffer::advance(uint8_t *widget, ticker_text_buffer *self)
             int32_t tail_length = self->length - self->scroll_cursor;
             int32_t wrap_length;
 
-            max_width[0] = halo::text::text_measure_string_fit_width(self->text, max_width);
+            max_width[0] = halo::text::text_context::measure_string_fit_width(self->text, max_width);
             display_text = (wchar_t *)halo::memory::heap_reallocate((void *)(uintptr_t)text_row[0xf],
                 (uint32_t)(((tail_length + max_width[0]) * 2 + 2) & 0xffff), widget_memory_pool);
             text_row[0xf] = (uint32_t)(uintptr_t)display_text;

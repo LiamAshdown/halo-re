@@ -18,6 +18,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" { extern double fabs(double x); }
 extern "C" { extern double sqrt(double x); }
@@ -164,8 +165,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
         mp->velocity_k = velocity.k;
 
         halo::physics::object_physics_mass_point_resolve_ground_contact(object_index, mp, mp_def);
-        mp->water_depth = halo::scenario::scenario_location_water_surface_distance((bsp_leaf_reference *)((uint8_t *)mp + 0x34),
-            (real_point3d *)&mp->position_x);
+        mp->water_depth = halo::scenario::location_view((bsp_leaf_reference *)((uint8_t *)mp + 0x34)).water_surface_distance((real_point3d *)&mp->position_x);
 
         if (0.0f < mp->ground_depth && 0.0f < definition->ground_depth) {
             float tangential_speed = (mp->velocity_k * mp->resting_plane_k + mp->velocity_j * mp->resting_plane_j) +

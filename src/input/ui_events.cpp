@@ -18,6 +18,11 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/input/state.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
 
 static void menu_direction_update(menu_repeat_state *state, uint8_t active, int32_t now_ms,
                                    int32_t virtual_key_id, uint8_t *fired)
@@ -70,7 +75,7 @@ static void push_menu_event(int16_t kind, uint8_t code, uint8_t pressed)
     event.kind = kind;
     event.code = code;
     event.pressed = pressed;
-    halo::input::input_queue_push_event(0, &event);
+    halo::input::UiEvents::queue_push_event(0, &event);
 }
 
 namespace halo::input {
@@ -327,7 +332,7 @@ uint8_t UiEvents::queue_pop_event(ui_input_event *out_event, int16_t queue_index
         return 0;
     }
     for (queue_index = 0; queue_index < 4; queue_index++) {
-        if (halo::input::input_queue_pop_event(out_event, queue_index) != 0) {
+        if (halo::input::UiEvents::queue_pop_event(out_event, queue_index) != 0) {
             return 1;
         }
     }

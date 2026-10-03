@@ -16,6 +16,13 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/cseries/cseries.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -96,9 +103,7 @@ extern void *external_00686b58;
 extern void *external_00686b5c;
 extern uint32_t external_00686b54;
 
-extern void input_directinput_initialize(void);
 extern uint32_t sound_initialize(void);
-extern void input_directinput_release_devices(void);
 }
 
 typedef int32_t (__cdecl *eula_show_fn)(const char *registry_path, const char *eula_file, int32_t unknown_2, int32_t unknown_3);
@@ -125,7 +130,7 @@ uint8_t EngineLifecycle::initialize()
         profile_directory[i] = 0;
     }
 
-    halo::cseries::profile_path_initialize();
+    halo::cseries::profile_path::initialize();
 
     if (direct3d_create9 == 0) {
         d3d9_module = LoadLibraryA("d3d9.dll");
@@ -161,7 +166,7 @@ uint8_t EngineLifecycle::initialize()
 
     startup_ok = halo::render::render_initialize();
     if ((uint8_t)startup_ok != 0) {
-        halo::input::input_directinput_initialize();
+        halo::input::DirectInput::directinput_initialize();
         halo::sound::globals().disabled = (uint8_t)shell_nosound;
         halo::sound::sound_initialize();
         return 1;
@@ -187,7 +192,7 @@ void EngineLifecycle::shutdown()
     global_collision_bsp = 0;
     global_globals = 0;
 
-    halo::input::input_directinput_release_devices();
+    halo::input::DirectInput::directinput_release_devices();
     halo::rasterizer::rasterizer_shutdown();
     GlobalFree(halo::math::globals().sphere_point_table);
     halo::math::periodic_function_tables_free();
@@ -221,7 +226,7 @@ char *Application::copy_command_line(const char *command_line)
     while (command_line[command_line_length] != 0) {
         command_line_length++;
     }
-    command_line_copy = (char *)halo::cseries::memory_global_alloc((uint32_t)command_line_length + 1);
+    command_line_copy = (char *)halo::cseries::global_memory::alloc((uint32_t)command_line_length + 1);
     if (command_line_length > 0) {
         const char *source = command_line;
         char *dest = command_line_copy;
@@ -523,8 +528,8 @@ bool Application::run_session(void *instance, char *command_line, int32_t show_c
         run_engine();
     }
 
-    halo::cseries::memory_global_free(command_line_copy);
-    halo::cseries::memory_global_free(shell_argv);
+    halo::cseries::global_memory::release(command_line_copy);
+    halo::cseries::global_memory::release(shell_argv);
     KeystoneLibrary::unload();
     if (shell_stack_guard_page != 0) {
         VirtualProtect(shell_stack_guard_page, 1, shell_stack_guard_old_protect, (PDWORD)&shell_stack_guard_old_protect);

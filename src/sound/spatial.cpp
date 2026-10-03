@@ -12,6 +12,7 @@
 #include "halo/camera/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 namespace halo::sound {
 
@@ -33,7 +34,7 @@ void environment_update(uint32_t *out_environment_ptr, void **out_environment_sl
     cluster_record = (ScenarioStructureBSPCluster *)structure_bsp->clusters.pointer + local_player_0_cluster_index;
 
     {
-        int16_t region = halo::scenario::scenario_location_fog_region(&camera_leaf, &camera_point);
+        int16_t region = halo::scenario::location_view(&camera_leaf).fog_region(&camera_point);
         if (region != -1) {
             region = (int16_t)((ScenarioStructureBSPFogRegion *)structure_bsp->fog_regions.pointer)[region].fog;
         }

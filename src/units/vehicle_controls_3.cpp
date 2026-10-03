@@ -6,6 +6,7 @@
 #include "halo/units/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern real_point3d *global_origin3d_pointer;
@@ -36,7 +37,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
     uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     int32_t node_count = *(int32_t *)(physics_tag + 0x68);
     bsp_leaf_reference bank_leaf = {obj->location_leaf_index, obj->location_cluster_index, 0};
-    float bank_lookup = halo::scenario::scenario_location_water_surface_distance(&bank_leaf, &obj->position);
+    float bank_lookup = halo::scenario::location_view(&bank_leaf).water_surface_distance(&obj->position);
     real_vector3d push = *(real_vector3d *)global_origin3d_pointer;
     real_vector3d angular = *(real_vector3d *)global_origin3d_pointer;
     int32_t i;

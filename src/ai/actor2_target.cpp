@@ -11,6 +11,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 namespace halo::ai {
 
@@ -526,8 +527,8 @@ uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_inde
     } else if (gate == 3) {
         range = range * 0.7f;
     }
-    if (halo::scenario::scenario_location_background_sound_is_deafening_to_ais((bsp_leaf_reference *)(listener + 0x24)) ||
-        halo::scenario::scenario_location_background_sound_is_deafening_to_ais((bsp_leaf_reference *)record)) {
+    if (halo::scenario::location_view((bsp_leaf_reference *)(listener + 0x24)).background_sound_is_deafening_to_ais() ||
+        halo::scenario::location_view((bsp_leaf_reference *)record).background_sound_is_deafening_to_ais()) {
         range = range * 0.25f;
     }
     if (stance != 0 && stance != 1) {

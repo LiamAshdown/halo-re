@@ -25,6 +25,12 @@
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -658,7 +664,7 @@ uint8_t UiEventHandlers::event_4a1ca0(widget_instance *widget, int16_t *event, u
         queued.kind = 3;
         queued.code = 0;
         queued.pressed = 1;
-        halo::input::input_queue_push_event(0, &queued);
+        halo::input::UiEvents::queue_push_event(0, &queued);
     }
     return 1;
 }
@@ -677,7 +683,7 @@ uint8_t UiEventHandlers::event_4a1cd0(widget_instance *widget, int16_t *event, u
         queued.kind = 3;
         queued.code = 0xd;
         queued.pressed = 1;
-        halo::input::input_queue_push_event(0, &queued);
+        halo::input::UiEvents::queue_push_event(0, &queued);
     }
     return 1;
 }
@@ -696,7 +702,7 @@ uint8_t UiEventHandlers::event_4a1d00(widget_instance *widget, int16_t *event, u
         queued.kind = 3;
         queued.code = 0xa;
         queued.pressed = 1;
-        halo::input::input_queue_push_event(0, &queued);
+        halo::input::UiEvents::queue_push_event(0, &queued);
     }
     return 1;
 }

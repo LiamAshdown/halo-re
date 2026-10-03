@@ -13,6 +13,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/structures/globals.hpp"
+#include "halo/bitmaps/bitmaps.hpp"
 
 
 namespace halo::structures {
@@ -60,7 +61,7 @@ void bsp_lighting::lightmap_sample_vertex_color(BitmapData *bitmap, float weight
     uv[1] = (v1 - v0) * weight_1 + (v2 - v0) * weight_2 + v0;
 
     packed = halo::rasterizer::rasterizer_bitmap_sample_texel(bitmap, uv, 1.0f);
-    halo::bitmaps::color_rgb_int_to_real(out, (uint32_t)packed);
+    halo::bitmaps::color_codec::rgb_int_to_real(out, (uint32_t)packed);
 }
 
 void bsp_lighting::material_sample_base_map_color(BitmapData *bitmap, float weight_1, float weight_2, ColorRGB *out, ScenarioStructureBSPMaterial *material, uint16_t *triangle_vertex_indices)
@@ -98,7 +99,7 @@ void bsp_lighting::material_sample_base_map_color(BitmapData *bitmap, float weig
     uv[1] = (v2 - v0) * weight_2 + (v1 - v0) * weight_1 + v0;
 
     packed = halo::rasterizer::rasterizer_bitmap_sample_texel(bitmap, uv, 0.3f);
-    halo::bitmaps::color_rgb_int_to_real(out, (uint32_t)packed);
+    halo::bitmaps::color_codec::rgb_int_to_real(out, (uint32_t)packed);
 }
 
 uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *point, render_lighting *lighting)

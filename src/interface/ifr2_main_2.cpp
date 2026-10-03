@@ -12,6 +12,12 @@ extern "C" input_event_queue input_event_queue_active;
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 #ifdef interface
 #undef interface
@@ -159,7 +165,7 @@ void InterfaceMain::tick()
                     root = widget;
 
                     if (ui_input_batch_mode == 0) {
-                        uint8_t got_event = halo::input::input_queue_pop_event((ui_input_event *)event_scratch, widget->controller_index);
+                        uint8_t got_event = halo::input::UiEvents::queue_pop_event((ui_input_event *)event_scratch, widget->controller_index);
 
                         if (got_event != 0) {
                             looped = 1;
@@ -170,7 +176,7 @@ void InterfaceMain::tick()
                                     widget != root) {
                                     break;
                                 }
-                                got_event = halo::input::input_queue_pop_event((ui_input_event *)event_scratch, widget->controller_index);
+                                got_event = halo::input::UiEvents::queue_pop_event((ui_input_event *)event_scratch, widget->controller_index);
                             } while (got_event != 0);
                         }
                     }

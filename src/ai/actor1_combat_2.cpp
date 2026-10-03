@@ -8,6 +8,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 namespace c_actor_evaluate_engagement_reachability {
 extern "C" {
@@ -38,7 +39,7 @@ int32_t halo::ai::combat_ops::evaluate_engagement_reachability(int16_t self_clus
     uint8_t direct_clear;
     float fraction = 0.0f;
 
-    if (self_cluster != -1 && target_cluster != -1 && !halo::scenario::scenario_cluster_visibility_test(self_cluster, target_cluster)) {
+    if (self_cluster != -1 && target_cluster != -1 && !halo::scenario::scenario_query::cluster_visibility_test(self_cluster, target_cluster)) {
         return 4;
     }
     mask = allow_wide_mask ? 0xc2b3 : 0xc2a7;

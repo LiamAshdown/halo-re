@@ -21,6 +21,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/models/models.hpp"
 
 extern "C" {
 extern halo::units::ai_update_stagger_state *ai_update_stagger;
@@ -750,7 +751,7 @@ void UnitView::scripting_set_emotion_animation(const char *emotion_name)
     if (unit_index != k_datum_index_none) {
         object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
         unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-        int16_t region = halo::models::animation_graph_find_animation_by_name(unit_index, emotion_name);
+        int16_t region = halo::models::animation_graph::find_animation_by_name(unit_index, emotion_name);
         if (region != -1) {
             unit->emotion_animation_index = region;
             return;
@@ -956,7 +957,7 @@ uint8_t UnitView::start_user_animation(datum_index graph_tag, const char *animat
         return 0;
     }
     unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(unit_index) * 0xc + 8);
-    animation = halo::models::animation_graph_find_animation_by_name(graph_tag, animation_name);
+    animation = halo::models::animation_graph::find_animation_by_name(graph_tag, animation_name);
     if (animation == -1) {
         halo::main::console_print_va("the animation '%s' doesn't exist in the graph '%s'", animation_name,
             *(char **)((uint8_t *)halo::cache::globals().tag_instances + (int16_t)graph_tag * 0x20 + 0x10));
@@ -1354,8 +1355,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
                 real_matrix4x3 world;
                 real_matrix4x3 *matrix;
 
-                halo::models::model_animation_get_frame_delta(((unit_object *)unit)->base.animation_frame,
-                    reinterpret_cast<ModelAnimationsAnimation *>(animations + ((unit_object *)unit)->base.animation_index * 0xb4), &delta, reinterpret_cast<GBXModel *>(model));
+                halo::models::animation_graph::get_frame_delta(((unit_object *)unit)->base.animation_frame, reinterpret_cast<ModelAnimationsAnimation *>(animations + ((unit_object *)unit)->base.animation_index * 0xb4), &delta, reinterpret_cast<GBXModel *>(model));
                 matrix = halo::objects::object_get_world_matrix(unit_index, &world);
                 halo::math::matrix4x3_transform_vector(delta, delta, *matrix);
                 UnitView(unit_index).detach_from_seat(1, 1, 1);

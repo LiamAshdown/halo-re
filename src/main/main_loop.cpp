@@ -39,6 +39,13 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
+#include "halo/scenario/scenario.hpp"
 
 
 extern "C" { extern main_globals main_globals_data; }
@@ -417,9 +424,9 @@ void MainLoop::loop(void)
             main_globals_data.revert_map_if_allowed = 0;
         }
         if (main_globals_data.reset_map != 0 && game_time->paused == 0) {
-            halo::scenario::scenario_structure_bsp_switch(0);
+            halo::scenario::structure_bsp_switcher::switch_to(0);
             game_stop_current_map();
-            halo::input::input_reset_state_and_axis_configs();
+            halo::input::GameActions::reset_state_and_axis_configs();
             memset(&input_globals.states[0], 0, sizeof(input_globals.states[0]));
             input_globals.system_key_states[0] = 0;
             input_globals.system_key_states[1] = 0;
@@ -471,9 +478,9 @@ void MainLoop::loop(void)
         }
 
         connection = main_globals_data.game_connection;
-        halo::input::input_directinput_poll_devices();
+        halo::input::DirectInput::directinput_poll_devices();
         if (game_time_force_single_tick == 0) {
-            halo::input::input_update_tick();
+            halo::input::InputSystem::update_tick();
         }
         halo::shell::shell_pump_windows_messages();
         if (main_globals_data.quit != 0) {
@@ -486,7 +493,7 @@ void MainLoop::loop(void)
             input_event_queue_active.start_time = (uint32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
             if (input_event_queue_active.last_event_time < previous_queue_time && input_event_queue_active.enabled != 0) {
                 memset(&idle_event, 0, sizeof(idle_event));
-                halo::input::input_queue_push_event(0, &idle_event);
+                halo::input::UiEvents::queue_push_event(0, &idle_event);
             }
         }
         if (connection == _game_connection_network_server) {

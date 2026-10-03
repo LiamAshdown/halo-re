@@ -10,11 +10,10 @@
 #include "halo/scenario/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/models/models.hpp"
 
 extern "C" {
 extern data_array *device_groups;
-extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame, real_orientation *out_orientations);
-extern void animation_overlay_frame_orientations(ModelAnimationsAnimation *animation, int16_t frame, real_orientation *out_orientations);
 extern void *global_zero_vector3d_pointer;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
@@ -169,17 +168,16 @@ void DeviceHandle::blend_animations(real_orientation *orientations)
         }
         frame = (float)((double)frames * position);
         if (tag_flags & 2) {
-            halo::models::animation_overlay_frame_orientations(animation, (int16_t)(int32_t)frame, orientations); 
+            halo::models::animation_view(animation).overlay_frame_orientations((int16_t)(int32_t)frame, orientations); 
         } else {
-            halo::models::animation_overlay_interpolated_frame_orientations(animation, frame, orientations);
+            halo::models::animation_view(animation).overlay_interpolated_frame_orientations(frame, orientations);
         }
     }
     if (count > 1 && indices[1] != -1) {
         ModelAnimationsAnimation *animation = (ModelAnimationsAnimation *)(animations + indices[1] * 0xb4);
         int32_t frames = (int16_t)animation->frame_count;
 
-        halo::models::animation_overlay_interpolated_frame_orientations(animation,
-            (float)((double)frames * obj->device.power), orientations);
+        halo::models::animation_view(animation).overlay_interpolated_frame_orientations((float)((double)frames * obj->device.power), orientations);
     }
 }
 

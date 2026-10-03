@@ -15,6 +15,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
@@ -856,7 +857,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
 
             (void)volumes;
             if (*(int16_t *)(volume + 0x2) == halo::scenario::globals().structure_bsp_index && player_unit != k_datum_index_none &&
-                halo::scenario::scenario_trigger_volume_contains_point(*(int16_t *)volume, (real_point3d *)(OBJECT_DATA(player_unit) + 0xa0))) {
+                halo::scenario::scenario_query::trigger_volume_contains_point(*(int16_t *)volume, (real_point3d *)(OBJECT_DATA(player_unit) + 0xa0))) {
                 placed = 0;
                 break;
             }
@@ -2840,7 +2841,7 @@ void StructureBsp::switch_regroup()
         }
         unit_object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[entry->unit & 0xffff].data;
         trigger_volume = *(int16_t *)((uint8_t *)halo::scenario::globals().scenario->bsp_switch_trigger_volumes.pointer + local_player_globals->bsp_switch_trigger_volume_index * 8);
-        if (!halo::scenario::scenario_trigger_volume_contains_point(trigger_volume, (real_point3d *)(unit_object + 0xa0))) {
+        if (!halo::scenario::scenario_query::trigger_volume_contains_point(trigger_volume, (real_point3d *)(unit_object + 0xa0))) {
             continue;
         }
         halo::units::unit_get_crouch_height_offset(&probe, entry->unit, &height, &radius);

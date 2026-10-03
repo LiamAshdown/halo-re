@@ -340,12 +340,12 @@ uint8_t DirectInput::directinput_initialize(void)
         &input_state().iid_directinput8a, &input_state().direct_input, (void *)0);
     if (hr < 0) {
         input_error_log_once(hr, (char *)"DirectInputCreate");
-        halo::input::input_directinput_release_devices();
+        halo::input::DirectInput::directinput_release_devices();
     } else {
         halo::input::DirectInput::keyboard_device_create();
         halo::input::DirectInput::mouse_device_create();
         halo::input::InputSystem::system_initialize();
-        halo::input::input_directinput_acquire_devices();
+        halo::input::DirectInput::directinput_acquire_devices();
     }
     return hr >= 0;
 }

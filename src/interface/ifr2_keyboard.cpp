@@ -8,6 +8,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/text/text.hpp"
 
 #ifdef interface
 #undef interface
@@ -28,7 +29,6 @@ extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
-extern const int16_t *text_get_character_metrics(uint16_t character, const void *font_data);
 extern int16_t key_event_read_index;
 extern int16_t key_event_count;
 extern ui_key_event key_events[];
@@ -191,7 +191,7 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
             Rectangle2D cursor;
             Rectangle2D highlight;
 
-            halo::text::text_measure_string_extents(bounds, &cursor, &highlight, virtual_keyboard.destination);
+            halo::text::text_context::measure_string_extents(bounds, &cursor, &highlight, virtual_keyboard.destination);
             highlight.left -= 2;
             highlight.right += 2;
             ui_draw_screen_quad((int16_t *)bounds, (int16_t *)&highlight, (int32_t)white, 0, 0x7f7f7f7f);
@@ -213,7 +213,7 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
             uint16_t character = *cursor;
 
             while (character != 0) {
-                const int16_t *metrics = reinterpret_cast<const int16_t *>(halo::text::text_get_character_metrics(character, reinterpret_cast<Font *>(const_cast<uint8_t *>(font_data))));
+                const int16_t *metrics = reinterpret_cast<const int16_t *>(halo::text::text_context::get_character_metrics(character, reinterpret_cast<Font *>(const_cast<uint8_t *>(font_data))));
 
                 if (metrics == 0) {
                     break;

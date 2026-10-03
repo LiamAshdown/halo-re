@@ -63,21 +63,10 @@ public:
 
 inline Globals &globals() { return Service::instance(); }
 
-uint8_t text_char_is_double_byte(uint8_t *string);
-uint16_t text_get_next_character(uint8_t *string, int16_t *cursor);
-uint16_t text_find_character_boundary(uint8_t *string, int16_t *length_inout);
 void text_clamp_byte_length_to_character_boundary(uint8_t *string, int16_t *length_inout);
 uint16_t * string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source);
 uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity);
-int16_t string_table_index_of(const char *search, int16_t count, const char **table);
-void text_wrap_and_draw_narrow(text_glyph_draw_proc callback, Rectangle2D *bounds, Point2DInt *out_final_pen, Rectangle2D *clip, int16_t extra_line_spacing, void *string);
-void text_wrap_and_draw_wide(text_glyph_draw_proc callback, Rectangle2D *bounds, Point2DInt *out_final_pen, Rectangle2D *clip, int16_t extra_line_spacing, void *string);
-void text_set_render_context(datum_index font, ColorARGB *color, int16_t style, int16_t justification, uint32_t flags);
-void text_language_initialize_from_string_list(void);
 uint16_t * text_string_list_get_string(datum_index list_id, int16_t index);
-FontCharacter * text_get_character_metrics(uint16_t character, Font *font);
-void text_measure_string_extents(Rectangle2D *origin_bounds, Rectangle2D *out_cursor_rect, Rectangle2D *out_extents_rect, void *string);
-int32_t text_measure_string_fit_width(void *string, int32_t *max_width_inout);
 void text_measure_glyph_callback(text_parse_state *state, void *font, void *character, uint32_t color, int16_t x, int16_t y, int16_t source_x, int16_t source_y, int16_t width, int16_t height);
 void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);

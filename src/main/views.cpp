@@ -36,6 +36,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/bitmaps/bitmaps.hpp"
 
 
 extern "C" { extern main_globals main_globals_data; }
@@ -376,7 +377,7 @@ void RenderViews::screenshot_render(render_view *views)
         bitmap->flags = to_bits(tags::bitmap_data_tag_flag::unused | tags::bitmap_data_tag_flag::power_of_two_dimensions);
     }
 
-    *(void **)&((struct BitmapData *)bitmap)->pixel_base = GlobalAlloc(0, halo::bitmaps::bitmap_data_calculate_pixel_data_size(bitmap));
+    *(void **)&((struct BitmapData *)bitmap)->pixel_base = GlobalAlloc(0, halo::bitmaps::bitmap_data_view(bitmap).calculate_pixel_data_size());
 
     if (*(void **)&((struct BitmapData *)bitmap)->pixel_base != 0) {
         halo::main::console_print_error_va(1, "");
@@ -428,7 +429,7 @@ void RenderViews::screenshot_render(render_view *views)
         }
 
         main_globals_data.screenshot_index = main_globals_data.screenshot_index + 1;
-        halo::bitmaps::bitmap_data_free(bitmap);
+        halo::bitmaps::bitmap_data_view(bitmap).free();
     }
     main_globals_data.screenshot_tile_count = 0;
 }

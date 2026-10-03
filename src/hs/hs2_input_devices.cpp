@@ -1,6 +1,12 @@
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/input/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 
 #ifdef __cplusplus
@@ -118,7 +124,7 @@ void InputDeviceCommands::evaluate_input_is_joy_active(int16_t function_index, u
  */
 void InputDeviceCommands::evaluate_input_show_joystick_info(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::input::input_device_list_print();
+    halo::input::DirectInput::device_list_print();
     halo::hs::hs_thread_return(0, thread_index);
 }
 

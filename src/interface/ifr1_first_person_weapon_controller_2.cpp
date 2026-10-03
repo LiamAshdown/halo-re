@@ -9,6 +9,7 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/models/models.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -68,9 +69,9 @@ static void overlay_channel(ModelAnimationsAnimation *animation, float value, in
                             int32_t negative, void *animation_control)
 {
     if (value > 0.0f) {
-        halo::models::animation_overlay_frame_orientations_weighted(animation, positive, value, reinterpret_cast<real_orientation *>(animation_control));
+        halo::models::animation_view(animation).overlay_frame_orientations_weighted(positive, value, reinterpret_cast<real_orientation *>(animation_control));
     } else if (value < 0.0f) {
-        halo::models::animation_overlay_frame_orientations_weighted(animation, negative, -value, reinterpret_cast<real_orientation *>(animation_control));
+        halo::models::animation_view(animation).overlay_frame_orientations_weighted(negative, -value, reinterpret_cast<real_orientation *>(animation_control));
     }
 }
 
@@ -302,10 +303,9 @@ void FirstPersonWeaponController::update_animation_controls()
             list_entries = (int16_t *)list->animations.pointer;
 
             if (fp->current_animation != -1) {
-                halo::models::animation_get_frame_orientations(&animation_block[fp->current_animation], (GBXModel *)0,
-                             (int16_t)*(uint16_t *)fp->current_animation_frame, reinterpret_cast<real_orientation *>(animation_control));
+                halo::models::animation_view(&animation_block[fp->current_animation]).get_frame_orientations((GBXModel *)0, (int16_t)*(uint16_t *)fp->current_animation_frame, reinterpret_cast<real_orientation *>(animation_control));
             } else {
-                halo::models::model_nodes_get_default_transforms(reinterpret_cast<GBXModel *>(model), reinterpret_cast<real_orientation *>(animation_control));
+                halo::models::model_view(reinterpret_cast<GBXModel *>(model)).get_default_transforms(reinterpret_cast<real_orientation *>(animation_control));
             }
 
             if ((int32_t)list->animations.count > 0x11 && (index = list_entries[0x11]) != -1) {
@@ -331,19 +331,17 @@ void FirstPersonWeaponController::update_animation_controls()
                         }
                         frame += __ftol((double)(target - (int16_t)frame) * fraction);
                     }
-                    halo::models::animation_overlay_frame_orientations(ammunition, frame, reinterpret_cast<real_orientation *>(animation_control));
+                    halo::models::animation_view(ammunition).overlay_frame_orientations(frame, reinterpret_cast<real_orientation *>(animation_control));
                 } else if (magazine[4] < (int16_t)ammunition->frame_count) {
-                    halo::models::animation_overlay_frame_orientations(ammunition, (uint16_t)magazine[4], reinterpret_cast<real_orientation *>(animation_control));
+                    halo::models::animation_view(ammunition).overlay_frame_orientations((uint16_t)magazine[4], reinterpret_cast<real_orientation *>(animation_control));
                 }
             }
 
             if (fp->moving_animation != -1) {
-                halo::models::animation_overlay_frame_orientations(&animation_block[fp->moving_animation],
-                             (uint16_t)*(int16_t *)fp->unknown_1c, reinterpret_cast<real_orientation *>(animation_control));
+                halo::models::animation_view(&animation_block[fp->moving_animation]).overlay_frame_orientations((uint16_t)*(int16_t *)fp->unknown_1c, reinterpret_cast<real_orientation *>(animation_control));
             }
             if (fp->overcharged_animation != -1) {
-                halo::models::animation_overlay_interpolated_frame_orientations_weighted(&animation_block[fp->overcharged_animation], FP_FLOAT(fp, 0x24),
-                             *(float *)((uint8_t *)weapon_obj + 0x244) + 0.5f, reinterpret_cast<real_orientation *>(animation_control));
+                halo::models::animation_view(&animation_block[fp->overcharged_animation]).overlay_interpolated_frame_orientations_weighted(FP_FLOAT(fp, 0x24), *(float *)((uint8_t *)weapon_obj + 0x244) + 0.5f, reinterpret_cast<real_orientation *>(animation_control));
             }
 
             if ((int32_t)list->animations.count > 4 && (index = list_entries[4]) != -1 &&
@@ -354,20 +352,16 @@ void FirstPersonWeaponController::update_animation_controls()
                 overlay_channel(overlays, FP_FLOAT(fp, 0x40), 4, 5, animation_control);
                 overlay_channel(overlays, FP_FLOAT(fp, 0x44), 7, 6, animation_control);
                 if (fp->recoil > 0.0f) {
-                    halo::models::animation_overlay_frame_orientations_weighted(overlays, 8, fp->recoil, reinterpret_cast<real_orientation *>(animation_control));
+                    halo::models::animation_view(overlays).overlay_frame_orientations_weighted(8, fp->recoil, reinterpret_cast<real_orientation *>(animation_control));
                 }
             }
 
             if (fp->blend_end > 0) {
-                halo::models::model_nodes_blend_transforms(reinterpret_cast<real_orientation *>(animation_control), (int16_t)animations->nodes.count,
-                                             reinterpret_cast<real_orientation *>(fp_raw + 0x88c), (uint16_t)fp->blend_start,
-                                             (uint16_t)fp->blend_end);
+                halo::models::model_skeleton::blend_transforms(reinterpret_cast<real_orientation *>(animation_control), (int16_t)animations->nodes.count, reinterpret_cast<real_orientation *>(fp_raw + 0x88c), (uint16_t)fp->blend_start, (uint16_t)fp->blend_end);
             }
         }
 
-        halo::models::animation_graph_nodes_build_matrices(
-            *(datum_index *)&weapon_tag->first_person_animations.tag_id, &render_camera_global,
-            reinterpret_cast<real_matrix4x3 *>(fp_raw + 0x108c), reinterpret_cast<real_orientation *>(fp_raw + 0x8c), &camera_forward_x, &camera_up);
+        halo::models::animation_graph::nodes_build_matrices(*(datum_index *)&weapon_tag->first_person_animations.tag_id, &render_camera_global, reinterpret_cast<real_matrix4x3 *>(fp_raw + 0x108c), reinterpret_cast<real_orientation *>(fp_raw + 0x8c), &camera_forward_x, &camera_up);
     }
 }
 

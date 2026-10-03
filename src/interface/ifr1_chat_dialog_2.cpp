@@ -7,6 +7,12 @@
 #include "halo/input/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 extern "C" {
 extern uint8_t network_message_scratch[0x7ff8];
@@ -275,7 +281,7 @@ gui_setup:
         chat_gui_release(gui_object);
     }
     chat_dialog_open = 1;
-    halo::input::input_keyboard_set_capture_mode(1);
+    halo::input::DirectInput::keyboard_set_capture_mode(1);
 }
 
 }

@@ -28,6 +28,12 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 
 namespace halo::main {
@@ -555,7 +561,7 @@ uint8_t Console::process_key_events(void)
             return console_globals_data.active;
         }
         if (console_globals_data.active != 0) {
-            if (halo::input::input_get_mouse_button_state(2) == 1) {
+            if (halo::input::DirectInput::get_mouse_button_state(2) == 1) {
                 halo::main::console_paste_clipboard_text();
             }
             for (i = 0; i < console_globals_data.terminal.key_event_count; i++) {
@@ -646,7 +652,7 @@ void Console::toggle(void)
     if (console_globals_data.enabled != 0 && virtual_keyboard == 0) {
         console_globals_data.terminal.input[0] = 0;
         console_globals_data.active = console_open(&console_globals_data.terminal);
-        halo::input::input_keyboard_set_capture_mode(1);
+        halo::input::DirectInput::keyboard_set_capture_mode(1);
     }
 }
 

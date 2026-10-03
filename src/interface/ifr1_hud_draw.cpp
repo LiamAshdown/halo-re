@@ -5,6 +5,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/text/text.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);
@@ -339,7 +340,7 @@ void HudDraw::message_text_span(Rectangle2D *cursor, Rectangle2D *origin, const 
 
     halo::text::globals().ui_prompt_clip_x = (int16_t)(cursor->left - origin->left);
     halo::text::globals().ui_prompt_clip_y = 0;
-    halo::text::text_measure_string_extents(origin, cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
+    halo::text::text_context::measure_string_extents(origin, cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     bounds.left = origin->left;
     if (allow_button_prompts != 0 && current_game_engine != 0) {

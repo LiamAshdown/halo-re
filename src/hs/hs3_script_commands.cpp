@@ -6,6 +6,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/main/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern void player_update_history_log_set_name_filter(char *name);
@@ -38,7 +39,7 @@ void ScriptCommands::evaluate_switch_bsp(int16_t function_index, uint32_t thread
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    halo::scenario::scenario_structure_bsp_switch(*(int16_t *)&arguments[0]);
+    halo::scenario::structure_bsp_switcher::switch_to(*(int16_t *)&arguments[0]);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }

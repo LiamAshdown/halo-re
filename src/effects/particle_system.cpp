@@ -8,6 +8,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern void effect_random_direction_from_table(real_point3d *out);
@@ -803,7 +804,7 @@ void particle_system_view::spawn(int32_t type_index, float dt)
         marker_index = (int16_t)(((halo::math::globals().effect_random_seed >> 0x10) * (uint32_t)(int32_t)marker_count) >> 0x10);
         particle_creation_physics_table[physics](system_record, type_index, (particle_system_particle *)particle,
             &markers[marker_index]);
-        halo::scenario::scenario_location_from_point((bsp_leaf_reference *)(particle + 0x14), (real_point3d *)(particle + 0x1c));
+        halo::scenario::location_view((bsp_leaf_reference *)(particle + 0x14)).from_point((real_point3d *)(particle + 0x1c));
         if (((struct particle_system_particle *)particle)->location.cluster_index != -1) {
             *(int16_t *)(type_state + 0x3a) += 1;
             ((struct particle_system_particle *)particle)->next_particle = *(datum_index *)(type_state + 0x3c);

@@ -8,6 +8,14 @@
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/bitmaps/bitmaps.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
+#include "halo/text/text.hpp"
 
 extern "C" {
 extern player_globals *local_player_globals;
@@ -68,11 +76,11 @@ static void hud_messaging_draw_button_icon(int16_t button_icon, Rectangle2D *cur
         hud_draw_message_text_span(cursor, line, hud_text_no_button_icon, 0);
         return;
     }
-    if (halo::input::input_get_last_used_binding(button_icon, (control_binding_descriptor *)binding) == 0) {
+    if (halo::input::Bindings::get_last_used_binding(button_icon, (control_binding_descriptor *)binding) == 0) {
         hud_draw_message_text_span(cursor, line, hud_text_unbound, 0);
         return;
     }
-    halo::input::input_get_binding_display_name((control_binding_descriptor *)binding, name);
+    halo::input::BindingNames::get_binding_display_name((control_binding_descriptor *)binding, name);
     hud_draw_message_text_span(cursor, line, hud_text_quote, 0);
     hud_draw_message_text_span(cursor, line, name, 0);
     hud_draw_message_text_span(cursor, line, hud_text_quote, 0);
@@ -157,7 +165,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             packed_color = hud_meter_flash_color_blend(
                 (const hud_flash_parameters *)&globals->objective_default_color,
                 hud_messaging->objective_text_ticks - globals->objective_uptime_ticks - globals->objective_fade_ticks + now);
-            halo::bitmaps::color_argb_int_to_real(&color, packed_color);
+            halo::bitmaps::color_codec::argb_int_to_real(&color, packed_color);
             fraction = (float)hud_messaging->objective_text_ticks / (float)globals->objective_fade_ticks;
             if (fraction > 1.0f) {
                 fraction = 1.0f;
@@ -174,7 +182,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             } else {
                 packed_color = *(uint32_t *)&hud_globals_tag_data->hud_help_default_color;
             }
-            halo::bitmaps::color_argb_int_to_real(&color, packed_color);
+            halo::bitmaps::color_codec::argb_int_to_real(&color, packed_color);
         } else {
             color = parameters->icon_color;
             packed_color = color_pack_argb_from_real(&color);
@@ -214,7 +222,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
 
                     halo::text::globals().ui_prompt_clip_x = (int16_t)(cursor.left - line.left);
                     halo::text::globals().ui_prompt_clip_y = 0;
-                    halo::text::text_measure_string_extents(&line, &cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
+                    halo::text::text_context::measure_string_extents(&line, &cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
                     cursor.left = (int16_t)(cursor.left - 3);
                     bounds.left = line.left;
                     halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);

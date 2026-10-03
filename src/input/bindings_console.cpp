@@ -35,7 +35,7 @@ void Bindings::hs_bind_control(const char *device_class_name, const char *input_
     int16_t action_index;
 
     if (halo::input::Bindings::parse_device_binding_string((char *)device_class_name, (char *)input_name, &binding) != 0) {
-        action_index = halo::input::input_action_name_to_index((char *)action_name);
+        action_index = halo::input::BindingNames::action_name_to_index((char *)action_name);
         if (action_index != (int16_t)k_input_unbound) {
             if (halo::input::input_apply_control_binding(&binding, action_index) != 0) {
                 halo::main::console_out_printf(0, "bound %s %s to game control %s", device_class_name, input_name, action_name);

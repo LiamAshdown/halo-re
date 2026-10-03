@@ -5,6 +5,12 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 extern "C" {
 extern uint8_t controls_row_device_mask_table[];
@@ -123,7 +129,7 @@ uint16_t * ControlsBindings::action_display_name(int32_t device, const char *act
 
     controls_action_name_buffer[0] = 0;
     if (controls_enumerate_next_assignable_action(device, record, action_name, 1) != 0) {
-        halo::input::input_get_binding_display_name((control_binding_descriptor *)record, controls_action_name_buffer);
+        halo::input::BindingNames::get_binding_display_name((control_binding_descriptor *)record, controls_action_name_buffer);
     }
     if (controls_action_name_buffer[0] == 0) {
         wcscpy((wchar_t *)controls_action_name_buffer, (const wchar_t *)hud_text_unbound);
@@ -213,7 +219,7 @@ uint8_t ControlsBindings::binding_clear(int32_t action_index, int32_t device)
         return 1;
     }
     {
-        int32_t *current = controls_current_binding_table[halo::input::input_action_name_to_index((char *)entry)];
+        int32_t *current = controls_current_binding_table[halo::input::BindingNames::action_name_to_index((char *)entry)];
         if (memcmp(current, record, 12) == 0) {
             current[0] = 0;
             current[1] = 0;
@@ -363,7 +369,7 @@ uint8_t ControlsBindings::binding_row_handle_input(widget_instance *screen)
 
         {
             const char *action_name = (const char *)controls_action_table[action_index];
-            int16_t action = halo::input::input_action_name_to_index((char *)action_name);
+            int16_t action = halo::input::BindingNames::action_name_to_index((char *)action_name);
 
             if (action == 0x7fff || controls_action_column_is_bindable(kind == 2 ? 1 : device, action_index) == 0) {
                 sound = 4;
@@ -377,7 +383,7 @@ uint8_t ControlsBindings::binding_row_handle_input(widget_instance *screen)
                 halo::saved_games::control_profile_clear_binding((const control_binding_descriptor *)record);
             }
             halo::saved_games::control_profile_set_binding((const control_binding_descriptor *)record, action);
-            halo::input::input_last_used_binding_copy(action, (control_binding_descriptor *)record);
+            halo::input::Bindings::last_used_binding_copy(action, (control_binding_descriptor *)record);
             sound = 2;
         }
 

@@ -19,6 +19,12 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 extern "C" {
 extern network_id_table *machine_table;
@@ -581,10 +587,10 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
         case 0x1d: {
             uint8_t scratch[140];
             uint16_t binding_name[0x40];
-            if (!halo::input::input_get_last_used_binding((int16_t)subject, (control_binding_descriptor *)scratch)) {
+            if (!halo::input::Bindings::get_last_used_binding((int16_t)subject, (control_binding_descriptor *)scratch)) {
                 out[0] = 0;
             } else {
-                halo::input::input_get_binding_display_name((control_binding_descriptor *)scratch, binding_name);
+                halo::input::BindingNames::get_binding_display_name((control_binding_descriptor *)scratch, binding_name);
                 {
                     datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                     wchar_t *fmt = (tag_id == k_datum_index_none) ? &empty_string

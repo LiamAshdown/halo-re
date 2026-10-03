@@ -7,6 +7,7 @@
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern observer observers[1];
@@ -14,7 +15,6 @@ extern float observer_dt;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern double sqrt(double x);
 extern double fabs(double x);
-extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point);
 extern int16_t observer_derivative_float_counts[5];
 extern float observer_channel_acceleration_limit[5];
 extern int16_t observer_parameter_float_counts[5];
@@ -156,7 +156,7 @@ void ObserverHandle::commit()
         }
     }
 
-    water_depth = halo::scenario::scenario_location_water_surface_distance((bsp_leaf_reference *)&camera->leaf_index, (real_point3d *)&camera->position);
+    water_depth = halo::scenario::location_view((bsp_leaf_reference *)&camera->leaf_index).water_surface_distance((real_point3d *)&camera->position);
     if (fabs((double)water_depth) < 0.05000000074505806) {
         if (water_depth <= 0.0f) {
             camera->position.z = water_depth + camera->position.z + 0.05f;

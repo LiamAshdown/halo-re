@@ -9,6 +9,12 @@
 #include "halo/text/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 extern "C" {
 extern char console_echo_prefix[];
@@ -536,8 +542,8 @@ void ConsoleTerminal::process_input_events(void)
         if (ReadConsoleInputA(console_input_handle, (PINPUT_RECORD)&record, 1, (LPDWORD)&events_read) != 0 &&
             record.EventType == 1) {
             if (record.KeyEvent.bKeyDown != 0) {
-                halo::input::input_record_windows_key_message(record.KeyEvent.wVirtualKeyCode, 0x100);
-                halo::input::input_record_windows_key_message(record.KeyEvent.uChar, 0x102);
+                halo::input::DirectInput::record_windows_key_message(record.KeyEvent.wVirtualKeyCode, 0x100);
+                halo::input::DirectInput::record_windows_key_message(record.KeyEvent.uChar, 0x102);
             }
         }
     }

@@ -22,6 +22,12 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
@@ -470,12 +476,12 @@ void delete_by_display_name(const char *name)
                 if (handle != -1) {
                     halo::saved_games::saved_game_delete_by_handle(handle);
                 }
-                halo::input::input_apply_named_device_default_profile(name_wide);
+                halo::input::Bindings::apply_named_device_default_profile(name_wide);
                 return;
             }
         }
     }
-    halo::input::input_apply_named_device_default_profile(name_wide);
+    halo::input::Bindings::apply_named_device_default_profile(name_wide);
     return;
 }
 

@@ -8,6 +8,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/models/models.hpp"
 
 extern "C" {
 extern player_control_globals *player_control_globals_ptr;
@@ -31,7 +32,6 @@ extern double sin(double x);
 extern camera_script_globals camera_script;
 extern int16_t network_game_mode;
 extern real_point3d *global_zero_vector3d_pointer;
-extern void animation_get_root_node_matrix(real_matrix4x3 *out, int16_t frame, ModelAnimationsAnimation *animation, GBXModel *model);
 extern int32_t __ftol(double x);
 extern double atan2(double y, double x);
 extern datum_index flying_camera_attached_object;
@@ -722,7 +722,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
             frame_index = frame;
         }
 
-        halo::models::animation_get_root_node_matrix(&sample, frame_index, anim, 0);
+        halo::models::animation_graph::get_root_node_matrix(&sample, frame_index, anim, 0);
 
         command->parameters.forward = *(Vector3D *)&sample.forward;
         command->parameters.up = *(Vector3D *)&sample.up;

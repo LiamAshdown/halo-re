@@ -23,34 +23,14 @@ void tea_decrypt_buffer(int32_t length, uint8_t *data, const uint32_t *key)
     reinterpret_cast<const tea_key *>(key)->decrypt_buffer(length, data);
 }
 
-void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare)
-{
-    halo::cseries::dword_sort::sort(count, elements, compare);
-}
-
 uint32_t time_query_performance_counter_ms(void)
 {
     return halo::cseries::performance_clock::milliseconds();
 }
 
-void *memory_global_alloc(uint32_t size)
-{
-    return halo::cseries::global_memory::alloc(size);
-}
-
-void *memory_global_free(void *handle)
-{
-    return halo::cseries::global_memory::release(handle);
-}
-
 void write_to_error_file(char *message, uint8_t with_timestamp)
 {
     halo::cseries::error_log::write(message, with_timestamp);
-}
-
-void profile_path_initialize(void)
-{
-    halo::cseries::profile_path::initialize();
 }
 
 }  // namespace halo::cseries
