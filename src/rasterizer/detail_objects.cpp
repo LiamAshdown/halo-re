@@ -9,6 +9,8 @@
 #include "halo/core/datum.hpp"
 #include "internal/state.hpp"
 #include "halo/rasterizer/constants.hpp"
+#include "halo/rasterizer/tag_access.hpp"
+#include "halo/rasterizer/pixel_formats.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
@@ -152,9 +154,8 @@ void rasterizer_detail_objects_draw(const rasterizer_detail_object_batches *list
     }
 
     for (batch_index = 0; batch_index < list->batch_count; batch_index++) {
-        const rasterizer_detail_object_batch *batch = &((const rasterizer_detail_object_batch *)list->batches)[batch_index];
-        const uint8_t *palette = (const uint8_t *)global_scenario->detail_object_collection_palette.pointer;
-        uint32_t collection_tag = *(const uint32_t *)(palette + batch->collection_palette_index * 0x30 + 0xc);
+        const rasterizer_detail_object_batch *batch = &list->batches[batch_index];
+        uint32_t collection_tag = halo::tag_id_bits(tag_block_element<ScenarioDetailObjectCollectionPalette>(global_scenario->detail_object_collection_palette, batch->collection_palette_index)->reference.tag_id);
         const DetailObjectCollection *collection = (const DetailObjectCollection *)halo::cache::globals().tag_instances[collection_tag & halo::k_slot_mask].data;
         uint32_t sprite_plate_tag = halo::tag_id_bits(collection->sprite_plate.tag_id);
         const Bitmap *sprite_plate = (const Bitmap *)halo::cache::globals().tag_instances[sprite_plate_tag & halo::k_slot_mask].data;
@@ -210,7 +211,7 @@ void rasterizer_detail_objects_draw(const rasterizer_detail_object_batches *list
         render_device().set_vertex_shader(rasterizer_vertex_shaders[3 + collection->collection_type].shader);
 
         for (draw_index = 0; draw_index < batch->draw_count; draw_index++) {
-            const rasterizer_detail_object_draw *draw = &((const rasterizer_detail_object_draw *)batch->draws)[draw_index];
+            const rasterizer_detail_object_draw *draw = &batch->draws[draw_index];
 
             render_device().draw_primitive(4, (uint32_t)draw->first_vertex, (uint32_t)(draw->quad_count * 2));
         }
@@ -228,13 +229,13 @@ void rasterizer_detail_objects_draw(const rasterizer_detail_object_batches *list
  *
  * @address 0x51b150
  */
-void rasterizer_detail_objects_expand_quad_vertices(int32_t quad_count, uint32_t *vertices, const uint8_t *instances, const DetailObjectCollection *collection, const rasterizer_detail_object_draw *draw)
+void rasterizer_detail_objects_expand_quad_vertices(int32_t quad_count, rasterizer_detail_object_vertex *vertices, const rasterizer_detail_object_instance *instances, const DetailObjectCollection *collection, const rasterizer_detail_object_draw *draw)
 {
-    rasterizer_detail_object_vertex *vertex = (rasterizer_detail_object_vertex *)vertices;
-    const rasterizer_detail_object_instance *instance = (const rasterizer_detail_object_instance *)instances;
+    rasterizer_detail_object_vertex *vertex = vertices;
+    const rasterizer_detail_object_instance *instance = instances;
 
     for (; quad_count > 0; quad_count--, instance++) {
-        const float *plane = (const float *)draw->z_reference;
+        const float *plane = draw->z_reference;
         float fx = (float)instance->x * (1.0f / 255.0f);
         float fy = (float)instance->y * (1.0f / 255.0f);
         float fz = (float)instance->z * (1.0f / 255.0f);
@@ -252,10 +253,7 @@ void rasterizer_detail_objects_expand_quad_vertices(int32_t quad_count, uint32_t
         corner.position.y = (float)(draw->cell_y << 3) + fy * 8.0f;
         corner.position.z = draw->base_z * 8.0f + height * 8.0f;
 
-        normal = ((w & 0xfffff800) | 0xffff0000) << 3;
-        normal = (normal | (w & 0x7e0)) << 2;
-        normal = (normal | (w & 0xffffe01f)) << 3;
-        normal |= (((w >> 1) & 0xe) | (w & 0x600)) >> 1;
+        normal = unpack_r5g6b5(w);
         corner.normal = normal;
 
         type_index = (int16_t)((int32_t)(instance->type_and_sprite >> 4) % (int32_t)collection->types.count);
@@ -287,7 +285,7 @@ namespace rasterizer_detail_objects_vertex_buffer_fill_impl {
 void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batches *list)
 {
     Scenario *scenario;
-    uint8_t *vertices = 0;
+    rasterizer_detail_object_vertex *vertices = 0;
     void *buffer;
 
     if (halo::rasterizer::fields::detail_objects_enabled == 0 || halo::main::render_local_view_count() > 1) {
@@ -297,31 +295,30 @@ void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batch
     scenario = global_scenario;
     buffer = rasterizer_detail_object_vertex_buffer;
     if (render_device().buffer_lock(buffer, 0, k_detail_object_vertex_buffer_bytes, &vertices, 0) >= 0 && vertices != 0) {
-        uint8_t *detail_objects = *(uint32_t *)((uint8_t *)global_structure_bsp + 0x24c) != 0
-                                      ? (uint8_t *)*(uint32_t *)((uint8_t *)global_structure_bsp + 0x250) : nullptr;
-        const uint8_t *instances = (const uint8_t *)*(uint32_t *)(detail_objects + 0x10);
+        const ScenarioStructureBSPDetailObjectData *detail_objects = global_structure_bsp->detail_objects.count != 0
+                                      ? tag_block_data<ScenarioStructureBSPDetailObjectData>(global_structure_bsp->detail_objects) : nullptr;
+        const rasterizer_detail_object_instance *instances = tag_block_data<rasterizer_detail_object_instance>(detail_objects->instances);
         int32_t vertex_cursor = 0;
         int32_t quads_used = 0;
         uint8_t overflow = 0;
         int16_t batch_index;
 
         for (batch_index = 0; batch_index < list->batch_count; batch_index++) {
-            rasterizer_detail_object_batch *batch = &((rasterizer_detail_object_batch *)list->batches)[batch_index];
-            const uint8_t *palette = (const uint8_t *)scenario->detail_object_collection_palette.pointer;
-            uint32_t collection_tag = *(const uint32_t *)(palette + batch->collection_palette_index * 0x30 + 0xc);
+            rasterizer_detail_object_batch *batch = &list->batches[batch_index];
+            uint32_t collection_tag = halo::tag_id_bits(tag_block_element<ScenarioDetailObjectCollectionPalette>(scenario->detail_object_collection_palette, batch->collection_palette_index)->reference.tag_id);
             const DetailObjectCollection *collection =
                 (const DetailObjectCollection *)halo::cache::globals().tag_instances[collection_tag & halo::k_slot_mask].data;
             int16_t draw_index;
 
             for (draw_index = 0; draw_index < batch->draw_count; draw_index++) {
-                rasterizer_detail_object_draw *draw = &((rasterizer_detail_object_draw *)batch->draws)[draw_index];
+                rasterizer_detail_object_draw *draw = &batch->draws[draw_index];
                 int32_t quad_count = draw->quad_count;
 
-                if (quad_count > 0x1000 - quads_used) {
-                    quad_count = 0x1000 - quads_used;
+                if (quad_count > k_detail_object_maximum_quads - quads_used) {
+                    quad_count = k_detail_object_maximum_quads - quads_used;
                 }
-                rasterizer_detail_objects_expand_quad_vertices(quad_count, (uint32_t *)(vertices + vertex_cursor * 0x14),
-                                                               instances + draw->first_instance * 6, collection, draw);
+                rasterizer_detail_objects_expand_quad_vertices(quad_count, vertices + vertex_cursor,
+                                                               instances + draw->first_instance, collection, draw);
                 draw->first_vertex = vertex_cursor;
                 vertex_cursor += draw->quad_count * 6;
                 if (draw->quad_count > quad_count) {

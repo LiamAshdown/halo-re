@@ -45,6 +45,12 @@ static_assert(sizeof(rasterizer_render_target) == 0x14);
 static_assert(offsetof(rasterizer_render_target, surface) == 0x0c);
 static_assert(offsetof(rasterizer_render_target, texture) == 0x10);
 
+static_assert(sizeof(rasterizer_detail_object_draw) == 0x18);
+static_assert(offsetof(rasterizer_detail_object_draw, z_reference) == 0x14);
+static_assert(sizeof(rasterizer_detail_object_batch) == 0x08);
+static_assert(sizeof(rasterizer_detail_object_batches) == 0x08);
+static_assert(sizeof(rasterizer_detail_object_vertex) == 0x14);
+
 static_assert(sizeof(d3d_light9) == 0x68);
 static_assert(offsetof(d3d_light9, position) == 0x34);
 static_assert(offsetof(d3d_light9, range) == 0x4c);

@@ -977,7 +977,7 @@ typedef struct rasterizer_detail_object_draw {
     int16_t cell_y;                 // 0x0a
     float base_z;                   // 0x0c instance z = (base_z + plane . (x, y, z, 1)) * 8
     int32_t first_vertex;           // 0x10 DrawPrimitive start vertex, written by the fill
-    uint32_t z_reference;           // 0x14 float[4]* plane the instance bytes are projected on
+    const float *z_reference;       // 0x14 float[4] plane the instance bytes are projected on
 } rasterizer_detail_object_draw;    // size 0x18
 
 // A detail object instance as packed in the BSP (6 bytes, read by 0x51b150): x, y, z offsets
@@ -1000,13 +1000,13 @@ typedef struct rasterizer_detail_object_vertex {
 } rasterizer_detail_object_vertex;  // size 0x14
 
 typedef struct rasterizer_detail_object_batch {
-    uint32_t draws;                 // 0x00 rasterizer_detail_object_draw*
+    struct rasterizer_detail_object_draw *draws; // 0x00
     int16_t draw_count;             // 0x04
     int16_t collection_palette_index; // 0x06 Scenario.detail_object_collection_palette index
 } rasterizer_detail_object_batch;   // size 0x08
 
 typedef struct rasterizer_detail_object_batches {
-    uint32_t batches;               // 0x00 rasterizer_detail_object_batch*
+    struct rasterizer_detail_object_batch *batches; // 0x00
     int16_t batch_count;            // 0x04
     int16_t unknown_06;             // 0x06
 } rasterizer_detail_object_batches; // size 0x08 (only the first 6 bytes are read)

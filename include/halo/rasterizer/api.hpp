@@ -34,6 +34,8 @@ struct light;
 struct object;
 struct rasterizer_detail_object_batches;
 struct rasterizer_detail_object_draw;
+struct rasterizer_detail_object_vertex;
+struct rasterizer_detail_object_instance;
 struct rasterizer_display_mode;
 struct rasterizer_effect_slot;
 struct rasterizer_frame_time;
@@ -293,7 +295,7 @@ namespace rasterizer_detail_objects_begin_impl { void rasterizer_detail_objects_
 using rasterizer_detail_objects_begin_impl::rasterizer_detail_objects_begin;
 namespace rasterizer_detail_objects_draw_impl { void rasterizer_detail_objects_draw(const rasterizer_detail_object_batches *list); }
 using rasterizer_detail_objects_draw_impl::rasterizer_detail_objects_draw;
-void rasterizer_detail_objects_expand_quad_vertices(int32_t quad_count, uint32_t *vertices, const uint8_t *instances, const DetailObjectCollection *collection, const rasterizer_detail_object_draw *draw);
+void rasterizer_detail_objects_expand_quad_vertices(int32_t quad_count, rasterizer_detail_object_vertex *vertices, const rasterizer_detail_object_instance *instances, const DetailObjectCollection *collection, const rasterizer_detail_object_draw *draw);
 namespace rasterizer_detail_objects_vertex_buffer_fill_impl { void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batches *list); }
 using rasterizer_detail_objects_vertex_buffer_fill_impl::rasterizer_detail_objects_vertex_buffer_fill;
 void * rasterizer_dx9_create_vertex_buffer(int32_t vertex_type, uint32_t length, uint32_t fvf, uint8_t not_dynamic);

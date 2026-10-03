@@ -82,6 +82,9 @@ inline constexpr uint32_t k_dynamic_index_buffer_bytes = 0x30000;
 inline constexpr uint32_t k_decal_vertex_buffer_bytes = 0x3c000;
 inline constexpr uint32_t k_detail_object_vertex_buffer_bytes = 0x78000;
 
+/** Quads one frame of detail objects may fill the vertex buffer with. */
+inline constexpr int32_t k_detail_object_maximum_quads = 0x1000;
+
 /** D3DFMT_INDEX16. */
 inline constexpr uint32_t k_format_index16 = 101;
 

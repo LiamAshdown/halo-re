@@ -19,6 +19,7 @@
 #include "halo/core/flag_bits.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/rasterizer/tag_access.hpp"
+#include "halo/rasterizer/pixel_formats.hpp"
 #include <cstring>
 
 
@@ -491,36 +492,6 @@ static int32_t sample_texel_coordinate(int32_t size, float uv)
         return texel & (size - 1);
     }
     return (texel % size + size) % size;
-}
-
-constexpr uint32_t k_alpha_opaque = 0xffu << 24;
-
-static uint32_t expand_5_bits(uint32_t channel)
-{
-    return (channel << 3) | (channel >> 2);
-}
-
-static uint32_t expand_6_bits(uint32_t channel)
-{
-    return (channel << 2) | (channel >> 4);
-}
-
-static uint32_t unpack_r5g6b5(uint32_t pixel)
-{
-    return k_alpha_opaque | (expand_5_bits((pixel >> 11) & 31) << 16) | (expand_6_bits((pixel >> 5) & 63) << 8) |
-           expand_5_bits(pixel & 31);
-}
-
-static uint32_t unpack_a1r5g5b5(uint32_t pixel)
-{
-    return (((pixel >> 15) & 1) != 0 ? k_alpha_opaque : 0u) | (expand_5_bits((pixel >> 10) & 31) << 16) |
-           (expand_5_bits((pixel >> 5) & 31) << 8) | expand_5_bits(pixel & 31);
-}
-
-static uint32_t unpack_a4r4g4b4(uint32_t pixel)
-{
-    return (((pixel >> 12) & 15) * 17u << 24) | (((pixel >> 8) & 15) * 17u << 16) | (((pixel >> 4) & 15) * 17u << 8) |
-           ((pixel & 15) * 17u);
 }
 
 static uint16_t read_pixel_16(const uint8_t *row, int32_t x)
