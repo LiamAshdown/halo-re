@@ -532,12 +532,12 @@ void Notifications::notify_item_expired(datum_index object_index)
 {
     object *obj = halo::game::object_at(object_index);
     item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
-    uint32_t *extension_flags = (uint32_t *)((uint8_t *)obj + 0x22c);
+    uint32_t *extension_flags = &((weapon_object *)obj)->weapon.flags;
 
     if (obj->parent_object == (datum_index)halo::k_dword_none &&
         (item->flags & _item_in_inventory_bit) == 0 &&
-        (*extension_flags & 0x20) != 0) {
-        *extension_flags = *extension_flags & 0xffffffdf;
+        (*extension_flags & _weapon_game_expiry_armed_bit) != 0) {
+        *extension_flags = *extension_flags & ~(uint32_t)_weapon_game_expiry_armed_bit;
         if (current_game_engine != 0 && current_game_engine->object_expired != 0) {
             ((void (*)(datum_index))current_game_engine->object_expired)(object_index);
         }

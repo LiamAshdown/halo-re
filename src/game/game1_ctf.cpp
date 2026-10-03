@@ -714,7 +714,7 @@ uint8_t Ctf::player_flag_tick(uint32_t flag_handle, uint32_t player_index)
 
         if ((int32_t)team == p->team) {
             if (game_engine_variant.engine.ctf.flag_must_reset == 0) {
-                if ((*(uint8_t *)((uint8_t *)flag_obj + 0x22c) & 0x40) != 0) {
+                if ((((weapon_object *)flag_obj)->weapon.flags & _weapon_game_object_taken_bit) != 0) {
                     if (halo::game::game_engine_is_inactive() != 0) {
                         ctf_team_return_credit_active[team] = 0;
                         ctf_team_return_credit_ticks[team] = 0;
@@ -726,13 +726,13 @@ uint8_t Ctf::player_flag_tick(uint32_t flag_handle, uint32_t player_index)
                 halo::game::game_engine_ctf_reset_team_return_credit(flag_handle);
                 return 0;
             }
-            if ((*(uint8_t *)((uint8_t *)flag_obj + 0x22c) & 0x40) != 0) {
+            if ((((weapon_object *)flag_obj)->weapon.flags & _weapon_game_object_taken_bit) != 0) {
                 halo::game::game_engine_ctf_notify_flag_carried_throttled((int32_t)player_index);
             }
             return 0;
         }
 
-        if ((*(uint8_t *)((uint8_t *)flag_obj + 0x22c) & 0x40) == 0 &&
+        if ((((weapon_object *)flag_obj)->weapon.flags & _weapon_game_object_taken_bit) == 0 &&
             (current_game_engine == 0 || game_engine_state_value == 0)) {
             ((struct player *)p)->objective_time_words.low += 1;
             if (game_engine_variant.engine.ctf.assault == 0) {
@@ -742,7 +742,7 @@ uint8_t Ctf::player_flag_tick(uint32_t flag_handle, uint32_t player_index)
                 halo::game::game_engine_broadcast_kill_feed_by_relationship(player_index, halo::k_dword_none, 0x29, 0x26, player_index, 1);
             }
         }
-        *(uint8_t *)((uint8_t *)flag_obj + 0x22c) |= 0x40;
+        ((weapon_object *)flag_obj)->weapon.flags |= _weapon_game_object_taken_bit;
     }
     return 1;
 }
@@ -870,10 +870,8 @@ void Ctf::reset_team_return_credit(uint32_t object_index)
     ctf_team_return_credit_ticks[team] = 0;
 
     if (ctf_team_flag_stand_position[team] != (real_point3d *)0) {
-        uint32_t *unknown_22c = (uint32_t *)((uint8_t *)obj + 0x22c);
-
         halo::game::ctf_flag_object_clear_carrier(object_index, ctf_team_flag_stand_position[team]);
-        *unknown_22c &= 0xffffffbf;
+        ((weapon_object *)obj)->weapon.flags &= ~(uint32_t)_weapon_game_object_taken_bit;
         obj->flags |= _object_changed_bit;
     }
 }

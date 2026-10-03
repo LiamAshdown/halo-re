@@ -287,10 +287,16 @@ typedef enum weapon_flags {
     _weapon_alternate_shot_armed_bit = 0x04,// weapon_fire_trigger sets it when the secondary
                                           //   trigger of a weapon_type 3 weapon fires;
                                           //   weapon_update consumes and clears it on overheat
-    _weapon_ammo_prediction_pending_bit = 0x08 // weapon_predict_ammo (0x4c3530) sets it after
+    _weapon_ammo_prediction_pending_bit = 0x08, // weapon_predict_ammo (0x4c3530) sets it after
                                           //   writing predicted_rounds_*; the server
                                           //   corrections at 0x4c3870 / 0x4c4ac0 and
                                           //   weapon_trigger_begin_reload clear it
+    _weapon_game_expiry_armed_bit = 0x20, // the game engines arm it on an objective weapon that times out;
+                                          //   game_engine_notify_item_expired clears it and calls the
+                                          //   engine's object_expired hook, and respawning a ctf flag clears it
+    _weapon_game_object_taken_bit = 0x40  // ctf / oddball: the objective weapon has been taken from its stand
+                                          //   (ctf flag away from home, oddball ball in play); set when a
+                                          //   player picks it up, cleared when it returns or is discarded
 } weapon_flags;
 
 // ---------------------------------------------------------------------------

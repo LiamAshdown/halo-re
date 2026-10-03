@@ -203,7 +203,7 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
             return;
         }
         if (halo::items::weapon_must_be_readied((datum_index)object_handle) != 0 && (obj->flags >> 0xb & 1) != 0 && obj->parent_object == (datum_index)halo::k_dword_none) {
-            if ((*(uint8_t *)((uint8_t *)obj + 0x22c) & 0x40) != 0) {
+            if ((((weapon_object *)obj)->weapon.flags & _weapon_game_object_taken_bit) != 0) {
                 data_iterator iter;
                 void *element;
                 iter.data = halo::objects::globals().object_data;
@@ -687,7 +687,7 @@ uint8_t Koth::player_eligible_to_score(uint32_t object_handle, uint32_t player_i
             uint16_t found = halo::units::unit_find_weapon_index_by_flag((uint32_t)p->unit, 3);
             eligible = 1 - (found != 0);
             if (eligible != 0) {
-                *(uint32_t *)((uint8_t *)obj + 0x22c) |= 0x40;
+                ((weapon_object *)obj)->weapon.flags |= _weapon_game_object_taken_bit;
             }
         }
         return eligible;
@@ -839,7 +839,7 @@ void Koth::relocate_object_hill(uint32_t object_index)
             halo::game::game_engine_queue_multiplayer_sound(0x1e, halo::k_dword_none, 1);
         }
         halo::game::ctf_flag_object_clear_carrier(object_index, &discarded_position);
-        *(uint32_t *)((uint8_t *)obj + 0x22c) &= 0xffffffbf;
+        ((weapon_object *)obj)->weapon.flags &= ~(uint32_t)_weapon_game_object_taken_bit;
     }
 }
 

@@ -177,7 +177,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                 }
                 other_team = (int32_t)toggled;
             }
-            if ((*(uint8_t *)((uint8_t *)flag_obj + 0x22c) & 0x40) != 0) {
+            if ((((weapon_object *)flag_obj)->weapon.flags & _weapon_game_object_taken_bit) != 0) {
 
                 halo::game::game_engine_queue_multiplayer_sound(team != 0 ? 9 : 0xc, halo::k_dword_none, 1);
                 ctf_team_return_credit_active[team] = 0;
@@ -244,8 +244,8 @@ void CtfEngine::clear_carrier(datum_index flag_object_index, real_point3d *posit
                                          halo::math::globals().global_up3d_pointer, position);
     halo::objects::object_reset_velocity_and_wake(flag_object_index);
 
-    unknown_22c = (uint32_t *)((uint8_t *)flag_obj + 0x22c);
-    *unknown_22c = *unknown_22c & 0xffffffdf;
+    unknown_22c = &((weapon_object *)flag_obj)->weapon.flags;
+    *unknown_22c = *unknown_22c & ~(uint32_t)_weapon_game_expiry_armed_bit;
 
     item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
     item->held_game_time = game_time->game_time;

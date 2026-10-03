@@ -385,7 +385,7 @@ uint8_t Ctf::unknown_60(datum_index unit_index, datum_index item_index)
         return 1;
     }
     weapon = (uint8_t *)halo::objects::object_try_and_get(item_index, _object_mask_weapon);
-    if (weapon != 0 && (uint8_t)halo::items::weapon_must_be_readied(item_index) != 0 && (((struct weapon_object *)weapon)->weapon.flags & 0x40) == 0 &&
+    if (weapon != 0 && (uint8_t)halo::items::weapon_must_be_readied(item_index) != 0 && (((struct weapon_object *)weapon)->weapon.flags & _weapon_game_object_taken_bit) == 0 &&
         ((struct weapon_object *)weapon)->base.owner_team == halo::game::player_at(player)->team) {
         return 0;
     }
@@ -439,7 +439,7 @@ void Ctf::update(datum_index player_index)
     if (game_engine_variant.engine.ctf.flag_at_home_to_score != 0 && game_engine_variant.engine.ctf.single_flag_time == 0) {
         weapon_object *flag = (weapon_object *)halo::game::object_at(ctf_team_flag_object[team]);
 
-        if (((flag->weapon.flags >> 6) & 1) != 0) {
+        if ((flag->weapon.flags & _weapon_game_object_taken_bit) != 0) {
             halo::game::game_engine_ctf_notify_flag_carried_throttled((int32_t)player_index);
             return;
         }
