@@ -44,17 +44,17 @@ const uint16_t * SlayerEngine::game_text(int16_t index)
 /**
  * A live player of the given handle (index in range, salt 0 or matching), else 0.
  */
-uint8_t * SlayerEngine::player_if_valid(datum_index handle)
+::player * SlayerEngine::player_if_valid(datum_index handle)
 {
     int16_t index = (int16_t)handle;
     int16_t salt = (int16_t)(handle >> 16);
-    uint8_t *player;
+    ::player *player;
 
     if (handle == halo::k_dword_none || index < 0 || index >= player_data->maximum_count) {
         return 0;
     }
-    player = (uint8_t *)player_data->data + index * player_data->size;
-    if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt)) {
+    player = (::player *)((uint8_t *)player_data->data + index * player_data->size);
+    if (player->identifier == 0 || (salt != 0 && player->identifier != salt)) {
         return 0;
     }
     return player;
@@ -71,7 +71,7 @@ uint8_t * SlayerEngine::player_if_valid(datum_index handle)
 uint8_t SlayerEngine::build_message_text(datum_index recipient, int32_t message_type, datum_index subject, wchar_t *text, uint32_t count)
 {
     if (message_type == 0x16) {
-        uint8_t *player = player_if_valid(recipient);
+        ::player *player = player_if_valid(recipient);
         const uint16_t *place;
         int32_t team;
 
@@ -90,12 +90,12 @@ uint8_t SlayerEngine::build_message_text(datum_index recipient, int32_t message_
         return 1;
     }
     if (message_type == 0x20) {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(subject, player_data);
+        ::player *player = (::player *)halo::memory::datum_get(subject, player_data);
 
         if (player == 0) {
             return 0;
         }
-        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb4), player + 4);
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb4), player->name);
         return 1;
     }
     return 0;
