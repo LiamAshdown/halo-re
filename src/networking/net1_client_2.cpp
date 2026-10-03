@@ -139,7 +139,7 @@ void ClientView::connection_handshake_tick(int16_t state, network_server_globals
 
 /**
  * out/phase4/networking_functions.md: "Finds the channel-key entry matching the
- * caller's key and parameter and, unless a follow-up check succeeds, flags DAT_0071c2de and
+ * caller's key and parameter and, unless a follow-up check succeeds, flags network_host_handoff_requested and
  * calls ChatDialog::close (likely to force a host handoff or disconnect)." The scanned array (client
  * treated as short*, +0x669 shorts == byte +0xcd2) matches network_client->session.players[]'s
  * machine_index/machine_player_index fields exactly (same evidence as

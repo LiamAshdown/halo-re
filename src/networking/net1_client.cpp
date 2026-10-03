@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/networking/net_state.hpp"
 #include "halo/networking/net1_dispatch.hpp"
 #include <string.h>
 #include <wchar.h>
@@ -62,7 +63,6 @@ extern void network_channel_remote_address_or_default(network_channel *channel, 
 extern uint8_t network_server_host_valid;
 extern uint32_t split_screen_quit_prompt_string;
 extern uint32_t network_join_error_reason;
-extern int32_t unknown_006982e8;
 extern void main_menu_music_stop(void);
 extern void chimera__load_ui_map(char reset);
 extern void network_game_server_host_dispose(network_server_globals *host);
@@ -369,7 +369,7 @@ char ClientView::drain_queued_updates(network_server_globals *server, network_ma
 
 /**
  * out/phase4/networking_functions.md: "Allocates the primary network-game globals
- * structure (DAT_0071c2d8) via network_session_create and, if successful, clears the DAT_0071c2de flag."
+ * structure (network_client) via network_session_create and, if successful, clears the network_host_handoff_requested flag."
  * network_client (0x0071c2d8), network_session_create (0x4d8a80, already rewritten) and
  * network_host_handoff_requested (0x0071c2de) all match established names in this module.
  *
@@ -386,7 +386,7 @@ int32_t ClientView::globals_create()
 
 /**
  * out/phase4/networking_functions.md: "Tears down the network-game globals
- * (DAT_0071c2d8): releases its connection sub-allocation, resets related counters/flags and
+ * (network_client): releases its connection sub-allocation, resets related counters/flags and
  * frees the globals themselves." client->update_history (+0xf48) and client->channel (+0xadc)
  * match types/networking.h's network_client_globals exactly; network_session_active
  * (0x0071c2c2) matches the header's own documented name for that address.
@@ -545,7 +545,7 @@ void ClientView::send_local_player_updates()
 /**
  * out/phase4/networking_functions.md summary ("Dispatches per-frame processing to the
  * handler matching the connection's current mode/type field"); the sole caller (network_client_update_dispatch,
- * out/halo_decompiled.c around line 143483) loads DAT_0071c2d8 (network_client, per
+ * out/halo_decompiled.c around line 143483) loads network_client (network_client, per
  * types/networking.h) into EAX before the call and reads network_client+0xedc right after it
  * returns, confirming in_EAX is network_client here.
  *
@@ -593,7 +593,7 @@ void ClientView::timer_schedule(int32_t delay_ms, int32_t context)
 
 /**
  * out/phase4/networking_functions.md: "Either performs the same host shutdown
- * sequence as network_host_shutdown_or_defer (map-state reset and host dispose) when DAT_0071c2de is set, or
+ * sequence as network_host_shutdown_or_defer (map-state reset and host dispose) when network_host_handoff_requested is set, or
  * attempts to join/prepare via network_client_state_dispatch/network_client_connect_progress_percent otherwise." network_client_state_dispatch and network_client_connect_progress_percent
  * are already named (network_client_state_dispatch, network_client_connect_progress_percent) by
  * an earlier batch covering 0x4d8a80..0x4d9050. See network_host_shutdown_or_defer.c for the
@@ -636,7 +636,7 @@ char ClientView::update_dispatch()
         result = 0;
         if (dispatch_result != 0) {
             if (network_client->disconnect_reason == 0) {
-                unknown_006982e8 = network_client_connect_progress_percent();
+                halo::networking::net_state::last_connect_progress_percent = network_client_connect_progress_percent();
                 return dispatch_result;
             }
             return 0;
@@ -1591,7 +1591,7 @@ retry_limit_check:
  * out/phase4/networking_functions.md summary ("Resolves the host/IP for a pending
  * 'join server' request and either connects immediately or kicks off an asynchronous hostname
  * resolution"); out/phase2/results/networking_01.json evidence ("reads a pending connect
- * request (DAT_00719450), retrieves hostname/IP fields via SBServerGetPublicAddress/00617640/00617650,
+ * request (server_browser_join_target), retrieves hostname/IP fields via SBServerGetPublicAddress/00617640/00617650,
  *
  * @address 0x4ba320
  */

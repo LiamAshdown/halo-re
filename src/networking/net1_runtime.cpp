@@ -194,8 +194,7 @@ void ConnectionStats::log_tick()
  * name confidence: 0.5   rewrite confidence: 0.65
  * out/phase4/networking_types_notes.md "network_connection_statistics (0x44) and
  * network_summary_statistics (0x1c)": the stride is pinned three ways in this exact function
- * ("(&DAT_0087becc)[i*0x11]" dword array, "(&DAT_0087bed0)[i*0x22]" word array and
- * "(&DAT_0087bec8)[i*0x44]" byte array all resolve to the same element").
+ * (the dword, word and byte indexings of network_connection_stats all resolve to the same element).
  *
  * @address 0x440a80
  */

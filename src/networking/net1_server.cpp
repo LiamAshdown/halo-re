@@ -69,8 +69,6 @@ extern int32_t network_session_reject_pending_connection_callback(void *unused, 
 extern network_server_globals network_server_storage;
 extern int32_t network_scenario_round_counter_a;
 extern uint8_t network_scenario_round_counter_b;
-extern uint8_t unknown_00861d4e;
-extern uint8_t unknown_00861d4f;
 extern int16_t pending_difficulty;
 extern void network_channels_open(void);
 extern network_channel *network_channel_new(uint32_t flags);
@@ -91,7 +89,6 @@ extern void network_player_assign_random_color(void);
 extern uint32_t network_player_entry_add(network_player_entry *entry, network_game_session *session);
 extern game_variant game_engine_pending_variant;
 extern char variant_defaults_source[];
-extern uint8_t DAT_00000050;
 extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue);
 typedef struct rcon_request_decode {
     char password[20];
@@ -662,7 +659,7 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
 
 /**
  * out/phase4/networking_functions.md: "Allocates and installs the network host globals
- * (DAT_0071c2d4) via network_game_server_host_new and seeds its randomisation salt field from the global PRNG
+ * (network_server) via network_game_server_host_new and seeds its randomisation salt field from the global PRNG
  * state, mirroring the salt into the network-game globals when present." network_server
  * (0x0071c2d4) and network_client (0x0071c2d8) match types/networking.h.
  *
@@ -765,8 +762,8 @@ void * ServerView::host_new()
     network_session_active2 = 1;
     network_scenario_round_counter_a = 0;
     network_scenario_round_counter_b = 0;
-    unknown_00861d4e = 0;
-    unknown_00861d4f = 0;
+    host->full_state_broadcast_pending = 0;
+    host->game_over = 0;
     network_channels_open();
     host->listen_channel = network_channel_new(k_network_channel_listening);
     if (host->listen_channel != 0) {
@@ -945,9 +942,9 @@ int32_t ServerView::session_reset_defaults()
 }
 
 /**
- * Finds the machines[] slot whose machine_id equals machine_id and clears its unknown_50
- * byte, returning that slot's address (with its low byte masked off). If no slot matches,
- * writes a zero byte to absolute address 0x50 instead (see UNSURE note).
+ * Finds the machines[] slot whose machine_id equals machine_id and clears its player_joined
+ * flag, returning that slot's address (with its low byte masked off). If no slot matches the
+ * original stores through a null pointer (offset 0x50 from zero); this version returns 0 instead.
  *
  * @address 0x4e0b90
  */
@@ -962,8 +959,7 @@ uint32_t ServerView::clear_flag_by_id(int32_t machine_id)
             return ((uint32_t)&server->machines[i]) & 0xffffff00;
         }
     }
-    DAT_00000050 = 0;
-    return ((uint32_t)16) & 0xffffff00;
+    return 0;
 }
 
 /**
