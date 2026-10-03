@@ -47,13 +47,12 @@ void chimera__transparent_decal_zbias(void)
  */
 void decal_and_font_system_reset(void)
 {
-    uint8_t *globals = (uint8_t *)global_globals;
     int32_t i;
 
-    if (*(int32_t *)(globals + 0x134) == 0) {
+    if (global_globals->rasterizer_data.count == 0) {
         rasterizer_globals_data = (GlobalsRasterizerData *)((void *)0);
     } else {
-        rasterizer_globals_data = (GlobalsRasterizerData *)(*(void **)(globals + 0x138));
+        rasterizer_globals_data = (GlobalsRasterizerData *)(uintptr_t)global_globals->rasterizer_data.pointer;
     }
 
     for (i = 0; i < 0x8c0; i++) {
@@ -93,8 +92,8 @@ void decal_and_font_system_reset(void)
  */
 void decal_geometry_cache_restore_procs(void)
 {
-    *(void **)(rasterizer_decal_vertex_cache_handle + 0x20) = (void *)decal_vertex_cache_release;
-    *(void **)(rasterizer_decal_vertex_cache_handle + 0x24) = (void *)decal_vertex_cache_in_use;
+    rasterizer_decal_vertex_cache_handle->release_procedure = (void *)decal_vertex_cache_release;
+    rasterizer_decal_vertex_cache_handle->in_use_procedure = (void *)decal_vertex_cache_in_use;
 }
 
 /**
@@ -105,10 +104,10 @@ void decal_geometry_cache_restore_procs(void)
  */
 uint8_t decal_vertex_cache_in_use(datum_index handle)
 {
-    uint8_t *element = (uint8_t *)decal_data->data + (uint32_t)(handle & 0xffff) * 0x38;
+    decal *element = (decal *)((uint8_t *)decal_data->data + (uint32_t)(handle & halo::k_slot_mask) * sizeof(decal));
 
     decal_vertex_cache_last_queried = handle;
-    return (element[2] & 3) != 0;
+    return (element->flags & 3) != 0;
 }
 
 /**
@@ -300,10 +299,10 @@ namespace rasterizer_decal_vertex_cache_lock_impl {
  */
 void * rasterizer_decal_vertex_cache_lock(uint32_t decal_index, int32_t byte_count)
 {
-    uint8_t *cache = rasterizer_decal_vertex_cache_handle;
-    data_array *blocks = *(data_array **)(cache + 0x3c);
-    uint32_t offset = *(uint32_t *)((uint8_t *)blocks->data + (decal_index & 0xffff) * 0x1c + 8)
-                      << (*(uint32_t *)(cache + 0x2c) & 0x1f);
+    ::cache *cache = rasterizer_decal_vertex_cache_handle;
+    data_array *blocks = cache->entries;
+    uint32_t offset = (uint32_t)((cache_entry *)((uint8_t *)blocks->data + (decal_index & halo::k_slot_mask) * sizeof(cache_entry)))->offset
+                      << (cache->block_shift & 0x1f);
     void *buffer = rasterizer_decal_vertex_cache;
     void *data = 0;
     uint8_t succeeded = 1;
@@ -383,10 +382,10 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
         }
 
         if (succeeded) {
-            uint8_t *cache = rasterizer_decal_vertex_cache_handle;
-            data_array *blocks = *(data_array **)(cache + 0x3c);
-            uint32_t first_offset = *(uint32_t *)((uint8_t *)blocks->data + (decal_index & 0xffff) * 0x1c + 8)
-                                    << (*(uint32_t *)(cache + 0x2c) & 0x1f);
+            ::cache *cache = rasterizer_decal_vertex_cache_handle;
+            data_array *blocks = cache->entries;
+            uint32_t first_offset = (uint32_t)((cache_entry *)((uint8_t *)blocks->data + (decal_index & halo::k_slot_mask) * sizeof(cache_entry)))->offset
+                                    << (cache->block_shift & 0x1f);
             uint32_t color = ((struct decal *)decal)->color;
             uint32_t alpha = (((struct decal *)decal)->alpha * (color >> 24) + 0x7f) >> 8;
             int32_t primitive_count;
@@ -525,7 +524,7 @@ void rasterizer_decals_initialize(void)
 
     halo::memory::cache_new((char *)"decal vertex cache", (::cache *)block, 0xa00, 6, 0x800, (void *)decal_vertex_cache_release,
               (void *)decal_vertex_cache_in_use);
-    rasterizer_decal_vertex_cache_handle = block;
+    rasterizer_decal_vertex_cache_handle = (::cache *)block;
 }
 
 }  // namespace rasterizer_decals_initialize_impl
