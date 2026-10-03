@@ -456,12 +456,12 @@ done_seat_scan:
 }
 
 /**
- * Currently a no-op; its referenced globals suggest it once performed unit/tag- table work that has since
- * been inlined away.
+ * Returns the object the camera and aiming code should treat as the unit: the vehicle the unit is seated in when
+ * the seat is invisible or a gunner seat (seat flags 0x9), otherwise the unit itself.
  *
  * @address 0x569670
  */
-uint32_t UnitView::noop_569670()
+uint32_t UnitView::resolve_camera_object()
 {
     uint32_t object_index = datum_handle;
     uint32_t result = object_index;

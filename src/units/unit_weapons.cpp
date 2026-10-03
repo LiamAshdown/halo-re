@@ -249,7 +249,7 @@ uint8_t UnitView::check_weapon_use_permission(uint32_t weapon_index)
 }
 
 /**
- * Clears the unit's currently selected secondary item field, releasing it first via FUN_0056ed00.
+ * Clears the unit's currently selected secondary item field, releasing it first via unit_drop_object_from_hand.
  *
  * Original register convention: in_ECX.
  *
@@ -949,7 +949,8 @@ uint8_t UnitView::has_weapon_of_type(int32_t weapon_group_tag)
 }
 
 /**
- * Empty stub; performs no operation in this build.
+ * Not a function of its own: 0x56d070 is the shared epilogue (pop ebx, pop ebp, add esp 0x8c, ret) of the code
+ * before it, and nothing calls it. Kept empty.
  *
  * @address 0x56d070
  */
@@ -1011,7 +1012,7 @@ uint8_t unit_local_player_weapon_flag_check(void)
 }
 
 /**
- * Calls FUN_00565f90 when the implicit weapon/object index is valid, used as a small guard before
+ * Calls unit_try_set_animation_state when the implicit weapon/object index is valid, used as a small guard before
  * weapon-related teardown.
  *
  * Original register convention: EAX -> object_index.

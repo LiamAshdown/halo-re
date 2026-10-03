@@ -1590,13 +1590,13 @@ uint8_t unit_new(uint32_t object_index)
 }
 
 /**
- * C entry point for halo::units::UnitView::noop_569670; forwards to the C++ implementation unchanged.
+ * C entry point for halo::units::UnitView::resolve_camera_object; forwards to the C++ implementation unchanged.
  *
  * @address 0x569670
  */
 uint32_t unit_noop_569670(uint32_t object_index)
 {
-    return halo::units::UnitView(object_index).noop_569670();
+    return halo::units::UnitView(object_index).resolve_camera_object();
 }
 
 /**

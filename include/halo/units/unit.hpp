@@ -119,7 +119,7 @@ public:
     void apply_scale_change(unit_scale_request *request);
     void find_nearest_valid_surface_plane();
     uint8_t new_();
-    uint32_t noop_569670();
+    uint32_t resolve_camera_object();
     int32_t pick_random_spawned_actor_count();
     void place(uint8_t *placement);
     void recalculate_position();
