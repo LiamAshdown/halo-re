@@ -110,7 +110,7 @@ void halo::units::unit_network_create_update_apply(void *incoming_record)
     ((unit_object *)biped)->unit.saved_control.zoom_level = (int16_t)((unit_object *)biped)->unit.desired_zoom_level;
     biped[0x526] = 1;
     biped[0x528] = 0;
-    ((struct unit_object *)biped)->unit.unknown_475 = 1;
+    ((struct unit_object *)biped)->unit.network_update_applied = 1;
     ((unit_object *)biped)->base.shield_stun_ticks = biped[0x538] == 1;
     memcpy(biped + 0x4ac, biped + 0x494, 12);
     *(int16_t *)(biped + 0x31e) = ((biped_object *)biped)->biped.network_grenade_counts;

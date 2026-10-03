@@ -63,7 +63,7 @@ uint8_t VehicleView::create()
         ((struct object *)object)->position.z += *(float *)(definition + 4) * 0.5f;
     }
     if (network_game_mode == 1 || network_game_mode == 2) {
-        ((struct vehicle_object *)object)->vehicle.unknown_525 = 0;
+        ((struct vehicle_object *)object)->vehicle.network_position_pending = 0;
         ((struct vehicle_object *)object)->vehicle.network_epoch = 0;
         ((struct vehicle_object *)object)->vehicle.network_update_sequence = 0;
         ((struct object *)object)->network_state_009 = 0;

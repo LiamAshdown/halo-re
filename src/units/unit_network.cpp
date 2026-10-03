@@ -167,7 +167,7 @@ void UnitView::apply_network_health_update(void *message)
     *(real *)(unit + 0x548) = shield;
     *(uint32_t *)(unit + 0x54c) = block.shield_stunned;
     ((unit_object *)unit)->base.shield_stun_ticks = (uint8_t)block.shield_stunned == 1;
-    ((struct unit_object *)unit)->unit.unknown_475 = 1;
+    ((struct unit_object *)unit)->unit.network_update_applied = 1;
     unit[0x53c] = 1;
 }
 

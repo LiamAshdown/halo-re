@@ -457,7 +457,7 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
     int32_t len;
     int32_t i;
 
-    halo::cache::tag_lookup(halo::groups::font, (char *)"ui\\small_ui");
+    datum_index small_ui_font = halo::cache::tag_lookup(halo::groups::font, (char *)"ui\\small_ui");
     len = strlen(name);
     if (mode == 3) {
         ok = *name != 0;
@@ -467,7 +467,7 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
     }
     for (i = 0; i < len; i = i + 1) {
         uint8_t ch = (uint8_t)name[i];
-        if (ch < ' ' || ch == 0xff || halo::text::text_get_character_metrics(ch, small_ui_font) == 0 || virtual_keyboard_character_is_legal(ch, character) == 0) {
+        if (ch < ' ' || ch == 0xff || halo::text::text_get_character_metrics(ch, (Font *)small_ui_font) == 0 || virtual_keyboard_character_is_legal(ch, character) == 0) {
             ok = 0;
             break;
         }

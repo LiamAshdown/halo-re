@@ -12,6 +12,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
+extern "C" { extern rasterizer_window_parameters rasterizer_window; }
 
 extern "C" {
 extern void chimera__rasterizer_set_up_node_parts(int32_t node_part_count, uint8_t *node_part_indices);

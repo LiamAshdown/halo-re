@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include "halo/cseries/api.hpp"
 #include "rasterizer.h"
+#include "halo/rasterizer/api.hpp"
+extern "C" { extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; }
+extern "C" { extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; }
 
 namespace {
 constexpr int k_screen_vertex_shader = 35;
@@ -24,7 +27,6 @@ extern const char *network_bandwidth_units_label_table[2];
 extern void network_bandwidth_graph_update_columns(int32_t new_sample, network_bandwidth_graph *graph);
 extern void network_bandwidth_graph_new_sample(network_bandwidth_graph *graph);
 extern int32_t network_bandwidth_graph_find_peak_sample(int32_t *out_peak_countdown, network_bandwidth_graph *graph);
-extern void ***rasterizer_device;
 extern uint32_t renderer_unknown_6e1af0;
 extern uint32_t renderer_unknown_6e1af8;
 extern uint32_t renderer_unknown_69e468;
@@ -700,14 +702,14 @@ static void device_call_mode_ptr_count(void **device, uint32_t vtable_offset, in
 void BandwidthGraphView::overlay_draw()
 {
     network_bandwidth_graph *graph = self;
-    void **device = *rasterizer_device;
+    void **device = (void **)halo::rasterizer::globals().device;
     float delta_y, delta_x;
     float label_quad[13] = { 0 };
 
     device_call1(device, 0x15c, (int32_t)rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
 
     {
-        uint32_t flag = ((rasterizer_software_vertex_processing != 0) ? 0x10u : 0u) & 0x10u;
+        uint32_t flag = ((halo::rasterizer::globals().software_vertex_processing != 0) ? 0x10u : 0u) & 0x10u;
         flag = (flag | rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage) & 0x10u;
         device_call1(device, 0x134, (int32_t)flag);
     }

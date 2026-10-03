@@ -10,7 +10,7 @@
 extern "C" {
 extern real_point3d *global_origin3d_pointer;
 extern real_vector3d *g_006966e4;
-extern void vector3d_clamp_length(float max_length);
+extern void vector3d_clamp_length(real_vector3d *v, real max_length);
 extern void object_physics_tick(uint32_t unit_index, void *node_output, void *contact_points, void *extra_force, void *extra_torque);
 extern double sqrt(double x);
 extern double fabs(double x);

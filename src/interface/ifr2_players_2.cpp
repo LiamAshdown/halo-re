@@ -8,6 +8,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+extern "C" { extern uint32_t config_disable_specular; }
 
 #ifdef interface
 #undef interface

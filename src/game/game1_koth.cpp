@@ -25,6 +25,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+extern "C" { extern uint8_t rasterizer_render_states_dirty; }
 
 extern "C" {
 extern uint8_t hill_pulse_fade_done;

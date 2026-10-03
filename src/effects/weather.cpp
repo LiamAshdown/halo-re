@@ -8,13 +8,16 @@
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/render/api.hpp"
+extern "C" { extern real_vector3d camera_forward_x; }
+extern "C" { extern real_point3d *global_zero_vector3d_pointer; }
+extern "C" { extern render_frustum render_frustum_global; }
 
 extern "C" {
 extern weather_instance weather_instances[1];
 extern int32_t weather_instance_count;
 extern data_array *weather_particle_data;
 extern datum_index weather_particle_new(int16_t instance_index, int16_t type_index);
-extern float render_camera_global;
+extern real_point3d render_camera_global;
 extern float camera_position_y;
 extern float camera_position_z;
 extern const uint32_t k_particle_render_constant[3];
@@ -118,7 +121,7 @@ void weather_instance_ref::build_render_geometry()
     weather_instance *instance = &weather_instances[instance_index];
     WeatherParticleSystem *tag =
         (WeatherParticleSystem *)halo::cache::globals().tag_instances[(uint16_t)instance->definition_index].data;
-    ScenarioStructureBSP *bsp = global_structure_bsp;
+    ScenarioStructureBSP *bsp = halo::scenario::globals().structure_bsp;
     int32_t type_index;
 
     halo::effects::weather_instance_update(instance_index);
@@ -149,7 +152,7 @@ void weather_instance_ref::build_render_geometry()
 
         extent = state->field_extent;
         shelter_count = halo::structures::structure_weather_polyhedra_find_within_radius(shelter_indices, extent);
-        render_camera_facing_frame_build((float *)planes, extent);
+        halo::render::render_camera_facing_frame_build((float *)planes, extent);
         halo::math::vector3d_positive_modulo(*(real_vector3d *)&render_camera_global, camera_remainder, extent);
 
         cell_origin.x = render_camera_global.x - camera_remainder.i;
@@ -186,7 +189,7 @@ void weather_instance_ref::build_render_geometry()
                     box.y.upper = box_max[1] + cell_offsets[y];
                     box.z.lower = cell_offsets[z] + box_min[2];
                     box.z.upper = cell_offsets[z] + box_max[2];
-                    if (render_frustum_test_bounding_box(&render_frustum_global, &box, 1) != 0) {
+                    if (halo::render::render_frustum_test_bounding_box(&render_frustum_global, &box, 1) != 0) {
                         cells[cell_count].x = box.x.lower;
                         cells[cell_count].y = box.y.lower;
                         cells[cell_count].z = box.z.lower;
@@ -283,9 +286,9 @@ void weather_instance_ref::build_render_geometry()
 
                         if (mode != 0 &&
                             direction->k * direction->k + direction->j * direction->j + direction->i * direction->i == 0.0f) {
-                            direction = global_up3d_pointer;
+                            direction = halo::math::globals().global_up3d_pointer;
                         }
-                        build_sprite(&sprites, particle->sequence_index, (int16_t)(int32_t)particle->frame, (int16_t)mode,
+                        halo::render::build_sprite(&sprites, particle->sequence_index, (int16_t)(int32_t)particle->frame, (int16_t)mode,
                                      &position, direction, particle->rotation,
                                      (particle->radius + particle->radius) * type->sprite_size,
                                      (ColorARGB *)&particle->alpha, fade_out * fade_in, 0);
@@ -296,7 +299,7 @@ void weather_instance_ref::build_render_geometry()
             particle_index = particle->next_particle;
         }
 
-        build_sprites_end(&sprites);
+        halo::render::build_sprites_end(&sprites);
     }
 }
 

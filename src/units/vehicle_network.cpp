@@ -128,7 +128,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     }
     ((struct object *)vehicle)->network_position_valid = 1;
     ((struct object *)vehicle)->network_velocity_valid = 1;
-    ((struct unit_object *)vehicle)->unit.unknown_475 = 1;
+    ((struct unit_object *)vehicle)->unit.network_update_applied = 1;
     memcpy(vehicle + 0x56c, &baseline, sizeof(baseline));
 }
 
@@ -230,7 +230,7 @@ void VehicleView::network_baseline_take()
         return;
     }
     ((struct vehicle_object *)obj)->vehicle.network_epoch++;
-    ((struct vehicle_object *)obj)->vehicle.unknown_525 = 1;
+    ((struct vehicle_object *)obj)->vehicle.network_position_pending = 1;
     ((struct vehicle_object *)obj)->vehicle.network_delta_sequence = 1;
     copy3(obj, 0x52c, 0x5c);
     copy3(obj, 0x538, 0x68);

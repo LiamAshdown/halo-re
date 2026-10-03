@@ -16,6 +16,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+extern "C" { extern data_packet_group network_game_messages_group; }
 
 extern "C" {
 extern void *object_type_definitions[12];
