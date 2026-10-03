@@ -78,4 +78,12 @@ inline constexpr uint32_t k_max_path = 0x104;
 inline constexpr uint32_t k_file_begin = 0;
 inline constexpr uint32_t k_file_end = 2;
 
+/** MessageBox styles and results. */
+inline constexpr uint32_t k_mb_ok = 0x0;
+inline constexpr uint32_t k_mb_yesnocancel = 0x3;
+inline constexpr uint32_t k_mb_iconerror = 0x10;
+inline constexpr uint32_t k_mb_iconwarning = 0x30;
+inline constexpr int32_t k_id_cancel = 2;
+inline constexpr int32_t k_id_no = 7;
+
 }  // namespace halo::win32

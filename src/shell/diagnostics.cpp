@@ -2,10 +2,9 @@
 #include "halo/shell/layout.hpp"
 #include "halo/shell/system.hpp"
 #include "halo/shell/window.hpp"
-#include "dialogs.h"
 #include "interface.h"
 #include "halo/sound/api.hpp"
-#include "halo/dialogs/api.hpp"
+#include "halo/shell/messages.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/main/vars.hpp"
@@ -34,189 +33,60 @@ static auto &shell_startup_tick_count = halo::link::ref<uint32_t>(halo::main::va
 
 namespace halo::shell {
 
-namespace {
-
 /**
- * Loads string id into buffer through the localized lookup; when every lookup fails the buffer holds
- * the built-in fallback text.
- */
-void load_string_or_default(uint32_t id, uint32_t capacity, char *buffer, const char *fallback)
-{
-    if (Localization::load_localized_string(capacity, shell_module_handle, buffer, id) == 0) {
-        buffer[0] = 0;
-        strcat(buffer, fallback);
-    }
-}
-
-}
-
-/**
- * Loads Win32 string table entry id (block (id >> 4) + 1, index id & 0xf) from module for the given
- * language and converts it to ANSI into buffer. Returns the converted character count (without the
- * terminator), or 0 on any failure.
- *
- * @address 0x57e110
- */
-int32_t Localization::load_string_resource(uint32_t id, uint16_t language, uint32_t buffer_capacity, void *module,
-                                           char *buffer)
-{
-    void *resource_info;
-    void *resource_data;
-    const uint16_t *entry;
-    uint32_t index;
-    uint16_t entry_length;
-    int32_t converted;
-    int32_t terminator_index;
-
-    resource_info = FindResourceExA((HMODULE)module, (const char *)6, (const char *)(uint32_t)((id >> 4) + 1), language);
-    if (resource_info == 0) {
-        return 0;
-    }
-    resource_data = LoadResource((HMODULE)module, (HRSRC)resource_info);
-    if (resource_data == 0) {
-        return 0;
-    }
-    entry = (const uint16_t *)LockResource(resource_data);
-    if (entry == 0) {
-        return 0;
-    }
-
-    index = 0;
-    do {
-        entry_length = *entry;
-        entry++;
-        if (entry_length != 0 && index == (id & 0xf)) {
-            converted = WideCharToMultiByte(0, 0, (LPCWCH)entry, entry_length, buffer, buffer_capacity, 0, 0);
-            if (converted == 0) {
-                return 0;
-            }
-            terminator_index = (int32_t)buffer_capacity - 1;
-            if (converted < terminator_index) {
-                terminator_index = converted;
-            }
-            buffer[terminator_index] = 0;
-            return converted;
-        }
-        index++;
-        entry += entry_length;
-    } while (index < 0x10);
-
-    return 0;
-}
-
-/**
- * Loads a localized UI string: the current language first, then (when that is not already English)
- * en-US, and finally the plain LoadStringA. Returns the character count, 0 when nothing was found.
- *
- * @address 0x57e1a0
+ * Copies the English text of message `id` into buffer (truncated to capacity) and returns its length, or 0 when the id
+ * has no text. The module argument is unused; it stays so existing callers keep their signature.
  */
 int32_t Localization::load_localized_string(uint32_t buffer_capacity, void *module, char *buffer, uint32_t id)
 {
-    int32_t loaded;
+    const char *text = shell_message(id);
+    uint32_t length;
 
-    loaded = load_string_resource(id, (uint16_t)shell_language_id, buffer_capacity, module, buffer);
-    if (loaded != 0) {
-        return loaded;
+    (void)module;
+    if (text == nullptr || buffer_capacity == 0) {
+        return 0;
     }
-    if (shell_language_id != k_shell_language_default) {
-        loaded = load_string_resource(id, (uint16_t)k_shell_language_default, buffer_capacity, module, buffer);
-        if (loaded != 0) {
-            return loaded;
-        }
+    length = static_cast<uint32_t>(strlen(text));
+    if (length >= buffer_capacity) {
+        length = buffer_capacity - 1;
     }
-    return LoadStringA((HINSTANCE)module, id, buffer, buffer_capacity);
+    memcpy(buffer, text, length);
+    buffer[length] = 0;
+    return static_cast<int32_t>(length);
 }
 
 /**
- * Loads strings.dll (a message box and exit if it is missing), determines the language from the LangID
- * setting (en-US when unset; a bare primary language gets the default sublanguage) and caches the
- * exception title, the gathering text, the EULA file name and the invalid strings.dll text, each with
- * a built-in fallback. Records the tick count at the end.
+ * Fills the cached exception title and gathering text and records the start-up tick count.
  *
  * @address 0x57efa0
  */
 void Localization::initialize()
 {
-    char current_directory[260];
-    uint32_t value_type;
-    uint32_t language_id;
-    uint32_t value_size;
-
-    shell_module_handle = LoadLibraryA("strings.dll");
-    if (shell_module_handle == 0) {
-        GetCurrentDirectoryA(sizeof(current_directory), current_directory);
-        strcat(current_directory, "\\strings.dll is missing.");
-        MessageBoxA(0, current_directory, "Error!", 0);
-        ExitProcess(1);
-    }
-
-    shell_language_id = k_shell_language_default;
-    value_type = k_reg_dword;
-    value_size = 4;
-    if (SettingsStore::current().read_value(SettingsScope::machine, "LangID", &value_type, &language_id, &value_size)) {
-        if ((language_id & 0xfc00) == 0) {
-            shell_language_id = (language_id & 0xffff) | 0x400;
-        } else {
-            shell_language_id = language_id;
-        }
-    }
-
-    load_string_or_default(k_string_exception_title, k_shell_exception_string_length, exception_title, "Exception!");
-    load_string_or_default(k_string_exception_gathering, k_shell_exception_string_length, exception_gathering_text, "Gathering Exception Data...");
-    load_string_or_default(k_string_strings_dll_invalid, k_shell_strings_dll_error_length, strings_dll_invalid_text, "Invalid / missing strings.dll");
+    Localization::load_localized_string(k_shell_exception_string_length, nullptr, exception_title, k_string_exception_title);
+    Localization::load_localized_string(k_shell_exception_string_length, nullptr, exception_gathering_text, k_string_exception_gathering);
 
     shell_startup_tick_count = GetTickCount();
 }
 
 /**
- * Loads the dialog text and the help file name into the shared fatal error buffers. A resource id of
- * 0xffffffff means the second argument is a raw message and the help file defaults to readme.rtf;
- * otherwise the text comes from string resource resource_id and the help file name from string resource
- * help_text_or_id.
+ * Loads the dialog text and title into the shared fatal error buffers. A resource id of 0xffffffff means the second
+ * argument is a raw message; otherwise the text is the English message for the id.
  */
 void FatalError::load_text(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal)
 {
-    const char *help_text = (const char *)help_text_or_id;
-    void *module;
-    int32_t loaded;
+    const char *text = shell_message(resource_id);
 
     if (resource_id == k_dword_none) {
-        const char *source = help_text;
-        char *dest = fatal_error_text;
-        do {
-            *dest++ = *source;
-        } while (*source++ != 0);
-        sprintf(fatal_error_help_file, "readme.rtf");
+        strncpy(fatal_error_text, (const char *)help_text_or_id, k_shell_fatal_error_text_length - 1);
+        fatal_error_text[k_shell_fatal_error_text_length - 1] = 0;
+    } else if (text != nullptr) {
+        strncpy(fatal_error_text, text, k_shell_fatal_error_text_length - 1);
+        fatal_error_text[k_shell_fatal_error_text_length - 1] = 0;
     } else {
-        module = shell_module_handle;
-        loaded = Localization::load_localized_string(k_shell_fatal_error_text_length, module, fatal_error_text, resource_id);
-        if (loaded == 0) {
-            sprintf(fatal_error_text, "Missing error string %d", resource_id);
-        }
-
-        module = shell_module_handle;
-        loaded = Localization::load_localized_string(k_shell_fatal_error_readme_length, module, fatal_error_help_file,
-                                                     (uint32_t)help_text);
-        if (loaded == 0) {
-            sprintf(fatal_error_help_file, "readme.rtf");
-        }
+        sprintf(fatal_error_text, "Missing error string %d", resource_id);
     }
 
-    module = shell_module_handle;
-    loaded = Localization::load_localized_string(k_shell_fatal_error_title_length, module, fatal_error_title,
-                                                 k_string_error_title_base + (is_fatal != 0));
-    if (loaded == 0) {
-        sprintf(fatal_error_title, "Halo - Error");
-    }
-}
-
-/**
- * Formats the setting name under which the player's answer to this error on this graphics device is
- * remembered.
- */
-void FatalError::make_remembered_name(char *name, uint32_t resource_id)
-{
-    sprintf(name, "%s %s (0x%04x):%d", graphics_vendor_name, graphics_device_name, graphics_device_id, resource_id);
+    strcpy(fatal_error_title, shell_message(k_string_error_title_base + (is_fatal != 0)));
 }
 
 /**
@@ -236,24 +106,17 @@ void FatalError::shut_down_engine_services()
 }
 
 /**
- * Builds and shows the error dialog. Resource id 0xffffffff means help_text_or_id is a raw message;
- * any other id loads the text from strings.dll and treats help_text_or_id as the id of the help file
- * name. A non fatal error first looks up a remembered answer for this graphics device; a fatal one (or
- * a "quit" answer) runs the shutdown services and ends the process. Returns the dialog result, or the
- * remembered answer.
+ * Shows the error message box. Resource id 0xffffffff means help_text_or_id is a raw message; any other id is looked up
+ * in the shell messages. A fatal error (or a "quit" answer) runs the shutdown services and ends the process. A non
+ * fatal error offers to continue, to restart in safe mode or to quit. Returns 0 to continue, 1 for safe mode.
  *
  * @address 0x57ea70
  */
 int32_t FatalError::show(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal)
 {
-    win32_wndclassexa wndclass;
-    void *window;
+    char message[k_shell_fatal_error_text_length + 160];
+    int32_t answer;
     int32_t result;
-    char registry_value_name[256];
-    uint32_t data_size;
-    uint8_t remembered[16];
-    char digit_text[16];
-    uint32_t digit_length;
 
     load_text(resource_id, help_text_or_id, is_fatal);
 
@@ -266,78 +129,23 @@ int32_t FatalError::show(uint32_t resource_id, uint32_t help_text_or_id, int32_t
         halo::rasterizer::globals().shader_file_name = 0;
     }
 
+    strcpy(message, fatal_error_text);
     if (is_fatal == 0) {
-        make_remembered_name(registry_value_name, resource_id);
-        data_size = 0x10;
-        remembered[0] = 0;
-        SettingsStore::current().read_value(SettingsScope::user, registry_value_name, 0, remembered, &data_size);
-        if (remembered[0] == 'y') {
-            result = remembered[1] - '0';
-            safe_mode = result;
-            return result;
-        }
-    }
-
-    window = shell_window;
-    if (shell_window == 0) {
-        wndclass.size = 0;
-        wndclass.style = 0;
-        wndclass.window_procedure = 0;
-        wndclass.class_extra = 0;
-        wndclass.window_extra = 0;
-        wndclass.instance = 0;
-        wndclass.icon = 0;
-        wndclass.cursor = 0;
-        wndclass.background_brush = 0;
-        wndclass.menu_name = 0;
-        wndclass.class_name = 0;
-        wndclass.small_icon = 0;
-        wndclass.size = 0x30;
-        wndclass.window_procedure = (uint32_t)DefWindowProcA;
-        wndclass.instance = (uint32_t)shell_instance;
-        wndclass.icon = (uint32_t)LoadIconA((HINSTANCE)shell_instance, (const char *)k_fatal_error_dialog_resource);
-        wndclass.cursor = (uint32_t)LoadCursorA(0, (const char *)k_idc_arrow);
-        wndclass.class_name = (uint32_t)"Halo";
-        RegisterClassExA((const WNDCLASSEXA *)&wndclass);
-        window = CreateWindowExA(0, "Halo", "Halo", 0x80000000, -0x80000000, -0x80000000, -0x80000000, -0x80000000,
-                                  0, 0, (HINSTANCE)shell_instance, 0);
-        ShowWindow((HWND)window, 5);
+        strcat(message, "\n\nYes: continue anyway\nNo: restart in safe mode\nCancel: quit");
     }
 
     ShowCursor(1);
-    result = halo::dialogs::dialog_box_show_localized((dialog_window_proc_fn)halo::dialogs::fatal_error_dialog_proc, shell_module_handle, (const char *)k_fatal_error_dialog_resource, window);
+    answer = MessageBoxA((HWND)shell_window, message, fatal_error_title,
+                         is_fatal != 0 ? (halo::win32::k_mb_ok | halo::win32::k_mb_iconerror) : (halo::win32::k_mb_yesnocancel | halo::win32::k_mb_iconwarning));
     ShowCursor(0);
 
-    if (is_fatal != 0 || result == 2) {
+    if (is_fatal != 0 || answer == halo::win32::k_id_cancel) {
         ExitFlag::set_clean();
         shut_down_engine_services();
         ExitProcess(1);
     }
 
-    if (shell_window == 0) {
-        DestroyWindow((HWND)window);
-        UnregisterClassA("Halo", (HINSTANCE)shell_instance);
-    } else {
-        ShowWindow((HWND)shell_window, 5);
-    }
-
-    if (fatal_error_remember_choice != 0) {
-        make_remembered_name(registry_value_name, resource_id);
-        digit_text[0] = 'y';
-        digit_text[1] = (char)(result + '0');
-        digit_text[2] = 0;
-        digit_length = 0;
-        while (digit_text[digit_length] != 0) {
-            digit_length++;
-        }
-        SettingsStore::current().write_string(SettingsScope::user, registry_value_name, digit_text, digit_length + 1);
-        if (digit_text[0] != 0) {
-            result = digit_text[1] - '0';
-            safe_mode = result;
-            return result;
-        }
-    }
-
+    result = (answer == halo::win32::k_id_no) ? 1 : 0;
     if (result != 0) {
         safe_mode = 1;
     }

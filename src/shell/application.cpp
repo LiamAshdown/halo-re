@@ -1,4 +1,5 @@
 #include "halo/shell/application.hpp"
+#include "halo/shell/messages.hpp"
 #include "halo/shell/layout.hpp"
 #include "halo/shell/config.hpp"
 #include "halo/shell/diagnostics.hpp"
@@ -78,7 +79,6 @@ static auto &cpu_speed = halo::link::ref<uint32_t>(halo::shell::vars().cpu_speed
 static auto &required_cpu_speed = halo::link::ref<int32_t>(halo::shell::vars().required_cpu_speed);
 static auto &required_disk_space = halo::link::ref<int32_t>(halo::shell::vars().required_disk_space);
 static auto &shell_product_id = halo::link::ref<char *>(halo::networking::vars().shell_product_id);
-static auto &strings_dll_invalid_text = halo::link::ref<char [k_shell_strings_dll_error_length]>(halo::shell::vars().strings_dll_invalid_text);
 static auto &shell_stack_guard_page = halo::link::ref<void *>(halo::shell::vars().shell_stack_guard_page);
 static auto &shell_stack_guard_old_protect = halo::link::ref<uint32_t>(halo::shell::vars().shell_stack_guard_old_protect);
 static auto &game_cport = halo::link::ref<uint32_t>(halo::ui::vars().game_cport);
@@ -296,12 +296,12 @@ void Application::measure_machine()
 }
 
 /**
- * Shows the strings.dll usage text for -? or -help. Returns true when it was requested.
+ * Shows the command-line usage text for -? or -help. Returns true when it was requested.
  */
 bool Application::help_requested()
 {
     if (CommandLine::has_flag("-?", 0) || CommandLine::has_flag("-help", 0)) {
-        MessageBoxA(0, strings_dll_invalid_text, "Halo", 0);
+        MessageBoxA(0, halo::shell::shell_usage_text(), "Halo", 0);
         return true;
     }
     return false;
