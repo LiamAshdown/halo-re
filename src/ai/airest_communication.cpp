@@ -70,7 +70,7 @@ void AiCommunication::broadcast_communication_event(int16_t gate, real_point3d *
     leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, point);
     location.leaf_index = leaf;
     location.cluster_index = leaf == -1 ? -1 :
-        *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8);
+        (int16_t)halo::ai::reflexive_data<ScenarioStructureBSPLeaf>(global_structure_bsp_typed->leaves)[leaf & 0x7fffffff].cluster;
     if (halo::ai::globals().state->actors_valid) {
         iterator.filter_array = halo::ai::globals().encounter_data;
         iterator.next_index = 0;
@@ -1177,8 +1177,8 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                                            [previous & halo::k_slot_mask].data->parent_object;
                             } while (walk != (uint32_t)k_datum_index_none);
                         }
-                        self_cluster = *(int16_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)
-                                                        [previous & halo::k_slot_mask].data + 0x9c);
+                        self_cluster = ((object_header *)halo::objects::globals().object_data->data)
+                                                        [previous & halo::k_slot_mask].data->location_cluster_index;
                         walk = (uint32_t)player_unit;
                         previous = (uint32_t)k_datum_index_none;
                         while (walk != (uint32_t)k_datum_index_none) {
@@ -1186,8 +1186,8 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                             walk = (uint32_t)((object_header *)halo::objects::globals().object_data->data)
                                        [previous & halo::k_slot_mask].data->parent_object;
                         }
-                        player_cluster = *(int16_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)
-                                                          [previous & halo::k_slot_mask].data + 0x9c);
+                        player_cluster = ((object_header *)halo::objects::globals().object_data->data)
+                                                          [previous & halo::k_slot_mask].data->location_cluster_index;
                         if (self_cluster != -1 && player_cluster != -1) {
                         bitmap_row_dwords = (int32_t)(global_structure_bsp_typed->clusters.count + 0x1f) >> 5;
                         if ((((uint32_t *)(uintptr_t)global_structure_bsp_typed->cluster_data.pointer)
@@ -1221,9 +1221,9 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                         if (0.0001f < distance) {
                             player_object = ((object_header *)halo::objects::globals().object_data->data)
                                                 [player_unit & halo::k_slot_mask].data;
-                            facing = (((unit_data *)((uint8_t *)player_object + k_unit_data_offset))->aiming_vector.k * dz +
-                                      ((unit_data *)((uint8_t *)player_object + k_unit_data_offset))->aiming_vector.j * dy +
-                                      ((unit_data *)((uint8_t *)player_object + k_unit_data_offset))->aiming_vector.i * dx) / distance;
+                            facing = (halo::units::unit_data_of(player_object)->aiming_vector.k * dz +
+                                      halo::units::unit_data_of(player_object)->aiming_vector.j * dy +
+                                      halo::units::unit_data_of(player_object)->aiming_vector.i * dx) / distance;
                             if (0.70710677f < facing) {
                                 score = (0.7f - (1.0f - facing) * 3.4142134f * 0.35f) + score;
                             }
@@ -1773,7 +1773,7 @@ uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_
     if (!halo::ai::actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
         return 0;
     }
-    own_actor = *(datum_index *)(halo::ai::object_bytes(object_index) + 0x1f4);
+    own_actor = halo::units::unit_data_of(halo::ai::object_at(object_index))->actor_index;
     if (own_actor == k_datum_index_none || actor_index == k_datum_index_none) {
         return 0;
     }
@@ -1866,7 +1866,7 @@ uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t param_
     if (!halo::ai::actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
         return 0;
     }
-    own_actor = *(datum_index *)(halo::ai::object_bytes(object_index) + 0x1f4);
+    own_actor = halo::units::unit_data_of(halo::ai::object_at(object_index))->actor_index;
     if (own_actor == k_datum_index_none || actor_index == k_datum_index_none) {
         return 0;
     }
@@ -1973,34 +1973,33 @@ void AiCommunication::dispatch_queued_order(ai_queued_order *order, datum_index 
  */
 void AiCommunication::propagate_communication_reaction(datum_index object_index, ai_communication_order *order)
 {
-    uint8_t *o = (uint8_t *)order;
-    uint8_t *obj;
+    object *obj;
     int16_t object_team;
     object_marker marker;
     real_point3d position;
-    uint8_t *location;
+    bsp_leaf_reference *location;
     int16_t gate = 1;
-    int16_t row = *(int16_t *)(o + 0x6);
+    int16_t row = order->row;
     actor_iterator_state iterator;
     actor *a;
 
-    if (((struct actor_squad_order_header *)o)->type == 1) {
-        halo::ai::ai_mark_recognized_objects_for_reaction((int16_t)*(uint16_t *)(o + 0x18), (int16_t)*(uint16_t *)(o + 0x1a),
-                                                o[0x1c]);
+    if (order->order_type == 1) {
+        halo::ai::ai_mark_recognized_objects_for_reaction((int16_t)(uint16_t)order->team_a, (int16_t)(uint16_t)order->team_b,
+                                                order->status);
     }
-    if (((struct actor_squad_order_header *)o)->type == 0 && *(int16_t *)(o + 0xc) <= 0) {
+    if (order->order_type == 0 && order->count <= 0) {
         return;
     }
-    obj = halo::ai::object_bytes(object_index);
-    object_team = ((object *)obj)->owner_team;
-    location = obj + 0x98;
+    obj = halo::ai::object_at(object_index);
+    object_team = obj->owner_team;
+    location = reinterpret_cast<bsp_leaf_reference *>(&obj->location_leaf_index);
     halo::objects::object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1);
     position = marker.node_transform.position;
     if (row != -1 && reinterpret_cast<ai_communication_line_definition *>(ai_communication_lines)[row].class_index >= 4) {
         gate = 3;
     }
-    if (((object *)obj)->parent_object != k_datum_index_none) {
-        location = halo::ai::object_bytes(halo::objects::object_get_root_object_index(object_index)) + 0x98;
+    if (obj->parent_object != k_datum_index_none) {
+        location = reinterpret_cast<bsp_leaf_reference *>(&halo::ai::object_at(halo::objects::object_get_root_object_index(object_index))->location_leaf_index);
     }
     if (!halo::ai::globals().state->actors_valid) {
         return;
@@ -2111,7 +2110,7 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
                                                    (uint32_t)(uint16_t)comm_kind,
                                                    (uint32_t)(uint16_t)ai_communication_class_priority[comm_kind],
                                                    (uint32_t)(uint16_t)candidate_a, candidate_b, 0,
-                                                   *(int16_t *)((uint8_t *)halo::ai::object_at(param_a) + 0xb8));
+                                                   halo::ai::object_at(param_a)->owner_team);
                         } else if (target_kind == 3) {
                             vehicle_obj = (unit_object *)halo::objects::object_try_and_get(param_b, 3);
                             result = -1;

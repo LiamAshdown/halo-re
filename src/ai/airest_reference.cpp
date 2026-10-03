@@ -339,7 +339,7 @@ datum_index ReferenceView::build_object_list()
                 while (passenger != (datum_index)k_datum_index_none) {
                     object_header *passenger_header = &((object_header *)halo::objects::globals().object_data->data)[passenger & halo::k_slot_mask];
                     halo::hs::object_list_reference_add(header_index, passenger);
-                    passenger = *(datum_index *)((uint8_t *)passenger_header->data + 0x1fc);
+                    passenger = halo::units::unit_data_of(passenger_header->data)->swarm_next_unit_index;
                 }
 
                 a = halo::ai::ai_reference_actor_iterator_next(&iterator);

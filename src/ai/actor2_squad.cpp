@@ -1150,7 +1150,7 @@ void ActorOps::squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_
     if (occupant->base.type != 0) {
         return;
     }
-    actor = *(datum_index *)(halo::ai::object_bytes(other_object_index) + 0x1f4);
+    actor = halo::units::unit_data_of(halo::ai::object_at(other_object_index))->actor_index;
     if (actor != k_datum_index_none) {
         prop = halo::ai::actor_find_or_create_shared_prop(occupant_index, actor, 1, 0);
         if (prop != k_datum_index_none) {

@@ -149,7 +149,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
     actor *a;
 
     if (owner_actor == k_datum_index_none) {
-        owner_actor = *(datum_index *)(source + 0x1f4);
+        owner_actor = halo::units::unit_data_of(source)->actor_index;
     }
     if (((struct object *)source)->parent_object != k_datum_index_none) {
         location = halo::ai::object_bytes(halo::objects::object_get_root_object_index(source_unit_index)) + 0x98;

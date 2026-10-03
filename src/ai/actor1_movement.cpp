@@ -617,7 +617,7 @@ datum_index halo::ai::movement_ops::create_swarm()
                     component->marker_index = marker;
                 }
 
-                unit_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
+                unit_index = halo::units::unit_data_of(unit_object)->swarm_next_unit_index;
             }
         }
     }

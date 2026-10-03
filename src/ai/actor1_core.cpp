@@ -1080,7 +1080,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
             if (suppress_release == 0) {
                 halo::ai::actor_remove_from_unit_cluster(actor_index, unit_index);
             }
-            unit_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
+            unit_index = halo::units::unit_data_of(unit_object)->swarm_next_unit_index;
         }
         if (suppress_release != 0) {
             return;

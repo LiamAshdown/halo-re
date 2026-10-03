@@ -741,7 +741,7 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
                 object_header *header = &((object_header *)halo::objects::globals().object_data->data)[cluster_index & halo::k_slot_mask];
                 struct object *unit_object = header->data;
                 unit_object->vitality_flags |= halo::to_bits(halo::objects::vitality_flag::unknown_20);
-                cluster_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
+                cluster_index = halo::units::unit_data_of(unit_object)->swarm_next_unit_index;
             }
         }
     }

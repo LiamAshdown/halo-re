@@ -707,7 +707,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
             candidate = 0;
             candidate_index = (datum_index)k_datum_index_none;
             if (obj != 0) {
-                datum_index a = *(datum_index *)((uint8_t *)obj + 0x1f4);
+                datum_index a = halo::units::unit_data_of(obj)->actor_index;
                 if (a != (datum_index)k_datum_index_none) {
                     candidate = halo::ai::actor_at(a);
                     candidate_index = a;

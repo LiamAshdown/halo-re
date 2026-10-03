@@ -503,7 +503,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
 
                 if (driver_field != -1) {
 
-                    if (halo::game::teams_are_enemies(*(int16_t *)((uint8_t *)halo::ai::object_at(driver_field) + 0xb8),
+                    if (halo::game::teams_are_enemies(halo::ai::object_at(driver_field)->owner_team,
                                           self->team) == 0) {
                         self->danger_owner_relation = 1;
                     }
@@ -1054,7 +1054,7 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
         p->is_parented = static_cast<int32_t>(((struct object *)object)->owner_linkage) != -1;
 
         if (*(int32_t *)(object + 0x1f8) == -1) {
-            p->owner_actor_index = *(datum_index *)(object + 0x1f4);
+            p->owner_actor_index = halo::units::unit_data_of(object)->actor_index;
         } else {
             p->swarm_owned = 1;
             p->owner_actor_index = *(datum_index *)(object + 0x1f8);

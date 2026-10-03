@@ -2344,7 +2344,9 @@ typedef struct ai_queued_order {
 } ai_queued_order; // size 0x20
 
 typedef struct ai_communication_order {
-    uint8_t unknown_00[0xc];  // 0x00
+    uint8_t unknown_00[6];    // 0x00
+    int16_t row;              // 0x06 the communication line definition row, -1 for none
+    uint8_t unknown_08[4];    // 0x08
     int16_t count;            // 0x0c
     uint8_t unknown_0e[6];    // 0x0e
     int16_t order_type;       // 0x14 0 or 1
