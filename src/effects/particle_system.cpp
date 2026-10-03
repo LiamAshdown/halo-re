@@ -2,6 +2,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
+#include "halo/effects/particle_system_tags.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -30,7 +31,7 @@ static auto &particle_systems_enabled = halo::link::ref<uint8_t>(halo::effects::
 static auto &global_white_argb = halo::link::ref<const ColorARGB *>(halo::networking::vars().global_white_argb);
 static auto &global_white_color = halo::link::ref<const ColorRGB *>(halo::effects::vars().global_white_color);
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
-static auto &first_person_weapon_interfaces = halo::link::ref<uint8_t *>(halo::ui::vars().first_person_weapon_interfaces);
+static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
 static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &particle_creation_physics_table = halo::link::ref<void (*[3])(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker)>(halo::effects::vars().particle_creation_physics_table);
 
@@ -68,13 +69,11 @@ void particle_system_view::creation_physics_default(int32_t type_index, particle
 void particle_system_view::creation_physics_explosion(int32_t type_index, particle_system_particle *particle, object_marker *marker)
 {
     particle_system * system = record;
-    ParticleSystemType *particle_type = (ParticleSystemType *)((uint8_t *)
-        (*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[system->definition_index & halo::k_slot_mask].data + 0x60)) +
-        (int32_t)type_index * 0x80);
-    float *physics_constants = *(float **)&((struct ParticleSystemType *)particle_type)->physics_constants.pointer;
-    float k0 = physics_constants[0];
-    float k1 = physics_constants[1];
-    float k2 = physics_constants[2];
+    ParticleSystemType *particle_type = particle_system_type_at(system, type_index);
+    ParticleSystemPhysicsConstant *physics_constants = (ParticleSystemPhysicsConstant *)particle_type->physics_constants.pointer;
+    float k0 = physics_constants[0].k;
+    float k1 = physics_constants[1].k;
+    float k2 = physics_constants[2].k;
     real_point3d direction;
     float scaled_x, scaled_y, scaled_z;
 
@@ -114,13 +113,11 @@ void particle_system_view::creation_physics_explosion(int32_t type_index, partic
 void particle_system_view::creation_physics_jet(int32_t type_index, particle_system_particle *particle, object_marker *marker)
 {
     particle_system * system = record;
-    ParticleSystemType *particle_type = (ParticleSystemType *)((uint8_t *)
-        (*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[system->definition_index & halo::k_slot_mask].data + 0x60)) +
-        (int32_t)type_index * 0x80);
-    float *physics_constants = *(float **)&((struct ParticleSystemType *)particle_type)->physics_constants.pointer;
-    float k0 = physics_constants[0];
-    float k1 = physics_constants[1];
-    float k2 = physics_constants[2];
+    ParticleSystemType *particle_type = particle_system_type_at(system, type_index);
+    ParticleSystemPhysicsConstant *physics_constants = (ParticleSystemPhysicsConstant *)particle_type->physics_constants.pointer;
+    float k0 = physics_constants[0].k;
+    float k1 = physics_constants[1].k;
+    float k2 = physics_constants[2].k;
     float random_weight = k1 * k0 * 0.033333335f;
     float forward_weight = (1.0f - k1) * k0 * 0.033333335f;
     int16_t table_index;
@@ -162,8 +159,8 @@ void particle_system_ref::advance_particle_state(particle_system_particle *parti
     particle->next_state_index = next;
 
     if (next < 0 || (int32_t)type->particle_states.count <= next) {
-        if ((type->flags & 0x04) != 0 && 0 < (int32_t)type->particle_states.count) {
-            if ((type->flags & 0x08) == 0) {
+        if (particle_type_has(type, particle_type_flag::particle_states_loop) && 0 < (int32_t)type->particle_states.count) {
+            if (!particle_type_has(type, particle_type_flag::particle_states_ping_pong)) {
                 particle->next_state_index = 0;
                 return;
             }
@@ -208,9 +205,9 @@ void particle_system_view::advance_type_state(particle_system_type_state *state,
     state->next_state_index = next;
 
     if (next < 0 || (int32_t)type->states.count <= next) {
-        if ((type->flags & 0x01) != 0 && system->object_index != (datum_index)0xffffffff &&
+        if (particle_type_has(type, particle_type_flag::type_states_loop) && system->object_index != (datum_index)0xffffffff &&
             0 < (int32_t)type->states.count) {
-            if ((type->flags & 0x02) == 0) {
+            if (!particle_type_has(type, particle_type_flag::type_states_ping_pong)) {
                 state->next_state_index = 0;
                 return;
             }
@@ -318,8 +315,8 @@ datum_index particle_system_ref::new_on_marker(uint32_t definition_index, uint32
         handle = halo::memory::datum_new(particle_system_data);
         if (handle != (datum_index)0xffffffff) {
             object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
-            ObjectAttachment *attachment = (ObjectAttachment *)(*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[
-                obj->definition_tag & halo::k_slot_mask].data + 0x144) + attachment_index * 0x48);
+            Object *object_definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
+            ObjectAttachment *attachment = (ObjectAttachment *)object_definition->attachments.pointer + attachment_index;
             particle_system *system =
                 &((particle_system *)particle_system_data->data)[handle & halo::k_slot_mask];
             object_marker marker;
@@ -385,8 +382,7 @@ uint8_t particle_system_ref::new_type_states()
     leaf_index = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &system->position);
     system->location.leaf_index = leaf_index;
     system->location.cluster_index = (leaf_index == -1) ? (int16_t)0xffff :
-        *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer +
-                      (leaf_index & 0x7fffffff) * 0x10 + 8);
+        (int16_t)((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf_index & 0x7fffffff].cluster;
     system->flags |= _particle_system_in_update_bit;
 
     if (0 < (int32_t)definition->particle_types.count) {
@@ -444,28 +440,30 @@ static float particle_clamp01(float value)
 /**
  * One group of sprites for one state: bitmap/shader from `state_definition`, drawn with `weight`.
  */
-static void particle_build_state_sprite(uint8_t *type, uint8_t *state_definition, uint8_t *current_state, int32_t frame,
-    real_point3d *position, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float weight)
+static void particle_build_state_sprite(ParticleSystemType *type, ParticleSystemTypeParticleState *state_definition,
+    ParticleSystemTypeParticleState *current_state, int32_t frame, real_point3d *position, real_vector3d *direction,
+    float rotation, float scale, ColorARGB *color, float weight)
 {
     build_sprite_data data;
     uint32_t mode;
+    uint8_t *shader_block = particle_state_shader_block(state_definition);
 
-    data.bitmap_group_index = *(datum_index *)(state_definition + 0x3c);
+    data.bitmap_group_index = *(datum_index *)&state_definition->bitmaps.tag_id;
     data.maximum_sprite_count = 2;
-    data.shader = (uint32_t)(state_definition + 0xb8);
+    data.shader = (uint32_t)(uintptr_t)shader_block;
     data.sprite_count = 0;
     data.flags = 4;
     data.centroid = *global_zero_vector3d_pointer;
     data.group_count = 0;
-    if (*(int16_t *)(type + 0x28) == 1) {
-        mode = (type[0x20] & 0x80) ? 3 : 1;
-        halo::render::build_sprite_rotational(&data, mode, (int16_t)*(uint16_t *)(state_definition + 0x40), (int16_t)frame, position,
+    if (type->complex_sprite_render_mode == 1) {
+        mode = particle_type_has(type, particle_type_flag::rotational_sprites_animate_sideways) ? 3 : 1;
+        halo::render::build_sprite_rotational(&data, mode, (int16_t)state_definition->sequence_index, (int16_t)frame, position,
             direction, rotation, scale, color, weight);
     } else {
-        halo::render::build_sprite(&data, *(int16_t *)(state_definition + 0x40), (int16_t)frame, (int16_t)*(uint16_t *)(type + 0x2a),
+        halo::render::build_sprite(&data, (int16_t)state_definition->sequence_index, (int16_t)frame, (int16_t)particle_type_sprite_parameter(type),
             position, direction, rotation, scale, color, weight, 1);
     }
-    *(uint32_t *)((uint8_t *)data.shader + 0x98) = *(uint32_t *)(current_state + 0x80);
+    *(float *)(particle_state_shader_block(state_definition) + k_particle_shader_average_radius_offset) = current_state->radius_multiplier;
     halo::render::build_sprites_end(&data);
 }
 
@@ -477,26 +475,26 @@ static void particle_build_state_sprite(uint8_t *type, uint8_t *state_definition
 void particle_system_ref::render()
 {
     datum_index particle_system_handle = datum;
-    uint8_t *system = (uint8_t *)particle_system_data->data + (particle_system_handle & halo::k_slot_mask) * 0x158;
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[((particle_system *)system)->definition_index & halo::k_slot_mask].data;
+    particle_system *system = &((particle_system *)particle_system_data->data)[particle_system_handle & halo::k_slot_mask];
+    ParticleSystem *definition = particle_system_definition(system);
     int16_t type_index;
 
-    for (type_index = 0; type_index < *(int32_t *)(definition + 0x5c); type_index++) {
-        uint8_t *type = *(uint8_t **)(definition + 0x60) + type_index * 0x80;
-        uint8_t *type_state = system + 0x58 + type_index * 0x40;
+    for (type_index = 0; type_index < (int32_t)definition->particle_types.count; type_index++) {
+        ParticleSystemType *type = particle_system_type_at(definition, type_index);
+        particle_system_type_state *type_state = &system->type_states[type_index];
         uint16_t particle_index;
 
-        if (*(int16_t *)type_state == -1 || (*(uint32_t *)(type + 0x20) & 0x100)) {
+        if (type_state->state_index == -1 || particle_type_has(type, particle_type_flag::disabled)) {
             continue;
         }
-        for (particle_index = ((struct particle_system_type_state *)type_state)->first_particle; particle_index != halo::k_word_none; ) {
-            uint8_t *particle = (uint8_t *)particle_system_particle_data->data + particle_index * 0x80;
-            int16_t cluster = ((struct particle_system_particle *)particle)->location.cluster_index;
+        for (particle_index = type_state->first_particle; particle_index != halo::k_word_none; ) {
+            particle_system_particle *particle = &((particle_system_particle *)particle_system_particle_data->data)[particle_index];
+            int16_t cluster = particle->location.cluster_index;
 
-            if (particle[3] && (halo::structures::globals().cluster_visible_bits[cluster >> 5] & (1u << (cluster & 0x1f)))) {
-                uint8_t *states = *(uint8_t **)(type + 0x78);
-                uint8_t *current = states + *(int16_t *)(particle + 8) * 0x178;
-                uint8_t *next = 0;
+            if (particle->active && (halo::structures::globals().cluster_visible_bits[cluster >> 5] & (1u << (cluster & 0x1f)))) {
+                ParticleSystemTypeParticleState *states = (ParticleSystemTypeParticleState *)type->particle_states.pointer;
+                ParticleSystemTypeParticleState *current = &states[particle->state_index];
+                ParticleSystemTypeParticleState *next = 0;
                 real_point3d position;
                 real_vector3d direction;
                 float fraction = 1.0f;
@@ -504,70 +502,65 @@ void particle_system_ref::render()
                 float scale;
                 float color[4];
                 float drawn[4];
-                uint8_t *bitmap;
-                uint8_t *sequence;
+                Bitmap *bitmap;
+                BitmapGroupSequence *sequence;
                 int16_t sequence_index;
                 int32_t frame;
-                float vx = *(float *)(particle + 0x34);
-                float vy = *(float *)(particle + 0x38);
-                float vz = *(float *)(particle + 0x3c);
-                float *m = (float *)&halo::render::globals().camera_world_to_view;
+                float vx = particle->direction.i;
+                float vy = particle->direction.j;
+                float vz = particle->direction.k;
+                const real_matrix4x3 &view = halo::render::globals().camera_world_to_view;
 
-                halo::math::matrix4x3_transform_point(position, *(real_point3d *)(particle + 0x1c), halo::render::globals().camera_world_to_view);
-                direction.i = vx * m[1] + vy * m[4] + vz * m[7];
-                direction.j = vx * m[2] + vy * m[5] + vz * m[8];
-                direction.k = vx * m[3] + vy * m[6] + vz * m[9];
+                halo::math::matrix4x3_transform_point(position, particle->position, halo::render::globals().camera_world_to_view);
+                direction.i = vx * view.forward.i + vy * view.left.i + vz * view.up.i;
+                direction.j = vx * view.forward.j + vy * view.left.j + vz * view.up.j;
+                direction.k = vx * view.forward.k + vy * view.left.k + vz * view.up.k;
 
-                if (((struct particle_system_particle *)particle)->next_state_index == -1) {
-                    scale = ((struct particle_system_particle *)particle)->values.scale * ((struct particle_system_type_state *)type_state)->scale;
-                    color[0] = ((struct particle_system_particle *)particle)->values.color.alpha * ((struct particle_system_type_state *)type_state)->color.alpha;
-                    color[1] = ((struct particle_system_particle *)particle)->values.color.red * ((struct particle_system_type_state *)type_state)->color.red;
-                    color[2] = ((struct particle_system_particle *)particle)->values.color.green * ((struct particle_system_type_state *)type_state)->color.green;
-                    color[3] = ((struct particle_system_particle *)particle)->values.color.blue * ((struct particle_system_type_state *)type_state)->color.blue;
+                if (particle->next_state_index == -1) {
+                    scale = particle->values.scale * type_state->scale;
+                    color[0] = particle->values.color.alpha * type_state->color.alpha;
+                    color[1] = particle->values.color.red * type_state->color.red;
+                    color[2] = particle->values.color.green * type_state->color.green;
+                    color[3] = particle->values.color.blue * type_state->color.blue;
                 } else {
-                    next = states + ((struct particle_system_particle *)particle)->next_state_index * 0x178;
-                    fraction = particle_clamp01(((struct particle_system_particle *)particle)->state_time_remaining / ((struct particle_system_particle *)particle)->state_duration);
+                    next = &states[particle->next_state_index];
+                    fraction = particle_clamp01(particle->state_time_remaining / particle->state_duration);
                     inverse = 1.0f - fraction;
-                    scale = (inverse * ((struct particle_system_particle *)particle)->next_values.scale + fraction * ((struct particle_system_particle *)particle)->values.scale) *
-                        ((struct particle_system_type_state *)type_state)->scale;
-                    color[0] = (inverse * ((struct particle_system_particle *)particle)->next_values.color.alpha + fraction * ((struct particle_system_particle *)particle)->values.color.alpha) *
-                        ((struct particle_system_type_state *)type_state)->color.alpha;
-                    color[1] = (inverse * ((struct particle_system_particle *)particle)->next_values.color.red + fraction * ((struct particle_system_particle *)particle)->values.color.red) *
-                        ((struct particle_system_type_state *)type_state)->color.red;
-                    color[2] = (inverse * ((struct particle_system_particle *)particle)->next_values.color.green + fraction * ((struct particle_system_particle *)particle)->values.color.green) *
-                        ((struct particle_system_type_state *)type_state)->color.green;
-                    color[3] = (inverse * ((struct particle_system_particle *)particle)->next_values.color.blue + fraction * ((struct particle_system_particle *)particle)->values.color.blue) *
-                        ((struct particle_system_type_state *)type_state)->color.blue;
-                    if (*(int16_t *)(current + 0xb8 + 0x2a) == *(int16_t *)(next + 0xb8 + 0x2a) &&
-                        *(int16_t *)(current + 0xb8 + 0x2e) == *(int16_t *)(next + 0xb8 + 0x2e) &&
-                        *(int16_t *)(current + 0x40) == *(int16_t *)(next + 0x40)) {
+                    scale = (inverse * particle->next_values.scale + fraction * particle->values.scale) * type_state->scale;
+                    color[0] = (inverse * particle->next_values.color.alpha + fraction * particle->values.color.alpha) * type_state->color.alpha;
+                    color[1] = (inverse * particle->next_values.color.red + fraction * particle->values.color.red) * type_state->color.red;
+                    color[2] = (inverse * particle->next_values.color.green + fraction * particle->values.color.green) * type_state->color.green;
+                    color[3] = (inverse * particle->next_values.color.blue + fraction * particle->values.color.blue) * type_state->color.blue;
+                    if (current->framebuffer_blend_function == next->framebuffer_blend_function &&
+                        current->bitmap_flags == next->bitmap_flags &&
+                        current->sequence_index == next->sequence_index) {
                         fraction = 1.0f;
                         inverse = 0.0f;
                     }
                 }
 
-                bitmap = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)(current + 0x3c) & halo::k_slot_mask].data;
-                sequence_index = *(int16_t *)(current + 0x40);
-                if (*(int16_t *)(type + 0x28) == 1) {
+                bitmap = (Bitmap *)halo::cache::globals().tag_instances[*(datum_index *)&current->bitmaps.tag_id & halo::k_slot_mask].data;
+                sequence_index = (int16_t)current->sequence_index;
+                if (type->complex_sprite_render_mode == 1) {
                     sequence_index++;
                 }
-                sequence = *(uint8_t **)(bitmap + 0x58) + sequence_index * 0x40;
-                if (((struct particle_system_particle *)particle)->frame == 0xbf800000) {
-                    int16_t count = *(int16_t *)(sequence + 0x34);
+                sequence = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer + sequence_index;
+                if (particle->frame == -1.0f) {
+                    int16_t count = (int16_t)sequence->sprites.count;
                     int16_t picked;
 
                     halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
                     picked = (int16_t)(((uint32_t)count * (halo::math::globals().effect_random_seed >> 0x10)) >> 0x10);
-                    ((struct particle_system_particle *)particle)->frame = (float)picked;
+                    particle->frame = (float)picked;
                     frame = picked;
                 } else {
-                    int32_t value = (int16_t)(int32_t)((struct particle_system_particle *)particle)->frame;
-                    int32_t remainder = value % *(int32_t *)(sequence + 0x34);
+                    int32_t value = (int16_t)(int32_t)particle->frame;
+                    int32_t remainder = value % (int32_t)sequence->sprites.count;
 
                     frame = remainder;
                     if ((int16_t)remainder < 0) {
                         frame = (int32_t)(((uint32_t)remainder & 0xffff0000u) |
-                            (uint16_t)((int16_t)remainder + *(int16_t *)(sequence + 0x34)));
+                            (uint16_t)((int16_t)remainder + (int16_t)sequence->sprites.count));
                     }
                 }
 
@@ -576,30 +569,30 @@ void particle_system_ref::render()
                     drawn[1] = color[1];
                     drawn[2] = color[2];
                     drawn[3] = color[3];
-                    if (*(int16_t *)(current + 0xe2) == 0) {
-                        drawn[1] *= *(float *)&((particle_system *)system)->ambient_color;
-                        drawn[2] *= ((struct particle_system *)system)->ambient_color.green;
-                        drawn[3] *= ((struct particle_system *)system)->ambient_color.blue;
+                    if (current->framebuffer_blend_function == 0) {
+                        drawn[1] *= system->ambient_color.red;
+                        drawn[2] *= system->ambient_color.green;
+                        drawn[3] *= system->ambient_color.blue;
                     }
                     particle_build_state_sprite(type, current, current, frame, &position, &direction,
-                        ((struct particle_system_particle *)particle)->rotation, scale, (ColorARGB *)drawn, fraction);
+                        particle->rotation, scale, (ColorARGB *)drawn, fraction);
                 }
                 if (inverse > 0.01f) {
                     drawn[0] = color[0];
                     drawn[1] = color[1];
                     drawn[2] = color[2];
                     drawn[3] = color[3];
-                    if (*(int16_t *)(current + 0xe2) == 0) {
-                        drawn[1] *= *(float *)&((particle_system *)system)->ambient_color;
-                        drawn[2] *= ((struct particle_system *)system)->ambient_color.green;
-                        drawn[3] *= ((struct particle_system *)system)->ambient_color.blue;
+                    if (current->framebuffer_blend_function == 0) {
+                        drawn[1] *= system->ambient_color.red;
+                        drawn[2] *= system->ambient_color.green;
+                        drawn[3] *= system->ambient_color.blue;
                     }
                     position.z += 0.001f;
                     particle_build_state_sprite(type, next, current, frame, &position, &direction,
-                        ((struct particle_system_particle *)particle)->rotation, scale, (ColorARGB *)drawn, inverse);
+                        particle->rotation, scale, (ColorARGB *)drawn, inverse);
                 }
             }
-            particle_index = *(uint16_t *)(particle + 4);
+            particle_index = (uint16_t)particle->next_particle;
         }
     }
 }
@@ -612,7 +605,7 @@ static int16_t particle_leaf_cluster(uint32_t leaf)
     if (leaf == halo::k_dword_none) {
         return -1;
     }
-    return *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8);
+    return (int16_t)((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf & 0x7fffffff].cluster;
 }
 
 /**
@@ -626,40 +619,40 @@ void particle_system_ref::resolve_local_players()
 
     for (handle = halo::memory::datum_next(-1, particle_system_data); handle != k_datum_index_none;
          handle = halo::memory::datum_next((int16_t)handle, particle_system_data)) {
-        uint8_t *system = (uint8_t *)particle_system_data->data + (handle & halo::k_slot_mask) * 0x158;
-        uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[((particle_system *)system)->definition_index & halo::k_slot_mask].data;
+        particle_system *system = &((particle_system *)particle_system_data->data)[handle & halo::k_slot_mask];
+        ParticleSystem *definition = particle_system_definition(system);
         int32_t type_index;
 
-        if (((particle_system *)system)->object_index != k_datum_index_none) {
-            halo::objects::object_get_root_location((int32_t *)(system + 0x18), ((particle_system *)system)->object_index);
+        if (system->object_index != k_datum_index_none) {
+            halo::objects::object_get_root_location((int32_t *)&system->location, system->object_index);
         } else {
-            uint32_t leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)(system + 0x20));
+            uint32_t leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &system->position);
             int16_t cluster = particle_leaf_cluster(leaf);
 
-            *(uint32_t *)&((particle_system *)system)->location.leaf_index = leaf;
-            ((particle_system *)system)->location.cluster_index = cluster;
+            *(uint32_t *)&system->location.leaf_index = leaf;
+            system->location.cluster_index = cluster;
             if (cluster == -1) {
                 halo::effects::particle_system_delete(handle);
                 continue;
             }
         }
-        for (type_index = 0; type_index < *(int32_t *)(definition + 0x5c); type_index++) {
-            datum_index *link = (datum_index *)(system + 0x94 + type_index * 0x40);
+        for (type_index = 0; type_index < (int32_t)definition->particle_types.count; type_index++) {
+            datum_index *link = &system->type_states[type_index].first_particle;
 
             while (*link != k_datum_index_none) {
-                uint8_t *particle = (uint8_t *)particle_system_particle_data->data + (*link & halo::k_slot_mask) * 0x80;
-                uint32_t leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)(particle + 0x1c));
+                particle_system_particle *particle = &((particle_system_particle *)particle_system_particle_data->data)[*link & halo::k_slot_mask];
+                uint32_t leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &particle->position);
                 int16_t cluster = particle_leaf_cluster(leaf);
 
-                *(uint32_t *)&((particle_system_particle *)particle)->location.leaf_index = leaf;
-                ((particle_system_particle *)particle)->location.cluster_index = cluster;
+                *(uint32_t *)&particle->location.leaf_index = leaf;
+                particle->location.cluster_index = cluster;
                 if (cluster == -1) {
                     datum_index doomed = *link;
 
                     halo::memory::datum_delete(particle_system_particle_data, doomed);
-                    *link = ((particle_system_particle *)particle)->next_particle;
+                    *link = particle->next_particle;
                 } else {
-                    link = (datum_index *)(particle + 4);
+                    link = &particle->next_particle;
                 }
             }
         }
@@ -712,15 +705,12 @@ static real particle_roll(void)
  */
 void particle_system_view::spawn(int32_t type_index, float dt)
 {
-    particle_system * system_record = record;
-    uint8_t *system = (uint8_t *)system_record;
-    uint8_t *type_state = system + 0x58 + (int16_t)type_index * 0x40;
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[((struct particle_system *)system)->definition_index & halo::k_slot_mask].data;
-    uint8_t *type = *(uint8_t **)(definition + 0x60) + (int16_t)type_index * 0x80;
-    uint8_t initial = (uint8_t)((((struct particle_system *)system)->flags >> 1) & 1);
-    uint8_t *state = initial ? 0 : *(uint8_t **)(type + 0x6c) + *(int16_t *)type_state * 0xc0;
-    uint32_t type_flags = *(uint32_t *)(type + 0x20);
-    datum_index object_index = ((struct particle_system *)system)->object_index;
+    particle_system *system = record;
+    particle_system_type_state *type_state = &system->type_states[(int16_t)type_index];
+    ParticleSystemType *type = particle_system_type_at(system, (int16_t)type_index);
+    bool initial = (system->flags & _particle_system_in_update_bit) != 0;
+    ParticleSystemTypeStates *state = initial ? 0 : &((ParticleSystemTypeStates *)type->states.pointer)[type_state->state_index];
+    datum_index object_index = system->object_index;
     object_marker markers[8];
     int16_t locality;
     int16_t target;
@@ -729,98 +719,97 @@ void particle_system_view::spawn(int32_t type_index, float dt)
 
     locality = (int16_t)halo::effects::player_weapon_locality_for_object(object_index);
     if (locality != 0) {
-        if (type_flags & 0x20000) {
+        if (particle_type_has(type, particle_type_flag::do_not_draw_in_third_person)) {
             if (locality == -1 || !halo::render::render_local_player_gunner_seat_visible(halo::interface::globals().current_local_player_index)) {
                 return;
             }
         }
-        if ((type_flags & 0x10000) && locality == 1 && halo::render::render_local_player_gunner_seat_visible(halo::interface::globals().current_local_player_index)) {
+        if (particle_type_has(type, particle_type_flag::do_not_draw_in_first_person) && locality == 1 && halo::render::render_local_player_gunner_seat_visible(halo::interface::globals().current_local_player_index)) {
             return;
         }
     }
 
     if (initial) {
-        if (type_flags & 0x400) {
-            target = (int16_t)(int32_t)((double)*(int16_t *)(type + 0x24) * ((struct particle_system *)system)->scale + 0.5);
+        if (particle_type_has(type, particle_type_flag::initial_count_scales_with_effect)) {
+            target = (int16_t)(int32_t)((double)(int16_t)type->initial_particle_count * system->scale + 0.5);
         } else {
-            target = *(int16_t *)(type + 0x24);
+            target = (int16_t)type->initial_particle_count;
         }
     } else {
-        double amount = (double)dt * ((struct particle_system_type_state *)type_state)->particle_creation_rate;
+        double amount = (double)dt * type_state->particle_creation_rate;
         int32_t whole = (int32_t)amount;
-        double accumulated = amount - (double)whole + ((struct particle_system_type_state *)type_state)->creation_fraction;
+        double accumulated = amount - (double)whole + type_state->creation_fraction;
 
-        target = (int16_t)(((struct particle_system_type_state *)type_state)->particle_count + whole);
-        ((struct particle_system_type_state *)type_state)->creation_fraction = (float)accumulated;
+        target = (int16_t)(type_state->particle_count + whole);
+        type_state->creation_fraction = (float)accumulated;
         if (accumulated > 1.0) {
             target = (int16_t)(target + 1);
-            ((struct particle_system_type_state *)type_state)->creation_fraction = (float)(accumulated - 1.0);
+            type_state->creation_fraction = (float)(accumulated - 1.0);
         }
     }
     if (particle_systems_enabled == 1) {
         target = (int16_t)(int32_t)((double)target * 0.5);
     }
-    if (((struct particle_system_type_state *)type_state)->particle_count < target) {
+    if (type_state->particle_count < target) {
         if (object_index != k_datum_index_none) {
-            uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
-            uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & halo::k_slot_mask].data;
-            char *marker_name = (char *)(*(uint8_t **)&((struct Object *)object_tag)->attachments.pointer + ((struct particle_system *)system)->attachment_index * 0x48 + 0x10);
+            object *owner = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
+            Object *object_tag = (Object *)halo::cache::globals().tag_instances[owner->definition_tag & halo::k_slot_mask].data;
+            char *marker_name = (char *)((ObjectAttachment *)object_tag->attachments.pointer + system->attachment_index)->marker.string;
 
             marker_count = (int16_t)halo::objects::object_get_node_local_transform(object_index, marker_name, markers, 8);
-            halo::objects::object_get_root_location((int32_t *)(system + 0x18), object_index);
+            halo::objects::object_get_root_location((int32_t *)&system->location, object_index);
             if (marker_count == 0) {
-                datum_index weapon = *(datum_index *)(first_person_weapon_interfaces + halo::interface::globals().current_local_player_index * 0x1ea0 + 8);
+                datum_index weapon = first_person_weapon_interfaces[halo::interface::globals().current_local_player_index].weapon_index;
 
                 if (weapon != k_datum_index_none) {
                     marker_count = (int16_t)halo::interface::first_person_weapon_get_marker_data(weapon, marker_name, markers, 8);
-                    halo::objects::object_get_root_location((int32_t *)(system + 0x18), weapon);
+                    halo::objects::object_get_root_location((int32_t *)&system->location, weapon);
                 }
             }
         } else {
-            markers[0].node_transform.position = *(real_point3d *)&((struct particle_system *)system)->position.x;
-            *(real_vector3d *)((uint8_t *)&markers[0] + 0x3c) = *global_origin3d_pointer;
+            markers[0].node_transform.position = system->position;
+            markers[0].node_transform.forward = *global_origin3d_pointer;
             marker_count = 1;
         }
 
-        if (((struct particle_system *)system)->location.cluster_index != -1 && ((struct particle_system_type_state *)type_state)->particle_count < target) {
+        if (system->location.cluster_index != -1 && type_state->particle_count < target) {
             for (spawned = 0; marker_count != 0 && spawned < 0x80; ) {
                 datum_index handle = halo::memory::datum_new(particle_system_particle_data);
-                uint8_t *particle;
+                particle_system_particle *particle;
                 int16_t physics;
                 int16_t marker_index;
 
                 if (handle == k_datum_index_none) {
                     break;
                 }
-                particle = (uint8_t *)particle_system_particle_data->data + (handle & halo::k_slot_mask) * 0x80;
-                physics = initial ? *(int16_t *)(type + 0x54) : *(int16_t *)(state + 0xb0);
-                ((struct particle_system_particle *)particle)->state_index = -1;
-                ((struct particle_system_particle *)particle)->next_state_index = -1;
-                particle[3] = 1;
-                particle[2] = 1;
-                ((struct particle_system_particle *)particle)->frame = -1.0f;
-                ((struct particle_system_particle *)particle)->rotation = particle_roll() * 6.2831855f;
+                particle = &((particle_system_particle *)particle_system_particle_data->data)[handle & halo::k_slot_mask];
+                physics = initial ? (int16_t)type->particle_creation_physics : (int16_t)state->particle_creation_physics;
+                particle->state_index = -1;
+                particle->next_state_index = -1;
+                particle->active = 1;
+                particle->ping_pong_forward = 1;
+                particle->frame = -1.0f;
+                particle->rotation = particle_roll() * 6.2831855f;
                 halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
                 marker_index = (int16_t)(((halo::math::globals().effect_random_seed >> 0x10) * (uint32_t)(int32_t)marker_count) >> 0x10);
-                particle_creation_physics_table[physics](system_record, type_index, (particle_system_particle *)particle,
-                    &markers[marker_index]);
-                halo::scenario::location_view((bsp_leaf_reference *)(particle + 0x14)).from_point((real_point3d *)(particle + 0x1c));
-                if (((struct particle_system_particle *)particle)->location.cluster_index != -1) {
-                    ((struct particle_system_type_state *)type_state)->particle_count += 1;
-                    ((struct particle_system_particle *)particle)->next_particle = ((struct particle_system_type_state *)type_state)->first_particle;
-                    ((struct particle_system_type_state *)type_state)->first_particle = handle;
+                particle_creation_physics_table[physics](system, type_index, particle, &markers[marker_index]);
+                halo::scenario::location_view(&particle->location).from_point(&particle->position);
+                if (particle->location.cluster_index != -1) {
+                    type_state->particle_count += 1;
+                    particle->next_particle = type_state->first_particle;
+                    type_state->first_particle = handle;
                 } else {
                     halo::memory::datum_delete(particle_system_particle_data, handle);
                 }
                 spawned++;
-                if (((struct particle_system_type_state *)type_state)->particle_count >= target) {
+                if (type_state->particle_count >= target) {
                     break;
                 }
             }
         }
     }
-    if ((float)((struct particle_system_type_state *)type_state)->particle_count < ((struct particle_system_type_state *)type_state)->minimum_particle_count) {
-        *(float *)(type_state + 4) = *(float *)(type_state + 4) * 0.3f;
+    if ((float)type_state->particle_count < type_state->minimum_particle_count) {
+        type_state->state_time_remaining = type_state->state_time_remaining * 0.3f;
     }
 }
 
@@ -904,7 +893,7 @@ void particle_system_ref::render_all()
 
         if (system->location.cluster_index != -1) {
             int16_t cluster = system->location.cluster_index;
-            uint32_t *visible_clusters = (uint32_t *)((uint8_t *)halo::game::globals().local_player_globals + 0x58);
+            uint32_t *visible_clusters = &halo::game::globals().local_player_globals->cluster_pvs[0x10];
 
             if ((visible_clusters[cluster >> 5] & (1u << (cluster & 0x1f))) != 0) {
                 halo::effects::particle_system_render(system_index);
@@ -943,12 +932,9 @@ void particle_system_view::update_physics_default(int16_t type_index, real dt, p
 {
     particle_system * system = record;
     {
-        ParticleSystemType *particle_type = (ParticleSystemType *)((uint8_t *)
-            (*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[system->definition_index & halo::k_slot_mask].data + 0x60)) +
-            (int32_t)type_index * 0x80);
+        ParticleSystemType *particle_type = particle_system_type_at(system, type_index);
         particle_system_type_state *type_state = &system->type_states[type_index];
-        ParticleSystemTypeParticleState *states = (ParticleSystemTypeParticleState *)
-            (*(uint8_t **)&((struct ParticleSystemType *)particle_type)->particle_states.pointer);
+        ParticleSystemTypeParticleState *states = (ParticleSystemTypeParticleState *)particle_type->particle_states.pointer;
         ParticleSystemTypeParticleState *state = &states[particle->state_index];
         real radius;
         PointPhysics *physics;
@@ -981,9 +967,9 @@ void particle_system_view::update_physics_default(int16_t type_index, real dt, p
             &particle->location, (uint32_t)-1, &particle->position, (real_vector3d *)0,
             (real_vector3d *)0, (int16_t *)0, radius, dt);
 
-        if (((collision_flags & 1) != 0 && (particle_type->flags & 0x20) != 0) ||
-            ((collision_flags & 2) != 0 && (particle_type->flags & 0x10) != 0) ||
-            ((collision_flags & 4) != 0 && (particle_type->flags & 0x40) != 0)) {
+        if (((collision_flags & 1) != 0 && particle_type_has(particle_type, particle_type_flag::particles_die_in_air)) ||
+            ((collision_flags & 2) != 0 && particle_type_has(particle_type, particle_type_flag::particles_die_in_water)) ||
+            ((collision_flags & 4) != 0 && particle_type_has(particle_type, particle_type_flag::particles_die_on_ground))) {
             particle->active = 0;
         }
     }
