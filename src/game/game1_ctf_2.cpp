@@ -74,7 +74,7 @@ extern void game_engine_ctf_player_drop_flag(uint32_t player_index, datum_index 
 namespace halo::game::engine1 {
 
 /**
- * Implements game engine ctf pick random flag.
+ * Picks a random flag index other than the excluded one.
  *
  * @address 0x46dfe0
  */
@@ -151,7 +151,7 @@ uint8_t Ctf::read_changed(void **context, void *changed_base, void *destination)
 }
 
 /**
- * Implements game engine ctf profile post update.
+ * Decodes the capture-the-flag part of a player profile update message.
  *
  * @address 0x469d10
  */
@@ -191,7 +191,7 @@ void Ctf::profile_post_update(void **context)
 }
 
 /**
- * Implements game engine ctf profiles updated.
+ * Broadcasts the capture-the-flag profile state to a machine after profiles changed.
  *
  * @address 0x469bf0
  */
@@ -233,7 +233,7 @@ void Ctf::profiles_updated(int32_t mode, int32_t machine_index)
 }
 
 /**
- * Implements game engine ctf reset objects.
+ * Capture-the-flag reset-objects callback: puts every flag back to its stand.
  *
  * @address 0x46a010
  */
@@ -351,7 +351,7 @@ void Ctf::score_flag(uint32_t team, int32_t scenario_flag_index)
 }
 
 /**
- * Implements game engine ctf unknown 48.
+ * Capture-the-flag engine definition slot +0x48.
  *
  * @address 0x469180
  */
@@ -391,7 +391,7 @@ void Ctf::unknown_48(void)
 }
 
 /**
- * Implements game engine ctf unknown 60.
+ * Capture-the-flag engine definition slot +0x60: a unit and item query.
  *
  * @address 0x469270
  */
@@ -412,7 +412,8 @@ uint8_t Ctf::unknown_60(datum_index unit_index, datum_index item_index)
 }
 
 /**
- * Implements game engine ctf update.
+ * Capture-the-flag per-player update callback: lets a unit carrying the enemy flag touch its own flag and drop
+ * the carried one.
  *
  * @address 0x468a20
  */

@@ -206,7 +206,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
 }
 
 /**
- * Implements game engine apply player interaction message.
+ * Applies a received player interaction message.
  *
  * Original register convention: EAX -> envelope.
  *
@@ -274,7 +274,7 @@ uint8_t Notifications::apply_player_interaction_message(void **envelope)
 }
 
 /**
- * Implements game engine apply player spawn loadout message.
+ * Applies a received player spawn loadout message.
  *
  * Original register convention: EAX -> envelope.
  *
@@ -389,7 +389,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
 }
 
 /**
- * Implements game engine client apply team assignment.
+ * Applies a team assignment received by a client.
  *
  * Original register convention: EAX -> envelope.
  *
@@ -412,7 +412,7 @@ void Notifications::client_apply_team_assignment(void **envelope)
 }
 
 /**
- * Implements game engine dispatch end game notification.
+ * Dispatches an end-of-game notification event.
  *
  * Original register convention: EAX -> event, ECX -> stage.
  *
@@ -469,7 +469,7 @@ void Notifications::dispatch_item_pickup_event(int32_t machine_id, int32_t picke
 }
 
 /**
- * Implements game engine get multiplayer sound duration ticks.
+ * Returns the duration in ticks of an announcer sound of the multiplayer globals.
  *
  * Original register convention: EAX -> sound_index.
  *
@@ -525,7 +525,7 @@ void Notifications::handle_sound_status_event(void *event)
 }
 
 /**
- * Implements game engine multiplayer sound queue tick.
+ * Per-tick service of the multiplayer announcer sound queue.
  *
  * @address 0x46bd80
  */

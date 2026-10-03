@@ -30,7 +30,7 @@ extern network_id_table *object_network_id_table;
 namespace halo::game::engine1 {
 
 /**
- * Implements game engine notify object value event.
+ * Sends an object value event to the machines that need it.
  *
  * Original register convention: EAX -> value_byte, ECX -> hash_key, EDI -> machine_index, stack -> subject.
  *
@@ -64,7 +64,7 @@ void Notifications::notify_object_value_event(uint8_t value_byte, int32_t hash_k
 }
 
 /**
- * Implements game engine notify player interaction.
+ * Notifies the machines of a player interaction (for example entering a seat).
  *
  * Original register convention: ECX -> primary_key, EDI -> edi_key, stack -> mode, interaction_type_and_seat,
  * secondary_key.

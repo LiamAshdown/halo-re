@@ -23,7 +23,7 @@ extern void game_engine_send_player_profile_update(void *has_payload, void *prof
 namespace halo::game::engine1 {
 
 /**
- * Implements game engine capture player profile.
+ * Captures the profile of a player slot into the profile cache.
  *
  * Original register convention: EAX -> slot, stack -> commit.
  *

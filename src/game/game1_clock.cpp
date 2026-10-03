@@ -56,7 +56,8 @@ extern void update_client_dispose(void);
 namespace halo::game::engine1 {
 
 /**
- * Implements game effects update.
+ * Advances the particles, contrails, widgets, weather and game sound by the frame delta time, scaled by the
+ * double-speed flag.
  *
  * @address 0x45b4f0
  */
@@ -178,7 +179,8 @@ void SimulationClock::allocate_tick_record(void)
 }
 
 /**
- * Implements game engine announce time remaining.
+ * Server-side countdown service: returns 1 while the clock is spent or players are not ready, and sends the
+ * time-remaining kill-feed message to every player when the remaining ticks reach an announcement interval.
  *
  * Original register convention: EDI -> iterator (matches src/memory/data_iterator_next.c).
  *
@@ -242,7 +244,8 @@ announce:
 }
 
 /**
- * HUD highlight/pulse weight... how recently each object last scored.
+ * Race catch-up: sets the speed of each player to 1.0, 1.1 or 1.2 depending on how far its score trails the
+ * leader.
  *
  * @address 0x46e310
  */
@@ -330,7 +333,7 @@ float SimulationClock::compute_time_scale(int32_t param_a, int32_t param_b)
 }
 
 /**
- * Implements game engine get current tick.
+ * Returns the current game tick of the running game time record.
  *
  * @address 0x470cd0
  */
@@ -340,7 +343,7 @@ int32_t SimulationClock::get_current_tick(void)
 }
 
 /**
- * Implements game engine get time remaining.
+ * Returns the time left on the multiplayer clock, or zero when the variant has no time limit.
  *
  * @address 0x45cab0
  */
@@ -359,7 +362,7 @@ int32_t SimulationClock::get_time_remaining(void)
 }
 
 /**
- * Implements game engine get time scale.
+ * Returns the simulation time scale currently applied to the tick rate.
  *
  * @address 0x470ce0
  */

@@ -38,7 +38,7 @@ extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, v
 namespace halo::game::engine1 {
 
 /**
- * Implements game engine build visible cluster bitmask.
+ * Builds the bitmask of the structure clusters visible to the local players.
  *
  * @address 0x4782a0
  */
@@ -180,7 +180,7 @@ int32_t SpawnLocations::find_nearest_unused_type4_location(int32_t *excluded_ind
 }
 
 /**
- * Implements game engine find one valid starting location.
+ * Finds one valid starting location near an origin within the given horizontal and height limits.
  *
  * Original register convention: ECX -> type, EDX -> team, unaff_EBX -> origin, stack -> max_horizontal_dist,
  * max_height_delta.
@@ -196,7 +196,7 @@ int32_t SpawnLocations::find_one_valid_starting_location(int16_t type, int16_t t
 }
 
 /**
- * Implements game engine find valid starting locations.
+ * Collects the valid starting locations of a team and type near an origin.
  *
  * Original register convention: unaff_EBX -> origin, stack -> max_horizontal_dist, max_height_delta, team,
  * type,.
@@ -233,7 +233,7 @@ int SpawnLocations::find_valid_starting_locations(real_point3d *origin, float ma
 }
 
 /**
- * Implements game engine location blocked by vehicle.
+ * Returns whether a vehicle blocks the given spawn point.
  *
  * Original register convention: EDX -> point.
  *

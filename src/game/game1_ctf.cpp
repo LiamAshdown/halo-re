@@ -204,7 +204,7 @@ const uint16_t *Ctf::place_text(datum_index recipient)
 }
 
 /**
- * Implements game engine ctf build message text.
+ * Builds the text of a capture-the-flag event message for a recipient.
  *
  * @address 0x469300
  */
@@ -252,7 +252,7 @@ uint8_t Ctf::build_message_text(datum_index recipient, int32_t message_type, dat
 }
 
 /**
- * Implements game engine ctf build player text.
+ * Builds the per-player score text shown for capture the flag.
  *
  * @address 0x4699f0
  */
@@ -291,7 +291,7 @@ uint16_t *Ctf::multiplayer_text(int16_t index)
 }
 
 /**
- * Implements game engine ctf build score header text.
+ * Builds the scoreboard header text for capture the flag.
  *
  * @address 0x469a30
  */
@@ -302,7 +302,7 @@ wchar_t *Ctf::build_score_header_text(wchar_t *buffer)
 }
 
 /**
- * Implements game engine ctf build team score text.
+ * Builds the team score text shown for capture the flag.
  *
  * @address 0x469ab0
  */
@@ -313,7 +313,7 @@ wchar_t *Ctf::build_team_score_text(int32_t team, wchar_t *buffer)
 }
 
 /**
- * Implements game engine ctf create flag object.
+ * Creates the flag object for a netgame flag at the given position and name index.
  *
  * Original register convention: EAX -> position, stack -> name_index.
  *
@@ -357,7 +357,7 @@ datum_index Ctf::create_flag_object(real_point3d *position, uint16_t name_index)
 }
 
 /**
- * Implements game engine ctf get score.
+ * Returns the capture-the-flag score of a player or team.
  *
  * @address 0x469990
  */
@@ -372,7 +372,7 @@ int32_t Ctf::get_score(datum_index player, int32_t team_mode)
 }
 
 /**
- * Implements game engine ctf get team score.
+ * Returns the capture-the-flag score of a team.
  *
  * @address 0x4699d0
  */
@@ -382,7 +382,7 @@ int32_t Ctf::get_team_score(int32_t team)
 }
 
 /**
- * Implements game engine ctf initialize flags.
+ * Creates the flag objects of the scenario for a new capture-the-flag game.
  *
  * @address 0x46d890
  */
@@ -461,7 +461,8 @@ float Ctf::distance_squared(const real_point3d *a, const real_point3d *b)
 }
 
 /**
- * Implements game engine ctf initialize for new game.
+ * Capture-the-flag initialize-for-new-game callback: resets the flag state and creates the flags; returns
+ * false to abort the start.
  *
  * @address 0x4684a0
  */
@@ -638,7 +639,7 @@ void Ctf::notify_flag_carried_throttled(int32_t target_player)
 }
 
 /**
- * Implements game engine ctf object expired.
+ * Called when a flag object expires so the engine can respawn it.
  *
  * @address 0x469960
  */
@@ -774,7 +775,7 @@ uint8_t Ctf::player_flag_tick(uint32_t flag_handle, uint32_t player_index)
 }
 
 /**
- * Implements game engine ctf player round reset.
+ * Resets the capture-the-flag state of a player at a round reset.
  *
  * @address 0x469f10
  */
@@ -840,7 +841,7 @@ uint8_t Ctf::point_within_team_flag_radius(float radius, int32_t team, real_poin
 }
 
 /**
- * Implements game engine ctf query player score.
+ * Answers a scoreboard query keyed by a player index with capture-the-flag values.
  *
  * @address 0x469f60
  */
@@ -856,7 +857,7 @@ uint8_t Ctf::query_player_score(int32_t key, int32_t index, void *buffer)
 }
 
 /**
- * Implements game engine ctf query team score.
+ * Answers a scoreboard query keyed by a team index with capture-the-flag values.
  *
  * @address 0x469fe0
  */
@@ -870,7 +871,7 @@ uint8_t Ctf::query_team_score(int32_t key, int32_t team, void *buffer)
 }
 
 /**
- * Implements game engine ctf reset round.
+ * Capture-the-flag reset-round callback: returns all flags and clears the round bookkeeping.
  *
  * @address 0x468820
  */
@@ -963,7 +964,7 @@ uint8_t Ctf::unit_is_flag_holder(player *p)
 }
 
 /**
- * Implements game engine ctf unit weapon must be readied.
+ * Returns whether the weapon of the unit must stay readied (the unit carries a flag).
  *
  * Original register convention: ECX -> unit_handle.
  *
@@ -984,7 +985,7 @@ uint8_t Ctf::unit_weapon_must_be_readied(datum_index unit_handle)
 }
 
 /**
- * Implements game engine ctf unknown 70.
+ * Capture-the-flag engine definition slot +0x70: returns a float for a player and a position.
  *
  * @address 0x469ae0
  */
@@ -1025,7 +1026,7 @@ float Ctf::unknown_70(datum_index player_index, real_point3d *position)
 }
 
 /**
- * Implements game engine ctf unknown 84.
+ * Capture-the-flag engine definition slot +0x84: true for kind 0.
  *
  * @address 0x4699e0
  */

@@ -158,7 +158,7 @@ void Variants::apply_current_custom_variant(void)
 }
 
 /**
- * Implements game engine apply player profile entry.
+ * Applies a received player profile entry.
  *
  * @address 0x466d00
  */
@@ -231,7 +231,7 @@ void Variants::apply_player_profile_entry(void *event)
 }
 
 /**
- * Implements game engine apply variant.
+ * Applies a game variant to the active game engine.
  *
  * Original register convention: EDX -> variant.
  *
@@ -302,7 +302,7 @@ void Variants::free_custom_variant_cache(void)
 }
 
 /**
- * Implements game engine get variant by name.
+ * Looks a game variant up by name, filling in the defaults of built-in variants.
  *
  * Original register convention: EAX -> out_name, EDI -> max_chars. UNSURE identity, but it is what fills the.
  *
@@ -417,7 +417,7 @@ uint8_t Variants::get_variant_by_name(const char *name, game_variant *out)
 }
 
 /**
- * Implements game engine invoke profile post update callback.
+ * Invokes the profile post-update callback slot of the active game engine.
  *
  * Original register convention: ECX -> arg_ecx, EDX -> arg_edx.
  *
@@ -456,7 +456,7 @@ uint32_t Variants::is_map_and_variant_valid(const char *map_path, const char *va
 }
 
 /**
- * Implements game engine load from variant.
+ * Loads the game engine state from a game variant.
  *
  * Original register convention: EBX -> variant.
  *

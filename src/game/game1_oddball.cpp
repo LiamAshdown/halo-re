@@ -49,7 +49,7 @@ const uint16_t *Oddball::place_text(datum_index recipient)
 }
 
 /**
- * Implements game engine oddball build message text.
+ * Builds the text of an oddball event message for a recipient.
  *
  * @address 0x46cac0
  */
@@ -97,7 +97,7 @@ uint8_t Oddball::build_message_text(datum_index recipient, int32_t message_type,
 }
 
 /**
- * Implements game engine oddball build player text.
+ * Builds the per-player score text shown for oddball.
  *
  * @address 0x46cf70
  */
@@ -124,7 +124,7 @@ uint16_t *Oddball::multiplayer_text(int16_t index)
 }
 
 /**
- * Implements game engine oddball build score header text.
+ * Builds the scoreboard header text for oddball.
  *
  * @address 0x46cfc0
  */

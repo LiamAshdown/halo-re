@@ -31,7 +31,7 @@ extern void game_engine_player_new_life(uint32_t player_handle);
 namespace halo::game::engine1 {
 
 /**
- * Implements game engine apply player join message.
+ * Applies a received player join message.
  *
  * Original register convention: EAX -> event, ECX -> out_message (a leading identifier-table slot byte, then
  * the.

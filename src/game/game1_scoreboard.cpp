@@ -218,7 +218,7 @@ uint8_t Scoreboard::build_message_text(wchar_t *out, uint32_t buffer_size, datum
 }
 
 /**
- * Implements game engine build scoreboard sort key.
+ * Builds the sort key of a player scoreboard entry from its score.
  *
  * Original register convention: ECX -> player_index, EDX -> score.
  *
@@ -548,7 +548,7 @@ uint32_t Scoreboard::compare_score_to_others(uint32_t subject, int32_t team_mode
 }
 
 /**
- * Implements game engine find first eligible player on team.
+ * Returns whether a team has at least one eligible player.
  *
  * @address 0x45c9e0
  */
@@ -629,7 +629,7 @@ void Scoreboard::find_player_by_name(char *source_name)
 }
 
 /**
- * Implements game engine find player holding object.
+ * Returns the player that currently holds the target object.
  *
  * Original register convention: EBX -> target_object.
  *
@@ -663,7 +663,7 @@ datum_index Scoreboard::find_player_holding_object(datum_index target_object)
 }
 
 /**
- * Implements game engine get default multiplayer string.
+ * Returns the default multiplayer string of a scoreboard entry.
  *
  * Original register convention: ECX -> tag_id, DX -> index.
  *
@@ -873,7 +873,7 @@ uint32_t Scoreboard::is_tracked_object_winner(int32_t team)
 }
 
 /**
- * Implements game engine is valid team player.
+ * Returns whether the identifier names a valid player of a team.
  *
  * @address 0x466b60
  */
@@ -905,7 +905,7 @@ uint8_t Scoreboard::is_valid_team_player(uint32_t identifier)
 }
 
 /**
- * Implements game engine local player score is nonpositive.
+ * Returns whether the score of a local player is zero or below.
  *
  * Original register convention: EAX -> player_handle.
  *

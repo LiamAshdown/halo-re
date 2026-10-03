@@ -32,6 +32,7 @@
 #include "halo/game/game1_local_control.hpp"
 #include "halo/game/game1_spawn.hpp"
 #include "halo/game/game1_cleanup.hpp"
+#include "halo/game/game1_engine_behavior.hpp"
 
 extern "C" {
 
@@ -47,22 +48,22 @@ void game_engine_ctf_broadcast_state(void *request_fields, int32_t machine_index
 
 uint8_t game_engine_ctf_build_message_text(datum_index recipient, int32_t message_type, datum_index subject, wchar_t *text, uint32_t count)
 {
-    return halo::game::engine1::Ctf::build_message_text(recipient, message_type, subject, text, count);
+    return halo::game::engine1::engine_text(halo::game::engine1::EngineId::ctf)->build_message_text(recipient, message_type, subject, text, count);
 }
 
 wchar_t *game_engine_ctf_build_player_text(datum_index player, wchar_t *buffer)
 {
-    return halo::game::engine1::Ctf::build_player_text(player, buffer);
+    return halo::game::engine1::engine_text(halo::game::engine1::EngineId::ctf)->build_player_text(player, buffer);
 }
 
 wchar_t *game_engine_ctf_build_score_header_text(wchar_t *buffer)
 {
-    return halo::game::engine1::Ctf::build_score_header_text(buffer);
+    return halo::game::engine1::engine_text(halo::game::engine1::EngineId::ctf)->build_score_header_text(buffer);
 }
 
 wchar_t *game_engine_ctf_build_team_score_text(int32_t team, wchar_t *buffer)
 {
-    return halo::game::engine1::Ctf::build_team_score_text(team, buffer);
+    return halo::game::engine1::engine_scoring(halo::game::engine1::EngineId::ctf)->build_team_score_text(team, buffer);
 }
 
 datum_index game_engine_ctf_create_flag_object(real_point3d *position, uint16_t name_index)
@@ -72,12 +73,12 @@ datum_index game_engine_ctf_create_flag_object(real_point3d *position, uint16_t 
 
 int32_t game_engine_ctf_get_score(datum_index player, int32_t team_mode)
 {
-    return halo::game::engine1::Ctf::get_score(player, team_mode);
+    return halo::game::engine1::engine_scoring(halo::game::engine1::EngineId::ctf)->get_score(player, team_mode);
 }
 
 int32_t game_engine_ctf_get_team_score(int32_t team)
 {
-    return halo::game::engine1::Ctf::get_team_score(team);
+    return halo::game::engine1::engine_scoring(halo::game::engine1::EngineId::ctf)->get_team_score(team);
 }
 
 int32_t game_engine_ctf_initialize_flags(void)
@@ -157,12 +158,12 @@ void game_engine_ctf_profiles_updated(int32_t mode, int32_t machine_index)
 
 uint8_t game_engine_ctf_query_player_score(int32_t key, int32_t index, void *buffer)
 {
-    return halo::game::engine1::Ctf::query_player_score(key, index, buffer);
+    return halo::game::engine1::engine_scoring(halo::game::engine1::EngineId::ctf)->query_player_score(key, index, buffer);
 }
 
 uint8_t game_engine_ctf_query_team_score(int32_t key, int32_t team, void *buffer)
 {
-    return halo::game::engine1::Ctf::query_team_score(key, team, buffer);
+    return halo::game::engine1::engine_scoring(halo::game::engine1::EngineId::ctf)->query_team_score(key, team, buffer);
 }
 
 void game_engine_ctf_reset_objects(void)
@@ -232,32 +233,32 @@ void game_engine_ctf_update(datum_index player_index)
 
 uint8_t game_engine_king_build_message_text(datum_index recipient, int32_t message_type, datum_index subject, wchar_t *text, uint32_t count)
 {
-    return halo::game::engine1::King::build_message_text(recipient, message_type, subject, text, count);
+    return halo::game::engine1::engine_text(halo::game::engine1::EngineId::king)->build_message_text(recipient, message_type, subject, text, count);
 }
 
 wchar_t *game_engine_king_build_player_text(datum_index player, wchar_t *buffer)
 {
-    return halo::game::engine1::King::build_player_text(player, buffer);
+    return halo::game::engine1::engine_text(halo::game::engine1::EngineId::king)->build_player_text(player, buffer);
 }
 
 wchar_t *game_engine_king_build_score_header_text(wchar_t *buffer)
 {
-    return halo::game::engine1::King::build_score_header_text(buffer);
+    return halo::game::engine1::engine_text(halo::game::engine1::EngineId::king)->build_score_header_text(buffer);
 }
 
 wchar_t *game_engine_king_build_team_score_text(int32_t team, wchar_t *buffer)
 {
-    return halo::game::engine1::King::build_team_score_text(team, buffer);
+    return halo::game::engine1::engine_scoring(halo::game::engine1::EngineId::king)->build_team_score_text(team, buffer);
 }
 
 int32_t game_engine_king_get_score(datum_index player, int32_t team_mode)
 {
-    return halo::game::engine1::King::get_score(player, team_mode);
+    return halo::game::engine1::engine_scoring(halo::game::engine1::EngineId::king)->get_score(player, team_mode);
 }
 
 int32_t game_engine_king_get_team_score(int32_t team)
 {
-    return halo::game::engine1::King::get_team_score(team);
+    return halo::game::engine1::engine_scoring(halo::game::engine1::EngineId::king)->get_team_score(team);
 }
 
 uint8_t game_engine_king_initialize_for_new_game(void)
@@ -282,12 +283,12 @@ void game_engine_king_profile_post_update(void **context)
 
 uint8_t game_engine_king_query_player_score(int32_t key, int32_t index, void *buffer)
 {
-    return halo::game::engine1::King::query_player_score(key, index, buffer);
+    return halo::game::engine1::engine_scoring(halo::game::engine1::EngineId::king)->query_player_score(key, index, buffer);
 }
 
 uint8_t game_engine_king_query_team_score(int32_t key, int32_t team, void *buffer)
 {
-    return halo::game::engine1::King::query_team_score(key, team, buffer);
+    return halo::game::engine1::engine_scoring(halo::game::engine1::EngineId::king)->query_team_score(key, team, buffer);
 }
 
 void game_engine_king_reset_objects(void)
@@ -402,17 +403,17 @@ void game_engine_koth_update_occupant_table(uint32_t index)
 
 uint8_t game_engine_oddball_build_message_text(datum_index recipient, int32_t message_type, datum_index subject, wchar_t *text, uint32_t count)
 {
-    return halo::game::engine1::Oddball::build_message_text(recipient, message_type, subject, text, count);
+    return halo::game::engine1::engine_text(halo::game::engine1::EngineId::oddball)->build_message_text(recipient, message_type, subject, text, count);
 }
 
 wchar_t *game_engine_oddball_build_player_text(datum_index player, wchar_t *buffer)
 {
-    return halo::game::engine1::Oddball::build_player_text(player, buffer);
+    return halo::game::engine1::engine_text(halo::game::engine1::EngineId::oddball)->build_player_text(player, buffer);
 }
 
 wchar_t *game_engine_oddball_build_score_header_text(wchar_t *buffer)
 {
-    return halo::game::engine1::Oddball::build_score_header_text(buffer);
+    return halo::game::engine1::engine_text(halo::game::engine1::EngineId::oddball)->build_score_header_text(buffer);
 }
 
 uint8_t game_engine_apply_kill_streak_message(int32_t **envelope)

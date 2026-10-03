@@ -731,7 +731,7 @@ uint8_t Koth::player_eligible_to_score(uint32_t object_handle, uint32_t player_i
 }
 
 /**
- * Implements game engine koth player in hill bounds.
+ * Returns whether the unit of the player is inside the current hill bounds.
  *
  * Original register convention: EAX -> player_index.
  *
@@ -1062,7 +1062,7 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
 }
 
 /**
- * Implements game engine koth update hill occupancy state.
+ * Updates which players occupy the hill and the resulting hill state.
  *
  * @address 0x46acb0
  */

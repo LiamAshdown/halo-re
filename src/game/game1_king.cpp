@@ -83,7 +83,7 @@ const uint16_t *King::place_text(datum_index recipient)
 }
 
 /**
- * Implements game engine king build message text.
+ * Builds the text of a king-of-the-hill event message for a recipient.
  *
  * @address 0x46b000
  */
@@ -118,7 +118,7 @@ uint8_t King::build_message_text(datum_index recipient, int32_t message_type, da
 }
 
 /**
- * Implements game engine king build player text.
+ * Builds the per-player score text shown for king of the hill.
  *
  * @address 0x46b6e0
  */
@@ -157,7 +157,7 @@ uint16_t *King::multiplayer_text(int16_t index)
 }
 
 /**
- * Implements game engine king build score header text.
+ * Builds the scoreboard header text for king of the hill.
  *
  * @address 0x46b720
  */
@@ -168,7 +168,7 @@ wchar_t *King::build_score_header_text(wchar_t *buffer)
 }
 
 /**
- * Implements game engine king build team score text.
+ * Builds the team score text shown for king of the hill.
  *
  * @address 0x46b7a0
  */
@@ -179,7 +179,7 @@ wchar_t *King::build_team_score_text(int32_t team, wchar_t *buffer)
 }
 
 /**
- * Implements game engine king get score.
+ * Returns the king-of-the-hill score of a player or team.
  *
  * @address 0x46b200
  */
@@ -194,7 +194,7 @@ int32_t King::get_score(datum_index player, int32_t team_mode)
 }
 
 /**
- * Implements game engine king get team score.
+ * Returns the king-of-the-hill score of a team.
  *
  * @address 0x46b240
  */
@@ -204,7 +204,7 @@ int32_t King::get_team_score(int32_t team)
 }
 
 /**
- * Implements game engine king initialize for new game.
+ * King-of-the-hill initialize-for-new-game callback; returns false to abort the start.
  *
  * @address 0x46a510
  */
@@ -246,7 +246,7 @@ uint8_t King::initialize_for_new_game(void)
 }
 
 /**
- * Implements game engine king player new life.
+ * King-of-the-hill player-new-life callback.
  *
  * @address 0x46a5e0
  */
@@ -261,7 +261,7 @@ void King::player_new_life(datum_index player_index)
 }
 
 /**
- * Implements game engine king player round reset.
+ * Resets the king-of-the-hill state of a player at a round reset.
  *
  * @address 0x46ba40
  */
@@ -309,7 +309,7 @@ uint8_t King::read_changed(void **context, void *changed_base, void *destination
 }
 
 /**
- * Implements game engine king profile post update.
+ * Decodes the king-of-the-hill part of a player profile update message.
  *
  * @address 0x46b920
  */
@@ -347,7 +347,7 @@ void King::profile_post_update(void **context)
 }
 
 /**
- * Implements game engine king query player score.
+ * Answers a scoreboard query keyed by a player index with king-of-the-hill values.
  *
  * @address 0x46ba90
  */
@@ -366,7 +366,7 @@ uint8_t King::query_player_score(int32_t key, int32_t index, void *buffer)
 }
 
 /**
- * Implements game engine king query team score.
+ * Answers a scoreboard query keyed by a team index with king-of-the-hill values.
  *
  * @address 0x46bb40
  */
@@ -380,7 +380,7 @@ uint8_t King::query_team_score(int32_t key, int32_t team, void *buffer)
 }
 
 /**
- * Implements game engine king reset objects.
+ * King-of-the-hill reset-objects callback.
  *
  * @address 0x46bb70
  */
@@ -405,7 +405,7 @@ void King::reset_objects(void)
 }
 
 /**
- * Implements game engine king reset round.
+ * King-of-the-hill reset-round callback.
  *
  * @address 0x46a630
  */
@@ -418,7 +418,7 @@ void King::reset_round(void)
 }
 
 /**
- * Implements game engine king unknown 48.
+ * King-of-the-hill engine definition slot +0x48.
  *
  * @address 0x46aee0
  */
@@ -449,7 +449,7 @@ void King::unknown_48(void)
 }
 
 /**
- * Implements game engine king waypoint filter.
+ * Waypoint filter callback of the king-of-the-hill engine for a player.
  *
  * @address 0x46b7d0
  */

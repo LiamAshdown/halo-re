@@ -400,7 +400,7 @@ void LocalControl::compute_local_player_look_vector(real_vector3d *out_forward, 
 }
 
 /**
- * Implements game engine compute look angles from vector.
+ * Converts a facing vector into the yaw and pitch of the given local player.
  *
  * Original register convention: EAX -> facing, CX -> local_player_index.
  *
@@ -588,7 +588,7 @@ real LocalControl::get_max_look_pitch(int16_t local_player_index)
 }
 
 /**
- * Implements game engine init player look state from object.
+ * Initializes the look state of a local player from the facing of a unit.
  *
  * Original register convention: EDX -> unit, AX -> local_player_index.
  *

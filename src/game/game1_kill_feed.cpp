@@ -49,7 +49,7 @@ extern player_globals *local_player_globals;
 namespace halo::game::engine1 {
 
 /**
- * Implements game engine apply kill streak message.
+ * Applies a received kill streak message to the local state.
  *
  * Original register convention: EAX -> envelope.
  *

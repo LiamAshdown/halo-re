@@ -90,7 +90,8 @@ extern uint8_t *network_client;
 namespace halo::game::engine1 {
 
 /**
- * Implements game dispose.
+ * Disposes the per-game state: the dynamic script globals, the widgets, the looping sound data and the active
+ * game engine through its dispose callback.
  *
  * @address 0x45acd0
  */
@@ -301,7 +302,8 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
 }
 
 /**
- * Implements game engine begin end game sequence.
+ * Server only: starts the end-of-game sequence when none has started, setting the ending state with a 7 second
+ * timer, queueing the end sound, closing the widgets and sending the end-game notification.
  *
  * @address 0x45fd90
  */
@@ -318,7 +320,8 @@ void Lifecycle::begin_end_game_sequence(void)
 }
 
 /**
- * Implements game engine end game sequence stage1.
+ * Moves the engine to the ending state with a 7 second timer, queues the end-of-game sound and closes the
+ * widgets.
  *
  * @address 0x4670c0
  */
@@ -331,7 +334,8 @@ void Lifecycle::end_game_sequence_stage1(void)
 }
 
 /**
- * Implements game engine end game sequence stage2.
+ * Moves the engine to the ended state with a 5 second timer and sets bit 0x20 of the vitality flags of every
+ * player unit.
  *
  * @address 0x4670f0
  */
@@ -364,7 +368,7 @@ void Lifecycle::end_game_sequence_stage2(void)
 }
 
 /**
- * Implements game engine end game sequence stage3.
+ * Moves the engine to the post-game state and arms the dedicated server idle timer when it is configured.
  *
  * @address 0x467180
  */
@@ -398,7 +402,8 @@ uint8_t Lifecycle::get_teams_enabled(void)
 }
 
 /**
- * Implements game engine initialize for new game.
+ * Prepares the game engine for a new game: looks up the map table entry, clears the multiplayer sound queue
+ * and runs the engine initialize callback.
  *
  * @address 0x45c370
  */
@@ -479,7 +484,8 @@ void Lifecycle::maybe_render_post_game(void)
 }
 
 /**
- * Implements game engine multiplayer ui state id.
+ * Maps the state of the network server or client session to the multiplayer UI state id; returns 8 without a
+ * session.
  *
  * @address 0x4655d0
  */

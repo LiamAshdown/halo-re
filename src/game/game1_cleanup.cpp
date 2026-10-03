@@ -151,7 +151,8 @@ next:
 }
 
 /**
- * Implements game engine cleanup stray projectiles.
+ * Sweeps the projectile objects: those with network role 0 are deleted unparented and recursively, those with
+ * role 3 recursively.
  *
  * @address 0x467f70
  */
@@ -179,7 +180,7 @@ void ObjectCleanup::cleanup_stray_projectiles(void)
 }
 
 /**
- * Implements game engine clear unit shields when disabled.
+ * Zeroes the shield vitality and its maximum on the unit of a player when the variant flag 0x08 is set.
  *
  * Original register convention: EAX -> player.
  *
@@ -206,7 +207,8 @@ void ObjectCleanup::clear_unit_shields_when_disabled(datum_index player_handle)
 }
 
 /**
- * Implements game engine flag local player units.
+ * Marks players whose quit tick has arrived for deletion: a player without a unit is removed at once,
+ * otherwise its unit is flagged.
  *
  * @address 0x45b590
  */
