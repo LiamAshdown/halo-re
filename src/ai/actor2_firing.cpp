@@ -240,7 +240,7 @@ uint8_t ActorView::reject_firing_position_unreachable(actor_firing_position_quer
         }
         float avoidance_distance = 0.0f;
         actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-        const real_point3d *position = (const real_point3d *)candidate->position;
+        const real_point3d *position = halo::ai::candidate_point(*candidate);
 
         if (halo::ai::actor_movement_flying_needs_steering(actor_index, position, &avoidance_distance) != 0 &&
             halo::ai::path_find_test_direct_reachability(position, &self->body_position, 0,
@@ -303,7 +303,7 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
     if (query->goal_kind == 1 || query->goal_kind == 2) {
         mode = 2;
     } else if (query->have_standing_gun_offset != 0) {
-        point = (real_point3d *)candidate->position;
+        point = halo::ai::candidate_point(*candidate);
         mode = 3;
         offset = &query->standing_gun_offset;
         facing.i = query->target_aim_position.x - point->x;
@@ -394,7 +394,7 @@ void ActorView::score_firing_positions_by_history(actor_firing_position_query *q
                     continue;
                 }
                 rating = halo::ai::actor_evaluate_flank_offset(&query->hazards[j].direction, 0,
-                    (real_point3d *)c->position, &query->hazards[j].position);
+                    halo::ai::candidate_point(*c), &query->hazards[j].position);
                 kind = query->hazards[j].kind;
                 if (kind == 0) {
                     if (rating > best_kind_0) {
@@ -501,7 +501,7 @@ void ActorView::score_firing_positions_by_range(actor_firing_position_query *que
                 if (h->kind != 2) {
                     continue;
                 }
-                p = (real_point3d *)c->position;
+                p = halo::ai::candidate_point(*c);
                 dot = (p->x - h->position.x) * h->direction.i +
                       (p->z - h->position.z) * h->direction.k +
                       (p->y - h->position.y) * h->direction.j;
@@ -669,7 +669,7 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
         }
 
         if (query->danger_active != 0) {
-            p = (real_point3d *)c->position;
+            p = halo::ai::candidate_point(*c);
             segment.i = self->danger_segment_end.x - self->flee_from_point.x;
             segment.j = self->danger_segment_end.y - self->flee_from_point.y;
             segment.k = self->danger_segment_end.z - self->flee_from_point.z;
@@ -760,7 +760,7 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
         if (c->valid == 0) {
             continue;
         }
-        p = (real_point3d *)c->position;
+        p = halo::ai::candidate_point(*c);
         dx = p->x - vehicle_position.x;
         dy = p->y - vehicle_position.y;
         dz = p->z - vehicle_position.z;

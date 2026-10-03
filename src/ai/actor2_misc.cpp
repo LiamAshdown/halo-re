@@ -592,7 +592,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
         break;
 
     case 0: case 2: case 3: case 4: case 5: case 6: case 7:
-        if (mode == 2 && *(int16_t *)&act->mode_data == order_code_mode_data_expect[code]) {
+        if (mode == 2 && act->mode_data.alert.position_count == order_code_mode_data_expect[code]) {
             break;
         }
         if (halo::ai::actor_build_order_default(actor_index, order_code_mode_data_expect[code], (actor_order *)order, -1)) {

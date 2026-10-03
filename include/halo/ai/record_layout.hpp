@@ -767,7 +767,7 @@ static_assert(offsetof(actor_mode_obey_data, finished) == 5);
 static_assert(offsetof(actor_mode_obey_data, unknown_06) == 6);
 static_assert(offsetof(actor_mode_obey_data, action) == 8);
 static_assert(offsetof(actor_mode_obey_data, aim) == 44);
-static_assert(offsetof(actor_mode_fight_data, unknown_00) == 0);
+static_assert(offsetof(actor_mode_fight_data, position_hold_countdown) == 0);
 
 static_assert(offsetof(swarm_component, identifier) == 0);
 static_assert(offsetof(swarm_component, flags) == 2);

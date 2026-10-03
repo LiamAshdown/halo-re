@@ -71,7 +71,7 @@ void AiActorView::link_to_unassigned_list()
         a->next_in_encounter = halo::ai::globals().state->first_encounterless_actor;
         halo::ai::globals().state->first_encounterless_actor = actor_index;
         a->encounterless = 1;
-        *(int16_t *)a->activation_delay = (a->active != 0) ? 0x5a : 0;
+        a->activation_delay = (a->active != 0) ? 0x5a : 0;
 
         halo::ai::actor_movement_action_cancel(actor_index);
     }

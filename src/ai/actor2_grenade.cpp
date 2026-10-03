@@ -307,7 +307,7 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
                               projectile_definition->air_gravity_scale);
 
     if (halo::ai::actor_grenade_parabolic_path_clear(&velocity, actor_index, point, arc, gravity,
-                                           *(datum_index *)self->grenade_exclude_object_index,
+                                           self->grenade_exclude_object_index,
                                            (uint8_t)(self->active_unit_index != (datum_index)halo::k_dword_none)) == 0) {
         return 0;
     }

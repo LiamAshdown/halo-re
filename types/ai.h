@@ -507,7 +507,8 @@ typedef struct actor_mode_obey_data {
 typedef char actor_mode_obey_data_size[sizeof(actor_mode_obey_data) == 0x84 ? 1 : -1];
 
 typedef struct actor_mode_fight_data {
-    uint8_t unknown_00[4];              // 0x00
+    int16_t position_hold_countdown;    // 0x00 ticks left before the held firing position is pushed to the recognition list
+    uint8_t unknown_02[2];              // 0x02
 } actor_mode_fight_data;
 
 typedef union actor_mode_data {

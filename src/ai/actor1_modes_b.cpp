@@ -487,13 +487,13 @@ void halo::ai::fight_mode::tick()
     using namespace c_actor_mode_fight_tick;
     uint32_t actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
-    int16_t countdown = *(int16_t *)&actor->mode_data;
+    int16_t countdown = actor->mode_data.fight.position_hold_countdown;
 
     if (countdown <= 0 || actor->movement_completed == 0) {
         return;
     }
     countdown = (int16_t)(countdown - 1);
-    *(int16_t *)&actor->mode_data = countdown;
+    actor->mode_data.fight.position_hold_countdown = countdown;
     if (countdown == 0 && *(uint16_t *)&actor->firing_position_index != halo::k_word_none && actor->firing_position_without_path == 0) {
         halo::ai::actor_push_recognition_entry(actor_index, actor->firing_position_index, 0);
     }

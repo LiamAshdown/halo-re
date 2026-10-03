@@ -658,7 +658,7 @@ void halo::ai::look_ops::look_randomize_direction(float *deviation_table, real_v
     }
 
     wait_ticks = halo::ai::actor_look_get_wait_ticks(actor_index, 2, out_in_front, deviation_table);
-    *(int32_t *)self->idle_minor_timer = wait_ticks;
+    self->idle_minor_timer = wait_ticks;
     if (wait_ticks != 0) {
         self->idle_minor_active = 1;
     }
