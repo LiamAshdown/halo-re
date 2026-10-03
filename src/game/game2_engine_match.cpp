@@ -11,6 +11,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/networking/channel_queue.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
@@ -52,7 +53,7 @@ void EngineMatch::send_message(datum_index target, uint32_t message_type, datum_
     if (index < 0 || index >= player_data->maximum_count) {
         return;
     }
-    t = (player *)((uint8_t *)player_data->data + player_data->size * index);
+    t = halo::game::player_at(index);
     if (t->identifier == 0 || (salt != 0 && t->identifier != salt)) {
         return;
     }
@@ -265,7 +266,7 @@ void EngineMatch::tick(void)
                 int16_t salt = (int16_t)((uint32_t)handle >> 16);
 
                 if (handle != (datum_index)halo::k_dword_none && index >= 0 && index < player_data->maximum_count) {
-                    player *q = (player *)((uint8_t *)player_data->data + player_data->size * index);
+                    player *q = halo::game::player_at(index);
 
                     if (q->identifier != 0 && (salt == 0 || q->identifier == salt) && q->medal_streak_count != 0) {
                         int32_t timer = q->medal_streak_timer;
@@ -433,16 +434,8 @@ void EngineMatch::send_team_allegiance_message(char broadcast)
     if (encoded_bits > 0) {
         network_channel *channel = ((network_client_globals *)network_client)->channel;
 
-        if ((channel->flags & 1) == 0 &&
-            (encoded_bits + 1 <= (*(int32_t *)&channel->outgoing.stream.last_bit -
-                *(int32_t *)&channel->outgoing.stream.byte_cursor * 8 - *(int32_t *)&channel->outgoing.stream.bit_cursor) + 1 ||
-             halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1) != 0)) {
-
-            channel->send_budget = channel->send_budget + encoded_bits + 1;
-            { uint32_t item_flag = 1; halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1); }
-            channel->outgoing.empty = 0;
-            halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)(network_message_scratch), encoded_bits);
-            channel->outgoing.empty = 0;
+        if ((channel->flags & 1) == 0) {
+            halo::networking::channel_queue_bits(channel, reinterpret_cast<const uint32_t *>(network_message_scratch), encoded_bits, 1);
         }
     }
 }

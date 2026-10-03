@@ -492,7 +492,7 @@ void PlayerUpdateHistory::play_for_update_index(datum_index player_index)
     player *plr;
 
     plr = (player *)((uint8_t *)halo::game::globals().player_data->data + (uint16_t)player_index * halo::game::globals().player_data->size);
-    halo::networking::player_update_history_play(0, 0, (player_update_history *)network_client->update_history, plr->unit,
+    halo::networking::player_update_history_play(0, 0, network_client->update_history, plr->unit,
         *(float *)&plr->unknown_f0, *(float *)&plr->unknown_f4, *(float *)&plr->unknown_f8, 0);
 
 }
@@ -522,7 +522,7 @@ void PlayerUpdateHistory::play_local_player(int32_t target_update_id)
     if (network_client == 0) {
         return;
     }
-    node = ((player_update_history *)network_client->update_history)->head;
+    node = (network_client->update_history)->head;
     if (node == 0) {
         return;
     }
@@ -538,7 +538,7 @@ void PlayerUpdateHistory::play_local_player(int32_t target_update_id)
         }
     } while (1);
     if (after_match != 0) {
-        halo::networking::player_update_history_play(0, 0, (player_update_history *)network_client->update_history,
+        halo::networking::player_update_history_play(0, 0, network_client->update_history,
             unit_index, after_match->unit_state.position.x,
             after_match->unit_state.position.y,
             after_match->unit_state.position.z, 0);

@@ -160,9 +160,7 @@ void GameLifecycle::start_new_map(void)
         current_game_engine = (game_engine_definition *)0;
     }
     if (player_profile_cache_initialized == 1) {
-        for (i = 0; i < 0xc0; i = i + 1) {
-            player_profile_cache[i] = 0;
-        }
+        memset(player_profile_cache, 0, sizeof(player_profile_cache));
         player_profile_cache_initialized = 0;
     }
 
@@ -171,13 +169,9 @@ void GameLifecycle::start_new_map(void)
     halo::rasterizer::decal_and_font_system_reset();
     halo::saved_games::game_state_build_header();
 
-    {
-        uint32_t *game_time_dwords = (uint32_t *)game_time;
-        for (i = 0; i < 8; i = i + 1) {
-            game_time_dwords[i] = 0;
-        }
-    }
-    ((uint8_t *)game_time)[0] = 1;
+    static_assert(sizeof(game_time_globals) == 8 * sizeof(uint32_t), "game time reset clears eight dwords");
+    memset(game_time, 0, sizeof(*game_time));
+    game_time->initialized = 1;
 
     halo::interface::interface_local_player_state_reset();
     halo::game::team_pair_table_init_defaults();
@@ -240,15 +234,15 @@ void GameLifecycle::start_new_map(void)
     halo::memory::data_delete_all(halo::effects::globals().effect_data);
     halo::effects::globals().effect_location_data->valid = 1;
     halo::memory::data_delete_all(halo::effects::globals().effect_location_data);
-    *((uint8_t *)particle_system_data + 0x24) = 1;
+    ((data_array *)particle_system_data)->valid = 1;
     halo::memory::data_delete_all((data_array *)particle_system_data);
     halo::effects::globals().particle_system_particle_data->valid = 1;
     halo::memory::data_delete_all(halo::effects::globals().particle_system_particle_data);
 
     if (halo::sound::globals().disabled == 0) {
-        *((uint8_t *)halo::sound::globals().sound_data + 0x24) = 1;
+        ((data_array *)halo::sound::globals().sound_data)->valid = 1;
         halo::memory::data_delete_all((data_array *)halo::sound::globals().sound_data);
-        *((uint8_t *)halo::sound::globals().looping_sound_data + 0x24) = 1;
+        ((data_array *)halo::sound::globals().looping_sound_data)->valid = 1;
         halo::memory::data_delete_all((data_array *)halo::sound::globals().looping_sound_data);
     }
 

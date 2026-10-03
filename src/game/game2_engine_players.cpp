@@ -61,7 +61,7 @@ void EnginePlayers::player_changed_object(uint32_t param)
         int16_t index = (int16_t)recipient;
 
         if (recipient != k_datum_index_none && index >= 0 && index < player_data->maximum_count) {
-            player *r = (player *)((uint8_t *)player_data->data + player_data->size * index);
+            player *r = halo::game::player_at(index);
             int16_t salt = (int16_t)((uint32_t)recipient >> 16);
 
             if (r->identifier != 0 && (salt == 0 || r->identifier == salt) &&
@@ -327,7 +327,7 @@ void EnginePlayers::player_round_reset(int32_t player_handle, int32_t callback_a
 void EnginePlayers::player_select_random_target(datum_index player_or_all)
 {
     uint16_t self_index = (uint16_t)player_or_all;
-    player *self = (player *)((uint8_t *)player_data->data + (uint32_t)self_index * sizeof(player));
+    player *self = halo::game::player_at(self_index);
     int32_t previous_target = self->slayer_target;
     int32_t match_count = 0;
     datum_index winner = k_datum_index_none;
@@ -655,12 +655,11 @@ void EnginePlayers::reset_player_profile_stats(void)
 
     for (i = 0; i < 16; i++) {
         if (player_profile_cache[i].in_use == 1) {
-            uint32_t player_index = (uint32_t)player_profile_cache[i].player & halo::k_datum_slot_mask;
-            uint32_t *stats = (uint32_t *)((uint8_t *)player_data->data + player_index * 0x200 + 0x90);
-            int32_t j;
-            for (j = 0; j < 15; j++) {
-                stats[j] = 0;
-            }
+            constexpr size_t k_stats_offset = 0x90;
+            constexpr size_t k_stats_size = 15 * sizeof(uint32_t);
+            static_assert(offsetof(player, killing_spree_count) >= k_stats_offset &&
+                          offsetof(player, telefrag_ticks) == k_stats_offset + k_stats_size, "stats block spans spree count .. objective score");
+            memset(reinterpret_cast<uint8_t *>(halo::game::player_at(player_profile_cache[i].player)) + k_stats_offset, 0, k_stats_size);
         }
     }
 }
@@ -790,7 +789,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
             unit_data *unit = halo::game::unit_data_of(unit_obj);
             datum_index driver = unit->driver_unit_index;
 
-            if (driver != (datum_index)-1 && *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) != -1) {
+            if (driver != (datum_index)-1 && unit->vehicle_seat_index != -1) {
                 object *driver_obj = halo::game::object_at(driver);
                 unit_data *driver_unit = halo::game::unit_data_of(driver_obj);
                 Unit *driver_tag = (Unit *)halo::game::tag_data_at(driver_obj->definition_tag);
@@ -801,16 +800,16 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
 
                 halo::objects::object_get_node_local_transform(
                     driver, (char *)((int32_t)((uint8_t *)driver_tag->seats.pointer + 0x24 +
-                                       *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) * 0x11c)),
+                                       unit->vehicle_seat_index * 0x11c)),
                     (object_marker *)&local_transform, 1);
 
                 unit_tag = (Unit *)halo::game::tag_data_at(unit_obj->definition_tag);
-                unit_as_vehicle_tag = (Vehicle *)halo::game::tag_data_at(((TagID *)((uint8_t *)unit_tag + 0x34))->index);
+                unit_as_vehicle_tag = (Vehicle *)halo::game::tag_data_at(unit_tag->base.model.tag_id.index);
                 {
                     uint8_t *unknown_block = (uint8_t *)unit_as_vehicle_tag + 0xbc;
 
                     if (driver_unit->driver_unit_index == unit_handle &&
-                        *((int8_t *)driver_obj + 0x2a3) != '%' && unit_obj->parent_object != (datum_index)-1) {
+                        driver_unit->animation_state != 0x25 && unit_obj->parent_object != (datum_index)-1) {
                         halo::units::unit_try_set_animation_state(unit_obj->parent_object, 0x25);
                     }
 
@@ -832,11 +831,11 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
 
                     {
                         uint8_t *unit_tag_data = (uint8_t *)halo::game::tag_data_at(unit_obj->definition_tag);
-                        if (*(int32_t *)(unit_tag_data + 0x34) != -1) {
+                        if (halo::tag_id_bits<int32_t>(reinterpret_cast<Unit *>(unit_tag_data)->base.model.tag_id) != -1) {
                             if ((unit_obj->flags & 1) != 0) {
                                 halo::objects::object_for_each_light_attachment(0, 1, 0);
                             }
-                            if (*(int32_t *)(unit_tag_data + 0x34) != -1) {
+                            if (halo::tag_id_bits<int32_t>(reinterpret_cast<Unit *>(unit_tag_data)->base.model.tag_id) != -1) {
                                 object_header *unit_header = &((object_header *)halo::objects::globals().object_data->data)[unit_handle & halo::k_datum_slot_mask];
                                 unit_obj->flags = unit_obj->flags & ~1u;
                                 unit_header->flags = unit_header->flags | 2;
@@ -844,8 +843,8 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                         }
                     }
 
-                    *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) = -1;
-                    *((uint8_t *)unit_obj + 0x2a7) = 2;
+                    unit->vehicle_seat_index = -1;
+                    unit->base_animation_state = 2;
                     if (driver_unit->driver_unit_index == unit_handle) {
                         driver_unit->driver_unit_index = (datum_index)-1;
                     }
@@ -859,7 +858,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                 halo::units::unit_update_animation_state_machine(unit_handle, k_unit_exit_seat_request);
 
                 {
-                    uint8_t *marker_ptr = (uint8_t *)unit_obj + *((int16_t *)((uint8_t *)unit_obj + 0x1ea)) + 0x10;
+                    uint8_t *marker_ptr = (uint8_t *)unit_obj + unit_obj->node_function_values.offset + 0x10;
                     memcpy(marker_ptr, &result_transform.forward, sizeof(result_transform.forward));
                 }
 
@@ -871,7 +870,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                 if (halo::units::unit_all_seats_unoccupied(unit_handle) == 1) {
                     object *local_obj = halo::objects::object_try_and_get((datum_index)-1, _object_mask_vehicle);
                     if (local_obj != (object *)0) {
-                        *(int32_t *)((uint8_t *)local_obj + 0x5ac) = game_time->game_time;
+                        ((vehicle_object *)local_obj)->vehicle.network_update_tick = game_time->game_time;
                     }
                 }
 
@@ -901,7 +900,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                         int16_t salt = (int16_t)(controlling_player >> 16);
                         if (plr->identifier != 0 && (salt == 0 || plr->identifier == salt) &&
                             plr->local_player_index == -1 && halo::networking::globals().client != 0) {
-                            halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
+                            halo::networking::player_update_history_free_all(halo::networking::globals().client->update_history);
                         }
                     }
                 }

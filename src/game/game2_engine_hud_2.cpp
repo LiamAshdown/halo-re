@@ -1,6 +1,7 @@
 #include "halo/game/game2_engine_hud.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
+#include "halo/game/multiplayer_game_text.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "halo/cache/api.hpp"
@@ -96,7 +97,7 @@ void EngineHud::post_rasterize_post_game(void)
         ? (GlobalsInterfaceBitmaps *)0
         : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
     hud_globals = (HUDGlobals *)halo::cache::globals().tag_instances[interface_bitmaps->hud_globals.tag_id.index].data;
-    quad_tag = (Bitmap *)halo::game::tag_data_at(*(uint32_t *)&hud_globals->carnage_report_bitmap.tag_id);
+    quad_tag = (Bitmap *)halo::game::tag_data_at(halo::tag_id_bits<uint32_t>(hud_globals->carnage_report_bitmap.tag_id));
     rect.top = 0;
     rect.left = 0;
     rect.bottom = 0x1e0;
@@ -115,8 +116,8 @@ void EngineHud::post_rasterize_post_game(void)
             order[0] = 1;
             order[1] = 0;
         }
-        team_name[0] = multiplayer_game_text_string(0x41);
-        team_name[1] = multiplayer_game_text_string(0x42);
+        team_name[0] = multiplayer_game_text_string(halo::game::mp_text::k_post_game_team_score_format_a);
+        team_name[1] = multiplayer_game_text_string(halo::game::mp_text::k_post_game_team_score_format_b);
 
         halo::text::globals().hud_text_draw_background_mode = 6;
         text_tab_stops = team_tab_a;
@@ -132,11 +133,11 @@ void EngineHud::post_rasterize_post_game(void)
         }
     }
 
-    col_a = multiplayer_game_text_string(0x43);
-    col_b = multiplayer_game_text_string(0x44);
-    col_c = multiplayer_game_text_string(0x45);
-    col_d = multiplayer_game_text_string(0x46);
-    col_e = multiplayer_game_text_string(0x47);
+    col_a = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_a);
+    col_b = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_b);
+    col_c = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_c);
+    col_d = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_d);
+    col_e = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_e);
     ((void (*)(wchar_t *))current_game_engine->build_score_header_text)(score_text);
     halo::text::string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L"\t%s\t%s\t%s\t%s\t%s\t%s"), col_a, col_b, score_text, col_c, col_d, col_e);
     post_game_set_tab_stops(tab_a, tab_b, tab_c);
@@ -230,10 +231,10 @@ void EngineHud::post_rasterize_post_game(void)
         rect.right = (int16_t)((int16_t)(screen_safe_area_bottom >> 16) - (int16_t)(render_viewport_top >> 16));
         if (halo::networking::globals().server != 0) {
             rect.right = 0x118;
-            prompt = multiplayer_game_text_string(0x48);
+            prompt = multiplayer_game_text_string(halo::game::mp_text::k_post_game_prompt_host);
         } else {
             rect.right = 0x1a4;
-            prompt = multiplayer_game_text_string(0x49);
+            prompt = multiplayer_game_text_string(halo::game::mp_text::k_post_game_prompt_client);
         }
         halo::interface::ui_widget_draw_formatted_prompt_string(&rect, 0, (const uint16_t *)prompt);
     }

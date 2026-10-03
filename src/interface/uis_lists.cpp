@@ -46,6 +46,8 @@ static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::va
 static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
 
 
+static_assert(sizeof(ConditionalWidgetReference) == 0x50, "conditional widget entries are 0x50 bytes apart");
+
 namespace halo::ui {
 
 /**
@@ -80,24 +82,8 @@ void UiLists::list_add_entry(int32_t group_index, const uint16_t *name, int32_t 
     wcscpy((wchar_t *)entry->name, (const wchar_t *)name);
 
     if (data_blob != 0 && data_size != 0) {
-        uint8_t *dst = (uint8_t *)GlobalAlloc(0, data_size);
-        const uint8_t *src = (const uint8_t *)data_blob;
-        uint32_t words = data_size >> 2;
-        uint32_t bytes_left = data_size & 3;
-
-        entry->data = dst;
-        while (words != 0) {
-            *(uint32_t *)dst = *(const uint32_t *)src;
-            src = src + 4;
-            dst = dst + 4;
-            words = words - 1;
-        }
-        while (bytes_left != 0) {
-            *dst = *src;
-            src = src + 1;
-            dst = dst + 1;
-            bytes_left = bytes_left - 1;
-        }
+        entry->data = GlobalAlloc(0, data_size);
+        memcpy(entry->data, data_blob, data_size);
     }
 }
 
@@ -130,7 +116,7 @@ uint8_t UiLists::list_default_item_format(void *item_buffer, int32_t item_index,
 int32_t UiLists::list_find_default(int32_t group_index)
 {
     int32_t count;
-    uint8_t *entry;
+    const ui_list_item *entry;
     int32_t index;
 
     if (!ui_list_has_default) {
@@ -140,11 +126,11 @@ int32_t UiLists::list_find_default(int32_t group_index)
     if (count <= 0) {
         return -1;
     }
-    entry = (uint8_t *)ui_lists[group_index].data + 0x0c;
+    entry = (const ui_list_item *)ui_lists[group_index].data;
     index = 0;
-    while (*entry == 0) {
+    while (entry->is_default == 0) {
         index = index + 1;
-        entry = entry + 0x10;
+        entry = entry + 1;
         if (count <= index) {
             return -1;
         }
@@ -256,7 +242,7 @@ int32_t UiLists::list_widget_compute_scroll_start(widget_instance *widget)
 {
     UIWidgetDefinition *tag_data;
     int32_t visible_rows;
-    int16_t *scroll_start = (int16_t *)((uint8_t *)widget + 0x3e);
+    int16_t *scroll_start = &halo::interface::widget_list_first_visible(widget);
     int16_t *selected_index_field = &halo::interface::widget_list_committed(widget);
     int32_t scroll_start_value;
     int32_t selected_index;
@@ -313,7 +299,7 @@ void UiLists::list_widget_rebuild_rows(widget_instance *widget, ui_list_item_for
     UIWidgetDefinition *tag_data = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
     int32_t visible_rows = (int32_t)tag_data->child_widgets.count;
     widget_instance *first_row = widget->first_child;
-    int16_t *scroll_start_field = (int16_t *)((uint8_t *)widget + 0x3e);
+    int16_t *scroll_start_field = &halo::interface::widget_list_first_visible(widget);
     int16_t *selected_index_field = &halo::interface::widget_list_committed(widget);
     int32_t scroll_start = *scroll_start_field;
     uint8_t has_embedded_spinner;
@@ -453,17 +439,17 @@ void UiLists::list_widget_rebuild_rows(widget_instance *widget, ui_list_item_for
                         row->background_bitmap_frame = 1;
                         if (widget->focused_child == row) {
                             ColorARGB highlight;
-                            *(ColorARGB *)&((struct widget_instance *)label)->list_items = *halo::interface::ui_get_saved_pulse_color(&highlight);
+                            label->text_color_override = *halo::interface::ui_get_saved_pulse_color(&highlight);
                         } else {
-                            *(uint32_t *)&((struct widget_instance *)label)->list_items = 0;
+                            label->text_color_override.alpha = 0.0f;
                         }
                     } else {
                         if (widget->focused_child == row) {
                             ColorARGB highlight;
                             widget->selection_index = (int16_t)item_index;
-                            *(ColorARGB *)&((struct widget_instance *)label)->list_items = *halo::interface::ui_get_saved_pulse_color(&highlight);
+                            label->text_color_override = *halo::interface::ui_get_saved_pulse_color(&highlight);
                         } else {
-                            *(uint32_t *)&((struct widget_instance *)label)->list_items = 0;
+                            label->text_color_override.alpha = 0.0f;
                         }
                         row->background_bitmap_frame = 0;
                     }
@@ -771,11 +757,11 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
     }
 
     if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::try_to_branch_on_failure) && tag->conditional_widgets.count > 0) {
-        uint8_t *entries = (uint8_t *)tag->conditional_widgets.pointer;
+        ConditionalWidgetReference *entries = (ConditionalWidgetReference *)tag->conditional_widgets.pointer;
         int32_t i;
 
         for (i = 0; i < tag->conditional_widgets.count; i++) {
-            ConditionalWidgetReference *entry = (ConditionalWidgetReference *)(entries + i * 0x50);
+            ConditionalWidgetReference *entry = entries + i;
 
             if (function_failed == 1 && halo::interface::has_bit(entry->flags, halo::tags::conditional_widget_reference_tag_flag::load_if_event_handler_function_fails) && handled == 0) {
                 datum_index open_tag = halo::interface::tag_handle(entry->widget_tag.tag_id);

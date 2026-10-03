@@ -533,7 +533,7 @@ void Koth::build_hill_boundary_fence(void)
 uint32_t Koth::dispatch_player_scoring(uint32_t player_index)
 {
     uint32_t idx = player_index & halo::k_datum_slot_mask;
-    player *p = (player *)((uint8_t *)player_data->data + idx * sizeof(player));
+    player *p = halo::game::player_at(idx);
     int32_t occupied_slots;
     int32_t i;
     uint32_t result = 0;
@@ -593,14 +593,14 @@ uint32_t Koth::dispatch_player_scoring(uint32_t player_index)
             datum_index weapon = unit->weapons[unit->current_weapon_index];
             if (weapon != (datum_index)halo::k_dword_none) {
                 object *weapon_obj = halo::game::object_at(weapon);
-                uint32_t *tag_data = (uint32_t *)halo::game::tag_data_at(weapon_obj->definition_tag);
+                const uint8_t *tag_data = halo::game::tag_data_at(weapon_obj->definition_tag);
                 if ((halo::game::weapon_flag_set(tag_data, halo::tags::weapon_tag_flag::must_be_readied)) != 0) {
                     int32_t score = king_alt_player_score[idx];
                     if (score > 0 && score % halo::game::seconds_to_ticks(5) == 0 && score < king_alt_score_target) {
                         halo::game::game_engine_queue_multiplayer_sound(0x2a, halo::k_dword_none, 0);
                     }
 
-                    *(int16_t *)((uint8_t *)weapon_obj + 0x2b8) = (int16_t)(score / 30);
+                    ((weapon_object *)weapon_obj)->weapon.magazines[0].rounds_loaded = (int16_t)(score / 30);
                 }
             }
         }
@@ -740,10 +740,10 @@ uint8_t Koth::player_in_hill_bounds(uint32_t player_index)
 void Koth::player_tick(uint32_t player_index)
 {
     uint32_t idx = player_index & halo::k_datum_slot_mask;
-    player *p = (player *)((uint8_t *)player_data->data + idx * sizeof(player));
+    player *p = halo::game::player_at(idx);
 
-    *(uint32_t *)&((struct player *)p)->hud_message_index = 0xffffffff;
-    *(uint32_t *)&((struct player *)p)->hud_message_player = 0xffffffff;
+    p->hud_message_index = (datum_index)0xffffffff;
+    p->hud_message_player = (datum_index)0xffffffff;
     king_hill_player_in_hill[idx] = 0;
 
     if (p->unit != (datum_index)halo::k_dword_none &&
@@ -781,8 +781,8 @@ void Koth::player_tick(uint32_t player_index)
             }
         }
 
-        *(uint32_t *)&((struct player *)p)->hud_message_index = 0x22;
-        *(uint32_t *)&((struct player *)p)->hud_message_player = player_index;
+        p->hud_message_index = (datum_index)0x22;
+        p->hud_message_player = (datum_index)player_index;
     }
 }
 
@@ -1201,14 +1201,13 @@ void Koth::update_occupant_table(uint32_t index)
     p = halo::game::player_at(index);
     unit = p->unit;
     if (unit != (datum_index)halo::k_dword_none) {
-        unit_data *unit_obj = (unit_data *)((uint8_t *)
-            halo::game::object_at(unit) + k_unit_data_offset);
+        unit_data *unit_obj = halo::game::unit_data_of(halo::game::object_at(unit));
         int16_t slot = unit_obj->current_weapon_index;
         if (slot != -1) {
             datum_index weapon = unit_obj->weapons[slot];
             if (weapon != (datum_index)halo::k_dword_none) {
                 object *weapon_obj = halo::game::object_at(weapon);
-                uint32_t *tag_data = (uint32_t *)halo::game::tag_data_at(weapon_obj->definition_tag);
+                const uint8_t *tag_data = halo::game::tag_data_at(weapon_obj->definition_tag);
                 if ((halo::game::weapon_flag_set(tag_data, halo::tags::weapon_tag_flag::must_be_readied)) != 0) {
                     int16_t team = ((struct object *)weapon_obj)->owner_team;
                     king_hill_occupant_table[team] = index;

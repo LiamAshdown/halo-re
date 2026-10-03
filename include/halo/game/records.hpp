@@ -63,6 +63,25 @@ inline item_data *item_data_of(const void *item_object_pointer) noexcept {
     return const_cast<item_data *>(&static_cast<const item_object *>(item_object_pointer)->item);
 }
 
+/** True when the object tag (the data of an object's definition tag) names a model. */
+inline bool object_tag_has_model(const void *object_tag) noexcept {
+    return tag_id_bits<int32_t>(static_cast<const Object *>(object_tag)->model.tag_id) != -1;
+}
+
+/**
+ * The live player a datum handle names, or null: the handle must not be none, its slot index must be in range and
+ * the slot's identifier must be set and match the handle's salt (a zero salt matches any identifier).
+ */
+inline player *player_try_get(datum_index handle) noexcept {
+    const int16_t index = static_cast<int16_t>(handle);
+    const int16_t salt = static_cast<int16_t>(handle >> 16);
+    if (handle == static_cast<datum_index>(k_datum_index_none) || index < 0 || index >= globals().player_data->maximum_count) {
+        return nullptr;
+    }
+    player *candidate = player_at(static_cast<uint32_t>(index));
+    return candidate->identifier != 0 && (salt == 0 || candidate->identifier == salt) ? candidate : nullptr;
+}
+
 /** The loaded tag data of a tag datum handle. */
 inline uint8_t *tag_data_at(uint32_t tag) noexcept {
     return static_cast<uint8_t *>(cache::globals().tag_instances[tag & k_datum_slot_mask].data);

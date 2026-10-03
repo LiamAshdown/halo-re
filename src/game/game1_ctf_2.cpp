@@ -258,10 +258,7 @@ void Ctf::return_all_flags(void)
     }
 
     halo::game::game_engine_ctf_assign_flag_ids();
-    {
-        uint32_t *raw = (uint32_t *)&ctf_globals_live;
-        for (i = 0; i < (int32_t)(sizeof(ctf_globals_live) / 4); i++) raw[i] = 0;
-    }
+    memset(&ctf_globals_live, 0, sizeof(ctf_globals_live));
 
     flag_count = (int32_t)halo::scenario::globals().scenario->netgame_flags.count;
     flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;

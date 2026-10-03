@@ -71,10 +71,10 @@ wchar_t * EngineHud::multiplayer_game_text_string(int16_t index)
 int32_t EngineHud::scoreboard_text_font(void)
 {
     HUDGlobals *messaging = (HUDGlobals *)hud_messaging_parameters;
-    int32_t font = *(int32_t *)&messaging->fullscreen_font.tag_id;
+    int32_t font = halo::tag_id_bits<int32_t>(messaging->fullscreen_font.tag_id);
 
     if (local_player_globals->local_player_count > 1) {
-        int32_t preferred = *(int32_t *)&messaging->splitscreen_font.tag_id;
+        int32_t preferred = halo::tag_id_bits<int32_t>(messaging->splitscreen_font.tag_id);
 
         if (preferred != -1) {
             font = preferred;
@@ -438,7 +438,7 @@ void EngineHud::play_multiplayer_sound(int32_t sound_index, datum_index recipien
         return;
     }
     sound = (GlobalsSound *)mp_info->sounds.pointer + sound_index;
-    if (sound == (GlobalsSound *)0 || *(int32_t *)&sound->sound.tag_id == -1) {
+    if (sound == (GlobalsSound *)0 || halo::tag_id_bits<int32_t>(sound->sound.tag_id) == -1) {
         return;
     }
 

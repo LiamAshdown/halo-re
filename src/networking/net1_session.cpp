@@ -1,4 +1,5 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/networking/channel_queue.hpp"
 #include "halo/core/ui_tag_paths.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/networking/announcement.hpp"
@@ -28,6 +29,8 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "interface.h"
+#include "saved_games.h"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
@@ -45,7 +48,7 @@ static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().play
 static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
-static auto &profile_globals_block = halo::link::ref<uint32_t []>(halo::ui::vars().profile_globals_block);
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot []>(halo::ui::vars().profile_globals_block);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &network_challenge_packet_block = halo::link::ref<uint16_t []>(halo::networking::vars().network_challenge_packet_block);
 static auto &network_server_host_valid = halo::link::ref<uint8_t>(halo::networking::vars().network_server_host_valid);
@@ -90,7 +93,7 @@ struct settings_ack_frame {
     uint8_t unknown_00[6];       // 0x00
     network_player_entry player; // 0x06 built from the profile, then copied to payload
     network_player_entry payload; // 0x26
-    uint8_t profile[0x1ffc];     // 0x46 one profile_globals_block template row
+    saved_player_profile profile; // 0x46 one profile_globals_block template row
     uint8_t unused[0x2070 - 0x2042];
 };
 #pragma pack(pop)
@@ -291,18 +294,14 @@ char GameRuntime::settings_ack_send(uint8_t *client_bytes, int16_t template_row)
     network_client_globals *client = (network_client_globals *)client_bytes;
     settings_ack_frame frame;
     int32_t mode;
-    int32_t *challenge;
+    uint16_t *challenge;
     network_channel *channel;
-    int32_t bits_to_send;
-    int32_t total_bits;
-    int32_t free_bits;
-    char result;
 
-    memcpy(frame.profile, &profile_globals_block[(uint32_t)template_row * 0x801], sizeof(frame.profile));
+    memcpy(&frame.profile, &profile_globals_block[(uint32_t)template_row].profile, sizeof(frame.profile));
     frame.player.machine_player_index = (int8_t)template_row;
     frame.player.machine_index = (int8_t)client->machine_index;
-    wcsncpy((wchar_t *)frame.player.name, (const wchar_t *)(frame.profile + 2), 0xb);
-    frame.player.color_index = *(int16_t *)(frame.profile + 0x11a);
+    wcsncpy((wchar_t *)frame.player.name, (const wchar_t *)frame.profile.name, 0xb);
+    frame.player.color_index = frame.profile.player_color;
     frame.player.icon_index = (int16_t)0xffff;
     frame.player.team_index = (int8_t)0xff;
     frame.player.slot_index = (int8_t)0xff;
@@ -318,33 +317,17 @@ char GameRuntime::settings_ack_send(uint8_t *client_bytes, int16_t template_row)
     case 3:
         frame.payload = frame.player;
 
-        challenge = (int32_t *)halo::networking::network_prepare_challenge_packet(0x0f, &frame.payload);
+        challenge = halo::networking::network_prepare_challenge_packet(0x0f, &frame.payload);
         if (challenge == 0) {
             return 1;
         }
         channel = client->channel;
-        bits_to_send = (uint32_t)(*(uint16_t *)challenge >> 4) * 8;
-        total_bits = bits_to_send + 1;
-        if ((*(uint8_t *)&channel->flags & 1) != 0) {
-            return 1;
-        }
-        free_bits = ((*(int32_t *)&channel->outgoing.stream.last_bit + *(int32_t *)&channel->outgoing.stream.byte_cursor * -8) -
-                     *(int32_t *)&channel->outgoing.stream.bit_cursor) + 1;
         break;
     default:
         return 1;
     }
 
-    result = 1;
-    if (total_bits <= free_bits || (result = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1), result != 0)) {
-
-        channel->send_budget = channel->send_budget + bits_to_send + 1;
-        { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1); }
-        channel->outgoing.empty = 0;
-        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)(challenge), bits_to_send);
-        channel->outgoing.empty = 0;
-    }
-    return result;
+    return halo::networking::channel_queue_packet(channel, challenge) ? 1 : 0;
 }
 
 /**

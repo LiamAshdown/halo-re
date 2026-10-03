@@ -1,4 +1,5 @@
 #include "halo/networking/net1_server.hpp"
+#include "halo/networking/channel_queue.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/networking/delta_message_types.hpp"
@@ -294,10 +295,10 @@ char ServerView::build_game_info_packet(network_machine *machine)
     char encoded;
 
     source_name = halo::networking::autopatch_temp_name_generate();
-    strncpy((char *)machine + 0x52, source_name, 7);
-    *((char *)machine + 0x59) = 0;
+    strncpy(machine->short_name, source_name, 7);
+    machine->short_name[7] = 0;
 
-    strncpy(record.short_name, (char *)machine + 0x52, 7);
+    strncpy(record.short_name, machine->short_name, 7);
     record.nul = 0;
     memcpy(record.snapshot, (uint8_t *)server + 0x88, sizeof(record.snapshot));
     record.flag = network_game_info_packet_flag;
@@ -314,30 +315,7 @@ char ServerView::build_game_info_packet(network_machine *machine)
 
             channel = machine->channel;
             if (channel != 0) {
-                int32_t bit_len;
-                char result;
-
-                bit_len = (int32_t)(*encoded_buffer >> 4) * 8;
-                result = 1;
-                if ((channel->flags & 0x01) == 0) {
-                    int32_t free_bits;
-
-                    free_bits = (int32_t)(channel->outgoing.stream.last_bit -
-                                          channel->outgoing.stream.byte_cursor * 8) -
-                                (int32_t)channel->outgoing.stream.bit_cursor + 1;
-                    if (free_bits < bit_len + 1) {
-                        result = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
-                        if (result == 0) {
-                            return 0;
-                        }
-                    }
-                    channel->send_budget = channel->send_budget + bit_len + 1;
-                    { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1); }
-                    channel->outgoing.empty = 0;
-                    halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)(encoded_buffer), bit_len);
-                    channel->outgoing.empty = 0;
-                }
-                return result;
+                return halo::networking::channel_queue_packet(channel, encoded_buffer) ? 1 : 0;
             }
         }
     }
@@ -413,8 +391,7 @@ int32_t ServerView::check_machine_timeout(network_machine *machine)
 
                     machine->flags = 0;
                     machine->unknown_0f = 0;
-                    machine->unknown_52 = 0;
-                    machine->unknown_56 = 0;
+                    memset(machine->short_name, 0, sizeof(machine->short_name));
                     if (machine->gcd_user_id == -1) {
                         gcd_disconnect_all(network_console_connection_id);
                     } else {

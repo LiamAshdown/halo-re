@@ -54,9 +54,9 @@ int32_t ClientMessageDecoder::settings_or_ack(const uint8_t *buffer, int32_t len
     halo::networking::network_channel_remote_address_or_default(client->channel, &sender);
     if (sender.address.ipv4 == *expected_sequence) {
         if (network_game_mode == halo::networking::k_game_mode_host) {
-            if (client->state == 2 && *(uint8_t *)&client->pad_ee2 == 0) {
+            if (client->state == 2 && client->settings_ack_sent == 0) {
                 halo::networking::network_game_settings_ack_send((uint8_t *)client, 0);
-                *(uint8_t *)&client->pad_ee2 = 1;
+                client->settings_ack_sent = 1;
             }
         } else if (client->state == 2 || client->state == 3) {
             if (halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group,

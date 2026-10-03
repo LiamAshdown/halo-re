@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/networking/channel_queue.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/text/api.hpp"
@@ -291,7 +292,7 @@ void ClientView::destroy()
     network_client_globals *client = self;
     halo::networking::message_delta_parameters_protocol_dump_to_config_file();
     if (client != 0) {
-        halo::networking::player_update_history_destroy((player_update_history *)client->update_history);
+        halo::networking::player_update_history_destroy(client->update_history);
         client->update_history = 0;
         if (client->channel != 0) {
             halo::networking::network_channel_delete(client->channel);
@@ -316,13 +317,8 @@ int32_t ConnectionView::send_join_request_packet()
     uint32_t payload;
     int16_t capacity;
     uint16_t *record;
-    network_channel *channel;
-    int32_t bits_to_send;
-    int32_t total_bits;
-    char result;
-    uint32_t item_flag;
 
-    if (network_server == 0 || ((*(uint8_t *)((uint8_t *)network_server + 6) >> 2 & 1) == 0)) {
+    if (network_server == 0 || ((network_server->flags >> 2 & 1) == 0)) {
         network_host_handoff_requested = 1;
         halo::interface::chat_close();
     }
@@ -338,26 +334,7 @@ int32_t ConnectionView::send_join_request_packet()
         return 0;
     }
 
-    channel = connection->channel;
-    bits_to_send = (int32_t)(*record >> 4) * 8;
-    total_bits = bits_to_send + 1;
-    result = 1;
-    if ((channel->flags & 1) == 0) {
-        if ((int32_t)(channel->outgoing.stream.last_bit - channel->outgoing.stream.byte_cursor * 8 -
-                      channel->outgoing.stream.bit_cursor) + 1 < total_bits) {
-            result = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
-            if (result == 0) {
-                return 0;
-            }
-        }
-        channel->send_budget = channel->send_budget + total_bits;
-        item_flag = 0;
-        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
-        channel->outgoing.empty = 0;
-        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)record, bits_to_send);
-        channel->outgoing.empty = 0;
-    }
-    return result;
+    return halo::networking::channel_queue_packet(connection->channel, record) ? 1 : 0;
 }
 
 /**

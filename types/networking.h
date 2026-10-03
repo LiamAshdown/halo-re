@@ -548,8 +548,7 @@ typedef struct network_machine {
                                  //    clears via 0x4e0b90; timeout 0x4e0ef0 frees the slot only when 0
     uint8_t players_removed_broadcast; // 0x51 0x4e0ef0: on a timed-out machine that still has players, broadcasts
                                        //    each player's removal once, then sets 1 and returns early thereafter
-    int32_t unknown_52;          // 0x52 unaligned in the original
-    int32_t unknown_56;          // 0x56 unaligned in the original
+    char short_name[8];          // 0x52 the autopatch temp name (7 characters and a NUL); cleared as two dwords in the original
     int16_t unknown_5a;          // 0x5a
     int32_t gcd_user_id;         // 0x5c 0x4e0ef0 gcd_disconnect_user(network_console_connection_id, it) (-1 ->
                                  //    gcd_disconnect_all); sv_ban/autoban pass it to network_banlist_add_ban; -1 at
@@ -739,7 +738,8 @@ typedef struct network_client_globals {
                                      //    failure
     uint8_t connection_stalled; // 0xee1 network_game_client_update: channel flags bit 5, also starts
                                 //    ui_network_wait_timeout; zeroed at create/finalize_join
-    uint16_t pad_ee2;          // 0xee2
+    uint8_t settings_ack_sent; // 0xee2 the game-settings ack goes out once; cleared when the challenge reply is built
+    uint8_t pad_ee3;           // 0xee3
     network_client_timer_record timer; // 0xee4 the first five dwords of the zeroed run
     network_resolved_address server_address; // 0xef8 filled by 0x4dd390 from
                                //       client->channel; 0x4d9f23 is `lea ecx,[esi+0xef8]`
@@ -748,7 +748,7 @@ typedef struct network_client_globals {
                                //    0x8c; -1 at create
     client_update_record last_update_sent; // 0xf14 baseline of the message 0x0d records update_server_send_update sends;
                                //    zeroed at create
-    void *update_history;      // 0xf48 player_update_history *, GlobalAlloc of 0x2c
+    struct player_update_history *update_history; // 0xf48 GlobalAlloc of 0x2c
     int32_t connection_rate_index; // 0xf4c begin_connect 0x4dc8d0 stores the profile connection_type (0..4) here, the host create path
                                //    0x4e41d0 stores 4; the join request frame carries it as rate_index. Retail keeps it in the
                                //    4 bytes of padding between 0x00873d2c..0x00873d30 after network_client_storage

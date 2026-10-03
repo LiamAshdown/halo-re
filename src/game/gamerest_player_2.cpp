@@ -58,13 +58,13 @@ static void player_respawn_drop_lights(datum_index object_index)
     object *obj = halo::game::object_at(object_index);
     Object *tag = (Object *)halo::game::tag_data_at(obj->definition_tag);
 
-    if (*(int32_t *)&tag->model.tag_id == -1) {
+    if (halo::tag_id_bits<int32_t>(tag->model.tag_id) == -1) {
         return;
     }
     if (obj->flags & 1) {
         halo::objects::object_for_each_light_attachment(object_index, 0, 1);
     }
-    if (*(int32_t *)&tag->model.tag_id != -1) {
+    if (halo::tag_id_bits<int32_t>(tag->model.tag_id) != -1) {
         obj->flags &= ~1u;
         halo::game::object_header_at(object_index).flags |= 2;
     }
@@ -607,7 +607,7 @@ void StructureBsp::switch_structure_bsp()
 
                         halo::game::chimera__kill_feed(player_handle, 0x1f, (uint32_t)halo::k_dword_none, 1, 0);
                     }
-                    *((uint8_t *)unit_obj + 0x106) = *((uint8_t *)unit_obj + 0x106) | 0x20;
+                    unit_obj->vitality_flags = unit_obj->vitality_flags | 0x20;
                 }
             }
         }
@@ -634,7 +634,7 @@ void StructureBsp::switch_structure_bsp()
                 for (i = 0; i < count; i = i + 1) {
                     ScenarioBSPSwitchTriggerVolume *entry = &volumes[i];
                     if (entry->source == (uint16_t)halo::scenario::globals().structure_bsp_index && plr->unit != (datum_index)-1 &&
-                        halo::scenario::scenario_query::trigger_volume_contains_point((int16_t)entry->trigger_volume, (real_point3d *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (plr->unit & halo::k_datum_slot_mask) * 0xc + 8) + 0xa0)) != 0) {
+                        halo::scenario::scenario_query::trigger_volume_contains_point((int16_t)entry->trigger_volume, &halo::game::object_at(plr->unit)->bounding_center) != 0) {
 
                         int16_t destination = (int16_t)entry->destination;
 

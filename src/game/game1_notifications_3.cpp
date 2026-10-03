@@ -24,7 +24,7 @@
 #include "halo/units/api.hpp"
 
 static auto &shared_hud_text_draw_state = halo::link::ref<uint8_t>(halo::game::vars().shared_hud_text_draw_state);
-static auto &machine_table = halo::link::ref<uint8_t *>(halo::game::vars().machine_table);
+static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 
@@ -46,7 +46,7 @@ void Notifications::notify_object_value_event(uint8_t value_byte, int32_t hash_k
     fields.value_byte = value_byte;
     fields.hash_result = 0;
     if (hash_key != -1) {
-        fields.hash_result = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)hash_key);
+        fields.hash_result = halo::objects::hash_table_get(&machine_table->id_to_index, (int32_t)hash_key);
         if (fields.hash_result == -1) {
             fields.hash_result = 0;
         }
@@ -87,7 +87,7 @@ void Notifications::notify_player_interaction(uint32_t primary_key, uint32_t edi
 
     fields.primary_hash = 0;
     if (primary_key != halo::k_dword_none) {
-        fields.primary_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)primary_key);
+        fields.primary_hash = halo::objects::hash_table_get(&machine_table->id_to_index, (int32_t)primary_key);
         if (fields.primary_hash == -1) {
             fields.primary_hash = 0;
         }

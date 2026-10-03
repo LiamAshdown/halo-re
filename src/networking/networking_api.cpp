@@ -1976,7 +1976,7 @@ uint8_t network_name_string_is_valid_for_mode(char *name, void *character, int32
  *
  * @address 0x4df070
  */
-void network_password_field_set(uint8_t *object, wchar_t *source)
+void network_password_field_set(network_server_globals *object, wchar_t *source)
 {
     halo::networking::NetworkRuntime::password_field_set(object, source);
 }

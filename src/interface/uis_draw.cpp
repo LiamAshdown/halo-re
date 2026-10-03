@@ -58,6 +58,7 @@ static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud
 static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
 static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
 static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
+static_assert(offsetof(HUDGlobals, button_icons.pointer) == 0xc8, "button icon block pointer");
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
 
 
@@ -178,9 +179,7 @@ void UiDraw::draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect)
         v[i].color = packed_color;
     }
 
-    for (i = 0; i < (int32_t)(sizeof(state) / sizeof(int32_t)); i++) {
-        ((int32_t *)&state)[i] = 0;
-    }
+    memset(&state, 0, sizeof(state));
     state.meter_parameters = nullptr;
     state.maps[0] = &default_2d_bitmap_data[1];
     state.map_scales[0].x = 1.0f;
@@ -484,7 +483,7 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
             }
             if (draw_icon) {
                 HUDGlobalsButtonIcon *icon =
-                    (HUDGlobalsButtonIcon *)*(uint8_t **)((uint8_t *)hud_globals_tag_data + 0xc8) + token;
+                    (HUDGlobalsButtonIcon *)hud_globals_tag_data->button_icons.pointer + token;
                 HUDInterfaceMessagingFlags saved_flags = icon->flags;
                 int16_t saved_width = icon->width_offset;
                 ColorARGB icon_color;

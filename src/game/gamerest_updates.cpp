@@ -754,7 +754,7 @@ void PlayerNetworkState::apply_first_position_update(uint32_t field0)
     {
         unit_data *unit = halo::game::unit_data_of(unit_obj);
         uint8_t seated = halo::game::player_unit_has_parent(unit->controlling_player);
-        *(uint32_t *)((uint8_t *)unit_obj + 0x4bc) = field0;
+        unit->control_update_id = field0;
         if (seated == 0) {
             PlayerNetworkState(plr).apply_remote_position_update(unit_obj);
         } else {

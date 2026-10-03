@@ -11,6 +11,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/networking/channel_queue.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/records.hpp"
@@ -309,18 +310,8 @@ void ChatDialog::submit_input(void)
  */
 void ChatDialog::queue_on_channel(network_channel *channel, int32_t encoded_bits)
 {
-    bit_stream *stream = &channel->outgoing.stream;
-
-    if ((channel->flags & k_network_channel_listening) == 0 &&
-        (encoded_bits + 1 <= ((int32_t)stream->last_bit + (int32_t)stream->byte_cursor * -8) - (int32_t)stream->bit_cursor + 1 ||
-         halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1) != 0)) {
-        uint32_t item_flag = 1;
-
-        channel->send_budget = channel->send_budget + encoded_bits + 1;
-        halo::memory::bit_stream_write_bits_chunked(stream, &item_flag, 1);
-        channel->outgoing.empty = 0;
-        halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)(network_message_scratch), encoded_bits);
-        channel->outgoing.empty = 0;
+    if ((channel->flags & k_network_channel_listening) == 0) {
+        halo::networking::channel_queue_bits(channel, reinterpret_cast<const uint32_t *>(network_message_scratch), encoded_bits, 1);
     }
 }
 

@@ -92,7 +92,7 @@ void HudNameplates::draw_teammate_nameplate(datum_index player_handle)
     if (p->nameplate_target_player != (datum_index)halo::k_dword_none) {
         int16_t index = (int16_t)p->nameplate_target_player;
         if (-1 < index && index < player_data->maximum_count) {
-            tracked = (player *)((uint8_t *)player_data->data + player_data->size * index);
+            tracked = halo::game::player_at(index);
             if (tracked->identifier != 0 &&
                 ((int16_t)((uint32_t)p->nameplate_target_player >> 16) == 0 ||
                  tracked->identifier == (int16_t)((uint32_t)p->nameplate_target_player >> 16))) {
@@ -613,7 +613,7 @@ void ChimeraHooks::kill_feed(datum_index recipient, int32_t hash_key, uint32_t m
         return;
     }
     {
-        player *p = (player *)((uint8_t *)player_data->data + player_data->size * index);
+        player *p = halo::game::player_at(index);
         int16_t salt;
 
         if (p->identifier == 0) {

@@ -25,7 +25,7 @@
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
-static auto &machine_table = halo::link::ref<uint8_t *>(halo::game::vars().machine_table);
+static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 
 namespace halo::game::engine1 {
 
@@ -45,7 +45,7 @@ void KillFeed::notify_kill_event(uint32_t player_index, int32_t hash_key, int32_
 
     fields[0] = 0;
     if (hash_key != -1) {
-        fields[0] = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)hash_key);
+        fields[0] = halo::objects::hash_table_get(&machine_table->id_to_index, (int32_t)hash_key);
         if (fields[0] == -1) {
             fields[0] = 0;
         }

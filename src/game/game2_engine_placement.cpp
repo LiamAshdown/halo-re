@@ -48,11 +48,11 @@ static auto &teleport_message_cooldown = halo::link::ref<int32_t>(halo::game::va
 static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
 static auto &teleport_flash_type = halo::link::ref<int16_t>(halo::game::vars().teleport_flash_type);
 static auto &teleport_flash_maximum_intensity = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_maximum_intensity);
-static auto &teleport_flash_alpha = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_alpha);
-static auto &teleport_flash_red = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_red);
-static auto &teleport_flash_green = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_green);
-static auto &teleport_flash_blue = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_blue);
-static auto &teleport_flash_duration = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_duration);
+static auto &teleport_flash_alpha = halo::link::ref<float>(halo::game::vars().teleport_flash_alpha);
+static auto &teleport_flash_red = halo::link::ref<float>(halo::game::vars().teleport_flash_red);
+static auto &teleport_flash_green = halo::link::ref<float>(halo::game::vars().teleport_flash_green);
+static auto &teleport_flash_blue = halo::link::ref<float>(halo::game::vars().teleport_flash_blue);
+static auto &teleport_flash_duration = halo::link::ref<float>(halo::game::vars().teleport_flash_duration);
 static auto &teleport_flash_fade_function = halo::link::ref<int16_t>(halo::game::vars().teleport_flash_fade_function);
 static auto &game_engine_round_reset_tick = halo::link::ref<int32_t>(halo::game::vars().game_engine_round_reset_tick);
 
@@ -174,8 +174,7 @@ float EnginePlacement::rate_location_crowding(uint32_t self_index, real_point3d 
  */
 real EnginePlacement::rate_player_starting_location(ScenarioPlayerStartingLocation *location, datum_index player_handle)
 {
-    player *p = (player *)((uint8_t *)player_data->data
-                           + ((uint32_t)player_handle & halo::k_datum_slot_mask) * sizeof(player));
+    player *p = halo::game::player_at(player_handle);
     real score;
 
     if (current_game_engine == 0 || current_game_engine->unknown_84 == 0 ||
@@ -507,7 +506,7 @@ void EnginePlacement::spawn_or_replay_netgame_equipment(int32_t *message)
 
         halo::networking::network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object);
         halo::objects::object_list_membership_set(new_object, 0);
-        if ((*(uint8_t *)equipment & 1) != 0) {
+        if ((equipment->flags & 1) != 0) {
             obj->flags = obj->flags | 0x20;
         }
         halo::objects::object_type_override_call_0x68(new_object);
@@ -532,7 +531,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
     for (loop_index = 0; loop_index < count; loop_index++) {
         ScenarioNetgameEquipment *equipment =
             &((ScenarioNetgameEquipment *)halo::scenario::globals().scenario->netgame_equipment.pointer)[loop_index];
-        datum_index item_collection_tag = *(datum_index *)&equipment->item_collection.tag_id;
+        datum_index item_collection_tag = halo::tag_id_bits<datum_index>(equipment->item_collection.tag_id);
 
         if (!halo::game::netgame_equipment_game_type_matches((int16_t *)&equipment->type_0, 4,
                 current_game_engine != 0 ? current_game_engine->index : -1)) {
@@ -596,7 +595,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                             item_data *item = halo::game::item_data_of(obj);
 
                             halo::objects::object_list_membership_set(new_object, 0);
-                            if (((uint8_t *)equipment)[0] & 1) {
+                            if ((equipment->flags & 1) != 0) {
                                 obj->flags = obj->flags | 0x20;
                             }
                             obj->network_role = 0;
@@ -721,22 +720,17 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
                 halo::game::game_engine_queue_multiplayer_sound(0x1b, halo::k_dword_none, 0);
                 if (p->local_player_index != -1) {
                     player_screen_flash flash;
-                    uint8_t *flash_bytes = (uint8_t *)&flash;
-                    int32_t i;
-
-                    for (i = 0; i < (int32_t)sizeof(flash); i++) {
-                        flash_bytes[i] = 0;
-                    }
+                    memset(&flash, 0, sizeof(flash));
                     flash.type = teleport_flash_type;
                     flash.priority = 2;
-                    flash.duration = *(float *)&teleport_flash_duration;
+                    flash.duration = teleport_flash_duration;
                     flash.fade_function = (uint16_t)teleport_flash_fade_function;
                     flash.maximum_intensity = teleport_flash_maximum_intensity;
                     flash.intensity = 0.0f;
-                    flash.color.alpha = *(float *)&teleport_flash_alpha;
-                    flash.color.red = *(float *)&teleport_flash_red;
-                    flash.color.green = *(float *)&teleport_flash_green;
-                    flash.color.blue = *(float *)&teleport_flash_blue;
+                    flash.color.alpha = teleport_flash_alpha;
+                    flash.color.red = teleport_flash_red;
+                    flash.color.green = teleport_flash_green;
+                    flash.color.blue = teleport_flash_blue;
                     halo::effects::player_effect_set_screen_flash_for_player(player_index, &flash, 1.0f);
                 }
             }
@@ -760,7 +754,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
 
                 if ((unit_object->network_role == 1 || unit_object->network_role == 2) &&
                     p->local_player_index != -1 && halo::networking::globals().client != 0) {
-                    halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
+                    halo::networking::player_update_history_free_all(halo::networking::globals().client->update_history);
                     return;
                 }
             }
@@ -837,55 +831,55 @@ void EnginePlacement::touch_multiplayer_predicted_resources(void)
 
     switch (game_engine_variant.red_vehicle_set & 0xf) {
     case 2:
-        halo::objects::object_notify_predicted_resources_if_valid((datum_index)*(int32_t *)&vehicles[0].vehicle.tag_id);
+        halo::objects::object_notify_predicted_resources_if_valid((datum_index)halo::tag_id_bits<int32_t>(vehicles[0].vehicle.tag_id));
         break;
     case 3:
-        halo::objects::object_notify_predicted_resources_if_valid((datum_index)*(int32_t *)&vehicles[1].vehicle.tag_id);
+        halo::objects::object_notify_predicted_resources_if_valid((datum_index)halo::tag_id_bits<int32_t>(vehicles[1].vehicle.tag_id));
         break;
     case 4:
-        halo::objects::object_notify_predicted_resources_if_valid((datum_index)*(int32_t *)&vehicles[2].vehicle.tag_id);
+        halo::objects::object_notify_predicted_resources_if_valid((datum_index)halo::tag_id_bits<int32_t>(vehicles[2].vehicle.tag_id));
         break;
     case 6:
-        halo::objects::object_notify_predicted_resources_if_valid((datum_index)*(int32_t *)&vehicles[3].vehicle.tag_id);
+        halo::objects::object_notify_predicted_resources_if_valid((datum_index)halo::tag_id_bits<int32_t>(vehicles[3].vehicle.tag_id));
         break;
     case 7:
-        halo::objects::object_notify_predicted_resources_if_valid((datum_index)*(int32_t *)&vehicles[4].vehicle.tag_id);
+        halo::objects::object_notify_predicted_resources_if_valid((datum_index)halo::tag_id_bits<int32_t>(vehicles[4].vehicle.tag_id));
         break;
     default:
-        touch_tag_if_valid(*(int32_t *)&vehicles[0].vehicle.tag_id);
-        touch_tag_if_valid(*(int32_t *)&vehicles[1].vehicle.tag_id);
-        touch_tag_if_valid(*(int32_t *)&vehicles[2].vehicle.tag_id);
-        touch_tag_if_valid(*(int32_t *)&vehicles[3].vehicle.tag_id);
-        touch_tag_if_valid(*(int32_t *)&vehicles[4].vehicle.tag_id);
-        touch_tag_if_valid(*(int32_t *)&vehicles[5].vehicle.tag_id);
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(vehicles[0].vehicle.tag_id));
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(vehicles[1].vehicle.tag_id));
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(vehicles[2].vehicle.tag_id));
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(vehicles[3].vehicle.tag_id));
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(vehicles[4].vehicle.tag_id));
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(vehicles[5].vehicle.tag_id));
         break;
     }
 
     weapons = (GlobalsWeapon *)global_globals->weapon_list.pointer;
 
     if (game_engine_variant.game_engine_index == _game_engine_oddball) {
-        touch_tag_if_valid(*(int32_t *)&weapons[10].weapon.tag_id);
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(weapons[10].weapon.tag_id));
     }
     if (game_engine_variant.game_engine_index == _game_engine_ctf) {
-        touch_tag_if_valid(*(int32_t *)&weapons[11].weapon.tag_id);
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(weapons[11].weapon.tag_id));
     }
 
-    weapon_tags[0] = *(int32_t *)&weapons[0].weapon.tag_id;
-    weapon_tags[1] = *(int32_t *)&weapons[1].weapon.tag_id;
-    weapon_tags[2] = *(int32_t *)&weapons[2].weapon.tag_id;
+    weapon_tags[0] = halo::tag_id_bits<int32_t>(weapons[0].weapon.tag_id);
+    weapon_tags[1] = halo::tag_id_bits<int32_t>(weapons[1].weapon.tag_id);
+    weapon_tags[2] = halo::tag_id_bits<int32_t>(weapons[2].weapon.tag_id);
     weapon_tags[3] = -1;
-    weapon_tags[4] = *(int32_t *)&weapons[4].weapon.tag_id;
-    weapon_tags[5] = *(int32_t *)&weapons[5].weapon.tag_id;
-    weapon_tags[6] = *(int32_t *)&weapons[6].weapon.tag_id;
-    weapon_tags[7] = *(int32_t *)&weapons[7].weapon.tag_id;
-    weapon_tags[8] = *(int32_t *)&weapons[8].weapon.tag_id;
-    weapon_tags[9] = *(int32_t *)&weapons[9].weapon.tag_id;
+    weapon_tags[4] = halo::tag_id_bits<int32_t>(weapons[4].weapon.tag_id);
+    weapon_tags[5] = halo::tag_id_bits<int32_t>(weapons[5].weapon.tag_id);
+    weapon_tags[6] = halo::tag_id_bits<int32_t>(weapons[6].weapon.tag_id);
+    weapon_tags[7] = halo::tag_id_bits<int32_t>(weapons[7].weapon.tag_id);
+    weapon_tags[8] = halo::tag_id_bits<int32_t>(weapons[8].weapon.tag_id);
+    weapon_tags[9] = halo::tag_id_bits<int32_t>(weapons[9].weapon.tag_id);
     weapon_tags[10] = -1;
     weapon_tags[11] = -1;
-    weapon_tags[12] = *(int32_t *)&weapons[12].weapon.tag_id;
-    weapon_tags[13] = *(int32_t *)&weapons[13].weapon.tag_id;
-    weapon_tags[14] = *(int32_t *)&weapons[14].weapon.tag_id;
-    weapon_tags[15] = *(int32_t *)&weapons[15].weapon.tag_id;
+    weapon_tags[12] = halo::tag_id_bits<int32_t>(weapons[12].weapon.tag_id);
+    weapon_tags[13] = halo::tag_id_bits<int32_t>(weapons[13].weapon.tag_id);
+    weapon_tags[14] = halo::tag_id_bits<int32_t>(weapons[14].weapon.tag_id);
+    weapon_tags[15] = halo::tag_id_bits<int32_t>(weapons[15].weapon.tag_id);
 
     for (i = 0; i < 16; i = i + 1) {
         if (weapon_tags[i] != -1) {

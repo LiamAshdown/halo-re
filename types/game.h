@@ -1112,9 +1112,10 @@ typedef struct observer_target_cone {
 typedef struct ctf_globals {
     uint32_t flag_id_mask;             // 0x00 bit i set means usage_id i exists on this map
     int32_t team_flag_id[16];          // 0x04
-    uint8_t unknown_44[0x148 - 0x44];  // 0x44 UNRESOLVED: per-team capture counters, the
-                                       //      captured bitmasks 0x46ec10 sends, and the
-                                       //      neutral-flag slot at 0x006b1314
+    uint32_t team_captured_flags_mask[16]; // 0x44 flags each team has captured (global 0x006b12d4)
+    int32_t neutral_flag_id;           // 0x84 the neutral flag's usage id (global 0x006b1314)
+    int32_t bucket_scores[16];         // 0x88 game_engine_bucket_scores (global 0x006b1318), replicated with the ctf state
+    uint8_t unknown_c8[0x148 - 0xc8];  // 0xc8 not replicated; overlays the rest of the engine scratch globals
 } ctf_globals;                         // size 0x148
 
 // King of the Hill occupancy. The three globals are contiguous and are always written as a

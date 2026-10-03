@@ -16,6 +16,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "halo/networking/net2_remote_console.hpp"
+#include "halo/networking/channel_queue.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
@@ -57,19 +58,7 @@ namespace halo::networking {
  */
 static bool stage_channel_item(network_channel *channel, const uint8_t *bits, int32_t bit_count)
 {
-    bit_stream *stream = &channel->outgoing.stream;
-    int32_t free_bits = stream->last_bit - stream->byte_cursor * 8 - stream->bit_cursor + 1;
-    uint32_t item_flag = 1;
-
-    if (bit_count + 1 > free_bits && halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1) == 0) {
-        return false;
-    }
-    channel->send_budget = channel->send_budget + bit_count + 1;
-    halo::memory::bit_stream_write_bits_chunked(stream, &item_flag, 1);
-    channel->outgoing.empty = 0;
-    halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)bits, bit_count);
-    channel->outgoing.empty = 0;
-    return true;
+    return channel_queue_bits(channel, reinterpret_cast<const uint32_t *>(bits), bit_count, 1);
 }
 
 /**
@@ -353,7 +342,7 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
         if (local_player != 0 && local_player->unit != k_datum_index_none) {
             if (network_game_mode == halo::networking::k_game_mode_client) {
                 char added = halo::networking::player_update_history_add(local_player->unit,
-                    (player_update_history *)network_client->update_history, tick_count, control, &history_update_id);
+                    network_client->update_history, tick_count, control, &history_update_id);
 
                 history_byte = (uint8_t)history_update_id;
                 if (added != 1) {

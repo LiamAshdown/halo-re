@@ -31,7 +31,7 @@ public:
     static int local_hostent_get(void **out_hostent);
     static char * log_path_resolve(char *requested_path);
     static uint8_t name_string_is_valid_for_mode(char *name, void *character, int32_t mode);
-    static void password_field_set(uint8_t *object, wchar_t *source);
+    static void password_field_set(network_server_globals *server, wchar_t *source);
     static uint16_t * prepare_challenge_packet(int32_t message_type, void *payload);
     static int32_t random_offset(int32_t base);
     static int32_t shutdown();

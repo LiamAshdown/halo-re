@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/networking/channel_queue.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
@@ -70,6 +71,35 @@ static auto &interface_loading_screen_address_a = halo::link::ref<int32_t>(halo:
 static auto &interface_loading_screen_address_b = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_b);
 static auto &progress_screen_text = halo::link::ref<int32_t>(halo::main::vars().progress_screen_text);
 static auto &progress_screen_subtext = halo::link::ref<int32_t>(halo::main::vars().progress_screen_subtext);
+
+namespace {
+
+/** The session info the loopback join hands to connection initiate: nine dwords holding the password and the canary text. */
+struct handshake_session_info {
+    uint16_t pad_00;
+    uint16_t name[8];
+    uint16_t name_terminator;
+    uint32_t canary[4];
+};
+static_assert(sizeof(handshake_session_info) == 9 * sizeof(uint32_t), "session info is nine dwords");
+
+/** The stack block join_handshake_tick builds for the loopback join: the host address, the session info and the target endpoint. */
+struct handshake_frame {
+    uint8_t unused_00[12];
+    s_network_address connect_address;      // 0x0c
+    uint8_t unused_20[4];                   // 0x20
+    handshake_session_info session;         // 0x24
+    s_network_address target;               // 0x48
+    uint8_t target_tail[0x172 - 0x5c];      // 0x5c
+    int16_t target_flag;                    // 0x172
+    uint8_t target_tail2[0x178 - 0x174];    // 0x174
+    uint8_t unused_178[400 - 0x178];        // 0x178
+};
+static_assert(offsetof(handshake_frame, connect_address) == 12 && offsetof(handshake_frame, session) == 36 &&
+              offsetof(handshake_frame, session.canary) == 56 && offsetof(handshake_frame, target) == 72 &&
+              offsetof(handshake_frame, target_flag) == 370 && sizeof(handshake_frame) == 400, "handshake frame layout");
+
+}
 
 namespace halo::networking {
 
@@ -318,7 +348,7 @@ void ClientView::globals_dispose()
 {
     if (network_client != 0) {
         halo::networking::message_delta_parameters_protocol_dump_to_config_file();
-        halo::networking::player_update_history_destroy((player_update_history *)network_client->update_history);
+        halo::networking::player_update_history_destroy(network_client->update_history);
         network_client->update_history = 0;
         if (network_client->channel != 0) {
             halo::networking::network_channel_delete(network_client->channel);
@@ -656,10 +686,6 @@ int32_t ClientView::record_message_send(const uint32_t *source)
     int32_t i;
     int16_t capacity;
     uint16_t *record;
-    network_channel *channel;
-    int32_t bits_to_send;
-    int32_t total_bits;
-    uint32_t item_flag;
 
     dst = (uint32_t *)record_copy;
     for (i = 8; i != 0; i = i - 1) {
@@ -682,24 +708,7 @@ int32_t ClientView::record_message_send(const uint32_t *source)
         return 0;
     }
 
-    channel = client->channel;
-    bits_to_send = (int32_t)(*record >> 4) * 8;
-    total_bits = bits_to_send + 1;
-    if ((channel->flags & 1) == 0) {
-        if ((int32_t)(channel->outgoing.stream.last_bit - channel->outgoing.stream.byte_cursor * 8 -
-                      channel->outgoing.stream.bit_cursor) + 1 < total_bits) {
-            if (halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1) == 0) {
-                return 0;
-            }
-        }
-        channel->send_budget = channel->send_budget + total_bits;
-        item_flag = 0;
-        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
-        channel->outgoing.empty = 0;
-        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)record, bits_to_send);
-        channel->outgoing.empty = 0;
-    }
-    return 1;
+    return halo::networking::channel_queue_packet(client->channel, record) ? 1 : 0;
 }
 
 /**
@@ -808,14 +817,10 @@ network_client_globals * ClientView::create()
 char ClientView::info_packet_send(const uint32_t *source)
 {
     network_client_globals *client = self;
-    char result;
     uint32_t local_buffer[8];
     uint16_t *challenge;
-    network_channel *channel;
-    int32_t bits_to_send;
     int32_t message_type;
     int32_t i;
-    uint32_t item_flag;
 
     switch (client->state) {
     case 0:
@@ -842,26 +847,7 @@ char ClientView::info_packet_send(const uint32_t *source)
         return 0;
     }
 
-    channel = client->channel;
-    bits_to_send = (int32_t)(*challenge >> 4) * 8;
-    result = 1;
-    if ((channel->flags & 1) == 0) {
-        if (bits_to_send + 1 >
-            (int32_t)(channel->outgoing.stream.last_bit - channel->outgoing.stream.byte_cursor * 8 -
-                      channel->outgoing.stream.bit_cursor) + 1) {
-            result = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
-            if (result == 0) {
-                return 0;
-            }
-        }
-        channel->send_budget = channel->send_budget + bits_to_send + 1;
-        item_flag = 0;
-        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
-        channel->outgoing.empty = 0;
-        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)challenge, bits_to_send);
-        channel->outgoing.empty = 0;
-    }
-    return result;
+    return halo::networking::channel_queue_packet(client->channel, challenge) ? 1 : 0;
 }
 
 /**
@@ -880,7 +866,7 @@ void ClientView::player_join_notify(const uint32_t *source)
     network_client_globals *client = self;
     int16_t player_index;
     uint32_t group_value;
-    int32_t *challenge;
+    uint16_t *challenge;
     uint32_t challenge_payload[4];
 
     network_channel *channel;
@@ -903,24 +889,9 @@ void ClientView::player_join_notify(const uint32_t *source)
         network_client->session.salt = group_value;
     }
 
-    challenge = (int32_t *)halo::networking::network_prepare_challenge_packet(0x11, challenge_payload);
+    challenge = halo::networking::network_prepare_challenge_packet(0x11, challenge_payload);
     if (challenge != 0) {
-        channel = client->channel;
-        bits_to_send = (uint32_t)(*(uint16_t *)challenge >> 4) * 8;
-        total_bits = bits_to_send + 1;
-        if ((channel->flags & 1) == 0) {
-            if (total_bits <= ((*(int32_t *)&channel->outgoing.stream.last_bit +
-                                 *(int32_t *)&channel->outgoing.stream.byte_cursor * -8) -
-                                *(int32_t *)&channel->outgoing.stream.bit_cursor) + 1 ||
-                (retransmit_ok = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1), retransmit_ok != 0)) {
-
-                channel->send_budget = channel->send_budget + total_bits;
-                { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1); }
-                channel->outgoing.empty = 0;
-                halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)(challenge), bits_to_send);
-                channel->outgoing.empty = 0;
-            }
-        }
+        halo::networking::channel_queue_packet(client->channel, challenge);
     }
 }
 
@@ -974,9 +945,6 @@ int32_t ClientView::staged_message_commit(uint16_t message_value)
     network_client_globals *client = self;
     uint16_t *challenge;
     uint32_t payload;
-    network_channel *channel;
-    int32_t bits_to_send;
-    uint32_t item_flag;
 
     if (client->state != 2) {
         return 1;
@@ -984,22 +952,7 @@ int32_t ClientView::staged_message_commit(uint16_t message_value)
     *(uint16_t *)&payload = message_value;
     challenge = halo::networking::network_prepare_challenge_packet(0x13, &payload);
     if (challenge != 0) {
-        channel = client->channel;
-        bits_to_send = (int32_t)(*challenge >> 4) * 8;
-        if ((channel->flags & 1) == 0) {
-            if ((int32_t)(channel->outgoing.stream.last_bit - channel->outgoing.stream.byte_cursor * 8 -
-                          channel->outgoing.stream.bit_cursor) + 1 < bits_to_send + 1) {
-                if (halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1) == 0) {
-                    return 1;
-                }
-            }
-            channel->send_budget = channel->send_budget + bits_to_send + 1;
-            item_flag = 0;
-            halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
-            channel->outgoing.empty = 0;
-            halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)challenge, bits_to_send);
-            channel->outgoing.empty = 0;
-        }
+        halo::networking::channel_queue_packet(client->channel, challenge);
     }
     return 1;
 }
@@ -1142,7 +1095,7 @@ void ConnectionView::send_keepalive()
     large_integer counter;
     uint32_t now_ms;
     network_connection_endpoint *endpoint;
-    int32_t *challenge;
+    uint16_t *challenge;
     uint32_t challenge_payload[4];
 
     uint8_t out_flag;
@@ -1153,11 +1106,11 @@ void ConnectionView::send_keepalive()
     endpoint = &client->connection;
     if (endpoint->ready == 1 && 3000 < (int32_t)(now_ms - endpoint->last_send_ms)) {
 
-        challenge = (int32_t *)halo::networking::network_prepare_challenge_packet(1, challenge_payload);
+        challenge = halo::networking::network_prepare_challenge_packet(1, challenge_payload);
         if (challenge != 0) {
             out_flag = 0;
             if ((client->channel->flags & 1) == 0) {
-                halo::networking::network_channel_reliable_pool_store(client->channel, (uint8_t *)challenge, &out_flag, 0, 1, (uint32_t)(*(uint16_t *)challenge >> 4) << 3);
+                halo::networking::network_channel_reliable_pool_store(client->channel, (uint8_t *)challenge, &out_flag, 0, 1, (uint32_t)halo::networking::packet_block_bit_count(challenge));
             }
             endpoint->message_count = endpoint->message_count + 1;
             endpoint->last_send_ms = now_ms;
@@ -1245,7 +1198,7 @@ void HostClientView::presence_broadcast_tick()
     large_integer counter;
     int32_t now_ms;
     uint8_t buffer[256];
-    int32_t *challenge;
+    uint16_t *challenge;
     network_channel *channel;
     int32_t bits_to_send;
     char retransmit_ok;
@@ -1259,25 +1212,9 @@ void HostClientView::presence_broadcast_tick()
             memset(buffer, 0, sizeof(buffer));
             strncpy((char *)buffer, network_build_string, 0x100);
 
-            challenge = (int32_t *)halo::networking::network_prepare_challenge_packet(0x15, buffer);
+            challenge = halo::networking::network_prepare_challenge_packet(0x15, buffer);
             if (challenge != 0) {
-                channel = client->channel;
-                bits_to_send = (uint32_t)(*(uint16_t *)challenge >> 4) * 8;
-                if ((*(uint8_t *)&channel->flags & 1) == 0) {
-                    if ((((*(int32_t *)&channel->outgoing.stream.last_bit + *(int32_t *)&channel->outgoing.stream.byte_cursor * -8) -
-                          *(int32_t *)&channel->outgoing.stream.bit_cursor) + 1 < bits_to_send + 1) &&
-                        (retransmit_ok = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1), retransmit_ok == 0)) {
-                        return;
-                    }
-                    {
-
-                        channel->send_budget = channel->send_budget + bits_to_send + 1;
-                        { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1); }
-                        channel->outgoing.empty = 0;
-                        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)(challenge), bits_to_send);
-                        channel->outgoing.empty = 0;
-                    }
-                }
+                halo::networking::channel_queue_packet(client->channel, challenge);
             }
         }
     }
@@ -1379,13 +1316,11 @@ uint32_t JoinView::handshake_tick()
 {
     network_client_globals *client = self;
 
-    uint8_t frame[400];
+    handshake_frame frame;
     network_channel *channel;
     large_integer counter;
     int32_t now_ms;
     uint32_t result;
-    uint32_t *fill;
-    int32_t i;
     int32_t loopback_ip;
     bool failed = false;
 
@@ -1408,31 +1343,24 @@ uint32_t JoinView::handshake_tick()
             }
         }
     } else if (network_server->state == 1) {
-        *(int32_t *)(frame + 72) = 0;
-        *(int32_t *)(frame + 76) = 0;
-        *(int32_t *)(frame + 80) = 0;
-        *(int32_t *)(frame + 84) = 0;
-        fill = (uint32_t *)(frame + 88);
-        for (i = 0x48; i != 0; i = i - 1) {
-            *fill = 0;
-            fill = fill + 1;
-        }
+        memset(&frame.target, 0, offsetof(handshake_frame, unused_178) - offsetof(handshake_frame, target));
 
         loopback_ip = network_local_address;
         if (network_local_address == 0) {
             loopback_ip = 0x7f000001;
         }
-        *(int32_t *)(frame + 12) = loopback_ip;
-        *(int16_t *)(frame + 28) = 4;
-        *(int16_t *)(frame + 30) = (int16_t)network_game_socket_port;
-        *(int16_t *)(frame + 370) = 1;
-        wcsncpy((wchar_t *)(frame + 38), (const wchar_t *)network_server->password, 8);
-        *(int16_t *)(frame + 54) = 0;
+        frame.connect_address.ipv4 = loopback_ip;
+        frame.connect_address.size = 4;
+        frame.connect_address.port = (int16_t)network_game_socket_port;
+        frame.target_flag = 1;
+        wcsncpy(reinterpret_cast<wchar_t *>(frame.session.name), reinterpret_cast<const wchar_t *>(network_server->password), 8);
+        frame.session.name_terminator = 0;
 
-        halo::networking::network_debug_fill_canary_buffer((uint32_t *)(frame + 56));
+        halo::networking::network_debug_fill_canary_buffer(frame.session.canary);
 
-        result = (uint32_t)halo::networking::network_connection_initiate(client, (const uint32_t *)(frame + 72),
-                                                         (const uint32_t *)(frame + 36), (const uint32_t *)(frame + 12));
+        result = (uint32_t)halo::networking::network_connection_initiate(client, reinterpret_cast<const uint32_t *>(&frame.target),
+                                                         reinterpret_cast<const uint32_t *>(&frame.session),
+                                                         reinterpret_cast<const uint32_t *>(&frame.connect_address));
         if ((char)result == 0) {
             failed = true;
         }

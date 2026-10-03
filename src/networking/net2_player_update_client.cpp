@@ -2,6 +2,9 @@
  * @file src/networking/net2_player_update_client.cpp
  * Client-side player update ingestion.
  */
+#include "halo/game/records.hpp"
+#include "halo/networking/delta_message_types.hpp"
+#include "halo/core/bit_cast.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -27,28 +30,24 @@
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-static auto &object_network_id_table = halo::link::ref<void *>(halo::units::vars().object_network_id_table);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 
 
 namespace halo::networking {
 
-void PlayerUpdateClient::local_player_update_from_network(int32_t *decode_context)
+void PlayerUpdateClient::local_player_update_from_network(message_delta_context *context)
 {
-    int32_t mode;
-    int32_t *record_ctx;
     local_player_update_ack ack;
     data_iterator iter;
     player *candidate;
 
-    record_ctx = (int32_t *)(uintptr_t)decode_context[0];
-    mode = record_ctx[0];
-    if (mode != 0) {
-        halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
+    if (context->state->incremental != 0) {
+        halo::networking::message_delta_decode_compound_field_staged(raw_context(context));
         return;
     }
-    if (halo::networking::message_delta_decode_compound_field((void **)decode_context, &ack) != 1) {
+    if (halo::networking::message_delta_decode_compound_field(raw_context(context), &ack) != 1) {
         return;
     }
     iter.data = halo::game::globals().player_data;
@@ -72,32 +71,28 @@ void PlayerUpdateClient::local_player_update_from_network(int32_t *decode_contex
         halo::game::globals().game_time->game_time, ack.baseline_id);
     candidate->last_update_id = ack.update_id;
     candidate->baseline_update_id = ack.baseline_id;
-    candidate->unknown_f0 = *(int32_t *)&ack.position.x;
-    candidate->unknown_f4 = *(int32_t *)&ack.position.y;
-    candidate->unknown_f8 = *(int32_t *)&ack.position.z;
+    candidate->unknown_f0 = halo::bit_cast<int32_t>(ack.position.x);
+    candidate->unknown_f4 = halo::bit_cast<int32_t>(ack.position.y);
+    candidate->unknown_f8 = halo::bit_cast<int32_t>(ack.position.z);
     halo::networking::player_update_history_play_for_update_index(iter.index);
 }
 
-void PlayerUpdateClient::local_player_vehicle_update_from_network(int32_t *decode_context)
+void PlayerUpdateClient::local_player_vehicle_update_from_network(message_delta_context *context)
 {
-    int32_t mode;
-    int32_t *record_ctx;
     local_player_vehicle_update_ack ack;
     real_vector3d temp;
     datum_index vehicle_handle;
     player *candidate;
 
-    record_ctx = (int32_t *)(uintptr_t)decode_context[0];
-    mode = record_ctx[0];
-    if (mode != 0) {
-        halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
+    if (context->state->incremental != 0) {
+        halo::networking::message_delta_decode_compound_field_staged(raw_context(context));
         return;
     }
-    if (halo::networking::message_delta_decode_compound_field((void **)decode_context, &ack) != 1) {
+    if (halo::networking::message_delta_decode_compound_field(raw_context(context), &ack) != 1) {
         return;
     }
     if (ack.vehicle.parent_or_tag != 0) {
-        int32_t *table_base = *(int32_t **)((uint8_t *)object_network_id_table + 0x28);
+        datum_index *table_base = object_network_id_table->handles;
         ack.vehicle.parent_or_tag = table_base[ack.vehicle.parent_or_tag];
     } else {
         ack.vehicle.parent_or_tag = -1;
@@ -118,11 +113,11 @@ void PlayerUpdateClient::local_player_vehicle_update_from_network(int32_t *decod
             halo::game::globals().game_time->game_time, ack.baseline_id);
         candidate->last_update_id = ack.update_id;
         candidate->baseline_update_id = ack.baseline_id;
-        candidate->unknown_f0 = *(int32_t *)&ack.vehicle.position.x;
-        candidate->unknown_f4 = *(int32_t *)&ack.vehicle.position.y;
-        candidate->unknown_f8 = *(int32_t *)&ack.vehicle.position.z;
+        candidate->unknown_f0 = halo::bit_cast<int32_t>(ack.vehicle.position.x);
+        candidate->unknown_f4 = halo::bit_cast<int32_t>(ack.vehicle.position.y);
+        candidate->unknown_f8 = halo::bit_cast<int32_t>(ack.vehicle.position.z);
         halo::networking::player_update_history_play(1, candidate->baseline_update_id,
-            (player_update_history *)network_client->update_history, candidate->unit,
+            network_client->update_history, candidate->unit,
             ack.vehicle.position.x, ack.vehicle.position.y, ack.vehicle.position.z, &ack);
         return;
     }
@@ -132,7 +127,7 @@ void PlayerUpdateClient::local_player_vehicle_update_from_network(int32_t *decod
         candidate->baseline_update_id, ack.update_id, candidate->last_update_id);
 }
 
-void PlayerUpdateClient::remote_player_action_update_from_network(int32_t **decode_context)
+void PlayerUpdateClient::remote_player_action_update_from_network(message_delta_context *context)
 {
     remote_player_update_header *header;
     message_delta_decode_state *state;
@@ -142,12 +137,12 @@ void PlayerUpdateClient::remote_player_action_update_from_network(int32_t **deco
     player *candidate;
     remote_player_action_state staged;
 
-    header = (remote_player_update_header *)decode_context[0x11];
+    header = static_cast<remote_player_update_header *>(context->target);
     memset(&staged, 0, sizeof(staged));
 
     remapped_index = -1;
     if (header->player_index != 0) {
-        int32_t *table_base = *(int32_t **)&machine_table->handles;
+        datum_index *table_base = machine_table->handles;
         remapped_index = table_base[header->player_index];
     }
     header->player_index = remapped_index;
@@ -156,7 +151,7 @@ void PlayerUpdateClient::remote_player_action_update_from_network(int32_t **deco
     if (remapped_index != -1) {
         index = (int16_t)remapped_index;
         if (index >= 0 && index < halo::game::globals().player_data->maximum_count) {
-            player *maybe = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
+            player *maybe = halo::game::player_at(index);
             salt = (int16_t)((uint32_t)remapped_index >> 16);
             if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)) {
                 candidate = maybe;
@@ -165,26 +160,26 @@ void PlayerUpdateClient::remote_player_action_update_from_network(int32_t **deco
     }
 
     if (candidate != 0) {
-        state = (message_delta_decode_state *)decode_context[0];
+        state = context->state;
         if (state->incremental != 0) {
             const void *control_record = &candidate->unknown_f0;
 
             memcpy(&staged, control_record, sizeof(staged));
-            state->bits_read += halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(decode_context + 1),
+            state->bits_read += halo::networking::message_delta_read_changed_subfields(state, context->changed,
                 (int32_t)control_record, (int32_t)&staged);
             state->changed = 1;
             halo::networking::handle_remote_player_action_update(&staged, header, 0);
             return;
         }
-        if (halo::networking::message_delta_decode_compound_field((void **)decode_context, &staged) == 1) {
+        if (halo::networking::message_delta_decode_compound_field(raw_context(context), &staged) == 1) {
             halo::networking::handle_remote_player_action_update(&staged, header, 1);
         }
         return;
     }
-    halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
+    halo::networking::message_delta_decode_compound_field_staged(raw_context(context));
 }
 
-void PlayerUpdateClient::remote_player_position_delta_from_network(int32_t **decode_context)
+void PlayerUpdateClient::remote_player_position_delta_from_network(message_delta_context *context)
 {
     remote_player_update_header *header;
     int32_t remapped_index;
@@ -194,10 +189,10 @@ void PlayerUpdateClient::remote_player_position_delta_from_network(int32_t **dec
     message_delta_decode_state *state;
     real_point3d position;
 
-    header = (remote_player_update_header *)decode_context[0x11];
+    header = static_cast<remote_player_update_header *>(context->target);
     remapped_index = -1;
     if (header->player_index != 0) {
-        int32_t *table_base = *(int32_t **)&machine_table->handles;
+        datum_index *table_base = machine_table->handles;
         remapped_index = table_base[header->player_index];
     }
 
@@ -205,7 +200,7 @@ void PlayerUpdateClient::remote_player_position_delta_from_network(int32_t **dec
     if (remapped_index != -1) {
         index = (int16_t)remapped_index;
         if (index >= 0 && index < halo::game::globals().player_data->maximum_count) {
-            player *maybe = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
+            player *maybe = halo::game::player_at(index);
             salt = (int16_t)((uint32_t)remapped_index >> 16);
             if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)) {
                 candidate = maybe;
@@ -213,13 +208,13 @@ void PlayerUpdateClient::remote_player_position_delta_from_network(int32_t **dec
         }
     }
     if (candidate == 0) {
-        halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
+        halo::networking::message_delta_decode_compound_field_staged(raw_context(context));
         return;
     }
 
-    state = (message_delta_decode_state *)decode_context[0];
+    state = context->state;
     if (state->incremental == 0) {
-        if (halo::networking::message_delta_decode_compound_field((void **)decode_context, &position) != 1) {
+        if (halo::networking::message_delta_decode_compound_field(raw_context(context), &position) != 1) {
             return;
         }
         *(real *)&candidate->position_baseline_x = position.x;
@@ -229,7 +224,7 @@ void PlayerUpdateClient::remote_player_position_delta_from_network(int32_t **dec
         position.x = *(real *)&candidate->position_baseline_x;
         position.y = *(real *)&candidate->position_baseline_y;
         position.z = *(real *)&candidate->position_baseline_z;
-        if (halo::networking::message_delta_decode_compound_field_forced((void **)decode_context, &position, (int32_t)&candidate->position_baseline_x, 0) != 1) {
+        if (halo::networking::message_delta_decode_compound_field_forced(raw_context(context), &position, (int32_t)&candidate->position_baseline_x, 0) != 1) {
             return;
         }
     }
@@ -254,7 +249,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
     if (index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    target = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
+    target = halo::game::player_at(index);
     salt = (int16_t)((uint32_t)player_index >> 16);
     if (target->identifier == 0 || (salt != 0 && target->identifier != salt)) {
         return;
@@ -366,7 +361,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
     target->last_position_update_id = update_id;
 }
 
-void PlayerUpdateClient::remote_player_total_biped_update_from_network(int32_t **decode_context)
+void PlayerUpdateClient::remote_player_total_biped_update_from_network(message_delta_context *context)
 {
     remote_player_update_header *header;
     message_delta_decode_state *state;
@@ -379,11 +374,11 @@ void PlayerUpdateClient::remote_player_total_biped_update_from_network(int32_t *
     uint8_t is_baseline;
     const char *mode;
 
-    header = (remote_player_update_header *)decode_context[0x11];
+    header = static_cast<remote_player_update_header *>(context->target);
 
     remapped_index = -1;
     if (header->player_index != 0) {
-        int32_t *table_base = *(int32_t **)&machine_table->handles;
+        datum_index *table_base = machine_table->handles;
         remapped_index = table_base[header->player_index];
     }
     header->player_index = remapped_index;
@@ -392,8 +387,7 @@ void PlayerUpdateClient::remote_player_total_biped_update_from_network(int32_t *
     if (remapped_index != -1) {
         index = (int16_t)remapped_index;
         if (index >= 0 && index < halo::game::globals().player_data->maximum_count) {
-            player *maybe = (player *)((uint8_t *)halo::game::globals().player_data->data
-                + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
+            player *maybe = halo::game::player_at(index);
             salt = (int16_t)((uint32_t)remapped_index >> 16);
             if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)) {
                 candidate = maybe;
@@ -402,16 +396,16 @@ void PlayerUpdateClient::remote_player_total_biped_update_from_network(int32_t *
     }
 
     if (candidate == 0 || candidate->local_player_index != -1) {
-        halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
+        halo::networking::message_delta_decode_compound_field_staged(raw_context(context));
         return;
     }
 
-    state = (message_delta_decode_state *)decode_context[0];
+    state = context->state;
     if (state->incremental == 0) {
         uint8_t decoded_ok;
 
         memset(&decoded, 0, sizeof(decoded));
-        decoded_ok = halo::networking::message_delta_decode_compound_field((void **)decode_context, &decoded);
+        decoded_ok = halo::networking::message_delta_decode_compound_field(raw_context(context), &decoded);
         if (decoded_ok == 1) {
             *(real *)&candidate->position_baseline_x = decoded.position.x;
             *(real *)&candidate->position_baseline_y = decoded.position.y;
@@ -428,7 +422,7 @@ void PlayerUpdateClient::remote_player_total_biped_update_from_network(int32_t *
         previous.position.y = *(real *)&candidate->position_baseline_y;
         previous.position.z = *(real *)&candidate->position_baseline_z;
         decoded = previous;
-        state->bits_read += halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(decode_context + 1),
+        state->bits_read += halo::networking::message_delta_read_changed_subfields(state, context->changed,
             (int32_t)&previous, (int32_t)&decoded);
         state->changed = 1;
         is_baseline = 0;
@@ -443,7 +437,7 @@ void PlayerUpdateClient::remote_player_total_biped_update_from_network(int32_t *
         decoded.position.x, decoded.position.y, decoded.position.z);
 }
 
-void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(int32_t **decode_context)
+void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(message_delta_context *context)
 {
     remote_player_update_header *header;
     message_delta_decode_state *state;
@@ -456,11 +450,11 @@ void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(int32_t
     uint8_t is_baseline;
     const char *mode;
 
-    header = (remote_player_update_header *)decode_context[0x11];
+    header = static_cast<remote_player_update_header *>(context->target);
 
     remapped_index = -1;
     if (header->player_index != 0) {
-        int32_t *table_base = *(int32_t **)&machine_table->handles;
+        datum_index *table_base = machine_table->handles;
         remapped_index = table_base[header->player_index];
     }
     header->player_index = remapped_index;
@@ -469,8 +463,7 @@ void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(int32_t
     if (remapped_index != -1) {
         index = (int16_t)remapped_index;
         if (index >= 0 && index < halo::game::globals().player_data->maximum_count) {
-            player *maybe = (player *)((uint8_t *)halo::game::globals().player_data->data
-                + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
+            player *maybe = halo::game::player_at(index);
             salt = (int16_t)((uint32_t)remapped_index >> 16);
             if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)) {
                 candidate = maybe;
@@ -478,16 +471,16 @@ void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(int32_t
         }
     }
     if (candidate == 0 || candidate->local_player_index != -1) {
-        halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
+        halo::networking::message_delta_decode_compound_field_staged(raw_context(context));
         return;
     }
 
-    state = (message_delta_decode_state *)decode_context[0];
+    state = context->state;
     if (state->incremental == 0) {
         uint8_t decoded_ok;
 
         memset(&decoded, 0, sizeof(decoded));
-        decoded_ok = halo::networking::message_delta_decode_compound_field((void **)decode_context, &decoded);
+        decoded_ok = halo::networking::message_delta_decode_compound_field(raw_context(context), &decoded);
         if (decoded_ok == 1) {
             real_vector3d temp;
 
@@ -506,7 +499,7 @@ void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(int32_t
         memcpy(&previous.action, &candidate->unknown_f0, sizeof(previous.action));
         memcpy(&previous.vehicle, &candidate->vehicle_baseline, sizeof(previous.vehicle));
         decoded = previous;
-        state->bits_read += halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(decode_context + 1),
+        state->bits_read += halo::networking::message_delta_read_changed_subfields(state, context->changed,
             (int32_t)&previous, (int32_t)&decoded);
         state->changed = 1;
         is_baseline = 0;
@@ -520,7 +513,7 @@ void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(int32_t
         header->player_index, header->update_id, header->control_sequence, decoded.vehicle);
 }
 
-void PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(int32_t **decode_context)
+void PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(message_delta_context *context)
 {
     remote_player_update_header *header;
     message_delta_decode_state *state;
@@ -530,11 +523,11 @@ void PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(int32
     player *candidate;
     vehicle_update_body decoded;
 
-    header = (remote_player_update_header *)decode_context[0x11];
+    header = static_cast<remote_player_update_header *>(context->target);
 
     remapped_index = -1;
     if (header->player_index != 0) {
-        int32_t *table_base = *(int32_t **)&machine_table->handles;
+        datum_index *table_base = machine_table->handles;
         remapped_index = table_base[header->player_index];
     }
 
@@ -542,8 +535,7 @@ void PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(int32
     if (remapped_index != -1) {
         index = (int16_t)remapped_index;
         if (index >= 0 && index < halo::game::globals().player_data->maximum_count) {
-            player *maybe = (player *)((uint8_t *)halo::game::globals().player_data->data
-                + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
+            player *maybe = halo::game::player_at(index);
             salt = (int16_t)((uint32_t)remapped_index >> 16);
             if (maybe->identifier != 0 && (salt == 0 || maybe->identifier == salt)) {
                 candidate = maybe;
@@ -551,15 +543,15 @@ void PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(int32
         }
     }
     if (candidate == 0) {
-        halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
+        halo::networking::message_delta_decode_compound_field_staged(raw_context(context));
         return;
     }
 
-    state = (message_delta_decode_state *)decode_context[0];
+    state = context->state;
     if (state->incremental == 0) {
         real_vector3d temp;
 
-        if (halo::networking::message_delta_decode_compound_field((void **)decode_context, &decoded) != 1) {
+        if (halo::networking::message_delta_decode_compound_field(raw_context(context), &decoded) != 1) {
             return;
         }
         halo::math::vector3d_cross_product(temp, decoded.up, decoded.forward);
@@ -569,7 +561,7 @@ void PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(int32
         memcpy(&candidate->vehicle_baseline, &decoded, sizeof(decoded));
     } else {
         memcpy(&decoded, &candidate->vehicle_baseline, sizeof(decoded));
-        if (halo::networking::message_delta_decode_compound_field_forced((void **)decode_context, &decoded, (int32_t)&candidate->vehicle_baseline, 0) != 1) {
+        if (halo::networking::message_delta_decode_compound_field_forced(raw_context(context), &decoded, (int32_t)&candidate->vehicle_baseline, 0) != 1) {
             return;
         }
     }
@@ -596,7 +588,7 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
     if (index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    target = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
+    target = halo::game::player_at(index);
     salt = (int16_t)((uint32_t)player_index >> 16);
     if (target->identifier == 0 || (salt != 0 && target->identifier != salt)) {
         return;
@@ -604,7 +596,7 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
 
     remapped_vehicle = -1;
     if (vehicle.parent_or_tag != 0) {
-        int32_t *table_base = *(int32_t **)((uint8_t *)object_network_id_table + 0x28);
+        datum_index *table_base = object_network_id_table->handles;
         remapped_vehicle = table_base[vehicle.parent_or_tag];
     }
     vehicle.parent_or_tag = remapped_vehicle;
@@ -724,22 +716,22 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
 }  // namespace halo::networking
 
 namespace halo::networking {
-void player_update_client_local_player_update_from_network(int32_t *decode_context)
+void player_update_client_local_player_update_from_network(message_delta_context *decode_context)
 {
     halo::networking::PlayerUpdateClient::local_player_update_from_network(decode_context);
 }
 
-void player_update_client_local_player_vehicle_update_from_network(int32_t *decode_context)
+void player_update_client_local_player_vehicle_update_from_network(message_delta_context *decode_context)
 {
     halo::networking::PlayerUpdateClient::local_player_vehicle_update_from_network(decode_context);
 }
 
-void player_update_client_remote_player_action_update_from_network(int32_t **decode_context)
+void player_update_client_remote_player_action_update_from_network(message_delta_context *decode_context)
 {
     halo::networking::PlayerUpdateClient::remote_player_action_update_from_network(decode_context);
 }
 
-void player_update_client_remote_player_position_delta_from_network(int32_t **decode_context)
+void player_update_client_remote_player_position_delta_from_network(message_delta_context *decode_context)
 {
     halo::networking::PlayerUpdateClient::remote_player_position_delta_from_network(decode_context);
 }
@@ -750,17 +742,17 @@ void player_update_client_remote_player_position_update_from_network(datum_index
     halo::networking::PlayerUpdateClient::remote_player_position_update_from_network(player_index, update_id, control_sequence, x, y, z);
 }
 
-void player_update_client_remote_player_total_biped_update_from_network(int32_t **decode_context)
+void player_update_client_remote_player_total_biped_update_from_network(message_delta_context *decode_context)
 {
     halo::networking::PlayerUpdateClient::remote_player_total_biped_update_from_network(decode_context);
 }
 
-void player_update_client_remote_player_total_vehicle_update_from_network(int32_t **decode_context)
+void player_update_client_remote_player_total_vehicle_update_from_network(message_delta_context *decode_context)
 {
     halo::networking::PlayerUpdateClient::remote_player_total_vehicle_update_from_network(decode_context);
 }
 
-void player_update_client_remote_player_vehicle_position_delta_from_network(int32_t **decode_context)
+void player_update_client_remote_player_vehicle_position_delta_from_network(message_delta_context *decode_context)
 {
     halo::networking::PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(decode_context);
 }

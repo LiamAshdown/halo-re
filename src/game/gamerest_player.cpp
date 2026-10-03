@@ -61,7 +61,7 @@ static auto &multikill_medal_threshold = halo::link::ref<int32_t>(halo::game::va
 static auto &sv_tk_grace_ticks = halo::link::ref<int32_t>(halo::game::vars().sv_tk_grace_ticks);
 static auto &sv_tk_cooldown_ticks = halo::link::ref<int32_t>(halo::game::vars().sv_tk_cooldown_ticks);
 static auto &shared_hud_text_draw_state = halo::link::ref<uint8_t>(halo::game::vars().shared_hud_text_draw_state);
-static auto &machine_table = halo::link::ref<uint8_t *>(halo::game::vars().machine_table);
+static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &global_006889e4 = halo::link::ref<uint16_t>(halo::game::vars().global_006889e4);
 static auto &global_007102f0 = halo::link::ref<uint16_t>(halo::game::vars().global_007102f0);
@@ -105,7 +105,7 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
     offset.x = nodes->position.x - marker.node_transform.position.x;
     offset.y = nodes->position.y - marker.node_transform.position.y;
     offset.z = nodes->position.z - marker.node_transform.position.z;
-    model_nodes = (ModelNode *)((Model *)halo::game::tag_data_at(*(uint32_t *)&((Object *)halo::game::tag_data_at(*(datum_index *)self))->model.tag_id))->nodes.pointer;
+    model_nodes = (ModelNode *)((Model *)halo::game::tag_data_at(halo::tag_id_bits<uint32_t>(((Object *)halo::game::tag_data_at(*(datum_index *)self))->model.tag_id)))->nodes.pointer;
     default_translation = *(real_point3d *)&model_nodes->default_translation;
     if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && ((vehicle_object *)vehicle)->unit.animation_state != 0x25 &&
         ((struct object *)self)->parent_object != k_datum_index_none) {
@@ -136,10 +136,10 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
         uint8_t *object = halo::game::object_bytes(object_index);
         uint8_t *object_tag = halo::game::tag_data_at(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (((struct object *)object)->flags & 1) != 0) {
+        if (halo::game::object_tag_has_model(object_tag) && (((struct object *)object)->flags & 1) != 0) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
+        if (halo::game::object_tag_has_model(object_tag)) {
             ((struct object *)object)->flags &= ~1u;
             halo::game::object_header_at(object_index).flags |= 2;
         }
@@ -311,11 +311,11 @@ uint8_t PlayerView::attach_unit_to_parent(uint32_t target_object, void *local_of
 
             if (player_handle != k_datum_index_none && index >= 0 &&
                 index < player_data->maximum_count) {
-                uint8_t *player = (uint8_t *)player_data->data + player_data->size * index;
+                ::player *plr = halo::game::player_at(index);
 
-                if (*(int16_t *)player != 0 && (salt == 0 || *(int16_t *)player == salt) &&
-                    ((struct player *)player)->local_player_index != -1 && halo::networking::globals().client != 0) {
-                    halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
+                if (plr->identifier != 0 && (salt == 0 || plr->identifier == salt) &&
+                    plr->local_player_index != -1 && halo::networking::globals().client != 0) {
+                    halo::networking::player_update_history_free_all(halo::networking::globals().client->update_history);
                 }
             }
         }
@@ -589,7 +589,7 @@ uint8_t PlayerView::execute_pending_interaction()
     datum_index unit_index = record->unit;
     unit_object *unit = halo::game::unit_at(unit_index);
     datum_index target_index = record->interaction_object;
-    uint16_t seat = *(uint16_t *)&record->interaction_seat;
+    uint16_t seat = (uint16_t)record->interaction_seat;
     uint8_t handled = 0;
 
     switch (record->interaction_type) {
@@ -617,15 +617,15 @@ uint8_t PlayerView::execute_pending_interaction()
                 halo::units::unit_detach_from_seat(self_index, 1, 1, 0);
             }
         }
-        if (halo::units::unit_seat_is_occupied_by_other(record->unit, (int16_t)*(uint16_t *)&record->interaction_seat,
+        if (halo::units::unit_seat_is_occupied_by_other(record->unit, record->interaction_seat,
                                            record->interaction_object, &occupant)) {
-            halo::units::unit_enter_vehicle_seat(record->interaction_object, (int16_t)*(uint16_t *)&record->interaction_seat,
+            halo::units::unit_enter_vehicle_seat(record->interaction_object, record->interaction_seat,
                 record->unit);
             handled = 1;
             if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client) {
                 if (record->local_player_index != -1) {
                     if (halo::networking::globals().client != 0) {
-                        halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
+                        halo::networking::player_update_history_free_all(halo::networking::globals().client->update_history);
                     }
                 } else {
                     record->position_updates.read_index = 0;
@@ -682,7 +682,7 @@ uint8_t PlayerView::execute_pending_interaction()
     handled = 1;
     if (unit->base.network_role == 0) {
         halo::game::game_engine_notify_player_interaction(player_index, record->interaction_object, 0,
-            *(uint16_t *)&record->interaction_type, *(uint16_t *)&record->interaction_seat, -1);
+            (uint16_t)record->interaction_type, (uint16_t)record->interaction_seat, -1);
     }
     return handled;
 }
@@ -730,7 +730,7 @@ uint8_t PlayerView::execute_weapon_drop_interaction()
     }
     if (unit->base.network_role == 0) {
         halo::game::game_engine_notify_player_interaction(player_index, record->interaction_object, 1,
-            *(uint16_t *)&record->interaction_type, *(uint16_t *)&record->interaction_seat, (int32_t)held_weapon);
+            (uint16_t)record->interaction_type, (uint16_t)record->interaction_seat, (int32_t)held_weapon);
     }
     return result;
 }
@@ -828,15 +828,15 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
         int16_t index = (int16_t)target_object;
         int16_t salt = (int16_t)(target_object >> 16);
 
-        if (index >= 0 && index < *(int16_t *)((uint8_t *)halo::objects::globals().object_data + 0x20)) {
-            uint8_t *header = (uint8_t *)halo::objects::globals().object_data->data + *(int16_t *)((uint8_t *)halo::objects::globals().object_data + 0x22) * index;
+        if (index >= 0 && index < halo::objects::globals().object_data->maximum_count) {
+            object_header &header = halo::game::object_header_at(index);
 
-            if (*(int16_t *)header != 0 && (salt == 0 || *(int16_t *)header == salt) && header[0x3] == 0) {
-                uint8_t *target = *(uint8_t **)(header + 0x8);
+            if (header.identifier != 0 && (salt == 0 || header.identifier == salt) && header.type == 0) {
+                biped_object *target = reinterpret_cast<biped_object *>(header.data);
 
-                if (target != 0 && ((biped_object *)target)->biped.last_ground_object_index != k_datum_index_none) {
-                    ((biped_object *)unit)->biped.last_ground_object_index = ((biped_object *)target)->biped.last_ground_object_index;
-                    ((biped_object *)unit)->biped.last_ground_object_ticks = ((biped_object *)target)->biped.last_ground_object_ticks;
+                if (target != 0 && target->biped.last_ground_object_index != k_datum_index_none) {
+                    ((biped_object *)unit)->biped.last_ground_object_index = target->biped.last_ground_object_index;
+                    ((biped_object *)unit)->biped.last_ground_object_ticks = target->biped.last_ground_object_ticks;
                 }
             }
         }
@@ -944,7 +944,7 @@ void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
         }
         {
             uint8_t *unit_tag_data = (uint8_t *)halo::game::tag_data_at(unit_obj->definition_tag);
-            if (*(int32_t *)(unit_tag_data + 0x34) != -1 && (unit_obj->flags & 1) == 0) {
+            if (halo::game::object_tag_has_model(unit_tag_data) && (unit_obj->flags & 1) == 0) {
                 halo::objects::object_for_each_light_attachment(1, 0, 0);
             }
         }
@@ -955,7 +955,7 @@ void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
             object_header *weapon_header = &((object_header *)halo::objects::globals().object_data->data)[weapon_handle & halo::k_datum_slot_mask];
             object *weapon_obj = weapon_header->data;
             uint8_t *weapon_tag_data = (uint8_t *)halo::game::tag_data_at(weapon_obj->definition_tag);
-            if (*(int32_t *)(weapon_tag_data + 0x34) != -1 && (weapon_obj->flags & 1) == 0) {
+            if (halo::game::object_tag_has_model(weapon_tag_data) && (weapon_obj->flags & 1) == 0) {
                 halo::objects::object_for_each_light_attachment(1, 0, 0);
             }
             weapon_obj->flags = weapon_obj->flags | 1;
@@ -1033,14 +1033,14 @@ void PlayerView::reset_after_unit_change()
         plr->unknown_f4 = (datum_index)-1;
         entry->queue.queue.read_index = 0;
         entry->queue.queue.write_index = 0;
-        *(int32_t *)((uint8_t *)entry + 8) = 0;
-        *(int32_t *)((uint8_t *)entry + 0x14) = 0;
-        *(int32_t *)((uint8_t *)entry + 0x18) = 0;
+        entry->last_action.control_flags = 0;
+        entry->last_action.throttle_x = 0.0f;
+        entry->last_action.throttle_y = 0.0f;
     }
 
     if (plr->local_player_index != -1) {
         if (halo::networking::globals().client != 0) {
-            halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
+            halo::networking::player_update_history_free_all(halo::networking::globals().client->update_history);
         }
     } else if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client) {
         plr->update_history.queue.read_index = 0;
@@ -1282,7 +1282,7 @@ uint8_t PlayerView::unit_has_parent()
     if (unit_obj == (object *)0 || unit_obj->parent_object == (datum_index)-1) {
         return 0;
     }
-    return halo::units::unit_seat_flag_bit2(unit_obj->parent_object, *(int16_t *)((uint8_t *)unit_obj + 0x2f0));
+    return halo::units::unit_seat_flag_bit2(unit_obj->parent_object, halo::game::unit_data_of(unit_obj)->vehicle_seat_index);
 }
 
 /**
@@ -1706,7 +1706,7 @@ void KillStreak::notify_kill_streak_update(int32_t slot, int16_t amount)
 
     fields.hash_result = 0;
     if (player_handle != halo::k_dword_none) {
-        fields.hash_result = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)player_handle);
+        fields.hash_result = halo::objects::hash_table_get(&machine_table->id_to_index, (int32_t)player_handle);
         if (fields.hash_result == -1) {
             fields.hash_result = 0;
         }
@@ -2144,7 +2144,7 @@ void Players::remove_player(datum_index player_handle)
     update_server_queue *server_entry;
 
     index = (int32_t)(uint16_t)player_handle;
-    p = (player *)((uint8_t *)player_data->data + (uint32_t)index * player_data->size);
+    p = halo::game::player_at(index);
 
     halo::memory::datum_delete(update_client_queues, player_handle);
 
@@ -2498,7 +2498,7 @@ void Players::client_catchup_on_server_updates()
                         object *unit_obj = header->data;
                         uint8_t seated = PlayerView(reinterpret_cast<unit_object *>(unit_obj)->unit.controlling_player).unit_has_parent();
 
-                        *(uint32_t *)((uint8_t *)unit_obj + 0x4bc) = record.field0;
+                        halo::game::unit_data_of(unit_obj)->control_update_id = record.field0;
                         if (seated == 0) {
                             halo::game::apply_remote_player_position_update(plr, unit_obj);
                         } else {
