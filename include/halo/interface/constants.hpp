@@ -76,4 +76,11 @@ inline constexpr int32_t k_weapon_hud_flash_unset_bits = 0x3f80;
 /** Size of the motion sensor state record, in 32-bit words. */
 inline constexpr int32_t k_motion_sensor_dwords = 348;
 
+/** Byte capacity of the heap blocks that hold a widget's name text and its longer description text. */
+inline constexpr int32_t k_name_text_bytes = 256;
+inline constexpr int32_t k_description_text_bytes = 512;
+
+/** Bit of a saved-item handle that marks a built-in (read-only) game variant. */
+inline constexpr int32_t k_saved_item_builtin_marker = 0x40000000;
+
 }  // namespace halo::interface
