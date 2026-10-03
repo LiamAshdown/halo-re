@@ -428,19 +428,26 @@ hwreq_map_node *StdMap::hint_insert_unique(hwreq_map_node **result_holder, hwreq
         return *splice_insert(head, result_holder, 1, value);
     }
 
+    auto full_search = [&]() -> hwreq_map_node * {
+        hwreq_tree_insert_result local_result;
+        insert_unique(&local_result, value);
+        *result_holder = local_result.node;
+        return *result_holder;
+    };
+
     if (hint == (hwreq_map_node *)head->left) {
         const char *hint_data = (hint->key.capacity < 0x10) ? hint->key.buffer.inline_buffer : (const char *)hint->key.buffer.heap_buffer;
         if (StdString(value_key).compare(value_key->size, 0, hint_data, hint->key.size) < 0) {
             return *splice_insert(hint, result_holder, 1, value);
         }
-        goto full_search;
+        return full_search();
     }
 
     if (hint == head) {
         if (StdString(&((hwreq_map_node *)head->right)->key).less_than(value_key)) {
             return *splice_insert((hwreq_map_node *)head->right, result_holder, 0, value);
         }
-        goto full_search;
+        return full_search();
     }
 
     if (StdString(value_key).less_than(&hint->key)) {
@@ -463,13 +470,7 @@ hwreq_map_node *StdMap::hint_insert_unique(hwreq_map_node **result_holder, hwreq
         }
     }
 
-full_search:
-    {
-        hwreq_tree_insert_result local_result;
-        insert_unique(&local_result, value);
-        *result_holder = local_result.node;
-        return *result_holder;
-    }
+    return full_search();
 }
 
 /**
