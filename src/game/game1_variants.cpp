@@ -24,10 +24,7 @@ extern game_variant_history_entry *game_variant_history;
 extern char variant_defaults_source[0x40];
 extern game_variant game_engine_pending_variant;
 extern int32_t sv_friendly_fire_mode;
-extern uint8_t unknown_0087aa7f;
-extern int32_t unknown_0087aaec;
 extern int32_t sv_timelimit_minutes;
-extern int32_t unknown_0087aaf8;
 extern player_profile player_profile_cache[16];
 extern game_variant game_engine_variant;
 extern data_array *player_data;
@@ -137,23 +134,23 @@ void Variants::apply_current_custom_variant(void)
 
     mode = sv_friendly_fire_mode;
     mode_is_1 = (mode == 1);
-    unknown_0087aa7f = 0;
+    variant_defaults_source[0x3f] = 0;
     game_engine_pending_variant = entry->options;
 
     if (mode_is_1) {
-        unknown_0087aaec = 0;
+        game_engine_pending_variant.friendly_fire = 0;
     } else if (mode == 2) {
-        unknown_0087aaec = 2;
+        game_engine_pending_variant.friendly_fire = 2;
     } else if (mode == 3) {
-        unknown_0087aaec = 1;
+        game_engine_pending_variant.friendly_fire = 1;
     }
 
     if (sv_timelimit_minutes != -1) {
         if (sv_timelimit_minutes != 0) {
-            unknown_0087aaf8 = sv_timelimit_minutes * 0x708;
+            game_engine_pending_variant.time_limit = sv_timelimit_minutes * 0x708;
             return;
         }
-        unknown_0087aaf8 = 0;
+        game_engine_pending_variant.time_limit = 0;
     }
 }
 

@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_match.hpp"
+#include "halo/game/legacy_globals.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -10,7 +11,7 @@ extern float game_engine_dedicated_idle_timer;
 extern int16_t network_game_mode;
 extern uint8_t *network_server;
 extern uint8_t network_host_handoff_requested;
-extern uint8_t unknown_007124a0;
+extern local_player_input_state local_player_input_states[k_maximum_local_players];
 extern uint8_t chimera_loading_screen_cleanup_gate;
 extern void game_engine_end_game_sequence_stage3(void);
 extern void game_engine_send_end_game_notification(uint32_t reason);
@@ -74,7 +75,7 @@ void EngineMatch::update_end_game_sequence(float delta_time)
             }
         }
 
-        if (unknown_007124a0 != 0 || input_get_key_state(0x66) == 1 || idle_timer_expired) {
+        if (local_player_input_states[0].buttons[halo::game::globals::k_input_action_accept] != 0 || input_get_key_state(0x66) == 1 || idle_timer_expired) {
             network_game_client_game_settings_updated(network_server);
         }
     }

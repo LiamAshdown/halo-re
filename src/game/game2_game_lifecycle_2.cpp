@@ -1,17 +1,15 @@
 #include "halo/game/game2_game_lifecycle.hpp"
+#include "halo/game/legacy_globals.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
 extern "C" {
-extern uint8_t DAT_0087ab18;
 extern ai_update_stagger_state *ai_update_stagger;
 extern int16_t network_game_mode;
 extern game_main_globals *main_game_globals;
 extern int32_t player_effect_reentry_count;
 extern int32_t network_scenario_round_counter_a;
-extern uint8_t unknown_00699f40[];
 extern int32_t network_scenario_round_counter_b;
-extern uint8_t unknown_0071cc20[];
 extern void game_engine_flag_local_player_units(void);
 extern void team_pair_overrides_tick(void);
 extern void game_engine_tick(void);
@@ -62,9 +60,7 @@ extern uint32_t *game_sound_globals_ptr;
 extern int32_t weather_instances;
 extern int32_t weather_instance_count;
 extern data_array *weather_particle_data;
-extern real unknown_0069c534;
 extern real k_air_density;
-extern real unknown_0069c530;
 extern real k_water_density;
 extern uint32_t game_engine_attribute_enabled;
 extern uint32_t *player_effect_globals_pointer;
@@ -105,9 +101,7 @@ extern ai_globals *ai_globals_ptr;
 extern uint32_t rasterizer_decal_vertex_cache_handle;
 extern data_array *player_data;
 extern data_array *team_data;
-extern uint32_t unknown_006ac568;
-extern real unknown_006ac624;
-extern uint32_t unknown_006ac620;
+extern director directors[1];
 extern uint8_t *hs_camera_control_pointer;
 extern uint32_t text_localization_strings;
 extern void decal_clear_flags(uint8_t clear_object_attached);
@@ -147,7 +141,7 @@ namespace halo::game {
  */
 void GameLifecycle::simulate_tick(uint32_t predict_pass)
 {
-    DAT_0087ab18 = 1;
+    globals::simulation_tick_in_progress = 1;
     _control87(0x9001f, 0xfffff);
     game_engine_flag_local_player_units();
     team_pair_overrides_tick();
@@ -195,17 +189,17 @@ after_role_update:
         network_client_send_local_player_updates();
         network_server_broadcast_object_type_changes();
         if (0 < network_scenario_round_counter_a) {
-            network_event_feed_flush(unknown_00699f40);
+            network_event_feed_flush(globals::network_event_feed_a);
         }
         if (0 < network_scenario_round_counter_b) {
-            network_event_feed_flush(unknown_0071cc20);
+            network_event_feed_flush(globals::network_event_feed_b);
         }
     }
     if (network_game_mode == 1) {
         players_client_catchup_on_server_updates();
     }
 
-    DAT_0087ab18 = 0;
+    globals::simulation_tick_in_progress = 0;
 }
 
 /**
@@ -346,8 +340,8 @@ void GameLifecycle::start_new_map(void)
     weather_particle_data->valid = 1;
     data_delete_all(weather_particle_data);
 
-    k_air_density = unknown_0069c534 * 118613.34f;
-    k_water_density = unknown_0069c530 * 118613.34f;
+    k_air_density = globals::air_density_base * 118613.34f;
+    k_water_density = globals::water_density_base * 118613.34f;
 
     game_engine_initialize_for_new_game();
     game_engine_attribute_enabled = 1;
@@ -425,9 +419,9 @@ void GameLifecycle::stop_current_map(void)
     objects_flush_dirty_state();
 
     had_network_predicted_globals = game_looping_sound_data != (data_array *)0;
-    unknown_006ac568 = 0;
-    unknown_006ac624 = 1.0f;
-    unknown_006ac620 = 0;
+    directors[0].pov_proc = 0;
+    directors[0].look_scale = 1.0f;
+    directors[0].unknown_c0 = 0;
     *hs_camera_control_pointer = 0;
     text_localization_strings = 0xffffffff;
     player_data->valid = 0;

@@ -1,11 +1,12 @@
 #include "halo/game/gamerest_cachemaps.hpp"
+#include "interface.h"
+#include "main.h"
 
 extern "C" {
 extern uint8_t map_download_in_progress;
 extern char *rasterizer_shader_file_name;
 extern game_main_globals *main_game_globals;
-extern uint32_t unknown_00719979;
-extern uint32_t unknown_00719774;
+extern main_globals main_globals_data;
 extern int16_t local_player_count;
 extern int32_t saved_player_profile_slots_handle;
 extern int32_t cached_profile_slot;
@@ -69,8 +70,8 @@ void CacheFileMaps::switch_map_by_path(char *path, uint8_t apply_state)
     }
 
     if (apply_state != 0) {
-        unknown_00719979 = 0;
-        unknown_00719774 = 0;
+        main_globals_data.pending_cache_file_name[0] = 0;
+        main_globals_data.cache_file_open_pending = 0;
         if (map_download_in_progress != 0) {
             cache_file_download_finish();
         }
