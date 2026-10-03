@@ -1,6 +1,6 @@
 """Build step (CMakeLists.txt, HALO_REGENERATE): runs between compiling src/ and linking halo_rebuilt, so adding or
 renaming a function or using a new engine global needs no manual step:
-  1. tools/gen_link_sources.py: standalone/generated/code_entries.asm, image_bindings.c, standalone/image/pieces.c
+  1. tools/gen_link_sources.py: standalone/generated/code_entries.c, image_bindings.c, standalone/image/pieces.c
      (it tells a function from a fragment file by the compiled objects: here the build's own objects)
   2. standalone/globals.asm: every data symbol the objects reference but none defines that a declaration in src/ gives
      an address comment for (what tools/update_globals.py adds after a failed link) is added before the link
@@ -53,11 +53,13 @@ def coff_externals(path):
 
 # data the link gets from a library, not from the data image (dinput8.lib)
 LIBRARY_DATA = {"_c_dfDIKeyboard", "_c_dfDIMouse2"}
+# the symbols standalone/bridges.cpp defines through /alternatename (src/ declares them extern)
+BRIDGE_SYMBOLS = set(re.findall(r"/alternatename:(\w+)=", open(os.path.join(ug.ROOT, "standalone", "bridges.cpp"), encoding="utf-8").read()))
 
 
 def other_link_definitions():
-    """PUBLIC symbols of the link's own assembly (bridges.asm, the data image), which src/ may declare too"""
-    out = set(LIBRARY_DATA)
+    """PUBLIC symbols of the link's own assembly (bridges.cpp, the data image), which src/ may declare too"""
+    out = set(LIBRARY_DATA) | BRIDGE_SYMBOLS
     for d, _, files in os.walk(os.path.join(ug.ROOT, "standalone")):
         for f in files:
             p = os.path.join(d, f)
@@ -93,7 +95,7 @@ def missing_globals(objects):
 def main():
     list_file, stamp = sys.argv[1], sys.argv[2]
     objects = object_map(list_file)
-    watched = [os.path.join(gls.GEN, "code_entries.asm"), os.path.join(gls.GEN, "image_bindings.c"),
+    watched = [os.path.join(gls.GEN, "code_entries.c"), os.path.join(gls.GEN, "image_bindings.c"),
                os.path.join(gls.SA, "image", "pieces.c"), ug.GLOBALS]
     before = [open(p, "rb").read() if os.path.exists(p) else None for p in watched]
 
