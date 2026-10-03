@@ -198,25 +198,14 @@ uint8_t cache_files::exists(char *name, cache_file_header *header_out)
     void *file;
     uint32_t bytes_read;
     uint8_t valid;
-    char *name_scan;
 
     valid = 0;
     sprintf(path, "%s%s%s.map", globals().map_path_prefix, "maps\\", name);
     file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, nullptr, halo::win32::k_open_existing, 0, nullptr);
     if (file != halo::win32::invalid_handle()) {
         if (ReadFile(file, header_out, k_cache_file_header_size, (LPDWORD)(&bytes_read), nullptr) != 0 &&
-            bytes_read == k_cache_file_header_size &&
-            header_out->head == k_cache_file_head_signature &&
-            header_out->foot == k_cache_file_foot_signature &&
-            header_out->file_size >= 0 && header_out->file_size < k_cache_file_maximum_size + 1) {
-            name_scan = header_out->name;
-            while (*name_scan != '\0') {
-                name_scan++;
-            }
-            if ((uint32_t)(name_scan - header_out->name) < k_cache_file_name_length &&
-                header_out->version == k_cache_file_version) {
-                valid = 1;
-            }
+            bytes_read == k_cache_file_header_size && map_header_valid(*header_out)) {
+            valid = 1;
         }
         CloseHandle(file);
     }
@@ -342,12 +331,7 @@ datum_index cache_files::load(char *path)
     slot_header = &globals().cache_file_slots[globals().cache_file_index].header;
     globals().cache_file_current_header = *slot_header;
 
-    if (globals().cache_file_current_header.head != k_cache_file_head_signature ||
-        globals().cache_file_current_header.foot != k_cache_file_foot_signature ||
-        globals().cache_file_current_header.file_size < 0 ||
-        globals().cache_file_current_header.file_size > k_cache_file_maximum_size ||
-        strlen(globals().cache_file_current_header.name) >= k_cache_file_name_length ||
-        globals().cache_file_current_header.version != k_cache_file_version) {
+    if (!map_header_valid(globals().cache_file_current_header)) {
         return halo::k_dword_none;
     }
 
@@ -499,7 +483,6 @@ void cache_files::slot_read_header(int32_t slot_index)
     uint32_t bytes_read;
     cache_io_request request;
 
-    char *name_scan;
 
     slot = &globals().cache_file_slots[slot_index];
     sprintf(path, "%s\\cache%03d.map", globals().profile_directory, slot_index);
@@ -528,17 +511,8 @@ void cache_files::slot_read_header(int32_t slot_index)
         halo::cache::cache_io::wait_for_flag(&header_read_ok);
         if (header_read_ok != 0) {
 validate_header:
-            if (slot->header.head == k_cache_file_head_signature &&
-                slot->header.foot == k_cache_file_foot_signature &&
-                -1 < slot->header.file_size && slot->header.file_size < k_cache_file_maximum_size + 1) {
-                name_scan = slot->header.name;
-                while (*name_scan != '\0') {
-                    name_scan++;
-                }
-                if ((uint32_t)(name_scan - slot->header.name) < k_cache_file_name_length &&
-                    slot->header.version == k_cache_file_version) {
-                    return;
-                }
+            if (map_header_valid(slot->header)) {
+                return;
             }
 
             memset(&slot->header, 0, sizeof(cache_file_header));

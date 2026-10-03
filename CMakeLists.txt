@@ -111,6 +111,12 @@ else()
                     "tools/convert_fx.py and put it in override/shaders/ next to halo_rebuilt.exe")
 endif()
 
+# ---- offline map reader / validator (tools/map_inspect): header and tag index of the retail .map files, no engine code
+add_executable(map_inspect tools/map_inspect/main.cpp tools/map_inspect/map_reader.cpp)
+target_include_directories(map_inspect PRIVATE "${CMAKE_SOURCE_DIR}/include")
+target_compile_options(map_inspect PRIVATE /std:c++20 /EHsc /W3)
+target_compile_definitions(map_inspect PRIVATE _CRT_SECURE_NO_WARNINGS)
+
 # ---- module equivalence tests (C++ conversion): build with -DHALO_BUILD_TESTS=ON, run with ctest -C Release
 option(HALO_BUILD_TESTS "Build the module difftests (tests/)" OFF)
 if(HALO_BUILD_TESTS)
