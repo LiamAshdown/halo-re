@@ -6,6 +6,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -15,7 +16,6 @@ extern uint32_t game_state_crc;
 extern void *main_game_globals;
 extern game_variant game_engine_active_variant;
 extern scenario_game_globals *global_scenario_game_globals;
-extern uint8_t *hs_camera_control_pointer;
 extern data_array *object_render_state_cache;
 extern breakable_surface_globals *breakable_surface_state;
 extern data_array *particle_data;
@@ -110,11 +110,11 @@ void GameLifecycle::initialize(void)
     game_state_cursor = game_state_cursor + 0x7c;
     halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
-    hs_camera_control_pointer = (uint8_t *)(game_state_cursor + game_state_base);
+    halo::camera::globals().hs_camera_control_pointer = (uint8_t *)(game_state_cursor + game_state_base);
     size = 4;
     game_state_cursor = game_state_cursor + 4;
     halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
-    *hs_camera_control_pointer = 0;
+    *halo::camera::globals().hs_camera_control_pointer = 0;
 
     object_render_state_cache = (data_array *)game_state_new((char *)"cached object render states", 0x100, 0x100);
     objects_initialize();

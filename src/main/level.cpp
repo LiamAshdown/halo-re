@@ -115,9 +115,6 @@ extern "C" { extern game_engine_definition *current_game_engine; }
 extern "C" { extern uint8_t player_profile_cache_initialized; }
 extern "C" { extern uint8_t player_profile_cache[0xc0 * 4]; }
 extern "C" { extern uint8_t game_engine_active_variant[0x26 * 4]; }
-extern "C" { extern uint8_t *hs_camera_control_pointer; }
-extern "C" { extern camera_script_globals camera_script; }
-extern "C" { extern director directors[1]; }
 extern "C" { extern uint8_t ui_split_screen; }
 extern "C" { extern uint8_t *main_game_globals; }
 extern "C" { extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); }
@@ -164,12 +161,12 @@ void LevelControl::chimera__load_ui_map(char play_title_music)
     main_globals_data.main_menu_scenario_loaded = 1;
     game_scenario_session_begin(&request);
 
-    *hs_camera_control_pointer = 1;
-    directors[0].pov_proc = halo::camera::camera_debug_compute_pov;
-    directors[0].look_scale = 1.0f;
-    directors[0].unknown_c0 = 0;
-    camera_script.camera_control = 1;
-    camera_script.changed = 1;
+    *halo::camera::globals().hs_camera_control_pointer = 1;
+    halo::camera::globals().directors[0].pov_proc = halo::camera::camera_debug_compute_pov;
+    halo::camera::globals().directors[0].look_scale = 1.0f;
+    halo::camera::globals().directors[0].unknown_c0 = 0;
+    halo::camera::globals().camera_script.camera_control = 1;
+    halo::camera::globals().camera_script.changed = 1;
     halo::camera::camera_debug_start(0, 0, (datum_index)-1);
 
     ui_split_screen = 1;

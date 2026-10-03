@@ -41,7 +41,6 @@ extern "C" { extern game_engine_state game_engine_state_value; }
 extern "C" { extern player_globals *local_player_globals; }
 extern "C" { extern uint8_t widget_memory_pool_valid; }
 extern "C" { extern widget_instance *ui_root_widget[1]; }
-extern "C" { extern observer observers[1]; }
 extern "C" { extern uint8_t render_view_local_player_sticky; }
 extern "C" { extern int32_t screenshots; }
 extern "C" { extern input_abstraction_globals input_globals; }
@@ -121,7 +120,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
         }
 
         render_view_camera_fill(view->local_player_index != -1
-                                     ? &observers[view->local_player_index].camera
+                                     ? &halo::camera::globals().observers[view->local_player_index].camera
                                      : 0,
                                  view);
         view->nonplayer = 0;

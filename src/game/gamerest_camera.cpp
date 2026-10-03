@@ -21,7 +21,6 @@ extern int16_t object_collect_in_clusters(uint32_t search_mask, int16_t cluster_
 extern uint16_t camera_observer_collect_target_candidates(observer_target_cone *cone, datum_index start_object, real_point3d *observer_position, real_vector3d *facing, real max_distance, real sin_max_angle, real cos_max_angle, datum_index exclude_object, int16_t observer_team, int16_t capacity, observer_target_candidate *out);
 extern player_globals *local_player_globals;
 extern player_control_globals *player_control_globals_ptr;
-extern observer observers[1];
 extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out);
 extern char camera_observer_find_best_target(real_point3d *observer_position, observer_target_cone *cone, real_vector3d *facing, datum_index exclude_object, int16_t team, observer_target_candidate *out);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
@@ -229,7 +228,7 @@ uint32_t CameraObserver::get_target_angles(real *out_weight_primary, real *out_w
         return 0xffffffff;
     }
 
-    row = (local_player_slot == -1) ? (uint8_t *)0 : (uint8_t *)&observers[local_player_slot].camera;
+    row = (local_player_slot == -1) ? (uint8_t *)0 : (uint8_t *)&halo::camera::globals().observers[local_player_slot].camera;
     if (CameraObserver::find_best_target((real_point3d *)row, (observer_target_cone *)cone_buffer, (real_vector3d *)(row + 0x20), unit_index, (int16_t)p->team, &candidate) == 0) {
         return 0xffffffff;
     }

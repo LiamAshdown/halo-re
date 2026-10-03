@@ -12,6 +12,8 @@ struct Vector3D;
 struct camera_input;
 struct dead_camera_data;
 struct editor_camera_data;
+struct director;
+struct camera_script_globals;
 struct observer;
 struct observer_camera;
 struct observer_command;
@@ -22,6 +24,19 @@ union director_camera_data;
 typedef uint32_t datum_index;
 
 namespace halo::camera {
+
+/**
+ * The engine globals the camera module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    uint8_t *&hs_camera_control_pointer;
+    observer *observers;
+    director *directors;
+    camera_script_globals &camera_script;
+};
+
+Globals &globals();
 
 void camera_control(uint8_t enable);
 datum_index camera_dead_find_next_teammate(datum_index reference_player, datum_index current_target, uint8_t require_same_team);

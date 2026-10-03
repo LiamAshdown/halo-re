@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include <string.h>
 #include "halo/cache/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -20,7 +21,6 @@ extern double sin(double x);
 extern double cos(double x);
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
-extern observer observers[1];
 extern void console_printf_verbose(const char *format, ...);
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
 }
@@ -250,7 +250,7 @@ void Cheats::teleport_to_camera()
     if (player_index != 0xffffffff) {
         local_player_slot = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->local_player_index;
         if (local_player_slot != -1) {
-            camera_row = (uint8_t *)&observers[local_player_slot].camera;
+            camera_row = (uint8_t *)&halo::camera::globals().observers[local_player_slot].camera;
             if (*(int16_t *)(camera_row + 0x10) != -1) {
                 unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->unit;
                 unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;

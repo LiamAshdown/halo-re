@@ -19,7 +19,6 @@ extern Globals *global_globals;
 extern Scenario *global_scenario;
 extern uint8_t network_message_scratch;
 extern network_server_globals *network_server;
-extern observer observers[];
 extern void object_mark_pending_delete(uint32_t object_index);
 extern void object_delete(uint32_t object_index);
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
@@ -242,7 +241,7 @@ reset_player_state:
     *(uint16_t *)&((player *)p)->interaction_type = 0;
     ((player *)p)->interaction_object = k_datum_index_none;
     if (((player *)p)->local_player_index != -1) {
-        halo::camera::observer_new(&observers[((player *)p)->local_player_index]);
+        halo::camera::observer_new(&halo::camera::globals().observers[((player *)p)->local_player_index]);
     }
 }
 

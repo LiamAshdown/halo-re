@@ -60,7 +60,6 @@ extern Scenario *global_scenario;
 extern uint8_t *object_globals_pointer;
 extern void ai_reset_for_new_map(void);
 extern void encounters_spawn_initial(void);
-extern observer observers[];
 extern void team_pair_table_init_defaults(void);
 extern void game_engine_load_from_variant(const game_variant *variant);
 extern void game_engine_initialize_for_new_game(void);
@@ -86,8 +85,6 @@ extern ai_globals *ai_globals_ptr;
 extern uint32_t rasterizer_decal_vertex_cache_handle;
 extern data_array *player_data;
 extern data_array *team_data;
-extern director directors[1];
-extern uint8_t *hs_camera_control_pointer;
 extern uint32_t text_localization_strings;
 extern void update_queues_dispose(void);
 extern void hs_scripts_free(void);
@@ -269,7 +266,7 @@ void GameLifecycle::start_new_map(void)
     halo::memory::data_delete_all(halo::effects::globals().decal_data);
 
     halo::camera::camera_initialize();
-    halo::camera::observer_new(&observers[0]);
+    halo::camera::observer_new(&halo::camera::globals().observers[0]);
 
     halo::effects::globals().contrail_data->valid = 1;
     halo::memory::data_delete_all(halo::effects::globals().contrail_data);
@@ -395,10 +392,10 @@ void GameLifecycle::stop_current_map(void)
     objects_flush_dirty_state();
 
     had_network_predicted_globals = halo::sound::globals().game_looping_sound_data != (data_array *)0;
-    directors[0].pov_proc = 0;
-    directors[0].look_scale = 1.0f;
-    directors[0].unknown_c0 = 0;
-    *hs_camera_control_pointer = 0;
+    halo::camera::globals().directors[0].pov_proc = 0;
+    halo::camera::globals().directors[0].look_scale = 1.0f;
+    halo::camera::globals().directors[0].unknown_c0 = 0;
+    *halo::camera::globals().hs_camera_control_pointer = 0;
     text_localization_strings = 0xffffffff;
     player_data->valid = 0;
     team_data->valid = 0;

@@ -8,6 +8,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/camera/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 
@@ -135,8 +136,8 @@ void build_cluster_range_bitmap(void)
     }
 
     if (local_player_globals->local_players[0] != (datum_index)k_datum_index_none &&
-        observers[0].camera.cluster_index != -1 && cluster_count > 0) {
-        int16_t listener_cluster = observers[0].camera.cluster_index;
+        halo::camera::globals().observers[0].camera.cluster_index != -1 && cluster_count > 0) {
+        int16_t listener_cluster = halo::camera::globals().observers[0].camera.cluster_index;
         int32_t cluster;
 
         for (cluster = 0; cluster < cluster_count; cluster++) {
@@ -214,7 +215,7 @@ void update_listener(void)
     }
     listener->valid = 1;
 
-    camera = &observers[0].camera;
+    camera = &halo::camera::globals().observers[0].camera;
     underwater = scenario_location_get_water_and_weather((real_point3d *)&camera->position,
         (bsp_leaf_reference *)&camera->leaf_index, (int16_t *)0);
     if (listener->underwater != underwater) {
@@ -396,7 +397,7 @@ void Location::compute_obstruction_occlusion(int16_t listener_index, float refer
     float distance;
 
     if (listener_index != -1) {
-        listener = &observers[listener_index].camera;
+        listener = &halo::camera::globals().observers[listener_index].camera;
     }
 
     this->obstruction = 0.6f;

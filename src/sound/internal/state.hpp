@@ -75,7 +75,6 @@ extern ScenarioStructureBSP *global_structure_bsp;
 extern scenario_game_globals *global_scenario_game_globals;
 extern SoundEnvironment k_default_sound_environment;
 extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point);
-extern observer observers[1];
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern Globals *global_globals;
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);

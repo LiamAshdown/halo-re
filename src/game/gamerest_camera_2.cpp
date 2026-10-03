@@ -4,7 +4,6 @@
 extern "C" {
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern observer observers[1];
 extern uint32_t unit_noop_569670(uint32_t object_index);
 extern void *player_control_globals_ptr;
 extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out);
@@ -50,7 +49,7 @@ uint32_t CameraObserver::get_target_id(datum_index *out_id, int16_t local_player
     if (!unit_get_current_weapon_autoaim_cone(*(uint32_t *)(player_record + 0x34), zoom_requirement, cone_buffer)) {
         return 0xffffffff;
     }
-    observer_camera = local_player_slot == -1 ? 0 : (uint8_t *)observers + local_player_slot * 0x29c + 0x74;
+    observer_camera = local_player_slot == -1 ? 0 : (uint8_t *)halo::camera::globals().observers + local_player_slot * 0x29c + 0x74;
     if (!CameraObserver::find_best_target((real_point3d *)observer_camera, (observer_target_cone *)cone_buffer, (real_vector3d *)(observer_camera + 0x20), exclude_object, *(int16_t *)(player_record + 0x20), &candidate)) {
         return 0xffffffff;
     }
