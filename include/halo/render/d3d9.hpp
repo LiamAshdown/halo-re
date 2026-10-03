@@ -245,6 +245,30 @@ inline constexpr uint32_t dest_color = 9;
 inline constexpr uint32_t inv_dest_color = 10;
 }  // namespace blend
 
+/** D3DTEXTUREOP values as plain integers (the stage-state setters take integers). */
+namespace top {
+inline constexpr uint32_t disable = 1;
+inline constexpr uint32_t select_arg1 = 2;
+inline constexpr uint32_t select_arg2 = 3;
+inline constexpr uint32_t modulate = 4;
+inline constexpr uint32_t modulate2x = 5;
+inline constexpr uint32_t modulate4x = 6;
+inline constexpr uint32_t add = 7;
+inline constexpr uint32_t multiply_add = 25;
+inline constexpr uint32_t lerp = 26;
+}  // namespace top
+
+/** D3DTA_* texture argument selectors and modifiers. */
+namespace ta {
+inline constexpr uint32_t diffuse = 0;
+inline constexpr uint32_t current = 1;
+inline constexpr uint32_t texture = 2;
+inline constexpr uint32_t tfactor = 3;
+inline constexpr uint32_t specular = 4;
+inline constexpr uint32_t complement = 0x10;
+inline constexpr uint32_t alpha_replicate = 0x20;
+}  // namespace ta
+
 /** D3DTEXTUREOP values. */
 enum class texture_op : uint32_t {
     disable = 1,

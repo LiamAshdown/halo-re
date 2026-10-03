@@ -118,14 +118,14 @@ void rasterizer_detail_objects_begin(void)
 
     render_device().set_stream_source(0, rasterizer_detail_object_vertex_buffer, 0, 0x14);
     render_device().set_pixel_shader(0);
-    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
-    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
-    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 4);
-    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
-    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, 0);
-    rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-    rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, halo::d3d9::ta::diffuse);
+    rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 }
 
 }  // namespace rasterizer_detail_objects_begin_impl

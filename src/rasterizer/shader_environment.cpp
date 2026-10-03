@@ -171,17 +171,17 @@ static void set_combine_stages(uint8_t *shader, int16_t frame, const float *matr
     chimera__rasterizer_set_texture(halo::tag_id_bits(senv(shader)->base_map.tag_id), 0, 0, 1, frame);
     render_device().set_transform(0x10, matrix);
     set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
-    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 0);
-    set_texture_stage_state(1, halo::d3d9::ts::color_op, 2);
-    set_texture_stage_state(1, halo::d3d9::ts::color_arg1, 1);
-    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 2);
-    set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, 2);
-    set_texture_stage_state(2, halo::d3d9::ts::color_op, 1);
-    set_texture_stage_state(2, halo::d3d9::ts::alpha_op, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::diffuse);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(1, halo::d3d9::ts::color_arg1, halo::d3d9::ta::current);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+    set_texture_stage_state(2, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    set_texture_stage_state(2, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 }
 
 /**
@@ -545,12 +545,12 @@ void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t f
     matrix[10] = 0.0f;
     matrix[15] = 1.0f;
 
-    set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
-    set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 
     if (rasterizer_active_model_context->flags & _model_draw_fixed_function_fog_bit) {
         render_device().set_vertex_shader(0);
@@ -913,28 +913,28 @@ void rasterizer_shader_environment_lightmap_draw_two_stream(const ShaderEnvironm
         set_texture_stage_state(1, halo::d3d9::ts::texture_transform_flags, 2);
         render_device().set_transform(0x11, matrix);
         set_texture_stage_state(1, halo::d3d9::ts::texcoord_index, 0);
-        set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 1);
-        set_texture_stage_state(1, halo::d3d9::ts::color_op, 4);
-        set_texture_stage_state(1, halo::d3d9::ts::color_arg1, 2);
-        set_texture_stage_state(1, halo::d3d9::ts::color_arg2, 1);
-        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 2);
-        set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, 2);
-        set_texture_stage_state(2, halo::d3d9::ts::color_op, 1);
-        set_texture_stage_state(2, halo::d3d9::ts::alpha_op, 1);
+        set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
+        set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+        set_texture_stage_state(1, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+        set_texture_stage_state(1, halo::d3d9::ts::color_arg2, halo::d3d9::ta::current);
+        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+        set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+        set_texture_stage_state(2, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+        set_texture_stage_state(2, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
         chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer, dynamic_index_slot, first_primitive);
         set_texture_stage_state(1, halo::d3d9::ts::texture_transform_flags, 0);
         set_texture_stage_state(1, halo::d3d9::ts::texcoord_index, 1);
         return;
     }
-    set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 1);
-    set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
     chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer, dynamic_index_slot, first_primitive);
 }
 
@@ -1657,17 +1657,17 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
         }
         render_device().set_texture(1, texture);
     }
-    set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 0);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
-    set_texture_stage_state(1, halo::d3d9::ts::color_op, 7);
-    set_texture_stage_state(1, halo::d3d9::ts::color_arg1, 2);
-    set_texture_stage_state(1, halo::d3d9::ts::color_arg2, 1);
-    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 2);
-    set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, 1);
-    set_texture_stage_state(2, halo::d3d9::ts::color_op, 1);
-    set_texture_stage_state(2, halo::d3d9::ts::alpha_op, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::diffuse);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::add);
+    set_texture_stage_state(1, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+    set_texture_stage_state(1, halo::d3d9::ts::color_arg2, halo::d3d9::ta::current);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
+    set_texture_stage_state(2, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    set_texture_stage_state(2, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
     render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[19].declaration);
     chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer, dynamic_index_slot, first_primitive);
 }
@@ -1749,17 +1749,17 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
         }
         render_device().set_texture(1, texture);
     }
-    set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 0);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
-    set_texture_stage_state(1, halo::d3d9::ts::color_op, 7);
-    set_texture_stage_state(1, halo::d3d9::ts::color_arg1, 2);
-    set_texture_stage_state(1, halo::d3d9::ts::color_arg2, 1);
-    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 2);
-    set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, 1);
-    set_texture_stage_state(2, halo::d3d9::ts::color_op, 1);
-    set_texture_stage_state(2, halo::d3d9::ts::alpha_op, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::diffuse);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::add);
+    set_texture_stage_state(1, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+    set_texture_stage_state(1, halo::d3d9::ts::color_arg2, halo::d3d9::ta::current);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
+    set_texture_stage_state(2, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    set_texture_stage_state(2, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
     render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[13].declaration);
     chimera__rasterizer_draw_dynamic_triangles_static_vertices2(primitive_count, vertex_buffer, dynamic_index_slot,
         first_primitive, (rasterizer_vertex_buffer *)((uint8_t *)vertex_buffer + (halo::rasterizer::fields::environment_effect_variant == 0 ? 20 : 0)));

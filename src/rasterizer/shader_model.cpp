@@ -335,11 +335,11 @@ uint8_t rasterizer_object_shadow_begin(const real_matrix4x3 *projection, const C
     set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
     set_render_state(halo::d3d9::rs::z_enable, 0);
     set_render_state(halo::d3d9::rs::fog_enable, 0);
-    set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 0x22);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 1);
-    set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture | halo::d3d9::ta::alpha_replicate);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
     for (stage = 0; stage < 4; stage++) {
         render_device().set_texture(stage, 0);
     }
@@ -518,12 +518,12 @@ void rasterizer_object_shadow_blur(void)
     set_line_vertex(5, -1.0f, 127.0f);
     set_line_vertex(6, 0.0f, 128.0f);
     set_line_vertex(7, 0.0f, -1.0f);
-    set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 0);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 0);
-    set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::diffuse);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::diffuse);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
     render_device().set_pixel_shader(0);
     render_device().set_vertex_shader(0);
     render_device().set_fvf(0x144);
@@ -831,8 +831,8 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
         set_transform(0x10, &texture_matrix[0][0]);
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
         set_stage(0, 4, 2, 0, 4, 2, 3);
-        set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+        set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
         rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, vertex_buffer, primitive_count, 0,
                                                   dynamic_vertex_slot);
     } else {
@@ -863,24 +863,24 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
                 set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
                 set_render_state(halo::d3d9::rs::blend_op, 1);
                 set_stage(0, 4, 0, 2, 4, 3, 2);
-                set_texture_stage_state(1, halo::d3d9::ts::color_op, 4);
-                set_texture_stage_state(1, halo::d3d9::ts::color_arg1, 1);
-                set_texture_stage_state(1, halo::d3d9::ts::color_arg2, 3);
-                set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 2);
-                set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, 1);
+                set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+                set_texture_stage_state(1, halo::d3d9::ts::color_arg1, halo::d3d9::ta::current);
+                set_texture_stage_state(1, halo::d3d9::ts::color_arg2, halo::d3d9::ta::tfactor);
+                set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+                set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
             } else {
                 set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::zero);
                 set_render_state(halo::d3d9::rs::blend_op, 1);
-                set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
-                set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 0);
-                set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 2);
-                set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 4);
-                set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 0);
-                set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
+                set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+                set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::diffuse);
+                set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::texture);
+                set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
+                set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::diffuse);
+                set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
                 set_stage(1, 4, 1, 3, 4, 1, 2);
             }
-            set_texture_stage_state(2, halo::d3d9::ts::color_op, 1);
-            set_texture_stage_state(2, halo::d3d9::ts::alpha_op, 1);
+            set_texture_stage_state(2, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+            set_texture_stage_state(2, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
             rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, &processed, primitive_count, 0,
                                                       dynamic_vertex_slot);
 
@@ -891,13 +891,13 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
             set_render_state(halo::d3d9::rs::z_write_enable, 0);
             set_render_state(halo::d3d9::rs::z_func, 3);
             set_stage(0, 4, 2, 0, 4, 3, 2);
-            set_texture_stage_state(1, halo::d3d9::ts::color_op, 4);
-            set_texture_stage_state(1, halo::d3d9::ts::color_arg1, 0x32);
-            set_texture_stage_state(1, halo::d3d9::ts::color_arg2, 1);
-            set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 2);
-            set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, 1);
-            set_texture_stage_state(2, halo::d3d9::ts::color_op, 1);
-            set_texture_stage_state(2, halo::d3d9::ts::alpha_op, 1);
+            set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+            set_texture_stage_state(1, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture | halo::d3d9::ta::complement | halo::d3d9::ta::alpha_replicate);
+            set_texture_stage_state(1, halo::d3d9::ts::color_arg2, halo::d3d9::ta::current);
+            set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+            set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
+            set_texture_stage_state(2, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+            set_texture_stage_state(2, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
             rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, &processed, primitive_count, 0,
                                                       dynamic_vertex_slot);
             set_texture_stage_state(1, halo::d3d9::ts::texcoord_index, 1);
@@ -905,8 +905,8 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
         } else {
             chimera__rasterizer_set_texture(halo::tag_id_bits(smodel(shader)->base_map.tag_id), 0, 0, 1, frame);
             set_stage(0, 4, 2, 0, 4, 2, 3);
-            set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-            set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+            set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+            set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
             rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, &processed, primitive_count, 0,
                                                       dynamic_vertex_slot);
         }
@@ -1017,14 +1017,14 @@ void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, raster
     factor = (factor | ((uint32_t)(int32_t)(color.green * 255.0f) & 0xff)) << 8;
     factor = factor | ((uint32_t)(int32_t)(color.blue * 255.0f) & 0xff);
     set_render_state(halo::d3d9::rs::texture_factor, factor);
-    set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
-    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 4);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, 3);
-    set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, halo::d3d9::ta::tfactor);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 
     if (rasterizer_active_model_context->flags & 0x200) {
 

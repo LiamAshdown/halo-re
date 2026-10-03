@@ -395,60 +395,60 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
 
             switch (rasterizer_decal_blend_mode) {
             case 0:
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 4);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, 0x10);
-                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, halo::d3d9::ta::diffuse | halo::d3d9::ta::complement);
+                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
                 break;
             case 1:
             case 5:
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
-                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
                 break;
             case 2:
                 rasterizer_set_render_state(halo::d3d9::rs::texture_factor, 0x7f7f7f7f);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, 0x19);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 1);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg0, 0x10);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 3);
-                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::multiply_add);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::current);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg0, halo::d3d9::ta::diffuse | halo::d3d9::ta::complement);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::tfactor);
+                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
                 break;
             case 3:
             case 4:
             case 6:
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 1);
-                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, 4);
-                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_arg1, 1);
-                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_arg2, 0x30);
-                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 2);
-                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, 1);
-                rasterizer_set_texture_stage_state(2, halo::d3d9::ts::alpha_op, 1);
-                rasterizer_set_texture_stage_state(2, halo::d3d9::ts::color_op, 1);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
+                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_arg1, halo::d3d9::ta::current);
+                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse | halo::d3d9::ta::complement | halo::d3d9::ta::alpha_replicate);
+                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
+                rasterizer_set_texture_stage_state(2, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
+                rasterizer_set_texture_stage_state(2, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
                 break;
             case 7:
                 rasterizer_set_render_state(halo::d3d9::rs::texture_factor, 0xffff0000);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 3);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 3);
-                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::tfactor);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+                rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::tfactor);
+                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+                rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
                 break;
             default:
                 break;

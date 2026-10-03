@@ -415,18 +415,18 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
         rasterizer_set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
         rasterizer_set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
         rasterizer_set_render_state(halo::d3d9::rs::texture_factor, 0x3c7f7f7f);
-        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, 7);
-        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 3);
-        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
-        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, 4);
-        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_arg1, 1);
-        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_arg2, 0x20);
-        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 2);
-        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, 1);
-        rasterizer_set_texture_stage_state(2, halo::d3d9::ts::color_op, 1);
-        rasterizer_set_texture_stage_state(2, halo::d3d9::ts::alpha_op, 1);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::add);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::tfactor);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_arg1, halo::d3d9::ta::current);
+        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse | halo::d3d9::ta::alpha_replicate);
+        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
+        rasterizer_set_texture_stage_state(2, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+        rasterizer_set_texture_stage_state(2, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
         rasterizer_transparent_geometry_group_draw_vertices(group, 0);
         return;
     }
@@ -558,13 +558,13 @@ void rasterizer_glass_reflection_draw_fixed_function(transparent_geometry_group 
     render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
     render_device().set_render_state(halo::d3d9::rs::texture_factor, 0x3cffffff);
 
-    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
-    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 3);
-    render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-    render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 3);
-    render_device().set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-    render_device().set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::tfactor);
+    render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+    render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::tfactor);
+    render_device().set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    render_device().set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 
     rasterizer_transparent_geometry_group_draw_vertices(group, 0);
 }
@@ -628,29 +628,29 @@ void rasterizer_glass_tint_draw(transparent_geometry_group *group)
                   ((uint32_t)(int32_t)(group->tint.blue * 255.0f) & 0xff);
     render_device().set_render_state(halo::d3d9::rs::texture_factor, decal_color);
 
-    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
-    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 3);
+    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::tfactor);
 
     if (group->parameters.mode == 1) {
-        render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 4);
-        render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 0);
+        render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
+        render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::diffuse);
         stage4_arg = 3;
         stage5_arg = 6;
     } else {
-        render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
+        render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
         stage4_arg = 0;
         stage5_arg = 5;
     }
     render_device().set_texture_stage_state(0, stage5_arg, stage4_arg);
-    render_device().set_texture_stage_state(1, halo::d3d9::ts::color_op, 0x19);
-    render_device().set_texture_stage_state(1, halo::d3d9::ts::color_arg1, 1);
-    render_device().set_texture_stage_state(1, halo::d3d9::ts::color_arg2, 0x20);
-    render_device().set_texture_stage_state(1, halo::d3d9::ts::color_arg0, 0x30);
-    render_device().set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 2);
-    render_device().set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, 1);
-    render_device().set_texture_stage_state(2, halo::d3d9::ts::color_op, 1);
-    render_device().set_texture_stage_state(2, halo::d3d9::ts::alpha_op, 1);
+    render_device().set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::multiply_add);
+    render_device().set_texture_stage_state(1, halo::d3d9::ts::color_arg1, halo::d3d9::ta::current);
+    render_device().set_texture_stage_state(1, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse | halo::d3d9::ta::alpha_replicate);
+    render_device().set_texture_stage_state(1, halo::d3d9::ts::color_arg0, halo::d3d9::ta::diffuse | halo::d3d9::ta::complement | halo::d3d9::ta::alpha_replicate);
+    render_device().set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+    render_device().set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
+    render_device().set_texture_stage_state(2, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    render_device().set_texture_stage_state(2, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 
     rasterizer_transparent_geometry_group_draw_vertices(group, 0);
 }
@@ -704,23 +704,23 @@ void rasterizer_glass_tint_draw_fixed_function(transparent_geometry_group *group
     }
     render_device().set_render_state(halo::d3d9::rs::texture_factor, decal_color);
 
-    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
-    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 3);
+    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+    render_device().set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::tfactor);
 
     if (group->parameters.mode == 1) {
-        render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 4);
-        render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 0);
+        render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
+        render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::diffuse);
         stage4_arg = 0x13;
         stage5_arg = 6;
     } else {
-        render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
+        render_device().set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
         stage4_arg = 3;
         stage5_arg = 5;
     }
     render_device().set_texture_stage_state(0, stage5_arg, stage4_arg);
-    render_device().set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-    render_device().set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+    render_device().set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    render_device().set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 
     rasterizer_transparent_geometry_group_draw_vertices(group, 0);
 }
@@ -969,14 +969,14 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         case 0:
             if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
                 stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
-                tss(0, 4, 4);
+                tss(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
                 tss(0, 6, fade_argument);
             } else {
                 stage = (int16_t)map_count;
-                tss(stage, 1, 2);
-                tss(stage, 2, 1);
-                tss(stage, 4, 4);
-                tss(stage, 5, 1);
+                tss(stage, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+                tss(stage, halo::d3d9::ts::color_arg1, halo::d3d9::ta::current);
+                tss(stage, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
+                tss(stage, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
                 tss(stage, 6, fade_argument);
             }
             stage++;
@@ -985,24 +985,24 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         case 5:
             stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
                                                                            : (map_count - 1 > 1 ? map_count - 1 : 1));
-            tss(stage, 1, 0x19);
+            tss(stage, halo::d3d9::ts::color_op, halo::d3d9::top::multiply_add);
             tss(stage, 2, fade_argument | 0x10);
-            tss(stage, 3, 1);
+            tss(stage, halo::d3d9::ts::color_arg2, halo::d3d9::ta::current);
             tss(stage, 0x1a, fade_argument);
-            tss(stage, 4, 2);
-            tss(stage, 5, 1);
+            tss(stage, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+            tss(stage, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
             stage++;
             break;
         case 2:
             stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
                                                                            : (map_count - 1 > 1 ? map_count - 1 : 1));
             set_render_state(halo::d3d9::rs::texture_factor, 0x7f7f7f7f);
-            tss(stage, 1, 0x1a);
+            tss(stage, halo::d3d9::ts::color_op, halo::d3d9::top::lerp);
             tss(stage, 2, fade_argument);
-            tss(stage, 3, 1);
-            tss(stage, 0x1a, 3);
-            tss(stage, 4, 2);
-            tss(stage, 5, 1);
+            tss(stage, halo::d3d9::ts::color_arg2, halo::d3d9::ta::current);
+            tss(stage, halo::d3d9::ts::color_arg0, halo::d3d9::ta::tfactor);
+            tss(stage, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+            tss(stage, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
             stage++;
             break;
         case 3:
@@ -1010,32 +1010,32 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         case 6:
             if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
                 stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
-                tss(0, 1, 4);
+                tss(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
                 tss(0, 3, fade_argument);
             } else {
                 stage = (int16_t)map_count;
-                tss(stage, 1, 4);
-                tss(stage, 2, 1);
+                tss(stage, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+                tss(stage, halo::d3d9::ts::color_arg1, halo::d3d9::ta::current);
                 tss(stage, 3, fade_argument);
-                tss(stage, 4, 2);
-                tss(stage, 5, 1);
+                tss(stage, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+                tss(stage, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
             }
             stage++;
             break;
         case 7:
             if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
                 stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
-                tss(0, 1, 4);
+                tss(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
                 tss(0, 3, fade_argument);
-                tss(0, 4, 4);
+                tss(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
                 tss(0, 6, fade_argument);
             } else {
                 stage = (int16_t)map_count;
-                tss(stage, 1, 4);
-                tss(stage, 2, 1);
+                tss(stage, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+                tss(stage, halo::d3d9::ts::color_arg1, halo::d3d9::ta::current);
                 tss(stage, 3, fade_argument);
-                tss(stage, 4, 4);
-                tss(stage, 5, 1);
+                tss(stage, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
+                tss(stage, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
                 tss(stage, 6, fade_argument);
             }
             stage++;
@@ -1307,14 +1307,14 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
         case 0:
             if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
                 stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
-                tss(0, 4, 4);
+                tss(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
                 tss(0, 6, fade_argument);
             } else {
                 stage = (int16_t)map_count;
-                tss(stage, 1, 2);
-                tss(stage, 2, 1);
-                tss(stage, 4, 4);
-                tss(stage, 5, 1);
+                tss(stage, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+                tss(stage, halo::d3d9::ts::color_arg1, halo::d3d9::ta::current);
+                tss(stage, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
+                tss(stage, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
                 tss(stage, 6, fade_argument);
             }
             stage++;
@@ -1323,24 +1323,24 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
         case 5:
             stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
                                                                            : (map_count - 1 > 1 ? map_count - 1 : 1));
-            tss(stage, 1, 0x19);
+            tss(stage, halo::d3d9::ts::color_op, halo::d3d9::top::multiply_add);
             tss(stage, 2, fade_argument | 0x10);
-            tss(stage, 3, 1);
+            tss(stage, halo::d3d9::ts::color_arg2, halo::d3d9::ta::current);
             tss(stage, 0x1a, fade_argument);
-            tss(stage, 4, 2);
-            tss(stage, 5, 1);
+            tss(stage, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+            tss(stage, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
             stage++;
             break;
         case 2:
             stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
                                                                            : (map_count - 1 > 1 ? map_count - 1 : 1));
             set_render_state(halo::d3d9::rs::texture_factor, 0x7f7f7f7f);
-            tss(stage, 1, 0x1a);
+            tss(stage, halo::d3d9::ts::color_op, halo::d3d9::top::lerp);
             tss(stage, 2, fade_argument);
-            tss(stage, 3, 1);
-            tss(stage, 0x1a, 3);
-            tss(stage, 4, 2);
-            tss(stage, 5, 1);
+            tss(stage, halo::d3d9::ts::color_arg2, halo::d3d9::ta::current);
+            tss(stage, halo::d3d9::ts::color_arg0, halo::d3d9::ta::tfactor);
+            tss(stage, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+            tss(stage, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
             stage++;
             break;
         case 3:
@@ -1348,32 +1348,32 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
         case 6:
             if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
                 stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
-                tss(0, 1, 4);
+                tss(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
                 tss(0, 3, fade_argument);
             } else {
                 stage = (int16_t)map_count;
-                tss(stage, 1, 4);
-                tss(stage, 2, 1);
+                tss(stage, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+                tss(stage, halo::d3d9::ts::color_arg1, halo::d3d9::ta::current);
                 tss(stage, 3, fade_argument);
-                tss(stage, 4, 2);
-                tss(stage, 5, 1);
+                tss(stage, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+                tss(stage, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
             }
             stage++;
             break;
         case 7:
             if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
                 stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
-                tss(0, 1, 4);
+                tss(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
                 tss(0, 3, fade_argument);
-                tss(0, 4, 4);
+                tss(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
                 tss(0, 6, fade_argument);
             } else {
                 stage = (int16_t)map_count;
-                tss(stage, 1, 4);
-                tss(stage, 2, 1);
+                tss(stage, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+                tss(stage, halo::d3d9::ts::color_arg1, halo::d3d9::ta::current);
                 tss(stage, 3, fade_argument);
-                tss(stage, 4, 4);
-                tss(stage, 5, 1);
+                tss(stage, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
+                tss(stage, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
                 tss(stage, 6, fade_argument);
             }
             stage++;
@@ -1433,12 +1433,12 @@ uint8_t rasterizer_shader_transparent_chicago_extended_set_texture_stages(const 
         uint32_t replicate = (*(const uint8_t *)&map->flags & 2) << 4;
 
         if (map_index == count - 1) {
-            set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-            set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-            set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
-            set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-            set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
-            set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, 0);
+            set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+            set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+            set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse);
+            set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+            set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+            set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, halo::d3d9::ta::diffuse);
         } else {
             uint32_t stage = (uint32_t)map_index + 1;
             const uint32_t *color = rasterizer_chicago_color_function_stage_states[map->color_function];
@@ -1485,12 +1485,12 @@ uint8_t rasterizer_shader_transparent_chicago_set_texture_stages(const ShaderTra
         uint32_t replicate = (*(const uint8_t *)&map->flags & 2) << 4;
 
         if (map_index == (int32_t)shader->maps.count - 1) {
-            set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-            set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-            set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
-            set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-            set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
-            set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, 0);
+            set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+            set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+            set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse);
+            set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+            set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+            set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, halo::d3d9::ta::diffuse);
         } else {
             uint32_t stage = (uint32_t)map_index + 1;
             const uint32_t *color = rasterizer_chicago_color_function_stage_states[map->color_function];
@@ -1932,12 +1932,12 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
         render_device().set_vertex_shader(rasterizer_vertex_shaders[60 + shader_index].shader);
         render_device().set_pixel_shader(0);
         set_render_state(halo::d3d9::rs::texture_factor, 0xffffffff);
-        set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 3);
-        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 3);
-        set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+        set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::tfactor);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::tfactor);
+        set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
         rasterizer_transparent_geometry_group_draw_vertices(group, 0);
         return;
     }

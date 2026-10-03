@@ -679,12 +679,12 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
         set_render_state(halo::d3d9::rs::fog_enable, 0);
         set_render_state(halo::d3d9::rs::texture_factor, 0xffff0000);
 
-        set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 3);
-        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 1);
-        set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+        set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::tfactor);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
+        set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 
         render_device().set_vertex_shader(0);
         render_device().set_pixel_shader(0);
@@ -718,13 +718,13 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
 
         render_device().effect_pass(*(void **)rasterizer_effect_pool_scratch, 0);
     } else {
-        set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
-        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-        set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
-        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 0);
-        set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+        set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+        set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::diffuse);
+        set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
         render_device().set_pixel_shader(0);
     }
 

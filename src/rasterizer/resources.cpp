@@ -742,12 +742,12 @@ void rasterizer_render_target_capture_frame(void)
         rasterizer_set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
         rasterizer_set_render_state(halo::d3d9::rs::z_enable, 0);
         rasterizer_set_render_state(halo::d3d9::rs::fog_enable, 0);
-        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
-        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 
         width = (float)(int16_t)(rasterizer_window.camera.viewport_bounds.right - rasterizer_window.camera.viewport_bounds.left);
         height = (float)(int16_t)(rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top);
