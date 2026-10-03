@@ -1,0 +1,1617 @@
+#include "halo/interface/ifr2_hud.hpp"
+#include <string.h>
+
+#ifdef interface
+#undef interface
+#endif
+
+extern "C" {
+extern player_globals *local_player_globals;
+extern data_array *player_data;
+extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
+extern HUDGlobals *hud_globals_tag_data;
+extern hud_waypoint_state *hud_waypoints;
+extern Scenario *global_scenario;
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
+extern void object_get_center_of_mass_and_scale(real_point3d *out_center, uint32_t object_index, float *out_radius);
+extern void custom_waypoint_get_position(real_point3d *out, int16_t slot);
+extern void hud_waypoint_draw(const real_point3d *position, int16_t local_player_index, int16_t arrow_index, int16_t visibility, uint8_t show_distance);
+extern void game_engine_update_custom_waypoint_navpoints(int16_t local_player_slot);
+extern void hud_waypoints_update_for_player(int16_t local_player_index);
+extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
+extern int16_t hud_waypoint_visibility(int16_t local_player_index, const real_point3d *eye, const real_point3d *target, datum_index ignore_object);
+extern tag_instance *tag_instances;
+extern data_array *object_data;
+extern game_time_globals *game_time;
+extern hud_weapon_interface_state *hud_weapon_state;
+extern int16_t render_viewport_top;
+extern int16_t render_viewport_left;
+extern int16_t render_viewport_bottom;
+extern int16_t render_viewport_right;
+extern long lrint(double x);
+extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
+extern uint32_t hud_meter_flash_color_blend(const hud_flash_parameters *flash, int32_t start_time);
+extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs, void *meter_parameters, BitmapData *bitmap, uint16_t *anchor, float scale, float rotation, uint32_t color, uint8_t split_screen);
+extern player_control_globals *player_control_globals_ptr;
+extern float sqrtf(float x);
+extern double pow(double base, double exponent);
+extern double fmod(double x, double y);
+extern int32_t __ftol(double x);
+extern int32_t ui_real_to_int_truncate(float value);
+extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
+extern void object_get_position(real_point3d *out_position, datum_index object_index);
+extern void hud_meter_draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t flags, float fraction, float fraction_2, const hud_meter_placement *meter);
+extern void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_placement *placement, int16_t value, int16_t fraction, uint32_t flags, int32_t flash_start_time, float scale);
+extern void hud_draw_static_element(int16_t local_player_index, uint16_t *anchor, const hud_static_element_placement *element, uint32_t draw_flags, int32_t flash_start_time);
+extern void hud_draw_overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t type_mask, int32_t flash_start_time, uint32_t draw_flags, uint8_t split_screen);
+extern int32_t local_player_get_zoom_level(int16_t local_player_index);
+extern void weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out);
+extern int16_t unit_count_deployed_weapons(datum_index unit_index);
+extern void hud_weapon_interface_meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index, int32_t weapon_or_vehicle_index, void *state_ptr);
+extern int16_t current_local_player_index;
+extern hud_globals_flags *hud_flags;
+extern int16_t camera_get_type_for_player(int16_t player_index);
+extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
+extern uint8_t blip_type_get(int16_t local_player_index, datum_index object_index);
+extern game_engine_definition *current_game_engine;
+extern uint8_t motion_sensor_override_value;
+extern uint8_t motion_sensor_force_moving;
+extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
+extern float motion_sensor_blip_subtype_size[3];
+extern ColorRGB motion_sensor_blip_colors[6];
+extern float sinf(float x);
+extern float cosf(float x);
+extern double sin(double x);
+extern void rasterizer_motion_sensor_blip_draw(const float *point, const ColorRGB *color, float alpha, float size);
+extern motion_sensor_globals *motion_sensor;
+extern game_variant game_engine_variant;
+extern int16_t motion_sensor_render_local_player;
+extern float motion_sensor_render_icon_scale;
+extern float motion_sensor_render_center[2];
+extern float motion_sensor_sweep;
+extern void rasterizer_motion_sensor_begin(void);
+extern void rasterizer_motion_sensor_end(const float *center, float sweep);
+extern void motion_sensor_plot_blip(const float *position, uint8_t type, const motion_sensor_frame *frame, int8_t subtype, float pixels_per_unit, float alpha, float size_factor);
+extern uint8_t motion_sensor_object_is_detected(datum_index unit_index);
+extern int16_t game_engine_collect_matching_waypoints(int32_t candidate, float *out_positions, uint8_t *out_slots, int32_t max_count);
+extern int32_t local_player_index_for_unit(datum_index unit_index);
+extern void first_person_weapon_process_action(int32_t local_player_index, int32_t action_code);
+extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
+extern int32_t local_player_index_for_weapon(datum_index weapon_index);
+extern void hud_weapon_interface_draw_elements(datum_index hud_tag, int16_t local_player_index, const Weapon *weapon_tag, const weapon_hud_ammo_state *ammo, const uint16_t *parent_state_flags, const uint16_t *parent_overlay_types, const int16_t *parent_numbers);
+}
+
+namespace halo::interface {
+
+/**
+ * trunc(value * 100) clamped to 0..100 (evaluated up to three times by the binary)
+ */
+int32_t WeaponHud::hud_percent(float value)
+{
+    int32_t percent = ui_real_to_int_truncate(value * 100.0f);
+    if (percent < 0) {
+        return 0;
+    }
+    if (percent > 100) {
+        return 100;
+    }
+    return percent;
+}
+
+/**
+ * bits 0..2 as computed, bit 3 when none of them is set, bit 4 always
+ */
+uint16_t WeaponHud::hud_overlay_type_bits(uint16_t bits)
+{
+    if (bits == 0) {
+        bits = 8;
+    } else {
+        bits &= 0xfff7;
+    }
+    return (uint16_t)(bits | 0x10);
+}
+
+object * WeaponHud::object_get(datum_index object_index)
+{
+    return *(object **)((char *)object_data->data + 8 + (object_index & 0xffff) * 0xc);
+}
+
+/**
+ * blam-cc: local_player_index -> AX, eye -> ECX, target -> EDX
+ *
+ * @address 0x4af540
+ */
+int16_t HudWaypoints::visibility(const real_point3d *eye, const real_point3d *target, datum_index ignore_object)
+{
+    collision_result result;
+    real_vector3d delta;
+    datum_index unit_index = (datum_index)-1;
+
+    if (local_player_index != -1 && local_player_index < 1 &&
+        local_player_globals->local_players[local_player_index] != (datum_index)-1) {
+        unit_index = ((player *)((uint8_t *)player_data->data +
+                                 (local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
+    }
+    delta.i = target->x - eye->x;
+    delta.j = target->y - eye->y;
+    delta.k = target->z - eye->z;
+    if (collision_test_movement_segment(0xc2ad, (real_point3d *)eye, &delta, unit_index, &result) != 0) {
+        if (result.type != 3 || result.object_index != ignore_object) {
+            return 2;
+        }
+    }
+    return 0;
+}
+
+/**
+ * @address 0x4afb90
+ */
+void HudWaypoints::draw_for_player()
+{
+    hud_waypoint *waypoints;
+    datum_index player_index;
+    int16_t i;
+
+    if (local_player_index == -1 || local_player_index >= 1) {
+        game_engine_update_custom_waypoint_navpoints(local_player_index);
+        return;
+    }
+    player_index = local_player_globals->local_players[local_player_index];
+    if (player_index == (datum_index)-1 ||
+        ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200))->unit == (datum_index)-1 ||
+        *(datum_index *)&hud_globals_tag_data->arrow_bitmap.tag_id == (datum_index)-1) {
+        game_engine_update_custom_waypoint_navpoints(local_player_index);
+        return;
+    }
+
+    waypoints = hud_waypoints[local_player_index].waypoints;
+    for (i = 0; i < 4; i++) {
+        hud_waypoint *waypoint = &waypoints[i];
+        uint16_t type_word;
+        real_point3d position;
+        float radius;
+
+        if (waypoint->arrow_index == -1 || waypoint->object_index == (datum_index)-1 ||
+            (((uint32_t)(uint16_t)waypoint->type << 12) & 0xf000) == 0xf000) {
+            *(uint8_t *)&waypoint->type |= 0xf;
+            continue;
+        }
+        type_word = (uint16_t)waypoint->type;
+        switch ((int16_t)(type_word << 12) >> 12) {
+        case 0:
+            position = *(real_point3d *)&((ScenarioCutsceneFlag *)global_scenario->cutscene_flags.pointer +
+                                          waypoint->object_index)->position;
+            break;
+        case 1:
+            if (object_try_and_get(waypoint->object_index, 0xffffffff) == 0) {
+                continue;
+            }
+            object_get_center_of_mass_and_scale(&position, waypoint->object_index, &radius);
+            break;
+        default:
+            custom_waypoint_get_position(&position, (int16_t)waypoint->object_index);
+            break;
+        }
+        position.z = position.z + waypoint->vertical_offset;
+        hud_waypoint_draw(&position, local_player_index, waypoint->arrow_index,
+                          (int16_t)((int16_t)(type_word << 8) >> 12), 1);
+    }
+    game_engine_update_custom_waypoint_navpoints(local_player_index);
+}
+
+/**
+ * @address 0x4af320
+ */
+void HudWaypoints::update()
+{
+    int16_t local_player_index = local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1;
+
+    while (local_player_index != -1) {
+        hud_waypoints_update_for_player(local_player_index);
+        local_player_index = (local_player_globals->local_players[0] != (datum_index)-1 && local_player_index < 0)
+                                 ? 0 : -1;
+    }
+}
+
+/**
+ * @address 0x4af370
+ */
+void HudWaypoints::update_for_player()
+{
+    static char head_marker[] = "head";
+    hud_waypoint *waypoint;
+    datum_index unit_index;
+    datum_index ignore_object;
+    object_marker marker;
+    real_point3d eye;
+    real_point3d target;
+    float radius;
+    int32_t i;
+
+    waypoint = hud_waypoints[local_player_index].waypoints;
+    unit_index = (datum_index)-1;
+    if (local_player_index != -1 && local_player_index < 1 &&
+        local_player_globals->local_players[local_player_index] != (datum_index)-1) {
+        unit_index = ((player *)((uint8_t *)player_data->data +
+                                 (local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
+    }
+
+    ignore_object = (datum_index)-1;
+    for (i = 4; i != 0; i--, waypoint++) {
+        uint16_t type_word;
+        int16_t visibility;
+
+        if (waypoint->arrow_index == -1 || waypoint->object_index == (datum_index)-1 ||
+            (*(uint8_t *)&waypoint->type & 0xf) == 0xf) {
+            *(uint8_t *)&waypoint->type |= 0xf;
+            ignore_object = (datum_index)-1;
+            continue;
+        }
+        if (unit_index == (datum_index)-1) {
+            ignore_object = (datum_index)-1;
+            continue;
+        }
+        object_get_node_local_transform(unit_index, head_marker, &marker, 1);
+        eye = marker.node_transform.position;
+
+        type_word = (uint16_t)waypoint->type;
+        switch ((int16_t)(type_word << 12) >> 12) {
+        case 0:
+            target = *(real_point3d *)&((ScenarioCutsceneFlag *)global_scenario->cutscene_flags.pointer +
+                                        waypoint->object_index)->position;
+            break;
+        case 1: {
+            object *target_object;
+
+            ignore_object = waypoint->object_index;
+            target_object = object_try_and_get(ignore_object, 0xffffffff);
+            if (target_object == 0 || (*((uint8_t *)target_object + 0x106) & 4) != 0) {
+                waypoint->type = (int16_t)(type_word | 0xf);
+                waypoint->object_index = (datum_index)-1;
+                waypoint->arrow_index = -1;
+                ignore_object = (datum_index)-1;
+                continue;
+            }
+            object_get_center_of_mass_and_scale(&target, ignore_object, &radius);
+            break;
+        }
+        case 2:
+            target = custom_waypoints[(int16_t)waypoint->object_index].position;
+            break;
+        }
+        target.z = target.z + waypoint->vertical_offset;
+        visibility = hud_waypoint_visibility(local_player_index, &eye, &target, ignore_object);
+        waypoint->type = (int16_t)(waypoint->type ^ (((visibility << 4) ^ *(uint8_t *)&waypoint->type) & 0xf0));
+        ignore_object = (datum_index)-1;
+    }
+}
+
+/**
+ * blam-cc: EAX -> hud_tag, ECX -> p, stack -> ammo
+ *
+ * @address 0x4b2cf0
+ */
+void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weapon_hud_ammo_state *ammo)
+{
+    int32_t *crosshair_state;
+    uint32_t view_mask;
+    uint32_t active_mask;
+    uint8_t *unit;
+    WeaponHUDInterface *chain[16];
+    int16_t chain_count;
+    int16_t chain_index;
+    uint8_t triggered = 0;
+    uint32_t color = 0;
+
+    if ((hud_weapon_state->flags & 1) == 0 || hud_tag == (datum_index)-1) {
+        return;
+    }
+    crosshair_state = (int32_t *)((uint8_t *)hud_weapon_state + p->local_player_index * 0x50 + 0x28);
+    view_mask = (*(int16_t *)((uint8_t *)global_scenario + 0x3c) != 2 ? 1 : 0) |
+                (local_player_globals->local_player_count == 1 ? 2 : 0) | (local_player_globals->local_player_count > 1 ? 4 : 0);
+    if (p->unit == (datum_index)-1) {
+        return;
+    }
+    unit = (uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data;
+
+    memset(chain, 0, sizeof(chain));
+    chain[0] = (WeaponHUDInterface *)tag_instances[hud_tag & 0xffff].data;
+    active_mask = (uint32_t)crosshair_state[0x13];
+    chain_count = 1;
+    do {
+        datum_index child = *(datum_index *)&chain[chain_count - 1]->child_hud.tag_id;
+        if (child == (datum_index)-1) {
+            break;
+        }
+        chain[chain_count] = (WeaponHUDInterface *)tag_instances[child & 0xffff].data;
+        chain_count++;
+    } while (chain_count < 0x10);
+
+    for (chain_index = 0; chain_index < chain_count; chain_index++) {
+        WeaponHUDInterface *hud = chain[chain_index];
+        uint16_t anchor[0x12];
+        uint8_t split_screen = local_player_globals->local_player_count > 1;
+        int16_t crosshair_index;
+
+        memset(anchor, 0, sizeof(anchor));
+        anchor[0] = 4;
+        for (crosshair_index = 0; (int32_t)crosshair_index < (int32_t)hud->crosshairs.count; crosshair_index++) {
+            WeaponHUDInterfaceCrosshair *crosshair = (WeaponHUDInterfaceCrosshair *)hud->crosshairs.pointer + crosshair_index;
+            int16_t type = crosshair->crosshair_type;
+            int32_t *state;
+            int16_t overlay_index;
+
+            if ((active_mask & (1u << type)) == 0 ||
+                ((int32_t)(int16_t)view_mask & (1 << *(uint8_t *)&crosshair->allowed_view_type)) == 0) {
+                continue;
+            }
+            state = &crosshair_state[type];
+            for (overlay_index = 0; (int32_t)overlay_index < (int32_t)crosshair->crosshair_overlays.count; overlay_index++) {
+                WeaponHUDInterfaceCrosshairOverlay *overlay =
+                    (WeaponHUDInterfaceCrosshairOverlay *)crosshair->crosshair_overlays.pointer + overlay_index;
+                uint32_t flags = *(uint32_t *)&overlay->flags;
+                Bitmap *bitmap_tag;
+                BitmapGroupSequence *sequence;
+                BitmapData *bitmap;
+                float scale;
+                int16_t frame;
+                const float *uv;
+                float stretched_uv[4];
+                uint8_t pixel_uvs;
+
+                if ((int8_t)flags < 0) {
+                    continue;
+                }
+                if ((flags & 4) != 0 && crosshair_state[1] <= 0) {
+                    continue;
+                }
+                if ((flags & 0x40) != 0 && crosshair_state[1] != 0) {
+                    continue;
+                }
+                scale = 1.0f;
+                if (local_player_globals->local_player_count > 1 && (*(uint8_t *)&overlay->scaling_flags & 2) == 0) {
+                    scale = 0.5f;
+                }
+                sequence = 0;
+                if ((flags & 2) == 0) {
+                    Bitmap *tag = (Bitmap *)tag_instances[*(datum_index *)&crosshair->crosshair_bitmap.tag_id & 0xffff].data;
+                    sequence = (BitmapGroupSequence *)tag->bitmap_group_sequence.pointer + (int16_t)overlay->sequence_index;
+                }
+
+                frame = 0;
+                switch ((uint32_t)(int32_t)type > 0x12 ? -1 : type) {
+                case 0:
+                    if ((flags & 1) != 0) {
+                        frame = 0;
+                        color = *state > 0 ? hud_meter_flash_color_blend((const hud_flash_parameters *)&overlay->default_color, 0)
+                                           : *(uint32_t *)&overlay->default_color;
+                    } else {
+                        frame = (int16_t)*state;
+                        color = *(uint32_t *)&overlay->default_color;
+                    }
+                    break;
+                case 1:
+                    if ((flags & 0x20) != 0) {
+                        if (*state == 0) {
+                            continue;
+                        }
+                        frame = 0;
+                    } else {
+                        frame = (int16_t)((int16_t)*state - ((flags >> 2) & 1));
+                    }
+                    if ((flags & 1) != 0 && crosshair_state[0] > 0) {
+                        color = hud_meter_flash_color_blend((const hud_flash_parameters *)&overlay->default_color, 0);
+                    } else {
+                        color = *(uint32_t *)&overlay->default_color;
+                    }
+                    break;
+                case 8: case 9: case 14: case 18:
+                    if (type == 18) {
+                        triggered = ammo->age == 0.0f && (((unit_object *)unit)->unit.control_flags & 0x800) != 0;
+                    } else if (type == 8) {
+                        triggered = ammo->magazines[0].rounds_loaded == 0 && ammo->magazines[0].rounds_unloaded == 0 &&
+                                    (((unit_object *)unit)->unit.control_flags & 0x800) != 0;
+                    } else if (type == 9) {
+                        triggered = unit[0x31e] == 0 && unit[0x31f] == 0 && unit[0x28d] == 0 &&
+                                    (((unit_object *)unit)->unit.control_flags & 0x2000) != 0;
+                    }
+                    if (!triggered) {
+                        int32_t duration = (int32_t)lrint((double)(overlay->flash_period * 30.0f));
+                        if (game_time->game_time - *state >= duration) {
+                            *state = -1;
+                            continue;
+                        }
+                    }
+                    if (*state == -1) {
+                        *state = -1;
+                        continue;
+                    }
+
+                default:
+                    if ((uint32_t)(int32_t)type > 0x12) {
+                        break;
+                    }
+                    if (overlay->frame_rate > 0) {
+                        frame = (int16_t)((((game_time->game_time - *state) / overlay->frame_rate) / 30) %
+                                          (int32_t)sequence->sprites.count);
+                    } else {
+                        frame = 0;
+                    }
+                    if ((*(uint8_t *)&overlay->flags & 1) != 0 && *state != -1) {
+                        color = hud_meter_flash_color_blend((const hud_flash_parameters *)&overlay->default_color, *state);
+                    } else {
+                        color = *(uint32_t *)&overlay->default_color;
+                    }
+                    break;
+                }
+
+                bitmap_tag = (Bitmap *)tag_instances[*(datum_index *)&crosshair->crosshair_bitmap.tag_id & 0xffff].data;
+                {
+                    int32_t bitmap_index = sequence != 0
+                        ? (int16_t)((BitmapGroupSprite *)sequence->sprites.pointer)[frame].bitmap_index
+                        : (int16_t)overlay->sequence_index;
+                    bitmap = (BitmapData *)bitmap_tag->bitmap_data.pointer + bitmap_index;
+                }
+                if (texture_cache_get(bitmap, 0, 1) == 0) {
+                    continue;
+                }
+                pixel_uvs = bitmap_tag->type == 4;
+                if ((flags & 0x10) != 0) {
+                    float u_factor = 1.0f;
+                    float v_factor = 1.0f;
+                    float dx;
+                    float dy;
+
+                    if (sequence != 0) {
+                        BitmapGroupSprite *sprite = (BitmapGroupSprite *)sequence->sprites.pointer + frame;
+                        stretched_uv[0] = sprite->left;
+                        stretched_uv[1] = sprite->right;
+                        stretched_uv[2] = sprite->top;
+                        stretched_uv[3] = sprite->bottom;
+                    } else {
+                        stretched_uv[0] = 0.0f;
+                        stretched_uv[1] = (float)(pixel_uvs ? (int32_t)(int16_t)bitmap->width : 1);
+                        stretched_uv[2] = 0.0f;
+                        stretched_uv[3] = (float)(pixel_uvs ? (int32_t)(int16_t)bitmap->height : 1);
+                        u_factor = pixel_uvs ? 1.0f : (float)((double)(1.0f / (float)(int16_t)bitmap->width) * 1.25);
+                        v_factor = pixel_uvs ? 1.0f : (float)((double)(1.0f / (float)(int16_t)bitmap->height) * 1.25);
+                    }
+                    dx = ((float)(int16_t)bitmap->width - (float)(render_viewport_right - render_viewport_left) * (1.0f / scale)) *
+                         u_factor * -0.5f;
+                    dy = ((float)(int16_t)bitmap->height - (float)(render_viewport_bottom - render_viewport_top) * (1.0f / scale)) *
+                         v_factor * -0.5f;
+                    stretched_uv[0] = stretched_uv[0] - dx;
+                    stretched_uv[1] = dx + stretched_uv[1];
+                    stretched_uv[2] = stretched_uv[2] - dy;
+                    stretched_uv[3] = dy + stretched_uv[3];
+                    uv = stretched_uv;
+                } else {
+                    uv = sequence != 0 ? &((BitmapGroupSprite *)sequence->sprites.pointer)[frame].left : (const float *)0;
+                }
+                hud_draw_bitmap_element(uv, (const hud_element_placement *)overlay, pixel_uvs, 0, bitmap, anchor, scale, 0.0f,
+                                        color, split_screen);
+            }
+        }
+    }
+}
+
+/**
+ * @address 0x4b1ff0
+ */
+void WeaponHud::draw_elements(datum_index hud_tag, int16_t local_player_index, const Weapon *weapon_tag, const weapon_hud_ammo_state *ammo, const uint16_t *parent_state_flags, const uint16_t *parent_overlay_types, const int16_t *parent_numbers)
+{
+    WeaponHUDInterface *hud = (WeaponHUDInterface *)tag_instances[hud_tag & 0xffff].data;
+    int32_t *flash_start_times = (int32_t *)((uint8_t *)hud_weapon_state + local_player_index * 0x28);
+    uint16_t state_flags[8];
+    uint16_t overlay_types[8];
+    int16_t numbers[8];
+    float values[8];
+    uint16_t split = local_player_globals->local_player_count > 1 ? 4 : 0;
+    uint32_t view_mask;
+    int16_t i;
+
+    memset(state_flags, 0, sizeof(state_flags));
+    memset(overlay_types, 0, sizeof(overlay_types));
+    memset(numbers, 0, sizeof(numbers));
+    memset(values, 0, sizeof(values));
+
+    if ((*(uint8_t *)&hud->flags & 1) != 0 && parent_state_flags != 0 && parent_overlay_types != 0 &&
+        parent_numbers != 0) {
+        memcpy(state_flags, parent_state_flags, sizeof(state_flags));
+        memcpy(overlay_types, parent_overlay_types, sizeof(overlay_types));
+        memcpy(numbers, parent_numbers, sizeof(numbers));
+    } else {
+        const weapon_hud_magazine_state *primary = &ammo->magazines[0];
+        const weapon_hud_magazine_state *secondary = &ammo->magazines[1];
+        int16_t loaded;
+        int16_t total;
+
+        state_flags[0] = (uint16_t)((primary->rounds_unloaded <= hud->total_ammo_cutoff ? 1 : 0) |
+                                    (primary->rounds_unloaded == 0 ? 2 : 0) | split);
+        state_flags[1] = (uint16_t)((primary->rounds_loaded <= hud->loaded_ammo_cutoff && primary->reloading == 0 ? 1 : 0) |
+                                    split);
+        state_flags[2] = (uint16_t)(((float)hud->heat_cutoff <= ammo->heat * 100.0f ? 1 : 0) | split);
+        state_flags[3] = (uint16_t)((!((float)hud->age_cutoff < (1.0f - ammo->age) * 100.0f) ? 1 : 0) |
+                                    (100 - hud_percent(ammo->age) == 0 ? 2 : 0) | split);
+        state_flags[4] = (uint16_t)((secondary->rounds_unloaded <= hud->total_ammo_cutoff ? 1 : 0) |
+                                    (secondary->rounds_unloaded == 0 ? 2 : 0) | split);
+        state_flags[5] = (uint16_t)((secondary->rounds_loaded <= hud->loaded_ammo_cutoff && secondary->reloading == 0 ? 1 : 0) |
+                                    split);
+        for (i = 0; i < 8; i++) {
+            if ((state_flags[i] & 1) != 0) {
+                if (flash_start_times[i] == -1) {
+                    flash_start_times[i] = game_time->game_time;
+                }
+            } else {
+                flash_start_times[i] = -1;
+            }
+        }
+
+        total = primary->rounds_unloaded;
+        overlay_types[0] = hud_overlay_type_bits((uint16_t)(
+            (total <= hud->total_ammo_cutoff && primary->reloading == 0 ? 1 : 0) | (primary->reloading != 0 ? 4 : 0) |
+            (total == 0 ? 2 : 0)));
+        loaded = primary->rounds_loaded;
+        overlay_types[1] = hud_overlay_type_bits((uint16_t)(
+            (loaded <= hud->loaded_ammo_cutoff ? 1 : 0) | (primary->reloading != 0 ? 4 : 0) | (loaded == 0 ? 2 : 0)));
+        overlay_types[2] = hud_overlay_type_bits((uint16_t)(
+            ((float)hud->heat_cutoff <= ammo->heat * 100.0f ? 1 : 0) | (ammo->overheated != 0 ? 4 : 0) |
+            (100 - hud_percent(ammo->age) == 0 ? 2 : 0)));
+        overlay_types[3] = hud_overlay_type_bits((uint16_t)(
+            (!((float)hud->age_cutoff < (1.0f - ammo->age) * 100.0f) ? 1 : 0) | (ammo->overheated != 0 ? 4 : 0) |
+            (100 - hud_percent(ammo->age) == 0 ? 2 : 0)));
+
+        overlay_types[0] = hud_overlay_type_bits((uint16_t)(
+            (secondary->rounds_unloaded <= hud->total_ammo_cutoff && secondary->reloading == 0 ? 1 : 0) |
+            (secondary->reloading != 0 ? 4 : 0) | (secondary->rounds_unloaded == 0 ? 2 : 0)));
+        overlay_types[1] = hud_overlay_type_bits((uint16_t)(
+            (secondary->rounds_loaded <= hud->loaded_ammo_cutoff ? 1 : 0) | (secondary->reloading != 0 ? 4 : 0) |
+            (secondary->rounds_loaded == 0 ? 2 : 0)));
+
+        numbers[0] = primary->rounds_unloaded;
+        numbers[1] = primary->rounds_loaded;
+        numbers[2] = (int16_t)__ftol((double)(ammo->heat * 255.0f));
+        numbers[3] = (int16_t)__ftol((double)((1.0f - ammo->age) * 100.0f));
+        numbers[4] = secondary->rounds_unloaded;
+        numbers[5] = secondary->rounds_loaded;
+
+        {
+            local_player_control *control = &player_control_globals_ptr->local_players[local_player_index];
+            datum_index target = control->nameplate_target;
+            datum_index valid_target = (datum_index)-1;
+
+            if (target != (datum_index)-1 && (int16_t)target >= 0 && (int16_t)target < object_data->maximum_count) {
+                uint8_t *header = (uint8_t *)object_data->data + (int16_t)target * object_data->size;
+                int16_t salt = (int16_t)((uint32_t)target >> 16);
+
+                if (*(int16_t *)header != 0 && (salt == 0 || *(int16_t *)header == salt) &&
+                    (1u << (header[3] & 0x1f)) != 0 && *(void **)(header + 8) != 0) {
+                    valid_target = target;
+                }
+            }
+            if (control->nameplate_weight == 1.0f && valid_target != (datum_index)-1) {
+                datum_index unit_index = (datum_index)-1;
+                real_point3d camera;
+                real_point3d position;
+
+                if (local_player_index != -1 && local_player_index < 1 &&
+                    local_player_globals->local_players[local_player_index] != (datum_index)-1) {
+                    unit_index = ((player *)((uint8_t *)player_data->data +
+                                             (local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
+                }
+                unit_get_camera_position(unit_index, &camera);
+                object_get_position(&position, valid_target);
+                {
+                    float dx = camera.x - position.x;
+                    float dy = camera.y - position.y;
+                    float dz = camera.z - position.z;
+                    values[6] = sqrtf(dz * dz + dy * dy + dx * dx) * 3.048f;
+                }
+                values[7] = (position.z - camera.z) * 3.048f;
+            } else {
+                *(uint32_t *)&values[6] = 0xffc00000;
+                *(uint32_t *)&values[7] = 0xffc00000;
+            }
+        }
+    }
+
+    if (*(datum_index *)&hud->child_hud.tag_id != (datum_index)-1) {
+        hud_weapon_interface_draw_elements(*(datum_index *)&hud->child_hud.tag_id, local_player_index, weapon_tag, ammo,
+                                           state_flags, overlay_types, numbers);
+    }
+
+    view_mask = (*(int16_t *)((uint8_t *)global_scenario + 0x3c) != 2 ? 1 : 0) |
+                (local_player_globals->local_player_count == 1 ? 2 : 0) | (local_player_globals->local_player_count > 1 ? 4 : 0);
+
+    for (i = 0; (int32_t)i < (int32_t)hud->static_elements.count; i++) {
+        WeaponHUDInterfaceStaticElement *element = (WeaponHUDInterfaceStaticElement *)hud->static_elements.pointer + i;
+        int16_t state = element->state_attached_to;
+
+        if (*(int32_t *)&element->flash_period == 0x3f80) {
+            element->flash_period = 1.0f;
+        }
+        if (*(int32_t *)&element->flash_length == 0x3f80) {
+            element->flash_length = 1.0f;
+        }
+        if ((((uint8_t *)element)[2] & 1) != 0 || (view_mask & (1u << *(uint8_t *)&element->allowed_view_type)) == 0) {
+            continue;
+        }
+        hud_draw_static_element(local_player_index, (uint16_t *)&hud->anchor,
+                                (const hud_static_element_placement *)&element->anchor_offset, state_flags[state],
+                                flash_start_times[state]);
+    }
+
+    for (i = 0; (int32_t)i < (int32_t)hud->meter_elements.count; i++) {
+        WeaponHUDInterfaceMeter *element = (WeaponHUDInterfaceMeter *)hud->meter_elements.pointer + i;
+        int16_t state = element->state_attached_to;
+        uint8_t value;
+
+        if ((((uint8_t *)element)[2] & 1) != 0 || (view_mask & (1u << *(uint8_t *)&element->allowed_view_type)) == 0) {
+            continue;
+        }
+        value = (uint8_t)numbers[state];
+        hud_meter_draw_fill(&hud->anchor, value, value, (uint32_t)(int16_t)state_flags[state],
+                            (float)flash_start_times[state], 0.0f,
+                            (const hud_meter_placement *)&element->anchor_offset);
+    }
+
+    for (i = 0; (int32_t)i < (int32_t)hud->number_elements.count; i++) {
+        WeaponHUDInterfaceNumber *element = (WeaponHUDInterfaceNumber *)hud->number_elements.pointer + i;
+        int16_t state = element->state_attached_to;
+        int16_t divisor;
+        int16_t value;
+        int16_t fraction;
+
+        if ((((uint8_t *)element)[2] & 1) != 0 || (view_mask & (1u << *(uint8_t *)&element->allowed_view_type)) == 0) {
+            continue;
+        }
+        divisor = 1;
+        if ((*(uint8_t *)&element->weapon_specific_flags & 1) != 0) {
+            divisor = ((WeaponMagazine *)weapon_tag->magazines.pointer)->rounds_loaded_maximum;
+        }
+        if (element->number_of_fractional_digits != 0) {
+            float power;
+            float scaled;
+
+            if (*(uint32_t *)&values[state] == 0xffc00000) {
+                continue;
+            }
+            power = (float)pow(10.0, 4.0);
+            scaled = power * values[state];
+            fraction = (int16_t)lrint(fmod((double)(scaled < 0.0f ? -scaled : scaled), (double)power));
+            value = (int16_t)ui_real_to_int_truncate(values[state] / (float)divisor);
+        } else {
+            fraction = -1;
+            value = (int16_t)(numbers[state] / divisor);
+        }
+        hud_draw_number((void *)(int32_t)local_player_index, (uint16_t *)&hud->anchor,
+                        (const hud_number_placement *)&element->anchor_offset, value, fraction, state_flags[state],
+                        flash_start_times[state], 0.0f);
+    }
+
+    for (i = 0; (int32_t)i < (int32_t)hud->overlay_elements.count; i++) {
+        WeaponHUDInterfaceOverlayElement *element = (WeaponHUDInterfaceOverlayElement *)hud->overlay_elements.pointer + i;
+        int16_t state = element->state_attached_to;
+
+        if ((((uint8_t *)element)[2] & 1) != 0 || (view_mask & (1u << *(uint8_t *)&element->allowed_view_type)) == 0) {
+            continue;
+        }
+        hud_draw_overlays((uint16_t *)&hud->anchor, (const hud_overlay_list *)&element->overlay_bitmap,
+                          (uint32_t)(int16_t)overlay_types[state], flash_start_times[state], state_flags[state],
+                          local_player_globals->local_player_count > 1);
+    }
+}
+
+/**
+ * blam-cc: EAX -> hud_interface_tag_id, stack -> local_player_index, weapon_or_vehicle_index, state_ptr
+ *
+ * @address 0x4b1970
+ */
+void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index, int32_t weapon_or_vehicle_index, void *state_ptr)
+{
+    uint8_t *player_record;
+    uint8_t *tag_data;
+    uint8_t *chain[17];
+    uint32_t present_mask;
+    int16_t gather_index;
+    int32_t *out_array;
+    uint8_t *state = (uint8_t *)state_ptr;
+    datum_index player_index;
+    unit_data *unit;
+
+    if (local_player_index == -1 || local_player_index > 0) {
+        player_index = (datum_index)-1;
+    } else {
+        player_index = local_player_globals->local_players[local_player_index];
+    }
+    player_record = (uint8_t *)player_data->data + ((uint32_t)player_index & 0xffff) * 0x200;
+    chain[0] = player_record;
+
+    if (object_try_and_get(*(datum_index *)(player_record + 0x34), 3) == 0) {
+        return;
+    }
+    {
+        datum_index unit_idx = *(datum_index *)(player_record + 0x34);
+        object *unit_object = ((object_header *)object_data->data)[unit_idx & 0xffff].data;
+        unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
+    }
+
+    out_array = (int32_t *)((uint8_t *)hud_weapon_state + *(int16_t *)(player_record + 2) * 0x50 + 0x28);
+    tag_data = (uint8_t *)tag_instances[hud_interface_tag_id & 0xffff].data;
+    chain[1] = tag_data;
+    {
+        int i;
+        for (i = 2; i < 17; i++) chain[i] = 0;
+    }
+    present_mask = *(uint32_t *)(tag_data + 0x9c);
+
+    if (weapon_or_vehicle_index != *(int32_t *)((uint8_t *)hud_weapon_state + local_player_index * 0x28 + 0x20)
+        && weapon_or_vehicle_index == -1) {
+        int i;
+        for (i = 0; i < 0x14; i++) out_array[i] = 0;
+    }
+
+    gather_index = 1;
+    do {
+        int32_t next = *(int32_t *)(chain[gather_index] + 0xc);
+        uint8_t *resolved;
+        if (next == -1) break;
+        resolved = (uint8_t *)tag_instances[next & 0xffff].data;
+        present_mask |= *(uint32_t *)(resolved + 0x9c);
+        gather_index++;
+        chain[gather_index] = resolved;
+    } while (gather_index < 0x10);
+
+    {
+        int16_t case_index;
+        uint32_t bit;
+        int32_t result_accum = 0;
+        uint8_t *edx = tag_data;
+        extern int32_t *game_time;
+
+        for (case_index = 0; case_index < 0x13; case_index++) {
+            int32_t value;
+            uint8_t active;
+
+            bit = 1u << case_index;
+            if ((bit & present_mask) == 0) {
+                continue;
+            }
+
+            switch (case_index) {
+            case 0:
+                active = weapon_or_vehicle_index != -1 &&
+                         player_control_globals_ptr->local_players[*(int16_t *)(player_record + 2)].nameplate_weight == 1.0f;
+                value = active;
+                break;
+            case 16: value = state[0xd];  goto shared_byte_test;
+            case 7:  value = state[0xc];  goto shared_byte_test;
+            case 17: value = state[0x17]; goto shared_byte_test;
+            shared_byte_test:
+
+                active = (value != 0 || case_index == 0) ? 1 : 0;
+                break;
+
+            case 1: {
+                int16_t lp = *(int16_t *)(player_record + 2);
+                int32_t r1 = local_player_get_zoom_level(lp);
+                if ((int16_t)r1 == -1) {
+                    edx = tag_data;
+                    active = 1; value = 1;
+                } else {
+                    int32_t r2 = local_player_get_zoom_level(lp);
+                    edx = tag_data;
+                    value = (int16_t)(r2 + 2);
+                    active = (int16_t)value > 0;
+                }
+                break;
+            }
+
+            case 2:
+                active = 0;
+                value = 0;
+                break;
+
+            case 3:
+                if (*(int16_t *)(state + 0x12) == 0) {
+                    active = 0; value = 0;
+                } else if ((int16_t)*(int16_t *)(state + 0xe) > *(int16_t *)(edx + 0x16)) {
+                    active = 0; value = 0;
+                } else {
+                    active = 1; value = 1;
+                }
+                break;
+
+            case 4: {
+                float lhs = *(float *)state * 100.0f;
+                int32_t rhs = *(int16_t *)(edx + 0x18);
+                if (!(lhs >= (float)rhs)) { active = 0; value = 0; }
+                else { active = 1; value = 1; }
+                break;
+            }
+
+            case 5:
+                if ((int16_t)*(int16_t *)(state + 0x12) > *(int16_t *)(edx + 0x14)) { active = 0; value = 0; }
+                else if (*(uint8_t *)(state + 0xc) != 0) { active = 0; value = 0; }
+                else { active = 1; value = 1; }
+                break;
+
+            case 6: {
+                float s4 = *(float *)(state + 4);
+                if (!(s4 < 1.0f)) { active = 0; value = 0; }
+                else {
+                    float lhs = (1.0f - s4) * 100.0f;
+                    int32_t rhs = *(int16_t *)(edx + 0x1a);
+
+                    if ((float)rhs < lhs) { active = 0; value = 0; }
+                    else { active = 1; value = 1; }
+                }
+                break;
+            }
+
+            case 8:
+                if (*(int16_t *)(state + 0xe) == 0 && *(int16_t *)(state + 0x12) == 0 &&
+                    (unit->control_flags & _unit_control_flag_primary_trigger) != 0) {
+                    active = 1; value = 1;
+                } else if (out_array[case_index] != -1) {
+                    active = 1; value = 1;
+                } else {
+                    active = 0; value = 0;
+                }
+                break;
+
+            case 9: {
+
+                uint8_t no_grenades = (unit->grenade_counts[0] == 0) && (unit->grenade_counts[1] == 0);
+                if (no_grenades && unit->throwing_grenade_state == 0 &&
+                    (unit->control_flags & _unit_control_flag_grenade) != 0) {
+                    active = 1; value = 1;
+                } else if (out_array[case_index] != -1) {
+                    active = 1; value = 1;
+                } else {
+                    active = 0; value = 0;
+                }
+                break;
+            }
+
+            case 10:
+                if (*(int16_t *)(state + 0x12) != 0) { active = 0; value = 0; }
+                else if (*(int16_t *)(state + 0xe) == 0) { active = 0; value = 0; }
+                else if ((int16_t)*(int16_t *)(state + 0xe) > *(int16_t *)(edx + 0x16)) { active = 0; value = 0; }
+                else { active = 1; value = 1; }
+                break;
+
+            case 11:
+                if (*(int16_t *)(state + 0x1c) != 0) {
+                    if ((int16_t)*(int16_t *)(state + 0x18) > *(int16_t *)(edx + 0x16)) { active = 0; value = 0; }
+                    else { active = 1; value = 1; }
+                } else {
+                    active = 0; value = 0;
+                }
+                break;
+
+            case 12:
+                if ((int16_t)*(int16_t *)(state + 0x1c) > *(int16_t *)(edx + 0x14)) { active = 0; value = 0; }
+                else if (*(uint8_t *)(state + 0x16) != 0) { active = 0; value = 0; }
+                else { active = 1; value = 1; }
+                break;
+
+            case 13:
+                value = *(uint8_t *)(state + 0x16);
+                goto shared_byte_test;
+
+            case 14:
+                if (*(int16_t *)(state + 0x18) == 0 && *(int16_t *)(state + 0x1c) == 0 &&
+                    (unit->control_flags & _unit_control_flag_primary_trigger) != 0) {
+                    active = 1; value = 1;
+                } else if (out_array[case_index] != -1) {
+                    active = 1; value = 1;
+                } else {
+                    active = 0; value = 0;
+                }
+                break;
+
+            case 15:
+                if (*(int16_t *)(state + 0x1c) != 0) { active = 0; value = 0; }
+                else if (*(int16_t *)(state + 0x18) == 0) { active = 0; value = 0; }
+                else if ((int16_t)*(int16_t *)(state + 0x18) > *(int16_t *)(edx + 0x16)) { active = 0; value = 0; }
+                else { active = 1; value = 1; }
+                break;
+
+            case 18:
+
+                if (*(uint32_t *)(state + 4) == 0x3f800000u && (unit->control_flags & _unit_control_flag_primary_trigger) != 0) {
+                    active = 1; value = 1;
+                } else if (out_array[case_index] != -1) {
+                    active = 1; value = 1;
+                } else {
+                    active = 0; value = 0;
+                }
+                break;
+
+            default:
+                active = 0; value = 0;
+                break;
+            }
+
+            if (active) {
+                result_accum |= bit;
+            } else {
+                result_accum &= ~bit;
+            }
+
+            if (case_index == 0) {
+
+                result_accum |= bit;
+                out_array[0] = (int16_t)value;
+            } else if (case_index == 1) {
+                out_array[1] = (int16_t)value - 1;
+            } else if (!active) {
+                out_array[case_index] = -1;
+            } else if (out_array[case_index] == -1) {
+                out_array[case_index] = *(game_time + 3);
+            }
+
+        }
+
+        out_array[0x13] = result_accum;
+    }
+}
+
+/**
+ * @address 0x4b1740
+ */
+void WeaponHud::state_update()
+{
+    int16_t local_player_index = local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1;
+
+    while (local_player_index != -1) {
+        if (local_player_index >= 0 && local_player_index < 1 &&
+            local_player_globals->local_players[local_player_index] != (datum_index)-1) {
+            datum_index unit_index =
+                ((player *)((uint8_t *)player_data->data +
+                            (local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
+
+            if (unit_index != (datum_index)-1) {
+                uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+                int16_t slot = ((unit_object *)unit)->unit.current_weapon_index;
+                datum_index weapon = slot != -1 ? *(datum_index *)(unit + 0x2f8 + slot * 4) : (datum_index)-1;
+                uint8_t evaluate_default = 0;
+
+                if (weapon == (datum_index)-1) {
+                    datum_index parent = ((unit_object *)unit)->base.parent_object;
+                    int16_t seat = ((unit_object *)unit)->unit.vehicle_seat_index;
+
+                    if (parent == (datum_index)-1 || seat == -1) {
+                        evaluate_default = 1;
+                    } else {
+                        uint8_t *parent_object = (uint8_t *)((object_header *)object_data->data)[parent & 0xffff].data;
+                        uint8_t *seats = *(uint8_t **)((uint8_t *)tag_instances[*(datum_index *)parent_object & 0xffff].data + 0x2e8);
+
+                        if ((seats[seat * 0x11c] & 8) != 0) {
+                            int16_t parent_slot = *(int16_t *)(parent_object + 0x2f2);
+                            weapon = parent_slot != -1 ? *(datum_index *)(parent_object + 0x2f8 + parent_slot * 4)
+                                                       : (datum_index)-1;
+                            if (weapon == (datum_index)-1) {
+                                evaluate_default = 1;
+                            }
+                        }
+                    }
+                }
+
+                if (weapon != (datum_index)-1) {
+                    uint8_t *weapon_object = (uint8_t *)((object_header *)object_data->data)[weapon & 0xffff].data;
+                    uint8_t *weapon_tag = (uint8_t *)tag_instances[*(datum_index *)weapon_object & 0xffff].data;
+                    weapon_hud_ammo_state ammo;
+
+                    weapon_build_hud_ammo_state(weapon, &ammo);
+                    if (*(datum_index *)(weapon_tag + 0x48c) != (datum_index)-1) {
+                        hud_weapon_interface_meters_evaluate(*(datum_index *)(weapon_tag + 0x48c), local_player_index,
+                                                             weapon, &ammo);
+                    }
+                } else if (evaluate_default && unit_count_deployed_weapons(unit_index) == 0) {
+                    weapon_hud_ammo_state ammo;
+
+                    memset(&ammo, 0, sizeof(ammo));
+                    hud_weapon_interface_meters_evaluate(*(datum_index *)((uint8_t *)hud_globals_tag_data + 0x2cc),
+                                                         local_player_index, -1, &ammo);
+                }
+                *(datum_index *)((uint8_t *)hud_weapon_state + local_player_index * 0x28 + 0x20) = weapon;
+            }
+        }
+        local_player_index = (local_player_globals->local_players[0] != (datum_index)-1 && local_player_index < 0)
+                                 ? 0 : -1;
+    }
+}
+
+/**
+ * @address 0x492880
+ */
+int16_t WeaponHud::animation_stage(int16_t message_stage)
+{
+    switch (message_stage) {
+    case 0:  return 0;
+    case 1:  return 0x15;
+    case 2:  return 0x16;
+    case 3:  return 9;
+    case 4:  return 0xc;
+    case 5:  return 1;
+    case 6:  return 2;
+    case 7:  return 0xe;
+    case 8:  return 0x12;
+    case 9:  return 0x13;
+    case 10: return 0xd;
+    case 0xb: return 5;
+    case 0xc: return 6;
+    case 0xd: return 7;
+    case 0xe: return 8;
+    case 0xf: return 0x17;
+    case 0x10: return 0x18;
+    case 0x11: return 0x19;
+    case 0x12: return 0xb;
+    case 0x13: return 10;
+    case 0x14: return 0x10;
+    case 0x15: return 0x14;
+    case 0x16: return 0x1a;
+    case 0x17: return 0x1b;
+    default: return -1;
+    }
+}
+
+/**
+ * @address 0x4927c0
+ */
+int16_t WeaponHud::message_stage(int16_t item_type_code)
+{
+    switch (item_type_code) {
+    case 0:  return 6;
+    case 1:  return 7;
+    case 2:  return 8;
+    case 3:  return 9;
+    case 4:  return 10;
+    case 5:  return 0xb;
+    case 6:  return 0xc;
+    case 9:  return 0xd;
+    case 10: return 0xe;
+    case 0xb: return 0x12;
+    case 0xc: return 0x13;
+    case 0xe: return 4;
+    case 0xf: return 1;
+    case 0x10: return 0x17;
+    case 0x11: return 0x14;
+    default: return -1;
+    }
+}
+
+/**
+ * Returns the weapon_hud_interface tag index for the current local player: the held weapon's, else (for a seat
+ * with flag bit 3) the parent vehicle's current weapon's, else the hud_globals default weapon HUD when the
+ * unit has no deployed weapons. Returns -1 when there is no local player unit, the HUD is off, or the camera
+ * type is 2 or 3. *out_intensity gets unit +0x348 when the unit holds a weapon of its own, else 0.
+ *
+ * @address 0x494560
+ */
+int32_t WeaponHud::weapon_hud_interface(float *out_intensity)
+{
+    datum_index player_handle;
+    int32_t result = -1;
+    float intensity = 0.0f;
+
+    if (current_local_player_index == -1 || current_local_player_index >= 1) {
+        player_handle = (datum_index)-1;
+    } else {
+        player_handle = local_player_globals->local_players[current_local_player_index];
+    }
+
+    if (player_handle != (datum_index)-1) {
+        player *player_record = (player *)((char *)player_data->data +
+                                           (player_handle & 0xffff) * 0x200);
+        int16_t camera_type = camera_get_type_for_player(current_local_player_index);
+
+        if (hud_flags != (hud_globals_flags *)0 && hud_flags->hud_enabled != 0 &&
+            camera_type != 3 && camera_type != 2 && player_record->unit != (datum_index)-1) {
+            datum_index unit_handle = player_record->unit;
+            object *unit_obj = object_get(unit_handle);
+            datum_index weapon_handle = unit_get_weapon_object_index(
+                unit_handle, *(int16_t *)((uint8_t *)unit_obj + 0x2f2));
+
+            if (weapon_handle == (datum_index)-1) {
+                datum_index parent_handle = unit_obj->parent_object;
+                int16_t seat_index = *(int16_t *)((uint8_t *)unit_obj + 0x2f0);
+                object *parent_obj;
+                uint8_t *seats;
+
+                if (parent_handle == (datum_index)-1 || seat_index == -1) {
+                    goto done;
+                }
+                parent_obj = object_get(parent_handle);
+                seats = (uint8_t *)((Unit *)tag_instances[parent_obj->definition_tag & 0xffff].data)
+                            ->seats.pointer;
+                if ((seats[seat_index * 0x11c] & 8) == 0) {
+                    goto done;
+                }
+                weapon_handle = unit_get_weapon_object_index(
+                    unit_obj->parent_object, *(int16_t *)((uint8_t *)parent_obj + 0x2f2));
+            } else {
+                intensity = *(float *)((uint8_t *)unit_obj + 0x348);
+            }
+
+            if (weapon_handle != (datum_index)-1) {
+                Weapon *weapon_tag = (Weapon *)tag_instances[object_get(weapon_handle)->definition_tag & 0xffff].data;
+                datum_index hud_interface = *(datum_index *)&weapon_tag->hud_interface.tag_id;
+                if (hud_interface != (datum_index)-1) {
+                    *out_intensity = intensity;
+                    return (int32_t)hud_interface;
+                }
+                if (unit_count_deployed_weapons(unit_handle) == 0) {
+                    result = *(int32_t *)((uint8_t *)hud_globals_tag_data + 0x2cc);
+                }
+            }
+        }
+    }
+
+done:
+    *out_intensity = intensity;
+    return result;
+}
+
+/**
+ * blam-cc: EAX -> local_player_index, ECX -> object_index, ESI -> blip FIXED (register inputs, objdump): note
+ * phrasing only -- rewritten from the reversed "name -> REG" form (and "object" for the object_index
+ * parameter) the checker cannot parse.
+ *
+ * @address 0x4b35f0
+ */
+void MotionSensor::blip_fill(datum_index object_index, motion_sensor_blip *blip)
+{
+    blip->type = blip_type_get(local_player_index, object_index);
+    if (object_index != (datum_index)-1 && object_try_and_get(object_index, 3) != 0) {
+        uint8_t *object_ptr = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+        int16_t subtype = *(int16_t *)((uint8_t *)tag_instances[*(datum_index *)object_ptr & 0xffff].data + 0x298);
+
+        blip->subtype = (subtype >= 0 && subtype < 3) ? (uint8_t)subtype : 0;
+        return;
+    }
+    blip->subtype = 0;
+}
+
+/**
+ * @address 0x4b36a0
+ */
+uint8_t MotionSensor::object_is_detected(datum_index unit_index)
+{
+    unit_data *unit;
+    real_vector3d velocity, angular;
+    uint8_t visible;
+    float speed_sq, threshold;
+
+    if (object_try_and_get(unit_index, 3) == 0) {
+        return 0;
+    }
+    if (current_game_engine != 0) {
+        if ((motion_sensor_override_value & 1) == 0) {
+            return 0;
+        }
+
+    }
+
+    unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data
+                          + k_unit_data_offset);
+    if ((unit->control_flags & 0x800) != 0) {
+        return 1;
+    }
+    if (unit->throwing_grenade_state != 0 && unit->throwing_grenade_state != 3) {
+        return 1;
+    }
+
+    object_get_root_object_velocities((uint32_t)unit_index, &velocity, (real_vector3d *)0);
+
+    visible = (current_game_engine == 0 && (unit->flags & _unit_flag_unknown_10) != 0)
+              ? 0 : 1;
+
+    speed_sq = velocity.i * velocity.i + velocity.j * velocity.j + velocity.k * velocity.k;
+    threshold = *(float *)((uint8_t *)hud_globals_tag_data + 0x2d4);
+
+    if (!(speed_sq < threshold)) {
+        return visible ? 1 : 0;
+    }
+    if (motion_sensor_force_moving != 0) {
+        return visible ? 1 : 0;
+    }
+    return 0;
+}
+
+/**
+ * blam-cc: position -> EAX, type -> BL
+ *
+ * @address 0x4b37a0
+ */
+void MotionSensor::plot_blip(const float *position, uint8_t type, const motion_sensor_frame *frame, int8_t subtype, float pixels_per_unit, float alpha, float size_factor)
+{
+    float x = position[0];
+    float y = position[1];
+    float sine = sinf(-frame->viewer_facing);
+    float cosine = cosf(-frame->viewer_facing);
+    float u = y * cosine + x * sine;
+    float v = x * cosine - y * sine;
+    float range = *(float *)((uint8_t *)hud_globals_tag_data + 0x2d0);
+    float distance;
+    float pulled;
+    float point[2];
+    float pulse;
+    float size;
+
+    if (!(v * v + u * u < range * range)) {
+        return;
+    }
+    distance = sqrtf(v * v + u * u);
+    if (distance < 0.015625f) {
+        distance = 0.015625f;
+    }
+    pulled = (float)pow((double)(distance / range), 0.7) * range;
+    point[0] = v * (1.0f / distance) * pulled * pixels_per_unit;
+    point[1] = u * (1.0f / distance) * pulled * pixels_per_unit;
+    size = motion_sensor_blip_subtype_size[subtype];
+    pulse = 1.0f;
+    if (type == 5) {
+        pulse = (float)((sin((double)((float)game_time->game_time * 0.10471973568201065f)) + 1.0) * 0.3333333333333333 + 1.0);
+    }
+    rasterizer_motion_sensor_blip_draw(point, &motion_sensor_blip_colors[(int8_t)type], alpha, pulse * size_factor + size);
+}
+
+/**
+ * blam-cc: screen_center -> EAX, local_player_index -> CX
+ *
+ * @address 0x4b4120
+ */
+void MotionSensor::render(uint8_t splitscreen, const int16_t *screen_center, int16_t local_player_index)
+{
+    float pixels_per_unit;
+    float range;
+    int32_t k;
+
+    {
+        int16_t camera_type = camera_get_type_for_player(local_player_index);
+        if (camera_type == 3 || camera_type == 2) {
+            return;
+        }
+    }
+    range = *(float *)((uint8_t *)hud_globals_tag_data + 0x2d0);
+    pixels_per_unit = *(float *)((uint8_t *)hud_globals_tag_data + 0x2d8) / range;
+    motion_sensor_render_local_player = local_player_index;
+    motion_sensor_render_icon_scale = 0.75f;
+    if (splitscreen == 0) {
+        motion_sensor_render_icon_scale = 1.0f;
+    }
+    motion_sensor_render_center[0] = (float)screen_center[0];
+    motion_sensor_render_center[1] = (float)screen_center[1];
+    rasterizer_motion_sensor_begin();
+
+    for (k = 0; k < 10; k++) {
+        motion_sensor_player_state *state = &motion_sensor->players[local_player_index];
+        motion_sensor_frame *frame = &state->history[(int16_t)((motion_sensor->frame_index - k + 10) % 10)];
+        float age = (float)(10 - k) * 0.1f;
+        float alpha = age * age;
+        float size = (float)(pow((double)(1.0f - age), 3.5) * 7.0 + 1.0);
+        int32_t i;
+
+        for (i = 0; i < 0x10; i++) {
+            motion_sensor_blip *blip = &frame->blips[i];
+            float position[2];
+
+            if (blip->type == _blip_type_empty) {
+                continue;
+            }
+            if (current_game_engine != 0 && (*(uint8_t *)&game_engine_variant.flags & 0x40) != 0 &&
+                (blip->type == 2 || blip->type == 4)) {
+                continue;
+            }
+            position[0] = (float)blip->x * range * 0.007874015718698502f;
+            position[1] = (float)blip->y * range * 0.007874015718698502f;
+            motion_sensor_plot_blip(position, blip->type, frame, (int8_t)blip->subtype, pixels_per_unit, alpha, size);
+        }
+        for (i = 0; (int16_t)i < (int32_t)frame->extra_blip_count; i++) {
+            float position[2];
+
+            if (custom_waypoints[(int8_t)frame->extra_sources[i]].active == 0) {
+                continue;
+            }
+            position[0] = (float)frame->extra_blips[i * 2] * range * 0.007874015718698502f;
+            position[1] = (float)frame->extra_blips[i * 2 + 1] * range * 0.007874015718698502f;
+            motion_sensor_plot_blip(position, 5, frame, 0, pixels_per_unit, alpha, size);
+        }
+    }
+    rasterizer_motion_sensor_end(motion_sensor_render_center, motion_sensor_sweep);
+}
+
+/**
+ * @address 0x4b3660
+ */
+void MotionSensor::reset()
+{
+    int32_t *clear = (int32_t *)motion_sensor;
+    int i;
+    uint8_t *type_byte;
+    int group, slot;
+
+    for (i = 0; i < 0x15c; i++) {
+        clear[i] = 0;
+    }
+
+    type_byte = (uint8_t *)motion_sensor + 2;
+    for (group = 0; group < 10; group++) {
+        uint8_t *slot_type = type_byte;
+        for (slot = 0; slot < 0x10; slot++) {
+            *slot_type = _blip_type_empty;
+            slot_type += 4;
+        }
+        type_byte += 0x84;
+    }
+}
+
+/**
+ * @address 0x4b3e10
+ */
+void MotionSensor::update_for_player()
+{
+    motion_sensor_player_state *state = &motion_sensor->players[local_player_index];
+    motion_sensor_frame *frame;
+    datum_index player_index;
+    datum_index unit_index;
+    real_point3d camera;
+    float waypoints[0x10][2];
+    float range = *(float *)((uint8_t *)hud_globals_tag_data + 0x2d0);
+    uint8_t removed;
+    int32_t i;
+
+    if (motion_sensor->enabled == 0) {
+        return;
+    }
+    frame = &state->history[motion_sensor->frame_index];
+    unit_index = (datum_index)-1;
+    if (local_player_index != -1 && local_player_index < 1 &&
+        local_player_globals->local_players[local_player_index] != (datum_index)-1) {
+        unit_index = ((player *)((uint8_t *)player_data->data +
+                                 (local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
+    }
+    if (unit_index == (datum_index)-1) {
+        return;
+    }
+    unit_get_camera_position(unit_index, &camera);
+    frame->viewer_x = camera.x;
+    frame->viewer_y = camera.y;
+
+    for (i = 0; i < 0x10; i++) {
+        datum_index tracked = state->tracked_objects[i];
+        uint8_t detected;
+        real_point3d position;
+        float dx;
+        float dy;
+
+        if (object_try_and_get(tracked, 3) == 0) {
+            continue;
+        }
+        detected = motion_sensor_object_is_detected(tracked);
+        position = *(real_point3d *)((uint8_t *)((object_header *)object_data->data)[tracked & 0xffff].data + 0xa0);
+        dx = position.x - frame->viewer_x;
+        dy = position.y - frame->viewer_y;
+        if (detected != 0 && !(range * range < dy * dy + dx * dx)) {
+            frame->blips[i].x = (int8_t)__ftol((double)(dx / range * 127.0f));
+            frame->blips[i].y = (int8_t)__ftol((double)(dy / range * 127.0f));
+        } else {
+            frame->blips[i].type = _blip_type_empty;
+            state->tracked_objects[i] = (datum_index)-1;
+        }
+    }
+
+    frame->viewer_facing = player_control_globals_ptr->local_players[local_player_index].yaw + 1.5707963705062866f;
+    player_index = (local_player_index != -1 && local_player_index < 1)
+                       ? local_player_globals->local_players[local_player_index] : (datum_index)-1;
+    frame->extra_blip_count = (uint8_t)game_engine_collect_matching_waypoints((int32_t)player_index, &waypoints[0][0],
+                                                                               frame->extra_sources, 0x10);
+    unit_get_camera_position(unit_index, &camera);
+    removed = 0;
+    for (i = 0; i < frame->extra_blip_count; i++) {
+        float dx;
+        float dy;
+
+        waypoints[i][0] = waypoints[i][0] - camera.x;
+        waypoints[i][1] = waypoints[i][1] - camera.y;
+        dx = waypoints[i][0];
+        dy = waypoints[i][1];
+        if (range * range < dx * dx + dy * dy) {
+            removed++;
+            continue;
+        }
+        frame->extra_blips[(i - removed) * 2] = (int8_t)__ftol((double)(waypoints[i][0] / range * 127.0f));
+        frame->extra_blips[(i - removed) * 2 + 1] = (int8_t)__ftol((double)(waypoints[i][1] / range * 127.0f));
+    }
+    frame->extra_blip_count = (uint8_t)(frame->extra_blip_count - removed);
+}
+
+/**
+ * blam-cc: object_index -> EAX
+ *
+ * @address 0x4a9b40
+ */
+int16_t WeaponHud::text_message_index(datum_index object_index)
+{
+    struct object *obj;
+    Object *definition;
+
+    if (object_index == (datum_index)-1) {
+        return -1;
+    }
+    obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    return definition->hud_text_message_index;
+}
+
+/**
+ * Applies a weapon HUD action to unit_index's local first-person weapon interface if the unit belongs to a
+ * local player; otherwise, if the unit has a current weapon, plays the fallback pickup/HUD notification
+ * instead.
+ *
+ * @address 0x492730
+ */
+void WeaponHud::notify_for_unit(datum_index unit_index, int32_t action_code)
+{
+    int32_t local_player;
+    object_header *header;
+    unit_data *u;
+
+    local_player = local_player_index_for_unit(unit_index);
+    first_person_weapon_process_action(local_player, action_code);
+
+    if (local_player == -1) {
+        header = &((object_header *)object_data->data)[unit_index & 0xffff];
+        u = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
+        if (u->current_weapon_index != -1) {
+            hud_play_pickup_notification((uint32_t)(uint16_t)u->current_weapon_index, (int16_t)action_code);
+        }
+    }
+}
+
+/**
+ * Applies a weapon HUD action to weapon_index's local first-person weapon interface if the weapon is equipped
+ * by a local player; otherwise plays the fallback pickup/HUD notification.
+ *
+ * @address 0x492790
+ */
+void WeaponHud::notify_for_weapon(datum_index weapon_index, int32_t action_code)
+{
+    int32_t local_player;
+
+    local_player = local_player_index_for_weapon(weapon_index);
+    first_person_weapon_process_action(local_player, action_code);
+
+    if (local_player == -1) {
+        hud_play_pickup_notification((uint32_t)weapon_index, (int16_t)action_code);
+    }
+}
+
+/**
+ * @address 0x4a9750
+ */
+uint8_t WeaponHud::ammo_state_is_empty(const weapon_hud_ammo_state *state)
+{
+    const weapon_hud_magazine_state *magazine = &state->magazines[0];
+
+    if (magazine->rounds_loaded_maximum != 0 && magazine->rounds_loaded == 0 &&
+        magazine->rounds_unloaded == 0) {
+        return 1;
+    }
+    return state->age == 1.0f;
+}
+
+} // namespace halo::interface
+
+extern "C" {
+
+int16_t hud_waypoint_visibility(int16_t local_player_index, const real_point3d *eye, const real_point3d *target, datum_index ignore_object)
+{
+    return halo::interface::HudWaypoints(local_player_index).visibility(eye, target, ignore_object);
+}
+
+void hud_waypoints_draw_for_player(int16_t local_player_index)
+{
+    halo::interface::HudWaypoints(local_player_index).draw_for_player();
+}
+
+void hud_waypoints_update(void)
+{
+    halo::interface::HudWaypoints::update();
+}
+
+void hud_waypoints_update_for_player(int16_t local_player_index)
+{
+    halo::interface::HudWaypoints(local_player_index).update_for_player();
+}
+
+void hud_weapon_crosshairs_draw(datum_index hud_tag, const player *p, const weapon_hud_ammo_state *ammo)
+{
+    halo::interface::WeaponHud::crosshairs_draw(hud_tag, p, ammo);
+}
+
+void hud_weapon_interface_draw_elements(datum_index hud_tag, int16_t local_player_index, const Weapon *weapon_tag, const weapon_hud_ammo_state *ammo, const uint16_t *parent_state_flags, const uint16_t *parent_overlay_types, const int16_t *parent_numbers)
+{
+    halo::interface::WeaponHud::draw_elements(hud_tag, local_player_index, weapon_tag, ammo, parent_state_flags, parent_overlay_types, parent_numbers);
+}
+
+void hud_weapon_interface_meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index, int32_t weapon_or_vehicle_index, void *state_ptr)
+{
+    halo::interface::WeaponHud::meters_evaluate(hud_interface_tag_id, local_player_index, weapon_or_vehicle_index, state_ptr);
+}
+
+void hud_weapon_interface_state_update(void)
+{
+    halo::interface::WeaponHud::state_update();
+}
+
+int16_t item_type_to_animation_stage(int16_t message_stage)
+{
+    return halo::interface::WeaponHud::animation_stage(message_stage);
+}
+
+int16_t item_type_to_message_stage(int16_t item_type_code)
+{
+    return halo::interface::WeaponHud::message_stage(item_type_code);
+}
+
+int32_t local_player_get_weapon_hud_interface(float *out_intensity)
+{
+    return halo::interface::WeaponHud::weapon_hud_interface(out_intensity);
+}
+
+void motion_sensor_blip_fill(int16_t local_player_index, datum_index object_index, motion_sensor_blip *blip)
+{
+    halo::interface::MotionSensor(local_player_index).blip_fill(object_index, blip);
+}
+
+uint8_t motion_sensor_object_is_detected(datum_index unit_index)
+{
+    return halo::interface::MotionSensor::object_is_detected(unit_index);
+}
+
+void motion_sensor_plot_blip(const float *position, uint8_t type, const motion_sensor_frame *frame, int8_t subtype, float pixels_per_unit, float alpha, float size_factor)
+{
+    halo::interface::MotionSensor::plot_blip(position, type, frame, subtype, pixels_per_unit, alpha, size_factor);
+}
+
+void motion_sensor_render(uint8_t splitscreen, const int16_t *screen_center, int16_t local_player_index)
+{
+    halo::interface::MotionSensor::render(splitscreen, screen_center, local_player_index);
+}
+
+void __cdecl motion_sensor_reset(void)
+{
+    halo::interface::MotionSensor::reset();
+}
+
+void motion_sensor_update_for_player(int16_t local_player_index)
+{
+    halo::interface::MotionSensor(local_player_index).update_for_player();
+}
+
+int16_t object_get_hud_text_message_index(datum_index object_index)
+{
+    return halo::interface::WeaponHud::text_message_index(object_index);
+}
+
+void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code)
+{
+    halo::interface::WeaponHud::notify_for_unit(unit_index, action_code);
+}
+
+void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code)
+{
+    halo::interface::WeaponHud::notify_for_weapon(weapon_index, action_code);
+}
+
+uint8_t weapon_hud_ammo_state_is_empty(const weapon_hud_ammo_state *state)
+{
+    return halo::interface::WeaponHud::ammo_state_is_empty(state);
+}
+
+}

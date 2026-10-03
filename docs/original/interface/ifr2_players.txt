@@ -1,0 +1,3734 @@
+==== src/interface/interface_local_player_state_reset.c (original, verbatim) ====
+// interface_local_player_state_reset  (Ghidra: FUN_00494390, renamed per types/interface.h)
+// address 0x494390, size 145 bytes
+// name confidence: 0.5   rewrite confidence: 0.6
+// evidence: types/interface.h first_person_weapon_interface struct comment names this address
+// interface_local_player_state_reset ("clears it... zeroes 0x7a8 dwords"); its own field
+// comments confirm unit_index (+0x4), unknown_1e98 (+0x1e98) and unknown_1e9c (+0x1e9c) as the
+// three post-zero sentinel writes; hud_state_reset is 0x4a98d0 per this header's own HUD-globals
+// comment; src/effects/particle_system_new_on_marker.c's precedent default_color_block
+// (0x006851fc, ColorARGB); src/game/hud_draw_world_relative_text.c's shared hud_text_draw_*
+// globals.
+// reconciled: 0x006851fc is a pointer to the opaque-white ColorARGB (0x00655138); one name global_white_argb: none (void).
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include <string.h>
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
+extern Globals *global_globals;                    // 0x00746fa0
+extern const ColorARGB *global_white_argb;               // 0x006851fc, opaque white
+
+extern uint16_t hud_text_draw_color_or_flags; // 0x006e4734
+extern int16_t hud_text_draw_column;          // 0x006e4736
+extern uint32_t hud_text_draw_unknown_4730;   // 0x006e4730
+extern int32_t hud_text_draw_font_tag_id;     // 0x006e472c
+extern float hud_text_draw_color_a;           // 0x006e4738, alpha (ColorARGB order); float bits, stored with mov
+extern float hud_text_draw_color_r;           // 0x006e473c
+extern float hud_text_draw_color_g;           // 0x006e4740
+extern float hud_text_draw_color_b;           // 0x006e4744
+
+extern void hud_state_reset(void); // 0x4a98d0
+extern void text_language_initialize_from_string_list(void); // 0x5561b0
+
+// Resets the HUD runtime state and text language, then zeroes local player 0's entire
+// first_person_weapon_interface, re-seeding unit_index/unknown_1e98/unknown_1e9c to -1 and
+// priming the shared HUD text-draw color to the module's default (opaque white) with the
+// globals interface_bitmaps' font_terminal tag id.
+void interface_local_player_state_reset(void)
+{
+    first_person_weapon_interface *fp;
+    GlobalsInterfaceBitmaps *interface_bitmaps;
+
+    hud_state_reset();
+    text_language_initialize_from_string_list();
+
+    fp = &first_person_weapon_interfaces[0];
+    memset(fp, 0, sizeof(*fp));
+    fp->unit_index = (datum_index)0xffffffff;
+    fp->frame_sound_index = -1;
+    fp->frame_sound_state = -1;
+
+    interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
+                             ? (GlobalsInterfaceBitmaps *)0
+                             : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
+    hud_text_draw_font_tag_id = *(int32_t *)&interface_bitmaps->font_terminal.tag_id;
+    hud_text_draw_color_a = global_white_argb->alpha;
+    hud_text_draw_color_r = global_white_argb->red;
+    hud_text_draw_color_g = global_white_argb->green;
+    hud_text_draw_color_b = global_white_argb->blue;
+    hud_text_draw_color_or_flags = 0xffff;
+    hud_text_draw_column = 0;
+    hud_text_draw_unknown_4730 = 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x494390):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_00494390(void)
+
+{
+  undefined4 *puVar1;
+  int iVar2;
+  int iVar3;
+  undefined4 *puVar4;
+
+  FUN_004a98d0();
+  text_language_initialize_from_string_list();
+  puVar1 = DAT_006b2d98;
+  puVar4 = DAT_006b2d98;
+  for (iVar3 = 0x7a8; iVar2 = DAT_00746fa0, iVar3 != 0; iVar3 = iVar3 + -1) {
+    *puVar4 = 0;
+    puVar4 = puVar4 + 1;
+  }
+  puVar1[1] = 0xffffffff;
+  puVar1[0x7a6] = 0xffffffff;
+  *(undefined2 *)(puVar1 + 0x7a7) = 0xffff;
+  if (*(int *)(iVar2 + 0x140) == 0) {
+    iVar3 = 0;
+  }
+  else {
+    iVar3 = *(int *)(iVar2 + 0x144);
+  }
+  DAT_006e472c = *(undefined4 *)(iVar3 + 0x1c);
+  DAT_006e4738 = *(undefined4 *)PTR_DAT_006851fc;
+  DAT_006e473c = *(undefined4 *)(PTR_DAT_006851fc + 4);
+  DAT_006e4740 = *(undefined4 *)(PTR_DAT_006851fc + 8);
+  DAT_006e4744 = *(undefined4 *)(PTR_DAT_006851fc + 0xc);
+  DAT_006e4734._0_2_ = 0xffff;
+  DAT_006e4734._2_2_ = 0;
+  _DAT_006e4730 = 0;
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/local_player_index_for_object.c (original, verbatim) ====
+// local_player_index_for_object  (Ghidra: FUN_004926f0, renamed per types/interface.h)
+// address 0x4926f0, size 62 bytes
+// name confidence: 0.4   rewrite confidence: 0.7
+// evidence: out/phase4/interface_types_notes.md first_person_weapon_interface note:
+// "local_player_index_for_object @0x4926f0 matches against [weapon_index]"; loop bound `< 1`
+// matches every other single-local-player loop in this module (retail PC has one entry).
+// register convention: object_index in ESI (unaff_ESI). // blam-cc: object_index=ESI
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
+
+// Finds which local player's first-person weapon interface currently has object_index attached
+// as its weapon, returning -1 if none matches.
+int32_t local_player_index_for_object(datum_index object_index)
+{
+    int32_t i;
+
+    for (i = 0; i < 1; i++) {
+        if (first_person_weapon_interfaces[i].weapon_index == object_index &&
+            first_person_weapon_interfaces[i].attached != 0) {
+            break;
+        }
+    }
+    if (i == 1) {
+        return -1;
+    }
+    return i;
+}
+
+#if 0
+Original Ghidra decompilation (0x4926f0):
+
+int FUN_004926f0(void)
+
+{
+  short sVar1;
+  int unaff_ESI;
+
+  sVar1 = 0;
+  do {
+    if ((*(int *)(sVar1 * 0x1ea0 + 8 + DAT_006b2d98) == unaff_ESI) &&
+       (*(char *)(sVar1 * 0x1ea0 + DAT_006b2d98) != '\0')) break;
+    sVar1 = sVar1 + 1;
+  } while (sVar1 < 1);
+  if (sVar1 == 1) {
+    return -1;
+  }
+  return (int)sVar1;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/local_player_index_for_unit.c (original, verbatim) ====
+// local_player_index_for_unit  (Ghidra: FUN_004940a0, unnamed)
+// address 0x4940a0, size 72 bytes
+// name confidence: 0.4   rewrite confidence: 0.55
+// evidence: out/phase4/interface_functions.md "Finds which local player is controlling the
+// given unit object."; same local_players[0]/player_data walk as
+// first_person_weapon_interface_tick.c, this time comparing player::unit against the argument
+// instead of reading it. The decompiled loop only ever tests index 0 (the `0 < sVar2` guard
+// exits for any other value before the match is checked, and index 1 unconditionally returns
+// -1), matching "retail PC has one local player slot" from types/game.h.
+// register convention: unit_index in EDI (unaff_EDI). // blam-cc: unit_index=EDI
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern player_globals *local_player_globals; // 0x0087a478
+extern data_array *player_data;              // 0x0087a480, "players"
+
+// Finds which local player currently controls unit_index, returning -1 if none does.
+int32_t local_player_index_for_unit(datum_index unit_index)
+{
+    int32_t i;
+    player *record;
+
+    for (i = 0; i < 1; i++) {
+        if (local_player_globals->local_players[i] == (datum_index)0xffffffff) {
+            continue;
+        }
+        record = (player *)((char *)player_data->data +
+                             (local_player_globals->local_players[i] & 0xffff) * sizeof(player));
+        if (record->unit == unit_index) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+#if 0
+Original Ghidra decompilation (0x4940a0):
+
+int FUN_004940a0(void)
+
+{
+  uint uVar1;
+  short sVar2;
+  int iVar3;
+  int unaff_EDI;
+
+  iVar3 = 0;
+  while ((((sVar2 = (short)iVar3, sVar2 == -1 || (0 < sVar2)) ||
+          (uVar1 = *(uint *)(DAT_0087a478 + 4 + sVar2 * 4), uVar1 == 0xffffffff)) ||
+         (*(int *)((uVar1 & 0xffff) * 0x200 + 0x34 + *(int *)(DAT_0087a480 + 0x34)) != unaff_EDI)))
+  {
+    iVar3 = iVar3 + 1;
+    if (0 < (short)iVar3) {
+      return CONCAT22((short)((uint)iVar3 >> 0x10),0xffff);
+    }
+  }
+  return iVar3;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/local_player_index_for_weapon.c (original, verbatim) ====
+// local_player_index_for_weapon  (Ghidra: FUN_00494010, unnamed)
+// address 0x494010, size 135 bytes
+// name confidence: 0.4   rewrite confidence: 0.55
+// evidence: out/phase4/interface_functions.md "Finds which local player currently has the given
+// weapon object equipped."; resolves the controlled unit the same way as
+// local_player_index_for_unit.c, then compares unit->weapons[unit->current_weapon_index]
+// (types/units.h, 0x2f2/0x2f8) against the argument. Loop bound is `< 1`, matching every other
+// single-local-player loop in this module.
+// register convention: weapon_index is the one Ghidra-recognized stack parameter (param_1).
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include "objects.h"
+#include "units.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern player_globals *local_player_globals; // 0x0087a478
+extern data_array *player_data;              // 0x0087a480, "players"
+extern data_array *object_data; // 0x008603b0, "objects"
+
+// Finds which local player currently has weapon_index equipped as its unit's active weapon,
+// returning -1 if none does.
+int32_t local_player_index_for_weapon(datum_index weapon_index)
+{
+    int32_t i;
+    player *record;
+    object_header *header;
+    unit_data *u;
+    int16_t slot;
+
+    for (i = 0; i < 1; i++) {
+        if (local_player_globals->local_players[i] == (datum_index)0xffffffff) {
+            continue;
+        }
+        record = (player *)((char *)player_data->data +
+                             (local_player_globals->local_players[i] & 0xffff) * sizeof(player));
+        if (record->unit == (datum_index)0xffffffff) {
+            continue;
+        }
+        header = &((object_header *)object_data->data)[record->unit & 0xffff];
+        u = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
+        slot = u->current_weapon_index;
+        if (slot != -1 && weapon_index == u->weapons[slot]) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+#if 0
+Original Ghidra decompilation (0x494010):
+
+int FUN_00494010(int param_1)
+
+{
+  uint uVar1;
+  int iVar2;
+  short sVar3;
+  int iVar4;
+
+  iVar4 = 0;
+  do {
+    sVar3 = (short)iVar4;
+    if ((((sVar3 != -1) && (sVar3 < 1)) &&
+        (uVar1 = *(uint *)(DAT_0087a478 + 4 + sVar3 * 4), uVar1 != 0xffffffff)) &&
+       (uVar1 = *(uint *)((uVar1 & 0xffff) * 0x200 + *(int *)(DAT_0087a480 + 0x34) + 0x34),
+       uVar1 != 0xffffffff)) {
+      iVar2 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (uVar1 & 0xffff) * 0xc);
+      sVar3 = *(short *)(iVar2 + 0x2f2);
+      if ((sVar3 != -1) && (param_1 == *(int *)(iVar2 + 0x2f8 + sVar3 * 4))) {
+        return iVar4;
+      }
+    }
+    iVar4 = iVar4 + 1;
+    if (0 < (short)iVar4) {
+      return CONCAT22((short)((uint)iVar4 >> 0x10),0xffff);
+    }
+  } while( true );
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_get_vehicle.c (original, verbatim) ====
+// player_get_vehicle  (Ghidra: FUN_004ab170, named in phase 4)
+// address 0x4ab170, size 105 bytes
+// name confidence: 0.6   rewrite confidence: 0.9
+// evidence: rewritten from objdump 0x4ab170..0x4ab1d8 in the phase-4 review. Renamed from
+// player_index_from_unit_index: ECX is a player datum (checked against player_data, salt 0
+// accepted), the object looked up is the unit of that player (player +0x34, passed in ECX
+// to object_try_and_get with type mask 3), and the result is the parent object of that unit
+// (+0x11c) when the unit sits in a seat (unit +0x2f0 not -1): the vehicle the player rides.
+// Any failed step returns -1. The first rewrite called object_try_and_get without the object.
+// register convention: ECX player datum; returns EAX.
+//   // blam-cc: ECX -> player_index
+// FIXED (register inputs, objdump): note phrasing only -- the reversed "player_index -> ECX"
+// form the checker cannot parse, rewritten as "ECX -> player_index".
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+#include "networking.h"
+#include "objects.h"
+#include "units.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern data_array *player_data; // 0x0087a480, stride 0x200
+
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
+
+// blam-cc: ECX -> player_index
+datum_index player_get_vehicle(datum_index player_index)
+{
+    int16_t index = (int16_t)player_index;
+    int16_t salt = (int16_t)((uint32_t)player_index >> 16);
+    player *p;
+    object *unit;
+
+    if (player_index == (datum_index)-1 || index < 0 || index >= player_data->maximum_count) {
+        return (datum_index)-1;
+    }
+    p = (player *)((uint8_t *)player_data->data + (int32_t)player_data->size * index);
+    if (p->identifier == 0 || (salt != 0 && p->identifier != salt)) {
+        return (datum_index)-1;
+    }
+    unit = object_try_and_get(p->unit, 3);
+    if (unit == 0 || ((unit_object *)unit)->base.parent_object == (datum_index)-1 ||
+        ((unit_object *)unit)->unit.vehicle_seat_index == -1) {
+        return (datum_index)-1;
+    }
+    return ((unit_object *)unit)->base.parent_object;
+}
+
+#if 0
+Original Ghidra decompilation (0x4ab170):
+
+int player_index_from_unit_index(void)
+
+{
+  int iVar1;
+  short sVar2;
+  int in_ECX;
+  short sVar3;
+  int iVar4;
+
+  iVar4 = -1;
+  if (((((in_ECX != -1) && (sVar2 = (short)in_ECX, -1 < sVar2)) &&
+       (sVar2 < *(short *)(DAT_0087a480 + 0x20))) &&
+      (sVar2 = *(short *)((int)*(short *)(DAT_0087a480 + 0x22) * (int)sVar2 +
+                         *(int *)(DAT_0087a480 + 0x34)), sVar2 != 0)) &&
+     (((sVar3 = (short)((uint)in_ECX >> 0x10), sVar3 == 0 || (sVar2 == sVar3)) &&
+      ((iVar1 = object_try_and_get(3), iVar1 != 0 &&
+       ((*(int *)(iVar1 + 0x11c) != -1 && (*(short *)(iVar1 + 0x2f0) != -1)))))))) {
+    iVar4 = *(int *)(iVar1 + 0x11c);
+  }
+  return iVar4;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_help_screen_select_by_name.c (original, verbatim) ====
+// player_help_screen_select_by_name  (Ghidra: player_help_screen_select_by_name, already named)
+// address 0x4991f0, size 496 bytes
+// name confidence: 0.5   rewrite confidence: 0.5
+// evidence: matches the given name; lowercases the current profile's name (tag_instances[...]
+// .path, per types/cache.h) and matches it against ten hardcoded substrings (a bespoke "which
+// player-help screen matches this player's name" easter egg/test hook), opening the
+// corresponding ui\shell\solo_game\player_help\player_help_screen_* tag and writing the given
+// value into its first text_box child's selection_index.
+// register convention: cdecl, the recognized stack parameter.
+// UNSURE: the lowercase loop's Ghidra pseudo-C (`while (local_100[0] != 0) { ...; local_100[0] =
+// *pbVar1; }`) reads as re-testing the buffer's first byte every iteration; disassembly
+// (0x499240..0x499254) shows the real loop peeks at `*(p+1)` before advancing p, i.e. an
+// ordinary in-place lowercase of the whole NUL-terminated string -- written as the latter.
+// TYPES-GAP: strstr (0x625430) is not otherwise named in this session; modeled as a
+// case-sensitive substring search (haystack, needle) returning nonzero on a match, matching how
+// its result is used here (the input is already lowercased, so it functions as case-insensitive
+// substring matching against the lowercase needles).
+
+#include "crt.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include "cache.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern datum_index global_scenario_index; // 0x0069e8d4, UNSURE name
+extern tag_instance *tag_instances; // 0x0087bc14
+extern int16_t profile_slot_id[]; // 0x00714dde, per types/interface.h globals list (profile_slot_id[])
+
+extern char player_help_name_a10[]; // 0x00669a5c FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_a30[]; // 0x00669a58 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_a50[]; // 0x00669a54 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_b30[]; // 0x00669a50 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_b40[]; // 0x00669a4c FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_c10[]; // 0x00669a48 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_c20[]; // 0x00669a44 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_c40[]; // 0x00669a40 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_d20[]; // 0x00669a3c FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_d40[]; // 0x00669a38 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+
+extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
+    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
+    datum_index history_list_definition, int16_t history_selection); // 0x497a70, 7 stack args (objdump)
+
+// Selects and opens a specific player-help screen tag based on matching the current profile's
+// name against hardcoded name lists, then stashes `value` into the opened widget's first
+// text_box child (selection_index).
+void player_help_screen_select_by_name(int16_t value)
+{
+    char name[256];
+    char *p;
+    char *tag_path;
+    widget_instance *dialog;
+
+    if (global_scenario_index == (datum_index)-1) {
+        return;
+    }
+    strncpy(name, tag_instances[(int16_t)global_scenario_index].path, 0xff);
+
+    for (p = name; *p != 0; p++) {
+        *p = (char)tolower((uint8_t)*p);
+    }
+
+    if (strstr(name, player_help_name_a10) != 0) {
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_a10";
+    } else if (strstr(name, player_help_name_a30) != 0) {
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_a30";
+    } else if (strstr(name, player_help_name_a50) != 0) {
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_a50";
+    } else if (strstr(name, player_help_name_b30) != 0) {
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_b30";
+    } else if (strstr(name, player_help_name_b40) != 0) {
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_b40";
+    } else if (strstr(name, player_help_name_c10) != 0) {
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_c10";
+    } else if (strstr(name, player_help_name_c20) != 0) {
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_c20";
+    } else if (strstr(name, player_help_name_c40) != 0) {
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_c40";
+    } else if (strstr(name, player_help_name_d20) != 0) {
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_d20";
+    } else if (strstr(name, player_help_name_d40) != 0) {
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_d40";
+    } else {
+        return;
+    }
+
+    dialog = chimera__load_ui_widget(tag_path, (datum_index)-1, (widget_instance *)0,
+                                     (uint16_t)profile_slot_id[0], (datum_index)-1, (datum_index)-1, -1);
+    if (dialog != (widget_instance *)0) {
+        widget_instance *child;
+
+        for (child = dialog->first_child; child != (widget_instance *)0 && child->widget_type != 1;
+             child = child->next_sibling) {
+        }
+        if (child != (widget_instance *)0) {
+            child->selection_index = value;
+        }
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x4991f0):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void player_help_screen_select_by_name(undefined2 param_1)
+
+{
+  byte *pbVar1;
+  int iVar2;
+  char *pcVar3;
+  byte *pbVar4;
+  byte local_100 [255];
+  undefined1 local_1;
+
+  if (DAT_0069e8d4 != -1) {
+    _strncpy((char *)local_100,*(char **)((short)DAT_0069e8d4 * 0x20 + 0x10 + DAT_0087bc14),0xff);
+    local_1 = 0;
+    pbVar4 = local_100;
+    while (local_100[0] != 0) {
+      iVar2 = _tolower((uint)*pbVar4);
+      *pbVar4 = (byte)iVar2;
+      pbVar1 = pbVar4 + 1;
+      pbVar4 = pbVar4 + 1;
+      local_100[0] = *pbVar1;
+    }
+    iVar2 = FUN_00625430(local_100,&DAT_00669a5c);
+    if (iVar2 == 0) {
+      iVar2 = FUN_00625430(local_100,&DAT_00669a58);
+      if (iVar2 == 0) {
+        iVar2 = FUN_00625430(local_100,&DAT_00669a54);
+        if (iVar2 == 0) {
+          iVar2 = FUN_00625430(local_100,&DAT_00669a50);
+          if (iVar2 == 0) {
+            iVar2 = FUN_00625430(local_100,&DAT_00669a4c);
+            if (iVar2 == 0) {
+              iVar2 = FUN_00625430(local_100,&DAT_00669a48);
+              if (iVar2 == 0) {
+                iVar2 = FUN_00625430(local_100,&DAT_00669a44);
+                if (iVar2 == 0) {
+                  iVar2 = FUN_00625430(local_100,&DAT_00669a40);
+                  if (iVar2 == 0) {
+                    iVar2 = FUN_00625430(local_100,&DAT_00669a3c);
+                    if (iVar2 == 0) {
+                      iVar2 = FUN_00625430(local_100,&DAT_00669a38);
+                      if (iVar2 == 0) {
+                        return;
+                      }
+                      pcVar3 = "ui\\shell\\solo_game\\player_help\\player_help_screen_d40";
+                    }
+                    else {
+                      pcVar3 = "ui\\shell\\solo_game\\player_help\\player_help_screen_d20";
+                    }
+                  }
+                  else {
+                    pcVar3 = "ui\\shell\\solo_game\\player_help\\player_help_screen_c40";
+                  }
+                }
+                else {
+                  pcVar3 = "ui\\shell\\solo_game\\player_help\\player_help_screen_c20";
+                }
+              }
+              else {
+                pcVar3 = "ui\\shell\\solo_game\\player_help\\player_help_screen_c10";
+              }
+            }
+            else {
+              pcVar3 = "ui\\shell\\solo_game\\player_help\\player_help_screen_b40";
+            }
+          }
+          else {
+            pcVar3 = "ui\\shell\\solo_game\\player_help\\player_help_screen_b30";
+          }
+        }
+        else {
+          pcVar3 = "ui\\shell\\solo_game\\player_help\\player_help_screen_a50";
+        }
+      }
+      else {
+        pcVar3 = "ui\\shell\\solo_game\\player_help\\player_help_screen_a30";
+      }
+    }
+    else {
+      pcVar3 = "ui\\shell\\solo_game\\player_help\\player_help_screen_a10";
+    }
+    iVar2 = chimera__load_ui_widget
+                      (pcVar3,0xffffffff,0,_DAT_00714dde,0xffffffff,0xffffffff,0xffffffff);
+    if (iVar2 != 0) {
+      for (iVar2 = *(int *)(iVar2 + 0x34); (iVar2 != 0 && (*(short *)(iVar2 + 0xe) != 1));
+          iVar2 = *(int *)(iVar2 + 0x2c)) {
+      }
+      *(undefined2 *)(iVar2 + 0x40) = param_1;
+    }
+  }
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_1wide_list_update.c (original, verbatim) ====
+// player_profile_1wide_list_update  (Ghidra: player_profile_1wide_list_update, already named)
+// address 0x4a6380, size 802 bytes
+// name confidence: 0.85   rewrite confidence: 0.65
+// evidence: matches the given name (cea-pdb hint via the "%s%hs%s" format string).
+// Rewritten in the phase-4 review from objdump -d 0x4a6380..0x4a66a4. The list widget holds
+// profile ids in list_items; the selected id is loaded into the profile carousel
+// (ui_profile_carousel_slot_cache_populate @0x4a74b0 with a count of 1 and EBX pointing at the
+// id) and looked up in the three profile_carousel_slot records at 0x00873d60. The profile name
+// goes into a heap block kept at widget +0x50 (list_render_data of the list widget itself, not
+// the name row text), the player color into the name row frame, and a
+// "%s%hs%s" joystick / button description into the description row text.
+// When the id is not in the carousel the id list is sorted (qsort with
+// ui_carousel_slot_compare_valid_first @0x4a7630), cut at the first -1, the selection clamped
+// into it, and the whole routine starts over (jmp 0x4a6390); the earlier rewrite dropped that
+// loop, wrote the name into the wrong widget, lost the string list indices and read the slot
+// table with a dword stride.
+// UNSURE: the loop does not terminate when the selected id can never be loaded; kept.
+// register convention: cdecl, the one stack parameter (widget).
+
+#include "crt.h"
+#include "tags.h"
+#include "memory.h"
+#include "cache.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include <wchar.h>
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern profile_carousel_slot profile_carousel_slots[3]; // 0x00873d60
+extern char joystick_set_separator_0065f010[];           // 0x0065f010, CR LF (8-bit, for %hs)
+extern uint16_t empty_string[];            // 0x00660c34
+extern heap *widget_memory_pool;                         // 0x006926c4
+
+extern void ui_profile_carousel_slot_cache_populate(int32_t count, const int32_t *candidate_ids); // 0x4a74b0, blam-cc: EBX candidate_ids
+extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
+extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+extern uint16_t *text_string_list_get_string(datum_index tag, int16_t index); // 0x5578c0, blam-cc: ECX tag, DX index
+extern void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...); // 0x557910, blam-cc: EDX max chars
+extern int32_t ui_carousel_slot_compare_valid_first(const void *a, const void *b); // 0x4a7630
+
+void player_profile_1wide_list_update(widget_instance *widget)
+{
+    for (;;) {
+        widget_instance *name_row = widget->parent->first_child;
+        widget_instance *description_row = name_row->next_sibling;
+        int32_t *ids = (int32_t *)widget->list_items;
+        int32_t profile_id = ids[widget->selection_index];
+
+        ui_profile_carousel_slot_cache_populate(1, &profile_id);
+
+        if (profile_id != -1) {
+            int32_t slot;
+            for (slot = 0; slot < 3 && profile_carousel_slots[slot].profile_id != profile_id; slot++) {
+            }
+            if (slot < 3) {
+                const uint8_t *profile = profile_carousel_slots[slot].profile;
+                uint16_t flags = *(const uint16_t *)(profile + 0x11c);
+                int16_t color = *(const int16_t *)(profile + 0x11a);
+                uint16_t *name = (uint16_t *)heap_reallocate(widget->list_render_data, 0x18, widget_memory_pool);
+
+                widget->list_render_data = name;
+                if (name == 0) {
+                    return;
+                }
+                if (flags & 1) {
+                    datum_index names = tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\default_player_profile_names");
+                    const uint16_t *source = empty_string;
+                    if (names != (datum_index)-1) {
+                        source = text_string_list_get_string(names, (int16_t)(flags >> 8));
+                    }
+                    wcsncpy((wchar_t *)name, (const wchar_t *)source, 0xb);
+                } else {
+                    wcsncpy((wchar_t *)name, (const wchar_t *)((const uint16_t *)(profile + 2)), 0xb);
+                }
+                name[0xb] = 0;
+
+                name_row->background_bitmap_frame = (color < 0) ? 0 : (color > 0x11) ? 0x11 : color;
+
+                description_row->text = heap_reallocate(description_row->text, 0x200, widget_memory_pool);
+                if (description_row->text == 0) {
+                    return;
+                }
+                {
+                    datum_index joysticks;
+                    datum_index buttons;
+                    if (*(const uint8_t *)(profile + 0x11c) & 1) {
+                        joysticks = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_defaults_descriptions");
+                        buttons = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_long_descriptions");
+                        if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
+                            ((uint16_t *)description_row->text)[0] = 0;
+                            ((uint16_t *)description_row->text)[0xff] = 0;
+                            return;
+                        }
+                    } else {
+                        joysticks = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_short_descriptions");
+                        buttons = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_short_descriptions");
+                        if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
+                            ((uint16_t *)description_row->text)[0xff] = 0;
+                            return;
+                        }
+                    }
+                    {
+                        uint16_t *joystick_text = text_string_list_get_string(joysticks, *(const uint8_t *)(profile + 0x12d));
+                        uint16_t *button_text = text_string_list_get_string(buttons, *(const uint8_t *)(profile + 0x12c));
+                        string_format_wide_va_bounded(0xff, (wchar_t *)description_row->text, L"%s%hs%s", // EDX 0xff (FIXED: count passed)
+                                                      joystick_text, joystick_set_separator_0065f010, button_text);
+                    }
+                    ((uint16_t *)description_row->text)[0xff] = 0;
+                }
+                return;
+            }
+        }
+
+        if (widget->item_count == 0) {
+            uint16_t *text = (uint16_t *)heap_reallocate(widget->list_render_data, 4, widget_memory_pool);
+            widget->list_render_data = text;
+            if (text != 0) {
+                text[0] = 0;
+            }
+            name_row->background_bitmap_frame = 0;
+            text = (uint16_t *)heap_reallocate(description_row->text, 4, widget_memory_pool);
+            description_row->text = text;
+            if (text != 0) {
+                text[0] = 0;
+            }
+            return;
+        }
+
+        {
+            int32_t count = widget->item_count;
+            int32_t valid = 0;
+            qsort(ids, (uint32_t)count, 4, ui_carousel_slot_compare_valid_first);
+            while (valid < count && ids[valid] != -1) {
+                valid++;
+            }
+            widget->item_count = (uint16_t)valid;
+            if (widget->selection_index < 0) {
+                widget->selection_index = 0;
+            } else if (widget->selection_index > (int32_t)(uint16_t)valid - 1) {
+                widget->selection_index = (int16_t)((uint16_t)valid - 1);
+            }
+        }
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x4a6380):
+
+void player_profile_1wide_list_update(int param_1)
+
+{
+  int iVar1;
+  void *_Base;
+  short sVar2;
+  int *piVar3;
+  uint uVar4;
+  int iVar5;
+  wchar_t *pwVar6;
+  int iVar7;
+  undefined4 uVar8;
+  undefined4 uVar9;
+  undefined2 *puVar10;
+  int iVar11;
+  uint _NumOfElements;
+
+  do {
+    iVar5 = *(int *)(*(int *)(param_1 + 0x30) + 0x34);
+    iVar1 = *(int *)(iVar5 + 0x2c);
+    iVar7 = *(int *)(*(int *)(param_1 + 0x44) + *(short *)(param_1 + 0x40) * 4);
+    FUN_004a74b0(1);
+    if (iVar7 != -1) {
+      iVar11 = 0;
+      piVar3 = &DAT_00873d60;
+      do {
+        if (*piVar3 == iVar7) {
+          iVar11 = iVar11 * 0x2000;
+          if (iVar11 != -0x873d64) {
+            pwVar6 = (wchar_t *)heap_reallocate(0x18);
+            *(wchar_t **)(param_1 + 0x50) = pwVar6;
+            if (pwVar6 == (wchar_t *)0x0) {
+              return;
+            }
+            if ((*(ushort *)(iVar11 + 0x873e80) & 1) == 0) {
+              _wcsncpy(pwVar6,(wchar_t *)((int)&DAT_00873d64 + iVar11 + 2),0xb);
+              *(undefined2 *)(*(int *)(param_1 + 0x50) + 0x16) = 0;
+            }
+            else {
+              iVar7 = tag_lookup("ui\\shell\\strings\\default_player_profile_names");
+              pwVar6 = L"";
+              if (iVar7 != -1) {
+                pwVar6 = (wchar_t *)text_string_list_get_string();
+              }
+              _wcsncpy(*(wchar_t **)(param_1 + 0x50),pwVar6,0xb);
+              *(undefined2 *)(*(int *)(param_1 + 0x50) + 0x16) = 0;
+            }
+            sVar2 = *(short *)(iVar11 + 0x873e7e);
+            if (sVar2 < 0) {
+              sVar2 = 0;
+            }
+            else if (0x11 < sVar2) {
+              sVar2 = 0x11;
+            }
+            *(short *)(iVar5 + 0x58) = sVar2;
+            iVar5 = heap_reallocate(0x200);
+            *(int *)(iVar1 + 0x3c) = iVar5;
+            if (iVar5 == 0) {
+              return;
+            }
+            if ((*(byte *)(iVar11 + 0x873e80) & 1) == 0) {
+              iVar5 = tag_lookup(
+                                "ui\\shell\\main_menu\\player_profiles_select\\joystick_set_short_descriptions"
+                                );
+              iVar7 = tag_lookup(
+                                "ui\\shell\\main_menu\\player_profiles_select\\button_set_short_descriptions"
+                                );
+              if ((iVar5 != -1) && (iVar7 != -1)) {
+                uVar8 = text_string_list_get_string();
+                uVar9 = text_string_list_get_string();
+                string_format_wide_va_bounded
+                          (*(undefined4 *)(iVar1 + 0x3c),L"%s%hs%s",uVar8,&DAT_0065f010,uVar9);
+              }
+            }
+            else {
+              iVar5 = tag_lookup(
+                                "ui\\shell\\main_menu\\player_profiles_select\\joystick_set_defaults_descriptions"
+                                );
+              iVar7 = tag_lookup(
+                                "ui\\shell\\main_menu\\player_profiles_select\\button_set_long_descriptions"
+                                );
+              if ((iVar5 == -1) || (iVar7 == -1)) {
+                **(undefined2 **)(iVar1 + 0x3c) = 0;
+                *(undefined2 *)(*(int *)(iVar1 + 0x3c) + 0x1fe) = 0;
+                return;
+              }
+              uVar8 = text_string_list_get_string();
+              uVar9 = text_string_list_get_string();
+              string_format_wide_va_bounded
+                        (*(undefined4 *)(iVar1 + 0x3c),L"%s%hs%s",uVar8,&DAT_0065f010,uVar9);
+              *(undefined2 *)(*(int *)(iVar1 + 0x3c) + 0x1fe) = 0;
+            }
+            *(undefined2 *)(*(int *)(iVar1 + 0x3c) + 0x1fe) = 0;
+            return;
+          }
+          break;
+        }
+        piVar3 = piVar3 + 0x800;
+        iVar11 = iVar11 + 1;
+      } while ((int)piVar3 < 0x879d60);
+    }
+    if (*(ushort *)(param_1 + 0x48) == 0) {
+      puVar10 = (undefined2 *)heap_reallocate(4);
+      *(undefined2 **)(param_1 + 0x50) = puVar10;
+      if (puVar10 != (undefined2 *)0x0) {
+        *puVar10 = 0;
+      }
+      *(undefined2 *)(iVar5 + 0x58) = 0;
+      puVar10 = (undefined2 *)heap_reallocate(4);
+      *(undefined2 **)(iVar1 + 0x3c) = puVar10;
+      if (puVar10 != (undefined2 *)0x0) {
+        *puVar10 = 0;
+      }
+      return;
+    }
+    _Base = *(void **)(param_1 + 0x44);
+    _NumOfElements = (uint)*(ushort *)(param_1 + 0x48);
+    _qsort(_Base,_NumOfElements,4,FUN_004a7630);
+    uVar4 = 0;
+    if (_NumOfElements != 0) {
+      do {
+        if (*(int *)((int)_Base + uVar4 * 4) == -1) break;
+        uVar4 = uVar4 + 1;
+      } while ((int)uVar4 < (int)_NumOfElements);
+    }
+    sVar2 = *(short *)(param_1 + 0x40);
+    *(short *)(param_1 + 0x48) = (short)uVar4;
+    if (sVar2 < 0) {
+      *(undefined2 *)(param_1 + 0x40) = 0;
+    }
+    else {
+      iVar5 = (uVar4 & 0xffff) - 1;
+      if (sVar2 <= iVar5) {
+        iVar5 = (int)sVar2;
+      }
+      *(short *)(param_1 + 0x40) = (short)iVar5;
+    }
+  } while( true );
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_apply_audio_options.c (original, verbatim) ====
+// player_profile_apply_audio_options  (Ghidra: FUN_004957d0, unnamed)
+// address 0x4957d0, size 409 bytes
+// name confidence: 0.4   rewrite confidence: 0.45
+// evidence: out/phase4/interface_functions.md "Applies the current profile's audio settings
+// (music/effects/voice volume and related toggles) to the sound system."; sibling function
+// player_profile_apply_video_options.c's precedent for safe_mode (0x007196f4)
+// and the settings-block-in-register convention.
+// register convention: profile settings block in ESI (unaff_ESI). // blam-cc: ESI -> settings
+// UNSURE: sound_set_master_gain (the first of three 0..10 gain setters, called with settings+0xb78) is
+// not otherwise named or attested; the sound module is well outside this batch. sound_driver_set_quality's
+// three boolean/byte arguments (an "enabled" flag gated on three other conditions, a
+// settings+0xb7b == 1 flag, and the raw settings+0xb7d byte) are likewise unresolved beyond what
+// this one call site shows. DAT_007252e0, DAT_00746120 and DAT_007252b8 are foreign sound-module
+// globals named only by role.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t safe_mode; // 0x007196f4
+
+extern uint8_t directsound_initialized; // 0x007252e0, UNSURE
+extern uint8_t directsound_eax_available; // 0x00746120, UNSURE
+extern uint16_t sound_permutation_limit;       // 0x007252b8, UNSURE
+
+extern void sound_driver_set_quality(int32_t enabled, uint8_t flag_b7b, uint8_t value_b7d); // 0x5480f0, UNSURE
+extern void sound_set_master_gain(float gain);          // 0x548590, UNSURE: first of three gain setters
+extern void sound_set_music_gain(float gain);   // 0x548680
+extern void sound_set_effects_gain(float gain); // 0x5487b0
+
+// blam-cc: ESI -> settings
+// Applies the profile's audio settings: three 0..10 volume sliders (settings+0xb78..0xb7a,
+// scaled to 0.0..1.0 and clamped) for the master/effects/music gains, an environment/EAX id
+// (settings+0xb7f), and an environment-enable call gated on hardware support plus
+// settings+0xb7c, carrying settings+0xb7b and settings+0xb7d along.
+void player_profile_apply_audio_options(uint8_t *settings)
+{
+    float gain;
+    int32_t environment_enabled;
+
+    if (safe_mode != 0) {
+        settings[0xb78] = 10;
+        settings[0xb79] = 10;
+        settings[0xb7a] = 6;
+        settings[0xb7b] = 0;
+        settings[0xb7c] = 0;
+        settings[0xb7d] = 0;
+        settings[0xb7e] = 0;
+        settings[0xb7f] = 0;
+    }
+
+    gain = (float)settings[0xb78] * 0.1f;
+    if (gain < 0.0f) {
+        gain = 0.0f;
+    } else if (gain > 1.0f) {
+        gain = 1.0f;
+    }
+    sound_set_master_gain(gain);
+
+    gain = (float)settings[0xb79] * 0.1f;
+    if (gain < 0.0f) {
+        gain = 0.0f;
+    } else if (gain > 1.0f) {
+        gain = 1.0f;
+    }
+    sound_set_effects_gain(gain); // 0x5487b0
+
+    gain = (float)settings[0xb7a] * 0.1f;
+    if (gain < 0.0f) {
+        gain = 0.0f;
+    } else if (gain > 1.0f) {
+        gain = 1.0f;
+    }
+    sound_set_music_gain(gain); // 0x548680
+
+    sound_permutation_limit = settings[0xb7f];
+    if (directsound_initialized == 0 || directsound_eax_available == 0 ||
+        settings[0xb7c] == 0) {
+        environment_enabled = 0;
+    } else {
+        environment_enabled = 1;
+    }
+    sound_driver_set_quality(environment_enabled, settings[0xb7b] == 1, settings[0xb7d]);
+}
+
+#if 0
+Original Ghidra decompilation (0x4957d0):
+
+void FUN_004957d0(void)
+
+{
+  undefined4 uVar1;
+  int unaff_ESI;
+  float local_4;
+
+  if (DAT_007196f4 != 0) {
+    *(undefined1 *)(unaff_ESI + 0xb78) = 10;
+    *(undefined1 *)(unaff_ESI + 0xb79) = 10;
+    *(undefined1 *)(unaff_ESI + 0xb7a) = 6;
+    *(undefined1 *)(unaff_ESI + 0xb7b) = 0;
+    *(undefined1 *)(unaff_ESI + 0xb7c) = 0;
+    *(undefined1 *)(unaff_ESI + 0xb7d) = 0;
+    *(undefined1 *)(unaff_ESI + 0xb7e) = 0;
+    *(undefined1 *)(unaff_ESI + 0xb7f) = 0;
+  }
+  local_4 = (float)*(byte *)(unaff_ESI + 0xb78) * 0.1;
+  if (0.0 <= local_4) {
+    if (1.0 < local_4) {
+      local_4 = 1.0;
+    }
+  }
+  else {
+    local_4 = 0.0;
+  }
+  FUN_00548590(local_4);
+  local_4 = (float)*(byte *)(unaff_ESI + 0xb79) * 0.1;
+  if (0.0 <= local_4) {
+    if (1.0 < local_4) {
+      local_4 = 1.0;
+    }
+  }
+  else {
+    local_4 = 0.0;
+  }
+  sound_set_effects_gain(local_4);
+  local_4 = (float)*(byte *)(unaff_ESI + 0xb7a) * 0.1;
+  if (0.0 <= local_4) {
+    if (1.0 < local_4) {
+      local_4 = 1.0;
+    }
+  }
+  else {
+    local_4 = 0.0;
+  }
+  sound_set_music_gain(local_4);
+  DAT_007252b8 = (ushort)*(byte *)(unaff_ESI + 0xb7f);
+  if (((DAT_007252e0 == '\0') || (DAT_00746120 == '\0')) || (*(char *)(unaff_ESI + 0xb7c) == '\0'))
+  {
+    uVar1 = 0;
+  }
+  else {
+    uVar1 = 1;
+  }
+  FUN_005480f0(uVar1,*(char *)(unaff_ESI + 0xb7b) == '\x01',*(undefined1 *)(unaff_ESI + 0xb7d));
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_apply_video_options.c (original, verbatim) ====
+// player_profile_apply_video_options  (Ghidra: FUN_00495580, unnamed)
+// address 0x495580, size 584 bytes
+// name confidence: 0.4   rewrite confidence: 0.85
+// evidence: out/phase4/interface_functions.md "Applies a set of video/display options
+// (vsync-like mode, gamma, misc toggles) from the current profile."; src/cache/cache_file_unload.c
+// and src/cache/texture_cache_new.c's confirmed texture_cache (0x006ac540, cache::age at +0x30);
+// src/cache/cache_file_unload.c's cache_flush(cache *self) [ESI] convention.
+// register convention: profile settings block in EAX (in_EAX). // blam-cc: EAX -> settings
+// UNSURE: the rasterizer device-reset path (rasterizer_display_mode_differs, rasterizer_build_present_parameters,
+// rasterizer_device_reset, the vtable call at *DAT_0071d174+0x20, rasterizer_resize_game_window)
+// and the great majority of the DAT_0068... / DAT_0069c5.. / DAT_007c1... globals belong to the
+// rasterizer module, well outside this batch; every name/signature below is inferred solely from
+// this call site. The settings offsets (0xa6f..0xa76) are read from a caller-owned block whose
+// true type this batch does not recover (see interface_types_notes.md's player_control_settings
+// entry); kept as raw byte offsets into an opaque buffer.
+// UNSURE: the return value's upper 3 bytes are `extraout_EAX`-derived decompiler noise from a
+// register that survives an untaken/taken call path; only the low byte (a success flag, always 1
+// on every path Ghidra shows: local_5c is never negative) is semantically real, so this is
+// rewritten to return a plain int32_t 1.
+// REWRITTEN (first-boot track, objdump 0x495580..0x4957c7): the old version called the display-mode check with
+//   no mode, dropped the desktop-size fallback, wrote 32-bit values over the 16-bit globals at 0x00689450 and
+//   0x0068944c (clobbering the present mode word next to them) and read the tick flag as a byte. Now:
+//   - the mode compared is built from the settings: width +0xa68, height +0xa6a, refresh +0xa6c (int16 each),
+//     vsync = +0xa6f != 0; when no device exists yet and it does not fit the desktop (unsigned compares against
+//     GetWindowRect(GetDesktopWindow())), 800x600 is used if the desktop is taller than 600, else 640x480
+//   - a differing mode (and no reset already pending) builds present parameters from it, resets the device, reads
+//     the display mode back (device vtable +0x20, GetDisplayMode(0, 0x007c11f0)) and resizes the window; the
+//     result is always 1 (the local only ever holds 0 or 1 and the return is `>= 0`)
+
+#include "win32.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t safe_mode;   // 0x007196f4
+extern int16_t renderer_texture_quality;      // 0x0068944e
+extern int16_t unknown_00689450;             // 0x00689450, always set to 2 here
+extern int32_t game_time_force_single_tick;  // 0x007196d8
+extern uint8_t unknown_006894ba;             // 0x006894ba
+extern uint8_t rasterizer_fullscreen;      // 0x0071d16c
+extern void *rasterizer_device;              // 0x0071d174
+extern uint8_t rasterizer_needs_reset;       // 0x0071d16d
+extern uint8_t rasterizer_desktop_display_mode[];   // 0x007c11f0, the D3DDISPLAYMODE GetDisplayMode fills
+extern uint32_t config_disable_specular; // 0x00722b6c
+extern uint8_t console_debug_toggle_6893f7;             // 0x006893f7
+extern uint8_t console_debug_toggle_6893f6;             // 0x006893f6
+extern uint8_t console_debug_toggle_6893fa;             // 0x006893fa
+extern uint32_t rasterizer_device_version;   // 0x007c118c
+extern uint8_t console_debug_toggle_6893f2;             // 0x006893f2
+extern uint32_t rasterizer_capability_007c10e4; // 0x007c10e4
+extern int16_t light_count_enabled;          // 0x0068944c, always set to 2 here
+extern uint8_t unknown_006893ff;             // 0x006893ff
+extern uint8_t console_debug_toggle_689404;             // 0x00689404
+extern uint8_t decals_for_all_responses;     // 0x006893f5
+extern uint8_t particle_spawn_debug_mode;    // 0x0069c565
+extern uint8_t particle_systems_enabled;     // 0x0069c566
+extern int32_t rasterizer_gamma_exponent;             // 0x0071d1e0
+extern struct cache *texture_cache;          // 0x006ac540
+
+extern uint8_t rasterizer_display_mode_differs(rasterizer_display_mode *requested); // 0x515d10, blam-cc: EDI -> requested
+extern void rasterizer_build_present_parameters(void *dest, rasterizer_display_mode *source); // 0x515fc0,
+    // blam-cc: EAX -> source, stack -> dest
+extern uint8_t rasterizer_device_reset(void *present_parameters); // 0x515d90, stack -> present_parameters
+extern void rasterizer_resize_game_window(int32_t height, int32_t width); // 0x515b20, blam-cc: EAX -> height, ECX -> width
+extern void chimera__gamma(void); // 0x5227a0
+extern void cache_flush(struct cache *self); // 0x4d17f0, blam-cc: ESI -> self
+
+typedef int32_t (__stdcall *d3d_get_display_mode_fn)(void *device, uint32_t swap_chain, void *mode);
+
+// blam-cc: EAX -> settings
+// Applies the profile's video options (settings is the profile's settings block): the present mode from +0xa74,
+// the display mode from +0xa68..+0xa6f (resetting the device when it differs), and the detail toggles and gamma
+// from +0xa70..+0xa76. Flushes the texture cache when the present mode changed.
+uint8_t player_profile_apply_video_options(uint8_t *settings)
+{
+    rasterizer_display_mode mode;
+    win32_rect desktop;
+    uint8_t present_parameters[0x38];
+    uint8_t mode_changed = 0;
+    int32_t reset = 0;
+    int16_t new_mode;
+    uint8_t value;
+
+    if (safe_mode != 0) {
+        settings[0xa70] = 0;
+        settings[0xa71] = 0;
+        settings[0xa72] = 0;
+        settings[0xa74] = 0;
+        settings[0xa73] = 0;
+    }
+    switch (settings[0xa74]) {
+    case 0: new_mode = 2; break;
+    case 1: new_mode = 1; break;
+    case 2: new_mode = 0; break;
+    default: new_mode = -1; break;
+    }
+    if (new_mode >= 0) {
+        mode_changed = renderer_texture_quality != new_mode;
+        renderer_texture_quality = new_mode;
+    }
+    unknown_00689450 = 2;
+
+    mode.width = *(int16_t *)(settings + 0xa68);
+    mode.height = *(int16_t *)(settings + 0xa6a);
+    mode.refresh_rate = *(int16_t *)(settings + 0xa6c);
+    mode.vsync = settings[0xa6f] != 0;
+    unknown_006894ba = game_time_force_single_tick != 0 ? 0 : settings[0xa6f] == 2;
+
+    if (rasterizer_fullscreen == 0 || rasterizer_device == 0) {
+        GetWindowRect(GetDesktopWindow(), &desktop);
+        if ((uint32_t)mode.height >= (uint32_t)desktop.bottom || (uint32_t)mode.width >= (uint32_t)desktop.right) {
+            if (desktop.bottom > 600) {
+                mode.width = 800;
+                mode.height = 600;
+            } else {
+                mode.width = 640;
+                mode.height = 480;
+            }
+        }
+    }
+    if (rasterizer_needs_reset == 0 && rasterizer_display_mode_differs(&mode)) {
+        void **vtable;
+
+        rasterizer_build_present_parameters(present_parameters, &mode);
+        rasterizer_device_reset(present_parameters);
+        vtable = *(void ***)rasterizer_device;
+        ((d3d_get_display_mode_fn)vtable[0x20 / 4])(rasterizer_device, 0, rasterizer_desktop_display_mode);
+        reset = 1;
+        rasterizer_resize_game_window(mode.height, mode.width);
+        rasterizer_needs_reset = 0;
+    }
+
+    value = config_disable_specular != 0 ? 0 : settings[0xa70];
+    console_debug_toggle_6893f7 = value;
+    console_debug_toggle_6893f6 = value;
+    console_debug_toggle_6893fa = value;
+    console_debug_toggle_6893f2 = rasterizer_device_version < 0xffff0101u ? 0 : settings[0xa71];
+    light_count_enabled = 2;
+    unknown_006893ff = 1;
+    console_debug_toggle_689404 = 1;
+    decals_for_all_responses = (rasterizer_capability_007c10e4 & 0x6000000u) != 0 ? settings[0xa72] : 0;
+    particle_spawn_debug_mode = settings[0xa73];
+    particle_systems_enabled = settings[0xa73];
+    rasterizer_gamma_exponent = settings[0xa76];
+    chimera__gamma();
+
+    if (mode_changed) {
+        texture_cache->age = texture_cache->age + 1;
+        cache_flush(texture_cache);
+    }
+    return reset >= 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x495580):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_00495580(void)
+
+{
+  char cVar1;
+  short sVar2;
+  int in_EAX;
+  HWND hWnd;
+  undefined4 extraout_EAX;
+  undefined3 uVar3;
+  undefined3 extraout_var;
+  bool bVar4;
+  tagRECT *lpRect;
+  int local_5c;
+  tagRECT local_48;
+  undefined1 local_38 [56];
+
+  bVar4 = false;
+  if (DAT_007196f4 != 0) {
+    *(undefined1 *)(in_EAX + 0xa70) = 0;
+    *(undefined1 *)(in_EAX + 0xa71) = 0;
+    *(undefined1 *)(in_EAX + 0xa72) = 0;
+    *(undefined1 *)(in_EAX + 0xa74) = 0;
+    *(undefined1 *)(in_EAX + 0xa73) = 0;
+  }
+  cVar1 = *(char *)(in_EAX + 0xa74);
+  if (cVar1 == '\0') {
+    sVar2 = 2;
+LAB_004955e9:
+    bVar4 = DAT_0068944e == sVar2;
+    DAT_0068944e = sVar2;
+  }
+  else {
+    if (cVar1 == '\x01') {
+      sVar2 = 1;
+      goto LAB_004955e9;
+    }
+    if (cVar1 != '\x02') goto LAB_004955fb;
+    bVar4 = DAT_0068944e == 0;
+    DAT_0068944e = 0;
+  }
+  bVar4 = !bVar4;
+LAB_004955fb:
+  DAT_00689450 = 2;
+  DAT_006894ba = DAT_007196d8 == 0 && *(char *)(in_EAX + 0xa6f) == '\x02';
+  if ((DAT_0071d16c == '\0') || (DAT_0071d174 == (int *)0x0)) {
+    lpRect = &local_48;
+    hWnd = GetDesktopWindow();
+    GetWindowRect(hWnd,lpRect);
+  }
+  local_5c = 0;
+  if ((DAT_0071d16d == '\0') && (cVar1 = FUN_00515d10(), cVar1 != '\0')) {
+    rasterizer_build_present_parameters(local_38);
+    rasterizer_device_reset(local_38);
+    (**(code **)(*DAT_0071d174 + 0x20))(DAT_0071d174,0,&DAT_007c11f0);
+    local_5c = 1;
+    rasterizer_resize_game_window();
+    DAT_0071d16d = '\0';
+  }
+  if (DAT_00722b6c == 0) {
+    DAT_006893f6 = *(undefined1 *)(in_EAX + 0xa70);
+  }
+  else {
+    DAT_006893f6 = 0;
+  }
+  if (DAT_007c118c < 0xffff0101) {
+    DAT_006893f2 = 0;
+  }
+  else {
+    DAT_006893f2 = *(undefined1 *)(in_EAX + 0xa71);
+  }
+  DAT_0068944c = 2;
+  DAT_006893ff = 1;
+  DAT_00689404 = 1;
+  if ((_DAT_007c10e4 & 0x6000000) == 0) {
+    DAT_006893f5 = 0;
+  }
+  else {
+    DAT_006893f5 = *(undefined1 *)(in_EAX + 0xa72);
+  }
+  _DAT_0071d1e0 = (uint)*(byte *)(in_EAX + 0xa76);
+  DAT_0069c565 = *(undefined1 *)(in_EAX + 0xa73);
+  DAT_006893f7 = DAT_006893f6;
+  DAT_006893fa = DAT_006893f6;
+  DAT_0069c566 = DAT_0069c565;
+  chimera__gamma();
+  uVar3 = (undefined3)((uint)extraout_EAX >> 8);
+  if (bVar4) {
+    *(int *)(DAT_006ac540 + 0x30) = *(int *)(DAT_006ac540 + 0x30) + 1;
+    cache_flush();
+    uVar3 = extraout_var;
+  }
+  return CONCAT31(uVar3,-1 < local_5c);
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_auto_select.c (original, verbatim) ====
+// player_profile_auto_select  (Ghidra: FUN_004952c0, unnamed)
+// address 0x4952c0, size 174 bytes
+// name confidence: 0.4   rewrite confidence: 0.95
+// evidence: out/phase4/interface_functions.md "Attempts to automatically select and load an
+// existing player profile at startup, falling back to a default (-1) profile if none is found
+// valid."; src/game/game_engine_get_variant_by_name.c's saved_game_enumerate_by_type
+// convention (EBX -> capacity-then-count int32).
+// register convention: none (void).
+// Review pass (phase 4): rebuilt from the disassembly. Ghidra's `int local_2000[2047]` is really
+// the 0x2004 byte frame {int32 count; int32 slot; uint8 profile[0x1ffc]}: EBX points at the count
+// (1 in), the slot array is one entry long, and the profile record at +8 is what
+// player_profile_get fills (ECX) and player_profile_load copies (EDX, player index 0 in EAX,
+// slot on the stack). Each enumeration is only trusted when its returned count is positive.
+// Note: player_profile_get / saved_game_enumerate_by_type are owned by the profile module
+// (0x0053a000 region) and defined in other files.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
+    uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
+    // 0x53c4e0; blam-cc: EBX -> capacity-then-count int32
+extern uint8_t player_profile_get(int32_t slot, void *out_profile); // 0x53a770; blam-cc: ECX -> out_profile
+extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970
+
+// Looks for an existing player profile at startup: tries a type-0 enumeration with flag 0 first
+// and loads that slot if it validates; otherwise (nothing found) tries flag 1 and, if that slot
+// validates, loads its record as the default (-1) profile. Does nothing if neither validates.
+void player_profile_auto_select(void)
+{
+    int32_t count;                 // esp+0x08 in the body, frame +0
+    int32_t slot;                  // frame +4
+    uint8_t profile_data[0x1ffc];  // frame +8
+
+    count = 1;
+    slot = -1;
+    saved_game_enumerate_by_type(0, &slot, 0, (uint16_t *)&count); // 0x49531f: EBX = &count
+    if ((int16_t)count > 0 && slot != -1) {
+        if (player_profile_get(slot, profile_data) == 0) {
+            return;
+        }
+        player_profile_load(0, profile_data, slot);
+        return;
+    }
+
+    count = 1;
+    saved_game_enumerate_by_type(0, &slot, 1, (uint16_t *)&count); // EBX = &count
+    if ((int16_t)count <= 0 || slot == -1) {
+        return;
+    }
+    if (player_profile_get(slot, profile_data) == 0) {
+        return;
+    }
+    player_profile_load(0, profile_data, -1);
+}
+
+#if 0
+Original Ghidra decompilation (0x4952c0):
+
+/* WARNING: Function: __chkstk replaced with injection: alloca_probe */
+
+void FUN_004952c0(void)
+
+{
+  char cVar1;
+  int iVar2;
+  int local_2000 [2047];
+  undefined4 uStack_4;
+
+  uStack_4 = 0x4952ca;
+  local_2000[0] = -1;
+  saved_game_enumerate_by_type(0,local_2000,0);
+  iVar2 = local_2000[0];
+  if (local_2000[0] == -1) {
+    saved_game_enumerate_by_type(0,local_2000,1);
+    if (local_2000[0] == -1) {
+      return;
+    }
+    cVar1 = player_profile_get(local_2000[0]);
+    if (cVar1 == '\0') {
+      return;
+    }
+    iVar2 = -1;
+  }
+  else {
+    cVar1 = player_profile_get(local_2000[0]);
+    if (cVar1 == '\0') {
+      return;
+    }
+  }
+  player_profile_load(iVar2);
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_check_storage_and_defaults.c (original, verbatim) ====
+// player_profile_check_storage_and_defaults  (Ghidra: FUN_0049c680, renamed)
+// renamed from FUN_0049c680 in the naming pass
+// address 0x49c680, size 136 bytes
+// name confidence: 0.35   rewrite confidence: 0.45
+// evidence: functions.md: "Initializes the player profile system on startup: creates default
+// profile files on disk if needed, then loads and selects the current profile." Near-duplicate of
+// the more thoroughly analyzed player_profile_subsystem_initialize.c (0x495370, outside this
+// range), which already established cached_profile_slot (0x0068e66c) and last_profile_name
+// (0x00718e80); loading_thread_result (0x00718fc0) is reused here from chimera__load_main_menu.c/
+// interface_tick.c since this function's storage-availability result is a plausible producer of
+// that same status code.
+// register convention: none (void); always returns 0.
+// FIXED (objdump 0x49c6ee): saved_game_find_by_name takes TWO arguments (name, 0); Ghidra's third was the
+//   enumeration count slot (preset 1) still on the stack.
+// TYPES-GAP: playlist_profiles_need_defaults is not documented by any header read this
+// session.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint8_t loading_thread_result;                    // 0x00718fc0
+extern uint8_t playlist_profiles_need_defaults;    // 0x0069e8d0, TYPES-GAP
+extern char last_profile_name[];                          // 0x00718e80
+extern int32_t cached_profile_slot;                       // 0x0068e66c
+
+extern uint32_t saved_game_check_storage_availability(void); // 0x53d120
+extern void playlist_profile_create_default_profiles_on_disk(void); // 0x53bc70
+extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
+    uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
+extern uint8_t saved_game_last_profile_read(char *name_buffer); // 0x53d2b0
+extern int32_t saved_game_find_by_name(char *name, int16_t type); // 0x53d4a0, stack (name, type)
+
+// Checks storage availability, creates the on-disk default profiles the first time this is
+// needed, refreshes both saved-game enumeration lists, and resolves the cached profile slot from
+// the last-used profile name if it is not already known. Always returns 0.
+int32_t player_profile_check_storage_and_defaults(void)
+{
+    int32_t enumeration_scratch[1];
+
+    loading_thread_result = (uint8_t)saved_game_check_storage_availability();
+    if (loading_thread_result == 0) {
+        if (playlist_profiles_need_defaults == 1) {
+            playlist_profile_create_default_profiles_on_disk();
+            playlist_profiles_need_defaults = 0;
+        }
+        {   // 0x49c699..0x49c6cb: one count (preset 1) at EBX for both calls; the second sees what the first left
+            uint32_t count = 1;
+            saved_game_enumerate_by_type(1, enumeration_scratch, 1, (uint16_t *)&count);
+            saved_game_enumerate_by_type(0, enumeration_scratch, 1, (uint16_t *)&count);
+        }
+        if (last_profile_name[0] == '\0') {
+            if (saved_game_last_profile_read(last_profile_name) != 0) {
+                cached_profile_slot = saved_game_find_by_name(last_profile_name, 0); // 0x49c6ee: push 0, push name; add esp,8
+            }
+        }
+    }
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x49c680):
+
+undefined4 FUN_0049c680(void)
+
+{
+  char cVar1;
+  uint uVar2;
+  undefined4 uVar3;
+  undefined1 local_4 [4];
+
+  uVar2 = saved_game_check_storage_availability();
+  DAT_00718fc0 = (short)uVar2;
+  if (DAT_00718fc0 == 0) {
+    uVar3 = 1;
+    if (DAT_0069e8d0 == '\x01') {
+      playlist_profile_create_default_profiles_on_disk();
+      DAT_0069e8d0 = '\0';
+    }
+    saved_game_enumerate_by_type(1,local_4,1);
+    saved_game_enumerate_by_type(0,local_4,1);
+    if (DAT_00718e80 == '\0') {
+      cVar1 = saved_game_last_profile_read(0x718e80);
+      if (cVar1 != '\0') {
+        DAT_0068e66c = saved_game_find_by_name(&DAT_00718e80,0,uVar3);
+      }
+    }
+  }
+  return 0;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_details_widget_refresh.c (original, verbatim) ====
+// player_profile_details_widget_refresh  (Ghidra: player_profile_details_widget_refresh, already
+// named)
+// address 0x4a6100, size 434 bytes
+// name confidence: 0.5   rewrite confidence: 0.85
+// evidence: matches the given name; functions.md: "Refreshes the player-profile detail widgets
+// (name, sensitivity, controller type, invert flag) for a selected profile, or blanks them if
+// none is selected."
+// REWRITTEN 2026-09-27 (static loop) from objdump 0x4a6100..0x4a62b1. Widgets: A = widget->first_child,
+//   B = A->next, C = B->next, D = C->first_child, then E..J = D's next-sibling chain (the draft missed J, the
+//   ninth). With a profile: A, E..J shown and D hidden; A's text = the profile name (0xb chars, from the
+//   default-name string list when +0x11c bit 0 marks a default profile, index = +0x11c >> 8); B's bitmap frame =
+//   look sensitivity (+0x11a clamped 0..17). A default profile hides F and H; otherwise
+//   player_profile_scan_campaign_progress(ECX = &type (the argument slot is reused), EDX = profile, ESI = &level)
+//   and F.selection = min(level + 1, 9), H.selection = type, J.selection = (+0x12f == 1). The draft passed no
+//   arguments to the scan and fed a widget pointer through as the level. Without a profile: A, E..J hidden,
+//   D shown, B's frame 0x12.
+// blam-cc: EAX -> widget, stack -> profile_record
+
+#include "crt.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include "cache.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint16_t hud_text_unknown[]; // 0x0066a750
+
+extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
+extern heap *widget_memory_pool; // 0x006926c4
+extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+extern void player_profile_scan_campaign_progress(int16_t *out_type, void *profile,
+    int16_t *out_level); // 0x539e00, ECX out_type, EDX profile, ESI out_level
+extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index); // 0x5578c0, ECX list, EDX index
+
+// blam-cc: EAX -> widget, stack -> profile_record
+void player_profile_details_widget_refresh(widget_instance *widget, const uint8_t *profile_record)
+{
+    widget_instance *a = widget->first_child;
+    widget_instance *b = a->next_sibling;
+    widget_instance *d = b->next_sibling->first_child;
+    widget_instance *e = d->next_sibling;
+    widget_instance *f = e->next_sibling;
+    widget_instance *g = f->next_sibling;
+    widget_instance *h = g->next_sibling;
+    widget_instance *i = h->next_sibling;
+    widget_instance *j = i->next_sibling;
+    int16_t sensitivity;
+
+    if (profile_record == (const uint8_t *)0) {
+        a->state = 0;
+        b->background_bitmap_frame = 0x12;
+        d->state = 1;
+        e->state = 0;
+        f->state = 0;
+        g->state = 0;
+        h->state = 0;
+        i->state = 0;
+        j->state = 0;
+        return;
+    }
+
+    a->state = 1;
+    d->state = 0;
+    e->state = 1;
+    f->state = 1;
+    g->state = 1;
+    h->state = 1;
+    i->state = 1;
+    j->state = 1;
+
+    a->text = heap_reallocate(a->text, 0x18, widget_memory_pool);
+    if (a->text != 0) {
+        uint16_t flags = *(const uint16_t *)(profile_record + 0x11c);
+
+        if ((flags & 1) != 0) {
+            datum_index names_tag =
+                tag_lookup(0x75737472 /* 'ustr' */, (char *)"ui\\shell\\strings\\default_player_profile_names");
+            const uint16_t *source = names_tag != (datum_index)-1
+                ? text_string_list_get_string(names_tag, (int16_t)(flags >> 8))
+                : hud_text_unknown;
+
+            wcsncpy((wchar_t *)((uint16_t *)a->text), (const wchar_t *)source, 0xb);
+        } else {
+            wcsncpy((wchar_t *)((uint16_t *)a->text), (const wchar_t *)((const uint16_t *)(profile_record + 2)), 0xb);
+        }
+        ((uint16_t *)a->text)[0xb] = 0;
+    }
+
+    sensitivity = *(const int16_t *)(profile_record + 0x11a);
+    if (sensitivity < 0) {
+        sensitivity = 0;
+    } else if (sensitivity > 0x11) {
+        sensitivity = 0x11;
+    }
+    b->background_bitmap_frame = sensitivity;
+
+    if ((profile_record[0x11c] & 1) != 0) {
+        f->state = 0;
+        h->state = 0;
+        return;
+    }
+
+    {
+        int16_t type = 0;
+        int16_t level = 0;
+        int32_t next_level;
+
+        player_profile_scan_campaign_progress(&type, (void *)profile_record, &level);
+        next_level = level + 1;
+        if (next_level > 9) {
+            next_level = 9;
+        }
+        f->selection_index = (int16_t)next_level;
+        h->selection_index = type;
+        j->selection_index = profile_record[0x12f] == 1;
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x4a6100):
+
+void player_profile_details_widget_refresh(int param_1)
+
+{
+  int iVar1;
+  int iVar2;
+  int iVar3;
+  int iVar4;
+  int iVar5;
+  int iVar6;
+  int iVar7;
+  short sVar8;
+  int in_EAX;
+  wchar_t *_Dest;
+  int iVar9;
+  undefined **_Source;
+  int iVar10;
+  short local_4;
+
+  iVar10 = *(int *)(in_EAX + 0x34);
+  iVar1 = *(int *)(iVar10 + 0x2c);
+  iVar9 = *(int *)(*(int *)(iVar1 + 0x2c) + 0x34);
+  iVar2 = *(int *)(iVar9 + 0x2c);
+  iVar3 = *(int *)(iVar2 + 0x2c);
+  iVar4 = *(int *)(iVar3 + 0x2c);
+  iVar5 = *(int *)(iVar4 + 0x2c);
+  iVar6 = *(int *)(iVar5 + 0x2c);
+  iVar7 = *(int *)(iVar6 + 0x2c);
+  if (param_1 == 0) {
+    *(undefined1 *)(iVar10 + 0x10) = 0;
+    *(undefined2 *)(iVar1 + 0x58) = 0x12;
+    *(undefined1 *)(iVar9 + 0x10) = 1;
+    *(undefined1 *)(iVar2 + 0x10) = 0;
+    *(undefined1 *)(iVar3 + 0x10) = 0;
+    *(undefined1 *)(iVar4 + 0x10) = 0;
+    *(undefined1 *)(iVar5 + 0x10) = 0;
+    *(undefined1 *)(iVar6 + 0x10) = 0;
+    *(undefined1 *)(iVar7 + 0x10) = 0;
+    return;
+  }
+  *(undefined1 *)(iVar10 + 0x10) = 1;
+  *(undefined1 *)(iVar9 + 0x10) = 0;
+  *(undefined1 *)(iVar2 + 0x10) = 1;
+  *(undefined1 *)(iVar3 + 0x10) = 1;
+  *(undefined1 *)(iVar4 + 0x10) = 1;
+  *(undefined1 *)(iVar5 + 0x10) = 1;
+  *(undefined1 *)(iVar6 + 0x10) = 1;
+  *(undefined1 *)(iVar7 + 0x10) = 1;
+  _Dest = (wchar_t *)heap_reallocate(0x18);
+  *(wchar_t **)(iVar10 + 0x3c) = _Dest;
+  if (_Dest != (wchar_t *)0x0) {
+    if ((*(ushort *)(param_1 + 0x11c) & 1) == 0) {
+      _wcsncpy(_Dest,(wchar_t *)(param_1 + 2),0xb);
+    }
+    else {
+      iVar9 = tag_lookup("ui\\shell\\strings\\default_player_profile_names");
+      if (iVar9 == -1) {
+        _Source = &PTR_DAT_0066a750;
+      }
+      else {
+        _Source = (undefined **)text_string_list_get_string();
+      }
+      _wcsncpy(*(wchar_t **)(iVar10 + 0x3c),(wchar_t *)_Source,0xb);
+    }
+    *(undefined2 *)(*(int *)(iVar10 + 0x3c) + 0x16) = 0;
+  }
+  sVar8 = *(short *)(param_1 + 0x11a);
+  if (sVar8 < 0) {
+    sVar8 = 0;
+  }
+  else if (0x11 < sVar8) {
+    sVar8 = 0x11;
+  }
+  *(short *)(iVar1 + 0x58) = sVar8;
+  if ((*(byte *)(param_1 + 0x11c) & 1) == 0) {
+    FUN_00539e00();
+    local_4 = (short)iVar3;
+    iVar10 = local_4 + 1;
+    if (9 < iVar10) {
+      iVar10 = 9;
+    }
+    *(short *)(iVar3 + 0x40) = (short)iVar10;
+    *(undefined2 *)(iVar5 + 0x40) = (undefined2)param_1;
+    *(ushort *)(iVar7 + 0x40) = (ushort)(*(char *)(param_1 + 0x12f) == '\x01');
+    return;
+  }
+  *(undefined1 *)(iVar3 + 0x10) = 0;
+  *(undefined1 *)(iVar5 + 0x10) = 0;
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_find_index_by_id.c (original, verbatim) ====
+// player_profile_find_index_by_id  (Ghidra: player_profile_find_index_by_id, already named)
+// address 0x4954f0, size 33 bytes
+// name confidence: 0.5   rewrite confidence: 0.6
+// evidence: out/phase4/interface_functions.md "Finds the profile-slot index whose stored id
+// matches the requested controller/profile id."; types/interface.h "global 0x00714dde:
+// int16_t profile_slot_id[]  scanned by 0x4954f0" -- the loop's own bound ((short)i < 1 after
+// the first increment) confirms retail PC has exactly one slot, matching the module's other
+// single-local-player patterns.
+// register convention: profile id in CX (in_CX). // blam-cc: CX -> id
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int16_t profile_slot_id[]; // 0x00714dde
+
+// Returns 0 if `id` matches the (sole, retail-PC) profile slot's stored id, else -1.
+// FIXED (objdump): every ret sets only AX; the upper bits of EAX are left as they were
+int16_t player_profile_find_index_by_id(int16_t id)
+{
+    if (profile_slot_id[0] == id) {
+        return 0;
+    }
+    return -1;
+}
+
+#if 0
+Original Ghidra decompilation (0x4954f0):
+
+int player_profile_find_index_by_id(void)
+
+{
+  int iVar1;
+  short in_CX;
+
+  iVar1 = 0;
+  do {
+    if (*(short *)(&DAT_00714dde + (short)iVar1 * 2) == in_CX) {
+      return iVar1;
+    }
+    iVar1 = iVar1 + 1;
+  } while ((short)iVar1 < 1);
+  return CONCAT22((short)((uint)iVar1 >> 0x10),0xffff);
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_get_flag_by_id.c (original, verbatim) ====
+// player_profile_get_flag_by_id  (Ghidra: FUN_00495a60, unnamed)
+// address 0x495a60, size 84 bytes
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x495a60..0x495ab3 (one-slot scan of 0x714dde, byte 0x712f0a + slot*0x2004).)
+// evidence: out/phase4/interface_functions.md "Looks up a per-profile flag/byte value for the
+// profile matching the given id."; reuses player_profile_find_index_by_id.c's single-slot
+// profile_slot_id scan; the returned byte sits at profile_globals_block + slot*0x2004 + 0x132
+// (0x00712f0a - 0x00712dd8), inside the same per-slot profile record player_profile_load.c
+// copies in.
+// register convention: profile id in EDX (in_EDX, low 16 bits significant).
+// blam-cc: EDX -> id
+// UNSURE: DAT_0071c2d8/DAT_0071c2d4 (a pair of flags that, when both zero, gate the id scan --
+// otherwise the scan is skipped and the caller's own EDX value is reused as the "slot") are not
+// documented anywhere; named locally by role only. The exact meaning of the returned byte
+// (profile record + 0x132) is not recovered beyond "a per-profile flag".
+// UNSURE: both return paths widen a single byte with decompiler CONCAT noise from an unrelated
+// register; rewritten to return that byte directly (0 on the not-found path, matching the low
+// byte the original's `uVar2 & 0xffffff00` mask leaves).
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern network_client_globals *network_client; // 0x0071c2d8, as network_game_host_start.c (dword pointer)
+extern network_server_globals *network_server; // 0x0071c2d4, as network_game_host_start.c (dword pointer)
+extern int16_t profile_slot_id[];          // 0x00714dde (per player_profile_find_index_by_id.c)
+extern uint8_t profile_globals_block[];  // 0x00712dd8 (per player_profile_subsystem_initialize.c)
+
+// blam-cc: EDX -> id
+// Finds the (sole, retail-PC) profile slot whose stored id matches `id` -- unless
+// unknown_0071c2d8/unknown_0071c2d4 are not both clear, in which case the slot index defaults to
+// `id` itself -- and returns the flag byte at offset 0x132 of that slot's profile record, or 0
+// if no slot was found.
+uint8_t player_profile_get_flag_by_id(int16_t id)
+{
+    int32_t slot;
+
+    slot = id;
+    if (network_client == (void *)0 && network_server == (void *)0) {
+        slot = -1;
+        if (profile_slot_id[0] == id) {
+            slot = 0;
+        }
+    }
+    if (slot != -1) {
+        return profile_globals_block[slot * 0x2004 + 0x132];
+    }
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x495a60):
+
+uint FUN_00495a60(void)
+
+{
+  uint uVar1;
+  uint uVar2;
+  int iVar3;
+  uint in_EDX;
+
+  uVar2 = in_EDX;
+  if ((DAT_0071c2d8 == 0) && (DAT_0071c2d4 == 0)) {
+    uVar1 = 0;
+    do {
+      uVar2 = uVar1;
+      if (*(short *)(&DAT_00714dde + (short)uVar1 * 2) == (short)in_EDX) break;
+      uVar1 = uVar1 + 1;
+      uVar2 = 0xffffffff;
+    } while ((short)uVar1 < 1);
+  }
+  if ((short)uVar2 != -1) {
+    iVar3 = (short)uVar2 * 0x2004;
+    return CONCAT31((int3)((uint)iVar3 >> 8),(&DAT_00712f0a)[iVar3]);
+  }
+  return uVar2 & 0xffffff00;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_load.c (original, verbatim) ====
+// player_profile_load  (Ghidra: player_profile_load, already named)
+// address 0x495970, size 238 bytes
+// name confidence: 0.55   rewrite confidence: 0.65
+// evidence: out/phase4/interface_functions.md "Loads a player profile record into the
+// active-profile globals and applies its video, audio, and network[ing] settings."; the 0x2004
+// byte per-player stride matches out/phase4/interface_types_notes.md's "saved player profile
+// record (0x2004 bytes)"; player_profile_apply_video_options.c / player_profile_apply_audio_
+// options.c are this function's own FUN_00495580/FUN_004957d0 callees.
+// Review pass (phase 4): the register convention was inverted in the first rewrite. The
+// disassembly is `mov ebx, eax; movsx eax, bx; imul eax, eax, 0x2004` (AX is the player index
+// that scales the stride and is still in BX for player_profile_refresh_settings_cache), the
+// stack dword is what gets stored at 0x714dd4 + index * 0x2004 and later compared with -1
+// (the profile id), and EDX is the 0x1ffc byte source record. All eleven call sites
+// (0x49535d, 0x495496, 0x495e42, 0x49e064, 0x49e14f, 0x4a0ba3, 0x4a1a54, 0x4a2a72, 0x4c9d86,
+// 0x539d39, 0x539de3) push the slot and set EDX to a record; 0x49e064 (EAX from
+// player_profile_find_index_by_id) and 0x49e14f (EAX = EBP) compute the index, the rest pass 0.
+// blam-cc: AX -> player_index, EDX -> source_profile, stack -> profile_id
+// The profile record's working copy, video/audio options and the per-record network port pair
+// at +0x1002/+0x1004 are addressed from ebp = 0x712dd8 + index * 0x2004. 0x698208/0x69820c are
+// dwords compared against zero-extended words.
+// UNSURE: control_profile_reestablish_device_slot_mappings (EAX -> record) and saved_game_get_directory_by_handle (EAX -> slot, ESI -> name buffer) are
+// profile-module functions not rewritten in this tree. The tail is a tail jump into
+// saved_game_last_profile_clear with its one stack argument overwritten by 0x718e80.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t saved_player_profile_slots_handle;               // 0x00714dd4, record 0 field +0x1ffc
+extern uint8_t profile_globals_block[];             // 0x00712dd8, stride 0x2004 per player
+extern game_engine_definition *current_game_engine; // 0x006f1d20 (current_game_engine, opaque here)
+extern uint8_t port_overridden;                    // 0x0071c2d0, UNSURE
+extern uint32_t network_game_socket_port;             // 0x00698208, UNSURE name
+extern uint32_t game_cport;             // 0x0069820c, UNSURE name
+extern uint32_t network_session_start_game_type;                   // 0x007227b8, UNSURE: copy of port_a
+extern int32_t cached_profile_slot;                 // 0x0068e66c (per player_profile_subsystem_initialize.c)
+extern char last_profile_name[];                    // 0x00718e80 (per player_profile_subsystem_initialize.c)
+
+extern void player_profile_refresh_settings_cache(int16_t player_index); // 0x496060, BX
+extern void control_profile_reestablish_device_slot_mappings(uint8_t *profile_record);         // 0x53b620; blam-cc: EAX -> profile_record
+extern uint8_t player_profile_apply_video_options(uint8_t *settings); // 0x495580
+extern void player_profile_apply_audio_options(uint8_t *settings);     // 0x4957d0
+extern void network_channels_close(void);  // 0x441480
+extern void network_channels_open(void);   // 0x441300
+extern uint8_t saved_game_get_directory_by_handle(int32_t slot, char *out_name); // 0x53d080; blam-cc: EAX -> slot, ESI -> out_name
+extern void saved_game_last_profile_clear(char *name);     // 0x53d220
+
+// blam-cc: AX -> player_index, EDX -> source_profile, stack -> profile_id
+// Copies a loaded 0x1ffc byte profile record into player_index's slot of the module's profile
+// globals, records profile_id as that slot's profile index, refreshes the settings cache and
+// applies the video/audio settings, reopens the network channels if the record's port pair
+// differs from what is currently bound, and (for a real, non-default profile) updates the
+// cached profile slot bookkeeping and the last-profile marker.
+void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id)
+{
+    uint8_t *record;
+    uint32_t *dst_words;
+    uint32_t *src_words;
+    uint32_t i;
+
+    record = profile_globals_block + (int32_t)player_index * 0x2004;
+    *(int32_t *)(record + 0x1ffc) = profile_id;   // 0x714dd4 + index * 0x2004
+    dst_words = (uint32_t *)record;
+    src_words = (uint32_t *)source_profile;
+    for (i = 0x7ff; i != 0; i--) {
+        *dst_words++ = *src_words++;
+    }
+
+    player_profile_refresh_settings_cache(player_index);
+    control_profile_reestablish_device_slot_mappings(record);
+    player_profile_apply_video_options(record);
+    player_profile_apply_audio_options(record);
+
+    if (current_game_engine == (void *)0 && port_overridden == 0 &&
+        (network_game_socket_port != *(uint16_t *)(record + 0x1002) ||
+         game_cport != *(uint16_t *)(record + 0x1004))) {
+        network_channels_close();
+        network_game_socket_port = *(uint16_t *)(record + 0x1002);
+        game_cport = *(uint16_t *)(record + 0x1004);
+        network_channels_open();
+        network_session_start_game_type = network_game_socket_port;
+    }
+
+    if (profile_id != -1) {
+        if (cached_profile_slot != saved_player_profile_slots_handle) {
+            if (saved_player_profile_slots_handle != -1) {
+                saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
+            }
+            cached_profile_slot = saved_player_profile_slots_handle;
+        }
+        if (last_profile_name[0] != '\0') {
+            saved_game_last_profile_clear(last_profile_name);
+        }
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x495970):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void player_profile_load(int param_1)
+
+{
+  short in_AX;
+  int iVar1;
+  int iVar2;
+  int iVar3;
+  undefined4 *in_EDX;
+  undefined4 *puVar4;
+
+  iVar1 = (int)in_AX;
+  iVar2 = iVar1 * 0x2004;
+  (&DAT_00714dd4)[iVar1 * 0x801] = param_1;
+  puVar4 = &DAT_00712dd8 + iVar1 * 0x801;
+  for (iVar3 = 0x7ff; iVar3 != 0; iVar3 = iVar3 + -1) {
+    *puVar4 = *in_EDX;
+    in_EDX = in_EDX + 1;
+    puVar4 = puVar4 + 1;
+  }
+  FUN_00496060();
+  FUN_0053b620();
+  FUN_00495580();
+  FUN_004957d0();
+  if (((DAT_006f1d20 == 0) && (DAT_0071c2d0 == '\0')) &&
+     ((DAT_00698208 != *(ushort *)(&DAT_00713dda + iVar2) ||
+      (_DAT_0069820c != *(ushort *)(&DAT_00713ddc + iVar2))))) {
+    network_channels_close();
+    DAT_00698208 = (uint)*(ushort *)(&DAT_00713dda + iVar2);
+    _DAT_0069820c = (uint)*(ushort *)(&DAT_00713ddc + iVar2);
+    network_channels_open();
+    DAT_007227b8 = DAT_00698208;
+  }
+  if (param_1 != -1) {
+    if (DAT_0068e66c != DAT_00714dd4) {
+      if (DAT_00714dd4 != -1) {
+        FUN_0053d080();
+      }
+      DAT_0068e66c = DAT_00714dd4;
+    }
+    if (DAT_00718e80 != '\0') {
+      saved_game_last_profile_clear();
+      return;
+    }
+  }
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_refresh_settings_cache.c (original, verbatim) ====
+// player_profile_refresh_settings_cache  (Ghidra: FUN_00496060, unnamed)
+// address 0x496060, size 878 bytes
+// name confidence: 0.4   rewrite confidence: 0.6
+// evidence: out/phase4/interface_functions.md "Converts a saved profile's raw settings
+// (difficulty, name, 0-9 sensitivity/acceleration slider indic[es]) ..."; every source field
+// this function reads lives at a fixed byte offset inside profile_globals_block (0x00712dd8,
+// per player_profile_subsystem_initialize.c), stride 0x2004 per slot.
+// register convention: player index in BX (unaff_BX). // blam-cc: BX -> player_index
+// The destination row is player_control_settings (types/interface.h), 0x85c bytes: the final
+// copy is rep movsd with ecx 0x217 dwords to 0x710328 + slot * 0x85c (imul at 0x4963ba).
+// Destination offsets below are the stack locals' own frame positions relative to
+// local_8e0[0x1e], not their assignment order; note the 0xda byte first range (0x36 dwords plus
+// one trailing halfword) and the two zero bytes at 0x80e.
+// UNSURE: the fields are named only by the table they are remapped through; which control each
+// one drives is not attested in this function.
+// reconciled: R19 player_control_settings unknown ranges named from the input.h field map (keyboard, mouse_button/mouse_axis, gamepad_button, gamepad_action_button, gamepad_axis, gamepad_pov, forward_rate..mouse_strafe_scale, mouse_look_x/y_sensitivity, gamepad_axis_scale_x/y, gamepad_rate_80/40, look_inverted/_driving); same offsets and widths
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include <string.h>
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint8_t profile_globals_block[];         // 0x00712dd8, stride 0x2004 per slot
+extern int16_t profile_slot_id[];               // 0x00714dde, indexed by player index
+extern player_control_settings input_globals[]; // 0x00710328
+
+// Remap tables, built on the stack in the original (local_8e0[0x00..0x1d]).
+static const float k_table_80[10] = { // local_8e0[0x00..0x09]
+    80.0f, 100.0f, 120.0f, 140.0f, 160.0f, 180.0f, 200.0f, 220.0f, 240.0f, 260.0f
+};
+static const float k_table_40[10] = { // local_8e0[0x0a..0x13]
+    40.0f, 50.0f, 60.0f, 70.0f, 80.0f, 90.0f, 100.0f, 110.0f, 120.0f, 130.0f
+};
+static const float k_table_01[10] = { // local_8e0[0x14..0x1d], 0x3dcccccd is 0.1f
+    0.1f, 0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f, 3.0f, 4.0f
+};
+
+static uint32_t slider_index(uint8_t value)
+{
+    return (value < 10) ? value : 9;
+}
+
+// blam-cc: BX -> player_index
+// Rebuilds player_index's row of input_globals from its raw profile record.
+// The destination row is profile_slot_id[player_index] if one is assigned, else player_index.
+void player_profile_refresh_settings_cache(int16_t player_index)
+{
+    player_control_settings settings;
+    uint8_t *profile = profile_globals_block + (int32_t)player_index * 0x2004;
+    int32_t slider;
+    int32_t dest_slot;
+    int32_t i;
+
+    memset(&settings, 0, sizeof(settings));
+
+    slider = (int32_t)profile[0x12e] - 1;
+    if (slider < 0) {
+        slider = 0;
+    } else if (slider > 9) {
+        slider = 9;
+    }
+    settings.look_rate_80 = k_table_80[slider];
+    settings.look_rate_40 = k_table_40[slider];
+
+    memcpy(settings.keyboard, profile + 0x134, sizeof(settings.keyboard)); // 0x36 dwords + 1 halfword
+    memcpy(settings.mouse_button, profile + 0x20e, sizeof(settings.mouse_button) + sizeof(settings.mouse_axis)); // one 7-dword copy
+    memcpy(settings.gamepad_button, profile + 0x22a, sizeof(settings.gamepad_button));
+    memcpy(settings.gamepad_action_button, profile + 0x32a, sizeof(settings.gamepad_action_button));
+    memcpy(settings.gamepad_axis, profile + 0x33a, sizeof(settings.gamepad_axis));
+    memcpy(settings.gamepad_pov, profile + 0x53a, sizeof(settings.gamepad_pov));
+    memcpy(&settings.forward_rate, profile + 0x93c, 6 * sizeof(float)); // forward_rate .. mouse_strafe_scale
+
+    settings.mouse_look_x_sensitivity = k_table_01[slider_index(profile[0x954])];
+    settings.mouse_look_y_sensitivity = k_table_01[slider_index(profile[0x955])];
+
+    memcpy(&settings.gamepad_axis_scale_x, profile + 0x960, 2 * sizeof(float)); // x, y
+
+    for (i = 0; i < 4; i++) {
+        settings.gamepad_rate_80[i] = k_table_80[slider_index(profile[0x956 + i])];
+        settings.gamepad_rate_40[i] = k_table_40[slider_index(profile[0x95a + i])];
+    }
+
+    settings.look_inverted = profile[0x12f];
+    settings.look_inverted_driving = profile[0x131];
+
+    dest_slot = profile_slot_id[player_index];
+    if (profile_slot_id[player_index] == -1) {
+        dest_slot = player_index;
+    }
+    input_globals[dest_slot] = settings;
+}
+
+#if 0
+Original Ghidra decompilation (0x496060):
+
+void FUN_00496060(void)
+
+{
+  undefined4 uVar1;
+  int iVar2;
+  int iVar3;
+  uint uVar4;
+  undefined4 *puVar5;
+  int iVar6;
+  short unaff_BX;
+  int iVar7;
+  byte *pbVar8;
+  undefined4 *puVar9;
+  undefined4 local_8e0 [32];
+  undefined4 local_860 [54];
+  undefined4 local_786;
+  undefined4 local_782;
+  undefined4 local_77e;
+  undefined4 local_77a;
+  undefined4 local_776;
+  undefined4 local_772;
+  undefined4 local_76e;
+  undefined4 local_76a [64];
+  undefined4 local_66a;
+  undefined4 local_666;
+  undefined4 local_662;
+  undefined4 local_65e;
+  undefined4 local_65a [128];
+  undefined4 local_45a [256];
+  undefined4 local_58;
+  undefined4 local_54;
+  undefined4 local_50;
+  undefined4 local_4c;
+  undefined4 local_48;
+  undefined4 local_44;
+  undefined4 local_40;
+  undefined4 local_3c;
+  undefined4 local_38;
+  undefined4 local_34;
+  undefined4 local_30 [4];
+  undefined4 local_20 [4];
+  undefined1 local_10;
+  undefined1 local_f;
+
+  iVar7 = (int)unaff_BX;
+  puVar5 = local_8e0 + 0x1f;
+  for (iVar2 = 0x216; iVar2 != 0; iVar2 = iVar2 + -1) {
+    *puVar5 = 0;
+    puVar5 = puVar5 + 1;
+  }
+  iVar2 = iVar7 * 0x2004;
+  iVar3 = (byte)(&DAT_00712f06)[iVar2] - 1;
+  local_8e0[10] = 0x42200000;
+  local_8e0[0xb] = 0x42480000;
+  local_8e0[0xc] = 0x42700000;
+  local_8e0[0xd] = 0x428c0000;
+  local_8e0[0xe] = 0x42a00000;
+  local_8e0[0xf] = 0x42b40000;
+  local_8e0[0x10] = 0x42c80000;
+  local_8e0[0x11] = 0x42dc0000;
+  local_8e0[0x12] = 0x42f00000;
+  local_8e0[0x13] = 0x43020000;
+  local_8e0[0] = 0x42a00000;
+  local_8e0[1] = 0x42c80000;
+  local_8e0[2] = 0x42f00000;
+  local_8e0[3] = 0x430c0000;
+  local_8e0[4] = 0x43200000;
+  local_8e0[5] = 0x43340000;
+  local_8e0[6] = 0x43480000;
+  local_8e0[7] = 0x435c0000;
+  local_8e0[8] = 0x43700000;
+  local_8e0[9] = 0x43820000;
+  local_8e0[0x14] = 0x3dcccccd;
+  local_8e0[0x15] = 0x3e800000;
+  local_8e0[0x16] = 0x3f000000;
+  local_8e0[0x17] = 0x3f400000;
+  local_8e0[0x18] = 0x3f800000;
+  local_8e0[0x19] = 0x3fa00000;
+  local_8e0[0x1a] = 0x3fc00000;
+  local_8e0[0x1b] = 0x40000000;
+  local_8e0[0x1c] = 0x40400000;
+  local_8e0[0x1d] = 0x40800000;
+  if (iVar3 < 0) {
+    iVar6 = 0;
+  }
+  else {
+    iVar6 = 9;
+    if (iVar3 < 10) {
+      iVar6 = iVar3;
+    }
+  }
+  if (iVar3 < 0) {
+    iVar3 = 0;
+  }
+  else if (9 < iVar3) {
+    iVar3 = 9;
+  }
+  local_8e0[0x1f] = local_8e0[(short)iVar6 + 10];
+  local_8e0[0x1e] = local_8e0[(short)iVar3];
+  puVar5 = (undefined4 *)(&DAT_00712f0c + iVar2);
+  puVar9 = local_860;
+  for (iVar3 = 0x36; iVar3 != 0; iVar3 = iVar3 + -1) {
+    *puVar9 = *puVar5;
+    puVar5 = puVar5 + 1;
+    puVar9 = puVar9 + 1;
+  }
+  uVar1 = *(undefined4 *)(&DAT_00712fe6 + iVar2);
+  *(undefined2 *)puVar9 = *(undefined2 *)puVar5;
+  local_786 = uVar1;
+  local_782 = *(undefined4 *)(&DAT_00712fea + iVar2);
+  local_77e = *(undefined4 *)(&DAT_00712fee + iVar2);
+  local_77a = *(undefined4 *)(&DAT_00712ff2 + iVar2);
+  local_776 = *(undefined4 *)(&DAT_00712ff6 + iVar2);
+  local_76e = *(undefined4 *)(&DAT_00712ffe + iVar2);
+  local_772 = *(undefined4 *)(&DAT_00712ffa + iVar2);
+  puVar5 = (undefined4 *)(&DAT_00713002 + iVar2);
+  puVar9 = local_76a;
+  for (iVar3 = 0x40; iVar3 != 0; iVar3 = iVar3 + -1) {
+    *puVar9 = *puVar5;
+    puVar5 = puVar5 + 1;
+    puVar9 = puVar9 + 1;
+  }
+  local_66a = *(undefined4 *)(&DAT_00713102 + iVar2);
+  local_666 = *(undefined4 *)(&DAT_00713106 + iVar2);
+  local_662 = *(undefined4 *)(&DAT_0071310a + iVar2);
+  local_65e = *(undefined4 *)(&DAT_0071310e + iVar2);
+  uVar1 = *(undefined4 *)(&DAT_00713718 + iVar2);
+  puVar5 = (undefined4 *)(&DAT_00713112 + iVar2);
+  puVar9 = local_65a;
+  for (iVar3 = 0x80; iVar3 != 0; iVar3 = iVar3 + -1) {
+    *puVar9 = *puVar5;
+    puVar5 = puVar5 + 1;
+    puVar9 = puVar9 + 1;
+  }
+  puVar5 = (undefined4 *)(&DAT_00713312 + iVar2);
+  puVar9 = local_45a;
+  for (iVar3 = 0x100; iVar3 != 0; iVar3 = iVar3 + -1) {
+    *puVar9 = *puVar5;
+    puVar5 = puVar5 + 1;
+    puVar9 = puVar9 + 1;
+  }
+  local_58 = *(undefined4 *)(&DAT_00713714 + iVar2);
+  local_50 = *(undefined4 *)(&DAT_0071371c + iVar2);
+  local_54 = uVar1;
+  local_48 = *(undefined4 *)(&DAT_00713724 + iVar2);
+  local_4c = *(undefined4 *)(&DAT_00713720 + iVar2);
+  local_44 = *(undefined4 *)(&DAT_00713728 + iVar2);
+  if ((byte)(&DAT_0071372c)[iVar2] < 10) {
+    uVar4 = (uint)(byte)(&DAT_0071372c)[iVar2];
+  }
+  else {
+    uVar4 = 9;
+  }
+  local_40 = local_8e0[uVar4 + 0x14];
+  if ((byte)(&DAT_0071372d)[iVar2] < 10) {
+    uVar4 = (uint)(byte)(&DAT_0071372d)[iVar2];
+  }
+  else {
+    uVar4 = 9;
+  }
+  local_3c = local_8e0[uVar4 + 0x14];
+  local_38 = *(undefined4 *)(&DAT_00713738 + iVar2);
+  local_34 = *(undefined4 *)(&DAT_0071373c + iVar2);
+  pbVar8 = &DAT_00713732 + iVar2;
+  puVar5 = local_20;
+  iVar3 = 4;
+  do {
+    if (pbVar8[-4] < 10) {
+      uVar4 = (uint)pbVar8[-4];
+    }
+    else {
+      uVar4 = 9;
+    }
+    puVar5[-4] = local_8e0[uVar4];
+    if (*pbVar8 < 10) {
+      uVar4 = (uint)*pbVar8;
+    }
+    else {
+      uVar4 = 9;
+    }
+    *puVar5 = local_8e0[uVar4 + 10];
+    pbVar8 = pbVar8 + 1;
+    puVar5 = puVar5 + 1;
+    iVar3 = iVar3 + -1;
+  } while (iVar3 != 0);
+  local_10 = (&DAT_00712f07)[iVar2];
+  local_f = (&DAT_00712f09)[iVar2];
+  iVar3 = 0x217;
+  iVar2 = (int)*(short *)(&DAT_00714dde + iVar7 * 2);
+  if (*(short *)(&DAT_00714dde + iVar7 * 2) == -1) {
+    iVar2 = iVar7;
+  }
+  puVar5 = local_8e0 + 0x1e;
+  puVar9 = &DAT_00710328 + iVar2 * 0x217;
+  for (; iVar3 != 0; iVar3 = iVar3 + -1) {
+    *puVar9 = *puVar5;
+    puVar5 = puVar5 + 1;
+    puVar9 = puVar9 + 1;
+  }
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_save.c (original, verbatim) ====
+// player_profile_save  (Ghidra: player_profile_save, already named)
+// address 0x495d40, size 290 bytes
+// name confidence: 0.7   rewrite confidence: 0.95
+// evidence: cea-pdb hint via the "profile not saved since it was a default profile" string;
+// out/phase4/interface_functions.md "Saves the currently-selected map or game-variant profile
+// entry to disk, refusing to overwrite an unm[atched/named default]."; reuses saved_item_select.c's
+// selected_saved_item/saved_item_working_copy/saved_item_disk_copy.
+// register convention: none; selected_saved_item is read directly.
+// Review pass (phase 4): rebuilt from the disassembly. The type-0 (profile) branch reloads from
+// saved_item_working_copy (EDX = 0x714e80, EAX = player 0, stack = selected_saved_item), not
+// from the profile globals. The variant branches call game_variant_sanitize_options with
+// ECX = 0x714e80 and then push ECX unchanged as game_variant_write_request_start's second argument, and
+// saved_game_get_directory_by_handle takes the slot in EAX and a 0x100 byte local name buffer in ESI, which is then
+// pushed to saved_game_last_mp_variant_clear. 0x714f14 is cleared with a byte AND.
+// game_variant_sanitize_options (0x466730) only reads ECX, so the second argument of game_variant_write_request_start is the
+// same working-copy pointer (verified against the disassembly of 0x466730).
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include <wchar.h>
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t selected_saved_item;             // 0x00714e7c
+extern uint8_t saved_item_disk_copy[0x1ffc];     // 0x00716e7c
+extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80
+extern uint8_t unknown_00714f14;                 // 0x00714f14, UNSURE: working copy +0x94 flags byte
+
+extern void console_out_printf(uint8_t unknown, const char *format, ...); // 0x4c6860
+extern void player_profile_write_data(int32_t slot, void *profile_data);  // 0x53a950
+extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970
+extern void game_variant_sanitize_options(game_variant *variant); // 0x466730; blam-cc: ECX -> variant
+extern void game_variant_write_request_start(int32_t slot, void *variant);    // 0x53c0b0, UNSURE
+extern uint8_t saved_game_get_directory_by_handle(int32_t slot, char *out_name); // 0x53d080; blam-cc: EAX -> slot, ESI -> out_name
+extern void saved_game_last_mp_variant_clear(char *name);  // 0x53d360
+extern int32_t saved_game_create_custom_variant(int32_t unknown, void *variant_data); // 0x53bb50, UNSURE
+
+// Saves the currently-selected saved profile (type 0) or game variant (type 1): a profile is
+// written back to its slot (or a "not saved" message for the default -1 profile) and reloaded as
+// player 0's profile; a variant is sanitized and persisted, first allocating a new slot if it
+// was an in-memory-only (+0x40000000) variant whose name differs from its disk copy.
+// selected_saved_item is reset to -1 on every path. Returns 1 on a save, 0 when nothing was done.
+uint8_t player_profile_save(void)
+{
+    char name[0x100];
+    int32_t item;
+    int32_t new_slot;
+    uint8_t result;
+
+    item = selected_saved_item;
+    result = 0;
+
+    if ((item & 0xf) == 0) {
+        if (item == -1) {
+            console_out_printf(0, "profile not saved since it was a default profile");
+        } else {
+            player_profile_write_data(item, saved_item_working_copy);
+        }
+        player_profile_load(0, saved_item_working_copy, selected_saved_item);
+        result = 1;
+    } else if ((item & 0xf) == 1) {
+        if ((item & 0x40000000) == 0) {
+            if (item != -1) {
+                game_variant_sanitize_options((game_variant *)saved_item_working_copy);
+                game_variant_write_request_start(item, saved_item_working_copy);
+            }
+            if (saved_game_get_directory_by_handle(selected_saved_item, name) != 0) {
+                saved_game_last_mp_variant_clear(name);
+            }
+            result = 1;
+        } else if (wcsncmp((wchar_t *)saved_item_working_copy, (wchar_t *)saved_item_disk_copy,
+                           0x18) != 0) {
+            unknown_00714f14 &= 0xfe;
+            new_slot = saved_game_create_custom_variant(0, saved_item_working_copy);
+            if (new_slot != -1) {
+                game_variant_sanitize_options((game_variant *)saved_item_working_copy);
+                game_variant_write_request_start(new_slot, saved_item_working_copy);
+                selected_saved_item = new_slot;
+                if (saved_game_get_directory_by_handle(new_slot, name) != 0) {
+                    saved_game_last_mp_variant_clear(name);
+                }
+                result = 1;
+            }
+        }
+    }
+
+    selected_saved_item = -1;
+    return result;
+}
+
+#if 0
+Original Ghidra decompilation (0x495d40):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined1 player_profile_save(void)
+
+{
+  uint uVar1;
+  char cVar2;
+  int iVar3;
+  undefined4 extraout_ECX;
+  undefined4 extraout_ECX_00;
+
+  uVar1 = _DAT_00714e7c;
+  if ((_DAT_00714e7c & 0xf) == 0) {
+    if (_DAT_00714e7c == 0xffffffff) {
+      console_out_printf('\0',"profile not saved since it was a default profile");
+    }
+    else {
+      player_profile_write_data(_DAT_00714e7c,&DAT_00714e80);
+    }
+    player_profile_load(_DAT_00714e7c);
+  }
+  else {
+    if ((_DAT_00714e7c & 0xf) != 1) {
+      _DAT_00714e7c = 0xffffffff;
+      return 0;
+    }
+    if ((_DAT_00714e7c & 0x40000000) == 0) {
+      if (_DAT_00714e7c != 0xffffffff) {
+        game_variant_sanitize_options();
+        FUN_0053c0b0(uVar1,extraout_ECX_00);
+      }
+      cVar2 = FUN_0053d080();
+      if (cVar2 != '\0') {
+        saved_game_last_mp_variant_clear();
+      }
+    }
+    else {
+      iVar3 = _wcsncmp((wchar_t *)&DAT_00714e80,(wchar_t *)&DAT_00716e7c,0x18);
+      if (iVar3 == 0) {
+        _DAT_00714e7c = 0xffffffff;
+        return 0;
+      }
+      DAT_00714f14._0_1_ = (byte)DAT_00714f14 & 0xfe;
+      iVar3 = FUN_0053bb50(0,&DAT_00714e80);
+      if (iVar3 == -1) {
+        _DAT_00714e7c = 0xffffffff;
+        return 0;
+      }
+      game_variant_sanitize_options();
+      FUN_0053c0b0(iVar3,extraout_ECX);
+      _DAT_00714e7c = iVar3;
+      cVar2 = FUN_0053d080();
+      if (cVar2 != '\0') {
+        saved_game_last_mp_variant_clear();
+      }
+    }
+  }
+  _DAT_00714e7c = 0xffffffff;
+  return 1;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_save_495fb0.c (original, verbatim) ====
+// player_profile_save_495fb0  (Ghidra: player_profile_save_495fb0, already named)
+// address 0x495fb0, size 171 bytes
+// name confidence: 0.5   rewrite confidence: 0.25
+// evidence: cea-pdb hint via the shared "profile not saved since it was a default profile"
+// string (the same hint player_profile_save.c carries; Ghidra assigned both addresses variants
+// of that one name). out/phase4/interface_functions.md "Saves the active player profile to disk
+// unless it is the default (unsaved) profile, in which case it [only refreshes the cache]."
+// register convention: a byte flag in AL (in_AL). // blam-cc: AL -> flag
+// UNSURE: the "ui\shell\strings\temp_strings" unicode_string_list truncation (reading the tag's
+// own count/reflexive-pointer/length fields and null-terminating near the end of its last
+// string) is reproduced as raw offsets; the tag's true field layout is not in types/tags.h under
+// that name and is not recovered here. DAT_00712f07 (the AL flag this function stashes) is not
+// documented anywhere.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint8_t unknown_00712f07;         // 0x00712f07, UNSURE
+extern int32_t saved_player_profile_slots_handle;    // 0x00714dd4
+extern tag_instance *tag_instances;      // 0x0087bc14
+extern uint8_t profile_globals_block[];  // 0x00712dd8
+
+extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
+extern void hud_message_broadcast_to_local_players(const uint16_t *text); // 0x495f50, blam-cc: ESI text
+extern const uint16_t empty_string[];          // 0x00660c34, L""
+extern const uint16_t missing_string_text[]; // 0x00671fac, L"<missing string>"
+extern void player_profile_refresh_settings_cache(int16_t player_index); // 0x496060, BX (0 at both calls here)
+extern void console_out_printf(uint8_t unknown, const char *format, ...); // 0x4c6860
+extern void player_profile_write_data(int32_t slot, void *profile_data); // 0x53a950
+
+// blam-cc: AL -> flag
+// Stashes `flag`, and, if a real profile is active: truncates the last entry of the
+// "ui\shell\strings\temp_strings" unicode_string_list tag if it has more than one string,
+// broadcasts a HUD message to local players, then either writes the profile to disk (for a real
+// profile) or prints a "not saved" message (for the default profile) before refreshing the
+// settings cache either way.
+void player_profile_save_495fb0(uint8_t flag)
+{
+    datum_index string_list_tag;
+    int32_t *string_list_data;
+    char *block;
+    uint32_t length;
+    const uint16_t *text;
+
+    unknown_00712f07 = flag;
+    if (saved_player_profile_slots_handle != -1) {
+        string_list_tag = tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\temp_strings"); // 'ustr'
+        // s2 part 2 review: the broadcast text (EDX -> ESI of 0x495f50) is string 1 of the list,
+        // L"<missing string>" (0x00671fac) when the list is too short or the string empty, and
+        // L"" (0x00660c34) when the tag is missing (objdump 0x495fd9..0x49601a).
+        text = empty_string;
+        if (string_list_tag != (datum_index)0xffffffff) {
+            string_list_data = (int32_t *)tag_instances[(uint16_t)string_list_tag].data;
+            text = missing_string_text;
+            if (string_list_data[0] > 1) {
+                block = (char *)string_list_data[1];
+                length = *(uint32_t *)(block + 0x14);
+                if ((int32_t)length > 0) {
+                    text = *(const uint16_t **)(block + 0x20);
+                    *(int16_t *)(*(int32_t *)(block + 0x20) - 2 + (length & 0xfffffffe)) = 0;
+                }
+            }
+        }
+        hud_message_broadcast_to_local_players(text);
+        if (saved_player_profile_slots_handle == -1) {
+            console_out_printf(0, "profile not saved since it was a default profile");
+            player_profile_refresh_settings_cache(0);
+            return;
+        }
+        player_profile_write_data(saved_player_profile_slots_handle, profile_globals_block);
+    }
+    player_profile_refresh_settings_cache(0);
+}
+
+#if 0
+Original Ghidra decompilation (0x495fb0):
+
+void player_profile_save_495fb0(void)
+
+{
+  int *piVar1;
+  int iVar2;
+  undefined1 in_AL;
+  uint uVar3;
+
+  DAT_00712f07 = in_AL;
+  if (DAT_00714dd4 != -1) {
+    uVar3 = tag_lookup("ui\\shell\\strings\\temp_strings");
+    if ((uVar3 != 0xffffffff) &&
+       (piVar1 = *(int **)((uVar3 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14), 1 < *piVar1)) {
+      iVar2 = piVar1[1];
+      uVar3 = *(uint *)(iVar2 + 0x14);
+      if (0 < (int)uVar3) {
+        *(undefined2 *)(*(int *)(iVar2 + 0x20) + -2 + (uVar3 & 0xfffffffe)) = 0;
+      }
+    }
+    FUN_00495f50();
+    if (DAT_00714dd4 == -1) {
+      console_out_printf('\0',"profile not saved since it was a default profile");
+      FUN_00496060();
+      return;
+    }
+    player_profile_write_data(DAT_00714dd4,&DAT_00712dd8);
+  }
+  FUN_00496060();
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_select_list_widget_build.c (original, verbatim) ====
+// player_profile_select_list_widget_build  (Ghidra: player_profile_select_list_widget_build,
+// already named)
+// address 0x4a85f0, size 307 bytes
+// name confidence: 0.55 (existing Ghidra name)   rewrite confidence: 0.55
+// evidence: types/interface.h widget_instance (state, background_bitmap_frame, hidden, scale,
+// item_count, first_child, next_sibling, extended_description all match); ui_lists /
+// ui_list_current and ui_list_item::data (established by ui_list_widget_rebuild_rows.c and
+// ui_game_variant_list_widget_build.c).
+// UNSURE: player_profile_details_widget_refresh (0x4a6100, out of this module's range) is
+// declared taking the ui_list_item::data pointer verbatim; its own signature was not confirmed
+// in this pass. UNSURE: set_profile_name writes through an inherited EBX this pack could not
+// resolve; call preserved exactly as compiled.
+// register convention: widget as the recognized parameter (param_1).
+// reconciled: R56 0x00712dd8 uint8_t saved_profile_records[3][0x2004] -> saved_games.h saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles] (one 0x2004-byte slot; a second would overlap 0x00714dde); same bytes copied/read
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include "saved_games.h"
+#include <string.h>
+#include "objects.h"
+#include "units.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
+extern int32_t ui_list_current;      // 0x00692c04
+extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
+extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item); // 0x4a7db0
+extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index, void *list_items); // 0x4a8310, UNSURE: not analyzed separately
+extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710, blam-cc: EBX widget
+extern void player_profile_details_widget_refresh(widget_instance *widget, const uint8_t *profile_record); // 0x4a6100, blam-cc: EAX widget
+
+// Rebuilds this widget's rows and refreshes the profile-name label, then either blanks the
+// profile-details sub-tree (when the selected combo index is out of range) or refreshes it
+// from the selected ui_list entry's data pointer, finally showing/hiding a fixed row 11 slots
+// down depending on whether the list is empty.
+void player_profile_select_list_widget_build(widget_instance *widget)
+{
+    uint8_t profile_record[0x1ffc];
+    int32_t combo_index;
+    widget_instance *row;
+    widget_instance *target;
+    int32_t depth;
+
+    ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)ui_list_default_item_format));
+
+    memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
+    set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
+
+    combo_index = *(int16_t *)&((struct widget_instance *)widget)->text; // list selection, see types/interface.h
+    if (combo_index < 0 || (uint16_t)widget->item_count <= combo_index) {
+        widget_instance *a = widget->extended_description->first_child->next_sibling->first_child;
+        widget_instance *b = a->next_sibling;
+        widget_instance *c = b->next_sibling->first_child;
+        widget_instance *d1 = c->next_sibling;
+        widget_instance *d2 = d1->next_sibling;
+        widget_instance *d3 = d2->next_sibling;
+        widget_instance *d4 = d3->next_sibling;
+        widget_instance *d5 = d4->next_sibling;
+        widget_instance *d6 = d5->next_sibling;
+
+        a->state = 0;
+        b->background_bitmap_frame = 0x12;
+        c->state = 1;
+        d1->state = 0;
+        d2->state = 0;
+        d3->state = 0;
+        d4->state = 0;
+        d5->state = 0;
+        d6->state = 0;
+    } else {
+        void *item_data = 0;
+        if (combo_index < ui_lists[ui_list_current].count) {
+            ui_list_item *entry = (ui_list_item *)ui_lists[ui_list_current].data + combo_index;
+            item_data = entry->data;
+        }
+        player_profile_details_widget_refresh(widget->extended_description->first_child->next_sibling,
+                                              (const uint8_t *)item_data); // EAX loaded at 0x4a863b
+    }
+
+    row = widget->first_child;
+    depth = 0;
+    {
+        widget_instance *cur = row;
+        row = 0;
+        do {
+            row = 0;
+            if (cur == 0) break;
+            cur = cur->next_sibling;
+            depth = depth + 1;
+            row = cur;
+        } while (depth < 0x0b);
+    }
+
+    target = row->first_child->next_sibling;
+    if (widget->item_count == 0) {
+        target->hidden = 1;
+        target->scale = 0.333f;
+    } else {
+        target->hidden = 0;
+        target->scale = 1.0f;
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x4a85f0):
+
+/* WARNING: Function: __chkstk replaced with injection: alloca_probe */
+
+void player_profile_select_list_widget_build(int param_1)
+
+{
+  int iVar1;
+  int iVar2;
+  int iVar3;
+  int iVar4;
+  int iVar5;
+  int iVar6;
+  int iVar7;
+  int iVar8;
+  int iVar9;
+  undefined4 *puVar10;
+  undefined4 *puVar11;
+  undefined4 uVar12;
+  undefined4 local_2008;
+  undefined4 uStack_c;
+
+  uStack_c = 0x4a8600;
+  FUN_004a7db0(param_1,&LAB_004a8310);
+  puVar10 = &DAT_00712dd8;
+  puVar11 = &local_2008;
+  for (iVar8 = 0x7ff; iVar8 != 0; iVar8 = iVar8 + -1) {
+    *puVar11 = *puVar10;
+    puVar10 = puVar10 + 1;
+    puVar11 = puVar11 + 1;
+  }
+  set_profile_name((int)&local_2008 + 2);
+  iVar8 = (int)*(short *)(param_1 + 0x3c);
+  if ((iVar8 < 0) || ((int)(uint)*(ushort *)(param_1 + 0x48) <= iVar8)) {
+    iVar8 = *(int *)(*(int *)(*(int *)(*(int *)(param_1 + 0x4c) + 0x34) + 0x2c) + 0x34);
+    iVar9 = *(int *)(iVar8 + 0x2c);
+    iVar7 = *(int *)(*(int *)(iVar9 + 0x2c) + 0x34);
+    iVar1 = *(int *)(iVar7 + 0x2c);
+    iVar2 = *(int *)(iVar1 + 0x2c);
+    iVar3 = *(int *)(iVar2 + 0x2c);
+    iVar4 = *(int *)(iVar3 + 0x2c);
+    iVar5 = *(int *)(iVar4 + 0x2c);
+    iVar6 = *(int *)(iVar5 + 0x2c);
+    *(undefined1 *)(iVar8 + 0x10) = 0;
+    *(undefined2 *)(iVar9 + 0x58) = 0x12;
+    *(undefined1 *)(iVar7 + 0x10) = 1;
+    *(undefined1 *)(iVar1 + 0x10) = 0;
+    *(undefined1 *)(iVar2 + 0x10) = 0;
+    *(undefined1 *)(iVar3 + 0x10) = 0;
+    *(undefined1 *)(iVar4 + 0x10) = 0;
+    *(undefined1 *)(iVar5 + 0x10) = 0;
+    *(undefined1 *)(iVar6 + 0x10) = 0;
+  }
+  else {
+    uVar12 = 0;
+    if (iVar8 < (int)(&DAT_006b3834)[DAT_00692c04 * 3]) {
+      uVar12 = *(undefined4 *)((&DAT_006b3838)[DAT_00692c04 * 3] + 4 + iVar8 * 0x10);
+    }
+    player_profile_details_widget_refresh(uVar12);
+  }
+  iVar8 = *(int *)(param_1 + 0x34);
+  iVar9 = 0;
+  do {
+    iVar7 = 0;
+    if (iVar8 == 0) break;
+    iVar8 = *(int *)(iVar8 + 0x2c);
+    iVar9 = iVar9 + 1;
+    iVar7 = iVar8;
+  } while (iVar9 < 0xb);
+  iVar8 = *(int *)(*(int *)(iVar7 + 0x34) + 0x2c);
+  if (*(short *)(param_1 + 0x48) == 0) {
+    *(undefined1 *)(iVar8 + 0x12) = 1;
+    *(undefined4 *)(iVar8 + 0x24) = 0x3eaa7efa;
+    return;
+  }
+  *(undefined1 *)(iVar8 + 0x12) = 0;
+  *(undefined4 *)(iVar8 + 0x24) = 0x3f800000;
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_select_list_widget_build_thunk.c (original, verbatim) ====
+// player_profile_select_list_widget_build_thunk  (not a Ghidra function; an incremental-link style jump thunk)
+// address 0x4a62c0, size 5 bytes
+// name confidence: 0.8  rewrite confidence: 1.0
+// evidence: objdump 0x4a62c0: jmp 0x4a85f0 (player_profile_select_list_widget_build), reached as a stored widget
+//   callback pointer; campaign track: widget_instance_render called it while the level's HUD widgets drew.
+// blam-cc: stack -> widget (cdecl, forwarded unchanged)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void player_profile_select_list_widget_build(widget_instance *widget); // 0x4a85f0
+
+void player_profile_select_list_widget_build_thunk(widget_instance *widget)
+{
+    player_profile_select_list_widget_build(widget);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/player_profile_subsystem_initialize.c (original, verbatim) ====
+// player_profile_subsystem_initialize  (Ghidra: FUN_00495370, unnamed)
+// address 0x495370, size 372 bytes
+// name confidence: 0.4   rewrite confidence: 0.6
+// evidence: out/phase4/interface_functions.md "Initializes the player-profile subsystem: clears
+// profile globals and loads (or creates/saves) the appropriate profile at startup."; cea-pdb hint
+// "player_profile_save" via the "profile not saved since it was a default profile" string (that
+// hint names the whole save/init family, not this specific function -- kept as evidence only).
+// register convention: none (void).
+// Review pass (phase 4): rebuilt from the disassembly (0x495370..0x4954e3). Ghidra lost the
+// 0x2008 byte frame: L+0 is the capacity-then-count int32 saved_game_enumerate_by_type takes in
+// EBX (1 in), L+4 the one enumerated slot, and L+8 the 0x1ffc byte profile record that
+// player_profile_get (ECX), 0x53b000, 0x53b240 (EAX), player_profile_load (EDX) and
+// player_profile_write_data all share. The enumeration result is only used when the returned
+// count is positive, and player_profile_load takes player index 0 in EAX and the slot on the
+// stack. player_profile_refresh_settings_cache is called with BX = 0.
+// UNSURE: the profile-module callees (player_profile_initialize, player_profile_get,
+// player_profile_write_data, player_profile_set_default_video_options, player_profile_set_default_audio_options,
+// saved_game_last_profile_read, saved_game_find_by_name) are foreign; argument order is from the
+// push sequence here, their meaning from the names already in symbols/functions.txt.
+// UNSURE: DAT_0071d280 is a 0x1ffc byte record copied into the local buffer when no cached slot
+// exists (a compiled-in default profile), which the enumerated-slot path then overwrites.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include <string.h>
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8, 3 x 0x2004 byte profile records + tail
+extern int32_t saved_player_profile_slots_handle;         // 0x00714dd4
+extern int16_t profile_slot_id[];             // 0x00714dde
+extern int32_t selected_saved_item;           // 0x00714e7c
+extern uint8_t default_profile_data[0x1ffc]; // 0x0071d280, UNSURE: compiled-in default profile
+extern uint8_t savegame_index_dirty;        // 0x00721447, UNSURE name: see symbols 0x53c4e0
+extern char last_profile_name[];              // 0x00718e80, name buffer, [0] != 0 when valid
+extern int32_t cached_profile_slot;           // 0x0068e66c, UNSURE
+extern int32_t safe_mode;    // 0x007196f4, UNSURE
+extern uint8_t profile_load_complete;         // 0x00718e78, UNSURE
+
+extern void player_profile_refresh_settings_cache(int16_t player_index); // 0x496060, BX
+extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970
+
+extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
+    uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
+    // 0x53c4e0; blam-cc: EBX -> capacity-then-count int32 (see game_engine_get_variant_by_name.c)
+extern void player_profile_initialize(void *profile_globals, int32_t unknown_0, int32_t unknown_1); // 0x53a1c0
+extern uint8_t player_profile_get(int32_t slot, void *out_profile); // 0x53a770; blam-cc: ECX -> out_profile
+extern uint8_t saved_game_last_profile_read(char *name_buffer);      // 0x53d2b0
+extern int32_t saved_game_find_by_name(char *name, int32_t unknown); // 0x53d4a0
+extern void player_profile_set_default_video_options(void *profile_data, int32_t unknown); // 0x53b000
+extern void player_profile_set_default_audio_options(void *profile_data);                        // 0x53b240; blam-cc: EAX -> profile_data
+extern void player_profile_write_data(int32_t slot, void *profile_data); // 0x53a950
+extern void console_out_printf(uint8_t unknown, const char *format, ...); // 0x4c6860
+
+// Initializes the player-profile subsystem at startup: clears the profile module's scratch
+// block, resets the current-profile globals, then picks a profile to load: the cached slot if
+// player_profile_get accepts it, else the first type-0 enumerated slot if the enumeration found
+// one and it validates. When write-back is enabled, seeds default video options before the load
+// and writes the record back to the enumerated slot afterwards (with a console message instead
+// when there is no enumerated slot).
+void player_profile_subsystem_initialize(void)
+{
+    int32_t enumerated_count;          // L+0
+    int32_t enumerated_slot;           // L+4
+    uint8_t profile_data[0x1ffc];      // L+8
+    int32_t slot_to_load;
+
+    memset(profile_globals_block, 0, sizeof(profile_globals_block));
+    player_profile_initialize(profile_globals_block, 0, 0);
+    saved_player_profile_slots_handle = -1;
+    profile_slot_id[0] = -1;
+    player_profile_refresh_settings_cache(0);
+    selected_saved_item = -1;
+
+    enumerated_count = 1;
+    enumerated_slot = -1;
+    saved_game_enumerate_by_type(0, &enumerated_slot, 0, (uint16_t *)&enumerated_count); // EBX = &enumerated_count
+    savegame_index_dirty = 1;
+
+    if (last_profile_name[0] == '\0' && saved_game_last_profile_read(last_profile_name) != 0) {
+        cached_profile_slot = saved_game_find_by_name(last_profile_name, 0);
+    }
+
+    slot_to_load = cached_profile_slot;
+    if (slot_to_load == -1) {
+        memcpy(profile_data, default_profile_data, sizeof(profile_data));
+    } else if (player_profile_get(slot_to_load, profile_data) != 0) {
+        goto have_slot;
+    }
+
+    if ((int16_t)enumerated_count <= 0 || enumerated_slot == -1 ||
+        player_profile_get(enumerated_slot, profile_data) == 0) {
+        profile_load_complete = 1;
+        return;
+    }
+    slot_to_load = enumerated_slot;
+
+have_slot:
+    if (slot_to_load != -1) {
+        if (safe_mode != 0) {
+            player_profile_set_default_video_options(profile_data, 0);
+            player_profile_set_default_audio_options(profile_data);
+        }
+        player_profile_load(0, profile_data, slot_to_load);
+        if (safe_mode != 0) {
+            if (enumerated_slot == -1) {
+                console_out_printf(0, "profile not saved since it was a default profile");
+                profile_load_complete = 1;
+                return;
+            }
+            player_profile_write_data(enumerated_slot, profile_data);
+        }
+    }
+    profile_load_complete = 1;
+}
+
+#if 0
+Original Ghidra decompilation (0x495370):
+
+/* WARNING: Function: __chkstk replaced with injection: alloca_probe */
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_00495370(void)
+
+{
+  int iVar1;
+  char cVar2;
+  int iVar3;
+  undefined4 *puVar4;
+  undefined4 *puVar5;
+  int local_200c;
+  undefined4 local_2008 [2047];
+  undefined4 uStack_c;
+
+  uStack_c = 0x495380;
+  puVar4 = &DAT_00712dd8;
+  for (iVar3 = 0x1829; iVar3 != 0; iVar3 = iVar3 + -1) {
+    *puVar4 = 0;
+    puVar4 = puVar4 + 1;
+  }
+  player_profile_initialize(&DAT_00712dd8,0,0);
+  DAT_00714dd4 = 0xffffffff;
+  _DAT_00714dde = 0xffff;
+  FUN_00496060();
+  _DAT_00714e7c = 0xffffffff;
+  local_200c = -1;
+  saved_game_enumerate_by_type(0,&local_200c,0);
+  DAT_00721447 = 1;
+  if ((DAT_00718e80 == '\0') && (cVar2 = saved_game_last_profile_read(0x718e80), cVar2 != '\0')) {
+    DAT_0068e66c = saved_game_find_by_name(&DAT_00718e80,0);
+  }
+  iVar1 = local_200c;
+  iVar3 = DAT_0068e66c;
+  if (DAT_0068e66c == -1) {
+    puVar4 = &DAT_0071d280;
+    puVar5 = local_2008;
+    for (iVar3 = 0x7ff; iVar3 != 0; iVar3 = iVar3 + -1) {
+      *puVar5 = *puVar4;
+      puVar4 = puVar4 + 1;
+      puVar5 = puVar5 + 1;
+    }
+  }
+  else {
+    cVar2 = player_profile_get(DAT_0068e66c);
+    if (cVar2 != '\0') goto LAB_0049546a;
+  }
+  if (iVar1 == -1) {
+    DAT_00718e78 = 1;
+    return;
+  }
+  cVar2 = player_profile_get(iVar1);
+  iVar3 = iVar1;
+  if (cVar2 == '\0') {
+    DAT_00718e78 = 1;
+    return;
+  }
+LAB_0049546a:
+  if (iVar3 != -1) {
+    if (DAT_007196f4 != 0) {
+      player_profile_set_default_video_options(local_2008,0);
+      FUN_0053b240();
+    }
+    player_profile_load(iVar3);
+    if (DAT_007196f4 != 0) {
+      if (iVar1 == -1) {
+        console_out_printf('\0',"profile not saved since it was a default profile");
+        DAT_00718e78 = 1;
+        return;
+      }
+      player_profile_write_data(iVar1,local_2008);
+    }
+  }
+  DAT_00718e78 = 1;
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/saved_item_has_unsaved_changes.c (original, verbatim) ====
+// saved_item_has_unsaved_changes  (Ghidra: FUN_00495ea0, unnamed)
+// address 0x495ea0, size 163 bytes
+// name confidence: 0.4   rewrite confidence: 0.6
+// evidence: out/phase4/interface_functions.md "Determines whether the currently-selected saved
+// map or variant has unsaved changes by comparing its [working copy against its disk copy]";
+// reuses saved_item_select.c's selected_saved_item/saved_item_working_copy/saved_item_disk_copy,
+// whose 0x1ffc (map) and 0x98 (variant, game_variant sized) byte spans match this function's
+// 0x7ff/0x26 dword compare counts exactly.
+// register convention: none (void).
+// UNSURE: the dword-by-dword compare loop is reproduced as memcmp, which is exactly equivalent.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include <string.h>
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t selected_saved_item;             // 0x00714e7c
+extern uint8_t saved_item_disk_copy[0x1ffc];     // 0x00716e7c
+extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80
+
+// Returns true if a saved item is selected and its working copy differs from its on-disk copy
+// (map: the full 0x1ffc byte record; variant: just the 0x98 byte game_variant portion).
+uint8_t saved_item_has_unsaved_changes(void)
+{
+    if (selected_saved_item != -1) {
+        if ((selected_saved_item & 0xf) == 0) {
+            return memcmp(saved_item_disk_copy, saved_item_working_copy,
+                          sizeof(saved_item_disk_copy)) != 0;
+        }
+        if ((selected_saved_item & 0xf) == 1) {
+            return memcmp(saved_item_disk_copy, saved_item_working_copy, sizeof(game_variant)) != 0;
+        }
+    }
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x495ea0):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+bool FUN_00495ea0(void)
+
+{
+  int iVar1;
+  int *piVar2;
+  int *piVar3;
+  bool bVar4;
+
+  bVar4 = false;
+  if (_DAT_00714e7c != 0xffffffff) {
+    if ((_DAT_00714e7c & 0xf) == 0) {
+      iVar1 = 0x7ff;
+      bVar4 = true;
+      piVar2 = &DAT_00716e7c;
+      piVar3 = &DAT_00714e80;
+      do {
+        if (iVar1 == 0) break;
+        iVar1 = iVar1 + -1;
+        bVar4 = *piVar2 == *piVar3;
+        piVar2 = piVar2 + 1;
+        piVar3 = piVar3 + 1;
+      } while (bVar4);
+      bVar4 = !bVar4;
+    }
+    else if ((_DAT_00714e7c & 0xf) == 1) {
+      iVar1 = 0x26;
+      bVar4 = true;
+      piVar2 = &DAT_00716e7c;
+      piVar3 = &DAT_00714e80;
+      do {
+        if (iVar1 == 0) break;
+        iVar1 = iVar1 + -1;
+        bVar4 = *piVar2 == *piVar3;
+        piVar2 = piVar2 + 1;
+        piVar3 = piVar3 + 1;
+      } while (bVar4);
+      return !bVar4;
+    }
+  }
+  return bVar4;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/saved_item_name_changed.c (original, verbatim) ====
+// saved_item_name_changed  (Ghidra: FUN_00495c90, unnamed)
+// address 0x495c90, size 82 bytes
+// name confidence: 0.35   rewrite confidence: 0.55
+// evidence: out/phase4/interface_functions.md "Checks whether the display name of the
+// currently-selected saved map or variant differs from its on-d[isk copy]."; reuses
+// saved_item_select.c's selected_saved_item/saved_item_working_copy/saved_item_disk_copy.
+// register convention: none (void).
+// UNSURE: the exact field roles at working_copy+2/disk_copy+2 (map name, 0xc wide chars) and
+// working_copy+0/disk_copy+0 (variant name, 0x18 wide chars) are inferred from "display name"
+// in the summary; the map/game_variant record layouts are not otherwise recovered here.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include <wchar.h>
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t selected_saved_item;             // 0x00714e7c
+extern uint8_t saved_item_disk_copy[0x1ffc];     // 0x00716e7c
+extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80
+
+// Returns 1 if the currently-selected saved map or variant's name differs from the name stored
+// in its on-disk copy, 0 if they match (or nothing is selected).
+int32_t saved_item_name_changed(void)
+{
+    if (selected_saved_item != -1) {
+        if ((selected_saved_item & 0xf) == 0) {
+            if (wcsncmp((wchar_t *)(saved_item_working_copy + 2),
+                        (wchar_t *)(saved_item_disk_copy + 2), 0xc) != 0) {
+                return 1;
+            }
+        } else if ((selected_saved_item & 0xf) == 1) {
+            if (wcsncmp((wchar_t *)saved_item_working_copy, (wchar_t *)saved_item_disk_copy,
+                        0x18) != 0) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x495c90):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_00495c90(void)
+
+{
+  int iVar1;
+
+  if (_DAT_00714e7c != 0xffffffff) {
+    if ((_DAT_00714e7c & 0xf) == 0) {
+      iVar1 = _wcsncmp((wchar_t *)((int)&DAT_00714e80 + 2),(wchar_t *)((int)&DAT_00716e7c + 2),0xc);
+      if (iVar1 != 0) {
+        return 1;
+      }
+    }
+    else if (((_DAT_00714e7c & 0xf) == 1) &&
+            (iVar1 = _wcsncmp((wchar_t *)&DAT_00714e80,(wchar_t *)&DAT_00716e7c,0x18), iVar1 != 0))
+    {
+      return 1;
+    }
+  }
+  return 0;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/saved_item_name_edit_begin.c (original, verbatim) ====
+// saved_item_name_edit_begin  (Ghidra: FUN_00495cf0, unnamed)
+// address 0x495cf0, size 77 bytes
+// name confidence: 0.35   rewrite confidence: 0.75
+// evidence: out/phase4/interface_functions.md "Validates the currently-selected saved map or
+// variant's name (e.g. for uniqueness/legality) before i[t can be saved]" -- actually opens the
+// virtual keyboard on the name field, one screen/field id pair for a map name and another for a
+// variant name; reuses saved_item_select.c's selected_saved_item. src/networking/
+// server_browser_latch_join_target.c's precedent (screen_id, field_id) signature for
+// virtual_keyboard_open, though that file declares it void -- this call site's return value is
+// used, so it is declared uint8_t here instead.
+// Phase-4 s2 review (objdump 0x495cf0..0x495d3b): the keyboard takes the destination buffer in
+// ESI (0x00714e82 for a profile, 0x00714e80 for a variant) and two stack words, maximum length
+// in bytes and field kind; 0x00719410 is the dword virtual_keyboard.validation_mode.
+// register convention: none (void).
+// UNSURE: virtual_keyboard_open's real return type/meaning and DAT_00719410
+// (saved_variant_name_valid per types/interface.h's globals list, set to 2 here) are inferred
+// from this call site only.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t selected_saved_item;      // 0x00714e7c
+extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8 (validation_mode at 0x00719410)
+extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the saved item being edited
+
+extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind); // 0x4a89a0, blam-cc: ESI destination
+
+// Opens the virtual keyboard on the currently-selected saved item's name field: the map-name
+// screen for a map, or the variant-name screen for a variant, in which case a successful open
+// also arms saved_variant_name_valid. Returns the keyboard's own open result (map selection
+// returns it directly; variant selection always returns 0 unless the open succeeded, in which
+// case it returns the keyboard's nonzero result).
+uint8_t saved_item_name_edit_begin(void)
+{
+    uint8_t opened;
+
+    if (selected_saved_item != -1) {
+        if ((selected_saved_item & 0xf) == 0) {
+            return virtual_keyboard_open((uint16_t *)(saved_item_working_copy + 2), 0x18, 10); // profile name
+        }
+        if ((selected_saved_item & 0xf) == 1) {
+            opened = virtual_keyboard_open((uint16_t *)saved_item_working_copy, 0x30, 10); // variant name
+            if (opened != 0) {
+                virtual_keyboard.validation_mode = 2; // dword store
+                return opened;
+            }
+            return 0;
+        }
+    }
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x495cf0):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+char FUN_00495cf0(void)
+
+{
+  char cVar1;
+  char cVar2;
+
+  cVar1 = '\0';
+  if (_DAT_00714e7c != 0xffffffff) {
+    if ((_DAT_00714e7c & 0xf) == 0) {
+      cVar1 = virtual_keyboard_open(0x18,10);
+    }
+    else if ((_DAT_00714e7c & 0xf) == 1) {
+      cVar2 = virtual_keyboard_open(0x30,10);
+      cVar1 = '\0';
+      if (cVar2 != '\0') {
+        DAT_00719410 = 2;
+        return cVar2;
+      }
+    }
+  }
+  return cVar1;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/saved_item_name_matches.c (original, verbatim) ====
+// saved_item_name_matches  (Ghidra: FUN_00495e70, unnamed)
+// address 0x495e70, size 38 bytes
+// name confidence: 0.35   rewrite confidence: 0.5
+// evidence: out/phase4/interface_functions.md "Compares a given name string against the
+// currently-selected saved map/variant's name, returning a ma[tch flag]"; reuses
+// saved_item_select.c's selected_saved_item/saved_item_disk_copy, and
+// saved_item_name_changed.c's map-name-at-offset-2 field.
+// register convention: name to compare as the recognized stack parameter (param_1).
+// UNSURE: the incoming/outgoing `in_EAX` Ghidra shows is decompiler noise (its high 24 bits pass
+// straight through unread); rewritten to return a plain uint8_t 0/1.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include <wchar.h>
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t selected_saved_item;          // 0x00714e7c
+extern uint8_t saved_item_disk_copy[0x1ffc]; // 0x00716e7c
+
+// Returns 1 if a saved item is selected and `name` matches its on-disk map-name field, else 0.
+uint8_t saved_item_name_matches(wchar_t *name)
+{
+    if (selected_saved_item != -1) {
+        return wcscmp(name, (wchar_t *)(saved_item_disk_copy + 2)) == 0;
+    }
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x495e70):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+uint FUN_00495e70(wchar_t *param_1)
+
+{
+  uint in_EAX;
+  uint uVar1;
+  int iVar2;
+
+  uVar1 = in_EAX & 0xffffff00;
+  if (_DAT_00714e7c != -1) {
+    iVar2 = _wcscmp(param_1,(wchar_t *)((int)&DAT_00716e7c + 2));
+    uVar1 = CONCAT31((int3)((uint)-iVar2 >> 8),'\x01' - (iVar2 != 0));
+  }
+  return uVar1;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/saved_item_select.c (original, verbatim) ====
+// saved_item_select  (Ghidra: FUN_00495be0, unnamed)
+// address 0x495be0, size 169 bytes
+// name confidence: 0.4   rewrite confidence: 0.3
+// evidence: out/phase4/interface_functions.md "Selects a saved map or game-variant entry (by
+// combined type/id) into the profile's current working-copy."; types/interface.h's globals list
+// ("selected_saved_item, low nibble 0 map, 1 variant", "saved_item_working_copy",
+// "saved_item_disk_copy"); src/game/game_engine_get_variant_by_name.c's precedent signature for
+// saved_game_get_variant(slot, game_variant *out); player_profile_subsystem_initialize.c's
+// default_profile_data (0x0071d280, the same 0x1ffc byte template copied here for the "no
+// selection" map case).
+// register convention: combined type/id in EBX (unaff_EBX). // blam-cc: EBX -> item
+// Type 0 is a player profile, not a map: player_profile_save (0x495d40) reloads a type-0
+// selection through player_profile_load, and the -1 case copies the default profile template. Review pass (phase 4): the disassembly confirms both loaders write into
+// saved_item_disk_copy: player_profile_get gets it in ECX (0x495c5e) and saved_game_get_variant as its
+// second pushed argument (0x495c09).
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include <string.h>
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t selected_saved_item;          // 0x00714e7c
+extern uint8_t saved_item_disk_copy[0x1ffc]; // 0x00716e7c
+extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80
+extern uint32_t unknown_00714eb8;            // 0x00714eb8, UNSURE: flags, bits 0x180 cleared here
+extern uint8_t default_profile_data[0x1ffc]; // 0x0071d280 (per player_profile_subsystem_initialize.c)
+
+extern uint8_t player_profile_get(int32_t slot, void *out_record); // 0x53a770; blam-cc: ECX -> out_record
+extern void game_engine_apply_current_custom_variant(void); // 0x463b90
+extern uint8_t saved_game_get_variant(int32_t slot, game_variant *out); // 0x53bee0, UNSURE
+
+// blam-cc: EBX -> item
+// Selects saved item `item` (low nibble 0 = map, 1 = variant; -1 selects "nothing"/the default)
+// into the working copy: for a map, either resets to the compiled-in default template or, if
+// `item` validates, copies the whole 0x1ffc byte disk record over; for a variant, either
+// re-applies the current custom variant or, if `item` validates, loads it into the disk copy and
+// copies just the 0x98 byte game_variant portion over, clearing two flag bits in the process.
+// Does nothing (selected_saved_item keeps its reset value of -1) if validation fails.
+void saved_item_select(int32_t item)
+{
+    selected_saved_item = -1;
+
+    if ((item & 0xf) == 0) {
+        if (item == -1) {
+            memcpy(saved_item_disk_copy, default_profile_data, sizeof(default_profile_data));
+            return;
+        }
+        if (player_profile_get(item, saved_item_disk_copy) != 0) {
+            memcpy(saved_item_working_copy, saved_item_disk_copy, sizeof(saved_item_working_copy));
+            selected_saved_item = item;
+        }
+    } else if ((item & 0xf) == 1) {
+        if (item == -1) {
+            game_engine_apply_current_custom_variant();
+            return;
+        }
+        if (saved_game_get_variant(item, (game_variant *)saved_item_disk_copy) != 0) {
+            memcpy(saved_item_working_copy, saved_item_disk_copy, sizeof(game_variant));
+            unknown_00714eb8 = unknown_00714eb8 & 0xfffffe7f;
+            selected_saved_item = item;
+        }
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x495be0):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_00495be0(void)
+
+{
+  char cVar1;
+  int iVar2;
+  uint unaff_EBX;
+  undefined4 *puVar3;
+  undefined4 *puVar4;
+
+  _DAT_00714e7c = 0xffffffff;
+  if ((unaff_EBX & 0xf) == 0) {
+    if (unaff_EBX == 0xffffffff) {
+      puVar3 = &DAT_0071d280;
+      puVar4 = &DAT_00716e7c;
+      for (iVar2 = 0x7ff; iVar2 != 0; iVar2 = iVar2 + -1) {
+        *puVar4 = *puVar3;
+        puVar3 = puVar3 + 1;
+        puVar4 = puVar4 + 1;
+      }
+      return;
+    }
+    cVar1 = player_profile_get();
+    if (cVar1 != '\0') {
+      puVar3 = &DAT_00716e7c;
+      puVar4 = &DAT_00714e80;
+      for (iVar2 = 0x7ff; _DAT_00714e7c = unaff_EBX, iVar2 != 0; iVar2 = iVar2 + -1) {
+        *puVar4 = *puVar3;
+        puVar3 = puVar3 + 1;
+        puVar4 = puVar4 + 1;
+      }
+    }
+  }
+  else if ((unaff_EBX & 0xf) == 1) {
+    if (unaff_EBX == 0xffffffff) {
+      game_engine_apply_current_custom_variant();
+      return;
+    }
+    cVar1 = FUN_0053bee0();
+    if (cVar1 != '\0') {
+      puVar3 = &DAT_00716e7c;
+      puVar4 = &DAT_00714e80;
+      for (iVar2 = 0x26; iVar2 != 0; iVar2 = iVar2 + -1) {
+        *puVar4 = *puVar3;
+        puVar3 = puVar3 + 1;
+        puVar4 = puVar4 + 1;
+      }
+      DAT_00714eb8 = DAT_00714eb8 & 0xfffffe7f;
+      _DAT_00714e7c = unaff_EBX;
+      return;
+    }
+  }
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/unit_get_first_person_marker_transform.c (original, verbatim) ====
+// unit_get_first_person_marker_transform  (Ghidra: FUN_00492c30; named per
+// symbols/review_queue.txt "0x492c30 unit_get_first_person_marker_transform")
+// address 0x492c30, size 225 bytes
+// name confidence: 0.35   rewrite confidence: 0.5
+// evidence: out/phase4/interface_functions.md "Fetches a first-person weapon marker's transform
+// for an object, but only if that object belongs to the current local player." Disassembled
+// directly (objdump bin/halo.exe 0x492c30..0x492d10) since Ghidra shows the
+// first_person_weapon_get_marker_data call with zero visible arguments; this also confirms the
+// output fields are the raw (unsubtracted) node_transform.position/forward/up triples, unlike
+// first_person_weapon_center_flashlight.c which offsets position by half of forward.
+// register convention: object_index in EDX, out_extents in EDI, out_direction in ESI (all
+// unrecognized by Ghidra); marker_name (dead, forwarded but unused by the callee) and
+// out_position are the two Ghidra-recognized stack parameters (param_1, param_2).
+// // blam-cc: object_index=EDX, out_extents=EDI, out_direction=ESI, marker_name=stack,
+// out_position=stack
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include "objects.h"
+#include "units.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern data_array *object_data; // 0x008603b0, "objects"
+extern data_array *player_data;      // 0x0087a480, "players"
+extern int16_t current_local_player_index; // 0x007c3108
+extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
+
+extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name,
+                                                      object_marker *out, uint32_t name_arg); // 0x492ad0, this module
+
+// If object_index's parent object (e.g. the vehicle or unit wielding it) is controlled by the
+// current local player, and that player's first-person weapon is attached, looks up
+// object_index's first-person marker and returns its raw node_transform position, forward
+// (as extents) and up (as direction) vectors. Returns 0 on any failed gate.
+uint8_t unit_get_first_person_marker_transform(datum_index object_index, const char *marker_name,
+                                                real_point3d *out_position, real_vector3d *out_extents,
+                                                real_vector3d *out_direction)
+{
+    object_header *header;
+    object *obj;
+    object_header *parent_header;
+    unit_data *parent_unit;
+    datum_index controlling_player;
+    player *p;
+    int16_t local_player;
+    first_person_weapon_interface *fp;
+    object_marker marker;
+    int16_t result;
+
+    header = &((object_header *)object_data->data)[object_index & 0xffff];
+    obj = header->data;
+
+    parent_header = &((object_header *)object_data->data)[obj->parent_object & 0xffff];
+    parent_unit = (unit_data *)((uint8_t *)parent_header->data + k_unit_data_offset);
+    controlling_player = parent_unit->controlling_player;
+
+    if (controlling_player == (datum_index)0xffffffff) {
+        return 0;
+    }
+
+    p = (player *)((uint8_t *)player_data->data + (controlling_player & 0xffff) * sizeof(player));
+    local_player = p->local_player_index;
+    if (local_player == -1 || local_player != current_local_player_index) {
+        return 0;
+    }
+
+    fp = &first_person_weapon_interfaces[local_player];
+    if (fp->attached == 0) {
+        return 0;
+    }
+
+    result = (int16_t)first_person_weapon_get_marker_data(object_index, marker_name, &marker, 1);
+    if (result <= 0) {
+        return 0;
+    }
+
+    *out_position = marker.node_transform.position;
+    *out_extents = marker.node_transform.forward;
+    *out_direction = marker.node_transform.up;
+    return 1;
+}
+
+#if 0
+Original Ghidra decompilation (0x492c30):
+
+undefined4 FUN_00492c30(undefined4 param_1,undefined4 *param_2)
+
+{
+  uint uVar1;
+  short sVar2;
+  uint in_EDX;
+  undefined4 *unaff_ESI;
+  undefined4 *unaff_EDI;
+  undefined4 local_30;
+  undefined4 local_2c;
+  undefined4 local_28;
+  undefined4 local_18;
+  undefined4 local_14;
+  undefined4 local_10;
+  undefined4 local_c;
+  undefined4 local_8;
+  undefined4 local_4;
+
+  uVar1 = *(uint *)(*(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 +
+                            (*(uint *)(*(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 +
+                                               (in_EDX & 0xffff) * 0xc) + 0x11c) & 0xffff) * 0xc) +
+                   0x218);
+  if (uVar1 != 0xffffffff) {
+    sVar2 = *(short *)((uVar1 & 0xffff) * 0x200 + *(int *)(DAT_0087a480 + 0x34) + 2);
+    if (((sVar2 != -1) && (sVar2 == DAT_007c3108)) &&
+       (*(char *)(sVar2 * 0x1ea0 + DAT_006b2d98) != '\0')) {
+      sVar2 = first_person_weapon_get_marker_data();
+      if (0 < sVar2) {
+        *param_2 = local_c;
+        param_2[1] = local_8;
+        param_2[2] = local_4;
+        *unaff_EDI = local_30;
+        unaff_EDI[1] = local_2c;
+        unaff_EDI[2] = local_28;
+        *unaff_ESI = local_18;
+        unaff_ESI[1] = local_14;
+        unaff_ESI[2] = local_10;
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+

@@ -1,0 +1,1426 @@
+==== src/interface/virtual_keyboard_backspace.c (original, verbatim) ====
+// virtual_keyboard_backspace  (Ghidra: virtual_keyboard_backspace, already named)
+// address 0x4a96f0, size 88 bytes
+// name confidence: 0.6 (existing Ghidra name)   rewrite confidence: 0.85
+// evidence: types/interface.h virtual_keyboard_globals (destination, destination_end,
+// maximum_length all match the DAT_ offsets exactly).
+// Watch pointer arithmetic: destination/destination_end are typed uint16_t* in the header, but
+// Ghidra's arithmetic here is byte-precise, so this rewrite works through uint8_t* locals and
+// casts back only where the header's field type is assigned.
+// register convention: __cdecl, no parameters.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include <string.h>
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
+extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
+
+// Deletes the wide character immediately before the caret in the virtual keyboard's edit
+// buffer (shifting the remaining tail left by 2 bytes and shrinking destination_end), then
+// always plays the UI sound effect.
+void virtual_keyboard_backspace(void)
+{
+    uint8_t *destination = (uint8_t *)virtual_keyboard.destination;
+    uint8_t *destination_end = (uint8_t *)virtual_keyboard.destination_end;
+
+    if (destination < destination_end) {
+        int32_t size = (int32_t)(uint16_t)virtual_keyboard.maximum_length -
+                        (int32_t)destination_end + (int32_t)destination;
+        if (size >= 0) {
+            memmove(destination_end - 2, destination_end, size);
+            *(int16_t *)(destination + ((virtual_keyboard.maximum_length & ~1) - 2)) = 0;
+            virtual_keyboard.destination_end = (uint16_t *)(destination_end - 2);
+        }
+    }
+    widget_play_sound_effect(1); // tail jump with EAX 1
+}
+
+#if 0
+Original Ghidra decompilation (0x4a96f0):
+
+void __cdecl virtual_keyboard_backspace(void)
+
+{
+  size_t _Size;
+
+  if ((DAT_007193c0 < DAT_007193c4) &&
+     (_Size = ((uint)DAT_007193b4 - (int)DAT_007193c4) + (int)DAT_007193c0, -1 < (int)_Size)) {
+    _memmove((void *)((int)DAT_007193c4 + -2),DAT_007193c4,_Size);
+    *(undefined2 *)((int)DAT_007193c0 + ((DAT_007193b4 & 0xfffffffe) - 2)) = 0;
+    DAT_007193c4 = (void *)((int)DAT_007193c4 + -2);
+  }
+  widget_play_sound_effect();
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/virtual_keyboard_character_is_legal.c (original, verbatim) ====
+// virtual_keyboard_character_is_legal  (Ghidra: FUN_004a8b80, renamed)
+// address 0x4a8b80, size 87 bytes
+// name confidence: 0.4 (chosen)   rewrite confidence: 0.85
+// evidence: phase-4 summary "Returns whether a typed character (CL) is legal for the current
+// virtual-keyboard field type (EAX): digits only, hostname/IP-like charset, or a general
+// blacklist check"; types/interface.h virtual_keyboard_globals::field_kind (tested here as the
+// EAX field-type value) and the character filter note "checked by the character filter at
+// 0x4a8b80".
+// UNSURE: field kinds 3/4/5 are not otherwise named in this pass; kept as raw literals with the
+// summary's own reading (3 = general/blacklist fallthrough alongside default, 4 =
+// hostname/IP-like, 5 = digits only).
+// Phase-4 s2 review: EAX is virtual_keyboard.validation_mode (the dword at 0x00719410 that
+// virtual_keyboard_process_input loads right before the call), not field_kind; the return is a
+// byte (mode 5 returns AL of isdigit). The blacklist is the string at 0x0066a8c8 through the
+// pointer at 0x00692d78, tested with strchr (0x6257e0).
+// register convention: validation mode in EAX (in_EAX), character in CL (in_CL), both unresolved
+// register reads.
+//   // blam-cc: validation_mode -> EAX, character -> CL
+
+#include "crt.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint8_t *virtual_keyboard_blacklist_charset; // 0x00692d78, UNSURE: passed to strchr
+
+// blam-cc: validation_mode -> EAX, character -> CL
+// Filters a typed character against the current virtual-keyboard field's allowed character set:
+// field kind 5 is digits only; field kind 4 allows '.', '-' and ':' plus alphanumerics
+// (hostname/IP-like); every other kind (including 3) falls through to a general blacklist
+// membership test.
+uint8_t virtual_keyboard_character_is_legal(int32_t validation_mode, uint8_t character)
+{
+    if (validation_mode != 3) {
+        if (validation_mode != 4) {
+            if (validation_mode != 5) {
+                const char *blocked = strchr((const char *)virtual_keyboard_blacklist_charset, character);
+                return (uint8_t)(1 - (blocked != 0));
+            }
+            return (uint8_t)isdigit(character); // the caller tests AL of the CRT result
+        }
+        if (character != '.' && character != '-' && character != ':') {
+            if (!isalnum(character)) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+#if 0
+Original Ghidra decompilation (0x4a8b80):
+
+uint FUN_004a8b80(void)
+
+{
+  int in_EAX;
+  int iVar1;
+  uint uVar2;
+  byte in_CL;
+
+  if (in_EAX != 3) {
+    if (in_EAX != 4) {
+      if (in_EAX != 5) {
+        iVar1 = FUN_006257e0(PTR_DAT_00692d78,in_CL);
+        return (uint)(byte)(1 - (iVar1 != 0));
+      }
+      uVar2 = _isdigit((uint)in_CL);
+      return uVar2;
+    }
+    if (((in_CL != 0x2e) && (in_CL != 0x2d)) && (in_CL != 0x3a)) {
+      iVar1 = _isalnum((uint)in_CL);
+      if (iVar1 == 0) {
+        return 0;
+      }
+    }
+  }
+  return 1;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/virtual_keyboard_close.c (original, verbatim) ====
+// virtual_keyboard_close  (Ghidra: virtual_keyboard_close, already named)
+// address 0x4a9250, size 175 bytes
+// name confidence: 0.55 (existing Ghidra name)   rewrite confidence: 0.8
+// evidence: types/interface.h virtual_keyboard_globals (active, destination, maximum_length,
+// text, committed all match); shares the DirectInput device reset tail with
+// virtual_keyboard_open.c.
+// register convention: __cdecl, no parameters.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include <wchar.h>
+#include <string.h>
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
+extern uint8_t controls_input_capture_flags; // 0x00712542, UNSURE (per src/interface/widget_close_all.c)
+extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
+extern void **keyboard_device; // 0x006b1800, UNSURE: DirectInput device COM pointer
+extern uint8_t key_frames[0x6d]; // 0x006b1620
+extern uint8_t key_release_pending[0x6d]; // 0x006b168d
+
+
+// Commits the virtual keyboard's edited text back to the caller's buffer, clears the keyboard's
+// state and plays the UI sound effect, then resets the DirectInput keyboard device the same way
+// virtual_keyboard_open does.
+uint8_t virtual_keyboard_close(void)
+{
+    virtual_keyboard.active = 0;
+    if (virtual_keyboard.destination != 0) {
+        int32_t wide_chars = (uint16_t)virtual_keyboard.maximum_length >> 1;
+        wcsncpy((wchar_t *)virtual_keyboard.destination, (const wchar_t *)virtual_keyboard.text, wide_chars);
+        *(int16_t *)((uint8_t *)virtual_keyboard.destination +
+                      ((virtual_keyboard.maximum_length & ~1) - 2)) = 0;
+    }
+    virtual_keyboard.destination = 0;
+    virtual_keyboard.text[0] = 0; // a word store at 0x007193d0
+    virtual_keyboard.committed = 0;
+    widget_play_sound_effect(3);
+
+    controls_input_capture_flags &= 0xfb;
+
+    if (keyboard_device != 0) {
+        int32_t minus_one = -1;
+        void **vtable = *(void ***)keyboard_device;
+        ((directinput_set_property_fn)vtable[0x28 / 4])(keyboard_device, 0x14, 0, &minus_one, 0);
+        memset(key_release_pending, 0, sizeof(key_release_pending));
+        memset(key_frames, 0, sizeof(key_frames));
+    }
+    return 1;
+}
+
+#if 0
+Original Ghidra decompilation (0x4a9250):
+
+int __cdecl virtual_keyboard_close(void)
+
+{
+  int iVar1;
+  undefined4 *puVar2;
+  undefined4 local_4;
+
+  DAT_007193a8 = 0;
+  if (DAT_007193c0 != (wchar_t *)0x0) {
+    _wcsncpy(DAT_007193c0,&DAT_007193d0,(uint)(DAT_007193b4 >> 1));
+    *(undefined2 *)((int)DAT_007193c0 + ((DAT_007193b4 & 0xfffffffe) - 2)) = 0;
+  }
+  DAT_007193c0 = (wchar_t *)0x0;
+  DAT_007193d0 = 0;
+  DAT_007193bc._2_1_ = 0;
+  widget_play_sound_effect();
+  DAT_00712542 = DAT_00712542 & 0xfb;
+  if (DAT_006b1800 != (int *)0x0) {
+    local_4 = 0xffffffff;
+    (**(code **)(*DAT_006b1800 + 0x28))(DAT_006b1800,0x14,0,&local_4,0);
+    puVar2 = &DAT_006b168d;
+    for (iVar1 = 0x1b; iVar1 != 0; iVar1 = iVar1 + -1) {
+      *puVar2 = 0;
+      puVar2 = puVar2 + 1;
+    }
+    *(undefined1 *)puVar2 = 0;
+    puVar2 = (undefined4 *)&DAT_006b1620;
+    for (iVar1 = 0x1b; iVar1 != 0; iVar1 = iVar1 + -1) {
+      *puVar2 = 0;
+      puVar2 = puVar2 + 1;
+    }
+    *(undefined1 *)puVar2 = 0;
+  }
+  return 1;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/virtual_keyboard_draw_text.c (original, verbatim) ====
+// virtual_keyboard_draw_text  (Ghidra: virtual_keyboard_draw_text, already named)
+// address 0x4a9300, size 521 bytes
+// name confidence: 0.6 (existing Ghidra name)   rewrite confidence: 0.8
+// evidence: rewritten from objdump 0x4a9300..0x4a9508 in the phase-4 review. The first
+// rewrite had no parameter (the function takes the text bounds on the stack), dropped the
+// register arguments of every callee and invented a return value (the function returns
+// nothing meaningful).
+//   Sets the shared text state (hud_text_draw_*: small_ui font, color 1.0 / 0.9 / 0.9 / 0.9,
+// flags 0xffff, column 2). While the keyboard is opened, the edit text is measured
+// (0x5562d0: EBX bounds, ESI cursor rect, EDI output rect; the cursor rect is not
+// initialised by this function) and a highlight is drawn behind it with the white bitmap,
+// the output rect widened by 2 on each side (ui_draw_screen_quad with the bounds as the
+// source rect, color 0x7f7f7f7f). The text is drawn into the bounds (0x514ab0, EAX and ECX
+// the bounds). When the keyboard is not opened and the white bitmap exists, a caret is
+// drawn on odd seconds of the millisecond clock (0x449210 / 1000): the text is walked with
+// text_get_character_metrics (DX character, EDI font data) summing the glyph advances (+2)
+// of the whole text and of the characters before destination_end; the caret rect is one
+// pixel wide at (left + right) / 2 - total / 2 + advance_before_caret, from y 0x78 to 0x78 +
+// font ascent + descent (+4, +6 of the font tag data).
+// register convention: plain cdecl, one stack argument.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
+extern tag_instance *tag_instances;               // 0x0087bc14
+
+extern int32_t hud_text_draw_font_tag_id;     // 0x006e472c
+extern uint32_t hud_text_draw_unknown_4730;   // 0x006e4730
+extern uint16_t hud_text_draw_color_or_flags; // 0x006e4734
+extern int16_t hud_text_draw_column;          // 0x006e4736
+extern float hud_text_draw_color_a;           // 0x006e4738
+extern float hud_text_draw_color_r;           // 0x006e473c
+extern float hud_text_draw_color_g;           // 0x006e4740
+extern float hud_text_draw_color_b;           // 0x006e4744
+
+extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence); // 0x43f290, blam-cc: EAX tag, DI frame
+extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor, Rectangle2D *out, const uint16_t *text); // 0x5562d0, blam-cc: EBX origin, ESI cursor, EDI out; measures text
+extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
+                                int16_t *clip_rect, uint32_t vertex_color); // 0x498b20, blam-cc: EAX source_rect, ECX dest_rect
+extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1,
+                                      const uint16_t *text); // 0x514ab0, blam-cc: EAX clip, ECX bounds
+extern uint32_t time_query_performance_counter_ms(void); // 0x449210
+extern const int16_t *text_get_character_metrics(uint16_t character, const void *font_data); // 0x557650, blam-cc: DX character, EDI font_data; +2 is the advance
+
+void virtual_keyboard_draw_text(Rectangle2D *bounds)
+{
+    const uint8_t *font_data = (const uint8_t *)tag_instances[virtual_keyboard.small_ui_tag & 0xffff].data;
+
+    hud_text_draw_font_tag_id = virtual_keyboard.small_ui_tag;
+    hud_text_draw_color_a = 1.0f;
+    hud_text_draw_color_b = 0.9f;
+    hud_text_draw_color_r = 0.9f;
+    hud_text_draw_color_g = 0.9f;
+    hud_text_draw_color_or_flags = 0xffff;
+    hud_text_draw_column = 2;
+    hud_text_draw_unknown_4730 = 0;
+
+    if (virtual_keyboard.opened == 1) {
+        BitmapData *white = bitmap_group_sequence_get_bitmap_data(virtual_keyboard.white_bitmap, 0, 0);
+
+        if (white != 0) {
+            Rectangle2D cursor; // UNSURE: never initialised by this function
+            Rectangle2D highlight;
+
+            text_measure_string_extents(bounds, &cursor, &highlight, virtual_keyboard.destination);
+            highlight.left -= 2;
+            highlight.right += 2;
+            ui_draw_screen_quad((int16_t *)bounds, (int16_t *)&highlight, (int32_t)white, 0, 0x7f7f7f7f);
+        }
+    }
+
+    chimera__draw_16_bit_text(bounds, bounds, 0, 0, virtual_keyboard.destination);
+
+    if (virtual_keyboard.opened == 0 && virtual_keyboard.white_bitmap != (datum_index)-1 &&
+        ((time_query_performance_counter_ms() / 1000) & 1) != 0) {
+        int16_t height = (int16_t)(*(const int16_t *)(font_data + 6) + *(const int16_t *)(font_data + 4));
+        int16_t advance_before_caret = 0;
+        int16_t total_advance = 0;
+        const uint16_t *cursor = virtual_keyboard.destination;
+        BitmapData *white = bitmap_group_sequence_get_bitmap_data(virtual_keyboard.white_bitmap, 0, 0);
+
+        if (white != 0) {
+            Rectangle2D caret;
+            uint16_t character = *cursor;
+
+            while (character != 0) {
+                const int16_t *metrics = text_get_character_metrics(character, font_data);
+
+                if (metrics == 0) {
+                    break;
+                }
+                if (cursor < virtual_keyboard.destination_end) {
+                    advance_before_caret += metrics[1];
+                }
+                character = cursor[1];
+                total_advance += metrics[1];
+                cursor++;
+            }
+            caret.top = 0x78;
+            caret.left = (int16_t)((bounds->left + bounds->right) / 2 - (total_advance >> 1) + advance_before_caret);
+            caret.bottom = (int16_t)(height + 0x78);
+            caret.right = (int16_t)(caret.left + 1);
+            ui_draw_screen_quad(0, (int16_t *)&caret, (int32_t)white, 0, 0xffffffff);
+        }
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x4a9300):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+uint __cdecl virtual_keyboard_draw_text(void)
+
+{
+  short sVar1;
+  int iVar2;
+  undefined4 uVar3;
+  uint uVar4;
+  int iVar5;
+  uint uVar6;
+  short *psVar7;
+
+  DAT_006e472c = DAT_00719418;
+  DAT_006e4738 = 0x3f800000;
+  DAT_006e4744 = 0x3f666666;
+  DAT_006e473c = 0x3f666666;
+  DAT_006e4740 = 0x3f666666;
+  DAT_006e4734._0_2_ = 0xffff;
+  DAT_006e4734._2_2_ = 2;
+  _DAT_006e4730 = 0;
+  if ((DAT_007193bc._3_1_ == '\x01') &&
+     (iVar2 = bitmap_group_sequence_get_bitmap_data(0), iVar2 != 0)) {
+    FUN_005562d0(DAT_007193c0);
+    FUN_00498b20(iVar2,0,0x7f7f7f7f);
+  }
+  uVar3 = chimera__draw_16_bit_text(0,0,DAT_007193c0);
+  uVar6 = CONCAT31((int3)((uint)uVar3 >> 8),DAT_007193bc._3_1_);
+  if ((DAT_007193bc._3_1_ == '\0') && (DAT_007193cc != -1)) {
+    uVar4 = FUN_00449210();
+    psVar7 = DAT_007193c0;
+    uVar6 = uVar4 * 0x10624dd3;
+    if ((uVar4 / 1000 & 1) != 0) {
+      iVar2 = bitmap_group_sequence_get_bitmap_data(0);
+      uVar6 = 0;
+      if (iVar2 != 0) {
+        sVar1 = *psVar7;
+        while ((sVar1 != 0 && (iVar5 = text_get_character_metrics(), iVar5 != 0))) {
+          sVar1 = psVar7[1];
+          psVar7 = psVar7 + 1;
+        }
+        uVar6 = FUN_00498b20(iVar2,0,0xffffffff);
+      }
+    }
+  }
+  return uVar6;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/virtual_keyboard_initialize.c (original, verbatim) ====
+// virtual_keyboard_initialize  (Ghidra: virtual_keyboard_initialize, already named)
+// address 0x4a88f0, size 175 bytes
+// name confidence: 0.9 (existing Ghidra name, matches types/interface.h)   rewrite confidence: 0.85
+// evidence: types/interface.h virtual_keyboard_globals (0x007193a8) -- every DAT_ offset here
+// lines up exactly with a named field (active, strings_tag_data, caret, unknown_0a,
+// maximum_length, selection_start, selection_end, unknown_12, destination, destination_end,
+// open_time, white_bitmap); cache.h tag_instance for the tag_lookup idiom.
+// register convention: __cdecl, no parameters.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include "cache.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
+extern tag_instance *tag_instances;               // 0x0087bc14
+extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
+
+// Resets the virtual-keyboard globals to inactive and looks up the ui\english strings tag and
+// the shared white bitmap tag; returns whether the strings tag was found.
+int32_t virtual_keyboard_initialize(void)
+{
+    datum_index strings_tag;
+
+    virtual_keyboard.active = 0;
+    virtual_keyboard.unknown_01 = 0;
+    virtual_keyboard.unknown_02 = 0;
+    virtual_keyboard.unknown_03 = 0;
+
+    strings_tag = tag_lookup(0x76636b79 /* vcky */, (char *)"ui\\english");
+    if (strings_tag != 0xffffffff) {
+        virtual_keyboard.strings_tag_data = tag_instances[strings_tag & 0xffff].data;
+        virtual_keyboard.caret = 0;
+        virtual_keyboard.unknown_0a = 0;
+        virtual_keyboard.maximum_length = 0;
+        virtual_keyboard.selection_start = -1;
+        virtual_keyboard.selection_end = -1;
+        virtual_keyboard.unknown_12 = 0;
+        virtual_keyboard.destination = 0;
+        virtual_keyboard.destination_end = 0;
+        virtual_keyboard.open_time = 0;
+    }
+
+    virtual_keyboard.white_bitmap = tag_lookup(0x6269746d /* bitm */, (char *)"ui\\shell\\bitmaps\\white");
+    return virtual_keyboard.strings_tag_data != 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x4a88f0):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+int __cdecl virtual_keyboard_initialize(void)
+
+{
+  uint uVar1;
+
+  DAT_007193a8 = 0;
+  DAT_007193a9 = 0;
+  DAT_007193aa = 0;
+  DAT_007193ab = 0;
+  uVar1 = tag_lookup("ui\\english");
+  if (uVar1 != 0xffffffff) {
+    DAT_007193ac = *(int *)((uVar1 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+    _DAT_007193b0 = 0;
+    _DAT_007193b2 = 0;
+    DAT_007193b4 = 0;
+    _DAT_007193b6 = 0xffff;
+    _DAT_007193b8 = 0xffff;
+    _DAT_007193ba = 0;
+    DAT_007193c0 = 0;
+    DAT_007193c4 = 0;
+    _DAT_007193c8 = 0;
+  }
+  DAT_007193cc = tag_lookup("ui\\shell\\bitmaps\\white");
+  return (uint)(DAT_007193ac != 0);
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/virtual_keyboard_open.c (original, verbatim) ====
+// virtual_keyboard_open  (Ghidra: virtual_keyboard_open, already named)
+// address 0x4a89a0, size 362 bytes
+// name confidence: 0.55 (existing Ghidra name, matches types/interface.h)   rewrite confidence: 0.75
+// evidence: types/interface.h virtual_keyboard_globals -- every DAT_ offset here lines up with
+// a named field (active, strings_tag_data, caret, unknown_0a, destination, destination_end,
+// maximum_length, selection_start, open_time, text (DAT_0071940e is text[31], its last wide
+// char slot), validation_mode, large_ui_tag, small_ui_tag) plus field_kind/committed/opened
+// packed at +0x14 (DAT_007193bc as a 4 byte span the Ghidra locals slice into two bytes and
+// two shorts).
+// UNSURE: the 0x100 byte buffer at 0x00712ccc that this function zeroes first is not part of
+// virtual_keyboard_globals and was not identified in this pass; kept as an opaque byte array.
+// UNSURE: the DirectInput-shaped vtable call (`object->vtable[0x28/4](object, 0x14, 0, &-1, 0)`)
+// and the two 0x1b-dword-plus-one-byte buffer clears that follow it are transcribed as raw
+// COM-style calls; the interface method and the two buffers were not identified.
+// register convention: maximum_length and field_kind as the two recognized parameters
+// (Ghidra's own param_1/param_2), destination buffer in ESI (unaff_ESI, unresolved register).
+
+#include "crt.h"
+#include "tags.h"
+#include "memory.h"
+#include "cache.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include <wchar.h>
+#include <string.h>
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
+extern uint8_t controls_input_capture_flags; // 0x00712542, UNSURE (per src/interface/widget_close_all.c)
+extern uint8_t unknown_00712ccc[0x100];           // 0x00712ccc, UNSURE: not part of virtual_keyboard_globals
+extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
+extern int32_t time_query_performance_counter_ms(void);                // 0x449210, UNSURE: appears to be a millisecond clock (see interface.h progress_screen_fade_end_time note)
+extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
+
+extern void **keyboard_device; // 0x006b1800, UNSURE: DirectInput device COM pointer
+extern uint8_t key_frames[0x6d]; // 0x006b1620 (0x1b dwords + 1 byte cleared)
+extern uint8_t key_release_pending[0x6d]; // 0x006b168d (0x1b dwords + 1 byte cleared)
+
+
+// Opens the on-screen virtual keyboard for a caller-supplied wide-string buffer, clamping
+// maximum_length to 0x40 bytes, choosing the large or small UI prompt tag by length, and
+// resetting the DirectInput keyboard device's buffered input if one is active. Returns 0
+// without doing anything if the keyboard is already open or its strings tag failed to load.
+// blam-cc: ESI -> destination, stack -> maximum_length, field_kind
+uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind)
+{
+    if (virtual_keyboard.active != 0 || virtual_keyboard.strings_tag_data == 0) {
+        return 0;
+    }
+
+    memset(unknown_00712ccc, 0, sizeof(unknown_00712ccc));
+
+    virtual_keyboard.caret = 0;
+    virtual_keyboard.unknown_0a = 0;
+    virtual_keyboard.active = 1;
+    virtual_keyboard.destination = destination;
+    virtual_keyboard.destination_end = destination + wcslen((const wchar_t *)destination);
+    virtual_keyboard.maximum_length = (maximum_length > 0x3f) ? 0x40 : (int16_t)maximum_length;
+    virtual_keyboard.selection_start = -1;
+    virtual_keyboard.open_time = time_query_performance_counter_ms();
+    virtual_keyboard.field_kind = field_kind;
+    virtual_keyboard.unknown_01 = 0;
+    virtual_keyboard.unknown_02 = 0;
+    virtual_keyboard.unknown_03 = 0;
+    virtual_keyboard.opened = 1;
+    virtual_keyboard.validation_mode = 1; // dword store
+    wcsncpy((wchar_t *)virtual_keyboard.text, (const wchar_t *)destination, 0x20);
+    virtual_keyboard.text[31] = 0; // DAT_0071940e, null-terminate the last text slot
+    virtual_keyboard.committed = 0;
+    virtual_keyboard.large_ui_tag = tag_lookup(0x666f6e74 /* font */, (char *)"ui\\large_ui");
+    virtual_keyboard.small_ui_tag = tag_lookup(0x666f6e74 /* font */, (char *)((maximum_length < 0x33) ? "ui\\large_ui" : "ui\\small_ui"));
+    widget_play_sound_effect(2);
+
+    // UNSURE: unrelated flag bit raised alongside opening the keyboard; not part of this module.
+    controls_input_capture_flags |= 4;
+
+    if (keyboard_device != 0) {
+        int32_t minus_one = -1;
+        void **vtable = *(void ***)keyboard_device;
+        ((directinput_set_property_fn)vtable[0x28 / 4])(keyboard_device, 0x14, 0, &minus_one, 0);
+        memset(key_release_pending, 0, sizeof(key_release_pending));
+        memset(key_frames, 0, sizeof(key_frames));
+    }
+    return 1;
+}
+
+#if 0
+Original Ghidra decompilation (0x4a89a0):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 virtual_keyboard_open(ushort param_1,undefined2 param_2)
+
+{
+  int iVar1;
+  wchar_t *unaff_ESI;
+  undefined4 *puVar2;
+  char *pcVar3;
+  undefined4 local_4;
+
+  if ((DAT_007193a8 == '\0') && (DAT_007193ac != 0)) {
+    puVar2 = &DAT_00712ccc;
+    for (iVar1 = 0x40; iVar1 != 0; iVar1 = iVar1 + -1) {
+      *puVar2 = 0;
+      puVar2 = puVar2 + 1;
+    }
+    _DAT_007193b0 = 0;
+    _DAT_007193b2 = 0;
+    DAT_007193a8 = 1;
+    DAT_007193c0 = unaff_ESI;
+    iVar1 = FUN_00625b7a();
+    DAT_007193c4 = unaff_ESI + iVar1;
+    DAT_007193b4 = param_1;
+    if (0x3f < param_1) {
+      DAT_007193b4 = 0x40;
+    }
+    _DAT_007193b6 = 0xffff;
+    _DAT_007193c8 = FUN_00449210();
+    DAT_007193bc._0_2_ = param_2;
+    DAT_007193a9 = 0;
+    DAT_007193aa = 0;
+    DAT_007193ab = 0;
+    DAT_007193bc._3_1_ = 1;
+    DAT_00719410 = 1;
+    _wcsncpy(&DAT_007193d0,unaff_ESI,0x20);
+    _DAT_0071940e = 0;
+    DAT_007193bc._2_1_ = 0;
+    DAT_00719414 = tag_lookup("ui\\large_ui");
+    if (param_1 < 0x33) {
+      pcVar3 = "ui\\large_ui";
+    }
+    else {
+      pcVar3 = "ui\\small_ui";
+    }
+    DAT_00719418 = tag_lookup(pcVar3);
+    widget_play_sound_effect();
+    DAT_00712542 = DAT_00712542 | 4;
+    if (DAT_006b1800 != (int *)0x0) {
+      local_4 = 0xffffffff;
+      (**(code **)(*DAT_006b1800 + 0x28))(DAT_006b1800,0x14,0,&local_4,0);
+      puVar2 = &DAT_006b168d;
+      for (iVar1 = 0x1b; iVar1 != 0; iVar1 = iVar1 + -1) {
+        *puVar2 = 0;
+        puVar2 = puVar2 + 1;
+      }
+      *(undefined1 *)puVar2 = 0;
+      puVar2 = (undefined4 *)&DAT_006b1620;
+      for (iVar1 = 0x1b; iVar1 != 0; iVar1 = iVar1 + -1) {
+        *puVar2 = 0;
+        puVar2 = puVar2 + 1;
+      }
+      *(undefined1 *)puVar2 = 0;
+    }
+    return 1;
+  }
+  return 0;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/virtual_keyboard_process_input.c (original, verbatim) ====
+// virtual_keyboard_process_input  (Ghidra: virtual_keyboard_process_input, already named)
+// address 0x4a8be0, size 1498 bytes
+// name confidence: 0.5 (existing Ghidra name)   rewrite confidence: 0.65
+// evidence: types/interface.h virtual_keyboard_globals; the queued key ring (int16 read and
+// write indices at 0x006b16fa / 0x006b16fc, 4 byte ui_key_event records from 0x006b16fe) is the
+// one console_process_queued_input @0x4965e0 drains.
+// Phase-4 review against objdump 0x4a8be0..0x4a91c0 and the two-level jump table (byte map at
+// 0x4a91e8, targets at 0x4a91c4): key 0 closes, 0x1d backspace, 0x38 and 0x66 commit, 0x4f caret
+// left, 0x50 caret right, 0x52 home, 0x54 delete, 0x55 end, anything else inserts its character.
+// Fixed here: the commit branches and the character filter read virtual_keyboard.validation_mode
+// (the dword at 0x00719410), not field_kind; widget_play_sound_effect gets its one-based id in
+// EAX (1 edit, 3 commit, 4 rejected character); saved_game_name_is_available takes the destination in EAX and
+// ui_variant_name_is_available in EDI; the ring indices are int16; the DirectInput scratch buffers
+// are 0x6d bytes; the ".fortune" easter egg (0x0066a8b4) takes the clock modulo 10 unsigned.
+// UNSURE: the character map walk (small_ui font tag +0x34 as a pointer to 12 byte records whose
+// first is {count, pointer to 0x100 int16 glyph indices}, glyph records of 0x14 bytes at
+// +0x80) dereferences NULL when the count is not 0x100, exactly as the binary does. The
+// no-break-space test compares the zero-extended byte with 0xffffffa0 and can never match; kept.
+// register convention: __cdecl, no parameters.
+
+#include "crt.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include "cache.h"
+#include <wchar.h>
+#include <string.h>
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
+extern tag_instance *tag_instances;               // 0x0087bc14
+extern uint8_t controls_input_capture_flags; // 0x00712542, bit 2 set while a keyboard owns input
+extern int16_t key_event_read_index;       // 0x006b16fa
+extern int16_t key_event_count;      // 0x006b16fc
+extern ui_key_event key_events[];          // 0x006b16fe
+
+extern void **keyboard_device;        // 0x006b1800, DirectInput device COM pointer
+extern uint8_t key_frames[0x6d]; // 0x006b1620 (0x1b dwords + 1 byte cleared)
+extern uint8_t key_release_pending[0x6d]; // 0x006b168d (0x1b dwords + 1 byte cleared)
+
+
+extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
+extern void display_error(int32_t string_index, int32_t player_index, uint8_t modal, uint8_t is_error); // 0x498f20
+extern uint8_t virtual_keyboard_close(void);     // 0x4a9250
+extern void virtual_keyboard_backspace(void);    // 0x4a96f0
+extern uint8_t ui_wide_string_has_non_whitespace(const uint16_t *text); // 0x4a8b10, blam-cc: EAX
+extern uint8_t ui_variant_name_is_available(const uint16_t *name); // 0x4a8b50, blam-cc: EDI
+extern uint8_t virtual_keyboard_character_is_legal(int32_t validation_mode, uint8_t character); // 0x4a8b80, blam-cc: EAX mode, CL character
+extern uint32_t time_query_performance_counter_ms(void);              // 0x449210, millisecond clock
+extern uint8_t saved_game_name_is_available(const uint16_t *name); // 0x53d1e0, blam-cc: EAX; profile module name test
+extern uint8_t saved_item_name_matches(const uint16_t *text); // 0x495e70
+extern uint16_t fortune_easter_egg_text[];         // 0x0066a8b4, L".fortune"
+
+#define WCTYPE_SPACE 0x0008
+
+// memset of the whole destination (maximum_length bytes, zero-extended) and caret to its start.
+static void vk_clear_text(void)
+{
+    memset(virtual_keyboard.destination, 0, (uint16_t)virtual_keyboard.maximum_length);
+    virtual_keyboard.destination_end = virtual_keyboard.destination;
+}
+
+// Trims trailing whitespace. Returns 0 when nothing but whitespace was left.
+static uint8_t vk_trim_trailing_whitespace(void)
+{
+    int32_t i = wcslen((const wchar_t *)virtual_keyboard.destination) - 1;
+    while (i >= 0) {
+        if (iswctype(virtual_keyboard.destination[i], WCTYPE_SPACE) == 0) {
+            return 1;
+        }
+        virtual_keyboard.destination[i] = 0;
+        i--;
+    }
+    return 0;
+}
+
+void virtual_keyboard_process_input(void)
+{
+    for (;;) {
+        uint8_t mode_flags = controls_input_capture_flags;
+        ui_key_event event;
+
+        if (mode_flags == 1 || (mode_flags & 8) != 0 || (mode_flags & 4) == 0 ||
+            key_event_read_index >= key_event_count) {
+            return;
+        }
+        event = key_events[key_event_read_index];
+        key_event_read_index++;
+
+        switch (event.key_code) {
+        case 0x00:
+            virtual_keyboard_close();
+            continue;
+
+        case 0x1d: // backspace
+            if (virtual_keyboard.opened != 1) {
+                virtual_keyboard_backspace();
+                continue;
+            }
+            vk_clear_text();
+            break;
+
+        case 0x38:
+        case 0x66: { // commit
+            uint8_t name_ok;
+
+            if (wcscmp((const wchar_t *)virtual_keyboard.text, (const wchar_t *)virtual_keyboard.destination) == 0) {
+                goto commit_ok;
+            }
+            switch (virtual_keyboard.validation_mode) {
+            case 1:
+                if (!ui_wide_string_has_non_whitespace(virtual_keyboard.destination) ||
+                    !vk_trim_trailing_whitespace()) {
+                    goto invalid;
+                }
+                if (saved_game_name_is_available(virtual_keyboard.destination)) {
+                    goto commit_ok;
+                }
+                name_ok = saved_item_name_matches(virtual_keyboard.destination);
+                break;
+            case 2:
+                if (!ui_wide_string_has_non_whitespace(virtual_keyboard.destination) ||
+                    !vk_trim_trailing_whitespace()) {
+                    goto invalid;
+                }
+                if (saved_item_name_matches(virtual_keyboard.destination)) {
+                    goto commit_ok;
+                }
+                if (!saved_game_name_is_available(virtual_keyboard.destination)) {
+                    goto name_taken;
+                }
+                name_ok = ui_variant_name_is_available(virtual_keyboard.destination);
+                break;
+            case 3:
+                if (virtual_keyboard.destination[0] != 0) {
+                    goto commit_ok;
+                }
+                wcslen((const wchar_t *)virtual_keyboard.text);
+                wcscpy((wchar_t *)virtual_keyboard.destination, (const wchar_t *)virtual_keyboard.text);
+                virtual_keyboard_close();
+                goto finish;
+            default:
+                goto finish;
+            }
+            if (name_ok) {
+                goto commit_ok;
+            }
+name_taken:
+            display_error(0x1b, -1, 1, 0);
+            virtual_keyboard_close();
+            goto finish;
+invalid:
+            display_error(0x1d, -1, 1, 0);
+            virtual_keyboard_close();
+            goto finish;
+commit_ok:
+            virtual_keyboard.committed = 1;
+finish:
+            widget_play_sound_effect(3);
+            controls_input_capture_flags &= 0xfb;
+            virtual_keyboard.active = 0;
+            if (keyboard_device != 0) {
+                int32_t minus_one = -1;
+                void **vtable = *(void ***)keyboard_device;
+                ((directinput_set_property_fn)vtable[0x28 / 4])(keyboard_device, 0x14, 0, &minus_one, 0);
+                memset(key_release_pending, 0, sizeof(key_release_pending));
+                memset(key_frames, 0, sizeof(key_frames));
+            }
+            continue;
+        }
+
+        case 0x4f: // caret left
+            if (virtual_keyboard.destination_end > virtual_keyboard.destination) {
+                virtual_keyboard.destination_end--;
+            }
+            break;
+
+        case 0x50: // caret right
+            if (*virtual_keyboard.destination_end != 0) {
+                virtual_keyboard.destination_end++;
+            }
+            break;
+
+        case 0x52: // home
+            virtual_keyboard.destination_end = virtual_keyboard.destination;
+            break;
+
+        case 0x55: // end
+            virtual_keyboard.destination_end =
+                virtual_keyboard.destination + wcslen((const wchar_t *)virtual_keyboard.destination);
+            break;
+
+        case 0x54: // delete
+            if (virtual_keyboard.opened == 1) {
+                vk_clear_text();
+                break;
+            }
+            if (*virtual_keyboard.destination_end != 0) {
+                int32_t bytes = (int32_t)(uint16_t)virtual_keyboard.maximum_length -
+                                (int32_t)((uint8_t *)virtual_keyboard.destination_end -
+                                          (uint8_t *)virtual_keyboard.destination) - 1;
+                if (bytes > 0) {
+                    memmove(virtual_keyboard.destination_end, virtual_keyboard.destination_end + 1, bytes);
+                    virtual_keyboard.destination[((uint16_t)virtual_keyboard.maximum_length >> 1) - 1] = 0;
+                    widget_play_sound_effect(1);
+                }
+            }
+            continue;
+
+        default: { // insert a character
+            uint8_t ch = event.character;
+            uint8_t *font;
+            int32_t *character_map;
+            int16_t *glyph;
+
+            if (ch < 0x20 || ch == 0xff) {
+                continue;
+            }
+            font = (uint8_t *)tag_instances[virtual_keyboard.small_ui_tag & 0xffff].data;
+            character_map = *(int32_t **)(font + 0x34) + (ch >> 8) * 3; // high byte is always 0
+            if (character_map[0] <= 0) {
+                goto rejected;
+            }
+            glyph = (character_map[0] == 0x100) ? (int16_t *)(uintptr_t)character_map[1] + ch : (int16_t *)0;
+            if (*glyph == -1 || *(int32_t *)(font + 0x80) + *glyph * 0x14 == 0 ||
+                !virtual_keyboard_character_is_legal(virtual_keyboard.validation_mode, ch)) {
+                goto rejected;
+            }
+            if (virtual_keyboard.validation_mode == 3 &&
+                virtual_keyboard.destination_end == virtual_keyboard.destination &&
+                (ch == 0x20 || (uint32_t)ch == 0xffffffa0u)) {
+                goto rejected;
+            }
+            if (virtual_keyboard.opened == 1) {
+                vk_clear_text();
+                virtual_keyboard.opened = 0;
+            }
+            if ((int32_t)(uint16_t)virtual_keyboard.maximum_length -
+                    (wcslen((const wchar_t *)virtual_keyboard.destination) * 2 + 2) < 2) {
+                goto rejected;
+            }
+            memmove(virtual_keyboard.destination_end + 1, virtual_keyboard.destination_end,
+                    (int32_t)(uint16_t)virtual_keyboard.maximum_length -
+                        (int32_t)((uint8_t *)virtual_keyboard.destination_end -
+                                  (uint8_t *)virtual_keyboard.destination) - 2);
+            *virtual_keyboard.destination_end = ch;
+            virtual_keyboard.destination_end++;
+
+            if (wcscmp((const wchar_t *)virtual_keyboard.destination, (const wchar_t *)fortune_easter_egg_text) != 0) {
+                widget_play_sound_effect(1);
+                continue;
+            }
+            {
+                uint32_t pick = time_query_performance_counter_ms() % 10;
+                if (pick > 9) {
+                    pick = 9;
+                }
+                virtual_keyboard.field_kind = (int16_t)(pick + 0xb);
+            }
+            if (virtual_keyboard.text[0] != 0) {
+                wcslen((const wchar_t *)virtual_keyboard.text);
+                wcscpy((wchar_t *)virtual_keyboard.destination, (const wchar_t *)virtual_keyboard.text);
+                virtual_keyboard.destination_end =
+                    virtual_keyboard.destination + wcslen((const wchar_t *)virtual_keyboard.destination);
+            } else {
+                vk_clear_text();
+            }
+            widget_play_sound_effect(1);
+            continue;
+rejected:
+            widget_play_sound_effect(4);
+            continue;
+        }
+        }
+
+        virtual_keyboard.opened = 0;
+        widget_play_sound_effect(1);
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x4a8be0):
+
+void __cdecl virtual_keyboard_process_input(void)
+
+{
+  size_t _Size;
+  int *piVar1;
+  char cVar2;
+  int iVar3;
+  int iVar4;
+  short *psVar5;
+  uint uVar6;
+  uint uVar7;
+  short sVar8;
+  byte bVar9;
+  undefined4 *puVar10;
+  wchar_t *pwVar11;
+  undefined4 local_4;
+
+LAB_004a8bf0:
+  if ((((DAT_00712542 == 1) || ((DAT_00712542 & 8) != 0)) || ((DAT_00712542 & 4) == 0)) ||
+     (DAT_006b16fc <= DAT_006b16fa)) {
+    return;
+  }
+  iVar4 = (int)DAT_006b16fa;
+  DAT_006b16fa = DAT_006b16fa + 1;
+  switch((int)(&DAT_006b16fe)[iVar4] >> 0x10) {
+  case 0:
+    virtual_keyboard_close();
+    goto LAB_004a8bf0;
+  default:
+    bVar9 = (byte)((uint)(&DAT_006b16fe)[iVar4] >> 8);
+    if ((0x1f < bVar9) && (bVar9 != 0xff)) {
+      iVar4 = *(int *)((DAT_00719418 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+      piVar1 = *(int **)(iVar4 + 0x34);
+      iVar3 = *piVar1;
+      if (iVar3 < 1) {
+LAB_004a91aa:
+        widget_play_sound_effect();
+      }
+      else {
+        if (iVar3 == 0x100) {
+          psVar5 = (short *)(piVar1[1] + (uint)bVar9 * 2);
+        }
+        else {
+          psVar5 = (short *)0x0;
+        }
+        if ((((*psVar5 == -1) || (*(int *)(iVar4 + 0x80) + *psVar5 * 0x14 == 0)) ||
+            (cVar2 = FUN_004a8b80(), cVar2 == '\0')) ||
+           (((DAT_00719410 == 3 && (DAT_007193c4 == DAT_007193c0)) &&
+            ((bVar9 == 0x20 || (bVar9 == 0xffffffa0)))))) goto LAB_004a91aa;
+        if (DAT_007193bc._3_1_ == '\x01') {
+          uVar6 = (uint)DAT_007193b4;
+          pwVar11 = DAT_007193c0;
+          for (uVar7 = (uint)(DAT_007193b4 >> 2); uVar7 != 0; uVar7 = uVar7 - 1) {
+            pwVar11[0] = L'\0';
+            pwVar11[1] = L'\0';
+            pwVar11 = pwVar11 + 2;
+          }
+          for (uVar6 = uVar6 & 3; uVar6 != 0; uVar6 = uVar6 - 1) {
+            *(undefined1 *)pwVar11 = 0;
+            pwVar11 = (wchar_t *)((int)pwVar11 + 1);
+          }
+          DAT_007193c4 = DAT_007193c0;
+          DAT_007193bc._3_1_ = '\0';
+        }
+        iVar4 = FUN_00625b7a(DAT_007193c0);
+        if ((int)((uint)DAT_007193b4 - (iVar4 * 2 + 2)) < 2) goto LAB_004a91aa;
+        _memmove(DAT_007193c4 + 1,DAT_007193c4,
+                 (size_t)(((uint)DAT_007193b4 - (int)DAT_007193c4) + -2 + (int)DAT_007193c0));
+        *DAT_007193c4 = (ushort)bVar9;
+        DAT_007193c4 = DAT_007193c4 + 1;
+        iVar4 = _wcscmp(DAT_007193c0,(wchar_t *)&PTR_PTR_0066a8b4);
+        if (iVar4 != 0) goto LAB_004a8e82;
+        uVar7 = FUN_00449210();
+        pwVar11 = DAT_007193c0;
+        sVar8 = (short)(uVar7 % 10);
+        if (9 < uVar7 % 10) {
+          sVar8 = 9;
+        }
+        DAT_007193bc._0_2_ = sVar8 + 0xb;
+        if (DAT_007193d0 == 0) {
+          uVar6 = (uint)DAT_007193b4;
+          for (uVar7 = (uint)(DAT_007193b4 >> 2); uVar7 != 0; uVar7 = uVar7 - 1) {
+            pwVar11[0] = L'\0';
+            pwVar11[1] = L'\0';
+            pwVar11 = pwVar11 + 2;
+          }
+          for (uVar6 = uVar6 & 3; uVar6 != 0; uVar6 = uVar6 - 1) {
+            *(undefined1 *)pwVar11 = 0;
+            pwVar11 = (wchar_t *)((int)pwVar11 + 1);
+          }
+          DAT_007193c4 = DAT_007193c0;
+          widget_play_sound_effect();
+        }
+        else {
+          FUN_00625b7a(&DAT_007193d0);
+          _wcscpy(pwVar11,&DAT_007193d0);
+          iVar4 = FUN_00625b7a(DAT_007193c0);
+          DAT_007193c4 = DAT_007193c0 + iVar4;
+          widget_play_sound_effect();
+        }
+      }
+    }
+    goto LAB_004a8bf0;
+  case 0x1d:
+    if (DAT_007193bc._3_1_ != '\x01') {
+      virtual_keyboard_backspace();
+      goto LAB_004a8bf0;
+    }
+    uVar6 = (uint)DAT_007193b4;
+    pwVar11 = DAT_007193c0;
+    for (uVar7 = (uint)(DAT_007193b4 >> 2); uVar7 != 0; uVar7 = uVar7 - 1) {
+      pwVar11[0] = L'\0';
+      pwVar11[1] = L'\0';
+      pwVar11 = pwVar11 + 2;
+    }
+    for (uVar6 = uVar6 & 3; DAT_007193c4 = DAT_007193c0, uVar6 != 0; uVar6 = uVar6 - 1) {
+      *(undefined1 *)pwVar11 = 0;
+      pwVar11 = (wchar_t *)((int)pwVar11 + 1);
+    }
+    break;
+  case 0x38:
+  case 0x66:
+    iVar4 = _wcscmp(&DAT_007193d0,DAT_007193c0);
+    pwVar11 = DAT_007193c0;
+    if (iVar4 == 0) {
+LAB_004a8dec:
+      DAT_007193bc._2_1_ = 1;
+    }
+    else {
+      if (DAT_00719410 == 1) {
+        cVar2 = FUN_004a8b10();
+        if (cVar2 != '\0') {
+          iVar4 = FUN_00625b7a(DAT_007193c0);
+          iVar4 = iVar4 + -1;
+          if (-1 < iVar4) {
+LAB_004a8ca0:
+            iVar3 = _iswctype(DAT_007193c0[iVar4],8);
+            if (iVar3 != 0) goto code_r0x004a8cbb;
+            if (-1 < iVar4) {
+              cVar2 = FUN_0053d1e0();
+              if (cVar2 == '\0') {
+                cVar2 = FUN_00495e70(DAT_007193c0);
+LAB_004a8da1:
+                if (cVar2 != '\0') goto LAB_004a8dec;
+LAB_004a8da5:
+                display_error(0x1b,-1,'\x01','\0');
+                virtual_keyboard_close();
+                goto LAB_004a8df3;
+              }
+              goto LAB_004a8dec;
+            }
+          }
+        }
+      }
+      else {
+        if (DAT_00719410 != 2) {
+          if (DAT_00719410 == 3) {
+            if (*DAT_007193c0 != L'\0') goto LAB_004a8dec;
+            FUN_00625b7a(&DAT_007193d0);
+            _wcscpy(pwVar11,&DAT_007193d0);
+            virtual_keyboard_close();
+          }
+          goto LAB_004a8df3;
+        }
+        cVar2 = FUN_004a8b10();
+        if (cVar2 != '\0') {
+          iVar4 = FUN_00625b7a(DAT_007193c0);
+          while (iVar4 = iVar4 + -1, -1 < iVar4) {
+            iVar3 = _iswctype(DAT_007193c0[iVar4],8);
+            if (iVar3 == 0) {
+              if (-1 < iVar4) {
+                cVar2 = FUN_00495e70(DAT_007193c0);
+                if (cVar2 != '\0') goto LAB_004a8dec;
+                cVar2 = FUN_0053d1e0();
+                if (cVar2 == '\0') goto LAB_004a8da5;
+                cVar2 = FUN_004a8b50();
+                goto LAB_004a8da1;
+              }
+              break;
+            }
+            DAT_007193c0[iVar4] = L'\0';
+          }
+        }
+      }
+LAB_004a8cca:
+      display_error(0x1d,-1,'\x01','\0');
+      virtual_keyboard_close();
+    }
+LAB_004a8df3:
+    widget_play_sound_effect();
+    DAT_00712542 = DAT_00712542 & 0xfb;
+    DAT_007193a8 = 0;
+    if (DAT_006b1800 != (int *)0x0) {
+      local_4 = 0xffffffff;
+      (**(code **)(*DAT_006b1800 + 0x28))(DAT_006b1800,0x14,0,&local_4,0);
+      puVar10 = &DAT_006b168d;
+      for (iVar4 = 0x1b; iVar4 != 0; iVar4 = iVar4 + -1) {
+        *puVar10 = 0;
+        puVar10 = puVar10 + 1;
+      }
+      *(undefined1 *)puVar10 = 0;
+      puVar10 = (undefined4 *)&DAT_006b1620;
+      for (iVar4 = 0x1b; iVar4 != 0; iVar4 = iVar4 + -1) {
+        *puVar10 = 0;
+        puVar10 = puVar10 + 1;
+      }
+      *(undefined1 *)puVar10 = 0;
+    }
+    goto LAB_004a8bf0;
+  case 0x4f:
+    if (DAT_007193c0 < DAT_007193c4) {
+      DAT_007193c4 = DAT_007193c4 + -1;
+    }
+    break;
+  case 0x50:
+    if (*DAT_007193c4 != L'\0') {
+      DAT_007193c4 = DAT_007193c4 + 1;
+    }
+    break;
+  case 0x52:
+    DAT_007193c4 = DAT_007193c0;
+    break;
+  case 0x54:
+    if (DAT_007193bc._3_1_ == '\x01') {
+      uVar6 = (uint)DAT_007193b4;
+      pwVar11 = DAT_007193c0;
+      for (uVar7 = (uint)(DAT_007193b4 >> 2); uVar7 != 0; uVar7 = uVar7 - 1) {
+        pwVar11[0] = L'\0';
+        pwVar11[1] = L'\0';
+        pwVar11 = pwVar11 + 2;
+      }
+      for (uVar6 = uVar6 & 3; DAT_007193c4 = DAT_007193c0, uVar6 != 0; uVar6 = uVar6 - 1) {
+        *(undefined1 *)pwVar11 = 0;
+        pwVar11 = (wchar_t *)((int)pwVar11 + 1);
+      }
+      break;
+    }
+    if ((*DAT_007193c4 != L'\0') &&
+       (_Size = ((uint)DAT_007193b4 - (int)DAT_007193c4) + -1 + (int)DAT_007193c0, 0 < (int)_Size))
+    {
+      _memmove(DAT_007193c4,DAT_007193c4 + 1,_Size);
+      *(undefined2 *)((int)DAT_007193c0 + ((DAT_007193b4 & 0xfffffffe) - 2)) = 0;
+      widget_play_sound_effect();
+    }
+    goto LAB_004a8bf0;
+  case 0x55:
+    iVar4 = FUN_00625b7a(DAT_007193c0);
+    DAT_007193c4 = DAT_007193c0 + iVar4;
+  }
+  DAT_007193bc._3_1_ = '\0';
+LAB_004a8e82:
+  widget_play_sound_effect();
+  goto LAB_004a8bf0;
+code_r0x004a8cbb:
+  iVar3 = iVar4 + -1;
+  DAT_007193c0[iVar4] = L'\0';
+  iVar4 = iVar3;
+  if (iVar3 < 0) goto LAB_004a8cca;
+  goto LAB_004a8ca0;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+==== src/interface/virtual_keyboard_render.c (original, verbatim) ====
+// virtual_keyboard_render  (Ghidra: virtual_keyboard_render, already named)
+// address 0x4a9510, size 472 bytes
+// name confidence: 0.6 (existing Ghidra name)   rewrite confidence: 0.8
+// evidence: rewritten from objdump 0x4a9510..0x4a96e7 in the phase-4 review. The first
+// rewrite dropped the register arguments of the bitmap, quad, string and text calls, the
+// four text rectangles, the string index (field_kind) of the title and the bounds argument
+// of virtual_keyboard_draw_text.
+//   With the strings tag data (virtual_keyboard.strings_tag_data) holding a background
+// bitmap at +0x1c, draws it over the whole 640x480 screen. Then, with the large_ui font and
+// color 1.0 / 0.9 / 0.9 / 0.9 (flags 0xffff), draws the title (string field_kind of the
+// string list at +0x2c, column 0) in {0x4e, 0x72, 0x6e, 0x280} and the prompt (string 14 of
+// the same list, terminated in place; L"<missing string>" 0x00671fac without it, column 1)
+// in {0x19e, 0, 0x1c2, 0x276}, and finally the edit text in {0x76, 0x78, 0x8f, 0x208}.
+// Rectangles are {top, left, bottom, right}.
+// register convention: plain cdecl, no arguments.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
+extern tag_instance *tag_instances;               // 0x0087bc14
+extern uint16_t missing_string_text[]; // 0x00671fac, L"<missing string>"
+
+extern int32_t hud_text_draw_font_tag_id;     // 0x006e472c
+extern uint32_t hud_text_draw_unknown_4730;   // 0x006e4730
+extern uint16_t hud_text_draw_color_or_flags; // 0x006e4734
+extern int16_t hud_text_draw_column;          // 0x006e4736
+extern float hud_text_draw_color_a;           // 0x006e4738
+extern float hud_text_draw_color_r;           // 0x006e473c
+extern float hud_text_draw_color_g;           // 0x006e4740
+extern float hud_text_draw_color_b;           // 0x006e4744
+
+extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence); // 0x43f290, blam-cc: EAX tag, DI frame
+extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
+                                int16_t *clip_rect, uint32_t vertex_color); // 0x498b20, blam-cc: EAX source_rect, ECX dest_rect
+extern uint16_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0; blam-cc: ECX, DX
+extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1,
+                                      const uint16_t *text); // 0x514ab0, blam-cc: EAX clip, ECX bounds
+extern void virtual_keyboard_draw_text(Rectangle2D *bounds); // 0x4a9300
+
+static void virtual_keyboard_set_text_state(int16_t column)
+{
+    hud_text_draw_font_tag_id = virtual_keyboard.large_ui_tag;
+    hud_text_draw_color_a = 1.0f;
+    hud_text_draw_color_r = 0.9f;
+    hud_text_draw_color_g = 0.9f;
+    hud_text_draw_color_b = 0.9f;
+    hud_text_draw_color_or_flags = 0xffff;
+    hud_text_draw_column = column;
+    hud_text_draw_unknown_4730 = 0;
+}
+
+void virtual_keyboard_render(void)
+{
+    const uint8_t *strings = (const uint8_t *)virtual_keyboard.strings_tag_data;
+    datum_index background = *(const datum_index *)(strings + 0x1c);
+    datum_index string_list;
+    const uint16_t *prompt = missing_string_text;
+    Rectangle2D rect;
+
+    if (background != (datum_index)-1) {
+        BitmapData *bitmap = bitmap_group_sequence_get_bitmap_data(background, 0, 0);
+
+        rect.top = 0;
+        rect.left = 0;
+        rect.bottom = 0x1e0;
+        rect.right = 0x280;
+        ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, (int32_t)bitmap, 0, 0xffffffff);
+    }
+
+    virtual_keyboard_set_text_state(0);
+    string_list = *(const datum_index *)((const uint8_t *)virtual_keyboard.strings_tag_data + 0x2c);
+    if (string_list != (datum_index)-1) {
+        const uint16_t *title = text_string_list_get_string(string_list, virtual_keyboard.field_kind);
+
+        rect.top = 0x4e;
+        rect.left = 0x72;
+        rect.bottom = 0x6e;
+        rect.right = 0x280;
+        chimera__draw_16_bit_text(&rect, &rect, 0, 0, title);
+    }
+
+    string_list = *(const datum_index *)((const uint8_t *)virtual_keyboard.strings_tag_data + 0x2c);
+    if (string_list != (datum_index)-1) {
+        UnicodeStringList *list = (UnicodeStringList *)tag_instances[string_list & 0xffff].data;
+
+        if (list->strings.count > 0xe) {
+            UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer + 0xe;
+
+            if ((int32_t)entry->string.size > 0) {
+                uint16_t *text = (uint16_t *)entry->string.pointer;
+
+                text[(entry->string.size >> 1) - 1] = 0;
+                prompt = text;
+            }
+        }
+    }
+    virtual_keyboard_set_text_state(1);
+    rect.top = 0x19e;
+    rect.left = 0;
+    rect.bottom = 0x1c2;
+    rect.right = 0x276;
+    chimera__draw_16_bit_text(&rect, &rect, 0, 0, prompt);
+
+    rect.top = 0x76;
+    rect.left = 0x78;
+    rect.bottom = 0x8f;
+    rect.right = 0x208;
+    virtual_keyboard_draw_text(&rect);
+}
+
+#if 0
+Original Ghidra decompilation (0x4a9510):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void __cdecl virtual_keyboard_render(void)
+
+{
+  int *piVar1;
+  int iVar2;
+  uint uVar3;
+  undefined4 uVar4;
+  undefined **ppuVar5;
+
+  if (*(int *)(DAT_007193ac + 0x1c) != -1) {
+    uVar4 = bitmap_group_sequence_get_bitmap_data(0,0,0xffffffff);
+    FUN_00498b20(uVar4);
+  }
+  DAT_006e472c = DAT_00719414;
+  DAT_006e4738 = 0x3f800000;
+  DAT_006e473c = 0x3f666666;
+  DAT_006e4740 = 0x3f666666;
+  DAT_006e4744 = 0x3f666666;
+  DAT_006e4734._0_2_ = 0xffff;
+  DAT_006e4734._2_2_ = 0;
+  _DAT_006e4730 = 0;
+  if (*(int *)(DAT_007193ac + 0x2c) != -1) {
+    uVar4 = text_string_list_get_string();
+    chimera__draw_16_bit_text(0,0,uVar4);
+  }
+  ppuVar5 = &PTR_DAT_00671fac;
+  if ((*(uint *)(DAT_007193ac + 0x2c) != 0xffffffff) &&
+     (piVar1 = *(int **)((*(uint *)(DAT_007193ac + 0x2c) & 0xffff) * 0x20 + 0x14 + DAT_0087bc14),
+     0xe < *piVar1)) {
+    iVar2 = piVar1[1];
+    uVar3 = *(uint *)(iVar2 + 0x118);
+    if (0 < (int)uVar3) {
+      ppuVar5 = *(undefined ***)(iVar2 + 0x124);
+      *(undefined2 *)((int)ppuVar5 + ((uVar3 & 0xfffffffe) - 2)) = 0;
+    }
+  }
+  DAT_006e472c = DAT_00719414;
+  DAT_006e4744 = 0x3f666666;
+  DAT_006e4738 = 0x3f800000;
+  DAT_006e473c = 0x3f666666;
+  DAT_006e4740 = 0x3f666666;
+  DAT_006e4734._0_2_ = 0xffff;
+  DAT_006e4734._2_2_ = 1;
+  _DAT_006e4730 = 0;
+  chimera__draw_16_bit_text(0,0,ppuVar5);
+  virtual_keyboard_draw_text();
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
