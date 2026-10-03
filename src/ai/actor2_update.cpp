@@ -96,7 +96,7 @@ void ActorView::update_aim_wander()
 {
     using namespace actor_update_aim_wander_local;
     actor *a = halo::ai::actor_at(actor_index);
-    uint8_t *variant = (uint8_t *)halo::ai::actor_get_actor_definition(actor_index);
+    ActorVariant *variant = reinterpret_cast<ActorVariant *>(halo::ai::actor_get_actor_definition(actor_index));
     int16_t team = a->team;
     uint8_t *burst = 0;
     uint8_t *scale = 0;
@@ -130,7 +130,7 @@ void ActorView::update_aim_wander()
     a->new_target_firing_pattern = (halo::game::weapon_get_zoom_fov_resolved(0xd, team) * ((ActorVariant *)variant)->new_target_firing_pattern_time * 30.0f >
         (float)a->firing_target_ticks) ? 1 : 0;
 
-    halo::ai::actor_select_stance_offset_pair(actor_index, variant, &burst, &scale);
+    halo::ai::actor_select_stance_offset_pair(actor_index, reinterpret_cast<uint8_t *>(variant), &burst, &scale);
 
     if (a->burst_duration_override > 0.0f) {
         time = a->burst_duration_override;

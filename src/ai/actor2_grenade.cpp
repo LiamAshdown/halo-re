@@ -335,7 +335,7 @@ uint8_t ActorView::try_grenade_evasion(uint8_t allow_pain_reaction, uint8_t use_
 {
     using namespace actor_try_grenade_evasion_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = halo::ai::tag_bytes(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     int16_t grade;
     int32_t now;
 
@@ -378,7 +378,7 @@ char ActorView::update_grenade_and_morale_reactions()
 {
     using namespace actor_update_grenade_and_morale_reactions_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *variant = halo::ai::tag_bytes(act->actor_variant_tag);
+    ActorVariant *variant = halo::ai::tag_data<ActorVariant>(act->actor_variant_tag);
     Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     int32_t now = game_time->game_time;
     char result = 0;
@@ -527,7 +527,7 @@ uint8_t ActorView::update_grenade_throw_decision()
 {
     using namespace actor_update_grenade_throw_decision_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *variant = halo::ai::tag_bytes(act->actor_variant_tag);
+    ActorVariant *variant = halo::ai::tag_data<ActorVariant>(act->actor_variant_tag);
     int16_t mode = act->mode;
     uint8_t result = 0;
 

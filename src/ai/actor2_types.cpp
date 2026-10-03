@@ -114,7 +114,7 @@ void ActorView::type_elite_update()
 {
     using namespace actor_type_elite_update_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[act->actor_definition_tag & halo::k_slot_mask].data;
+    Actor *actor_tag = reinterpret_cast<Actor *>(halo::cache::globals().tag_instances[act->actor_definition_tag & halo::k_slot_mask].data);
 
     if (act->mode == halo::ai::actor_mode::none && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
@@ -1099,7 +1099,7 @@ void ActorView::type_jackal_update()
 {
     using namespace actor_type_jackal_update_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[act->actor_definition_tag & halo::k_slot_mask].data;
+    Actor *actor_tag = reinterpret_cast<Actor *>(halo::cache::globals().tag_instances[act->actor_definition_tag & halo::k_slot_mask].data);
 
     if (act->mode == halo::ai::actor_mode::none && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);

@@ -70,7 +70,7 @@ uint8_t halo::ai::charge_mode::process()
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
     Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
-    uint8_t *variant = halo::ai::tag_bytes(act->actor_variant_tag);
+    ActorVariant *variant = halo::ai::tag_data<ActorVariant>(act->actor_variant_tag);
     ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
     actor_mode_charge_data *md = &act->mode_data.charge;
     prop *target = 0;

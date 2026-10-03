@@ -451,7 +451,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
 {
     using namespace actor_movement_apply_steering_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = halo::ai::tag_bytes(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     real_vector3d *facing = &act->facing;
     float max_turn_cos = 0.8660254f;
     int16_t chosen_axis = -1;

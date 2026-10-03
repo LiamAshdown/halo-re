@@ -280,7 +280,7 @@ uint32_t halo::ai::grenade_ops::commit_grenade_toss(real_point3d *point, uint32_
     using namespace c_actor_commit_grenade_toss;
     datum_index actor_index = datum;
     actor *a = halo::ai::actor_at(actor_index);
-    uint8_t *variant = (uint8_t *)halo::cache::globals().tag_instances[a->actor_variant_tag & halo::k_slot_mask].data;
+    ActorVariant *variant = reinterpret_cast<ActorVariant *>(halo::cache::globals().tag_instances[a->actor_variant_tag & halo::k_slot_mask].data);
     real_point3d origin = *(real_point3d *)&a->aim_origin.x;
     real_vector3d direction;
     real_vector3d velocity;

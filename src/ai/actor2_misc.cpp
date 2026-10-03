@@ -292,7 +292,7 @@ datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, d
     using namespace actor_place_new_unit_local;
     const uint8_t *request = (const uint8_t *)placement_request;
     datum_index variant_tag = actor_variant_or_palette_tag;
-    uint8_t *variant;
+    ActorVariant *variant;
     uint8_t *actor_definition;
     object_placement_data placement;
     float yaw;
@@ -305,12 +305,12 @@ datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, d
     uint16_t return_state = 0;
 
     halo::objects::objects_garbage_collection();
-    variant = halo::ai::tag_bytes(variant_tag);
+    variant = halo::ai::tag_data<ActorVariant>(variant_tag);
     if (use_palette_entry) {
-        variant_tag = *(datum_index *)&((ActorVariant *)variant)->major_variant.tag_id;
-        variant = halo::ai::tag_bytes(variant_tag);
+        variant_tag = *(datum_index *)&variant->major_variant.tag_id;
+        variant = halo::ai::tag_data<ActorVariant>(variant_tag);
     }
-    actor_definition = halo::ai::tag_bytes(*(datum_index *)&((ActorVariant *)variant)->actor_definition.tag_id);
+    actor_definition = halo::ai::tag_bytes(*(datum_index *)&variant->actor_definition.tag_id);
     halo::objects::object_placement_data_initialize(&placement, *(datum_index *)&((ActorVariant *)variant)->unit.tag_id, k_datum_index_none);
     yaw = ((struct actor_placement_request *)request)->yaw;
     placement.position = *(const real_point3d *)request;

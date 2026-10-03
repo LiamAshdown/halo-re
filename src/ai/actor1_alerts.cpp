@@ -586,7 +586,7 @@ uint8_t halo::ai::alert_ops::escalate_check_shield_damage()
     using namespace c_actor_escalate_check_shield_damage;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = halo::ai::tag_bytes(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
 
     if (!act->attack_pending || !(act->recent_body_damage > ((Actor *)actor_tag)->berserk_damage_amount) ||
         !(act->body_vitality < ((Actor *)actor_tag)->berserk_damage_threshold)) {
@@ -664,7 +664,7 @@ uint8_t halo::ai::alert_ops::escalate_check_weapon_range()
     using namespace c_actor_escalate_check_weapon_range;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = halo::ai::tag_bytes(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
 
     if (static_cast<datum_index>(act->stuck_projectile_index) == k_datum_index_none || act->combat_status < 5) {
@@ -749,7 +749,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
     uint32_t actor_index = datum;
     actor *a = halo::ai::actor_at(actor_index);
     Actor *actor_tag = halo::ai::tag_data<Actor>(a->actor_definition_tag);
-    uint8_t *variant = halo::ai::tag_bytes(a->actor_variant_tag);
+    ActorVariant *variant = halo::ai::tag_data<ActorVariant>(a->actor_variant_tag);
     ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
     uint8_t changed = 0;
     uint8_t fallback = 0;
