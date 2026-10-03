@@ -37,6 +37,12 @@ inline uint32_t tag_handle(const TagID &id) {
     return (static_cast<uint32_t>(id.id) << 16) | id.index;
 }
 
+/** The first element of a loaded tag block (reflexive), viewed as T. */
+template <typename T>
+inline T *reflexive_elements(const TagReflexive &block) {
+    return reinterpret_cast<T *>(static_cast<uintptr_t>(block.pointer));
+}
+
 /** The player record a player datum handle designates. */
 inline player *player_record(uint32_t player_handle) {
     return reinterpret_cast<player *>(static_cast<uint8_t *>(halo::game::globals().player_data->data) +

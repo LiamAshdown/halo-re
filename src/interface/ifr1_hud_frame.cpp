@@ -273,9 +273,9 @@ void HudFrame::draw_weapon_interface(player *p)
             no_weapon = 1;
         } else {
             struct unit_object *parent_object = halo::interface::object_record<struct unit_object>(parent);
-            uint8_t *seats = *(uint8_t **)(halo::interface::tag_data<uint8_t>(*(datum_index *)parent_object) + 0x2e8);
+            UnitSeat *seats = halo::interface::reflexive_elements<UnitSeat>(halo::interface::tag_data<Unit>(*(datum_index *)parent_object)->seats);
 
-            if ((seats[seat * 0x11c] & 8) != 0) {
+            if ((seats[seat].flags & 8) != 0) {
                 weapon = halo::units::unit_get_weapon_object_index(parent, parent_object->unit.current_weapon_index);
                 if (weapon == (datum_index)-1) {
                     no_weapon = 1;
@@ -329,7 +329,7 @@ uint8_t HudFrame::player_weapon_ammo_state(const player *p, weapon_hud_ammo_stat
         datum_index parent;
         int16_t seat;
         struct unit_object *parent_object;
-        uint8_t *seats;
+        UnitSeat *seats;
 
         unit = halo::interface::object_record(p->unit);
         parent = ((unit_object *)unit)->base.parent_object;
@@ -341,8 +341,8 @@ uint8_t HudFrame::player_weapon_ammo_state(const player *p, weapon_hud_ammo_stat
             return 0;
         }
         parent_object = halo::interface::object_record<struct unit_object>(parent);
-        seats = *(uint8_t **)(halo::interface::tag_data<uint8_t>(*(datum_index *)parent_object) + 0x2e8);
-        if ((seats[seat * 0x11c] & 8) == 0) {
+        seats = halo::interface::reflexive_elements<UnitSeat>(halo::interface::tag_data<Unit>(*(datum_index *)parent_object)->seats);
+        if ((seats[seat].flags & 8) == 0) {
             return 0;
         }
         parent = ((unit_object *)unit)->base.parent_object;
@@ -428,9 +428,9 @@ void HudFrame::render_unit_interface(player *p)
             Unit *parent_tag = halo::interface::tag_data<Unit>(*(datum_index *)parent_object);
             uint8_t split = halo::game::globals().local_player_globals->local_player_count > 1;
             TagID parent_hud = halo::units::unit_get_hud_interface_tag_id(parent_tag, split);
-            uint8_t *seats = *(uint8_t **)&((struct Unit *)parent_tag)->seats.pointer;
+            UnitSeat *seats = halo::interface::reflexive_elements<UnitSeat>(((struct Unit *)parent_tag)->seats);
 
-            if ((seats[((struct unit_object *)unit_object)->unit.vehicle_seat_index * 0x11c] & 4) != 0) {
+            if ((seats[((struct unit_object *)unit_object)->unit.vehicle_seat_index].flags & 4) != 0) {
                 datum_index child;
 
                 if (*(datum_index *)&parent_hud != (datum_index)-1) {

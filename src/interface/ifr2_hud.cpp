@@ -950,9 +950,9 @@ void WeaponHud::state_update()
                         evaluate_default = 1;
                     } else {
                         uint8_t *parent_object = halo::interface::object_record(parent);
-                        uint8_t *seats = *(uint8_t **)(halo::interface::tag_data<uint8_t>(*(datum_index *)parent_object) + 0x2e8);
+                        UnitSeat *seats = halo::interface::reflexive_elements<UnitSeat>(halo::interface::tag_data<Unit>(*(datum_index *)parent_object)->seats);
 
-                        if ((seats[seat * 0x11c] & 8) != 0) {
+                        if ((seats[seat].flags & 8) != 0) {
                             int16_t parent_slot = ((struct unit_object *)parent_object)->unit.current_weapon_index;
                             weapon = parent_slot != -1 ? *(datum_index *)(parent_object + 0x2f8 + parent_slot * 4)
                                                        : (datum_index)-1;
@@ -1082,15 +1082,14 @@ int32_t WeaponHud::weapon_hud_interface(float *out_intensity)
                 datum_index parent_handle = unit_obj->parent_object;
                 int16_t seat_index = ((struct unit_object *)unit_obj)->unit.vehicle_seat_index;
                 object *parent_obj;
-                uint8_t *seats;
+                UnitSeat *seats;
 
                 if (parent_handle == (datum_index)-1 || seat_index == -1) {
                     goto done;
                 }
                 parent_obj = object_get(parent_handle);
-                seats = (uint8_t *)(halo::interface::tag_data<Unit>(parent_obj->definition_tag))
-                            ->seats.pointer;
-                if ((seats[seat_index * 0x11c] & 8) == 0) {
+                seats = halo::interface::reflexive_elements<UnitSeat>(halo::interface::tag_data<Unit>(parent_obj->definition_tag)->seats);
+                if ((seats[seat_index].flags & 8) == 0) {
                     goto done;
                 }
                 weapon_handle = halo::units::unit_get_weapon_object_index(
