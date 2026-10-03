@@ -405,7 +405,7 @@ void HudFrame::render_unit_interface(player *p)
         }
         hud_tags[0] = (int16_t)choice < 0
             ? (datum_index)-1
-            : *(datum_index *)(*(uint8_t **)&((struct Unit *)unit_tag)->new_hud_interfaces.pointer + (int16_t)choice * 0x30 + 0xc);
+            : halo::interface::tag_handle(halo::interface::reflexive_elements<UnitUnitHudInterface>(((struct Unit *)unit_tag)->new_hud_interfaces)[(int16_t)choice].hud.tag_id);
     }
     count = 1;
 

@@ -310,25 +310,20 @@ hud_message_slot * HudMessaging::message_find_slot(int32_t source, hud_player_me
  */
 void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code)
 {
-    object_header *header;
-    uint8_t *object_base;
-    uint32_t tag_index;
+    object *item_object;
     Weapon *item_tag_data;
     int32_t hud_tag_ref;
-    uint32_t hud_tag_index;
-    uint8_t *hud_tag_data;
-    uint8_t *block_a_base;
+    ModelAnimations *hud_tag_data;
+    ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *block_a_base;
     int32_t block_a_count;
     int16_t message_stage;
     int16_t animation_stage;
     int16_t table_entry;
-    uint8_t *block_c_base;
     int16_t sub_entry;
-    uint8_t *block_d_base;
     int32_t message_index;
     datum_index carried_object;
     uint8_t has_carried_object;
-    void *carried_record;
+    player *carried_record;
 
     if (object_or_slot_index == halo::k_dword_none || item_type_code == -1) {
         return;
@@ -337,11 +332,9 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
         return;
     }
 
-    header = &((object_header *)halo::objects::globals().object_data->data)[object_or_slot_index & halo::k_slot_mask];
-    object_base = (uint8_t *)header->data;
+    item_object = halo::interface::object_record<object>(object_or_slot_index);
 
-    tag_index = *(uint32_t *)object_base & halo::k_slot_mask;
-    item_tag_data = (Weapon *)*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances + tag_index * 0x20 + 0x14);
+    item_tag_data = halo::interface::tag_data<Weapon>(item_object->definition_tag);
 
     hud_tag_ref = static_cast<int32_t>(halo::interface::tag_handle(item_tag_data->first_person_animations.tag_id));
     if (hud_tag_ref == -1) {
@@ -357,40 +350,37 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
         return;
     }
 
-    hud_tag_index = (uint32_t)hud_tag_ref & halo::k_slot_mask;
-    hud_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances + hud_tag_index * 0x20 + 0x14);
+    hud_tag_data = halo::interface::tag_data<ModelAnimations>((uint32_t)hud_tag_ref);
 
-    block_a_count = *(int32_t *)(hud_tag_data + 0x48);
-    block_a_base = (block_a_count != 0) ? *(uint8_t **)(hud_tag_data + 0x4c) : nullptr;
+    block_a_count = (int32_t)hud_tag_data->first_person_weapons.count;
+    block_a_base = (block_a_count != 0) ? halo::interface::reflexive_elements<ModelAnimationsAnimationGraphFirstPersonWeaponAnimations>(hud_tag_data->first_person_weapons) : nullptr;
 
     if (animation_stage < 0) {
         return;
     }
-    if (animation_stage >= *(int32_t *)(block_a_base + 0x10)) {
+    if (animation_stage >= (int32_t)block_a_base->animations.count) {
         return;
     }
-    table_entry = *(int16_t *)(*(uint8_t **)(block_a_base + 0x14) + animation_stage * 2);
+    table_entry = halo::interface::reflexive_elements<int16_t>(block_a_base->animations)[animation_stage];
     if (table_entry == -1) {
         return;
     }
 
-    block_c_base = *(uint8_t **)(hud_tag_data + 0x78);
-    sub_entry = *(int16_t *)(block_c_base + (int32_t)table_entry * 0xb4 + 0x3c);
+    sub_entry = (int16_t)halo::interface::reflexive_elements<ModelAnimationsAnimation>(hud_tag_data->animations)[table_entry].sound;
     if (sub_entry == -1) {
         return;
     }
 
-    block_d_base = *(uint8_t **)(hud_tag_data + 0x58);
-    message_index = *(int32_t *)(block_d_base + (int32_t)sub_entry * 0x14 + 0xc);
+    message_index = (int32_t)halo::interface::tag_handle(halo::interface::reflexive_elements<ModelAnimationsAnimationGraphSoundReference>(hud_tag_data->sound_references)[sub_entry].sound.tag_id);
     if (message_index == -1) {
         return;
     }
 
-    carried_object = *(datum_index *)(object_base + 0xc0);
+    carried_object = item_object->owner_linkage;
     has_carried_object = 0;
     if (carried_object != (datum_index)halo::k_dword_none) {
-        carried_record = halo::memory::datum_get(carried_object, halo::game::globals().player_data);
-        if (carried_record != 0 && *(int16_t *)((uint8_t *)carried_record + 2) != -1) {
+        carried_record = (player *)halo::memory::datum_get(carried_object, halo::game::globals().player_data);
+        if (carried_record != 0 && carried_record->local_player_index != -1) {
             has_carried_object = 1;
         }
     }

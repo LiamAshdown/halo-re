@@ -115,7 +115,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
     if ((int16_t)choice < 0) {
         return;
     }
-    hud_tag = *(datum_index *)(*(uint8_t **)&((struct Unit *)unit_tag)->new_hud_interfaces.pointer + (int16_t)choice * 0x30 + 0xc);
+    hud_tag = halo::interface::tag_handle(halo::interface::reflexive_elements<UnitUnitHudInterface>(((struct Unit *)unit_tag)->new_hud_interfaces)[(int16_t)choice].hud.tag_id);
     if (hud_tag == (datum_index)-1) {
         return;
     }

@@ -74,3 +74,13 @@ static_assert(offsetof(ModelAnimations, first_person_weapons.count) == 0x48 && o
               sizeof(ModelAnimationsAnimation) == 0xb4 && offsetof(ModelAnimationsAnimation, frame_count) == 0x22,
               "ModelAnimations first person weapon blocks");
 static_assert(offsetof(Bitmap, bitmap_data.pointer) == 0x64, "Bitmap data block");
+static_assert(offsetof(Bitmap, bitmap_group_sequence.count) == 0x54 && sizeof(BitmapGroupSequence) == 0x40 &&
+              offsetof(BitmapGroupSequence, sprites.count) == 0x34 && sizeof(BitmapGroupSprite) == 0x20 &&
+              offsetof(BitmapGroupSprite, left) == 8, "Bitmap sequence blocks");
+static_assert(offsetof(GBXModel, nodes.count) == 0xb8 && sizeof(ModelNode) == 0x9c && offsetof(ModelNode, name) == 0 &&
+              offsetof(ModelAnimations, nodes.count) == 0x68 && sizeof(ModelAnimationsAnimationGraphNode) == 0x40 &&
+              offsetof(ModelAnimationsAnimationGraphNode, name) == 0, "model node blocks");
+static_assert(offsetof(ModelAnimations, sound_references.pointer) == 0x58 && offsetof(ModelAnimationsAnimation, sound) == 0x3c &&
+              sizeof(ModelAnimationsAnimationGraphSoundReference) == 0x14 &&
+              offsetof(ModelAnimationsAnimationGraphSoundReference, sound.tag_id) == 0xc && offsetof(object, owner_linkage) == 0xc0 &&
+              offsetof(player, local_player_index) == 2, "pickup notification fields");
