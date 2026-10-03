@@ -15,7 +15,7 @@ fails, revert the latest merges one by one until it is green and log the offende
 | a8c68560df27ca293 | structures, scenario, bitmaps, models, text, shaders | running | no |
 | a690688f77ce90677 | camera, cutscene, devices, dialogs, projectiles | running | no |
 | a30d258f6c14fe84c | input, main, physics | running | no |
-| a48cce8b581c8e3c3 | items, effects | running | no |
+| a48cce8b581c8e3c3 | items, effects | done | yes (e93f959d; check items 115/115, effects 162/162; classes in anonymous namespaces, no Strategy/State patterns yet) |
 | a18f610ee74d844a2 | saved_games, render (relaunched after stale-base stop) | running | no |
 | a828a5b449c367e7c | units | running | no |
 | a8e2e4a6addbda413 | objects | running | no |
@@ -28,6 +28,7 @@ ai_actor_1 (197), ai_actor_2 (197), ai_rest (231), hs_1 (209), hs_2 (209), hs_3 
 game_rest (184), interface_ui (241), interface_rest_1 (148), interface_rest_2 (148), networking_network (283),
 networking_rest (273), rasterizer (239), shell (163).
 Launch at most 10 agents at a time. Mark launched ones here with their agent id.
+Launched: ai_actor_1 = a816627a3d7da40e7
 
 ## Log
 - 2026-10-03: C++ phase 1 done (all src compiles as C++20, extern "C" wrapping, link and smoke test OK on cxx-phase1).
