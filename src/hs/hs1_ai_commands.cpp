@@ -10,13 +10,13 @@ extern void ai_category_matches_wildcard(int16_t category, int16_t other_categor
 extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern uint32_t team_pair_override_remove(int16_t index_a, int16_t index_b);
-extern void ai_reference_set_unknown_1cb(uint32_t packed_reference, char flag);
-extern void ai_reference_set_squads_unknown_14(uint32_t packed_reference, char flag);
+extern void ai_reference_set_charge_allowed(uint32_t packed_reference, char flag);
+extern void ai_reference_set_squads_dormancy_allowed(uint32_t packed_reference, char flag);
 extern void ai_reference_spawn_starting_location_object(datum_index unit_index, uint32_t packed_reference);
 extern void ai_unit_create_actor(datum_index actor_variant_tag, datum_index unit_index);
 extern void ai_object_list_spawn_members(datum_index object_list_header_handle, uint32_t packed_reference);
-extern void ai_platoon_range_clear_unknown_00(uint32_t packed_reference);
-extern void ai_reference_squad_set_unknown_10(uint32_t packed_reference, uint8_t value);
+extern void ai_platoon_range_clear_defending(uint32_t packed_reference);
+extern void ai_reference_squad_set_automatic_migration(uint32_t packed_reference, uint8_t value);
 extern void ai_reference_set_combat_alert_flag(uint32_t packed_reference, uint8_t new_flag);
 extern void ai_reference_reset_or_wake_awareness(uint32_t packed_reference, char flag);
 extern void ai_object_list_reset_or_wake_awareness(datum_index object_list_header_handle, char flag);
@@ -28,10 +28,10 @@ extern void ai_unit_flee_if_ready(datum_index unit_index, uint32_t readiness_par
 extern int16_t ai_object_list_max_flee_grade(datum_index object_list_header_handle);
 extern uint8_t ai_conversation_activate(int16_t conversation_definition_index, uint8_t allow_eviction);
 extern void ai_conversation_mark_all(int16_t conversation_definition_index);
-extern int16_t ai_conversation_get_unknown_48(int16_t conversation_definition_index);
+extern int16_t ai_conversation_get_line_index(int16_t conversation_definition_index);
 extern int32_t ai_conversation_get_status(int16_t conversation_definition_index);
 extern void ai_conversation_stop_all(int16_t conversation_definition_index);
-extern void ai_platoon_range_set_unknown_00(uint32_t packed_reference);
+extern void ai_platoon_range_set_defending(uint32_t packed_reference);
 extern data_array *object_data;
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern void ai_object_list_clear_orders_with_weapon(datum_index object_list_header_handle);
@@ -41,7 +41,7 @@ extern void ai_release_actors_filtered(datum_index encounter_index, int32_t plat
 extern void ai_reference_units_exit_vehicles(uint32_t packed_reference);
 extern data_array *encounter_data;
 extern Scenario *global_scenario;
-extern void ai_unit_set_actor_unknown_0a(datum_index unit_index, uint8_t value);
+extern void ai_unit_set_actor_force_active(datum_index unit_index, uint8_t value);
 extern void ai_reference_detach_actors_from_encounters(uint32_t packed_reference);
 extern void ai_object_list_detach_actors_from_encounters(datum_index object_list_header_handle);
 extern void ai_object_process_nearby_actors(uint32_t ai_reference, datum_index vehicle_index, char *seat_name, char allow_boarding_actors);
@@ -55,13 +55,13 @@ extern void ai_reference_respawn_placed_members(uint32_t packed_reference, uint3
 extern void ai_reference_respawn_all_players(uint32_t packed_reference);
 extern void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index);
 extern void ai_object_list_respawn_members(datum_index object_list_header_handle, uint32_t packed_reference);
-extern void ai_platoon_range_set_unknown_02(uint32_t packed_reference, char flag);
+extern void ai_platoon_range_set_maneuver_enabled(uint32_t packed_reference, char flag);
 extern void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index, char notify, char is_platoon_merge);
 extern void ai_object_list_remap_units_and_children(datum_index object_list_header, uint32_t packed_reference, char notify);
 extern void ai_reference_activate_squads(uint32_t packed_reference);
 extern void ai_object_list_set_unit_flag_800(datum_index object_list_header_handle, char flag);
 extern void ai_reference_refill_grenades(uint32_t packed_reference);
-extern void ai_platoon_range_set_unknown_01(uint32_t packed_reference);
+extern void ai_platoon_range_set_maneuvering(uint32_t packed_reference);
 extern void squad_members_request_order(uint32_t packed_reference, int16_t order_code);
 extern uint8_t encounter_activate(datum_index encounter_index);
 extern void squad_members_assign_team_and_request_order(uint32_t packed_reference, int16_t value);
@@ -71,7 +71,7 @@ extern int16_t ai_reference_max_activity_stage(uint32_t packed_reference);
 extern void ai_unit_clear_actor_vocalization(datum_index unit_index);
 extern void ai_reference_face_starting_location(uint32_t packed_reference, uint8_t idle_only);
 extern void ai_reference_for_each_squad(uint32_t packed_reference);
-extern void ai_reference_mark_squads_unknown_11(uint32_t packed_reference);
+extern void ai_reference_start_squad_timers(uint32_t packed_reference);
 extern void ai_reference_set_search_target_point(uint32_t packed_reference, uint32_t reference_value);
 extern void ai_reference_clear_search_target(uint32_t packed_reference);
 extern void ai_reference_set_search_target_area(uint32_t packed_reference);
@@ -337,7 +337,7 @@ void AiBehaviourCommands::automatic_migration_target(int16_t function_index, uin
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_squad_set_unknown_10((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
+        ai_reference_squad_set_automatic_migration((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -426,7 +426,7 @@ void AiBehaviourCommands::force_active_by_unit(int16_t function_index, uint32_t 
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_unit_set_actor_unknown_0a((datum_index)arguments[0], (uint8_t)arguments[1]);
+        ai_unit_set_actor_force_active((datum_index)arguments[0], (uint8_t)arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -557,7 +557,7 @@ void AiBehaviourCommands::timer_start(int16_t function_index, uint32_t thread_in
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_mark_squads_unknown_11((uint32_t)arguments[0]);
+        ai_reference_start_squad_timers((uint32_t)arguments[0]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -604,7 +604,7 @@ void AiTargetingCommands::allow_charge(int16_t function_index, uint32_t thread_i
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_set_unknown_1cb((uint32_t)arguments[0], (char)(uint8_t)arguments[1]);
+        ai_reference_set_charge_allowed((uint32_t)arguments[0], (char)(uint8_t)arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -621,7 +621,7 @@ void AiTargetingCommands::allow_dormant(int16_t function_index, uint32_t thread_
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_set_squads_unknown_14((uint32_t)arguments[0], *(char *)&arguments[1]);
+        ai_reference_set_squads_dormancy_allowed((uint32_t)arguments[0], *(char *)&arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -638,7 +638,7 @@ void AiTargetingCommands::attack(int16_t function_index, uint32_t thread_index, 
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_platoon_range_clear_unknown_00((uint32_t)arguments[0]);
+        ai_platoon_range_clear_defending((uint32_t)arguments[0]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -672,7 +672,7 @@ void AiTargetingCommands::defend(int16_t function_index, uint32_t thread_index, 
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_platoon_range_set_unknown_00((uint32_t)arguments[0]);
+    ai_platoon_range_set_defending((uint32_t)arguments[0]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -922,7 +922,7 @@ void AiTargetingCommands::maneuver_enable(int16_t function_index, uint32_t threa
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_platoon_range_set_unknown_02((uint32_t)arguments[0], *(char *)&arguments[1]);
+        ai_platoon_range_set_maneuver_enabled((uint32_t)arguments[0], *(char *)&arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -977,7 +977,7 @@ void AiTargetingCommands::run_retreat(int16_t function_index, uint32_t thread_in
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_platoon_range_set_unknown_01((uint32_t)arguments[0]);
+    ai_platoon_range_set_maneuvering((uint32_t)arguments[0]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -1657,7 +1657,7 @@ void AiConversationCommands::conversation_line(int16_t function_index, uint32_t 
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        int16_t line = ai_conversation_get_unknown_48(*(int16_t *)&arguments[0]);
+        int16_t line = ai_conversation_get_line_index(*(int16_t *)&arguments[0]);
         hs_thread_return((int32_t)(uint16_t)line, thread_index);
     }
 }

@@ -320,7 +320,7 @@
 0x4303f0 ai_communication_rate_player_proximity func 0.45 agent-phase4 src/ai/ai_communication_rate_player_proximity.c  # was FUN_004303f0
 0x4307c0 ai_conversation_activate func 0.40 agent-phase4 src/ai/ai_conversation_activate.c  # was FUN_004307c0
 0x430830 ai_conversation_get_status func 0.50 agent-phase4 src/ai/ai_conversation_get_status.c  # was FUN_00430830
-0x430960 ai_conversation_get_unknown_48 func 0.40 agent-phase4 src/ai/ai_conversation_get_unknown_48.c  # was FUN_00430960
+0x430960 ai_conversation_get_line_index func 0.40 agent-phase4 src/ai/ai_conversation_get_line_index.c  # was FUN_00430960
 0x4309c0 ai_conversation_stop_all func 0.40 agent-phase4 src/ai/ai_conversation_stop_all.c  # was FUN_004309c0
 0x430a20 ai_conversation_mark_all func 0.40 agent-phase4 src/ai/ai_conversation_mark_all.c  # was FUN_00430a20
 0x430a70 ai_conversation_update func 0.40 agent-phase4 src/ai/ai_conversation_update.c  # was FUN_00430a70

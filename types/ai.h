@@ -477,11 +477,8 @@ typedef struct actor {
     int32_t pathfinding_surface_index; // 0x164 0x4297a0 copies biped cached_ground_surface_index (+0x4dc); path
                                        //    request start_surface_index (0x4017b0); -1 in vehicles/swarms; 0x429570
                                        //    lead-position refills it
-    int32_t pathfinding_point;        // 0x168 real_point3d 0x168..0x173 (declared as three int32
-                                      //    unknown_168/16c/170): biped cached_ground_point (+0x4e0) copied by
-                                      //    0x4297a0; path request start_position
-    int32_t unknown_16c;              // 0x16c
-    int32_t unknown_170;              // 0x170
+    real_point3d pathfinding_point;   // 0x168 biped cached_ground_point (+0x4e0) copied by 0x4297a0; the start_position
+                                      //    of path requests
     real_vector3d facing;             // 0x174 the actor unit forward vector, NOT a position: all 35 arithmetic
                                       //   uses across the module dot it against a normalized delta and compare
                                       //   the result against a cosine (0.4, 0.5, 0.8660254, 0.984). The real
@@ -490,11 +487,8 @@ typedef struct actor {
                                       //   copies to 0x6fc / 0x708 / 0x714, which is what that name describes.
     real_vector3d unit_aiming_vector; // 0x180 the unit's aiming vector, copied in by the pre-update step; snapshotted to 0x708
     real_vector3d unit_looking_vector; // 0x18c the unit's looking vector, copied in by the pre-update step; snapshotted to 0x714
-    uint8_t unknown_198[4];           // 0x198
-    int32_t unknown_19c;              // 0x19c
-    uint8_t unknown_1a0[8];           // 0x1a0
-    int32_t unknown_1a8;              // 0x1a8
-    uint8_t unknown_1ac[4];           // 0x1ac
+    real_vector3d looking_left_vector;// 0x198 normalize(unit_looking_vector x world up), rebuilt by the pre-update step
+    real_vector3d looking_up_vector;  // 0x1a4 looking_left_vector x unit_looking_vector
     int32_t stuck_projectile_index;   // 0x1b0 datum_index (declared int32): 0x4297a0 sets it to an attached
                                       //    projectile child (stuck grenade / the danger projectile); flee panic 9/10
                                       //    ends when none

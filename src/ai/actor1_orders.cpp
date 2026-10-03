@@ -927,9 +927,7 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
     request->ignores_glass = ignores_glass;
     request->exclude_object_index_b = (datum_index)k_datum_index_none;
     request->have_start = 1;
-    request->start_position.x = *(float *)&self->pathfinding_point;
-    request->start_position.y = *(float *)&self->unknown_16c;
-    request->start_position.z = *(float *)&self->unknown_170;
+    request->start_position = self->pathfinding_point;
     request->start_surface_index = (uint32_t)self->pathfinding_surface_index;
 }
 

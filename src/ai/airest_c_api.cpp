@@ -310,13 +310,13 @@ int32_t ai_conversation_get_status(int16_t conversation_definition_index)
 }
 
 /**
- * C entry point for halo::ai::ConversationDefinitionView::get_unknown_48; forwards to the C++ implementation unchanged.
+ * C entry point for halo::ai::ConversationDefinitionView::get_line_index; forwards to the C++ implementation unchanged.
  *
  * @address 0x430960
  */
-int16_t ai_conversation_get_unknown_48(int16_t conversation_definition_index)
+int16_t ai_conversation_get_line_index(int16_t conversation_definition_index)
 {
-    return halo::ai::ConversationDefinitionView(conversation_definition_index).get_unknown_48();
+    return halo::ai::ConversationDefinitionView(conversation_definition_index).get_line_index();
 }
 
 /**
@@ -760,13 +760,13 @@ int16_t ai_pick_weighted_candidate(ai_scored_candidate *table, ai_scored_candida
 }
 
 /**
- * C entry point for halo::ai::ReferenceView::clear_unknown_00; forwards to the C++ implementation unchanged.
+ * C entry point for halo::ai::ReferenceView::clear_defending; forwards to the C++ implementation unchanged.
  *
  * @address 0x433200
  */
-void ai_platoon_range_clear_unknown_00(uint32_t packed_reference)
+void ai_platoon_range_clear_defending(uint32_t packed_reference)
 {
-    halo::ai::ReferenceView(packed_reference).clear_unknown_00();
+    halo::ai::ReferenceView(packed_reference).clear_defending();
 }
 
 /**
@@ -780,33 +780,33 @@ uint8_t ai_platoon_range_has_available(uint32_t packed_reference)
 }
 
 /**
- * C entry point for halo::ai::ReferenceView::set_unknown_00; forwards to the C++ implementation unchanged.
+ * C entry point for halo::ai::ReferenceView::set_defending; forwards to the C++ implementation unchanged.
  *
  * @address 0x433270
  */
-void ai_platoon_range_set_unknown_00(uint32_t packed_reference)
+void ai_platoon_range_set_defending(uint32_t packed_reference)
 {
-    halo::ai::ReferenceView(packed_reference).set_unknown_00();
+    halo::ai::ReferenceView(packed_reference).set_defending();
 }
 
 /**
- * C entry point for halo::ai::ReferenceView::set_unknown_01; forwards to the C++ implementation unchanged.
+ * C entry point for halo::ai::ReferenceView::set_maneuvering; forwards to the C++ implementation unchanged.
  *
  * @address 0x4332e0
  */
-void ai_platoon_range_set_unknown_01(uint32_t packed_reference)
+void ai_platoon_range_set_maneuvering(uint32_t packed_reference)
 {
-    halo::ai::ReferenceView(packed_reference).set_unknown_01();
+    halo::ai::ReferenceView(packed_reference).set_maneuvering();
 }
 
 /**
- * C entry point for halo::ai::ReferenceView::set_unknown_02; forwards to the C++ implementation unchanged.
+ * C entry point for halo::ai::ReferenceView::set_maneuver_enabled; forwards to the C++ implementation unchanged.
  *
  * @address 0x433350
  */
-void ai_platoon_range_set_unknown_02(uint32_t packed_reference, char flag)
+void ai_platoon_range_set_maneuver_enabled(uint32_t packed_reference, char flag)
 {
-    halo::ai::ReferenceView(packed_reference).set_unknown_02(flag);
+    halo::ai::ReferenceView(packed_reference).set_maneuver_enabled(flag);
 }
 
 /**
@@ -990,13 +990,13 @@ void ai_reference_invoke_squad_callback_406f80(uint32_t packed_reference)
 }
 
 /**
- * C entry point for halo::ai::ReferenceView::mark_squads_unknown_11; forwards to the C++ implementation unchanged.
+ * C entry point for halo::ai::ReferenceView::start_squad_timers; forwards to the C++ implementation unchanged.
  *
  * @address 0x432f10
  */
-void ai_reference_mark_squads_unknown_11(uint32_t packed_reference)
+void ai_reference_start_squad_timers(uint32_t packed_reference)
 {
-    halo::ai::ReferenceView(packed_reference).mark_squads_unknown_11();
+    halo::ai::ReferenceView(packed_reference).start_squad_timers();
 }
 
 /**
@@ -1130,23 +1130,23 @@ void ai_reference_set_search_target_point(uint32_t packed_reference, uint32_t re
 }
 
 /**
- * C entry point for halo::ai::ReferenceView::set_squads_unknown_14; forwards to the C++ implementation unchanged.
+ * C entry point for halo::ai::ReferenceView::set_squads_dormancy_allowed; forwards to the C++ implementation unchanged.
  *
  * @address 0x435bc0
  */
-void ai_reference_set_squads_unknown_14(uint32_t packed_reference, char flag)
+void ai_reference_set_squads_dormancy_allowed(uint32_t packed_reference, char flag)
 {
-    halo::ai::ReferenceView(packed_reference).set_squads_unknown_14(flag);
+    halo::ai::ReferenceView(packed_reference).set_squads_dormancy_allowed(flag);
 }
 
 /**
- * C entry point for halo::ai::ReferenceView::set_unknown_1cb; forwards to the C++ implementation unchanged.
+ * C entry point for halo::ai::ReferenceView::set_charge_allowed; forwards to the C++ implementation unchanged.
  *
  * @address 0x434d40
  */
-void ai_reference_set_unknown_1cb(uint32_t packed_reference, char flag)
+void ai_reference_set_charge_allowed(uint32_t packed_reference, char flag)
 {
-    halo::ai::ReferenceView(packed_reference).set_unknown_1cb(flag);
+    halo::ai::ReferenceView(packed_reference).set_charge_allowed(flag);
 }
 
 /**
@@ -1180,13 +1180,13 @@ encounter_squad_state * ai_reference_squad_iterator_next(ai_reference_squad_iter
 }
 
 /**
- * C entry point for halo::ai::ReferenceView::squad_set_unknown_10; forwards to the C++ implementation unchanged.
+ * C entry point for halo::ai::ReferenceView::squad_set_automatic_migration; forwards to the C++ implementation unchanged.
  *
  * @address 0x435ab0
  */
-void ai_reference_squad_set_unknown_10(uint32_t packed_reference, uint8_t value)
+void ai_reference_squad_set_automatic_migration(uint32_t packed_reference, uint8_t value)
 {
-    halo::ai::ReferenceView(packed_reference).squad_set_unknown_10(value);
+    halo::ai::ReferenceView(packed_reference).squad_set_automatic_migration(value);
 }
 
 /**
@@ -1610,13 +1610,13 @@ void ai_unit_remap_actor_to_squad(datum_index unit_index, uint32_t packed_refere
 }
 
 /**
- * C entry point for halo::ai::AiUnitView::set_actor_unknown_0a; forwards to the C++ implementation unchanged.
+ * C entry point for halo::ai::AiUnitView::set_actor_force_active; forwards to the C++ implementation unchanged.
  *
  * @address 0x435540
  */
-void ai_unit_set_actor_unknown_0a(datum_index unit_index, uint8_t value)
+void ai_unit_set_actor_force_active(datum_index unit_index, uint8_t value)
 {
-    halo::ai::AiUnitView(unit_index).set_actor_unknown_0a(value);
+    halo::ai::AiUnitView(unit_index).set_actor_force_active(value);
 }
 
 /**

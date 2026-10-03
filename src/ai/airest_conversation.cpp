@@ -468,11 +468,12 @@ int32_t ConversationDefinitionView::get_status()
 }
 
 /**
- * Behaviour of ai conversation get unknown 48, moved unchanged from the original free function.
+ * Returns the line index of the running instance of the conversation definition, or 999 when no instance is running (hs
+ * ai_conversation_line).
  *
  * @address 0x430960
  */
-int16_t ConversationDefinitionView::get_unknown_48()
+int16_t ConversationDefinitionView::get_line_index()
 {
     int16_t conversation_definition_index = handle;
     data_iterator iterator;

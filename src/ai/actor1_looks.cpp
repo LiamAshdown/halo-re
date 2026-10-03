@@ -276,8 +276,8 @@ int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, ui
 
     if (actor[6] == 0 && check_facing != 0) {
         float forward = dz * ((struct actor *)actor)->unit_looking_vector.k + dy * ((struct actor *)actor)->unit_looking_vector.j + dx * ((struct actor *)actor)->unit_looking_vector.i;
-        float left = dz * *(float *)(actor + 0x1a0) + dy * *(float *)&((struct actor *)actor)->unknown_19c + dx * *(float *)(actor + 0x198);
-        float up = dz * *(float *)(actor + 0x1ac) + dy * *(float *)&((struct actor *)actor)->unknown_1a8 + dx * *(float *)(actor + 0x1a4);
+        float left = dz * ((struct actor *)actor)->looking_left_vector.k + dy * ((struct actor *)actor)->looking_left_vector.j + dx * ((struct actor *)actor)->looking_left_vector.i;
+        float up = dz * ((struct actor *)actor)->looking_up_vector.k + dy * ((struct actor *)actor)->looking_up_vector.j + dx * ((struct actor *)actor)->looking_up_vector.i;
         float elevation = (float)atan2((double)up, sqrt((double)(left * left + forward * forward)));
 
         if (elevation > 0.5235988f || !(elevation > -0.78539819f)) {

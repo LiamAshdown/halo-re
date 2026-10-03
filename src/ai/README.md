@@ -1293,7 +1293,7 @@ own header. "UNSURE" is the count of `UNSURE:` markers in that file's header and
 | `0x4303f0` | `ai_communication_rate_player_proximity` | 965 | 0.45 | 0.45 | 2 |
 | `0x4307c0` | `ai_conversation_activate` | 105 | 0.40 | 0.50 | 1 |
 | `0x430830` | `ai_conversation_get_status` | 282 | 0.50 | 0.55 |  |
-| `0x430960` | `ai_conversation_get_unknown_48` | 94 | 0.40 | 0.50 |  |
+| `0x430960` | `ai_conversation_get_line_index` | 94 | 0.40 | 0.50 |  |
 | `0x4309c0` | `ai_conversation_stop_all` | 90 | 0.40 | 0.40 | 1 |
 | `0x430a20` | `ai_conversation_mark_all` | 77 | 0.40 | 0.50 |  |
 | `0x430a70` | `ai_conversation_update` | 490 | 0.40 | 0.25 | 4 |
@@ -1332,14 +1332,14 @@ own header. "UNSURE" is the count of `UNSURE:` markers in that file's header and
 | `0x432d90` | `ai_reference_respawn_all_players` | 82 | 0.35 | 0.45 |  |
 | `0x432df0` | `ai_reference_respawn_member` | 134 | 0.35 | 0.40 | 4 |
 | `0x432e80` | `ai_object_list_respawn_members` | 142 | 0.35 | 0.45 |  |
-| `0x432f10` | `ai_reference_mark_squads_unknown_11` | 52 | 0.30 | 0.50 |  |
+| `0x432f10` | `ai_reference_start_squad_timers` | 52 | 0.30 | 0.50 |  |
 | `0x432f50` | `ai_reference_for_each_squad` | 60 | 0.30 | 0.45 | 1 |
 | `0x432f90` | `ai_reference_get_stat_pair` | 491 | 0.35 | 0.45 |  |
 | `0x433180` | `ai_platoon_range_has_available` | 125 | 0.30 | 0.45 |  |
-| `0x433200` | `ai_platoon_range_clear_unknown_00` | 105 | 0.30 | 0.45 |  |
-| `0x433270` | `ai_platoon_range_set_unknown_00` | 105 | 0.30 | 0.45 |  |
-| `0x4332e0` | `ai_platoon_range_set_unknown_01` | 106 | 0.30 | 0.45 |  |
-| `0x433350` | `ai_platoon_range_set_unknown_02` | 114 | 0.30 | 0.45 |  |
+| `0x433200` | `ai_platoon_range_clear_defending` | 105 | 0.30 | 0.45 |  |
+| `0x433270` | `ai_platoon_range_set_defending` | 105 | 0.30 | 0.45 |  |
+| `0x4332e0` | `ai_platoon_range_set_maneuvering` | 106 | 0.30 | 0.45 |  |
+| `0x433350` | `ai_platoon_range_set_maneuver_enabled` | 114 | 0.30 | 0.45 |  |
 | `0x4333d0` | `ai_squad_find_best_matching_member` | 437 | 0.40 | 0.40 |  |
 | `0x433590` | `ai_squads_merge` | 982 | 0.35 | 0.20 | 12 |
 | `0x433970` | `ai_unit_remap_actor_to_squad` | 241 | 0.40 | 0.35 | 2 |
@@ -1357,7 +1357,7 @@ own header. "UNSURE" is the count of `UNSURE:` markers in that file's header and
 | `0x434c80` | `ai_reference_clear_search_target` | 57 | 0.40 | 0.50 |  |
 | `0x434cc0` | `ai_reference_set_search_target_point` | 63 | 0.40 | 0.40 |  |
 | `0x434d00` | `ai_reference_set_search_target_area` | 57 | 0.40 | 0.50 |  |
-| `0x434d40` | `ai_reference_set_unknown_1cb` | 64 | 0.30 | 0.45 |  |
+| `0x434d40` | `ai_reference_set_charge_allowed` | 64 | 0.30 | 0.45 |  |
 | `0x434d90` | `ai_reference_flee_if_ready` | 91 | 0.35 | 0.30 | 2 |
 | `0x434df0` | `ai_unit_flee_if_ready` | 93 | 0.35 | 0.40 | 1 |
 | `0x434e60` | `ai_reference_invoke_squad_callback_406f80` | 102 | 0.30 | 0.40 | 2 |
@@ -1366,7 +1366,7 @@ own header. "UNSURE" is the count of `UNSURE:` markers in that file's header and
 | `0x4351c0` | `ai_reference_detach_actors_from_encounters` | 153 | 0.40 | 0.55 | 1 |
 | `0x435260` | `ai_object_list_detach_actors_from_encounters` | 433 | 0.40 | 0.55 | 1 |
 | `0x435420` | `ai_unit_create_actor` | 276 | 0.40 | 0.55 | 1 |
-| `0x435540` | `ai_unit_set_actor_unknown_0a` | 75 | 0.25 | 0.40 |  |
+| `0x435540` | `ai_unit_set_actor_force_active` | 75 | 0.25 | 0.40 |  |
 | `0x435590` | `squad_members_assign_team_and_request_order` | 147 | 0.50 | 0.60 | 1 |
 | `0x435630` | `squad_members_request_order` | 69 | 0.50 | 0.45 |  |
 | `0x435680` | `ai_actor_get_activity_stage` | 121 | 0.40 | 0.45 | 1 |
@@ -1376,10 +1376,10 @@ own header. "UNSURE" is the count of `UNSURE:` markers in that file's header and
 | `0x435990` | `ai_object_attention_remove` | 111 | 0.40 | 0.70 |  |
 | `0x435a00` | `ai_unit_dispatch_actor_event_d` | 76 | 0.30 | 0.35 | 1 |
 | `0x435a50` | `ai_unit_clear_actor_vocalization` | 83 | 0.35 | 0.45 |  |
-| `0x435ab0` | `ai_reference_squad_set_unknown_10` | 51 | 0.25 | 0.40 |  |
+| `0x435ab0` | `ai_reference_squad_set_automatic_migration` | 51 | 0.25 | 0.40 |  |
 | `0x435af0` | `ai_reference_set_combat_alert_flag` | 64 | 0.35 | 0.40 |  |
 | `0x435b30` | `encounter_set_team` | 136 | 0.40 | 0.50 | 1 |
-| `0x435bc0` | `ai_reference_set_squads_unknown_14` | 56 | 0.25 | 0.40 |  |
+| `0x435bc0` | `ai_reference_set_squads_dormancy_allowed` | 56 | 0.25 | 0.40 |  |
 
 ### Encounters, squads and platoons  (46 functions, 16976 bytes)
 

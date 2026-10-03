@@ -306,10 +306,10 @@ void ActorView::refresh_combat_context()
         *(real_vector3d *)&((struct actor *)self)->unit_aiming_vector.i = *(real_vector3d *)&((unit_object *)unit)->unit.aiming_vector.i;
     }
     *(real_vector3d *)&((struct actor *)self)->unit_looking_vector.i = *(real_vector3d *)&((unit_object *)unit)->unit.looking_vector.i;
-    vector3d_cross_product((real_vector3d *)(self + 0x198), (real_vector3d *)(self + 0x18c), global_up3d_pointer);
-    vector3d_normalize_with_length((real_vector3d *)(self + 0x198));
-    vector3d_cross_product((real_vector3d *)(self + 0x1a4), (real_vector3d *)(self + 0x198),
-        (real_vector3d *)(self + 0x18c));
+    vector3d_cross_product(&((struct actor *)self)->looking_left_vector, &((struct actor *)self)->unit_looking_vector, global_up3d_pointer);
+    vector3d_normalize_with_length(&((struct actor *)self)->looking_left_vector);
+    vector3d_cross_product(&((struct actor *)self)->looking_up_vector, &((struct actor *)self)->looking_left_vector,
+        &((struct actor *)self)->unit_looking_vector);
     A_I32(0x1b8) = *(int32_t *)&((unit_object *)unit)->base.body_vitality;
     A_I32(0x1bc) = *(int32_t *)&((unit_object *)unit)->base.shield_vitality;
     A_I32(0x1c0) = *(int32_t *)&((unit_object *)unit)->base.recent_body_damage;
