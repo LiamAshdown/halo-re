@@ -24,11 +24,7 @@ uint8_t ServerView::heartbeat_tick()
     large_integer counter;
     int32_t now_ms;
     uint8_t result;
-    network_timer_pair *timer;
-    uint8_t *base;
-
-    base = (uint8_t *)server;
-    timer = (network_timer_pair *)(base + 0x9c8);
+    network_timer_pair *timer = &server->handshake_timer;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
@@ -57,7 +53,7 @@ uint8_t ServerView::heartbeat_tick()
                 restarting = 0;
                 timer->remaining_ms = 0;
                 timer->last_tick_ms = 0;
-                *(int32_t *)(base + 0x9d0) = 0;
+                server->unknown_9d0 = 0;
                 server->handshake_state = 0;
             } else {
                 restarting = 1;
@@ -83,7 +79,7 @@ uint8_t ServerView::heartbeat_tick()
 
                 packet = halo::networking::network_prepare_challenge_packet(9, &countdown_seconds);
                 if (packet != 0 && halo::networking::network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3) != 0) {
-                    *(int32_t *)(base + 0x9d0) = now_ms;
+                    server->unknown_9d0 = now_ms;
                 }
             }
         } else if (static_cast<int32_t>(server->last_challenge_sent_ms) + 5000 < now_ms) {
@@ -93,7 +89,7 @@ uint8_t ServerView::heartbeat_tick()
 
             packet = halo::networking::network_prepare_challenge_packet(0xc, &empty_payload);
             halo::networking::network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3);
-            *(int32_t *)(base + 0x9bc) = now_ms;
+            server->last_challenge_sent_ms = now_ms;
         }
     } else if (static_cast<int32_t>(server->first_join_ms) != 0) {
         int32_t now2;
@@ -104,17 +100,17 @@ uint8_t ServerView::heartbeat_tick()
             char has_client;
 
             for (i = 0; i < 16; i = i + 1) {
-                uint16_t flags;
+                uint8_t flags;
 
-                flags = *(uint16_t *)((uint8_t *)&server->machines[i] + 0xe);
+                flags = server->machines[i].flags;
                 if ((flags & 1) != 0 && (flags & 4) == 0) {
                     halo::networking::network_machine_timer_start(&server->machines[i], 0);
                 }
             }
             has_client = (network_client != 0);
             server->state = 1;
-            *(int32_t *)(base + 0x9c4) = 0;
-            server->session.map_loaded = has_client ? *((uint8_t *)network_client + 0xec0) : 0;
+            server->first_join_ms = 0;
+            server->session.map_loaded = has_client ? network_client->session.map_loaded : 0;
         }
     }
 

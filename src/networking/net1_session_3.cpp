@@ -13,9 +13,8 @@
 #include "../gamespy/gamespy_calls.hpp"
 
 static auto &current_game_engine = halo::link::ref<void *>(halo::game::vars().current_game_engine);
-typedef struct data_array data_array;
-static auto &player_data = halo::link::ref<uint8_t *>(halo::game::vars().player_data);
-static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &network_qr2_text = halo::link::ref<char [0x100]>(halo::networking::vars().network_qr2_text);
 static auto &network_session_host_closing = halo::link::ref<uint8_t>(halo::networking::vars().network_session_host_closing);
 static auto &game_engine_variant = halo::link::ref<uint8_t []>(halo::game::vars().game_engine_variant);
@@ -37,15 +36,15 @@ void HostSession::dispatch_message(int32_t key_id, int32_t index, void *buffer, 
     uint32_t handle = halo::game::players_get_active_by_index(index);
     int16_t player_index = (int16_t)handle;
     int16_t salt = (int16_t)(handle >> 16);
-    uint8_t *player;
+    ::player *player;
 
     (void)user_data;
-    if (handle == halo::k_dword_none || player_index < 0 || player_index >= *(int16_t *)(player_data + 0x20)) {
+    if (handle == halo::k_dword_none || player_index < 0 || player_index >= player_data->maximum_count) {
         qr2_buffer_add(buffer, "");
         return;
     }
-    player = *(uint8_t **)(player_data + 0x34) + player_index * *(int16_t *)(player_data + 0x22);
-    if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt)) {
+    player = (::player *)((uint8_t *)player_data->data + player_index * player_data->size);
+    if (player->identifier == 0 || (salt != 0 && player->identifier != salt)) {
         qr2_buffer_add(buffer, "");
         return;
     }
@@ -53,11 +52,11 @@ void HostSession::dispatch_message(int32_t key_id, int32_t index, void *buffer, 
         uint8_t name[0x40];
 
         memset(name, 0, sizeof(name));
-        qr2_buffer_add(buffer, (const char *)halo::text::string_convert_unicode_to_ascii(name, (uint16_t *)(player + 4), 0x40));
+        qr2_buffer_add(buffer, (const char *)halo::text::string_convert_unicode_to_ascii(name, (uint16_t *)player->name, 0x40));
         return;
     }
     if (key_id == 0x19) {
-        qr2_buffer_add_int(buffer, ((struct player *)player)->team);
+        qr2_buffer_add_int(buffer, player->team);
         return;
     }
     if (current_game_engine != 0) {
@@ -82,9 +81,10 @@ void HostSession::dispatch_message(int32_t key_id, int32_t index, void *buffer, 
  */
 void HostSession::qr2_server_key(int32_t key_id, void *buffer, void *user_data)
 {
-    uint8_t *server = network_server;
-    uint8_t *options = game_engine_variant + 0x7c;
-    int32_t game_type = *(int32_t *)(game_engine_variant + 0x30);
+    network_server_globals *server = network_server;
+    game_variant *variant = (game_variant *)game_engine_variant;
+    uint8_t *options = (uint8_t *)&variant->engine;
+    int32_t game_type = variant->game_engine_index;
 
     (void)user_data;
     if (current_game_engine != 0) {
@@ -100,10 +100,10 @@ void HostSession::qr2_server_key(int32_t key_id, void *buffer, void *user_data)
     }
     switch (key_id) {
     case 1:
-        if (wcslen((const wchar_t *)(server + 8)) == 0) {
+        if (wcslen((const wchar_t *)&server->session) == 0) {
             qr2_buffer_add(buffer, "HALO SERVER");
         } else {
-            qr2_buffer_add(buffer, (const char *)halo::text::string_convert_unicode_to_ascii((uint8_t *)network_qr2_text, (uint16_t *)(server + 8), 0x100));
+            qr2_buffer_add(buffer, (const char *)halo::text::string_convert_unicode_to_ascii((uint8_t *)network_qr2_text, (uint16_t *)&server->session, 0x100));
         }
         return;
     case 3:
@@ -113,7 +113,7 @@ void HostSession::qr2_server_key(int32_t key_id, void *buffer, void *user_data)
     case 5: {
         char name[0x100];
 
-        _splitpath((const char *)(server + 0x8c), 0, 0, name, 0);
+        _splitpath(server->session.server_name, 0, 0, name, 0);
         qr2_buffer_add(buffer, name);
         return;
     }
@@ -125,13 +125,13 @@ void HostSession::qr2_server_key(int32_t key_id, void *buffer, void *user_data)
     }
     case 7:
         qr2_buffer_add(buffer, (const char *)halo::text::string_convert_unicode_to_ascii((uint8_t *)network_qr2_text,
-            (uint16_t *)game_engine_variant, 0x100));
+            variant->name, 0x100));
         return;
     case 8:
         qr2_buffer_add_int(buffer, current_game_engine != 0 ? halo::game::players_active_count() : 0);
         return;
     case 10: {
-        int8_t maximum = (int8_t)server[0x1a5];
+        int8_t maximum = (int8_t)server->session.maximum_players;
 
         qr2_buffer_add_int(buffer, maximum > 1 ? maximum : 1);
         return;
@@ -146,13 +146,13 @@ void HostSession::qr2_server_key(int32_t key_id, void *buffer, void *user_data)
         qr2_buffer_add_int(buffer, game_engine_variant_score_limit);
         return;
     case 19:
-        qr2_buffer_add_int(buffer, halo::networking::network_server_password_is_set((network_server_globals *)server) != 0);
+        qr2_buffer_add_int(buffer, halo::networking::network_server_password_is_set(server) != 0);
         return;
     case 0x33:
-        qr2_buffer_add_int(buffer, (server[6] >> 2) & 1);
+        qr2_buffer_add_int(buffer, (server->flags >> 2) & 1);
         return;
     case 0x34:
-        qr2_buffer_add(buffer, halo::networking::server_browser_custom_options_pack((server_browser_custom_options *)(game_engine_variant + 0x34)));
+        qr2_buffer_add(buffer, halo::networking::server_browser_custom_options_pack((server_browser_custom_options *)&variant->teams));
         return;
     case 0x35:
         switch (game_type) {
