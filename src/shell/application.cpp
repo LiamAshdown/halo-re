@@ -1,4 +1,5 @@
 #include "halo/shell/application.hpp"
+#include "halo/shell/layout.hpp"
 #include "halo/shell/config.hpp"
 #include "halo/shell/diagnostics.hpp"
 #include "halo/shell/hardware.hpp"
@@ -122,7 +123,7 @@ uint8_t EngineLifecycle::initialize()
     timeBeginPeriod(1);
     QueryPerformanceFrequency((LARGE_INTEGER *)&performance_frequency);
 
-    for (i = 0; i < 0x105; i++) {
+    for (i = 0; i < k_profile_directory_buffer_size; i++) {
         profile_directory[i] = 0;
     }
 
@@ -179,9 +180,9 @@ uint8_t EngineLifecycle::initialize()
 void EngineLifecycle::shutdown()
 {
     halo::cache::cache_file_unload();
-    global_scenario_index = 0xffffffff;
-    global_structure_bsp_index = 0xffff;
-    *global_scenario_game_globals = 0xffff;
+    global_scenario_index = k_dword_none;
+    global_structure_bsp_index = k_word_none;
+    *global_scenario_game_globals = k_word_none;
     global_scenario = 0;
     global_structure_bsp = 0;
     global_structure_collision_bsp = 0;
@@ -195,7 +196,7 @@ void EngineLifecycle::shutdown()
     halo::cache::data_file_close();
     halo::sound::sound_dispose();
 
-    external_00686b4c = 0xffffffff;
+    external_00686b4c = k_dword_none;
     external_00686b50 = 0;
     if (external_00686b58 != 0) {
         GlobalFree(external_00686b58);
@@ -251,7 +252,7 @@ void Application::initialize_window_state(void *instance, char *command_line, in
     shell_window_minimized = 0;
     memcpy(shell_window_class_name, "Halo", 5);
     memcpy(shell_window_title, "Halo", 5);
-    shell_arrow_cursor = LoadCursorA(0, (const char *)0x7f00);
+    shell_arrow_cursor = LoadCursorA(0, (const char *)k_idc_arrow);
 }
 
 /**
@@ -313,12 +314,12 @@ void Application::parse_command_line_flags()
 void Application::measure_machine()
 {
     HardwareProbe::current().detect();
-    if (physical_memory <= 0x80) {
+    if (physical_memory <= k_memory_class_small_mb) {
         sound_cache_size_megabytes = 12;
-    } else if (physical_memory <= 0x100) {
+    } else if (physical_memory <= k_memory_class_medium_mb) {
         sound_cache_size_megabytes = 16;
     } else {
-        sound_cache_size_megabytes = physical_memory < 0x200 ? 32 : 64;
+        sound_cache_size_megabytes = physical_memory < k_memory_class_large_mb ? 32 : 64;
     }
     sound_cache_unknown_c8 = 0x30;
 }
@@ -349,21 +350,21 @@ void Application::load_direct3d_and_config()
     d3d9_module = LoadLibraryA("d3d9.dll");
     direct3d_create9 = GetProcAddress((HMODULE)d3d9_module, "Direct3DCreate9");
     if (d3d9_module == 0 || direct3d_create9 == 0) {
-        FatalError::show(0x6b, (uint32_t)((const char *)0x7a), 1);
+        FatalError::show(k_string_d3d9_missing, k_help_file_directx, 1);
     }
-    direct3d9 = (d3d9_interface *)((direct3d_create9_fn)direct3d_create9)(0x1f);
+    direct3d9 = (d3d9_interface *)((direct3d_create9_fn)direct3d_create9)(k_d3d_sdk_version);
     if (direct3d9 != 0) {
         config_error = ConfigLoader::parse(0, direct3d9);
         if (config_error != 0) {
-            FatalError::show(0xffffffff, (uint32_t)(config_error), 0);
+            FatalError::show(k_dword_none, (uint32_t)(config_error), 0);
         }
         shell_direct3d = direct3d9;
     } else {
-        FatalError::show(0x81, (uint32_t)((const char *)0x82), 1);
+        FatalError::show(k_string_direct3d_create_failed, k_help_file_direct3d, 1);
     }
 
-    if (GetAsyncKeyState(0x11) < 0) {
-        FatalError::show(0x87, (uint32_t)((const char *)0x7e), 0);
+    if (GetAsyncKeyState(k_vk_control) < 0) {
+        FatalError::show(k_string_safe_mode_requested, k_help_file_general, 0);
     }
     disable_d3dspy = (void (*)(void))GetProcAddress((HMODULE)d3d9_module, "DisableD3DSpy");
     if (disable_d3dspy != 0) {
@@ -384,18 +385,18 @@ void Application::load_audio_input_libraries()
         dsound_module = LoadLibraryA("dsound.dll");
         direct_sound_create8 = GetProcAddress((HMODULE)dsound_module, "DirectSoundCreate8");
         if (dsound_module == 0 || direct_sound_create8 == 0) {
-            FatalError::show(0x7b, (uint32_t)((const char *)0x7a), 1);
+            FatalError::show(k_string_dsound_missing, k_help_file_directx, 1);
         }
     }
     dinput8_module = LoadLibraryA("dinput8.dll");
     direct_input8_create = GetProcAddress((HMODULE)dinput8_module, "DirectInput8Create");
     if (dinput8_module == 0 || direct_input8_create == 0) {
-        FatalError::show(0x7c, (uint32_t)((const char *)0x7a), 1);
+        FatalError::show(k_string_dinput8_missing, k_help_file_directx, 1);
     }
     shfolder_module = LoadLibraryA("shfolder.dll");
     sh_get_folder_path = GetProcAddress((HMODULE)shfolder_module, "SHGetFolderPathA");
     if (shfolder_module == 0 || sh_get_folder_path == 0) {
-        FatalError::show(0x7d, (uint32_t)((const char *)0x7e), 1);
+        FatalError::show(k_string_shfolder_missing, k_help_file_general, 1);
     }
 }
 
@@ -409,14 +410,14 @@ void Application::check_requirements()
     large_integer free_bytes_available;
 
     if (physical_memory < (uint32_t)(required_memory - 0x10)) {
-        FatalError::show(0x65, (uint32_t)((const char *)0x6e), 0);
+        FatalError::show(k_string_insufficient_memory, k_help_file_memory, 0);
     }
     if (cpu_speed < (uint32_t)required_cpu_speed) {
         HardwareProbe::current().detect();
         if (cpu_speed < (uint32_t)required_cpu_speed) {
             HardwareProbe::current().detect();
             if (cpu_speed < (uint32_t)required_cpu_speed) {
-                FatalError::show(0x66, (uint32_t)((const char *)0x6f), 0);
+                FatalError::show(k_string_insufficient_cpu, k_help_file_cpu, 0);
             }
         }
     }
@@ -425,12 +426,12 @@ void Application::check_requirements()
     if (free_bytes_available.parts.high_part <= 0 &&
         (free_bytes_available.parts.high_part < 0 ||
          free_bytes_available.parts.low_part < (uint32_t)(required_disk_space << 20))) {
-        FatalError::show(0x6d, (uint32_t)((const char *)0x76), 0);
+        FatalError::show(k_string_insufficient_disk_space, k_help_file_disk_space, 0);
     }
 
     shell_product_id = ProductId::build_string();
     if (*shell_product_id == 0) {
-        FatalError::show(0xa0, (uint32_t)((const char *)0x7e), 1);
+        FatalError::show(k_string_product_id_missing, k_help_file_general, 1);
     }
 }
 
@@ -477,15 +478,15 @@ void Application::run_engine()
  */
 bool Application::run_session(void *instance, char *command_line, int32_t show_command)
 {
-    uint32_t stack_guard_buffer[0x800];
+    uint32_t stack_guard_buffer[k_stack_guard_words];
     volatile uint8_t integrity_ok;
     char *command_line_copy;
     int32_t i;
 
-    for (i = 0; i < 0x800; i++) {
-        stack_guard_buffer[i] = 0xeeeeeeee;
+    for (i = 0; i < k_stack_guard_words; i++) {
+        stack_guard_buffer[i] = k_stack_guard_marker;
     }
-    shell_stack_guard_page = (uint8_t *)stack_guard_buffer + 0x1000;
+    shell_stack_guard_page = (uint8_t *)stack_guard_buffer + k_stack_guard_page_offset;
     VirtualProtect(shell_stack_guard_page, 1, 1, (PDWORD)&shell_stack_guard_old_protect);
     integrity_ok = 1;
 
@@ -505,7 +506,7 @@ bool Application::run_session(void *instance, char *command_line, int32_t show_c
     load_audio_input_libraries();
 
     if (ExitFlag::previous_run_crashed() != 0) {
-        FatalError::show(0x6a, (uint32_t)((const char *)0x73), 0);
+        FatalError::show(k_string_previous_run_crashed, k_help_file_crash, 0);
     }
 
     if (integrity_ok == 0) {

@@ -7,6 +7,7 @@
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/lcg.hpp"
 
 extern "C" {
 extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias);
@@ -43,21 +44,21 @@ void bsp_lighting::lightmap_sample_vertex_color(BitmapData *bitmap, float weight
         ScenarioStructureBSPMaterialCompressedLightmapVertex *e2 =
             (ScenarioStructureBSPMaterialCompressedLightmapVertex *)base + triangle_vertex_indices[2] + skip;
 
-        u0 = ((float)(int32_t)e0->texture_coordinate_x * 2.0f + 1.0f) * 1.5259022e-05f;
-        v0 = ((float)(int32_t)e0->texture_coordinate_y * 2.0f + 1.0f) * 1.5259022e-05f;
-        u1 = ((float)(int32_t)e1->texture_coordinate_x * 2.0f + 1.0f) * 1.5259022e-05f;
-        v1 = ((float)(int32_t)e1->texture_coordinate_y * 2.0f + 1.0f) * 1.5259022e-05f;
-        u2 = ((float)(int32_t)e2->texture_coordinate_x * 2.0f + 1.0f) * 1.5259022e-05f;
-        v2 = ((float)(int32_t)e2->texture_coordinate_y * 2.0f + 1.0f) * 1.5259022e-05f;
+        u0 = ((float)(int32_t)e0->texture_coordinate_x * 2.0f + 1.0f) * halo::k_unit_word_scale;
+        v0 = ((float)(int32_t)e0->texture_coordinate_y * 2.0f + 1.0f) * halo::k_unit_word_scale;
+        u1 = ((float)(int32_t)e1->texture_coordinate_x * 2.0f + 1.0f) * halo::k_unit_word_scale;
+        v1 = ((float)(int32_t)e1->texture_coordinate_y * 2.0f + 1.0f) * halo::k_unit_word_scale;
+        u2 = ((float)(int32_t)e2->texture_coordinate_x * 2.0f + 1.0f) * halo::k_unit_word_scale;
+        v2 = ((float)(int32_t)e2->texture_coordinate_y * 2.0f + 1.0f) * halo::k_unit_word_scale;
     } else if (material->rendered_vertices_type == vertextype_structure_bsp_uncompressed_rendered_vertices ||
-               material->rendered_vertices_type == 0xc) {
-        uint8_t *base = (uint8_t *)material->uncompressed_vertices.pointer + material->rendered_vertices_count * 0x38;
+               material->rendered_vertices_type == k_vertex_type_uncompressed_rendered_alias) {
+        uint8_t *base = (uint8_t *)material->uncompressed_vertices.pointer + material->rendered_vertices_count * sizeof(ScenarioStructureBSPMaterialUncompressedRenderedVertex);
         ScenarioStructureBSPMaterialUncompressedLightmapVertex *e0 =
-            (ScenarioStructureBSPMaterialUncompressedLightmapVertex *)(base + triangle_vertex_indices[0] * 0x14);
+            (ScenarioStructureBSPMaterialUncompressedLightmapVertex *)(base + triangle_vertex_indices[0] * sizeof(ScenarioStructureBSPMaterialUncompressedLightmapVertex));
         ScenarioStructureBSPMaterialUncompressedLightmapVertex *e1 =
-            (ScenarioStructureBSPMaterialUncompressedLightmapVertex *)(base + triangle_vertex_indices[1] * 0x14);
+            (ScenarioStructureBSPMaterialUncompressedLightmapVertex *)(base + triangle_vertex_indices[1] * sizeof(ScenarioStructureBSPMaterialUncompressedLightmapVertex));
         ScenarioStructureBSPMaterialUncompressedLightmapVertex *e2 =
-            (ScenarioStructureBSPMaterialUncompressedLightmapVertex *)(base + triangle_vertex_indices[2] * 0x14);
+            (ScenarioStructureBSPMaterialUncompressedLightmapVertex *)(base + triangle_vertex_indices[2] * sizeof(ScenarioStructureBSPMaterialUncompressedLightmapVertex));
 
         u0 = e0->texture_coords.x; v0 = e0->texture_coords.y;
         u1 = e1->texture_coords.x; v1 = e1->texture_coords.y;
@@ -90,7 +91,7 @@ void bsp_lighting::material_sample_base_map_color(BitmapData *bitmap, float weig
         u2 = base[triangle_vertex_indices[2]].texture_coords.x;
         v2 = base[triangle_vertex_indices[2]].texture_coords.y;
     } else if (material->rendered_vertices_type == vertextype_structure_bsp_uncompressed_rendered_vertices ||
-               material->rendered_vertices_type == 0xc) {
+               material->rendered_vertices_type == k_vertex_type_uncompressed_rendered_alias) {
         ScenarioStructureBSPMaterialUncompressedRenderedVertex *base =
             (ScenarioStructureBSPMaterialUncompressedRenderedVertex *)material->uncompressed_vertices.pointer;
 
@@ -166,21 +167,21 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
     bsp = global_structure_bsp;
     lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
     material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
-    shader = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&material->shader.tag_id & 0xffff].data;
+    shader = (uint8_t *)tag_instances[datum_slot(*(uint32_t *)&material->shader.tag_id)].data;
 
-    if (*(int16_t *)&((struct Shader *)shader)->shader_type != 3 ||
+    if (*(int16_t *)&((struct Shader *)shader)->shader_type != shadertype_environment ||
         *(int32_t *)&bsp->lightmaps_bitmap.tag_id == -1 ||
         (int16_t)lightmap->bitmap == -1 ||
-        *(int32_t *)(shader + 0x94) == -1) {
+        *(int32_t *)(shader + k_shader_environment_base_map_tag_offset) == -1) {
         return 0;
     }
 
     triangle = (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
     lightmap_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
         (int16_t)lightmap->bitmap);
-    base_map_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(shader + 0x94) & 0xffff].data;
-    base_map_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)(shader + 0x94),
-        (int16_t)((int32_t)(int16_t)material->shader_permutation % *(int32_t *)(base_map_tag + 0x60)));
+    base_map_tag = (uint8_t *)tag_instances[datum_slot(*(uint32_t *)(shader + k_shader_environment_base_map_tag_offset))].data;
+    base_map_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)(shader + k_shader_environment_base_map_tag_offset),
+        (int16_t)((int32_t)(int16_t)material->shader_permutation % *(int32_t *)(base_map_tag + k_bitmap_data_count_offset)));
     if (lightmap_bitmap == 0 || base_map_bitmap == 0 ||
         halo::cache::texture_cache_get(lightmap_bitmap, 1, 1) == 0 || halo::cache::texture_cache_get(base_map_bitmap, 1, 1) == 0) {
         return 0;
@@ -196,7 +197,7 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
         for (i = 0; i < 3; i++) {
             bsp_compressed_rendered_vertex_unpack_normal(&vertices[triangle[i]], &normals[i]);
         }
-    } else if (vertex_type == vertextype_structure_bsp_uncompressed_rendered_vertices || vertex_type == 0xc) {
+    } else if (vertex_type == vertextype_structure_bsp_uncompressed_rendered_vertices || vertex_type == k_vertex_type_uncompressed_rendered_alias) {
         ScenarioStructureBSPMaterialUncompressedRenderedVertex *vertices =
             (ScenarioStructureBSPMaterialUncompressedRenderedVertex *)(uintptr_t)material->uncompressed_vertices.pointer;
         for (i = 0; i < 3; i++) {
@@ -213,10 +214,10 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
         for (i = 0; i < 3; i++) {
             bsp_compressed_lightmap_vertex_unpack_normal(&vertices[triangle[i]], &normals[i]);
         }
-    } else if (vertex_type == vertextype_structure_bsp_uncompressed_rendered_vertices || vertex_type == 0xc) {
+    } else if (vertex_type == vertextype_structure_bsp_uncompressed_rendered_vertices || vertex_type == k_vertex_type_uncompressed_rendered_alias) {
         ScenarioStructureBSPMaterialUncompressedLightmapVertex *vertices =
             (ScenarioStructureBSPMaterialUncompressedLightmapVertex *)((uint8_t *)(uintptr_t)material->uncompressed_vertices.pointer +
-            material->rendered_vertices_count * 0x38);
+            material->rendered_vertices_count * sizeof(ScenarioStructureBSPMaterialUncompressedRenderedVertex));
         for (i = 0; i < 3; i++) {
             normals[i] = *(real_vector3d *)&vertices[triangle[i]].normal;
         }
@@ -251,7 +252,7 @@ void bsp_lighting::lightmap_uv_rect_build(int16_t sequence_index, int16_t sprite
     out_sprite_rect[2] = sprite->top;
     out_sprite_rect[3] = sprite->bottom;
 
-    if ((decal_definition->flags & 0x100) != 0) {
+    if (test_flag(decal_definition->flags, tags::decal_tag_flag::preserve_aspect)) {
         aspect = ((sprite->right - sprite->left) / (sprite->bottom - sprite->top)) *
             ((real)(int32_t)(int16_t)data->height / (real)(int32_t)(int16_t)data->width);
     }

@@ -2,6 +2,9 @@
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -57,60 +60,60 @@ void UnitView::update_aiming_overlay_angles(void *output)
 {
     using namespace unit_update_aiming_overlay_angles_local;
     uint32_t unit_index = datum_handle;
-    uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
-    uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data;
-    uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id & 0xffff].data;
+    uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(unit_index) * 0xc + 8);
+    uint8_t *unit_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)unit)].data;
+    uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id & 0xffff].data;
     uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
     uint8_t *block;
     float aim_yaw;
     float aim_pitch;
     int8_t state;
 
-    if (*(int16_t *)(unit + 0x2aa) != -1) {
-        animation_replace_frame_orientations(animations + *(int16_t *)(unit + 0x2aa) * 0xb4,
-            (int16_t)*(uint16_t *)(unit + 0x2ac), output);
+    if (((struct unit_object *)unit)->unit.overlays[0].animation_index != -1) {
+        animation_replace_frame_orientations(animations + ((struct unit_object *)unit)->unit.overlays[0].animation_index * 0xb4,
+            (int16_t)(uint16_t)((struct unit_object *)unit)->unit.overlays[0].frame, output);
     }
-    if (*(int16_t *)(unit + 0x2ae) != -1) {
-        animation_overlay_frame_orientations(animations + *(int16_t *)(unit + 0x2ae) * 0xb4,
-            (int16_t)*(uint16_t *)(unit + 0x2b0), output);
+    if (((struct unit_object *)unit)->unit.overlays[1].animation_index != -1) {
+        animation_overlay_frame_orientations(animations + ((struct unit_object *)unit)->unit.overlays[1].animation_index * 0xb4,
+            (int16_t)(uint16_t)((struct unit_object *)unit)->unit.overlays[1].frame, output);
     }
-    if (*(int16_t *)(unit + 0x2b2) != -1) {
-        animation_overlay_frame_orientations(animations + *(int16_t *)(unit + 0x2b2) * 0xb4,
-            (int16_t)*(uint16_t *)(unit + 0x2b4), output);
+    if (((struct unit_object *)unit)->unit.overlays[2].animation_index != -1) {
+        animation_overlay_frame_orientations(animations + ((struct unit_object *)unit)->unit.overlays[2].animation_index * 0xb4,
+            (int16_t)(uint16_t)((struct unit_object *)unit)->unit.overlays[2].frame, output);
     }
-    unit[0x2b6] = 0;
-    unit[0x2b7] = 0;
-    if ((*(uint32_t *)&((struct Unit *)unit_tag)->unit_flags & 0x800) || unit[0x2a0] == 0xff) {
+    ((struct unit_object *)unit)->unit.aiming_bounds_valid = 0;
+    ((struct unit_object *)unit)->unit.looking_bounds_valid = 0;
+    if ((*(uint32_t *)&((struct Unit *)unit_tag)->unit_flags & 0x800) || (uint8_t)((struct unit_object *)unit)->unit.animation_definition_index == 0xff) {
         return;
     }
-    block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer + (int8_t)unit[0x2a0] * 0x64;
+    block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_definition_index * 0x64;
 
-    if (unit[0x2a8] != 0xff) {
-        int16_t emotion = (*(int32_t *)(block + 0x40) > 0xb) ? (*(int16_t **)(block + 0x44))[0xb] : -1;
+    if ((uint8_t)((struct unit_object *)unit)->unit.emotion_animation_frame != 0xff) {
+        int16_t emotion = ((int32_t)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.count > 0xb) ? ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[0xb] : -1;
 
         if (((unit_object *)unit)->unit.emotion_animation_index != -1) {
             emotion = ((unit_object *)unit)->unit.emotion_animation_index;
         }
         if (emotion != -1) {
             uint8_t *record = animations + emotion * 0xb4;
-            int8_t frame = (int8_t)unit[0x2a8];
+            int8_t frame = (int8_t)(uint8_t)((struct unit_object *)unit)->unit.emotion_animation_frame;
 
             if (frame >= 0 && frame < *(int16_t *)(record + 0x22)) {
                 animation_overlay_frame_orientations(record, frame, output);
             }
         }
     }
-    if (((unit_object *)unit)->unit.mouth_aperture > 0.0f && *(int32_t *)(block + 0x40) > 0xa &&
-        (*(int16_t **)(block + 0x44))[0xa] != -1) {
-        animation_overlay_frame_orientations_weighted(animations + (*(int16_t **)(block + 0x44))[0xa] * 0xb4, 0,
+    if (((unit_object *)unit)->unit.mouth_aperture > 0.0f && (int32_t)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.count > 0xa &&
+        ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[0xa] != -1) {
+        animation_overlay_frame_orientations_weighted(animations + ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[0xa] * 0xb4, 0,
             ((unit_object *)unit)->unit.mouth_aperture, output);
     }
-    if (unit[0x298] & 2) {
+    if ((uint8_t)((struct unit_object *)unit)->unit.animation_state_flags & 2) {
         int32_t slot;
 
         for (slot = 2; slot < 5; slot++) {
-            if (slot < *(int32_t *)(block + 0x40) && (*(int16_t **)(block + 0x44))[slot] != -1) {
-                uint8_t *record = animations + (*(int16_t **)(block + 0x44))[slot] * 0xb4;
+            if (slot < (int32_t)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.count && ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[slot] != -1) {
+                uint8_t *record = animations + ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[slot] * 0xb4;
                 int32_t last_frame = *(int16_t *)(record + 0x22) - 1;
 
                 animation_overlay_interpolated_frame_orientations(record,
@@ -122,19 +125,19 @@ void UnitView::update_aiming_overlay_angles(void *output)
     if (*(uint32_t *)&((struct Unit *)unit_tag)->unit_flags & 0x400) {
         return;
     }
-    state = (int8_t)unit[0x2a3];
-    if ((state >= 0x17 && state <= 0x23) || state == 0x29 || unit[0x2a4] != 0) {
+    state = (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_state;
+    if ((state >= 0x17 && state <= 0x23) || state == 0x29 || (uint8_t)((struct unit_object *)unit)->unit.replacement_animation_state != 0) {
         return;
     }
 
     aim_yaw = global_zero_vector2d_pointer[0];
     aim_pitch = global_zero_vector2d_pointer[1];
     if (((unit_object *)unit)->unit.aiming_animation_index != -1) {
-        uint8_t *screen = *(uint8_t **)(block + 0x5c) + (int8_t)unit[0x2a1] * 0xbc + 0x60;
+        uint8_t *screen = (uint8_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->weapons.pointer + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_weapon_index * 0xbc + 0x60;
 
-        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)(unit + 0x23c), &aim_yaw, &aim_pitch);
-        unit[0x2b6] = 1;
-        aiming_screen_limits(screen, (float *)(unit + 0x2b8));
+        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)&((struct unit_object *)unit)->unit.aiming_vector, &aim_yaw, &aim_pitch);
+        ((struct unit_object *)unit)->unit.aiming_bounds_valid = 1;
+        aiming_screen_limits(screen, (float *)&((struct unit_object *)unit)->unit.aiming_bounds);
         animation_aiming_screen_blend(animations + ((unit_object *)unit)->unit.aiming_animation_index * 0xb4, screen, aim_yaw, aim_pitch, output);
     }
 
@@ -146,11 +149,11 @@ void UnitView::update_aiming_overlay_angles(void *output)
         float look_yaw;
         float look_pitch;
 
-        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)(unit + 0x260), &look_yaw, &look_pitch);
-        unit[0x2b7] = 1;
+        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)&((struct unit_object *)unit)->unit.looking_vector, &look_yaw, &look_pitch);
+        ((struct unit_object *)unit)->unit.looking_bounds_valid = 1;
         look_yaw -= aim_yaw;
         look_pitch -= aim_pitch;
-        aiming_screen_limits(screen, (float *)(unit + 0x2c8));
+        aiming_screen_limits(screen, (float *)&((struct unit_object *)unit)->unit.looking_bounds);
         animation_aiming_screen_blend(animations + ((struct unit_object *)unit)->unit.looking_animation_index * 0xb4, screen, look_yaw, look_pitch,
             output);
     }
@@ -168,17 +171,17 @@ void UnitView::update_aiming_overlay_angles(void *output)
 void UnitView::update_autoaim_interaction()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     uint8_t *tracked = (uint8_t *)global_globals->falling_damage.pointer;
 
-    ((unit_object *)obj)->unit.flags &= ~0x02000000u;
+    clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::idle_turn_seeded);
     obj[0x107] &= 0xf7;
-    ((unit_object *)obj)->unit.flags &= ~0x00000080u;
+    clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::disoriented);
 
     if (tracked != 0) {
         datum_index damage_effect = *(datum_index *)(tracked + 0x78);
         if (damage_effect != k_datum_index_none) {
-            uint8_t *source = (uint8_t *)object_try_and_get(*(datum_index *)&((struct unit_object *)obj)->unit.flaming_responsible_object, 0xffffffff);
+            uint8_t *source = (uint8_t *)object_try_and_get(*(datum_index *)&((struct unit_object *)obj)->unit.flaming_responsible_object, k_datum_index_none);
             damage_data dd;
 
             memset(&dd, 0, sizeof(dd));
@@ -203,8 +206,8 @@ void UnitView::update_autoaim_interaction()
         }
     }
 
-    if ((((unit_object *)obj)->base.vitality_flags & 4) == 0) {
-        ((unit_object *)obj)->base.vitality_flags |= 0x20;
+    if (!test_flag(((unit_object *)obj)->base.vitality_flags, objects::vitality_flag::health_frozen)) {
+        set_flag(((unit_object *)obj)->base.vitality_flags, objects::vitality_flag::unknown_20);
     }
 }
 

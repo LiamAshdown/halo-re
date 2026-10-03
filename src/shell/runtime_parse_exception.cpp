@@ -1,4 +1,5 @@
 #include "halo/shell/runtime.hpp"
+#include "halo/shell/layout.hpp"
 
 extern "C" {
 extern void *logic_error_vtable;
@@ -20,10 +21,10 @@ hwreq_parse_exception *ParseException::construct(const msvc_std_string *message)
 
     self->vtable = (uint32_t)&logic_error_vtable;
     self->message.size = 0;
-    self->message.capacity = 0xf;
+    self->message.capacity = k_string_inline_capacity;
     self->message.buffer.inline_buffer[0] = 0;
 
-    StdString(&self->message).assign_substr(message, 0, 0xffffffff);
+    StdString(&self->message).assign_substr(message, 0, k_string_npos);
 
     return self;
 }
@@ -37,10 +38,10 @@ hwreq_parse_exception *ParseException::copy_construct(const hwreq_parse_exceptio
 {
     StdException(self).copy_construct(other);
     self->vtable = (uint32_t)&logic_error_vtable;
-    self->message.capacity = 0xf;
+    self->message.capacity = k_string_inline_capacity;
     self->message.size = 0;
     self->message.buffer.inline_buffer[0] = 0;
-    StdString(&self->message).assign_substr(&other->message, 0, 0xffffffff);
+    StdString(&self->message).assign_substr(&other->message, 0, k_string_npos);
     return self;
 }
 
@@ -53,10 +54,10 @@ void ParseException::destruct()
 {
     self->vtable = (uint32_t)&logic_error_vtable;
 
-    if (self->message.capacity > 0xf) {
+    if (self->message.capacity > k_string_inline_capacity) {
         free((void *)self->message.buffer.heap_buffer);
     }
-    self->message.capacity = 0xf;
+    self->message.capacity = k_string_inline_capacity;
     self->message.size = 0;
     self->message.buffer.inline_buffer[0] = 0;
 

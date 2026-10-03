@@ -1,5 +1,10 @@
 #include "halo/hs/script_globals.hpp"
 #include "halo/units/unit.hpp"
+#include "halo/core/lcg.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "hs.h"
 #include "physics.h"
@@ -57,9 +62,9 @@ namespace halo::units {
 void UnitView::apply_scale_change(unit_scale_request *request)
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    Object *obj_tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    Object *obj_tag = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if (request->scale > 0.0f) {
         obj->body_vitality = request->scale;
@@ -70,9 +75,9 @@ void UnitView::apply_scale_change(unit_scale_request *request)
             UnitView(unit_index).drop_inventory_weapons_except_current();
             unit->grenade_counts[0] = 0;
             unit->grenade_counts[1] = 0;
-            if (unit->equipment_object_index != (datum_index)-1) {
+            if (unit->equipment_object_index != k_datum_index_none) {
                 object_delete(unit->equipment_object_index);
-                unit->equipment_object_index = (datum_index)-1;
+                unit->equipment_object_index = k_datum_index_none;
             }
             void *graph = halo::cache::globals().tag_instances[obj_tag->animation_graph.tag_id.index].data;
             uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
@@ -106,8 +111,8 @@ void UnitView::apply_scale_change(unit_scale_request *request)
 void UnitView::find_nearest_valid_surface_plane()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    ModelCollisionGeometryBSP *bsp = halo::physics::globals().structure_collision_bsp;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    ModelCollisionGeometryBSP *bsp = global_structure_collision_bsp;
     real_point3d position;
     float pill_height;
     float pill_radius;
@@ -132,7 +137,7 @@ void UnitView::find_nearest_valid_surface_plane()
     for (i = 0; (int32_t)i < result.surface_count; i++) {
         int32_t surface = result.surfaces[i];
         int32_t plane_reference = *(int32_t *)(surfaces + surface * 0xc);
-        float *plane = (float *)(planes + (plane_reference & 0x7fffffff) * 0x10);
+        float *plane = (float *)(planes + (plane_reference & halo::k_leaf_index_mask) * 0x10);
         real_plane3d candidate;
         float distance;
 
@@ -162,7 +167,7 @@ void UnitView::find_nearest_valid_surface_plane()
     *(real_vector3d *)&((unit_object *)obj)->base.up.i = best_plane.normal;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
 /**
  * Engine function unit_find_placement_position.
  *
@@ -197,14 +202,14 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
         }
     }
     if (orientation_object != k_datum_index_none) {
-        center = *(real_point3d *)(OBJECT_DATA(orientation_object) + 0xa0);
+        center = ((struct object *)OBJECT_DATA(orientation_object))->bounding_center;
     }
     if (anchor_object == k_datum_index_none) {
         anchor_object = orientation_object;
         borrowed_anchor = 1;
     }
     unit = OBJECT_DATA(anchor_object);
-    tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data;
+    tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)unit)].data;
     flags = (*(uint32_t *)(tag + 0x2f4) & 0x20) ? 0xc2a0 : 0x20c3a0;
     if (reference_direction != 0) {
         base = *(real_point3d *)reference_direction;
@@ -220,8 +225,8 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
         halo::physics::object_collision_context_build(orientation_object, &context);
     }
     {
-        real_vector3d *f = (real_vector3d *)(unit + 0x74);
-        real_vector3d *u = (real_vector3d *)(unit + 0x80);
+        real_vector3d *f = (real_vector3d *)&((struct object *)unit)->forward;
+        real_vector3d *u = (real_vector3d *)&((struct object *)unit)->up;
 
         side.i = u->k * f->j - f->k * u->j;
         side.j = f->k * u->i - u->k * f->i;
@@ -240,8 +245,8 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
         int32_t leaf;
 
         if (grid_mode) {
-            real_vector3d *f = (real_vector3d *)(unit + 0x74);
-            real_vector3d *u = (real_vector3d *)(unit + 0x80);
+            real_vector3d *f = (real_vector3d *)&((struct object *)unit)->forward;
+            real_vector3d *u = (real_vector3d *)&((struct object *)unit)->up;
             float a = radius * offset->i;
             float b = radius * offset->j;
             float c = radius * offset->k;
@@ -258,7 +263,7 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
         if (leaf == -1) {
             continue;
         }
-        if (*(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8) == -1) {
+        if (*(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & halo::k_leaf_index_mask) * 0x10 + 0x8) == -1) {
             continue;
         }
         if (!halo::physics::physics_point_find_clear_position(flags, &point, pill_radius + pill_radius, pill_height, pill_radius,
@@ -312,8 +317,8 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
 uint8_t UnitView::new_()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Unit *tag = (Unit *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Unit *tag = (Unit *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     uint32_t *field;
     int32_t i;
@@ -324,25 +329,25 @@ uint8_t UnitView::new_()
 
     unit->unknown_475 = 0;
     unit->control_update_id = -1;
-    unit->equipment_object_index = (datum_index)-1;
-    unit->weapons[0] = (datum_index)-1;
-    unit->weapons[1] = (datum_index)-1;
-    unit->weapons[2] = (datum_index)-1;
-    unit->weapons[3] = (datum_index)-1;
+    unit->equipment_object_index = k_datum_index_none;
+    unit->weapons[0] = k_datum_index_none;
+    unit->weapons[1] = k_datum_index_none;
+    unit->weapons[2] = k_datum_index_none;
+    unit->weapons[3] = k_datum_index_none;
     unit->current_weapon_index = -1;
     unit->desired_weapon_index = -1;
     unit->current_grenade_index = -1;
     unit->desired_grenade_index = -1;
     unit->zoom_level = -1;
     unit->desired_zoom_level = -1;
-    unit->controlling_player = (datum_index)-1;
-    unit->actor_index = (datum_index)-1;
-    unit->swarm_actor_index = (datum_index)-1;
-    unit->swarm_next_unit_index = (datum_index)-1;
+    unit->controlling_player = k_datum_index_none;
+    unit->actor_index = k_datum_index_none;
+    unit->swarm_actor_index = k_datum_index_none;
+    unit->swarm_next_unit_index = k_datum_index_none;
     unit->swarm_previous_unit_index = (uint32_t)-1;
     unit->vehicle_seat_index = -1;
-    unit->driver_unit_index = (datum_index)-1;
-    unit->gunner_unit_index = (datum_index)-1;
+    unit->driver_unit_index = k_datum_index_none;
+    unit->gunner_unit_index = k_datum_index_none;
     unit->animation_state_flags = 0;
     unit->animation_definition_index = -1;
     unit->animation_weapon_index = -1;
@@ -378,8 +383,8 @@ uint8_t UnitView::new_()
     unit->desired_facing_vector = obj->forward;
 
     unit->persistent_control_ticks = 0;
-    unit->dialogue_tag_index = (datum_index)-1;
-    unit->flags |= 0x100;
+    unit->dialogue_tag_index = k_datum_index_none;
+    set_flag(unit->flags, units::unit_flag::permutation_dirty);
 
     field = (uint32_t *)&unit->current_speech;
     for (i = 0x1f; i != 0; i--) {
@@ -397,7 +402,7 @@ uint8_t UnitView::new_()
     unit->delayed_damage_category = 0;
     unit->delayed_damage_ticks = 0;
     unit->delayed_damage_amount = 0.0f;
-    unit->delayed_damage_responsible_object = (datum_index)-1;
+    unit->delayed_damage_responsible_object = k_datum_index_none;
     unit->death_time = -1;
     unit->encounter_index = -1;
     unit->squad_index = -1;
@@ -411,14 +416,14 @@ uint8_t UnitView::new_()
         unit->grenade_counts[tag->grenade_type] = (int8_t)tag->grenade_count;
     }
 
-    obj->flags |= 0x6000;
+    set_flag(obj->flags, objects::object_flag::unknown_2000 | objects::object_flag::unknown_4000);
 
     if (tag->feign_death_threshold > 0.0f && tag->feign_death_time > 0.0f && tag->feign_death_chance > 0.0f) {
         float roll = halo::math::random_real();
         if (roll < tag->feign_death_chance) {
-            unit->flags |= 0x2000;
+            set_flag(unit->flags, units::unit_flag::unknown_2000);
         } else {
-            unit->flags &= ~0x2000u;
+            clear_flag(unit->flags, units::unit_flag::unknown_2000);
         }
     }
 
@@ -461,10 +466,10 @@ uint32_t UnitView::resolve_camera_object()
     uint32_t object_index = datum_handle;
     uint32_t result = object_index;
 
-    if (object_index != 0xffffffff) {
-        object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    if (object_index != k_datum_index_none) {
+        object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
-        if (obj->parent_object != (datum_index)0xffffffff) {
+        if (obj->parent_object != k_datum_index_none) {
             unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
             if (unit->vehicle_seat_index != -1) {
@@ -473,7 +478,7 @@ uint32_t UnitView::resolve_camera_object()
                 UnitSeat *seat = (UnitSeat *)((uint8_t *)parent_tag->seats.pointer +
                                                (uint32_t)unit->vehicle_seat_index * 0x11c);
 
-                if ((seat->flags & 0x9) != 0) {
+                if (test_flag(seat->flags, tags::unit_seat_tag_flag::invisible | tags::unit_seat_tag_flag::gunner)) {
                     result = (uint32_t)obj->parent_object;
                 }
             }
@@ -492,17 +497,17 @@ uint32_t UnitView::resolve_camera_object()
 int32_t UnitView::pick_random_spawned_actor_count()
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     int32_t result = 0;
 
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     if ((unit->flags & _unit_flag_permutation_chosen) == 0) {
-        Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
+        Unit *unit_tag = (Unit *)tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
         if (*(int32_t *)&unit_tag->spawned_actor.tag_id != -1) {
-            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            random_seed_global = halo::advance_random_seed(random_seed_global);
             int32_t range = (int32_t)(int16_t)(unit_tag->spawned_actor_count[1] + 1) - (int32_t)unit_tag->spawned_actor_count[0];
-            result = (int32_t)(((uint32_t)range * (halo::math::globals().random_seed_global >> 0x10)) >> 0x10) +
-                     (int32_t)((((uint32_t)halo::cache::globals().tag_instances >> 16) << 16) | (uint16_t)unit_tag->spawned_actor_count[0]);
+            result = (int32_t)(((uint32_t)range * (random_seed_global >> halo::k_random_high_shift)) >> 0x10) +
+                     (int32_t)((((uint32_t)tag_instances >> 16) << 16) | (uint16_t)unit_tag->spawned_actor_count[0]);
             if (0 < (int16_t)result) {
                 result = actor_spawn_additional_units(*(datum_index *)&((struct Unit *)unit_tag)->spawned_actor.tag_id, (int16_t)result,
                     unit_index, ((struct Unit *)unit_tag)->spawned_velocity * 0.033333335f);
@@ -517,7 +522,7 @@ namespace unit_place_local {
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+    return *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
 }
 
 }
@@ -543,7 +548,7 @@ void UnitView::place(uint8_t *placement)
  */
 void unit_propagate_position_delta_to_children(real_point3d *new_position, uint32_t unit_index)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     real_vector3d delta;
     datum_index child;
 
@@ -553,7 +558,7 @@ void unit_propagate_position_delta_to_children(real_point3d *new_position, uint3
 
     child = obj->first_child_object;
     while (child != k_datum_index_none) {
-        object *child_obj = ((object_header *)object_data->data)[child & 0xffff].data;
+        object *child_obj = ((object_header *)object_data->data)[halo::datum_slot(child)].data;
         if ((1 << (child_obj->type & 0x1f) & 3) != 0) {
             unit_data *child_unit = (unit_data *)((uint8_t *)child_obj + k_unit_data_offset);
             child_unit->seat_acceleration_last_position.x += delta.i;
@@ -584,8 +589,8 @@ void UnitView::recalculate_position()
 {
     using namespace unit_recalculate_position_local;
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    real_point3d *current = (real_point3d *)(obj + 0x5c);
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    real_point3d *current = (real_point3d *)&((struct object *)obj)->position;
     real_point3d anchor = *(real_point3d *)&((unit_object *)obj)->base.network_position.x;
     real_point3d previous = *current;
     real_point3d *target = &anchor;
@@ -621,24 +626,24 @@ void UnitView::recalculate_position()
  *
  * @address 0x56a290
  */
-void UnitView::reset_velocity_and_ground_flag(uint8_t set_flag)
+void UnitView::reset_velocity_and_ground_flag(uint8_t enable)
 {
     uint32_t unit_index = datum_handle;
-    if (unit_index != 0xffffffff) {
-        object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    if (unit_index != k_datum_index_none) {
+        object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
         unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
-        if (!set_flag) {
-            unit->flags &= 0xfeffffff;
+        if (!enable) {
+            clear_flag(unit->flags, units::unit_flag::unknown_1000000);
         } else {
-            unit->flags |= 0x1000000;
+            set_flag(unit->flags, units::unit_flag::unknown_1000000);
         }
         unit_obj->velocity.i = global_origin3d_pointer->x;
         unit_obj->velocity.j = global_origin3d_pointer->y;
         unit_obj->velocity.k = global_origin3d_pointer->z;
         if (unit_obj->type == _object_type_biped) {
             biped_data *biped = (biped_data *)((uint8_t *)unit_obj + k_unit_object_size);
-            biped->flags &= 0xfffffffe;
+            clear_flag(biped->flags, units::biped_flag::airborne);
         }
     }
     return;
@@ -656,10 +661,10 @@ void UnitView::reset_velocity_and_ground_flag(uint8_t set_flag)
 uint32_t UnitView::snap_to_min_ground_height()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     float jump_speed;
     real_vector3d velocity;
-    real_vector3d *up = (real_vector3d *)(obj + 0x80);
+    real_vector3d *up = (real_vector3d *)&((struct object *)obj)->up;
     float up_speed;
     datum_index actor_index;
     uint8_t result = 1;
@@ -667,7 +672,7 @@ uint32_t UnitView::snap_to_min_ground_height()
     if ((obj[0x4cc] & 1) || *(int16_t *)(obj + 0x508) == 1) {
         return 0;
     }
-    jump_speed = *(float *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data + 0x3b4);
+    jump_speed = *(float *)((uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data + 0x3b4);
     if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
         jump_speed = (1.0f - *(float *)((uint8_t *)global_globals->player_information.pointer + 0x84) * ((struct unit_object *)obj)->unit.stun) *
             jump_speed;
@@ -689,7 +694,7 @@ uint32_t UnitView::snap_to_min_ground_height()
         actor_index = ((unit_object *)obj)->unit.actor_index;
     }
     if (actor_index != k_datum_index_none) {
-        uint8_t skip_clamp = (obj[0x2a3] == 0x27 || obj[0x2a3] == 0x28) ? 1 : 0;
+        uint8_t skip_clamp = ((uint8_t)((struct unit_object *)obj)->unit.animation_state == 0x27 || (uint8_t)((struct unit_object *)obj)->unit.animation_state == 0x28) ? 1 : 0;
 
         result = actor_get_requested_velocity(skip_clamp, actor_index, &velocity, object_index, jump_speed);
         if (!result) {
@@ -750,8 +755,8 @@ int32_t UnitView::test_placement_candidate(const real_vector3d *direction, real_
 void UnitView::update_scale_function_inputs()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Unit *tag = (Unit *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Unit *tag = (Unit *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     const int16_t *selector = &tag->unit_a_in;
     float *function_in = obj->function_in_values;
@@ -777,7 +782,7 @@ void UnitView::update_scale_function_inputs()
                 value = unit->integrated_light_power;
                 break;
             case 6:
-                if ((obj->vitality_flags & 4) == 0 && (unit->flags & 0x400000) == 0) {
+                if (!test_flag(obj->vitality_flags, objects::vitality_flag::health_frozen) && !test_flag(unit->flags, units::unit_flag::unknown_400000)) {
                     value = 1.0f;
                 } else {
                     value = 0.0f;
@@ -785,7 +790,7 @@ void UnitView::update_scale_function_inputs()
                 break;
             case 7:
             {
-                tag_instance *graph = &halo::cache::globals().tag_instances[obj->animation_graph & 0xffff];
+                tag_instance *graph = &tag_instances[halo::datum_slot(obj->animation_graph)];
                 uint8_t *animations_pointer = *(uint8_t **)((uint8_t *)graph->data + 0x78);
                 int16_t frame_count = *(int16_t *)(animations_pointer + (int32_t)obj->animation_index * 0xb4 + 0x2e);
                 if (obj->animation_index < frame_count) {

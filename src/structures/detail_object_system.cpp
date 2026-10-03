@@ -40,7 +40,7 @@ void detail_object_system::globals_allocate(void)
 
 void detail_object_system::invalidate(void)
 {
-    ((uint8_t *)globals().detail_objects)[0x520e] = 0;
+    ((uint8_t *)detail_objects)[k_detail_objects_valid_offset] = 0;
 }
 
 void detail_object_system::update_render_list(void)

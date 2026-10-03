@@ -20,6 +20,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/render/layout.hpp"
 
 extern "C" {
 extern int32_t render_frame_index;
@@ -128,11 +129,11 @@ void draw(Point2DInt *screenshot_tile, render_view *views, int16_t count, Point2
  */
 uint8_t initialize(void)
 {
-    int32_t block_size = 0x10;
+    int32_t block_size = k_model_ambient_reflection_tint_size;
 
     rasterizer_model_ambient_reflection_tint =
         (ColorARGB *)(game_state_base + game_state_cursor);
-    game_state_cursor = game_state_cursor + 0x10;
+    game_state_cursor = game_state_cursor + k_model_ambient_reflection_tint_size;
     halo::memory::crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
     return rasterizer_initialize_direct3d();
 }
@@ -265,7 +266,7 @@ void player_frame(Point2DInt *screenshot_tile, render_view *view)
     if (attempt_mirror) {
         structure_bsp_mirror_result mirror_result;
         if (halo::structures::structure_bsp_mirror_query(source_camera, &source_frustum, &mirror_result) &&
-            rasterizer_device_version > 0xffff0100 && !rasterizer_caps_flag_68a) {
+            rasterizer_device_version > k_device_version_mirror_pass && !rasterizer_caps_flag_68a) {
             render_camera mirror_camera;
             render_frustum mirror_frustum;
             int32_t saved_cluster_index = halo::structures::globals().render_cluster_index;

@@ -16,6 +16,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/saved_games/layout.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
@@ -99,12 +100,12 @@ void allocate_new_slot(uint16_t *out_name)
     char scratch_path[0x100];
 
     out_name[0] = 0;
-    tag_index = halo::cache::tag_lookup('ustr', (char *)"ui\\saved_game_file_strings");
+    tag_index = halo::cache::tag_lookup(groups::unicode_string_list, (char *)"ui\\saved_game_file_strings");
     if (tag_index != -1) {
         memset(scratch_path, 0, sizeof(scratch_path));
         number = 0;
         do {
-            string_list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_index & 0xffff].data;
+            string_list = (UnicodeStringList *)tag_instances[datum_slot(tag_index)].data;
             format_string = missing_string_text;
             if (2 < (int32_t)string_list->strings.count) {
                 string_entry = (UnicodeStringListString *)string_list->strings.pointer + 2;
@@ -115,9 +116,9 @@ void allocate_new_slot(uint16_t *out_name)
                 }
             }
             next_number = number + 1;
-            string_format_wide_va_bounded(0x7f, out_name, format_string, next_number);
+            string_format_wide_va_bounded(k_saved_game_display_name_length - 1, out_name, format_string, next_number);
             out_name[0x7f] = 0;
-            create_result = XCreateSaveGame(out_name, savegames_directory, 3, scratch_path, 0x100);
+            create_result = XCreateSaveGame(out_name, savegames_directory, 3, scratch_path, k_saved_game_path_length);
             if (create_result != 0) {
                 break;
             }
@@ -151,7 +152,7 @@ int32_t check_storage_availability(void)
     uint8_t removed;
 
     ok = GetDiskFreeSpaceExA(savegames_directory, (PULARGE_INTEGER)&free_bytes_available, (PULARGE_INTEGER)&total_bytes, (PULARGE_INTEGER)&total_free_bytes);
-    if (ok != 0 && (free_bytes_available >> 32) == 0 && (uint32_t)free_bytes_available < 0x2800000) {
+    if (ok != 0 && (free_bytes_available >> 32) == 0 && (uint32_t)free_bytes_available < k_saved_game_minimum_free_disk_space) {
         return _saved_game_storage_ok;
     }
 
@@ -159,7 +160,7 @@ int32_t check_storage_availability(void)
     count = 1;
     if (handle != -1) {
         do {
-            if (0x3e6 < count) {
+            if (k_maximum_saved_game_entries < count) {
                 break;
             }
             count++;
@@ -171,7 +172,7 @@ int32_t check_storage_availability(void)
                 FindClose((void *)handle);
             }
         }
-        if (0x3e6 < count) {
+        if (k_maximum_saved_game_entries < count) {
             return _saved_game_storage_too_many_saves;
         }
     }
@@ -197,7 +198,7 @@ uint8_t copy_files_to_target(char *source_directory, char *source_name, char *ta
 
     sprintf(check_path, "%s%s.sav", source_directory, source_name);
     find_handle = FindFirstFileA(check_path, (LPWIN32_FIND_DATAA)&find_data);
-    if (find_handle == (void *)0xffffffff) {
+    if (find_handle == win32::invalid_handle()) {
         return 0;
     }
     FindClose(find_handle);
@@ -234,8 +235,8 @@ uint32_t create_custom_variant(uint32_t unused, uint16_t *name)
     (void)unused;
 
     handle = saved_game_create_slot(1, name);
-    if (handle == 0xffffffff) {
-        return 0xffffffff;
+    if (handle == k_datum_index_none) {
+        return k_datum_index_none;
     }
 
     opened = saved_game_open_file_by_handle((int32_t)handle, &ref);
@@ -245,21 +246,21 @@ uint32_t create_custom_variant(uint32_t unused, uint16_t *name)
         memcpy(&file.variant, defaults_ptr, sizeof(file.variant));
         file.variant.variant_flags = (int16_t)((uint16_t)file.variant.variant_flags & 0xfffe);
         game_variant_sanitize_options(&file.variant);
-        wcsncpy((wchar_t *)file.variant.name, (const wchar_t *)name, 0x17);
+        wcsncpy((wchar_t *)file.variant.name, (const wchar_t *)name, k_game_variant_name_length - 1);
         file.variant.name[0x17] = 0;
-        file.checksum = 0xffffffff;
+        file.checksum = k_crc32_seed;
         halo::memory::crc32_update(&file.checksum, &file.variant, sizeof(file.variant));
 
         seeked = file_reference_seek(0, &ref);
         if (seeked == 0 || (written = file_reference_write(&ref, &file, sizeof(file)), written == 0)) {
             saved_game_delete_by_handle((int32_t)handle);
-            handle = 0xffffffff;
+            handle = k_datum_index_none;
         }
         file_reference_close(&ref);
         return handle;
     }
     saved_game_delete_by_handle((int32_t)handle);
-    return 0xffffffff;
+    return k_datum_index_none;
 }
 
 /**
@@ -276,25 +277,25 @@ uint32_t create_default_profile(uint16_t *name)
     saved_player_profile_file file;
 
     handle = saved_game_create_slot(_saved_game_type_player_profile, name);
-    if (handle == 0xffffffff) {
-        return 0xffffffff;
+    if (handle == k_datum_index_none) {
+        return k_datum_index_none;
     }
 
     if (saved_game_open_file_by_handle(handle, &ref) == 0) {
         saved_game_delete_by_handle(handle);
-        return 0xffffffff;
+        return k_datum_index_none;
     }
 
     memset(&file, 0, sizeof(file));
     player_profile_initialize(&file.profile, 0, 1);
-    wcsncpy((wchar_t *)file.profile.name, (const wchar_t *)name, 0xb);
+    wcsncpy((wchar_t *)file.profile.name, (const wchar_t *)name, k_player_profile_name_length - 1);
 
-    file.checksum = 0xffffffff;
-    halo::memory::crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
+    file.checksum = k_crc32_seed;
+    ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
 
     if (file_reference_seek(0, &ref) == 0 || file_reference_write(&ref, &file, sizeof(file)) == 0) {
         saved_game_delete_by_handle(handle);
-        handle = 0xffffffff;
+        handle = k_datum_index_none;
     }
     file_reference_close(&ref);
     return handle;
@@ -334,41 +335,41 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
     storage_status = saved_game_check_storage_availability();
     if (storage_status == 1) {
         if (quit_confirm_error_string_index == -1) {
-            quit_confirm_error_string_index = 0x21;
+            quit_confirm_error_string_index = k_quit_error_low_disk_space;
             quit_confirm_error_unknown_ae = -1;
             quit_confirm_error_modal = 1;
             quit_confirm_error_is_error = 0;
         }
     } else if (storage_status == 2 && quit_confirm_error_string_index == -1) {
-        quit_confirm_error_string_index = 0x22;
+        quit_confirm_error_string_index = k_quit_error_too_many_saves;
         quit_confirm_error_unknown_ae = -1;
         quit_confirm_error_modal = 1;
         quit_confirm_error_is_error = 0;
     }
     if (storage_status != 0) {
-        return 0xffffffff;
+        return k_datum_index_none;
     }
 
     entry_count = savegame_index_get_slot_count();
-    if (0x3e6 < entry_count) {
+    if (k_maximum_saved_game_entries < entry_count) {
         if (quit_confirm_error_string_index != -1) {
-            return 0xffffffff;
+            return k_datum_index_none;
         }
-        quit_confirm_error_string_index = 0x24;
+        quit_confirm_error_string_index = k_quit_error_index_full;
         quit_confirm_error_unknown_ae = -1;
         quit_confirm_error_modal = 1;
         quit_confirm_error_is_error = 0;
-        return 0xffffffff;
+        return k_datum_index_none;
     }
 
     memset(directory, 0, sizeof(directory));
-    create_result = XCreateSaveGame(name, savegames_directory, 1, directory, 0x100);
+    create_result = XCreateSaveGame(name, savegames_directory, 1, directory, k_saved_game_path_length);
     if (create_result != 0) {
-        return 0xffffffff;
+        return k_datum_index_none;
     }
 
     memset(&entry, 0, sizeof(entry));
-    wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)name, 0x7f);
+    wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)name, k_saved_game_display_name_length - 1);
     entry.display_name[0x7f] = 0;
     entry.type = (int16_t)type;
     entry.index = (int16_t)entry_count;
@@ -378,8 +379,8 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
     saved_type = (int32_t)type;
 
     if (type == 0) {
-        _snprintf(entry.path, 0xff, "%s%s", directory, "blam.sav");
-        body_size = 0x1ffc;
+        _snprintf(entry.path, k_path_maximum_length, "%s%s", directory, k_player_profile_file_name);
+        body_size = k_saved_player_profile_size;
         storage_handle = game_state_open_persistent_storage(directory);
         if (storage_handle != (void *)-1) {
             CloseHandle(storage_handle);
@@ -389,7 +390,7 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
             saved_type = -1;
             goto rollback;
         }
-        _snprintf(entry.path, 0xff, "%s%s", directory, "blam.lst");
+        _snprintf(entry.path, k_path_maximum_length, "%s%s", directory, k_game_variant_file_name);
         body_size = 0x98;
     }
 
@@ -402,7 +403,7 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
             ok = file_reference_open(&ref, 2);
             if (ok) {
                 memset(body, 0, sizeof(body));
-                *(uint32_t *)(body + body_size) = 0xffffffff;
+                *(uint32_t *)(body + body_size) = k_datum_index_none;
                 halo::memory::crc32_update((uint32_t *)(body + body_size), body, body_size);
                 ok = file_reference_write(&ref, body, sizeof(body));
                 if (ok) {
@@ -421,7 +422,7 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
 
 rollback:
     XDeleteSaveGame(name, savegames_directory);
-    return 0xffffffff;
+    return k_datum_index_none;
 }
 
 /**
@@ -463,7 +464,7 @@ void delete_by_display_name(const char *name)
             profile = default_profile_data;
         } else {
             ok = player_profile_get(handle, &profile);
-            if (ok != 0 && (profile.flags & 0x2) != 0 && _wcsicmp((const wchar_t *)name_wide, (const wchar_t *)profile.name) == 0) {
+            if (ok != 0 && (profile.flags & _saved_player_profile_flag_bit1) != 0 && _wcsicmp((const wchar_t *)name_wide, (const wchar_t *)profile.name) == 0) {
                 if (handle != -1) {
                     saved_game_delete_by_handle(handle);
                 }
@@ -495,12 +496,12 @@ uint8_t delete_by_handle(int32_t handle)
 
     result = 0;
     if (savegame_index_dirty == 0) {
-        slot_index = ((uint32_t)handle >> 16) & 0xfff;
+        slot_index = saved_game_handle_slot(handle);
         result = 0;
-        if ((handle & 0xf) < 2 && slot_index < 999) {
+        if ((handle & k_saved_game_handle_type_mask) < 2 && slot_index < k_maximum_saved_games) {
             found = savegame_index_read_slot((int32_t)slot_index, &entry);
             if (found != 0) {
-                if ((handle & 0x40000000) == 0) {
+                if ((handle & k_saved_game_handle_builtin_bit) == 0) {
                     result = 1;
                     delete_result = XDeleteSaveGame(entry.display_name, savegames_directory);
                     if (delete_result != 0) {
@@ -537,7 +538,7 @@ uint8_t delete_files(char *name)
     saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     sprintf(check_path, "%s%s.sav", directory, name);
     find_handle = FindFirstFileA(check_path, (LPWIN32_FIND_DATAA)&find_data);
-    if (find_handle == (void *)0xffffffff) {
+    if (find_handle == win32::invalid_handle()) {
         return 0;
     }
     FindClose(find_handle);
@@ -576,14 +577,14 @@ void enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only
 
     written = 0;
     wait_result = WaitForSingleObject(saved_game_files_mutex->handle, 5000);
-    if (wait_result == 0 || wait_result == 0x80) {
+    if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
         if (savegame_index_dirty != 0) {
             saved_game_list_rebuild_index();
         }
         entry_count = savegame_index_get_slot_count();
         written = 0;
         wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
-        if (wait_result == 0 || wait_result == 0x80) {
+        if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
             opened = savegame_index_file_exists();
             if (opened != 0) {
                 i = 0;
@@ -632,7 +633,7 @@ uint8_t file_exists(char *name)
     saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     sprintf(path, "%s%s.sav", directory, name);
     find_handle = FindFirstFileA(path, (LPWIN32_FIND_DATAA)&find_data);
-    if (find_handle != (void *)0xffffffff) {
+    if (find_handle != win32::invalid_handle()) {
         found = 1;
         FindClose(find_handle);
     }
@@ -694,7 +695,7 @@ void files_initialize(void)
         zero_cursor += 4;
     }
 
-    strncpy(saved_game_root_directory, profile_directory, 0xff);
+    strncpy(saved_game_root_directory, profile_directory, k_path_maximum_length);
     _snprintf(saved_game_root_path, 0xff, "%s\\%s\\%s", saved_game_root_directory, "saved", "hdmu.map");
     _snprintf(savegames_directory, 0xff, "%s\\%s", saved_game_root_directory, "savegames");
     _snprintf(saved_directory, 0xff, "%s\\%s", saved_game_root_directory, "saved");
@@ -728,7 +729,7 @@ void files_initialize(void)
 
 default_profile:
     zero_cursor = (uint8_t *)&default_profile_data;
-    for (i = 0x1001; i != 0; i--) {
+    for (i = k_default_profile_clear_dwords; i != 0; i--) {
         *(uint32_t *)zero_cursor = 0;
         zero_cursor += 4;
     }
@@ -737,7 +738,7 @@ default_profile:
     player_profile_write_default_files();
 
     zero_cursor = (uint8_t *)&variant_write_request_state;
-    for (i = 0x29; i != 0; i--) {
+    for (i = k_variant_write_request_clear_dwords; i != 0; i--) {
         *(uint32_t *)zero_cursor = 0;
         zero_cursor += 4;
     }
@@ -769,9 +770,9 @@ int32_t find_by_name(char *name, int16_t type)
     name_length = strlen(name);
 
     wait_result = WaitForSingleObject(saved_game_files_mutex->handle, 5000);
-    if (wait_result == 0 || wait_result == 0x80) {
+    if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
         wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
-        if (wait_result == 0 || wait_result == 0x80) {
+        if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
             entry_count = savegame_index_get_slot_count();
             opened = savegame_index_file_exists();
             if (opened != 0) {
@@ -817,7 +818,7 @@ uint8_t get_directory_by_handle(int32_t handle, char *out_directory)
     if (handle == -1) {
         return 0;
     }
-    slot_index = ((uint32_t)handle >> 16) & 0xfff;
+    slot_index = saved_game_handle_slot(handle);
     if (slot_index >= 999) {
         return 0;
     }
@@ -828,7 +829,7 @@ uint8_t get_directory_by_handle(int32_t handle, char *out_directory)
     if (entry.type != _saved_game_type_player_profile && entry.type != _saved_game_type_game_variant) {
         return 0;
     }
-    strncpy(out_directory, entry.path, 0xff);
+    strncpy(out_directory, entry.path, k_path_maximum_length);
     out_directory[0xff] = '\0';
     needle = (entry.type == _saved_game_type_player_profile) ? "blam.sav" : "blam.lst";
     name_start = strstr(out_directory, needle);
@@ -853,12 +854,12 @@ uint16_t *get_display_name(int32_t handle)
     uint32_t slot_index;
     uint8_t found;
 
-    slot_index = ((uint32_t)handle >> 16) & 0xfff;
+    slot_index = saved_game_handle_slot(handle);
     saved_game_display_name_buffer[0] = 0;
-    if (slot_index < 999) {
+    if (slot_index < k_maximum_saved_games) {
         found = savegame_index_read_slot(slot_index, &entry);
         if (found != 0) {
-            wcsncpy((wchar_t *)saved_game_display_name_buffer, (const wchar_t *)entry.display_name, 0x7f);
+            wcsncpy((wchar_t *)saved_game_display_name_buffer, (const wchar_t *)entry.display_name, k_saved_game_display_name_length - 1);
             saved_game_display_name_buffer[0x7f] = 0;
         }
     }
@@ -895,7 +896,7 @@ uint8_t get_variant(int32_t handle, game_variant *out)
         do {
             do {
             } while (GetExitCodeThread(variant_write_thread->handle, (LPDWORD)&exit_code) == 0);
-        } while (exit_code == 0x103);
+        } while (exit_code == win32::k_still_active);
         CloseHandle(variant_write_thread->handle);
         variant_write_thread->handle = 0;
         variant_write_thread->in_use = 0;
@@ -907,7 +908,7 @@ uint8_t get_variant(int32_t handle, game_variant *out)
         memcpy(&defaults, defaults_ptr, sizeof(defaults));
         dead_word = 0;
         display_name = saved_game_get_display_name(handle);
-        wcsncpy((wchar_t *)defaults.name, (const wchar_t *)display_name, 0x17);
+        wcsncpy((wchar_t *)defaults.name, (const wchar_t *)display_name, k_game_variant_name_length - 1);
         defaults.name[0x17] = 0;
         memcpy(out, &defaults, sizeof(*out));
         return 1;
@@ -915,12 +916,12 @@ uint8_t get_variant(int32_t handle, game_variant *out)
 
     result = 0;
     wait_result = WaitForSingleObject(saved_game_files_mutex->handle, 5000);
-    if (wait_result == 0 || wait_result == 0x80) {
+    if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
         opened = saved_game_open_file_by_handle(handle, &ref);
         if (opened != 0) {
             read_ok = file_reference_read(&ref, &file, sizeof(file));
             if (read_ok != 0) {
-                checksum = 0xffffffff;
+                checksum = k_crc32_seed;
                 halo::memory::crc32_update(&checksum, &file.variant, sizeof(file.variant));
                 if (checksum == file.checksum) {
                     memcpy(out, &file.variant, sizeof(*out));
@@ -929,7 +930,7 @@ uint8_t get_variant(int32_t handle, game_variant *out)
                     memcpy(&defaults, defaults_ptr, sizeof(defaults));
                     dead_word = 0;
                     display_name = saved_game_get_display_name(handle);
-                    wcsncpy((wchar_t *)defaults.name, (const wchar_t *)display_name, 0x17);
+                    wcsncpy((wchar_t *)defaults.name, (const wchar_t *)display_name, k_game_variant_name_length - 1);
                     defaults.name[0x17] = 0;
                     memcpy(out, &defaults, sizeof(*out));
                 }
@@ -1011,11 +1012,11 @@ int16_t index_register_default_playlists(void)
     uint8_t written;
 
     count = default_game_variant_count;
-    tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\default_multiplayer_game_setting_names");
+    tag_id = halo::cache::tag_lookup(groups::unicode_string_list, (char *)"ui\\default_multiplayer_game_setting_names");
     i = 0;
     last = 0;
     if (tag_id != k_datum_index_none && 0 < count) {
-        name_list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+        name_list = (UnicodeStringList *)tag_instances[datum_slot(tag_id)].data;
         do {
             source_name = missing_string_text;
             if (0 <= i && i < (int32_t)name_list->strings.count) {
@@ -1051,7 +1052,7 @@ int16_t index_register_default_playlists(void)
             if (exists != 0) {
                 memset(&entry, 0, sizeof(entry));
                 strncpy(entry.path, path, 0xff);
-                wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)source_name, 0x7f);
+                wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)source_name, k_saved_game_display_name_length - 1);
                 entry.type = _saved_game_type_game_variant;
                 entry.builtin = 1;
 
@@ -1059,7 +1060,7 @@ int16_t index_register_default_playlists(void)
                 if (opened != 0) {
                     read_ok = file_reference_read(&ref, body, sizeof(body));
                     if (read_ok != 0) {
-                        checksum = 0xffffffff;
+                        checksum = k_crc32_seed;
                         halo::memory::crc32_update(&checksum, body, sizeof(game_variant));
                         if (checksum == *(uint32_t *)(body + sizeof(game_variant))) {
                             entry.checksum_valid = 1;
@@ -1067,7 +1068,7 @@ int16_t index_register_default_playlists(void)
                     }
                     file_reference_close(&ref);
                 }
-                if (0x3e6 < savegame_index_write_count) {
+                if (k_maximum_saved_game_entries < savegame_index_write_count) {
                     return i;
                 }
                 entry.index = savegame_index_write_count;
@@ -1116,11 +1117,11 @@ int16_t index_register_default_profiles(void)
     saved_player_profile_file file;
     uint8_t written;
 
-    tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\default_player_profile_names");
+    tag_id = halo::cache::tag_lookup(groups::unicode_string_list, (char *)"ui\\shell\\strings\\default_player_profile_names");
     i = 0;
     last = 0;
     if (tag_id != k_datum_index_none) {
-        name_list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+        name_list = (UnicodeStringList *)tag_instances[datum_slot(tag_id)].data;
         do {
             source_name = missing_string_text;
             if (0 <= i && i < (int32_t)name_list->strings.count) {
@@ -1156,7 +1157,7 @@ int16_t index_register_default_profiles(void)
             if (exists != 0) {
                 memset(&entry, 0, sizeof(entry));
                 strncpy(entry.path, path, 0xff);
-                wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)source_name, 0x7f);
+                wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)source_name, k_saved_game_display_name_length - 1);
                 entry.type = _saved_game_type_player_profile;
                 entry.builtin = 1;
 
@@ -1164,7 +1165,7 @@ int16_t index_register_default_profiles(void)
                 if (opened != 0) {
                     read_ok = file_reference_read(&ref, &file, sizeof(file));
                     if (read_ok != 0) {
-                        checksum = 0xffffffff;
+                        checksum = k_crc32_seed;
                         halo::memory::crc32_update(&checksum, &file.profile, sizeof(file.profile));
                         if (checksum == file.checksum) {
                             entry.checksum_valid = 1;
@@ -1172,7 +1173,7 @@ int16_t index_register_default_profiles(void)
                     }
                     file_reference_close(&ref);
                 }
-                if (0x3e6 < savegame_index_write_count) {
+                if (k_maximum_saved_game_entries < savegame_index_write_count) {
                     return i;
                 }
                 entry.index = savegame_index_write_count;
@@ -1369,18 +1370,18 @@ void list_rebuild_index(void)
 
     written_count = 0;
     wait_result = WaitForSingleObject(saved_game_files_mutex->handle, 5000);
-    if (wait_result == 0 || wait_result == 0x80) {
+    if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
         index_opened = saved_game_index_open_for_write();
         if (index_opened != 0) {
             find_handle = savegame_find_first(savegames_directory, &find_data);
             if (find_handle != -1) {
                 do {
-                    if (0x3e6 < written_count) {
+                    if (k_maximum_saved_game_entries < written_count) {
                         break;
                     }
                     memset(&entry, 0, sizeof(entry));
 
-                    path_len = _snprintf(entry.path, 0xff, "%s%s", find_data.save_game_directory, "blam.sav");
+                    path_len = _snprintf(entry.path, k_path_maximum_length, "%s%s", find_data.save_game_directory, k_player_profile_file_name);
                     entry_type = -1;
                     if (path_len < 1) {
                         goto try_variant;
@@ -1403,7 +1404,7 @@ void list_rebuild_index(void)
                     goto have_candidate;
 
                 try_variant:
-                    path_len = _snprintf(entry.path, 0xff, "%s%s", find_data.save_game_directory, "blam.lst");
+                    path_len = _snprintf(entry.path, k_path_maximum_length, "%s%s", find_data.save_game_directory, k_game_variant_file_name);
                     if (0 < path_len) {
                         memset(&ref, 0, sizeof(ref));
                         ref.signature = k_file_reference_signature;
@@ -1427,14 +1428,14 @@ void list_rebuild_index(void)
                     goto next_entry;
 
                 have_candidate:
-                    wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)find_data.save_game_name, 0x7f);
+                    wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)find_data.save_game_name, k_saved_game_display_name_length - 1);
                     entry.type = entry_type;
 
                     opened = file_reference_open(&ref, 1);
                     if (opened != 0) {
                         read_ok = file_reference_read(&ref, body, sizeof(body));
                         if (read_ok != 0) {
-                            checksum = 0xffffffff;
+                            checksum = k_crc32_seed;
                             halo::memory::crc32_update(&checksum, body, body_size);
                             if (checksum == *(uint32_t *)(body + body_size)) {
                                 entry.checksum_valid = 1;
@@ -1442,7 +1443,7 @@ void list_rebuild_index(void)
                         }
                         file_reference_close(&ref);
                     }
-                    if (0x3e6 < savegame_index_write_count) {
+                    if (k_maximum_saved_game_entries < savegame_index_write_count) {
                         break;
                     }
                     entry.index = savegame_index_write_count;
@@ -1492,7 +1493,7 @@ uint8_t name_is_available(const uint16_t *name)
     uint32_t result;
 
     if (name != 0 && *name != 0) {
-        result = XCreateSaveGame(name, savegames_directory, 3, scratch, 0x100);
+        result = XCreateSaveGame(name, savegames_directory, 3, scratch, k_saved_game_path_length);
         if (result != 0) {
             return 1;
         }
@@ -1513,7 +1514,7 @@ uint8_t open_file_by_handle(int32_t handle, file_reference_record *out_ref)
     uint8_t found;
     uint8_t opened;
 
-    found = savegame_index_read_slot(((uint32_t)handle >> 16) & 0xfff, &entry);
+    found = savegame_index_read_slot(saved_game_handle_slot(handle), &entry);
     if (found != 0) {
         memset(out_ref, 0, sizeof(*out_ref));
         out_ref->signature = k_file_reference_signature;
@@ -1555,11 +1556,11 @@ uint8_t validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_bu
     if (corrupt_flag != 0) {
         *corrupt_flag = 0;
     }
-    if (file == (void *)0xffffffff) {
+    if (file == win32::invalid_handle()) {
         return 0;
     }
 
-    if (SetFilePointer(file, 0, 0, 0) == 0xffffffff ||
+    if (SetFilePointer(file, 0, 0, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
         ReadFile(file, header_buffer, header_size, (LPDWORD)&bytes_read, 0) == 0 ||
         bytes_read != (uint32_t)header_size) {
         if (saved_game_get_directory_by_handle(saved_player_profile_slots_handle, profile_directory) != 0) {
@@ -1567,7 +1568,7 @@ uint8_t validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_bu
         }
     } else {
         previous_crc = *expected_crc;
-        running_crc = 0xffffffff;
+        running_crc = k_crc32_seed;
         *expected_crc = 0;
         halo::memory::crc32_update(&running_crc, header_buffer, header_size);
 
@@ -1576,8 +1577,8 @@ uint8_t validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_bu
             uint8_t chunk_buffer[0x20000];
 
             chunk = remaining;
-            if (0x1ffff < remaining) {
-                chunk = 0x20000;
+            if (k_game_state_crc_chunk_size - 1 < remaining) {
+                chunk = k_game_state_crc_chunk_size;
             }
             if (ReadFile(file, chunk_buffer, chunk, (LPDWORD)&bytes_read, 0) != 0 && bytes_read == (uint32_t)chunk) {
                 halo::memory::crc32_update(&running_crc, chunk_buffer, chunk);
@@ -1634,7 +1635,7 @@ uint8_t verify_version_and_checksum(game_state_header *header, uint8_t report_er
             return 0;
         }
         rasterizer_shader_file_name = header->scenario_name;
-        shell_display_fatal_error_dialog(0x89, 0x7e, 1);
+        shell_display_fatal_error_dialog(k_error_game_state_mismatch_string, k_error_game_state_mismatch_title, 1);
         return 0;
     }
 
@@ -1648,7 +1649,7 @@ uint8_t verify_version_and_checksum(game_state_header *header, uint8_t report_er
 
     if (report_error != 0) {
         rasterizer_shader_file_name = header->scenario_name;
-        shell_display_fatal_error_dialog(0x89, 0x7e, 1);
+        shell_display_fatal_error_dialog(k_error_game_state_mismatch_string, k_error_game_state_mismatch_title, 1);
     }
     return 0;
 }

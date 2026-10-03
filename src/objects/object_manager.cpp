@@ -160,7 +160,7 @@ void halo::objects::ObjectManager::reset()
     datum_index *slot;
     int32_t i;
 
-    object_unknown_006b8c60 = 0xffffffff;
+    object_unknown_006b8c60 = k_datum_index_none;
     object_sound_event_last_tick = 0;
     widgets_dispose();
     object_visibility_computed_mask = 0;
@@ -346,7 +346,7 @@ void halo::objects::ObjectManager::update()
     object_header *headers;
     int16_t last_index;
 
-    restrict_to_units = (*(uint8_t *)((uint8_t *)game_time + 0xc) & 1) != 0 && main_game_globals[2] != 0;
+    restrict_to_units = ((uint8_t)game_time->game_time & 1) != 0 && main_game_globals[2] != 0;
 
     globals->active_garbage_object_count = 0;
 
@@ -453,7 +453,7 @@ void halo::objects::ObjectManager::sweep_refresh_cluster_membership()
     object_iterator iterator;
     object *obj;
 
-    iterator.type_mask = 0xffffffff;
+    iterator.type_mask = halo::to_bits(halo::objects::object_mask::all);
     iterator.flags_mask = 0;
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
@@ -482,7 +482,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
     object_iterator iterator;
     object *obj;
 
-    iterator.type_mask = 0xffffffff;
+    iterator.type_mask = halo::to_bits(halo::objects::object_mask::all);
     iterator.flags_mask = 0;
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
@@ -491,7 +491,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
     while (obj != (object *)0) {
         if (((obj->flags & _object_needs_cluster_update_bit) != 0) &&
             (obj->parent_object == k_datum_index_none)) {
-            object_header *header = (object_header *)object_data->data + (iterator.handle & 0xffff);
+            object_header *header = (object_header *)object_data->data + halo::datum_slot(iterator.handle);
             int32_t leaf;
             int16_t cluster;
             bsp_leaf_reference location;
@@ -503,7 +503,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
 
             leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &obj->bounding_center);
             cluster = (leaf == -1) ? -1 :
-                *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+                *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
             if (leaf == -1 || cluster == -1) {
                 halo::physics::collision_bsp_query_sphere_init((ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
                     &sphere, 0, &obj->bounding_center, obj->bounding_radius);
@@ -513,7 +513,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
                     leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &obj->position);
                 }
                 cluster = (leaf == -1) ? -1 :
-                    *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+                    *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
             }
 
             location.leaf_index = leaf;
@@ -578,7 +578,7 @@ void halo::objects::ObjectManager::set_ambient_cluster_override(int16_t local_pl
         if (leaf != -1) {
 
             int16_t cluster = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
-                                           (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+                                           (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
             if (cluster != -1) {
                 object_globals_pointer->ambient_cluster_mode = _object_ambient_cluster_override;
                 object_globals_pointer->ambient_cluster_index = cluster;
@@ -602,11 +602,11 @@ int16_t halo::objects::ObjectManager::get_ambient_cluster()
 {
     if (object_globals_pointer->ambient_cluster_mode == _object_ambient_cluster_from_tracked_object) {
         datum_index handle = (uint16_t)object_globals_pointer->ambient_cluster_index;
-        if (object_try_and_get(handle, 0xffffffff) == 0) {
+        if (object_try_and_get(handle, k_datum_index_none) == 0) {
             object_globals_pointer->ambient_cluster_mode = _object_ambient_cluster_none;
         } else {
             uint32_t root_index = object_get_root_object_index(handle);
-            object *root = ((object_header *)object_data->data)[root_index & 0xffff].data;
+            object *root = ((object_header *)object_data->data)[halo::datum_slot(root_index)].data;
             if ((root->flags & _object_needs_cluster_update_bit) != 0) {
                 if (root->location_cluster_index != -1) {
                     return root->location_cluster_index;
@@ -670,7 +670,7 @@ void halo::objects::ObjectManager::garbage_collection()
     }
 
     for (handle = object_globals_pointer->first_tracked_object; handle != k_datum_index_none;
-         handle = *(datum_index *)((uint8_t *)((object_header *)object_data->data)[handle & 0xffff].data + 0x110)) {
+         handle = *(datum_index *)((uint8_t *)((object_header *)object_data->data)[halo::datum_slot(handle)].data + 0x110)) {
         list[count++] = handle;
     }
 
@@ -699,7 +699,7 @@ void halo::objects::ObjectManager::garbage_collection()
         }
         count--;
         handle = list[count];
-        header = (object_header *)object_data->data + (handle & 0xffff);
+        header = (object_header *)object_data->data + halo::datum_slot(handle);
         eligible = (mode == 1) ? (uint8_t)(header->flags & _object_header_active_bit) : 1;
         if (object_test_in_atmosphere_zone(handle) != 0 || eligible == 0) {
             continue;
@@ -726,7 +726,7 @@ void halo::objects::ObjectManager::garbage_collection()
         uint8_t stale;
         uint32_t last = object_globals_pointer->last_garbage_collection_time;
 
-        stale = (uint8_t)(last == 0xffffffff || !((int32_t)last + 0x96 >= game_time->game_time));
+        stale = (uint8_t)(last == k_datum_index_none || !((int32_t)last + 0x96 >= game_time->game_time));
 
         for (;;) {
             uint8_t significant = 0;
@@ -840,7 +840,7 @@ int halo::objects::ObjectMemoryDumpRecordView::compare_by_total_size(const objec
 void halo::objects::ObjectMemoryDumpRecordView::accumulate_stats(uint32_t object_index)
 {
     object_memory_dump_record *record = self;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     object *obj = header->data;
 
     if (record->maximum_size < header->block_size) {
@@ -866,10 +866,10 @@ void halo::objects::ObjectMemoryDumpRecordView::accumulate_stats(uint32_t object
         uint32_t current = object_index;
         while (current != k_datum_index_none) {
             root = current;
-            current = ((object_header *)object_data->data)[root & 0xffff].data->parent_object;
+            current = ((object_header *)object_data->data)[halo::datum_slot(root)].data->parent_object;
         }
         {
-            object *root_obj = ((object_header *)object_data->data)[root & 0xffff].data;
+            object *root_obj = ((object_header *)object_data->data)[halo::datum_slot(root)].data;
             if (((root_obj->flags & _object_outside_map_bit) != 0) || (root_obj->location_cluster_index == -1)) {
                 record->outside_map_count = record->outside_map_count + 1;
             }
@@ -935,7 +935,7 @@ void halo::objects::ObjectManager::dump_memory()
         by_type[i].at_rest_count = 0;
     }
 
-    iterator.type_mask = 0xffffffff;
+    iterator.type_mask = halo::to_bits(halo::objects::object_mask::all);
     iterator.flags_mask = 0;
     iterator.index = 0;
     iterator.handle = k_datum_index_none;

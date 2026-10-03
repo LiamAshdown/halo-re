@@ -17,7 +17,7 @@ datum_index halo::objects::ObjectBlockStorage::create(int32_t specific_index, da
     datum_index handle = (specific_index == -1) ? halo::memory::datum_new(array) : halo::memory::datum_new_at_index_with_salt(specific_index, array);
 
     if (handle != k_datum_index_none) {
-        object_header *header = (object_header *)array->data + (handle & 0xffff);
+        object_header *header = (object_header *)array->data + halo::datum_slot(handle);
 
         if (halo::memory::block_list_allocate(object_memory_pool, size, (void **)&header->data) != 0) {
             uint8_t *data = (uint8_t *)header->data;
@@ -43,7 +43,7 @@ datum_index halo::objects::ObjectBlockStorage::create(int32_t specific_index, da
  */
 void halo::objects::ObjectBlockStorage::release(data_array *array, datum_index handle)
 {
-    object_header *header = (object_header *)array->data + (handle & 0xffff);
+    object_header *header = (object_header *)array->data + halo::datum_slot(handle);
     uint8_t *payload = (uint8_t *)header->data;
 
     if (payload != 0) {
@@ -76,7 +76,7 @@ void halo::objects::ObjectBlockStorage::release(data_array *array, datum_index h
  */
 uint8_t halo::objects::ObjectBlockStorage::grow(uint32_t object_index, int16_t field_offset, int16_t extra_size)
 {
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     int32_t extra = (int32_t)extra_size;
     uint16_t old_size;
     uint8_t *data;
@@ -88,7 +88,7 @@ uint8_t halo::objects::ObjectBlockStorage::grow(uint32_t object_index, int16_t f
     }
     old_size = (uint16_t)header->block_size;
     header->block_size = (int16_t)(old_size + extra_size);
-    header = (object_header *)object_data->data + (object_index & 0xffff);
+    header = (object_header *)object_data->data + halo::datum_slot(object_index);
     data = (uint8_t *)header->data;
     field = (object_block_reference *)(data + field_offset);
     field->offset = (int16_t)old_size;

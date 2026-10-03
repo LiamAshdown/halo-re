@@ -1,5 +1,7 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "win32.h"
 #include "halo/math/api.hpp"
 #include "halo/cseries/api.hpp"
@@ -95,11 +97,11 @@ void unit_network_create_update_apply(void *incoming_record)
     memcpy(placement + 0x40, &message.up, 12);
     memcpy(placement + 0x58, message.block_44, 0x30);
     biped_index = object_new_with_datum_role_control((object_placement_data *)placement, 1);
-    if (biped_index == (datum_index)0xffffffff) {
+    if (biped_index == k_datum_index_none) {
         return;
     }
     network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)biped_index);
-    biped = (uint8_t *)((object_header *)object_data->data)[biped_index & 0xffff].data;
+    biped = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(biped_index)].data;
     *(uint32_t *)&((biped_object *)biped)->biped.network_body_vitality = message.body_vitality;
     ((biped_object *)biped)->biped.network_shield_vitality = message.shield_vitality;
     biped[0x538] = message.shield_stunned;
@@ -110,14 +112,14 @@ void unit_network_create_update_apply(void *incoming_record)
     ((unit_object *)biped)->unit.saved_control.zoom_level = (int16_t)((unit_object *)biped)->unit.desired_zoom_level;
     biped[0x526] = 1;
     biped[0x528] = 0;
-    biped[0x475] = 1;
+    ((struct unit_object *)biped)->unit.unknown_475 = 1;
     ((unit_object *)biped)->base.shield_stun_ticks = biped[0x538] == 1;
     memcpy(biped + 0x4ac, biped + 0x494, 12);
     *(int16_t *)(biped + 0x31e) = ((biped_object *)biped)->biped.network_grenade_counts;
     if (message.flag_80000 != 0) {
-        ((unit_object *)biped)->unit.flags |= 0x80000;
+        set_flag(((unit_object *)biped)->unit.flags, units::unit_flag::unknown_80000);
     } else {
-        ((unit_object *)biped)->unit.flags &= ~0x80000u;
+        clear_flag(((unit_object *)biped)->unit.flags, units::unit_flag::unknown_80000);
     }
     *(uint32_t *)(biped + 0x344) = message.scalar_344;
 }
@@ -169,7 +171,7 @@ int32_t UnitView::submit_periodic_network_update(void *buffer, int32_t bit_budge
     unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    if (object_index != (datum_index)0xffffffff) {
+    if (object_index != k_datum_index_none) {
         key = hash_table_get(&object_network_id_table->id_to_index, (int32_t)object_index);
         if (key == -1) {
             key = 0;

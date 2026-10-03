@@ -24,6 +24,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/render/layout.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -63,7 +64,7 @@ extern uint8_t rasterizer_caps_flag_689;
 extern uint8_t rasterizer_object_shadow_window_restored;
 extern void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_color, uint8_t clear);
 extern int16_t rendered_object_count;
-extern datum_index rendered_objects[0x100];
+extern datum_index rendered_objects[halo::render::k_maximum_rendered_objects];
 extern uint8_t rasterizer_render_states_dirty;
 extern uint8_t console_debug_toggle_6893ee;
 extern void first_person_weapon_update_lighting(void);
@@ -225,13 +226,12 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
             real lod = object_compute_level_of_detail_pixels(object_index);
 
             if (data->shadow_pass == 0) {
-                if (*(uint32_t *)&tag_data->modifier_shader.tag_id != 0xffffffffu) {
+                if (*(uint32_t *)&tag_data->modifier_shader.tag_id != k_dword_none) {
                     Shader *shader_data =
                         (Shader *)halo::cache::globals().tag_instances[tag_data->modifier_shader.tag_id.index].data;
 
                     effect.modifier_shader = (uint32_t)(uintptr_t)shader_data;
-                    if (shader_data->shader_type == 1 ||
-                        (shader_data->shader_type > 4 && shader_data->shader_type <= 0xb)) {
+                    if (shader_type_is_transparent(shader_data->shader_type)) {
                         effect.change_colors = (uint32_t)(uintptr_t)obj->change_colors;
                         effect.function_values = (uint32_t)(uintptr_t)obj->function_out_values;
                     } else {
@@ -239,7 +239,7 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
                     }
                 }
 
-                if (((1 << (obj->type & 0x1f)) & 3) != 0) {
+                if (objects::object_mask_has_type(objects::object_mask::unit, obj->type)) {
                     object *unit_object =
                         ((object_header *)object_data->data)[(uint16_t)object_index].data;
                     unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
@@ -252,7 +252,7 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
                         effect.unit_380 = unit->super_active_camouflage_power;
                     }
                 }
-                if ((tag_data->flags & 0x02) != 0) {
+                if (test_flag(tag_data->flags, tags::object_tag_flag::transparent_self_occlusion)) {
                     effect.centroid = obj->bounding_center;
                     effect.type = _render_model_effect_self_occlusion;
                     effect.object_index = object_index;
@@ -455,8 +455,8 @@ real compute_level_of_detail_pixels(datum_index object_index)
 
     obj = ((object_header *)object_data->data)[(uint16_t)object_index].data;
 
-    if (halo::cutscene::globals().cinematic_globals->in_progress != 0 && (obj->flags & 0x400000) != 0) {
-        return 3.4028235e+38f;
+    if (cinematic_globals_ptr->in_progress != 0 && test_flag(obj->flags, objects::object_flag::unknown_400000)) {
+        return k_maximum_level_of_detail_pixels;
     }
 
     radius = obj->bounding_radius;
@@ -582,7 +582,7 @@ void render_state_refresh(datum_index cache_index, datum_index object_index, rea
         windows_elapsed = 1;
     }
 
-    if ((obj->flags & 0x4000) != 0) {
+    if (test_flag(obj->flags, objects::object_flag::unknown_4000)) {
         int32_t staleness_threshold;
 
         if (level_of_detail_pixels > 400.0f) {
@@ -638,7 +638,7 @@ void render_state_refresh(datum_index cache_index, datum_index object_index, rea
 
         object_get_root_object_velocities(object_index, &root_velocity, 0);
         if (root_velocity.i != 0.0f || root_velocity.j != 0.0f || root_velocity.k != 0.0f ||
-            object_try_and_get(object_index, 0x80) != 0) {
+            object_try_and_get(object_index, to_bits(objects::object_mask::device_machine)) != 0) {
             render_lighting_step_vector3_toward(&entry->lighting.ambient_color.red,
                                                 &entry->desired_lighting.ambient_color.red, 0.03f);
             render_lighting_step_vector4_toward(&entry->lighting.reflection_tint.alpha,
@@ -676,10 +676,9 @@ namespace halo::render::lighting {
  */
 void disable_workaround(void)
 {
-    if (halo::rasterizer::globals::models_enabled != 0 && rasterizer_device_version < 0xffff0101) {
-        void **vtable = *(void ***)rasterizer_device;
-        d3d_set_render_state_fn set_render_state = (d3d_set_render_state_fn)vtable[0xe4 / 4];
-        set_render_state(rasterizer_device, 0x89, 0);
+    if (console_debug_toggle_6893ec != 0 && rasterizer_device_version < d3d9::k_pixel_shader_version_1_1) {
+        d3d_set_render_state_fn set_render_state = d3d9::device_function<d3d_set_render_state_fn>(rasterizer_device, d3d9::device_method::set_render_state);
+        set_render_state(rasterizer_device, (uint32_t)d3d9::render_state::lighting, 0);
     }
 }
 
@@ -899,10 +898,9 @@ void s(void)
     if (halo::rasterizer::globals::models_enabled != 0) {
         rasterizer_render_states_dirty = 1;
         halo::rasterizer::globals::sky_pass_active = 0;
-        if (rasterizer_device_version < 0xffff0101) {
-            void **vtable = *(void ***)rasterizer_device;
-            d3d_set_render_state_fn set_render_state = (d3d_set_render_state_fn)vtable[0xe4 / 4];
-            set_render_state(rasterizer_device, 0x89, 1);
+        if (rasterizer_device_version < d3d9::k_pixel_shader_version_1_1) {
+            d3d_set_render_state_fn set_render_state = d3d9::device_function<d3d_set_render_state_fn>(rasterizer_device, d3d9::device_method::set_render_state);
+            set_render_state(rasterizer_device, (uint32_t)d3d9::render_state::lighting, 1);
         }
     }
 
@@ -924,10 +922,9 @@ void s(void)
         pass = 1;
     } while (first_iteration);
 
-    if (halo::rasterizer::globals::models_enabled != 0 && rasterizer_device_version < 0xffff0101) {
-        void **vtable = *(void ***)rasterizer_device;
-        d3d_set_render_state_fn set_render_state = (d3d_set_render_state_fn)vtable[0xe4 / 4];
-        set_render_state(rasterizer_device, 0x89, 0);
+    if (console_debug_toggle_6893ec != 0 && rasterizer_device_version < d3d9::k_pixel_shader_version_1_1) {
+        d3d_set_render_state_fn set_render_state = d3d9::device_function<d3d_set_render_state_fn>(rasterizer_device, d3d9::device_method::set_render_state);
+        set_render_state(rasterizer_device, (uint32_t)d3d9::render_state::lighting, 0);
     }
 }
 
@@ -945,25 +942,25 @@ void s_collect(void)
     halo::physics::globals().object_cluster_stamp++;
     object_globals_pointer->collecting_in_clusters = 1;
 
-    count = halo::structures::structure_bsp_collect_visible_objects((int32_t *)rendered_objects, 0x100,
-        (structure_bsp_object_iterate_begin_fn)object_resolve_collideable_reference,
-        (structure_bsp_object_iterate_next_fn)object_cluster_collideable_iterate_next,
-        (structure_bsp_object_get_bounds_fn)render_object_get_cull_sphere,
-        (structure_bsp_object_predicate_fn)object_disconnect_from_map,
-        (structure_bsp_object_accept_fn)object_cluster_stamp_mark_visited);
+    count = halo::structures::structure_bsp_collect_visible_objects(rendered_objects, k_maximum_rendered_objects,
+        (void *)object_resolve_collideable_reference,
+        (void *)object_cluster_collideable_iterate_next,
+        (void *)render_object_get_cull_sphere,
+        (void *)object_disconnect_from_map,
+        (void *)object_cluster_stamp_mark_visited);
     rendered_object_count = count;
 
-    rendered_object_count += halo::structures::structure_bsp_collect_visible_objects((int32_t *)&rendered_objects[count],
-        (int16_t)(0x100 - rendered_object_count),
-        (structure_bsp_object_iterate_begin_fn)object_cluster_noncollideable_iterate_begin,
-        (structure_bsp_object_iterate_next_fn)object_cluster_noncollideable_iterate_next,
-        (structure_bsp_object_get_bounds_fn)render_object_get_cull_sphere,
-        (structure_bsp_object_predicate_fn)object_disconnect_from_map,
-        (structure_bsp_object_accept_fn)object_cluster_stamp_mark_visited);
+    rendered_object_count += halo::structures::structure_bsp_collect_visible_objects(&rendered_objects[count],
+        (int16_t)(k_maximum_rendered_objects - rendered_object_count),
+        (void *)object_cluster_noncollideable_iterate_begin,
+        (void *)object_cluster_noncollideable_iterate_next,
+        (void *)render_object_get_cull_sphere,
+        (void *)object_disconnect_from_map,
+        (void *)object_cluster_stamp_mark_visited);
 
     object_globals_pointer->collecting_in_clusters = 0;
 
-    if (rendered_object_count == 0x100 && !rendered_objects_full_warning) {
+    if (rendered_object_count == k_maximum_rendered_objects && !rendered_objects_full_warning) {
         rendered_objects_full_warning = 1;
     }
 }

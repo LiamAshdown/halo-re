@@ -17,11 +17,9 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
-#include "halo/math/api.hpp"
-#include "halo/cache/api.hpp"
-#include "halo/input/api.hpp"
-#include "halo/cutscene/api.hpp"
-#include "halo/cseries/api.hpp"
+#include "halo/render/layout.hpp"
+
+static_assert(offsetof(Bitmap, bitmap_data) + offsetof(TagReflexive, pointer) == halo::render::k_bitmap_data_pointer_offset);
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -113,19 +111,11 @@ typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t primi
                                             uint32_t stride);
 
 /**
- * Returns the method table of the rasterizer's Direct3D device.
- */
-static void **device_vtable(void)
-{
-    return *(void ***)rasterizer_device;
-}
-
-/**
  * Calls IDirect3DDevice::SetRenderState through the device method table.
  */
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    halo::d3d9::device_function<d3d_call2_fn>(rasterizer_device, halo::d3d9::device_method::set_render_state)(rasterizer_device, state, value);
 }
 
 /**
@@ -133,7 +123,7 @@ static void set_render_state(uint32_t state, uint32_t value)
  */
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x10c / 4])(rasterizer_device, stage, type, value);
+    halo::d3d9::device_function<d3d_call3_fn>(rasterizer_device, halo::d3d9::device_method::set_texture_stage_state)(rasterizer_device, stage, type, value);
 }
 
 typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
@@ -295,14 +285,14 @@ void set_video(int16_t overbright_mode, float noise_intensity)
 
     g->video_enabled = 1;
 
-    scanline_tag = &halo::cache::globals().tag_instances[(uint16_t)*(int32_t *)&rasterizer_globals_data->video_scanline_map.tag_id];
-    g->video_scanline_map = *(uint32_t *)((uint8_t *)scanline_tag->data + 0x64);
+    scanline_tag = &tag_instances[datum_slot(*(int32_t *)&rasterizer_globals_data->video_scanline_map.tag_id)];
+    g->video_scanline_map = *(uint32_t *)((uint8_t *)scanline_tag->data + k_bitmap_data_pointer_offset);
 
     g->video_noise_intensity = noise_intensity;
     g->unknown_30 = 1.0f;
 
-    noise_tag = &halo::cache::globals().tag_instances[(uint16_t)*(int32_t *)&rasterizer_globals_data->video_noise_map.tag_id];
-    g->video_noise_map = *(uint32_t *)((uint8_t *)noise_tag->data + 0x64);
+    noise_tag = &tag_instances[datum_slot(*(int32_t *)&rasterizer_globals_data->video_noise_map.tag_id)];
+    g->video_noise_map = *(uint32_t *)((uint8_t *)noise_tag->data + k_bitmap_data_pointer_offset);
 }
 
 /**
@@ -385,11 +375,11 @@ void add_sample(int32_t index, float sample)
         clamped = g->maximum;
     }
 
-    for (i = 0; i < 0x200 - 1; i++) {
+    for (i = 0; i < k_frame_graph_vertex_count - 1; i++) {
         g->vertices[i].y = g->vertices[i + 1].y;
     }
 
-    g->vertices[0x200 - 1].y = (float)g->bounds.bottom - (clamped / g->maximum) * 120.0f;
+    g->vertices[k_frame_graph_vertex_count - 1].y = (float)g->bounds.bottom - (clamped / g->maximum) * 120.0f;
 }
 
 /**
@@ -403,7 +393,7 @@ void draw(uint8_t render_graph, uint8_t render_infos)
 {
     float white[4];
     float constants[20];
-    char text[0x200];
+    char text[k_frame_graph_vertex_count];
     float inverse;
     int16_t width;
     int16_t height;
@@ -416,12 +406,12 @@ void draw(uint8_t render_graph, uint8_t render_infos)
         return;
     }
 
-    ((d3d_call1_fn)device_vtable()[0x15c / 4])(rasterizer_device,
+    d3d9::device_function<d3d_call1_fn>(rasterizer_device, d3d9::device_method::set_vertex_declaration)(rasterizer_device,
         rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device,
-        ((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
-         rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage) & 0x10);
-    ((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, rasterizer_vertex_shaders[35].shader);
+    d3d9::device_function<d3d_call1_fn>(rasterizer_device, d3d9::device_method::set_software_vertex_processing)(rasterizer_device,
+        ((rasterizer_software_vertex_processing != 0 ? d3d9::k_usage_software_processing : 0) |
+         rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage) & d3d9::k_usage_software_processing);
+    d3d9::device_function<d3d_call1_fn>(rasterizer_device, d3d9::device_method::set_vertex_shader)(rasterizer_device, rasterizer_vertex_shaders[35].shader);
 
     width = (int16_t)(rasterizer_window.camera.viewport_bounds.right -
                       rasterizer_window.camera.viewport_bounds.left);
@@ -449,31 +439,31 @@ void draw(uint8_t render_graph, uint8_t render_infos)
     constants[17] = 1.0f;
     constants[18] = 0.0f;
     constants[19] = 1.0f;
-    ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 13, constants, 5);
+    d3d9::device_function<d3d_set_constant_f_fn>(rasterizer_device, d3d9::device_method::set_vertex_shader_constant_f)(rasterizer_device, 13, constants, 5);
 
-    ((d3d_call1_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0);
+    d3d9::device_function<d3d_call1_fn>(rasterizer_device, d3d9::device_method::set_pixel_shader)(rasterizer_device, 0);
     rasterizer_set_shader_stage_config(0);
-    set_render_state(0x16, 1);
-    set_render_state(0xa8, 0xf);
-    set_render_state(0x1b, 0);
-    set_render_state(0x0f, 0);
-    set_render_state(0x07, 0);
-    set_render_state(0x0e, 0);
-    set_render_state(0x1c, 0);
-    set_texture_stage_state(0, 1, 3);
-    set_texture_stage_state(0, 3, 0);
-    set_texture_stage_state(0, 4, 3);
-    set_texture_stage_state(0, 6, 0);
-    set_texture_stage_state(1, 1, 1);
-    set_texture_stage_state(1, 4, 1);
-    ((d3d_call2_fn)device_vtable()[0x104 / 4])(rasterizer_device, 0, 0);
-    set_render_state(0x9c, 1);
-    set_render_state(0x9d, 0);
+    set_render_state((uint32_t)d3d9::render_state::cull_mode, d3d9::k_cull_none);
+    set_render_state((uint32_t)d3d9::render_state::color_write_enable, d3d9::k_color_write_all);
+    set_render_state((uint32_t)d3d9::render_state::alpha_blend_enable, 0);
+    set_render_state((uint32_t)d3d9::render_state::alpha_test_enable, 0);
+    set_render_state((uint32_t)d3d9::render_state::z_enable, 0);
+    set_render_state((uint32_t)d3d9::render_state::z_write_enable, 0);
+    set_render_state((uint32_t)d3d9::render_state::fog_enable, 0);
+    set_texture_stage_state(0, (uint32_t)d3d9::texture_stage_state::color_op, (uint32_t)d3d9::texture_op::select_arg2);
+    set_texture_stage_state(0, (uint32_t)d3d9::texture_stage_state::color_arg2, d3d9::k_texture_argument_diffuse);
+    set_texture_stage_state(0, (uint32_t)d3d9::texture_stage_state::alpha_op, (uint32_t)d3d9::texture_op::select_arg2);
+    set_texture_stage_state(0, (uint32_t)d3d9::texture_stage_state::alpha_arg2, d3d9::k_texture_argument_diffuse);
+    set_texture_stage_state(1, (uint32_t)d3d9::texture_stage_state::color_op, (uint32_t)d3d9::texture_op::disable);
+    set_texture_stage_state(1, (uint32_t)d3d9::texture_stage_state::alpha_op, (uint32_t)d3d9::texture_op::disable);
+    d3d9::device_function<d3d_call2_fn>(rasterizer_device, d3d9::device_method::set_texture)(rasterizer_device, 0, 0);
+    set_render_state((uint32_t)d3d9::render_state::point_sprite_enable, 1);
+    set_render_state((uint32_t)d3d9::render_state::point_scale_enable, 0);
 
     if (render_graph) {
-        ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(rasterizer_device, 3, 0x1ff,
+        d3d9::device_function<d3d_draw_primitive_up_fn>(rasterizer_device, d3d9::device_method::draw_primitive_up)(rasterizer_device, d3d9::k_primitive_line_strip, k_frame_graph_vertex_count - 1,
             frame_graphs[0].vertices, sizeof(rasterizer_dynamic_screen_vertex));
-        ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(rasterizer_device, 3, 4,
+        d3d9::device_function<d3d_draw_primitive_up_fn>(rasterizer_device, d3d9::device_method::draw_primitive_up)(rasterizer_device, d3d9::k_primitive_line_strip, 4,
             frame_graphs[0].frame_vertices, sizeof(rasterizer_dynamic_screen_vertex));
     }
 
@@ -493,7 +483,7 @@ void draw(uint8_t render_graph, uint8_t render_infos)
         chimera__draw_8_bit_text(0, (int32_t *)&frame_graphs[0].average_bounds, 0, 0, text);
     }
 
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    d3d9::device_function<d3d_call1_fn>(rasterizer_device, d3d9::device_method::set_software_vertex_processing)(rasterizer_device, rasterizer_software_vertex_processing);
 }
 
 }  // namespace halo::render::fg
@@ -517,9 +507,9 @@ void *dynamic_index_slot_lock(int32_t slot_index)
     }
 
     slot = &rasterizer_dynamic_index_slots[slot_index];
-    lock = *(d3d_lock_fn *)((uint8_t *)*(void **)rasterizer_dynamic_index_buffer + 0x2c);
+    lock = d3d9::buffer_function<d3d_lock_fn>(rasterizer_dynamic_index_buffer, d3d9::buffer_method::lock);
     lock(rasterizer_dynamic_index_buffer, slot->first_index * 6, slot->index_count * 6,
-         (void **)&slot->locked_indices, 0x1000);
+         (void **)&slot->locked_indices, d3d9::k_lock_no_overwrite);
     return (void *)slot->locked_indices;
 }
 
@@ -538,12 +528,12 @@ void effect_slot_release_active(void)
     if (rasterizer_effect_pool_scratch != 0 && *rasterizer_effect_pool_scratch != 0) {
         void *effect = *rasterizer_effect_pool_scratch;
         vtable = *(void ***)effect;
-        ((d3d_release_fn)vtable[0x108 / 4])(effect);
+        ((d3d_release_fn)vtable[k_effect_release_slot])(effect);
     }
     rasterizer_effect_pool_scratch = 0;
 
     vtable = *(void ***)rasterizer_device;
-    ((d3d_clear_state_slot_fn)vtable[0x164 / 4])(rasterizer_device, 0);
+    ((d3d_clear_state_slot_fn)vtable[(uint32_t)d3d9::device_method::set_fvf])(rasterizer_device, 0);
 }
 
 /**
@@ -730,10 +720,10 @@ void graph_init(void)
         return;
     }
 
-    right = (float)((int32_t)game_window_top_left.right - 0x40);
+    right = (float)((int32_t)game_window_top_left.right - k_frame_graph_margin);
     frame_graph_window_width = height;
     frame_graph_window_height = width;
-    g->bounds.left = 0x40;
+    g->bounds.left = k_frame_graph_margin;
     g->bounds.top = 0x1e;
     x_scale = 640.0f / (float)width;
     y_scale = 480.0f / (float)height;
@@ -754,9 +744,9 @@ void graph_init(void)
     g->recent_samples[2] = 0.0f;
     g->recent_samples[3] = 0.0f;
 
-    for (i = 0; i < 0x200; i++) {
+    for (i = 0; i < k_frame_graph_vertex_count; i++) {
         g->vertices[i].y = 150.0f;
-        g->vertices[i].color = 0xffffffff;
+        g->vertices[i].color = k_argb_white;
         g->vertices[i].x = (float)(int32_t)((float)i * span * 0.001953125f + 64.0f);
     }
 
@@ -765,30 +755,30 @@ void graph_init(void)
     g->frame_vertices[1].x = border_right;
     g->frame_vertices[0].y = 29.0f;
     g->frame_vertices[2].x = border_right;
-    g->frame_vertices[0].color = 0xffffff00;
+    g->frame_vertices[0].color = k_argb_yellow;
     g->frame_vertices[1].y = 29.0f;
-    g->frame_vertices[1].color = 0xffffff00;
+    g->frame_vertices[1].color = k_argb_yellow;
     g->frame_vertices[2].y = 151.0f;
-    g->frame_vertices[2].color = 0xffffff00;
+    g->frame_vertices[2].color = k_argb_yellow;
     g->frame_vertices[3].x = 63.0f;
     g->frame_vertices[3].y = 151.0f;
-    g->frame_vertices[3].color = 0xffffff00;
+    g->frame_vertices[3].color = k_argb_yellow;
     g->frame_vertices[4].x = 63.0f;
     g->frame_vertices[4].y = 29.0f;
-    g->frame_vertices[4].color = 0xffffff00;
+    g->frame_vertices[4].color = k_argb_yellow;
 
     g->name_bounds.left = (int16_t)(int32_t)((float)g->bounds.left * x_scale);
     g->name_bounds.top = (int16_t)(int32_t)((float)g->bounds.top * y_scale);
-    g->name_bounds.right = 0x280;
-    g->name_bounds.bottom = 0x1e0;
+    g->name_bounds.right = k_debug_screen_width;
+    g->name_bounds.bottom = k_debug_screen_height;
     g->maximum_bounds.left = (int16_t)(int32_t)((float)g->bounds.right * x_scale);
     g->maximum_bounds.top = (int16_t)(int32_t)((float)g->bounds.top * y_scale);
-    g->maximum_bounds.right = 0x280;
-    g->maximum_bounds.bottom = 0x1e0;
+    g->maximum_bounds.right = k_debug_screen_width;
+    g->maximum_bounds.bottom = k_debug_screen_height;
     g->average_bounds.left = (int16_t)(int32_t)((float)g->bounds.right * x_scale);
     g->average_bounds.top = (int16_t)(int32_t)(((float)g->bounds.top + 60.0f) * y_scale);
-    g->average_bounds.right = 0x280;
-    g->average_bounds.bottom = 0x1e0;
+    g->average_bounds.right = k_debug_screen_width;
+    g->average_bounds.bottom = k_debug_screen_height;
 
     *(uint32_t *)g->name = 0x00535046;
     g->maximum = 60.0f;
@@ -876,8 +866,8 @@ void sample(rasterizer_frame_statistics *statistics, uint8_t dropped)
     frame_statistics_times[0] = now;
     frame_statistics_dropped[0] = dropped;
 
-    if (count + 1 > 0x3c) {
-        frame_statistics_count = 0x3c;
+    if (count + 1 > k_frame_graph_history_length) {
+        frame_statistics_count = k_frame_graph_history_length;
     } else {
         frame_statistics_count = count + 1;
     }

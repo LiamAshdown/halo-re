@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/core/collision_flags.hpp"
 #include "projectiles.h"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -47,7 +48,7 @@ void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_t
     }
 
     if (unit_tag_id != k_datum_index_none) {
-        uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[unit_tag_id & 0xffff].data;
+        uint8_t *tag_data = (uint8_t *)tag_instances[halo::datum_slot(unit_tag_id)].data;
         datum_index effect = *(datum_index *)(tag_data + 0x120);
         if (effect != k_datum_index_none) {
             halo::sound::sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,
@@ -67,8 +68,8 @@ void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_t
 uint32_t UnitView::update_marker_traction_effects()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     uint8_t *graph;
     uint8_t *node_array;
     uint8_t *physics;
@@ -87,12 +88,12 @@ uint32_t UnitView::update_marker_traction_effects()
     if (node_array == 0) {
         return 0;
     }
-    physics = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
-    halo::math::matrix4x3_from_forward_up(*(real_vector3d *)(obj + 0x80), *(real_vector3d *)(obj + 0x74), basis);
+    physics = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    halo::math::matrix4x3_from_forward_up((real_vector3d *)&((struct object *)obj)->up, (real_vector3d *)&((struct object *)obj)->forward, &basis);
     basis.position = *(real_point3d *)&((unit_object *)obj)->base.position.x;
 
-    for (i = 0; (int32_t)i < *(int32_t *)(node_array + 0x68); i++) {
-        uint8_t *entry = *(uint8_t **)(node_array + 0x6c) + (int32_t)i * 0x14;
+    for (i = 0; (int32_t)i < (int32_t)((struct ModelAnimationsAnimationGraphVehicleAnimations *)node_array)->suspension_animations.count; i++) {
+        uint8_t *entry = (uint8_t *)((struct ModelAnimationsAnimationGraphVehicleAnimations *)node_array)->suspension_animations.pointer + (int32_t)i * 0x14;
         int16_t contact_index = *(int16_t *)entry;
         uint8_t *mass_point;
         uint8_t old_byte;
@@ -121,7 +122,7 @@ uint32_t UnitView::update_marker_traction_effects()
         delta.i = normal.i * range;
         delta.j = normal.j * range;
         delta.k = normal.k * range;
-        halo::physics::collision_test_movement_segment(0xc0a0, &origin, &delta, object_index, &result);
+        halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::structure_bsp | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), &origin, &delta, object_index, &result);
         v = (1.0f - result.t) + (1.0f - result.t);
         if (!(v >= 0.0f)) {
             v = 0.0f;

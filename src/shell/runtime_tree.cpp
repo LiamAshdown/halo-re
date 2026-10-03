@@ -174,7 +174,7 @@ hwreq_map_node *TreeNode::allocate(uint32_t left, uint32_t parent, uint32_t righ
         node->key.capacity = 0xf;
         node->key.size = 0;
         node->key.buffer.inline_buffer[0] = 0;
-        StdString(&node->key).assign_substr(&source->key, 0, 0xffffffff);
+        StdString(&node->key).assign_substr(&source->key, 0, k_datum_index_none);
         node->value = source->value;
         node->color = color;
         node->is_nil = 0;
@@ -682,7 +682,7 @@ hwreq_property_set **StdMap::index_property_set(msvc_std_string *key)
         pair.key.capacity = 0xf;
         pair.key.size = 0;
         pair.key.buffer.inline_buffer[0] = 0;
-        StdString(&pair.key).assign_substr(key, 0, 0xffffffff);
+        StdString(&pair.key).assign_substr(key, 0, k_datum_index_none);
         pair.value = 0;
         hint_insert_unique(&inserted, node, &pair);
         node = inserted;

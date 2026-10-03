@@ -1,5 +1,8 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "networking.h"
 #include "halo/memory/api.hpp"
@@ -15,7 +18,7 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t changed_offset, uint8_t force);
 extern int32_t hash_table_get(hash_table *table, int32_t key);
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
@@ -64,13 +67,13 @@ void unit_apply_network_control_update(unit_network_control_packet *packet)
         return;
     }
     unit_index = (uint32_t)(*(int32_t **)(object_network_id_table + 0x28))[message.unit_key];
-    if (unit_index == 0xffffffff) {
+    if (unit_index == k_datum_index_none) {
         return;
     }
     throttle = message.no_throttle == 1 ? (const real_vector2d *)0 : &message.throttle;
     unit = (uint8_t *)object_try_and_get(unit_index, 3);
     if (unit != 0) {
-        unit[0x106] |= 4;
+        set_flag(((struct object *)unit)->vitality_flags, objects::vitality_flag::health_frozen);
         ((unit_object *)unit)->base.body_vitality = 0.0f;
         ((unit_object *)unit)->base.shield_vitality = 0.0f;
     }
@@ -78,7 +81,7 @@ void unit_apply_network_control_update(unit_network_control_packet *packet)
         UnitView(unit_index).update_stance_and_jump(message.stance_flags[0], message.stance_flags[1], message.stance_flags[2], message.stance_flags[3], message.stance_flags[4], message.turn_angle, message.weapon_class_index, throttle, 1);
     }
     unit = (uint8_t *)object_try_and_get(unit_index, 3);
-    if (unit != 0 && ((unit_object *)unit)->unit.controlling_player != (datum_index)0xffffffff) {
+    if (unit != 0 && ((unit_object *)unit)->unit.controlling_player != k_datum_index_none) {
         uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)unit)->unit.controlling_player, player_data);
 
         if (player != 0) {
@@ -90,7 +93,7 @@ void unit_apply_network_control_update(unit_network_control_packet *packet)
     if (unit != 0) {
         ((unit_object *)unit)->base.network_role = 3;
     }
-    if ((((object_header *)object_data->data)[unit_index & 0xffff].flags & 8) == 0) {
+    if ((((object_header *)object_data->data)[halo::datum_slot(unit_index)].flags & 8) == 0) {
         network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
     }
 }
@@ -127,10 +130,10 @@ void UnitView::apply_network_health_update(void *message)
         message_delta_decode_compound_field_staged(message);
         return;
     }
-    guard = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    guard = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     record = (uint8_t *)((void **)message)[0x11];
     reliable = **(int32_t **)message == 1;
-    if ((*(uint32_t *)(guard + 0x10) & 0x8000000) != 0 && reliable) {
+    if (test_flag(((struct object *)guard)->flags, objects::object_flag::took_network_update) && reliable) {
         int32_t incoming = record[5];
         int32_t current = unit[0x528];
 
@@ -149,7 +152,7 @@ void UnitView::apply_network_health_update(void *message)
         return;
     }
     unit[0x528] = record[5];
-    ((unit_object *)unit)->base.flags |= 0x8000000;
+    set_flag(((unit_object *)unit)->base.flags, objects::object_flag::took_network_update);
     if (record[6] != 0) {
         unit[0x527] = record[4];
         memcpy(unit + 0x52c, &block, sizeof(block));
@@ -165,7 +168,7 @@ void UnitView::apply_network_health_update(void *message)
     *(real *)(unit + 0x548) = shield;
     *(uint32_t *)(unit + 0x54c) = block.shield_stunned;
     ((unit_object *)unit)->base.shield_stun_ticks = (uint8_t)block.shield_stunned == 1;
-    unit[0x475] = 1;
+    ((struct unit_object *)unit)->unit.unknown_475 = 1;
     unit[0x53c] = 1;
 }
 
@@ -180,7 +183,7 @@ void unit_broadcast_state_change_event(unit_state_change_record record)
     void *items[2];
     int32_t sent;
 
-    if (record.unit != (datum_index)-1) {
+    if (record.unit != k_datum_index_none) {
         resolved = hash_table_get((hash_table *)(object_network_id_table + 0xc), (int32_t)record.unit);
         if (resolved == -1) {
             resolved = 0;
@@ -189,7 +192,7 @@ void unit_broadcast_state_change_event(unit_state_change_record record)
     record.unit = (datum_index)resolved;
     items[0] = &record;
     items[1] = 0;
-    sent = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xc, 0, items, 0, 1, 0);
+    sent = message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0xc, 0, items, 0, 1, 0);
     if (sent > 0) {
         network_session_broadcast_to_flagged(sent, network_server, 1, network_message_scratch, 1, 0, 0, 3);
     }

@@ -1,5 +1,6 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/core/collision_flags.hpp"
 #include "projectiles.h"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -17,8 +18,8 @@ extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t 
 
 namespace halo::units {
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
 /**
  * Engine function unit_melee_attack_scan.
  *
@@ -29,18 +30,18 @@ void UnitView::melee_attack_scan()
     uint32_t unit_index = datum_handle;
     uint8_t *obj = OBJECT_DATA(unit_index);
     uint8_t *unit_tag = TAG_DATA(*(datum_index *)obj);
-    real_vector3d *aim = (real_vector3d *)(obj + 0x23c);
+    real_vector3d *aim = (real_vector3d *)&((struct unit_object *)obj)->unit.aiming_vector;
     object_marker marker;
     real_point3d origin;
     real_vector3d perp;
     real_vector3d side;
-    uint32_t best_object = 0xffffffff;
+    uint32_t best_object = k_datum_index_none;
     int32_t material = -1;
     int16_t best_type = 0;
     float best_fraction = 0.0f;
-    uint32_t breakable_index = 0xffffffff;
+    uint32_t breakable_index = k_datum_index_none;
     int32_t breakable_surface = 0;
-    datum_index secondary_effect = 0xffffffff;
+    datum_index secondary_effect = k_datum_index_none;
     datum_index damage_effect;
     int32_t row;
     int32_t col;
@@ -64,11 +65,11 @@ void UnitView::melee_attack_scan()
             delta.i = (rowf * perp.i + colf * side.i) * 0.1f + aim->i * 0.8f;
             delta.j = (rowf * perp.j + colf * side.j) * 0.1f + aim->j * 0.8f;
             delta.k = (rowf * perp.k + colf * side.k) * 0.1f + aim->k * 0.8f;
-            if (!halo::physics::collision_test_movement_segment(0x1000e9, &origin, &delta, unit_index, &hit)) {
+            if (!halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::unstick), &origin, &delta, unit_index, &hit)) {
                 continue;
             }
             if (*(int16_t *)&hit == 2) {
-                if (best_object == 0xffffffff) {
+                if (best_object == k_datum_index_none) {
                     material = *(int32_t *)&hit.material_type;
                     if (hit.surface_flags & 8) {
                         breakable_index = (breakable_index & 0xffff0000u) | hit.breakable_surface_index;
@@ -85,7 +86,7 @@ void UnitView::melee_attack_scan()
                     cand = OBJECT_DATA(candidate);
                 }
                 type = ((struct object *)cand)->type;
-                if (best_object != 0xffffffff) {
+                if (best_object != k_datum_index_none) {
                     if (type != 0) {
                         continue;
                     }
@@ -101,7 +102,7 @@ void UnitView::melee_attack_scan()
         }
     }
 
-    damage_effect = 0xffffffff;
+    damage_effect = k_datum_index_none;
     {
         int16_t weapon_slot = ((unit_object *)obj)->unit.current_weapon_index;
 
@@ -116,15 +117,15 @@ void UnitView::melee_attack_scan()
             }
         }
     }
-    if (damage_effect == 0xffffffff) {
-        damage_effect = *(datum_index *)(unit_tag + 0x294);
+    if (damage_effect == k_datum_index_none) {
+        damage_effect = *(datum_index *)&((struct Unit *)unit_tag)->melee_damage.tag_id;
     }
 
-    if (best_object != 0xffffffff) {
+    if (best_object != k_datum_index_none) {
         uint8_t *best = OBJECT_DATA(best_object);
 
         if (((struct object *)best)->type == 1 && ((struct object *)best)->network_role != 1) {
-            float scale = *(float *)(TAG_DATA(*(datum_index *)best) + 0x20) * 0.035f;
+            float scale = ((struct Unit *)TAG_DATA(*(datum_index *)best))->base.acceleration_scale * 0.035f;
 
             side.i = scale * aim->i;
             side.j = scale * aim->j;
@@ -133,7 +134,7 @@ void UnitView::melee_attack_scan()
         }
     }
 
-    if (damage_effect != 0xffffffff) {
+    if (damage_effect != k_datum_index_none) {
         damage_data dd;
 
         memset(&dd, 0, sizeof(dd));
@@ -151,14 +152,14 @@ void UnitView::melee_attack_scan()
         dd.multiplier = 1.0f;
         dd.material_type = (int16_t)material;
 
-        if (best_object == 0xffffffff) {
+        if (best_object == k_datum_index_none) {
             if ((int16_t)breakable_index != -1) {
                 halo::physics::breakable_surface_apply_damage(&dd, (int32_t)breakable_index, breakable_surface);
             }
         } else {
             float speed_scale = *(float *)((uint8_t *)global_globals->player_information.pointer + 0x34);
 
-            if (*(int16_t *)(OBJECT_DATA(best_object) + 0xb4) == 7) {
+            if (((struct object *)OBJECT_DATA(best_object))->type == 7) {
                 halo::devices::device_machine_melee_attacked(best_object);
             }
             if (speed_scale > 0.0f) {
@@ -176,7 +177,7 @@ void UnitView::melee_attack_scan()
             if (((unit_object *)obj)->base.type == 0 && *(int8_t *)(obj + 0x501) > 0x0f) {
                 dd.random_blend = 1.5f;
             }
-            if (*(int16_t *)(OBJECT_DATA(best_object) + 0xb4) == 0) {
+            if (((struct object *)OBJECT_DATA(best_object))->type == 0) {
                 object_apply_damage(&dd, best_object, -1, -1, -1, 0);
             }
         }
@@ -184,7 +185,7 @@ void UnitView::melee_attack_scan()
 
     if ((int16_t)material != -1) {
         ::halo::units::unit_trigger_material_hit_effect((int16_t)material, damage_effect, unit_index);
-        if (secondary_effect != 0xffffffff) {
+        if (secondary_effect != k_datum_index_none) {
             damage_data dd;
 
             memset(&dd, 0, sizeof(dd));
@@ -205,7 +206,7 @@ void UnitView::melee_attack_scan()
             object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
         }
     }
-    obj[0x289] = 0;
+    ((struct unit_object *)obj)->unit.melee_state = 0;
 }
 #undef OBJECT_DATA
 #undef TAG_DATA

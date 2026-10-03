@@ -117,11 +117,11 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
         if (*surface_indices < materials[material_count - 1].surfaces + materials[material_count - 1].surface_count) {
             void *bitmap_data = 0;
 
-            if (global_structure_bsp->lightmaps_bitmap.tag_id.index != 0xffff) {
+            if (global_structure_bsp->lightmaps_bitmap.tag_id.index != k_word_none) {
                 uint16_t bitmap_index = lightmap->bitmap;
                 Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[global_structure_bsp->lightmaps_bitmap.tag_id.index].data;
                 if (bitmap != 0 && bitmap_index < bitmap->bitmap_data.count) {
-                    bitmap_data = (uint8_t *)bitmap->bitmap_data.pointer + bitmap_index * 0x30;
+                    bitmap_data = (uint8_t *)bitmap->bitmap_data.pointer + bitmap_index * sizeof(BitmapData);
                 }
             }
             if (lightmap_begin != 0) {
@@ -151,24 +151,24 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
                         consumed = (int16_t)(scan - surface_indices);
 
                         if (material->breakable_surface == (uint16_t)-1 ||
-                            (halo::physics::globals().breakable_surface_state->active[global_structure_bsp_index][material->breakable_surface >> 5] &
-                             (1u << (material->breakable_surface & 0x1f))) != 0) {
-                            if (shader->shader_type == 1 || (shader->shader_type > 4 && shader->shader_type < 0xc)) {
+                            (breakable_surface_state->active[global_structure_bsp_index][bit_array_word(material->breakable_surface)] &
+                             bit_array_mask(material->breakable_surface)) != 0) {
+                            if (render::shader_type_is_transparent(shader->shader_type)) {
                                 if (transparent_material_cb != 0) {
-                                    void *coplanar_vector = ((uint16_t)material->flags & 2) != 0
-                                        ? (void *)&globals().fog_plane_vector
+                                    void *coplanar_vector = test_flag(material->flags, tags::scenario_structure_bsp_material_tag_flag::fog_plane)
+                                        ? (void *)&fog_plane_vector
                                         : (void *)global_origin3d_pointer;
-                                    void *lightmap_vertices = ((uint16_t)material->flags & 1) != 0
-                                        ? (void *)((uint8_t *)material + 0x9c)
+                                    void *lightmap_vertices = test_flag(material->flags, tags::scenario_structure_bsp_material_tag_flag::coplanar)
+                                        ? (void *)&material->plane
                                         : (void *)0;
                                     transparent_material_cb(shader, material->shader_permutation, bitmap_data,
-                                        render_context, surface_offset, consumed, (uint8_t *)material + 0xb0,
-                                        (uint8_t *)material + 0x1c, lightmap_vertices, coplanar_vector,
-                                        (uint8_t *)material + 0x28, 0);
+                                        render_context, surface_offset, consumed, &material->rendered_vertices_type,
+                                        &material->centroid, lightmap_vertices, coplanar_vector,
+                                        &material->ambient_color, 0);
                                 }
                             } else if (material_cb != 0) {
                                 material_cb(shader, material->shader_permutation, render_context, surface_offset,
-                                    consumed, (uint8_t *)material + 0xb0);
+                                    consumed, &material->rendered_vertices_type);
                             }
                         }
 
@@ -188,7 +188,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
 void structure_draw::leaf_portal_vertex_count_debug(int32_t leaf_index, structure_bsp_leaf_map *leaf_map)
 {
     ScenarioStructureBSPGlobalMapLeaf *leaf =
-        (ScenarioStructureBSPGlobalMapLeaf *)leaf_map->leaves.pointer + (leaf_index & 0x7fffffff);
+        (ScenarioStructureBSPGlobalMapLeaf *)leaf_map->leaves.pointer + (leaf_index & k_leaf_index_mask);
     int32_t portal_ref_count = leaf->portal_indices.count;
     int32_t *portal_indices = (int32_t *)leaf->portal_indices.pointer;
     ScenarioStructureBSPGlobalLeafPortal *portals =
@@ -197,7 +197,7 @@ void structure_draw::leaf_portal_vertex_count_debug(int32_t leaf_index, structur
     int32_t i;
 
     for (i = 0; i < portal_ref_count; i = i + 1) {
-        int32_t portal_index = portal_indices[i] & 0x7fffffff;
+        int32_t portal_index = portal_indices[i] & k_leaf_index_mask;
         int32_t vertex_count = portals[portal_index].vertices.count;
 
         discarded_count = 2;
@@ -209,7 +209,7 @@ void structure_draw::leaf_portal_vertex_count_debug(int32_t leaf_index, structur
 
 void structure_draw::picked_polygon_refresh(void)
 {
-    structure_bsp_leaf_map *leaf_map = (structure_bsp_leaf_map *)((uint8_t *)global_structure_bsp + 0x26c);
+    structure_bsp_leaf_map *leaf_map = leaf_map_of(global_structure_bsp);
 
     globals().picked_surfaces_geometry = structure_draw::build_visible_surface_geometry(globals().visible_surface_indices, globals().surface_visible_bits, (int16_t)globals().visible_surface_count);
     globals().picked_surfaces_valid = globals().picked_surfaces_geometry != -1;
@@ -254,7 +254,7 @@ void structure_draw::picked_polygon_draw(void)
     }
 
     saved_render_flag = render_force_flag;
-    if (global_structure_bsp->lightmaps_bitmap.tag_id.index == 0xffff && saved_render_flag == 0) {
+    if (global_structure_bsp->lightmaps_bitmap.tag_id.index == k_word_none && saved_render_flag == 0) {
         render_force_flag = 1;
     }
 
@@ -272,14 +272,14 @@ void structure_draw::picked_polygon_draw(void)
 
 void structure_draw::debug_draw_surfaces_in_box(void *render_point, real_point3d *query_point, float radius, int16_t cluster_count, int16_t *cluster_indices)
 {
-    int32_t local_surface_indices[0x1000];
+    int32_t local_surface_indices[k_maximum_query_surfaces];
     int32_t geometry_handle;
     int32_t *surface_indices;
     int16_t surface_count;
 
     geometry_handle = -1;
     if (cluster_indices != 0) {
-        surface_count = structure_bsp_query::query_surfaces(0, query_point, local_surface_indices, 0x1000, radius, 0, 0, cluster_count, cluster_indices);
+        surface_count = structure_bsp_query::query_surfaces(0, query_point, local_surface_indices, k_maximum_query_surfaces, radius, 0, 0, cluster_count, cluster_indices);
         surface_indices = local_surface_indices;
         geometry_handle = -1;
         if (surface_count > 0) {
@@ -308,14 +308,14 @@ void structure_draw::debug_draw_surfaces_in_box(void *render_point, real_point3d
 
 void structure_draw::debug_draw_surfaces_in_box_alt(void *render_point, real_point3d *query_point, float radius, int16_t cluster_count, int16_t *cluster_indices)
 {
-    int32_t local_surface_indices[0x1000];
+    int32_t local_surface_indices[k_maximum_query_surfaces];
     int32_t geometry_handle;
     int32_t *surface_indices;
     int16_t surface_count;
 
     geometry_handle = -1;
     if (cluster_indices != 0) {
-        surface_count = structure_bsp_query::query_surfaces(0, query_point, local_surface_indices, 0x1000, radius, 0, 0, cluster_count, cluster_indices);
+        surface_count = structure_bsp_query::query_surfaces(0, query_point, local_surface_indices, k_maximum_query_surfaces, radius, 0, 0, cluster_count, cluster_indices);
         surface_indices = local_surface_indices;
         geometry_handle = -1;
         if (surface_count > 0) {
@@ -344,8 +344,8 @@ void structure_draw::debug_draw_surfaces_in_box_alt(void *render_point, real_poi
 
 void structure_draw::debug_draw_surfaces_simple(real_point3d *query_point, float radius, real_rectangle3d *query_box, real_plane3d *planes, int16_t plane_count)
 {
-    int32_t local_surface_indices[0x1000];
-    int16_t surface_count = structure_bsp_query::query_surfaces(query_box, query_point, local_surface_indices, 0x1000, radius, plane_count, planes, 0, 0);
+    int32_t local_surface_indices[k_maximum_query_surfaces];
+    int16_t surface_count = structure_bsp_query::query_surfaces(query_box, query_point, local_surface_indices, k_maximum_query_surfaces, radius, plane_count, planes, 0, 0);
 
     if (surface_count > 0) {
         int32_t geometry_handle = rasterizer_dynamic_index_cache_reserve(surface_count);

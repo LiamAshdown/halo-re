@@ -1,4 +1,5 @@
 #include "halo/objects/light_volume.hpp"
+#include "halo/core/lcg.hpp"
 #include "bitmaps.h"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -152,7 +153,7 @@ void halo::objects::LightVolumeSystem::render(uint32_t object_index, datum_index
 {
     uint8_t *instance;
 
-    if (object_index == 0xffffffff || light_volume_handle == (datum_index)0xffffffff) {
+    if (object_index == k_datum_index_none || light_volume_handle == k_datum_index_none) {
         return;
     }
 
@@ -173,7 +174,7 @@ void halo::objects::LightVolumeSystem::render(uint32_t object_index, datum_index
     }
 
     {
-        uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
+        uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(uint32_t *)(instance + 4))].data;
 
         if (*(int16_t *)(tag + 0x6e) > 0 && *(int32_t *)(tag + 0x120) > 0 &&
             (*(int16_t *)(tag + 0x44) == 0 || function_context == 0 ||
@@ -229,7 +230,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
     float function_value = 1.0f;
     float brightness;
 
-    if (object_index == 0xffffffff || light_volume_handle == k_datum_index_none) {
+    if (object_index == k_datum_index_none || light_volume_handle == k_datum_index_none) {
         return;
     }
     {
@@ -245,7 +246,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
             }
         }
     }
-    tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
+    tag = (uint8_t *)tag_instances[halo::datum_slot(*(uint32_t *)(instance + 4))].data;
     if (*(int16_t *)(tag + 0x6e) <= 0 || *(int32_t *)(tag + 0x120) <= 0) {
         return;
     }
@@ -386,8 +387,8 @@ static uint8_t * &lightning_instances__as_lightning_render = reinterpret_cast<ui
 static uint32_t (*const color_pack_argb_from_real__as_lightning_render)(float *argb) = reinterpret_cast<uint32_t (*)(float *argb)>(&color_pack_argb_from_real);
 static float glow_random_unit_for_lightning(void)
 {
-    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660dU + 0x3c6ef35fU;
-    return (float)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f;
+    effect_random_seed = halo::advance_random_seed(effect_random_seed);
+    return (float)(effect_random_seed >> halo::k_random_high_shift) * halo::k_unit_word_scale;
 }
 }
 
@@ -404,7 +405,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
 {
     uint8_t *tag;
 
-    if (object_index == 0xffffffff || lightning_handle == (datum_index)0xffffffff) {
+    if (object_index == k_datum_index_none || lightning_handle == k_datum_index_none) {
         return;
     }
 
@@ -422,7 +423,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                 instance = (uint8_t *)off;
             }
         }
-        tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
+        tag = (uint8_t *)tag_instances[halo::datum_slot(*(uint32_t *)(instance + 4))].data;
     }
 
     if (*(int32_t *)(tag + 0x98) <= 0) {
@@ -440,8 +441,8 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
 
     {
         uint32_t shader_something = *(uint32_t *)(
-            (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(tag + 0x40) & 0xffff].data + 100);
-        int32_t device = texture_cache_get_unresolved(0, 1);
+            (uint8_t *)tag_instances[halo::datum_slot(*(uint32_t *)(tag + 0x40))].data + 100);
+        int32_t device = texture_cache_get(0, 1);
 
         int16_t shard;
         if (device == 0) {

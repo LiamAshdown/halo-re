@@ -1,5 +1,8 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/core/collision_flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "projectiles.h"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -55,8 +58,8 @@ void VehicleView::blend_animations(real_orientation *orientations)
 {
     using namespace vehicle_blend_animations_local;
     datum_index object_index = datum_handle;
-    uint8_t *obj = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
-    uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *obj = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
+    uint8_t *vehicle_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     datum_index graph_tag = *(datum_index *)&((struct Object *)vehicle_tag)->animation_graph.tag_id;
     uint8_t *graph;
     uint8_t *entry;
@@ -68,7 +71,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
     if (graph_tag == k_datum_index_none) {
         return;
     }
-    graph = (uint8_t *)halo::cache::globals().tag_instances[graph_tag & 0xffff].data;
+    graph = (uint8_t *)tag_instances[halo::datum_slot(graph_tag)].data;
     if (*(int32_t *)&((ModelAnimations *)graph)->vehicles.count == 0) {
         return;
     }
@@ -77,18 +80,18 @@ void VehicleView::blend_animations(real_orientation *orientations)
         return;
     }
     animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
-    count = *(int32_t *)(entry + 0x5c);
-    indices = *(int16_t **)(entry + 0x60);
+    count = (int32_t)((struct ModelAnimationsAnimationGraphVehicleAnimations *)entry)->animations.count;
+    indices = (int16_t *)((struct ModelAnimationsAnimationGraphVehicleAnimations *)entry)->animations.pointer;
 
     if (count > 0 && indices[0] != -1) {
         animation_aiming_screen_blend((ModelAnimationsAnimation *)(animations + indices[0] * 0xb4),
             (animation_aiming_screen *)entry, ((struct vehicle_object *)obj)->vehicle.turning_velocity, 0.0f, orientations);
     }
     if (count > 1 && indices[1] != -1) {
-        double speed = halo::math::vector3d_scalar_triple_product(*(real_vector3d *)(obj + 0x80), *(real_vector3d *)(obj + 0x74),
-            *(real_vector3d *)(obj + 0x68));
+        double speed = halo::math::vector3d_scalar_triple_product((real_vector3d *)&((struct object *)obj)->up, (real_vector3d *)&((struct object *)obj)->forward,
+            (real_vector3d *)&((struct object *)obj)->velocity);
 
-        speed = (speed / *(float *)(vehicle_tag + 0x2f8) + 1.0) * 0.5;
+        speed = (speed / ((struct Vehicle *)vehicle_tag)->maximum_forward_speed + 1.0) * 0.5;
         blend_fraction((ModelAnimationsAnimation *)(animations + indices[1] * 0xb4), clamp_unit(speed), orientations);
     }
     if (count > 2 && indices[2] != -1) {
@@ -96,9 +99,9 @@ void VehicleView::blend_animations(real_orientation *orientations)
         double fraction;
 
         if (steering < 0.0f) {
-            fraction = 0.5 - steering / *(float *)(vehicle_tag + 0x2fc) * 0.5;
+            fraction = 0.5 - steering / ((struct Vehicle *)vehicle_tag)->maximum_reverse_speed * 0.5;
         } else {
-            fraction = (steering / *(float *)(vehicle_tag + 0x2f8) + 1.0) * 0.5;
+            fraction = (steering / ((struct Vehicle *)vehicle_tag)->maximum_forward_speed + 1.0) * 0.5;
         }
         blend_fraction((ModelAnimationsAnimation *)(animations + indices[2] * 0xb4), fraction, orientations);
     }
@@ -107,7 +110,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
             (double)((unit_object *)obj)->base.velocity.j * ((unit_object *)obj)->base.forward.j +
             (double)((unit_object *)obj)->base.velocity.i * ((unit_object *)obj)->base.forward.i;
 
-        forward_speed = clamp_unit(clamp_unit(forward_speed) / fabs(*(float *)(vehicle_tag + 0x2f8)));
+        forward_speed = clamp_unit(clamp_unit(forward_speed) / fabs(((struct Vehicle *)vehicle_tag)->maximum_forward_speed));
         blend_fraction((ModelAnimationsAnimation *)(animations + indices[3] * 0xb4), forward_speed, orientations);
     }
     if (count > 5 && indices[5] != -1) {
@@ -115,13 +118,13 @@ void VehicleView::blend_animations(real_orientation *orientations)
         double fraction = 0.0;
         int32_t frames = *(int16_t *)&((struct ModelAnimationsAnimation *)animation)->frame_count;
 
-        if (*(float *)(vehicle_tag + 0x310) > 0.0f) {
-            fraction = ((struct vehicle_object *)obj)->vehicle.wheel_rotation / *(float *)(vehicle_tag + 0x310);
+        if (((struct Vehicle *)vehicle_tag)->wheel_circumference > 0.0f) {
+            fraction = ((struct vehicle_object *)obj)->vehicle.wheel_rotation / ((struct Vehicle *)vehicle_tag)->wheel_circumference;
         }
         animation_overlay_interpolated_frame_orientations(animation, (float)((double)frames * fraction), orientations);
     }
-    for (i = 0; i < *(int32_t *)(entry + 0x68); i++) {
-        int16_t suspension = *(int16_t *)(*(uint8_t **)(entry + 0x6c) + i * 0x14 + 2);
+    for (i = 0; i < (int32_t)((struct ModelAnimationsAnimationGraphVehicleAnimations *)entry)->suspension_animations.count; i++) {
+        int16_t suspension = *(int16_t *)((uint8_t *)((struct ModelAnimationsAnimationGraphVehicleAnimations *)entry)->suspension_animations.pointer + i * 0x14 + 2);
 
         if (suspension != -1) {
             uint8_t compression = obj[0x4f4 + i];
@@ -144,11 +147,11 @@ void VehicleView::blend_animations(real_orientation *orientations)
 void VehicleView::calculate_animation_controls()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[*(uint32_t *)obj & 0xffff].data;
-    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
-    real_vector3d *up = (real_vector3d *)(obj + 0x80);
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    Vehicle *tag = (Vehicle *)tag_instances[halo::datum_slot(*(uint32_t *)obj)].data;
+    real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
+    real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
+    real_vector3d *up = (real_vector3d *)&((struct object *)obj)->up;
     float forward_velocity = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     float sideways_velocity = ((struct vehicle_object *)obj)->vehicle.sideways_velocity;
     float turning_velocity = ((struct vehicle_object *)obj)->vehicle.turning_velocity;
@@ -161,8 +164,8 @@ void VehicleView::calculate_animation_controls()
     float max_left_turn = fabsf(tag->maximum_left_turn);
     float max_right_turn = fabsf(tag->maximum_right_turn);
     float max_turn = (max_left_turn > max_right_turn) ? max_left_turn : max_right_turn;
-    int16_t *selectors = (int16_t *)((uint8_t *)tag + 0x31c);
-    float *outputs = (float *)(obj + 0x124);
+    int16_t *selectors = (int16_t *)&((struct Vehicle *)tag)->vehicle_a_in;
+    float *outputs = (float *)&((struct object *)obj)->function_in_values;
     int i;
 
     for (i = 0; i < 4; i++) {
@@ -207,23 +210,23 @@ void VehicleView::calculate_animation_controls()
             value = fabsf(turning_velocity) / max_right_turn;
             break;
         case 0xb:
-            outputs[i] = (obj[0x4cc] & 4) ? 1.0f : 0.0f;
+            outputs[i] = ((uint8_t)((struct vehicle_object *)obj)->vehicle.flags & 4) ? 1.0f : 0.0f;
             continue;
         case 0xc:
-            outputs[i] = (obj[0x4cc] & 8) ? 1.0f : 0.0f;
+            outputs[i] = ((uint8_t)((struct vehicle_object *)obj)->vehicle.flags & 8) ? 1.0f : 0.0f;
             continue;
         case 0xe:
             value = halo::math::vector3d_length(*velocity) / max_speed;
             break;
         case 0xf:
-            if ((obj[0x10] & 0x1c) == 0) {
+            if (!test_flag(((struct object *)obj)->flags, objects::object_flag::unknown_4 | objects::object_flag::unknown_8 | objects::object_flag::in_water)) {
                 outputs[i] = 0.0f;
                 continue;
             }
             value = halo::math::vector3d_length(*velocity) / max_speed;
             break;
         case 0x10:
-            if ((obj[0x10] & 2) == 0) {
+            if (!test_flag(((struct object *)obj)->flags, objects::object_flag::unknown_2)) {
                 outputs[i] = 0.0f;
                 continue;
             }
@@ -269,7 +272,7 @@ void VehicleView::calculate_animation_controls()
         case 0x23: {
             float lean = fabsf(forward->k * velocity->k + forward->j * velocity->j + forward->i * velocity->i) / max_speed;
             float speed = fabsf(forward_velocity) / max_forward;
-            float blend = ((float)obj[0x4d0] * 0.2f + 1.0f) * 0.5f;
+            float blend = ((float)((struct vehicle_object *)obj)->vehicle.airborne_ticks * 0.2f + 1.0f) * 0.5f;
 
             if (blend < 0.0f) {
                 blend = 0.0f;
@@ -307,18 +310,18 @@ void VehicleView::calculate_animation_controls()
 void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_transform)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *physics = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     uint8_t *powered = (uint8_t *)out_record;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real mass = *(real *)(physics + 0x8);
     real throttle = ((struct vehicle_object *)obj)->unit.driver_seat_power;
-    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
-    real_vector3d *object_up = (real_vector3d *)(obj + 0x80);
-    real_vector3d *angular_velocity = (real_vector3d *)(obj + 0x8c);
-    real_vector3d *world_up = halo::math::globals().global_up3d_pointer;
+    real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
+    real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
+    real_vector3d *object_up = (real_vector3d *)&((struct object *)obj)->up;
+    real_vector3d *angular_velocity = (real_vector3d *)&((struct object *)obj)->angular_velocity;
+    real_vector3d *world_up = global_up3d_pointer;
     real_point3d target_velocity;
     real_vector3d delta, force, torque, axis;
     real_vector3d basis[3];
@@ -336,9 +339,9 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     target_velocity.x = speed * forward->i;
     target_velocity.y = speed * forward->j;
     target_velocity.z = speed * forward->k;
-    frac = speed > 0.0f ? speed / *(real *)(tag + 0x2f8) : -(speed / *(real *)(tag + 0x2fc));
-    halo::math::vector3d_delta_toward_gravity_biased_clamp_length(*(real_point3d *)velocity, target_velocity, &delta,
-        frac * *(real *)(tag + 0x300), frac * *(real *)(tag + 0x304));
+    frac = speed > 0.0f ? speed / ((struct Vehicle *)tag)->maximum_forward_speed : -(speed / ((struct Vehicle *)tag)->maximum_reverse_speed);
+    halo::math::vector3d_delta_toward_gravity_biased_clamp_length((real_point3d *)velocity, &target_velocity, &delta,
+        frac * ((struct Vehicle *)tag)->speed_acceleration, frac * ((struct Vehicle *)tag)->speed_deceleration);
     force.i = delta.i * mass * throttle;
     force.j = delta.j * mass * throttle;
     force.k = delta.k * mass * throttle;
@@ -352,15 +355,15 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
         basis[2] = *halo::math::globals().global_forward3d_pointer;
     }
     rider = obj;
-    if (((unit_object *)obj)->unit.driver_unit_index != (datum_index)0xffffffff) {
-        rider = (uint8_t *)((object_header *)object_data->data)[((unit_object *)obj)->unit.driver_unit_index & 0xffff].data;
+    if (((unit_object *)obj)->unit.driver_unit_index != k_datum_index_none) {
+        rider = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(((unit_object *)obj)->unit.driver_unit_index)].data;
     }
-    if (*(datum_index *)(rider + 0x1f4) == (datum_index)0xffffffff) {
-        real pitch = *(real *)(tag + 0x364);
-        halo::math::vector3d_rotate_pair_in_plane(basis[2], basis[0], (real)sin((double)pitch), (real)cos((double)pitch));
+    if (*(datum_index *)(rider + 0x1f4) == k_datum_index_none) {
+        real pitch = ((struct Vehicle *)tag)->fixed_gun_pitch;
+        halo::math::vector3d_rotate_pair_in_plane(&basis[2], &basis[0], (real)sin((double)pitch), (real)cos((double)pitch));
     }
-    angle = (basis[0].i * velocity->j - basis[0].j * velocity->i) / *(real *)(tag + 0x2f8) * *(real *)(tag + 0x308);
-    halo::math::vector3d_rotate_about_axis_perpendicular(basis[2], basis[0], (real)sin((double)angle), (real)cos((double)angle));
+    angle = (basis[0].i * velocity->j - basis[0].j * velocity->i) / ((struct Vehicle *)tag)->maximum_forward_speed * ((struct Vehicle *)tag)->maximum_left_turn;
+    halo::math::vector3d_rotate_about_axis_perpendicular(&basis[2], &basis[0], (real)sin((double)angle), (real)cos((double)angle));
     basis[1].i = basis[2].j * basis[0].k - basis[2].k * basis[0].j;
     basis[1].j = basis[2].k * basis[0].i - basis[2].i * basis[0].k;
     basis[1].k = basis[0].j * basis[2].i - basis[2].j * basis[0].i;
@@ -370,14 +373,14 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     halo::math::quaternion_from_matrix3x3(&relative, &rotation);
     halo::math::quaternion_to_axis_angle(rotation, &axis, angle);
 
-    k = -angle * *(real *)(tag + 0x314) * 0.31830987f;
+    k = -angle * ((struct Vehicle *)tag)->turn_rate * 0.31830987f;
     moment = (*(real *)(physics + 0x58) + *(real *)(physics + 0x54) + *(real *)(physics + 0x50)) * 0.33333334f;
     torque.i = (axis.i * k - angular_velocity->i) * moment * throttle;
     torque.j = (axis.j * k - angular_velocity->j) * moment * throttle;
     torque.k = (axis.k * k - angular_velocity->k) * moment * throttle;
 
     spin_rate = (real)sqrt((double)(angular_velocity->i * angular_velocity->i + angular_velocity->j * angular_velocity->j +
-        angular_velocity->k * angular_velocity->k)) / *(real *)(tag + 0x314);
+        angular_velocity->k * angular_velocity->k)) / ((struct Vehicle *)tag)->turn_rate;
     lean = ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction;
     if (spin_rate > lean) {
         step = (1.0f - lean) * (1.0f - lean) * 0.2f;
@@ -419,17 +422,17 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
 void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_transform)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *physics = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     uint8_t *powered = (uint8_t *)out_record;
-    real max_speed = *(real *)(tag + 0x2f8);
+    real max_speed = ((struct Vehicle *)tag)->maximum_forward_speed;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real throttle;
-    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
-    real_vector3d *object_up = (real_vector3d *)(obj + 0x80);
-    real_vector3d *angular_velocity = (real_vector3d *)(obj + 0x8c);
+    real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
+    real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
+    real_vector3d *object_up = (real_vector3d *)&((struct object *)obj)->up;
+    real_vector3d *angular_velocity = (real_vector3d *)&((struct object *)obj)->angular_velocity;
     real_vector3d facing, up, force, torque, axis;
     real_matrix4x3 current, desired, relative;
     real_quaternion rotation;
@@ -505,19 +508,19 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
 void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *physics = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     uint16_t flags = ((struct vehicle_object *)obj)->vehicle.flags;
-    real max_speed = *(real *)(tag + 0x2f8);
+    real max_speed = ((struct Vehicle *)tag)->maximum_forward_speed;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real throttle = ((struct vehicle_object *)obj)->unit.driver_seat_power;
     real clamped, f2, k, delta, lean_scale, dot, x_force, y_force, angle, per_tick, torque_scale;
     real_vector3d facing, up, force, torque;
-    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
-    real_vector3d *object_up = (real_vector3d *)(obj + 0x80);
-    real_vector3d *angular_velocity = (real_vector3d *)(obj + 0x8c);
+    real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
+    real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
+    real_vector3d *object_up = (real_vector3d *)&((struct object *)obj)->up;
+    real_vector3d *angular_velocity = (real_vector3d *)&((struct object *)obj)->angular_velocity;
     real_matrix4x3 current, desired, relative;
     real_quaternion rotation;
     real_vector3d axis;
@@ -617,14 +620,14 @@ void vehicle_calculate_hover_turn_controls(void)
 void VehicleView::calculate_lean_controls(void *mass_points, float *powered_states)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *physics = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
-    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
-    real_vector3d *up = (real_vector3d *)(obj + 0x80);
-    real_vector3d *angular_velocity = (real_vector3d *)(obj + 0x8c);
-    real_vector3d *world_up = halo::math::globals().global_up3d_pointer;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
+    real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
+    real_vector3d *up = (real_vector3d *)&((struct object *)obj)->up;
+    real_vector3d *angular_velocity = (real_vector3d *)&((struct object *)obj)->angular_velocity;
+    real_vector3d *world_up = global_up3d_pointer;
     uint8_t *ps = (uint8_t *)powered_states;
     real_vector3d zero_force;
     real_vector3d torque;
@@ -708,9 +711,9 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
 void VehicleView::calculate_mounted_controls_dispatch(void *out_transform, void *out_record)
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
-    uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    Vehicle *tag = (Vehicle *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    uint8_t *physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
 
     if (*(float *)physics_tag > 0.0f) {
         VehicleView(unit_index).calculate_ground_contact_lean_alt(out_record, out_transform);
@@ -731,15 +734,15 @@ void VehicleView::calculate_mounted_controls_dispatch(void *out_transform, void 
 void VehicleView::create_hover_thruster_effects()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     uint8_t markers[16 * 0x6c];
     int16_t hover_count;
     int16_t total;
     int16_t i;
     static char *names[3] = { (char *)"incident", (char *)"normal", (char *)"reflected" };
 
-    if (*(int32_t *)(tag + 0x3ec) == -1) {
+    if (*(int32_t *)&((struct Vehicle *)tag)->effect.tag_id == -1) {
         return;
     }
     hover_count = (int16_t)object_get_node_local_transform(unit_index, (char *)"hover thrusters", markers, 0xf);
@@ -759,7 +762,7 @@ void VehicleView::create_hover_thruster_effects()
         delta.i = direction.i * length;
         delta.j = direction.j * length;
         delta.k = direction.k * length;
-        if (halo::physics::collision_test_movement_segment(0x61, (real_point3d *)(marker + 0x60), &delta, unit_index, &result)) {
+        if (halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface), (real_point3d *)(marker + 0x60), &delta, unit_index, &result)) {
             real_point3d points[3];
             real_vector3d vectors[3];
             real twice_dot;
@@ -779,7 +782,7 @@ void VehicleView::create_hover_thruster_effects()
             vectors[2].j = direction.j - result.plane.normal.j * twice_dot;
             vectors[2].k = direction.k - result.plane.normal.k * twice_dot;
             scale = 1.0f - result.t;
-            halo::effects::effect_new_with_color(*(uint32_t *)(tag + 0x3ec), 0xffffffff, 0, 3, (uint32_t)names, points, (uint32_t)vectors,
+            halo::effects::effect_new_with_color(*(uint32_t *)&((struct Vehicle *)tag)->effect.tag_id, k_datum_index_none, 0, 3, names, points, vectors,
                 scale, scale, 0, 0, 1);
         }
     }
@@ -796,14 +799,14 @@ void VehicleView::create_hover_thruster_effects()
 void VehicleView::create_hover_thruster_midpoint_effects()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     uint8_t markers[15 * 0x6c];
     int16_t count;
     int16_t i;
     static char *names[4] = { (char *)"incident", (char *)"normal", (char *)"reflected", (char *)"midpoint" };
 
-    if (*(int32_t *)(tag + 0x3ec) == -1 || !(((struct vehicle_object *)obj)->unit.driver_seat_power > 0.0f)) {
+    if (*(int32_t *)&((struct Vehicle *)tag)->effect.tag_id == -1 || !(((struct vehicle_object *)obj)->unit.driver_seat_power > 0.0f)) {
         return;
     }
     count = (int16_t)object_get_node_local_transform(unit_index, (char *)"hover thrusters", markers, 0xf);
@@ -817,7 +820,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
 
         halo::math::vector3d_randomize_direction(*(real_point3d *)(marker + 0x3c), &direction, halo::math::globals().effect_random_seed, 0.0f, 15.0f);
         delta = direction;
-        if (!halo::physics::collision_test_movement_segment(0x61, marker_position, &delta, unit_index, &result)) {
+        if (!halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface), marker_position, &delta, unit_index, &result)) {
             continue;
         }
         v = -*(real *)(marker + 0x44) * (1.0f - result.t) * ((struct vehicle_object *)obj)->unit.driver_seat_power;
@@ -851,7 +854,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
             vectors[2].j = direction.j - result.plane.normal.j * twice_dot;
             vectors[2].k = direction.k - result.plane.normal.k * twice_dot;
             vectors[3] = vectors[2];
-            halo::effects::effect_new_with_color(*(uint32_t *)(tag + 0x3ec), 0xffffffff, 0, 4, (uint32_t)names, points, (uint32_t)vectors, v, v,
+            halo::effects::effect_new_with_color(*(uint32_t *)&((struct Vehicle *)tag)->effect.tag_id, k_datum_index_none, 0, 4, names, points, vectors, v, v,
                 0, 0, 1);
         }
     }

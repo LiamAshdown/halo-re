@@ -1,5 +1,11 @@
 #include "halo/hs/script_globals.hpp"
 #include "halo/objects/object_damage.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
+#include "halo/core/collision_flags.hpp"
+#include "halo/core/lcg.hpp"
+#include "halo/core/network_constants.hpp"
 #include "game.h"
 #include "units.h"
 #include "effects.h"
@@ -41,7 +47,7 @@ extern int8_t message_delta_decode_compound_field(void *globals, void *out_value
 extern uint8_t message_delta_decode_compound_field_staged(void **context);
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern int16_t network_game_mode;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32_t node_index, void *plane, uint8_t *geometry, uint8_t *material, uint8_t *effect_block, damage_data *dd, uint32_t *notify_flags, float *body_damage_out, float *material_multiplier_out, float damage, uint8_t is_local);
@@ -97,14 +103,14 @@ void halo::objects::ObjectDamage::initialize_shield_stun_thresholds(float *overr
 {
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
-    object *obj = headers[object_index & 0xffff].data;
+    object *obj = headers[halo::datum_slot(object_index)].data;
     float max_body_vitality = 0.0f;
     float max_shield_vitality = 0.0f;
-    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     TagID collision_model = definition->collision_model.tag_id;
 
-    if (collision_model.index != 0xffff) {
-        ModelCollisionGeometry *geometry = (ModelCollisionGeometry *)halo::cache::globals().tag_instances[collision_model.index].data;
+    if (collision_model.index != halo::k_word_none) {
+        ModelCollisionGeometry *geometry = (ModelCollisionGeometry *)tag_instances[collision_model.index].data;
         if (geometry != 0) {
             max_body_vitality = geometry->maximum_body_vitality;
             max_shield_vitality = geometry->maximum_shield_vitality;
@@ -162,10 +168,10 @@ static void object_decay_damage_timer(int32_t *ticks, float *current, float *rec
 void halo::objects::ObjectDamage::update_vitality_and_regeneration()
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint16_t *vitality_flags = (uint16_t *)(obj + 0x106);
-    float *shield = (float *)(obj + 0xe4);
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *object_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint16_t *vitality_flags = (uint16_t *)&((struct object *)obj)->vitality_flags;
+    float *shield = (float *)&((struct object *)obj)->shield_vitality;
 
     if (*(datum_index *)&((struct Object *)object_tag)->collision_model.tag_id != k_datum_index_none) {
         uint8_t *geometry = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Object *)object_tag)->collision_model.tag_id & 0xffff].data;
@@ -226,7 +232,7 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
                             *(float *)(geometry + 0x1c0);
                         float value;
 
-                        if (obj[0x106] & 8) {
+                        if ((uint8_t)((struct object *)obj)->vitality_flags & 8) {
                             object_dispatch_effect_notify(object_index, *(uint32_t *)(geometry + 0x1b4));
                             obj[0x106] &= 0xf7;
                             object_regions_reset_permutation_lock(object_index, 1);
@@ -243,15 +249,15 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
                     }
                 }
             }
-            object_decay_damage_timer((int32_t *)(obj + 0x100), (float *)(obj + 0xec), (float *)(obj + 0xf8));
-            object_decay_damage_timer((int32_t *)(obj + 0xfc), (float *)(obj + 0xe8), (float *)(obj + 0xf4));
+            object_decay_damage_timer((int32_t *)&((struct object *)obj)->body_damage_ticks, (float *)&((struct object *)obj)->current_body_damage, (float *)&((struct object *)obj)->recent_body_damage);
+            object_decay_damage_timer((int32_t *)&((struct object *)obj)->shield_damage_ticks, (float *)&((struct object *)obj)->current_shield_damage, (float *)&((struct object *)obj)->recent_shield_damage);
         }
     }
     if (((object *)obj)->type == 0 && ((object *)obj)->network_role == 0) {
-        uint8_t *object = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+        uint8_t *object = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
         if ((uint32_t)(((struct object *)object)->shield_stun_ticks > 0) != (uint32_t)object[0x538]) {
-            ((struct object *)object)->flags |= 0x4000000;
+            set_flag(((struct object *)object)->flags, objects::object_flag::changed);
         }
     }
 }
@@ -276,8 +282,8 @@ void halo::objects::DamageDataView::initialize(datum_index damage_effect_tag)
 
     dd->damage_effect_tag = damage_effect_tag;
     dd->material_type = (int16_t)0xffff;
-    dd->responsible_player = (datum_index)0xffffffff;
-    dd->responsible_object = (datum_index)0xffffffff;
+    dd->responsible_player = k_datum_index_none;
+    dd->responsible_object = k_datum_index_none;
     dd->team_index = (int16_t)0xffff;
     dd->location_cluster_index = (int16_t)0xffff;
     dd->random_blend = 1.0f;
@@ -295,7 +301,7 @@ uint8_t halo::objects::ObjectDamage::restore_full_body_vitality()
 {
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
-    object *obj = headers[object_index & 0xffff].data;
+    object *obj = headers[halo::datum_slot(object_index)].data;
 
     if ((obj->vitality_flags & _object_health_frozen_bit) != 0) {
         return 0;
@@ -321,7 +327,7 @@ void halo::objects::ObjectDamage::set_health_frozen_flag()
 {
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
-    object *obj = headers[object_index & 0xffff].data;
+    object *obj = headers[halo::datum_slot(object_index)].data;
 
     if ((obj->vitality_flags & _object_health_frozen_bit) != 0) {
         return;
@@ -329,24 +335,24 @@ void halo::objects::ObjectDamage::set_health_frozen_flag()
 
     obj->vitality_flags |= _object_health_frozen_bit;
 
-    if (((Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data)->collision_model.tag_id.index != 0xffff) {
+    if (((Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data)->collision_model.tag_id.index != halo::k_word_none) {
 
         halo::effects::effect_new_on_object(object_index,
-            *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[((Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data)
+            *(datum_index *)((uint8_t *)tag_instances[((Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data)
                 ->collision_model.tag_id.index].data + 0xb4),
             object_index, -1, 0.0f, 0.0f, 0, 0);
     }
 
     if (obj->type == _object_type_vehicle) {
         datum_index child_index = obj->first_child_object;
-        while (child_index != (datum_index)0xffffffff) {
-            object *child = headers[child_index & 0xffff].data;
+        while (child_index != k_datum_index_none) {
+            object *child = headers[halo::datum_slot(child_index)].data;
             uint8_t *child_bytes = (uint8_t *)child;
 
             if (child->type == _object_type_biped &&
                 (*(int32_t *)(child_bytes + 0x218) == -1 || halo::hs::globals::deathless_player == 0) &&
                 *(int16_t *)(child_bytes + 0x2f0) != -1) {
-                child->vitality_flags |= 0x0020;
+                set_flag(child->vitality_flags, objects::vitality_flag::unknown_20);
             }
             child_index = child->next_object;
         }
@@ -366,19 +372,19 @@ void halo::objects::ObjectDamage::set_shield_depleted_flag()
 {
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
-    object *obj = headers[object_index & 0xffff].data;
+    object *obj = headers[halo::datum_slot(object_index)].data;
 
     if ((obj->vitality_flags & _object_shield_depleted_bit) != 0) {
         return;
     }
 
     {
-        datum_index collision_model = *(datum_index *)&((Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data)->collision_model.tag_id;
+        datum_index collision_model = *(datum_index *)&((Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data)->collision_model.tag_id;
 
         if (collision_model != k_datum_index_none) {
 
             halo::effects::effect_new_on_object(object_index,
-                *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[collision_model & 0xffff].data + 0x1a4),
+                *(datum_index *)((uint8_t *)tag_instances[halo::datum_slot(collision_model)].data + 0x1a4),
                 object_index, -1, 0.0f, 0.0f, 0, 0);
         }
     }
@@ -400,7 +406,7 @@ uint8_t halo::objects::ObjectDamage::shield_recharge_start()
 {
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
-    object *obj = headers[object_index & 0xffff].data;
+    object *obj = headers[halo::datum_slot(object_index)].data;
 
     if (obj->shield_vitality <= 1.0f) {
         obj->vitality_flags |= _object_shield_recharging_bit;
@@ -408,7 +414,7 @@ uint8_t halo::objects::ObjectDamage::shield_recharge_start()
             obj->shield_vitality = 0.01f;
         }
         obj->shield_stun_ticks = 0;
-        *((uint8_t *)obj + 0x122) = 1;
+        ((struct object *)obj)->shield_update_pending = 1;
 
         return 1;
     }
@@ -427,7 +433,7 @@ void halo::objects::DamageDataView::apply_area_effect()
 {
     damage_data *dd = self;
     datum_index candidates[k_maximum_damage_candidates + 1];
-    DamageEffect *effect = (DamageEffect *)halo::cache::globals().tag_instances[dd->damage_effect_tag & 0xffff].data;
+    DamageEffect *effect = (DamageEffect *)tag_instances[halo::datum_slot(dd->damage_effect_tag)].data;
     int16_t found = (int16_t)object_find_in_sphere(0, 0, &dd->location_leaf_index, &dd->epicentre,
         effect->radius[1], candidates, k_maximum_damage_candidates);
 
@@ -442,8 +448,8 @@ void halo::objects::DamageDataView::apply_area_effect()
 }
 
 namespace {
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
 }
 
 /**
@@ -462,13 +468,13 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
     for (;;) {
         uint8_t *target = OBJECT_DATA(target_index);
         uint8_t *target_tag = TAG_DATA(*(datum_index *)target);
-        uint8_t apply = (uint8_t)(~target[0x10] & 1);
+        uint8_t apply = (uint8_t)(~(uint8_t)((struct object *)target)->flags & 1);
         uint8_t applied = 0;
         uint8_t spared_player = 0;
         uint8_t blocked;
         uint32_t flags;
 
-        if (apply && ((1u << (target[0xb4] & 0x1f)) & 3) && *(float *)(effect + 0x1cc) > 9.999999747378752e-05f) {
+        if (apply && ((1u << ((uint8_t)((struct object *)target)->type & 0x1f)) & 3) && *(float *)(effect + 0x1cc) > 9.999999747378752e-05f) {
 
             real_vector3d to_center;
             real_vector3d side_a;
@@ -497,12 +503,12 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
                 offset.i = side->i * radius;
                 offset.j = side->j * radius;
                 offset.k = side->k * radius;
-                halo::physics::collision_test_movement_segment(0xc221, origin, &offset, object_get_root_object_index(target_index), &hit);
+                halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::object_vehicle | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), origin, &offset, object_get_root_object_index(target_index), &hit);
                 sample = hit.point;
                 back.i = ((struct object *)target)->bounding_center.x - sample.x;
                 back.j = ((struct object *)target)->bounding_center.y - sample.y;
                 back.k = ((struct object *)target)->bounding_center.z - sample.z;
-                if (!halo::physics::collision_test_movement_segment(0xc221, &sample, &back, object_get_root_object_index(target_index), &hit)) {
+                if (!halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::object_vehicle | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), &sample, &back, object_get_root_object_index(target_index), &hit)) {
                     blocked = 0;
                 }
             }
@@ -515,12 +521,12 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
 
             while (walk != k_datum_index_none) {
                 root = walk;
-                walk = *(datum_index *)(OBJECT_DATA(walk) + 0x11c);
+                walk = ((struct object *)OBJECT_DATA(walk))->parent_object;
             }
             to_center.i = ((struct object *)target)->bounding_center.x - origin->x;
             to_center.j = ((struct object *)target)->bounding_center.y - origin->y;
             to_center.k = ((struct object *)target)->bounding_center.z - origin->z;
-            blocked = halo::physics::collision_test_movement_segment(0xc221, origin, &to_center, root, &hit);
+            blocked = halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::object_vehicle | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), origin, &to_center, root, &hit);
         }
         if (blocked) {
             apply = 0;
@@ -534,7 +540,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
             apply = 0;
         } else if (apply && (flags & 0x1000)) {
             apply = 0;
-            if (((1u << (target[0xb4] & 0x1f)) & 3) &&
+            if (((1u << ((uint8_t)((struct object *)target)->type & 0x1f)) & 3) &&
                 (*(uint32_t *)(TAG_DATA(*(datum_index *)target) + 0x17c) & 0x80000) &&
                 target_index != dd->responsible_object) {
                 real scale = weapon_get_zoom_fov(8, main_game_globals->difficulty);
@@ -580,7 +586,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
                 applied = 1;
             }
             {
-                datum_index model = *(datum_index *)(target_tag + 0x7c);
+                datum_index model = *(datum_index *)&((struct Object *)target_tag)->collision_model.tag_id;
 
                 if (model != k_datum_index_none && (*TAG_DATA(model) & 8) &&
                     ((struct object *)target)->first_child_object != k_datum_index_none) {
@@ -611,7 +617,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
 void halo::objects::DamageSystem::throttled_multiplayer_sound_event()
 {
     if (halo::hs::globals::should_play_multiplayer_hit_sound == 1 && (uint32_t)(object_sound_event_last_tick + 2) < (uint32_t)game_time->game_time) {
-        game_engine_queue_multiplayer_sound(0x2b, 0xffffffff, 0);
+        game_engine_queue_multiplayer_sound(0x2b, k_datum_index_none, 0);
         object_sound_event_last_tick = game_time->game_time;
     }
 }
@@ -661,7 +667,7 @@ void halo::objects::DamageSystem::apply_shield_charge_and_notify(void **message)
                 if (notify == 1) {
                     object_set_shield_depleted_flag(0);
                 }
-                unit_update_stance_and_jump(effect, 0, 0, 0, 0, 0, 0, 0xffffffff, 0, 0);
+                unit_update_stance_and_jump(effect, 0, 0, 0, 0, 0, 0, k_datum_index_none, 0, 0);
             }
         }
     }
@@ -672,12 +678,12 @@ void halo::objects::DamageSystem::apply_shield_charge_and_notify(void **message)
 namespace {
 static uint8_t *object_get(datum_index object_index)
 {
-    return (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    return (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 }
 
 static uint8_t *tag_get(datum_index tag_index)
 {
-    return (uint8_t *)halo::cache::globals().tag_instances[tag_index & 0xffff].data;
+    return (uint8_t *)tag_instances[halo::datum_slot(tag_index)].data;
 }
 
 static uint8_t teams_are_friends(int32_t bit)
@@ -738,9 +744,9 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
     if (dd->responsible_player != k_datum_index_none && player_try_get(dd->responsible_player) == 0) {
         dd->responsible_player = k_datum_index_none;
     }
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    random_seed_global = halo::advance_random_seed(random_seed_global);
     amount = ((*(float *)(effect_block + 0x14) - *(float *)(effect_block + 0x10)) *
-              ((float)(int32_t)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f) + *(float *)(effect_block + 0x10)) *
+              ((float)(int32_t)(random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale) + *(float *)(effect_block + 0x10)) *
              dd->random_blend + (1.0f - dd->random_blend) * *(float *)(effect_block + 0x0c);
     amount = amount * dd->multiplier;
     if (dd->responsible_object != k_datum_index_none) {
@@ -1004,10 +1010,10 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
             kill = 1;
         }
         if (*(int16_t *)effect_block == 2 && unit_point_in_front_and_asleep(&dd->origin, id) &&
-            (obj[0x107] & 8) == 0) {
+            ((uint8_t)(((struct object *)obj)->vitality_flags >> 8) & 8) == 0) {
             kill = 1;
         }
-        if (target_is_local == 1 && kill && (obj[0x106] & 4) == 0 && (!friendly || body_allowed)) {
+        if (target_is_local == 1 && kill && !test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) && (!friendly || body_allowed)) {
             ((object *)obj)->body_vitality = 0.0f;
             object_set_health_frozen_flag(id);
             notify_flags |= 0x41;
@@ -1046,7 +1052,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
         }
         object_notify_pickup_or_refresh_probe(id, dd->responsible_player);
         if (shield_damage > 0.0f && ((object *)obj)->type == 0) {
-            obj[0x122] = 1;
+            ((struct object *)obj)->shield_update_pending = 1;
         }
 notify:
         object_damage_notify_and_impulse(id, dd, notify_flags, shield_damage, body_damage,
@@ -1080,9 +1086,9 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
     float *body_damage_out, float *material_multiplier_out, float damage, uint8_t is_local)
 {
     uint32_t target_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[target_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(target_index)].data;
     uint8_t *vitality_flags = obj + 0x106;
-    float *vitality = (float *)(obj + 0xe0);
+    float *vitality = (float *)&((struct object *)obj)->body_vitality;
     float body = damage * *(float *)(material + 0x3c);
     float maximum;
     float inverse_maximum;
@@ -1175,16 +1181,16 @@ bookkeeping:
             ((object *)obj)->recent_body_damage = 1.0f;
         }
     }
-    if (halo::hs::globals::deathless_player && *vitality < 0.0f && ((1u << (obj[0xb4] & 0x1f)) & 3)) {
+    if (g_0087abc0 && *vitality < 0.0f && ((1u << ((uint8_t)((struct object *)obj)->type & 0x1f)) & 3)) {
         if (*(datum_index *)(obj + 0x218) != k_datum_index_none) {
             *vitality = 0.0f;
         } else if (((object *)obj)->type == 1) {
             datum_index child = ((object *)obj)->first_child_object;
 
             while (child != k_datum_index_none) {
-                uint8_t *child_obj = (uint8_t *)((object_header *)object_data->data)[child & 0xffff].data;
+                uint8_t *child_obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(child)].data;
 
-                if (((1u << (child_obj[0xb4] & 0x1f)) & 3) &&
+                if (((1u << ((uint8_t)((struct object *)child_obj)->type & 0x1f)) & 3) &&
                     *(datum_index *)(child_obj + 0x218) != k_datum_index_none) {
                     *vitality = 0.0f;
                     break;
@@ -1243,9 +1249,9 @@ void halo::objects::ObjectDamage::apply_shield_damage(uint8_t *geometry, uint8_t
     object_shield_impulse_result *record)
 {
     uint32_t target_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[target_index & 0xffff].data;
-    float *shield = (float *)(obj + 0xe4);
-    uint16_t *vitality_flags = (uint16_t *)(obj + 0x106);
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(target_index)].data;
+    float *shield = (float *)&((struct object *)obj)->shield_vitality;
+    uint16_t *vitality_flags = (uint16_t *)&((struct object *)obj)->vitality_flags;
     float passthrough = *remaining_damage;
     float to_shield = *remaining_damage;
     float maximum;
@@ -1393,7 +1399,7 @@ void halo::objects::DamageSystem::queue_pickup_denied_event(void *param_1, int32
     {
         void *items[1];
         items[0] = &block;
-        network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x31, 0,
+        network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0x31, 0,
                                              items, 0, 1, 0), network_server, 1, network_message_scratch, 0, 0, 0, 3);
     }
 }
@@ -1442,9 +1448,9 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
     float body_damage, uint32_t unused_6, int32_t region_index, uint32_t is_local)
 {
     uint32_t target_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[target_index & 0xffff].data;
-    uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *effect = (uint8_t *)halo::cache::globals().tag_instances[dd->damage_effect_tag & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(target_index)].data;
+    uint8_t *object_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *effect = (uint8_t *)tag_instances[halo::datum_slot(dd->damage_effect_tag)].data;
     int16_t type;
 
     if (((struct Object *)object_tag)->acceleration_scale > 0.0001f) {
@@ -1517,7 +1523,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
             game_engine_on_player_death(player_index, target_index, player_index, 1);
         }
     }
-    if ((1u << (obj[0xb4] & 0x1f)) & 3) {
+    if ((1u << ((uint8_t)((struct object *)obj)->type & 0x1f)) & 3) {
         unit_apply_damage_effects(target_index, dd, notify_flags, shield_damage, body_damage, region_index,
             (uint8_t)is_local);
     }
@@ -1574,8 +1580,8 @@ void halo::objects::DamageSystem::effect_new_at_location(datum_index effect_tag,
         away.i = impact_position->x - object_position.x;
         away.j = impact_position->y - object_position.y;
         away.k = impact_position->z - object_position.z;
-        if (halo::math::vector3d_normalize_with_length(away) == 0.0f) {
-            away = *(real_vector3d *)((uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data + 0x74);
+        if (halo::math::vector3d_normalize_with_length(&away) == 0.0f) {
+            away = *(real_vector3d *)((uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data + 0x74);
         }
         vectors[0] = away;
         dot2 = away.j * direction.j + direction.k * away.k + direction.i * away.i;
@@ -1597,7 +1603,7 @@ void halo::objects::DamageSystem::effect_new_at_location(datum_index effect_tag,
     for (i = 0; i < 5; i++) {
         positions[i] = *impact_position;
     }
-    if (object_index != 0xffffffff && node_index != -1) {
+    if (object_index != k_datum_index_none && node_index != -1) {
         halo::effects::effect_new_on_object_with_node_table(object_index, effect_tag, object_index, (uint16_t)node_index, 5,
             (uint32_t)(uintptr_t)names, (uint32_t)(uintptr_t)positions, (uint32_t)(uintptr_t)vectors,
             1.0f, 0.0f, 0, 0);
@@ -1636,10 +1642,10 @@ void halo::objects::ObjectDamage::destroy_region(int32_t region_index)
 {
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
-    object *obj = headers[object_index & 0xffff].data;
-    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = headers[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
-    if (definition->collision_model.tag_id.index != 0xffff) {
+    if (definition->collision_model.tag_id.index != halo::k_word_none) {
         if ((obj->destroyed_region_flags & (1 << (region_index & 0x1f))) == 0) {
             ModelCollisionGeometry *geometry =
                 (ModelCollisionGeometry *)halo::cache::globals().tag_instances[definition->collision_model.tag_id.index].data;
@@ -1649,19 +1655,19 @@ void halo::objects::ObjectDamage::destroy_region(int32_t region_index)
                 0.0f, 0.0f, 0, 0);
             object_set_permutation_by_name(object_index, (char *)"~damaged", (int16_t)region_index, 1);
 
-            if ((region->flags & 0x20) != 0) {
+            if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::inhibits_melee_attack)) {
                 obj->vitality_flags |= _object_region_response_80_bit;
             }
-            if ((region->flags & 0x40) != 0) {
+            if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::inhibits_weapon_attack)) {
                 obj->vitality_flags |= _object_region_response_100_bit;
             }
-            if ((region->flags & 0x80) != 0) {
+            if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::inhibits_walking)) {
                 *((uint8_t *)obj + 0x107) |= 2;
             }
-            if ((region->flags & 0x100) != 0) {
+            if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::forces_drop_weapon)) {
                 *((uint8_t *)obj + 0x107) |= 4;
             }
-            if ((region->flags & 2) != 0) {
+            if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::forces_object_to_die)) {
                 object_set_health_frozen_flag(object_index);
             }
 
@@ -1688,7 +1694,7 @@ void halo::objects::DamageSystem::breakable_surfaces_reset()
 
     for (group = 0; group < 16; group++) {
         for (i = 0; i < 8; i++) {
-            table->active[group][i] = 0xffffffff;
+            table->active[group][i] = k_datum_index_none;
         }
     }
     for (group = 0; group < 16; group++) {

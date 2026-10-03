@@ -1,4 +1,8 @@
 #include "halo/objects/object_update.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
+#include "halo/core/lcg.hpp"
 #include "game.h"
 #include "models.h"
 #include "halo/math/api.hpp"
@@ -52,8 +56,8 @@ void halo::objects::ObjectUpdater::regions_reset_permutation_lock(int8_t unlock)
 {
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
-    object *obj = headers[object_index & 0xffff].data;
-    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = headers[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     ModelCollisionGeometry *geometry =
         (ModelCollisionGeometry *)halo::cache::globals().tag_instances[definition->collision_model.tag_id.index].data;
     ModelCollisionGeometryRegion *regions = (ModelCollisionGeometryRegion *)geometry->regions.pointer;
@@ -63,7 +67,7 @@ void halo::objects::ObjectUpdater::regions_reset_permutation_lock(int8_t unlock)
     for (region_index = 0; region_index < region_count; region_index++) {
         ModelCollisionGeometryRegion *region = &regions[region_index];
 
-        if ((region->flags & 0x10) != 0 && (int32_t)region->permutations.count > 1) {
+        if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::disappears_when_shield_is_off) && (int32_t)region->permutations.count > 1) {
             obj->region_permutations[region_index] = (unlock == 0);
         }
     }
@@ -77,15 +81,15 @@ void halo::objects::ObjectUpdater::regions_reset_permutation_lock(int8_t unlock)
 void halo::objects::ObjectUpdater::set_permutation_by_name(char *name, int16_t region_filter, char use_matched_index)
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
-    if (definition->model.tag_id.index == 0xffff) {
+    if (definition->model.tag_id.index == halo::k_word_none) {
         return;
     }
 
     {
-        GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[definition->model.tag_id.index & 0xffff].data;
+        GBXModel *model = (GBXModel *)tag_instances[halo::datum_slot(definition->model.tag_id.index)].data;
         int16_t region_index;
         for (region_index = 0; region_index < (int16_t)model->regions.count; region_index++) {
             ModelRegion *region;
@@ -123,9 +127,9 @@ void halo::objects::ObjectUpdater::set_permutation_by_name(char *name, int16_t r
 uint8_t halo::objects::ObjectUpdater::update()
 {
     uint32_t object_index = handle;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     object *obj = header->data;
-    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if ((header->flags & _object_header_just_created_bit) != 0) {
         return 1;
@@ -144,21 +148,21 @@ uint8_t halo::objects::ObjectUpdater::update()
 
     object_type_definitions_query_0x34(object_index);
 
-    if (definition->collision_model.tag_id.index != 0xffff) {
+    if (definition->collision_model.tag_id.index != halo::k_word_none) {
         object_update_vitality_and_regeneration(object_index);
     }
 
     object_type_definitions_notify_0x38(object_index);
 
-    if ((obj->flags & 0x800000) == 0) {
+    if (!test_flag(obj->flags, objects::object_flag::unknown_800000)) {
         object_recalculate_bounding_radius(object_index);
     }
 
     object_update_functions(object_index);
     object_update_change_colors(object_index);
 
-    if (((obj->flags & 0x2000) != 0) &&
-        (((obj->flags & _object_no_collision_bit) == 0) || (definition->model.tag_id.index == 0xffff))) {
+    if ((test_flag(obj->flags, objects::object_flag::unknown_2000)) &&
+        (((obj->flags & _object_no_collision_bit) == 0) || (definition->model.tag_id.index == halo::k_word_none))) {
         object_for_each_light_attachment(object_index, 1, 1);
     }
 
@@ -205,8 +209,8 @@ static float clamp_to_one(float value)
 void halo::objects::ObjectUpdater::update_export_functions()
 {
     datum_index object_index = handle;
-    uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & 0xffff].data;
+    uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
+    uint8_t *definition = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)object)].data;
     int32_t i;
 
     for (i = 0; i < 4; i++) {
@@ -218,18 +222,18 @@ void halo::objects::ObjectUpdater::update_export_functions()
             continue;
         }
         switch (source) {
-        case 1: value = *(float *)(object + 0xe0); break;
-        case 2: value = clamp_to_one(*(float *)(object + 0xe4)); break;
-        case 3: value = *(float *)(object + 0xec); break;
-        case 4: value = *(float *)(object + 0xe8); break;
+        case 1: value = ((struct object *)object)->body_vitality; break;
+        case 2: value = clamp_to_one(((struct object *)object)->shield_vitality); break;
+        case 3: value = ((struct object *)object)->current_body_damage; break;
+        case 4: value = ((struct object *)object)->current_shield_damage; break;
         case 5:
             if (*(uint32_t *)output == 0x3f800000) {
                 value = halo::math::random_real();
             }
             break;
-        case 18: value = (object[0x106] & 4) != 0 ? 0.0f : 1.0f; break;
+        case 18: value = test_flag(((struct object *)object)->vitality_flags, objects::vitality_flag::health_frozen) ? 0.0f : 1.0f; break;
         case 19: {
-            float *forward = (float *)(object + *(int16_t *)(object + 0x1f2) + 4);
+            float *forward = (float *)(object + ((struct object *)object)->nodes.offset + 4);
 
             if (!(fabs(forward[2]) < 0.995)) {
                 value = *output;
@@ -355,14 +359,14 @@ clamp_to_one:
 void halo::objects::ObjectUpdater::recalculate_bounding_radius_recursive()
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     datum_index child;
 
     object_recalculate_bounding_radius(object_index);
 
     child = obj->first_child_object;
     while (child != k_datum_index_none) {
-        object *child_obj = ((object_header *)object_data->data)[child & 0xffff].data;
+        object *child_obj = ((object_header *)object_data->data)[halo::datum_slot(child)].data;
         object_recalculate_bounding_radius_recursive(child);
         child = child_obj->next_object;
     }
@@ -370,7 +374,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius_recursive()
 
 namespace {
 #define OFS(base, off, type) (*(type *)((uint8_t *)(base) + (off)))
-#define TAG_DATA(id) ((uint8_t *)halo::cache::globals().tag_instances[(uint32_t)(id) & 0xffff].data)
+#define TAG_DATA(id) ((uint8_t *)tag_instances[halo::datum_slot((uint32_t)(id))].data)
 static void matrix4x3_set_translation_only(real_matrix4x3 *m, const real_point3d *position)
 {
     m->scale = 1.0f;
@@ -392,59 +396,59 @@ static void matrix4x3_set_translation_only(real_matrix4x3 *m, const real_point3d
 void halo::objects::ObjectUpdater::recalculate_bounding_radius()
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *def = TAG_DATA(OFS(obj, 0x0, uint32_t));
-    real_matrix4x3 *nodes = (real_matrix4x3 *)(obj + OFS(obj, 0x1f2, int16_t));
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *def = TAG_DATA(((struct object *)obj)->definition_tag);
+    real_matrix4x3 *nodes = (real_matrix4x3 *)(obj + ((struct object *)obj)->nodes.offset);
     real_orientation local_orientations[k_maximum_nodes_per_model];
     real_orientation *orientations;
 
-    if (((1u << (OFS(obj, 0xb4, uint8_t) & 0x1f)) & 0xfe0u) != 0) {
+    if (((1u << ((uint8_t)((struct object *)obj)->type & 0x1f)) & 0xfe0u) != 0) {
         orientations = local_orientations;
     } else {
-        orientations = (real_orientation *)(obj + OFS(obj, 0x1ee, int16_t));
+        orientations = (real_orientation *)(obj + ((struct object *)obj)->node_function_defaults.offset);
     }
 
-    if (OFS(def, 0x34, int32_t) == -1) {
+    if (*(int32_t *)&((struct Object *)def)->model.tag_id == -1) {
 
         nodes[0].scale = 1.0f;
-        nodes[0].forward = OFS(obj, 0x74, real_vector3d);
-        nodes[0].up = OFS(obj, 0x80, real_vector3d);
-        halo::math::vector3d_cross_product(nodes[0].left, nodes[0].forward, nodes[0].up);
-        nodes[0].position = OFS(obj, 0x5c, real_point3d);
+        nodes[0].forward = ((struct object *)obj)->forward;
+        nodes[0].up = ((struct object *)obj)->up;
+        halo::math::vector3d_cross_product(&nodes[0].left, &nodes[0].forward, &nodes[0].up);
+        nodes[0].position = ((struct object *)obj)->position;
     } else {
-        uint8_t *model = TAG_DATA(OFS(def, 0x34, uint32_t));
+        uint8_t *model = TAG_DATA(*(uint32_t *)&((struct Object *)def)->model.tag_id);
         real_matrix4x3 *parent_matrix = 0;
         uint8_t absolute_root = 0;
         int16_t queue[k_maximum_nodes_per_model];
         int16_t head, tail;
 
-        if (OFS(obj, 0x11c, int32_t) != -1) {
-            uint8_t *parent = (uint8_t *)((object_header *)object_data->data)[OFS(obj, 0x11c, uint32_t) & 0xffff].data;
-            parent_matrix = (real_matrix4x3 *)(parent + OFS(parent, 0x1f2, int16_t)) + OFS(obj, 0x120, int8_t);
+        if ((int32_t)((struct object *)obj)->parent_object != -1) {
+            uint8_t *parent = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(((struct object *)obj)->parent_object)].data;
+            parent_matrix = (real_matrix4x3 *)(parent + ((struct object *)parent)->nodes.offset) + (int8_t)((struct object *)obj)->parent_marker_index;
         }
 
-        if (OFS(obj, 0xcc, int32_t) != -1 && OFS(obj, 0xd0, int16_t) != -1) {
-            ModelAnimationsAnimation *animation = (ModelAnimationsAnimation *)(OFS(TAG_DATA(OFS(obj, 0xcc, uint32_t)), 0x78, uint8_t *) +
-                (int32_t)OFS(obj, 0xd0, int16_t) * 0xb4);
-            int16_t frame_count = OFS(animation, 0x22, int16_t);
+        if ((int32_t)((struct object *)obj)->animation_graph != -1 && ((struct object *)obj)->animation_index != -1) {
+            ModelAnimationsAnimation *animation = (ModelAnimationsAnimation *)(OFS(TAG_DATA(((struct object *)obj)->animation_graph), 0x78, uint8_t *) +
+                (int32_t)((struct object *)obj)->animation_index * 0xb4);
+            int16_t frame_count = (int16_t)animation->frame_count;
             uint32_t frame;
             if (OFS(obj, 0x10, int8_t) < 0 && frame_count > 0) {
-                frame = (OFS(game_time, 0xc, uint32_t) + object_index) % (uint32_t)(int32_t)frame_count;
+                frame = ((uint32_t)game_time->game_time + object_index) % (uint32_t)(int32_t)frame_count;
             } else {
-                frame = OFS(obj, 0xd2, uint16_t);
+                frame = (uint16_t)((struct object *)obj)->animation_frame;
             }
             animation_get_frame_orientations(animation, (GBXModel *)model, (int16_t)frame, orientations);
-            absolute_root = (uint8_t)((OFS(animation, 0x3a, uint8_t) >> 1) & 1);
+            absolute_root = (uint8_t)(((uint8_t)animation->flags >> 1) & 1);
         } else {
             model_nodes_get_default_transforms((GBXModel *)model, orientations);
         }
 
-        if (OFS(def, 0x44, int32_t) != -1) {
-            uint8_t *graph = TAG_DATA(OFS(def, 0x44, uint32_t));
+        if (*(int32_t *)&((struct Object *)def)->animation_graph.tag_id != -1) {
+            uint8_t *graph = TAG_DATA(*(uint32_t *)&((struct Object *)def)->animation_graph.tag_id);
             int16_t i;
             for (i = 0; (int32_t)i < OFS(graph, 0x0, int32_t); i++) {
                 int16_t *entry = (int16_t *)(OFS(graph, 0x4, uint8_t *) + (int32_t)i * 0x14);
-                if (entry[0] == -1 || (int32_t)entry[1] >= OFS(def, 0x158, int32_t)) {
+                if (entry[0] == -1 || (int32_t)entry[1] >= (int32_t)((struct Object *)def)->functions.count) {
                     continue;
                 }
                 {
@@ -452,35 +456,35 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                         (ModelAnimationsAnimation *)(OFS(graph, 0x78, uint8_t *) + (int32_t)entry[0] * 0xb4);
                     float value = OFS(obj, 0x134 + (int32_t)entry[1] * 4, float);
                     if (entry[2] == 0) {
-                        int32_t frames = (int32_t)OFS(animation, 0x22, int16_t);
+                        int32_t frames = (int32_t)(int16_t)animation->frame_count;
                         if ((OFS(OFS(def, 0x15c, uint8_t *), (int32_t)entry[1] * 0x168, uint8_t) & 2) == 0) {
                             frames -= 1;
                         }
                         animation_overlay_interpolated_frame_orientations(animation, (float)frames * value, orientations);
                     } else if (entry[2] == 1) {
-                        uint32_t frame = (OFS(game_time, 0xc, uint32_t) + object_index) %
-                            (uint32_t)(int32_t)OFS(animation, 0x22, int16_t);
+                        uint32_t frame = ((uint32_t)game_time->game_time + object_index) %
+                            (uint32_t)(int32_t)(int16_t)animation->frame_count;
                         animation_overlay_frame_orientations_weighted(animation, (int16_t)frame, value, orientations);
                     }
                 }
             }
         }
 
-        if (OFS(obj, 0xb0, float) > 0.0f) {
-            float scale = OFS(obj, 0xb0, float);
+        if (((struct object *)obj)->scale > 0.0f) {
+            float scale = ((struct object *)obj)->scale;
             orientations[0].scale *= scale;
             orientations[0].translation.x *= scale;
             orientations[0].translation.y *= scale;
             orientations[0].translation.z *= scale;
         }
-        if (OFS(def, 0x44, int32_t) != -1) {
+        if (*(int32_t *)&((struct Object *)def)->animation_graph.tag_id != -1) {
             object_type_definitions_notify_two_args_0x48(object_index, (uint32_t)orientations);
         }
-        if (OFS(obj, 0xd6, int16_t) > 0) {
+        if (((struct object *)obj)->node_function_count > 0) {
 
             model_nodes_blend_transforms(orientations, OFS(model, 0xb8, int16_t),
-                (real_orientation *)(obj + OFS(obj, 0x1ea, int16_t)), (int16_t)OFS(obj, 0xd4, uint16_t),
-                (int16_t)OFS(obj, 0xd6, uint16_t));
+                (real_orientation *)(obj + ((struct object *)obj)->node_function_values.offset), (int16_t)(uint16_t)((struct object *)obj)->interpolation_frame_index,
+                (int16_t)(uint16_t)((struct object *)obj)->node_function_count);
         }
 
         queue[0] = 0;
@@ -505,15 +509,15 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                     real_matrix4x3 parent_copy;
                     real_matrix4x3 *base = parent_matrix;
 
-                    matrix4x3_set_translation_only(&world, &OFS(obj, 0x5c, real_point3d));
-                    halo::math::matrix4x3_from_forward_up(OFS(obj, 0x80, real_vector3d), OFS(obj, 0x74, real_vector3d), orientation);
-                    if ((OFS(obj, 0x10, uint32_t) & 0x1000) != 0) {
+                    matrix4x3_set_translation_only(&world, &((struct object *)obj)->position);
+                    halo::math::matrix4x3_from_forward_up(&((struct object *)obj)->up, &((struct object *)obj)->forward, &orientation);
+                    if (test_flag(((struct object *)obj)->flags, objects::object_flag::mirrored_geometry)) {
                         orientation.left.i = -orientation.left.i;
                         orientation.left.j = -orientation.left.j;
                         orientation.left.k = -orientation.left.k;
                     }
-                    if (OFS(def, 0x8c, int32_t) != -1) {
-                        uint8_t *tag = TAG_DATA(OFS(def, 0x8c, uint32_t));
+                    if (*(int32_t *)&((struct Object *)def)->physics.tag_id != -1) {
+                        uint8_t *tag = TAG_DATA(*(uint32_t *)&((struct Object *)def)->physics.tag_id);
                         real_point3d negated;
                         negated.x = -OFS(tag, 0xc, float);
                         negated.y = -OFS(tag, 0x10, float);
@@ -535,7 +539,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                         }
                         {
                             uint8_t *parent_object = (uint8_t *)((object_header *)object_data->data)
-                                [OFS(obj, 0x11c, uint32_t) & 0xffff].data;
+                                [halo::datum_slot(((struct object *)obj)->parent_object)].data;
                             if ((OFS(parent_object, 0x10, uint32_t) & 0x1000) != 0) {
                                 if (base != &parent_copy) {
                                     parent_copy = *base;
@@ -571,10 +575,10 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         } while (head != tail);
     }
 
-    halo::math::matrix4x3_transform_point(OFS(obj, 0xa0, real_point3d), OFS(def, 0x8, real_point3d), nodes[0]);
-    OFS(obj, 0xac, float) = OFS(def, 0x4, float);
-    if (OFS(obj, 0xb0, float) > 0.0f) {
-        OFS(obj, 0xac, float) = OFS(def, 0x4, float) * OFS(obj, 0xb0, float);
+    halo::math::matrix4x3_transform_point(&((struct object *)obj)->bounding_center, &OFS(def, 0x8, real_point3d), &nodes[0]);
+    ((struct object *)obj)->bounding_radius = ((struct Object *)def)->bounding_radius;
+    if (((struct object *)obj)->scale > 0.0f) {
+        ((struct object *)obj)->bounding_radius = ((struct Object *)def)->bounding_radius * ((struct object *)obj)->scale;
     }
 }
 #undef OFS
@@ -603,9 +607,9 @@ static float clamp_unit(float value)
 void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
-    float *position = (float *)(obj + 0x5c);
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    float *position = (float *)&((struct object *)obj)->position;
     int32_t i;
 
     for (i = 0; i < 4; i++) {
@@ -619,16 +623,16 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
             double seed = (double)position[2] * (double)744.12415f + (double)position[0] * (double)315.89313f +
                 (double)position[1] * (double)587.12946f + (double)i * (double)431.12894f;
             float weight = (float)fmod(fabs(seed), 1.0);
-            int32_t count = *(int32_t *)(change_color + 0x20);
+            int32_t count = (int32_t)((struct ObjectChangeColors *)change_color)->permutations.count;
             int16_t p;
 
             for (p = 0; p < count; p++) {
-                uint8_t *permutation = *(uint8_t **)(change_color + 0x24) + p * 0x1c;
+                uint8_t *permutation = (uint8_t *)((struct ObjectChangeColors *)change_color)->permutations.pointer + p * 0x1c;
 
                 if (weight <= *(float *)permutation) {
                     float t = (float)fmod(fabs(position[1]) + (double)i * (double)0.71210998f, 1.0);
 
-                    color_interpolate((ColorRGB *)(permutation + 0x10), (ColorRGB *)(permutation + 4), working, 1, t);
+                    color_interpolate((ColorRGB *)&((struct ObjectChangeColorsPermutation *)permutation)->color_upper_bound, (ColorRGB *)(permutation + 4), working, 1, t);
                     break;
                 }
             }
@@ -652,7 +656,7 @@ int16_t halo::objects::ObjectUpdater::permutation_find_matching_group(ModelRegio
 
     for (i = 0; (int32_t)i < (int32_t)region->permutations.count; i++) {
         ModelRegionPermutation *perm = (ModelRegionPermutation *)region->permutations.pointer + i;
-        if ((perm->flags & 1) == 0) {
+        if (!test_flag(perm->flags, tags::model_region_permutation_tag_flag::cannot_be_chosen_randomly)) {
 
             if (((int16_t)perm->permutation_number == group) ||
                 ((group == -1) && ((int16_t)perm->permutation_number < 100))) {
@@ -673,7 +677,7 @@ int16_t halo::objects::ObjectUpdater::permutation_find_matching_group(ModelRegio
 uint8_t halo::objects::ObjectUpdater::regions_initialize_permutations(int16_t group, GBXModel *model)
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     uint8_t all_assigned = 1;
     int16_t region_index;
 
@@ -697,8 +701,8 @@ uint8_t halo::objects::ObjectUpdater::regions_initialize_permutations(int16_t gr
         if (match_count == 1) {
             chosen = 0;
         } else {
-            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
-            chosen = (int16_t)(((int32_t)(halo::math::globals().random_seed_global >> 0x10) * match_count) >> 0x10);
+            random_seed_global = halo::advance_random_seed(random_seed_global);
+            chosen = (int16_t)(((int32_t)(random_seed_global >> halo::k_random_high_shift) * match_count) >> 0x10);
         }
         obj->region_permutations[region_index] = (uint8_t)matches[chosen];
     }
@@ -714,7 +718,7 @@ uint8_t halo::objects::ObjectUpdater::regions_initialize_permutations(int16_t gr
 int16_t halo::objects::ObjectUpdater::get_first_region_probability_group(GBXModel *model)
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     int16_t group = 0;
     int16_t region_index;
 
@@ -741,11 +745,11 @@ int16_t halo::objects::ObjectUpdater::get_first_region_probability_group(GBXMode
 void halo::objects::ObjectUpdater::refresh_region_permutations()
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
-    if (definition->model.tag_id.index != 0xffff) {
-        GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[definition->model.tag_id.index & 0xffff].data;
+    if (definition->model.tag_id.index != halo::k_word_none) {
+        GBXModel *model = (GBXModel *)tag_instances[halo::datum_slot(definition->model.tag_id.index)].data;
         int16_t *cached_group = (int16_t *)((uint8_t *)obj + 0xbe);
 
         if ((*cached_group <= 0) || (object_regions_initialize_permutations(object_index, *cached_group, model) == 0)) {
@@ -768,8 +772,8 @@ void halo::objects::ObjectUpdater::refresh_region_permutations()
 void halo::objects::ObjectUpdater::update_change_colors()
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if ((definition->scales_change_colors & 1) != 0) {
         int32_t count = definition->change_colors.count;
@@ -783,7 +787,7 @@ void halo::objects::ObjectUpdater::update_change_colors()
             if (tag_color->scale_by != 0) {
                 float t = *(float *)((uint8_t *)obj + 0x120 + tag_color->scale_by * 4);
 
-                color_interpolate((ColorRGB *)((uint8_t *)tag_color + 0x14), (ColorRGB *)((uint8_t *)tag_color + 8), out,
+                color_interpolate((ColorRGB *)&tag_color->color_upper_bound, (ColorRGB *)((uint8_t *)tag_color + 8), out,
                     *(uint32_t *)&((struct ObjectChangeColors *)tag_color)->flags, t);
             }
             if (tag_color->darken_by != 0) {
@@ -823,9 +827,9 @@ static float function_scale_input(uint8_t *obj, int16_t selector)
 void halo::objects::ObjectUpdater::update_functions()
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
-    float phase = (float)(int32_t)((object_index & 0xffff) * 0x39 + game_time->game_time) * 0.033333335f;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    float phase = (float)(int32_t)(halo::datum_slot(object_index) * 0x39 + game_time->game_time) * 0.033333335f;
     int16_t i;
 
     for (i = 0; i < (int32_t)definition->functions.count; i++) {
@@ -892,7 +896,7 @@ void halo::objects::ObjectUpdater::update_functions()
             }
         }
         if (fn->turn_off_with != -1 &&
-            (obj[0x123] & (uint8_t)(1u << (fn->turn_off_with & 0x1f))) == 0) {
+            (((struct object *)obj)->function_valid_flags & (uint8_t)(1u << (fn->turn_off_with & 0x1f))) == 0) {
             valid = 0;
         }
         if (fn->flags & 2) {
@@ -900,9 +904,9 @@ void halo::objects::ObjectUpdater::update_functions()
         }
         *(float *)(obj + 0x134 + i * 4) = value;
         if (valid) {
-            obj[0x123] = (uint8_t)(obj[0x123] | (1u << i));
+            ((struct object *)obj)->function_valid_flags = (uint8_t)(((struct object *)obj)->function_valid_flags | (1u << i));
         } else {
-            obj[0x123] = (uint8_t)(obj[0x123] & ~(1u << i));
+            ((struct object *)obj)->function_valid_flags = (uint8_t)(((struct object *)obj)->function_valid_flags & ~(1u << i));
         }
     }
 }

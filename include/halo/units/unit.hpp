@@ -8,6 +8,7 @@
 #include "objects.h"
 #include "units.h"
 #include "models.h"
+#include "halo/core/datum.hpp"
 
 namespace halo::units {
 

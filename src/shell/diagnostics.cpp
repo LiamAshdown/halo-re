@@ -1,4 +1,5 @@
 #include "halo/shell/diagnostics.hpp"
+#include "halo/shell/layout.hpp"
 #include "halo/shell/system.hpp"
 #include "halo/shell/window.hpp"
 #include "dialogs.h"
@@ -143,14 +144,14 @@ void Localization::initialize()
 
     shell_module_handle = LoadLibraryA("strings.dll");
     if (shell_module_handle == 0) {
-        GetCurrentDirectoryA(0x104, current_directory);
+        GetCurrentDirectoryA(sizeof(current_directory), current_directory);
         strcat(current_directory, "\\strings.dll is missing.");
         MessageBoxA(0, current_directory, "Error!", 0);
         ExitProcess(1);
     }
 
     shell_language_id = k_shell_language_default;
-    value_type = 4;
+    value_type = k_reg_dword;
     value_size = 4;
     if (SettingsStore::current().read_value(SettingsScope::machine, "LangID", &value_type, &language_id, &value_size)) {
         if ((language_id & 0xfc00) == 0) {
@@ -160,10 +161,10 @@ void Localization::initialize()
         }
     }
 
-    load_string_or_default(0x77, k_shell_exception_string_length, exception_title, "Exception!");
-    load_string_or_default(0x78, k_shell_exception_string_length, exception_gathering_text, "Gathering Exception Data...");
-    load_string_or_default(0x84, k_shell_eula_name_length, eula_file_name, "eula.rtf");
-    load_string_or_default(0x88, k_shell_strings_dll_error_length, strings_dll_invalid_text, "Invalid / missing strings.dll");
+    load_string_or_default(k_string_exception_title, k_shell_exception_string_length, exception_title, "Exception!");
+    load_string_or_default(k_string_exception_gathering, k_shell_exception_string_length, exception_gathering_text, "Gathering Exception Data...");
+    load_string_or_default(k_string_eula_name, k_shell_eula_name_length, eula_file_name, "eula.rtf");
+    load_string_or_default(k_string_strings_dll_invalid, k_shell_strings_dll_error_length, strings_dll_invalid_text, "Invalid / missing strings.dll");
 
     shell_startup_tick_count = GetTickCount();
 }
@@ -180,7 +181,7 @@ void FatalError::load_text(uint32_t resource_id, uint32_t help_text_or_id, int32
     void *module;
     int32_t loaded;
 
-    if (resource_id == 0xffffffff) {
+    if (resource_id == k_dword_none) {
         const char *source = help_text;
         char *dest = fatal_error_text;
         do {
@@ -204,7 +205,7 @@ void FatalError::load_text(uint32_t resource_id, uint32_t help_text_or_id, int32
 
     module = shell_module_handle;
     loaded = Localization::load_localized_string(k_shell_fatal_error_title_length, module, fatal_error_title,
-                                                 0x7f + (is_fatal != 0));
+                                                 k_string_error_title_base + (is_fatal != 0));
     if (loaded == 0) {
         sprintf(fatal_error_title, "Halo - Error");
     }
@@ -295,8 +296,8 @@ int32_t FatalError::show(uint32_t resource_id, uint32_t help_text_or_id, int32_t
         wndclass.size = 0x30;
         wndclass.window_procedure = (uint32_t)DefWindowProcA;
         wndclass.instance = (uint32_t)shell_instance;
-        wndclass.icon = (uint32_t)LoadIconA((HINSTANCE)shell_instance, (const char *)0x66);
-        wndclass.cursor = (uint32_t)LoadCursorA(0, (const char *)0x7f00);
+        wndclass.icon = (uint32_t)LoadIconA((HINSTANCE)shell_instance, (const char *)k_fatal_error_dialog_resource);
+        wndclass.cursor = (uint32_t)LoadCursorA(0, (const char *)k_idc_arrow);
         wndclass.class_name = (uint32_t)"Halo";
         RegisterClassExA((const WNDCLASSEXA *)&wndclass);
         window = CreateWindowExA(0, "Halo", "Halo", 0x80000000, -0x80000000, -0x80000000, -0x80000000, -0x80000000,
@@ -305,7 +306,7 @@ int32_t FatalError::show(uint32_t resource_id, uint32_t help_text_or_id, int32_t
     }
 
     ShowCursor(1);
-    result = halo::dialogs::dialog_box_show_localized((dialog_window_proc_fn)halo::dialogs::fatal_error_dialog_proc, shell_module_handle, (const char *)0x66, window);
+    result = halo::dialogs::dialog_box_show_localized((dialog_window_proc_fn)fatal_error_dialog_proc, shell_module_handle, (const char *)k_fatal_error_dialog_resource, window);
     ShowCursor(0);
 
     if (is_fatal != 0 || result == 2) {
@@ -355,7 +356,7 @@ int32_t __stdcall DialogCentering::procedure(void *hwnd, uint32_t message, uint3
     win32_rect window_rect;
     win32_rect desktop_rect;
 
-    if (message != 0x110) {
+    if (message != k_wm_initdialog) {
         return 0;
     }
 

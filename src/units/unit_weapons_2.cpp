@@ -101,11 +101,11 @@ void unit_spawn_with_starting_weapons(void *command_record)
     memcpy(placement + 0x34, &message.forward, 12);
     memcpy(placement + 0x40, &message.up, 12);
     vehicle_index = object_new_with_datum_role_control((object_placement_data *)placement, 1);
-    if (vehicle_index == (datum_index)0xffffffff) {
+    if (vehicle_index == k_datum_index_none) {
         return;
     }
     network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)vehicle_index);
-    vehicle = (uint8_t *)((object_header *)object_data->data)[vehicle_index & 0xffff].data;
+    vehicle = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(vehicle_index)].data;
     memcpy(vehicle + 0x52c, &message.position, 12);
     memcpy(vehicle + 0x538, &message.velocity, 12);
     memcpy(vehicle + 0x544, &message.angular_velocity, 12);
@@ -119,7 +119,7 @@ void unit_spawn_with_starting_weapons(void *command_record)
     memcpy(vehicle + 0x8c, vehicle + 0x544, 12);
     memcpy(vehicle + 0x74, vehicle + 0x550, 12);
     memcpy(vehicle + 0x80, vehicle + 0x55c, 12);
-    vehicle[0x475] = 1;
+    ((struct unit_object *)vehicle)->unit.unknown_475 = 1;
     keys = (int32_t *)object_network_id_table->handles;
     for (i = 0; i < 4; i++) {
         int32_t weapon = message.weapon_keys[i] != 0 ? keys[message.weapon_keys[i]] : -1;
@@ -127,7 +127,7 @@ void unit_spawn_with_starting_weapons(void *command_record)
         if (weapon != -1) {
             ::halo::units::unit_pickup_weapon(0, (uint32_t)weapon, vehicle_index);
         } else {
-            ((int32_t *)(vehicle + 0x2f8))[i] = -1;
+            ((int32_t *)&((struct unit_object *)vehicle)->unit.weapons)[i] = -1;
         }
     }
 }

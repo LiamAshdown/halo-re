@@ -1,4 +1,5 @@
 #include "halo/shell/hwreq.hpp"
+#include "halo/shell/layout.hpp"
 
 extern "C" {
 extern hwreq_parser_vtable hwreq_parser_vtable_instance;
@@ -194,7 +195,7 @@ void HwreqParser::scalar_deleting_destruct()
  */
 char *HwreqParser::error_message_text()
 {
-    if (self->error_message.capacity > 0xf) {
+    if (self->error_message.capacity > k_string_inline_capacity) {
         return (char *)self->error_message.buffer.heap_buffer;
     }
     return self->error_message.buffer.inline_buffer;
@@ -266,7 +267,7 @@ hwreq_property_set *HwreqParser::flags_set()
  */
 char *HwreqParser::graphics_device_name_text()
 {
-    if (self->graphics_device_name.capacity > 0xf) {
+    if (self->graphics_device_name.capacity > k_string_inline_capacity) {
         return (char *)self->graphics_device_name.buffer.heap_buffer;
     }
     return self->graphics_device_name.buffer.inline_buffer;
@@ -389,7 +390,7 @@ hwreq_property_set *HwreqParser::find_property_set(const char *name)
         result = (hwreq_property_set *)node->value;
     }
 
-    if (key.capacity >= 0x10) {
+    if (key.capacity >= k_string_inline_capacity + 1) {
         free((void *)key.buffer.heap_buffer);
     }
     return result;
@@ -451,9 +452,9 @@ uint8_t HwreqParser::parse(const char *path, const shell_sound_device *sound_dev
         }
     }
 
-    file = CreateFileA(path, 0x80000000, 1, 0, 3, 0,
+    file = CreateFileA(path, win32::k_generic_read, win32::k_file_share_read, 0, win32::k_open_existing, 0,
                        0);
-    if (file == (void *)-1) {
+    if (file == win32::invalid_handle()) {
         GetCurrentDirectoryA(sizeof(directory), directory);
         for (end = directory; *end; end++) {
         }

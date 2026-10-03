@@ -16,11 +16,14 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
-#include "halo/math/api.hpp"
-#include "halo/memory/api.hpp"
-#include "halo/cache/api.hpp"
-#include "halo/structures/api.hpp"
-#include "halo/effects/api.hpp"
+#include "halo/render/layout.hpp"
+
+static_assert(offsetof(first_person_weapon_interface, node_matrices) == 0x108c);
+static_assert(sizeof(real_matrix4x3) == 0x34);
+static_assert(sizeof(ObjectAttachment) == 0x48);
+static_assert(offsetof(ObjectAttachment, change_color) == 0x34);
+static_assert(offsetof(Contrail, _pad_84) == 0x84);
+static_assert(offsetof(Particle, _pad_b0) == 0xb0);
 
 extern "C" {
 extern float build_sprite_screen_coverage;
@@ -73,11 +76,11 @@ static void point_state_width_and_color(ContrailPointState *state, contrail_poin
 {
     float t = 1.0f;
 
-    if ((state->scale_flags & 0x20) != 0) {
+    if (halo::test_flag(state->scale_flags, halo::tags::contrail_point_state_scale_tag_flag::color)) {
         t = point->scale;
     }
     *width = state->width;
-    if ((state->scale_flags & 0x10) != 0) {
+    if (halo::test_flag(state->scale_flags, halo::tags::contrail_point_state_scale_tag_flag::width)) {
         *width = *width * point->scale;
     }
     color->alpha = (state->color_upper_bound.alpha - state->color_lower_bound.alpha) * t +
@@ -610,14 +613,14 @@ void sprites_end(build_sprite_data *data)
             if (handle != 0) {
                 void *buffer = (void *)(uintptr_t)rasterizer_vertex_buffer_slots[handle - 1].hardware_buffer;
 
-                ((d3d_unlock_fn)(*(void ***)buffer)[0x30 / 4])(buffer);
+                d3d9::buffer_function<d3d_unlock_fn>(buffer, d3d9::buffer_method::unlock)(buffer);
             }
         }
 
         if (group->quad_count != 0 && (data->flags & _build_sprite_data_screen_space_bit) == 0) {
             rasterizer_transparent_object_append(group->bitmap, -4, group->vertex_slot,
                                                  (int32_t)group->quad_count * 2,
-                                                 ((data->flags & 0xff & 2) << 6) | 0x20,
+                                                 ((data->flags & to_bits(sprite_batch_flag::first_person)) << k_sprite_batch_first_person_shift) | k_transparent_append_sprite_flag,
                                                  &data->centroid,
                                                  (Shader *)(uintptr_t)data->shader);
         }
@@ -656,7 +659,7 @@ real compute_edge_fade_factor(real_vector3d *direction, real_point3d *point, int
                                  sqrt((double)(to_camera.k * to_camera.k + to_camera.j * to_camera.j +
                                                to_camera.i * to_camera.i))));
 
-    if ((*flags & 0x40) != 0) {
+    if (test_flag(*flags, tags::contrail_tag_flag::edge_effect_fades_slowly)) {
         fade = halo::math::transition_function_evaluate(_transition_function_very_early, fade);
     }
     if (fade_mode == 2) {
@@ -716,22 +719,22 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
 
     has_fade = definition->framebuffer_fade_mode != 0;
     centroid = *global_zero_vector3d_pointer;
-    shader = (Shader *)((uint8_t *)definition + 0x84);
+    shader = (Shader *)&definition->_pad_84;
     u = c->texture_offset_u;
     u_step = definition->texture_repeats_u;
-    if ((definition->scale_flags & 0x40) != 0) {
+    if (test_flag(definition->scale_flags, tags::contrail_scale_tag_flag::texture_scale_u)) {
         u_step = u_step * c->scale;
     }
     u_step = -u_step;
     v_bottom = c->texture_offset_v;
     v_top = definition->texture_repeats_v;
-    if ((definition->scale_flags & 0x80) != 0) {
+    if (test_flag(definition->scale_flags, tags::contrail_scale_tag_flag::texture_scale_v)) {
         v_top = v_top * c->scale;
     }
     v_top = v_top + v_bottom;
     states = (ContrailPointState *)definition->point_states.pointer;
 
-    for (point_index = c->first_point[instance]; point_index != 0xffffffff;
+    for (point_index = c->first_point[instance]; point_index != k_dword_none;
          point_index = previous->next_point) {
         contrail_point *point = &((contrail_point *)halo::effects::globals().contrail_point_data->data)[(uint16_t)point_index];
         ContrailPointState *state = &states[point->state_index];
@@ -741,7 +744,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         contrail_point *next = 0;
 
         point_state_width_and_color(state, point, &width, &color);
-        if ((point->flags & 0x02) != 0) {
+        if (test_flag(point->flags, contrail_point_flag::in_transition)) {
             float next_width;
             ColorARGB next_color;
             float t = point->age;
@@ -754,11 +757,10 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
             color.green = (next_color.green - color.green) * t + color.green;
             color.blue = (next_color.blue - color.blue) * t + color.blue;
         }
-        if (c->object_index != 0xffffffff) {
+        if (c->object_index != k_dword_none) {
             object *o = ((object_header *)object_data->data)[(uint16_t)c->object_index].data;
-            Object *object_definition = (Object *)halo::cache::globals().tag_instances[o->definition_tag & 0xffff].data;
-            int16_t change_color = (int16_t)(*(int16_t *)((uint8_t *)object_definition->attachments.pointer +
-                                             (int32_t)c->attachment_index * 0x48 + 0x34) - 1);
+            Object *object_definition = (Object *)tag_instances[halo::datum_slot(o->definition_tag)].data;
+            int16_t change_color = (int16_t)(((ObjectAttachment *)object_definition->attachments.pointer)[c->attachment_index].change_color - 1);
 
             if (change_color != -1) {
                 color.red = color.red * o->change_colors[change_color].red;
@@ -910,13 +912,13 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         centroid.x = centroid.x * inverse;
         centroid.y = centroid.y * inverse;
         centroid.z = inverse * centroid.z;
-        ((d3d_unlock_fn)(*(void ***)rasterizer_dynamic_index_buffer)[0x30 / 4])(
+        d3d9::buffer_function<d3d_unlock_fn>(rasterizer_dynamic_index_buffer, d3d9::buffer_method::unlock)(
             rasterizer_dynamic_index_buffer);
         buffer_handle = rasterizer_dynamic_vertex_caches[
             rasterizer_dynamic_vertex_slots[vertex_slot].vertex_type].buffer_handle;
         if (buffer_handle != 0) {
             vertex_buffer = (void *)(uintptr_t)rasterizer_vertex_buffer_slots[buffer_handle - 1].hardware_buffer;
-            ((d3d_unlock_fn)(*(void ***)vertex_buffer)[0x30 / 4])(vertex_buffer);
+            d3d9::buffer_function<d3d_unlock_fn>(vertex_buffer, d3d9::buffer_method::unlock)(vertex_buffer);
         }
         rasterizer_transparent_object_append((uint32_t)(uintptr_t)bitmap, index_slot, vertex_slot,
                                              primitive_count, 0, &centroid, shader);
@@ -941,7 +943,7 @@ void render_all(uint32_t render_type_flags)
         int16_t i;
 
         for (i = 0; i < 4; i++) {
-            if ((render_type_flags & (1u << ((uint8_t)definition->render_type & 0x1f))) != 0 &&
+            if ((render_type_flags & bit_array_mask((uint8_t)definition->render_type)) != 0 &&
                 c->point_count[i] >= 2) {
                 render_contrail(c, definition, i);
             }
@@ -980,25 +982,25 @@ void particles(void)
     }
     viewer_value = (int32_t)viewer;
 
-    for (index = halo::memory::datum_next(-1, halo::effects::globals().particle_data); index != 0xffffffff;
-         index = halo::memory::datum_next((int16_t)index, halo::effects::globals().particle_data)) {
-        particle *p = &((particle *)halo::effects::globals().particle_data->data)[(uint16_t)index];
+    for (index = halo::memory::datum_next(-1, particle_data); index != k_dword_none;
+         index = halo::memory::datum_next((int16_t)index, particle_data)) {
+        particle *p = &((particle *)particle_data->data)[(uint16_t)index];
         int32_t cluster = (int32_t)p->location.cluster_index;
         uint8_t owned = (int32_t)p->first_person_weapon_index == viewer_value;
 
-        if ((halo::structures::globals().cluster_visible_bits[cluster >> 5] & (1u << (cluster & 0x1f))) == 0) {
+        if ((cluster_visible_bits[bit_array_word(cluster)] & bit_array_mask(cluster)) == 0) {
             continue;
         }
-        if ((p->flags & 0x10) != 0 && owned) {
+        if (test_flag(p->flags, particle_flag::third_person_only) && owned) {
             continue;
         }
-        if ((p->flags & 0x20) != 0 && !owned) {
+        if (test_flag(p->flags, particle_flag::first_person_only) && !owned) {
             continue;
         }
         records[record_count].particle_index = (uint16_t)index;
         records[record_count].definition_index = (uint16_t)p->definition_index;
         records[record_count].cluster_index = p->location.cluster_index;
-        records[record_count].first_person = (owned && (p->flags & 0x20) != 0) ? 1 : 0;
+        records[record_count].first_person = (owned && test_flag(p->flags, particle_flag::first_person_only)) ? 1 : 0;
         record_count++;
     }
 
@@ -1010,8 +1012,8 @@ void particles(void)
     {
         int16_t group_count = 0;
         int16_t remaining = record_count;
-        uint16_t key_definition = 0xffff;
-        uint16_t key_cluster = 0xffff;
+        uint16_t key_definition = k_word_none;
+        uint16_t key_cluster = k_word_none;
         uint8_t key_first_person = 0;
         uint16_t *current_count = 0;
         rendered_particle_datum *record = records;
@@ -1049,7 +1051,7 @@ void particles(void)
 
             data.bitmap_group_index = *(datum_index *)&definition->bitmap.tag_id;
             data.maximum_sprite_count = in_group;
-            data.shader = (uint32_t)(uintptr_t)((uint8_t *)definition + 0xb0);
+            data.shader = (uint32_t)(uintptr_t)&definition->_pad_b0;
             data.centroid = *global_zero_vector3d_pointer;
             data.flags = (group_first->first_person ? _build_sprite_data_flag_1_bit : 0) |
                          _build_sprite_data_flag_2_bit;
@@ -1067,19 +1069,18 @@ void particles(void)
                 float view_z;
                 float pixels;
 
-                if (p->object_index == 0xffffffff) {
+                if (p->object_index == k_dword_none) {
                     origin = p->position;
                     direction = p->direction;
-                    p->object_index = 0xffffffff;
+                    p->object_index = k_dword_none;
                 } else {
                     real_matrix4x3 *m = 0;
                     real_point3d pos;
                     real_vector3d dir;
 
                     if ((p->flags & _particle_first_person_bit) != 0) {
-                        m = (real_matrix4x3 *)((uint8_t *)&first_person_weapon_interfaces[
-                                p->first_person_weapon_index] + 0x108c +
-                                (int32_t)p->marker_index * 0x34);
+                        m = (real_matrix4x3 *)first_person_weapon_interfaces[
+                                p->first_person_weapon_index].node_matrices + p->marker_index;
                     } else {
                         int16_t object_slot = (int16_t)p->object_index;
                         int16_t salt = (int16_t)(p->object_index >> 16);
@@ -1094,8 +1095,7 @@ void particles(void)
                                 object *o = ((object_header *)object_data->data)[
                                     (uint16_t)p->object_index].data;
 
-                                m = (real_matrix4x3 *)((uint8_t *)o + o->nodes.offset +
-                                                       (int32_t)p->marker_index * 0x34);
+                                m = (real_matrix4x3 *)((uint8_t *)o + o->nodes.offset) + p->marker_index;
                             }
                         }
                         if (m == 0) {
@@ -1105,7 +1105,7 @@ void particles(void)
                     }
 
                     pos = p->position;
-                    if (*(uint32_t *)&m->scale != 0x3f800000) {
+                    if (*(uint32_t *)&m->scale != k_float_one_bits) {
                         pos.x = pos.x * m->scale;
                         pos.y = pos.y * m->scale;
                         pos.z = pos.z * m->scale;

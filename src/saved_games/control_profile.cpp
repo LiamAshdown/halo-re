@@ -6,9 +6,12 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "input.h"
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
-#include "halo/input/api.hpp"
+#include "halo/saved_games/layout.hpp"
+
+static_assert(halo::saved_games::k_input_device_stride_dwords * sizeof(uint32_t) == sizeof(input_device));
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -145,12 +148,12 @@ uint8_t halo::saved_games::ControlBinding::find_binding_for_action(const char *a
         int32_t i;
 
         i = binding->input_index;
-        if (i > 0x6c) {
+        if (i > k_control_keyboard_key_count - 1) {
             return 0;
         }
         while (control_keyboard_scan_table[i] != action_index) {
             i = i + 1;
-            if (i > 0x6c) {
+            if (i > k_control_keyboard_key_count - 1) {
                 return 0;
             }
         }
@@ -311,13 +314,13 @@ void halo::saved_games::PlayerProfile::reset_analog_bindings()
         profile->mouse_axis_bindings[i][1] = k_control_binding_unbound;
     }
 
-    profile->mouse_axis_bindings[0][1] = 0x19;
-    profile->mouse_button_bindings[0] = 7;
-    profile->mouse_button_bindings[2] = 6;
-    profile->mouse_button_bindings[1] = 0xb;
-    profile->mouse_axis_bindings[1][0] = 0x17;
-    profile->mouse_axis_bindings[1][1] = 0x18;
-    profile->mouse_axis_bindings[0][0] = 0x1a;
+    profile->mouse_axis_bindings[0][1] = _input_action_look_left;
+    profile->mouse_button_bindings[0] = _input_action_fire;
+    profile->mouse_button_bindings[2] = _input_action_throw_grenade;
+    profile->mouse_button_bindings[1] = _input_action_zoom;
+    profile->mouse_axis_bindings[1][0] = _input_action_look_up;
+    profile->mouse_axis_bindings[1][1] = _input_action_look_down;
+    profile->mouse_axis_bindings[0][0] = _input_action_look_right;
 }
 
 /**
@@ -335,27 +338,27 @@ void halo::saved_games::PlayerProfile::reset_digital_bindings()
         profile->keyboard_bindings[i] = k_control_binding_unbound;
     }
 
-    profile->keyboard_bindings[0] = 9;
-    profile->keyboard_bindings[32] = 0x13;
-    profile->keyboard_bindings[46] = 0x14;
-    profile->keyboard_bindings[45] = 0x15;
-    profile->keyboard_bindings[47] = 0x16;
-    profile->keyboard_bindings[49] = 1;
-    profile->keyboard_bindings[30] = 3;
-    profile->keyboard_bindings[34] = 0xd;
-    profile->keyboard_bindings[48] = 4;
-    profile->keyboard_bindings[59] = 0xe;
-    profile->keyboard_bindings[72] = 0;
-    profile->keyboard_bindings[69] = 10;
-    profile->keyboard_bindings[31] = 5;
-    profile->keyboard_bindings[58] = 0xb;
-    profile->keyboard_bindings[33] = 2;
-    profile->keyboard_bindings[56] = 8;
-    profile->keyboard_bindings[35] = 0xf;
-    profile->keyboard_bindings[36] = 0x10;
-    profile->keyboard_bindings[50] = 0x11;
-    profile->keyboard_bindings[1] = 0xc;
-    profile->keyboard_bindings[13] = 0x12;
+    profile->keyboard_bindings[0] = _input_action_back;
+    profile->keyboard_bindings[32] = _input_action_forward;
+    profile->keyboard_bindings[46] = _input_action_backward;
+    profile->keyboard_bindings[45] = _input_action_left;
+    profile->keyboard_bindings[47] = _input_action_right;
+    profile->keyboard_bindings[49] = _input_action_switch_grenade;
+    profile->keyboard_bindings[30] = _input_action_switch_weapon;
+    profile->keyboard_bindings[34] = _input_action_reload;
+    profile->keyboard_bindings[48] = _input_action_melee;
+    profile->keyboard_bindings[59] = _input_action_exchange_weapon;
+    profile->keyboard_bindings[72] = _input_action_jump;
+    profile->keyboard_bindings[69] = _input_action_crouch;
+    profile->keyboard_bindings[31] = _input_action_flashlight;
+    profile->keyboard_bindings[58] = _input_action_zoom;
+    profile->keyboard_bindings[33] = _input_action_action;
+    profile->keyboard_bindings[56] = _input_action_accept;
+    profile->keyboard_bindings[35] = _input_action_say;
+    profile->keyboard_bindings[36] = _input_action_sayteam;
+    profile->keyboard_bindings[50] = _input_action_sayvehicle;
+    profile->keyboard_bindings[1] = _input_action_showscores;
+    profile->keyboard_bindings[13] = _input_action_screenshot;
 }
 
 /**
@@ -459,17 +462,17 @@ void clear_device_slot_mappings(saved_player_profile *profile)
         return;
     }
     count = (int16_t)input_device_count;
-    entry = (uint8_t *)profile + 0x1108;
+    entry = (uint8_t *)&profile->gamepads[0];
     while (0 < count) {
         device_index = halo::input::input_device_find_index_by_guid((controls_gamepad_record *)entry);
         if (device_index != -1 && device_index < input_device_count ) {
-            slot = input_device_to_slot[device_index * 0x90];
+            slot = input_device_to_slot[device_index * k_input_device_stride_dwords];
             if (slot != -1) {
-                input_device_to_slot[device_index * 0x90] = -1;
-                halo::input::globals().joystick_slot_devices[slot] = -1;
+                input_device_to_slot[device_index * k_input_device_stride_dwords] = -1;
+                joystick_slot_devices[slot] = -1;
             }
         }
-        entry = entry + 0x220;
+        entry = entry + sizeof(controls_gamepad_record);
         count = count - 1;
     }
 }
@@ -494,7 +497,7 @@ void fill_default_gamepad_slots(saved_player_profile *profile)
     int32_t tag_index;
     uint8_t added;
     input_guid key;
-    uint8_t tag_scratch[0x1ffc];
+    uint8_t tag_scratch[k_saved_player_profile_size];
 
     used_count = 0;
     if (0 < (int16_t)input_device_count) {
@@ -520,7 +523,7 @@ void fill_default_gamepad_slots(saved_player_profile *profile)
                     break;
                 }
                 if ((int16_t)i < input_device_count) {
-                    memcpy(&entry, input_devices + (int16_t)i * 0x240, sizeof(entry));
+                    memcpy(&entry, input_devices + (int16_t)i * sizeof(input_device), sizeof(entry));
                     have_entry = 1;
 pass1_try_add:
                     key = entry.product_guid;
@@ -546,7 +549,7 @@ pass1_try_add:
                     return;
                 }
                 if ((int16_t)i < input_device_count) {
-                    memcpy(&entry, input_devices + (int16_t)i * 0x240, sizeof(entry));
+                    memcpy(&entry, input_devices + (int16_t)i * sizeof(input_device), sizeof(entry));
                     have_entry = 1;
 pass2_try_add:
                     added = control_profile_find_or_create_gamepad_slot(&entry, profile);
@@ -683,10 +686,10 @@ void reestablish_device_slot_mappings(saved_player_profile *profile)
         if (profile->gamepads[slot].name[0] != 0) {
             device_index = halo::input::input_device_find_index_by_guid(&profile->gamepads[slot]);
             if (device_index != -1 && device_index < input_device_count  &&
-                input_device_to_slot[device_index * 0x90] == -1 &&
-                halo::input::globals().joystick_slot_devices[slot] == -1) {
-                input_device_to_slot[device_index * 0x90] = slot;
-                halo::input::globals().joystick_slot_devices[slot] = device_index;
+                input_device_to_slot[device_index * k_input_device_stride_dwords] == -1 &&
+                joystick_slot_devices[slot] == -1) {
+                input_device_to_slot[device_index * k_input_device_stride_dwords] = slot;
+                joystick_slot_devices[slot] = device_index;
             }
         }
     }
@@ -708,7 +711,7 @@ void reset_slot(saved_player_profile *profile, int32_t gamepad_index)
     }
 
     zero = (uint32_t *)&profile->gamepads[gamepad_index];
-    for (i = 0x88; i != 0; i = i - 1) {
+    for (i = sizeof(controls_gamepad_record) / sizeof(uint32_t); i != 0; i = i - 1) {
         *zero = 0;
         zero = zero + 1;
     }
@@ -750,13 +753,13 @@ void variant_write_wait_and_clear(void)
             do {
                 got_code = GetExitCodeThread(variant_write_thread->handle, (LPDWORD)&exit_code);
             } while (got_code == 0);
-        } while (exit_code == 0x103);
+        } while (exit_code == win32::k_still_active);
         CloseHandle(variant_write_thread->handle);
         variant_write_thread->handle = 0;
         variant_write_thread->in_use = 0;
     }
     zero_cursor = (uint8_t *)&variant_write_request_state;
-    for (i = 0x29; i != 0; i--) {
+    for (i = k_variant_write_request_clear_dwords; i != 0; i--) {
         *(uint32_t *)zero_cursor = 0;
         zero_cursor += 4;
     }

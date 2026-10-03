@@ -78,11 +78,11 @@ void halo::objects::WidgetSystem::dispose_clear_flag()
  */
 void halo::objects::WidgetSystem::create(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Object *tag = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int32_t i;
 
-    obj->first_widget = (datum_index)0xffffffff;
+    obj->first_widget = k_datum_index_none;
 
     for (i = 0; i < (int32_t)tag->widgets.count; i++) {
         ObjectWidget *attachment = &((ObjectWidget *)tag->widgets.pointer)[i];
@@ -92,12 +92,12 @@ void halo::objects::WidgetSystem::create(uint32_t object_index)
             if (widget_type_definitions[type].group_tag == *(uint32_t *)attachment) {
                 if (*(int32_t *)&((struct ObjectWidget *)attachment)->reference.tag_id != -1) {
                     datum_index handle = halo::memory::datum_new(widget_data);
-                    if (handle != (datum_index)0xffffffff) {
-                        widget *entry = &((widget *)widget_data->data)[handle & 0xffff];
+                    if (handle != k_datum_index_none) {
+                        widget *entry = &((widget *)widget_data->data)[halo::datum_slot(handle)];
                         entry->type = (int16_t)type;
 
                         if (widget_type_definitions[type].new_instance == 0) {
-                            entry->instance = (datum_index)0xffffffff;
+                            entry->instance = k_datum_index_none;
                             entry->next_widget = obj->first_widget;
                             obj->first_widget = handle;
                         } else {
@@ -106,7 +106,7 @@ void halo::objects::WidgetSystem::create(uint32_t object_index)
                             datum_index instance = new_instance(((struct ObjectWidget *)attachment)->reference.tag_id);
 
                             entry->instance = instance;
-                            if (instance == (datum_index)0xffffffff) {
+                            if (instance == k_datum_index_none) {
                                 halo::memory::datum_delete(widget_data, handle);
                             } else {
                                 entry->next_widget = obj->first_widget;
@@ -131,16 +131,16 @@ void halo::objects::WidgetSystem::create(uint32_t object_index)
  */
 void halo::objects::WidgetSystem::delete_all(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     datum_index handle = obj->first_widget;
 
-    while (handle != (datum_index)0xffffffff) {
+    while (handle != k_datum_index_none) {
         uint16_t index = (uint16_t)handle;
         widget *entry = &((widget *)widget_data->data)[index];
         datum_index next = entry->next_widget;
         datum_index instance = entry->instance;
 
-        if (instance != (datum_index)0xffffffff) {
+        if (instance != k_datum_index_none) {
             void (*delete_instance)(datum_index) =
                 (void (*)(datum_index))widget_type_definitions[entry->type].delete_instance;
             delete_instance(instance);
@@ -149,7 +149,7 @@ void halo::objects::WidgetSystem::delete_all(uint32_t object_index)
         handle = next;
     }
 
-    obj->first_widget = (datum_index)0xffffffff;
+    obj->first_widget = k_datum_index_none;
 }
 
 /**
@@ -161,17 +161,17 @@ int8_t halo::objects::WidgetSystem::list_has_flag(datum_index first_widget)
 {
     datum_index handle = first_widget;
 
-    if (handle == (datum_index)0xffffffff) {
+    if (handle == k_datum_index_none) {
         return 0;
     }
 
     for (;;) {
-        widget *entry = &((widget *)widget_data->data)[handle & 0xffff];
+        widget *entry = &((widget *)widget_data->data)[halo::datum_slot(handle)];
         if (widget_type_definitions[entry->type].flag != 0) {
             return 1;
         }
         handle = entry->next_widget;
-        if (handle == (datum_index)0xffffffff) {
+        if (handle == k_datum_index_none) {
             return 0;
         }
     }
@@ -192,11 +192,11 @@ typedef void (*widget_render_proc)(uint32_t object_index, datum_index instance,
  */
 void halo::objects::WidgetSystem::list_notify(uint32_t object_index, uint32_t render_arg, void *render_context)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     datum_index handle = obj->first_widget;
 
-    while (handle != (datum_index)0xffffffff) {
-        widget *entry = &((widget *)widget_data->data)[handle & 0xffff];
+    while (handle != k_datum_index_none) {
+        widget *entry = &((widget *)widget_data->data)[halo::datum_slot(handle)];
         if (widget_type_definitions[entry->type].render != 0) {
             ((widget_render_proc)widget_type_definitions[entry->type].render)(
                 object_index, entry->instance, render_arg, render_context);

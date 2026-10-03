@@ -15,3 +15,4 @@
 #include "halo/structures/structure_lighting.hpp"
 #include "halo/structures/structure_draw.hpp"
 #include "halo/structures/structure_decals.hpp"
+#include "halo/structures/layout.hpp"

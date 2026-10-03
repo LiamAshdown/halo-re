@@ -12,8 +12,12 @@
 #include "saved_games.h"
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
-#include "halo/memory/api.hpp"
-#include "halo/cache/api.hpp"
+#include "halo/saved_games/layout.hpp"
+
+static void copy_profile_block(saved_player_profile *destination, const saved_player_profile *source, size_t first_offset, size_t end_offset)
+{
+    memcpy((uint8_t *)destination + first_offset, (const uint8_t *)source + first_offset, end_offset - first_offset);
+}
 
 extern "C" {
 extern network_thread_record *variant_write_thread;
@@ -69,7 +73,7 @@ static void player_profile_build_default(saved_player_profile *profile, int32_t 
 
     player_profile_initialize(profile, 0, 0);
     name = saved_game_get_display_name(handle);
-    wcsncpy((wchar_t *)profile->name, (const wchar_t *)name, 0xb);
+    wcsncpy((wchar_t *)profile->name, (const wchar_t *)name, k_player_profile_name_length - 1);
 }
 
 /**
@@ -93,14 +97,14 @@ uint32_t halo::saved_games::VariantWriteRequest::thread_proc()
     uint8_t write_failed;
 
     wait_result = WaitForSingleObject(saved_game_files_mutex->handle, 5000);
-    if (wait_result != 0 && wait_result != 0x80) {
+    if (wait_result != win32::k_wait_object_0 && wait_result != win32::k_wait_abandoned) {
         return 0;
     }
     write_failed = 0;
     opened = saved_game_open_file_by_handle(request->handle, &ref);
     if (opened != 0) {
         file.variant = request->variant;
-        file.checksum = 0xffffffff;
+        file.checksum = k_crc32_seed;
         halo::memory::crc32_update(&file.checksum, &file.variant, sizeof(file.variant));
         seeked = file_reference_seek(0, &ref);
         if (seeked == 0) {
@@ -148,7 +152,7 @@ uint8_t halo::saved_games::PlayerProfile::get(int32_t index)
         do {
             while (GetExitCodeThread(player_profile_thread->handle, (LPDWORD)&exit_code) == 0) {
             }
-        } while (exit_code == 0x103 );
+        } while (exit_code == win32::k_still_active );
         CloseHandle(player_profile_thread->handle);
         player_profile_thread->handle = 0;
         player_profile_thread->in_use = 0;
@@ -161,11 +165,11 @@ uint8_t halo::saved_games::PlayerProfile::get(int32_t index)
     }
 
     wait_result = WaitForSingleObject(saved_game_files_mutex->handle, 5000);
-    if (wait_result == 0 || wait_result == 0x80 ) {
+    if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned ) {
         if (saved_game_open_file_by_handle(index, &ref) != 0) {
             if (file_reference_read(&ref, &file, sizeof(file)) != 0) {
-                running_crc = 0xffffffff;
-                halo::memory::crc32_update(&running_crc, (uint8_t *)&file.profile, k_saved_player_profile_size);
+                running_crc = k_crc32_seed;
+                ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&running_crc, (uint8_t *)&file.profile, k_saved_player_profile_size);
                 if (running_crc == file.checksum && file.profile.version == k_saved_player_profile_version) {
                     *out_buffer = file.profile;
                 } else {
@@ -271,7 +275,7 @@ void halo::saved_games::PlayerProfile::initialize(int32_t local_player_index, ui
 
     player_profile_set_default_video_options(profile, (uint8_t)merge_existing);
 
-    if (safe_mode == 0 && 1000 < cpu_speed && 0x80 < physical_memory) {
+    if (safe_mode == 0 && k_fast_machine_cpu_speed_mhz < cpu_speed && k_fast_machine_physical_memory_mb < physical_memory) {
         profile->sound_quality = 1;
         profile->sound_variety = 2;
     } else {
@@ -304,8 +308,8 @@ void halo::saved_games::PlayerProfile::initialize(int32_t local_player_index, ui
     profile->server_maximum_players_index = 3;
     profile->join_server_address[0] = 0;
     profile->connection_type = 1;
-    profile->server_port = 0x8fe;
-    profile->client_port = 0x8ff;
+    profile->server_port = k_default_server_port;
+    profile->client_port = k_default_client_port;
 
     profile->gamepad_rate_a[0] = 3; profile->gamepad_rate_b[0] = 3;
     profile->gamepad_rate_a[1] = 3; profile->gamepad_rate_b[1] = 3;
@@ -339,11 +343,11 @@ void halo::saved_games::PlayerProfile::initialize(int32_t local_player_index, ui
         }
 
         if (have_existing) {
-            memcpy((uint8_t *)profile + 0x12c, (uint8_t *)&existing + 0x12c, 0x93c);
-            memcpy((uint8_t *)profile + 0xb78, (uint8_t *)&existing + 0xb78, 0x108);
-            memcpy((uint8_t *)profile + 0xa68, (uint8_t *)&existing + 0xa68, 0x110);
-            memcpy((uint8_t *)profile + 0xc80, (uint8_t *)&existing + 0xc80, 0x10b);
-            memcpy((uint8_t *)profile + 0x1108, (uint8_t *)&existing + 0x1108, 0x880);
+            copy_profile_block(profile, &existing, offsetof(saved_player_profile, button_set), offsetof(saved_player_profile, screen_width));
+            copy_profile_block(profile, &existing, offsetof(saved_player_profile, master_volume), offsetof(saved_player_profile, server_browser_sort_column));
+            copy_profile_block(profile, &existing, offsetof(saved_player_profile, screen_width), offsetof(saved_player_profile, master_volume));
+            copy_profile_block(profile, &existing, offsetof(saved_player_profile, server_browser_sort_column), offsetof(saved_player_profile, unknown_d8b));
+            copy_profile_block(profile, &existing, offsetof(saved_player_profile, gamepads), offsetof(saved_player_profile, unknown_1988));
         }
     }
 
@@ -412,7 +416,7 @@ void halo::saved_games::PlayerProfile::scan_campaign_progress(int16_t *out_type,
 uint8_t halo::saved_games::PlayerProfile::set_default_audio_options()
 {
     saved_player_profile *profile = self;
-    if (safe_mode == 0 && 1000 < cpu_speed && 0x80 < physical_memory) {
+    if (safe_mode == 0 && k_fast_machine_cpu_speed_mhz < cpu_speed && k_fast_machine_physical_memory_mb < physical_memory) {
         profile->sound_quality = 1;
         profile->sound_variety = 2;
     } else {
@@ -445,8 +449,8 @@ void halo::saved_games::PlayerProfile::set_default_server_options()
     profile->server_maximum_players_index = 3;
     profile->join_server_address[0] = 0;
     profile->connection_type = 1;
-    profile->server_port = 0x8fe;
-    profile->client_port = 0x8ff;
+    profile->server_port = k_default_server_port;
+    profile->client_port = k_default_client_port;
 }
 
 /**
@@ -477,16 +481,16 @@ uint8_t halo::saved_games::PlayerProfile::set_default_video_options(uint8_t allo
     }
     profile->gamma = (int8_t)gamma;
 
-    if (safe_mode != 0 || rasterizer_device_version < 0xffff0101 ||
-        cpu_speed < 0x3e9 || physical_memory < 0x81 || video_memory < 0x2000001) {
+    if (safe_mode != 0 || rasterizer_device_version < k_pixel_shader_version_1_1 ||
+        cpu_speed < k_fast_machine_cpu_speed_mhz + 1 || physical_memory < k_fast_machine_physical_memory_mb + 1 || video_memory < k_fast_machine_video_memory_bytes + 1) {
         profile->specular = 0;
         profile->shadows = 0;
         profile->decals = 0;
         profile->particles = safe_mode == 0;
         profile->texture_quality = 1;
-        profile->screen_width = 0x280;
-        profile->screen_height = 0x1e0;
-        profile->refresh_rate = 0x3c;
+        profile->screen_width = k_default_low_screen_width;
+        profile->screen_height = k_default_low_screen_height;
+        profile->refresh_rate = k_default_refresh_rate;
         profile->frame_rate_mode = 2;
         return 1;
     }
@@ -499,9 +503,9 @@ uint8_t halo::saved_games::PlayerProfile::set_default_video_options(uint8_t allo
     profile->frame_rate_mode = 2;
 
     if (width640 != 0) {
-        profile->screen_width = 0x280;
-        profile->screen_height = 0x1e0;
-        profile->refresh_rate = 0x3c;
+        profile->screen_width = k_default_low_screen_width;
+        profile->screen_height = k_default_low_screen_height;
+        profile->refresh_rate = k_default_refresh_rate;
         return 1;
     }
 
@@ -512,7 +516,7 @@ uint8_t halo::saved_games::PlayerProfile::set_default_video_options(uint8_t allo
         if (allow_display_query == 0) {
             profile->screen_width = 800;
             profile->screen_height = 600;
-            profile->refresh_rate = 0x3c;
+            profile->refresh_rate = k_default_refresh_rate;
             return 1;
         }
         display_mode_get_current(&mode);
@@ -525,7 +529,7 @@ uint8_t halo::saved_games::PlayerProfile::set_default_video_options(uint8_t allo
             return 1;
         }
     } else {
-        profile->refresh_rate = 0x3c;
+        profile->refresh_rate = k_default_refresh_rate;
         if (override_width != -1 && override_height != -1) {
             profile->screen_width = (int16_t)override_width;
             profile->screen_height = (int16_t)override_height;
@@ -559,8 +563,8 @@ void halo::saved_games::PlayerProfile::write_data(int32_t handle)
     }
 
     file.profile = *profile;
-    file.checksum = 0xffffffff;
-    halo::memory::crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
+    file.checksum = k_crc32_seed;
+    ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
 
     if (file_reference_seek(0, &ref) == 0 || file_reference_write(&ref, &file, sizeof(file)) == 0) {
         write_failed = 1;
@@ -590,7 +594,7 @@ void write_request_start(int32_t handle, game_variant *variant)
         do {
             do {
             } while (GetExitCodeThread(variant_write_thread->handle, (LPDWORD)&exit_code) == 0);
-        } while (exit_code == 0x103);
+        } while (exit_code == win32::k_still_active);
         CloseHandle(variant_write_thread->handle);
         variant_write_thread->handle = 0;
         variant_write_thread->in_use = 0;
@@ -618,17 +622,17 @@ float *get_rgb(float *out_rgb, int32_t color_index)
 {
     uint32_t packed;
 
-    if (color_index > 0x10) {
-        color_index = 0x11;
+    if (color_index > k_player_color_count - 2) {
+        color_index = k_player_color_count - 1;
     }
     if (color_index < 0) {
         color_index = 0;
     }
     packed = player_color_table[color_index];
 
-    out_rgb[0] = (float)((packed >> 0x10) & 0xff) * 0.003921569f;
-    out_rgb[1] = (float)((packed >> 8) & 0xff) * 0.003921569f;
-    out_rgb[2] = (float)(packed & 0xff) * 0.003921569f;
+    out_rgb[0] = (float)((packed >> 16) & 0xff) * k_color_byte_scale;
+    out_rgb[1] = (float)((packed >> 8) & 0xff) * k_color_byte_scale;
+    out_rgb[2] = (float)(packed & 0xff) * k_color_byte_scale;
     return out_rgb;
 }
 
@@ -656,8 +660,8 @@ uint32_t copy_files(const char *source_dir, char *dest_dir)
     void *find_handle;
     win32_find_dataa find_data;
 
-    _snprintf(dest_path, 0xff, "%s%s", dest_dir, "blam.sav");
-    _snprintf(source_path, 0xff, "%s%s", source_dir, "blam.sav");
+    _snprintf(dest_path, k_path_maximum_length, "%s%s", dest_dir, k_player_profile_file_name);
+    _snprintf(source_path, k_path_maximum_length, "%s%s", source_dir, k_player_profile_file_name);
     dest_path[0xff] = '\0';
     source_path[0xff] = '\0';
     result = (uint8_t)CopyFileA(source_path, dest_path, 0);
@@ -665,8 +669,8 @@ uint32_t copy_files(const char *source_dir, char *dest_dir)
         return 0;
     }
 
-    _snprintf(dest_path, 0xff, "%s%s", dest_dir, "savegame.bin");
-    _snprintf(source_path, 0xff, "%s%s", source_dir, "savegame.bin");
+    _snprintf(dest_path, k_path_maximum_length, "%s%s", dest_dir, k_game_state_file_name);
+    _snprintf(source_path, k_path_maximum_length, "%s%s", source_dir, k_game_state_file_name);
     dest_path[0xff] = '\0';
     source_path[0xff] = '\0';
     result = (uint8_t)CopyFileA(source_path, dest_path, 0);
@@ -689,12 +693,12 @@ uint32_t copy_files(const char *source_dir, char *dest_dir)
         return result;
     }
 
-    _snprintf(search_path, 0xff, "%scheckpoints\\*.sav", source_dir);
+    _snprintf(search_path, k_path_maximum_length, "%scheckpoints\\*.sav", source_dir);
     find_handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle != (void *)-1) {
         do {
-            _snprintf(dest_path, 0xff, "%scheckpoints\\%s", dest_dir, find_data.cFileName);
-            _snprintf(source_path, 0xff, "%scheckpoints\\%s", source_dir, find_data.cFileName);
+            _snprintf(dest_path, k_path_maximum_length, "%scheckpoints\\%s", dest_dir, find_data.cFileName);
+            _snprintf(source_path, k_path_maximum_length, "%scheckpoints\\%s", source_dir, find_data.cFileName);
             copy_ok = (uint8_t)CopyFileA(source_path, dest_path, 0);
             if (copy_ok == 0) {
                 break;
@@ -706,12 +710,12 @@ uint32_t copy_files(const char *source_dir, char *dest_dir)
         return result;
     }
 
-    _snprintf(search_path, 0xff, "%scheckpoints\\*.bin", source_dir);
+    _snprintf(search_path, k_path_maximum_length, "%scheckpoints\\*.bin", source_dir);
     find_handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle != (void *)-1) {
         do {
-            _snprintf(dest_path, 0xff, "%scheckpoints\\%s", dest_dir, find_data.cFileName);
-            _snprintf(source_path, 0xff, "%scheckpoints\\%s", source_dir, find_data.cFileName);
+            _snprintf(dest_path, k_path_maximum_length, "%scheckpoints\\%s", dest_dir, find_data.cFileName);
+            _snprintf(source_path, k_path_maximum_length, "%scheckpoints\\%s", source_dir, find_data.cFileName);
             if ((uint8_t)CopyFileA(source_path, dest_path, 0) == 0) {
                 break;
             }
@@ -771,7 +775,7 @@ uint8_t rename(int32_t handle, uint16_t *new_name)
     int32_t create_result;
     uint8_t result;
 
-    slot_index = ((uint32_t)handle >> 16) & 0xfff;
+    slot_index = saved_game_handle_slot(handle);
     found = savegame_index_read_slot((int32_t)slot_index, &entry);
     if (found == 0) {
         return 1;
@@ -787,7 +791,7 @@ uint8_t rename(int32_t handle, uint16_t *new_name)
     }
 
     memset(directory, 0, sizeof(directory));
-    create_result = XCreateSaveGame(new_name, savegames_directory, 1, directory, 0x100);
+    create_result = XCreateSaveGame(new_name, savegames_directory, 1, directory, k_saved_game_path_length);
     if (create_result != 0) {
         return 1;
     }
@@ -797,8 +801,8 @@ uint8_t rename(int32_t handle, uint16_t *new_name)
         char old_directory[0x100];
         char *trunc;
 
-        _snprintf(dest_path, 0xff, "%s%s", directory, "blam.sav");
-        strncpy(old_directory, entry.path, 0xff);
+        _snprintf(dest_path, k_path_maximum_length, "%s%s", directory, "blam.sav");
+        strncpy(old_directory, entry.path, k_path_maximum_length);
         trunc = strstr(old_directory, "blam.sav");
         if (trunc != 0) {
             *trunc = '\0';
@@ -809,8 +813,8 @@ uint8_t rename(int32_t handle, uint16_t *new_name)
         if (result == 1) {
         finalize:
             XDeleteSaveGame(entry.display_name, savegames_directory);
-            strncpy(entry.path, dest_path, 0xff);
-            wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)new_name, 0x7f);
+            strncpy(entry.path, dest_path, k_path_maximum_length);
+            wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)new_name, k_saved_game_display_name_length - 1);
             entry.path[0xff] = 0;
             entry.display_name[0x7f] = 0;
             savegame_index_write_slot((int32_t)slot_index, &entry);
@@ -826,12 +830,12 @@ uint8_t rename(int32_t handle, uint16_t *new_name)
         {
             char dest_path[0x100];
 
-            _snprintf(dest_path, 0xff, "%s%s", directory, "blam.lst");
+            _snprintf(dest_path, k_path_maximum_length, "%s%s", directory, "blam.lst");
             result = (uint8_t)CopyFileA(entry.path, dest_path, 1);
             if (result == 1) {
                 XDeleteSaveGame(entry.display_name, savegames_directory);
-                strncpy(entry.path, dest_path, 0xff);
-                wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)new_name, 0x7f);
+                strncpy(entry.path, dest_path, k_path_maximum_length);
+                wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)new_name, k_saved_game_display_name_length - 1);
                 entry.path[0xff] = 0;
                 entry.display_name[0x7f] = 0;
                 savegame_index_write_slot((int32_t)slot_index, &entry);
@@ -894,14 +898,14 @@ void verify_thread_wait_and_clear(void)
         do {
             while (GetExitCodeThread(player_profile_thread->handle, (LPDWORD)&exit_code) == 0) {
             }
-        } while (exit_code == 0x103 );
+        } while (exit_code == win32::k_still_active );
         CloseHandle(player_profile_thread->handle);
         player_profile_thread->handle = 0;
         player_profile_thread->in_use = 0;
     }
 
     clear = (uint32_t *)&default_profile_data;
-    for (i = 0x1001; i != 0; i = i - 1) {
+    for (i = k_default_profile_clear_dwords; i != 0; i = i - 1) {
         *clear = 0;
         clear = clear + 1;
     }
@@ -923,7 +927,7 @@ void write_default_files(void)
 
     for (local_player_index = 0; local_player_index < 2; local_player_index = local_player_index + 1) {
         player_profile_initialize(&file.profile, local_player_index, 0);
-        _snprintf(name, 0xff, "%s\\%02d.sav", default_player_profiles_directory, local_player_index);
+        _snprintf(name, k_path_maximum_length, "%s\\%02d.sav", default_player_profiles_directory, local_player_index);
 
         {
             uint8_t *zero = (uint8_t *)&ref;
@@ -951,12 +955,12 @@ void write_default_files(void)
                 *end = 0;
                 end = end + 1;
             }
-            strncpy(end, name, 0xff - (uint32_t)(end - (ref.path + 1)));
+            strncpy(end, name, k_path_maximum_length - (uint32_t)(end - (ref.path + 1)));
         }
         ref.flags |= 1;
 
-        file.checksum = 0xffffffff;
-        halo::memory::crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
+        file.checksum = k_crc32_seed;
+        ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
 
         if (file_reference_create(&ref) != 0 && file_reference_open(&ref, 2) != 0 &&
             file_reference_seek(0, &ref) != 0) {
@@ -998,7 +1002,7 @@ void create_default_profiles_on_disk(void)
     char *end;
     uint8_t written;
 
-    tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\default_multiplayer_game_setting_names");
+    tag_id = halo::cache::tag_lookup(groups::unicode_string_list, (char *)"ui\\default_multiplayer_game_setting_names");
     if (tag_id == k_datum_index_none) {
         return;
     }
@@ -1008,12 +1012,12 @@ void create_default_profiles_on_disk(void)
         memcpy(&variant_file.variant, defaults_result, sizeof(variant_file.variant));
         memset(variant_file.padding_09c, 0, sizeof(variant_file.padding_09c));
 
-        _snprintf(path, 0xff, "%s\\%02d", default_playlists_directory, i);
+        _snprintf(path, k_path_maximum_length, "%s\\%02d", default_playlists_directory, i);
         directory_ensure_empty(path);
-        strncat(path, "\\blam.lst", 0xff);
+        strncat(path, "\\blam.lst", k_path_maximum_length);
 
         source_name = missing_string_text;
-        name_list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+        name_list = (UnicodeStringList *)tag_instances[datum_slot(tag_id)].data;
         if (0 <= i && i < (int32_t)name_list->strings.count) {
             entry = (UnicodeStringListString *)name_list->strings.pointer + i;
             source_size = entry->string.size;
@@ -1023,12 +1027,12 @@ void create_default_profiles_on_disk(void)
             }
         }
 
-        wcsncpy((wchar_t *)variant_file.variant.name, (const wchar_t *)source_name, 0x17);
+        wcsncpy((wchar_t *)variant_file.variant.name, (const wchar_t *)source_name, k_game_variant_name_length - 1);
         variant_file.variant.name[0x17] = 0;
         variant_file.variant.variant_flags =
             (int16_t)((uint16_t)variant_file.variant.variant_flags | ((uint16_t)(uint8_t)i << 8));
 
-        variant_file.checksum = 0xffffffff;
+        variant_file.checksum = k_crc32_seed;
         halo::memory::crc32_update(&variant_file.checksum, &variant_file.variant, sizeof(variant_file.variant));
 
         memset(&ref, 0, sizeof(ref));
@@ -1044,7 +1048,7 @@ void create_default_profiles_on_disk(void)
                 end++;
                 *end = '\0';
             }
-            strncpy(end, path, 0xff - (uint32_t)strlen(ref.path));
+            strncpy(end, path, k_path_maximum_length - (uint32_t)strlen(ref.path));
             ref.path[0xff] = '\0';
         }
         ref.flags |= _file_reference_is_file_bit;

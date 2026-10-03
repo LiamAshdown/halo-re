@@ -1,4 +1,9 @@
 #include "halo/units/unit.hpp"
+#include "halo/core/collision_flags.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "physics.h"
 #include "projectiles.h"
 #include "halo/math/api.hpp"
@@ -37,9 +42,9 @@ void BipedView::ground_adjust_apply_node_rotations(real_matrix4x3 *nodes, real_p
 {
     using namespace biped_ground_adjust_apply_node_rotations_local;
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *object_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
     int32_t i;
 
     for (i = 0; i < *(int32_t *)&((ModelAnimations *)graph)->nodes.count; i++) {
@@ -113,11 +118,11 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
 {
     using namespace biped_ground_adjust_solve_local;
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *object_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
     float tolerance = ((ModelAnimations *)graph)->limp_body_node_radius;
-    uint8_t limit = obj[0x525];
+    uint8_t limit = ((struct biped_object *)obj)->biped.ground_adjust_iteration_limit;
     uint8_t iteration;
     float progress;
     uint32_t success_bits[2];
@@ -130,13 +135,13 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
     if (limit == 0 || limit >= 0x1e) {
         return;
     }
-    iteration = obj[0x524];
+    iteration = ((struct biped_object *)obj)->biped.ground_adjust_iteration;
     progress = (float)((int32_t)iteration + 1) / (float)(int32_t)limit;
     if (biped_ground_adjust_near_zero(progress) || iteration >= limit) {
         return;
     }
 
-    halo::physics::physics_model_build_from_sphere_query(0xc0a8, (real_point3d *)(obj + 0x5c), ((unit_object *)obj)->base.bounding_radius + 0.0625f,
+    halo::physics::physics_model_build_from_sphere_query(0xc0a8, (real_point3d *)&((struct object *)obj)->position, ((unit_object *)obj)->base.bounding_radius + 0.0625f,
         0.0f, tolerance, object_index, &ground_adjust_physics_model);
 
     success_bits[0] = 0;
@@ -153,7 +158,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
 
             read_index++;
             if (node_index != 0) {
-                int16_t parent_index = *(int16_t *)(graph_node + 0x24);
+                int16_t parent_index = (int16_t)((struct ModelAnimationsAnimationGraphNode *)graph_node)->parent_node_index;
                 real_point3d *self = &nodes[node_index].position;
                 real_point3d *parent = &nodes[parent_index].position;
                 real_vector3d bone;
@@ -186,7 +191,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                 bone.i = bone.i * 1.03f;
                 bone.j = bone.j * 1.03f;
                 bone.k = bone.k * 1.03f;
-                if (halo::physics::collision_test_movement_segment(0xc0a8, &segment_start, &bone, object_index, &hit)) {
+                if (halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), &segment_start, &bone, object_index, &hit)) {
                     uint8_t embedded[2];
                     float push[2];
                     real_plane3d *plane = &hit.plane;
@@ -250,7 +255,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                     float stretch = (rest_length - current_length) / current_length;
                     real_vector3d correction;
 
-                    if (*(int16_t *)(graph_node + 0x24) == 0) {
+                    if ((int16_t)((struct ModelAnimationsAnimationGraphNode *)graph_node)->parent_node_index == 0) {
                         correction.i = bone.i * stretch;
                         correction.j = bone.j * stretch;
                         correction.k = bone.k * stretch;
@@ -275,11 +280,11 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                 }
             }
 
-            if (*(uint16_t *)(graph_node + 0x20) != 0xffff) {
-                queue[write_index++] = *(int16_t *)(graph_node + 0x20);
+            if (((struct ModelAnimationsAnimationGraphNode *)graph_node)->next_sibling_node_index != halo::k_word_none) {
+                queue[write_index++] = (int16_t)((struct ModelAnimationsAnimationGraphNode *)graph_node)->next_sibling_node_index;
             }
-            if (*(uint16_t *)(graph_node + 0x22) != 0xffff) {
-                queue[write_index++] = *(int16_t *)(graph_node + 0x22);
+            if (((struct ModelAnimationsAnimationGraphNode *)graph_node)->first_child_node_index != halo::k_word_none) {
+                queue[write_index++] = (int16_t)((struct ModelAnimationsAnimationGraphNode *)graph_node)->first_child_node_index;
             }
         } while (read_index != write_index);
     }
@@ -308,9 +313,9 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
 {
     using namespace biped_ground_adjust_solve_node_local;
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *object_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
     uint8_t *graph_nodes = *(uint8_t **)&((ModelAnimations *)graph)->nodes.pointer;
     uint8_t *self_node = graph_nodes + node_index * 0x40;
     int16_t parent_index = *(int16_t *)(self_node + 0x24);
@@ -427,10 +432,10 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
 uint32_t BipedView::ground_adjust_step()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    Object *object_tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
-    ModelAnimations *graph = (ModelAnimations *)halo::cache::globals().tag_instances[object_tag->animation_graph.tag_id.index].data;
+    Object *object_tag = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    ModelAnimations *graph = (ModelAnimations *)tag_instances[object_tag->animation_graph.tag_id.index].data;
     real_matrix4x3 *nodes = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset);
     uint32_t already_capped = biped->ground_adjust_iteration_limit <= biped->ground_adjust_iteration;
 
@@ -457,13 +462,13 @@ uint32_t BipedView::ground_adjust_step()
 void UnitView::clear_ground_adjust_dirty()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    if ((tag->biped_flags & 0x200) != 0 && (biped->flags & 0x20) != 0) {
-        obj->flags &= ~0x800000u;
-        biped->flags &= ~0x20u;
+    if (test_flag(tag->biped_flags, tags::biped_tag_flag::uses_limp_body_physics) && test_flag(biped->flags, units::biped_flag::ground_adjust_dirty)) {
+        clear_flag(obj->flags, objects::object_flag::unknown_800000);
+        clear_flag(biped->flags, units::biped_flag::ground_adjust_dirty);
     }
 }
 
@@ -478,15 +483,15 @@ void UnitView::clear_ground_adjust_dirty()
 void UnitView::reset_ground_adjust_state()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    if (((tag->biped_flags >> 9) & 1) != 0 && (obj->flags & 0x20) != 0 && (biped->flags & 0x21) == 0) {
+    if (((tag->biped_flags >> 9) & 1) != 0 && test_flag(obj->flags, objects::object_flag::at_rest) && !test_flag(biped->flags, units::biped_flag::airborne | units::biped_flag::ground_adjust_dirty)) {
         biped->ground_adjust_iteration = 0;
         biped->ground_adjust_iteration_limit = 0x14;
-        obj->flags |= 0x800000;
-        biped->flags |= 0x20;
+        set_flag(obj->flags, objects::object_flag::unknown_800000);
+        set_flag(biped->flags, units::biped_flag::ground_adjust_dirty);
     }
 }
 

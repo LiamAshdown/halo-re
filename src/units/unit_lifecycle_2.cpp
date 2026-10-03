@@ -1,4 +1,8 @@
 #include "halo/units/unit.hpp"
+#include "halo/core/lcg.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "hs.h"
 #include "networking.h"
@@ -30,9 +34,9 @@ extern void object_for_each_light_attachment(uint32_t object_index, int32_t regi
 
 namespace halo::units {
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_HEADER(h) (((object_header *)object_data->data)[halo::datum_slot((h))])
+#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
 namespace unit_release_transient_state_local {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
@@ -40,7 +44,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     uint8_t *self = OBJECT_DATA(object_index);
     uint8_t *vehicle = OBJECT_DATA(vehicle_index);
     uint8_t *nodes = self + ((unit_object *)self)->base.nodes.offset;
-    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + ((unit_object *)self)->unit.vehicle_seat_index * 0x11c;
+    uint8_t *seat = (uint8_t *)((struct Unit *)TAG_DATA(*(datum_index *)vehicle))->seats.pointer + ((unit_object *)self)->unit.vehicle_seat_index * 0x11c;
     uint8_t *model_nodes;
     object_marker marker;
     real_point3d offset;
@@ -52,9 +56,9 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
     offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
-    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
+    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)&((struct Unit *)TAG_DATA(*(datum_index *)self))->base.model.tag_id) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
-    if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && vehicle[0x2a3] != 0x25 &&
+    if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
         ::unit_try_set_animation_state(((unit_object *)self)->base.parent_object, 0x25);
     }
@@ -83,16 +87,16 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (object[0x10] & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            *(uint32_t *)(object + 0x10) &= ~1u;
+            clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
     ((unit_object *)self)->unit.vehicle_seat_index = -1;
-    self[0x2a7] = 2;
+    ((struct unit_object *)self)->unit.base_animation_state = 2;
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index) {
         ((unit_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -138,10 +142,10 @@ static void biped_free_local_player_history(uint8_t *self)
     uint8_t *player;
 
     if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
-        index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
+        index >= player_data->maximum_count) {
         return;
     }
-    player = (uint8_t *)player_data->data + *(int16_t *)((uint8_t *)player_data + 0x22) * index;
+    player = (uint8_t *)player_data->data + player_data->size * index;
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
@@ -172,7 +176,7 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
         }
         if (((unit_object *)obj)->unit.actor_index != k_datum_index_none) {
             datum_index actor_index = ((unit_object *)obj)->unit.actor_index;
-            uint8_t *actor_record = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+            uint8_t *actor_record = (uint8_t *)actor_data->data + halo::datum_slot(actor_index) * 0x724;
 
             ((struct unit_object *)obj)->unit.encounter_index = *(int16_t *)&((actor *)actor_record)->encounter_index;
             ((struct unit_object *)obj)->unit.squad_index = ((actor *)actor_record)->squad_index;
@@ -181,7 +185,7 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
         }
         if (((unit_object *)obj)->unit.swarm_actor_index != k_datum_index_none) {
             datum_index swarm_index = ((unit_object *)obj)->unit.swarm_actor_index;
-            uint8_t *actor_record = (uint8_t *)actor_data->data + (swarm_index & 0xffff) * 0x724;
+            uint8_t *actor_record = (uint8_t *)actor_data->data + halo::datum_slot(swarm_index) * 0x724;
 
             ((struct unit_object *)obj)->unit.encounter_index = *(int16_t *)&((actor *)actor_record)->encounter_index;
             ((struct unit_object *)obj)->unit.squad_index = ((actor *)actor_record)->squad_index;
@@ -191,15 +195,15 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
     } else {
         uint8_t *unit_tag = TAG_DATA(*(datum_index *)obj);
 
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
-        if ((float)(int32_t)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f < *(float *)(unit_tag + 0x248)) {
-            ((unit_object *)obj)->unit.flags |= 0x2000;
+        random_seed_global = halo::advance_random_seed(random_seed_global);
+        if ((float)(int32_t)(random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale < ((struct Unit *)unit_tag)->feign_repeat_chance) {
+            set_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unknown_2000);
         } else {
-            ((unit_object *)obj)->unit.flags &= 0xffffdfff;
+            clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unknown_2000);
         }
     }
     ((struct unit_object *)obj)->unit.death_time = game_time->game_time;
-    ((unit_object *)obj)->unit.flags &= 0xffffffee;
+    clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unattended | units::unit_flag::unknown_10);
     ((unit_object *)obj)->unit.control_flags = 0;
     if (((unit_object *)obj)->unit.current_weapon_index != -1) {
         uint8_t *unit = OBJECT_DATA(unit_index);
@@ -210,14 +214,14 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
         *(int16_t *)&((struct weapon_object *)weapon)->weapon.control_flags = 0;
         ((struct weapon_object *)weapon)->weapon.primary_trigger = halo::math::transition_function_evaluate((transition_function_t)4, 0.0f);
     }
-    *(uint32_t *)(OBJECT_DATA(unit_index) + 0x204) &= 0xfdffffff;
+    clear_flag(((struct unit_object *)OBJECT_DATA(unit_index))->unit.flags, units::unit_flag::idle_turn_seeded);
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {
         if (((unit_object *)obj)->unit.vehicle_seat_index == -1) {
             UnitView(unit_index).detach_reposition_and_nudge();
         } else if (network_game_mode != 1) {
             uint8_t *me = OBJECT_DATA(unit_index);
 
-            if (((struct object *)me)->parent_object != k_datum_index_none && *(int16_t *)(me + 0x2f0) != -1) {
+            if (((struct object *)me)->parent_object != k_datum_index_none && ((struct unit_object *)me)->unit.vehicle_seat_index != -1) {
                 biped_detach_from_seat(unit_index, ((struct object *)me)->parent_object);
             }
             biped_free_local_player_history(me);
@@ -228,20 +232,20 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
     {
         uint8_t *holder = OBJECT_DATA(unit_index);
 
-        if (*(datum_index *)(holder + 0x318) != k_datum_index_none) {
-            UnitView(unit_index).drop_object_from_hand(*(datum_index *)(holder + 0x318));
-            *(datum_index *)(holder + 0x318) = k_datum_index_none;
+        if (((struct unit_object *)holder)->unit.equipment_object_index != k_datum_index_none) {
+            UnitView(unit_index).drop_object_from_hand(((struct unit_object *)holder)->unit.equipment_object_index);
+            ((struct unit_object *)holder)->unit.equipment_object_index = k_datum_index_none;
         }
     }
     UnitView(unit_index).drop_grenades();
-    if (obj[0x28c] == 0) {
+    if ((uint8_t)((struct unit_object *)obj)->unit.delayed_weapon_drop_ticks == 0) {
         UnitView(unit_index).drop_current_weapon(1);
     }
-    *(int16_t *)(obj + 0x2ae) = -1;
-    *(int16_t *)(obj + 0x2aa) = -1;
-    obj[0x289] = 0;
-    if (obj[0x28d] == 1) {
-        obj[0x28d] = 0;
+    ((struct unit_object *)obj)->unit.overlays[1].animation_index = -1;
+    ((struct unit_object *)obj)->unit.overlays[0].animation_index = -1;
+    ((struct unit_object *)obj)->unit.melee_state = 0;
+    if ((uint8_t)((struct unit_object *)obj)->unit.throwing_grenade_state == 1) {
+        ((struct unit_object *)obj)->unit.throwing_grenade_state = 0;
     }
 }
 #undef OBJECT_DATA

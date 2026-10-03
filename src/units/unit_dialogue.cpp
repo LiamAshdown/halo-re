@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/core/lcg.hpp"
 #include "game.h"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -20,9 +21,9 @@ namespace halo::units {
 void UnitView::choose_dialogue_variant()
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    Unit *unit_tag = (Unit *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int16_t permutation_group = *(int16_t *)((uint8_t *)obj + 0xbe);
 
     TagID chosen;
@@ -51,7 +52,7 @@ done:
 int32_t UnitView::commit_speech(const unit_speech *source, int16_t mode)
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     if ((obj->vitality_flags & _object_health_frozen_bit) == 0 || source->priority == 10) {
@@ -65,24 +66,24 @@ int32_t UnitView::commit_speech(const unit_speech *source, int16_t mode)
             unit->speech_lipsync_stopped = 0;
             unit->speech_finished = 0;
             unit->speech_tail_ticks = unit->current_speech.tail_ticks;
-            unit->speech_sound_handle = (datum_index)-1;
+            unit->speech_sound_handle = k_datum_index_none;
             unit->speech_delay_ticks = unit->current_speech.delay_ticks;
             unit->speech_lipsync_ticks = unit->current_speech.lipsync_ticks;
 
-            if (unit->current_speech.sound_tag == (datum_index)-1) {
+            if (unit->current_speech.sound_tag == k_datum_index_none) {
                 unit->speech_duration_ticks = 0x2d;
                 return -1;
             }
 
-            Sound *sound_tag = (Sound *)halo::cache::globals().tag_instances[unit->current_speech.sound_tag & 0xffff].data;
-            int32_t length = *(int32_t *)((uint8_t *)sound_tag + 0x84) * 0x1e;
+            Sound *sound_tag = (Sound *)tag_instances[halo::datum_slot(unit->current_speech.sound_tag)].data;
+            int32_t length = (int32_t)sound_tag->longest_permutation_length * 0x1e;
             unit->speech_duration_ticks = (int16_t)(length / 1000);
             return (int32_t)((int64_t)length * 0x10624dd3);
         } else if (mode == 1) {
             unit->pending_speech = *source;
         }
     }
-    return (int32_t)((unit_index & 0xffff) * 3);
+    return (int32_t)(halo::datum_slot(unit_index) * 3);
 }
 
 /**
@@ -93,8 +94,8 @@ int32_t UnitView::commit_speech(const unit_speech *source, int16_t mode)
 void UnitView::dialogue_determine_variant()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Unit *tag = (Unit *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Unit *tag = (Unit *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int16_t *variant = (int16_t *)((uint8_t *)obj + 0xbe);
     int16_t candidates[16];
     uint16_t count = 0;
@@ -146,8 +147,8 @@ TagID unit_pick_random_dialogue_variant(Unit *unit_tag, int16_t variant_number)
             if (match_count == 1) {
                 chosen = matches[0];
             } else {
-                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
-                chosen = matches[(int16_t)((halo::math::globals().random_seed_global >> 0x10) * (uint32_t)match_count >> 0x10)];
+                random_seed_global = halo::advance_random_seed(random_seed_global);
+                chosen = matches[(int16_t)((random_seed_global >> halo::k_random_high_shift) * (uint32_t)match_count >> 0x10)];
             }
             return variants[chosen].dialogue.tag_id;
         }

@@ -1,6 +1,8 @@
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -24,10 +26,10 @@ namespace halo::units {
 void BipedView::update_facing(int8_t *out_animation_state)
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     real_vector3d target;
     real_vector3d scratch;
@@ -36,7 +38,7 @@ void BipedView::update_facing(int8_t *out_animation_state)
     float threshold;
     uint8_t turn_right;
 
-    if ((tag->biped_flags & 0x00000004) == 0 ||
+    if (!test_flag(tag->biped_flags, tags::biped_tag_flag::flying) ||
         (obj->vitality_flags & _object_health_frozen_bit) != 0) {
         int8_t base_state = unit->base_animation_state;
         uint32_t climbs;
@@ -77,7 +79,7 @@ void BipedView::update_facing(int8_t *out_animation_state)
         }
 
         if (biped->movement_state == 1 ||
-            (tag->biped_flags & 0x00000001) != 0) {
+            test_flag(tag->biped_flags, tags::biped_tag_flag::turns_without_animating)) {
             float turn_sin;
             float turn_cos;
             double angle;
@@ -112,7 +114,7 @@ void BipedView::update_facing(int8_t *out_animation_state)
                 return;
             }
 
-            if ((tag->biped_flags & 0x00000040) == 0) {
+            if (!test_flag(tag->biped_flags, tags::biped_tag_flag::can_climb_any_surface)) {
                 obj->forward.i = target.i;
                 obj->forward.j = target.j;
                 obj->forward.k = 0.0f;
@@ -137,7 +139,7 @@ void BipedView::update_facing(int8_t *out_animation_state)
                             ? 0.99f
                             : tag->cosine_stationary_turning_threshold;
             if (facing_dot < threshold &&
-                (((Unit *)tag)->unit_flags & 0x00100000) == 0) {
+                !test_flag(((Unit *)tag)->unit_flags, tags::unit_tag_flag::special_cinematic_unit)) {
                 *out_animation_state = (int8_t)(turn_right + 2);
             }
         }

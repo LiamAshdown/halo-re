@@ -16,6 +16,7 @@
 #include "halo/main/timedemo.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/main/layout.hpp"
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern timedemo_globals timedemo_globals_data; }
@@ -167,13 +168,13 @@ void Timedemo::benchmark_update(void)
         file = (FILE *)fopen("timedemo.txt", "a");
         GetModuleFileNameA(0, module_path, 0x104);
         fseek(file, 0, SEEK_END);
-        GetDateFormatA(0x400 , 0, 0, 0, date, 0x20);
-        GetTimeFormatA(0x400, 0, 0, 0, time, 0x20);
+        GetDateFormatA(win32::k_locale_user_default, 0, 0, 0, date, 0x20);
+        GetTimeFormatA(win32::k_locale_user_default, 0, 0, 0, time, 0x20);
         fprintf(file, "Date / Time: %s %s (%dms)\n", date, time, shell_startup_tick_count);
 
         if (config_force_shader == 9999) {
             shader = "2.0a";
-        } else if (rasterizer_caps.pixel_shader_version < 0xffff0101u) {
+        } else if (rasterizer_caps.pixel_shader_version < d3d9::k_pixel_shader_version_1_1) {
             shader = "Fixed Function";
         } else {
             sprintf(timedemo_pixel_shader_version, "%d.%d",

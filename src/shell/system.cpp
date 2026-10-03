@@ -943,7 +943,7 @@ int32_t ExitFlag::previous_run_crashed()
         end[-1] = 'b';
     }
 
-    if (GetFileAttributesA(pdb_path) != 0xffffffff) {
+    if (GetFileAttributesA(pdb_path) != k_datum_index_none) {
         return 0;
     }
 

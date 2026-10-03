@@ -40,8 +40,8 @@ void structure_visibility::camera_visibility_pass(void)
     clip_polygon.points[2].x = screen_bounds[1]; clip_polygon.points[2].y = screen_bounds[3];
     clip_polygon.points[3].x = screen_bounds[0]; clip_polygon.points[3].y = screen_bounds[3];
 
-    uint32_t recursion_bits[0x10];
-    for (int i = 0; i < 0x10; i++) {
+    uint32_t recursion_bits[k_cluster_visible_bit_words];
+    for (int i = 0; i < k_cluster_visible_bit_words; i++) {
         recursion_bits[i] = 0;
     }
     globals().flood_recursion_bits = recursion_bits;
@@ -49,10 +49,10 @@ void structure_visibility::camera_visibility_pass(void)
     globals().visible_cluster_count = 0;
     cluster_flood::camera_portal_flood_recursive(globals().render_cluster_index, &clip_polygon);
 
-    for (int16_t i = 0; i < globals().visible_cluster_count; i++) {
-        uint8_t *cluster = (uint8_t *)&globals().visible_clusters[i];
-        render_camera_compute_frustum_bounds((void *)render_camera_global, screen_bounds, (float *)(cluster + 4));
-        chimera__render_camera_build_frustum(screen_bounds, (void *)render_camera_global, cluster + 0x14, 0);
+    for (int16_t i = 0; i < visible_cluster_count; i++) {
+        uint8_t *cluster = (uint8_t *)&visible_clusters[i];
+        render_camera_compute_frustum_bounds((void *)render_camera_global, screen_bounds, (float *)(cluster + k_visible_cluster_screen_bounds_offset));
+        chimera__render_camera_build_frustum(screen_bounds, (void *)render_camera_global, cluster + k_visible_cluster_frustum_offset, 0);
     }
 }
 
@@ -60,14 +60,14 @@ void structure_visibility::cluster_visibility_update(void)
 {
     ScenarioStructureBSP *tag = global_structure_bsp;
 
-    uint32_t fill = (globals().render_cluster_index != -1) ? 0 : 0xffffffff;
-    int32_t cluster_dwords = (tag->clusters.count + 0x1f) >> 5;
+    uint32_t fill = (render_cluster_index != -1) ? 0 : k_dword_none;
+    int32_t cluster_dwords = bit_array_word_count(tag->clusters.count);
     for (int32_t i = 0; i < cluster_dwords; i++) {
         globals().cluster_visible_bits[i] = fill;
     }
 
-    globals().visible_surface_count = 0;
-    int32_t surface_dwords = (tag->surfaces.count + 0x1f) >> 5;
+    visible_surface_count = 0;
+    int32_t surface_dwords = bit_array_word_count(tag->surfaces.count);
     for (int32_t i = 0; i < surface_dwords; i++) {
         globals().surface_visible_bits[i] = 0;
     }
@@ -75,9 +75,9 @@ void structure_visibility::cluster_visibility_update(void)
     globals().visible_cluster_count = 0;
     structure_visibility::camera_visibility_pass();
 
-    if (globals().debug_render_cluster_pvs != 0) {
-        globals().visible_cluster_count = 0;
-        int32_t row_dwords = (tag->clusters.count + 0x1f) >> 5;
+    if (debug_render_cluster_pvs != 0) {
+        visible_cluster_count = 0;
+        int32_t row_dwords = bit_array_word_count(tag->clusters.count);
         uint32_t *pvs_row = (uint32_t *)((uint8_t *)tag->cluster_data.pointer +
                                           globals().render_cluster_index * row_dwords * 4);
         for (int32_t i = 0; i < row_dwords; i++) {
@@ -85,7 +85,7 @@ void structure_visibility::cluster_visibility_update(void)
         }
         if (tag->clusters.count > 0) {
             for (int16_t cluster_index = 0; cluster_index < tag->clusters.count; cluster_index++) {
-                if ((globals().cluster_visible_bits[cluster_index >> 5] & (1u << (cluster_index & 0x1f))) == 0) {
+                if ((cluster_visible_bits[bit_array_word(cluster_index)] & bit_array_mask(cluster_index)) == 0) {
                     continue;
                 }
                 int16_t visible_index = globals().visible_cluster_count++;
@@ -114,8 +114,8 @@ int16_t structure_visibility::collect_visible_objects(int32_t *out_handles, int1
 
     for (int16_t i = 0; i < globals().visible_cluster_count; i++) {
         uint32_t cursor;
-        uint32_t handle = iterate_begin(&cursor, globals().visible_clusters[i].cluster_index);
-        while (handle != 0xffffffff) {
+        uint32_t handle = iterate_begin(&cursor, visible_clusters[i].cluster_index);
+        while (handle != k_dword_none) {
             if (predicate(handle)) {
                 float radius;
                 real_point3d center;
@@ -137,7 +137,7 @@ int16_t structure_visibility::collect_visible_objects(int32_t *out_handles, int1
 
 void structure_visibility::render_camera_update_leaf_and_cluster(real_point3d *camera_position)
 {
-    int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)(*(void **)((uint8_t *)global_structure_bsp + 0xb4)), camera_position);
+    int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (void *)(uintptr_t)global_structure_bsp->collision_bsp.pointer, camera_position);
 
     if (leaf == -1 && globals().render_leaf_index < global_structure_bsp->leaves.count) {
         leaf = globals().render_leaf_index;
@@ -153,21 +153,21 @@ void structure_visibility::render_camera_update_leaf_and_cluster(real_point3d *c
         TagID sky_tag_id;
         int have_sky_tag_id = 0;
 
-        globals().render_cluster_index = leaves[globals().render_leaf_index & 0x7fffffff].cluster;
-        globals().render_cluster_sky_index = clusters[globals().render_cluster_index].sky;
+        render_cluster_index = leaves[render_leaf_index & k_leaf_index_mask].cluster;
+        render_cluster_sky_index = clusters[render_cluster_index].sky;
 
         if (globals().render_cluster_sky_index > -1 && globals().render_cluster_sky_index < global_scenario->skies.count) {
             ScenarioSky *skies = (ScenarioSky *)global_scenario->skies.pointer;
-            if (skies[globals().render_cluster_sky_index].sky.tag_id.index != 0xffff) {
-                sky_tag_id = skies[globals().render_cluster_sky_index].sky.tag_id;
+            if (skies[render_cluster_sky_index].sky.tag_id.index != k_word_none) {
+                sky_tag_id = skies[render_cluster_sky_index].sky.tag_id;
                 have_sky_tag_id = 1;
             }
         }
 
         if (have_sky_tag_id) {
-            Sky *sky = (Sky *)halo::cache::globals().tag_instances[sky_tag_id.index].data;
-            if (sky != 0 && sky->model.tag_id.index != 0xffff) {
-                globals().render_cluster_has_sky = 1;
+            Sky *sky = (Sky *)tag_instances[sky_tag_id.index].data;
+            if (sky != 0 && sky->model.tag_id.index != k_word_none) {
+                render_cluster_has_sky = 1;
             }
         }
     }
@@ -184,7 +184,7 @@ uint8_t structure_visibility::mirror_query(void *camera_ref, void *camera, struc
     uint8_t found = 0;
     float screen_bounds[4];
 
-    real_point2d clip_points[0x100];
+    real_point2d clip_points[k_maximum_clip_polygon_points];
     polygon2d clip_polygon;
     polygon2d project_out;
 
@@ -203,16 +203,16 @@ uint8_t structure_visibility::mirror_query(void *camera_ref, void *camera, struc
         return found;
     }
 
-    int32_t row_dwords = (cluster_count + 0x1f) >> 5;
+    int32_t row_dwords = bit_array_word_count(cluster_count);
     uint32_t *pvs_row = (uint32_t *)((uint8_t *)global_structure_bsp->cluster_data.pointer +
                                       row_dwords * globals().render_cluster_index * 4);
 
     for (int16_t cluster_index = 0; cluster_index < cluster_count; pvs_row++) {
         if (*pvs_row == 0) {
-            cluster_index = (int16_t)(cluster_index + 0x20);
+            cluster_index = (int16_t)(cluster_index + k_bit_array_word_bits);
             continue;
         }
-        for (int bit = 0; bit < 0x20 && cluster_index < cluster_count; bit++, cluster_index++) {
+        for (int bit = 0; bit < (int)k_bit_array_word_bits && cluster_index < cluster_count; bit++, cluster_index++) {
             if ((*pvs_row & (1u << bit)) == 0) {
                 continue;
             }
@@ -225,7 +225,7 @@ uint8_t structure_visibility::mirror_query(void *camera_ref, void *camera, struc
                 int16_t clip_result = 0;
                 if (project_result == 0) {
                     clip_result = halo::math::polygon2d_clip_to_planes(project_out.point_count,
-                                        &project_out.points[0], 4, clip_points, 0x100,
+                                        &project_out.points[0], 4, clip_points, k_maximum_clip_polygon_points,
                                         &clip_polygon.points[0], 9.99999975e-05f);
                     clip_polygon.point_count = clip_result;
                 } else if (project_result == 2) {

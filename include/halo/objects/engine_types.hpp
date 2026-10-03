@@ -12,6 +12,8 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "halo/core/datum.hpp"
+#include "halo/objects/flags.hpp"
 struct Antenna;
 struct ColorRGB;
 struct Flag;

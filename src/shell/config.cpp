@@ -1,4 +1,5 @@
 #include "halo/shell/config.hpp"
+#include "halo/shell/layout.hpp"
 #include "halo/shell/diagnostics.hpp"
 #include "halo/shell/hwreq.hpp"
 
@@ -105,12 +106,12 @@ uint8_t Config::set_force_shader(const char *value)
     int32_t parsed = (int32_t)(uintptr_t)value;
 
     if (*(const uint16_t *)value == 0x6132 || *(const uint16_t *)value == 0x4132) {
-        config_force_shader = 0x270e;
+        config_force_shader = k_force_shader_2_0a;
     } else {
         sscanf(value, "%d", &parsed);
         config_force_shader = parsed;
         if (parsed == 0) {
-            config_force_shader = 0x270f;
+            config_force_shader = k_force_shader_none;
             return 1;
         }
     }
@@ -151,10 +152,10 @@ void Config::reset_system_requirements()
     config_min_max_blend_op_is_broken = 0;
     config_disable_buffering = 0;
 
-    bits = 0xb866afcd;
+    bits = k_decal_z_bias_default_bits;
     config_decal_z_bias = *(float *)&bits;
     config_decal_slope_z_bias = 0.0f;
-    bits = 0xb6a7c5ac;
+    bits = k_transparent_decal_z_bias_default_bits;
     config_transparent_decal_z_bias = *(float *)&bits;
     config_transparent_decal_slope_z_bias = 0.0f;
 }
@@ -167,15 +168,15 @@ void Config::reset_system_requirements()
  */
 uint8_t Config::compute_uma_video_memory()
 {
-    video_memory = 0x800000;
-    if (physical_memory > 0x3f) {
-        video_memory = 0x1000000;
+    video_memory = k_video_memory_8mb;
+    if (physical_memory > k_memory_class_small_mb / 2 - 1) {
+        video_memory = k_video_memory_16mb;
     }
-    if (physical_memory > 0x7f) {
-        video_memory = 0x2000000;
+    if (physical_memory > k_memory_class_small_mb - 1) {
+        video_memory = k_video_memory_32mb;
     }
-    if (physical_memory > 0xff) {
-        video_memory = 0x4000000;
+    if (physical_memory > k_memory_class_medium_mb - 1) {
+        video_memory = k_video_memory_64mb;
     }
     return 1;
 }
@@ -334,7 +335,7 @@ char *ConfigLoader::parse(uint32_t adapter_index, d3d9_interface *d3d)
     ok = requirements.parse("config.txt", &sound_devices[selected_sound_device], &identifier, &caps, physical_memory,
                             video_memory, cpu_speed);
     if (ok == 0) {
-        FatalError::show(0xffffffff, (uint32_t)requirements.error_message(), 1);
+        FatalError::show(k_dword_none, (uint32_t)requirements.error_message(), 1);
     }
 
     graphics_vendor_name = requirements.graphics_vendor_name();

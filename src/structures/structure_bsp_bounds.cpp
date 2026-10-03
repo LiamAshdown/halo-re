@@ -28,7 +28,7 @@ structure_bsp_overlap bsp_bounds::frustum_planes_classify_box(real_rectangle3d *
     uint8_t any_corner_outside = 0;
 
     for (int16_t p = 0; p < plane_count; p++) {
-        real_plane3d *plane = (real_plane3d *)((uint8_t *)planes + p * 0x10);
+        real_plane3d *plane = (real_plane3d *)((uint8_t *)planes + p * sizeof(real_plane3d));
         float nx = plane->normal.i, ny = plane->normal.j, nz = plane->normal.k, d = plane->d;
 
         float xs[2] = { box->x.lower, box->x.upper };
@@ -43,7 +43,7 @@ structure_bsp_overlap bsp_bounds::frustum_planes_classify_box(real_rectangle3d *
                 outside_mask |= (uint8_t)(1 << corner);
             }
         }
-        if (outside_mask == 0xff) {
+        if (outside_mask == k_box_all_corners_mask) {
             return _structure_bsp_overlap_none;
         }
         any_corner_outside |= outside_mask;
@@ -67,8 +67,8 @@ void bsp_bounds::bsp3d_node_bounds_decompress(real_rectangle3d *parent_bounds, u
         uint8_t low_byte = bytes[axis * 2];
         uint8_t high_byte = bytes[axis * 2 + 1];
 
-        outputs[axis].lower = (low_byte == 0xff) ? upper : (float)low_byte * 0.003921569f * (upper - lower) + lower;
-        outputs[axis].upper = (high_byte == 0xff) ? upper : (float)high_byte * 0.003921569f * (upper - lower) + lower;
+        outputs[axis].lower = (low_byte == k_compressed_bound_none) ? upper : (float)low_byte * k_compressed_bound_scale * (upper - lower) + lower;
+        outputs[axis].upper = (high_byte == k_compressed_bound_none) ? upper : (float)high_byte * k_compressed_bound_scale * (upper - lower) + lower;
     }
 }
 
@@ -85,8 +85,8 @@ void bsp_bounds::polygon2d_bounds_expand(real_bounds *bounds_xy, polygon2d *poly
 
 void bsp_bounds::plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index)
 {
-    real_plane3d *plane = (real_plane3d *)((uint8_t *)*(void **)((uint8_t *)planes_owner + 0x10) +
-        (signed_index & 0x7fffffff) * 0x10);
+    real_plane3d *plane = (real_plane3d *)((uint8_t *)*(void **)((uint8_t *)planes_owner + k_plane_owner_planes_offset) +
+        (signed_index & k_index_magnitude_mask) * sizeof(real_plane3d));
 
     if (signed_index < 0) {
         out->normal.i = -plane->normal.i;

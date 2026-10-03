@@ -23,6 +23,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/main/layout.hpp"
 
 extern "C" { void console_autocomplete_command(void); }
 extern "C" { uint32_t console_command_context_mask(uint32_t context_flags); }
@@ -47,16 +48,16 @@ namespace halo::main {
  */
 void Console::chimera__exec_init(void)
 {
-    char exec_file_name[0x80];
+    char exec_file_name[k_main_path_length / 2];
     const char *exec_arg;
     uint8_t exec_flag_present;
     uint8_t ran_script;
 
     exec_flag_present = command_line_check_flag("-exec", &exec_arg);
     if (exec_flag_present && exec_arg != 0) {
-        strncpy(exec_file_name, exec_arg, 0x7f);
+        strncpy(exec_file_name, exec_arg, sizeof(exec_file_name) - 1);
     } else {
-        strncpy(exec_file_name, "init.txt", 0x7f);
+        strncpy(exec_file_name, "init.txt", sizeof(exec_file_name) - 1);
     }
     ran_script = console_exec_file_run(exec_file_name);
     if (!ran_script && rasterizer_window_requested != 0) {
@@ -273,8 +274,8 @@ void Console::deactivate(void)
         input_globals.mode_flags = input_globals.mode_flags & (uint8_t)~_input_mode_keyboard_capture_bit;
         console_globals_data.active = 0;
         if (keyboard_device != 0) {
-            flush_all = 0xffffffff;
-            ((idirectinputdevice8_getdevicedata_proc)(*(void ***)keyboard_device)[0x28 / 4])
+            flush_all = k_dword_none;
+            ((idirectinputdevice8_getdevicedata_proc)(*(void ***)keyboard_device)[k_directinput_get_device_data_slot])
                 (keyboard_device, sizeof(di_device_object_data), (di_device_object_data *)0, &flush_all, 0);
             memset(key_release_pending, 0, sizeof(key_release_pending));
             memset(key_frames, 0, sizeof(key_frames));

@@ -1,4 +1,5 @@
 #include "halo/shell/platform.hpp"
+#include "halo/shell/layout.hpp"
 
 namespace halo::shell {
 
@@ -8,7 +9,7 @@ const char *const k_settings_path = "Software\\Microsoft\\Microsoft Games\\Halo"
 
 void *hive_of(SettingsScope scope)
 {
-    return scope == SettingsScope::machine ? (void *)0x80000002 : (void *)0x80000001;
+    return scope == SettingsScope::machine ? (void *)k_hkey_local_machine : (void *)k_hkey_current_user;
 }
 
 /**
@@ -23,7 +24,7 @@ public:
     {
         RegistryKey key;
 
-        key.open(hive_of(scope), k_settings_path, 0x20019);
+        key.open(hive_of(scope), k_settings_path, k_key_read);
         return key.query(name, type, data, size) == 0;
     }
 
@@ -35,7 +36,7 @@ public:
     {
         RegistryKey key;
 
-        key.create(hive_of(scope), k_settings_path, 0x20006, 0);
+        key.create(hive_of(scope), k_settings_path, k_key_write, 0);
         key.set_string(name, text, size);
     }
 };

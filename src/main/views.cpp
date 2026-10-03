@@ -30,6 +30,7 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/main/layout.hpp"
 
 extern "C" { void render_view_camera_fill(observer_camera *observer, render_view *view); }
 extern "C" { void screenshot_render(render_view *views); }
@@ -108,7 +109,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
                     candidate = 0;
                 } else {
                     candidate = -1;
-                    if (local_player_globals->local_players[0] != (datum_index)-1 &&
+                    if (local_player_globals->local_players[0] != k_datum_index_none &&
                         resolved_local_player_index < 0) {
                         candidate = 0;
                     }
@@ -156,7 +157,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     }
 
     if (input_globals.system_key_states[2] == 0 &&
-        input_globals.states[0].buttons[0x12] == 0) {
+        input_globals.states[0].buttons[_input_action_screenshot] == 0) {
         if (main_globals_data.screenshot_tile_count < 1) {
             render_frame(0, render_views, (int16_t)(view_count + 1), 0, time_since_tick,
                          time_since_frame);
@@ -361,23 +362,23 @@ void RenderViews::screenshot_render(render_view *views)
     height = (int16_t)((game_window_top_left.bottom - game_window_top_left.top) * screenshot_scale);
     width = (int16_t)((game_window_top_left.right - game_window_top_left.left) * screenshot_scale);
 
-    bitmap = (BitmapData *)GlobalAlloc(0, 0x30);
+    bitmap = (BitmapData *)GlobalAlloc(0, sizeof(BitmapData));
     if (bitmap == 0) {
         main_globals_data.screenshot_tile_count = 0;
         return;
     }
-    memset(bitmap, 0, 0x30);
+    memset(bitmap, 0, sizeof(BitmapData));
 
-    bitmap->bitmap_class = 0x6269746d;
+    bitmap->bitmap_class = k_bitmap_group;
     bitmap->width = width;
     bitmap->height = height;
     bitmap->depth = 1;
     bitmap->type = 0;
-    bitmap->format = 10;
-    bitmap->flags = 0x40;
+    bitmap->format = bitmapdataformat_x8r8g8b8;
+    bitmap->flags = to_bits(tags::bitmap_data_tag_flag::unused);
     if (((int32_t)width & ((int32_t)width - 1)) == 0 &&
         ((int32_t)height & ((int32_t)height - 1)) == 0) {
-        bitmap->flags = 0x41;
+        bitmap->flags = to_bits(tags::bitmap_data_tag_flag::unused | tags::bitmap_data_tag_flag::power_of_two_dimensions);
     }
 
     *(void **)&((struct BitmapData *)bitmap)->pixel_base = GlobalAlloc(0, bitmap_data_calculate_pixel_data_size(bitmap));
@@ -416,14 +417,14 @@ void RenderViews::screenshot_render(render_view *views)
                 halo::cseries::directory_create_recursive((char *)"screenshots");
 
                 memset(&request, 0, sizeof(request));
-                request.signature = 0x66696c6f;
+                request.signature = k_file_reference_signature;
                 request.location = -1;
                 if ((request.flags & 1) != 0) {
                     path_remove_last_component((uint8_t *)&request.path);
                 }
                 if (filename[0] != 0) {
-                    strncpy(request.path, filename, 0xff);
-                    request.path[0xff] = 0;
+                    strncpy(request.path, filename, k_main_path_length - 1);
+                    request.path[k_main_path_length - 1] = 0;
                 }
                 request.flags = request.flags | 1;
 

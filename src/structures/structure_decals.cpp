@@ -39,7 +39,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
         uint32_t saved_seed = halo::math::globals().effect_random_seed;
         ScenarioStructureBSPCluster *cluster =
             (ScenarioStructureBSPCluster *)((uint8_t *)global_structure_bsp->clusters.pointer + cluster_offset);
-        int cluster_has_decals = cluster->first_decal_index != (uint16_t)-1 && cluster->decal_count != 0;
+        int cluster_has_decals = cluster->first_decal_index != k_word_none && cluster->decal_count != 0;
         int entering;
         int leaving;
 
@@ -47,9 +47,9 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
             entering = 0;
             leaving = 0;
         } else {
-            uint32_t bit = 1u << (bit_index & 0x1f);
-            uint32_t word = (uint32_t)((bit_index >> 5) * 4);
-            int suppressed = *globals().runtime_decals_suppressed != 0;
+            uint32_t bit = bit_array_mask(bit_index);
+            uint32_t word = (uint32_t)(bit_array_word(bit_index) * 4);
+            int suppressed = *runtime_decals_suppressed != 0;
 
             entering = !suppressed &&
                 (*(uint32_t *)((uint8_t *)switch_group_a + word) & bit) != 0 &&
@@ -93,13 +93,13 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
                     if (decals_enabled != 0 && spawn_ok) {
                         collision_result placement;
 
-                        halo::math::globals().effect_random_seed = *(uint32_t *)&decal->position.z ^
-                            *(uint32_t *)&decal->position.y ^ *(uint32_t *)&decal->position.x ^ 0xdeadc0de;
-                        if (halo::physics::collision_test_movement_segment(0x100061,
-                                (real_point3d *)&decal->position, &orientation, 0xffffffff,
+                        effect_random_seed = *(uint32_t *)&decal->position.z ^
+                            *(uint32_t *)&decal->position.y ^ *(uint32_t *)&decal->position.x ^ k_decal_placement_seed_xor;
+                        if (halo::physics::collision_test_movement_segment(to_bits(k_decal_placement_query),
+                                (real_point3d *)&decal->position, &orientation, k_dword_none,
                                 &placement) != 0 &&
                             placement.type == _collision_result_type_structure &&
-                            (*(uint8_t *)halo::cache::globals().tag_instances[shader_tag_id.index].data & 0x10) == 0) {
+                            (*(uint8_t *)tag_instances[shader_tag_id.index].data & k_decal_shader_skip_structure_flag) == 0) {
                             halo::effects::decal_place(*(datum_index *)&shader_tag_id, &placement, &orientation, 1.0f, 1, -1);
                         }
                     }
@@ -127,9 +127,9 @@ void structure_decals::runtime_decals_evict(void)
     }
     cluster_count = *(int16_t *)&global_structure_bsp->clusters.count;
     for (cluster_index = 0; cluster_index < cluster_count; cluster_index++) {
-        uint8_t *cluster = (uint8_t *)global_structure_bsp->clusters.pointer + cluster_index * 0x68;
+        ScenarioStructureBSPCluster *cluster = (ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer + cluster_index;
 
-        if (*(uint16_t *)(cluster + 0xc) != 0xffff && *(int16_t *)(cluster + 0xe) != 0) {
+        if (cluster->first_decal_index != k_word_none && cluster->decal_count != 0) {
             halo::effects::decal_evict_object_decals(cluster_index);
         }
     }
