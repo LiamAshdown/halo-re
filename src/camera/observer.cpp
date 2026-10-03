@@ -164,7 +164,7 @@ void ObserverHandle::commit()
     leaf_index = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&camera->position);
     if (leaf_index != -1) {
         int16_t new_cluster =
-            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index & k_leaf_index_mask].cluster;
+            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
 
         if (new_cluster != -1) {
             if (new_cluster != camera->cluster_index) {
@@ -706,7 +706,7 @@ void ObserverSystem::update_location()
         observers[0].camera.cluster_index = -1;
     } else {
         observers[0].camera.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)
-            global_structure_bsp->leaves.pointer)[leaf_index & k_leaf_index_mask].cluster;
+            global_structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
     }
 }
 
@@ -739,7 +739,7 @@ void ObserverSystem::avoid_collision(real_vector3d *forward, real_point3d *posit
         location.cluster_index = -1;
     } else {
         location.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)
-            [location.leaf_index & k_leaf_index_mask].cluster;
+            [location.leaf_index & halo::k_leaf_index_mask].cluster;
     }
     use_alternate_mask = scenario_location_get_water_and_weather(position, &location, 0); 
 

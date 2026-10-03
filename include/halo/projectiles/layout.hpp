@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "halo/core/flags.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 
 namespace halo::projectiles {
 
@@ -60,7 +61,7 @@ inline constexpr uint32_t k_random_high_shift = 16;
 constexpr uint32_t advance_random_seed(uint32_t seed) noexcept { return seed * k_random_multiplier + k_random_increment; }
 
 /** Tag group of a contrail attachment ('cont'). */
-inline constexpr uint32_t k_contrail_group_tag = 0x636f6e74;
+inline constexpr uint32_t k_contrail_group_tag = groups::contrail;
 
 /** Size of the shared network message scratch buffer. */
 inline constexpr uint32_t k_network_message_scratch_size = 0x7ff8;

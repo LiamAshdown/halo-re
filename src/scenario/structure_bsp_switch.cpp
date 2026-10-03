@@ -5,6 +5,7 @@
  */
 
 #include "halo/scenario/scenario.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern structure_bsp_procedure structure_bsp_activate_procedures[k_structure_bsp_activate_procedure_count];
@@ -129,7 +130,7 @@ uint8_t structure_bsp_switcher::locate_point_nudge_up(real_point3d *point)
 
     leaf = bsp3d_node_find_leaf(0, global_collision_bsp, point);
     attempts = 0;
-    while (leaf == 0xffffffff && attempts < k_scenario_location_nudge_attempts) {
+    while (leaf == halo::k_dword_none && attempts < k_scenario_location_nudge_attempts) {
         attempts++;
         point->z = point->z + 0.05f;
         leaf = bsp3d_node_find_leaf(0, global_collision_bsp, point);

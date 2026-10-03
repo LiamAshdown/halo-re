@@ -1,4 +1,5 @@
 #include "halo/projectiles/projectile.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern data_array *object_data;

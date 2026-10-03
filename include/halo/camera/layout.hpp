@@ -32,9 +32,6 @@ constexpr probe_flags k_probe_flags_normal = probe_flags::front_faces | probe_fl
 constexpr probe_flags k_probe_flags_alternate = probe_flags::front_faces | probe_flags::structure_bsp | probe_flags::nearby_objects |
                                                 probe_flags::object_type_filter;
 
-/** Mask that strips the "no leaf" sign bit from a BSP leaf index. */
-inline constexpr uint32_t k_leaf_index_mask = 0x7fffffff;
-
 /** Object type mask that accepts every object type. */
 inline constexpr uint32_t k_all_object_types = 0xffffffffu;
 
