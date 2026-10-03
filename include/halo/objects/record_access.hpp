@@ -31,6 +31,13 @@ inline uint8_t *object_record_bytes(uint32_t handle)
     return reinterpret_cast<uint8_t *>(object_header_of(handle).data);
 }
 
+/** The object record with the given handle, viewed as the record struct T (object, unit_object, biped_object, ...). */
+template <typename T>
+inline T *object_as(uint32_t handle)
+{
+    return reinterpret_cast<T *>(object_record_bytes(handle));
+}
+
 /** First byte of the loaded tag data with the given tag handle. */
 inline uint8_t *tag_record_bytes(uint32_t tag_handle)
 {

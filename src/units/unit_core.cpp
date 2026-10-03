@@ -1,3 +1,4 @@
+#include "halo/game/records.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
@@ -519,8 +520,7 @@ uint8_t halo::units::unit_is_area_clear_of_fast_objects(void)
         if (slot >= 0 && slot < 1) {
             uint32_t player_handle = *(uint32_t *)&halo::game::globals().local_player_globals->local_players[slot];
             if (player_handle != k_datum_index_none) {
-                uint32_t unit_handle = *(uint32_t *)((uint8_t *)halo::game::globals().player_data->data +
-                                                      halo::datum_slot(player_handle) * 0x200 + 0x34);
+                uint32_t unit_handle = halo::game::player_at(player_handle)->unit;
                 if (unit_handle != k_datum_index_none) {
                     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_handle)].data;
                     if (obj->parent_object == k_datum_index_none && tracked_count < K_MAX_TRACKED_UNITS) {
@@ -567,18 +567,18 @@ uint8_t halo::units::unit_is_area_clear_of_fast_objects(void)
  */
 uint8_t halo::units::unit_point_in_front_and_asleep(real_point3d *world_point, uint32_t unit_index)
 {
-    uint8_t *obj = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
+    unit_object *obj = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(unit_index, 3));
     float dot;
 
-    if (obj == 0 || ((unit_object *)obj)->base.type != 0) {
+    if (obj == 0 || obj->base.type != 0) {
         return 0;
     }
     if (*(uint32_t *)(halo::objects::tag_record_bytes(*(datum_index *)obj) + 0x17c) & 0x10000) {
         return 0;
     }
-    dot = (((unit_object *)obj)->base.bounding_center.z - world_point->z) * ((unit_object *)obj)->unit.looking_vector.k +
-          (((unit_object *)obj)->base.bounding_center.y - world_point->y) * ((unit_object *)obj)->unit.looking_vector.j +
-          (((unit_object *)obj)->base.bounding_center.x - world_point->x) * ((unit_object *)obj)->unit.looking_vector.i;
+    dot = (obj->base.bounding_center.z - world_point->z) * obj->unit.looking_vector.k +
+          (obj->base.bounding_center.y - world_point->y) * obj->unit.looking_vector.j +
+          (obj->base.bounding_center.x - world_point->x) * obj->unit.looking_vector.i;
     if (!(dot > 0.0f)) {
         const char *name = UnitView(unit_index).get_seat_or_state_name();
         const char *asleep = unit_base_animation_state_names[0];
@@ -604,9 +604,9 @@ void UnitView::update_ground_contact_counter(uint8_t *contact_points)
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    uint8_t *physics_tag = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
+    Physics *physics_tag = halo::objects::tag_as<Physics>(halo::objects::tag_handle(((Unit *)tag)->base.physics));
     vehicle_data *vehicle = halo::units::vehicle_data_of(obj);
-    int32_t count = *(int32_t *)(physics_tag + 0x74);
+    int32_t count = physics_tag->mass_points.count;
     int32_t i;
 
     if (vehicle->airborne_ticks != 0xff) {

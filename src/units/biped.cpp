@@ -151,7 +151,7 @@ void BipedView::check_evade_reaction()
         unit->animation_state != 0x1d && (int8_t)biped->airborne_ticks > 0x1e &&
         (biped->last_falling_reaction_tick == -1 ||
          (int32_t)(biped->last_falling_reaction_tick + 0xf) < halo::game::globals().game_time->game_time)) {
-        void *table = (void *)global_globals->falling_damage.pointer;
+        void *table = halo::objects::block_elements<GlobalsFallingDamage>(global_globals->falling_damage);
         real_point3d ground;
         real_point3d position;
 
@@ -324,8 +324,8 @@ uint32_t BipedView::is_idle_eligible()
 uint8_t BipedView::is_old_enough()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = halo::objects::object_record_bytes(object_index);
-    int32_t stamp = ((unit_object *)obj)->base.network_update_tick;
+    unit_object *obj = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(object_index));
+    int32_t stamp = obj->base.network_update_tick;
 
     if (stamp == -1) {
         return 1;
@@ -342,14 +342,14 @@ void BipedView::placement_offset_centered_pill(object_placement_data *placement)
 {
     datum_index object_index = datum_handle;
     uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(object_index) * 0xc + 8);
-    uint8_t *biped_tag = halo::objects::tag_record_bytes(*(datum_index *)object);
-    uint32_t flags = ((struct Biped *)biped_tag)->biped_flags;
+    Biped *biped_tag = halo::objects::tag_as<Biped>(*(datum_index *)object);
+    uint32_t flags = biped_tag->biped_flags;
     float radius;
 
     if (!test_flag(flags, tags::biped_tag_flag::physics_pill_centered_at_origin) || test_flag(flags, tags::biped_tag_flag::flying)) {
         return;
     }
-    radius = ((struct Biped *)biped_tag)->collision_radius;
+    radius = biped_tag->collision_radius;
     placement->position.x = radius * placement->up.i + placement->position.x;
     placement->position.y = radius * placement->up.j + placement->position.y;
     placement->position.z = radius * placement->up.k + placement->position.z;
@@ -380,10 +380,10 @@ namespace biped_update_local {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
 {
-    uint8_t *self = halo::objects::object_record_bytes(object_index);
-    uint8_t *vehicle = halo::objects::object_record_bytes(vehicle_index);
-    uint8_t *nodes = self + ((unit_object *)self)->base.nodes.offset;
-    uint8_t *seat = (uint8_t *)((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)vehicle))->seats.pointer + ((unit_object *)self)->unit.vehicle_seat_index * 0x11c;
+    unit_object *self = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(object_index));
+    unit_object *vehicle = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(vehicle_index));
+    uint8_t *nodes = reinterpret_cast<uint8_t *>(self) + self->base.nodes.offset;
+    uint8_t *seat = (uint8_t *)((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)vehicle))->seats.pointer + self->unit.vehicle_seat_index * 0x11c;
     uint8_t *model_nodes;
     object_marker marker;
     real_point3d offset;
@@ -397,50 +397,50 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
     model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)self))->base.model)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
-    if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
-        ((unit_object *)self)->base.parent_object != k_datum_index_none) {
-        halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
+    if (vehicle->unit.driver_unit_index == object_index && (uint8_t)vehicle->unit.animation_state != 0x25 &&
+        self->base.parent_object != k_datum_index_none) {
+        halo::units::UnitView(self->base.parent_object).try_set_animation_state(0x25);
     }
-    ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
-    ((unit_object *)self)->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;
-    if (((unit_object *)self)->unit.driver_unit_index == object_index) {
-        ((unit_object *)self)->unit.driver_unit_index = k_datum_index_none;
+    self->unit.last_parent_object_index = vehicle_index;
+    self->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;
+    if (self->unit.driver_unit_index == object_index) {
+        self->unit.driver_unit_index = k_datum_index_none;
     }
-    if (((unit_object *)self)->unit.gunner_unit_index == object_index) {
-        ((unit_object *)self)->unit.gunner_unit_index = k_datum_index_none;
+    if (self->unit.gunner_unit_index == object_index) {
+        self->unit.gunner_unit_index = k_datum_index_none;
     }
     halo::objects::object_snap_to_parent_marker_and_detach(object_index);
-    position.x = offset.x + ((unit_object *)self)->base.position.x;
-    position.y = offset.y + ((unit_object *)self)->base.position.y;
-    position.z = offset.z + ((unit_object *)self)->base.position.z - default_translation.z;
+    position.x = offset.x + self->base.position.x;
+    position.y = offset.y + self->base.position.y;
+    position.z = offset.z + self->base.position.z - default_translation.z;
     halo::objects::object_set_position_and_orientation(object_index, 0, 0, &position);
     {
-        uint8_t *reloaded = halo::objects::object_record_bytes(object_index);
+        object *reloaded = reinterpret_cast<object *>(halo::objects::object_record_bytes(object_index));
 
-        halo::math::matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
+        halo::math::matrix4x3_multiply((real_matrix4x3 *)(reinterpret_cast<uint8_t *>(reloaded) + reloaded->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
-    *(real_vector3d *)&((unit_object *)self)->base.forward.i = basis.forward;
-    *(real_vector3d *)&((unit_object *)self)->base.up.i = basis.up;
+    *(real_vector3d *)&self->base.forward.i = basis.forward;
+    *(real_vector3d *)&self->base.up.i = basis.up;
     {
         uint8_t *object = halo::objects::object_record_bytes(object_index);
-        uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)object);
+        Object *object_tag = halo::objects::tag_as<Object>(*(datum_index *)object);
 
-        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
+        if ((int32_t)halo::objects::tag_handle(object_tag->model) != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
-        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1) {
+        if ((int32_t)halo::objects::tag_handle(object_tag->model) != -1) {
             clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             halo::objects::object_header_of(object_index).flags |= 2;
         }
     }
-    ((unit_object *)self)->unit.vehicle_seat_index = -1;
-    ((struct unit_object *)self)->unit.base_animation_state = 2;
-    if (((unit_object *)vehicle)->unit.driver_unit_index == object_index) {
-        ((unit_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
+    self->unit.vehicle_seat_index = -1;
+    self->unit.base_animation_state = 2;
+    if (vehicle->unit.driver_unit_index == object_index) {
+        vehicle->unit.driver_unit_index = k_datum_index_none;
     }
-    if (((unit_object *)vehicle)->unit.gunner_unit_index == object_index) {
-        ((unit_object *)vehicle)->unit.gunner_unit_index = k_datum_index_none;
+    if (vehicle->unit.gunner_unit_index == object_index) {
+        vehicle->unit.gunner_unit_index = k_datum_index_none;
     }
     UnitView(vehicle_index).recompute_seat_occupants();
     UnitView(object_index).pick_and_ready_next_weapon();
@@ -449,8 +449,8 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
 
         UnitView(object_index).update_animation_state_machine(request);
     }
-    *(real_point3d *)(self + ((unit_object *)self)->base.node_function_values.offset + 0x10) = default_translation;
-    if (((unit_object *)self)->base.type == 0) {
+    halo::raw_at<real_point3d>(self, self->base.node_function_values.offset + 0x10) = default_translation;
+    if (self->base.type == 0) {
         UnitView(object_index).reset_orientation_and_find_position(vehicle_index);
     }
     halo::objects::object_recalculate_bounding_radius_recursive(object_index);
@@ -462,7 +462,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     if (halo::networking::globals().game_mode == 1) {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, halo::game::globals().player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(self->unit.controlling_player, halo::game::globals().player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;
@@ -473,9 +473,9 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     }
 }
 
-static void biped_free_local_player_history(uint8_t *self)
+static void biped_free_local_player_history(unit_object *self)
 {
-    datum_index player_index = ((unit_object *)self)->unit.controlling_player;
+    datum_index player_index = self->unit.controlling_player;
     int16_t index = (int16_t)player_index;
     int16_t salt = (int16_t)(player_index >> 16);
     uint8_t *player;
@@ -505,7 +505,7 @@ uint8_t BipedView::update()
     using namespace biped_update_local;
     uint32_t object_index = datum_handle;
     uint8_t *obj = halo::objects::object_record_bytes(object_index);
-    uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
+    Biped *tag = halo::objects::tag_as<Biped>(*(datum_index *)obj);
     int8_t state[2];
 
     if (((unit_object *)obj)->base.network_role == 1 && ((struct object *)obj)->network_position_valid == 1 && ((unit_object *)obj)->base.parent_object == k_datum_index_none) {
@@ -515,67 +515,67 @@ uint8_t BipedView::update()
     state[1] = 0;
 
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {
-        uint8_t *parent = halo::objects::object_record_bytes(((unit_object *)obj)->base.parent_object);
+        object *parent = reinterpret_cast<object *>(halo::objects::object_record_bytes(((unit_object *)obj)->base.parent_object));
 
-        if (((struct object *)parent)->type != 1) {
-            if (((struct object *)parent)->type == 0) {
-                state[0] = (int8_t)(((uint8_t)((struct object *)parent)->vitality_flags & 4) | 0x20);
+        if (parent->type != 1) {
+            if (parent->type == 0) {
+                state[0] = (int8_t)(((uint8_t)parent->vitality_flags & 4) | 0x20);
             }
             goto tail;
         }
         UnitView(object_index).evaluate_flee_reaction();
         if (test_flag(((struct unit_object *)obj)->unit.control_flags, units::unit_control_flag::action) && halo::networking::globals().game_mode != 1) {
-            uint8_t *self = (uint8_t *)halo::objects::object_try_and_get(object_index, 3);
+            unit_object *self = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(object_index, 3));
             datum_index vehicle_index;
 
-            if (self != 0 && (vehicle_index = ((unit_object *)self)->base.parent_object) != k_datum_index_none &&
-                ((unit_object *)self)->unit.vehicle_seat_index != -1) {
-                if (((unit_object *)self)->base.type == 1) {
+            if (self != 0 && (vehicle_index = self->base.parent_object) != k_datum_index_none &&
+                self->unit.vehicle_seat_index != -1) {
+                if (self->base.type == 1) {
                     biped_detach_from_seat(object_index, vehicle_index);
-                    biped_free_local_player_history(halo::objects::object_record_bytes(object_index));
-                } else if (!::halo::units::unit_state_is_scripted_animation((unit_data *)(self + k_unit_data_offset))) {
-                    uint8_t *self_tag = halo::objects::tag_record_bytes(*(datum_index *)self);
-                    datum_index graph = halo::objects::tag_handle(((struct Unit *)self_tag)->base.animation_graph);
-                    uint8_t *seat_block = *(uint8_t **)(halo::objects::tag_record_bytes(graph) + 0x10) + (int8_t)(uint8_t)((struct unit_object *)self)->unit.animation_definition_index * 0x64;
+                    biped_free_local_player_history(self);
+                } else if (!::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(self) + k_unit_data_offset))) {
+                    Unit *self_tag = halo::objects::tag_as<Unit>(*(datum_index *)self);
+                    datum_index graph = halo::objects::tag_handle(self_tag->base.animation_graph);
+                    uint8_t *seat_block = *(uint8_t **)(halo::objects::tag_record_bytes(graph) + 0x10) + (int8_t)(uint8_t)self->unit.animation_definition_index * 0x64;
 
                     if (*(int32_t *)(seat_block + 0x40) > 8 && (*(int16_t **)(seat_block + 0x44))[8] != -1) {
                         int16_t exit_animation = (*(int16_t **)(seat_block + 0x44))[8];
                         uint8_t *object;
-                        uint8_t *object_tag;
+                        Object *object_tag;
 
                         if (((struct unit_object *)halo::objects::object_record_bytes(vehicle_index))->unit.driver_unit_index == object_index) {
                             UnitView((int32_t)vehicle_index).notify_weapon_removed();
                         }
-                        UnitView(object_index).set_custom_animation(halo::objects::tag_handle(((struct Unit *)self_tag)->base.animation_graph), halo::models::animation_choose_random_permutation(graph, exit_animation, (animation_random_stream)1));
+                        UnitView(object_index).set_custom_animation(halo::objects::tag_handle(self_tag->base.animation_graph), halo::models::animation_choose_random_permutation(graph, exit_animation, (animation_random_stream)1));
                         object = halo::objects::object_record_bytes(object_index);
-                        object_tag = halo::objects::tag_record_bytes(*(datum_index *)object);
-                        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1) {
+                        object_tag = halo::objects::tag_as<Object>(*(datum_index *)object);
+                        if ((int32_t)halo::objects::tag_handle(object_tag->model) != -1) {
                             if (test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
                                 halo::objects::object_for_each_light_attachment(object_index, 0, 1);
                             }
-                            if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1) {
+                            if ((int32_t)halo::objects::tag_handle(object_tag->model) != -1) {
                                 clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
                                 halo::objects::object_header_of(object_index).flags |= 2;
                             }
                         }
-                        ((struct unit_object *)self)->unit.animation_state = 0x1b;
+                        self->unit.animation_state = 0x1b;
                         halo::ai::actor_notify_weapon_pickup_once(object_index);
-                        if (((unit_object *)self)->base.network_role == 0) {
+                        if (self->base.network_role == 0) {
                             ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)object_index);
                         }
                     }
                 }
             }
         }
-        if (biped_detach_from_flipped_vehicle && ((struct object *)parent)->up.k < 0.0f && test_flag(((struct object *)parent)->flags, objects::object_flag::unknown_2) &&
+        if (biped_detach_from_flipped_vehicle && parent->up.k < 0.0f && test_flag(parent->flags, objects::object_flag::unknown_2) &&
             halo::networking::globals().game_mode != 1) {
-            uint8_t *self = halo::objects::object_record_bytes(object_index);
-            datum_index vehicle_index = ((unit_object *)self)->base.parent_object;
+            unit_object *self = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(object_index));
+            datum_index vehicle_index = self->base.parent_object;
 
-            if (vehicle_index != k_datum_index_none && ((unit_object *)self)->unit.vehicle_seat_index != -1) {
+            if (vehicle_index != k_datum_index_none && self->unit.vehicle_seat_index != -1) {
                 biped_detach_from_seat(object_index, vehicle_index);
             }
-            if (((unit_object *)self)->base.network_role == 0) {
+            if (self->base.network_role == 0) {
                 ::halo::units::unit_dispatch_scripted_event_9(1, (int32_t)object_index);
             }
             biped_free_local_player_history(self);
@@ -584,7 +584,7 @@ uint8_t BipedView::update()
     }
 
     ::halo::units::unit_update_up_vector((Biped *)(Biped *)tag, (::object *)(object *)obj);
-    if (test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) || !test_flag(((struct Biped *)tag)->biped_flags, tags::biped_tag_flag::flying | tags::biped_tag_flag::can_climb_any_surface)) {
+    if (test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) || !test_flag(tag->biped_flags, tags::biped_tag_flag::flying | tags::biped_tag_flag::can_climb_any_surface)) {
         ((unit_object *)obj)->unit.desired_facing_vector.k = 0.0f;
         if (halo::math::vector3d_normalize_with_length(*((real_vector3d *)&((struct unit_object *)obj)->unit.desired_facing_vector)) == 0.0f) {
             *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i = *halo::math::globals().global_forward3d_pointer;
@@ -700,7 +700,7 @@ tail:
  */
 void halo::units::biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base)
 {
-    uint8_t *biped = (uint8_t *)object_base;
+    biped_object *biped = reinterpret_cast<biped_object *>(object_base);
     float t0 = *(float *)(timing_table + 0x3dc) * 0.033333335f;
     float t1 = *(float *)(timing_table + 0x3e0) * 0.033333335f;
     float numerator;
@@ -733,9 +733,9 @@ void halo::units::biped_update_animation_frame_trigger(float threshold, uint8_t 
     } else if (!(fraction <= 1.0f)) {
         fraction = 1.0f;
     }
-    ((struct biped_object *)biped)->biped.landing_type = phase;
-    ((struct biped_object *)biped)->biped.landing_ticks = 0;
-    ((struct biped_object *)biped)->biped.landing_duration_ticks = (uint8_t)(int32_t)(value * fraction);
+    biped->biped.landing_type = phase;
+    biped->biped.landing_ticks = 0;
+    biped->biped.landing_duration_ticks = (uint8_t)(int32_t)(value * fraction);
 }
 
 /**

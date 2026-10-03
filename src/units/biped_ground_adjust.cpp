@@ -43,12 +43,12 @@ void BipedView::ground_adjust_apply_node_rotations(real_matrix4x3 *nodes, real_p
     using namespace biped_ground_adjust_apply_node_rotations_local;
     uint32_t object_index = datum_handle;
     uint8_t *obj = halo::objects::object_record_bytes(object_index);
-    uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
-    uint8_t *graph = halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Object *)object_tag)->animation_graph));
+    Object *object_tag = halo::objects::tag_as<Object>(*(datum_index *)obj);
+    ModelAnimations *graph = halo::objects::tag_as<ModelAnimations>(halo::objects::tag_handle(object_tag->animation_graph));
     int32_t i;
 
-    for (i = 0; i < *(int32_t *)&((ModelAnimations *)graph)->nodes.count; i++) {
-        uint8_t *graph_nodes = *(uint8_t **)&((ModelAnimations *)graph)->nodes.pointer;
+    for (i = 0; i < *(int32_t *)&graph->nodes.count; i++) {
+        ModelAnimationsAnimationGraphNode *graph_nodes = halo::objects::block_elements<ModelAnimationsAnimationGraphNode>(graph->nodes);
         int16_t parent_index;
         real_vector3d saved;
         real_vector3d current;
@@ -59,8 +59,8 @@ void BipedView::ground_adjust_apply_node_rotations(real_matrix4x3 *nodes, real_p
         if (i == 0) {
             continue;
         }
-        parent_index = *(int16_t *)(graph_nodes + i * 0x40 + 0x24);
-        if (graph_nodes[parent_index * 0x40 + 0x28] & 4) {
+        parent_index = halo::raw_at<int16_t>(graph_nodes, i * 0x40 + 0x24);
+        if (reinterpret_cast<uint8_t *>(graph_nodes)[parent_index * 0x40 + 0x28] & 4) {
             continue;
         }
         saved.i = saved_positions[i].x - saved_positions[parent_index].x;
@@ -119,9 +119,9 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
     using namespace biped_ground_adjust_solve_local;
     uint32_t object_index = datum_handle;
     uint8_t *obj = halo::objects::object_record_bytes(object_index);
-    uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
-    uint8_t *graph = halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Object *)object_tag)->animation_graph));
-    float tolerance = ((ModelAnimations *)graph)->limp_body_node_radius;
+    Object *object_tag = halo::objects::tag_as<Object>(*(datum_index *)obj);
+    ModelAnimations *graph = halo::objects::tag_as<ModelAnimations>(halo::objects::tag_handle(object_tag->animation_graph));
+    float tolerance = graph->limp_body_node_radius;
     uint8_t limit = ((struct biped_object *)obj)->biped.ground_adjust_iteration_limit;
     uint8_t iteration;
     float progress;
@@ -154,11 +154,11 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
         queue[0] = 0;
         do {
             int16_t node_index = queue[read_index];
-            uint8_t *graph_node = *(uint8_t **)&((ModelAnimations *)graph)->nodes.pointer + node_index * 0x40;
+            ModelAnimationsAnimationGraphNode *graph_node = &halo::objects::block_element<ModelAnimationsAnimationGraphNode>(graph->nodes, node_index);
 
             read_index++;
             if (node_index != 0) {
-                int16_t parent_index = (int16_t)((struct ModelAnimationsAnimationGraphNode *)graph_node)->parent_node_index;
+                int16_t parent_index = (int16_t)graph_node->parent_node_index;
                 real_point3d *self = &nodes[node_index].position;
                 real_point3d *parent = &nodes[parent_index].position;
                 real_vector3d bone;
@@ -238,9 +238,9 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                 bone.j = self->y - parent->y;
                 bone.k = self->z - parent->z;
                 {
-                    uint8_t *model = halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Object *)object_tag)->model));
+                    GBXModel *model = halo::objects::tag_as<GBXModel>(halo::objects::tag_handle(object_tag->model));
 
-                    rest_length = *(float *)(*(uint8_t **)(model + 0xbc) + node_index * 0x9c + 0x44);
+                    rest_length = *(float *)(&halo::objects::block_element<ModelNode>(model->nodes, node_index).node_distance_from_parent);
                 }
                 {
                     float dx = parent->x - self->x;
@@ -255,7 +255,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                     float stretch = (rest_length - current_length) / current_length;
                     real_vector3d correction;
 
-                    if ((int16_t)((struct ModelAnimationsAnimationGraphNode *)graph_node)->parent_node_index == 0) {
+                    if ((int16_t)graph_node->parent_node_index == 0) {
                         correction.i = bone.i * stretch;
                         correction.j = bone.j * stretch;
                         correction.k = bone.k * stretch;
@@ -280,11 +280,11 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                 }
             }
 
-            if (((struct ModelAnimationsAnimationGraphNode *)graph_node)->next_sibling_node_index != halo::k_word_none) {
-                queue[write_index++] = (int16_t)((struct ModelAnimationsAnimationGraphNode *)graph_node)->next_sibling_node_index;
+            if (graph_node->next_sibling_node_index != halo::k_word_none) {
+                queue[write_index++] = (int16_t)graph_node->next_sibling_node_index;
             }
-            if (((struct ModelAnimationsAnimationGraphNode *)graph_node)->first_child_node_index != halo::k_word_none) {
-                queue[write_index++] = (int16_t)((struct ModelAnimationsAnimationGraphNode *)graph_node)->first_child_node_index;
+            if (graph_node->first_child_node_index != halo::k_word_none) {
+                queue[write_index++] = (int16_t)graph_node->first_child_node_index;
             }
         } while (read_index != write_index);
     }
@@ -314,13 +314,13 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
     using namespace biped_ground_adjust_solve_node_local;
     uint32_t object_index = datum_handle;
     uint8_t *obj = halo::objects::object_record_bytes(object_index);
-    uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
-    uint8_t *graph = halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Object *)object_tag)->animation_graph));
-    uint8_t *graph_nodes = *(uint8_t **)&((ModelAnimations *)graph)->nodes.pointer;
-    uint8_t *self_node = graph_nodes + node_index * 0x40;
+    Object *object_tag = halo::objects::tag_as<Object>(*(datum_index *)obj);
+    ModelAnimations *graph = halo::objects::tag_as<ModelAnimations>(halo::objects::tag_handle(object_tag->animation_graph));
+    ModelAnimationsAnimationGraphNode *graph_nodes = halo::objects::block_elements<ModelAnimationsAnimationGraphNode>(graph->nodes);
+    uint8_t *self_node = reinterpret_cast<uint8_t *>(graph_nodes) + node_index * 0x40;
     int16_t parent_index = *(int16_t *)(self_node + 0x24);
-    uint8_t *parent_node = graph_nodes + parent_index * 0x40;
-    float tolerance = ((ModelAnimations *)graph)->limp_body_node_radius;
+    uint8_t *parent_node = reinterpret_cast<uint8_t *>(graph_nodes) + parent_index * 0x40;
+    float tolerance = graph->limp_body_node_radius;
     char updated = 0;
 
     if (halo::libm::fabs((double)tolerance) < 9.999999747378752e-05 || tolerance < 0.0f || tolerance > 0.07f) {

@@ -711,7 +711,7 @@ uint8_t UnitView::find_weapon_marker_transform(uint32_t vehicle_index, int16_t s
     real_matrix4x3 entry;
     char hint_name[0x100];
 
-    for (i = 0; i < *(int32_t *)&graph->units.count; i++) {
+    for (i = 0; i < (int32_t)graph->units.count; i++) {
         if (_stricmp((char *)(&halo::objects::block_element<ModelAnimationsAnimationGraphUnitSeat>(graph->units, i)), (char *)(seat + 0x4)) == 0) {
             block = reinterpret_cast<ModelAnimationsAnimationGraphUnitSeat *>(&halo::objects::block_element<ModelAnimationsAnimationGraphUnitSeat>(graph->units, i));
             break;

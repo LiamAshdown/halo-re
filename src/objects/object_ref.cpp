@@ -527,7 +527,7 @@ char * halo::objects::ObjectRef::get_attachment_marker_name(int16_t attachment_i
     Object *object_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if (attachment_index >= 0 && attachment_index < (int32_t)object_tag->attachments.count) {
-        return (char *)object_tag->attachments.pointer + 0x10 + attachment_index * 0x48;
+        return halo::objects::block_element<ObjectAttachment>(object_tag->attachments, attachment_index).marker.string;
     }
     return 0;
 }
@@ -1294,23 +1294,23 @@ uint8_t halo::objects::ObjectRef::reposition_to_spawn_location(real_point3d *tar
     uint32_t ignore_object_index)
 {
     uint32_t object_index = handle;
-    uint8_t *obj = halo::objects::object_record_bytes(object_index);
+    object *obj = reinterpret_cast<object *>(halo::objects::object_record_bytes(object_index));
     real_vector3d delta;
     collision_result hit;
 
-    delta.i = ((object *)obj)->position.x - target_position->x;
-    delta.j = ((object *)obj)->position.y - target_position->y;
-    delta.k = ((object *)obj)->position.z - target_position->z;
+    delta.i = obj->position.x - target_position->x;
+    delta.j = obj->position.y - target_position->y;
+    delta.k = obj->position.z - target_position->z;
     if (!halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::unstick), target_position, &delta, ignore_object_index, &hit) &&
-        ((object *)obj)->location_cluster_index != -1) {
+        obj->location_cluster_index != -1) {
         return 1;
     }
     if (hit.leaf.cluster_index == -1) {
         return 0;
     }
     halo::objects::object_unlink_cluster_or_notify_parent(object_index);
-    obj = halo::objects::object_record_bytes(object_index);
-    *(real_point3d *)&((object *)obj)->position.x = hit.point;
+    obj = reinterpret_cast<object *>(halo::objects::object_record_bytes(object_index));
+    *(real_point3d *)&obj->position.x = hit.point;
     halo::objects::object_set_cluster_and_parent(object_index, &hit.leaf);
     halo::objects::object_recalculate_bounding_radius(object_index);
     return 1;

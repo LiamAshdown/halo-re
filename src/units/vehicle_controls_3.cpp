@@ -37,8 +37,8 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
     Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     vehicle_data *vehicle = halo::units::vehicle_data_of(obj);
     unit_data *unit = halo::units::unit_data_of(obj);
-    uint8_t *physics_tag = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
-    int32_t node_count = *(int32_t *)(physics_tag + 0x68);
+    Physics *physics_tag = halo::objects::tag_as<Physics>(halo::objects::tag_handle(((Unit *)tag)->base.physics));
+    int32_t node_count = physics_tag->powered_mass_points.count;
     bsp_leaf_reference bank_leaf = {obj->location_leaf_index, obj->location_cluster_index, 0};
     float bank_lookup = halo::scenario::location_view(&bank_leaf).water_surface_distance(&obj->position);
     real_vector3d push = *(real_vector3d *)global_origin3d_pointer;
@@ -90,7 +90,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
             halo::math::matrix4x3_transform_vector(desired, desired, basis);
 
             {
-                float scale = *(float *)(physics_tag + 8) * vehicle->ground_lean;
+                float scale = physics_tag->mass * vehicle->ground_lean;
                 push.i += desired.i * scale;
                 push.j += desired.j * scale;
                 push.k += desired.k * scale;
@@ -106,7 +106,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
                        obj->angular_velocity.k * obj->up.k);
             if (target < -0.0034906587f) target = -0.0034906587f;
             else if (target > 0.0034906587f) target = 0.0034906587f;
-            target *= *(float *)(physics_tag + 0x58) * vehicle->ground_lean;
+            target *= physics_tag->zz_moment * vehicle->ground_lean;
             angular.i += target * obj->up.i;
             angular.j += target * obj->up.j;
             angular.k += target * obj->up.k;
@@ -159,8 +159,8 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
                     }
 
                     {
-                        float accel = tx * *(float *)(physics_tag + 0x54);
-                        float turn = -((ty + 0.0f) * *(float *)(physics_tag + 0x50));
+                        float accel = tx * physics_tag->yy_moment;
+                        float turn = -((ty + 0.0f) * physics_tag->xx_moment);
                         float fade = 1.0f - vehicle->ground_lean;
 
                         push.i += (turn * obj->forward.i + fx * accel + global_origin3d_pointer->x) * fade;
@@ -183,8 +183,8 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
             cross.k = obj->up.i * obj->forward.j - obj->up.j * obj->forward.i;
 
             if (along > 0.0f) {
-                float f1 = *(float *)(physics_tag + 0x54) * vehicle->ground_lean * along * -0.005817764f;
-                float f2 = *(float *)(physics_tag + 8) * vehicle->ground_lean * along * 0.004f;
+                float f1 = physics_tag->yy_moment * vehicle->ground_lean * along * -0.005817764f;
+                float f2 = physics_tag->mass * vehicle->ground_lean * along * 0.004f;
                 push.i += cross.i * f1;
                 push.j += cross.j * f1;
                 push.k += cross.k * f1;
@@ -202,7 +202,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
                     float t = 1.0f - (float)vehicle->airborne_ticks * 0.033333335f;
                     float scale, s1, s2;
                     if (t < 0.0f) t = 0.0f; else if (t > 1.0f) t = 1.0f;
-                    scale = (1.0f - vehicle->ground_lean) * *(float *)(physics_tag + 8) * t;
+                    scale = (1.0f - vehicle->ground_lean) * physics_tag->mass * t;
                     s1 = scale * 0.002f;
                     s2 = scale * 0.001f;
                     push.i += s2 * halo::math::globals().global_up3d_pointer->i + cross.i * s1;
@@ -221,7 +221,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
 ground_lean_update:
     {
         float base = (vehicle->ground_lean >= 0.4f) ? vehicle->ground_lean : 0.4f;
-        int32_t count = *(int32_t *)(physics_tag + 0x74);
+        int32_t count = physics_tag->mass_points.count;
         int32_t active = 0;
         int32_t partial = 0;
         int32_t j;
@@ -229,7 +229,7 @@ ground_lean_update:
         float delta;
 
         for (j = 0; j < count; j++) {
-            if (*(int16_t *)(*(uint8_t **)(physics_tag + 0x78) + j * 0x80 + 0x20) != -1) {
+            if (*(int16_t *)(&halo::objects::block_element<PhysicsMassPoint>(physics_tag->mass_points, j).powered_mass_point) != -1) {
                 active++;
                 if ((contact_points[j * 0x130] & 0x10) != 0) {
                     partial++;

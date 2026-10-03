@@ -61,7 +61,7 @@ void halo::units::unit_trigger_material_hit_effect(int16_t material_index, datum
 }
 
 /**
- * REWRITTEN from objdump. Needs the animation graph (tag +0x44) with a node array (graph +0x24 count, +0x28
+ * REWRITTEN from objdump. Needs the animation graph (reinterpret_cast<uint8_t *>(tag) +0x44) with a node array (reinterpret_cast<uint8_t *>(graph) +0x24 count, +0x28
  * pointer). The object basis (matrix4x3_from_forward_up(up +0x80, forward +0x74) with position +0x5c) places
  * each suspension entry (array +0x68 count, +0x6c pointer, stride 0x14: +0 contact index, +2 node, +4/+8 the
  * extension range).
@@ -71,34 +71,34 @@ void halo::units::unit_trigger_material_hit_effect(int16_t material_index, datum
 uint32_t UnitView::update_marker_traction_effects()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = halo::objects::object_record_bytes(object_index);
-    uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
-    uint8_t *graph;
-    uint8_t *node_array;
-    uint8_t *physics;
+    unit_object *obj = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(object_index));
+    Unit *tag = halo::objects::tag_as<Unit>(*(datum_index *)obj);
+    ModelAnimations *graph;
+    ModelAnimationsAnimationGraphVehicleAnimations *node_array;
+    Physics *physics;
     real_matrix4x3 basis;
     real max_rise = 0.0f;
     int16_t i;
 
-    if ((int32_t)halo::objects::tag_handle(((Unit *)tag)->base.animation_graph) == -1) {
+    if ((int32_t)halo::objects::tag_handle(tag->base.animation_graph) == -1) {
         return 0;
     }
-    graph = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.animation_graph));
-    if (*(int32_t *)&((ModelAnimations *)graph)->vehicles.count == 0) {
+    graph = halo::objects::tag_as<ModelAnimations>(halo::objects::tag_handle(tag->base.animation_graph));
+    if (*(int32_t *)&graph->vehicles.count == 0) {
         return 0;
     }
-    node_array = *(uint8_t **)&((ModelAnimations *)graph)->vehicles.pointer;
+    node_array = halo::objects::block_elements<ModelAnimationsAnimationGraphVehicleAnimations>(graph->vehicles);
     if (node_array == 0) {
         return 0;
     }
-    physics = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
-    halo::math::matrix4x3_from_forward_up(*((real_vector3d *)&((struct object *)obj)->up), *((real_vector3d *)&((struct object *)obj)->forward), basis);
-    basis.position = *(real_point3d *)&((unit_object *)obj)->base.position.x;
+    physics = halo::objects::tag_as<Physics>(halo::objects::tag_handle(tag->base.physics));
+    halo::math::matrix4x3_from_forward_up(*((real_vector3d *)&obj->base.up), *((real_vector3d *)&obj->base.forward), basis);
+    basis.position = *(real_point3d *)&obj->base.position.x;
 
-    for (i = 0; (int32_t)i < (int32_t)((struct ModelAnimationsAnimationGraphVehicleAnimations *)node_array)->suspension_animations.count; i++) {
-        uint8_t *entry = (uint8_t *)((struct ModelAnimationsAnimationGraphVehicleAnimations *)node_array)->suspension_animations.pointer + (int32_t)i * 0x14;
+    for (i = 0; (int32_t)i < (int32_t)node_array->suspension_animations.count; i++) {
+        ModelAnimationSuspensionAnimation *entry = &halo::objects::block_element<ModelAnimationSuspensionAnimation>(node_array->suspension_animations, (int32_t)i);
         int16_t contact_index = *(int16_t *)entry;
-        uint8_t *mass_point;
+        PhysicsMassPoint *mass_point;
         uint8_t old_byte;
         real old, range, offset, v, rise;
         real_point3d point;
@@ -107,17 +107,17 @@ uint32_t UnitView::update_marker_traction_effects()
         real_vector3d delta;
         collision_result result;
 
-        if (contact_index < 0 || (int32_t)contact_index >= *(int32_t *)(physics + 0x74) ||
-            *(int16_t *)(entry + 2) == -1) {
+        if (contact_index < 0 || (int32_t)contact_index >= physics->mass_points.count ||
+            entry->animation == -1) {
             continue;
         }
-        mass_point = *(uint8_t **)(physics + 0x78) + (int32_t)contact_index * 0x80;
-        old_byte = obj[0x4f4 + i];
+        mass_point = &halo::objects::block_element<PhysicsMassPoint>(physics->mass_points, (int32_t)contact_index);
+        old_byte = reinterpret_cast<uint8_t *>(obj)[0x4f4 + i];
         old = old_byte == 0xff ? 1.0f : (real)old_byte * 0.003921569f;
-        halo::math::matrix4x3_transform_point(point, *(real_point3d *)(mass_point + 0x38), basis);
-        halo::math::matrix4x3_transform_normal(normal, *(real_vector3d *)(mass_point + 0x50), basis);
-        range = *(real *)(entry + 4) - *(real *)(entry + 8);
-        offset = *(real *)(entry + 8) - *(real *)(physics + 0x14) - range;
+        halo::math::matrix4x3_transform_point(point, halo::raw_at<real_point3d>(mass_point, 0x38), basis);
+        halo::math::matrix4x3_transform_normal(normal, halo::raw_at<real_vector3d>(mass_point, 0x50), basis);
+        range = halo::raw_at<real>(entry, 0x4) - halo::raw_at<real>(entry, 0x8);
+        offset = halo::raw_at<real>(entry, 0x8) - halo::raw_at<real>(physics, 0x14) - range;
         origin.x = normal.i * offset + point.x;
         origin.y = normal.j * offset + point.y;
         origin.z = normal.k * offset + point.z;
@@ -136,10 +136,10 @@ uint32_t UnitView::update_marker_traction_effects()
         if (rise > max_rise) {
             max_rise = rise;
         }
-        obj[0x4f4 + i] = halo::math::lerp_find_threshold_byte(0.0f, 1.0f, (v + old) * 0.5f);
+        reinterpret_cast<uint8_t *>(obj)[0x4f4 + i] = halo::math::lerp_find_threshold_byte(0.0f, 1.0f, (v + old) * 0.5f);
     }
 
-    if (*(int32_t *)(tag + 0x3bc) != -1 && max_rise > 0.3f) {
+    if (halo::raw_at<int32_t>(tag, 0x3bc) != -1 && max_rise > 0.3f) {
         real scale = (max_rise - 0.3f) * 1.6666667f;
         if (!(scale >= 0.0f)) {
             scale = 0.0f;
@@ -147,7 +147,7 @@ uint32_t UnitView::update_marker_traction_effects()
             scale = 1.0f;
         }
         halo::sound::sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,
-            (Vector3D *)halo::math::globals().global_forward3d_pointer, *(datum_index *)(tag + 0x3bc), -1, scale, 0);
+            (Vector3D *)halo::math::globals().global_forward3d_pointer, halo::raw_at<datum_index>(tag, 0x3bc), -1, scale, 0);
         return 1;
     }
     return 0;

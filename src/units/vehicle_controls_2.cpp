@@ -24,7 +24,7 @@ void VehicleView::calculate_steering_wheel_controls(void *mass_points, float *po
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     vehicle_data *vehicle = halo::units::vehicle_data_of(obj);
-    uint8_t *physics_tag = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
+    Physics *physics_tag = halo::objects::tag_as<Physics>(halo::objects::tag_handle(((Unit *)tag)->base.physics));
     float *out_transform = powered_states;
     float wrapped;
 
@@ -35,7 +35,7 @@ void VehicleView::calculate_steering_wheel_controls(void *mass_points, float *po
         vehicle->wheel_rotation = wrapped + tag->wheel_circumference;
     }
 
-    if (*(int32_t *)(physics_tag + 0x68) != 2) {
+    if (physics_tag->powered_mass_points.count != 2) {
         halo::physics::object_physics_tick(unit_index, 0, (uint32_t)mass_points, 0, 0);
         return;
     }
@@ -77,7 +77,7 @@ void VehicleView::calculate_turret_controls(void *mass_points, float *powered_st
     float *out_transform = powered_states;
     float forward = vehicle->forward_velocity;
     float turning = vehicle->turning_velocity;
-    uint8_t *physics_tag = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
+    Physics *physics_tag = halo::objects::tag_as<Physics>(halo::objects::tag_handle(((Unit *)tag)->base.physics));
     float wrapped;
 
     vehicle->left_wheel_rotation = (forward - turning) + vehicle->left_wheel_rotation;
@@ -94,7 +94,7 @@ void VehicleView::calculate_turret_controls(void *mass_points, float *powered_st
         vehicle->right_wheel_rotation = wrapped + tag->wheel_circumference;
     }
 
-    if (*(int32_t *)(physics_tag + 0x68) != 2) {
+    if (physics_tag->powered_mass_points.count != 2) {
         halo::physics::object_physics_tick(unit_index, 0, (uint32_t)mass_points, 0, 0);
         return;
     }

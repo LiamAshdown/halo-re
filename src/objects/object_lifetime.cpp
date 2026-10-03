@@ -366,16 +366,16 @@ void halo::objects::ObjectLifetime::delete_4f9030(char recurse_siblings)
 void halo::objects::ObjectLifetime::create_attachments()
 {
     uint32_t object_index = handle;
-    uint8_t *obj = halo::objects::object_record_bytes(object_index);
-    uint8_t *definition = halo::objects::tag_record_bytes(*(datum_index *)obj);
+    object *obj = reinterpret_cast<object *>(halo::objects::object_record_bytes(object_index));
+    Object *definition = halo::objects::tag_as<Object>(*(datum_index *)obj);
     int16_t i;
 
-    for (i = 0; i < *(int32_t *)&((struct Object *)definition)->attachments.count; i++) {
-        uint8_t *attachment = *(uint8_t **)&((struct Object *)definition)->attachments.pointer + i * 0x48;
-        datum_index tag = halo::objects::tag_handle(((struct ObjectAttachment *)attachment)->type);
-        int16_t first_scale = (int16_t)(((struct ObjectAttachment *)attachment)->primary_scale - 1);
-        int16_t second_scale = (int16_t)((uint16_t)((struct ObjectAttachment *)attachment)->secondary_scale - 1);
-        int16_t change_color = (int16_t)((uint16_t)((struct ObjectAttachment *)attachment)->change_color - 1);
+    for (i = 0; i < (int32_t)definition->attachments.count; i++) {
+        ObjectAttachment *attachment = reinterpret_cast<ObjectAttachment *>(&halo::objects::block_element<ObjectAttachment>(definition->attachments, i));
+        datum_index tag = halo::objects::tag_handle(attachment->type);
+        int16_t first_scale = (int16_t)(attachment->primary_scale - 1);
+        int16_t second_scale = (int16_t)((uint16_t)attachment->secondary_scale - 1);
+        int16_t change_color = (int16_t)((uint16_t)attachment->change_color - 1);
         int8_t type = -1;
         datum_index handle = k_datum_index_none;
 
@@ -392,13 +392,13 @@ void halo::objects::ObjectLifetime::create_attachments()
         case 0:
             handle = halo::objects::light_new_attached(tag, object_index, i, first_scale, change_color);
             if (handle != k_datum_index_none) {
-                set_flag(((object *)obj)->flags, objects::object_flag::unknown_100);
+                set_flag(obj->flags, objects::object_flag::unknown_100);
             }
             break;
         case 1:
-            handle = halo::sound::looping_sound_new(object_index, tag, (char *)&((struct ObjectAttachment *)attachment)->marker, first_scale);
+            handle = halo::sound::looping_sound_new(object_index, tag, (char *)&attachment->marker, first_scale);
             if (handle != k_datum_index_none) {
-                set_flag(((object *)obj)->flags, objects::object_flag::unknown_400);
+                set_flag(obj->flags, objects::object_flag::unknown_400);
             }
             break;
         case 2:
@@ -411,8 +411,8 @@ void halo::objects::ObjectLifetime::create_attachments()
             handle = halo::effects::particle_system_new_on_marker(tag, object_index, i);
             break;
         }
-        obj[0x144 + i] = (uint8_t)type;
-        *(datum_index *)(obj + 0x14c + i * 4) = handle;
+        reinterpret_cast<uint8_t *>(obj)[0x144 + i] = (uint8_t)type;
+        obj->attachment_handles[i] = handle;
     }
 }
 

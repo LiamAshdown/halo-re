@@ -179,24 +179,24 @@ datum_index halo::objects::LightSystem::new_positioned(datum_index light_tag, in
 
     if (handle != k_datum_index_none) {
         light *entry = &((light *)light_data->data)[halo::datum_slot(handle)];
-        uint8_t *raw = (uint8_t *)entry;
+        light *raw = reinterpret_cast<light *>(entry);
 
         entry->flags = 0;
         entry->marker_link = halo::game::globals().game_time->game_time;
         entry->definition_tag = light_tag;
-        *(int32_t *)&((struct light *)raw)->owner_object = marker_index;
+        *(int32_t *)&raw->owner_object = marker_index;
         entry->transient_color_scale = param_5;
         entry->flags = 3;
 
         entry->next_light = k_datum_index_none;
 
         if (marker_index == -1) {
-            *(real_point3d *)&((struct light *)raw)->position.x = *position;
-            *(real_vector3d *)&((struct light *)raw)->direction.i = *direction;
+            *(real_point3d *)&raw->position.x = *position;
+            *(real_vector3d *)&raw->direction.i = *direction;
         } else {
-            ((struct light *)raw)->marker_index = marker_sub_index;
-            *(real_point3d *)&((struct light *)raw)->local_position.x = *position;
-            *(real_vector3d *)&((struct light *)raw)->local_direction.i = *direction;
+            raw->marker_index = marker_sub_index;
+            *(real_point3d *)&raw->local_position.x = *position;
+            *(real_vector3d *)&raw->local_direction.i = *direction;
         }
 
         halo::objects::object_light_recompute_transform(handle);
@@ -694,34 +694,34 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
     }
 
     if ((entry->flags & _light_attached_bit) != 0) {
-        uint8_t *light_tag = halo::objects::tag_record_bytes(entry->definition_tag);
-        float attenuation = ((struct Light *)light_tag)->radius_modifer[1] * *(float *)(light_tag + 4);
+        Light *light_tag = halo::objects::tag_as<Light>(entry->definition_tag);
+        float attenuation = light_tag->radius_modifer[1] * light_tag->radius;
         bsp_leaf_reference leaf_reference;
         real_point3d position;
         float radius;
 
-        if ((*light_tag & 2) == 0) {
-            attenuation = attenuation * ((struct Light *)light_tag)->specular_radius_multiplier;
+        if ((light_tag->flags & 2) == 0) {
+            attenuation = attenuation * light_tag->specular_radius_multiplier;
         }
 
-        if (((struct Light *)light_tag)->lens_flare_only_radius <= attenuation) {
-            if (((struct Light *)light_tag)->cutoff_angle >= 1.5707964f) {
+        if (light_tag->lens_flare_only_radius <= attenuation) {
+            if (light_tag->cutoff_angle >= 1.5707964f) {
                 position = entry->position;
-            } else if (((struct Light *)light_tag)->cutoff_angle >= 0.7853982f) {
-                float offset = attenuation * ((struct Light *)light_tag)->cos_cutoff_angle;
+            } else if (light_tag->cutoff_angle >= 0.7853982f) {
+                float offset = attenuation * light_tag->cos_cutoff_angle;
                 position.x = offset * entry->direction.i + entry->position.x;
                 position.y = offset * entry->direction.j + entry->position.y;
                 position.z = offset * entry->direction.k + entry->position.z;
-                attenuation = attenuation * ((struct Light *)light_tag)->sin_cutoff_angle;
+                attenuation = attenuation * light_tag->sin_cutoff_angle;
             } else {
-                attenuation = attenuation / ((struct Light *)light_tag)->cos_cutoff_angle;
+                attenuation = attenuation / light_tag->cos_cutoff_angle;
                 position.x = attenuation * entry->direction.i + entry->position.x;
                 position.y = attenuation * entry->direction.j + entry->position.y;
                 position.z = attenuation * entry->direction.k + entry->position.z;
             }
         } else {
             position = entry->position;
-            attenuation = ((struct Light *)light_tag)->lens_flare_only_radius;
+            attenuation = light_tag->lens_flare_only_radius;
         }
         radius = attenuation;
 

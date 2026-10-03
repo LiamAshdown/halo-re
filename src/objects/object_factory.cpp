@@ -135,8 +135,8 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
             }
             object = halo::objects::object_new_from_scenario_placement(placement, palette);
             if (object != k_datum_index_none && type == _object_type_vehicle) {
-                uint8_t *vehicle = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object) * 0xc + 8);
-                ((vehicle_object *)vehicle)->vehicle.cinematic_facing_index = i;
+                vehicle_object *vehicle = reinterpret_cast<vehicle_object *>(*(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object) * 0xc + 8));
+                vehicle->vehicle.cinematic_facing_index = i;
             }
             halo::objects::objects_garbage_collection();
         }
@@ -598,14 +598,14 @@ uint8_t halo::objects::SceneryObject::initialize()
 {
     datum_index object_index = handle;
     uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
-    uint8_t *definition = halo::objects::tag_record_bytes(*(datum_index *)object);
-    datum_index graph = halo::objects::tag_handle(((struct Object *)definition)->animation_graph);
+    Object *definition = halo::objects::tag_as<Object>(*(datum_index *)object);
+    datum_index graph = halo::objects::tag_handle(definition->animation_graph);
 
     if (graph != k_datum_index_none && *(int32_t *)(halo::objects::tag_record_bytes(graph) + 0x74) > 0) {
         int16_t animation = halo::models::animation_choose_random_permutation(graph, 0, (animation_random_stream)1);
         if (animation != -1) {
             ((struct object *)object)->animation_index = animation;
-            ((struct object *)object)->animation_graph = halo::objects::tag_handle(((struct Object *)definition)->animation_graph);
+            ((struct object *)object)->animation_graph = halo::objects::tag_handle(definition->animation_graph);
             set_flag(((struct object *)object)->flags, objects::object_flag::unknown_80);
         }
     }

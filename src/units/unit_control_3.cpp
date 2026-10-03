@@ -27,8 +27,8 @@ void UnitView::update_steering_deviation_effects(real_vector3d *reference_direct
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    uint8_t *fall_table = (uint8_t *)global_globals->falling_damage.pointer;
-    int32_t impact_effect_tag = *(int32_t *)(fall_table + 0x48);
+    GlobalsFallingDamage *fall_table = halo::objects::block_elements<GlobalsFallingDamage>(global_globals->falling_damage);
+    int32_t impact_effect_tag = halo::objects::tag_handle(fall_table->vehicle_environment_collision_damage);
 
     if (impact_effect_tag == -1 && (int32_t)halo::objects::tag_handle(((struct Vehicle *)tag)->crash_sound) == -1) {
         return;
@@ -45,8 +45,8 @@ void UnitView::update_steering_deviation_effects(real_vector3d *reference_direct
                                 deviation.k * deviation.k));
 
         if (length > 0.02) {
-            uint8_t *physics_tag = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
-            int32_t count = *(int32_t *)(physics_tag + 0x74);
+            Physics *physics_tag = halo::objects::tag_as<Physics>(halo::objects::tag_handle(((Unit *)tag)->base.physics));
+            int32_t count = physics_tag->mass_points.count;
             int32_t i = 0;
 
             while ((contact_points[i * 0x130] & 2) == 0) {

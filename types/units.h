@@ -849,7 +849,13 @@ typedef struct vehicle_data {
                                         //    vehicle network update header; the receiver compares it with its own epoch (0x572742) and takes a different path on a mismatch
     uint8_t network_update_sequence;    // 0x527 0x5724d0 increments it and wraps it at 0xff
     uint8_t network_delta_sequence;     // 0x528 base of the delta record 0x5724d0 encodes
-    uint8_t unknown_529[0x83];          // 0x529 untouched by this module
+    uint8_t unknown_529[3];             // 0x529 untouched by this module
+    real_point3d network_baseline_position;         // 0x52c vehicle_network_baseline_take (0x572410) copies position here
+    real_vector3d network_baseline_velocity;        // 0x538 the same for velocity
+    real_vector3d network_baseline_angular_velocity; // 0x544 the same for angular velocity
+    real_vector3d network_baseline_forward;         // 0x550 the same for the forward vector
+    real_vector3d network_baseline_up;              // 0x55c the same for the up vector
+    uint8_t unknown_568[0x44];          // 0x568 untouched by this module
     int32_t network_update_tick;        // 0x5ac game tick of the last seat change or network
                                         //       update; vehicle_update rate-limits on it
     int16_t cinematic_facing_index;     // 0x5b0 0x570de0 indexes the cinematic direction table

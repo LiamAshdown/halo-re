@@ -52,7 +52,7 @@ void halo::units::unit_apply_network_control_update(unit_network_control_packet 
     unit_network_control_message message;
     const real_vector2d *throttle;
     uint32_t unit_index;
-    uint8_t *unit;
+    unit_object *unit;
 
     if (*packet->kind_ptr != 0) {
         halo::networking::message_delta_decode_compound_field_staged((void **)packet);
@@ -66,27 +66,27 @@ void halo::units::unit_apply_network_control_update(unit_network_control_packet 
         return;
     }
     throttle = message.no_throttle == 1 ? (const real_vector2d *)0 : &message.throttle;
-    unit = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
+    unit = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(unit_index, 3));
     if (unit != 0) {
-        set_flag(((struct object *)unit)->vitality_flags, objects::vitality_flag::health_frozen);
-        ((unit_object *)unit)->base.body_vitality = 0.0f;
-        ((unit_object *)unit)->base.shield_vitality = 0.0f;
+        set_flag(unit->base.vitality_flags, objects::vitality_flag::health_frozen);
+        unit->base.body_vitality = 0.0f;
+        unit->base.shield_vitality = 0.0f;
     }
     if (message.update_stance == 1) {
         UnitView(unit_index).update_stance_and_jump(message.stance_flags[0], message.stance_flags[1], message.stance_flags[2], message.stance_flags[3], message.stance_flags[4], message.turn_angle, message.weapon_class_index, throttle, 1);
     }
-    unit = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
-    if (unit != 0 && ((unit_object *)unit)->unit.controlling_player != k_datum_index_none) {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)unit)->unit.controlling_player, halo::game::globals().player_data);
+    unit = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(unit_index, 3));
+    if (unit != 0 && unit->unit.controlling_player != k_datum_index_none) {
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(unit->unit.controlling_player, halo::game::globals().player_data);
 
         if (player != 0) {
             *(uint32_t *)&((struct player *)player)->respawn_timer = message.player_2c;
         }
     }
     UnitView(unit_index).release_transient_state_and_detach(message.stance_flags[1]);
-    unit = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
+    unit = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(unit_index, 3));
     if (unit != 0) {
-        ((unit_object *)unit)->base.network_role = 3;
+        unit->base.network_role = 3;
     }
     if ((((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].flags & 8) == 0) {
         halo::networking::network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
@@ -113,8 +113,8 @@ void UnitView::apply_network_health_update(void *message)
 {
     using namespace unit_apply_network_health_update_local;
     uint32_t object_index = datum_handle;
-    uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get((datum_index)object_index, 1);
-    uint8_t *guard;
+    unit_object *unit = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get((datum_index)object_index, 1));
+    object *guard;
     uint8_t *record;
     int32_t reliable;
     biped_network_health_block block;
@@ -125,46 +125,46 @@ void UnitView::apply_network_health_update(void *message)
         halo::networking::message_delta_decode_compound_field_staged((void **)message);
         return;
     }
-    guard = halo::objects::object_record_bytes(object_index);
+    guard = reinterpret_cast<object *>(halo::objects::object_record_bytes(object_index));
     record = (uint8_t *)((void **)message)[0x11];
     reliable = **(int32_t **)message == 1;
-    if (test_flag(((struct object *)guard)->flags, objects::object_flag::took_network_update) && reliable) {
+    if (test_flag(guard->flags, objects::object_flag::took_network_update) && reliable) {
         int32_t incoming = record[5];
-        int32_t current = unit[0x528];
+        int32_t current = halo::raw_at<uint8_t>(unit, 0x528);
 
-        if (record[4] != unit[0x527] || (incoming <= current && incoming - current + 0xff >= 0x1e)) {
+        if (record[4] != halo::raw_at<uint8_t>(unit, 0x527) || (incoming <= current && incoming - current + 0xff >= 0x1e)) {
             halo::networking::message_delta_decode_compound_field_staged((void **)message);
             return;
         }
     }
-    memcpy(&block, unit + 0x52c, sizeof(block));
+    memcpy(&block, reinterpret_cast<uint8_t *>(unit) + 0x52c, sizeof(block));
     if (reliable) {
-        accepted = halo::networking::message_delta_decode_compound_field_forced((void **)message, &block, (int32_t)(unit + 0x52c), 0);
+        accepted = halo::networking::message_delta_decode_compound_field_forced((void **)message, &block, (int32_t)(reinterpret_cast<uint8_t *>(unit) + 0x52c), 0);
     } else {
         accepted = halo::networking::message_delta_decode_compound_field((void **)message, &block);
     }
     if (!accepted) {
         return;
     }
-    unit[0x528] = record[5];
-    set_flag(((unit_object *)unit)->base.flags, objects::object_flag::took_network_update);
+    halo::raw_at<uint8_t>(unit, 0x528) = record[5];
+    set_flag(unit->base.flags, objects::object_flag::took_network_update);
     if (record[6] != 0) {
-        unit[0x527] = record[4];
-        memcpy(unit + 0x52c, &block, sizeof(block));
+        halo::raw_at<uint8_t>(unit, 0x527) = record[4];
+        memcpy(reinterpret_cast<uint8_t *>(unit) + 0x52c, &block, sizeof(block));
     }
     shield = block.shield_vitality * 3.0f;
-    *(int16_t *)(unit + 0x31e) = (int16_t)block.grenade_counts;
-    *(uint32_t *)&((unit_object *)unit)->base.body_vitality = block.body_vitality;
+    halo::raw_at<int16_t>(unit, 0x31e) = (int16_t)block.grenade_counts;
+    *(uint32_t *)&unit->base.body_vitality = block.body_vitality;
     if (record[7] == 1) {
-        ((unit_object *)unit)->base.shield_vitality = shield;
+        unit->base.shield_vitality = shield;
     }
-    *(uint32_t *)(unit + 0x540) = block.grenade_counts;
-    *(uint32_t *)(unit + 0x544) = block.body_vitality;
-    *(real *)(unit + 0x548) = shield;
-    *(uint32_t *)(unit + 0x54c) = block.shield_stunned;
-    ((unit_object *)unit)->base.shield_stun_ticks = (uint8_t)block.shield_stunned == 1;
-    ((struct unit_object *)unit)->unit.network_update_applied = 1;
-    unit[0x53c] = 1;
+    halo::raw_at<uint32_t>(unit, 0x540) = block.grenade_counts;
+    halo::raw_at<uint32_t>(unit, 0x544) = block.body_vitality;
+    halo::raw_at<real>(unit, 0x548) = shield;
+    halo::raw_at<uint32_t>(unit, 0x54c) = block.shield_stunned;
+    unit->base.shield_stun_ticks = (uint8_t)block.shield_stunned == 1;
+    unit->unit.network_update_applied = 1;
+    halo::raw_at<uint8_t>(unit, 0x53c) = 1;
 }
 
 /**

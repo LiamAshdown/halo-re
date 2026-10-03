@@ -1,3 +1,4 @@
+#include "halo/tags/flags.hpp"
 #include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/models/api.hpp"
@@ -38,12 +39,12 @@ static void aiming_angles_in_unit_frame(uint32_t unit_index, real_vector3d *dire
     *pitch = (float)halo::libm::atan2((double)local.k, halo::libm::sqrt((double)(local.i * local.i + local.j * local.j)));
 }
 
-static void aiming_screen_limits(const uint8_t *screen, float *out)
+static void aiming_screen_limits(const animation_aiming_screen *screen, float *out)
 {
-    out[0] = -((float)*(int16_t *)(screen + 0x08) * *(float *)(screen + 0x00));
-    out[1] = (float)*(int16_t *)(screen + 0x0a) * *(float *)(screen + 0x04);
-    out[2] = -((float)*(int16_t *)(screen + 0x14) * *(float *)(screen + 0x0c));
-    out[3] = (float)*(int16_t *)(screen + 0x16) * *(float *)(screen + 0x10);
+    out[0] = -((float)(int16_t)screen->right_frame_count * screen->right_yaw_per_frame);
+    out[1] = (float)(int16_t)screen->left_frame_count * screen->left_yaw_per_frame;
+    out[2] = -((float)(int16_t)screen->down_pitch_frame_count * screen->down_pitch_per_frame);
+    out[3] = (float)(int16_t)screen->up_pitch_frame_count * screen->up_pitch_per_frame;
 }
 
 }
@@ -57,96 +58,96 @@ void UnitView::update_aiming_overlay_angles(void *output)
 {
     using namespace unit_update_aiming_overlay_angles_local;
     uint32_t unit_index = datum_handle;
-    uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(unit_index) * 0xc + 8);
-    uint8_t *unit_tag = halo::objects::tag_record_bytes(*(datum_index *)unit);
-    uint8_t *graph = halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Unit *)unit_tag)->base.animation_graph));
-    uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
-    uint8_t *block;
+    unit_object *unit = reinterpret_cast<unit_object *>(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(unit_index) * 0xc + 8));
+    Unit *unit_tag = halo::objects::tag_as<Unit>(*(datum_index *)unit);
+    ModelAnimations *graph = halo::objects::tag_as<ModelAnimations>(halo::objects::tag_handle(unit_tag->base.animation_graph));
+    ModelAnimationsAnimation *animations = halo::objects::block_elements<ModelAnimationsAnimation>(graph->animations);
+    ModelAnimationsAnimationGraphUnitSeat *block;
     float aim_yaw;
     float aim_pitch;
     int8_t state;
 
-    if (((struct unit_object *)unit)->unit.overlays[0].animation_index != -1) {
-        halo::models::animation_view((ModelAnimationsAnimation *)(animations + ((struct unit_object *)unit)->unit.overlays[0].animation_index * 0xb4)).replace_frame_orientations((int16_t)(uint16_t)((struct unit_object *)unit)->unit.overlays[0].frame, (real_orientation *)output);
+    if (unit->unit.overlays[0].animation_index != -1) {
+        halo::models::animation_view((ModelAnimationsAnimation *)(reinterpret_cast<uint8_t *>(animations) + unit->unit.overlays[0].animation_index * 0xb4)).replace_frame_orientations((int16_t)(uint16_t)unit->unit.overlays[0].frame, (real_orientation *)output);
     }
-    if (((struct unit_object *)unit)->unit.overlays[1].animation_index != -1) {
-        halo::models::animation_view((ModelAnimationsAnimation *)(animations + ((struct unit_object *)unit)->unit.overlays[1].animation_index * 0xb4)).overlay_frame_orientations((int16_t)(uint16_t)((struct unit_object *)unit)->unit.overlays[1].frame, (real_orientation *)output);
+    if (unit->unit.overlays[1].animation_index != -1) {
+        halo::models::animation_view((ModelAnimationsAnimation *)(reinterpret_cast<uint8_t *>(animations) + unit->unit.overlays[1].animation_index * 0xb4)).overlay_frame_orientations((int16_t)(uint16_t)unit->unit.overlays[1].frame, (real_orientation *)output);
     }
-    if (((struct unit_object *)unit)->unit.overlays[2].animation_index != -1) {
-        halo::models::animation_view((ModelAnimationsAnimation *)(animations + ((struct unit_object *)unit)->unit.overlays[2].animation_index * 0xb4)).overlay_frame_orientations((int16_t)(uint16_t)((struct unit_object *)unit)->unit.overlays[2].frame, (real_orientation *)output);
+    if (unit->unit.overlays[2].animation_index != -1) {
+        halo::models::animation_view((ModelAnimationsAnimation *)(reinterpret_cast<uint8_t *>(animations) + unit->unit.overlays[2].animation_index * 0xb4)).overlay_frame_orientations((int16_t)(uint16_t)unit->unit.overlays[2].frame, (real_orientation *)output);
     }
-    ((struct unit_object *)unit)->unit.aiming_bounds_valid = 0;
-    ((struct unit_object *)unit)->unit.looking_bounds_valid = 0;
-    if ((*(uint32_t *)&((struct Unit *)unit_tag)->unit_flags & 0x800) || (uint8_t)((struct unit_object *)unit)->unit.animation_definition_index == 0xff) {
+    unit->unit.aiming_bounds_valid = 0;
+    unit->unit.looking_bounds_valid = 0;
+    if (test_flag(unit_tag->unit_flags, tags::unit_tag_flag::simple_creature) || (uint8_t)unit->unit.animation_definition_index == 0xff) {
         return;
     }
-    block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_definition_index * 0x64;
+    block = reinterpret_cast<ModelAnimationsAnimationGraphUnitSeat *>(&halo::objects::block_element<ModelAnimationsAnimationGraphUnitSeat>(graph->units, (int8_t)(uint8_t)unit->unit.animation_definition_index));
 
-    if ((uint8_t)((struct unit_object *)unit)->unit.emotion_animation_frame != 0xff) {
-        int16_t emotion = ((int32_t)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.count > 0xb) ? ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[0xb] : -1;
+    if ((uint8_t)unit->unit.emotion_animation_frame != 0xff) {
+        int16_t emotion = ((int32_t)block->animations.count > 0xb) ? ((int16_t *)block->animations.pointer)[0xb] : -1;
 
-        if (((unit_object *)unit)->unit.emotion_animation_index != -1) {
-            emotion = ((unit_object *)unit)->unit.emotion_animation_index;
+        if (unit->unit.emotion_animation_index != -1) {
+            emotion = unit->unit.emotion_animation_index;
         }
         if (emotion != -1) {
-            uint8_t *record = animations + emotion * 0xb4;
-            int8_t frame = (int8_t)(uint8_t)((struct unit_object *)unit)->unit.emotion_animation_frame;
+            uint8_t *record = reinterpret_cast<uint8_t *>(animations) + emotion * 0xb4;
+            int8_t frame = (int8_t)(uint8_t)unit->unit.emotion_animation_frame;
 
             if (frame >= 0 && frame < *(int16_t *)(record + 0x22)) {
                 halo::models::animation_view(reinterpret_cast<ModelAnimationsAnimation *>(record)).overlay_frame_orientations(frame, reinterpret_cast<real_orientation *>(output));
             }
         }
     }
-    if (((unit_object *)unit)->unit.mouth_aperture > 0.0f && (int32_t)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.count > 0xa &&
-        ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[0xa] != -1) {
-        halo::models::animation_view((ModelAnimationsAnimation *)(animations + ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[0xa] * 0xb4)).overlay_frame_orientations_weighted(0, ((unit_object *)unit)->unit.mouth_aperture, (real_orientation *)output);
+    if (unit->unit.mouth_aperture > 0.0f && (int32_t)block->animations.count > 0xa &&
+        ((int16_t *)block->animations.pointer)[0xa] != -1) {
+        halo::models::animation_view((ModelAnimationsAnimation *)(reinterpret_cast<uint8_t *>(animations) + ((int16_t *)block->animations.pointer)[0xa] * 0xb4)).overlay_frame_orientations_weighted(0, unit->unit.mouth_aperture, (real_orientation *)output);
     }
-    if ((uint8_t)((struct unit_object *)unit)->unit.animation_state_flags & 2) {
+    if ((uint8_t)unit->unit.animation_state_flags & 2) {
         int32_t slot;
 
         for (slot = 2; slot < 5; slot++) {
-            if (slot < (int32_t)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.count && ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[slot] != -1) {
-                uint8_t *record = animations + ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[slot] * 0xb4;
+            if (slot < (int32_t)block->animations.count && ((int16_t *)block->animations.pointer)[slot] != -1) {
+                uint8_t *record = reinterpret_cast<uint8_t *>(animations) + ((int16_t *)block->animations.pointer)[slot] * 0xb4;
                 int32_t last_frame = *(int16_t *)(record + 0x22) - 1;
 
-                halo::models::animation_view(reinterpret_cast<ModelAnimationsAnimation *>(record)).overlay_interpolated_frame_orientations((float)last_frame * *(float *)(unit + 0x364 + (slot - 2) * 4), reinterpret_cast<real_orientation *>(output));
+                halo::models::animation_view(reinterpret_cast<ModelAnimationsAnimation *>(record)).overlay_interpolated_frame_orientations((float)last_frame * unit->unit.animation_controls_smoothed[(slot - 2)], reinterpret_cast<real_orientation *>(output));
             }
         }
     }
 
-    if (*(uint32_t *)&((struct Unit *)unit_tag)->unit_flags & 0x400) {
+    if (test_flag(unit_tag->unit_flags, tags::unit_tag_flag::has_no_aiming)) {
         return;
     }
-    state = (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_state;
-    if ((state >= 0x17 && state <= 0x23) || state == 0x29 || (uint8_t)((struct unit_object *)unit)->unit.replacement_animation_state != 0) {
+    state = (int8_t)(uint8_t)unit->unit.animation_state;
+    if ((state >= 0x17 && state <= 0x23) || state == 0x29 || (uint8_t)unit->unit.replacement_animation_state != 0) {
         return;
     }
 
     aim_yaw = global_zero_vector2d_pointer[0];
     aim_pitch = global_zero_vector2d_pointer[1];
-    if (((unit_object *)unit)->unit.aiming_animation_index != -1) {
-        uint8_t *screen = (uint8_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->weapons.pointer + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_weapon_index * 0xbc + 0x60;
+    if (unit->unit.aiming_animation_index != -1) {
+        animation_aiming_screen *screen = reinterpret_cast<animation_aiming_screen *>(&halo::objects::block_element<ModelAnimationsAnimationGraphWeapon>(block->weapons, (int8_t)(uint8_t)unit->unit.animation_weapon_index).right_yaw_per_frame);
 
-        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)&((struct unit_object *)unit)->unit.aiming_vector, &aim_yaw, &aim_pitch);
-        ((struct unit_object *)unit)->unit.aiming_bounds_valid = 1;
-        aiming_screen_limits(screen, (float *)&((struct unit_object *)unit)->unit.aiming_bounds);
-        halo::models::animation_view((ModelAnimationsAnimation *)(animations + ((unit_object *)unit)->unit.aiming_animation_index * 0xb4)).aiming_screen_blend((animation_aiming_screen *)screen, aim_yaw, aim_pitch, (real_orientation *)output);
+        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)&unit->unit.aiming_vector, &aim_yaw, &aim_pitch);
+        unit->unit.aiming_bounds_valid = 1;
+        aiming_screen_limits(screen, (float *)&unit->unit.aiming_bounds);
+        halo::models::animation_view((ModelAnimationsAnimation *)(reinterpret_cast<uint8_t *>(animations) + unit->unit.aiming_animation_index * 0xb4)).aiming_screen_blend(screen, aim_yaw, aim_pitch, (real_orientation *)output);
     }
 
-    if (((unit_object *)unit)->unit.current_weapon_index == -1 && ((unit_object *)unit)->unit.controlling_player == k_datum_index_none) {
+    if (unit->unit.current_weapon_index == -1 && unit->unit.controlling_player == k_datum_index_none) {
         return;
     }
-    if (((struct unit_object *)unit)->unit.looking_animation_index != -1) {
-        uint8_t *screen = block + 0x20;
+    if (unit->unit.looking_animation_index != -1) {
+        animation_aiming_screen *screen = reinterpret_cast<animation_aiming_screen *>(&block->right_yaw_per_frame);
         float look_yaw;
         float look_pitch;
 
-        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)&((struct unit_object *)unit)->unit.looking_vector, &look_yaw, &look_pitch);
-        ((struct unit_object *)unit)->unit.looking_bounds_valid = 1;
+        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)&unit->unit.looking_vector, &look_yaw, &look_pitch);
+        unit->unit.looking_bounds_valid = 1;
         look_yaw -= aim_yaw;
         look_pitch -= aim_pitch;
-        aiming_screen_limits(screen, (float *)&((struct unit_object *)unit)->unit.looking_bounds);
-        halo::models::animation_view((ModelAnimationsAnimation *)(animations + ((struct unit_object *)unit)->unit.looking_animation_index * 0xb4)).aiming_screen_blend((animation_aiming_screen *)screen, look_yaw, look_pitch, (real_orientation *)output);
+        aiming_screen_limits(screen, (float *)&unit->unit.looking_bounds);
+        halo::models::animation_view((ModelAnimationsAnimation *)(reinterpret_cast<uint8_t *>(animations) + unit->unit.looking_animation_index * 0xb4)).aiming_screen_blend(screen, look_yaw, look_pitch, (real_orientation *)output);
     }
 }
 
@@ -162,17 +163,17 @@ void UnitView::update_aiming_overlay_angles(void *output)
 void UnitView::update_autoaim_interaction()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = halo::objects::object_record_bytes(unit_index);
-    uint8_t *tracked = (uint8_t *)global_globals->falling_damage.pointer;
+    unit_object *obj = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(unit_index));
+    GlobalsFallingDamage *tracked = halo::objects::block_elements<GlobalsFallingDamage>(global_globals->falling_damage);
 
-    clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::idle_turn_seeded);
-    obj[0x107] &= 0xf7;
-    clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::disoriented);
+    clear_flag(obj->unit.flags, units::unit_flag::idle_turn_seeded);
+    halo::raw_at<uint8_t>(obj, 0x107) &= 0xf7;
+    clear_flag(obj->unit.flags, units::unit_flag::disoriented);
 
     if (tracked != 0) {
-        datum_index damage_effect = *(datum_index *)(tracked + 0x78);
+        datum_index damage_effect = halo::objects::tag_handle(tracked->flaming_death_damage);
         if (damage_effect != k_datum_index_none) {
-            uint8_t *source = (uint8_t *)halo::objects::object_try_and_get(*(datum_index *)&((struct unit_object *)obj)->unit.flaming_responsible_object, k_datum_index_none);
+            object *source = reinterpret_cast<object *>(halo::objects::object_try_and_get(*(datum_index *)&obj->unit.flaming_responsible_object, k_datum_index_none));
             damage_data dd;
 
             memset(&dd, 0, sizeof(dd));
@@ -185,20 +186,20 @@ void UnitView::update_autoaim_interaction()
             dd.random_blend = 1.0f;
             dd.multiplier = 1.0f;
             if (source != 0) {
-                datum_index creator = ((struct object *)source)->creator_object;
-                dd.responsible_player = *(datum_index *)&((struct object *)source)->owner_linkage;
+                datum_index creator = source->creator_object;
+                dd.responsible_player = *(datum_index *)&source->owner_linkage;
                 if (creator == k_datum_index_none) {
-                    creator = *(datum_index *)&((struct unit_object *)obj)->unit.flaming_responsible_object;
+                    creator = *(datum_index *)&obj->unit.flaming_responsible_object;
                 }
                 dd.responsible_object = creator;
-                dd.team_index = ((struct object *)source)->owner_team;
+                dd.team_index = source->owner_team;
             }
             halo::objects::object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
         }
     }
 
-    if (!test_flag(((unit_object *)obj)->base.vitality_flags, objects::vitality_flag::health_frozen)) {
-        set_flag(((unit_object *)obj)->base.vitality_flags, objects::vitality_flag::unknown_20);
+    if (!test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen)) {
+        set_flag(obj->base.vitality_flags, objects::vitality_flag::unknown_20);
     }
 }
 
