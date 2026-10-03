@@ -233,100 +233,90 @@ void halo::objects::ObjectUpdater::update_export_functions()
     }
 }
 
-namespace {
-static uint8_t * &global_scenario__as_object_function_evaluate_input = reinterpret_cast<uint8_t * &>(halo::scenario::globals().scenario);
-}
-
 /**
  * Evaluates one object function input selector, with the input angle and the object's tag data.
  *
  * @address 0x004f8207
  */
 void halo::objects::ObjectUpdater::function_evaluate_input(float initial_angle_input, float initial_st0,
-    int16_t *selectors, float *out_values, uint8_t *object_tag_data, int32_t object_index_scaled,
+    int16_t *selectors, float *out_values, object *object_record, int32_t object_index_scaled,
     int32_t remaining_count)
 {
-    float value;
-    int16_t selector;
+    float value = halo::game::angle_delta_wrapped(initial_angle_input, initial_st0);
 
-    value = halo::game::angle_delta_wrapped(initial_angle_input, initial_st0);
     value = value * 0.15915494f + 0.5f;
     if (value < 0.0f) {
         value = 0.0f;
-    } else if (value > 1.0f) {
-        goto clamp_to_one;
     }
 
-store_and_advance:
-    *out_values = value;
     for (;;) {
-        selectors++;
-        out_values++;
-        remaining_count--;
-        if (remaining_count == 0) {
-            return;
-        }
-        selector = *selectors;
-        if (selector != 0) {
-            break;
-        }
-    }
+        int16_t selector;
 
-    value = 0.0f;
-    switch (selector) {
+        *out_values = value;
+        for (;;) {
+            selectors++;
+            out_values++;
+            remaining_count--;
+            if (remaining_count == 0) {
+                return;
+            }
+            selector = *selectors;
+            if (selector != 0) {
+                break;
+            }
+        }
+
+        value = 0.0f;
+        switch (selector) {
         case 1:
-            value = *(float *)(object_tag_data + 0xe0);
-            goto store_and_advance;
+            value = object_record->body_vitality;
+            continue;
         case 2:
-            value = *(float *)(object_tag_data + 0xe4);
+            value = object_record->shield_vitality;
             if (value <= 1.0f) {
-                goto store_and_advance;
+                continue;
             }
             break;
         case 3:
-            value = *(float *)(object_tag_data + 0xec);
-            goto store_and_advance;
+            value = object_record->current_body_damage;
+            continue;
         case 4:
-            value = *(float *)(object_tag_data + 0xe8);
-            goto store_and_advance;
+            value = object_record->current_shield_damage;
+            continue;
         case 5:
             if (*out_values == 1.0f) {
                 value = halo::math::random_real();
             }
-            goto store_and_advance;
+            continue;
         case 0x12:
-            if ((*(uint8_t *)(object_tag_data + 0x106) & 4) != 0) {
+            if (test_flag(object_record->vitality_flags, vitality_flag::health_frozen)) {
                 value = 0.0f;
-                goto store_and_advance;
+                continue;
             }
             break;
         case 0x13: {
-
             object *obj = *(object **)((uint8_t *)object_data->data + 8 + object_index_scaled);
-            real_matrix4x3 *node = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset);
+            real_matrix4x3 *node = halo::objects::object_block<real_matrix4x3>(*obj, obj->nodes);
+
             if (0.995f <= halo::x87::fabsf(node->left.i)) {
                 value = *out_values;
-                goto store_and_advance;
+                continue;
             }
             initial_st0 = (float)halo::libm::atan2((double)node->forward.j, (double)node->forward.k);
-            initial_angle_input = *(float *)(global_scenario__as_object_function_evaluate_input + 0x4c);
+            initial_angle_input = halo::scenario::globals().scenario->local_north;
             value = halo::game::angle_delta_wrapped(initial_angle_input, initial_st0);
             value = value * 0.15915494f + 0.5f;
-            if (value >= 0.0f) {
-                goto clamp_to_one;
+            if (!(value >= 0.0f)) {
+                value = 0.0f;
             }
-            value = 0.0f;
-            goto store_and_advance;
+            continue;
         }
         default:
-            value = (float)*(uint8_t *)(object_tag_data + (int16_t)(selector - 10) + 0x178) * 0.003921569f;
-            goto store_and_advance;
+            value = (float)object_record->region_vitality[(int16_t)(selector - 10)] * 0.003921569f;
+            continue;
+        }
+        value = 1.0f;
     }
-    value = 1.0f;
-    goto store_and_advance;
-
-clamp_to_one:
-    goto store_and_advance;
 }
 
 /**
@@ -354,8 +344,6 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius_recursive()
 }
 
 namespace {
-#define OFS(base, off, type) (*(type *)((uint8_t *)(base) + (off)))
-#define TAG_DATA(id) (halo::objects::tag_record_bytes((uint32_t)(id)))
 static void matrix4x3_set_translation_only(real_matrix4x3 *m, const real_point3d *position)
 {
     m->scale = 1.0f;
@@ -378,7 +366,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
 {
     uint32_t object_index = handle;
     uint8_t *obj = halo::objects::object_record_bytes(object_index);
-    uint8_t *def = TAG_DATA(((struct object *)obj)->definition_tag);
+    Object *def = halo::objects::tag_as<Object>(((struct object *)obj)->definition_tag);
     real_matrix4x3 *nodes = (real_matrix4x3 *)(obj + ((struct object *)obj)->nodes.offset);
     real_orientation local_orientations[k_maximum_nodes_per_model];
     real_orientation *orientations;
@@ -389,7 +377,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         orientations = (real_orientation *)(obj + ((struct object *)obj)->node_function_defaults.offset);
     }
 
-    if (*(int32_t *)&((struct Object *)def)->model.tag_id == -1) {
+    if (*(int32_t *)&def->model.tag_id == -1) {
 
         nodes[0].scale = 1.0f;
         nodes[0].forward = ((struct object *)obj)->forward;
@@ -397,7 +385,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         halo::math::vector3d_cross_product(nodes[0].left, nodes[0].forward, nodes[0].up);
         nodes[0].position = ((struct object *)obj)->position;
     } else {
-        uint8_t *model = TAG_DATA(*(uint32_t *)&((struct Object *)def)->model.tag_id);
+        GBXModel *model = halo::objects::tag_as<GBXModel>(*(uint32_t *)&def->model.tag_id);
         real_matrix4x3 *parent_matrix = 0;
         uint8_t absolute_root = 0;
         int16_t queue[k_maximum_nodes_per_model];
@@ -409,11 +397,11 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         }
 
         if ((int32_t)((struct object *)obj)->animation_graph != -1 && ((struct object *)obj)->animation_index != -1) {
-            ModelAnimationsAnimation *animation = (ModelAnimationsAnimation *)(OFS(TAG_DATA(((struct object *)obj)->animation_graph), 0x78, uint8_t *) +
+            ModelAnimationsAnimation *animation = (ModelAnimationsAnimation *)(*(uint8_t * *)((uint8_t *)(halo::objects::tag_record_bytes(((struct object *)obj)->animation_graph)) + 0x78) +
                 (int32_t)((struct object *)obj)->animation_index * 0xb4);
             int16_t frame_count = (int16_t)animation->frame_count;
             uint32_t frame;
-            if (OFS(obj, 0x10, int8_t) < 0 && frame_count > 0) {
+            if (*(int8_t *)(obj + 0x10) < 0 && frame_count > 0) {
                 frame = ((uint32_t)halo::game::globals().game_time->game_time + object_index) % (uint32_t)(int32_t)frame_count;
             } else {
                 frame = (uint16_t)((struct object *)obj)->animation_frame;
@@ -424,25 +412,24 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
             halo::models::model_view((GBXModel *)model).get_default_transforms(orientations);
         }
 
-        if (*(int32_t *)&((struct Object *)def)->animation_graph.tag_id != -1) {
-            uint8_t *graph = TAG_DATA(*(uint32_t *)&((struct Object *)def)->animation_graph.tag_id);
+        if (*(int32_t *)&def->animation_graph.tag_id != -1) {
+            ModelAnimations *graph = halo::objects::tag_as<ModelAnimations>(*(uint32_t *)&def->animation_graph.tag_id);
             int16_t i;
-            for (i = 0; (int32_t)i < OFS(graph, 0x0, int32_t); i++) {
-                int16_t *entry = (int16_t *)(OFS(graph, 0x4, uint8_t *) + (int32_t)i * 0x14);
-                if (entry[0] == -1 || (int32_t)entry[1] >= (int32_t)((struct Object *)def)->functions.count) {
+            for (i = 0; (int32_t)i < graph->objects.count; i++) {
+                ModelAnimationsAnimationGraphObjectOverlay *entry = &halo::objects::block_element<ModelAnimationsAnimationGraphObjectOverlay>(graph->objects, (int32_t)i);
+                if (entry->animation == k_word_none || (int32_t)entry->function >= (int32_t)def->functions.count) {
                     continue;
                 }
                 {
-                    ModelAnimationsAnimation *animation =
-                        (ModelAnimationsAnimation *)(OFS(graph, 0x78, uint8_t *) + (int32_t)entry[0] * 0xb4);
-                    float value = OFS(obj, 0x134 + (int32_t)entry[1] * 4, float);
-                    if (entry[2] == 0) {
+                    ModelAnimationsAnimation *animation = &halo::objects::block_element<ModelAnimationsAnimation>(graph->animations, (int32_t)entry->animation);
+                    float value = ((struct object *)obj)->function_out_values[entry->function];
+                    if (entry->function_controls == 0) {
                         int32_t frames = (int32_t)(int16_t)animation->frame_count;
-                        if ((OFS(OFS(def, 0x15c, uint8_t *), (int32_t)entry[1] * 0x168, uint8_t) & 2) == 0) {
+                        if (!test_flag(halo::objects::block_element<ObjectFunction>(def->functions, entry->function).flags, tags::object_function_tag_flag::additive)) {
                             frames -= 1;
                         }
                         halo::models::animation_view(animation).overlay_interpolated_frame_orientations((float)frames * value, orientations);
-                    } else if (entry[2] == 1) {
+                    } else if (entry->function_controls == 1) {
                         uint32_t frame = ((uint32_t)halo::game::globals().game_time->game_time + object_index) %
                             (uint32_t)(int32_t)(int16_t)animation->frame_count;
                         halo::models::animation_view(animation).overlay_frame_orientations_weighted((int16_t)frame, value, orientations);
@@ -458,12 +445,12 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
             orientations[0].translation.y *= scale;
             orientations[0].translation.z *= scale;
         }
-        if (*(int32_t *)&((struct Object *)def)->animation_graph.tag_id != -1) {
+        if (*(int32_t *)&def->animation_graph.tag_id != -1) {
             halo::objects::object_type_definitions_notify_two_args_0x48(object_index, (uint32_t)orientations);
         }
         if (((struct object *)obj)->node_function_count > 0) {
 
-            halo::models::model_skeleton::blend_transforms(orientations, OFS(model, 0xb8, int16_t), (real_orientation *)(obj + ((struct object *)obj)->node_function_values.offset), (int16_t)(uint16_t)((struct object *)obj)->interpolation_frame_index, (int16_t)(uint16_t)((struct object *)obj)->node_function_count);
+            halo::models::model_skeleton::blend_transforms(orientations, (int16_t)model->nodes.count, (real_orientation *)(obj + ((struct object *)obj)->node_function_values.offset), (int16_t)(uint16_t)((struct object *)obj)->interpolation_frame_index, (int16_t)(uint16_t)((struct object *)obj)->node_function_count);
         }
 
         queue[0] = 0;
@@ -471,7 +458,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         tail = 1;
         do {
             int16_t node_index = queue[head++];
-            uint8_t *node = OFS(model, 0xbc, uint8_t *) + (int32_t)node_index * 0x9c;
+            ModelNode *node = &halo::objects::block_element<ModelNode>(model->nodes, (int32_t)node_index);
 
             if (node_index == 0) {
                 real_matrix4x3 root;
@@ -495,16 +482,16 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                         orientation.left.j = -orientation.left.j;
                         orientation.left.k = -orientation.left.k;
                     }
-                    if (*(int32_t *)&((struct Object *)def)->physics.tag_id != -1) {
-                        uint8_t *tag = TAG_DATA(*(uint32_t *)&((struct Object *)def)->physics.tag_id);
+                    if (*(int32_t *)&def->physics.tag_id != -1) {
+                        Physics *tag = halo::objects::tag_as<Physics>(*(uint32_t *)&def->physics.tag_id);
                         real_point3d negated;
-                        negated.x = -OFS(tag, 0xc, float);
-                        negated.y = -OFS(tag, 0x10, float);
-                        negated.z = -OFS(tag, 0x14, float);
+                        negated.x = -tag->center_of_mass.x;
+                        negated.y = -tag->center_of_mass.y;
+                        negated.z = -tag->center_of_mass.z;
                         matrix4x3_set_translation_only(&offset, &negated);
                         halo::math::globals().matrix4x3_multiply_procedure(&orientation, &offset, &orientation);
                     }
-                    matrix4x3_set_translation_only(&offset, &OFS(def, 0x14, real_point3d));
+                    matrix4x3_set_translation_only(&offset, reinterpret_cast<const real_point3d *>(&def->origin_offset));
                     halo::math::globals().matrix4x3_multiply_procedure(&orientation, &offset, &orientation);
 
                     if (base != 0) {
@@ -519,7 +506,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                         {
                             uint8_t *parent_object = (uint8_t *)((object_header *)object_data->data)
                                 [halo::datum_slot(((struct object *)obj)->parent_object)].data;
-                            if ((OFS(parent_object, 0x10, uint32_t) & 0x1000) != 0) {
+                            if ((*(uint32_t *)(parent_object + 0x10) & 0x1000) != 0) {
                                 if (base != &parent_copy) {
                                     parent_copy = *base;
                                     base = &parent_copy;
@@ -542,26 +529,24 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                 halo::math::matrix4x3_from_quaternion(orientations[node_index].rotation, *m);
                 m->scale = orientations[node_index].scale;
                 m->position = orientations[node_index].translation;
-                halo::math::globals().matrix4x3_multiply_procedure(&nodes[OFS(node, 0x24, int16_t)], m, m);
+                halo::math::globals().matrix4x3_multiply_procedure(&nodes[node->parent_node_index], m, m);
             }
 
-            if (OFS(node, 0x20, int16_t) != -1) {
-                queue[tail++] = OFS(node, 0x20, int16_t);
+            if (node->next_sibling_node_index != -1) {
+                queue[tail++] = node->next_sibling_node_index;
             }
-            if (OFS(node, 0x22, int16_t) != -1) {
-                queue[tail++] = OFS(node, 0x22, int16_t);
+            if (node->first_child_node_index != -1) {
+                queue[tail++] = node->first_child_node_index;
             }
         } while (head != tail);
     }
 
-    halo::math::matrix4x3_transform_point(((struct object *)obj)->bounding_center, OFS(def, 0x8, real_point3d), nodes[0]);
-    ((struct object *)obj)->bounding_radius = ((struct Object *)def)->bounding_radius;
+    halo::math::matrix4x3_transform_point(((struct object *)obj)->bounding_center, *reinterpret_cast<const real_point3d *>(&def->bounding_offset), nodes[0]);
+    ((struct object *)obj)->bounding_radius = def->bounding_radius;
     if (((struct object *)obj)->scale > 0.0f) {
-        ((struct object *)obj)->bounding_radius = ((struct Object *)def)->bounding_radius * ((struct object *)obj)->scale;
+        ((struct object *)obj)->bounding_radius = def->bounding_radius * ((struct object *)obj)->scale;
     }
 }
-#undef OFS
-#undef TAG_DATA
 
 namespace {
 static float clamp_unit(float value)
@@ -587,7 +572,7 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
 {
     uint32_t object_index = handle;
     uint8_t *obj = halo::objects::object_record_bytes(object_index);
-    uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
+    Object *tag = halo::objects::tag_as<Object>(*(datum_index *)obj);
     float *position = (float *)&((struct object *)obj)->position;
     int32_t i;
 
@@ -596,22 +581,22 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
         ColorRGB *final_color = (ColorRGB *)(obj + 0x1b8 + i * 0xc);
 
         *working = colors[i];
-        if (i < *(int32_t *)&((Object *)tag)->change_colors.count) {
-            uint8_t *change_color = *(uint8_t **)&((Object *)tag)->change_colors.pointer + i * 0x2c;
+        if (i < *(int32_t *)&tag->change_colors.count) {
+            ObjectChangeColors *change_color = reinterpret_cast<ObjectChangeColors *>(*(uint8_t **)&tag->change_colors.pointer + i * 0x2c);
 
             double seed = (double)position[2] * (double)744.12415f + (double)position[0] * (double)315.89313f +
                 (double)position[1] * (double)587.12946f + (double)i * (double)431.12894f;
             float weight = (float)halo::libm::fmod(halo::libm::fabs(seed), 1.0);
-            int32_t count = (int32_t)((struct ObjectChangeColors *)change_color)->permutations.count;
+            int32_t count = (int32_t)change_color->permutations.count;
             int16_t p;
 
             for (p = 0; p < count; p++) {
-                uint8_t *permutation = (uint8_t *)((struct ObjectChangeColors *)change_color)->permutations.pointer + p * 0x1c;
+                ObjectChangeColorsPermutation *permutation = &halo::objects::block_element<ObjectChangeColorsPermutation>(change_color->permutations, p);
 
                 if (weight <= *(float *)permutation) {
                     float t = (float)halo::libm::fmod(halo::libm::fabs(position[1]) + (double)i * (double)0.71210998f, 1.0);
 
-                    halo::bitmaps::color_interpolate((ColorRGB *)&((struct ObjectChangeColorsPermutation *)permutation)->color_upper_bound, (ColorRGB *)(permutation + 4), working, (color_interpolation_flags)1, t);
+                    halo::bitmaps::color_interpolate((ColorRGB *)&permutation->color_upper_bound, (ColorRGB *)(permutation + 4), working, (color_interpolation_flags)1, t);
                     break;
                 }
             }

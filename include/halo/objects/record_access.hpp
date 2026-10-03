@@ -58,6 +58,13 @@ inline T &block_element(const TagReflexive &block, int32_t index)
     return block_elements<T>(block)[index];
 }
 
+/** The array an object keeps in its record block (node matrices, node function values), found through a block reference. */
+template <typename T>
+inline T *object_block(object &record, const object_block_reference &block)
+{
+    return reinterpret_cast<T *>(reinterpret_cast<uint8_t *>(&record) + block.offset);
+}
+
 /** The datum handle stored in the tag id of a tag reference. */
 inline uint32_t tag_handle(const TagDependency &reference)
 {

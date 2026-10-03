@@ -1,4 +1,5 @@
 #include "halo/objects/record_access.hpp"
+#include "halo/objects/tag_layout.hpp"
 #include "halo/hs/script_globals.hpp"
 #include "halo/objects/object_damage.hpp"
 #include "halo/tags/flags.hpp"
