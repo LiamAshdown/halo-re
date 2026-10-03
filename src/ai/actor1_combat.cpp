@@ -899,7 +899,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 }
                 dot = (other->body_position.z - self->body_position.z) * axis_prop->direction.z +
                       (other->body_position.y - self->body_position.y) * axis_prop->direction.y +
-                      (*(const float *)((uint8_t *)other + 0x12c) - self->body_position.x) * *(const float *)((uint8_t *)axis_prop + 0xe0);
+                      (other->body_position.x - self->body_position.x) * axis_prop->direction.x;
                 if (dot > 1.4f) {
                     ahead++;
                 } else if (dot >= -1.4f) {
