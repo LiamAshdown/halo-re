@@ -6,6 +6,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/items/records.hpp"
 
 
 namespace halo::items {
@@ -27,7 +28,7 @@ uint32_t item_ref::any_detonating()
 
     obj = halo::objects::object_iterator_next(&iterator);
     while (obj != 0) {
-        item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
+        item_data *item = halo::items::item_data_of(obj);
         if (item->detonation_countdown > 0) {
             return 1;
         }
@@ -46,7 +47,7 @@ void item_ref::detonation_timer_start()
 {
     uint32_t object_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
-    item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
+    item_data *item = halo::items::item_data_of(obj);
 
     if (item->detonation_countdown == 0) {
         Item *tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
@@ -71,7 +72,7 @@ uint8_t item_ref::create()
 {
     uint32_t object_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
-    item_data *id = (item_data *)((uint8_t *)obj + k_item_data_offset);
+    item_data *id = halo::items::item_data_of(obj);
 
     obj->flags |= 0x6000;
     id->held_game_time = halo::game::globals().game_time->game_time;
@@ -91,7 +92,7 @@ void item_ref::set_holder(datum_index holder_index)
 {
     uint32_t item_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
-    item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
+    item_data *item = halo::items::item_data_of(obj);
 
     if (holder_index == k_datum_index_none) {
         item->flags &= ~(uint32_t)(_item_in_inventory_bit | _item_held_by_player_bit);

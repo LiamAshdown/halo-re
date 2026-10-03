@@ -17,6 +17,7 @@
 #include "halo/items/tag_flags.hpp"
 #include "halo/projectiles/layout.hpp"
 #include "halo/projectiles/api.hpp"
+#include "halo/items/records.hpp"
 
 static auto &s_primary_trigger_marker = halo::link::ref<char []>(halo::items::vars().s_primary_trigger_marker);
 static auto &s_secondary_trigger_marker = halo::link::ref<char []>(halo::items::vars().s_secondary_trigger_marker);
@@ -331,7 +332,7 @@ void weapon_trigger_ref::become_charged(int16_t trigger_index)
     uint32_t action_handle;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
 
@@ -364,7 +365,7 @@ void weapon_trigger_ref::begin_reload(int16_t magazine_index, int8_t is_client_p
     WeaponMagazine *magazine_tag;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     magazine = &wd->magazines[magazine_index];
     magazine_tag = (WeaponMagazine *)weapon_tag->magazines.pointer + magazine_index;
@@ -424,7 +425,7 @@ void weapon_trigger_ref::continue_burst(int16_t trigger_index)
     WeaponTrigger *tag_trigger;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
     if (trigger_index + 1 < weapon_tag->triggers.count) {
@@ -448,7 +449,7 @@ void weapon_trigger_ref::effect_clear(int16_t trigger_index)
     weapon_data *wd;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     wd->triggers[trigger_index].effect_state = 0;
     wd->triggers[trigger_index].effect_state_ticks = 0;
 }
@@ -465,7 +466,7 @@ void weapon_trigger_ref::effect_set_out_of_ammo(int16_t trigger_index)
     weapon_data *wd;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     wd->triggers[trigger_index].effect_state = _weapon_trigger_effect_out_of_ammo;
     wd->triggers[trigger_index].effect_state_ticks = k_weapon_trigger_effect_ticks_infinite;
 }
@@ -482,7 +483,7 @@ void weapon_trigger_ref::effect_set_state(int16_t trigger_index, int8_t state, i
     weapon_data *wd;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     wd->triggers[trigger_index].effect_state = state;
     wd->triggers[trigger_index].effect_state_ticks = counter;
 }
@@ -501,7 +502,7 @@ void weapon_trigger_ref::enter_recovery(int16_t trigger_index)
     WeaponTrigger *tag_trigger;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
 
@@ -533,7 +534,7 @@ void weapon_trigger_ref::finish_shot(int16_t trigger_index)
     weapon_data *wd;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
 
     wd->triggers[trigger_index].idle_ticks = 0;
     wd->triggers[trigger_index].effect_state = 0;
@@ -556,7 +557,7 @@ void weapon_trigger_ref::fire_or_reload(int16_t trigger_index, int8_t force)
     uint8_t ready;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
 
@@ -686,7 +687,7 @@ real weapon_trigger_ref::get_charge_fraction(int16_t trigger_index)
     WeaponTrigger *tag_trigger;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     trigger = &wd->triggers[trigger_index];
 
@@ -773,8 +774,8 @@ int32_t weapon_trigger_ref::ready_to_fire(int16_t trigger_index)
     int32_t ready;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
-    id = (item_data *)((uint8_t *)item_obj + k_item_data_offset);
+    wd = halo::items::weapon_data_of(item_obj);
+    id = halo::items::item_data_of(item_obj);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     trigger = &wd->triggers[trigger_index];
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
@@ -810,7 +811,7 @@ void weapon_trigger_ref::reset_tracking(int16_t trigger_index)
     weapon_data *wd;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
 
     wd->tracked_object_index = k_datum_index_none;
     wd->triggers[trigger_index].idle_ticks = 0;

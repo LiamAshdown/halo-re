@@ -12,6 +12,7 @@
 #include "halo/core/libm.hpp"
 #include "halo/game/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/items/records.hpp"
 
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &weapon_network_update_position_tolerance = halo::link::ref<real>(halo::items::vars().weapon_network_update_position_tolerance);
@@ -53,7 +54,7 @@ int32_t weapon_ref::add_ammunition(void **message_record)
         return (int32_t)(long)item_obj;
     }
 
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     rounds_unloaded = &wd->magazines[decoded.magazine_index].rounds_unloaded;
     *rounds_unloaded = (int16_t)(*rounds_unloaded + decoded.rounds);
     return (int32_t)(long)&wd->magazines[decoded.magazine_index];
@@ -91,7 +92,7 @@ void weapon_ref::apply_ammo_correction(void **message_record)
         return;
     }
 
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     magazine = &wd->magazines[decoded.magazine_index];
     magazine->rounds_unloaded = decoded.rounds_unloaded;
     magazine->rounds_loaded = decoded.rounds_loaded;
@@ -132,7 +133,7 @@ void weapon_ref::apply_ammo_correction_and_resync(void **message_record)
         return;
     }
 
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     magazine = &wd->magazines[decoded.magazine_index];
     magazine->rounds_unloaded = decoded.rounds_unloaded;
     magazine->rounds_loaded = decoded.rounds_loaded;
@@ -163,7 +164,7 @@ void weapon_ref::apply_network_update(uint32_t *update_record)
         halo::networking::message_delta_decode_compound_field_staged((void **)update_record);
         return;
     }
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     header = (weapon_network_update_header *)update_record[0x11];
 
     if ((item_obj->flags & _object_took_network_update_bit) != 0 && *(int32_t *)update_record[0] == 1 &&
@@ -241,7 +242,7 @@ void weapon_ref::build_creation_message(uint32_t unused_param_2, uint32_t unused
     (void)unused_param_3;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
 
     if (item_index != k_datum_index_none) {
         object_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, item_index);
@@ -305,7 +306,7 @@ int32_t weapon_ref::build_network_update(uint32_t unused_arg2, uint32_t unused_a
             uint8_t sequence;
             uint8_t is_first_update;
         } header;
-        weapon_data *wd = (weapon_data *)((uint8_t *)obj + k_item_extension_offset);
+        weapon_data *wd = halo::items::weapon_data_of(obj);
         int32_t message_type = object_type_definitions[obj->type]->network_delta_message_type;
         void *header_ptr = &header;
         int32_t is_full_snapshot = (update_type == 1);
@@ -354,7 +355,7 @@ int32_t weapon_ref::build_network_update(uint32_t unused_arg2, uint32_t unused_a
     }
 
     if (0 < result) {
-        weapon_data *wd = (weapon_data *)((uint8_t *)obj + k_item_extension_offset);
+        weapon_data *wd = halo::items::weapon_data_of(obj);
         uint8_t sequence = wd->network_sequence + 1;
         wd->network_sequence = sequence;
         if ((int8_t)sequence == -1) {
@@ -428,7 +429,7 @@ void weapon_ref::create_from_creation_message(void *incoming_record)
     halo::networking::network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object_index);
 
     obj = ((object_header *)halo::objects::globals().object_data->data)[new_object_index & halo::k_slot_mask].data;
-    wd = (weapon_data *)((uint8_t *)obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(obj);
 
     obj->flags |= decoded.object_flags;
     wd->network_state.position = decoded.position;
@@ -464,7 +465,7 @@ void weapon_ref::network_baseline_take()
     object *obj = halo::objects::object_try_and_get(item_index, _object_mask_weapon);
 
     if (obj != 0) {
-        weapon_data *wd = (weapon_data *)((uint8_t *)obj + k_item_extension_offset);
+        weapon_data *wd = halo::items::weapon_data_of(obj);
 
         wd->network_baseline_index++;
         wd->network_state.position = obj->position;
@@ -508,7 +509,7 @@ void weapon_ref::predict_ammo(void **message_record)
         return;
     }
 
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
     wd->predicted_rounds_unloaded[decoded.magazine_index] = decoded.rounds_unloaded;
     wd->predicted_rounds_loaded[decoded.magazine_index] = decoded.rounds_loaded;
     wd->flags = wd->flags | _weapon_ammo_prediction_pending_bit;
@@ -525,7 +526,7 @@ void weapon_ref::send_creation(uint32_t arg2, uint32_t arg3)
 {
     uint32_t item_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
-    item_data *id = (item_data *)((uint8_t *)obj + k_item_data_offset);
+    item_data *id = halo::items::item_data_of(obj);
 
     if ((obj->flags & _object_at_rest_bit) != 0 && (id->flags & _item_at_rest_on_structure_bit) == 0) {
         halo::items::weapon_build_creation_message(item_index, arg2, arg3, _object_at_rest_bit);

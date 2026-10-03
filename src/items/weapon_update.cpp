@@ -11,6 +11,7 @@
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/items/vars.hpp"
+#include "halo/items/records.hpp"
 
 static auto &weapon_blur_permutation_names = halo::link::ref<char *[2]>(halo::items::vars().weapon_blur_permutation_names);
 
@@ -47,8 +48,8 @@ int32_t weapon_ref::update()
     int16_t i;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
-    id = (item_data *)((uint8_t *)item_obj + k_item_data_offset);
+    wd = halo::items::weapon_data_of(item_obj);
+    id = halo::items::item_data_of(item_obj);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
     if (halo::units::globals().updates_suppressed == 1) {
@@ -427,7 +428,7 @@ void weapon_ref::update_function_values()
     }
 
     {
-        weapon_data *wd = (weapon_data *)((uint8_t *)obj + k_item_extension_offset);
+        weapon_data *wd = halo::items::weapon_data_of(obj);
         WeaponFunctionIn_t *sources = &tag->weapon_a_in;
         float *function_in = destination->function_in_values;
         WeaponMagazine *tag_magazine = (WeaponMagazine *)tag->magazines.pointer;

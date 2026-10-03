@@ -3,6 +3,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/items/records.hpp"
 
 
 namespace halo::items {
@@ -22,7 +23,7 @@ int32_t weapon_ref::put_away(int8_t force)
     uint32_t action_handle;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
 
     if (force == 0 && halo::items::weapon_has_active_state(item_index) != 0) {
         return 0;
