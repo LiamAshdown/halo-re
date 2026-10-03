@@ -215,8 +215,8 @@ uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, u
     widget_instance *child;
 
     widget_absolute_origin(widget, &origin_x, &origin_y);
-    if (x >= 0 && x <= (int16_t)(*(int16_t *)(definition + 0x17a) + origin_x) &&
-        y >= (int16_t)(*(int16_t *)(definition + 0x174) + origin_y) && y <= (int16_t)(*(int16_t *)(definition + 0x178) + origin_y)) {
+    if (x >= 0 && x <= (int16_t)(((struct UIWidgetDefinition *)definition)->header_bounds.right + origin_x) &&
+        y >= (int16_t)(((struct UIWidgetDefinition *)definition)->header_bounds.top + origin_y) && y <= (int16_t)(((struct UIWidgetDefinition *)definition)->header_bounds.bottom + origin_y)) {
         int32_t selection = widget->selection_index - 1;
 
         if (selection < 0) {
@@ -230,8 +230,8 @@ uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, u
         }
         return 1;
     }
-    if (x >= (int16_t)(*(int16_t *)(definition + 0x17e) + origin_x) && x <= 0x280 &&
-        y >= (int16_t)(*(int16_t *)(definition + 0x17c) + origin_y) && y <= (int16_t)(*(int16_t *)(definition + 0x180) + origin_y)) {
+    if (x >= (int16_t)(((struct UIWidgetDefinition *)definition)->footer_bounds.left + origin_x) && x <= 0x280 &&
+        y >= (int16_t)(((struct UIWidgetDefinition *)definition)->footer_bounds.top + origin_y) && y <= (int16_t)(((struct UIWidgetDefinition *)definition)->footer_bounds.bottom + origin_y)) {
         int32_t selection = widget->selection_index + 1;
 
         if (selection >= widget->item_count) {
@@ -251,8 +251,8 @@ uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, u
         int16_t cy;
 
         widget_absolute_origin(child, &cx, &cy);
-        if (x >= (int16_t)(*(int16_t *)(bounds + 0x26) + cx) && x <= (int16_t)(*(int16_t *)(bounds + 0x2a) + cx) &&
-            y >= (int16_t)(*(int16_t *)(bounds + 0x24) + cy) && y <= (int16_t)(*(int16_t *)(bounds + 0x28) + cy)) {
+        if (x >= (int16_t)(((struct UIWidgetDefinition *)bounds)->bounds.left + cx) && x <= (int16_t)(((struct UIWidgetDefinition *)bounds)->bounds.right + cx) &&
+            y >= (int16_t)(((struct UIWidgetDefinition *)bounds)->bounds.top + cy) && y <= (int16_t)(((struct UIWidgetDefinition *)bounds)->bounds.bottom + cy)) {
             if (input_event_queue_active != 0) {
                 ui_input_event queued;
 
@@ -607,7 +607,7 @@ uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, u
 {
     widget_instance *list = widget->parent;
     uint8_t *definition = halo::interface::tag_data<uint8_t>(list->definition);
-    int32_t rows = *(int32_t *)(definition + 0x3e0);
+    int32_t rows = (int32_t)((struct UIWidgetDefinition *)definition)->child_widgets.count;
     int32_t first_visible = *(int16_t *)((uint8_t *)list + 0x3e);
     int32_t committed = *(int16_t *)&((struct widget_instance *)list)->text;
     widget_instance *child = list->first_child;
@@ -686,7 +686,7 @@ uint8_t UiEventHandlers::event_4a3790(widget_instance *widget, int16_t *event, u
     group = widget->first_child;
     first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->friendly_fire <= 3 ? ((struct game_variant *)variant)->friendly_fire : 1);
     group = group->next_sibling;
-    time = *(int32_t *)(variant + 0x70);
+    time = ((struct game_variant *)variant)->betrayal_penalty;
     first_list_child(group)->selection_index = (int16_t)(time == 0x96 ? 1 : time == 0x12c ? 2 : time == 0x1c2 ? 3 : 0);
     first_list_child(group->next_sibling)->selection_index = (int16_t)(((struct game_variant *)variant)->team_autobalance != 0);
     return 1;
@@ -712,16 +712,16 @@ uint8_t UiEventHandlers::event_4a3870(widget_instance *widget, int16_t *event, u
     group = group->next_sibling;
     switch (first_list_child(group)->selection_index) {
     case 1:
-        *(int32_t *)(variant + 0x70) = 0x96;
+        ((struct game_variant *)variant)->betrayal_penalty = 0x96;
         break;
     case 2:
-        *(int32_t *)(variant + 0x70) = 0x12c;
+        ((struct game_variant *)variant)->betrayal_penalty = 0x12c;
         break;
     case 3:
-        *(int32_t *)(variant + 0x70) = 0x1c2;
+        ((struct game_variant *)variant)->betrayal_penalty = 0x1c2;
         break;
     default:
-        *(int32_t *)(variant + 0x70) = 0;
+        ((struct game_variant *)variant)->betrayal_penalty = 0;
         break;
     }
     ((struct game_variant *)variant)->team_autobalance = (uint8_t)(first_list_child(group->next_sibling)->selection_index == 1);

@@ -343,7 +343,7 @@ uint8_t UiEventHandlers::event_49f030(widget_instance *widget, int16_t *event, u
     if (variant == 0) {
         return 0;
     }
-    flags = (uint32_t *)(variant + 0x38);
+    flags = &((struct game_variant *)variant)->flags;
     group = widget->parent->parent->first_child;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 3) {
@@ -408,7 +408,7 @@ uint8_t UiEventHandlers::event_49f300(widget_instance *widget, int16_t *event, u
     if (variant == 0) {
         return 0;
     }
-    flags = (uint32_t *)(variant + 0x38);
+    flags = &((struct game_variant *)variant)->flags;
     group = widget->parent->parent->first_child;
     selection = first_list_child(group)->selection_index;
     if (selection == 0) {
@@ -444,7 +444,7 @@ uint8_t UiEventHandlers::event_49f470(widget_instance *widget, int16_t *event, u
     if (variant == 0) {
         return 0;
     }
-    flags = (uint32_t *)(variant + 0x38);
+    flags = &((struct game_variant *)variant)->flags;
     group = widget->parent->parent->first_child;
     switch (first_list_child(group)->selection_index) {
     case 0:

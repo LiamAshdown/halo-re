@@ -206,7 +206,7 @@ void UiGameDataInputs::input_4a5740(widget_instance *widget)
                 halo::text::string_format_wide_va_bounded(0xf, text, (const uint16_t *)L"%d:%02d:%02d", hours, minutes,
                     seconds - (hours * 60 + minutes) * 60);
             }
-        } else if (*(int16_t *)(game + 0x1a0) < 2 || game[0x138] == 1) {
+        } else if (((struct network_game_session *)game)->player_count < 2 || ((struct network_game_session *)game)->variant.teams == 1) {
             second->state = 0;
             countdown->state = 0;
         }
@@ -229,7 +229,7 @@ void UiGameDataInputs::input_4a5740(widget_instance *widget)
     frame->background_bitmap_frame = 0;
     frame = name->first_child;
     team = frame->next_sibling->next_sibling;
-    if (game[0x138] == 0) {
+    if (((struct network_game_session *)game)->variant.teams == 0) {
         widget_instance *child;
 
         team->state = 0;
@@ -248,7 +248,7 @@ void UiGameDataInputs::input_4a5740(widget_instance *widget)
         return;
     }
     set_text(frame->next_sibling, (const uint16_t *)(game + 0x1a2 + found * 0x20));
-    if (game[0x138] == 0) {
+    if (((struct network_game_session *)game)->variant.teams == 0) {
         frame->background_bitmap_frame = 1;
         return;
     }
@@ -356,12 +356,12 @@ void UiGameDataInputs::input_4a6b70(widget_instance *widget)
         return;
     }
     for (i = 0; i < (int16_t)(sizeof(maps) / sizeof(maps[0])); i++) {
-        if (strstr((char *)(game + 0x84), maps[i]) != 0) {
+        if (strstr(((struct network_game_session *)game)->server_name, maps[i]) != 0) {
             widget->selection_index = i;
             return;
         }
     }
-    widget->selection_index = (int16_t)(strstr((char *)(game + 0x84), "icefields") != 0 ? 0xd : 0x13);
+    widget->selection_index = (int16_t)(strstr(((struct network_game_session *)game)->server_name, "icefields") != 0 ? 0xd : 0x13);
 }
 
 /**
@@ -377,7 +377,7 @@ void UiGameDataInputs::input_4a6d50(widget_instance *widget)
     if (game == 0) {
         return;
     }
-    switch (*(int32_t *)(game + 0x134)) {
+    switch (((struct network_game_session *)game)->variant.game_engine_index) {
     case 1:
         if (game[0x180] == 1) {
             widget->selection_index = (int16_t)(*(int32_t *)(game + 0x184) != 0 ? 0x1c : 0x1d);
@@ -424,7 +424,7 @@ void UiGameDataInputs::input_4a6e50(widget_instance *widget)
                   : network_client != 0 ? network_client + 0xb14 : 0;
 
     if (game != 0) {
-        widget->selection_index = (int16_t)((game[0x138] != 1) + 0xc);
+        widget->selection_index = (int16_t)((((struct network_game_session *)game)->variant.teams != 1) + 0xc);
     }
 }
 
@@ -445,7 +445,7 @@ void UiGameDataInputs::input_4a6e90(widget_instance *widget)
     text = (uint16_t *)halo::memory::heap_reallocate(widget->text, 0x10, widget_memory_pool);
     widget->text = text;
     if (text != 0) {
-        halo::text::string_format_wide_va_bounded(7, text, (const uint16_t *)L"%d", *(int32_t *)(game + 0x15c));
+        halo::text::string_format_wide_va_bounded(7, text, (const uint16_t *)L"%d", ((struct network_game_session *)game)->variant.score_limit);
         text[7] = 0;
     }
 }
@@ -463,7 +463,7 @@ void UiGameDataInputs::input_4a6f00(widget_instance *widget)
     if (game == 0) {
         return;
     }
-    switch (*(int32_t *)(game + 0x134)) {
+    switch (((struct network_game_session *)game)->variant.game_engine_index) {
     case 1:
         widget->selection_index = 0x16;
         break;
@@ -502,12 +502,12 @@ void UiGameDataInputs::input_4a6fa0(widget_instance *widget)
         return;
     }
     for (i = 0; i < (int16_t)(sizeof(maps) / sizeof(maps[0])); i++) {
-        if (strstr((char *)(game + 0x84), maps[i]) != 0) {
+        if (strstr(((struct network_game_session *)game)->server_name, maps[i]) != 0) {
             widget->background_bitmap_frame = i;
             return;
         }
     }
-    widget->background_bitmap_frame = (int16_t)(strstr((char *)(game + 0x84), "icefields") != 0 ? 0xd : 0x13);
+    widget->background_bitmap_frame = (int16_t)(strstr(((struct network_game_session *)game)->server_name, "icefields") != 0 ? 0xd : 0x13);
 }
 
 /**
@@ -523,7 +523,7 @@ void UiGameDataInputs::input_4a7180(widget_instance *widget)
     if (game == 0) {
         return;
     }
-    switch (*(int32_t *)(game + 0x134)) {
+    switch (((struct network_game_session *)game)->variant.game_engine_index) {
     case 1:
         widget->background_bitmap_frame = 0;
         break;
@@ -562,7 +562,7 @@ void UiGameDataInputs::input_4a7210(widget_instance *widget)
     text = (uint16_t *)halo::memory::heap_reallocate(widget->text, 8, widget_memory_pool);
     widget->text = text;
     if (text != 0) {
-        halo::text::string_format_wide_va_bounded(3, text, (const uint16_t *)L"%d", (int32_t)*(int16_t *)(game + 0x1a0));
+        halo::text::string_format_wide_va_bounded(3, text, (const uint16_t *)L"%d", (int32_t)((struct network_game_session *)game)->player_count);
         text[3] = 0;
     }
 }
@@ -594,7 +594,7 @@ void UiGameDataInputs::input_4a7300(widget_instance *widget)
                   : network_client != 0 ? network_client + 0xb14 : 0;
 
     if (game != 0) {
-        widget->background_bitmap_frame = (int16_t)(game[0x138] != 1);
+        widget->background_bitmap_frame = (int16_t)(((struct network_game_session *)game)->variant.teams != 1);
     }
 }
 

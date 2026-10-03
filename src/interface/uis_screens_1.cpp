@@ -257,9 +257,9 @@ void UiScreens::handler_4a68f0(uint8_t *widget)
     uint8_t *child = *(uint8_t **)(widget + 0x4c);
     uint8_t *record;
 
-    *(int16_t *)(child + 0x58) = *(int16_t *)(widget + 0x40);
-    if (*(int16_t *)(child + 0x58) < 0) {
-        *(int16_t *)(child + 0x58) = 0;
+    ((struct widget_instance *)child)->background_bitmap_frame = *(int16_t *)(widget + 0x40);
+    if (((struct widget_instance *)child)->background_bitmap_frame < 0) {
+        ((struct widget_instance *)child)->background_bitmap_frame = 0;
     }
     if (network_disabled_flag != 0) {
         record = *(uint8_t **)(*(uint8_t **)(widget + 0x34) + 0x2c);
