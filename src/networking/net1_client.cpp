@@ -1,4 +1,9 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/core/cstring.hpp"
+#include "halo/networking/game_mode.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/core/datum.hpp"
 #include "interface.h"
 #include "main.h"
 #include "halo/networking/net_state.hpp"
@@ -99,7 +104,7 @@ uint32_t ClientView::begin_connect(wchar_t *player_name, s_network_address *targ
         halo::networking::network_debug_fill_canary_buffer(scratch.config_template);
         if (halo::networking::chimera__on_connect((const uint32_t *)target_address, network_client,
                 (const uint32_t *)&scratch) != 0) {
-            network_game_mode = 1;
+            network_game_mode = halo::networking::k_game_mode_client;
             return 1;
         }
         network_host_handoff_requested = 1;
@@ -125,7 +130,7 @@ uint32_t ClientView::check_connection_quality(int16_t machine_id, client_update_
     int16_t salt;
 
     resolved = machine_to_player[(uint16_t)machine_id];
-    if (resolved == (datum_index)0xffffffff) {
+    if (resolved == (datum_index)halo::k_dword_none) {
         return 0;
     }
     player_index = (int16_t)resolved;
@@ -526,7 +531,7 @@ char ClientView::update_dispatch()
 
     result = 1;
     if (network_host_handoff_requested == 1) {
-        network_game_mode = 0;
+        network_game_mode = halo::networking::k_game_mode_local;
         halo::main::main_menu_music_stop();
         if (network_server != 0) {
             session = &network_server->session;
@@ -593,7 +598,7 @@ int8_t ClientView::client_update()
             client->connection_stalled = (uint8_t)(flags >> 5) & 1;
         }
         service_ok = halo::networking::network_channel_service_light(channel, 0x3a98, 0);
-        if (network_game_mode == 2) {
+        if (network_game_mode == halo::networking::k_game_mode_host) {
             halo::networking::network_channel_record_timestamp(channel);
         }
         if (service_ok != 0) {
@@ -779,14 +784,14 @@ network_client_globals * ClientView::create()
     } else {
         halo::networking::network_game_session_reset(&client->session);
         client->flags = client->flags & 0xfff9;
-        client->machine_index = 0xffff;
+        client->machine_index = halo::k_word_none;
         client->state = 0;
         client->disconnect_reason = 0;
         client->unknown_ec8 = 0;
         client->last_update_id = 0;
         client->last_update_received_ms = 0;
         client->connection_stalled = 0;
-        client->game_start_countdown_seconds = 0xffff;
+        client->game_start_countdown_seconds = halo::k_word_none;
         client->network_error_displayed = 0;
 
         run = (int32_t *)&client->timer;
@@ -959,7 +964,7 @@ uint8_t ClientView::player_table_index_apply(int32_t table_index, const uint8_t 
     }
 
     player_slot = halo::networking::player_data_iterator_advance((int8_t)client->session.players[i].slot_index);
-    if (client->session.map_loaded != 0 && player_slot != 0 && (uint32_t)player_slot != 0xffffffff &&
+    if (client->session.map_loaded != 0 && player_slot != 0 && (uint32_t)player_slot != halo::k_dword_none &&
         table_index != -1) {
         player_base = *(uint8_t **)((uint8_t *)halo::game::globals().player_data + 0x34);
         *(int32_t *)(player_base + ((uint32_t)player_slot & 0xffff) * 0x200 + 0xd0) = table_index;
@@ -1346,9 +1351,9 @@ int32_t JoinView::connect_retry_tick()
     attempt->unknown_00 = 0;
     if (attempt->loading_started == 0) {
         attempt->elapsed_counter = 0;
-        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Loading"));
+        halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("Loading"));
         interface_loading_screen_progress = 0;
-        if (network_game_mode == 2) {
+        if (network_game_mode == halo::networking::k_game_mode_host) {
             if (join_ui_state != 1) {
                 if (join_ui_state != 2 && join_ui_state == 4) {
                     interface_loading_screen_request_id = -1;

@@ -1,4 +1,6 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/core/cstring.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/text/api.hpp"
 #include <stdlib.h>
 #include <string.h>
@@ -55,7 +57,7 @@ void ClientView::connection_handshake_tick(int16_t state, network_server_globals
     base = (uint8_t *)owner;
     timer = (network_timer_pair *)(base + 0x9c8);
 
-    if (*(uint8_t *)(base + 0x9d5) != 0) {
+    if (owner->handshake_blocked != 0) {
         return;
     }
     if (!((halo::networking::network_game_all_machines_have_player(owner) != 0 &&
@@ -64,17 +66,17 @@ void ClientView::connection_handshake_tick(int16_t state, network_server_globals
         return;
     }
 
-    if (*(uint8_t *)(base + 0x9d4) == 1) {
-        if (*(uint8_t *)(base + 0x9d6) != 0) {
+    if (owner->handshake_state == 1) {
+        if (owner->handshake_flag != 0) {
             return;
         }
         switch (state) {
         case 0:
-            *(uint8_t *)(base + 0x9d6) = 1;
+            owner->handshake_flag = 1;
             halo::networking::network_timer_increment_clamped(timer, 0, 0);
             return;
         case 1:
-            *(uint8_t *)(base + 0x9d6) = 1;
+            owner->handshake_flag = 1;
             halo::networking::network_timer_advance(timer);
             if (timer->remaining_ms > 999) {
                 halo::networking::network_timer_decrement_floored(timer, 0);
@@ -86,11 +88,11 @@ void ClientView::connection_handshake_tick(int16_t state, network_server_globals
             }
             break;
         case 2:
-            *(uint8_t *)(base + 0x9d6) = 1;
-            *(uint8_t *)(base + 0x9d4) = 0;
+            owner->handshake_flag = 1;
+            owner->handshake_state = 0;
             return;
         case 3:
-            *(uint8_t *)(base + 0x9d6) = 1;
+            owner->handshake_flag = 1;
             halo::networking::network_timer_start(timer, 0);
             return;
         default:
@@ -103,17 +105,17 @@ void ClientView::connection_handshake_tick(int16_t state, network_server_globals
         halo::cseries::time_query_performance_counter_ms();
         if (state == 3) {
             halo::networking::network_timer_start(timer, 0);
-            *(uint8_t *)(base + 0x9d4) = 1;
-            *(uint8_t *)(base + 0x9d6) = 0;
+            owner->handshake_state = 1;
+            owner->handshake_flag = 0;
             return;
         }
         if (network_disconnect_timeout_flag == 0 ||
             (connected_count = halo::networking::network_server_count_connected_machines(owner), connected_count > 0)) {
             ready = halo::networking::network_channel_short_disconnect_timeout();
-            *(uint8_t *)(base + 0x9d4) = 1;
+            owner->handshake_state = 1;
             halo::networking::network_timer_start(timer, ready != 0 ? 10999 : 30999);
             *(int32_t *)(base + 0x9d0) = 0;
-            *(uint8_t *)(base + 0x9d6) = 0;
+            owner->handshake_flag = 0;
         }
     }
 }
@@ -409,7 +411,7 @@ void JoinView::status_text_update(int32_t mode)
 
     if (mode == 0) {
         attempt->elapsed_counter = 0;
-        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Connecting"));
+        halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("Connecting"));
         interface_loading_screen_progress = 0;
         join_ui_state = 5;
     } else if (mode == 1) {
@@ -422,7 +424,7 @@ void JoinView::status_text_update(int32_t mode)
             count = 0x10;
         }
         strncpy(dots, network_ellipsis_dots, count);
-        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Connecting%s"), dots);
+        halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("Connecting%s"), dots);
         interface_loading_screen_progress = attempt->elapsed_counter;
         if (join_ui_state != 1 && join_ui_state != 2) {
             if (join_ui_state == 4) {
@@ -434,9 +436,9 @@ void JoinView::status_text_update(int32_t mode)
         }
     } else {
         attempt->elapsed_counter = 0;
-        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Loading"));
+        halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("Loading"));
         interface_loading_screen_progress = 0;
-        if (network_game_mode == 2) {
+        if (network_game_mode == halo::networking::k_game_mode_host) {
             if (join_ui_state != 1) {
                 if (join_ui_state != 2 && join_ui_state == 4) {
                     interface_loading_screen_request_id = -1;

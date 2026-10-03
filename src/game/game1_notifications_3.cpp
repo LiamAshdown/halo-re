@@ -3,6 +3,10 @@
  */
 
 #include "tags.h"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
+#include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -49,7 +53,7 @@ void Notifications::notify_object_value_event(uint8_t value_byte, int32_t hash_k
     fields.subject = subject;
     fields_ptr = &fields;
 
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 7, 0, &fields_ptr, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::object_value_event), 0, &fields_ptr, 0, 1, 0);
     if (0 < encoded_bits) {
         if (machine_index == -1) {
             halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 0, 0, 0, 0);
@@ -81,7 +85,7 @@ void Notifications::notify_player_interaction(uint32_t primary_key, uint32_t edi
     int32_t encoded_bits;
 
     fields.primary_hash = 0;
-    if (primary_key != 0xffffffff) {
+    if (primary_key != halo::k_dword_none) {
         fields.primary_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)primary_key);
         if (fields.primary_hash == -1) {
             fields.primary_hash = 0;
@@ -89,7 +93,7 @@ void Notifications::notify_player_interaction(uint32_t primary_key, uint32_t edi
     }
     fields.mode = mode;
     fields.edi_hash = 0;
-    if (edi_key != 0xffffffff) {
+    if (edi_key != halo::k_dword_none) {
         fields.edi_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, (int32_t)edi_key);
         if (fields.edi_hash == -1) {
             fields.edi_hash = 0;
@@ -106,7 +110,7 @@ void Notifications::notify_player_interaction(uint32_t primary_key, uint32_t edi
     }
     fields_ptr = &fields;
 
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 10, 0, &fields_ptr, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::player_interaction), 0, &fields_ptr, 0, 1, 0);
     if (0 < encoded_bits) {
         halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
     }

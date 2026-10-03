@@ -1,4 +1,7 @@
 #include "halo/networking/net1_channel.hpp"
+#include "halo/core/cstring.hpp"
+#include "halo/networking/game_mode.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/networking/browser_state.hpp"
 #include "halo/networking/net_state.hpp"
 #include <string.h>
@@ -150,7 +153,7 @@ network_channel * ChannelFactory::create_channel(uint32_t flags)
         ((flags & k_network_channel_listening) == 0 ||
          (halo::networking::network_listen_start(channel->endpoint) == 0 &&
           halo::networking::network_channel_list_add(channel->endpoint, channel->listen_list) == 0))) {
-        channel->incoming = halo::memory::circular_buffer_new((char *)"transport-incoming", 0);
+        channel->incoming = halo::memory::circular_buffer_new(halo::mutable_literal("transport-incoming"), 0);
         if (channel->incoming != 0) {
             goto primed;
         }
@@ -188,7 +191,7 @@ network_channel * ChannelFactory::create_child(network_receive_queue *endpoint)
     if (channel != 0) {
         channel->endpoint = endpoint;
         channel->flags = k_network_channel_transmit_pending;
-        channel->incoming = halo::memory::circular_buffer_new((char *)"transport-incoming", 0);
+        channel->incoming = halo::memory::circular_buffer_new(halo::mutable_literal("transport-incoming"), 0);
         halo::networking::network_channel_record_timestamp(channel);
         channel->reliable_count = 0;
         channel->reliable = 0;
@@ -342,7 +345,7 @@ network_receive_queue * ChannelFactory::create_receive_queue()
         queue->socket = 0;
         queue->data_ready = 0;
         queue->connection_failed = 0;
-        queue->socket_key = 0xffffffff;
+        queue->socket_key = halo::k_dword_none;
         queue->flags = 0;
         queue->unknown_0d = 0x14;
         queue->last_error = 0;
@@ -354,13 +357,13 @@ network_receive_queue * ChannelFactory::create_receive_queue()
             buffer->write_cursor = 0;
             buffer->capacity = 0;
             buffer->data = 0;
-            buffer->name = (char *)"received_data_queue";
+            buffer->name = halo::mutable_literal("received_data_queue");
             buffer->signature = 0x63697263;
             buffer->capacity = 0x10001;
             buffer->data = (uint8_t *)buffer + 0x18;
         }
         queue->incoming = buffer;
-        queue->unknown_14 = 0xffffffff;
+        queue->unknown_14 = halo::k_dword_none;
         queue->reject_reason = 0;
     }
     return queue;
@@ -396,7 +399,7 @@ int32_t ChannelFactory::create_thread(uint8_t flags, void *start_address, void *
                     priority = -1;
                 }
                 if (SetThreadPriority(slot->handle, priority) != 0) {
-                    if (ResumeThread(slot->handle) != 0xffffffff) {
+                    if (ResumeThread(slot->handle) != halo::k_dword_none) {
                         return 1;
                     }
                 }
@@ -1401,7 +1404,7 @@ char ChannelView::service(int32_t timeout_ms, network_channel **out_new_child)
             goto after_timestamp;
         }
         if (network_channel_service_backoff_bypass == 0 &&
-            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == 1)) {
+            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == halo::networking::k_game_mode_client)) {
             return 0;
         }
     }
@@ -1477,7 +1480,7 @@ char ChannelView::service_light(int32_t timeout_ms, network_channel **out_new_ch
             goto after_timestamp;
         }
         if (network_channel_service_backoff_bypass == 0 &&
-            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == 1)) {
+            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == halo::networking::k_game_mode_client)) {
             return 0;
         }
     }
@@ -1705,7 +1708,7 @@ int32_t ChannelKeys::open(network_player_entry *entry)
 uint8_t ChannelKeys::resolve_target(network_player_entry *entry)
 {
     if (entry == 0 || halo::networking::network_player_entry_validate(entry) == 0) {
-        if (network_game_mode != 3) {
+        if (network_game_mode != halo::networking::k_game_mode_replay) {
             return 1;
         }
         return entry->machine_index == 0;
@@ -1730,7 +1733,7 @@ int32_t ChannelKeys::send_state(network_client_globals *client, int32_t **entry)
 {
     uint8_t scratch[0x3ba];
 
-    if (network_game_mode == 2 || (client->state != 2 && client->state != 3)) {
+    if (network_game_mode == halo::networking::k_game_mode_host || (client->state != 2 && client->state != 3)) {
         halo::networking::message_delta_decode_compound_field_staged((void **)entry);
         return 0;
     }

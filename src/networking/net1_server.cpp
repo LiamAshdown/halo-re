@@ -1,4 +1,11 @@
 #include "halo/networking/net1_server.hpp"
+#include "halo/core/cstring.hpp"
+#include "halo/networking/game_mode.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include <string.h>
 #include <stdint.h>
 #include <wchar.h>
@@ -266,7 +273,7 @@ uint32_t ServerView::broadcast_player_set_changed(uint8_t *param_1)
 
     halo::networking::message_delta_parameters_protocol_send_update();
     record = param_1 + 8;
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &record, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::player_set_changed), 0, &record, 0, 1, 0);
     if (0 < encoded_bits) {
         halo::networking::network_session_broadcast_to_all(network_server, 1, network_message_scratch, 1, 0, 1, 3);
     }
@@ -401,7 +408,7 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
 
                                     halo::memory::datum_new_at_index_with_salt((datum_index)slot_handle, halo::game::globals().update_client_queues);
                                     queue_handle = halo::memory::datum_new_at_index_with_salt((datum_index)slot_handle, halo::game::globals().update_server_queues);
-                                    halo::game::player_update_queue_create(&((update_server_queue *)halo::game::globals().update_server_queues->data)[queue_handle & 0xffff].queue);
+                                    halo::game::player_update_queue_create(&((update_server_queue *)halo::game::globals().update_server_queues->data)[queue_handle & halo::k_datum_slot_mask].queue);
                                 }
                             }
                         }
@@ -460,7 +467,7 @@ uint32_t ServerView::handle_info_request(network_machine *machine, uint8_t *reco
     uint32_t body[1];
     int16_t out_type;
     uint16_t version_used;
-    int16_t state = *(int16_t *)((uint8_t *)server + 4);
+    int16_t state = server->state;
     uint8_t *connection;
 
     if ((state != 0 && state != 1) || halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 5) == 0) {
@@ -542,7 +549,7 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
         if (do_transfer && owner != 0 && (owner->flags & 0x04) != 0) {
 
             datum = halo::networking::player_data_iterator_advance((uint8_t)entry->slot_index) ;
-            if (datum != 0xffffffff) {
+            if (datum != halo::k_dword_none) {
                 player_index = (int16_t)datum;
                 if (player_index >= 0 && player_index < halo::game::globals().player_data->maximum_count) {
                     plr = (player *)((uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * player_index);
@@ -557,8 +564,8 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
                             if (profile_slot != -1) {
                                 halo::game::game_engine_capture_player_profile(profile_slot, 0);
                             }
-                            if ((uint32_t)unit != 0xffffffff) {
-                                hdr = &((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff];
+                            if ((uint32_t)unit != halo::k_dword_none) {
+                                hdr = &((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask];
                                 unit_obj = hdr->data;
                                 if ((unit_obj->vitality_flags & 0x04) == 0) {
                                     halo::game::game_engine_send_unit_weapon_loadout((uint32_t)unit, (datum_index)datum, (int32_t)team, machine_id);
@@ -598,7 +605,7 @@ int32_t ServerView::host_create()
     host = (network_server_globals *)halo::networking::network_game_server_host_new();
     network_server = host;
     if (host != 0) {
-        halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
         salt = halo::math::globals().effect_random_seed >> 0x10;
         *(uint32_t *)((uint8_t *)host + 0x3ac) = salt;
         if (network_client != 0) {
@@ -827,7 +834,7 @@ uint32_t ServerView::session_finalize_and_add_player(network_player_entry *entry
     reserved[2] = L'|';
     reserved[3] = L'\0';
     if (entry->team_index == -1) {
-        entry->team_index = (int8_t)halo::game::game_engine_team_is_leading(0xffffffff);
+        entry->team_index = (int8_t)halo::game::game_engine_team_is_leading(halo::k_dword_none);
     }
     if (entry->name[0] == L'\0') {
         halo::networking::network_game_generate_unique_random_name((network_game_session *)server, (wchar_t *)entry->name);
@@ -916,8 +923,8 @@ void ServerView::advance_connect_state()
     int32_t challenge_packet;
     uint32_t challenge_payload[4];
 
-    if (*(int16_t *)((uint8_t *)server + 4) == 1) {
-        *(int16_t *)((uint8_t *)server + 4) = 2;
+    if (server->state == 1) {
+        server->state = 2;
 
         challenge_packet = (int32_t)halo::networking::network_prepare_challenge_packet(0x19, challenge_payload);
         if (challenge_packet != 0) {
@@ -1058,37 +1065,37 @@ void ServerView::handle_rcon_request(network_player_entry *client, void *message
 
     if (*(int32_t *)*(int32_t *)message != 0) {
         halo::networking::message_delta_decode_compound_field_staged((void **)message);
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring meaningless rcon_request message from client #%d", machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Ignoring meaningless rcon_request message from client #%d"), machine_id);
         return;
     }
     memset(&decode, 0, sizeof(decode));
     if (halo::networking::message_delta_decode_compound_field((void **)message, &decode) == 0) {
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Could not decode rcon message from client #%d", machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Could not decode rcon message from client #%d"), machine_id);
         return;
     }
     if (sv_rcon_password_value[0] == 0) {
-        halo::networking::chimera__rcon_out((char *)"rcon command ignored (rcon is disabled)", machine_id);
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (rcon is disabled)", machine_id);
+        halo::networking::chimera__rcon_out(halo::mutable_literal("rcon command ignored (rcon is disabled)"), machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Ignoring rcon request from client #%d (rcon is disabled)"), machine_id);
         return;
     }
     if (strcmp(sv_rcon_password_value, decode.password) != 0) {
-        halo::networking::chimera__rcon_out((char *)"rcon command ignored (bad password)", machine_id);
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (bad password)", machine_id);
+        halo::networking::chimera__rcon_out(halo::mutable_literal("rcon command ignored (bad password)"), machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Ignoring rcon request from client #%d (bad password)"), machine_id);
         return;
     }
     if (decode.command[0] == 0) {
-        halo::networking::chimera__rcon_out((char *)"rcon command ignored (empty)", machine_id);
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (empty command)", machine_id);
+        halo::networking::chimera__rcon_out(halo::mutable_literal("rcon command ignored (empty)"), machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Ignoring rcon request from client #%d (empty command)"), machine_id);
         return;
     }
     halo::main::console_process_rcon_command(machine_id, decode.command);
     {
-        halo::networking::chimera__rcon_out((char *)"rcon command finished", machine_id);
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Successfully executed rcon command from client #%d.", machine_id + 1);
+        halo::networking::chimera__rcon_out(halo::mutable_literal("rcon command finished"), machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Successfully executed rcon command from client #%d."), machine_id + 1);
         return;
     }
-    halo::networking::chimera__rcon_out((char *)"rcon command failed", machine_id);
-    halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Failure executing rcon command from client #%d.", machine_id);
+    halo::networking::chimera__rcon_out(halo::mutable_literal("rcon command failed"), machine_id);
+    halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Failure executing rcon command from client #%d."), machine_id);
 }
 
 /**
@@ -1281,10 +1288,10 @@ uint32_t ServerMessageHandlers::client_map_data(uint8_t *record, int32_t length)
     uint16_t version_used;
     uint8_t *s = (uint8_t *)server;
 
-    if (*(int16_t *)(s + 4) == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 5) != 0 && s[0x9f8] == 0 &&
+    if (server->state == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 5) != 0 && server->join_finalize_pending == 0 &&
         halo::networking::network_player_entry_validate((network_player_entry *)body) != 0) {
         memcpy(s + 0x9d8, body, sizeof(body));
-        s[0x9f8] = 1;
+        server->join_finalize_pending = 1;
     }
     return 1;
 }
@@ -1306,7 +1313,7 @@ uint32_t ServerMessageHandlers::client_retry_schedule(network_machine *machine, 
     int16_t out_type;
     uint16_t version_used;
 
-    if (*(int16_t *)((uint8_t *)server + 4) == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 5) != 0) {
+    if (server->state == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 5) != 0) {
         halo::networking::network_machine_timer_start(machine, 0);
     }
     return 1;
@@ -1329,7 +1336,7 @@ uint32_t ServerMessageHandlers::client_settings_relay(uint8_t *record, int32_t l
     int16_t out_type;
     uint16_t version_used;
 
-    if (*(int16_t *)((uint8_t *)server + 4) == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &body, record + 2, &out_type, &version_used, 5) != 0) {
+    if (server->state == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &body, record + 2, &out_type, &version_used, 5) != 0) {
         return halo::networking::network_game_settings_broadcast_send(server, &body);
     }
     return 1;
@@ -1353,7 +1360,7 @@ uint32_t ServerMessageHandlers::build_version(network_machine *machine, uint8_t 
     int16_t out_type;
     uint16_t version_used;
 
-    if (*(int16_t *)((uint8_t *)server + 4) == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0) {
+    if (server->state == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0) {
         halo::networking::network_machine_check_build_version(body, machine);
     }
     return 1;
@@ -1373,7 +1380,7 @@ uint32_t ServerMessageHandlers::handshake_forward(uint8_t *record, int32_t lengt
     int16_t out_type;
     uint16_t version_used;
 
-    if (*(int16_t *)((uint8_t *)server + 4) == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0) {
+    if (server->state == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0) {
         halo::networking::network_client_connection_handshake_tick((int16_t)body[0], server);
     }
     return 1;
@@ -1397,7 +1404,7 @@ uint32_t ServerMessageHandlers::join_finalize_ack_role2(network_machine *machine
     int16_t out_type;
     uint16_t version_used;
 
-    if (*(int16_t *)((uint8_t *)server + 4) == 2 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 7) != 0) {
+    if (server->state == 2 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 7) != 0) {
         *((uint8_t *)machine + 0xe) &= 0xfb;
     }
     return 1;
@@ -1461,7 +1468,7 @@ uint32_t ServerMessageHandlers::ping_timestamp(int32_t **message)
     if (halo::networking::message_delta_decode_compound_field((void **)message, decode_scratch) == 1) {
         player = (uint8_t *)halo::memory::datum_get((datum_index)decode_scratch[0], halo::game::globals().player_data);
         if (player != 0) {
-            int32_t stored_time = *(int32_t *)((uint8_t *)server + 0x9c0);
+            int32_t stored_time = static_cast<int32_t>(server->last_stamp_ms);
             int32_t now = halo::cseries::time_query_performance_counter_ms();
             ((struct player *)player)->ping = now - stored_time;
         }
@@ -1482,7 +1489,7 @@ uint32_t ServerMessageHandlers::player_count_broadcast(uint8_t *record, int32_t 
     uint32_t body[1];
     int16_t out_type;
     uint16_t version_used;
-    int16_t state = *(int16_t *)((uint8_t *)server + 4);
+    int16_t state = server->state;
 
     if ((state == 0 || state == 1) && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0) {
         halo::networking::network_game_broadcast_player_set_changed((uint8_t *)server);
@@ -1506,7 +1513,7 @@ uint32_t ServerMessageHandlers::player_entry_update(uint8_t *record, int32_t len
     int16_t out_type;
     uint16_t version_used;
 
-    if (*(int16_t *)((uint8_t *)server + 4) == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0 &&
+    if (server->state == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0 &&
         halo::networking::network_player_entry_update((network_player_entry *)body, (network_game_session *)((uint8_t *)server + 8)) != 0) {
         halo::networking::network_game_broadcast_player_set_changed((uint8_t *)server);
     }
@@ -1530,7 +1537,7 @@ uint32_t ServerMessageHandlers::retry_schedule(network_machine *machine, uint8_t
     int16_t out_type;
     uint16_t version_used;
 
-    if (*(int16_t *)((uint8_t *)server + 4) == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0) {
+    if (server->state == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0) {
         halo::networking::network_machine_timer_start(machine, 0);
     }
     return 1;
@@ -1551,7 +1558,7 @@ uint32_t ServerMessageHandlers::settings_relay(uint8_t *record, int32_t length)
     int16_t out_type;
     uint16_t version_used;
 
-    if (*(int16_t *)((uint8_t *)server + 4) == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &body, record + 2, &out_type, &version_used, 3) != 0) {
+    if (server->state == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &body, record + 2, &out_type, &version_used, 3) != 0) {
         return halo::networking::network_game_settings_broadcast_send(server, &body);
     }
     return 1;
@@ -1574,7 +1581,7 @@ uint32_t ServerMessageHandlers::settings_relay_role2(uint8_t *record, int32_t le
     int16_t out_type;
     uint16_t version_used;
 
-    if (*(int16_t *)((uint8_t *)server + 4) == 2 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &body, record + 2, &out_type, &version_used, 7) != 0) {
+    if (server->state == 2 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &body, record + 2, &out_type, &version_used, 7) != 0) {
         return halo::networking::network_game_settings_broadcast_send(server, &body);
     }
     return 1;
@@ -1626,7 +1633,7 @@ int32_t HostServerView::send_scenario_announcement()
     if (host->scenario_announced == 0) {
         halo::networking::message_delta_parameters_protocol_send_update();
         payload = (uint8_t *)host + 8;
-        encode_result = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &payload, 0, 1, 0);
+        encode_result = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::player_set_changed), 0, &payload, 0, 1, 0);
         if (encode_result > 0) {
             halo::networking::network_session_broadcast_to_all(network_server, 1, &message_delta_definition_table, 1, 0, 1, 3);
         }
@@ -1666,7 +1673,7 @@ int32_t HostServerView::shutdown_or_defer()
 
             return halo::networking::network_host_update_tick(network_server);
         }
-        network_game_mode = 0;
+        network_game_mode = halo::networking::k_game_mode_local;
         halo::main::main_menu_music_stop();
         if (network_server != 0) {
             session = &network_server->session;
@@ -1772,7 +1779,7 @@ uint8_t MachineView::reset_state(const char *response)
         ip = network_local_address;
     }
     return halo::networking::network_session_host_reject_or_cleanup_client(response, (const char *)machine + 0x52, ip,
-        *(int32_t *)((uint8_t *)machine + 0x5c));
+        machine->gcd_user_id);
 }
 
 /**

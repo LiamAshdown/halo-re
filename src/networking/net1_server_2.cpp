@@ -1,4 +1,8 @@
 #include "halo/networking/net1_server.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
+#include "halo/core/datum.hpp"
 #include <string.h>
 #include <wchar.h>
 #include <stdio.h>
@@ -189,11 +193,11 @@ uint32_t ServerView::record_last_sender(int32_t player_index, int32_t quit_tick)
     uint32_t resolved;
 
     resolved = halo::networking::player_data_iterator_advance((int16_t)player_index);
-    if (resolved == 0xffffffff) {
+    if (resolved == halo::k_dword_none) {
         return 0;
     }
     if (server->session.map_loaded != 0 && resolved != 0 && quit_tick != -1) {
-        ((player *)player_data->data)[resolved & 0xffff].quit_tick = quit_tick;
+        ((player *)player_data->data)[resolved & halo::k_datum_slot_mask].quit_tick = quit_tick;
     }
     return 1;
 }
@@ -411,8 +415,8 @@ not_timed_out:
 
                     machine->flags = 0;
                     machine->unknown_0f = 0;
-                    *(int32_t *)((uint8_t *)machine + 0x52) = 0;
-                    *(int32_t *)((uint8_t *)machine + 0x56) = 0;
+                    machine->unknown_52 = 0;
+                    machine->unknown_56 = 0;
                     if (machine->gcd_user_id == -1) {
                         gcd_disconnect_all(network_console_connection_id);
                     } else {
@@ -428,7 +432,7 @@ not_timed_out:
                         int32_t encoded;
 
                         session_ptr = &server->session;
-                        encoded = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, (void **)&session_ptr, 0, 1, 0);
+                        encoded = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::player_set_changed), 0, (void **)&session_ptr, 0, 1, 0);
                         if (encoded > 0) {
                             halo::networking::network_session_broadcast_to_all(network_server, 1, network_message_scratch,
                                 1, 0, 1, 3);
@@ -651,7 +655,7 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
         if (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) {
             struct player *local_player = (struct player *)halo::memory::datum_get(halo::game::globals().local_player_globals->local_players[0], halo::game::globals().player_data);
             if (local_player != 0) {
-                network_client->team_index = *(int32_t *)((uint8_t *)local_player + 0x20);
+                network_client->team_index = local_player->team;
             }
         }
     } else {
@@ -662,11 +666,11 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
     }
 
     *(int32_t *)((uint8_t *)host + 0x3b0) = *(int32_t *)((uint8_t *)host + 0x3b0) + 1;
-    *(int32_t *)((uint8_t *)host + 0x9b8) = 0;
+    host->update_tick = 0;
     *(int32_t *)((uint8_t *)host + 0x9c4) = 0;
     host->scenario_announced = 0;
     host->new_server_pending = 0;
-    *(uint8_t *)((uint8_t *)host + 0x9f8) = 0;
+    host->join_finalize_pending = 0;
 
     for (i = 0; i < 16; i++) {
         machine = &host->machines[i];
@@ -703,8 +707,8 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
     strncpy((char *)host + 0x8c, (char *)variant_defaults_source, 0x3f);
     *(uint8_t *)((uint8_t *)host + 0xcb) = 0;
     host->state = host->state | 1;
-    *(uint16_t *)((uint8_t *)host + 0x86) = 0;
-    *(int32_t *)((uint8_t *)host + 0x88) = 0;
+    host->session.unknown_07e = 0;
+    host->session.unknown_080 = 0;
     host->listen_channel->listening = 1;
 
     if (ui_root_widget != 0) {

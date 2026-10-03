@@ -1,8 +1,11 @@
+#include <stddef.h>
 /**
  * @file src/networking/net2_player_update_history.cpp
  * Player update history ring, queue and replay.
  */
 #include "tags.h"
+#include "halo/game/records.hpp"
+#include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -111,48 +114,48 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
     }
     history->next_update_id = next_id;
 
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
+    unit_obj = halo::game::object_at(unit_index);
     unit_ext = (unit_data *)((uint8_t *)unit_obj + 0x1f4);
     biped_ext = (biped_data *)((uint8_t *)unit_obj + 0x4cc);
 
     node->vehicle_object = unit_obj->parent_object;
 
-    *(real_point3d *)(node->unit_state + 0x00) = unit_obj->position;
-    *(real_vector3d *)(node->unit_state + 0x0c) = unit_obj->velocity;
-    *(real_vector3d *)(node->unit_state + 0x18) = unit_obj->forward;
-    *(datum_index *)(node->unit_state + 0x24) = unit_obj->animation_graph;
-    *(int16_t *)(node->unit_state + 0x28) = unit_obj->animation_index;
-    *(int16_t *)(node->unit_state + 0x2a) = unit_obj->animation_frame;
-    *(int16_t *)(node->unit_state + 0x2c) = unit_obj->interpolation_frame_index;
-    *(int16_t *)(node->unit_state + 0x2e) = unit_obj->node_function_count;
-    memcpy(node->unit_state + 0x30, &unit_ext->animation_state_flags, 0x48);
-    memcpy(node->unit_state + 0x78, &unit_ext->seat_acceleration_last_position, 0x30);
-    *(uint32_t *)(node->unit_state + 0xa8) = biped_ext->flags;
-    node->unit_state[0xac] = biped_ext->stop_moving_ticks;
-    node->unit_state[0xad] = biped_ext->airborne_ticks;
-    node->unit_state[0xae] = biped_ext->slipping_ticks;
-    node->unit_state[0xaf] = biped_ext->jump_ticks;
-    *(int16_t *)(node->unit_state + 0xb0) = biped_ext->landing_type;
-    *(float *)(node->unit_state + 0xb4) = biped_ext->crouch_fraction;
-    *(real_vector3d *)(node->unit_state + 0xb8) = biped_ext->ground_normal;
-    *(uint32_t *)(node->unit_state + 0xc4) = biped_ext->ground_plane_distance;
-    node->unit_state[0xc8] = biped_ext->landing_ticks;
-    node->unit_state[0xc9] = biped_ext->landing_duration_ticks;
-    node->unit_state[0xca] = biped_ext->movement_state;
-    *(datum_index *)(node->unit_state + 0xcc) = biped_ext->ground_surface_index;
+    node->unit_state.position = unit_obj->position;
+    node->unit_state.velocity = unit_obj->velocity;
+    node->unit_state.forward = unit_obj->forward;
+    node->unit_state.animation_graph = unit_obj->animation_graph;
+    node->unit_state.animation_index = unit_obj->animation_index;
+    node->unit_state.animation_frame = unit_obj->animation_frame;
+    node->unit_state.interpolation_frame_index = unit_obj->interpolation_frame_index;
+    node->unit_state.node_function_count = unit_obj->node_function_count;
+    memcpy(node->unit_state.animation_state, &unit_ext->animation_state_flags, 0x48);
+    memcpy(node->unit_state.seat_acceleration, &unit_ext->seat_acceleration_last_position, 0x30);
+    node->unit_state.biped_flags = biped_ext->flags;
+    node->unit_state.stop_moving_ticks = biped_ext->stop_moving_ticks;
+    node->unit_state.airborne_ticks = biped_ext->airborne_ticks;
+    node->unit_state.slipping_ticks = biped_ext->slipping_ticks;
+    node->unit_state.jump_ticks = biped_ext->jump_ticks;
+    node->unit_state.landing_type = biped_ext->landing_type;
+    node->unit_state.crouch_fraction = biped_ext->crouch_fraction;
+    node->unit_state.ground_normal = biped_ext->ground_normal;
+    node->unit_state.ground_plane_distance = biped_ext->ground_plane_distance;
+    node->unit_state.landing_ticks = biped_ext->landing_ticks;
+    node->unit_state.landing_duration_ticks = biped_ext->landing_duration_ticks;
+    node->unit_state.movement_state = biped_ext->movement_state;
+    node->unit_state.ground_surface_index = biped_ext->ground_surface_index;
 
     if (halo::game::player_unit_has_parent(unit_ext->controlling_player)) {
-        vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_obj->parent_object & 0xffff].data;
+        vehicle_obj = halo::game::object_at(unit_obj->parent_object);
         node->has_vehicle = 1;
-        *(real_point3d *)(node->vehicle_state + 0x00) = vehicle_obj->position;
-        *(real_vector3d *)(node->vehicle_state + 0x0c) = vehicle_obj->velocity;
-        *(real_vector3d *)(node->vehicle_state + 0x18) = vehicle_obj->angular_velocity;
-        memcpy(node->vehicle_state + 0x24, (uint8_t *)vehicle_obj + 0x04, 0x1f0);
+        node->vehicle_state.position = vehicle_obj->position;
+        node->vehicle_state.velocity = vehicle_obj->velocity;
+        node->vehicle_state.angular_velocity = vehicle_obj->angular_velocity;
+        memcpy(reinterpret_cast<uint8_t *>(&node->vehicle_state) + offsetof(vehicle_state_snapshot, body_024), (uint8_t *)vehicle_obj + 0x04, 0x1f0);
         vehicle_ext = (unit_data *)((uint8_t *)vehicle_obj + 0x1f4);
-        *(float *)(node->vehicle_state + 0x214) = vehicle_ext->driver_seat_power;
-        *(float *)(node->vehicle_state + 0x218) = vehicle_ext->gunner_seat_power;
-        *(uint32_t *)(node->vehicle_state + 0x21c) = 0;
-        memcpy(node->vehicle_state + 0x220, (uint8_t *)vehicle_obj + 0x4cc, 0xf4);
+        node->vehicle_state.driver_seat_power = vehicle_ext->driver_seat_power;
+        node->vehicle_state.gunner_seat_power = vehicle_ext->gunner_seat_power;
+        node->vehicle_state.pad_21c = 0;
+        memcpy(node->vehicle_state.tail, (uint8_t *)vehicle_obj + 0x4cc, 0xf4);
     } else {
         node->has_vehicle = 0;
     }
@@ -317,7 +320,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
             return result;
         }
     } else if (node != 0) {
-        unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
+        unit_obj = halo::game::object_at(unit_index);
         unit_ext = (unit_data *)((uint8_t *)unit_obj + 0x1f4);
         biped_ext = (biped_data *)((uint8_t *)unit_obj + 0x4cc);
         parent_object = unit_obj->parent_object;
@@ -334,7 +337,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
             if (node->has_vehicle != 1) {
                 return (int32_t)vehicle_ack;
             }
-            vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[parent_object & 0xffff].data;
+            vehicle_obj = halo::game::object_at(parent_object);
             vehicle_ext = (unit_data *)((uint8_t *)vehicle_obj + 0x1f4);
             if (((vehicle_data *)((uint8_t *)vehicle_obj + 0x4cc))->collision_update_pending != 0) {
                 ((vehicle_data *)((uint8_t *)vehicle_obj + 0x4cc))->collision_update_pending = 0;
@@ -350,40 +353,40 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
             original_x = unit_obj->position.x;
             original_y = unit_obj->position.y;
             original_z = unit_obj->position.z;
-            client_start_x = *(real *)(node->unit_state + 0x00);
-            client_start_y = *(real *)(node->unit_state + 0x04);
-            client_start_z = *(real *)(node->unit_state + 0x08);
+            client_start_x = node->unit_state.position.x;
+            client_start_y = node->unit_state.position.y;
+            client_start_z = node->unit_state.position.z;
         } else {
             original_x = vehicle_obj->position.x;
             original_y = vehicle_obj->position.y;
             original_z = vehicle_obj->position.z;
-            client_start_x = *(real *)(node->vehicle_state + 0x00);
-            client_start_y = *(real *)(node->vehicle_state + 0x04);
-            client_start_z = *(real *)(node->vehicle_state + 0x08);
+            client_start_x = node->vehicle_state.position.x;
+            client_start_y = node->vehicle_state.position.y;
+            client_start_z = node->vehicle_state.position.z;
         }
 
-        unit_obj->velocity = *(real_vector3d *)(node->unit_state + 0x0c);
-        unit_obj->forward = *(real_vector3d *)(node->unit_state + 0x18);
-        unit_obj->animation_graph = *(datum_index *)(node->unit_state + 0x24);
-        unit_obj->animation_index = *(int16_t *)(node->unit_state + 0x28);
-        unit_obj->animation_frame = *(int16_t *)(node->unit_state + 0x2a);
-        unit_obj->interpolation_frame_index = *(int16_t *)(node->unit_state + 0x2c);
-        unit_obj->node_function_count = *(int16_t *)(node->unit_state + 0x2e);
-        memcpy(&unit_ext->animation_state_flags, node->unit_state + 0x30, 0x48);
-        memcpy(&unit_ext->seat_acceleration_last_position, node->unit_state + 0x78, 0x30);
-        biped_ext->flags = *(uint32_t *)(node->unit_state + 0xa8);
-        biped_ext->stop_moving_ticks = node->unit_state[0xac];
-        biped_ext->airborne_ticks = node->unit_state[0xad];
-        biped_ext->slipping_ticks = node->unit_state[0xae];
-        biped_ext->jump_ticks = node->unit_state[0xaf];
-        biped_ext->landing_type = *(int16_t *)(node->unit_state + 0xb0);
-        biped_ext->crouch_fraction = *(float *)(node->unit_state + 0xb4);
-        biped_ext->ground_normal = *(real_vector3d *)(node->unit_state + 0xb8);
-        biped_ext->ground_plane_distance = *(uint32_t *)(node->unit_state + 0xc4);
-        biped_ext->landing_ticks = node->unit_state[0xc8];
-        biped_ext->landing_duration_ticks = node->unit_state[0xc9];
-        biped_ext->movement_state = node->unit_state[0xca];
-        biped_ext->ground_surface_index = *(datum_index *)(node->unit_state + 0xcc);
+        unit_obj->velocity = node->unit_state.velocity;
+        unit_obj->forward = node->unit_state.forward;
+        unit_obj->animation_graph = node->unit_state.animation_graph;
+        unit_obj->animation_index = node->unit_state.animation_index;
+        unit_obj->animation_frame = node->unit_state.animation_frame;
+        unit_obj->interpolation_frame_index = node->unit_state.interpolation_frame_index;
+        unit_obj->node_function_count = node->unit_state.node_function_count;
+        memcpy(&unit_ext->animation_state_flags, node->unit_state.animation_state, 0x48);
+        memcpy(&unit_ext->seat_acceleration_last_position, node->unit_state.seat_acceleration, 0x30);
+        biped_ext->flags = node->unit_state.biped_flags;
+        biped_ext->stop_moving_ticks = node->unit_state.stop_moving_ticks;
+        biped_ext->airborne_ticks = node->unit_state.airborne_ticks;
+        biped_ext->slipping_ticks = node->unit_state.slipping_ticks;
+        biped_ext->jump_ticks = node->unit_state.jump_ticks;
+        biped_ext->landing_type = node->unit_state.landing_type;
+        biped_ext->crouch_fraction = node->unit_state.crouch_fraction;
+        biped_ext->ground_normal = node->unit_state.ground_normal;
+        biped_ext->ground_plane_distance = node->unit_state.ground_plane_distance;
+        biped_ext->landing_ticks = node->unit_state.landing_ticks;
+        biped_ext->landing_duration_ticks = node->unit_state.landing_duration_ticks;
+        biped_ext->movement_state = node->unit_state.movement_state;
+        biped_ext->ground_surface_index = node->unit_state.ground_surface_index;
 
         if (vehicle_obj == 0) {
             unit_obj->position.x = server_x;
@@ -392,13 +395,13 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
             updates_this_call = 0;
             ticks_this_call = 0;
         } else {
-            vehicle_obj->velocity = *(real_vector3d *)(node->vehicle_state + 0x0c);
-            vehicle_obj->angular_velocity = *(real_vector3d *)(node->vehicle_state + 0x18);
-            vehicle_obj->forward = *(real_vector3d *)(node->vehicle_state + 0x94);
-            vehicle_obj->up = *(real_vector3d *)(node->vehicle_state + 0xa0);
-            vehicle_ext->driver_seat_power = *(float *)(node->vehicle_state + 0x214);
-            vehicle_ext->gunner_seat_power = *(float *)(node->vehicle_state + 0x218);
-            memcpy((uint8_t *)vehicle_obj + 0x4cc, node->vehicle_state + 0x220, 0xf4);
+            vehicle_obj->velocity = node->vehicle_state.velocity;
+            vehicle_obj->angular_velocity = node->vehicle_state.angular_velocity;
+            vehicle_obj->forward = node->vehicle_state.forward;
+            vehicle_obj->up = node->vehicle_state.up;
+            vehicle_ext->driver_seat_power = node->vehicle_state.driver_seat_power;
+            vehicle_ext->gunner_seat_power = node->vehicle_state.gunner_seat_power;
+            memcpy((uint8_t *)vehicle_obj + 0x4cc, node->vehicle_state.tail, 0xf4);
             halo::units::unit_propagate_position_delta_to_children(&vehicle_obj->position, unit_index);
             vehicle_obj->velocity = vehicle_ack->vehicle.velocity;
             vehicle_obj->angular_velocity = vehicle_ack->vehicle.angular_velocity;
@@ -535,9 +538,9 @@ void PlayerUpdateHistory::play_local_player(int32_t target_update_id)
     } while (1);
     if (after_match != 0) {
         halo::networking::player_update_history_play(0, 0, (player_update_history *)network_client->update_history,
-            unit_index, *(float *)(after_match->unit_state + 0x00),
-            *(float *)(after_match->unit_state + 0x04),
-            *(float *)(after_match->unit_state + 0x08), 0);
+            unit_index, after_match->unit_state.position.x,
+            after_match->unit_state.position.y,
+            after_match->unit_state.position.z, 0);
     }
 }
 

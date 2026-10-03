@@ -1,4 +1,7 @@
 #include "halo/networking/net1_decode.hpp"
+#include "halo/core/cstring.hpp"
+#include "halo/networking/game_mode.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/projectiles/api.hpp"
 #include "halo/networking/net1_dispatch.hpp"
 #include <string.h>
@@ -44,17 +47,17 @@ namespace {
 
 static void network_game_action_apply_shared(void **context, network_client_globals *client, int32_t type_id)
 {
-    switch (type_id) {
-    case 0x06: halo::interface::hud_receive_item_message(context); break;
-    case 0x0b: halo::effects::player_effect_mark_damage_direction_dispatch(context); break;
-    case 0x0f: halo::interface::chat_dispatch_incoming(context); break;
-    case 0x1a: halo::game::game_engine_client_apply_team_assignment(context); break;
-    case 0x21: halo::networking::network_channel_key_send_state(client, (int32_t **)context); break;
-    case 0x22:
+    switch (static_cast<halo::networking::delta_message>(type_id)) {
+    case halo::networking::delta_message::hud_item_message: halo::interface::hud_receive_item_message(context); break;
+    case halo::networking::delta_message::player_damage_direction: halo::effects::player_effect_mark_damage_direction_dispatch(context); break;
+    case halo::networking::delta_message::chat: halo::interface::chat_dispatch_incoming(context); break;
+    case halo::networking::delta_message::team_allegiance: halo::game::game_engine_client_apply_team_assignment(context); break;
+    case halo::networking::delta_message::player_set_changed: halo::networking::network_channel_key_send_state(client, (int32_t **)context); break;
+    case halo::networking::delta_message::parameters_update:
         halo::networking::message_delta_parameters_protocol_receive_update(context);
         halo::networking::message_delta_definitions_invoke_field_bindings();
         break;
-    case 0x35: halo::networking::network_player_ping_field_update_and_report(context); break;
+    case halo::networking::delta_message::map_cycle_list: halo::networking::network_player_ping_field_update_and_report(context); break;
     }
 }
 
@@ -72,63 +75,63 @@ void GameClientView::action_apply(void **context)
     network_client_globals *client = self;
     int32_t type_id;
 
-    if (network_game_mode != 1 && network_game_mode != 2) {
+    if (network_game_mode != halo::networking::k_game_mode_client && network_game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     network_action_apply_active = 1;
     type_id = ((int32_t *)context[0])[1];
-    if (network_game_mode == 2) {
+    if (network_game_mode == halo::networking::k_game_mode_host) {
         network_game_action_apply_shared(context, client, type_id);
         network_action_apply_active = 0;
         return;
     }
-    switch (type_id) {
-    case 0x00: halo::objects::object_delete_by_pooled_node_id((int32_t **)context); break;
-    case 0x01:
-    case 0x02:
-    case 0x03:
-    case 0x04:
-    case 0x05: halo::objects::object_type_override_call_0x70_release_node((int32_t *)context, (uint32_t)client); break;
-    case 0x07: halo::game::game_engine_apply_player_join_message(context); break;
-    case 0x08: halo::game::game_engine_apply_player_spawn_loadout_message(context); break;
-    case 0x09: halo::units::unit_dispatch_seat_exit_message((int32_t *)context); break;
-    case 0x0a: halo::game::game_engine_apply_player_interaction_message(context); break;
-    case 0x0c: halo::units::unit_apply_network_control_update((unit_network_control_packet *)context); break;
-    case 0x0e: halo::game::game_engine_apply_kill_streak_message((int32_t **)context); break;
-    case 0x10:
-    case 0x11:
-    case 0x12:
-    case 0x13:
-    case 0x14: halo::game::game_engine_invoke_profile_post_update_callback((uint32_t)client, (uint32_t)(uintptr_t)context); break;
-    case 0x15: halo::game::game_engine_apply_player_profile_entry(context); break;
-    case 0x16: halo::game::game_engine_dispatch_end_game_notification(context); break;
-    case 0x17: halo::game::game_engine_apply_partial_round_reset_message(context); break;
-    case 0x18: halo::game::game_engine_handle_kill_feed_network_event((int32_t **)context); break;
-    case 0x19: halo::game::game_engine_handle_sound_status_event(context); break;
-    case 0x1b: halo::units::unit_scripting_set_or_drop_weapon((int32_t *)context); break;
-    case 0x1c: halo::units::unit_spawn_with_starting_weapons(context); break;
-    case 0x1d: halo::units::unit_network_create_update_apply(context); break;
-    case 0x1e: halo::projectiles::projectile_create_from_network(context); break;
-    case 0x1f: halo::items::equipment_create_from_creation_message(context); break;
-    case 0x20: halo::items::weapon_create_from_creation_message(context); break;
-    case 0x23: halo::networking::player_update_client_local_player_update_from_network((int32_t *)context); break;
-    case 0x24: halo::networking::player_update_client_local_player_vehicle_update_from_network((int32_t *)context); break;
-    case 0x25: halo::networking::player_update_client_remote_player_action_update_from_network((int32_t **)context); break;
-    case 0x26: halo::networking::player_update_remote_player_action_update_apply((int32_t **)context); break;
-    case 0x27: halo::networking::player_update_client_remote_player_position_delta_from_network((int32_t **)context); break;
-    case 0x28: halo::networking::player_update_client_remote_player_vehicle_position_delta_from_network((int32_t **)context); break;
-    case 0x29: halo::networking::player_update_client_remote_player_total_biped_update_from_network((int32_t **)context); break;
-    case 0x2a: halo::networking::player_update_client_remote_player_total_vehicle_update_from_network((int32_t **)context); break;
-    case 0x2b: halo::items::weapon_predict_ammo(context); break;
-    case 0x2c: halo::items::weapon_add_ammunition(context); break;
-    case 0x2d: halo::items::weapon_apply_ammo_correction(context); break;
-    case 0x2e: halo::items::weapon_apply_ammo_correction_and_resync(context); break;
-    case 0x2f: halo::game::game_engine_spawn_or_replay_netgame_equipment((int32_t *)context); break;
-    case 0x30: halo::projectiles::projectile_detonation_message_apply(context); break;
-    case 0x31: halo::objects::object_apply_linked_impulse(context); break;
-    case 0x32: halo::objects::object_apply_shield_charge_and_notify(context); break;
-    case 0x33: halo::projectiles::projectile_attach_apply(context); break;
-    case 0x37: halo::networking::network_client_handle_server_text_message(context); break;
+    switch (static_cast<halo::networking::delta_message>(type_id)) {
+    case halo::networking::delta_message::object_delete: halo::objects::object_delete_by_pooled_node_id((int32_t **)context); break;
+    case halo::networking::delta_message::object_release_node_1:
+    case halo::networking::delta_message::object_release_node_2:
+    case halo::networking::delta_message::object_release_node_3:
+    case halo::networking::delta_message::object_release_node_4:
+    case halo::networking::delta_message::object_release_node_5: halo::objects::object_type_override_call_0x70_release_node((int32_t *)context, (uint32_t)client); break;
+    case halo::networking::delta_message::object_value_event: halo::game::game_engine_apply_player_join_message(context); break;
+    case halo::networking::delta_message::unit_weapon_loadout: halo::game::game_engine_apply_player_spawn_loadout_message(context); break;
+    case halo::networking::delta_message::unit_seat_exit: halo::units::unit_dispatch_seat_exit_message((int32_t *)context); break;
+    case halo::networking::delta_message::player_interaction: halo::game::game_engine_apply_player_interaction_message(context); break;
+    case halo::networking::delta_message::unit_control_update: halo::units::unit_apply_network_control_update((unit_network_control_packet *)context); break;
+    case halo::networking::delta_message::kill_streak_update: halo::game::game_engine_apply_kill_streak_message((int32_t **)context); break;
+    case halo::networking::delta_message::slayer_profiles_updated:
+    case halo::networking::delta_message::ctf_profiles_updated:
+    case halo::networking::delta_message::koth_team_scores:
+    case halo::networking::delta_message::koth_hill_times:
+    case halo::networking::delta_message::ctf_state: halo::game::game_engine_invoke_profile_post_update_callback((uint32_t)client, (uint32_t)(uintptr_t)context); break;
+    case halo::networking::delta_message::player_profile_update: halo::game::game_engine_apply_player_profile_entry(context); break;
+    case halo::networking::delta_message::end_game: halo::game::game_engine_dispatch_end_game_notification(context); break;
+    case halo::networking::delta_message::round_reset: halo::game::game_engine_apply_partial_round_reset_message(context); break;
+    case halo::networking::delta_message::kill_event: halo::game::game_engine_handle_kill_feed_network_event((int32_t **)context); break;
+    case halo::networking::delta_message::status_sound: halo::game::game_engine_handle_sound_status_event(context); break;
+    case halo::networking::delta_message::unit_weapon_script: halo::units::unit_scripting_set_or_drop_weapon((int32_t *)context); break;
+    case halo::networking::delta_message::unit_spawn_starting_weapons: halo::units::unit_spawn_with_starting_weapons(context); break;
+    case halo::networking::delta_message::unit_create_update: halo::units::unit_network_create_update_apply(context); break;
+    case halo::networking::delta_message::projectile_create: halo::projectiles::projectile_create_from_network(context); break;
+    case halo::networking::delta_message::equipment_create: halo::items::equipment_create_from_creation_message(context); break;
+    case halo::networking::delta_message::weapon_create: halo::items::weapon_create_from_creation_message(context); break;
+    case halo::networking::delta_message::local_player_update: halo::networking::player_update_client_local_player_update_from_network((int32_t *)context); break;
+    case halo::networking::delta_message::local_player_vehicle_update: halo::networking::player_update_client_local_player_vehicle_update_from_network((int32_t *)context); break;
+    case halo::networking::delta_message::remote_player_action_update: halo::networking::player_update_client_remote_player_action_update_from_network((int32_t **)context); break;
+    case halo::networking::delta_message::remote_player_action_apply: halo::networking::player_update_remote_player_action_update_apply((int32_t **)context); break;
+    case halo::networking::delta_message::remote_player_position_delta: halo::networking::player_update_client_remote_player_position_delta_from_network((int32_t **)context); break;
+    case halo::networking::delta_message::remote_player_vehicle_position_delta: halo::networking::player_update_client_remote_player_vehicle_position_delta_from_network((int32_t **)context); break;
+    case halo::networking::delta_message::remote_player_biped_update: halo::networking::player_update_client_remote_player_total_biped_update_from_network((int32_t **)context); break;
+    case halo::networking::delta_message::remote_player_vehicle_update: halo::networking::player_update_client_remote_player_total_vehicle_update_from_network((int32_t **)context); break;
+    case halo::networking::delta_message::weapon_predict_ammo: halo::items::weapon_predict_ammo(context); break;
+    case halo::networking::delta_message::weapon_add_ammunition: halo::items::weapon_add_ammunition(context); break;
+    case halo::networking::delta_message::weapon_ammo_correction: halo::items::weapon_apply_ammo_correction(context); break;
+    case halo::networking::delta_message::weapon_ammo_correction_resync: halo::items::weapon_apply_ammo_correction_and_resync(context); break;
+    case halo::networking::delta_message::netgame_equipment_spawn: halo::game::game_engine_spawn_or_replay_netgame_equipment((int32_t *)context); break;
+    case halo::networking::delta_message::projectile_detonation: halo::projectiles::projectile_detonation_message_apply(context); break;
+    case halo::networking::delta_message::object_linked_impulse: halo::objects::object_apply_linked_impulse(context); break;
+    case halo::networking::delta_message::object_shield_charge: halo::objects::object_apply_shield_charge_and_notify(context); break;
+    case halo::networking::delta_message::projectile_attach: halo::projectiles::projectile_attach_apply(context); break;
+    case halo::networking::delta_message::server_text: halo::networking::network_client_handle_server_text_message(context); break;
     default: network_game_action_apply_shared(context, client, type_id); break;
     }
     network_action_apply_active = 0;
@@ -305,7 +308,7 @@ int32_t GameClientView::settings_packet_receive(const uint32_t *request)
     }
 compare_done:
     if (cmp != 0) {
-        halo::main::main_queue_map_change_by_name_or_clear((char *)"");
+        halo::main::main_queue_map_change_by_name_or_clear(halo::mutable_literal(""));
         if (join_ui_state != 1) {
             if (join_ui_state != 2 && join_ui_state == 4) {
                 interface_loading_screen_request_id = -1;
@@ -388,7 +391,7 @@ void GameClientView::settings_packet_send(const uint8_t *request)
     }
 compare_done:
     if (cmp != 0) {
-        halo::main::main_queue_map_change_by_name_or_clear((char *)"");
+        halo::main::main_queue_map_change_by_name_or_clear(halo::mutable_literal(""));
         if (join_ui_state != 1) {
             if (join_ui_state != 2 && join_ui_state == 4) {
                 interface_loading_screen_request_id = -1;
@@ -404,10 +407,10 @@ compare_done:
     }
     *(uint16_t *)zero_fill = 0;
 
-    *(uint32_t *)(frame + 0x00) = *(uint32_t *)((uint8_t *)client + 0xb02);
-    *(uint32_t *)(frame + 0x04) = *(uint32_t *)((uint8_t *)client + 0xb06);
-    *(uint32_t *)(frame + 0x08) = *(uint32_t *)((uint8_t *)client + 0xb0a);
-    *(uint32_t *)(frame + 0x0c) = *(uint32_t *)((uint8_t *)client + 0xb0e);
+    *(uint32_t *)(frame + 0x00) = client->connect_attempt.session_info[5];
+    *(uint32_t *)(frame + 0x04) = client->connect_attempt.session_info[6];
+    *(uint32_t *)(frame + 0x08) = client->connect_attempt.session_info[7];
+    *(uint32_t *)(frame + 0x0c) = client->connect_attempt.session_info[8];
     *(uint8_t *)&client->pad_ee2 = 0;
     wcsncpy((wchar_t *)(frame + 0x10), (const wchar_t *)((uint8_t *)client + 0xaf0), 8);
     frame[0x6b] = *((uint8_t *)client + 0xf4c);
@@ -1007,7 +1010,7 @@ int32_t ClientMessageDecoder::replicated_command(uint8_t *param_1, int32_t param
     if (client->state == 4 &&
         halo::memory::data_packet_group_decode_packet((param_2 -= 2, (int16_t *)&param_2), &network_game_messages_group,
             decoded_body, param_1 + 2, &out_type, (uint16_t *)&input, 6) != 0) {
-        if (network_game_mode != 1) {
+        if (network_game_mode != halo::networking::k_game_mode_client) {
             return 1;
         }
         halo::networking::network_client_timer_schedule((int32_t)decoded_body[0], (int32_t)decoded_body[1], client);

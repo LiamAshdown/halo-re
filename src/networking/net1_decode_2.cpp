@@ -1,4 +1,5 @@
 #include "halo/networking/net1_decode.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/core/link.hpp"
@@ -52,7 +53,7 @@ int32_t ClientMessageDecoder::settings_or_ack(const uint8_t *buffer, int32_t len
 
     halo::networking::network_channel_remote_address_or_default(client->channel, &sender);
     if (sender.address.ipv4 == *expected_sequence) {
-        if (network_game_mode == 2) {
+        if (network_game_mode == halo::networking::k_game_mode_host) {
             if (client->state == 2 && *(uint8_t *)&client->pad_ee2 == 0) {
                 halo::networking::network_game_settings_ack_send((uint8_t *)client, 0);
                 *(uint8_t *)&client->pad_ee2 = 1;

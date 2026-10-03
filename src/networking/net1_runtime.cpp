@@ -1,4 +1,8 @@
 #include "halo/networking/net1_runtime.hpp"
+#include "halo/core/cstring.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/text/api.hpp"
 #include <string.h>
 #include <stdio.h>
@@ -114,7 +118,7 @@ void ConnectionStats::log_tick()
             tm_now = localtime(&now_time);
             strftime(date_buf, 0x103, "%Y-%m-%d %H_%M_%S", tm_now);
 
-            base_path = halo::networking::network_log_path_resolve((char *)"Gamespy Metrics");
+            base_path = halo::networking::network_log_path_resolve(halo::mutable_literal("Gamespy Metrics"));
             strcpy(path_buf, base_path);
             halo::cseries::directory_create_recursive(path_buf);
 
@@ -441,7 +445,7 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
     int32_t len;
     int32_t i;
 
-    datum_index small_ui_font = halo::cache::tag_lookup(halo::groups::font, (char *)"ui\\small_ui");
+    datum_index small_ui_font = halo::cache::tag_lookup(halo::groups::font, halo::mutable_literal("ui\\small_ui"));
     len = strlen(name);
     if (mode == 3) {
         ok = *name != 0;
@@ -758,7 +762,7 @@ void EventFeed::flush(int32_t *queue)
 
     force_changed = (char)*queue != 1;
     type_offset_arg = force_changed ? survivors_extra : 0;
-    halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, (uint32_t)force_changed, 0x26, (int32_t)survivors_key,
+    halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, (uint32_t)force_changed, halo::networking::message_id(halo::networking::delta_message::remote_player_action_apply), (int32_t)survivors_key,
         survivors_payload, (int32_t)type_offset_arg, survivor_count, force_changed), network_server, 1, 0, (char)*queue, 0, 0, 2);
     queue[1] = 0;
 }
@@ -1018,7 +1022,7 @@ void StatsSummaryLog::open()
             tm_now = localtime(&now);
             strftime(date_buf, 0x103, "%Y-%m-%d %H_%M_%S", tm_now);
 
-            base_path = halo::networking::network_log_path_resolve((char *)"Gamespy Metrics");
+            base_path = halo::networking::network_log_path_resolve(halo::mutable_literal("Gamespy Metrics"));
             strcpy(path_buf, base_path);
             halo::cseries::directory_create_recursive(path_buf);
 

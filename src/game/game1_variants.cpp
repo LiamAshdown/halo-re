@@ -3,6 +3,8 @@
  */
 
 #include "crt.h"
+#include "halo/game/constants.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "tags.h"
 #include "memory.h"
@@ -97,7 +99,7 @@ void Variants::apply_current_custom_variant(void)
 
     if (sv_timelimit_minutes != -1) {
         if (sv_timelimit_minutes != 0) {
-            game_engine_pending_variant.time_limit = sv_timelimit_minutes * 0x708;
+            game_engine_pending_variant.time_limit = sv_timelimit_minutes * halo::game::k_ticks_per_minute;
             return;
         }
         game_engine_pending_variant.time_limit = 0;
@@ -120,7 +122,7 @@ void Variants::apply_player_profile_entry(void *event)
     player *p;
 
     lookup_index = **(int32_t **)((uint8_t *)event + 0x44);
-    search_handle = (datum_index)0xffffffff;
+    search_handle = (datum_index)halo::k_dword_none;
     if (lookup_index != 0) {
         search_handle = (datum_index)machine_table[lookup_index];
     }
@@ -426,7 +428,7 @@ void Variants::load_from_variant(const game_variant *variant)
     game_engine_round_reset_tick = 0;
     game_engine_state_value = _game_engine_state_not_started;
 
-    if (variant != (const game_variant *)0 && variant->game_engine_index != 0) {
+    if (variant != (const game_variant *)0 && variant->game_engine_index != _game_engine_none) {
         src = (uint32_t *)variant;
         dst = (uint32_t *)&game_engine_variant;
         for (i = 0x26; i != 0; i = i - 1) {

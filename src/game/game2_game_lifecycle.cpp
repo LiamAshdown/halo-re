@@ -1,4 +1,7 @@
 #include "halo/game/game2_game_lifecycle.hpp"
+#include "halo/core/cstring.hpp"
+#include "halo/game/records.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/structures/api.hpp"
@@ -110,7 +113,7 @@ void GameLifecycle::initialize(void)
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     *halo::camera::globals().hs_camera_control_pointer = 0;
 
-    object_render_state_cache = (data_array *)halo::saved_games::game_state_new((char *)"cached object render states", 0x100, 0x100);
+    object_render_state_cache = (data_array *)halo::saved_games::game_state_new(halo::mutable_literal("cached object render states"), 0x100, 0x100);
     halo::objects::objects_initialize();
     halo::structures::detail_objects_globals_allocate();
 
@@ -128,12 +131,12 @@ void GameLifecycle::initialize(void)
     halo::game::players_initialize();
     halo::effects::contrails_initialize();
 
-    halo::effects::globals().particle_data = (data_array *)halo::saved_games::game_state_new((char *)"particle", 0x400, 0x70);
-    halo::effects::globals().effect_data = (data_array *)halo::saved_games::game_state_new((char *)"effect", 0x100, 0xfc);
-    halo::effects::globals().effect_location_data = (data_array *)halo::saved_games::game_state_new((char *)"effect location", 0x200, 0x3c);
-    halo::effects::globals().weather_particle_data = halo::memory::data_new(0x54, (char *)"weather particles", 0x200);
-    particle_system_data = halo::saved_games::game_state_new((char *)"particle systems", 0x40, 0x158);
-    halo::effects::globals().particle_system_particle_data = (data_array *)halo::saved_games::game_state_new((char *)"particle system particles", 0x200, 0x80);
+    halo::effects::globals().particle_data = (data_array *)halo::saved_games::game_state_new(halo::mutable_literal("particle"), 0x400, 0x70);
+    halo::effects::globals().effect_data = (data_array *)halo::saved_games::game_state_new(halo::mutable_literal("effect"), 0x100, 0xfc);
+    halo::effects::globals().effect_location_data = (data_array *)halo::saved_games::game_state_new(halo::mutable_literal("effect location"), 0x200, 0x3c);
+    halo::effects::globals().weather_particle_data = halo::memory::data_new(0x54, halo::mutable_literal("weather particles"), 0x200);
+    particle_system_data = halo::saved_games::game_state_new(halo::mutable_literal("particle systems"), 0x40, 0x158);
+    halo::effects::globals().particle_system_particle_data = (data_array *)halo::saved_games::game_state_new(halo::mutable_literal("particle system particles"), 0x200, 0x80);
 
     size = 0x264;
     sound_class_gains = (void *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
@@ -152,7 +155,7 @@ void GameLifecycle::initialize(void)
     halo::hs::hs_runtime_initialize();
     halo::hs::hs_scripts_reload();
 
-    recorded_animations = halo::saved_games::game_state_new((char *)"recorded animations", 0x40, 0x64);
+    recorded_animations = halo::saved_games::game_state_new(halo::mutable_literal("recorded animations"), 0x40, 0x64);
 
     size = 0x1c;
     cinematic_globals_ptr = (uint32_t *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
@@ -294,12 +297,12 @@ void GameLifecycle::set_local_player(datum_index player_handle, int16_t local_pl
     if (local_player_index >= 0 && local_player_index < 1) {
         previous = local_player_globals->local_players[local_player_index];
         if (previous != (datum_index)-1) {
-            p = (player *)((uint8_t *)player_data->data + (previous & 0xffff) * sizeof(player));
+            p = halo::game::player_at(previous);
             p->local_player_index = -1;
         }
         local_player_globals->local_players[local_player_index] = player_handle;
         if (player_handle != (datum_index)-1) {
-            p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
+            p = halo::game::player_at(player_handle);
             p->local_player_index = local_player_index;
         }
     }

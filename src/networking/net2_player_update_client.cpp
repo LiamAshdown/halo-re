@@ -336,7 +336,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
                 target->position_update_ignored_count = 0;
 
                 if (target->unit != -1) {
-                    object *unit = halo::objects::object_try_and_get(target->unit, 3);
+                    object *unit = halo::objects::object_try_and_get(target->unit, _object_mask_unit);
 
                     if (unit != 0 && unit->parent_object == -1 && unit->network_role == 1) {
                         real_point3d new_position;
@@ -699,10 +699,10 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
                 target->vehicle_update_ignored_count = 0;
 
                 if (target->unit != -1) {
-                    object *unit = halo::objects::object_try_and_get(target->unit, 3);
+                    object *unit = halo::objects::object_try_and_get(target->unit, _object_mask_unit);
 
                     if (unit != 0 && unit->parent_object == vehicle.parent_or_tag) {
-                        object *vehicle_object = halo::objects::object_try_and_get(vehicle.parent_or_tag, 3);
+                        object *vehicle_object = halo::objects::object_try_and_get(vehicle.parent_or_tag, _object_mask_unit);
 
                         if (vehicle_object != 0) {
                             halo::units::unit_propagate_position_delta_to_children(&vehicle.position, vehicle.parent_or_tag);

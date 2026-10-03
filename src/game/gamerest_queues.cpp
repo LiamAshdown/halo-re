@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_queues.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/game/api.hpp"
 
 
@@ -315,9 +316,9 @@ uint8_t PlayerUpdateQueue::pop_current(player_update_record *out)
     uint8_t result;
     int32_t i;
 
-    raw_out[0] = 0xffffffff;
-    raw_out[1] = 0xffffffff;
-    raw_out[2] = 0xffffffff;
+    raw_out[0] = halo::k_dword_none;
+    raw_out[1] = halo::k_dword_none;
+    raw_out[2] = halo::k_dword_none;
 
     if (queue->queue.read_index == queue->queue.write_index) {
         return 0;

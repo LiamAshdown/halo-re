@@ -1,4 +1,12 @@
 #include "halo/game/game2_engine_match.hpp"
+#include "halo/core/cstring.hpp"
+#include "halo/networking/game_mode.hpp"
+#include "halo/game/variant_flags.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
+#include "halo/game/records.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/objects/api.hpp"
@@ -56,7 +64,7 @@ void EngineMatch::send_message(datum_index target, uint32_t message_type, datum_
             halo::interface::chimera__multiplayer_message(buffer);
         }
     }
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         halo::game::game_engine_notify_kill_event(target, target, message_type, victim);
     }
 }
@@ -66,7 +74,7 @@ void EngineMatch::send_message(datum_index target, uint32_t message_type, datum_
  */
 void EngineMatch::message_players(datum_index killer, uint32_t message_type, datum_index victim, wchar_t *buffer)
 {
-    if (killer != (datum_index)0xffffffff) {
+    if (killer != (datum_index)halo::k_dword_none) {
         send_message(killer, message_type, victim, buffer);
     } else {
         data_iterator iter;
@@ -74,7 +82,7 @@ void EngineMatch::message_players(datum_index killer, uint32_t message_type, dat
 
         iter.data = player_data;
         iter.next_index = 0;
-        iter.index = (datum_index)0xffffffff;
+        iter.index = (datum_index)halo::k_dword_none;
         iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
         element = halo::memory::data_iterator_next(&iter);
         while (element != 0) {
@@ -102,7 +110,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
         return;
     }
 
-    v = (player *)((uint8_t *)player_data->data + (victim & 0xffff) * sizeof(player));
+    v = halo::game::player_at(victim);
     v->last_death_tick = game_time->game_time;
 
     if (current_game_engine->on_player_death != 0) {
@@ -111,7 +119,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
     }
 
     {
-        uint8_t clean_kill = killer != (datum_index)0xffffffff && victim != (datum_index)0xffffffff;
+        uint8_t clean_kill = killer != (datum_index)halo::k_dword_none && victim != (datum_index)halo::k_dword_none;
         clean_kill = (is_suicide == 0 && clean_kill && killer != victim);
 
         v->respawn_timer = v->respawn_time_growth + game_engine_variant.respawn_time;
@@ -121,8 +129,8 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
             int32_t cap = game_engine_variant.respawn_time_growth * 5;
             v->respawn_time_growth = (grown <= cap) ? grown : cap;
 
-            if (clean_kill && killer != (datum_index)0xffffffff) {
-                player *k = (player *)((uint8_t *)player_data->data + (killer & 0xffff) * sizeof(player));
+            if (clean_kill && killer != (datum_index)halo::k_dword_none) {
+                player *k = halo::game::player_at(killer);
                 int32_t refunded = k->respawn_time_growth - game_engine_variant.respawn_time_growth;
                 k->respawn_time_growth = (refunded < 1) ? 0 : refunded;
             }
@@ -143,22 +151,22 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
         v->respawn_timer = 9000;
     }
 
-    if (halo::networking::globals().game_mode == 2) {
-        halo::game::game_engine_player_profile_cache_sync_all(1, (void *)0xffffffff);
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
+        halo::game::game_engine_player_profile_cache_sync_all(1, (void *)halo::k_dword_none);
     }
 
     if (v->marked_for_deletion != 0) {
         return;
     }
 
-    if (killer != (datum_index)0xffffffff) {
+    if (killer != (datum_index)halo::k_dword_none) {
         if (killer == victim) {
             halo::game::game_engine_broadcast_kill_feed_gated(6, -1, victim, killer, 1);
             return;
         }
         message_category = (is_suicide != 0) + 4;
-    } else if (death_object != (datum_index)0xffffffff) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[death_object & 0xffff].data;
+    } else if (death_object != (datum_index)halo::k_dword_none) {
+        object *obj = halo::game::object_at(death_object);
         if (obj->type == 0) {
             message_category = 2;
         } else if (obj->type == 1) {
@@ -174,7 +182,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
     if (message_category == 5) {
         message_players(killer, 0x0d, victim, kill_feed_buffer);
     } else if (message_category == 4) {
-        player *k = (player *)((uint8_t *)player_data->data + (killer & 0xffff) * sizeof(player));
+        player *k = halo::game::player_at(killer);
         int32_t spree_type = 0;
         int32_t send_spree = 1;
 
@@ -216,11 +224,11 @@ void EngineMatch::tick(void)
     halo::game::game_engine_cleanup_dropped_objects();
     halo::game::game_engine_update_item_scale_and_pickup();
 
-    if (halo::networking::globals().game_mode == 2 || halo::networking::globals().game_mode == 0) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host || halo::networking::globals().game_mode == halo::networking::k_game_mode_local) {
         halo::game::game_engine_update_netgame_equipment(0);
     }
-    if (halo::networking::globals().game_mode == 2) {
-        halo::game::game_engine_player_profile_cache_sync_all(1, (void *)0xffffffff);
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
+        halo::game::game_engine_player_profile_cache_sync_all(1, (void *)halo::k_dword_none);
     }
 
     {
@@ -229,7 +237,7 @@ void EngineMatch::tick(void)
 
         player_iter.data = player_data;
         player_iter.next_index = 0;
-        player_iter.index = (datum_index)0xffffffff;
+        player_iter.index = (datum_index)halo::k_dword_none;
         player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
         player_element = halo::memory::data_iterator_next(&player_iter);
 
@@ -237,7 +245,7 @@ void EngineMatch::tick(void)
             halo::game::game_engine_clear_unit_shields_when_disabled(player_iter.index);
 
             if (current_game_engine != 0 &&
-                ((game_engine_variant.flags & 0x10) != 0 ||
+                (halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::invisible_players) ||
                  (current_game_engine->time_scale_override != 0 &&
                   ((char (*)(datum_index, int32_t))current_game_engine->time_scale_override)(
                       player_iter.index, 1) != 0)) &&
@@ -255,7 +263,7 @@ void EngineMatch::tick(void)
                 int16_t index = (int16_t)handle;
                 int16_t salt = (int16_t)((uint32_t)handle >> 16);
 
-                if (handle != (datum_index)0xffffffff && index >= 0 && index < player_data->maximum_count) {
+                if (handle != (datum_index)halo::k_dword_none && index >= 0 && index < player_data->maximum_count) {
                     player *q = (player *)((uint8_t *)player_data->data + player_data->size * index);
 
                     if (q->identifier != 0 && (salt == 0 || q->identifier == salt) && q->medal_streak_count != 0) {
@@ -297,14 +305,14 @@ void EngineMatch::tick(void)
     } else if (game_engine_state_value == _game_engine_state_ending) {
         if (game_engine_end_game_timer <= 2.0f && (game_engine_unknown_aa00 & 0x10) == 0) {
             halo::sound::sound_class_set_gain_by_name(k_empty_string, 0.0f, 0x1e);
-            halo::sound::sound_class_set_gain_by_name((char *)"ambient_nature", 0.2f, 0x1e);
-            halo::sound::sound_class_set_gain_by_name((char *)"ambient_machinery", 0.2f, 0x1e);
-            halo::sound::sound_class_set_gain_by_name((char *)"ambient_computers", 0.2f, 0x1e);
+            halo::sound::sound_class_set_gain_by_name(halo::mutable_literal("ambient_nature"), 0.2f, 0x1e);
+            halo::sound::sound_class_set_gain_by_name(halo::mutable_literal("ambient_machinery"), 0.2f, 0x1e);
+            halo::sound::sound_class_set_gain_by_name(halo::mutable_literal("ambient_computers"), 0.2f, 0x1e);
             game_engine_unknown_aa00 = game_engine_unknown_aa00 | 0x10;
         }
 
         game_engine_end_game_timer = game_engine_end_game_timer - 0.033333335f;
-        if (game_engine_end_game_timer <= 0.0f && halo::networking::globals().game_mode == 2) {
+        if (game_engine_end_game_timer <= 0.0f && halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
             halo::game::game_engine_end_game_sequence_stage2();
             halo::game::game_engine_send_end_game_notification(2);
             halo::networking::network_server_advance_connect_state(halo::networking::globals().server);
@@ -354,7 +362,7 @@ void EngineMatch::send_end_game_notification(uint32_t reason)
     payload = reason;
     payload_ptr = &payload;
 
-    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x16, 0, &payload_ptr, 0, 1, 0);
+    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::end_game), 0, &payload_ptr, 0, 1, 0);
     if (encoded_size > 0) {
         halo::networking::network_session_broadcast_to_flagged(encoded_size, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
     }
@@ -372,7 +380,7 @@ void EngineMatch::send_round_reset_message(void)
     uint8_t *payload = &payload_value;
     int32_t encoded_bits;
 
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x17, 0, (void **)&payload, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::round_reset), 0, (void **)&payload, 0, 1, 0);
     if (encoded_bits > 0) {
         halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
     }
@@ -420,7 +428,7 @@ void EngineMatch::send_team_allegiance_message(char broadcast)
     fields_ptr[0] = &record;
     fields_ptr[1] = 0;
 
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1a, 0, fields_ptr, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::team_allegiance), 0, fields_ptr, 0, 1, 0);
     if (encoded_bits > 0) {
         uint8_t *session = *(uint8_t **)(network_client + 0xadc);
 

@@ -3,6 +3,7 @@
  * Server ban list lookups.
  */
 #include "tags.h"
+#include "halo/core/cstring.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -35,7 +36,7 @@ uint8_t BanList::check_and_reject_player(char *key)
                 return 0;
             }
         }
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Rejecting banned player %s (%s).", entry, key);
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Rejecting banned player %s (%s)."), entry, key);
         return 1;
     }
     return 0;

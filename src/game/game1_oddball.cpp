@@ -3,6 +3,10 @@
  */
 
 #include "tags.h"
+#include "halo/core/ui_tag_paths.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "memory.h"
 #include "math.h"
@@ -31,9 +35,9 @@ namespace halo::game::engine1 {
  */
 const uint16_t *Oddball::game_text(int16_t index)
 {
-    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
 
-    return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
+    return tag_id == halo::k_dword_none ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
 }
 
 /**
@@ -99,7 +103,7 @@ uint8_t Oddball::build_message_text(datum_index recipient, int32_t message_type,
  */
 wchar_t *Oddball::build_player_text(datum_index player, wchar_t *buffer)
 {
-    int32_t score = king_alt_player_score[player & 0xffff];
+    int32_t score = king_alt_player_score[player & halo::k_datum_slot_mask];
 
     if (game_engine_variant.engine.oddball.ball_type == 2) {
         halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", score);
@@ -114,9 +118,9 @@ wchar_t *Oddball::build_player_text(datum_index player, wchar_t *buffer)
  */
 uint16_t *Oddball::multiplayer_text(int16_t index)
 {
-    datum_index list = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index list = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
 
-    return list == 0xffffffff ? (uint16_t *)L"" : halo::text::text_string_list_get_string(list, index);
+    return list == halo::k_dword_none ? (uint16_t *)L"" : halo::text::text_string_list_get_string(list, index);
 }
 
 /**

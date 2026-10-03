@@ -3,6 +3,8 @@
  */
 
 #include "tags.h"
+#include "halo/game/records.hpp"
+#include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
@@ -54,13 +56,13 @@ void SpawnLocations::build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_
     while (p != 0) {
         player *pl = (player *)p;
         if (local_players_only == 0 || pl->local_player_index != -1) {
-            if (pl->unit != (datum_index)0xffffffff) {
+            if (pl->unit != (datum_index)halo::k_dword_none) {
                 uint32_t current = (uint32_t)pl->unit;
                 object *root;
                 do {
-                    root = (object *)((object_header *)halo::objects::globals().object_data->data)[current & 0xffff].data;
+                    root = (object *)halo::game::object_at(current);
                     current = (uint32_t)root->parent_object;
-                } while (current != 0xffffffff);
+                } while (current != halo::k_dword_none);
 
                 if (root->location_cluster_index != -1) {
                     pl->bsp_cluster = root->location_cluster_index;
@@ -105,7 +107,7 @@ int16_t SpawnLocations::collect_matching_waypoints(int32_t candidate, float *out
     int16_t slot;
 
     if (current_game_engine != 0 && game_engine_variant.objective_indicator == 0 && candidate != -1) {
-        player *reference_player = (player *)((uint8_t *)player_data->data + (candidate & 0xffff) * 0x200);
+        player *reference_player = halo::game::player_at(candidate);
 
         for (slot = 0; slot < k_maximum_custom_waypoints; slot++) {
             if (halo::game::custom_waypoint_matches_filter(candidate, reference_player, slot) != 0 &&
@@ -246,7 +248,7 @@ uint8_t SpawnLocations::location_blocked_by_vehicle(real_point3d *point)
     count = halo::objects::object_find_in_sphere(0, 0x11f, &location, point, 0.1f, candidates, 0x10);
 
     for (i = 0; i < count; i = i + 1) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[candidates[i] & 0xffff].data;
+        object *obj = halo::game::object_at(candidates[i]);
 
         if (obj != 0 && obj->type == 1) {
             return 1;

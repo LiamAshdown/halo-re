@@ -1,4 +1,6 @@
 #include "halo/game/game2_engine_match.hpp"
+#include "halo/core/cstring.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/game/legacy_globals.hpp"
 #include "halo/input/api.hpp"
 #include "halo/networking/api.hpp"
@@ -38,7 +40,7 @@ void EngineMatch::update_end_game_sequence(float delta_time)
         if (game_engine_end_game_timer > 0.0f) {
             return;
         }
-        if (halo::networking::globals().game_mode != 2) {
+        if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
             return;
         }
         halo::game::game_engine_end_game_sequence_stage3();
@@ -55,12 +57,12 @@ void EngineMatch::update_end_game_sequence(float delta_time)
         game_engine_post_game_fade = 1.0f;
     }
 
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         uint8_t idle_timer_expired = 0;
 
         if (game_engine_dedicated_idle == 0) {
             if ((*((uint8_t *)network_server + 6) >> 2 & 1) != 0) {
-                halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Game Complete. Dedicated server is now idle.");
+                halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Game Complete. Dedicated server is now idle."));
                 halo::networking::globals().host_handoff_requested = 1;
                 halo::interface::chat_close();
             }

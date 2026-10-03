@@ -1,4 +1,6 @@
 #include "halo/game/gamerest_updates.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/core/datum.hpp"
 #include <stdint.h>
 #include "halo/memory/api.hpp"
 #include "halo/game/api.hpp"
@@ -46,7 +48,7 @@ void UpdateServer::push_player_tick_history()
     iterator.data = update_server_queues;
     iterator.next_index = 0;
     iterator.index = k_datum_index_none;
-    iterator.signature = (uint32_t)update_server_queues ^ 0x69746572;
+    iterator.signature = (uint32_t)update_server_queues ^ halo::game::k_iterator_signature_key;
     for (queue = (uint8_t *)halo::memory::data_iterator_next(&iterator); queue != 0; queue = (uint8_t *)halo::memory::data_iterator_next(&iterator)) {
         int32_t read = *(int32_t *)(queue + 0x38);
         uint32_t *record = 0;
@@ -93,7 +95,7 @@ void UpdateServer::push_player_tick_history()
             ((uint32_t *)(slot + 8 + *count * 0x20))[i] = ((uint32_t *)(queue + 8))[i];
         }
         summary[0] = 0;
-        summary[1] = 0xffffffff;
+        summary[1] = halo::k_dword_none;
         summary[2] = 0;
         summary[3] = 0;
         *count += 1;

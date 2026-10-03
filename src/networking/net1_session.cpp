@@ -1,4 +1,12 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/core/cstring.hpp"
+#include "halo/networking/announcement.hpp"
+#include "halo/networking/game_mode.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/text/api.hpp"
 #include "halo/scenario/api.hpp"
 #include <string.h>
@@ -90,16 +98,16 @@ void GameRuntime::broadcast_team_object_updates(int32_t *object_count, uint32_t 
     int32_t encoded_bits;
 
     (void)param_1;
-    iterator.type_mask = 0xffffffff;
+    iterator.type_mask = halo::k_dword_none;
     iterator.flags_mask = 0;
     iterator.index = 0;
-    iterator.handle = 0xffffffff;
+    iterator.handle = halo::k_dword_none;
 
     obj = halo::objects::object_iterator_next(&iterator);
     while (obj != 0) {
         if (obj->network_role == 0 &&
             *(int32_t *)((uint8_t *)object_type_definitions[obj->type] + 0x10) != -1) {
-            encoded_bits = halo::objects::object_type_override_get_0x64(iterator.handle, network_message_scratch, 0x7ff8);
+            encoded_bits = halo::objects::object_type_override_get_0x64(iterator.handle, network_message_scratch, halo::k_network_message_scratch_size);
             if (encoded_bits > 0) {
                 *bytes_sent = *bytes_sent + encoded_bits;
                 *object_count = *object_count + 1;
@@ -137,11 +145,11 @@ void GameRuntime::client_apply_position_update(network_machine *machine, const c
     }
 
     player_datum = machine_to_player[(uint16_t)machine->machine_id];
-    if (player_datum == (datum_index)0xffffffff) {
+    if (player_datum == (datum_index)halo::k_dword_none) {
         return;
     }
     plr = (player *)halo::memory::datum_get(player_datum, halo::game::globals().player_data);
-    if (plr == 0 || plr->unit == (datum_index)0xffffffff) {
+    if (plr == 0 || plr->unit == (datum_index)halo::k_dword_none) {
         return;
     }
 
@@ -225,11 +233,11 @@ wchar_t * GameRuntime::get_random_player_name()
     uint32_t tag_id;
     void *definition;
 
-    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\random_player_names");
-    if (tag_id != 0xffffffff) {
-        definition = *(void **)((uint8_t *)halo::cache::globals().tag_instances + (tag_id & 0xffff) * 0x20 + 0x14);
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::mutable_literal("ui\\random_player_names"));
+    if (tag_id != halo::k_dword_none) {
+        definition = *(void **)((uint8_t *)halo::cache::globals().tag_instances + (tag_id & halo::k_datum_slot_mask) * 0x20 + 0x14);
         if (definition != 0 && *(int32_t *)definition != 0) {
-            halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
             return reinterpret_cast<wchar_t *>(halo::text::text_string_list_get_string((int32_t)tag_id, 0));
         }
     }
@@ -422,7 +430,7 @@ uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, ui
         halo::game::globals().variant_history_current = -1;
         halo::game::game_engine_apply_current_custom_variant();
         halo::game::game_engine_sync_variant_defaults();
-        network_game_mode = 2;
+        network_game_mode = halo::networking::k_game_mode_host;
         halo::networking::network_host_round_reset(network_server);
         network_disconnect_timeout_flag = 1;
     } else {
@@ -443,7 +451,7 @@ uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, ui
         *((uint8_t *)network_server + 0x9d5) = 0;
 
         wcsncpy((wchar_t *)((uint8_t *)network_server + 8), (const wchar_t *)name, 0x3f);
-        *(uint16_t *)((uint8_t *)network_server + 0x86) = 0;
+        network_server->session.unknown_07e = 0;
         wcsncpy((wchar_t *)network_server->password, (const wchar_t *)password, 8);
         network_server->password[8] = 0;
         {
@@ -498,7 +506,7 @@ void GameRuntime::map_cycle_list_broadcast()
             item = halo::memory::data_iterator_next(&iterator);
         } while (item != 0 && count < 16);
         if (count > 0) {
-            halo::networking::message_delta_encode_message((int32_t)encoded, 0x2000, 0, 0x35, 0, entries, 0, count, 0);
+            halo::networking::message_delta_encode_message((int32_t)encoded, 0x2000, 0, halo::networking::message_id(halo::networking::delta_message::map_cycle_list), 0, entries, 0, count, 0);
             halo::networking::network_session_broadcast_to_all(network_server, 1, encoded, 0, 0, 0, 3);
         }
     }
@@ -588,7 +596,7 @@ char GameSessionView::scenario_load_request()
             if (shared_session != 0) {
                 request.salt = *(uint32_t *)((uint8_t *)shared_session + 0x3a4);
             }
-        } else if (network_game_mode == 3) {
+        } else if (network_game_mode == halo::networking::k_game_mode_replay) {
             request.salt = *(uint32_t *)((uint8_t *)session + 0x3a4);
         }
     }
@@ -598,7 +606,7 @@ char GameSessionView::scenario_load_request()
         halo::game::game_unload_map();
     }
     halo::main::main_menu_music_stop();
-    if (*(int32_t *)((uint8_t *)session + 0x134) != 0) {
+    if (session->variant.game_engine_index != _game_engine_none) {
         halo::game::game_engine_apply_variant(&session->variant);
     }
     halo::game::cache_file_switch_map_by_path(request.map_name, 1);
@@ -613,7 +621,7 @@ char GameSessionView::scenario_load_request()
     }
     session->map_loaded = 1;
     halo::game::game_start_new_map();
-    if (network_game_mode == 2) {
+    if (network_game_mode == halo::networking::k_game_mode_host) {
         for (i = 0; i < 0x10; i++) {
             if (halo::networking::network_player_entry_validate(&session->players[i]) == 0) {
                 break;
@@ -683,7 +691,7 @@ void GameSessionView::assign_random_color(network_player_entry *entry)
     attempt = 0;
     seed = halo::math::globals().effect_random_seed;
     for (;;) {
-        seed = seed * 0x19660d + 0x3c6ef35f;
+        seed = halo::advance_random_seed(seed);
         if (attempt < 10) {
             candidate = (int16_t)((int32_t)(seed >> 0x10) * 3 >> 0x10);
         } else {
@@ -930,8 +938,10 @@ uint8_t SearchEntryView::entry_is_fresh()
  *
  * @address 0x4da7d0
  */
-int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement)
+int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement_bytes)
 {
+    const network_game_announcement *announcement = reinterpret_cast<const network_game_announcement *>(announcement_bytes);
+    const announcement_flags flags = static_cast<announcement_flags>(announcement->flags);
     network_game_search_entry *results = self;
     large_integer counter;
     int32_t now_ms;
@@ -942,7 +952,7 @@ int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement)
     const wchar_t *name_source;
 
     joinable = 1;
-    if ((*(announcement + 0x15e) & 2) == 0 || *(const int16_t *)(announcement + 0x156) > 0xf) {
+    if (!has(flags, announcement_flags::joinable) || announcement->player_count > 0xf) {
         joinable = 0;
     }
 
@@ -961,7 +971,7 @@ int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement)
 
     slot = -1;
     for (i = 0; i < 9; i = i + 1) {
-        if (*(const uint32_t *)announcement == results[i].identity[0]) {
+        if (announcement->identity[0] == results[i].identity[0]) {
             slot = i;
             break;
         }
@@ -994,37 +1004,37 @@ int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement)
 
     entry = &results[slot];
     entry->in_use = 1;
-    entry->identity[0] = *(const uint32_t *)(announcement + 0x00);
-    entry->identity[1] = *(const uint32_t *)(announcement + 0x04);
-    entry->identity[2] = *(const uint32_t *)(announcement + 0x08);
-    entry->identity[3] = *(const uint32_t *)(announcement + 0x0c);
-    entry->identity[4] = *(const uint32_t *)(announcement + 0x10);
-    entry->identity[5] = *(const uint32_t *)(announcement + 0x14);
+    entry->identity[0] = announcement->identity[0];
+    entry->identity[1] = announcement->identity[1];
+    entry->identity[2] = announcement->identity[2];
+    entry->identity[3] = announcement->identity[3];
+    entry->identity[4] = announcement->identity[4];
+    entry->identity[5] = announcement->identity[5];
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     entry->received_ms = now_ms;
 
-    entry->unknown_12a = *(const int16_t *)(announcement + 0x1c);
-    name_source = (const wchar_t *)(announcement + 0x1e);
+    entry->unknown_12a = announcement->unknown_01c;
+    name_source = reinterpret_cast<const wchar_t *>(announcement->name);
     if (*name_source == L'\0') {
         name_source = L"???";
     }
     wcsncpy((wchar_t *)entry->name, name_source, 0x3f);
     entry->name[63] = 0;
 
-    entry->game_engine_index = *(const int16_t *)(announcement + 0x154);
+    entry->game_engine_index = announcement->game_engine_index;
     for (i = 0; i < 0x21; i = i + 1) {
-        entry->info[i] = *(const uint32_t *)(announcement + 0xd0 + i * 4);
+        entry->info[i] = announcement->info[i];
     }
-    entry->player_count = *(const int16_t *)(announcement + 0x156);
-    entry->unknown_124 = *(const int16_t *)(announcement + 0x158);
-    entry->unknown_126 = *(const int16_t *)(announcement + 0x15a);
-    entry->unknown_128 = *(const int16_t *)(announcement + 0x15c);
+    entry->player_count = announcement->player_count;
+    entry->unknown_124 = announcement->unknown_158;
+    entry->unknown_126 = announcement->unknown_15a;
+    entry->unknown_128 = announcement->unknown_15c;
     entry->joinable = joinable;
-    entry->stats_logging = (*(announcement + 0x15e) >> 2) & 1;
+    entry->stats_logging = has(flags, announcement_flags::stats_logging) ? 1 : 0;
 
-    if (entry->game_engine_index == 3 && (*(announcement + 0x15e) & 8) != 0) {
+    if (entry->game_engine_index == _game_engine_oddball && has(flags, announcement_flags::oddball_marker)) {
         entry->unknown_12f = 1;
         return 1;
     }
@@ -1045,7 +1055,7 @@ int32_t ObjectOwnership::owner_team_index_desired(object *obj)
     player *plr;
 
     slot = *(uint16_t *)&((struct object *)obj)->network_update_tick;
-    if (slot != 0xffff && &machine_to_player[slot] != 0 && machine_to_player[slot] != (datum_index)0xffffffff) {
+    if (slot != halo::k_word_none && &machine_to_player[slot] != 0 && machine_to_player[slot] != (datum_index)halo::k_dword_none) {
         resolved = machine_to_player[slot];
         plr = (player *)halo::memory::datum_get(resolved, halo::game::globals().player_data);
         if (plr != 0) {
@@ -1069,7 +1079,7 @@ void ObjectOwnership::release_ownership_claim(uint8_t slot_index)
     player *plr;
 
     datum = halo::networking::player_data_iterator_advance(slot_index);
-    if (datum == 0xffffffff) {
+    if (datum == halo::k_dword_none) {
         return;
     }
     player_index = (int16_t)datum;
@@ -1229,7 +1239,7 @@ void HostSession::qr2_add_error(int32_t error, char *message, void *user_data)
 {
     (void)error;
     (void)user_data;
-    halo::interface::console_printf_verbose((ColorARGB *)console_message_default_color, (char *)"qr2_adderror_callback - %s", message);
+    halo::interface::console_printf_verbose((ColorARGB *)console_message_default_color, halo::mutable_literal("qr2_adderror_callback - %s"), message);
 }
 
 /**

@@ -3,6 +3,9 @@
  */
 
 #include "tags.h"
+#include "halo/networking/game_mode.hpp"
+#include "halo/game/records.hpp"
+#include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
@@ -107,12 +110,12 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     }
 
     control = &player_control_globals_ptr->local_players[local_player_index];
-    plr = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * k_player_size);
+    plr = halo::game::player_at(player_index);
     player_control = (GlobalsPlayerControl *)global_globals->player_control.pointer;
     player_information = (GlobalsPlayerInformation *)global_globals->player_information.pointer;
     input = &local_player_input_states[plr->local_player_index];
 
-    if (halo::networking::globals().game_mode != 0) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_local) {
         input->throttle_x = halo::game::control_axis_sign(input->throttle_x);
         input->throttle_y = halo::game::control_axis_sign(input->throttle_y);
     }
@@ -120,7 +123,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     yaw_rate = 0.0f;
     pitch_rate = 0.0f;
     if (plr->unit != (datum_index)-1) {
-        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data;
+        object *unit_object = halo::game::object_at(plr->unit);
         unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
 
         yaw_rate = look_yaw_rate_setting[local_player_index] *
@@ -130,9 +133,9 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
 
         if (unit_object->parent_object != (datum_index)-1 && unit->vehicle_seat_index != -1) {
             object *parent =
-                ((object_header *)halo::objects::globals().object_data->data)[unit_object->parent_object & 0xffff].data;
+                halo::game::object_at(unit_object->parent_object);
             Unit *parent_definition =
-                (Unit *)halo::cache::globals().tag_instances[parent->definition_tag & 0xffff].data;
+                (Unit *)halo::game::tag_data_at(parent->definition_tag);
             UnitSeat *seat =
                 &((UnitSeat *)parent_definition->seats.pointer)[unit->vehicle_seat_index];
 
@@ -183,7 +186,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
             }
             if (plr->unit != (datum_index)-1) {
                 unit_data *unit = (unit_data *)((uint8_t *)
-                    ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data +
+                    halo::game::object_at(plr->unit) +
                     k_unit_data_offset);
 
                 scale = (1.0f - unit->stun * player_information->stun_turning_penalty) * scale;
@@ -224,7 +227,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
             }
             if (plr->unit != (datum_index)-1) {
                 unit_data *unit = (unit_data *)((uint8_t *)
-                    ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data +
+                    halo::game::object_at(plr->unit) +
                     k_unit_data_offset);
                 real stun_scale =
                     1.0f - unit->stun * player_information->stun_turning_penalty;
@@ -342,14 +345,14 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
         out->action = input->buttons[0x02];
     }
 
-    if (halo::networking::globals().game_mode == 1 && (out->control_flags & 0x800u) != 0 &&
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client && (out->control_flags & 0x800u) != 0 &&
         plr->unit != (datum_index)-1) {
         unit_data *unit = (unit_data *)((uint8_t *)
-            ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data + k_unit_data_offset);
+            halo::game::object_at(plr->unit) + k_unit_data_offset);
 
         if (unit->current_weapon_index != -1) {
             object *weapon_object = ((object_header *)halo::objects::globals().object_data->data)
-                [unit->weapons[unit->current_weapon_index] & 0xffff].data;
+                [unit->weapons[unit->current_weapon_index] & halo::k_datum_slot_mask].data;
             weapon_data *weapon =
                 (weapon_data *)((uint8_t *)weapon_object + k_item_extension_offset);
 
@@ -427,7 +430,7 @@ void LocalControl::digitize_control_input(player_control_input *input)
 
     if ((input->melee != 0 || local_player_input_states[0].buttons[halo::game::fields::k_input_action_accept] != 0) && halo::saved_games::globals().game_state_write_in_progress == 0 &&
         *(int8_t *)(cinematic_globals_ptr + 10) != 0) {
-        split_screen_quit_prompt_string = 0xffff;
+        split_screen_quit_prompt_string = halo::k_word_none;
         halo::networking::globals().join_error_reason = 0;
         halo::main::globals().main_globals.revert_map_if_allowed = 1;
     }

@@ -1,4 +1,6 @@
+#include <string.h>
 #include "halo/networking/net1_bandwidth.hpp"
+#include "halo/core/datum.hpp"
 #include <stdio.h>
 #include "halo/cseries/api.hpp"
 #include "rasterizer.h"
@@ -33,6 +35,9 @@ static auto &hud_text_draw_background_mode = halo::link::ref<uint16_t>(halo::net
 static auto &decimal_format_string = halo::link::ref<const char []>(halo::networking::vars().decimal_format_string);
 
 namespace halo::networking {
+
+/** Vertex colour of the bandwidth graph frame (the engine stores it as a byte-swapped 0xffffff00 word). */
+inline constexpr uint32_t k_graph_frame_color = 0xffffff00;
 
 /**
  * out/phase4/networking_functions.md summary ("Converts a direction-name string (e.g.
@@ -178,13 +183,12 @@ uint32_t BandwidthMonitor::set_units_command(const char *units_name, const char 
 void BandwidthMonitor::update_()
 {
     network_bandwidth_graph *graph = &network_bandwidth_graph_globals;
-    uint8_t *base = (uint8_t *)graph;
 
     if (network_bandwidth_overlay_enabled != 0) {
         int32_t width = (int32_t)game_window_bottom_right.x - (int32_t)game_window_top_left.x;
         int32_t height = (int32_t)game_window_bottom_right.y - (int32_t)game_window_top_left.y;
 
-        if (*(int32_t *)(base + 0x14) != width || *(int32_t *)(base + 0x18) != height) {
+        if (graph->width != width || graph->height != height) {
             float x_scale = (float)width * 0.2f;
             float y_scale = (float)height * 0.4f;
             float right_raw = (float)(game_window_bottom_right.y - 0x40);
@@ -196,45 +200,41 @@ void BandwidthMonitor::update_()
             float r1, r2;
             int32_t i;
 
-            *(float *)(base + 0x1c) = x_scale;
-            *(float *)(base + 0x20) = y_scale;
-            *(int32_t *)(base + 0x14) = width;
-            *(int32_t *)(base + 0x18) = height;
+            graph->x_scale = x_scale;
+            graph->y_scale = y_scale;
+            graph->width = width;
+            graph->height = height;
 
             graph->left = (int16_t)right_minus_yscale;
             field24_v = (int16_t)baseline_minus_xscale;
-            *(int16_t *)(base + 0x24) = field24_v;
+            graph->window_left = field24_v;
             graph->right = (int16_t)right_raw;
             graph->baseline = (int16_t)baseline_raw;
 
-            for (i = 0; i < 0x780; i++) {
-                ((int32_t *)(base + 0x5d8))[i] = 0;
-            }
-            for (i = 0; i < 0x1e; i++) {
-                ((float *)(base + 0x44))[i] = 0.0f;
-            }
+            memset(graph->columns, 0, sizeof(graph->columns));
+            memset(graph->border, 0, sizeof(graph->border));
 
             halo::networking::network_bandwidth_graph_instance_history_reset(graph);
 
             box_x0 = right_minus_yscale - 1.0f;
-            *(uint32_t *)(base + 0x50) = 0xffffff00;
-            *(uint32_t *)(base + 0x68) = 0xffffff00;
-            *(uint32_t *)(base + 0x80) = 0xffffff00;
-            *(uint32_t *)(base + 0x98) = 0xffffff00;
-            *(float *)(base + 0x44) = box_x0;
+            graph->border[0].color = k_graph_frame_color;
+            graph->border[1].color = k_graph_frame_color;
+            graph->border[2].color = k_graph_frame_color;
+            graph->border[3].color = k_graph_frame_color;
+            graph->border[0].x = box_x0;
             box_y0 = baseline_minus_xscale - 1.0f;
-            *(uint32_t *)(base + 0xb0) = 0xffffff00;
-            *(float *)(base + 0x48) = box_y0;
+            graph->border[4].color = k_graph_frame_color;
+            graph->border[0].y = box_y0;
             box_y1 = right_raw + 1.0f;
             box_x1 = baseline_raw + 1.0f;
-            *(float *)(base + 0x5c) = box_y1;
-            *(float *)(base + 0x60) = box_y0;
-            *(float *)(base + 0x74) = box_y1;
-            *(float *)(base + 0x78) = box_x1;
-            *(float *)(base + 0x8c) = box_x0;
-            *(float *)(base + 0x90) = box_x1;
-            *(float *)(base + 0xa4) = box_x0;
-            *(float *)(base + 0xa8) = box_y0;
+            graph->border[1].x = box_y1;
+            graph->border[1].y = box_y0;
+            graph->border[2].x = box_y1;
+            graph->border[2].y = box_x1;
+            graph->border[3].x = box_x0;
+            graph->border[3].y = box_x1;
+            graph->border[4].x = box_x0;
+            graph->border[4].y = box_y0;
 
             r1 = 640.0f / (float)height;
             r2 = 480.0f / (float)width;
@@ -242,23 +242,23 @@ void BandwidthMonitor::update_()
                 int16_t v2c = (int16_t)((float)field24_v * r2);
                 int16_t v3x = (int16_t)((float)graph->left * r1);
 
-                *(int16_t *)(base + 0x2e) = v3x;
-                *(int16_t *)(base + 0x2c) = v2c;
-                *(int16_t *)(base + 0x32) = 0x280;
-                *(int16_t *)(base + 0x30) = 0x1e0;
-                *(int16_t *)(base + 0x34) = v2c;
+                graph->layout[1] = v3x;
+                graph->layout[0] = v2c;
+                graph->layout[3] = 0x280;
+                graph->layout[2] = 0x1e0;
+                graph->layout[4] = v2c;
 
-                *(int16_t *)(base + 0x36) = (int16_t)((float)graph->right * r1);
-                *(int16_t *)(base + 0x3a) = 0x280;
-                *(int16_t *)(base + 0x38) = 0x1e0;
-                *(int16_t *)(base + 0x3e) = *(int16_t *)(base + 0x36);
+                graph->layout[5] = (int16_t)((float)graph->right * r1);
+                graph->layout[7] = 0x280;
+                graph->layout[6] = 0x1e0;
+                graph->layout[9] = graph->layout[5];
 
-                *(int16_t *)(base + 0x3c) = (int16_t)(((x_scale * 0.5f) + (float)field24_v) * r2);
-                *(int16_t *)(base + 0x42) = 0x280;
-                *(int16_t *)(base + 0x40) = 0x1e0;
+                graph->layout[8] = (int16_t)(((x_scale * 0.5f) + (float)field24_v) * r2);
+                graph->layout[11] = 0x280;
+                graph->layout[10] = 0x1e0;
             }
 
-            _snprintf((char *)(base + 0x23e0), 0x200, "%s %s",
+            _snprintf((char *)((uint8_t *)graph + sizeof(network_bandwidth_graph)), 0x200, "%s %s",
                 network_bandwidth_units_label_table[graph->units_index],
                 network_bandwidth_direction_label_table[graph->direction_index]);
         }
@@ -344,7 +344,7 @@ void BandwidthGraphView::instance_history_reset()
     for (i = 0; i < 320; i++) {
         int32_t x_step = accumulator / 320;
 
-        graph->columns[i].color = 0xffffffff;
+        graph->columns[i].color = halo::k_dword_none;
         accumulator = accumulator + ((int32_t)right - (int32_t)left);
         graph->columns[i].x = (float)(x_step + left);
         graph->columns[i].y = (float)(int32_t)baseline;
@@ -404,11 +404,10 @@ void BandwidthGraphView::instance_init(int32_t units_index, int32_t direction_in
 void BandwidthGraphView::instance_update_layout(uint8_t force_refresh)
 {
     network_bandwidth_graph *graph = self;
-    uint8_t *base = (uint8_t *)graph;
     int32_t width = (int32_t)game_window_bottom_right.x - (int32_t)game_window_top_left.x;
     int32_t height = (int32_t)game_window_bottom_right.y - (int32_t)game_window_top_left.y;
 
-    if (*(int32_t *)(base + 0x14) != width || *(int32_t *)(base + 0x18) != height || force_refresh != 0) {
+    if (graph->width != width || graph->height != height || force_refresh != 0) {
         float x_scale = (float)width * 0.2f;
         float y_scale = (float)height * 0.4f;
         float right_raw = (float)(game_window_bottom_right.y - 0x40);
@@ -418,46 +417,42 @@ void BandwidthGraphView::instance_update_layout(uint8_t force_refresh)
         float r1, r2;
         int32_t i;
 
-        *(int32_t *)(base + 0x18) = height;
-        *(int32_t *)(base + 0x14) = width;
-        *(float *)(base + 0x1c) = x_scale;
-        *(float *)(base + 0x20) = y_scale;
+        graph->height = height;
+        graph->width = width;
+        graph->x_scale = x_scale;
+        graph->y_scale = y_scale;
 
         graph->left = (int16_t)(right_raw - y_scale);
         field24_v = (int16_t)(baseline_raw - x_scale);
-        *(int16_t *)(base + 0x24) = field24_v;
+        graph->window_left = field24_v;
         graph->right = (int16_t)right_raw;
         graph->baseline = (int16_t)baseline_raw;
 
-        for (i = 0; i < 0x780; i++) {
-            ((int32_t *)(base + 0x5d8))[i] = 0;
-        }
+        memset(graph->columns, 0, sizeof(graph->columns));
 
-        for (i = 0; i < 0x1e; i++) {
-            ((float *)(base + 0x44))[i] = 0.0f;
-        }
+        memset(graph->border, 0, sizeof(graph->border));
 
         halo::networking::network_bandwidth_graph_instance_history_reset(graph);
 
         box_x0 = (right_raw - y_scale) - 1.0f;
-        *(uint32_t *)(base + 0x50) = 0xffffff00;
-        *(uint32_t *)(base + 0x68) = 0xffffff00;
-        *(float *)(base + 0x44) = box_x0;
-        *(uint32_t *)(base + 0x80) = 0xffffff00;
-        *(uint32_t *)(base + 0x98) = 0xffffff00;
+        graph->border[0].color = k_graph_frame_color;
+        graph->border[1].color = k_graph_frame_color;
+        graph->border[0].x = box_x0;
+        graph->border[2].color = k_graph_frame_color;
+        graph->border[3].color = k_graph_frame_color;
         box_y0 = (baseline_raw - x_scale) - 1.0f;
-        *(uint32_t *)(base + 0xb0) = 0xffffff00;
-        *(float *)(base + 0x48) = box_y0;
+        graph->border[4].color = k_graph_frame_color;
+        graph->border[0].y = box_y0;
         box_y1 = right_raw + 1.0f;
-        *(float *)(base + 0x5c) = box_y1;
-        *(float *)(base + 0x60) = box_y0;
-        *(float *)(base + 0x74) = box_y1;
+        graph->border[1].x = box_y1;
+        graph->border[1].y = box_y0;
+        graph->border[2].x = box_y1;
         box_x1 = baseline_raw + 1.0f;
-        *(float *)(base + 0x78) = box_x1;
-        *(float *)(base + 0x8c) = box_x0;
-        *(float *)(base + 0x90) = box_x1;
-        *(float *)(base + 0xa4) = box_x0;
-        *(float *)(base + 0xa8) = box_y0;
+        graph->border[2].y = box_x1;
+        graph->border[3].x = box_x0;
+        graph->border[3].y = box_x1;
+        graph->border[4].x = box_x0;
+        graph->border[4].y = box_y0;
 
         r1 = 640.0f / (float)height;
         r2 = 480.0f / (float)width;
@@ -465,23 +460,23 @@ void BandwidthGraphView::instance_update_layout(uint8_t force_refresh)
             int16_t v2c = (int16_t)((float)field24_v * r2);
             int16_t v36 = (int16_t)((float)graph->right * r1);
 
-            *(int16_t *)(base + 0x2e) = (int16_t)((float)graph->left * r1);
-            *(int16_t *)(base + 0x2c) = v2c;
-            *(int16_t *)(base + 0x32) = 0x280;
-            *(int16_t *)(base + 0x30) = 0x1e0;
+            graph->layout[1] = (int16_t)((float)graph->left * r1);
+            graph->layout[0] = v2c;
+            graph->layout[3] = 0x280;
+            graph->layout[2] = 0x1e0;
 
-            *(int16_t *)(base + 0x36) = v36;
-            *(int16_t *)(base + 0x34) = v2c;
-            *(int16_t *)(base + 0x3a) = 0x280;
-            *(int16_t *)(base + 0x38) = 0x1e0;
-            *(int16_t *)(base + 0x3e) = v36;
+            graph->layout[5] = v36;
+            graph->layout[4] = v2c;
+            graph->layout[7] = 0x280;
+            graph->layout[6] = 0x1e0;
+            graph->layout[9] = v36;
 
-            *(int16_t *)(base + 0x3c) = (int16_t)(((x_scale * 0.5f) + (float)field24_v) * r2);
-            *(int16_t *)(base + 0x42) = 0x280;
-            *(int16_t *)(base + 0x40) = 0x1e0;
+            graph->layout[8] = (int16_t)(((x_scale * 0.5f) + (float)field24_v) * r2);
+            graph->layout[11] = 0x280;
+            graph->layout[10] = 0x1e0;
         }
 
-        _snprintf((char *)(base + 0x23e0), 0x200, "%s %s",
+        _snprintf((char *)((uint8_t *)graph + sizeof(network_bandwidth_graph)), 0x200, "%s %s",
             network_bandwidth_units_label_table[graph->units_index],
             network_bandwidth_direction_label_table[graph->direction_index]);
     }
@@ -559,8 +554,7 @@ void BandwidthGraphView::tick()
 void BandwidthGraphView::update_columns(int32_t new_sample)
 {
     network_bandwidth_graph *graph = self;
-    uint8_t *base = (uint8_t *)graph;
-    float scale = *(float *)(base + 0x1c);
+    float scale = graph->x_scale;
     int32_t old_peak_scale = graph->peak_scale;
     int32_t i;
 

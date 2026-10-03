@@ -3,6 +3,13 @@
  */
 
 #include "tags.h"
+#include "halo/networking/game_mode.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
+#include "halo/game/records.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
@@ -69,7 +76,7 @@ int32_t Ctf::pick_random_flag(int32_t exclude_flag_index)
         active_count--;
     }
 
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     pick = (int16_t)(((halo::math::globals().random_seed_global >> 0x10) *
                       (uint32_t)(int32_t)(int16_t)active_count) >> 0x10);
 
@@ -179,7 +186,7 @@ void Ctf::profiles_updated(int32_t mode, int32_t machine_index)
     extra[0] = &ticks;
     if (mode == 0) {
         items[0] = ctf_touch_counts_network;
-        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x11, (int32_t)extra, items, 0, 1, 0);
+        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::ctf_profiles_updated), (int32_t)extra, items, 0, 1, 0);
     } else {
         int32_t live[3];
         void *baseline[1];
@@ -190,7 +197,7 @@ void Ctf::profiles_updated(int32_t mode, int32_t machine_index)
         items[0] = live;
         items[1] = (void *)ticks;
         baseline[0] = ctf_touch_counts_network;
-        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x11, (int32_t)extra, items,
+        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1, halo::networking::message_id(halo::networking::delta_message::ctf_profiles_updated), (int32_t)extra, items,
             (int32_t)baseline, 1, 0);
         ctf_touch_counts_network[0] = live[0];
         ctf_touch_counts_network[1] = live[1];
@@ -213,13 +220,13 @@ void Ctf::profiles_updated(int32_t mode, int32_t machine_index)
  */
 void Ctf::reset_objects(void)
 {
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
-    if (ctf_team_flag_object[0] != 0xffffffff) {
+    if (ctf_team_flag_object[0] != halo::k_dword_none) {
         halo::game::game_engine_ctf_reset_team_return_credit(ctf_team_flag_object[0]);
     }
-    if (ctf_team_flag_object[1] != 0xffffffff) {
+    if (ctf_team_flag_object[1] != halo::k_dword_none) {
         halo::game::game_engine_ctf_reset_team_return_credit(ctf_team_flag_object[1]);
     }
     ctf_flag_auto_return_ticks = game_engine_variant.engine.ctf.single_flag_time;
@@ -246,7 +253,7 @@ void Ctf::return_all_flags(void)
     ScenarioNetgameFlags *flags;
     int32_t i;
 
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
 
@@ -270,7 +277,7 @@ void Ctf::return_all_flags(void)
         }
         ctf_globals_live.flag_id_mask |= 1u << (usage_id & 0x1f);
         halo::game::custom_waypoint_register((datum_index)0, (int16_t)0, (real_point3d *)0, "flag_blue", 0.0f,
-            (datum_index)0xffffffff, (int16_t)0xffffffff);
+            (datum_index)halo::k_dword_none, (int16_t)halo::k_word_none);
     }
 
     if (game_engine_variant.engine.race.race_type == 2) {
@@ -333,14 +340,14 @@ void Ctf::unknown_48(void)
 {
     int32_t limit = ctf_flag_capture_limit_006b0ea0;
 
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     if ((ctf_team_flag_touch_count[0] >= limit || ctf_team_flag_touch_count[1] >= limit) && game_engine_state_value == 0) {
         halo::networking::globals().server->game_over = 1;
         game_engine_state_value = 1;
         game_engine_end_game_timer = 7.0f;
-        halo::game::game_engine_queue_multiplayer_sound(1, 0xffffffff, 0);
+        halo::game::game_engine_queue_multiplayer_sound(1, halo::k_dword_none, 0);
         halo::interface::widget_close_all();
         halo::game::game_engine_send_end_game_notification(1);
     }
@@ -348,7 +355,7 @@ void Ctf::unknown_48(void)
         int32_t ticks = ctf_team_return_credit_ticks[0];
 
         if (ticks > 0x258) {
-            halo::game::game_engine_queue_multiplayer_sound(8, 0xffffffff, 1);
+            halo::game::game_engine_queue_multiplayer_sound(8, halo::k_dword_none, 1);
             ticks = 0;
         }
         ctf_team_return_credit_ticks[0] = ticks + 1;
@@ -357,7 +364,7 @@ void Ctf::unknown_48(void)
         int32_t ticks = ctf_team_return_credit_ticks[1];
 
         if (ticks > 0x258) {
-            halo::game::game_engine_queue_multiplayer_sound(0xb, 0xffffffff, 1);
+            halo::game::game_engine_queue_multiplayer_sound(0xb, halo::k_dword_none, 1);
             ticks = 0;
         }
         ctf_team_return_credit_ticks[1] = ticks + 1;
@@ -374,12 +381,12 @@ uint8_t Ctf::unknown_60(datum_index unit_index, datum_index item_index)
     datum_index player = halo::game::player_index_from_unit_index(unit_index);
     uint8_t *weapon;
 
-    if (player == 0xffffffff || item_index == 0xffffffff || halo::networking::globals().game_mode != 2) {
+    if (player == halo::k_dword_none || item_index == halo::k_dword_none || halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return 1;
     }
-    weapon = (uint8_t *)halo::objects::object_try_and_get(item_index, 4);
+    weapon = (uint8_t *)halo::objects::object_try_and_get(item_index, _object_mask_weapon);
     if (weapon != 0 && (uint8_t)halo::items::weapon_must_be_readied(item_index) != 0 && (weapon[0x22c] & 0x40) == 0 &&
-        ((struct weapon_object *)weapon)->base.owner_team == *(int32_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0x20)) {
+        ((struct weapon_object *)weapon)->base.owner_team == halo::game::player_at(player)->team) {
         return 0;
     }
     return 1;
@@ -393,7 +400,7 @@ uint8_t Ctf::unknown_60(datum_index unit_index, datum_index item_index)
  */
 void Ctf::update(datum_index player_index)
 {
-    uint8_t *player = ((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200);
+    ::player *player = halo::game::player_at(player_index);
     datum_index unit_index;
     uint8_t *unit;
     int16_t weapon_slot;
@@ -403,20 +410,20 @@ void Ctf::update(datum_index player_index)
     if (halo::game::unit_has_must_be_readied_weapon(player_index) != 0) {
         halo::game::unit_reset_gauge_if_flagged(player_index);
     }
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     unit_index = ((struct player *)player)->unit;
-    if (unit_index == 0xffffffff) {
+    if (unit_index == halo::k_dword_none) {
         return;
     }
-    unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & 0xffff) * 12 + 8);
+    unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & halo::k_datum_slot_mask) * 12 + 8);
     weapon_slot = ((unit_object *)unit)->unit.current_weapon_index;
     if (weapon_slot == -1) {
         return;
     }
     weapon = *(datum_index *)(unit + 0x2f8 + weapon_slot * 4);
-    if (weapon == 0xffffffff) {
+    if (weapon == halo::k_dword_none) {
         return;
     }
     if (current_game_engine != 0 && game_engine_state_value != 0) {
@@ -430,7 +437,7 @@ void Ctf::update(datum_index player_index)
         return;
     }
     if (game_engine_variant.engine.ctf.flag_at_home_to_score != 0 && game_engine_variant.engine.ctf.single_flag_time == 0) {
-        uint8_t *flag = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (ctf_team_flag_object[team] & 0xffff) * 12 + 8);
+        uint8_t *flag = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (ctf_team_flag_object[team] & halo::k_datum_slot_mask) * 12 + 8);
 
         if (((*(uint32_t *)(flag + 0x22c) >> 6) & 1) != 0) {
             halo::game::game_engine_ctf_notify_flag_carried_throttled((int32_t)player_index);

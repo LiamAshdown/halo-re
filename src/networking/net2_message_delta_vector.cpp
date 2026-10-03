@@ -3,6 +3,7 @@
  * Vector, normal, throttle and quantized real message-delta field codecs.
  */
 #include "message_delta_codec.h"
+#include "halo/core/cstring.hpp"
 #include <math.h>
 #include "halo/networking/net2_message_delta_vector.hpp"
 #include "halo/memory/api.hpp"
@@ -262,11 +263,11 @@ uint8_t VectorFieldCodec::locality_initialize(message_delta_field_type *field_ty
 {
     (void)field_type;
     if (message_delta_parameters_enabled == 1) {
-        halo::networking::message_delta_parameters_protocol_register(0, (char *)"LOCALITY_BITS_PER_COMPONENT_FULL", 1,
+        halo::networking::message_delta_parameters_protocol_register(0, halo::mutable_literal("LOCALITY_BITS_PER_COMPONENT_FULL"), 1,
             &message_delta_vector3d_absolute_bits_mode1);
-        halo::networking::message_delta_parameters_protocol_register(0, (char *)"LOCALITY_BITS_PER_COMPONENT_DELTA", 1, &message_delta_vector3d_delta_bits);
-        halo::networking::message_delta_parameters_protocol_register(0, (char *)"LOCALITY_DELTA_CUTOFF_DISTANCE", 0, &message_delta_vector3d_delta_range);
-        halo::networking::message_delta_parameters_protocol_register(0, (char *)"LOCALITY_MINIMUM_MOVE_DISTANCE", 0,
+        halo::networking::message_delta_parameters_protocol_register(0, halo::mutable_literal("LOCALITY_BITS_PER_COMPONENT_DELTA"), 1, &message_delta_vector3d_delta_bits);
+        halo::networking::message_delta_parameters_protocol_register(0, halo::mutable_literal("LOCALITY_DELTA_CUTOFF_DISTANCE"), 0, &message_delta_vector3d_delta_range);
+        halo::networking::message_delta_parameters_protocol_register(0, halo::mutable_literal("LOCALITY_MINIMUM_MOVE_DISTANCE"), 0,
             &message_delta_vector3d_delta_epsilon);
     }
     return 1;
@@ -341,8 +342,8 @@ uint8_t VectorFieldCodec::normal_initialize(message_delta_field_type *field_type
     int32_t *descriptor = (int32_t *)field_type->array_descriptor;
 
     if (message_delta_parameters_enabled == 1) {
-        halo::networking::message_delta_parameters_protocol_register(field_type->name, (char *)"bits_theta_internet", 1, descriptor);
-        halo::networking::message_delta_parameters_protocol_register(field_type->name, (char *)"bits_phi_internet", 1, descriptor + 1);
+        halo::networking::message_delta_parameters_protocol_register(field_type->name, halo::mutable_literal("bits_theta_internet"), 1, descriptor);
+        halo::networking::message_delta_parameters_protocol_register(field_type->name, halo::mutable_literal("bits_phi_internet"), 1, descriptor + 1);
     }
     return descriptor[0] > 0 && descriptor[1] > 0 && descriptor[2] > 0 && descriptor[3] > 0;
 }

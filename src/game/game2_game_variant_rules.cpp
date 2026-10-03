@@ -1,4 +1,5 @@
 #include "halo/game/game2_variants.hpp"
+#include "halo/game/constants.hpp"
 #include "halo/text/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
@@ -118,7 +119,7 @@ uint32_t GameVariantRules::variant_add_to_history(char *name, game_variant *opti
 uint32_t GameVariantRules::variant_option_default_by_index(uint32_t selector)
 {
     switch (selector) {
-    case 0: return 0x249240;
+    case 0: return halo::game::k_default_vehicle_set;
     case 1: return 0x1;
     case 2: return 0x42;
     case 3: return 0x203;
@@ -141,10 +142,10 @@ void GameVariantRules::variant_sanitize_options(game_variant *variant)
     int32_t engine_index;
 
     engine_index = variant->game_engine_index;
-    if (engine_index < 1) {
-        engine_index = 1;
-    } else if (engine_index > 5) {
-        engine_index = 5;
+    if (engine_index < _game_engine_ctf) {
+        engine_index = _game_engine_ctf;
+    } else if (engine_index > _game_engine_race) {
+        engine_index = _game_engine_race;
     }
     variant->game_engine_index = engine_index;
 

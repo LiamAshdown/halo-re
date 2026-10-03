@@ -1,4 +1,8 @@
 #include "halo/game/gamerest_cheats.hpp"
+#include "halo/core/cstring.hpp"
+#include "halo/networking/game_mode.hpp"
+#include "halo/game/records.hpp"
+#include "halo/core/datum.hpp"
 #include <stdint.h>
 #include "halo/memory/api.hpp"
 #include <string.h>
@@ -72,7 +76,7 @@ uint32_t Cheats::get_target_object_index()
         }
         p = (player *)halo::memory::data_iterator_next(&iterator);
     }
-    return 0xffffffff;
+    return halo::k_dword_none;
 }
 
 /**
@@ -91,8 +95,8 @@ void Cheats::make_player_invincible(int16_t local_player_slot)
     if (-1 < local_player_slot && local_player_slot < 1 && local_player_slot != -1) {
         player_index = local_player_globals->local_players[local_player_slot];
         if (player_index != k_datum_index_none) {
-            unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->unit;
-            unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
+            unit_index = (halo::game::player_at(player_index))->unit;
+            unit_obj = halo::game::object_at(unit_index);
             unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
             unit->active_camouflage_power = 1.0f;
             if ((unit->flags & 0x10) != 0) {
@@ -117,9 +121,9 @@ void Cheats::make_selected_object_invincible()
     unit_data *unit;
 
     player_index = Cheats::get_target_object_index();
-    if (player_index != 0xffffffff) {
-        unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->unit;
-        unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
+    if (player_index != halo::k_dword_none) {
+        unit_index = (halo::game::player_at(player_index))->unit;
+        unit_obj = halo::game::object_at(unit_index);
         unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
         unit->active_camouflage_power = 1.0f;
         if ((unit->flags & 0x10) != 0) {
@@ -149,13 +153,13 @@ void Cheats::spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
     real_vector3d unit_up;
     int32_t i;
 
-    if (player_index == 0xffffffff) {
+    if (player_index == halo::k_dword_none) {
         return;
     }
     if (count <= 0) {
         return;
     }
-    unit = *(datum_index *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200 + 0x34);
+    unit = halo::game::player_at(player_index)->unit;
     halo::objects::object_get_position(&unit_position, unit);
     halo::objects::object_get_orientation(&unit_forward, unit, &unit_up);
 
@@ -182,8 +186,8 @@ void Cheats::spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
         placement.position.x = (float)(halo::libm::cos(angle) * (double)1.5f + (double)unit_position.x);
         placement.position.y = (float)(halo::libm::sin(angle) * (double)1.5f + (double)unit_position.y);
         placement.position.z = unit_position.z + 0.8f;
-        if (halo::networking::globals().game_mode == 2) {
-            int16_t object_type = *(int16_t *)halo::cache::globals().tag_instances[placement.definition_tag & 0xffff].data;
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
+            int16_t object_type = *(int16_t *)halo::game::tag_data_at(placement.definition_tag);
 
             if (*(int32_t *)((uint8_t *)object_type_definitions[object_type] + 0x10) != -1) {
                 role = 0;
@@ -239,13 +243,13 @@ void Cheats::teleport_to_camera()
     uint8_t *camera_row;
 
     player_index = Cheats::get_target_object_index();
-    if (player_index != 0xffffffff) {
-        local_player_slot = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->local_player_index;
+    if (player_index != halo::k_dword_none) {
+        local_player_slot = (halo::game::player_at(player_index))->local_player_index;
         if (local_player_slot != -1) {
             camera_row = (uint8_t *)&halo::camera::globals().observers[local_player_slot].camera;
             if (*(int16_t *)(camera_row + 0x10) != -1) {
-                unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->unit;
-                unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
+                unit_index = (halo::game::player_at(player_index))->unit;
+                unit_obj = halo::game::object_at(unit_index);
                 root = unit_obj->parent_object;
                 if (root == k_datum_index_none) {
                     root = unit_index;
@@ -254,7 +258,7 @@ void Cheats::teleport_to_camera()
                 halo::objects::object_set_position_and_orientation(root, 0, 0, (real_point3d *)camera_row);
                 return;
             }
-            halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Camera is outside BSP... cannot initiate teleportation..."));
+            halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("Camera is outside BSP... cannot initiate teleportation..."));
         }
     }
 }

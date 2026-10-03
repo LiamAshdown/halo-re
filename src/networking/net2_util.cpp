@@ -3,6 +3,7 @@
  * Small string, time, mutex and pointer-array helpers.
  */
 #include "win32.h"
+#include "halo/core/time_constants.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -199,8 +200,8 @@ int32_t NetworkUtil::time_duration_string(char *string, char default_unit, uint8
         }
     }
     switch (resolved_unit) {
-    case 'd': return value * 0x15180;
-    case 'h': return value * 0xe10;
+    case 'd': return value * halo::k_seconds_per_day;
+    case 'h': return value * halo::k_seconds_per_hour;
     case 'm': return value * 0x3c;
     case 's': return value;
     default: return -1;

@@ -22,7 +22,7 @@ private:
     static wchar_t * multiplayer_game_text_string(int16_t index);
     static int32_t scoreboard_text_font(void);
     static void scoreboard_draw_white_line(Rectangle2D *rect, wchar_t *text, float opacity);
-    static void post_game_set_text_color(const uint32_t *color);
+    static void post_game_set_text_color(const float *color);
     static void post_game_set_tab_stops(uint32_t stops_a, uint32_t stops_b, uint32_t stops_c);
 };
 

@@ -1,4 +1,5 @@
 #include "halo/networking/net1_address.hpp"
+#include "halo/core/datum.hpp"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>

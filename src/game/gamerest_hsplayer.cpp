@@ -1,4 +1,6 @@
 #include "halo/game/gamerest_hsplayer.hpp"
+#include "halo/game/records.hpp"
+#include "halo/core/datum.hpp"
 #include <stdint.h>
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
@@ -20,8 +22,8 @@ void HsPlayerFunctions::vehicle_gunner_evaluate(int16_t function_index, uint32_t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        object *unit_obj = halo::objects::object_try_and_get((datum_index)arguments[0], 3);
-        datum_index gunner = (datum_index)0xffffffff;
+        object *unit_obj = halo::objects::object_try_and_get((datum_index)arguments[0], _object_mask_unit);
+        datum_index gunner = (datum_index)halo::k_dword_none;
 
         if (unit_obj != 0) {
             gunner = ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->gunner_unit_index;
@@ -85,8 +87,8 @@ void HsPlayerFunctions::examine_nearby_vehicle(int16_t index, uint32_t thread_in
     if (args == 0) {
         return;
     }
-    if (args[0] != (int32_t)0xffffffff) {
-        object *target = (object *)((object_header *)halo::objects::globals().object_data->data)[args[0] & 0xffff].data;
+    if (args[0] != (int32_t)halo::k_dword_none) {
+        object *target = (object *)halo::game::object_at(args[0]);
         if ((char)args[1] != 0) {
             *((uint8_t *)&target->vitality_flags + 1) |= 0x01;
             halo::hs::hs_thread_return(0, thread_index);
@@ -110,7 +112,7 @@ void HsPlayerFunctions::set_action_result(int16_t function_index, uint32_t threa
         (int16_t *)definition->parameters, first);
 
     if (args != 0) {
-        object *target = (object *)((object_header *)halo::objects::globals().object_data->data)[args[0] & 0xffff].data;
+        object *target = (object *)halo::game::object_at(args[0]);
         *((uint8_t *)&target->vitality_flags) |= 0x20;
         halo::hs::hs_thread_return(0, thread_index);
     }

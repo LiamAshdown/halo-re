@@ -1,4 +1,11 @@
 #include "halo/game/gamerest_hud.hpp"
+#include "halo/core/cstring.hpp"
+#include "halo/core/ui_tag_paths.hpp"
+#include "halo/networking/game_mode.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/game/records.hpp"
+#include "halo/core/datum.hpp"
 #include <string.h>
 #include <wchar.h>
 #include "halo/cache/api.hpp"
@@ -59,13 +66,13 @@ void HudNameplates::draw_teammate_nameplate(datum_index player_handle)
     player *tracked;
     wchar_t name[12];
 
-    p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-    found = (datum_index)0xffffffff;
+    p = halo::game::player_at(player_handle);
+    found = (datum_index)halo::k_dword_none;
 
-    if (p->local_player_index != -1 && p->unit != (datum_index)0xffffffff) {
+    if (p->local_player_index != -1 && p->unit != (datum_index)halo::k_dword_none) {
         found = HudNameplates::find_nearby_teammate_for_nameplate(player_handle);
         if (found == player_handle) {
-            found = (datum_index)0xffffffff;
+            found = (datum_index)halo::k_dword_none;
         }
     }
 
@@ -82,7 +89,7 @@ void HudNameplates::draw_teammate_nameplate(datum_index player_handle)
         }
     }
 
-    if (p->nameplate_target_player != (datum_index)0xffffffff) {
+    if (p->nameplate_target_player != (datum_index)halo::k_dword_none) {
         int16_t index = (int16_t)p->nameplate_target_player;
         if (-1 < index && index < player_data->maximum_count) {
             tracked = (player *)((uint8_t *)player_data->data + player_data->size * index);
@@ -97,7 +104,7 @@ void HudNameplates::draw_teammate_nameplate(datum_index player_handle)
                 return;
             }
         }
-        p->nameplate_target_player = (datum_index)0xffffffff;
+        p->nameplate_target_player = (datum_index)halo::k_dword_none;
     }
 }
 
@@ -146,8 +153,8 @@ void HudNameplates::draw_teammate_nameplate_text(wchar_t *text, int32_t value)
  */
 datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player_handle)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-    datum_index best = (datum_index)0xffffffff;
+    player *p = halo::game::player_at(player_handle);
+    datum_index best = (datum_index)halo::k_dword_none;
     real_point3d camera;
     real_vector3d look;
     real_vector3d direction;
@@ -164,8 +171,8 @@ datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player
         if (track->nameplate_weight > 0.0f) {
             datum_index target = track->nameplate_target;
 
-            best = halo::objects::object_try_and_get(target, 0xffffffff) != 0 ? target : (datum_index)0xffffffff;
-            if (best != (datum_index)0xffffffff) {
+            best = halo::objects::object_try_and_get(target, halo::k_dword_none) != 0 ? target : (datum_index)halo::k_dword_none;
+            if (best != (datum_index)halo::k_dword_none) {
                 return halo::game::player_index_from_unit_index(best);
             }
         }
@@ -180,7 +187,7 @@ datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player
     }
 
     for (i = 0; i < candidate_count; i++) {
-        uint8_t *candidate = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[candidates[i] & 0xffff].data;
+        uint8_t *candidate = (uint8_t *)halo::game::object_at(candidates[i]);
         real dx = ((struct object *)candidate)->position.x - camera.x;
         real dy = ((struct object *)candidate)->position.y - camera.y;
         real dz = ((struct object *)candidate)->position.z - camera.z;
@@ -199,7 +206,7 @@ datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player
         }
     }
 
-    if (best == (datum_index)0xffffffff) {
+    if (best == (datum_index)halo::k_dword_none) {
         return best;
     }
     return halo::game::player_index_from_unit_index(best);
@@ -213,7 +220,7 @@ datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player
 uint8_t HudNameplates::nameplate_candidate_filter(uint32_t object_index, void *context)
 {
     datum_index player_handle = *(datum_index *)context;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)halo::game::object_at(object_index);
 
     if ((obj[0x10] & 1) != 0) {
         return 0;
@@ -241,13 +248,13 @@ void HudNameplates::update_teammate_nameplate_fade()
     float opacity;
 
     if (local_player == -1 || 0 < local_player) {
-        player_handle = (datum_index)0xffffffff;
+        player_handle = (datum_index)halo::k_dword_none;
     } else {
         player_handle = ((datum_index *)((uint8_t *)local_player_globals + 4))[local_player];
     }
 
     if (current_game_engine != 0 &&
-        (player_handle & 0xffff) * sizeof(player) + (uint32_t)player_data->data != 0) {
+        (player_handle & halo::k_datum_slot_mask) * sizeof(player) + (uint32_t)player_data->data != 0) {
         HudNameplates::draw_teammate_nameplate(player_handle);
     }
 
@@ -387,7 +394,7 @@ int32_t Scoreboard::select_players_to_display(int32_t mode, int32_t max_count, s
     uint8_t debug = (debug_print_enabled_flag == 0x45);
 
     if (debug) {
-        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("player_count=%d, maxcount=%d"), total, max_count);
+        halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("player_count=%d, maxcount=%d"), total, max_count);
     }
 
     if (max_count < total) {
@@ -401,12 +408,11 @@ int32_t Scoreboard::select_players_to_display(int32_t mode, int32_t max_count, s
 
             do {
                 remaining_to_scan = remaining;
-                player *candidate = (player *)((uint8_t *)player_data->data +
-                    (scan->player & 0xffff) * sizeof(player));
+                player *candidate = halo::game::player_at(scan->player);
 
                 if (candidate != 0 && candidate->local_player_index != -1) {
                     if (debug) {
-                        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("found local player"));
+                        halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("found local player"));
                     }
                     rescued[rescued_count] = *scan;
                     rescued_count = rescued_count + 1;
@@ -425,8 +431,7 @@ int32_t Scoreboard::select_players_to_display(int32_t mode, int32_t max_count, s
                 if (-1 < slot) {
                     scoreboard_entry *victim = &entries[slot];
 
-                    while (((player *)((uint8_t *)player_data->data +
-                                (victim->player & 0xffff) * sizeof(player)))->local_player_index != -1) {
+                    while ((halo::game::player_at(victim->player))->local_player_index != -1) {
                         slot = slot - 1;
                         victim = victim - 1;
                         if (slot < 0) {
@@ -498,7 +503,7 @@ int32_t Scoreboard::compare(const scoreboard_entry *a, const scoreboard_entry *b
 uint32_t Scoreboard::compare_by_unknown_04(const scoreboard_entry *a, const scoreboard_entry *b)
 {
     if (b->single_sort_key < a->single_sort_key) {
-        return 0xffffffff;
+        return halo::k_dword_none;
     }
     return (uint32_t)(a->single_sort_key < b->single_sort_key);
 }
@@ -529,16 +534,16 @@ uint8_t CustomWaypoints::matches_filter(int32_t candidate, player *reference_pla
     }
 
     if (current_game_engine->index == _game_engine_ctf && slot->active != 0) {
-        if ((slot->player == (datum_index)0xffffffff || candidate == (int32_t)slot->player) &&
+        if ((slot->player == (datum_index)halo::k_dword_none || candidate == (int32_t)slot->player) &&
             (slot->team == -1 || reference_player->team == (int32_t)slot->team)) {
-            if (slot->owner == (datum_index)0xffffffff || candidate != (int32_t)slot->owner) {
+            if (slot->owner == (datum_index)halo::k_dword_none || candidate != (int32_t)slot->owner) {
                 return 1;
             }
         }
         if (reference_player->team == (int32_t)slot->team) {
             return 0;
         }
-        if (slot->owner == (datum_index)0xffffffff) {
+        if (slot->owner == (datum_index)halo::k_dword_none) {
             return 0;
         }
         return halo::game::game_engine_ctf_unit_is_flag_holder(reference_player) != 0;
@@ -553,13 +558,13 @@ uint8_t CustomWaypoints::matches_filter(int32_t candidate, player *reference_pla
     if (slot->active == 0) {
         return 0;
     }
-    if (slot->player != (datum_index)0xffffffff && candidate != (int32_t)slot->player) {
+    if (slot->player != (datum_index)halo::k_dword_none && candidate != (int32_t)slot->player) {
         return 0;
     }
     if (slot->team != -1 && reference_player->team != (int32_t)slot->team) {
         return 0;
     }
-    if (slot->owner == (datum_index)0xffffffff) {
+    if (slot->owner == (datum_index)halo::k_dword_none) {
         return 1;
     }
     return candidate != (int32_t)slot->owner;
@@ -601,7 +606,7 @@ void ChimeraHooks::kill_feed(datum_index recipient, int32_t hash_key, uint32_t m
 {
     int16_t index = (int16_t)recipient;
 
-    if (recipient == (datum_index)0xffffffff || index < 0 || player_data->maximum_count <= index) {
+    if (recipient == (datum_index)halo::k_dword_none || index < 0 || player_data->maximum_count <= index) {
         return;
     }
     {
@@ -642,7 +647,7 @@ void ChimeraHooks::kill_feed(datum_index recipient, int32_t hash_key, uint32_t m
             }
         }
 
-        if (halo::networking::globals().game_mode == 2 && broadcast == 1) {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host && broadcast == 1) {
 
             halo::game::game_engine_notify_kill_event(recipient, hash_key, (int32_t)message_type, subject);
         }
@@ -682,16 +687,16 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
     halo::networking::server_browser_custom_options_unpack(variant_name, &options);
     halo::networking::ticker_text_buffer_append((wchar_t *)L"  ---  ", 0, ticker);
 
-    if (engine_index == 1) {
+    if (engine_index == _game_engine_ctf) {
         halo::networking::server_browser_gametype1_flags_unpack((uint32_t)fraglimit, &engine_extra.ctf);
         is_custom_variant = 1;
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 24);
+                halo::tag_paths::join_game_rules_strings, 24);
             swprintf(line, 0xff, L"(%s)", label_text);
         } else {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 24);
+                halo::tag_paths::join_game_rules_strings, 24);
             swprintf(line, 0xff, L"(%s - \"%s\")", label_text, game_flags_wide);
         }
         line[255] = 0;
@@ -699,11 +704,11 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
 
-            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
+            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
+                halo::tag_paths::join_game_rules_strings);
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::game::tag_data_at(tag_id);
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;
@@ -721,10 +726,10 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (engine_extra.ctf.flags[0] == 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 25);
+                halo::tag_paths::join_game_rules_strings, 25);
         } else {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 26);
+                halo::tag_paths::join_game_rules_strings, 26);
         }
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         line[255] = 0;
@@ -732,21 +737,21 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (engine_extra.ctf.flags[1] != 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 27);
+                halo::tag_paths::join_game_rules_strings, 27);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
         }
         if (engine_extra.ctf.flags[2] != 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 28);
+                halo::tag_paths::join_game_rules_strings, 28);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
         }
         if (engine_extra.ctf.flags[3] != 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 29);
+                halo::tag_paths::join_game_rules_strings, 29);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
@@ -754,24 +759,24 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         {
             int32_t packed_low_high = *(int32_t *)&engine_extra.ctf.low;
-            if (packed_low_high == 0x1518 || packed_low_high == 0x708 || packed_low_high == 0xe10 ||
+            if (packed_low_high == halo::game::seconds_to_ticks(180) || packed_low_high == halo::game::k_ticks_per_minute || packed_low_high == halo::game::seconds_to_ticks(120) ||
                 packed_low_high == 9000 || packed_low_high == 18000) {
                 label_text = halo::game::unicode_string_list_get_string(
-                    (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 30);
+                    halo::tag_paths::join_game_rules_strings, 30);
                 swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, packed_low_high / 30);
                 line[255] = 0;
                 halo::networking::ticker_text_buffer_append(line, 0, ticker);
                 is_custom_variant = 1;
             }
         }
-    } else if (engine_index == 2) {
+    } else if (engine_index == _game_engine_slayer) {
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 31);
+                halo::tag_paths::join_game_rules_strings, 31);
             swprintf(line, 0xff, L"(%s)", label_text);
         } else {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 31);
+                halo::tag_paths::join_game_rules_strings, 31);
             swprintf(line, 0xff, L"(%s - \"%s\")", label_text, game_flags_wide);
         }
         line[255] = 0;
@@ -779,11 +784,11 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
             is_custom_variant = 1;
-            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
+            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
+                halo::tag_paths::join_game_rules_strings);
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::game::tag_data_at(tag_id);
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;
@@ -801,34 +806,34 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (((uint32_t)fraglimit >> 3 & 1) != 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 32);
+                halo::tag_paths::join_game_rules_strings, 32);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
         }
         if (((uint32_t)fraglimit >> 4 & 1) != 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 33);
+                halo::tag_paths::join_game_rules_strings, 33);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
         }
         if (((uint32_t)fraglimit >> 5 & 1) != 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 34);
+                halo::tag_paths::join_game_rules_strings, 34);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
         }
-    } else if (engine_index == 3) {
+    } else if (engine_index == _game_engine_oddball) {
         halo::networking::server_browser_gametype3_flags_unpack((uint32_t)fraglimit, &oddball);
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 37);
+                halo::tag_paths::join_game_rules_strings, 37);
             swprintf(line, 0xff, L"(%s)", label_text);
         } else {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 37);
+                halo::tag_paths::join_game_rules_strings, 37);
             swprintf(line, 0xff, L"(%s - \"%s\")", label_text, game_flags_wide);
         }
         line[255] = 0;
@@ -836,11 +841,11 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
             is_custom_variant = 1;
-            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
+            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
+                halo::tag_paths::join_game_rules_strings);
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::game::tag_data_at(tag_id);
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;
@@ -858,7 +863,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (oddball.value_10 >= 0 && oddball.value_10 < 3) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\oddball_edit\\var_speed_with_ball",
+                halo::tag_paths::var_speed_with_ball,
                 (int16_t)oddball.value_10);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
@@ -866,25 +871,25 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         }
         if (oddball.value_14 > 1) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 38);
+                halo::tag_paths::join_game_rules_strings, 38);
             swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, oddball.value_14);
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
         }
         if (oddball.flag0 != 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 39);
+                halo::tag_paths::join_game_rules_strings, 39);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
         }
         if (oddball.value_10 == 0 || oddball.value_10 == 2) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 41);
+                halo::tag_paths::join_game_rules_strings, 41);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
 
             suffix_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\oddball_edit\\var_speed_with_ball",
+                halo::tag_paths::var_speed_with_ball,
                 (int16_t)oddball.value_10);
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -892,10 +897,10 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         }
         if (oddball.value_08 > 0 && oddball.value_08 < 4) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 42);
+                halo::tag_paths::join_game_rules_strings, 42);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\oddball_edit\\var_trait_with_ball",
+                halo::tag_paths::var_trait_with_ball,
                 (int16_t)oddball.value_08);
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -903,23 +908,23 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         }
         if (oddball.value_0c > 0 && oddball.value_0c < 4) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 43);
+                halo::tag_paths::join_game_rules_strings, 43);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\oddball_edit\\var_trait_with_ball",
+                halo::tag_paths::var_trait_with_ball,
                 (int16_t)oddball.value_0c);
             wcscat(line, suffix_text);
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
         }
-    } else if (engine_index == 4) {
+    } else if (engine_index == _game_engine_king) {
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 35);
+                halo::tag_paths::join_game_rules_strings, 35);
             swprintf(line, 0xff, L"(%s)", label_text);
         } else {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 35);
+                halo::tag_paths::join_game_rules_strings, 35);
             swprintf(line, 0xff, L"(%s - \"%s\")", label_text, game_flags_wide);
         }
         line[255] = 0;
@@ -927,11 +932,11 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
             is_custom_variant = 1;
-            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
+            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
+                halo::tag_paths::join_game_rules_strings);
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::game::tag_data_at(tag_id);
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;
@@ -949,20 +954,20 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (((uint32_t)fraglimit >> 3 & 1) != 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 36);
+                halo::tag_paths::join_game_rules_strings, 36);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
         }
-    } else if (engine_index == 5) {
+    } else if (engine_index == _game_engine_race) {
         halo::networking::server_browser_gametype5_flags_unpack((uint32_t)fraglimit, engine_extra.race);
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 44);
+                halo::tag_paths::join_game_rules_strings, 44);
             swprintf(line, 0xff, L"(%s)", label_text);
         } else {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 44);
+                halo::tag_paths::join_game_rules_strings, 44);
             swprintf(line, 0xff, L"(%s - \"%s\")", label_text, game_flags_wide);
         }
         line[255] = 0;
@@ -970,11 +975,11 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
             is_custom_variant = 1;
-            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
+            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
+                halo::tag_paths::join_game_rules_strings);
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::game::tag_data_at(tag_id);
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;
@@ -992,11 +997,11 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (engine_extra.race[0] >= 0 && engine_extra.race[0] < 3) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 45);
+                halo::tag_paths::join_game_rules_strings, 45);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
 
             suffix_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\race_edit\\var_race_type",
+                halo::mutable_literal("ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\race_edit\\var_race_type"),
                 (int16_t)engine_extra.race[0]);
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -1004,10 +1009,10 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         }
         if (engine_extra.race[1] >= 0 && engine_extra.race[1] < 3) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 46);
+                halo::tag_paths::join_game_rules_strings, 46);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\race_edit\\var_team_scoring",
+                halo::mutable_literal("ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\race_edit\\var_team_scoring"),
                 (int16_t)engine_extra.race[1]);
             wcscat(line, suffix_text);
 
@@ -1018,7 +1023,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
     halo::networking::ticker_text_buffer_append((wchar_t *)L"  ---  ", 0, ticker);
     label_text = halo::game::unicode_string_list_get_string(
-        (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 1);
+        halo::tag_paths::join_game_rules_strings, 1);
     swprintf(line, 0xff, L" %s %s", label_text, player_flags_wide);
     line[255] = 0;
     halo::networking::ticker_text_buffer_append(line, 0, ticker);
@@ -1026,7 +1031,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
     switch (options.lives_per_round) {
     case 0: case 1: case 3: case 5:
         label_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 2);
+            halo::tag_paths::join_game_rules_strings, 2);
         swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, options.lives_per_round);
         line[255] = 0;
         halo::networking::ticker_text_buffer_append(line, 0, ticker);
@@ -1042,7 +1047,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         if (speed_percent == 200 || speed_percent == 50 || speed_percent == 100 ||
             speed_percent == 150 || speed_percent == 300 || speed_percent == 400) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 3);
+                halo::tag_paths::join_game_rules_strings, 3);
             swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, speed_percent);
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
@@ -1052,16 +1057,16 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
     {
 
         int show_pair = 0;
-        if (options.respawn_time == 0 || options.respawn_time == 0x96 ||
-            options.respawn_time == 0x12c || options.respawn_time == 0x1c2) {
-            show_pair = (options.respawn_time_growth == 0 || options.respawn_time_growth == 0x96 ||
-                         options.respawn_time_growth == 0x12c || options.respawn_time_growth == 0x1c2);
+        if (options.respawn_time == 0 || options.respawn_time == halo::game::seconds_to_ticks(5) ||
+            options.respawn_time == halo::game::seconds_to_ticks(10) || options.respawn_time == halo::game::k_ticks_per_fifteen_seconds) {
+            show_pair = (options.respawn_time_growth == 0 || options.respawn_time_growth == halo::game::seconds_to_ticks(5) ||
+                         options.respawn_time_growth == halo::game::seconds_to_ticks(10) || options.respawn_time_growth == halo::game::k_ticks_per_fifteen_seconds);
         } else {
             line[0] = 0;
         }
         if (show_pair) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 4);
+                halo::tag_paths::join_game_rules_strings, 4);
             swprintf(line, 0xff, L"%s%s %d+%d", ticker_field_separator, label_text,
                 options.respawn_time / 30, options.respawn_time_growth / 30);
             line[255] = 0;
@@ -1069,34 +1074,34 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         }
     }
 
-    if (options.suicide_penalty == 0x96 || options.suicide_penalty == 300 || options.suicide_penalty == 0x1c2) {
+    if (options.suicide_penalty == halo::game::seconds_to_ticks(5) || options.suicide_penalty == 300 || options.suicide_penalty == halo::game::k_ticks_per_fifteen_seconds) {
         label_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 5);
+            halo::tag_paths::join_game_rules_strings, 5);
         swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, options.suicide_penalty / 30);
         line[255] = 0;
         halo::networking::ticker_text_buffer_append(line, 0, ticker);
     }
     if ((options.flags & 8) == 0) {
         label_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 6);
+            halo::tag_paths::join_game_rules_strings, 6);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         halo::networking::ticker_text_buffer_append(line, 0, ticker);
     }
     if (options.odd_man_out != 0) {
         label_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 7);
+            halo::tag_paths::join_game_rules_strings, 7);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         halo::networking::ticker_text_buffer_append(line, 0, ticker);
     }
     if ((options.flags & 0x10) != 0) {
         label_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 8);
+            halo::tag_paths::join_game_rules_strings, 8);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         halo::networking::ticker_text_buffer_append(line, 0, ticker);
     }
     if ((options.flags & 4) != 0) {
         label_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 9);
+            halo::tag_paths::join_game_rules_strings, 9);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         halo::networking::ticker_text_buffer_append(line, 0, ticker);
     }
@@ -1104,21 +1109,21 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
     if (is_custom_variant) {
         if (options.friendly_fire < 4) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 11);
+                halo::tag_paths::join_game_rules_strings, 11);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
 
             suffix_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire",
+                halo::mutable_literal("ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire"),
                 (int16_t)options.friendly_fire);
             wcscat(line, suffix_text);
             if ((options.friendly_fire == 1 || options.friendly_fire == 3) &&
-                (options.betrayal_penalty == 0x96 || options.betrayal_penalty == 300 || options.betrayal_penalty == 0x1c2)) {
+                (options.betrayal_penalty == halo::game::seconds_to_ticks(5) || options.betrayal_penalty == 300 || options.betrayal_penalty == halo::game::k_ticks_per_fifteen_seconds)) {
 
                 int16_t penalty_display_index =
-                    (options.betrayal_penalty == 0x96) ? 1 : (options.betrayal_penalty == 300) ? 2 : 3;
+                    (options.betrayal_penalty == halo::game::seconds_to_ticks(5)) ? 1 : (options.betrayal_penalty == 300) ? 2 : 3;
                 wcscat(line, L" (+");
                 suffix_text = halo::game::unicode_string_list_get_string(
-                    (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire_penalty",
+                    halo::mutable_literal("ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire_penalty"),
                     penalty_display_index);
                 wcscat(line, suffix_text);
                 wcscat(line, L")");
@@ -1128,10 +1133,10 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         }
         if ((options.red_vehicle_set & 0xf) < 9) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 12);
+                halo::tag_paths::join_game_rules_strings, 12);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicle_set",
+                halo::tag_paths::var_vehicle_set,
                 (int16_t)(options.red_vehicle_set & 0xf));
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -1139,10 +1144,10 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         }
         if ((options.blue_vehicle_set & 0xf) < 9) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 13);
+                halo::tag_paths::join_game_rules_strings, 13);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicle_set",
+                halo::tag_paths::var_vehicle_set,
                 (int16_t)(options.blue_vehicle_set & 0xf));
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -1150,10 +1155,10 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         }
     } else if ((options.red_vehicle_set & 0xf) < 9) {
         label_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 10);
+            halo::tag_paths::join_game_rules_strings, 10);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
         suffix_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicle_set",
+            halo::tag_paths::var_vehicle_set,
             (int16_t)(options.red_vehicle_set & 0xf));
         wcscat(line, suffix_text);
         line[255] = 0;
@@ -1165,20 +1170,20 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         int32_t vehicle_respawn_index = -1;
         switch (options.vehicle_respawn_time) {
         case 0:      vehicle_respawn_index = 0; break;
-        case 0x384:  vehicle_respawn_index = 1; break;
-        case 0x708:  vehicle_respawn_index = 2; break;
-        case 0xa8c:  vehicle_respawn_index = 3; break;
-        case 0xe10:  vehicle_respawn_index = 4; break;
-        case 0x1518: vehicle_respawn_index = 5; break;
-        case 0x2328: vehicle_respawn_index = 6; break;
+        case halo::game::seconds_to_ticks(30):  vehicle_respawn_index = 1; break;
+        case halo::game::k_ticks_per_minute:  vehicle_respawn_index = 2; break;
+        case halo::game::seconds_to_ticks(90):  vehicle_respawn_index = 3; break;
+        case halo::game::seconds_to_ticks(120):  vehicle_respawn_index = 4; break;
+        case halo::game::seconds_to_ticks(180): vehicle_respawn_index = 5; break;
+        case halo::game::seconds_to_ticks(300): vehicle_respawn_index = 6; break;
         default: break;
         }
         if (vehicle_respawn_index >= 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 14);
+                halo::tag_paths::join_game_rules_strings, 14);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicles_respawn",
+                halo::mutable_literal("ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicles_respawn"),
                 (int16_t)vehicle_respawn_index);
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -1188,10 +1193,10 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
     if (options.weapon_set < 0xe) {
         label_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 15);
+            halo::tag_paths::join_game_rules_strings, 15);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
         suffix_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\item_options_edit\\var_weapon_set",
+            halo::mutable_literal("ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\item_options_edit\\var_weapon_set"),
             (int16_t)options.weapon_set);
         wcscat(line, suffix_text);
         line[255] = 0;
@@ -1200,27 +1205,27 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
     if ((options.flags & 0x20) == 0) {
         label_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 16);
+            halo::tag_paths::join_game_rules_strings, 16);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
     } else {
         label_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 17);
+            halo::tag_paths::join_game_rules_strings, 17);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
     }
     halo::networking::ticker_text_buffer_append(line, 0, ticker);
 
     if (options.objective_indicator == 0) {
         label_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 18);
+            halo::tag_paths::join_game_rules_strings, 18);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
     } else {
         if (options.objective_indicator != 1) goto shared_tail;
         label_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 18);
+            halo::tag_paths::join_game_rules_strings, 18);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
     }
     suffix_text = halo::game::unicode_string_list_get_string(
-        (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 19);
+        halo::tag_paths::join_game_rules_strings, 19);
     wcscat(line, suffix_text);
     halo::networking::ticker_text_buffer_append(line, 0, ticker);
 
@@ -1228,17 +1233,17 @@ shared_tail:
     if ((options.flags & 1) != 0) {
         if ((options.flags & 0x40) == 0) {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 21);
+                halo::tag_paths::join_game_rules_strings, 21);
         } else {
             label_text = halo::game::unicode_string_list_get_string(
-                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 22);
+                halo::tag_paths::join_game_rules_strings, 22);
         }
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         halo::networking::ticker_text_buffer_append(line, 0, ticker);
     }
     if ((options.flags & 2) != 0) {
         label_text = halo::game::unicode_string_list_get_string(
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 23);
+            halo::tag_paths::join_game_rules_strings, 23);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         halo::networking::ticker_text_buffer_append(line, 0, ticker);
     }

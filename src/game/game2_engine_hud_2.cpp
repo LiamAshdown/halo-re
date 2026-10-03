@@ -1,4 +1,7 @@
 #include "halo/game/game2_engine_hud.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/game/records.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/networking/api.hpp"
@@ -32,7 +35,7 @@ namespace halo::game {
 /**
  * Renders the postgame carnage report / scoreboard overlay by formatting per-player or per-team score columns.
  */
-void EngineHud::post_game_set_text_color(const uint32_t *color)
+void EngineHud::post_game_set_text_color(const float *color)
 {
     hud_text_draw_color_a = color[0];
     hud_text_draw_color_r = color[1];
@@ -60,11 +63,11 @@ void EngineHud::post_game_set_tab_stops(uint32_t stops_a, uint32_t stops_b, uint
  */
 void EngineHud::post_rasterize_post_game(void)
 {
-    uint32_t color_normal[4] = { 0x3f800000, 0x3eeaeaeb, 0x3f3ababb, 0x3f800000 };
-    uint32_t color_best[4] = { 0x3f800000, 0x3f7ae148, 0x3f75c28f, 0x3f75c28f };
-    uint32_t color_local[4] = { 0x3f800000, 0x3f800000, 0x3f800000, 0 };
-    uint32_t color_team[2][4] = { { 0x3f800000, 0x3f4ccccd, 0x3ecccccd, 0x3ecccccd },
-                                  { 0x3f800000, 0x3ecccccd, 0x3ecccccd, 0x3f4ccccd } };
+    float color_normal[4] = { 1.0f, 0.45882353f, 0.7294118f, 1.0f };
+    float color_best[4] = { 1.0f, 0.98f, 0.96f, 0.96f };
+    float color_local[4] = { 1.0f, 1.0f, 1.0f, 0.0f };
+    float color_team[2][4] = { { 1.0f, 0.8f, 0.4f, 0.4f },
+                                  { 1.0f, 0.4f, 0.4f, 0.8f } };
     const uint32_t tab_a = 0x007d0032u, tab_b = 0x015e00fau, tab_c = 0x01f4019au;
     const uint32_t team_tab_a = 0x00c80032u, team_tab_b = 0x015e012cu, team_tab_c = 0x01f4019au;
     wchar_t line[0x100];
@@ -93,13 +96,13 @@ void EngineHud::post_rasterize_post_game(void)
         ? (GlobalsInterfaceBitmaps *)0
         : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
     hud_globals = (uint8_t *)halo::cache::globals().tag_instances[interface_bitmaps->hud_globals.tag_id.index].data;
-    quad_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(hud_globals + 0x3d4) & 0xffff].data;
+    quad_tag = (uint8_t *)halo::game::tag_data_at(*(uint32_t *)(hud_globals + 0x3d4));
     rect.top = 0;
     rect.left = 0;
     rect.bottom = 0x1e0;
     rect.right = 0x280;
     if (quad_tag != 0 && *(int32_t *)(quad_tag + 0x60) > 0 && *(int32_t *)(quad_tag + 0x64) != 0) {
-        halo::interface::ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, *(int32_t *)(quad_tag + 0x64), 0, 0xffffffffu);
+        halo::interface::ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, *(int32_t *)(quad_tag + 0x64), 0, halo::k_dword_none);
     }
 
     if (game_engine_variant.teams != 0) {
@@ -145,7 +148,7 @@ void EngineHud::post_rasterize_post_game(void)
     row = 8;
     for (i = 0; i < visible_count; i++) {
         datum_index player_handle = visible[i].player;
-        player *p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
+        player *p = halo::game::player_at(player_handle);
         int32_t place_index;
         wchar_t *place_text;
 
@@ -212,7 +215,7 @@ void EngineHud::post_rasterize_post_game(void)
         row = row + 1;
     }
 
-    hud_text_draw_color_a = *(uint32_t *)&game_engine_post_game_fade;
+    hud_text_draw_color_a = game_engine_post_game_fade;
     hud_text_draw_color_r = color_normal[1];
     hud_text_draw_color_g = color_normal[2];
     hud_text_draw_color_b = color_normal[3];

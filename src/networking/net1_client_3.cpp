@@ -1,4 +1,6 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/networking/game_mode.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
@@ -57,13 +59,13 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
     }
 
     iVar6 = *(int32_t *)((uint8_t *)connection + 0xadc);
-    connection[0x76c] = 0xffff;
+    connection[0x76c] = halo::k_word_none;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     *(int32_t *)(iVar6 + 4) = now_ms;
 
-    if (network_game_mode == 2) {
+    if (network_game_mode == halo::networking::k_game_mode_host) {
         *((uint8_t *)connection + 0xec0) = 1;
     } else {
         ok = halo::networking::network_game_scenario_load_request((network_game_session *)((uint8_t *)connection + 0xb14));
@@ -94,12 +96,12 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
         if (-1 < (int8_t)*((uint8_t *)puVar7 + 0xcd3) && sVar9 < 1) {
             puVar2 = (uint32_t *)&halo::game::globals().local_player_globals->local_players[sVar9];
             uVar3 = *puVar2;
-            if (uVar3 != 0xffffffff) {
+            if (uVar3 != halo::k_dword_none) {
                 *(uint16_t *)((uVar3 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)halo::game::globals().player_data + 0x34)) = 0xffff;
                 iVar6 = (int32_t)(uint32_t)halo::game::globals().player_data;
             }
             *puVar2 = uVar8;
-            if (uVar8 != 0xffffffff) {
+            if (uVar8 != halo::k_dword_none) {
                 *(int16_t *)((uVar8 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)halo::game::globals().player_data + 0x34)) = sVar9;
             }
         }
@@ -171,7 +173,7 @@ after_search:
         halo::interface::widget_close_all();
         halo::game::game_engine_init_tick_record_for_mode();
         halo::game::game_engine_reset_all_players();
-        if (network_game_mode == 2 && ((*(uint8_t *)((uint8_t *)network_server + 6) >> 2 & 1) == 0)) {
+        if (network_game_mode == halo::networking::k_game_mode_host && ((*(uint8_t *)((uint8_t *)network_server + 6) >> 2 & 1) == 0)) {
             halo::networking::network_host_full_state_broadcast(network_server);
         }
         if (join_ui_state != 0) {

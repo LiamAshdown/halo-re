@@ -1,4 +1,7 @@
 #include "halo/game/gamerest_updates.hpp"
+#include "halo/core/cstring.hpp"
+#include "halo/networking/game_mode.hpp"
+#include "halo/core/datum.hpp"
 #include <string.h>
 #include <stdint.h>
 #include "halo/memory/api.hpp"
@@ -61,7 +64,7 @@ void UpdateClient::advance_read_cursor(int32_t target_tick, const uint32_t *reco
     if (target_tick > update_client_unknown_ea0) {
         for (tick = update_client_unknown_ea0 + 1; tick < target_tick; tick++) {
             UpdateClient::queue_get_slot(tick);
-            ((struct update_record *)slot)->player_count = 0xffff;
+            ((struct update_record *)slot)->player_count = halo::k_word_none;
         }
         update_client_unknown_ea0 = target_tick;
     }
@@ -172,7 +175,7 @@ uint32_t UpdateClient::update_client_new()
 {
     memset(&update_client_initialized, 0, 0x1843c);
 
-    update_client_queues = halo::memory::data_new(0x28, (char *)"update client queues", 16);
+    update_client_queues = halo::memory::data_new(0x28, halo::mutable_literal("update client queues"), 16);
     if (update_client_queues != 0) {
         memset(update_client_history, 0xff, sizeof(update_client_history));
         update_client_unknown_ea0 = -1;
@@ -273,7 +276,7 @@ uint32_t UpdateClient::queue_apply_tick(player_action *out_actions, client_updat
  */
 update_record * UpdateClient::queue_get_slot(int32_t tick)
 {
-    if (halo::networking::globals().game_mode != 2 && halo::networking::globals().game_mode != 0) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host && halo::networking::globals().game_mode != halo::networking::k_game_mode_local) {
         int32_t slot = update_client_write_cursor & 0x7f;
 
         update_client_write_cursor = update_client_write_cursor + 1;
@@ -375,7 +378,7 @@ uint8_t UpdateServer::update_server_new()
 {
     memset(&update_server_initialized, 0, 0x610c);
 
-    update_server_queues = halo::memory::data_new(0x64, (char *)"update server queues", 16);
+    update_server_queues = halo::memory::data_new(0x64, halo::mutable_literal("update server queues"), 16);
     if (update_server_queues != 0) {
         memset(update_server_history, 0, sizeof(update_server_history));
         if (UpdateClient::update_client_new() != 0) {
@@ -397,7 +400,7 @@ void UpdateServer::queue_create_entry(datum_index requested_handle)
 {
     datum_index handle = halo::memory::datum_new_at_index_with_salt(requested_handle, update_server_queues);
     update_server_queue *entry = (update_server_queue *)
-        ((uint8_t *)update_server_queues->data + ((uint32_t)handle & 0xffff) * sizeof(update_server_queue));
+        ((uint8_t *)update_server_queues->data + ((uint32_t)handle & halo::k_datum_slot_mask) * sizeof(update_server_queue));
     halo::game::player_update_queue_create(&entry->queue);
 }
 
@@ -460,7 +463,7 @@ void UpdateServer::queue_push_history(int16_t machine_index, int32_t tick_count,
     if (player == k_datum_index_none) {
         return;
     }
-    entry = (update_server_queue *)((uint8_t *)update_server_queues->data + (player & 0xffff) * 0x64);
+    entry = (update_server_queue *)((uint8_t *)update_server_queues->data + (player & halo::k_datum_slot_mask) * 0x64);
     q = &entry->queue.queue;
     for (i = 0; i < 8; i++) {
         record[3 + i] = source[i];
@@ -685,7 +688,7 @@ void PlayerNetworkState::apply_remote_vehicle_position_update(object *unit_obj)
 
     if (found == 1) {
         if (unit_obj->parent_object == (datum_index)record.body.parent_or_tag) {
-            object *parent_obj = halo::objects::object_try_and_get((datum_index)record.body.parent_or_tag, 0xffffffff);
+            object *parent_obj = halo::objects::object_try_and_get((datum_index)record.body.parent_or_tag, halo::k_dword_none);
             if (parent_obj != (object *)0) {
                 float dx = record.body.position.x - parent_obj->position.x;
                 float dy = record.body.position.y - parent_obj->position.y;
@@ -747,7 +750,7 @@ void PlayerNetworkState::apply_first_position_update(uint32_t field0)
 {
     object *unit_obj;
 
-    if (halo::networking::globals().game_mode != 1 || plr->local_player_index != -1 || plr->unit == (datum_index)-1) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_client || plr->local_player_index != -1 || plr->unit == (datum_index)-1) {
         return;
     }
 

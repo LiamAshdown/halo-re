@@ -1,4 +1,7 @@
 #include "halo/game/game2_engine_match.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
@@ -93,7 +96,7 @@ void EngineMatch::update_lead_change_state(void **envelope, uint8_t *message)
             uint8_t local_team_byte = color;
             uint8_t *fields_ptr = &local_team_byte;
 
-            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1a, 0, (void **)&fields_ptr, 0, 1, 0);
+            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::team_allegiance), 0, (void **)&fields_ptr, 0, 1, 0);
         }
         halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 1, 3);
     }
