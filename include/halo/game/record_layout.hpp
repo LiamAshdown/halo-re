@@ -15,6 +15,7 @@ static_assert(offsetof(data_array, actual_count) == 0x30);
 static_assert(offsetof(data_array, maximum_count) == 0x20);
 static_assert(offsetof(data_array, size) == 0x22);
 static_assert(offsetof(network_game_session, variant.game_engine_index) == 0x134);
+static_assert(offsetof(network_machine, gcd_user_id) == 0x5c);
 static_assert(offsetof(network_machine, unknown_52) == 0x52);
 static_assert(offsetof(network_machine, unknown_56) == 0x56);
 static_assert(offsetof(network_server_globals, join_finalize_pending) == 0x9f8);

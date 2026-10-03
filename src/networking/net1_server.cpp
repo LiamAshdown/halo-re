@@ -1788,7 +1788,7 @@ uint8_t MachineView::reset_state(const char *response)
         ip = network_local_address;
     }
     return halo::networking::network_session_host_reject_or_cleanup_client(response, (const char *)machine + 0x52, ip,
-        *(int32_t *)((uint8_t *)machine + 0x5c));
+        machine->gcd_user_id);
 }
 
 /**

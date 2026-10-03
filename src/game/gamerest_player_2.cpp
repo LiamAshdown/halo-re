@@ -103,7 +103,7 @@ namespace halo::game {
  */
 void PlayerView::respawn()
 {
-    uint8_t *p = (uint8_t *)halo::game::player_at(player_index);
+    player *p = halo::game::player_at(player_index);
 
     if (current_game_engine == 0 && ((player *)p)->local_player_index != -1) {
         datum_index *slot = (datum_index *)&local_player_globals->local_player_units[((player *)p)->local_player_index];
@@ -176,7 +176,7 @@ void PlayerView::respawn()
         if (unit == 0) {
             goto reset_player_state;
         }
-        p = (uint8_t *)halo::game::player_at(player_index);
+        p = halo::game::player_at(player_index);
         ((unit_object *)unit)->base.owner_linkage = player_index;
         ((unit_object *)unit)->base.owner_team = *(int16_t *)&((player *)p)->team;
         *(uint32_t *)&((unit_object *)unit)->unit.controlling_player = player_index;
@@ -212,7 +212,7 @@ void PlayerView::respawn()
     }
 
 reset_player_state:
-    p = (uint8_t *)halo::game::player_at(player_index);
+    p = halo::game::player_at(player_index);
     *(uint32_t *)(p + 0x68) = 0;
     *(uint16_t *)&((player *)p)->interaction_type = 0;
     ((player *)p)->interaction_object = k_datum_index_none;

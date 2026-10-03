@@ -173,10 +173,10 @@ wchar_t *King::build_team_score_text(int32_t team, wchar_t *buffer)
  */
 int32_t King::get_score(datum_index player, int32_t team_mode)
 {
-    uint8_t *p = (uint8_t *)halo::game::player_at(player);
+    ::player *p = halo::game::player_at(player);
 
     if (team_mode != 0) {
-        return king_bucket_credit_ticks[*(int32_t *)(p + 0x20)];
+        return king_bucket_credit_ticks[p->team];
     }
     return *(int16_t *)(p + 0xc4);
 }
@@ -241,7 +241,7 @@ uint8_t King::initialize_for_new_game(void)
 void King::player_new_life(datum_index player_index)
 {
     if (halo::networking::globals().game_mode == 2 && (current_game_engine == 0 || game_engine_teams_enabled_flag == 0)) {
-        int32_t team = *(int32_t *)((uint8_t *)halo::game::player_at(player_index) + 0x20);
+        int32_t team = halo::game::player_at(player_index)->team;
 
         king_bucket_credit_ticks[team] = 0;
         king_bucket_last_credit_tick[team] = 0;

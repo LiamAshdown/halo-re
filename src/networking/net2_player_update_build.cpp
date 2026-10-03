@@ -145,7 +145,7 @@ int32_t PlayerUpdateBuilder::local_player_vehicle_update(uint8_t *out_changed, p
 
 void PlayerUpdateBuilder::player_full_resync_update(uint32_t player_index)
 {
-    uint8_t *cache;
+    player *cache;
     uint32_t staged12[12];
     uint32_t staged16[16];
     int32_t network_hash;
@@ -156,7 +156,7 @@ void PlayerUpdateBuilder::player_full_resync_update(uint32_t player_index)
     void *previous_ptr;
     int32_t i;
 
-    cache = (uint8_t *)halo::game::player_at(player_index);
+    cache = halo::game::player_at(player_index);
 
     header.update_id = *(uint8_t *)(cache + 0x128);
     header.baseline_id = *(uint8_t *)(cache + 300);
@@ -216,7 +216,7 @@ void PlayerUpdateBuilder::player_full_resync_update(uint32_t player_index)
 void PlayerUpdateBuilder::remote_player_action_update(uint32_t player_index, uint32_t network_key,
     uint8_t update_id_byte, player_action control)
 {
-    uint8_t *cache;
+    player *cache;
     uint32_t network_hash;
     uint8_t staged_update_id;
     uint32_t staged[12];
@@ -234,7 +234,7 @@ void PlayerUpdateBuilder::remote_player_action_update(uint32_t player_index, uin
     player *candidate;
     network_machine *machine;
 
-    cache = (uint8_t *)halo::game::player_at(player_index);
+    cache = halo::game::player_at(player_index);
     staged_update_id = update_id_byte;
 
     if (network_broadcast_event_feed_mode == 0) {
@@ -330,7 +330,7 @@ encode:
 void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, player_action *control,
     int32_t network_key)
 {
-    uint8_t *plr;
+    player *plr;
     uint8_t *cache;
     int32_t update_id;
     object *unit_obj;
@@ -343,13 +343,13 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
     int16_t *machine_id_slot;
     network_machine *machine;
 
-    plr = (uint8_t *)halo::game::player_at(player_index);
-    update_id = *(int32_t *)(plr + 0xf4);
-    cache = plr;
+    plr = halo::game::player_at(player_index);
+    update_id = static_cast<int32_t>(plr->unknown_f4);
+    cache = reinterpret_cast<uint8_t *>(plr);
     encoded_size = 0;
 
     if (-1 < update_id && update_id < 0x40) {
-        unit_obj = halo::objects::object_try_and_get(*(datum_index *)(plr + 0x34), _object_mask_unit);
+        unit_obj = halo::objects::object_try_and_get(plr->unit, _object_mask_unit);
         if (unit_obj != 0) {
             if (unit_obj->parent_object == (datum_index)-1) {
                 now = (uint32_t)halo::game::globals().game_time->game_time;
@@ -366,7 +366,7 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
                 encoded_size = halo::networking::build_remote_player_vehicle_update(cache, 0, is_full, is_full,
                     control, network_key);
             } else {
-                if (halo::game::player_unit_has_parent(*(datum_index *)(plr + 0x34)) != 1) {
+                if (halo::game::player_unit_has_parent(plr->unit) != 1) {
                     goto fallback;
                 }
                 now = (uint32_t)halo::game::globals().game_time->game_time;

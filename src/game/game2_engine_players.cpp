@@ -763,7 +763,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
     uint8_t skip_trigger_check;
     int32_t unknown_result;
 
-    unit_handle = *(datum_index *)((uint8_t *)halo::game::player_at(player_index) + 0x34);
+    unit_handle = halo::game::player_at(player_index)->unit;
     target_obj = halo::objects::object_try_and_get((datum_index)target_object, _object_mask_biped);
     if (target_obj == (object *)0) {
         return;

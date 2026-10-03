@@ -79,7 +79,7 @@ uint8_t SlayerEngine::build_message_text(datum_index recipient, int32_t message_
             return 0;
         }
         place = (const uint16_t *)halo::game::game_engine_get_multiplayer_text_list(halo::game::game_engine_compare_score_to_others(recipient, 1));
-        team = *(int32_t *)((uint8_t *)halo::game::player_at(recipient) + 0x20);
+        team = halo::game::player_at(recipient)->team;
         if (game_engine_teams_enabled_flag != 0) {
             halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb5), place, slayer_player_score[recipient & halo::k_datum_slot_mask],
                 slayer_team_score[team], game_engine_variant.score_limit);
@@ -131,7 +131,7 @@ wchar_t * SlayerEngine::build_team_score_text(int32_t team, wchar_t *buffer)
 int32_t SlayerEngine::get_score(datum_index player, int32_t team_mode)
 {
     if (team_mode == 1) {
-        return slayer_team_score[*(int32_t *)((uint8_t *)halo::game::player_at(player) + 0x20)];
+        return slayer_team_score[halo::game::player_at(player)->team];
     }
     return slayer_player_score[player & halo::k_datum_slot_mask];
 }
@@ -168,7 +168,7 @@ void SlayerEngine::add_score(datum_index player_index, int32_t delta)
     if (halo::networking::globals().game_mode == 1) {
         return;
     }
-    slayer_team_score[*(int32_t *)((uint8_t *)halo::game::player_at(player_index) + 0x20)] += delta;
+    slayer_team_score[halo::game::player_at(player_index)->team] += delta;
     slayer_player_score[player_index & halo::k_datum_slot_mask] += delta;
 }
 
@@ -180,20 +180,20 @@ void SlayerEngine::add_score(datum_index player_index, int32_t delta)
  */
 void SlayerEngine::player_killed(datum_index killer, datum_index death_object, datum_index victim, uint8_t is_suicide)
 {
-    uint8_t *killer_player;
+    player *killer_player;
 
     (void)death_object;
     if (*((uint8_t *)halo::game::player_at(victim) + 0xd5) != 0 || killer == halo::k_dword_none) {
         return;
     }
-    killer_player = (uint8_t *)halo::game::player_at(killer);
+    killer_player = halo::game::player_at(killer);
     if (is_suicide != 0) {
         add_score(killer, -1);
         return;
     }
     halo::game::game_engine_animate_hill_pulse_icons(killer, victim);
     if (game_engine_variant.engine.slayer.kill_in_order != 0 && halo::networking::globals().game_mode == 2) {
-        if (*(datum_index *)(killer_player + 0x88) != victim) {
+        if (static_cast<datum_index>(killer_player->slayer_target) != victim) {
             return;
         }
         halo::game::game_engine_player_select_random_target(killer);
@@ -208,7 +208,7 @@ void SlayerEngine::player_killed(datum_index killer, datum_index death_object, d
  */
 void SlayerEngine::player_new_life(datum_index player_index)
 {
-    uint8_t *player = (uint8_t *)halo::game::player_at(player_index);
+    ::player *player = halo::game::player_at(player_index);
 
     ((struct player *)player)->slayer_target = -1;
     if (halo::networking::globals().game_mode != 2) {
@@ -420,7 +420,7 @@ uint8_t SlayerEngine::unknown_84(int32_t kind)
  */
 void SlayerEngine::update(datum_index player_index)
 {
-    uint8_t *player = (uint8_t *)halo::game::player_at(player_index);
+    ::player *player = halo::game::player_at(player_index);
     datum_index target;
 
     if (game_engine_variant.engine.slayer.kill_penalty != 0 && ((struct player *)player)->speed > 1.0f) {
@@ -437,7 +437,7 @@ void SlayerEngine::update(datum_index player_index)
         memset(custom_waypoints + (int16_t)player_index * 0x20, 0, 0x20);
         target = *(datum_index *)&((struct player *)player)->slayer_target;
         if (target != halo::k_dword_none) {
-            datum_index unit_index = *(datum_index *)((uint8_t *)halo::game::player_at(target) + 0x34);
+            datum_index unit_index = halo::game::player_at(target)->unit;
 
             if (unit_index != halo::k_dword_none) {
                 uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & halo::k_datum_slot_mask) * 12 + 8);

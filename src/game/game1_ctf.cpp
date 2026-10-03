@@ -223,7 +223,7 @@ uint8_t Ctf::build_message_text(datum_index recipient, int32_t message_type, dat
  */
 wchar_t *Ctf::build_player_text(datum_index player, wchar_t *buffer)
 {
-    halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", (int32_t)((::player *)((uint8_t *)halo::game::player_at(player)))->objective_score);
+    halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", (int32_t)halo::game::player_at(player)->objective_score);
     return buffer;
 }
 
@@ -328,12 +328,12 @@ datum_index Ctf::create_flag_object(real_point3d *position, uint16_t name_index)
  */
 int32_t Ctf::get_score(datum_index player, int32_t team_mode)
 {
-    uint8_t *p = (uint8_t *)halo::game::player_at(player);
+    ::player *p = halo::game::player_at(player);
 
     if (team_mode != 0) {
-        return ctf_team_flag_touch_count[*(int32_t *)(p + 0x20)];
+        return ctf_team_flag_touch_count[p->team];
     }
-    return *(int16_t *)(p + 0xc8);
+    return p->objective_score;
 }
 
 /**
@@ -963,7 +963,7 @@ float Ctf::unknown_70(datum_index player_index, real_point3d *position)
     if (game_engine_variant.engine.ctf.assault == 0) {
         return 1.0f;
     }
-    other_team = (((::player *)((uint8_t *)halo::game::player_at(player_index)))->team + 1) % 2;
+    other_team = (halo::game::player_at(player_index)->team + 1) % 2;
     stand = ctf_team_flag_stand_position[other_team];
     dx = stand->x - position->x;
     dy = stand->y - position->y;

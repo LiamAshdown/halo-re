@@ -160,7 +160,7 @@ void Cheats::spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
     if (count <= 0) {
         return;
     }
-    unit = *(datum_index *)((uint8_t *)halo::game::player_at(player_index) + 0x34);
+    unit = halo::game::player_at(player_index)->unit;
     halo::objects::object_get_position(&unit_position, unit);
     halo::objects::object_get_orientation(&unit_forward, unit, &unit_up);
 

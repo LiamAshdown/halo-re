@@ -35,7 +35,7 @@ namespace halo::game {
  */
 uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer_position, real_vector3d *fallback_facing)
 {
-    uint8_t *player = (uint8_t *)halo::game::player_at(player_index);
+    ::player *player = halo::game::player_at(player_index);
     datum_index unit = ((struct player *)player)->unit;
     datum_index target = (datum_index)k_datum_index_none;
     uint32_t aim_unit = halo::units::UnitView(unit).resolve_camera_object();
