@@ -1,6 +1,8 @@
 #include "halo/effects/effects.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/effects/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;

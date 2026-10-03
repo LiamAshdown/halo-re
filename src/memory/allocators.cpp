@@ -5,6 +5,7 @@
 #include "crt.h"
 #include "math.h"
 #include <stdint.h>
+#include "halo/memory/api.hpp"
 
 namespace halo::memory {
 

@@ -4,6 +4,7 @@
  */
 
 #include "halo/math/globals.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern random_seed random_seed_global;

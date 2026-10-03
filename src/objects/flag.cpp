@@ -446,7 +446,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                     target = *vertex;
 
                     halo::physics::point_physics_tick((real_vector3d *)((uint8_t *)vertex + 0x0c)  , mode,
-                        halo::cache::globals().tag_instances[tag->physics.tag_id.index].data, &node_ref,
+                        (PointPhysics *)halo::cache::globals().tag_instances[tag->physics.tag_id.index].data, &node_ref,
                         physics_b, &target, &wind_dir, 0, 0, 0.02f, dt);
 
                     if (col == 0 && column_marker_index[row_cursor] != -1) {

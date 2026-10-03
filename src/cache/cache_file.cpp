@@ -7,6 +7,8 @@
 #include "memory.h"
 #include <string.h>
 #include "halo/cache/globals.hpp"
+#include "halo/cache/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern char map_path_prefix[];

@@ -74,7 +74,7 @@ uint8_t DirectorHandle::build_camera_input(camera_input *input)
     if (!director_camera_switching) {
         return 0;
     }
-    mouse = input_suppressed ? &mouse_neutral_state : &live_mouse_state;
+    mouse = halo::input::globals().suppressed ? &mouse_neutral_state : &live_mouse_state;
     result = (halo::input::input_get_key_state(_input_key_backspace) == 1);
 
     if (director->pov_proc == camera_first_person_compute_pov ||

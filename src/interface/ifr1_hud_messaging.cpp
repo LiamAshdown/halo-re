@@ -404,7 +404,7 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
         }
     }
 
-    halo::sound::sound_start_at_object_marker((datum_index)object_or_slot_index, global_zero_vector3d_pointer, halo::math::globals().global_forward3d_pointer,
+    halo::sound::sound_start_at_object_marker((datum_index)object_or_slot_index, (Point3D *)global_zero_vector3d_pointer, (Vector3D *)halo::math::globals().global_forward3d_pointer,
                  (datum_index)message_index, -1, 1.0f, has_carried_object);
 }
 

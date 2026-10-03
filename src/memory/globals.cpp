@@ -4,6 +4,7 @@
  */
 
 #include "halo/memory/globals.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern crc32_table crc32_lookup_table;

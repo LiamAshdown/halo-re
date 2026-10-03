@@ -110,7 +110,7 @@ void halo::ai::grenade_ops::died_unit_grenade_count_mod(object *unit_object, con
 
         if (min_fraction > 0.0f || max_fraction > 0.0f) {
             halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
-            halo::items::weapon_set_loaded_ammo_fraction(
+            halo::items::weapon_set_loaded_ammo_fraction(weapon_object_index,
                 (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f * (max_fraction - min_fraction) + min_fraction);
         }
 
@@ -123,7 +123,7 @@ void halo::ai::grenade_ops::died_unit_grenade_count_mod(object *unit_object, con
                 halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
 
                 count = (int16_t)((uint32_t)(((int32_t)(int16_t)(max_count + 1) - min_count) * (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10) + min_count;
-                halo::items::weapon_set_ammo_counts(&count);
+                halo::items::weapon_set_ammo_counts(weapon_object_index, &count);
             }
         }
     }

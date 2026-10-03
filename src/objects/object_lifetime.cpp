@@ -5,6 +5,8 @@
 #include "networking.h"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/effects/api.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time);

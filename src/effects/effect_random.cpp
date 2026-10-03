@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern const real_point3d *global_origin3d_pointer;

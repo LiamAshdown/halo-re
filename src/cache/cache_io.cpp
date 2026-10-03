@@ -5,6 +5,7 @@
 #include "win32.h"
 #include "memory.h"
 #include "halo/cache/globals.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 typedef int32_t (*read_file_ex_procedure)(void *file, void *buffer, uint32_t bytes_to_read, cache_io_request *overlapped, void *completion_routine);

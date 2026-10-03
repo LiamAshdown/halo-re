@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern datum_index effect_marker_new(effect *self, int16_t location_index, object_marker *resolved_marker, uint8_t first_person);

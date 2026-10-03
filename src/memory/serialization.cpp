@@ -3,6 +3,7 @@
 
 #include "tags.h"
 #include <string.h>
+#include "halo/memory/api.hpp"
 
 
 namespace halo::memory {

@@ -6,6 +6,7 @@
 #include "tags.h"
 
 #include "halo/cache/globals.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t cache_file_loaded;

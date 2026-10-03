@@ -3,6 +3,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/effects/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern void effect_random_direction_from_table(real_point3d *out);

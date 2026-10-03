@@ -3,6 +3,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/effects/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;

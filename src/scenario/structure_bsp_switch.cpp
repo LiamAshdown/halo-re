@@ -78,7 +78,7 @@ uint8_t structure_bsp_switcher::switch_to(int16_t structure_bsp_index)
 
     tag_index = new_entry->structure_bsp.tag_id.index;
     global_structure_bsp = (ScenarioStructureBSP *)halo::cache::globals().tag_instances[tag_index].data;
-    global_structure_collision_bsp =
+    halo::physics::globals().structure_collision_bsp =
         (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;
     halo::physics::globals().collision_bsp = (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;
     global_scenario_game_globals->structure_bsp_index = structure_bsp_index;

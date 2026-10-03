@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_hud_unit_sounds.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern data_array *game_looping_sound_data;

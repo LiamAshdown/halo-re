@@ -137,8 +137,8 @@ void FirstPersonWeaponController::update()
         }
 
         if (frame_sound != (datum_index)-1 && camera_get_type_for_player(local_player_index) == 0) {
-            fp->frame_sound_index = halo::sound::sound_start_at_object_marker(fp->weapon_index, global_zero_vector3d_pointer,
-                                            halo::math::globals().global_forward3d_pointer, frame_sound, -1, 1.0f,
+            fp->frame_sound_index = halo::sound::sound_start_at_object_marker(fp->weapon_index, (Point3D *)global_zero_vector3d_pointer,
+                                            (Vector3D *)halo::math::globals().global_forward3d_pointer, frame_sound, -1, 1.0f,
                                             local_player_index != -1);
             fp->frame_sound_state = fp->state;
         }

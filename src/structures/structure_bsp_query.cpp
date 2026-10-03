@@ -6,6 +6,7 @@
 
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;

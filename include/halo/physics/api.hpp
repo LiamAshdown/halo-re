@@ -68,6 +68,8 @@ struct Globals {
 
 Globals &globals();
 
+extern "C" float k_physics_gravity;
+
 void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, int32_t collision_surface_index);
 void breakable_surface_damage_in_blast_radius(damage_data *damage);
 void breakable_surface_shatter(uint16_t breakable_surface_index, damage_data *damage, int32_t collision_surface_index);

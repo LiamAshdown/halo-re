@@ -2,6 +2,9 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/effects/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern data_array *particle_data;
@@ -197,8 +200,8 @@ void particle_ref::impact_response_dispatch(particle *self, tag_group fourcc, da
         vectors[0] = self->direction;
         vectors[1] = *global_down3d_pointer;
         halo::math::vector3d_normalize_with_length(vectors[0]);
-        halo::effects::effect_new_with_color(definition_index, 0xffffffff, &velocity, 2, particle_impact_vector_names, points,
-            vectors, intensity, 0.0f, 0, 0, 0);
+        halo::effects::effect_new_with_color(definition_index, 0xffffffff, &velocity, 2, (uint32_t)(uintptr_t)particle_impact_vector_names, points,
+            (uint32_t)(uintptr_t)vectors, intensity, 0.0f, 0, 0, 0);
     } else if (fourcc == 0x736e6421) {
         sound_placement placement;
 

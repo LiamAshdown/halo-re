@@ -376,7 +376,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     parameters.fog = render_fog_state;
 
     halo::structures::structure_bsp_cluster_visibility_update();
-    halo::effects::player_effect_build_screen_flash(&parameters.screen_flash, local_player_index);
+    halo::effects::player_effect_build_screen_flash((uint32_t *)&parameters.screen_flash, local_player_index);
     rasterizer_begin_frame(&parameters);
     first_person_weapon_update_zoom_static_tint(1);
     billboard_system_frame_init();

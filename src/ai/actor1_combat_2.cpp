@@ -99,9 +99,9 @@ int32_t halo::ai::combat_ops::evaluate_engagement_reachability(int16_t self_clus
             b.y = target_position->y - offset.j;
             b.z = target_position->z - offset.k;
             halo::math::point3d_add_scaled(raised, *(real_vector3d *)global_down3d_pointer, *target_position, 0.1f);
-            if (halo::physics::collision_test_movement_segment_between_points(&a, self_position, mask, exclude_object_index, result) ||
-                halo::physics::collision_test_movement_segment_between_points(&b, self_position, mask, exclude_object_index, result) ||
-                halo::physics::collision_test_movement_segment_between_points(&raised, self_position, mask, exclude_object_index, result)) {
+            if (halo::physics::collision_test_movement_segment_between_points(&a, self_position, mask, exclude_object_index, (collision_result *)result) ||
+                halo::physics::collision_test_movement_segment_between_points(&b, self_position, mask, exclude_object_index, (collision_result *)result) ||
+                halo::physics::collision_test_movement_segment_between_points(&raised, self_position, mask, exclude_object_index, (collision_result *)result)) {
                 return 1;
             }
             return 0;

@@ -273,7 +273,7 @@ void halo::objects::AntennaView::update_physics(Antenna *antenna_tag, float dt)
                     new_position = vertex->position;
 
                     halo::physics::point_physics_tick(&vertex->velocity, 0,
-                        halo::cache::globals().tag_instances[antenna_tag->physics.tag_id.index].data,
+                        (PointPhysics *)halo::cache::globals().tag_instances[antenna_tag->physics.tag_id.index].data,
                         &node_ref, 0xffffffff, &new_position, 0, 0, 0, 0.02f, dt);
 
                     {

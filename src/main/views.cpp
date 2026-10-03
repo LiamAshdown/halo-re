@@ -247,7 +247,6 @@ void RenderViews::pregame_view_initialize(void)
 extern "C" { extern game_time_globals *game_time; }
 extern "C" { extern console_globals console_globals_data; }
 extern "C" { extern int16_t camera_get_type_for_player(int16_t local_player_index); }
-extern "C" { extern void player_effect_build_camera_shake_matrix(void *out_shake_matrix, int16_t local_player_index); }
 namespace halo::main {
 
 /**
@@ -290,14 +289,14 @@ void RenderViews::view_camera_fill(observer_camera *observer, render_view *view)
         if (view->local_player_index != -1 && console_globals_data.active == 0 &&
             game_time->paused == 0) {
             if (camera_get_type_for_player(view->local_player_index) != 3) {
-                uint8_t shake_matrix[56];
+                real_matrix4x3 shake_matrix;
                 real_matrix4x3 orientation;
 
-                halo::effects::player_effect_build_camera_shake_matrix(shake_matrix, view->local_player_index);
+                halo::effects::player_effect_build_camera_shake_matrix(&shake_matrix, view->local_player_index);
                 halo::math::matrix4x3_from_forward_up_position((real_vector3d *)&observer->up,
                                                     (real_vector3d *)&observer->forward,
                                                     *(real_point3d *)observer, &orientation);
-                halo::math::matrix4x3_multiply(&orientation, (real_matrix4x3 *)shake_matrix, &orientation);
+                halo::math::matrix4x3_multiply(&orientation, &shake_matrix, &orientation);
                 halo::math::matrix4x3_extract_forward_up_position(camera->up, camera->forward, orientation,
                                                        camera->position);
             }

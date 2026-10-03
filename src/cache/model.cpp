@@ -7,6 +7,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "halo/cache/globals.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern void *rasterizer_device;

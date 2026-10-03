@@ -4,6 +4,7 @@
  */
 
 #include "halo/structures/globals.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern int32_t render_leaf_index;

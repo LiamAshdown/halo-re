@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern void *ai_gc_callback_table;

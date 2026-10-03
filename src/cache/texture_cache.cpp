@@ -7,6 +7,8 @@
 #include "win32.h"
 #include "halo/cache/globals.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/cache/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);

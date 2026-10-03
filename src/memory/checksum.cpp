@@ -2,6 +2,7 @@
 #include "halo/memory/memory.hpp"
 
 #include "tags.h"
+#include "halo/memory/api.hpp"
 
 #define CRC32_POLYNOMIAL 0xedb88320u
 

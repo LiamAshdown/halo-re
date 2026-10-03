@@ -287,7 +287,7 @@ void GameLifecycle::start_new_map(void)
     halo::effects::globals().particle_system_particle_data->valid = 1;
     halo::memory::data_delete_all(halo::effects::globals().particle_system_particle_data);
 
-    if (sound_disabled == 0) {
+    if (halo::sound::globals().disabled == 0) {
         *((uint8_t *)halo::sound::globals().sound_data + 0x24) = 1;
         halo::memory::data_delete_all((data_array *)halo::sound::globals().sound_data);
         *((uint8_t *)halo::sound::globals().looping_sound_data + 0x24) = 1;
@@ -307,9 +307,9 @@ void GameLifecycle::start_new_map(void)
     if (halo::sound::globals().game_looping_sound_data != (data_array *)0) {
         halo::sound::globals().game_looping_sound_data->valid = 1;
         halo::memory::data_delete_all(halo::sound::globals().game_looping_sound_data);
-        game_sound_globals_ptr[1] = 0xffffffff;
-        game_sound_globals_ptr[0] = 0;
-        game_sound_globals_ptr[2] = 0;
+        ((uint32_t *)halo::sound::globals().game_sound_state)[1] = 0xffffffff;
+        ((uint32_t *)halo::sound::globals().game_sound_state)[0] = 0;
+        ((uint32_t *)halo::sound::globals().game_sound_state)[2] = 0;
     }
 
     weather_instances = -1;

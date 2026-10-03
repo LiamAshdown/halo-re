@@ -506,7 +506,7 @@ void UnitView::evaluate_flee_reaction()
         if (UnitView(object_index).test_placement_candidate(global_down3d_pointer, 0, 8.0f, 0) == -1) {
             direction.i = parent->velocity.i * 60.0f;
             direction.j = parent->velocity.j * 60.0f;
-            direction.k = parent->velocity.k * 60.0f - k_physics_gravity * 1800.0f;
+            direction.k = parent->velocity.k * 60.0f - halo::physics::k_physics_gravity * 1800.0f;
             if (!(halo::math::vector3d_normalize_with_length(direction) > 0.0f) ||
                 UnitView(object_index).test_placement_candidate(&direction, &normal, 8.0f, 0) == -1 ||
                 !(normal.k > 0.3f)) {
