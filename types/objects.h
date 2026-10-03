@@ -762,7 +762,8 @@ typedef struct light {
                                     //    object_lights_gather_nearest test it)
     int32_t creation_tick;          // 0x0c seeded from the light frame counter minus 1
     datum_index next_light;         // 0x10 -1 at create
-    uint8_t unknown_14[0x18];       // 0x14
+    ColorRGB color;                 // 0x14 the light colour; object_lights_gather_nearest weights it by luminance
+    uint8_t unknown_20[0x0c];       // 0x20
     datum_index owner_object;       // 0x2c
     real_point3d position;          // 0x30 world-space placement. object_light_recompute_transform
                                     //      writes it from object_marker.node_transform.position

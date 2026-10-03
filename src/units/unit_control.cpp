@@ -617,7 +617,7 @@ void UnitView::reset_orientation_and_find_position(uint32_t vehicle_index)
         *forward = *halo::math::globals().global_forward3d_pointer;
     }
     *(real_vector3d *)&obj->base.up.i = *halo::math::globals().global_up3d_pointer;
-    halo::raw_at<uint32_t>(obj, 0x4cc) |= 1;
+    set_flag(halo::units::biped_data_of(obj)->flags, units::biped_flag::airborne);
     if (!(uint8_t)::halo::units::unit_find_placement_position(object_index, vehicle_index, 0, 2.0f, 1, 0, 1, 0, 0)) {
         unit_object *vehicle = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(vehicle_index));
         real_point3d center = *(real_point3d *)&vehicle->base.bounding_center.x;

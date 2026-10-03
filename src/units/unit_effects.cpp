@@ -277,15 +277,15 @@ void UnitView::update_marker_skid_effects(uint8_t *contact_points)
 {
     uint32_t unit_index = datum_handle;
     object *obj = reinterpret_cast<object *>(halo::objects::object_record_bytes(unit_index));
-    Unit *tag = halo::objects::tag_as<Unit>(*(datum_index *)obj);
+    Vehicle *tag = halo::objects::tag_as<Vehicle>(*(datum_index *)obj);
     Physics *physics_tag;
     int32_t count;
     int16_t i;
 
-    if (halo::raw_at<int32_t>(tag, 0x3dc) == -1) {
+    if ((int32_t)halo::objects::tag_handle(tag->material_effects) == -1) {
         return;
     }
-    physics_tag = halo::objects::tag_as<Physics>(halo::objects::tag_handle(tag->base.physics));
+    physics_tag = halo::objects::tag_as<Physics>(halo::objects::tag_handle(tag->base.base.physics));
     count = physics_tag->mass_points.count;
     for (i = 0; (int32_t)i < count; i++) {
         uint8_t *contact = contact_points + (int32_t)i * 0x130;
@@ -307,7 +307,7 @@ void UnitView::update_marker_skid_effects(uint8_t *contact_points)
             continue;
         }
         scaled = (speed - 0.03f) * 4.5454545f;
-        depth = *(real *)(contact + 0x74) - halo::raw_at<real>(node, 0x68) + 0.003f;
+        depth = *(real *)(contact + 0x74) - node->radius + 0.003f;
         position.x = depth * normal->i + point->x;
         position.y = depth * normal->j + point->y;
         position.z = depth * normal->k + point->z;
@@ -321,7 +321,7 @@ void UnitView::update_marker_skid_effects(uint8_t *contact_points)
             scaled = 1.0f;
         }
         intensity_bits = *(uint32_t *)&scaled;
-        halo::effects::material_effects_play_at_marker(halo::raw_at<uint32_t>(tag, 0x3dc), (int16_t)(9 + (node->flags & 1)),
+        halo::effects::material_effects_play_at_marker(halo::objects::tag_handle(tag->material_effects), (int16_t)(9 + (node->flags & 1)),
             *(int16_t *)(contact + 0x70), (uint32_t *)&obj->location_leaf_index, intensity_bits, &position, &offset);
     }
 }

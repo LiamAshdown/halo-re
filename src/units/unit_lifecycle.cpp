@@ -151,8 +151,8 @@ void UnitView::find_nearest_valid_surface_plane()
     if (best_surface == -1) {
         return;
     }
-    halo::raw_at<int32_t>(obj, 0x4d8) = best_surface;
-    halo::raw_at<real_plane3d>(obj, 0x514) = best_plane;
+    halo::units::biped_data_of(obj)->ground_surface_index = best_surface;
+    *reinterpret_cast<real_plane3d *>(&halo::units::biped_data_of(obj)->ground_normal) = best_plane;
     *(real_vector3d *)&obj->base.up.i = best_plane.normal;
 }
 
@@ -651,7 +651,7 @@ uint32_t UnitView::snap_to_min_ground_height()
     datum_index actor_index;
     uint8_t result = 1;
 
-    if ((halo::raw_at<uint8_t>(obj, 0x4cc) & 1) || halo::raw_at<int16_t>(obj, 0x508) == 1) {
+    if (test_flag(halo::units::biped_data_of(obj)->flags, units::biped_flag::airborne) || halo::units::biped_data_of(obj)->landing_type == 1) {
         return 0;
     }
     jump_speed = *(float *)(halo::objects::tag_record_bytes(*(datum_index *)obj) + 0x3b4);
@@ -684,9 +684,9 @@ uint32_t UnitView::snap_to_min_ground_height()
         }
     }
     *(real_vector3d *)&obj->base.velocity.i = velocity;
-    halo::raw_at<uint32_t>(obj, 0x4cc) |= 1;
-    halo::raw_at<uint8_t>(obj, 0x504) = 0;
-    halo::raw_at<int32_t>(obj, 0x4d8) = -1;
+    set_flag(halo::units::biped_data_of(obj)->flags, units::biped_flag::airborne);
+    halo::units::biped_data_of(obj)->jump_ticks = 0;
+    halo::units::biped_data_of(obj)->ground_surface_index = -1;
     if (!unit_updates_suppressed) {
         UnitView(object_index).fire_animation_sound_trigger(4, 0);
         UnitView(object_index).fire_animation_sound_trigger(4, 1);

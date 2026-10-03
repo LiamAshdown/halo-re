@@ -262,7 +262,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
 
         UnitView(object_index).update_animation_state_machine(request);
     }
-    halo::raw_at<real_point3d>(self, self->base.node_function_values.offset + 0x10) = default_translation;
+    halo::objects::object_block<real_orientation>(self->base, self->base.node_function_values)->translation = default_translation;
     if (self->base.type == 0) {
         UnitView(object_index).reset_orientation_and_find_position(vehicle_index);
     }
@@ -450,7 +450,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
 
         UnitView(object_index).update_animation_state_machine(request);
     }
-    halo::raw_at<real_point3d>(self, self->base.node_function_values.offset + 0x10) = default_translation;
+    halo::objects::object_block<real_orientation>(self->base, self->base.node_function_values)->translation = default_translation;
     if (self->base.type == 0) {
         UnitView(object_index).reset_orientation_and_find_position(vehicle_index);
     }
@@ -1462,7 +1462,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
 
         UnitView(object_index).update_animation_state_machine(request);
     }
-    halo::raw_at<real_point3d>(self, self->base.node_function_values.offset + 0x10) = default_translation;
+    halo::objects::object_block<real_orientation>(self->base, self->base.node_function_values)->translation = default_translation;
     if (self->base.type == 0) {
         UnitView(object_index).reset_orientation_and_find_position(vehicle_index);
     }
@@ -1550,7 +1550,7 @@ int16_t halo::units::unit_seat_candidates_from_zone_and_enter(datum_index vehicl
         object *candidate = reinterpret_cast<object *>(halo::objects::object_record_bytes(candidate_index));
         int16_t i;
 
-        if (!((1u << (halo::raw_at<uint8_t>(candidate, 0xb4) & 0x1f)) & 3) || (test_flag(vehicle->vitality_flags, objects::vitality_flag::health_frozen))) {
+        if (!((1u << ((uint8_t)candidate->type & 0x1f)) & 3) || (test_flag(vehicle->vitality_flags, objects::vitality_flag::health_frozen))) {
             continue;
         }
         for (i = 0; i < seat_count; i++) {
@@ -1564,7 +1564,7 @@ int16_t halo::units::unit_seat_candidates_from_zone_and_enter(datum_index vehicl
                 continue;
             }
             if (candidate->parent_object != k_datum_index_none) {
-                if (halo::raw_at<int16_t>(candidate, 0x2f0) != -1 && halo::networking::globals().game_mode != 1) {
+                if (halo::units::unit_data_of(candidate)->vehicle_seat_index != -1 && halo::networking::globals().game_mode != 1) {
                     unit_object *self = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(candidate_index));
 
                     if (self->base.parent_object != k_datum_index_none && self->unit.vehicle_seat_index != -1) {
@@ -1867,7 +1867,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
 
         UnitView(object_index).update_animation_state_machine(request);
     }
-    halo::raw_at<real_point3d>(self, self->base.node_function_values.offset + 0x10) = default_translation;
+    halo::objects::object_block<real_orientation>(self->base, self->base.node_function_values)->translation = default_translation;
     if (self->base.type == 0) {
         UnitView(object_index).reset_orientation_and_find_position(vehicle_index);
     }

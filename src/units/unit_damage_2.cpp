@@ -1,3 +1,4 @@
+#include "halo/units/records.hpp"
 #include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/units/unit.hpp"
@@ -173,7 +174,7 @@ void UnitView::melee_attack_scan()
                 }
                 dd.random_blend = f;
             }
-            if (obj->base.type == 0 && halo::raw_at<int8_t>(obj, 0x501) > 0x0f) {
+            if (obj->base.type == 0 && halo::units::biped_data_of(obj)->airborne_ticks > 0x0f) {
                 dd.random_blend = 1.5f;
             }
             if (((struct object *)halo::objects::object_record_bytes(best_object))->type == 0) {

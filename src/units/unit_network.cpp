@@ -1,3 +1,4 @@
+#include "halo/units/records.hpp"
 #include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/units/unit.hpp"
@@ -126,45 +127,46 @@ void UnitView::apply_network_health_update(void *message)
         return;
     }
     guard = reinterpret_cast<object *>(halo::objects::object_record_bytes(object_index));
+    biped_data *biped = halo::units::biped_data_of(unit);
     record = (uint8_t *)((void **)message)[0x11];
     reliable = **(int32_t **)message == 1;
     if (test_flag(guard->flags, objects::object_flag::took_network_update) && reliable) {
         int32_t incoming = record[5];
-        int32_t current = halo::raw_at<uint8_t>(unit, 0x528);
+        int32_t current = biped->network_delta_sequence;
 
-        if (record[4] != halo::raw_at<uint8_t>(unit, 0x527) || (incoming <= current && incoming - current + 0xff >= 0x1e)) {
+        if (record[4] != biped->network_update_sequence || (incoming <= current && incoming - current + 0xff >= 0x1e)) {
             halo::networking::message_delta_decode_compound_field_staged((void **)message);
             return;
         }
     }
-    memcpy(&block, reinterpret_cast<uint8_t *>(unit) + 0x52c, sizeof(block));
+    memcpy(&block, &biped->network_grenade_counts, sizeof(block));
     if (reliable) {
-        accepted = halo::networking::message_delta_decode_compound_field_forced((void **)message, &block, (int32_t)(reinterpret_cast<uint8_t *>(unit) + 0x52c), 0);
+        accepted = halo::networking::message_delta_decode_compound_field_forced((void **)message, &block, (int32_t)(uintptr_t)&biped->network_grenade_counts, 0);
     } else {
         accepted = halo::networking::message_delta_decode_compound_field((void **)message, &block);
     }
     if (!accepted) {
         return;
     }
-    halo::raw_at<uint8_t>(unit, 0x528) = record[5];
+    biped->network_delta_sequence = record[5];
     set_flag(unit->base.flags, objects::object_flag::took_network_update);
     if (record[6] != 0) {
-        halo::raw_at<uint8_t>(unit, 0x527) = record[4];
-        memcpy(reinterpret_cast<uint8_t *>(unit) + 0x52c, &block, sizeof(block));
+        biped->network_update_sequence = record[4];
+        memcpy(&biped->network_grenade_counts, &block, sizeof(block));
     }
     shield = block.shield_vitality * 3.0f;
-    halo::raw_at<int16_t>(unit, 0x31e) = (int16_t)block.grenade_counts;
+    *reinterpret_cast<int16_t *>(unit->unit.grenade_counts) = (int16_t)block.grenade_counts;
     *(uint32_t *)&unit->base.body_vitality = block.body_vitality;
     if (record[7] == 1) {
         unit->base.shield_vitality = shield;
     }
-    halo::raw_at<uint32_t>(unit, 0x540) = block.grenade_counts;
-    halo::raw_at<uint32_t>(unit, 0x544) = block.body_vitality;
-    halo::raw_at<real>(unit, 0x548) = shield;
-    halo::raw_at<uint32_t>(unit, 0x54c) = block.shield_stunned;
+    *reinterpret_cast<uint32_t *>(&biped->baseline_grenade_counts) = block.grenade_counts;
+    *reinterpret_cast<uint32_t *>(&biped->baseline_body_vitality) = block.body_vitality;
+    biped->baseline_shield_vitality = shield;
+    *reinterpret_cast<uint32_t *>(&biped->baseline_shield_stunned) = block.shield_stunned;
     unit->base.shield_stun_ticks = (uint8_t)block.shield_stunned == 1;
     unit->unit.network_update_applied = 1;
-    halo::raw_at<uint8_t>(unit, 0x53c) = 1;
+    biped->network_baseline_valid = 1;
 }
 
 /**

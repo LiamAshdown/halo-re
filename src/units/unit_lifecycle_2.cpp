@@ -100,7 +100,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
 
         UnitView(object_index).update_animation_state_machine(request);
     }
-    halo::raw_at<real_point3d>(self, self->base.node_function_values.offset + 0x10) = default_translation;
+    halo::objects::object_block<real_orientation>(self->base, self->base.node_function_values)->translation = default_translation;
     if (self->base.type == 0) {
         UnitView(object_index).reset_orientation_and_find_position(vehicle_index);
     }

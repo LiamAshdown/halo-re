@@ -1,3 +1,4 @@
+#include "halo/units/records.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/game/records.hpp"
 #include "halo/objects/record_access.hpp"
@@ -149,7 +150,7 @@ uint8_t UnitView::update()
                 if (d->unit.controlling_player != k_datum_index_none || ((uint8_t)d->unit.animation_state != animation_state_value(unit_animation_state_id::seat_exit) && (uint8_t)d->unit.animation_state != animation_state_value(unit_animation_state_id::seat_enter))) {
                     obj->unit.control_flags |= d->unit.control_flags & 0x3f;
                     *(real_vector3d *)&obj->unit.desired_facing_vector.i = d->unit.desired_facing_vector;
-                    *(real_point3d *)&obj->unit.throttle.i = halo::raw_at<real_point3d>(d, 0x278);
+                    *(real_point3d *)&obj->unit.throttle.i = *(real_point3d *)&d->unit.throttle.i;
                 }
             }
             if (gunner != k_datum_index_none && !test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen)) {
@@ -407,7 +408,7 @@ uint8_t UnitView::update()
                 if (::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(obj) + k_unit_data_offset)) && !flashing) {
                     control |= 0x10;
                 }
-                if (obj->base.type == 0 && (int8_t)halo::raw_at<uint8_t>(obj, 0x505) > 0) {
+                if (obj->base.type == 0 && (int8_t)halo::units::biped_data_of(obj)->melee_ticks > 0) {
                     control |= 0x10;
                 }
                 if ((uint8_t)obj->unit.zoom_level != 0xff) {

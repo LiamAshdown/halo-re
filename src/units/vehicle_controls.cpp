@@ -131,7 +131,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
 
 /**
  * Evaluates the four ObjectFunctionIn selectors on the Vehicle tag (vehicle_a_in..d_in) against a table of
- * physics-derived control values (speed, turn rate, vertical motion, etc., each normalized to 0..1) and
+ * reinterpret_cast<uint8_t *>(physics)-derived control values (speed, turn rate, vertical motion, etc., each normalized to 0..1) and
  * writes the results into the object's function-output array (object+0x124), used to drive the unit's
  * procedural animation blending. FIXED (register inputs, objdump; one stack argument remains, so no ordering
  * question): the original never reads EAX; unit_index arrive(s) on the stack (1 stack argument(s)).
@@ -309,7 +309,7 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     Physics *physics = halo::objects::tag_as<Physics>(halo::objects::tag_handle(tag->base.base.physics));
     uint8_t *powered = (uint8_t *)out_record;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
-    real mass = halo::raw_at<real>(physics, 0x8);
+    real mass = physics->mass;
     real throttle = ((struct vehicle_object *)obj)->unit.driver_seat_power;
     real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
     real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
@@ -368,7 +368,7 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     halo::math::quaternion_to_axis_angle(rotation, &axis, angle);
 
     k = -angle * tag->turn_rate * 0.31830987f;
-    moment = (halo::raw_at<real>(physics, 0x58) + halo::raw_at<real>(physics, 0x54) + halo::raw_at<real>(physics, 0x50)) * 0.33333334f;
+    moment = (physics->zz_moment + physics->yy_moment + physics->xx_moment) * 0.33333334f;
     torque.i = (axis.i * k - angular_velocity->i) * moment * throttle;
     torque.j = (axis.j * k - angular_velocity->j) * moment * throttle;
     torque.k = (axis.k * k - angular_velocity->k) * moment * throttle;
@@ -448,8 +448,8 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
     }
 
     dot = velocity->i * forward->i + velocity->j * forward->j + velocity->k * forward->k;
-    x_force = (speed - dot) * halo::raw_at<real>(physics, 0x8) * 0.05f;
-    y_force = (real)halo::libm::fabs((double)(dot / max_speed)) * 0.0035651792f * halo::raw_at<real>(physics, 0x8) * 1.05f;
+    x_force = (speed - dot) * physics->mass * 0.05f;
+    y_force = (real)halo::libm::fabs((double)(dot / max_speed)) * 0.0035651792f * physics->mass * 1.05f;
     force.i = object_up->i * y_force + forward->i * x_force;
     force.j = object_up->j * y_force + forward->j * x_force;
     force.k = forward->k * x_force + object_up->k * y_force;
@@ -464,7 +464,7 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
     halo::math::quaternion_to_axis_angle(rotation, &axis, angle);
 
     per_tick = angle * 0.13333334f;
-    torque_scale = halo::raw_at<real>(physics, 0x0) * halo::raw_at<real>(physics, 0x0) * halo::raw_at<real>(physics, 0x8) * 0.05f;
+    torque_scale = physics->radius * physics->radius * physics->mass * 0.05f;
     torque.i = (axis.i * per_tick - angular_velocity->i) * torque_scale;
     torque.j = (axis.j * per_tick - angular_velocity->j) * torque_scale;
     torque.k = (axis.k * per_tick - angular_velocity->k) * torque_scale;
@@ -553,9 +553,9 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
     }
 
     dot = velocity->i * forward->i + velocity->j * forward->j + velocity->k * forward->k;
-    x_force = (speed - dot) * lean_scale * halo::raw_at<real>(physics, 0x8) * 0.05f;
+    x_force = (speed - dot) * lean_scale * physics->mass * 0.05f;
     y_force = ((real)halo::libm::fabs((double)(dot / max_speed)) * 1.05f + ((struct vehicle_object *)obj)->vehicle.ground_lean * 1.3f) *
-        halo::raw_at<real>(physics, 0x8) * 0.0035651792f;
+        physics->mass * 0.0035651792f;
     force.i = object_up->i * y_force + forward->i * x_force;
     force.j = object_up->j * y_force + forward->j * x_force;
     force.k = forward->k * x_force + object_up->k * y_force;
@@ -570,7 +570,7 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
     halo::math::quaternion_to_axis_angle(rotation, &axis, angle);
 
     per_tick = angle * 0.033333335f;
-    torque_scale = halo::raw_at<real>(physics, 0x0) * halo::raw_at<real>(physics, 0x0) * halo::raw_at<real>(physics, 0x8) * 0.05f;
+    torque_scale = physics->radius * physics->radius * physics->mass * 0.05f;
     torque.i = (axis.i * per_tick - angular_velocity->i) * torque_scale;
     torque.j = (axis.j * per_tick - angular_velocity->j) * torque_scale;
     torque.k = (axis.k * per_tick - angular_velocity->k) * torque_scale;
@@ -688,7 +688,7 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
         } else if (!(w <= 0.013962635f)) {
             w = 0.013962635f;
         }
-        w = w * halo::raw_at<real>(physics, 0x50);
+        w = w * physics->xx_moment;
         torque.i = w * forward->i;
         torque.j = w * forward->j;
         torque.k = w * forward->k;
