@@ -301,8 +301,15 @@ inline constexpr uint32_t k_light_spot = 2;
 /** D3DCOLORWRITEENABLE_RED | GREEN | BLUE | ALPHA. */
 inline constexpr uint32_t k_color_write_all = 0xf;
 
-/** D3DUSAGE_SOFTWAREPROCESSING. */
+/** D3DUSAGE_SOFTWAREPROCESSING, D3DUSAGE_WRITEONLY and D3DUSAGE_DYNAMIC. */
 inline constexpr uint32_t k_usage_software_processing = 0x10;
+inline constexpr uint32_t k_usage_write_only = 0x8;
+inline constexpr uint32_t k_usage_dynamic = 0x200;
+
+/** D3DPOOL_DEFAULT, D3DPOOL_MANAGED and D3DPOOL_SYSTEMMEM. */
+inline constexpr uint32_t k_pool_default = 0;
+inline constexpr uint32_t k_pool_managed = 1;
+inline constexpr uint32_t k_pool_system_memory = 2;
 
 /** D3DLOCK_NOOVERWRITE and D3DLOCK_DISCARD. */
 inline constexpr uint32_t k_lock_no_overwrite = 0x1000;

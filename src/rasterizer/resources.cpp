@@ -12,6 +12,33 @@
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/rasterizer/d3dx.hpp"
+#include "halo/core/win32_constants.hpp"
+#include <cstring>
+
+namespace {
+
+/** Value of the force_shader setting that selects the fallback technique instead of a pixel shader version. */
+constexpr uint32_t k_force_shader_fallback = 0x270d;
+
+/** Size of the miscellaneous vertex buffer and of the prefix of it that is cleared on creation. */
+constexpr uint32_t k_misc_vertex_buffer_bytes = 0x10000;
+constexpr uint32_t k_misc_vertex_buffer_cleared_bytes = 0x2000;
+
+/** Size of the MD5 signature (32 hex digits and the terminator) at the end of a shader resource file. */
+constexpr uint32_t k_resource_signature_size = 0x21;
+
+/** Key the shader resource files are encrypted with. */
+constexpr uint32_t k_resource_tea_key[4] = { 0x3fffffdd, 0x7fc3, 0xe5, 0x3fffef };
+
+int32_t read_chunk_size(const uint8_t *cursor)
+{
+    int32_t size;
+
+    std::memcpy(&size, cursor, sizeof(size));
+    return size;
+}
+
+}  // namespace
 
 
 
@@ -36,12 +63,12 @@ void * rasterizer_dx9_create_vertex_buffer(int32_t vertex_type, uint32_t length,
     void *buffer;
     int32_t hr;
 
-    sw_flag = (rasterizer_software_vertex_processing != 0) ? 0x10u : 0u;
-    dynamic_flag = (not_dynamic == 0) ? 0x200u : 0u;
+    sw_flag = (rasterizer_software_vertex_processing != 0) ? halo::d3d9::k_usage_software_processing : 0u;
+    dynamic_flag = (not_dynamic == 0) ? halo::d3d9::k_usage_dynamic : 0u;
     usage = sw_flag | rasterizer_vertex_declarations[vertex_type].usage | dynamic_flag;
 
-    pool = (sw_flag != 0 || (rasterizer_vertex_declarations[vertex_type].usage & 0x10) != 0 ||
-           (rasterizer_vertex_declarations[vertex_type].usage & 0x200) != 0 || dynamic_flag != 0) ? 2u : 1u;
+    pool = (sw_flag != 0 || (rasterizer_vertex_declarations[vertex_type].usage & halo::d3d9::k_usage_software_processing) != 0 ||
+           (rasterizer_vertex_declarations[vertex_type].usage & halo::d3d9::k_usage_dynamic) != 0 || dynamic_flag != 0) ? halo::d3d9::k_pool_system_memory : halo::d3d9::k_pool_managed;
 
     buffer = 0;
     hr = render_device().create_vertex_buffer(length, usage, fvf, pool, &buffer, 0);
@@ -125,8 +152,8 @@ uint8_t rasterizer_dx9_pixel_shaders_load_all(void)
         return 0;
     }
 
-    cursor = (uint8_t *)buffer;
-    end = (uint8_t *)buffer + size;
+    cursor = static_cast<uint8_t *>(buffer);
+    end = cursor + size;
     for (index = 0; index < k_rasterizer_pixel_shader_effects; ) {
         uint8_t *data;
         int32_t chunk_size;
@@ -135,7 +162,7 @@ uint8_t rasterizer_dx9_pixel_shaders_load_all(void)
         if (end < data) {
             break;
         }
-        chunk_size = *(int32_t *)cursor;
+        chunk_size = read_chunk_size(cursor);
         cursor = data + chunk_size;
         if (end < cursor || !rasterizer_dx9_pixel_shader_effect_load(index, data, chunk_size) ||
             !rasterizer_dx9_shaders_init_effect(index)) {
@@ -232,13 +259,13 @@ int32_t rasterizer_dx9_shaders_init_effect(int32_t effect_index)
     technique = 0;
     found = 0;
 
-    if (halo::shell::globals().safe_mode == 0 && halo::shell::globals().force_shader != 0x270d) {
+    if (halo::shell::globals().safe_mode == 0 && halo::shell::globals().force_shader != k_force_shader_fallback) {
         major = (rasterizer_caps.pixel_shader_version >> 8) & 0xff;
         minor = rasterizer_caps.pixel_shader_version & 0xff;
         for (; !found && major >= 0; major--, minor = 9) {
             for (; !found && minor >= 0; minor--) {
                 sprintf(name, "ps_%d_%d", major, minor);
-                technique = (void *)render_device().effect_get_technique_by_name_scoped(effect, 0, name);
+                technique = d3d_handle(render_device().effect_get_technique_by_name_scoped(effect, 0, name));
                 if (technique != 0) {
                     hr = render_device().effect_validate_technique(effect, technique);
                     found = hr >= 0;
@@ -253,7 +280,7 @@ int32_t rasterizer_dx9_shaders_init_effect(int32_t effect_index)
             const char *default_name = (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1)
                                             ? "TDefault_no_ps" : "TDefault_ps";
             sprintf(name, default_name);
-            technique = (void *)render_device().effect_get_technique_by_name_scoped(effect, 0, name);
+            technique = d3d_handle(render_device().effect_get_technique_by_name_scoped(effect, 0, name));
             if (technique == 0) {
                 void *next_technique;
                 hr = render_device().effect_find_next_valid_technique(effect, 0, &next_technique);
@@ -269,7 +296,7 @@ int32_t rasterizer_dx9_shaders_init_effect(int32_t effect_index)
         found = 1;
     } else {
         sprintf(name, "fallback");
-        technique = (void *)render_device().effect_get_technique_by_name_scoped(effect, 0, name);
+        technique = d3d_handle(render_device().effect_get_technique_by_name_scoped(effect, 0, name));
         found = technique != 0;
         if (!found) {
             return 0;
@@ -278,7 +305,7 @@ int32_t rasterizer_dx9_shaders_init_effect(int32_t effect_index)
 
     for (i = 0; i < 4; i++) {
         rasterizer_effects[effect_index].texture_handles[i] =
-            d3d_arg(render_device().effect_get_parameter_by_name(effect, 0, texture_param_names[i])).get();
+            d3d_handle(render_device().effect_get_parameter_by_name(effect, 0, texture_param_names[i]));
     }
     return found;
 }
@@ -368,8 +395,8 @@ uint32_t rasterizer_dx9_vertex_shaders_load_all(void)
         return 0;
     }
 
-    cursor = (uint8_t *)buffer;
-    end = (uint8_t *)buffer + size;
+    cursor = static_cast<uint8_t *>(buffer);
+    end = cursor + size;
 
     for (index = 0; index < k_rasterizer_vertex_shaders; index++) {
         if (rasterizer_vertex_shaders[index].enabled == 0) {
@@ -382,7 +409,7 @@ uint32_t rasterizer_dx9_vertex_shaders_load_all(void)
             if (end < data) {
                 break;
             }
-            chunk_size = *(int32_t *)cursor;
+            chunk_size = read_chunk_size(cursor);
             cursor = data + chunk_size;
             if (end < cursor) {
                 break;
@@ -563,8 +590,8 @@ uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, 
     *out_buffer = nullptr;
     *out_size = 0;
 
-    file = CreateFileA(path, 0x80000000, 0, (LPSECURITY_ATTRIBUTES)nullptr, 3, 0x8000000, nullptr);
-    if (file == (void *)0xffffffff) {
+    file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_none, (LPSECURITY_ATTRIBUTES)nullptr, halo::win32::k_open_existing, halo::win32::k_file_flag_sequential_scan, nullptr);
+    if (file == halo::win32::invalid_handle()) {
         return 0;
     }
 
@@ -580,7 +607,7 @@ uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, 
         int32_t ok = ReadFile(file, buffer, size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)nullptr);
         if (ok != 0) {
             CloseHandle(file);
-            if (rasterizer_resource_file_verify_signature((uint8_t *)buffer, size) == 0) {
+            if (rasterizer_resource_file_verify_signature(static_cast<uint8_t *>(buffer), size) == 0) {
                 GlobalFree(buffer);
                 return 0;
             }
@@ -612,14 +639,12 @@ uint8_t rasterizer_misc_vertex_buffer_create(void)
     int32_t hr;
     void *buffer;
     void *data;
-    uint32_t *cursor;
-    int32_t count;
 
-    sw_flag = (rasterizer_software_vertex_processing != 0) ? 0x10u : 0u;
+    sw_flag = (rasterizer_software_vertex_processing != 0) ? halo::d3d9::k_usage_software_processing : 0u;
     usage = sw_flag | rasterizer_vertex_declarations[16].usage;
 
     buffer = 0;
-    hr = render_device().create_vertex_buffer(0x10000, usage, 0, (usage & 0x210) != 0 ? 2 : 1, &buffer, 0);
+    hr = render_device().create_vertex_buffer(k_misc_vertex_buffer_bytes, usage, 0, (usage & (halo::d3d9::k_usage_dynamic | halo::d3d9::k_usage_software_processing)) != 0 ? halo::d3d9::k_pool_system_memory : halo::d3d9::k_pool_managed, &buffer, 0);
     rasterizer_misc_vertex_buffer = (hr >= 0) ? buffer : 0;
     if (rasterizer_misc_vertex_buffer == 0) {
         return 0;
@@ -627,16 +652,11 @@ uint8_t rasterizer_misc_vertex_buffer_create(void)
 
     data = 0;
     rasterizer_vertex_buffer_lock_state = 2;
-    hr = render_device().buffer_lock(rasterizer_misc_vertex_buffer, 0, 0x10000, &data, 0);
+    hr = render_device().buffer_lock(rasterizer_misc_vertex_buffer, 0, k_misc_vertex_buffer_bytes, &data, 0);
     rasterizer_vertex_buffer_lock_state = 0;
 
     if (hr >= 0 && data != 0) {
-        cursor = (uint32_t *)data;
-        for (count = 0x400; count != 0; count--) {
-            cursor[0] = 0;
-            cursor[1] = 0;
-            cursor += 2;
-        }
+        std::memset(data, 0, k_misc_vertex_buffer_cleared_bytes);
         hr = render_device().buffer_unlock(rasterizer_misc_vertex_buffer);
         if (hr >= 0) {
             return 1;
@@ -725,7 +745,7 @@ void rasterizer_render_target_capture_frame(void)
     if (rasterizer_render_target_capture_requested != 0) {
         rasterizer_vertex_declaration *declaration = &rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen];
 
-        render_device().set_vertex_declaration((void *)declaration->declaration);
+        render_device().set_vertex_declaration(declaration->declaration);
         render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                     declaration->usage) & 0x10);
         render_device().set_vertex_shader(rasterizer_vertex_shaders[35].shader);
@@ -896,7 +916,7 @@ uint8_t rasterizer_render_target_initialize(void)
                 if (target->texture == 0) {
                     halo::shell::shell_display_fatal_error_dialog(0x69, 0x72, 1);
                 }
-                if (render_device().texture_get_surface_level((void *)(uintptr_t)target->texture, 0, &target->surface) < 0) {
+                if (render_device().texture_get_surface_level(target->texture, 0, &target->surface) < 0) {
                     ok = 0;
                 }
             }
@@ -926,7 +946,7 @@ uint8_t rasterizer_render_target_initialize(void)
         }
     }
     if (ok) {
-        if (render_device().create_vertex_buffer(halo::rasterizer::d3dx::fvf_vertex_size(0x144) * 4, 0x208, 0x144, 0, &rasterizer_render_target_vertex_buffer, NULL) < 0) {
+        if (render_device().create_vertex_buffer(halo::rasterizer::d3dx::fvf_vertex_size(halo::d3d9::k_fvf_xyzrhw_diffuse_tex1) * 4, halo::d3d9::k_usage_dynamic | halo::d3d9::k_usage_write_only, halo::d3d9::k_fvf_xyzrhw_diffuse_tex1, halo::d3d9::k_pool_default, &rasterizer_render_target_vertex_buffer, NULL) < 0) {
             return 0;
         }
     }
@@ -1004,23 +1024,20 @@ uint8_t rasterizer_resource_file_verify_signature(uint8_t *buffer, uint32_t size
     int32_t remaining;
     uint8_t matches;
 
-    if (size < 0x22) {
+    if (size < k_resource_signature_size + 1) {
         return (uint8_t)(size & 0xffffff00);
     }
 
     {
-        uint32_t key[4];
-        key[0] = 0x3fffffdd;
-        key[1] = 0x7fc3;
-        key[2] = 0xe5;
-        key[3] = 0x3fffef;
+        uint32_t key[4] = { k_resource_tea_key[0], k_resource_tea_key[1], k_resource_tea_key[2], k_resource_tea_key[3] };
+
         halo::cseries::tea_decrypt_buffer((int32_t)size, buffer, key);
-        halo::cseries::md5_hex_digest(buffer, (int32_t)size - 0x21, reference);
+        halo::cseries::md5_hex_digest(buffer, (int32_t)size - k_resource_signature_size, reference);
     }
 
     matches = 1;
-    remaining = 0x21;
-    tail = (const char *)(buffer - 0x21 + size);
+    remaining = k_resource_signature_size;
+    tail = reinterpret_cast<const char *>(buffer + size - k_resource_signature_size);
     ref = reference;
     do {
         if (remaining == 0) {
@@ -1122,7 +1139,8 @@ uint8_t rasterizer_vertex_buffer_create(rasterizer_vertex_buffer *record, int16_
             }
             record->type = vertex_type;
             record->count = count;
-            *(uint32_t *)&record->unknown_08 = 0;
+            record->unknown_08 = 0;
+            record->unknown_0a = 0;
             record->data = source_data;
             record->hardware_buffer = buffer;
             if (ok) {
@@ -1133,7 +1151,8 @@ uint8_t rasterizer_vertex_buffer_create(rasterizer_vertex_buffer *record, int16_
     record->type = 0;
     record->unknown_02 = 0;
     record->count = 0;
-    *(uint32_t *)&record->unknown_08 = 0;
+    record->unknown_08 = 0;
+            record->unknown_0a = 0;
     record->data = 0;
     record->hardware_buffer = 0;
     return ok;

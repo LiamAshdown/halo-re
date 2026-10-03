@@ -829,7 +829,7 @@ void * rasterizer_shader_technique_for_name(void *effect, const char *name)
     for (; !found && major >= 0; major--, minor = 9) {
         for (; !found && minor >= 0; minor--) {
             sprintf(full_name, "%s_ps_%d_%d", name, major, minor);
-            technique = d3d_arg(render_device().effect_get_technique_by_name(effect, full_name)).get();
+            technique = d3d_handle(render_device().effect_get_technique_by_name(effect, full_name));
             if (technique != 0) {
                 int32_t hr = render_device().effect_validate_technique(effect, technique);
                 found = hr >= 0;

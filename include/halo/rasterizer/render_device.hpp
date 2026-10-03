@@ -33,6 +33,12 @@ private:
     uint32_t bits;
 };
 
+/** The pointer a device call that returns a 32-bit handle (technique, parameter) stands for. */
+inline void *d3d_handle(int32_t value)
+{
+    return d3d_arg(value).get();
+}
+
 /**
  * Backend-neutral rendering device. The rasterizer draws through this interface (device states, draws, render
  * targets, buffers, textures, shader effects and the present call), so a different backend such as OpenGL can

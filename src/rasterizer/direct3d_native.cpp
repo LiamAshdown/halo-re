@@ -17,7 +17,7 @@ namespace halo::rasterizer {
 
 static void *get_param(void *effect, const char *name)
 {
-    return halo::rasterizer::d3d_arg(render_device().effect_get_parameter_by_name(effect, 0, name)).get();
+    return d3d_handle(render_device().effect_get_parameter_by_name(effect, 0, name));
 }
 
 /**
