@@ -29,9 +29,10 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
-extern char level_select_current_path_00719068[0x106];
+extern char level_select_current_path_00719068[halo::interface::k_level_select_path_chars];
 extern level_select_entry level_select_entries[10];
 extern int32_t cached_saved_game_something;
 extern uint8_t level_select_flags_0071916a;

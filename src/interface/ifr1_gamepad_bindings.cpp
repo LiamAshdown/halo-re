@@ -5,16 +5,17 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "input.h"
 
 extern "C" {
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
+extern saved_player_profile saved_item_working_copy;
 extern int32_t controls_assigned_gamepad_count;
 extern controls_gamepad_record controls_assigned_gamepads[4];
 extern controls_gamepad_record controls_available_gamepads[8];
 extern int32_t controls_available_gamepad_count;
 extern int32_t input_device_count;
-extern uint8_t input_devices[];
+extern input_device input_devices[8];
 extern heap *widget_memory_pool;
 }
 
@@ -45,23 +46,23 @@ namespace halo::interface {
  */
 uint8_t GamepadBindings::bindings_restore(void)
 {
-    uint8_t saved_profile[k_saved_player_profile_size];
+    saved_player_profile saved_profile;
     int32_t i;
 
     if ((selected_saved_item & 0xf) != 0) {
         return 0;
     }
-    memcpy(saved_profile, saved_item_working_copy, sizeof(saved_profile));
-    halo::saved_games::control_profile_clear_device_slot_mappings((saved_player_profile *)saved_item_working_copy);
+    saved_profile = saved_item_working_copy;
+    halo::saved_games::control_profile_clear_device_slot_mappings(&saved_item_working_copy);
     for (i = 0; i < 4; i++) {
-        halo::saved_games::control_profile_reset_slot((saved_player_profile *)saved_item_working_copy, i);
+        halo::saved_games::control_profile_reset_slot(&saved_item_working_copy, i);
     }
     for (i = 0; i < controls_assigned_gamepad_count; i++) {
-        if (halo::saved_games::control_profile_find_or_create_gamepad_slot(&controls_assigned_gamepads[i], (saved_player_profile *)saved_item_working_copy) != 0) {
-            halo::saved_games::control_profile_copy_gamepad_bindings_by_key(&controls_assigned_gamepads[i], (saved_player_profile *)saved_item_working_copy, (saved_player_profile *)saved_profile);
+        if (halo::saved_games::control_profile_find_or_create_gamepad_slot(&controls_assigned_gamepads[i], &saved_item_working_copy) != 0) {
+            halo::saved_games::control_profile_copy_gamepad_bindings_by_key(&controls_assigned_gamepads[i], &saved_item_working_copy, &saved_profile);
         }
     }
-    halo::saved_games::control_profile_reestablish_device_slot_mappings((saved_player_profile *)saved_item_working_copy);
+    halo::saved_games::control_profile_reestablish_device_slot_mappings(&saved_item_working_copy);
     return 1;
 }
 
@@ -167,7 +168,7 @@ uint8_t GamepadBindings::list_remove(const controls_gamepad_record *entry, contr
  */
 uint8_t GamepadBindings::lists_load(widget_instance *screen)
 {
-    uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : nullptr;
+    saved_player_profile *profile = (selected_saved_item & 0xf) == 0 ? &saved_item_working_copy : nullptr;
     widget_instance *nodes[17];
     controls_gamepad_record entry;
     uint8_t have_entry = 0;
@@ -186,7 +187,7 @@ uint8_t GamepadBindings::lists_load(widget_instance *screen)
     count = (int16_t)input_device_count;
     for (i = 0; i < count; i++) {
         if ((int16_t)i < input_device_count) {
-            memcpy(&entry, input_devices + (int16_t)i * 0x240, sizeof(entry));
+            memcpy(&entry, &input_devices[(int16_t)i], sizeof(entry));
             have_entry = 1;
         } else if (!have_entry) {
             continue;
@@ -195,7 +196,7 @@ uint8_t GamepadBindings::lists_load(widget_instance *screen)
     }
 
     for (i = 0; i < 4; i++) {
-        const controls_gamepad_record *saved = (const controls_gamepad_record *)(profile + 0x1108) + i;
+        const controls_gamepad_record *saved = &profile->gamepads[i];
 
         if (*(const uint16_t *)saved == 0) {
             continue;

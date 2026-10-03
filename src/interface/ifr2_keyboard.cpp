@@ -41,8 +41,6 @@ extern uint16_t fortune_easter_egg_text[];
 extern uint16_t missing_string_text[];
 }
 
-#define WCTYPE_SPACE 0x0008
-
 namespace halo::interface {
 
 /**
@@ -61,7 +59,7 @@ uint8_t VirtualKeyboard::vk_trim_trailing_whitespace(void)
 {
     int32_t i = wcslen((const wchar_t *)virtual_keyboard.destination) - 1;
     while (i >= 0) {
-        if (iswctype(virtual_keyboard.destination[i], WCTYPE_SPACE) == 0) {
+        if (iswctype(virtual_keyboard.destination[i], _SPACE) == 0) {
             return 1;
         }
         virtual_keyboard.destination[i] = 0;
@@ -191,7 +189,7 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
             halo::text::text_context::measure_string_extents(bounds, &cursor, &highlight, virtual_keyboard.destination);
             highlight.left -= 2;
             highlight.right += 2;
-            halo::interface::ui_draw_screen_quad((int16_t *)bounds, (int16_t *)&highlight, (int32_t)white, 0, 0x7f7f7f7f);
+            halo::interface::ui_draw_screen_quad((int16_t *)bounds, (int16_t *)&highlight, (int32_t)white, 0, halo::interface::k_virtual_keyboard_highlight_color);
         }
     }
 
@@ -402,26 +400,26 @@ finish:
 
         default: {
             uint8_t ch = event.character;
-            uint8_t *font;
-            int32_t *character_map;
+            Font *font;
+            FontCharacterTables *character_map;
             int16_t *glyph;
 
             if (ch < 0x20 || ch == 0xff) {
                 continue;
             }
-            font = halo::interface::tag_data<uint8_t>(virtual_keyboard.small_ui_tag);
-            character_map = *(int32_t **)(font + 0x34) + (ch >> 8) * 3;
-            if (character_map[0] <= 0) {
+            font = halo::interface::tag_data<Font>(virtual_keyboard.small_ui_tag);
+            character_map = halo::interface::reflexive_elements<FontCharacterTables>(font->character_tables) + (ch >> 8);
+            if ((int32_t)character_map->character_table.count <= 0) {
                 goto rejected;
             }
-            glyph = (character_map[0] == 0x100) ? (int16_t *)(uintptr_t)character_map[1] + ch : nullptr;
-            if (*glyph == -1 || *(int32_t *)(font + 0x80) + *glyph * 0x14 == 0 ||
+            glyph = (character_map->character_table.count == 256) ? (int16_t *)halo::interface::reflexive_elements<FontCharacterIndex>(character_map->character_table) + ch : nullptr;
+            if (*glyph == -1 || (int32_t)font->characters.pointer + *glyph * (int32_t)sizeof(FontCharacter) == 0 ||
                 !halo::interface::virtual_keyboard_character_is_legal(virtual_keyboard.validation_mode, ch)) {
                 goto rejected;
             }
             if (virtual_keyboard.validation_mode == 3 &&
                 virtual_keyboard.destination_end == virtual_keyboard.destination &&
-                (ch == 0x20 || (uint32_t)ch == 0xffffffa0u)) {
+                ch == 0x20) {
                 goto rejected;
             }
             if (virtual_keyboard.opened == 1) {
@@ -520,16 +518,16 @@ void VirtualKeyboard::render()
         }
     }
     virtual_keyboard_set_text_state(1);
-    rect.top = 0x19e;
+    rect.top = halo::interface::k_base_screen_height - 66;
     rect.left = 0;
-    rect.bottom = 0x1c2;
-    rect.right = 0x276;
+    rect.bottom = halo::interface::k_base_screen_height - 30;
+    rect.right = halo::interface::k_base_screen_width - 10;
     halo::rasterizer::chimera__draw_16_bit_text(&rect, (int32_t *)&rect, 0, 0, (const int16_t *)prompt);
 
     rect.top = 0x76;
     rect.left = 0x78;
     rect.bottom = 0x8f;
-    rect.right = 0x208;
+    rect.right = 520;
     halo::interface::virtual_keyboard_draw_text(&rect);
 }
 

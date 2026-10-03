@@ -75,13 +75,13 @@ void InterfaceMain::draw_cursor()
         if (bitmap_data != 0) {
             rect.bottom = (int16_t)(ui_cursor_y + 0x20);
             rect.right = (int16_t)(ui_cursor_x + 0x20);
-            halo::interface::ui_draw_screen_quad(nullptr, (int16_t *)&rect, bitmap_data, nullptr, 0xffffffffu);
+            halo::interface::ui_draw_screen_quad(nullptr, (int16_t *)&rect, bitmap_data, nullptr, halo::k_dword_none);
             return;
         }
     }
     rect.bottom = (int16_t)(ui_cursor_y + 0x10);
     rect.right = (int16_t)(ui_cursor_x + 0x10);
-    halo::interface::ui_draw_filled_rectangle(0x80ff0000, &rect);
+    halo::interface::ui_draw_filled_rectangle(halo::interface::k_missing_bitmap_color, &rect);
 }
 
 /**
@@ -93,13 +93,13 @@ void InterfaceMain::draw_cursor()
 void InterfaceMain::globals_allocate()
 {
     int32_t block;
-    int32_t size = 0x1ea0;
+    int32_t size = sizeof(first_person_weapon_interface);
 
     halo::interface::terminal_initialize();
     halo::interface::hud_state_allocate();
 
     block = halo::saved_games::globals().game_state_cursor + (int32_t)halo::saved_games::globals().game_state_base;
-    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x1ea0;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + sizeof(first_person_weapon_interface);
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     first_person_weapon_interfaces = (first_person_weapon_interface *)block;
 }
@@ -157,7 +157,7 @@ void InterfaceMain::update_for_resolution_change(int32_t new_cursor_x, int32_t n
         ui_cursor_x = 0;
     } else {
         ui_cursor_x = halo::interface::k_base_screen_width;
-        if (new_cursor_x < 0x281) {
+        if (new_cursor_x < halo::interface::k_base_screen_width + 1) {
             ui_cursor_x = new_cursor_x;
         }
     }
@@ -167,7 +167,7 @@ void InterfaceMain::update_for_resolution_change(int32_t new_cursor_x, int32_t n
         return;
     }
     ui_cursor_y = halo::interface::k_base_screen_height;
-    if (new_cursor_y < 0x1e1) {
+    if (new_cursor_y < halo::interface::k_base_screen_height + 1) {
         ui_cursor_y = new_cursor_y;
     }
 }
@@ -224,11 +224,11 @@ void InterfaceMain::play_title_music()
  */
 int32_t MapList::find_known_map_index(char *map_path)
 {
-    char local_path[0x103];
+    char local_path[halo::interface::k_map_path_chars];
     char *cursor;
     int32_t index;
 
-    strncpy(local_path, map_path, 0x103);
+    strncpy(local_path, map_path, halo::interface::k_map_path_chars);
     for (cursor = local_path; *cursor != '\0'; cursor++) {
         *cursor = (char)tolower((uint8_t)*cursor);
     }

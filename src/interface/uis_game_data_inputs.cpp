@@ -667,7 +667,7 @@ void UiGameDataInputs::input_4a7660(widget_instance *widget)
  */
 void UiGameDataInputs::input_4a7880(widget_instance *widget)
 {
-    static const uint32_t delays[] = {0, 0x384, 1 * halo::interface::k_ticks_per_minute, 0xa8c, 2 * halo::interface::k_ticks_per_minute, 3 * halo::interface::k_ticks_per_minute, 5 * halo::interface::k_ticks_per_minute};
+    static const uint32_t delays[] = {0, 30 * halo::interface::k_ticks_per_second, 1 * halo::interface::k_ticks_per_minute, 90 * halo::interface::k_ticks_per_second, 2 * halo::interface::k_ticks_per_minute, 3 * halo::interface::k_ticks_per_minute, 5 * halo::interface::k_ticks_per_minute};
     widget_instance *group = widget->first_child;
     int16_t selection = first_list_child(group)->selection_index;
     uint8_t changed = 0;

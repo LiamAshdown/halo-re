@@ -205,13 +205,13 @@ void UiScreens::error_modal_update(void)
             bar.left = 0;
             bar.bottom = 0xf1;
             bar.right = halo::interface::k_base_screen_width;
-            halo::interface::ui_draw_filled_rectangle(0xff000000, &bar);
+            halo::interface::ui_draw_filled_rectangle(halo::interface::k_argb_alpha_opaque, &bar);
             if (player_count_field > 2) {
                 bar.top = (player_count_field == 3) ? 0xf0 : 0;
-                bar.left = 0x13f;
+                bar.left = halo::interface::k_base_screen_width / 2 - 1;
                 bar.bottom = halo::interface::k_base_screen_height;
-                bar.right = 0x141;
-                halo::interface::ui_draw_filled_rectangle(0xff000000, &bar);
+                bar.right = halo::interface::k_base_screen_width / 2 + 1;
+                halo::interface::ui_draw_filled_rectangle(halo::interface::k_argb_alpha_opaque, &bar);
             }
         }
     }

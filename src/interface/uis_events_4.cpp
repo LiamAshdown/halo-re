@@ -36,6 +36,7 @@
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/flags.hpp"
 
 extern "C" {
 extern uint8_t input_event_queue_active;
@@ -572,7 +573,7 @@ uint8_t UiEventHandlers::event_4a33a0(widget_instance *widget, int16_t *event, u
     halo::interface::state::vehicle_options_respawn_time = (uint32_t)time;
     halo::interface::ui_controls_populate_bind_rows(widget, ((struct game_variant *)variant)->red_vehicle_set);
     first = widget->first_child;
-    first_list_child(first)->selection_index = (int16_t)(time == 0x384 ? 1 : time == 1 * halo::interface::k_ticks_per_minute ? 2 : time == 0xa8c ? 3 :
+    first_list_child(first)->selection_index = (int16_t)(time == 30 * halo::interface::k_ticks_per_second ? 1 : time == 1 * halo::interface::k_ticks_per_minute ? 2 : time == 90 * halo::interface::k_ticks_per_second ? 3 :
         time == 2 * halo::interface::k_ticks_per_minute ? 4 : time == 3 * halo::interface::k_ticks_per_minute ? 5 : time == 5 * halo::interface::k_ticks_per_minute ? 6 : 0);
     second = first->next_sibling;
     second_list = first_list_child(second);
@@ -632,7 +633,7 @@ uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, u
     if (header) {
         rows--;
     }
-    fits = (uint8_t)((*(uint8_t *)(definition + 0x150) & 8) != 0 || (int32_t)list->item_count <= rows - 1);
+    fits = (uint8_t)(halo::interface::has_bit(((UIWidgetDefinition *)definition)->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_single_preview_no_scroll) || (int32_t)list->item_count <= rows - 1);
     shown = rows - (fits ? 1 : 3);
     if (shown > (int32_t)list->item_count) {
         shown = list->item_count;

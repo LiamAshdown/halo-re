@@ -67,6 +67,31 @@ inline constexpr uint32_t k_console_echo_box_width = 0x1d6;
 inline constexpr uint32_t k_frame_index_mask = 0x7fff;
 inline constexpr uint32_t k_object_walk_signature = 0x86868686;
 
+/** Character capacity of a level select path and of a map path. */
+inline constexpr int k_level_select_path_chars = 262;
+inline constexpr int k_map_path_chars = 259;
+
+/** Byte sizes of the variant carousel slot table and of the playlist handle table. */
+inline constexpr int k_variant_carousel_bytes = 468;
+inline constexpr int32_t k_playlist_handle_bytes = 400;
+
+/** Bit of a game variant's flags word that marks a built-in default variant. */
+inline constexpr uint32_t k_variant_default_bit = 0x100;
+
+/** Fill colour of the cursor and the network wait indicator when their bitmap is missing. */
+inline constexpr uint32_t k_missing_bitmap_color = 0x80ff0000;
+
+/** Highlight colour of the virtual keyboard text selection. */
+inline constexpr uint32_t k_virtual_keyboard_highlight_color = 0x7f7f7f7f;
+
+/** Byte size of the widget system heap arena. */
+inline constexpr int32_t k_widget_heap_bytes = 131072;
+
+/** The registry root key HKEY_LOCAL_MACHINE, the access mask opening a key read-only in the 32 bit view, and the GetExitCodeThread value of a running thread. */
+inline constexpr uint32_t k_hkey_local_machine = 0x80000002;
+inline constexpr uint32_t k_key_read_32bit_view = 0x20019;
+inline constexpr uint32_t k_still_active = 0x103;
+
 /** Alpha byte of a fully opaque packed ARGB colour. */
 inline constexpr uint32_t k_argb_alpha_opaque = 0xff000000;
 

@@ -24,6 +24,7 @@ extern "C" input_event_queue input_event_queue_active;
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/constants.hpp"
 
 #ifdef interface
 #undef interface
@@ -70,10 +71,7 @@ extern uint8_t product_id_read;
 extern uint32_t cached_product_id;
 }
 
-#define HKEY_LOCAL_MACHINE ((HKEY)0x80000002)
-#define KEY_QUERY_VALUE 0x0001
-#define KEY_WOW64_32KEY 0x0200
-#define KEY_READ_32 0x00020019
+#define HKEY_LOCAL_MACHINE ((HKEY)(uintptr_t)halo::interface::k_hkey_local_machine)
 
 namespace halo::interface {
 
@@ -89,7 +87,7 @@ void InterfaceMain::handle_quit_request()
 {
     if (ui_force_quit != 0) {
         halo::shell::keystone_library_unload();
-        ExitProcess(0xffffec7a);
+        ExitProcess((uint32_t)-4998);
     }
     if (ui_split_screen == 0) {
         if (halo::networking::globals().join_error_code == -1) {
@@ -134,7 +132,7 @@ void InterfaceMain::tick()
         int32_t got_exit_code = GetExitCodeThread(loading_thread->handle, (LPDWORD)&exit_code);
 
         root = ui_root_widget[0];
-        if (got_exit_code != 0 && exit_code != 0x103  ) {
+        if (got_exit_code != 0 && exit_code != halo::interface::k_still_active) {
             CloseHandle(loading_thread->handle);
             loading_thread->handle = nullptr;
             loading_thread->unknown_04 = 0;
@@ -407,7 +405,7 @@ void * InterfaceMain::registry_get_product_id()
         size = 0x20;
         product_id_read = 1;
         status = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
-                                KEY_READ_32, (PHKEY)&key);
+                                halo::interface::k_key_read_32bit_view, (PHKEY)&key);
         if (status == 0) {
             status = RegQueryValueExA(key, "PID", 0, 0, (uint8_t *)&cached_product_id, &size);
             if (status != 0) {

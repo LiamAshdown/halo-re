@@ -25,7 +25,7 @@ extern const uint16_t hud_text_unbound[];
 extern uint32_t wcslen_halo(const uint16_t *text);
 extern uint8_t controls_menu_list_mode;
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
+extern saved_player_profile saved_item_working_copy;
 extern uint8_t control_keyboard_scan_table[0xda];
 extern uint32_t control_mouse_button_scan_table[7];
 extern uint32_t input_default_profile_guid[4];
@@ -157,7 +157,7 @@ uint8_t ControlsBindings::apply_preset(widget_instance *widget)
             }
             selection -= 2;
             if (selection >= 0 && selection <= 4) {
-                result = halo::saved_games::control_profile_finalize_slot((saved_player_profile *)saved_item_working_copy, selection);
+                result = halo::saved_games::control_profile_finalize_slot(&saved_item_working_copy, selection);
                 halo::interface::widget_play_sound_effect(2);
                 return result;
             }
@@ -170,8 +170,8 @@ uint8_t ControlsBindings::apply_preset(widget_instance *widget)
                 memcpy(control_keyboard_scan_table, ((struct saved_player_profile *)profile)->keyboard_bindings, 0xda);
                 memcpy(control_mouse_button_scan_table, ((struct saved_player_profile *)profile)->mouse_button_bindings, sizeof(control_mouse_button_scan_table));
             } else {
-                halo::saved_games::control_profile_reset_digital_bindings((saved_player_profile *)saved_item_working_copy);
-                halo::saved_games::control_profile_reset_analog_bindings((saved_player_profile *)saved_item_working_copy);
+                halo::saved_games::control_profile_reset_digital_bindings(&saved_item_working_copy);
+                halo::saved_games::control_profile_reset_analog_bindings(&saved_item_working_copy);
             }
             result = 1;
         }
@@ -202,15 +202,15 @@ uint8_t ControlsBindings::binding_clear(int32_t action_index, int32_t device)
         return 0;
     }
     if (device >= 2 && (entry[0x14] & 4) != 0) {
-        uint8_t *profile = (selected_saved_item & 0xf) != 0 ? nullptr : saved_item_working_copy;
+        saved_player_profile *profile = (selected_saved_item & 0xf) != 0 ? nullptr : &saved_item_working_copy;
         int16_t gamepad = record[1];
         int16_t control = record[3];
 
-        if (*(int16_t *)(profile + 0x32c + gamepad * 4) == control) {
-            *(int16_t *)(profile + 0x32c + gamepad * 4) = -1;
+        if (profile->gamepad_action_buttons[gamepad][1] == control) {
+            profile->gamepad_action_buttons[gamepad][1] = -1;
         }
-        if (*(int16_t *)(profile + 0x32a + gamepad * 4) == control) {
-            *(int16_t *)(profile + 0x32a + gamepad * 4) = -1;
+        if (profile->gamepad_action_buttons[gamepad][0] == control) {
+            profile->gamepad_action_buttons[gamepad][0] = -1;
         }
         return 1;
     }
@@ -514,15 +514,12 @@ void ControlsBindings::binding_rows_toggle_device_mode(widget_instance *widget, 
  */
 void ControlsBindings::build_device_label_table(void)
 {
-    uint8_t *profile = ((selected_saved_item & 0xf) != 0) ? nullptr : saved_item_working_copy;
+    saved_player_profile *profile = ((selected_saved_item & 0xf) != 0) ? nullptr : &saved_item_working_copy;
     datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
     int i;
     const uint16_t *tag_supplied_label = (const uint16_t *)L"<missing string>";
 
-    {
-        int32_t *clear = (int32_t *)controls_device_labels;
-        for (i = 0; i < 0x840; i++) clear[i] = 0;
-    }
+    memset(controls_device_labels, 0, sizeof(controls_device_labels));
     controls_device_label_count = 0;
 
     if (tag_id != (datum_index)-1) {
@@ -541,16 +538,10 @@ void ControlsBindings::build_device_label_table(void)
     halo::interface::controls_device_label_add(tag_supplied_label, 0);
 
     for (i = 0; i < 4; i++) {
-        uint16_t *entry = (uint16_t *)(profile + 0x1108 + i * 0x220);
-        if (profile != 0 && *entry != 0) {
-            uint32_t local[0x88];
-            int j;
-            uint16_t *src = entry;
-            for (j = 0; j < 0x88; j++) {
-                local[j] = *(uint32_t *)src;
-                src += 2;
-            }
-            halo::interface::controls_device_label_add((const uint16_t *)local, i + 2);
+        if (profile != 0 && profile->gamepads[i].name[0] != 0) {
+            controls_gamepad_record local = profile->gamepads[i];
+
+            halo::interface::controls_device_label_add(local.name, i + 2);
         }
     }
 }
@@ -566,8 +557,8 @@ void ControlsBindings::device_label_add(const uint16_t *name, int32_t device_typ
     int i;
     for (i = 0; i < 0x10; i++) {
         if (controls_device_labels[i].name[0] == 0) {
-            wcsncpy((wchar_t *)controls_device_labels[i].name, (const wchar_t *)name, 0x104);
-            controls_device_labels[i].name[0x104] = 0;
+            wcsncpy((wchar_t *)controls_device_labels[i].name, (const wchar_t *)name, sizeof(controls_device_labels[i].name) / sizeof(controls_device_labels[i].name[0]) - 1);
+            controls_device_labels[i].name[sizeof(controls_device_labels[i].name) / sizeof(controls_device_labels[i].name[0]) - 1] = 0;
             controls_device_labels[i].device_type = device_type;
             controls_device_label_count++;
             return;

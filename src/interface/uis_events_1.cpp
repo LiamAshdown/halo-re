@@ -46,13 +46,13 @@ extern void game_engine_apply_current_custom_variant(void);
 extern void game_engine_sync_variant_defaults(void);
 extern int32_t selected_saved_item;
 extern void main_menu_play_title_music(void);
-extern uint8_t *map_list;
+extern map_list_entry *map_list;
 extern int32_t map_list_count;
 extern growable_array ui_lists[3];
 extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
 extern int32_t profile_slot_lookup_cache_00692ac8;
-extern uint8_t variant_carousel_slots[0x1d4];
+extern uint8_t variant_carousel_slots[halo::interface::k_variant_carousel_bytes];
 extern heap *widget_memory_pool;
 extern uint8_t playlist_profiles_need_defaults;
 extern int16_t quit_confirm_error_string_index;
@@ -398,7 +398,7 @@ uint8_t UiEventHandlers::event_49d5d0(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     int32_t count = map_list_count;
-    char last_map[0x104];
+    char last_map[halo::interface::k_level_select_path_chars];
     uint16_t name[halo::interface::k_text_buffer_chars];
     int32_t i;
 
@@ -407,7 +407,7 @@ uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, u
     if (halo::saved_games::saved_game_last_mp_map_read((uint8_t *)last_map) != 0) {
         widget->selection_index = 0;
         if (count > 0) {
-            while (_stricmp(last_map, *(char **)(map_list + widget->selection_index * 0xc)) != 0) {
+            while (_stricmp(last_map, map_list[widget->selection_index].path) != 0) {
                 widget->selection_index++;
                 if (widget->selection_index >= count) {
                     break;
@@ -431,7 +431,7 @@ uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, u
         uint8_t is_default;
         uint32_t index;
 
-        halo::interface::map_list_get_friendly_level_name((wchar_t *)name, *(char **)(map_list + i * 0xc), 0x100);
+        halo::interface::map_list_get_friendly_level_name((wchar_t *)name, map_list[i].path, halo::interface::k_text_buffer_chars);
         is_default = (uint8_t)(i == widget->selection_index);
         index = halo::memory::growable_array_add_element(&ui_lists[0]);
         if (index != halo::k_dword_none) {
@@ -483,7 +483,7 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
 
     profile_slot_lookup_cache_00692ac8 = -1;
     memset(variant_carousel_slots, 0xff, sizeof(variant_carousel_slots));
-    handles = (int32_t *)halo::memory::heap_reallocate(widget->list_items, 0x190, widget_memory_pool);
+    handles = (int32_t *)halo::memory::heap_reallocate(widget->list_items, halo::interface::k_playlist_handle_bytes, widget_memory_pool);
     widget->list_items = handles;
     if (handles != 0) {
         if (playlist_profiles_need_defaults == 1) {
@@ -524,7 +524,7 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
                 if (grouped) {
                     uint32_t flags = variant[0x38 / 4];
 
-                    group = (flags & 0x100) != 0 ? 0 : (flags & 0x80) != 0 ? 1 : 2;
+                    group = (flags & halo::interface::k_variant_default_bit) != 0 ? 0 : (flags & 0x80) != 0 ? 1 : 2;
                 }
                 halo::interface::ui_list_add_entry(group, (const uint16_t *)variant, i, variant, 0x98, (uint8_t)(last == handles[i]));
             }

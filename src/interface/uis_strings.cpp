@@ -18,7 +18,6 @@
 #include "halo/memory/api.hpp"
 #include "halo/interface/api.hpp"
 
-#define WCTYPE_SPACE 0x0008
 
 extern "C" {
 extern long lrintf(float x);
@@ -242,7 +241,7 @@ uint8_t UiStrings::wide_string_has_non_whitespace(const uint16_t *text)
 {
     uint16_t ch = *text;
     while (ch != 0) {
-        if (!iswctype(ch, WCTYPE_SPACE)) {
+        if (!iswctype(ch, _SPACE)) {
             return 1;
         }
         text = text + 1;

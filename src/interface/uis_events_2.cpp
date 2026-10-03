@@ -533,7 +533,7 @@ uint8_t UiEventHandlers::event_49f610(widget_instance *widget, int16_t *event, u
     if (variant == 0) {
         return 0;
     }
-    text = (uint16_t *)halo::memory::heap_reallocate(widget->text, 0x100, widget_memory_pool);
+    text = (uint16_t *)halo::memory::heap_reallocate(widget->text, halo::interface::k_name_text_bytes, widget_memory_pool);
     widget->text = text;
     if (text != 0) {
         wcsncpy((wchar_t *)text, (const wchar_t *)variant, 0x7f);

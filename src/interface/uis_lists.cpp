@@ -614,9 +614,9 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
         int16_t script_index = halo::hs::hs_script_find_by_name(handler->script.string);
 
         if (script_index != -1) {
-            uint8_t *scripts = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x4a0);
+            ScenarioScript *scripts = halo::interface::reflexive_elements<ScenarioScript>(halo::scenario::globals().scenario->scripts);
 
-            halo::hs::hs_evaluate_expression(*(int32_t *)(scripts + (int32_t)script_index * 0x5c + 0x24));
+            halo::hs::hs_evaluate_expression(scripts[script_index].root_expression_index);
         }
     }
 
