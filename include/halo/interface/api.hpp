@@ -249,7 +249,7 @@ void hud_waypoints_update(void);
 void hud_waypoints_update_for_player(int16_t local_player_index);
 void hud_weapon_crosshairs_draw(datum_index hud_tag, const player *p, const weapon_hud_ammo_state *ammo);
 void hud_weapon_interface_draw_elements(datum_index hud_tag, int16_t local_player_index, const Weapon *weapon_tag, const weapon_hud_ammo_state *ammo, const uint16_t *parent_state_flags, const uint16_t *parent_overlay_types, const int16_t *parent_numbers);
-void hud_weapon_interface_meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index, int32_t weapon_or_vehicle_index, void *state_ptr);
+void hud_weapon_interface_meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index, int32_t weapon_or_vehicle_index, const weapon_hud_ammo_state *state_ptr);
 void hud_weapon_interface_state_update(void);
 void interface_draw_cursor(void);
 void interface_globals_allocate(void);

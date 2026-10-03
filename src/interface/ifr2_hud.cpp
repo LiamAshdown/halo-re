@@ -676,15 +676,14 @@ void WeaponHud::draw_elements(datum_index hud_tag, int16_t local_player_index, c
  *
  * @address 0x4b1970
  */
-void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index, int32_t weapon_or_vehicle_index, void *state_ptr)
+void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index, int32_t weapon_or_vehicle_index, const weapon_hud_ammo_state *state)
 {
-    uint8_t *player_record;
-    uint8_t *tag_data;
-    uint8_t *chain[17];
+    player *player_record;
+    WeaponHUDInterface *tag_data;
+    WeaponHUDInterface *chain[17];
     uint32_t present_mask;
     int16_t gather_index;
     int32_t *out_array;
-    uint8_t *state = (uint8_t *)state_ptr;
     datum_index player_index;
     unit_data *unit;
 
@@ -693,26 +692,26 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
     } else {
         player_index = halo::game::globals().local_player_globals->local_players[local_player_index];
     }
-    player_record = (uint8_t *)halo::game::globals().player_data->data + ((uint32_t)player_index & halo::k_slot_mask) * halo::interface::k_player_record_size;
-    chain[0] = player_record;
+    player_record = halo::interface::player_record(player_index);
+    chain[0] = nullptr;
 
-    if (halo::objects::object_try_and_get(((struct player *)player_record)->unit, 3) == 0) {
+    if (halo::objects::object_try_and_get(player_record->unit, 3) == 0) {
         return;
     }
     {
-        datum_index unit_idx = ((struct player *)player_record)->unit;
+        datum_index unit_idx = player_record->unit;
         object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_idx & halo::k_slot_mask].data;
         unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
     }
 
-    out_array = hud_weapon_state->meters[((struct player *)player_record)->local_player_index].values;
-    tag_data = halo::interface::tag_data<uint8_t>(hud_interface_tag_id);
+    out_array = hud_weapon_state->meters[player_record->local_player_index].values;
+    tag_data = halo::interface::tag_data<WeaponHUDInterface>(hud_interface_tag_id);
     chain[1] = tag_data;
     {
         int i;
         for (i = 2; i < 17; i++) chain[i] = 0;
     }
-    present_mask = *(uint32_t *)(tag_data + 0x9c);
+    present_mask = tag_data->crosshair_types;
 
     if (weapon_or_vehicle_index != (int32_t)hud_weapon_state->players[local_player_index].weapon
         && weapon_or_vehicle_index == -1) {
@@ -722,11 +721,11 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
 
     gather_index = 1;
     do {
-        int32_t next = *(int32_t *)(chain[gather_index] + 0xc);
-        uint8_t *resolved;
+        int32_t next = *(int32_t *)&chain[gather_index]->child_hud.tag_id;
+        WeaponHUDInterface *resolved;
         if (next == -1) break;
-        resolved = halo::interface::tag_data<uint8_t>(next);
-        present_mask |= *(uint32_t *)(resolved + 0x9c);
+        resolved = halo::interface::tag_data<WeaponHUDInterface>(next);
+        present_mask |= resolved->crosshair_types;
         gather_index++;
         chain[gather_index] = resolved;
     } while (gather_index < 0x10);
@@ -735,9 +734,8 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
         int16_t case_index;
         uint32_t bit;
         int32_t result_accum = 0;
-        uint8_t *edx = tag_data;
-        int32_t *game_time = (int32_t *)halo::game::globals().game_time;
-
+        const WeaponHUDInterface *edx = tag_data;
+        
         for (case_index = 0; case_index < 0x13; case_index++) {
             int32_t value;
             uint8_t active;
@@ -750,19 +748,19 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
             switch (case_index) {
             case 0:
                 active = weapon_or_vehicle_index != -1 &&
-                         halo::game::globals().player_control->local_players[((struct player *)player_record)->local_player_index].nameplate_weight == 1.0f;
+                         halo::game::globals().player_control->local_players[player_record->local_player_index].nameplate_weight == 1.0f;
                 value = active;
                 break;
-            case 16: value = state[0xd];  goto shared_byte_test;
-            case 7:  value = state[0xc];  goto shared_byte_test;
-            case 17: value = state[0x17]; goto shared_byte_test;
+            case 16: value = state->magazines[0].idle;  goto shared_byte_test;
+            case 7:  value = state->magazines[0].reloading;  goto shared_byte_test;
+            case 17: value = state->magazines[1].idle; goto shared_byte_test;
             shared_byte_test:
 
                 active = (value != 0 || case_index == 0) ? 1 : 0;
                 break;
 
             case 1: {
-                int16_t lp = ((struct player *)player_record)->local_player_index;
+                int16_t lp = player_record->local_player_index;
                 int32_t r1 = halo::game::local_player_get_zoom_level(lp);
                 if ((int16_t)r1 == -1) {
                     edx = tag_data;
@@ -782,9 +780,9 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
                 break;
 
             case 3:
-                if (*(int16_t *)(state + 0x12) == 0) {
+                if (state->magazines[0].rounds_unloaded == 0) {
                     active = 0; value = 0;
-                } else if ((int16_t)*(int16_t *)(state + 0xe) > *(int16_t *)(edx + 0x16)) {
+                } else if ((int16_t)state->magazines[0].rounds_loaded > edx->loaded_ammo_cutoff) {
                     active = 0; value = 0;
                 } else {
                     active = 1; value = 1;
@@ -792,25 +790,25 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
                 break;
 
             case 4: {
-                float lhs = *(float *)state * 100.0f;
-                int32_t rhs = *(int16_t *)(edx + 0x18);
+                float lhs = state->heat * 100.0f;
+                int32_t rhs = edx->heat_cutoff;
                 if (!(lhs >= (float)rhs)) { active = 0; value = 0; }
                 else { active = 1; value = 1; }
                 break;
             }
 
             case 5:
-                if ((int16_t)*(int16_t *)(state + 0x12) > *(int16_t *)(edx + 0x14)) { active = 0; value = 0; }
-                else if (*(uint8_t *)(state + 0xc) != 0) { active = 0; value = 0; }
+                if ((int16_t)state->magazines[0].rounds_unloaded > edx->total_ammo_cutoff) { active = 0; value = 0; }
+                else if (state->magazines[0].reloading != 0) { active = 0; value = 0; }
                 else { active = 1; value = 1; }
                 break;
 
             case 6: {
-                float s4 = *(float *)(state + 4);
+                float s4 = state->age;
                 if (!(s4 < 1.0f)) { active = 0; value = 0; }
                 else {
                     float lhs = (1.0f - s4) * 100.0f;
-                    int32_t rhs = *(int16_t *)(edx + 0x1a);
+                    int32_t rhs = edx->age_cutoff;
 
                     if ((float)rhs < lhs) { active = 0; value = 0; }
                     else { active = 1; value = 1; }
@@ -819,7 +817,7 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
             }
 
             case 8:
-                if (*(int16_t *)(state + 0xe) == 0 && *(int16_t *)(state + 0x12) == 0 &&
+                if (state->magazines[0].rounds_loaded == 0 && state->magazines[0].rounds_unloaded == 0 &&
                     (unit->control_flags & _unit_control_flag_primary_trigger) != 0) {
                     active = 1; value = 1;
                 } else if (out_array[case_index] != -1) {
@@ -844,15 +842,15 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
             }
 
             case 10:
-                if (*(int16_t *)(state + 0x12) != 0) { active = 0; value = 0; }
-                else if (*(int16_t *)(state + 0xe) == 0) { active = 0; value = 0; }
-                else if ((int16_t)*(int16_t *)(state + 0xe) > *(int16_t *)(edx + 0x16)) { active = 0; value = 0; }
+                if (state->magazines[0].rounds_unloaded != 0) { active = 0; value = 0; }
+                else if (state->magazines[0].rounds_loaded == 0) { active = 0; value = 0; }
+                else if ((int16_t)state->magazines[0].rounds_loaded > edx->loaded_ammo_cutoff) { active = 0; value = 0; }
                 else { active = 1; value = 1; }
                 break;
 
             case 11:
-                if (*(int16_t *)(state + 0x1c) != 0) {
-                    if ((int16_t)*(int16_t *)(state + 0x18) > *(int16_t *)(edx + 0x16)) { active = 0; value = 0; }
+                if (state->magazines[1].rounds_unloaded != 0) {
+                    if ((int16_t)state->magazines[1].rounds_loaded > edx->loaded_ammo_cutoff) { active = 0; value = 0; }
                     else { active = 1; value = 1; }
                 } else {
                     active = 0; value = 0;
@@ -860,17 +858,17 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
                 break;
 
             case 12:
-                if ((int16_t)*(int16_t *)(state + 0x1c) > *(int16_t *)(edx + 0x14)) { active = 0; value = 0; }
-                else if (*(uint8_t *)(state + 0x16) != 0) { active = 0; value = 0; }
+                if ((int16_t)state->magazines[1].rounds_unloaded > edx->total_ammo_cutoff) { active = 0; value = 0; }
+                else if (state->magazines[1].reloading != 0) { active = 0; value = 0; }
                 else { active = 1; value = 1; }
                 break;
 
             case 13:
-                value = *(uint8_t *)(state + 0x16);
+                value = state->magazines[1].reloading;
                 goto shared_byte_test;
 
             case 14:
-                if (*(int16_t *)(state + 0x18) == 0 && *(int16_t *)(state + 0x1c) == 0 &&
+                if (state->magazines[1].rounds_loaded == 0 && state->magazines[1].rounds_unloaded == 0 &&
                     (unit->control_flags & _unit_control_flag_primary_trigger) != 0) {
                     active = 1; value = 1;
                 } else if (out_array[case_index] != -1) {
@@ -881,15 +879,15 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
                 break;
 
             case 15:
-                if (*(int16_t *)(state + 0x1c) != 0) { active = 0; value = 0; }
-                else if (*(int16_t *)(state + 0x18) == 0) { active = 0; value = 0; }
-                else if ((int16_t)*(int16_t *)(state + 0x18) > *(int16_t *)(edx + 0x16)) { active = 0; value = 0; }
+                if (state->magazines[1].rounds_unloaded != 0) { active = 0; value = 0; }
+                else if (state->magazines[1].rounds_loaded == 0) { active = 0; value = 0; }
+                else if ((int16_t)state->magazines[1].rounds_loaded > edx->loaded_ammo_cutoff) { active = 0; value = 0; }
                 else { active = 1; value = 1; }
                 break;
 
             case 18:
 
-                if (*(float *)(state + 4) == 1.0f && (unit->control_flags & _unit_control_flag_primary_trigger) != 0) {
+                if (state->age == 1.0f && (unit->control_flags & _unit_control_flag_primary_trigger) != 0) {
                     active = 1; value = 1;
                 } else if (out_array[case_index] != -1) {
                     active = 1; value = 1;
@@ -918,7 +916,7 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
             } else if (!active) {
                 out_array[case_index] = -1;
             } else if (out_array[case_index] == -1) {
-                out_array[case_index] = *(game_time + 3);
+                out_array[case_index] = halo::game::globals().game_time->game_time;
             }
 
         }
@@ -1503,7 +1501,7 @@ void hud_weapon_interface_draw_elements(datum_index hud_tag, int16_t local_playe
     halo::interface::WeaponHud::draw_elements(hud_tag, local_player_index, weapon_tag, ammo, parent_state_flags, parent_overlay_types, parent_numbers);
 }
 
-void hud_weapon_interface_meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index, int32_t weapon_or_vehicle_index, void *state_ptr)
+void hud_weapon_interface_meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index, int32_t weapon_or_vehicle_index, const weapon_hud_ammo_state *state_ptr)
 {
     halo::interface::WeaponHud::meters_evaluate(hud_interface_tag_id, local_player_index, weapon_or_vehicle_index, state_ptr);
 }
