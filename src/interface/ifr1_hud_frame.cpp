@@ -242,7 +242,7 @@ void HudFrame::draw_grenade_interface(int16_t local_player_index, datum_index un
 
         count = unit->unit.grenade_counts[unit->unit.current_grenade_index];
         types = (uint16_t)((count <= hud->flash_cutoff ? 1 : 0) | (count == 0 ? 2 : 0));
-        types = types == 0 ? 4 : (uint16_t)(types & 0xfffb);
+        types = types == 0 ? 4 : (uint16_t)(types & ~4u);
         halo::interface::hud_draw_overlays((uint16_t *)hud, (const hud_overlay_list *)&hud->total_grenades_overlay_bitmap,
                           (uint32_t)(int16_t)types | 8, *flash_start_time, flags,
                           halo::game::globals().local_player_globals->local_player_count > 1);

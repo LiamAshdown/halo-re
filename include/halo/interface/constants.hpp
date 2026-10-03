@@ -34,6 +34,9 @@ inline constexpr int k_text_buffer_chars = 256;
 inline constexpr int32_t k_ticks_per_second = 30;
 inline constexpr int32_t k_ticks_per_minute = 60 * k_ticks_per_second;
 
+/** Character capacity of the HUD hint text buffer. */
+inline constexpr int k_hint_text_chars = 1024;
+
 /** Alpha byte of a fully opaque packed ARGB colour. */
 inline constexpr uint32_t k_argb_alpha_opaque = 0xff000000;
 

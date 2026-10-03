@@ -10,6 +10,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern int16_t current_local_player_index;
@@ -38,7 +39,8 @@ static const int16_t *weapon_hud_messaging(const object *weapon_object)
     if (hud == (datum_index)-1) {
         return 0;
     }
-    messaging = (const int16_t *)(halo::interface::tag_data<uint8_t>(hud) + 0x13c);
+    static_assert(offsetof(WeaponHUDInterface, messaging_information_sequence_index) == 0x13c, "WeaponHUDInterface messaging block");
+    messaging = (const int16_t *)&halo::interface::tag_data<WeaponHUDInterface>(hud)->messaging_information_sequence_index;
     return (*messaging == -1) ? 0 : messaging;
 }
 
@@ -144,8 +146,8 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
     }
 
     {
-        uint16_t hint_text[0x400];
-        if (halo::game::game_engine_pick_hud_hint(player_index, 0x400, hint_text)) {
+        uint16_t hint_text[halo::interface::k_hint_text_chars];
+        if (halo::game::game_engine_pick_hud_hint(player_index, halo::interface::k_hint_text_chars, hint_text)) {
             hud_player_messaging_state *msg = &hud_messaging->players[0] + local;
             halo::interface::hud_set_action_text_shown(local, 1);
             wcsncpy((wchar_t *)msg->action_text, (const wchar_t *)hint_text, 0xff);
