@@ -747,9 +747,16 @@ namespace rasterizer_set_shader_stage_config_impl {
  */
 void rasterizer_set_shader_stage_config(int16_t mode)
 {
-    uint32_t value_3a;
-    uint32_t final_state;
-    uint32_t final_value;
+    namespace rs = halo::d3d9::rs;
+    auto set_render_state = [](uint32_t state, uint32_t value) { return render_device().set_render_state(state, value); };
+    auto set_stencil = [&](uint32_t fail, uint32_t z_fail, uint32_t pass, uint32_t func, uint32_t ref) {
+        set_render_state(rs::stencil_enable, 1);
+        set_render_state(rs::stencil_fail, fail);
+        set_render_state(rs::stencil_z_fail, z_fail);
+        set_render_state(rs::stencil_pass, pass);
+        set_render_state(rs::stencil_func, func);
+        set_render_state(rs::stencil_ref, ref);
+    };
 
     if (halo::rasterizer::fields::shader_stage_config_enabled == 0) {
         mode = 0;
@@ -758,72 +765,39 @@ void rasterizer_set_shader_stage_config(int16_t mode)
         return;
     }
 
-    auto set_render_state = [](void *, uint32_t state, uint32_t value) { return render_device().set_render_state(state, value); };
-
     switch (mode) {
     case 0:
-        final_state = 0x34;
-        final_value = 0;
-        goto apply_final;
+        set_render_state(rs::stencil_enable, 0);
+        break;
     case 1:
-        set_render_state(rasterizer_device, 0x34, 1);
-        set_render_state(rasterizer_device, 0x35, 1);
-        set_render_state(rasterizer_device, 0x36, 1);
-        set_render_state(rasterizer_device, 0x37, 3);
-        set_render_state(rasterizer_device, 0x38, 8);
-        set_render_state(rasterizer_device, 0x39, 1);
-        set_render_state(rasterizer_device, 0x3a, 1);
-        final_value = 1;
-        goto set_3b;
+        set_stencil(1, 1, 3, 8, 1);
+        set_render_state(rs::stencil_mask, 1);
+        set_render_state(rs::stencil_write_mask, 1);
+        break;
     case 2:
-        set_render_state(rasterizer_device, 0x34, 1);
-        set_render_state(rasterizer_device, 0x35, 1);
-        set_render_state(rasterizer_device, 0x36, 1);
-        set_render_state(rasterizer_device, 0x37, 1);
-        set_render_state(rasterizer_device, 0x38, 3);
-        set_render_state(rasterizer_device, 0x39, 0);
-        value_3a = 1;
+        set_stencil(1, 1, 1, 3, 0);
+        set_render_state(rs::stencil_mask, 1);
+        set_render_state(rs::stencil_write_mask, 0);
         break;
     case 3:
-        set_render_state(rasterizer_device, 0x34, 1);
-        set_render_state(rasterizer_device, 0x35, 1);
-        set_render_state(rasterizer_device, 0x36, 1);
-        set_render_state(rasterizer_device, 0x37, 1);
-        set_render_state(rasterizer_device, 0x38, 6);
-        set_render_state(rasterizer_device, 0x39, 0);
-        value_3a = 1;
+        set_stencil(1, 1, 1, 6, 0);
+        set_render_state(rs::stencil_mask, 1);
+        set_render_state(rs::stencil_write_mask, 0);
         break;
     case 4:
-        set_render_state(rasterizer_device, 0x34, 1);
-        set_render_state(rasterizer_device, 0x35, 1);
-        set_render_state(rasterizer_device, 0x36, 1);
-        set_render_state(rasterizer_device, 0x37, 3);
-        set_render_state(rasterizer_device, 0x38, 3);
-        set_render_state(rasterizer_device, 0x39, 2);
-        set_render_state(rasterizer_device, 0x3a, 1);
-        final_value = 2;
-        goto set_3b;
+        set_stencil(1, 1, 3, 3, 2);
+        set_render_state(rs::stencil_mask, 1);
+        set_render_state(rs::stencil_write_mask, 2);
+        break;
     case 5:
-        set_render_state(rasterizer_device, 0x34, 1);
-        set_render_state(rasterizer_device, 0x35, 1);
-        set_render_state(rasterizer_device, 0x36, 1);
-        set_render_state(rasterizer_device, 0x37, 1);
-        set_render_state(rasterizer_device, 0x38, 3);
-        set_render_state(rasterizer_device, 0x39, 0);
-        value_3a = 3;
+        set_stencil(1, 1, 1, 3, 0);
+        set_render_state(rs::stencil_mask, 3);
+        set_render_state(rs::stencil_write_mask, 0);
         break;
     default:
-        goto done;
+        break;
     }
-    set_render_state(rasterizer_device, 0x3a, value_3a);
-    final_value = 0;
-set_3b:
-    final_state = 0x3b;
-apply_final:
-    set_render_state(rasterizer_device, final_state, final_value);
-done:
     rasterizer_shader_stage_config = mode;
-    #undef set_render_state
 }
 
 }  // namespace rasterizer_set_shader_stage_config_impl

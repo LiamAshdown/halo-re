@@ -273,14 +273,13 @@ void rasterizer_decal_pass_begin(int16_t stage)
     } else {
         if ((console_debug_toggle_689441 == 0 || rasterizer_window.fog.atmospheric_maximum_density != 1.0f) && halo::rasterizer::fields::decal_fog_state_applied == 0) {
             render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
-            goto stream_source;
+        } else {
+            halo::rasterizer::fields::decal_fog_state_applied = 1;
+            render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, 1);
+            render_device().set_render_state(halo::d3d9::rs::alpha_ref, 0);
         }
-        halo::rasterizer::fields::decal_fog_state_applied = 1;
-        render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, 1);
-        render_device().set_render_state(halo::d3d9::rs::alpha_ref, 0);
     }
 
-stream_source:
     render_device().set_stream_source(0, rasterizer_decal_vertex_cache, 0, 0x10);
 }
 

@@ -141,25 +141,22 @@ void chimera__registry_check_4(void)
     int32_t gamma_flag;
     HDC dc;
 
-    if (0 < halo::shell::globals().argc) {
-        for (i = 0; i < halo::shell::globals().argc; i++) {
-            char *arg = halo::shell::globals().argv[i];
-            if (*arg == '-' && _stricmp("-nogamma", arg) == 0) {
-                rasterizer_gamma_disabled = 1;
-                goto set_bit;
-            }
+    int32_t nogamma_argument = 0;
+    for (i = 0; i < halo::shell::globals().argc; i++) {
+        char *arg = halo::shell::globals().argv[i];
+        if (*arg == '-' && _stricmp("-nogamma", arg) == 0) {
+            nogamma_argument = 1;
+            break;
         }
     }
-    if (safe_mode != 0) {
+    if (nogamma_argument || safe_mode != 0) {
         rasterizer_gamma_disabled = 1;
-        goto set_bit;
+    } else {
+        rasterizer_gamma_disabled = 0;
+        if (halo::shell::globals().safe_mode != 0) {
+            rasterizer_gamma_disabled = 1;
+        }
     }
-    rasterizer_gamma_disabled = 0;
-    if (halo::shell::globals().safe_mode != 0) {
-        rasterizer_gamma_disabled = 1;
-    }
-
-set_bit:
     rasterizer_gamma_high_bit_17 = (uint8_t)((rasterizer_caps.caps2 >> 0x11) & 1);
 
     gamma_flag = 0;
