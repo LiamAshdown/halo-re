@@ -184,12 +184,14 @@ uint8_t DirectSoundDevice::initialize(sound_driver_parameters *parameters)
     if (halo::shell::globals().nosound != 0 ||
         ((direct_sound_create8_proc)direct_sound_create8)((void *)0, &directsound, (void *)0) < 0 ||
         ((directsound_set_cooperative_level_proc)vtable_slot(directsound, halo::sound::dsound_slot::ds_set_cooperative_level))(directsound, halo::shell::globals().window, 2) < 0) {
-        goto failed;
+        dispose();
+        return 0;
     }
 
     caps[0] = 0x60;
     if (((directsound_get_caps_proc)vtable_slot(directsound, halo::sound::dsound_slot::ds_get_caps))(directsound, caps) < 0) {
-        goto failed;
+        dispose();
+        return 0;
     }
     for (type = 0; type < 0x18; type++) {
         ((uint32_t *)directsound_caps)[type] = caps[type];
@@ -204,7 +206,8 @@ uint8_t DirectSoundDevice::initialize(sound_driver_parameters *parameters)
     description.algorithm_3d[2] = description.algorithm_3d[3] = 0;
     if (((directsound_create_sound_buffer_proc)vtable_slot(directsound, halo::sound::dsound_slot::ds_create_sound_buffer))(directsound, &description,
             &directsound_primary_buffer, (void *)0) < 0) {
-        goto failed;
+        dispose();
+        return 0;
     }
 
     counts[0] = counts[1] = counts[2] = counts[3] = 0;
@@ -223,7 +226,8 @@ uint8_t DirectSoundDevice::initialize(sound_driver_parameters *parameters)
     format.block_align = 4;
     format.bits_per_sample = 16;
     if (((directsound_buffer_set_format_proc)vtable_slot(directsound_primary_buffer, halo::sound::dsound_slot::sb_set_format))(directsound_primary_buffer, &format) < 0) {
-        goto failed;
+        dispose();
+        return 0;
     }
 
     parameters->driver_index = 0;
@@ -249,6 +253,7 @@ uint8_t DirectSoundDevice::initialize(sound_driver_parameters *parameters)
         uint8_t saturated[k_sound_channel_type_count] = { 0, 0, 0, 0 };
         uint8_t shrank = 0;
         uint8_t done = 0;
+        bool exhausted = false;
         int32_t pool = _channel_pool_mono_3d;
         int32_t iterations = 0;
         int32_t i;
@@ -326,13 +331,13 @@ uint8_t DirectSoundDevice::initialize(sound_driver_parameters *parameters)
                     } else if (sound_driver_pool_below(counts, saturated, 2)) {
                         pool = _channel_pool_stereo;
                     } else {
-                        goto store_counts;
+                        exhausted = true;
                     }
                     break;
                 }
             }
 
-            if (done) {
+            if (done || exhausted) {
                 break;
             }
         }
@@ -348,7 +353,6 @@ uint8_t DirectSoundDevice::initialize(sound_driver_parameters *parameters)
         }
     }
 
-store_counts:
     for (type = 0; type < k_sound_channel_type_count; type++) {
         parameters->channel_counts[type] = (int16_t)counts[type];
     }
@@ -361,7 +365,8 @@ store_counts:
         ((directsound_listener_set_factor_proc)vtable_slot(directsound_listener, halo::sound::dsound_slot::lst_set_distance_factor))(directsound_listener, 3.048f, 0) < 0 ||
         ((directsound_listener_set_factor_proc)vtable_slot(directsound_listener, halo::sound::dsound_slot::lst_set_rolloff_factor))(directsound_listener,
             directsound_rolloff_factor, 0) < 0) {
-        goto failed;
+        dispose();
+        return 0;
     }
     ((directsound_listener_set_factor_proc)vtable_slot(directsound_listener, halo::sound::dsound_slot::lst_set_doppler_factor))(directsound_listener, 0.0f, 0);
 
@@ -417,7 +422,6 @@ store_counts:
         return success;
     }
 
-failed:
     dispose();
     return success;
 }

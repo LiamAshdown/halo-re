@@ -7,11 +7,19 @@
 #include "halo/sound/directsound.hpp"
 #include "internal/state.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/core/bit_cast.hpp"
 
 constexpr uint32_t SOUND_EAX20_LISTENER_REQUIRED = 0x000027fcu;
 constexpr uint32_t SOUND_EAX20_CHANNEL_REQUIRED = 0x000007dcu;
 constexpr uint32_t SOUND_EAX30_LISTENER_REQUIRED = 0x0140db70u;
 constexpr uint32_t SOUND_EAX30_CHANNEL_REQUIRED = 0x00119fe0u;
+
+/** Deferred-apply flag OR-ed into a property id, -10000 millibels as raw bits, and float bit patterns used as property defaults. */
+constexpr uint32_t k_eax_deferred = 0x80000000u;
+constexpr uint32_t k_eax_silent_millibels = 0xffffd8f0u;
+constexpr uint32_t k_float_bits_0_1 = 0x3dcccccdu;
+constexpr uint32_t k_float_bits_0_2 = 0x3e4ccccdu;
+constexpr uint32_t k_float_bits_1000 = 0x447a0000u;
 
 namespace halo::sound {
 
@@ -35,51 +43,51 @@ typedef struct sound_eax30_listener_field { uint32_t bit; uint32_t id; int32_t o
 
 /** Default listener properties applied to the EAX 2.0 environment. */
 const sound_eax20_default_property k_listener_defaults[11] = {
-    {0x00000004, 2,  0xffffd8f0u},
-    {0x00000008, 3,  0xffffd8f0u},
-    {0x00000010, 4,  0x00000000u},
-    {0x00000020, 5,  0x3dcccccdu},
-    {0x00000040, 6,  0x3dcccccdu},
-    {0x00000080, 7,  0xffffd8f0u},
-    {0x00000100, 8,  0x00000000u},
-    {0x00000200, 9,  0xffffd8f0u},
-    {0x00000400, 10, 0x00000000u},
-    {0x00002000, 13, 0x00000000u},
-    {0x00008000, 15, 0x00000000u},
+    {1u << 2, 2,  k_eax_silent_millibels},
+    {1u << 3, 3,  k_eax_silent_millibels},
+    {1u << 4, 4,  0u},
+    {1u << 5, 5,  k_float_bits_0_1},
+    {1u << 6, 6,  k_float_bits_0_1},
+    {1u << 7, 7,  k_eax_silent_millibels},
+    {1u << 8, 8,  0u},
+    {1u << 9, 9,  k_eax_silent_millibels},
+    {1u << 10, 10, 0u},
+    {1u << 13, 13, 0u},
+    {1u << 15, 15, 0u},
 };
 
 /** Default per-channel properties applied to EAX 2.0 buffers. */
 const sound_eax20_default_property k_channel_defaults[9] = {
-    {0x00000004, 2,  0xffffd8f0u},
-    {0x00000008, 3,  0xffffd8f0u},
-    {0x00000010, 4,  0xffffd8f0u},
-    {0x00000020, 5,  0xffffd8f0u},
-    {0x00000040, 6,  0x00000000u},
-    {0x00000080, 7,  0x00000000u},
-    {0x00000100, 8,  0x00000000u},
-    {0x00000200, 9,  0x00000000u},
-    {0x00000400, 10, 0x00000000u},
+    {1u << 2, 2,  k_eax_silent_millibels},
+    {1u << 3, 3,  k_eax_silent_millibels},
+    {1u << 4, 4,  k_eax_silent_millibels},
+    {1u << 5, 5,  k_eax_silent_millibels},
+    {1u << 6, 6,  0u},
+    {1u << 7, 7,  0u},
+    {1u << 8, 8,  0u},
+    {1u << 9, 9,  0u},
+    {1u << 10, 10, 0u},
 };
 
 /** Listener properties queried for support when an EAX backend initializes. */
 const sound_eax20_query k_listener_queries[14] = {
-    {2, 0x00000004}, {3, 0x00000008}, {4, 0x00000010}, {5, 0x00000020}, {6, 0x00000040},
-    {7, 0x00000080}, {8, 0x00000100}, {9, 0x00000200}, {10, 0x00000400}, {13, 0x00002000},
-    {8, 0x00000100}, {15, 0x00008000}, {15, 0x00008000}, {0x80000000u, 0x00000001},
+    {2, 1u << 2}, {3, 1u << 3}, {4, 1u << 4}, {5, 1u << 5}, {6, 1u << 6},
+    {7, 1u << 7}, {8, 1u << 8}, {9, 1u << 9}, {10, 1u << 10}, {13, 1u << 13},
+    {8, 1u << 8}, {15, 1u << 15}, {15, 1u << 15}, {k_eax_deferred, 1u},
 };
 
 /** Buffer properties queried for support when an EAX backend initializes. */
 const sound_eax20_query k_buffer_queries[8] = {
-    {2, 0x00000004}, {3, 0x00000008}, {4, 0x00000010}, {6, 0x00000040},
-    {7, 0x00000080}, {8, 0x00000100}, {9, 0x00000200}, {0x80000000u, 0x00000001},
+    {2, 1u << 2}, {3, 1u << 3}, {4, 1u << 4}, {6, 1u << 6},
+    {7, 1u << 7}, {8, 1u << 8}, {9, 1u << 9}, {k_eax_deferred, 1u},
 };
 
 /** Mapping from SoundEnvironment fields to EAX listener properties. */
 const sound_eax20_listener_field k_fields[11] = {
-    {0x00000004, 2,  0x08, 1}, {0x00000008, 3,  0x0c, 1}, {0x00000010, 4,  0x10, 0},
-    {0x00000020, 5,  0x14, 0}, {0x00000040, 6,  0x18, 0}, {0x00000080, 7,  0x1c, 2},
-    {0x00000100, 8,  0x20, 0}, {0x00000200, 9,  0x24, 3}, {0x00000400, 10, 0x28, 0},
-    {0x00002000, 13, 0x2c, 0}, {0x00008000, 15, -1,   0},
+    {1u << 2, 2,  0x08, 1}, {1u << 3, 3,  0x0c, 1}, {1u << 4, 4,  0x10, 0},
+    {1u << 5, 5,  0x14, 0}, {1u << 6, 6,  0x18, 0}, {1u << 7, 7,  0x1c, 2},
+    {1u << 8, 8,  0x20, 0}, {1u << 9, 9,  0x24, 3}, {1u << 10, 10, 0x28, 0},
+    {1u << 13, 13, 0x2c, 0}, {1u << 15, 15, -1,   0},
 };
 
 /** Converts one SoundEnvironment field to the EAX 2.0 property value. */
@@ -109,61 +117,61 @@ int32_t sound_eax20_convert_field(const uint8_t *environment, const sound_eax20_
 
 /** Default listener properties applied to the EAX 2.0 environment. */
 const sound_eax30_default_property k_listener_defaults_sound_eax30_effect_shutdown[12] = {
-    {0x00000020, 5,    0xffffd8f0u},
-    {0x00000040, 6,    0xffffd8f0u},
-    {0x01000000, 0x18, 0x00000000u},
-    {0x00000100, 8,    0x3dcccccdu},
-    {0x00000200, 9,    0x3dcccccdu},
-    {0x00000800, 0x0b, 0xffffd8f0u},
-    {0x00001000, 0x0c, 0x00000000u},
-    {0x00004000, 0x0e, 0xffffd8f0u},
-    {0x00008000, 0x0f, 0x00000000u},
-    {0x00000010, 4,    0x00000000u},
-    {0x02000000, 0x19, 0x00000000u},
-    {0x00000010, 0x16, 0x447a0000u},
+    {1u << 5, 5,    k_eax_silent_millibels},
+    {1u << 6, 6,    k_eax_silent_millibels},
+    {1u << 24, 0x18, 0u},
+    {1u << 8, 8,    k_float_bits_0_1},
+    {1u << 9, 9,    k_float_bits_0_1},
+    {1u << 11, 0x0b, k_eax_silent_millibels},
+    {1u << 12, 0x0c, 0u},
+    {1u << 14, 0x0e, k_eax_silent_millibels},
+    {1u << 15, 0x0f, 0u},
+    {1u << 4, 4,    0u},
+    {1u << 25, 0x19, 0u},
+    {1u << 4, 0x16, k_float_bits_1000},
 };
 
 /** Default per-channel properties applied to EAX 2.0 buffers. */
 const sound_eax30_default_property k_channel_defaults_sound_eax30_effect_shutdown[9] = {
-    {0x00000020, 5,    0x00000000u},
-    {0x00000040, 6,    0x00000000u},
-    {0x00000080, 7,    0xffffd8f0u},
-    {0x00000100, 8,    0xffffd8f0u},
-    {0x00000100, 0x14, 0x00000000u},
-    {0x00000200, 9,    0x00000000u},
-    {0x00000400, 0x0a, 0x00000000u},
-    {0x00000800, 0x0b, 0x00000000u},
-    {0x00001000, 0x0c, 0x00000000u},
+    {1u << 5, 5,    0u},
+    {1u << 6, 6,    0u},
+    {1u << 7, 7,    k_eax_silent_millibels},
+    {1u << 8, 8,    k_eax_silent_millibels},
+    {1u << 8, 0x14, 0u},
+    {1u << 9, 9,    0u},
+    {1u << 10, 0x0a, 0u},
+    {1u << 11, 0x0b, 0u},
+    {1u << 12, 0x0c, 0u},
 };
 
 /** Listener properties queried for support when an EAX backend initializes. */
 const sound_eax30_query k_listener_queries_sound_eax30_effect_initialize[13] = {
-    {5, 0x00000020}, {6, 0x00000040}, {0x18, 0x01000000}, {8, 0x00000100}, {9, 0x00000200},
-    {0x0b, 0x00000800}, {0x0c, 0x00001000}, {0x0e, 0x00004000}, {0x0f, 0x00008000},
-    {4, 0x00000010}, {0x19, 0x02000000}, {0x16, 0x00400000}, {0x80000000u, 0x00000001},
+    {5, 1u << 5}, {6, 1u << 6}, {0x18, 1u << 24}, {8, 1u << 8}, {9, 1u << 9},
+    {0x0b, 1u << 11}, {0x0c, 1u << 12}, {0x0e, 1u << 14}, {0x0f, 1u << 15},
+    {4, 1u << 4}, {0x19, 1u << 25}, {0x16, 1u << 22}, {k_eax_deferred, 1u},
 };
 
 /** Buffer properties queried for support when an EAX backend initializes. */
 const sound_eax30_query k_buffer_queries_sound_eax30_effect_initialize[12] = {
-    {5, 0x00000020}, {6, 0x00000040}, {7, 0x00000080}, {8, 0x00000100}, {0x14, 0x00100000},
-    {9, 0x00000200}, {0x0a, 0x00000400}, {0x0b, 0x00000800}, {0x0c, 0x00001000}, {0x0f, 0x00008000},
-    {0x10, 0x00010000}, {0x80000000u, 0x00000001},
+    {5, 1u << 5}, {6, 1u << 6}, {7, 1u << 7}, {8, 1u << 8}, {0x14, 1u << 20},
+    {9, 1u << 9}, {0x0a, 1u << 10}, {0x0b, 1u << 11}, {0x0c, 1u << 12}, {0x0f, 1u << 15},
+    {0x10, 1u << 16}, {k_eax_deferred, 1u},
 };
 
 /** Mapping from SoundEnvironment fields to EAX listener properties. */
 const sound_eax30_listener_field k_fields_sound_eax30_effect_apply_listener[12] = {
-    {0x00000020, 5,    0x08, 1},
-    {0x00000040, 6,    0x0c, 1},
-    {0x01000000, 0x18, 0x10, 0},
-    {0x00000100, 8,    0x14, 0},
-    {0x00000200, 9,    0x18, 0},
-    {0x00000800, 0x0b, 0x1c, 2},
-    {0x00001000, 0x0c, 0x20, 0},
-    {0x00004000, 0x0e, 0x24, 3},
-    {0x00008000, 0x0f, 0x28, 0},
-    {0x00000010, 4,    0x2c, 0},
-    {0x02000000, 0x19, -1,   4},
-    {0x00000010, 0x16, 0x34, 5},
+    {1u << 5, 5,    0x08, 1},
+    {1u << 6, 6,    0x0c, 1},
+    {1u << 24, 0x18, 0x10, 0},
+    {1u << 8, 8,    0x14, 0},
+    {1u << 9, 9,    0x18, 0},
+    {1u << 11, 0x0b, 0x1c, 2},
+    {1u << 12, 0x0c, 0x20, 0},
+    {1u << 14, 0x0e, 0x24, 3},
+    {1u << 15, 0x0f, 0x28, 0},
+    {1u << 4, 4,    0x2c, 0},
+    {1u << 25, 0x19, -1,   4},
+    {1u << 4, 0x16, 0x34, 5},
 };
 
 /** Converts one SoundEnvironment field to the EAX 3.0 property value. */
@@ -180,7 +188,7 @@ int32_t sound_eax30_convert_field(const uint8_t *environment, const sound_eax30_
             return 0;
         case 5: {
             float scale = gain::reverb_size_scale(*(const float *)(environment + field->offset));
-            return *(int32_t *)&scale;
+            return halo::bit_cast<int32_t>(scale);
         }
         default:
             break;
@@ -424,7 +432,7 @@ void Eax2Backend::apply_channel(sound_effect_object * this_object_base, int32_t 
     int32_t obstruction_at_1000, obstruction_at_0;
     int32_t occlusion_millibels, self_obstruction_millibels;
     int32_t unused_id6 = 0, unused_id8 = 0;
-    int32_t id10_value = 0x3e4ccccd;
+    int32_t id10_value = k_float_bits_0_2;
 
     underwater_direct = 0;
     underwater_room = 0;
@@ -455,21 +463,21 @@ void Eax2Backend::apply_channel(sound_effect_object * this_object_base, int32_t 
 
     {
         struct { uint32_t bit; uint32_t id; int32_t *value; } fields[9] = {
-            {0x00000004, 2,  &underwater_direct},
-            {0x00000008, 3,  &underwater_room},
-            {0x00000010, 4,  &obstruction_at_1000},
-            {0x00000020, 5,  &obstruction_at_0},
-            {0x00000040, 6,  &unused_id6},
-            {0x00000080, 7,  &occlusion_millibels},
-            {0x00000100, 8,  &unused_id8},
-            {0x00000200, 9,  &self_obstruction_millibels},
-            {0x00000400, 10, &id10_value},
+            {1u << 2, 2,  &underwater_direct},
+            {1u << 3, 3,  &underwater_room},
+            {1u << 4, 4,  &obstruction_at_1000},
+            {1u << 5, 5,  &obstruction_at_0},
+            {1u << 6, 6,  &unused_id6},
+            {1u << 7, 7,  &occlusion_millibels},
+            {1u << 8, 8,  &unused_id8},
+            {1u << 9, 9,  &self_obstruction_millibels},
+            {1u << 10, 10, &id10_value},
         };
         int32_t i;
 
         for (i = 0; i < 9; i++) {
             if (supported & fields[i].bit) {
-                uint32_t id = deferred ? (fields[i].id | 0x80000000u) : fields[i].id;
+                uint32_t id = deferred ? (fields[i].id | k_eax_deferred) : fields[i].id;
                 set(property_set, sound_eax20_buffer_property_guid, id, 0, 0, fields[i].value, 4);
             }
         }
@@ -495,7 +503,7 @@ void Eax2Backend::apply_listener(sound_effect_object * this_object_base, const S
     for (i = 0; i < 11; i++) {
         if (this_object->base.supported_properties & k_fields[i].bit) {
             value = sound_eax20_convert_field((const uint8_t *)environment, &k_fields[i]);
-            id = deferred ? (k_fields[i].id | 0x80000000u) : k_fields[i].id;
+            id = deferred ? (k_fields[i].id | k_eax_deferred) : k_fields[i].id;
             set(property_set, sound_eax20_listener_property_guid, id, 0, 0, &value, 4);
         }
     }
@@ -635,7 +643,7 @@ void Eax3Backend::apply_channel(sound_effect_object * this_object_base, int32_t 
     int32_t obstruction_at_1000, obstruction_at_0, occlusion_millibels, self_obstruction_millibels;
     int32_t underwater_direct, underwater_room;
     int32_t unused_id20 = 0, id10_value = 0;
-    int32_t id12_value = 0x3e4ccccd;
+    int32_t id12_value = k_float_bits_0_2;
 
     obstruction_at_1000 = k_sound_minimum_volume;
     obstruction_at_0 = k_sound_minimum_volume;
@@ -669,20 +677,20 @@ void Eax3Backend::apply_channel(sound_effect_object * this_object_base, int32_t 
 
     {
         struct { uint32_t bit; uint32_t id; int32_t *value; } fields[9] = {
-            {0x00000020, 5,    &underwater_direct},
-            {0x00000040, 6,    &underwater_room},
-            {0x00000080, 7,    &obstruction_at_1000},
-            {0x00000100, 8,    &obstruction_at_0},
-            {0x00100000, 0x14, &unused_id20},
-            {0x00000200, 9,    &occlusion_millibels},
-            {0x00000400, 0x0a, &id10_value},
-            {0x00000800, 0x0b, &self_obstruction_millibels},
-            {0x00001000, 0x0c, &id12_value},
+            {1u << 5, 5,    &underwater_direct},
+            {1u << 6, 6,    &underwater_room},
+            {1u << 7, 7,    &obstruction_at_1000},
+            {1u << 8, 8,    &obstruction_at_0},
+            {1u << 20, 0x14, &unused_id20},
+            {1u << 9, 9,    &occlusion_millibels},
+            {1u << 10, 0x0a, &id10_value},
+            {1u << 11, 0x0b, &self_obstruction_millibels},
+            {1u << 12, 0x0c, &id12_value},
         };
         int32_t i;
         for (i = 0; i < 9; i++) {
             if (supported & fields[i].bit) {
-                uint32_t id = deferred ? (fields[i].id | 0x80000000u) : fields[i].id;
+                uint32_t id = deferred ? (fields[i].id | k_eax_deferred) : fields[i].id;
                 set(property_set, sound_eax30_buffer_property_guid, id, 0, 0, fields[i].value, 4);
             }
         }
@@ -708,7 +716,7 @@ void Eax3Backend::apply_listener(sound_effect_object * this_object_base, const S
     for (i = 0; i < 12; i++) {
         if (this_object->base.supported_properties & k_fields_sound_eax30_effect_apply_listener[i].bit) {
             value = sound_eax30_convert_field((const uint8_t *)environment, &k_fields_sound_eax30_effect_apply_listener[i]);
-            id = deferred ? (k_fields_sound_eax30_effect_apply_listener[i].id | 0x80000000u) : k_fields_sound_eax30_effect_apply_listener[i].id;
+            id = deferred ? (k_fields_sound_eax30_effect_apply_listener[i].id | k_eax_deferred) : k_fields_sound_eax30_effect_apply_listener[i].id;
             set(property_set, sound_eax30_listener_property_guid, id, 0, 0, &value, 4);
         }
     }

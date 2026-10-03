@@ -309,6 +309,7 @@ uint8_t set_state(int32_t owner, datum_index definition_index, sound_location *l
 
     for (i = 0; i < (int32_t)definition->tracks.count; i++) {
         SoundLoopingTrack *track = (SoundLoopingTrack *)definition->tracks.pointer + i;
+        bool stop_track = false;
 
         if (is_new) {
             self->track_sounds[i] = (datum_index)0xffffffff;
@@ -320,14 +321,14 @@ uint8_t set_state(int32_t owner, datum_index definition_index, sound_location *l
                     i, _sound_play_loop_start);
             }
         } else if (state == 2) {
-            goto stop_track;
+            stop_track = true;
         }
 
         if (self->finished != 0) {
-            goto stop_track;
+            stop_track = true;
         }
 
-        {
+        if (!stop_track) {
             uint32_t loop_tag = TRACK_TAG(track, loop);
 
             if (alternate != 0 && TRACK_TAG(track, alternate_loop) != halo::k_dword_none) {
@@ -361,10 +362,9 @@ uint8_t set_state(int32_t owner, datum_index definition_index, sound_location *l
             } else if (!is_new) {
                 instances::queue_definition_switch(self->track_sounds[i], loop_tag);
             }
+            continue;
         }
-        continue;
 
-    stop_track:
         if (self->state == 2) {
             continue;
         }

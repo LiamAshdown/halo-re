@@ -155,7 +155,7 @@ void touch_if_valid(datum_index looping_sound_index)
     }
 }
 
-void update_sound(datum_index looping_sound_index, int32_t *root_location)
+static void update_sound_body(datum_index looping_sound_index, int32_t *root_location)
 {
     game_looping_sound *self = &((game_looping_sound *)game_looping_sound_data->data)[looping_sound_index & halo::k_slot_mask];
     SoundLooping *definition = (SoundLooping *)halo::cache::globals().tag_instances[self->definition_index & halo::k_slot_mask].data;
@@ -182,11 +182,11 @@ void update_sound(datum_index looping_sound_index, int32_t *root_location)
 
     if (!live) {
         if (self->state == _game_looping_sound_stopped) {
-            goto done;
+            return;
         }
         if (!stale) {
             self->state = _game_looping_sound_stopped;
-            goto done;
+            return;
         }
     }
 
@@ -214,31 +214,36 @@ void update_sound(datum_index looping_sound_index, int32_t *root_location)
         self->state = _game_looping_sound_playing;
         if (looping::set_state((int32_t)looping_sound_index, self->definition_index, &location,
                 new_state, alternate, 0.0f) == 0) {
-            goto done;
+            return;
         }
         if ((self->flags & _game_looping_sound_script_gain_bit) == 0) {
             self->state = _game_looping_sound_stopped;
-            goto done;
+            return;
         }
         if (*(uint32_t *)&definition->runtime_scripting_sound == (uint32_t)looping_sound_index) {
             *(uint32_t *)&definition->runtime_scripting_sound = halo::k_dword_none;
         }
         halo::memory::datum_delete(game_looping_sound_data, looping_sound_index);
-        goto done;
+        return;
     }
 
     if (looping::set_state((int32_t)looping_sound_index, self->definition_index, &location,
             2, alternate, (flags & _game_looping_sound_stopped_by_music_bit) != 0 ? 4.0f : 0.0f) == 0) {
         self->state = _game_looping_sound_stopping;
-        goto done;
+        return;
     }
     if ((self->flags & _game_looping_sound_script_gain_bit) == 0) {
         self->state = _game_looping_sound_stopped;
-        goto done;
+        return;
     }
     halo::memory::datum_delete(game_looping_sound_data, looping_sound_index);
+}
 
-done:
+void update_sound(datum_index looping_sound_index, int32_t *root_location)
+{
+    game_looping_sound *self = &((game_looping_sound *)game_looping_sound_data->data)[looping_sound_index & halo::k_slot_mask];
+
+    update_sound_body(looping_sound_index, root_location);
     self->last_update = game_sound_globals_ptr->update_count;
 }
 

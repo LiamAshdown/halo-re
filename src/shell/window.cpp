@@ -72,7 +72,7 @@ void GameWindow::suspend_focus()
         halo::input::DirectInput::directinput_unacquire_devices();
         halo::input::GameActions::reset_state_and_axis_configs();
         if (shell_window != 0 && halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
-            ShowWindow((HWND)shell_window, 6);
+            ShowWindow((HWND)shell_window, SW_MINIMIZE);
         }
         halo::interface::chat_close();
     }
@@ -99,37 +99,37 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
         return DefWindowProcA(hwnd, message, wparam, lparam);
     }
 
-    if (message <= 0x84) {
-        if (message == 0x84) {
+    if (message <= WM_NCHITTEST) {
+        if (message == WM_NCHITTEST) {
             if (halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
                 return 0;
             }
             return DefWindowProcA(hwnd, message, wparam, lparam);
         }
         switch (message) {
-        case 2:
-        case 0x10:
+        case WM_DESTROY:
+        case WM_CLOSE:
             PostQuitMessage(0);
             halo::main::globals().main_globals.return_to_main_menu = 0;
             halo::main::globals().main_globals.quit = 1;
             halo::main::globals().movie_playback_abort = 1;
             return DefWindowProcA(hwnd, message, wparam, lparam);
 
-        case 5:
-            if (wparam == 1) {
+        case WM_SIZE:
+            if (wparam == SIZE_MINIMIZED) {
                 suspend_focus();
                 shell_window_minimized = 1;
             size_restored_tail:
                 shell_window_maximized = 0;
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
-            if (wparam == 2) {
+            if (wparam == SIZE_MAXIMIZED) {
                 if (shell_window_minimized != 0 && shell_application_inactive != 0) {
                     shell_application_inactive = 0;
                     halo::input::DirectInput::directinput_acquire_devices();
                     halo::input::GameActions::reset_state_and_axis_configs();
                     if (shell_window != 0) {
-                        ShowWindow((HWND)shell_window, 9);
+                        ShowWindow((HWND)shell_window, SW_RESTORE);
                     }
                     if (shell_window_proc_bypass == 0) {
                         if (halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
@@ -151,7 +151,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                 shell_window_maximized = 1;
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
-            if (wparam != 0) {
+            if (wparam != SIZE_RESTORED) {
                 break;
             }
             if (shell_window_maximized != 0) {
@@ -163,7 +163,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                     halo::input::DirectInput::directinput_acquire_devices();
                     halo::input::GameActions::reset_state_and_axis_configs();
                     if (shell_window != 0) {
-                        ShowWindow((HWND)shell_window, 9);
+                        ShowWindow((HWND)shell_window, SW_RESTORE);
                     }
                     if (shell_window_proc_bypass == 0) {
                         if (halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
@@ -188,7 +188,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             }
             goto resume_focus_fast_path;
 
-        case 7:
+        case WM_SETFOCUS:
             if (shell_window == 0) {
                 break;
             }
@@ -198,7 +198,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                 halo::input::DirectInput::directinput_acquire_devices();
                 halo::input::GameActions::reset_state_and_axis_configs();
                 if (shell_window != 0) {
-                    ShowWindow((HWND)shell_window, 9);
+                    ShowWindow((HWND)shell_window, SW_RESTORE);
                 }
                 if (shell_window_proc_bypass == 0) {
                     if (halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
@@ -217,25 +217,25 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             }
             break;
 
-        case 8:
+        case WM_KILLFOCUS:
             if (shell_window != 0 && shell_application_inactive != 1) {
                 suspend_focus();
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
             break;
 
-        case 0xf:
+        case WM_PAINT:
             if (halo::render::render_device_is_ready() == 0 && halo::rasterizer::globals().window_requested == 0) {
                 if (halo::rasterizer::globals().device == 0) {
                     if (rasterizer_window_icon_bitmap != 0) {
                         dc = GetDC(hwnd);
                         GetClientRect(hwnd, &client_rect);
-                        GetObjectA(rasterizer_window_icon_bitmap, 0x18, &splash_bitmap_info);
+                        GetObjectA(rasterizer_window_icon_bitmap, sizeof(splash_bitmap_info), &splash_bitmap_info);
                         StretchBlt(dc, 0, 0, client_rect.right - client_rect.left,
                                    client_rect.bottom - client_rect.top,
                                    (HDC)rasterizer_window_icon_dc, 0, 0,
                                    splash_bitmap_info.width, splash_bitmap_info.height,
-                                   0xcc0020);
+                                   SRCCOPY);
                         ReleaseDC(hwnd, dc);
                     }
                     ValidateRect(hwnd, (win32_rect *)0);
@@ -251,17 +251,17 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             }
             break;
 
-        case 0x14:
+        case WM_ERASEBKGND:
             return 1;
 
-        case 0x1c:
+        case WM_ACTIVATEAPP:
             if (halo::rasterizer::globals().window_requested == 0 && halo::game::globals().time_force_single_tick == 0 && shell_window != 0) {
                 handle_activate_app(wparam == 0);
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
             break;
 
-        case 0x20:
+        case WM_SETCURSOR:
             if (halo::render::render_device_is_ready() == 0 && halo::rasterizer::globals().window_requested == 0) {
                 if ((int16_t)lparam == 1 && GetForegroundWindow() == hwnd) {
                     SetCursor((HCURSOR)0);
@@ -271,13 +271,13 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             }
             return 1;
 
-        case 0x51:
+        case WM_INPUTLANGCHANGE:
             goto keyboard_message;
 
-        case 0x7e:
-            if (shell_window != 0 && wparam != 0x20) {
+        case WM_DISPLAYCHANGE:
+            if (shell_window != 0 && wparam != 32) {
                 suspend_focus();
-                ShowWindow((HWND)shell_window, 6);
+                ShowWindow((HWND)shell_window, SW_MINIMIZE);
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
             break;
@@ -288,16 +288,16 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
         return DefWindowProcA(hwnd, message, wparam, lparam);
     }
 
-    if (message == 0x112) {
-        if (wparam < 0xf031) {
-            if (wparam != 0xf030 && wparam != 0xf000 && wparam != 0xf010) {
+    if (message == WM_SYSCOMMAND) {
+        if (wparam <= SC_MAXIMIZE) {
+            if (wparam != SC_MAXIMIZE && wparam != SC_SIZE && wparam != SC_MOVE) {
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
         } else {
-            if (wparam == 0xf100) {
+            if (wparam == SC_KEYMENU) {
                 return 0;
             }
-            if (wparam != 0xf170) {
+            if (wparam != SC_MONITORPOWER) {
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
         }
@@ -307,40 +307,40 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
         return 0;
     }
 
-    if (message < 0x113) {
+    if (message < WM_TIMER) {
         switch (message) {
-        case 0x100:
-        case 0x101:
-        case 0x106:
-        case 0x10d:
-        case 0x10e:
-        case 0x10f:
+        case WM_KEYDOWN:
+        case WM_KEYUP:
+        case WM_SYSCHAR:
+        case WM_IME_STARTCOMPOSITION:
+        case WM_IME_ENDCOMPOSITION:
+        case WM_IME_COMPOSITION:
             goto keyboard_message;
-        case 0x102:
-        case 0x104:
+        case WM_CHAR:
+        case WM_SYSKEYDOWN:
             goto keystone_dispatch;
         default:
             return DefWindowProcA(hwnd, message, wparam, lparam);
         }
     }
 
-    if (message < 0x232) {
-        if (message == 0x231) {
+    if (message < WM_EXITSIZEMOVE) {
+        if (message == WM_ENTERSIZEMOVE) {
             if (shell_application_inactive != 1) {
                 suspend_focus();
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
-        } else if (message == 0x117) {
+        } else if (message == WM_INITMENUPOPUP) {
             if ((uint32_t)lparam >> 0x10 == 1 && shell_application_inactive != 1) {
                 suspend_focus();
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
-        } else if (message == 0x218) {
+        } else if (message == WM_POWERBROADCAST) {
             if (wparam == 0) {
                 halo::sound::sound_pause();
                 return 1;
             }
-            if (wparam == 7) {
+            if (wparam == PBT_APMRESUMESUSPEND) {
                 halo::sound::sound_resume();
                 return 1;
             }
@@ -348,16 +348,16 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
         return DefWindowProcA(hwnd, message, wparam, lparam);
     }
 
-    if (message == 0x232) {
+    if (message == WM_EXITSIZEMOVE) {
         goto restore_from_suspend;
     }
 
-    if (message < 0x281 || message > 0x284) {
+    if (message < WM_IME_SETCONTEXT || message > WM_IME_COMPOSITIONFULL) {
         return DefWindowProcA(hwnd, message, wparam, lparam);
     }
 
 keyboard_message:
-    if ((wparam == 0x5b || wparam == 0x5c) && nowindowskey == 0 && shell_window != 0) {
+    if ((wparam == VK_LWIN || wparam == VK_RWIN) && nowindowskey == 0 && shell_window != 0) {
         if (shell_application_inactive != 1) {
             suspend_focus();
         }
@@ -373,15 +373,15 @@ keystone_dispatch:
         if (released_window != 0) {
             chat_gui_release(released_window);
         }
-        if (message == 0x100) {
-            if (wparam == 0xd) {
+        if (message == WM_KEYDOWN) {
+            if (wparam == VK_RETURN) {
                 if (halo::interface::globals().chat_dialog_open != 0) {
                     halo::interface::chat_submit_input();
                     halo::input::DirectInput::key_block_timer_set(0x38, 200);
                     halo::input::DirectInput::key_block_timer_set(0x66, 200);
                     return 0;
                 }
-            } else if (wparam == 0x1b) {
+            } else if (wparam == VK_ESCAPE) {
                 if (halo::interface::globals().chat_dialog_open != 0) {
                     halo::input::DirectInput::key_block_timer_set(0, 0xfa);
                 }
@@ -434,7 +434,7 @@ void GameWindow::handle_activate_app(uint8_t inactive)
         if (fullscreen_device) {
             ShowWindow((HWND)shell_window, inactive != 0 ? 6 : 9);
         } else if (inactive == 0) {
-            ShowWindow((HWND)shell_window, 9);
+            ShowWindow((HWND)shell_window, SW_RESTORE);
         }
     }
     if (inactive != 0) {

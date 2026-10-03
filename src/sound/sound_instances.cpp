@@ -219,49 +219,47 @@ uint8_t object_marker_location_proc(datum_index owner, void *callback_data, soun
 
 void fade_out_and_stop_all(void)
 {
+    bool resume = true;
+
     if (sound_paused == 0) {
-        float deadline;
-        datum_index index;
+        resume = false;
+        if (sound_initialized != 0 && sound_enabled != 0 && sound_disabled == 0) {
+            float deadline = (float)halo::cseries::time_query_performance_counter_ms();
+            datum_index index = halo::memory::datum_next(-1, sound_data);
 
-        if (sound_initialized == 0 || sound_enabled == 0 || sound_disabled != 0) {
-            goto stop;
-        }
+            if (index != k_datum_index_none) {
+                do {
+                    instances::schedule_gain_fade(k_datum_index_none, _sound_fade_linear, 0.3f, index);
+                    index = halo::memory::datum_next((int16_t)index, sound_data);
+                } while (index != k_datum_index_none);
 
-        deadline = (float)halo::cseries::time_query_performance_counter_ms();
-        index = halo::memory::datum_next(-1, sound_data);
-        if (index != k_datum_index_none) {
-            do {
-                instances::schedule_gain_fade(k_datum_index_none, _sound_fade_linear, 0.3f, index);
-                index = halo::memory::datum_next((int16_t)index, sound_data);
-            } while (index != k_datum_index_none);
+                deadline += 300.0f;
+                for (;;) {
+                    int32_t now = sound_fade_now_ms();
+                    float now_unsigned = (float)now;
 
-            deadline += 300.0f;
-            for (;;) {
-                int32_t now = sound_fade_now_ms();
-                float now_unsigned = (float)now;
-
-                if (now < 0) {
-                    now_unsigned += 4294967296.0f;
+                    if (now < 0) {
+                        now_unsigned += 4294967296.0f;
+                    }
+                    if (!(now_unsigned < deadline)) {
+                        break;
+                    }
+                    engine::idle_update();
                 }
-                if (!(now_unsigned < deadline)) {
-                    break;
-                }
-                engine::idle_update();
             }
-        }
 
-        if (sound_paused == 0) {
-            goto stop;
+            resume = sound_paused != 0;
         }
     }
 
-    sound_paused = 0;
-    if (current_sound_driver != 0) {
-        audio_device().set_paused(0);
+    if (resume) {
+        sound_paused = 0;
+        if (current_sound_driver != 0) {
+            audio_device().set_paused(0);
+        }
+        sound_time = sound_fade_now_ms();
     }
-    sound_time = sound_fade_now_ms();
 
-stop:
     instances::stop_all();
     if (looping_sound_data != 0 && looping_sound_data->valid != 0) {
         halo::memory::data_delete_all(looping_sound_data);
@@ -544,17 +542,18 @@ void stop(datum_index sound_handle)
         } else {
             pitch_range = (SoundPitchRange *)definition->pitch_ranges.pointer + instance->pitch_range_index;
             permutation = (SoundPermutation *)pitch_range->permutations.pointer + instance->permutation_index;
+            bool locked = false;
+
             if (permutation->samples_pointer != halo::k_dword_none) {
                 entry = (sound_cache_entry *)((uint8_t *)halo::cache::globals().sound_cache_entries->data +
                     (permutation->samples_pointer & halo::k_slot_mask) * sizeof(sound_cache_entry));
-                if (entry->lock_count != 0) {
-                    goto skip_release;
-                }
+                locked = entry->lock_count != 0;
             }
-            halo::cache::sound_permutation_release_page(permutation);
+            if (!locked) {
+                halo::cache::sound_permutation_release_page(permutation);
+            }
         }
     }
-skip_release:
 
     if (instance->play_state != 0 && instance->owner_index != halo::k_dword_none) {
         owner = (looping_sound *)halo::memory::datum_get(instance->owner_index, looping_sound_data);
@@ -575,19 +574,22 @@ skip_release:
         if (is_scripted_dialog_class) {
             pitch_range = (SoundPitchRange *)definition->pitch_ranges.pointer + instance->pitch_range_index;
             permutation = (SoundPermutation *)pitch_range->permutations.pointer + instance->permutation_index;
+            bool locked = false;
+
             if (permutation->samples_pointer != halo::k_dword_none) {
                 entry = (sound_cache_entry *)((uint8_t *)halo::cache::globals().sound_cache_entries->data +
                     (permutation->samples_pointer & halo::k_slot_mask) * sizeof(sound_cache_entry));
-                if (entry->lock_count != 0) {
-                    goto delete_datum;
+                locked = entry->lock_count != 0;
+                if (!locked) {
+                    halo::memory::cache_evict_entry((datum_index)permutation->samples_pointer, halo::cache::globals().sound_cache);
                 }
-                halo::memory::cache_evict_entry((datum_index)permutation->samples_pointer, halo::cache::globals().sound_cache);
             }
-            permutation->samples_pointer = halo::k_dword_none;
-            permutation->cache_page = 0;
+            if (!locked) {
+                permutation->samples_pointer = halo::k_dword_none;
+                permutation->cache_page = 0;
+            }
         }
     }
-delete_datum:
     halo::memory::datum_delete(sound_data, sound_handle);
 }
 

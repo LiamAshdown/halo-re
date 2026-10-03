@@ -431,14 +431,12 @@ void MainLoop::loop(void)
                 if (halo::cache::cache_file_download_status_get(&progress, 0) == 1) {
                     halo::cache::cache_file_download_finish();
                 }
-                if (halo::cache::globals().map_download_in_progress != 0) {
-                    goto cache_file_open_done;
-                }
             }
-            halo::cache::cache_file_open_by_name(main_globals_data.pending_cache_file_name, 0);
-            main_globals_data.cache_file_open_pending = 0;
+            if (halo::cache::globals().map_download_in_progress == 0) {
+                halo::cache::cache_file_open_by_name(main_globals_data.pending_cache_file_name, 0);
+                main_globals_data.cache_file_open_pending = 0;
+            }
         }
-    cache_file_open_done:
         if (main_globals_data.connect_pending != 0) {
             halo::main::network_game_client_connect_to_resolved_address();
         }
@@ -772,26 +770,19 @@ void MainLoop::loop_frame_pacer(void)
             elapsed_seconds = 0.0;
         }
 
-        if (main_globals_data.game_connection != 0 || halo::cutscene::globals().cinematic_globals->in_progress != 0) {
-            goto apply;
-        }
-        if (unknown_00710301 == 0) {
-            if (elapsed_seconds <= 0.06666666666666667) {
-                goto apply;
+        if (main_globals_data.game_connection == 0 && halo::cutscene::globals().cinematic_globals->in_progress == 0) {
+            if (unknown_00710301 == 0) {
+                if (elapsed_seconds > 0.06666666666666667) {
+                    elapsed_seconds = 0.06666666666666667;
+                }
+            } else if (elapsed_seconds > 0.03333333333333333) {
+                elapsed_seconds = 0.03333333333333333;
             }
-            elapsed_seconds = 0.06666666666666667;
-            goto apply;
-        } else {
-            if (elapsed_seconds <= 0.03333333333333333) {
-                goto apply;
-            }
-            elapsed_seconds = 0.03333333333333333;
-            goto apply;
         }
+    } else {
+        elapsed_seconds = (double)delta;
     }
-    elapsed_seconds = (double)delta;
 
-apply:
     if (halo::game::globals().time_force_single_tick != 0) {
         int64_t frequency;
         int64_t step;

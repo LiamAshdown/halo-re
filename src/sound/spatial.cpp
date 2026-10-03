@@ -29,10 +29,7 @@ void environment_update(uint32_t *out_environment_ptr, void **out_environment_sl
     ScenarioStructureBSPCluster *cluster_record;
     int16_t fog_id;
 
-    if (*(int32_t *)&local_player_globals->local_players  == -1 || local_player_0_cluster_index == -1) {
-        goto skip_environment_lookup;
-    }
-
+    if (*(int32_t *)&local_player_globals->local_players  != -1 && local_player_0_cluster_index != -1) {
     cluster_record = (ScenarioStructureBSPCluster *)structure_bsp->clusters.pointer + local_player_0_cluster_index;
 
     {
@@ -85,8 +82,8 @@ void environment_update(uint32_t *out_environment_ptr, void **out_environment_sl
             }
         }
     }
+    }
 
-skip_environment_lookup:
     {
         uint32_t *source;
         SoundEnvironment *dest = &global_scenario_game_globals->sound_environment;
@@ -215,8 +212,7 @@ void update_listener(void)
 
     if (local_player_globals->local_players[0] == halo::k_dword_none) {
         listener->valid = 0;
-        goto push_listener_parameters;
-    }
+    } else {
     listener->valid = 1;
 
     camera = &halo::camera::globals().observers[0].camera;
@@ -253,8 +249,8 @@ void update_listener(void)
 
     halo::math::matrix4x3_inverse_transform_vector(*((real_vector3d *)&listener->velocity), *((real_vector3d *)&camera->velocity),
         *((real_matrix4x3 *)&listener->scale));
+    }
 
-push_listener_parameters:
     params.position = *(Point3D *)global_zero_vector3d_pointer;
     params.forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
     params.up = *(Vector3D *)halo::math::globals().global_up3d_pointer;
@@ -319,8 +315,8 @@ void update_range_and_ducking(void)
     no_player_has_a_unit = local_player_globals->no_player_has_a_unit;
     saw_dialog_class = 0;
 
-    sound_handle = halo::memory::datum_next(-1, sound_data);
-    while (sound_handle != halo::k_dword_none) {
+    for (sound_handle = halo::memory::datum_next(-1, sound_data); sound_handle != halo::k_dword_none;
+         sound_handle = halo::memory::datum_next((int16_t)sound_handle, sound_data)) {
         instance = (sound *)((uint8_t *)sound_data->data + (sound_handle & halo::k_slot_mask) * sizeof(sound));
         definition = (Sound *)halo::cache::globals().tag_instances[instance->definition_index & halo::k_slot_mask].data;
 
@@ -328,7 +324,7 @@ void update_range_and_ducking(void)
              instance->play_state != _sound_play_loop && instance->play_state != _sound_play_loop_stopping) ||
             (instances::invoke_location_proc(sound_handle) == 0 && !sound_paused)) {
             instances::stop(sound_handle);
-            goto next_sound;
+            continue;
         }
 
         max_distance = definition->maximum_distance;
@@ -361,17 +357,14 @@ void update_range_and_ducking(void)
             if (definition->sound_class == soundclass_scripted_dialog_player) {
                 if (instance->channel_index == -1) {
                     instances::stop(sound_handle);
-                    goto next_sound;
+                    continue;
                 }
                 instances::schedule_gain_fade(0xffffffff, 0, 0.3f, sound_handle);
             } else if (definition->sound_class == soundclass_scripted_dialog_other && instance->channel_index == -1) {
                 instances::stop(sound_handle);
-                goto next_sound;
+                continue;
             }
         }
-
-    next_sound:
-        sound_handle = halo::memory::datum_next((int16_t)sound_handle, sound_data);
     }
 
     if (saw_dialog_class) {
