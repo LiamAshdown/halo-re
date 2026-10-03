@@ -1,5 +1,7 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "hs.h"
 #include "networking.h"
@@ -90,11 +92,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && ((uint8_t)((struct object *)object)->flags & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            ((struct object *)object)->flags &= ~1u;
+            clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -244,11 +246,11 @@ int16_t UnitView::detach_child_at_named_seat(char *seat_marker_name)
                 object = OBJECT_DATA(child_index);
                 object_tag = TAG_DATA(*(datum_index *)object);
                 if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                    if (((uint8_t)((struct object *)object)->flags & 1) != 0) {
+                    if (test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
                         object_for_each_light_attachment(child_index, 0, 1);
                     }
                     if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                        ((struct object *)object)->flags &= ~1u;
+                        clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
                         OBJECT_HEADER(child_index).flags |= 2;
                     }
                 }

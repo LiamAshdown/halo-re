@@ -1,5 +1,7 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "networking.h"
 
@@ -130,7 +132,7 @@ void UnitView::apply_network_health_update(void *message)
     guard = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     record = (uint8_t *)((void **)message)[0x11];
     reliable = **(int32_t **)message == 1;
-    if ((((struct object *)guard)->flags & 0x8000000) != 0 && reliable) {
+    if (test_flag(((struct object *)guard)->flags, objects::object_flag::took_network_update) && reliable) {
         int32_t incoming = record[5];
         int32_t current = unit[0x528];
 
@@ -149,7 +151,7 @@ void UnitView::apply_network_health_update(void *message)
         return;
     }
     unit[0x528] = record[5];
-    ((unit_object *)unit)->base.flags |= 0x8000000;
+    set_flag(((unit_object *)unit)->base.flags, objects::object_flag::took_network_update);
     if (record[6] != 0) {
         unit[0x527] = record[4];
         memcpy(unit + 0x52c, &block, sizeof(block));

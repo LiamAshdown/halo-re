@@ -41,6 +41,21 @@ enum class object_flag : uint32_t {
     has_collision_model = 0x02000000,
     changed = 0x04000000,
     took_network_update = 0x08000000,
+    unknown_2 = 0x2,
+    unknown_4 = 0x4,
+    unknown_8 = 0x8,
+    unknown_40 = 0x40,
+    unknown_80 = 0x80,
+    unknown_100 = 0x100,
+    unknown_200 = 0x200,
+    unknown_400 = 0x400,
+    unknown_8000 = 0x8000,
+    unknown_800000 = 0x800000,
+    unknown_1000000 = 0x1000000,
+    unknown_10000000 = 0x10000000,
+    unknown_20000000 = 0x20000000,
+    unknown_40000000 = 0x40000000,
+    unknown_80000000 = 0x80000000,
 };
 
 /** object_header.flags (the byte at header +0x02). */
@@ -71,6 +86,10 @@ enum class vitality_flag : uint16_t {
     hash_flag = 0x0800,
     stunned = 0x1000,
     shield_stationary = 0x2000,
+    unknown_20 = 0x20,
+    unknown_40 = 0x40,
+    unknown_4000 = 0x4000,
+    unknown_8000 = 0x8000,
 };
 
 /** Masks built from 1 << object type, accepted by object_try_and_get and the object iterators. */

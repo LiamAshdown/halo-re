@@ -1,4 +1,8 @@
 #include "halo/units/unit.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "hs.h"
 #include "physics.h"
@@ -385,7 +389,7 @@ uint8_t UnitView::new_()
 
     unit->persistent_control_ticks = 0;
     unit->dialogue_tag_index = k_datum_index_none;
-    unit->flags |= 0x100;
+    set_flag(unit->flags, units::unit_flag::permutation_dirty);
 
     field = (uint32_t *)&unit->current_speech;
     for (i = 0x1f; i != 0; i--) {
@@ -417,14 +421,14 @@ uint8_t UnitView::new_()
         unit->grenade_counts[tag->grenade_type] = (int8_t)tag->grenade_count;
     }
 
-    obj->flags |= 0x6000;
+    set_flag(obj->flags, objects::object_flag::unknown_2000 | objects::object_flag::unknown_4000);
 
     if (tag->feign_death_threshold > 0.0f && tag->feign_death_time > 0.0f && tag->feign_death_chance > 0.0f) {
         float roll = random_real();
         if (roll < tag->feign_death_chance) {
-            unit->flags |= 0x2000;
+            set_flag(unit->flags, units::unit_flag::unknown_2000);
         } else {
-            unit->flags &= ~0x2000u;
+            clear_flag(unit->flags, units::unit_flag::unknown_2000);
         }
     }
 
@@ -479,7 +483,7 @@ uint32_t UnitView::noop_569670()
                 UnitSeat *seat = (UnitSeat *)((uint8_t *)parent_tag->seats.pointer +
                                                (uint32_t)unit->vehicle_seat_index * 0x11c);
 
-                if ((seat->flags & 0x9) != 0) {
+                if (test_flag(seat->flags, tags::unit_seat_tag_flag::invisible | tags::unit_seat_tag_flag::gunner)) {
                     result = (uint32_t)obj->parent_object;
                 }
             }
@@ -627,24 +631,24 @@ void UnitView::recalculate_position()
  *
  * @address 0x56a290
  */
-void UnitView::reset_velocity_and_ground_flag(uint8_t set_flag)
+void UnitView::reset_velocity_and_ground_flag(uint8_t enable)
 {
     uint32_t unit_index = datum_handle;
     if (unit_index != k_datum_index_none) {
         object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
         unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
-        if (!set_flag) {
-            unit->flags &= 0xfeffffff;
+        if (!enable) {
+            clear_flag(unit->flags, units::unit_flag::unknown_1000000);
         } else {
-            unit->flags |= 0x1000000;
+            set_flag(unit->flags, units::unit_flag::unknown_1000000);
         }
         unit_obj->velocity.i = global_origin3d_pointer->x;
         unit_obj->velocity.j = global_origin3d_pointer->y;
         unit_obj->velocity.k = global_origin3d_pointer->z;
         if (unit_obj->type == _object_type_biped) {
             biped_data *biped = (biped_data *)((uint8_t *)unit_obj + k_unit_object_size);
-            biped->flags &= 0xfffffffe;
+            clear_flag(biped->flags, units::biped_flag::airborne);
         }
     }
     return;
@@ -783,7 +787,7 @@ void UnitView::update_scale_function_inputs()
                 value = unit->integrated_light_power;
                 break;
             case 6:
-                if ((obj->vitality_flags & 4) == 0 && (unit->flags & 0x400000) == 0) {
+                if (!test_flag(obj->vitality_flags, objects::vitality_flag::health_frozen) && !test_flag(unit->flags, units::unit_flag::unknown_400000)) {
                     value = 1.0f;
                 } else {
                     value = 0.0f;

@@ -1,4 +1,8 @@
 #include "halo/units/unit.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "networking.h"
 
@@ -51,11 +55,11 @@ void UnitView::apply_impulse(real_vector3d *impulse)
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    if ((((struct Unit *)tag_data)->unit_flags & 0x100000) != 0) {
+    if (test_flag(((struct Unit *)tag_data)->unit_flags, tags::unit_tag_flag::special_cinematic_unit)) {
         return;
     }
 
-    if ((obj->vitality_flags & 4) == 0) {
+    if (!test_flag(obj->vitality_flags, objects::vitality_flag::health_frozen)) {
         impulse->i *= 0.5f;
         impulse->j *= 0.5f;
         impulse->k *= 0.5f;
@@ -65,10 +69,10 @@ void UnitView::apply_impulse(real_vector3d *impulse)
     obj->velocity.i += impulse->i;
     obj->velocity.j += impulse->j;
     obj->velocity.k += impulse->k;
-    obj->flags &= ~0x20u;
-    biped->flags |= 3;
+    clear_flag(obj->flags, objects::object_flag::at_rest);
+    set_flag(biped->flags, units::biped_flag::airborne | units::biped_flag::jumping);
 
-    if ((obj->vitality_flags & 4) != 0 || (*(uint8_t *)((uint8_t *)tag_data + 0x2f4) & 0x44) != 0) {
+    if (test_flag(obj->vitality_flags, objects::vitality_flag::health_frozen) || (*(uint8_t *)((uint8_t *)tag_data + 0x2f4) & 0x44) != 0) {
         real_vector3d jitter_axis;
         float length;
         vector3d_cross_product(&jitter_axis, impulse, global_up3d_pointer);
@@ -254,7 +258,7 @@ void UnitView::check_fell_off_level()
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
     if (current_game_engine == 0 &&
-        ((obj->flags & 0x200000) != 0 || obj->location_cluster_index == -1)) {
+        (test_flag(obj->flags, objects::object_flag::outside_map) || obj->location_cluster_index == -1)) {
         if (obj->position.z < -2000.0f) {
             object_delete(object_index);
         }
@@ -392,12 +396,12 @@ void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t objec
 
     object_get_position(object_position, object_index);
 
-    if ((tag->biped_flags & 8) == 0) {
+    if (!test_flag(tag->biped_flags, tags::biped_tag_flag::physics_pill_centered_at_origin)) {
         object_position->z += tag->collision_radius;
     }
 
-    if ((tag->biped_flags & 0x10) == 0 &&
-        (unit->controlling_player != k_datum_index_none || (obj->flags & 0x400000) != 0)) {
+    if (!test_flag(tag->biped_flags, tags::biped_tag_flag::spherical) &&
+        (unit->controlling_player != k_datum_index_none || test_flag(obj->flags, objects::object_flag::unknown_400000))) {
         *pill_height = ((tag->crouching_collision_height - tag->standing_collision_height) * biped->crouch_fraction +
                         tag->standing_collision_height) - (tag->collision_radius + tag->collision_radius);
         *pill_radius_out = tag->collision_radius;

@@ -1,4 +1,7 @@
 #include "halo/units/unit.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "networking.h"
 #include "effects.h"
@@ -107,13 +110,13 @@ uint8_t UnitView::update()
             *(int16_t *)(stagger + 2) = ((unit_object *)obj)->unit.update_tick_counter;
         }
     }
-    if ((((unit_object *)obj)->unit.flags & 0x2000000) != 0) {
+    if (test_flag(((unit_object *)obj)->unit.flags, units::unit_flag::idle_turn_seeded)) {
         UnitView(unit_index).update_random_turn_angle((real_vector3d *)&((struct unit_object *)obj)->unit.desired_facing_vector);
         *(real_vector3d *)&((unit_object *)obj)->unit.desired_aiming_vector.i = *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i;
         *(real_vector3d *)&((unit_object *)obj)->unit.desired_looking_vector.i = *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i;
         *(real_vector3d *)&((unit_object *)obj)->unit.throttle.i = *global_forward3d_pointer;
         ((unit_object *)obj)->unit.control_flags = 0;
-    } else if ((((unit_object *)obj)->unit.flags & 1) == 0) {
+    } else if (!test_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unattended)) {
         *(real_vector3d *)&((unit_object *)obj)->unit.desired_looking_vector.i = *(real_vector3d *)&((unit_object *)obj)->base.forward.i;
         *(real_vector3d *)&((unit_object *)obj)->unit.desired_aiming_vector.i = *(real_vector3d *)&((unit_object *)obj)->base.forward.i;
         *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i = *(real_vector3d *)&((unit_object *)obj)->base.forward.i;
@@ -128,7 +131,7 @@ uint8_t UnitView::update()
             uint32_t bits = ((struct unit_object *)obj)->unit.persistent_control_flags;
             uint32_t control = ((unit_object *)obj)->unit.control_flags | bits;
 
-            if ((bits & 0x800) != 0) {
+            if (test_flag(bits, units::unit_control_flag::primary_trigger)) {
                 control = (ticks % 7 == 0) ? (control | 0x800) : (control & ~0x800u);
                 ((unit_object *)obj)->unit.primary_trigger = 1.0f;
             } else {
@@ -140,11 +143,11 @@ uint8_t UnitView::update()
                 ((struct unit_object *)obj)->unit.persistent_control_flags = 0;
             }
         }
-        if ((((unit_object *)obj)->unit.flags & 0x8000000) == 0) {
+        if (!test_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unknown_8000000)) {
             datum_index driver = ((unit_object *)obj)->unit.driver_unit_index;
             datum_index gunner = ((unit_object *)obj)->unit.gunner_unit_index;
 
-            if (driver != k_datum_index_none && ((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0) {
+            if (driver != k_datum_index_none && !test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen)) {
                 uint8_t *d = OBJECT_DATA(driver);
 
                 ((unit_object *)obj)->base.owner_team = ((struct object *)d)->owner_team;
@@ -155,7 +158,7 @@ uint8_t UnitView::update()
                     *(real_point3d *)&((unit_object *)obj)->unit.throttle.i = *(real_point3d *)(d + 0x278);
                 }
             }
-            if (gunner != k_datum_index_none && ((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0) {
+            if (gunner != k_datum_index_none && !test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen)) {
                 uint8_t *g = OBJECT_DATA(gunner);
 
                 if (!riding) {
@@ -168,14 +171,14 @@ uint8_t UnitView::update()
                     ((unit_object *)obj)->unit.primary_trigger = ((struct unit_object *)g)->unit.primary_trigger;
                 }
             }
-            if ((((unit_object *)obj)->unit.control_flags & 0x7c00) != 0) {
+            if (test_flag(((unit_object *)obj)->unit.control_flags, units::unit_control_flag::reload | units::unit_control_flag::primary_trigger | units::unit_control_flag::secondary_trigger | units::unit_control_flag::grenade | units::unit_control_flag::exchange_weapon)) {
                 obj[0x322] = 0;
             } else if ((int8_t)(uint8_t)((struct unit_object *)obj)->unit.weapon_control_idle_ticks < 0x7f) {
                 obj[0x322]++;
             }
         }
         if (!unit_updates_suppressed) {
-            if (((uint8_t)((struct unit_object *)obj)->unit.flags & 0x10) != 0) {
+            if (test_flag(((struct unit_object *)obj)->unit.flags, units::unit_flag::unknown_10)) {
                 float step = 0.008333334f;
 
                 if (current_game_engine != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth == 1) {
@@ -200,7 +203,7 @@ uint8_t UnitView::update()
                     ((struct unit_object *)obj)->unit.active_camouflage_power = 0.0f;
                 }
             }
-            if (((uint8_t)((struct unit_object *)obj)->unit.flags & 0x20) != 0) {
+            if (test_flag(((struct unit_object *)obj)->unit.flags, units::unit_flag::unknown_20)) {
                 ((struct unit_object *)obj)->unit.super_active_camouflage_power += 0.011111111f;
                 if (((struct unit_object *)obj)->unit.super_active_camouflage_power > 1.0f) {
                     ((struct unit_object *)obj)->unit.super_active_camouflage_power = 1.0f;
@@ -220,15 +223,15 @@ uint8_t UnitView::update()
                     goto controls;
                 }
             }
-            if (((struct unit_object *)obj)->unit.feign_death_ticks > 0 && ((uint8_t)((struct object *)obj)->flags & 0x20) != 0 && --((struct unit_object *)obj)->unit.feign_death_ticks == 0) {
+            if (((struct unit_object *)obj)->unit.feign_death_ticks > 0 && test_flag(((struct object *)obj)->flags, objects::object_flag::at_rest) && --((struct unit_object *)obj)->unit.feign_death_ticks == 0) {
                 if (((unit_object *)obj)->base.body_vitality > 0.0f) {
                     int16_t state = (int16_t)((~((uint8_t)((struct unit_object *)obj)->unit.animation_state_flags >> 3) & 1) | 0x22);
 
-                    ((unit_object *)obj)->base.vitality_flags &= 0xfffb;
+                    clear_flag(((unit_object *)obj)->base.vitality_flags, objects::vitality_flag::health_frozen);
                     UnitView(unit_index).refresh_targeting_flag_and_weapons(1);
                     UnitView(unit_index).set_or_test_seat_and_weapon_label(s_stand, 0, 1);
                     UnitView(unit_index).try_set_animation_state(state);
-                    ((unit_object *)obj)->unit.animation_state_flags &= 0xfffb;
+                    clear_flag(((unit_object *)obj)->unit.animation_state_flags, units::unit_animation_state_flag::unknown_4);
                     if (((unit_object *)obj)->base.type == 0) {
                         UnitView(unit_index).clear_ground_adjust_dirty();
                     }
@@ -242,8 +245,8 @@ uint8_t UnitView::update()
 
 controls:
     if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x400) == 0) {
-        if (((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0 && !unit_updates_suppressed) {
-            if ((((unit_object *)obj)->base.vitality_flags & 0x400) != 0) {
+        if (!test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) && !unit_updates_suppressed) {
+            if (test_flag(((unit_object *)obj)->base.vitality_flags, objects::vitality_flag::region_response_400)) {
                 UnitView(unit_index).drop_current_weapon(1);
             } else if (((unit_object *)obj)->unit.desired_weapon_index != ((unit_object *)obj)->unit.current_weapon_index &&
                        !::halo::units::unit_state_is_scripted_animation((unit_data *)(obj + k_unit_data_offset))) {
@@ -393,21 +396,21 @@ controls:
             datum_index weapon = k_datum_index_none;
 
             if (((unit_object *)obj)->unit.current_weapon_index == ((unit_object *)obj)->unit.desired_weapon_index) {
-                uint8_t flashing = (uint8_t)(((struct unit_object *)obj)->unit.persistent_control_ticks > 0 && (((struct unit_object *)obj)->unit.persistent_control_flags & 0x800) != 0);
+                uint8_t flashing = (uint8_t)(((struct unit_object *)obj)->unit.persistent_control_ticks > 0 && test_flag(((struct unit_object *)obj)->unit.persistent_control_flags, units::unit_control_flag::primary_trigger));
 
-                if (valid_team_player && ((uint8_t)((struct unit_object *)obj)->unit.control_flags & 0x10) != 0) {
+                if (valid_team_player && test_flag(((struct unit_object *)obj)->unit.control_flags, units::unit_control_flag::unknown_10)) {
                     control = 1;
                 }
-                if ((((unit_object *)obj)->unit.control_flags & 0x800) != 0) {
+                if (test_flag(((unit_object *)obj)->unit.control_flags, units::unit_control_flag::primary_trigger)) {
                     control |= 2;
                 }
-                if ((((unit_object *)obj)->unit.control_flags & 0x1000) != 0) {
+                if (test_flag(((unit_object *)obj)->unit.control_flags, units::unit_control_flag::secondary_trigger)) {
                     control |= 4;
                 }
                 if ((((struct Unit *)TAG_DATA(*(datum_index *)obj))->unit_flags & 0x800000) != 0) {
                     weapon_set_ready_timer(UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.current_weapon_index), ((struct unit_object *)obj)->unit.integrated_light_power);
                 }
-                if ((((unit_object *)obj)->unit.control_flags & 0x400) != 0) {
+                if (test_flag(((unit_object *)obj)->unit.control_flags, units::unit_control_flag::reload)) {
                     control |= 8;
                 }
                 if (::halo::units::unit_state_is_scripted_animation((unit_data *)(obj + k_unit_data_offset)) && !flashing) {
@@ -433,7 +436,7 @@ controls:
     if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x800) == 0) {
         int16_t seat;
 
-        if (((uint8_t)((struct unit_object *)obj)->unit.animation_state_flags & 2) != 0) {
+        if (test_flag(((struct unit_object *)obj)->unit.animation_state_flags, units::unit_animation_state_flag::aiming_enabled)) {
             UnitView(unit_index).update_look_delta_controls();
             ((struct unit_object *)obj)->unit.animation_controls_smoothed[0] = ((struct unit_object *)obj)->unit.animation_controls[0] * LOOK_BLEND_NEW + ((struct unit_object *)obj)->unit.animation_controls_smoothed[0] * LOOK_BLEND_OLD;
             ((struct unit_object *)obj)->unit.animation_controls_smoothed[1] = ((struct unit_object *)obj)->unit.animation_controls[1] * LOOK_BLEND_NEW + ((struct unit_object *)obj)->unit.animation_controls_smoothed[1] * LOOK_BLEND_OLD;
@@ -445,12 +448,12 @@ controls:
             uint8_t occupied;
 
             if (seat == 0) {
-                occupied = (uint8_t)(((unit_object *)obj)->unit.driver_unit_index != k_datum_index_none || ((uint8_t)((struct unit_object *)obj)->unit.flags & 1) != 0);
+                occupied = (uint8_t)(((unit_object *)obj)->unit.driver_unit_index != k_datum_index_none || test_flag(((struct unit_object *)obj)->unit.flags, units::unit_flag::unattended));
             } else {
                 occupied = (uint8_t)(((unit_object *)obj)->unit.gunner_unit_index != k_datum_index_none &&
                     ((unit_object *)obj)->unit.gunner_unit_index != ((unit_object *)obj)->unit.driver_unit_index);
             }
-            if (((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0 && occupied) {
+            if (!test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) && occupied) {
                 if (*power != 1.0f) {
                     *power += 1.0f / (*(float *)(powered + 4) * 30.0f);
                     if (*power > 1.0f) {
@@ -509,15 +512,15 @@ controls:
         uint32_t flags = ((unit_object *)obj)->unit.flags;
         uint32_t button;
 
-        if ((flags & 0x10000000) != 0) {
-            if ((flags & 0x80000) == 0) {
+        if (test_flag(flags, units::unit_flag::unknown_10000000)) {
+            if (!test_flag(flags, units::unit_flag::unknown_80000)) {
                 toggle = 1;
             }
             ((unit_object *)obj)->unit.flags = flags & 0xefffffff;
         }
         flags = ((unit_object *)obj)->unit.flags;
-        if ((flags & 0x20000000) != 0) {
-            if ((flags & 0x80000) != 0) {
+        if (test_flag(flags, units::unit_flag::unknown_20000000)) {
+            if (test_flag(flags, units::unit_flag::unknown_80000)) {
                 toggle = 1;
             }
             ((unit_object *)obj)->unit.flags = flags & 0xdfffffff;
@@ -526,11 +529,11 @@ controls:
         if (button != 0 || !(((struct unit_object *)obj)->unit.integrated_light_energy > 0.0f) || toggle) {
             if (!valid_team_player) {
                 flags = ((unit_object *)obj)->unit.flags;
-                if ((flags & 0x4000000) != 0) {
+                if (test_flag(flags, units::unit_flag::unknown_4000000)) {
                     ((unit_object *)obj)->unit.flags = flags & 0xfbffffff;
                 }
                 flags = ((unit_object *)obj)->unit.flags;
-                if ((flags & 0x80000) != 0) {
+                if (test_flag(flags, units::unit_flag::unknown_80000)) {
                     ((unit_object *)obj)->unit.flags = (flags & 0xfff7ffff) | 0x10;
                 }
             } else {
@@ -539,7 +542,7 @@ controls:
                 if (UnitView(unit_index).current_weapon_has_flag()) {
                     if (button != 0) {
                         uint8_t *effects = (uint8_t *)global_globals->first_person_interface.pointer;
-                        datum_index effect = ((((unit_object *)obj)->unit.flags & 0x4000000) != 0)
+                        datum_index effect = (test_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unknown_4000000))
                             ? *(datum_index *)(effects + 0x64) : *(datum_index *)(effects + 0x54);
 
                         if (effect != k_datum_index_none) {
@@ -547,11 +550,11 @@ controls:
                         }
                         ((unit_object *)obj)->unit.flags ^= 0x4000000;
                     }
-                    if (((uint8_t)((struct unit_object *)obj)->unit.control_flags & 0x10) != 0) {
+                    if (test_flag(((struct unit_object *)obj)->unit.control_flags, units::unit_control_flag::unknown_10)) {
                         toggle_light = 0;
                     }
                 }
-                if (toggle_light && ((((unit_object *)obj)->unit.flags & 0x80000) != 0 || ((struct unit_object *)obj)->unit.integrated_light_energy > 0.2f) &&
+                if (toggle_light && (test_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unknown_80000) || ((struct unit_object *)obj)->unit.integrated_light_energy > 0.2f) &&
                     ((unit_object *)obj)->base.parent_object == k_datum_index_none) {
                     effect_new_on_object(unit_index, *(datum_index *)&((Unit *)tag)->integrated_light_toggle.tag_id, unit_index, -1, 0.0f, 0.0f, 0, 0);
                     ((unit_object *)obj)->unit.flags ^= 0x80000;
@@ -559,11 +562,11 @@ controls:
             }
         }
         flags = ((unit_object *)obj)->unit.flags;
-        if ((flags & 0x80000) != 0) {
+        if (test_flag(flags, units::unit_flag::unknown_80000)) {
             if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x1000000) == 0) {
                 ((struct unit_object *)obj)->unit.integrated_light_energy -= 0.00027777778f;
             }
-            if (((unit_object *)obj)->base.parent_object != k_datum_index_none || ((uint8_t)((struct object *)obj)->vitality_flags & 4) != 0) {
+            if (((unit_object *)obj)->base.parent_object != k_datum_index_none || test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen)) {
                 ((unit_object *)obj)->unit.flags = flags & 0xfff7ffff;
             }
             if (((struct unit_object *)obj)->unit.integrated_light_power != 1.0f) {
@@ -585,7 +588,7 @@ controls:
         }
     }
     if (UnitView(unit_index).current_weapon_has_flag()) {
-        if ((((unit_object *)obj)->unit.flags & 0x4000000) != 0) {
+        if (test_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unknown_4000000)) {
             if (((struct unit_object *)obj)->unit.integrated_night_vision_power != 1.0f) {
                 ((struct unit_object *)obj)->unit.integrated_night_vision_power += 0.083333336f;
                 if (((struct unit_object *)obj)->unit.integrated_night_vision_power > 1.0f) {

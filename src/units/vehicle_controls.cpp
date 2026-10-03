@@ -1,5 +1,7 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "projectiles.h"
 
 extern "C" {
@@ -237,14 +239,14 @@ void VehicleView::calculate_animation_controls()
             value = vector3d_length(velocity) / max_speed;
             break;
         case 0xf:
-            if (((uint8_t)((struct object *)obj)->flags & 0x1c) == 0) {
+            if (!test_flag(((struct object *)obj)->flags, objects::object_flag::unknown_4 | objects::object_flag::unknown_8 | objects::object_flag::in_water)) {
                 outputs[i] = 0.0f;
                 continue;
             }
             value = vector3d_length(velocity) / max_speed;
             break;
         case 0x10:
-            if (((uint8_t)((struct object *)obj)->flags & 2) == 0) {
+            if (!test_flag(((struct object *)obj)->flags, objects::object_flag::unknown_2)) {
                 outputs[i] = 0.0f;
                 continue;
             }

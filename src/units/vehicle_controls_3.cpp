@@ -1,4 +1,6 @@
 #include "halo/units/unit.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -67,7 +69,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
             float accel = tag->maximum_forward_speed;
             real_vector3d desired;
 
-            if ((vehicle->flags & 8) != 0) {
+            if (test_flag(vehicle->flags, units::vehicle_flag::hovering)) {
                 accel *= 0.8f;
             }
             desired.i = accel * unit->throttle.i;
@@ -167,7 +169,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
             }
         }
 
-        if ((vehicle->flags & 8) != 0) {
+        if (test_flag(vehicle->flags, units::vehicle_flag::hovering)) {
             float along = (obj->forward.i * obj->velocity.i + obj->forward.j * obj->velocity.j +
                           obj->forward.k * obj->velocity.k) / tag->maximum_forward_speed;
             real_vector3d cross;

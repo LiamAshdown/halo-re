@@ -1,4 +1,7 @@
 #include "halo/units/unit.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "hs.h"
 #include "physics.h"
@@ -38,7 +41,7 @@ void UnitView::add_marker_relative_offset(uint32_t mode, float *world_point, uin
     real_point3d reference;
     int have_reference = 0;
 
-    if (parent_index == k_datum_index_none && ((uint8_t)((struct object *)unit)->vitality_flags & 4) == 0) {
+    if (parent_index == k_datum_index_none && !test_flag(((struct object *)unit)->vitality_flags, objects::vitality_flag::health_frozen)) {
         if (((unit_object *)unit)->base.type == 0) {
             UnitView(unit_index).compute_marker_offset_position((real_vector3d *)reference_direction, (int16_t)mode, accumulator, world_point, (float *)offsets);
             return;
@@ -123,7 +126,7 @@ void UnitView::compute_marker_offset_position(real_vector3d *reference_direction
         fraction = 1.0f;
     } else {
         fraction = biped->crouch_fraction;
-        if ((biped->flags & 1) == 0 && fraction > 0.0f && fraction < 1.0f) {
+        if (!test_flag(biped->flags, units::biped_flag::airborne) && fraction > 0.0f && fraction < 1.0f) {
             float step = game_time->leftover_time * 29.999998f * tag->crouch_camera_velocity;
             if (unit->base_animation_state == 3) {
                 fraction += step;

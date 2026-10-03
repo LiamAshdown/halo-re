@@ -1,4 +1,8 @@
 #include "halo/units/unit.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "hs.h"
 #include "networking.h"
@@ -105,7 +109,7 @@ void BipedView::apply_idle_fidget(uint8_t *state_out)
 
     if (BipedView(object_index).is_idle_eligible()) {
         already_idle = 1;
-        if ((tag->biped_flags & 0x100) == 0) {
+        if (!test_flag(tag->biped_flags, tags::biped_tag_flag::rotate_while_airborne)) {
             goto tail;
         }
         if (unit->animation_state != 0x1f && unit->animation_state != 0x29) {
@@ -161,8 +165,8 @@ void BipedView::check_evade_reaction()
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    if ((obj->vitality_flags & 4) == 0 && (tag->biped_flags & 0x84) == 0 &&
-        (unit->flags & 0x1000) == 0 && unit->actor_index != k_datum_index_none &&
+    if (!test_flag(obj->vitality_flags, objects::vitality_flag::health_frozen) && !test_flag(tag->biped_flags, tags::biped_tag_flag::flying | tags::biped_tag_flag::immune_to_falling_damage) &&
+        !test_flag(unit->flags, units::unit_flag::unknown_1000) && unit->actor_index != k_datum_index_none &&
         unit->animation_state != 0x1d && (int8_t)biped->airborne_ticks > 0x1e &&
         (biped->last_falling_reaction_tick == -1 ||
          (int32_t)(biped->last_falling_reaction_tick + 0xf) < game_time->game_time)) {
@@ -269,7 +273,7 @@ datum_index BipedView::get_cached_look_at_position(real_point3d *out_position)
     Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    if ((tag->biped_flags & 4) != 0 && ((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0) {
+    if (test_flag(tag->biped_flags, tags::biped_tag_flag::flying) && !test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen)) {
         biped->cached_ground_surface_index = k_datum_index_none;
         object_get_position(out_position, object_index);
     } else if (biped->cached_ground_surface_index == k_datum_index_none && game_time->game_time > (int32_t)biped->cached_ground_point_tick) {
@@ -328,7 +332,7 @@ uint32_t BipedView::is_idle_eligible()
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
     return (int8_t)biped->airborne_ticks > 3 &&
-           ((tag->biped_flags & 4) == 0 || (obj->vitality_flags & 4) != 0);
+           (!test_flag(tag->biped_flags, tags::biped_tag_flag::flying) || test_flag(obj->vitality_flags, objects::vitality_flag::health_frozen));
 }
 
 /**
@@ -361,7 +365,7 @@ void BipedView::placement_offset_centered_pill(object_placement_data *placement)
     uint32_t flags = ((struct Biped *)biped_tag)->biped_flags;
     float radius;
 
-    if ((flags & 8) == 0 || (flags & 4) != 0) {
+    if (!test_flag(flags, tags::biped_tag_flag::physics_pill_centered_at_origin) || test_flag(flags, tags::biped_tag_flag::flying)) {
         return;
     }
     radius = ((struct Biped *)biped_tag)->collision_radius;
@@ -444,11 +448,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && ((uint8_t)((struct object *)object)->flags & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            ((struct object *)object)->flags &= ~1u;
+            clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -542,7 +546,7 @@ uint8_t BipedView::update()
             goto tail;
         }
         UnitView(object_index).evaluate_flee_reaction();
-        if (((uint8_t)((struct unit_object *)obj)->unit.control_flags & 0x40) != 0 && network_game_mode != 1) {
+        if (test_flag(((struct unit_object *)obj)->unit.control_flags, units::unit_control_flag::action) && network_game_mode != 1) {
             uint8_t *self = (uint8_t *)object_try_and_get(object_index, 3);
             datum_index vehicle_index;
 
@@ -568,11 +572,11 @@ uint8_t BipedView::update()
                         object = OBJECT_DATA(object_index);
                         object_tag = TAG_DATA(*(datum_index *)object);
                         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                            if (((uint8_t)((struct object *)object)->flags & 1) != 0) {
+                            if (test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
                                 object_for_each_light_attachment(object_index, 0, 1);
                             }
                             if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                                ((struct object *)object)->flags &= ~1u;
+                                clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
                                 OBJECT_HEADER(object_index).flags |= 2;
                             }
                         }
@@ -585,7 +589,7 @@ uint8_t BipedView::update()
                 }
             }
         }
-        if (biped_detach_from_flipped_vehicle && ((struct object *)parent)->up.k < 0.0f && ((uint8_t)((struct object *)parent)->flags & 2) != 0 &&
+        if (biped_detach_from_flipped_vehicle && ((struct object *)parent)->up.k < 0.0f && test_flag(((struct object *)parent)->flags, objects::object_flag::unknown_2) &&
             network_game_mode != 1) {
             uint8_t *self = OBJECT_DATA(object_index);
             datum_index vehicle_index = ((unit_object *)self)->base.parent_object;
@@ -602,7 +606,7 @@ uint8_t BipedView::update()
     }
 
     ::halo::units::unit_update_up_vector((Biped *)(Biped *)tag, (::object *)(object *)obj);
-    if (((uint8_t)((struct object *)obj)->vitality_flags & 4) != 0 || (((struct Biped *)tag)->biped_flags & 0x44) == 0) {
+    if (test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) || !test_flag(((struct Biped *)tag)->biped_flags, tags::biped_tag_flag::flying | tags::biped_tag_flag::can_climb_any_surface)) {
         ((unit_object *)obj)->unit.desired_facing_vector.k = 0.0f;
         if (vector3d_normalize_with_length((real_vector3d *)&((struct unit_object *)obj)->unit.desired_facing_vector) == 0.0f) {
             *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i = *global_forward3d_pointer;
@@ -626,14 +630,14 @@ uint8_t BipedView::update()
             *(real_point3d *)&((unit_object *)obj)->unit.throttle.i = *global_origin3d_pointer;
         }
     }
-    if (((uint8_t)((struct biped_object *)obj)->biped.flags & 1) != 0) {
+    if (test_flag(((struct biped_object *)obj)->biped.flags, units::biped_flag::airborne)) {
         if ((int8_t)(uint8_t)((struct biped_object *)obj)->biped.airborne_ticks < 0x7f) {
             obj[0x501]++;
         }
     } else {
         obj[0x501] = 0;
     }
-    if (((uint8_t)((struct biped_object *)obj)->biped.flags & 2) != 0) {
+    if (test_flag(((struct biped_object *)obj)->biped.flags, units::biped_flag::jumping)) {
         if ((int8_t)(uint8_t)((struct biped_object *)obj)->biped.slipping_ticks < 0x7f) {
             obj[0x502]++;
         }
@@ -642,17 +646,17 @@ uint8_t BipedView::update()
     }
     state[1] = (int8_t)((uint8_t)((struct unit_object *)obj)->unit.control_flags & 1);
     state[0] = 0;
-    if (((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0) {
+    if (!test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen)) {
         BipedView(object_index).update_facing(state);
     }
     BipedView(object_index).integrate_movement_with_collision(state);
-    if (((uint8_t)((struct object *)obj)->vitality_flags & 4) != 0) {
+    if (test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen)) {
         BipedView(object_index).update_idle_basis((uint8_t *)state);
-    } else if (((uint8_t)((struct biped_object *)obj)->biped.flags & 1) != 0) {
+    } else if (test_flag(((struct biped_object *)obj)->biped.flags, units::biped_flag::airborne)) {
         BipedView(object_index).apply_idle_fidget((uint8_t *)state);
     } else if (((struct biped_object *)obj)->biped.landing_type != -1) {
         BipedView(object_index).advance_frame_counter_trigger((char *)state);
-    } else if (((uint8_t)((struct biped_object *)obj)->biped.flags & 2) != 0) {
+    } else if (test_flag(((struct biped_object *)obj)->biped.flags, units::biped_flag::jumping)) {
         BipedView(object_index).trigger_on_velocity_threshold();
     }
     if (unit_updates_suppressed) {
@@ -699,7 +703,7 @@ tail:
     if (UnitView(object_index).update_animation_state_machine(state) == 1) {
         UnitView(object_index).snap_to_min_ground_height();
     }
-    if (((uint8_t)((struct object *)obj)->vitality_flags & 4) != 0 && ((uint8_t)((struct object *)obj)->flags & 0x20) != 0) {
+    if (test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) && test_flag(((struct object *)obj)->flags, objects::object_flag::at_rest)) {
         (*(int16_t *)&((struct biped_object *)obj)->base.dead_at_rest_ticks)++;
     } else {
         *(int16_t *)&((struct biped_object *)obj)->base.dead_at_rest_ticks = 0;
@@ -776,13 +780,13 @@ void BipedView::update_idle_basis(uint8_t *state_out)
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    if ((biped->flags & 0x20) != 0 && biped->ground_adjust_iteration < biped->ground_adjust_iteration_limit) {
+    if (test_flag(biped->flags, units::biped_flag::ground_adjust_dirty) && biped->ground_adjust_iteration < biped->ground_adjust_iteration_limit) {
         BipedView(object_index).ground_adjust_step();
         state_out[1] = 0;
         return;
     }
 
-    if ((int8_t)biped->airborne_ticks > 2 && (tag->biped_flags & 0x400) == 0) {
+    if ((int8_t)biped->airborne_ticks > 2 && !test_flag(tag->biped_flags, tags::biped_tag_flag::has_no_dying_airborne)) {
         if (unit->animation_state == 0x18) {
             UnitView(object_index).rotate_basis_about_axis();
         }

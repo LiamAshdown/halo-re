@@ -1,4 +1,8 @@
 #include "halo/units/unit.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "physics.h"
 #include "projectiles.h"
 
@@ -471,9 +475,9 @@ void UnitView::clear_ground_adjust_dirty()
     Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    if ((tag->biped_flags & 0x200) != 0 && (biped->flags & 0x20) != 0) {
-        obj->flags &= ~0x800000u;
-        biped->flags &= ~0x20u;
+    if (test_flag(tag->biped_flags, tags::biped_tag_flag::uses_limp_body_physics) && test_flag(biped->flags, units::biped_flag::ground_adjust_dirty)) {
+        clear_flag(obj->flags, objects::object_flag::unknown_800000);
+        clear_flag(biped->flags, units::biped_flag::ground_adjust_dirty);
     }
 }
 
@@ -492,11 +496,11 @@ void UnitView::reset_ground_adjust_state()
     Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    if (((tag->biped_flags >> 9) & 1) != 0 && (obj->flags & 0x20) != 0 && (biped->flags & 0x21) == 0) {
+    if (((tag->biped_flags >> 9) & 1) != 0 && test_flag(obj->flags, objects::object_flag::at_rest) && !test_flag(biped->flags, units::biped_flag::airborne | units::biped_flag::ground_adjust_dirty)) {
         biped->ground_adjust_iteration = 0;
         biped->ground_adjust_iteration_limit = 0x14;
-        obj->flags |= 0x800000;
-        biped->flags |= 0x20;
+        set_flag(obj->flags, objects::object_flag::unknown_800000);
+        set_flag(biped->flags, units::biped_flag::ground_adjust_dirty);
     }
 }
 

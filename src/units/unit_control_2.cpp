@@ -1,5 +1,8 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -172,9 +175,9 @@ void UnitView::update_autoaim_interaction()
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     uint8_t *tracked = (uint8_t *)global_globals->falling_damage.pointer;
 
-    ((unit_object *)obj)->unit.flags &= ~0x02000000u;
+    clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::idle_turn_seeded);
     obj[0x107] &= 0xf7;
-    ((unit_object *)obj)->unit.flags &= ~0x00000080u;
+    clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::disoriented);
 
     if (tracked != 0) {
         datum_index damage_effect = *(datum_index *)(tracked + 0x78);
@@ -204,8 +207,8 @@ void UnitView::update_autoaim_interaction()
         }
     }
 
-    if ((((unit_object *)obj)->base.vitality_flags & 4) == 0) {
-        ((unit_object *)obj)->base.vitality_flags |= 0x20;
+    if (!test_flag(((unit_object *)obj)->base.vitality_flags, objects::vitality_flag::health_frozen)) {
+        set_flag(((unit_object *)obj)->base.vitality_flags, objects::vitality_flag::unknown_20);
     }
 }
 

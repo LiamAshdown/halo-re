@@ -1,5 +1,7 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "win32.h"
 
 extern "C" {
@@ -116,9 +118,9 @@ void unit_network_create_update_apply(void *incoming_record)
     memcpy(biped + 0x4ac, biped + 0x494, 12);
     *(int16_t *)(biped + 0x31e) = ((biped_object *)biped)->biped.network_grenade_counts;
     if (message.flag_80000 != 0) {
-        ((unit_object *)biped)->unit.flags |= 0x80000;
+        set_flag(((unit_object *)biped)->unit.flags, units::unit_flag::unknown_80000);
     } else {
-        ((unit_object *)biped)->unit.flags &= ~0x80000u;
+        clear_flag(((unit_object *)biped)->unit.flags, units::unit_flag::unknown_80000);
     }
     *(uint32_t *)(biped + 0x344) = message.scalar_344;
 }

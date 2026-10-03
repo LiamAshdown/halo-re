@@ -1,5 +1,9 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "hs.h"
 #include "networking.h"
@@ -107,7 +111,7 @@ uint8_t unit_any_dying_or_seat_transition(void)
         unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
         if (((unit->animation_state == 0x21) && (unit->throwing_grenade_state != 3)) ||
             (((unit->animation_state == 0x19) || (unit->animation_state == 0x18)) &&
-             ((unit->animation_state_flags & 4) == 0))) {
+             (!test_flag(unit->animation_state_flags, units::unit_animation_state_flag::unknown_4)))) {
             return 1;
         }
         obj = object_iterator_next(&iter);
@@ -182,7 +186,7 @@ void UnitView::apply_impulse_to_seat(real_vector3d *impulse)
         }
     }
 
-    obj->flags &= ~0x20u;
+    clear_flag(obj->flags, objects::object_flag::at_rest);
     *((uint8_t *)obj + 0x524) = 1;
 }
 
@@ -274,11 +278,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && ((uint8_t)((struct object *)object)->flags & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            ((struct object *)object)->flags &= ~1u;
+            clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -407,10 +411,10 @@ void unit_detach_from_parent(object *obj, uint32_t unit_index, real_vector3d *cr
     object_set_position_and_relink(reposition_target, unit_index, 0);
     object_attach_to_object(unit_index, unit_index, 0);
 
-    obj->flags |= 0x20;
+    set_flag(obj->flags, objects::object_flag::at_rest);
     {
         unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-        unit->flags |= 0x8000;
+        set_flag(unit->flags, units::unit_flag::detached);
     }
     UnitView(unit_index).try_ready_weapon(1, 0);
 }
@@ -468,11 +472,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && ((uint8_t)((struct object *)object)->flags & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            ((struct object *)object)->flags &= ~1u;
+            clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -620,19 +624,19 @@ void UnitView::detach_reposition_and_nudge()
     ((struct object *)object)->position = position;
     object_recalculate_bounding_radius(unit_index);
     object_set_cluster_and_parent(unit_index, 0);
-    ((unit_object *)self)->unit.flags &= 0xffff7fffu;
-    ((unit_object *)self)->base.flags &= 0xffffffdfu;
+    clear_flag(((unit_object *)self)->unit.flags, units::unit_flag::detached);
+    clear_flag(((unit_object *)self)->base.flags, objects::object_flag::at_rest);
     self[0x474] = 1;
     ((unit_object *)self)->base.velocity.i = push.i + ((unit_object *)self)->base.velocity.i;
     ((unit_object *)self)->base.velocity.j = push.j + ((unit_object *)self)->base.velocity.j;
     ((unit_object *)self)->base.velocity.k = push.k + ((unit_object *)self)->base.velocity.k;
     object = OBJECT_DATA(unit_index);
     tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)object)].data;
-    if (*(int32_t *)&((struct Unit *)tag)->base.model.tag_id != -1 && ((uint8_t)((struct object *)object)->flags & 1)) {
+    if (*(int32_t *)&((struct Unit *)tag)->base.model.tag_id != -1 && (test_flag(((struct object *)object)->flags, objects::object_flag::no_collision))) {
         object_for_each_light_attachment(unit_index, 0, 1);
     }
     if (*(int32_t *)&((struct Unit *)tag)->base.model.tag_id != -1) {
-        ((struct object *)object)->flags &= ~1u;
+        clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
         ((object_header *)object_data->data)[halo::datum_slot(unit_index)].flags |= 0x02;
     }
     object_recalculate_bounding_radius(unit_index);
@@ -874,7 +878,7 @@ uint16_t UnitView::find_best_seat_to_enter(uint32_t vehicle_index, int16_t *out_
         *out_seat = -1;
         return 0;
     }
-    if ((((struct unit_object *)vehicle_obj)->unit.flags & 0x10000) != 0) {
+    if (test_flag(((struct unit_object *)vehicle_obj)->unit.flags, units::unit_flag::unknown_10000)) {
         *out_seat = -1;
         return 0;
     }
@@ -904,7 +908,7 @@ uint16_t UnitView::find_best_seat_to_enter(uint32_t vehicle_index, int16_t *out_
             float dist = (dist_b < dist_a) ? dist_b : dist_a;
 
             if (dist < 1.0f &&
-                ((seat->flags & 0x200) == 0 || vehicle_unit->driver_unit_index != k_datum_index_none) &&
+                (!test_flag(seat->flags, tags::unit_seat_tag_flag::not_valid_without_driver) || vehicle_unit->driver_unit_index != k_datum_index_none) &&
                 seat->label.string[0] != '\0' &&
                 UnitView(unit_index).set_or_test_seat_and_weapon_label(seat->label.string, 0, 0) != 0) {
 
@@ -1162,9 +1166,9 @@ void unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t use_second_b
             (found->data != (object *)0)) {
             unit_data *unit = (unit_data *)((uint8_t *)found->data + k_unit_data_offset);
             if (!use_second_bit) {
-                unit->flags |= 0x20000000;
+                set_flag(unit->flags, units::unit_flag::unknown_20000000);
             } else {
-                unit->flags |= 0x10000000;
+                set_flag(unit->flags, units::unit_flag::unknown_10000000);
             }
         }
 
@@ -1217,7 +1221,7 @@ void unit_mark_zone_occupants_flag(uint32_t zone_list_index)
         if ((found != (object_header *)0) && ((_object_mask_unit & (1 << (found->type & 0x1f))) != 0) &&
             (found->data != (object *)0)) {
             unit_data *unit = (unit_data *)((uint8_t *)found->data + k_unit_data_offset);
-            unit->flags |= 0x100000;
+            set_flag(unit->flags, units::unit_flag::delete_when_dropped);
         }
 
         if (next_link == k_datum_index_none) {
@@ -1333,7 +1337,7 @@ void UnitView::recompute_seat_occupants()
             int16_t seat_index = ((unit_data *)((uint8_t *)child + k_unit_data_offset))->vehicle_seat_index;
             uint32_t seat_flags = seats[seat_index].flags;
 
-            if (((seat_flags & 4) == 0) || ((unit->flags & 1) != 0) || (unit->driver_unit_index != k_datum_index_none)) {
+            if (((seat_flags & 4) == 0) || (test_flag(unit->flags, units::unit_flag::unattended)) || (unit->driver_unit_index != k_datum_index_none)) {
                 if ((seat_flags & 8) != 0) {
                     if (unit->gunner_unit_index != k_datum_index_none) {
                         if (unit->gunner_unit_index == unit->driver_unit_index) {
@@ -1396,13 +1400,13 @@ void UnitView::release_transient_state_and_detach(uint8_t is_light_reset)
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
         Unit *unit_tag = (Unit *)tag_instances[halo::datum_slot(self_obj->definition_tag)].data;
         if (unit_tag->feign_repeat_chance <= (float)(random_seed_global >> 16) * 1.5259022e-05f) {
-            unit->flags &= 0xffffdfff;
+            clear_flag(unit->flags, units::unit_flag::unknown_2000);
         } else {
-            unit->flags |= 0x2000;
+            set_flag(unit->flags, units::unit_flag::unknown_2000);
         }
     }
 
-    unit->flags &= 0xffffffee;
+    clear_flag(unit->flags, units::unit_flag::unattended | units::unit_flag::unknown_10);
     unit->control_flags = 0;
     if (unit->current_weapon_index != -1) {
         int16_t slot = ((struct unit_object *)self_obj)->unit.current_weapon_index;
@@ -1414,7 +1418,7 @@ void UnitView::release_transient_state_and_detach(uint8_t is_light_reset)
         *(int16_t *)((uint8_t *)weapon_obj + 0x230) = 0;
         ((struct unit_object *)weapon_obj)->unit.desired_aiming_vector.j = transition_function_evaluate((transition_function_t)4, 0.0f);
     }
-    unit->flags &= 0xfdffffff;
+    clear_flag(unit->flags, units::unit_flag::idle_turn_seeded);
 
     if (self_obj->parent_object != k_datum_index_none) {
         if (unit->vehicle_seat_index == -1) {
@@ -1495,11 +1499,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && ((uint8_t)((struct object *)object)->flags & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            ((struct object *)object)->flags &= ~1u;
+            clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -1606,7 +1610,7 @@ int16_t unit_seat_candidates_from_zone_and_enter(datum_index vehicle_index, char
         uint8_t *candidate = OBJECT_DATA(candidate_index);
         int16_t i;
 
-        if (!((1u << (candidate[0xb4] & 0x1f)) & 3) || ((uint8_t)((struct object *)vehicle)->vitality_flags & 4)) {
+        if (!((1u << (candidate[0xb4] & 0x1f)) & 3) || (test_flag(((struct object *)vehicle)->vitality_flags, objects::vitality_flag::health_frozen))) {
             continue;
         }
         for (i = 0; i < seat_count; i++) {
@@ -1907,11 +1911,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && ((uint8_t)((struct object *)object)->flags & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            ((struct object *)object)->flags &= ~1u;
+            clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -2027,11 +2031,11 @@ void UnitView::try_exit_controlled_seat()
             object = OBJECT_DATA(unit_index);
             object_tag = TAG_DATA(*(datum_index *)object);
             if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                if (((uint8_t)((struct object *)object)->flags & 1) != 0) {
+                if (test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
                     object_for_each_light_attachment(unit_index, 0, 1);
                 }
                 if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                    ((struct object *)object)->flags &= ~1u;
+                    clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
                     OBJECT_HEADER(unit_index).flags |= 2;
                 }
             }

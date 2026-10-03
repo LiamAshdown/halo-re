@@ -1,5 +1,7 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -62,7 +64,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     }
     record = (uint8_t *)message[0x11];
     guard = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(vehicle_index)].data;
-    if ((((struct object *)guard)->flags & 0x8000000) != 0 && **(int32_t **)message == 1) {
+    if (test_flag(((struct object *)guard)->flags, objects::object_flag::took_network_update) && **(int32_t **)message == 1) {
         int32_t incoming = record[5];
         int32_t current = ((struct vehicle_object *)vehicle)->vehicle.network_update_sequence;
 
@@ -81,7 +83,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
         return;
     }
     ((struct vehicle_object *)vehicle)->vehicle.network_update_sequence = record[5];
-    ((unit_object *)vehicle)->base.flags |= 0x8000000;
+    set_flag(((unit_object *)vehicle)->base.flags, objects::object_flag::took_network_update);
     if (record[6] != 0) {
         ((struct vehicle_object *)vehicle)->vehicle.unknown_526 = record[4];
         memcpy(vehicle + 0x528, &baseline, sizeof(baseline));
@@ -98,7 +100,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     ((struct object *)vehicle)->network_velocity_valid = 1;
     ((struct object *)vehicle)->unknown_028[0] = 1;
     if (baseline.object_flag_5 == 0) {
-        ((unit_object *)vehicle)->base.flags &= ~0x20u;
+        clear_flag(((unit_object *)vehicle)->base.flags, objects::object_flag::at_rest);
     }
     memcpy(vehicle + 0x68, &baseline.velocity, 12);
     memcpy(vehicle + 0x8c, &baseline.angular_velocity, 12);
@@ -108,7 +110,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     dx = baseline.position.x - ((unit_object *)vehicle)->base.position.x;
     dy = baseline.position.y - ((unit_object *)vehicle)->base.position.y;
     dz = baseline.position.z - ((unit_object *)vehicle)->base.position.z;
-    if ((real)sqrt(dx * dx + dy * dy + dz * dz) > 10.0f || (((unit_object *)vehicle)->base.flags & 0x20) != 0 ||
+    if ((real)sqrt(dx * dx + dy * dy + dz * dz) > 10.0f || test_flag(((unit_object *)vehicle)->base.flags, objects::object_flag::at_rest) ||
         baseline.up.j * ((real *)&((struct object *)vehicle)->up)[1] + baseline.up.k * ((real *)&((struct object *)vehicle)->up)[2] +
                 baseline.up.i * ((real *)&((struct object *)vehicle)->up)[0] < 0.70710677f) {
         memcpy(vehicle + 0x1c, &baseline.position, 12);

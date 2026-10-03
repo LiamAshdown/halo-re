@@ -1,5 +1,9 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "hs.h"
 #include "ai.h"
@@ -111,7 +115,7 @@ int32_t UnitView::animation_change_priority_check(uint8_t follow_fallback, int16
             }
         }
     }
-    if ((((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0 || requested_priority == 0xa) && chain != -1) {
+    if ((!test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) || requested_priority == 0xa) && chain != -1) {
         int16_t current = ((unit_object *)obj)->unit.current_speech.priority;
 
         if (current == 0) {
@@ -498,7 +502,7 @@ void UnitView::evaluate_flee_reaction()
     object *parent = ((object_header *)object_data->data)[halo::datum_slot(obj->parent_object)].data;
     void *parent_tag = tag_instances[halo::datum_slot(parent->definition_tag)].data;
 
-    if (((uint8_t)((struct Unit *)parent_tag)->unit_flags & 0x40) != 0 &&
+    if (test_flag(((struct Unit *)parent_tag)->unit_flags, tags::unit_tag_flag::causes_passenger_dialogue) &&
         unit->actor_index != k_datum_index_none && unit->animation_state != 0x1d &&
         (int8_t)unit->weapon_control_idle_ticks > 0x78 && *(uint8_t *)((uint8_t *)parent + 0x4d0) > 0x1e &&
         (biped->last_falling_reaction_tick == -1 ||
@@ -719,7 +723,7 @@ void UnitView::region_damage_reaction(uint32_t unused, uint32_t flags)
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     (void)unused;
 
-    if ((obj->vitality_flags & 4) == 0) {
+    if (!test_flag(obj->vitality_flags, objects::vitality_flag::health_frozen)) {
         UnitView((int32_t)object_index).dispatch_reaction_animation((int16_t)(((flags & 0x200) != 0) + 3));
     }
 }
@@ -1233,11 +1237,11 @@ uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_ind
     object = OBJECT_DATA(unit_index);
     object_tag = TAG_DATA(*(datum_index *)object);
     if (*(int32_t *)&((struct Unit *)object_tag)->base.model.tag_id != -1) {
-        if (((uint8_t)((struct object *)object)->flags & 1) != 0) {
+        if (test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             object_for_each_light_attachment(unit_index, 0, 1);
         }
         if (*(int32_t *)&((struct Unit *)object_tag)->base.model.tag_id != -1) {
-            ((struct object *)object)->flags &= ~1u;
+            clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             ((object_header *)object_data->data)[halo::datum_slot(unit_index)].flags |= 2;
         }
     }
@@ -1276,7 +1280,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
     uint8_t force = 0;
     uint16_t advance;
 
-    if (((unit_object *)unit)->base.parent_object == k_datum_index_none && ((uint8_t)((struct object *)unit)->vitality_flags & 4) == 0) {
+    if (((unit_object *)unit)->base.parent_object == k_datum_index_none && !test_flag(((struct object *)unit)->vitality_flags, objects::vitality_flag::health_frozen)) {
         int16_t base_state = -1;
 
         switch ((int8_t)(uint8_t)((struct unit_object *)unit)->unit.seat_command) {
@@ -1447,7 +1451,7 @@ void UnitView::update_animation_timers()
 
     if ((uint8_t)(((struct unit_object *)obj)->unit.flags >> 8) & 0x1) {
         UnitView(unit_index).choose_dialogue_variant();
-        ((unit_object *)obj)->unit.flags &= 0xfffffeff;
+        clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::permutation_dirty);
     }
     if (((struct unit_object *)obj)->unit.minor_hurt_speech_decay_ticks > 0) {
         int16_t value = (int16_t)(((struct unit_object *)obj)->unit.minor_hurt_speech_decay_ticks - 1);
@@ -1616,7 +1620,7 @@ void UnitView::update_ik_detail_nodes(void *node_base)
     Unit *tag = (Unit *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
-    if ((tag->unit_flags & 0x800) != 0 || unit->animation_definition_index == -1) {
+    if (test_flag(tag->unit_flags, tags::unit_tag_flag::simple_creature) || unit->animation_definition_index == -1) {
         return;
     }
 
@@ -1654,7 +1658,7 @@ void UnitView::update_ik_detail_nodes(void *node_base)
                 object_solve_two_bone_ik_to_marker(object_index, (char *)entry,
                     weapon_handle, (char *)(entry + 0x20), (uint8_t *)node_base);
             }
-            unit->animation_state_flags &= 0xfffe;
+            clear_flag(unit->animation_state_flags, units::unit_animation_state_flag::action_active);
         }
     }
 }

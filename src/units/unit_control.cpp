@@ -1,4 +1,8 @@
 #include "halo/units/unit.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "hs.h"
 #include "physics.h"
@@ -94,7 +98,7 @@ void UnitView::apply_control_block(const unit_control_data *control, int32_t sou
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     if (network_game_mode == 2) {
-        unit->network_update_forced = (control->control_flags & 0x2800) != 0;
+        unit->network_update_forced = test_flag(control->control_flags, units::unit_control_flag::primary_trigger | units::unit_control_flag::grenade);
         unit->saved_control = *control;
     }
 
@@ -226,7 +230,7 @@ void UnitView::get_camera_position(real_point3d *out)
             object_get_position(out, unit_index);
             biped_data *biped = (biped_data *)((uint8_t *)unit_obj + k_unit_object_size);
             float height = biped->crouch_fraction;
-            if (((biped->flags & 1) == 0) && (0.0f < height) && (height < 1.0f)) {
+            if ((!test_flag(biped->flags, units::biped_flag::airborne)) && (0.0f < height) && (height < 1.0f)) {
                 float rate = game_time->leftover_time * 29.999998f * biped_tag->crouch_camera_velocity;
                 if (unit->base_animation_state == _unit_base_animation_state_crouch) {
                     height = height + rate;
@@ -289,7 +293,7 @@ void UnitView::get_look_origin_and_direction(uint32_t *out_autoaim_width, real_v
         real_matrix4x3 *pelvis = &nodes[tag->pelvis_model_node_index];
         real_matrix4x3 *head = &nodes[tag->head_model_node_index];
 
-        if ((tag->biped_flags & 0x10) != 0) {
+        if (test_flag(tag->biped_flags, tags::biped_tag_flag::spherical)) {
             out_origin->x = (pelvis->position.x + head->position.x) * 0.5f;
             out_origin->y = (pelvis->position.y + head->position.y) * 0.5f;
             out_origin->z = (pelvis->position.z + head->position.z) * 0.5f;
@@ -518,7 +522,7 @@ uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vec
                     return 0;
                 }
 
-                if ((copy->vitality_flags & 4) != 0 || (*(uint8_t *)((uint8_t *)tag_data + 0x2f4) & 0x44) == 0) {
+                if (test_flag(copy->vitality_flags, objects::vitality_flag::health_frozen) || (*(uint8_t *)((uint8_t *)tag_data + 0x2f4) & 0x44) == 0) {
                     copy_unit->desired_facing_vector.k = 0.0f;
                     if (vector3d_normalize_with_length(&copy_unit->desired_facing_vector) == 0.0f) {
                         copy_unit->desired_facing_vector = *global_forward3d_pointer;
@@ -767,9 +771,9 @@ void UnitView::set_facing_from_index_table()
     }
 
     if (*(int32_t *)&((struct Object *)tag)->physics.tag_id == -1) {
-        obj->flags |= 0x20;
+        set_flag(obj->flags, objects::object_flag::at_rest);
     } else {
-        obj->flags &= ~0x20u;
+        clear_flag(obj->flags, objects::object_flag::at_rest);
         obj->position.z += tag->bounding_radius * 0.5f;
     }
 }
@@ -807,11 +811,11 @@ void UnitView::track_target_lock_timeout()
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    if ((biped->flags & 1) == 0 && biped->landing_type != 1) {
+    if (!test_flag(biped->flags, units::biped_flag::airborne) && biped->landing_type != 1) {
         if ((int8_t)biped->jump_ticks < 0x7f) {
             biped->jump_ticks = biped->jump_ticks + 1;
         }
-        if ((unit->control_flags & 2) != 0 && (int8_t)biped->jump_ticks > 5) {
+        if (test_flag(unit->control_flags, units::unit_control_flag::jump) && (int8_t)biped->jump_ticks > 5) {
             UnitView(object_index).snap_to_min_ground_height();
         }
     }
@@ -1158,7 +1162,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     }
 
 aim:
-    if (throttle == 0 || ((int32_t)((struct Unit *)unit_tag)->unit_flags & 0x200) || ((struct object *)obj)->type != 0 ||
+    if (throttle == 0 || (test_flag(((struct Unit *)unit_tag)->unit_flags, tags::unit_tag_flag::don_t_reface_during_pings)) || ((struct object *)obj)->type != 0 ||
         (int32_t)((struct object *)obj)->parent_object != -1 || (!hard_ping && !forced)) {
         return;
     }
@@ -1216,7 +1220,7 @@ void unit_update_up_vector(Biped *biped_tag, object *obj)
     uint32_t tag_flags = biped_tag->biped_flags;
     uint8_t frozen = (obj->vitality_flags & _object_health_frozen_bit) != 0;
 
-    if ((tag_flags & 4) != 0 && !frozen) {
+    if (test_flag(tag_flags, tags::biped_tag_flag::flying) && !frozen) {
         real_vector3d up0;
         real_vector3d side;
         float c, s;
@@ -1239,7 +1243,7 @@ void unit_update_up_vector(Biped *biped_tag, object *obj)
         return;
     }
 
-    if ((tag_flags & 0x40) != 0 && !frozen) {
+    if (test_flag(tag_flags, tags::biped_tag_flag::can_climb_any_surface) && !frozen) {
         real_vector3d target;
         real_vector3d cross1;
         real_vector3d frame;
@@ -1293,7 +1297,7 @@ void unit_update_up_vector(Biped *biped_tag, object *obj)
         return;
     }
 
-    if ((biped->flags & 1) != 0) {
+    if (test_flag(biped->flags, units::biped_flag::airborne)) {
         level_to_world_up(obj);
         return;
     }

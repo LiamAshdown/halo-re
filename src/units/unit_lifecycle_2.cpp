@@ -1,4 +1,7 @@
 #include "halo/units/unit.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "hs.h"
 #include "networking.h"
@@ -85,11 +88,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && ((uint8_t)((struct object *)object)->flags & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            ((struct object *)object)->flags &= ~1u;
+            clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -195,13 +198,13 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
 
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
         if ((float)(int32_t)(random_seed_global >> 16) * 1.5259022e-05f < ((struct Unit *)unit_tag)->feign_repeat_chance) {
-            ((unit_object *)obj)->unit.flags |= 0x2000;
+            set_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unknown_2000);
         } else {
-            ((unit_object *)obj)->unit.flags &= 0xffffdfff;
+            clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unknown_2000);
         }
     }
     ((struct unit_object *)obj)->unit.death_time = game_time->game_time;
-    ((unit_object *)obj)->unit.flags &= 0xffffffee;
+    clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unattended | units::unit_flag::unknown_10);
     ((unit_object *)obj)->unit.control_flags = 0;
     if (((unit_object *)obj)->unit.current_weapon_index != -1) {
         uint8_t *unit = OBJECT_DATA(unit_index);

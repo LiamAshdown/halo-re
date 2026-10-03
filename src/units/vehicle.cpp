@@ -1,5 +1,8 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "hs.h"
 
@@ -56,9 +59,9 @@ uint8_t VehicleView::create()
 
     VehicleView(object_index).reset_state();
     if (*(int32_t *)(definition + 0x8c) == -1) {
-        ((struct object *)object)->flags |= 0x20;
+        set_flag(((struct object *)object)->flags, objects::object_flag::at_rest);
     } else {
-        ((struct object *)object)->flags &= ~(uint32_t)0x20;
+        clear_flag(((struct object *)object)->flags, objects::object_flag::at_rest);
         ((struct object *)object)->position.z += *(float *)(definition + 4) * 0.5f;
     }
     if (network_game_mode == 1 || network_game_mode == 2) {
@@ -167,7 +170,7 @@ uint32_t VehicleView::update()
         ((struct object *)obj)->velocity.i = 0.0f;
         ((struct object *)obj)->velocity.j = 0.0f;
         ((struct object *)obj)->velocity.k = 0.0f;
-        ((unit_object *)obj)->base.flags &= ~0x20u;
+        clear_flag(((unit_object *)obj)->base.flags, objects::object_flag::at_rest);
     } else {
         uint32_t control = ((unit_object *)obj)->unit.control_flags;
         real_vector3d a;
@@ -218,7 +221,7 @@ uint32_t VehicleView::update()
                     spin = ((struct Vehicle *)tag)->maximum_flipping_angular_velocity;
                 }
                 spin *= sign;
-                ((unit_object *)obj)->base.flags &= ~0x20u;
+                clear_flag(((unit_object *)obj)->base.flags, objects::object_flag::at_rest);
                 if (direction == 2 || direction == 1) {
                     float k = -forward->k;
 
@@ -243,7 +246,7 @@ uint32_t VehicleView::update()
                 }
                 ((struct vehicle_object *)obj)->vehicle.unknown_4d2++;
             } else {
-                ((struct vehicle_object *)obj)->vehicle.flags &= 0xffef;
+                clear_flag(((struct vehicle_object *)obj)->vehicle.flags, units::vehicle_flag::controls_active);
                 ((struct vehicle_object *)obj)->vehicle.unknown_4d2 = 0;
                 ((struct vehicle_object *)obj)->vehicle.unknown_4d1 = 0;
             }
@@ -289,10 +292,10 @@ uint32_t VehicleView::update()
             if (((flags & 1) && ((struct vehicle_object *)obj)->vehicle.forward_velocity != 0.0f) || ((flags & 2) && ((struct vehicle_object *)obj)->vehicle.turning_velocity != 0.0f) ||
                 ((flags & 4) && ((struct unit_object *)obj)->unit.driver_seat_power != 0.0f) || ((flags & 8) && ((struct unit_object *)obj)->unit.gunner_seat_power != 0.0f) ||
                 ((flags & 0x20) && ((struct vehicle_object *)obj)->vehicle.sideways_velocity != 0.0f)) {
-                ((unit_object *)obj)->base.flags &= ~0x20u;
+                clear_flag(((unit_object *)obj)->base.flags, objects::object_flag::at_rest);
             }
         }
-        if (*(datum_index *)&((Unit *)tag)->base.physics.tag_id != k_datum_index_none && !(((unit_object *)obj)->base.flags & 0x20)) {
+        if (*(datum_index *)&((Unit *)tag)->base.physics.tag_id != k_datum_index_none && !(test_flag(((unit_object *)obj)->base.flags, objects::object_flag::at_rest))) {
             b = *(real_vector3d *)&((unit_object *)obj)->base.velocity.i;
             switch (((struct Vehicle *)tag)->vehicle_type) {
             case 0: VehicleView(object_index).calculate_turret_controls(contact_points, (float *)node_output); break;
@@ -314,7 +317,7 @@ uint32_t VehicleView::update()
             if (((unit_object *)obj)->base.flags & 0x20) {
                 ((struct vehicle_object *)obj)->vehicle.decay_ticks_remaining = 15;
             }
-            if (!(((unit_object *)obj)->base.flags & 0x1000000) &&
+            if (!(test_flag(((unit_object *)obj)->base.flags, objects::object_flag::unknown_1000000)) &&
                 ((1u << ((uint8_t)((struct Vehicle *)tag)->vehicle_type & 0x1f)) & 0x28)) {
                 float floor_z = F(global_structure_bsp, 0x10);
                 float ceiling_z = F(global_structure_bsp, 0x14);

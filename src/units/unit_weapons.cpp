@@ -1,5 +1,8 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "hs.h"
 #include "networking.h"
@@ -561,7 +564,7 @@ void UnitView::drop_object_from_hand(uint32_t object_index)
                 object_for_each_light_attachment(object_index, 0, 1);
             }
             if (*(int32_t *)&((struct Unit *)object_tag)->base.model.tag_id != -1) {
-                ((struct object *)object)->flags &= ~1u;
+                clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
                 ((object_header *)object_data->data)[halo::datum_slot(object_index)].flags |= 2;
             }
         }
@@ -1087,7 +1090,7 @@ uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t 
         }
     }
 
-    if (((weapon_obj->flags & 0x800) != 0) && (weapon_obj->parent_object == k_datum_index_none)) {
+    if ((test_flag(weapon_obj->flags, objects::object_flag::needs_cluster_update)) && (weapon_obj->parent_object == k_datum_index_none)) {
         if (UnitView(unit_index).check_weapon_use_permission(weapon_index) != 0  ) {
             if (game_engine_notify_weapon_ready_state_change(unit_index, weapon_index) != 0  ) {
                 if (pickup_mode == 2) {
@@ -1098,10 +1101,10 @@ uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t 
                     object_unlink_cluster_or_notify_parent(weapon_index);
                     Object *weapon_def = (Object *)tag_instances[halo::datum_slot(weapon_obj->definition_tag)].data;
                     if ((*(uint32_t *)&weapon_def->model.tag_id != k_datum_index_none) &&
-                        ((weapon_obj->flags & 1) == 0)) {
+                        (!test_flag(weapon_obj->flags, objects::object_flag::no_collision))) {
                         object_for_each_light_attachment(weapon_index, 1, 0);
                     }
-                    weapon_obj->flags |= 1;
+                    set_flag(weapon_obj->flags, objects::object_flag::no_collision);
                     ((object_header *)object_data->data)[halo::datum_slot(weapon_index)].flags &= 0xfd;
                     item_set_holder(weapon_index, unit_index);
                     unit->weapons[slot] = weapon_index;
@@ -1109,7 +1112,7 @@ uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t 
 
                     if (pickup_mode != 0) {
                         if (pickup_mode == 1) {
-                            if ((unit->control_flags & 0x800) == 0) {
+                            if (!test_flag(unit->control_flags, units::unit_control_flag::primary_trigger)) {
                                 unit_set_local_player_weapon_index(unit_index, slot);
                             }
                         } else if (pickup_mode != 2) {
@@ -1570,7 +1573,7 @@ uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index)
     int16_t *max_count_ptr = (int16_t *)((uint8_t *)global_globals->grenades.pointer + grenade_type * 0x44);
     if ((max_count_ptr != (int16_t *)0) && (unit->grenade_counts[grenade_type] < *max_count_ptr)) {
         unit->grenade_counts[grenade_type] += 1;
-        unit_obj->flags |= 0x4000000;
+        set_flag(unit_obj->flags, objects::object_flag::changed);
         int32_t local_player = player_index_from_unit_index(unit_index);
         if (local_player != -1) {
             uint32_t local_player2 = (uint32_t)player_index_from_unit_index(unit_index);
@@ -1706,10 +1709,10 @@ uint8_t UnitView::try_select_equipment(uint32_t new_equipment_object_index, int1
         object_unlink_cluster_or_notify_parent(new_equipment_object_index);
         object *new_obj = ((object_header *)object_data->data)[halo::datum_slot(new_equipment_object_index)].data;
         Object *new_def = (Object *)tag_instances[halo::datum_slot(new_obj->definition_tag)].data;
-        if ((*(uint32_t *)&new_def->model.tag_id != k_datum_index_none) && ((new_obj->flags & 1) == 0)) {
+        if ((*(uint32_t *)&new_def->model.tag_id != k_datum_index_none) && (!test_flag(new_obj->flags, objects::object_flag::no_collision))) {
             object_for_each_light_attachment(new_equipment_object_index, 1, 0);
         }
-        new_obj->flags |= 1;
+        set_flag(new_obj->flags, objects::object_flag::no_collision);
         ((object_header *)object_data->data)[halo::datum_slot(new_equipment_object_index)].flags &= 0xfd;
 
         int32_t local_player = player_index_from_unit_index(unit_index);
