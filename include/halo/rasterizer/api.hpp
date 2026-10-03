@@ -237,11 +237,11 @@ namespace rasterizer_object_shadow_model_draw_impl { void rasterizer_object_shad
 using rasterizer_object_shadow_model_draw_impl::rasterizer_object_shadow_model_draw;
 namespace rasterizer_object_shadow_structure_draw_impl { void rasterizer_object_shadow_structure_draw(rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count); }
 using rasterizer_object_shadow_structure_draw_impl::rasterizer_object_shadow_structure_draw;
-namespace rasterizer_shader_model_draw_fixed_function_impl { void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot); }
+namespace rasterizer_shader_model_draw_fixed_function_impl { void rasterizer_shader_model_draw_fixed_function(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot); }
 using rasterizer_shader_model_draw_fixed_function_impl::rasterizer_shader_model_draw_fixed_function;
-namespace rasterizer_shader_model_draw_limited_impl { void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot); }
+namespace rasterizer_shader_model_draw_limited_impl { void rasterizer_shader_model_draw_limited(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot); }
 using rasterizer_shader_model_draw_limited_impl::rasterizer_shader_model_draw_limited;
-namespace rasterizer_shader_model_draw_pixel_shader_impl { void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot); }
+namespace rasterizer_shader_model_draw_pixel_shader_impl { void rasterizer_shader_model_draw_pixel_shader(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot); }
 using rasterizer_shader_model_draw_pixel_shader_impl::rasterizer_shader_model_draw_pixel_shader;
 namespace rasterizer_shader_model_select_technique_impl { rasterizer_effect_slot * rasterizer_shader_model_select_technique(const ShaderModel *shader); }
 using rasterizer_shader_model_select_technique_impl::rasterizer_shader_model_select_technique;
@@ -387,15 +387,19 @@ using rasterizer_set_shader_stage_config_impl::rasterizer_set_shader_stage_confi
 namespace rasterizer_shader_technique_for_name_impl { void * rasterizer_shader_technique_for_name(void *effect, const char *name); }
 using rasterizer_shader_technique_for_name_impl::rasterizer_shader_technique_for_name;
 uint8_t rasterizer_shader_environment_build_technique_table(void);
-void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer);
-void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot);
-namespace rasterizer_shader_environment_draw_pixel_shader_impl { void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot); }
+void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer);
+inline void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer)
+{
+    rasterizer_shader_environment_draw_dispatch(dynamic_vertex_slot, reinterpret_cast<Shader *>(shader), frame, index_buffer, dynamic_index_slot, primitive_count, vertex_buffer);
+}
+void rasterizer_shader_environment_draw_fixed_function(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot);
+namespace rasterizer_shader_environment_draw_pixel_shader_impl { void rasterizer_shader_environment_draw_pixel_shader(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot); }
 using rasterizer_shader_environment_draw_pixel_shader_impl::rasterizer_shader_environment_draw_pixel_shader;
-namespace rasterizer_shader_environment_draw_single_stream_impl { void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot); }
+namespace rasterizer_shader_environment_draw_single_stream_impl { void rasterizer_shader_environment_draw_single_stream(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot); }
 using rasterizer_shader_environment_draw_single_stream_impl::rasterizer_shader_environment_draw_single_stream;
 namespace rasterizer_shader_environment_dynamic_mirror_draw_impl { void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); }
 using rasterizer_shader_environment_dynamic_mirror_draw_impl::rasterizer_shader_environment_dynamic_mirror_draw;
-namespace rasterizer_shader_environment_lightmap_draw_impl { void rasterizer_shader_environment_lightmap_draw(uint8_t *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, void *vertex_buffer); }
+namespace rasterizer_shader_environment_lightmap_draw_impl { void rasterizer_shader_environment_lightmap_draw(Shader *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, void *vertex_buffer); }
 using rasterizer_shader_environment_lightmap_draw_impl::rasterizer_shader_environment_lightmap_draw;
 namespace rasterizer_shader_environment_lightmap_draw_single_stream_impl { void rasterizer_shader_environment_lightmap_draw_single_stream(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); }
 using rasterizer_shader_environment_lightmap_draw_single_stream_impl::rasterizer_shader_environment_lightmap_draw_single_stream;
@@ -424,13 +428,21 @@ using rasterizer_shader_environment_technique_ps2_set_states_impl::rasterizer_sh
 namespace rasterizer_shader_environment_technique_self_illumination_set_states_impl { void rasterizer_shader_environment_technique_self_illumination_set_states(void); }
 using rasterizer_shader_environment_technique_self_illumination_set_states_impl::rasterizer_shader_environment_technique_self_illumination_set_states;
 int rasterizer_transparent_decals_enabled(void);
-transparent_geometry_group * rasterizer_transparent_geometry_group_build(transparent_geometry_group_link *link, uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot, const real_point3d *position);
+transparent_geometry_group * rasterizer_transparent_geometry_group_build(transparent_geometry_group_link *link, Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot, const real_point3d *position);
+inline transparent_geometry_group * rasterizer_transparent_geometry_group_build(transparent_geometry_group_link *link, uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot, const real_point3d *position)
+{
+    return rasterizer_transparent_geometry_group_build(link, reinterpret_cast<Shader *>(shader), frame, index_buffer, dynamic_index_slot, primitive_count, vertex_buffer, dynamic_vertex_slot, position);
+}
 void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *group, uint8_t attached);
 namespace rasterizer_transparent_geometry_group_draw_active_camouflage_impl { void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_geometry_group *group); }
 using rasterizer_transparent_geometry_group_draw_active_camouflage_impl::rasterizer_transparent_geometry_group_draw_active_camouflage;
 void rasterizer_transparent_geometry_group_draw_vertices(transparent_geometry_group *group, uint8_t flag);
-void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_permutation, uint32_t lightmap_bitmap, uint32_t dynamic_index_slot, uint32_t first_index, uint32_t primitive_count, uint32_t vertex_buffer, ColorARGB *tint, uint32_t lighting, uint32_t flags, real_point3d *world_position);
-void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32_t dynamic_index_slot, int32_t dynamic_vertex_slot, int32_t primitive_count, uint32_t flags, real_point3d *world_position, Shader *shader);
+void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_permutation, BitmapData *lightmap_bitmap, uint32_t dynamic_index_slot, uint32_t first_index, uint32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, ColorARGB *tint, render_lighting *lighting, uint32_t flags, real_point3d *world_position);
+void rasterizer_transparent_object_append(BitmapData *lightmap_bitmap, int32_t dynamic_index_slot, int32_t dynamic_vertex_slot, int32_t primitive_count, uint32_t flags, real_point3d *world_position, Shader *shader);
+inline void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32_t dynamic_index_slot, int32_t dynamic_vertex_slot, int32_t primitive_count, uint32_t flags, real_point3d *world_position, Shader *shader)
+{
+    rasterizer_transparent_object_append(reinterpret_cast<BitmapData *>(static_cast<uintptr_t>(lightmap_bitmap)), dynamic_index_slot, dynamic_vertex_slot, primitive_count, flags, world_position, shader);
+}
 transparent_geometry_group * transparent_geometry_group_allocate(void);
 transparent_geometry_group * transparent_geometry_group_allocate_secondary(void);
 int transparent_geometry_group_compare(int16_t *a, int16_t *b);

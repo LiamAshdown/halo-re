@@ -7,6 +7,7 @@
 #include "halo/render/d3d9.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
+#include "internal/shader_access.hpp"
 #include "internal/state.hpp"
 #include "halo/shaders/api.hpp"
 #include "halo/math/api.hpp"
@@ -745,7 +746,7 @@ static void set_transform(uint32_t state, const float *matrix)
  *
  * @address 0x529230
  */
-void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
+void rasterizer_shader_model_draw_fixed_function(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
 {
     rasterizer_model_draw_context *context = rasterizer_active_model_context;
     uint8_t decal = (smodel(shader)->shader_model_flags >> 3) & 1;
@@ -936,7 +937,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
  *
  * @address 0x528be0
  */
-void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
+void rasterizer_shader_model_draw_limited(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
 {
     rasterizer_model_draw_context *context = rasterizer_active_model_context;
     uint8_t decal = (smodel(shader)->shader_model_flags >> 3) & 1;
@@ -1096,7 +1097,7 @@ static void set_effect_vector(rasterizer_effect_slot *slot, int handle, float x,
  *
  * @address 0x529e00
  */
-void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
+void rasterizer_shader_model_draw_pixel_shader(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
 {
     const ShaderModel *model = (const ShaderModel *)shader;
     rasterizer_model_draw_context *context;
@@ -1195,7 +1196,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
         ColorRGB delta;
 
         scale = 1.0f;
-        if (shader[0x6c] & 1) {
+        if (halo::test_flag(shader_cast<ShaderModel>(shader)->shader_model_more_flags, halo::tags::shader_model_more_tag_flag::no_random_phase)) {
             phase = 0.0f;
         } else {
             uint32_t seed = (context->object_index * 0x19660d + 0x3c6ef35f) >> 16;

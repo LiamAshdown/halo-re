@@ -864,7 +864,7 @@ void rasterizer_lens_flare_occlusion_sample_add(void *procedure, const real_poin
     dz = position->z - rasterizer_window.camera.position.z;
 
     group->dynamic_index_slot = -1;
-    group->index_buffer = (uint32_t)procedure;
+    group->callback = reinterpret_cast<void (*)(int32_t, int32_t)>(procedure);
     group->first_index = (int32_t)id_1;
     group->primitive_count = (int32_t)id_2;
     group->dynamic_vertex_slot = -1;

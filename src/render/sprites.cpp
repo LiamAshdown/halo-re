@@ -921,7 +921,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
             vertex_buffer = (void *)(uintptr_t)rasterizer_vertex_buffer_slots[buffer_handle - 1].hardware_buffer;
             d3d9::buffer_function<d3d_unlock_fn>(vertex_buffer, d3d9::buffer_method::unlock)(vertex_buffer);
         }
-        halo::rasterizer::rasterizer_transparent_object_append((uint32_t)(uintptr_t)bitmap, index_slot, vertex_slot,
+        halo::rasterizer::rasterizer_transparent_object_append(bitmap, index_slot, vertex_slot,
                                              primitive_count, 0, &centroid, shader);
     }
     halo::rasterizer::globals().vertex_buffer_lock_state = 0;

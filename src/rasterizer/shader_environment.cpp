@@ -8,6 +8,8 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
+#include "halo/render/shader_types.hpp"
+#include "internal/shader_access.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/shaders/api.hpp"
@@ -91,7 +93,7 @@ uint8_t rasterizer_shader_environment_build_technique_table(void)
     return ok;
 }
 
-typedef void (*rasterizer_part_draw_procedure)(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer,
+typedef void (*rasterizer_part_draw_procedure)(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer,
                                                int32_t dynamic_index_slot, int32_t primitive_count,
                                                rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot);
 
@@ -101,24 +103,25 @@ typedef void (*rasterizer_part_draw_procedure)(uint8_t *shader, int16_t frame, r
  *
  * @address 0x52b050
  */
-void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer)
+void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer)
 {
     rasterizer_model_draw_context *context;
-    uint8_t *overlay;
+    Shader *overlay;
 
-    halo::interface::debug_fp_dispatch_note(halo::rasterizer::fields::models_enabled, rasterizer_active_model_mode, *(int16_t *)&((struct Shader *)shader)->shader_type,
+    halo::interface::debug_fp_dispatch_note(halo::rasterizer::fields::models_enabled, rasterizer_active_model_mode, shader->shader_type,
         primitive_count, shader_environment_draw, shader_environment_draw_simple,
-        rasterizer_active_model_context ? (void *)(uintptr_t)rasterizer_active_model_context->group_parameters.shader : 0);
+        rasterizer_active_model_context ? rasterizer_active_model_context->group_parameters.shader : NULL);
 
     if (!halo::rasterizer::fields::models_enabled) {
         return;
     }
     context = rasterizer_active_model_context;
-    overlay = (uint8_t *)(uintptr_t)context->group_parameters.shader;
+    overlay = context->group_parameters.shader;
     if (overlay != NULL) {
-        int16_t source = *(int16_t *)(overlay + 0x2c);
-        const float *function_values = (const float *)(uintptr_t)context->group_parameters.function_values;
-        uint8_t hidden = (*(int16_t *)(overlay + 0x24) == 0xb && source >= 1 && source <= 4 &&
+        int16_t source = shader_cast<ShaderTransparentPlasma>(overlay)->intensity_source;
+        const float *function_values = context->group_parameters.function_values;
+        uint8_t hidden = (overlay->shader_type == static_cast<int16_t>(halo::render::shader_type_id::transparent_plasma) &&
+                          source >= 1 && source <= 4 &&
                           function_values != NULL && function_values[source - 1] == 0.0f);
 
         if (!hidden) {
@@ -129,8 +132,8 @@ void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, ui
 
             context = rasterizer_active_model_context;
             if (group != NULL) {
-                group->lighting_extra =
-                    (uint32_t)(uintptr_t)chimera__rasterizer_memory_alloc(&context->group_parameters.unknown_20, 8);
+                group->lighting_extra = static_cast<render_animation *>(
+                    chimera__rasterizer_memory_alloc(&context->group_parameters.change_colors, 8));
             }
         }
     }
@@ -142,7 +145,7 @@ void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, ui
         return;
     }
     if (rasterizer_active_model_mode == 0) {
-        if (*(int16_t *)&((struct Shader *)shader)->shader_type == 3) {
+        if (shader->shader_type == static_cast<int16_t>(halo::render::shader_type_id::environment)) {
             ((rasterizer_part_draw_procedure)shader_environment_draw_simple)(
                 shader, frame, index_buffer, dynamic_index_slot, primitive_count, vertex_buffer, dynamic_vertex_slot);
         } else {
@@ -166,7 +169,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
     render_device().set_texture_stage_state(stage, type, value);
 }
 
-static void set_combine_stages(uint8_t *shader, int16_t frame, const float *matrix)
+static void set_combine_stages(Shader *shader, int16_t frame, const float *matrix)
 {
     chimera__rasterizer_set_texture(halo::tag_id_bits(senv(shader)->base_map.tag_id), 0, 0, 1, frame);
     render_device().set_transform(0x10, matrix);
@@ -190,7 +193,7 @@ static void set_combine_stages(uint8_t *shader, int16_t frame, const float *matr
  *
  * @address 0x527ae0
  */
-void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
+void rasterizer_shader_environment_draw_fixed_function(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
 {
     float matrix[16];
 
@@ -293,7 +296,7 @@ static void environment_set_vector(void *effect, void *handle, float x, float y,
  *
  * @address 0x528050
  */
-void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
+void rasterizer_shader_environment_draw_pixel_shader(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
 {
     rasterizer_model_draw_context *context;
     float relative[3];
@@ -514,7 +517,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
  *
  * @address 0x5276c0
  */
-void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
+void rasterizer_shader_environment_draw_single_stream(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
 {
     float matrix[16];
 
@@ -761,7 +764,7 @@ namespace rasterizer_shader_environment_lightmap_draw_impl {
  *
  * @address 0x51e2a0
  */
-void rasterizer_shader_environment_lightmap_draw(uint8_t *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, void *vertex_buffer)
+void rasterizer_shader_environment_lightmap_draw(Shader *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, void *vertex_buffer)
 {
     rasterizer_effect_slot *slot;
     int16_t index;

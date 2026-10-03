@@ -714,10 +714,10 @@ void rasterizer_geometry_part_draw(transparent_geometry_group *group)
         }
         chimera__rasterizer_set_model_skinning((uint8_t)(~(uint8_t)(group->flags >> 8) & 1), &nodes);
         if (group->flags & 0x100) {
-            chimera__rasterizer_set_up_node_parts(group->node_part_count, (uint8_t *)(uintptr_t)group->node_part_indices);
+            chimera__rasterizer_set_up_node_parts(group->node_part_count, group->node_part_indices);
         }
         if (group->lighting != 0) {
-            rasterizer_prepare_lighting_constants((render_lighting *)(uintptr_t)group->lighting);
+            rasterizer_prepare_lighting_constants(group->lighting);
         }
     }
     if ((int8_t)group->flags < 0 && group->parameters.mode == 1) {
@@ -725,8 +725,8 @@ void rasterizer_geometry_part_draw(transparent_geometry_group *group)
     }
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         rasterizer_geometry_draw_fixed_function(group->flags, group->dynamic_vertex_slot,
-                                                (rasterizer_vertex_buffer *)(uintptr_t)group->vertex_buffer,
-                                                (rasterizer_index_buffer *)(uintptr_t)group->index_buffer,
+                                                group->vertex_buffer,
+                                                group->index_buffer,
                                                 group->dynamic_index_slot, group->primitive_count);
     } else {
         render_device().set_vertex_declaration(rasterizer_vertex_declarations[4].declaration);

@@ -573,9 +573,9 @@ void transparent_0x512080(void *shader_data, int16_t shader_permutation, void *b
     int32_t surface_offset, int16_t surface_count, void *material_extra, void *rendered_vertices,
     void *lightmap_vertices, void *coplanar_vector, void *lightmap_vertices_offset, int32_t zero)
 {
-    halo::rasterizer::rasterizer_transparent_geometry_group_new((Shader *)shader_data, shader_permutation, (uint32_t)bitmap, (uint32_t)render_context,
-        (uint32_t)surface_offset, (uint32_t)(uint16_t)surface_count, (uint32_t)material_extra, (ColorARGB *)lightmap_vertices,
-        (uint32_t)lightmap_vertices_offset, (uint32_t)zero, (real_point3d *)rendered_vertices);
+    halo::rasterizer::rasterizer_transparent_geometry_group_new((Shader *)shader_data, shader_permutation, static_cast<BitmapData *>(bitmap), (uint32_t)render_context,
+        (uint32_t)surface_offset, (uint32_t)(uint16_t)surface_count, static_cast<rasterizer_vertex_buffer *>(material_extra), (ColorARGB *)lightmap_vertices,
+        static_cast<render_lighting *>(lightmap_vertices_offset), (uint32_t)zero, (real_point3d *)rendered_vertices);
 }
 
 }  // namespace halo::render::window_structure

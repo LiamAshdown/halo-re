@@ -727,10 +727,11 @@ typedef struct rasterizer_geometry_group_parameters {
                                     //      values in FUN_00519f70
     int32_t sort_key;               // 0x0c copied into group.sort_key when mode != 0
     real_point3d position;          // 0x10 copied into group.position when mode != 0
-    uint32_t shader;                // 0x1c void* Shader tag data of the overlay pass (0x52b050
+    struct Shader *shader;          // 0x1c Shader tag data of the overlay pass (0x52b050
                                     //      tests shader_type 0xb and +0x2c)
-    uint32_t unknown_20;            // 0x20
-    uint32_t function_values;       // 0x24 float* indexed [n - 1] by the overlay shader in 0x52b050
+    uint32_t change_colors;         // 0x20 ColorRGB*; with function_values the render_animation pair copied to
+                                    //      group.lighting_extra by 0x52b050
+    const float *function_values;   // 0x24 indexed [n - 1] by the overlay shader in 0x52b050
                                     //      and 0x533850
 } rasterizer_geometry_group_parameters; // size 0x28
 
@@ -809,7 +810,7 @@ typedef struct transparent_geometry_group {
     uint32_t object_index;          // 0x04 0x04 copied from rasterizer_model_draw_context.object_index (render_model)
                                     //    by rasterizer_transparent_geometry_group_build, 0 for non model groups
     int32_t sort_key;               // 0x08 compare tiebreak; draw batches runs of equal keys
-    uint32_t shader;                // 0x0c void* Shader tag data; NULL means a callback group
+    struct Shader *shader;          // 0x0c Shader tag data; NULL means a callback group
     uint16_t shader_permutation;    // 0x10 passed as the bitmap index to set_texture
     uint16_t unknown_12;            // 0x12 never written
     rasterizer_geometry_group_parameters parameters; // 0x14
@@ -821,21 +822,23 @@ typedef struct transparent_geometry_group {
                                     //    v_scale; glass reflection uses both as bump scale constants
     int32_t dynamic_index_slot;     // 0x44 rasterizer_dynamic_index_slot index; a negative
                                     //      value is minus a primitive kind (3 or 4 are quads)
-    uint32_t index_buffer;          // 0x48 rasterizer_index_buffer* static indices; for a callback group
-                                    //      (shader NULL) this is the callback procedure
+    union {
+        struct rasterizer_index_buffer *index_buffer; // 0x48 static indices
+        void (*callback)(int32_t argument, int32_t count); // 0x48 callback group (shader NULL): the procedure
+    };
     int32_t first_index;            // 0x4c callback argument for a callback group
     int32_t primitive_count;        // 0x50
     int32_t dynamic_vertex_slot;    // 0x54 rasterizer_dynamic_vertex_slot index, -1 none
-    uint32_t vertex_buffer;         // 0x58 rasterizer_vertex_buffer* static vertices; +0x14 is the lightmap
+    struct rasterizer_vertex_buffer *vertex_buffer; // 0x58 static vertices; +0x14 is the lightmap
                                     //      stream when it points into a BSP material
-    uint32_t lightmap_bitmap;       // 0x5c void* BitmapData; its +0x28 texture gates the lightmap pass
+    struct BitmapData *lightmap_bitmap; // 0x5c BitmapData; its +0x28 texture gates the lightmap pass
     uint32_t node_matrices;         // 0x60 real_matrix4x3* skinning source, NULL uses the identity at 0x0069673c
     int16_t node_count;             // 0x64
     int16_t unknown_66;             // 0x66 never written
-    uint32_t node_part_indices;     // 0x68 uint8_t* 0x0071d19c when node_parts_bit is set
+    uint8_t *node_part_indices;     // 0x68 0x0071d19c when node_parts_bit is set
     int32_t node_part_count;        // 0x6c 0x0071d1a0
-    uint32_t lighting;              // 0x70 render_lighting*
-    uint32_t lighting_extra;        // 0x74 render_animation* (render.h): the {change_colors,
+    struct render_lighting *lighting; // 0x70
+    struct render_animation *lighting_extra; // 0x74 (render.h): the {change_colors,
                                     //      function_values} pair at model draw context +0x84
                                     //      (R43); 0x53fe50 reads function_values at +4 through it
                                     //      (0x53242a, 0x534347)
