@@ -11,6 +11,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/color_bits.hpp"
 
 extern "C" {
 extern double cos(double x);
@@ -97,7 +98,7 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
                 t = 1.0f;
             }
         }
-        halo::bitmaps::color_rgb_int_to_real(&flash, *(uint32_t *)&meter->flash_color);
+        halo::bitmaps::color_rgb_int_to_real(&flash, halo::interface::color_bits(meter->flash_color));
         flash.red *= t;
         flash.green *= t;
         flash.blue *= t;
@@ -124,7 +125,7 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
     }
 
     {
-        uint32_t empty = *(uint32_t *)&meter->empty_color;
+        uint32_t empty = halo::interface::color_bits(meter->empty_color);
         float inverse_opacity = 1.0f - meter->opacity;
         block.empty = ((uint32_t)(-1 - (int32_t)(empty >> 24)) << 24) | (empty & halo::interface::k_rgb_mask);
         gray.alpha = meter->translucency;
@@ -203,14 +204,14 @@ uint32_t HudMeters::flash_color_blend(const hud_flash_parameters *flash, int32_t
     float flash_time;
 
     if (flash->flash_period == 0.0f || flash->flash_length == 0.0f) {
-        halo::bitmaps::color_argb_int_to_real(&default_color, *(uint32_t *)&flash->default_color);
+        halo::bitmaps::color_argb_int_to_real(&default_color, halo::interface::color_bits(flash->default_color));
         return halo::interface::color_pack_argb_from_real(&default_color);
     }
 
     cycle_time = (float)fmod((float)(halo::game::globals().game_time->game_time - start_time) * (1.0f / 30.0f),
                              flash->flash_period);
-    halo::bitmaps::color_argb_int_to_real(&default_color, *(uint32_t *)&flash->default_color);
-    halo::bitmaps::color_argb_int_to_real(&flashing_color, *(uint32_t *)&flash->flashing_color);
+    halo::bitmaps::color_argb_int_to_real(&default_color, halo::interface::color_bits(flash->default_color));
+    halo::bitmaps::color_argb_int_to_real(&flashing_color, halo::interface::color_bits(flash->flashing_color));
 
     if ((float)flash->number_of_flashes * (flash->flash_delay + flash->flash_length) <= cycle_time) {
         return halo::interface::color_pack_argb_from_real(&default_color);

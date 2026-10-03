@@ -12,6 +12,7 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/flags.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/color_bits.hpp"
 
 extern "C" {
 extern hud_waypoint_state *hud_waypoints;
@@ -363,9 +364,9 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
         memset(anchor, 0, sizeof(anchor));
         memset(&placement, 0, sizeof(placement));
         packed = halo::interface::color_rgb_float_to_int(&color.red) | ((uint32_t)alpha << 24);
-        *(uint32_t *)&placement.flash.default_color = packed;
+        halo::interface::set_color_bits(placement.flash.default_color, packed);
         packed = halo::interface::color_rgb_float_to_int(&color.red) | ((uint32_t)alpha << 24);
-        *(uint32_t *)&placement.flash.flashing_color = packed;
+        halo::interface::set_color_bits(placement.flash.flashing_color, packed);
         placement.maximum_number_of_digits = 3;
         placement.number_of_fractional_digits = 1;
         placement.flags = 5;

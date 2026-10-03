@@ -20,6 +20,8 @@
 #include "objects.h"
 #include "halo/interface/flags.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/game_state_block.hpp"
+#include "halo/interface/color_bits.hpp"
 
 extern "C" {
 extern HUDGlobals *hud_globals_tag_data;
@@ -123,7 +125,7 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
         uint16_t sequence_index = (halo::game::globals().local_player_globals->local_player_count <= 1)
             ? hud->hud_damage_sequence_index
             : hud->hud_damage_multiplayer_sequence_index;
-        uint32_t icon_color = *(const uint32_t *)&hud->hud_damage_color;
+        uint32_t icon_color = halo::interface::color_bits(hud->hud_damage_color);
 
         halo::effects::player_effect_fade_damage_indicators(local_player_index, &previous_indicators);
 
@@ -658,7 +660,7 @@ void HudFrame::render_unit_interface(player *p)
                     continue;
                 }
                 if (halo::interface::has_bit(overlay->flags, halo::tags::unit_hud_interface_auxiliary_overlay_tag_flag::use_team_color)) {
-                    *(uint32_t *)&overlay->default_color = halo::interface::color_rgb_float_to_int((const float *)(((struct object *)object)->unknown_188)) | halo::interface::k_argb_alpha_opaque;
+                    halo::interface::set_color_bits(overlay->default_color, halo::interface::color_rgb_float_to_int((const float *)(((struct object *)object)->unknown_188)) | halo::interface::k_argb_alpha_opaque);
                 }
                 halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)&hud->auxiliary_overlay_anchor,
                                         (const hud_static_element_placement *)overlay, flags, -1);
@@ -790,37 +792,12 @@ void HudFrame::render_unit_interface(player *p)
  */
 void HudFrame::state_allocate(void)
 {
-    int32_t size;
-
-    size = sizeof(hud_globals_flags);
-    hud_flags = (hud_globals_flags *)(halo::saved_games::globals().game_state_cursor + (int32_t)halo::saved_games::globals().game_state_base);
-    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + size;
-    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
-
-    size = sizeof(hud_messaging_globals);
-    hud_messaging = (hud_messaging_globals *)(halo::saved_games::globals().game_state_cursor + (int32_t)halo::saved_games::globals().game_state_base);
-    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + size;
-    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
-
-    size = sizeof(hud_unit_meter_globals);
-    hud_unit_meters = (hud_unit_meter_globals *)(halo::saved_games::globals().game_state_cursor + (int32_t)halo::saved_games::globals().game_state_base);
-    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + size;
-    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
-
-    size = sizeof(hud_weapon_interface_state);
-    hud_weapon_state = (hud_weapon_interface_state *)(halo::saved_games::globals().game_state_cursor + (int32_t)halo::saved_games::globals().game_state_base);
-    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + size;
-    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
-
-    size = sizeof(hud_waypoint_state);
-    hud_waypoints = (hud_waypoint_state *)(halo::saved_games::globals().game_state_cursor + (int32_t)halo::saved_games::globals().game_state_base);
-    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + size;
-    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
-
-    size = sizeof(motion_sensor_globals);
-    motion_sensor = (motion_sensor_globals *)(halo::saved_games::globals().game_state_cursor + (int32_t)halo::saved_games::globals().game_state_base);
-    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + size;
-    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
+    hud_flags = halo::interface::game_state_allocate_block<hud_globals_flags>();
+    hud_messaging = halo::interface::game_state_allocate_block<hud_messaging_globals>();
+    hud_unit_meters = halo::interface::game_state_allocate_block<hud_unit_meter_globals>();
+    hud_weapon_state = halo::interface::game_state_allocate_block<hud_weapon_interface_state>();
+    hud_waypoints = halo::interface::game_state_allocate_block<hud_waypoint_state>();
+    motion_sensor = halo::interface::game_state_allocate_block<motion_sensor_globals>();
 }
 
 /**

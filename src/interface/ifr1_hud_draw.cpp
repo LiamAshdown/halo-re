@@ -13,6 +13,7 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/wide_text.hpp"
+#include "halo/interface/color_bits.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);
@@ -293,7 +294,7 @@ void HudDraw::message_icon(const hud_messaging_information *information, Rectang
     position.x = x;
     position.y = (int16_t)__ftol((double)((float)cursor->bottom - (float)information->offset.y * scale));
     if ((information->flags & 2) != 0) {
-        color = *(const uint32_t *)&information->override_icon_color;
+        color = halo::interface::color_bits(information->override_icon_color);
     }
     halo::interface::hud_draw_bitmap_at(uv, bitmap, 0, 2, &position, scale, 0.0f, color);
 
@@ -616,11 +617,11 @@ void HudDraw::number(void *unused, const void *anchor, const hud_number_placemen
     }
 
     if (flags & 2) {
-        pen.color = *(uint32_t *)&placement->disabled_color;
+        pen.color = halo::interface::color_bits(placement->disabled_color);
     } else if (flags & 1) {
         pen.color = halo::interface::hud_meter_flash_color_blend(&placement->flash, flash_start_time);
     } else {
-        pen.color = *(uint32_t *)&placement->flash.default_color;
+        pen.color = halo::interface::color_bits(placement->flash.default_color);
     }
     pen.y = origin.y;
     pen.anchor = *static_cast<const uint16_t *>(anchor);
@@ -700,7 +701,7 @@ void HudDraw::overlays(const void *anchor, const hud_overlay_list *list, uint32_
             color = halo::interface::hud_meter_flash_color_blend((const hud_flash_parameters *)&overlay->default_color,
                                                 flash_start_time);
         } else {
-            color = *(const uint32_t *)&overlay->default_color;
+            color = halo::interface::color_bits(overlay->default_color);
         }
 
         if ((*(const uint8_t *)&overlay->flags & 1) != 0 && (draw_flags & 1) != 0 && overlay->frame_rate > 0) {
@@ -809,11 +810,11 @@ void HudDraw::static_element(int16_t local_player_index, const void *anchor, con
     }
 
     if ((draw_flags & 2) != 0) {
-        color = *(const uint32_t *)&element->disabled_color;
+        color = halo::interface::color_bits(element->disabled_color);
     } else if ((draw_flags & 1) != 0) {
         color = halo::interface::hud_meter_flash_color_blend(&element->flash, flash_start_time);
     } else {
-        color = *(const uint32_t *)&element->flash.default_color;
+        color = halo::interface::color_bits(element->flash.default_color);
     }
 
     pixel_uvs = bitmap_tag->type == 4;

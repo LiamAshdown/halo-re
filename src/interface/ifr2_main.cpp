@@ -18,6 +18,7 @@
 #include "halo/interface/constants.hpp"
 #include "halo/interface/widget_pool.hpp"
 #include "halo/interface/wide_text.hpp"
+#include "halo/interface/game_state_block.hpp"
 
 #ifdef interface
 #undef interface
@@ -94,16 +95,10 @@ void InterfaceMain::draw_cursor()
  */
 void InterfaceMain::globals_allocate()
 {
-    int32_t block;
-    int32_t size = sizeof(first_person_weapon_interface);
-
     halo::interface::terminal_initialize();
     halo::interface::hud_state_allocate();
 
-    block = halo::saved_games::globals().game_state_cursor + (int32_t)halo::saved_games::globals().game_state_base;
-    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + sizeof(first_person_weapon_interface);
-    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
-    first_person_weapon_interfaces = (first_person_weapon_interface *)block;
+    first_person_weapon_interfaces = halo::interface::game_state_allocate_block<first_person_weapon_interface>();
 }
 
 /**

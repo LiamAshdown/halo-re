@@ -19,6 +19,7 @@
 #include "game.h"
 #include "halo/interface/flags.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/color_bits.hpp"
 
 #ifdef interface
 #undef interface
@@ -354,10 +355,10 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
                     if ((flags & 1) != 0) {
                         frame = 0;
                         color = *state > 0 ? halo::interface::hud_meter_flash_color_blend((const hud_flash_parameters *)&overlay->default_color, 0)
-                                           : *(uint32_t *)&overlay->default_color;
+                                           : halo::interface::color_bits(overlay->default_color);
                     } else {
                         frame = (int16_t)*state;
-                        color = *(uint32_t *)&overlay->default_color;
+                        color = halo::interface::color_bits(overlay->default_color);
                     }
                     break;
                 case 1:
@@ -372,7 +373,7 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
                     if ((flags & 1) != 0 && crosshair_state[0] > 0) {
                         color = halo::interface::hud_meter_flash_color_blend((const hud_flash_parameters *)&overlay->default_color, 0);
                     } else {
-                        color = *(uint32_t *)&overlay->default_color;
+                        color = halo::interface::color_bits(overlay->default_color);
                     }
                     break;
                 case 8: case 9: case 14: case 18:
@@ -410,7 +411,7 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
                     if (halo::interface::has_bit(overlay->flags, halo::tags::weapon_hud_interface_crosshair_overlay_tag_flag::flashes_when_active) && *state != -1) {
                         color = halo::interface::hud_meter_flash_color_blend((const hud_flash_parameters *)&overlay->default_color, *state);
                     } else {
-                        color = *(uint32_t *)&overlay->default_color;
+                        color = halo::interface::color_bits(overlay->default_color);
                     }
                     break;
                 }

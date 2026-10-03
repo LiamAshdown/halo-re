@@ -35,6 +35,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/wide_text.hpp"
+#include "halo/interface/color_bits.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -487,7 +488,7 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
                 ColorARGB text_color;
                 uint32_t packed_color;
 
-                halo::bitmaps::color_codec::argb_int_to_real(&icon_color, *(uint32_t *)&icon->override_icon_color);
+                halo::bitmaps::color_codec::argb_int_to_real(&icon_color, halo::interface::color_bits(icon->override_icon_color));
                 icon->flags = (HUDInterfaceMessagingFlags)(saved_flags & 0xfd);
                 if (prompt_icon_override_table[token] != 0) {
                     icon->flags = (HUDInterfaceMessagingFlags)(icon->flags & 0xfb);
@@ -498,7 +499,7 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
                 text_color.green = hud_text_draw_color_g;
                 text_color.blue = hud_text_draw_color_b;
                 packed_color = (uint32_t)__ftol(text_color.alpha * 255.0f) << 24;
-                if (*(uint32_t *)&icon->override_icon_color == 0 || use_text_color != 0) {
+                if (halo::interface::color_bits(icon->override_icon_color) == 0 || use_text_color != 0) {
                     icon_color = text_color;
                 }
                 icon_color.red = icon_color.red * text_color.alpha;
