@@ -8,6 +8,8 @@
 #include <stdarg.h>
 #include <stdint.h>
 
+
+
 typedef float real;
 struct Shader;
 struct ShaderEnvironment;
@@ -15,6 +17,17 @@ struct render_animation;
 struct shader_texture_animation;
 
 namespace halo::shaders {
+
+/**
+ * The engine globals the shaders module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    int32_t &numeric_countdown_timer_remaining_ms;
+    uint8_t &numeric_countdown_timer_running;
+};
+
+Globals &globals();
 
 int16_t chimera__shader_get_vertex_shader_permutation(Shader *shader);
 uint8_t shader_is_decal(Shader *shader);

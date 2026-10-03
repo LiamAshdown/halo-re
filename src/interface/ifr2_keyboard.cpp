@@ -19,9 +19,7 @@ extern void **keyboard_device;
 extern uint8_t key_frames[0x6d];
 extern uint8_t key_release_pending[0x6d];
 extern int32_t hud_text_draw_font_tag_id;
-extern uint32_t hud_text_draw_unknown_4730;
 extern uint16_t hud_text_draw_color_or_flags;
-extern int16_t hud_text_draw_column;
 extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
@@ -82,8 +80,8 @@ void VirtualKeyboard::virtual_keyboard_set_text_state(int16_t column)
     hud_text_draw_color_g = 0.9f;
     hud_text_draw_color_b = 0.9f;
     hud_text_draw_color_or_flags = 0xffff;
-    hud_text_draw_column = column;
-    hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_column = column;
+    halo::text::globals().hud_text_draw_unknown_4730 = 0;
 }
 
 /**
@@ -182,8 +180,8 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
     hud_text_draw_color_r = 0.9f;
     hud_text_draw_color_g = 0.9f;
     hud_text_draw_color_or_flags = 0xffff;
-    hud_text_draw_column = 2;
-    hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_column = 2;
+    halo::text::globals().hud_text_draw_unknown_4730 = 0;
 
     if (virtual_keyboard.opened == 1) {
         BitmapData *white = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(virtual_keyboard.white_bitmap, 0, 0);

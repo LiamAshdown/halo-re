@@ -2,6 +2,7 @@
 #include <string.h>
 #include <wchar.h>
 #include "halo/cache/api.hpp"
+#include "halo/text/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -10,14 +11,11 @@ extern void hud_draw_teammate_nameplate_text(wchar_t *text, int32_t value);
 extern double pow(double base, double exponent);
 extern Globals *global_globals;
 extern int32_t hud_text_draw_font_tag_id;
-extern uint32_t hud_text_draw_unknown_4730;
 extern uint16_t hud_text_draw_color_or_flags;
-extern int16_t hud_text_draw_column;
 extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
-extern int16_t hud_text_draw_background_mode;
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 extern player_control_globals *player_control_globals_ptr;
 extern data_array *object_data;
@@ -141,12 +139,12 @@ void HudNameplates::draw_teammate_nameplate_text(wchar_t *text, int32_t value)
 
     hud_text_draw_font_tag_id = (int32_t)interface_bitmaps->font_terminal.tag_id.index |
                                  ((int32_t)interface_bitmaps->font_terminal.tag_id.id << 16);
-    hud_text_draw_unknown_4730 = 8;
+    halo::text::globals().hud_text_draw_unknown_4730 = 8;
     hud_text_draw_color_r = 0.45882353f;
     *(int32_t *)&hud_text_draw_color_a = value;
     hud_text_draw_color_b = 1.0f;
     hud_text_draw_color_or_flags = 0xffffu;
-    hud_text_draw_column = 2;
+    halo::text::globals().hud_text_draw_column = 2;
     hud_text_draw_color_g = 0.7294118f;
 
     bounds.top = 0x46;
@@ -156,9 +154,9 @@ void HudNameplates::draw_teammate_nameplate_text(wchar_t *text, int32_t value)
     chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
 
     hud_text_draw_color_or_flags = 0xffffu;
-    hud_text_draw_column = 0;
-    hud_text_draw_unknown_4730 = 0;
-    hud_text_draw_background_mode = 0;
+    halo::text::globals().hud_text_draw_column = 0;
+    halo::text::globals().hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_background_mode = 0;
 }
 
 /**
@@ -313,8 +311,8 @@ void HudText::scoreboard_row_text(int16_t row, wchar_t *text, int16_t column)
     hud_text_bounds bounds;
 
     hud_text_draw_color_or_flags = 0xffffu;
-    hud_text_draw_column = column;
-    hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_column = column;
+    halo::text::globals().hud_text_draw_unknown_4730 = 0;
 
     safe_left = (int16_t)(render_viewport_top >> 16);
     bounds.top = (int16_t)(row * 0x12);
@@ -357,11 +355,11 @@ int32_t HudText::world_relative_text(hud_world_text_params *params, int16_t row,
 
         text_tab_stops = 0x005a0019u;
         hud_text_draw_box_field_474e = 0x01590118u;
-        hud_text_draw_background_mode = 7;
+        halo::text::globals().hud_text_draw_background_mode = 7;
         hud_text_draw_tabstop_c = 0x01e5019au;
         hud_text_draw_box_field_4756 = 0x230;
     } else {
-        hud_text_draw_background_mode = 0;
+        halo::text::globals().hud_text_draw_background_mode = 0;
     }
 
     safe_left = (int16_t)(render_viewport_top >> 16);
@@ -384,15 +382,15 @@ int32_t HudText::world_relative_text(hud_world_text_params *params, int16_t row,
         hud_text_draw_color_g = g;
         hud_text_draw_color_b = b;
         hud_text_draw_color_or_flags = 0xffffu;
-        hud_text_draw_column = 0;
-        hud_text_draw_unknown_4730 = 0;
+        halo::text::globals().hud_text_draw_column = 0;
+        halo::text::globals().hud_text_draw_unknown_4730 = 0;
         hud_text_draw_font_tag_id = font_terminal_id;
         hud_text_draw_color_a = params->alpha;
 
         chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
     }
 
-    hud_text_draw_background_mode = 0;
+    halo::text::globals().hud_text_draw_background_mode = 0;
     return result;
 }
 

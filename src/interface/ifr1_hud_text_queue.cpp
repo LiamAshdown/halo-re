@@ -1,11 +1,10 @@
 #include "halo/interface/ifr1_hud_text_queue.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/text/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
 extern uint16_t hud_text_draw_color_or_flags;
-extern int16_t hud_text_draw_column;
-extern uint32_t hud_text_draw_unknown_4730;
 extern int32_t hud_text_draw_font_tag_id;
 extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
@@ -48,8 +47,8 @@ void HudTextQueue::draw_configure(int16_t font_table_index, uint16_t color_or_fl
     hud_text_draw_color_g = color.green;
     hud_text_draw_color_b = color.blue;
     hud_text_draw_color_or_flags = color_or_flags;
-    hud_text_draw_column = column;
-    hud_text_draw_unknown_4730 = unknown_4730;
+    halo::text::globals().hud_text_draw_column = column;
+    halo::text::globals().hud_text_draw_unknown_4730 = unknown_4730;
 }
 
 /**

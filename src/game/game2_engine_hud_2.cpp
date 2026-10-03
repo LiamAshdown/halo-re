@@ -11,9 +11,6 @@ extern uint32_t hud_text_draw_color_r;
 extern uint32_t hud_text_draw_color_g;
 extern uint32_t hud_text_draw_color_b;
 extern uint16_t hud_text_draw_color_or_flags;
-extern int16_t hud_text_draw_column;
-extern uint32_t hud_text_draw_unknown_4730;
-extern int16_t hud_text_draw_background_mode;
 extern uint32_t text_tab_stops;
 extern uint32_t hud_text_draw_box_field_474e;
 extern uint32_t hud_text_draw_tabstop_c;
@@ -52,7 +49,7 @@ void EngineHud::post_game_set_text_color(const uint32_t *color)
  */
 void EngineHud::post_game_set_tab_stops(uint32_t stops_a, uint32_t stops_b, uint32_t stops_c)
 {
-    hud_text_draw_background_mode = 6;
+    halo::text::globals().hud_text_draw_background_mode = 6;
     text_tab_stops = stops_a;
     hud_text_draw_box_field_474e = stops_b;
     hud_text_draw_tabstop_c = stops_c;
@@ -93,8 +90,8 @@ void EngineHud::post_rasterize_post_game(void)
     hud_text_draw_font_tag_id = *(uint32_t *)((uint8_t *)hud_globals_tag_data + 0x54);
     post_game_set_text_color(color_normal);
     hud_text_draw_color_or_flags = 0xffffu;
-    hud_text_draw_column = 0;
-    hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_column = 0;
+    halo::text::globals().hud_text_draw_unknown_4730 = 0;
 
     interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
         ? (GlobalsInterfaceBitmaps *)0
@@ -122,7 +119,7 @@ void EngineHud::post_rasterize_post_game(void)
         team_name[0] = multiplayer_game_text_string(0x41);
         team_name[1] = multiplayer_game_text_string(0x42);
 
-        hud_text_draw_background_mode = 6;
+        halo::text::globals().hud_text_draw_background_mode = 6;
         text_tab_stops = team_tab_a;
         hud_text_draw_box_field_474e = team_tab_b;
         hud_text_draw_tabstop_c = team_tab_c;
@@ -223,7 +220,7 @@ void EngineHud::post_rasterize_post_game(void)
     hud_text_draw_color_r = color_normal[1];
     hud_text_draw_color_g = color_normal[2];
     hud_text_draw_color_b = color_normal[3];
-    hud_text_draw_background_mode = 0;
+    halo::text::globals().hud_text_draw_background_mode = 0;
 
     {
         wchar_t *prompt;

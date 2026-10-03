@@ -21,15 +21,11 @@ extern Rectangle2D screen_safe_area_right;
 extern int8_t hud_message_button_icon_table[0x1d];
 extern const uint16_t *empty_wide_string_pointer;
 extern int32_t hud_text_draw_font_tag_id;
-extern uint32_t hud_text_draw_unknown_4730;
 extern uint16_t hud_text_draw_color_or_flags;
-extern int16_t hud_text_draw_column;
 extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
-extern int16_t ui_prompt_clip_x;
-extern int16_t ui_prompt_clip_y;
 extern const uint16_t hud_text_quote[];
 extern const uint16_t hud_text_unbound[];
 extern const uint16_t hud_text_unknown[];
@@ -58,8 +54,8 @@ static void hud_messaging_set_text_state(datum_index font, const ColorARGB *colo
     hud_text_draw_color_g = color->green;
     hud_text_draw_color_b = color->blue;
     hud_text_draw_color_or_flags = 0xffff;
-    hud_text_draw_column = 0;
-    hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_column = 0;
+    halo::text::globals().hud_text_draw_unknown_4730 = 0;
 }
 
 static void hud_messaging_draw_button_icon(int16_t button_icon, Rectangle2D *cursor, Rectangle2D *line)
@@ -215,8 +211,8 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                 if (element->type == 0) {
                     const uint16_t *text = (const uint16_t *)messages_tag->text_data.pointer + text_offset;
 
-                    ui_prompt_clip_x = (int16_t)(cursor.left - line.left);
-                    ui_prompt_clip_y = 0;
+                    halo::text::globals().ui_prompt_clip_x = (int16_t)(cursor.left - line.left);
+                    halo::text::globals().ui_prompt_clip_y = 0;
                     halo::text::text_measure_string_extents(&line, &cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
                     cursor.left = (int16_t)(cursor.left - 3);
                     bounds.left = line.left;
@@ -258,8 +254,8 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                 }
             }
         }
-        ui_prompt_clip_x = 0;
-        ui_prompt_clip_y = 0;
+        halo::text::globals().ui_prompt_clip_x = 0;
+        halo::text::globals().ui_prompt_clip_y = 0;
         y = cursor.bottom;
     }
 

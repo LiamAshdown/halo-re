@@ -7,7 +7,26 @@
 #include "halo/text/text.hpp"
 #include "halo/text/api.hpp"
 
+extern "C" {
+extern ColorARGB hud_text_draw_color_a;
+extern datum_index hud_text_draw_font_tag_id;
+extern int16_t hud_text_draw_background_mode;
+extern int16_t hud_text_draw_color_or_flags;
+extern int16_t hud_text_draw_column;
+extern uint32_t hud_text_draw_unknown_4730;
+extern datum_index text_localization_strings;
+extern float text_color_scale;
+extern int16_t ui_prompt_clip_x;
+extern int16_t ui_prompt_clip_y;
+}
+
 namespace halo::text {
+
+Globals &globals()
+{
+    static Globals instance{::hud_text_draw_color_a, ::hud_text_draw_font_tag_id, ::hud_text_draw_background_mode, ::hud_text_draw_color_or_flags, ::hud_text_draw_column, ::hud_text_draw_unknown_4730, ::text_localization_strings, ::text_color_scale, ::ui_prompt_clip_x, ::ui_prompt_clip_y};
+    return instance;
+}
 
 uint8_t text_char_is_double_byte(uint8_t *string)
 {

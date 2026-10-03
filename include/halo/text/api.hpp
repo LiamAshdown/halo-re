@@ -8,6 +8,8 @@
 #include <stdarg.h>
 #include <stdint.h>
 
+
+
 struct ColorARGB;
 struct Font;
 struct FontCharacter;
@@ -20,6 +22,25 @@ typedef void (*text_glyph_draw_proc)(text_parse_state *state, void *font, void *
     int16_t width, int16_t height);
 
 namespace halo::text {
+
+/**
+ * The engine globals the text module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    ColorARGB &hud_text_draw_color_a;
+    datum_index &hud_text_draw_font_tag_id;
+    int16_t &hud_text_draw_background_mode;
+    int16_t &hud_text_draw_color_or_flags;
+    int16_t &hud_text_draw_column;
+    uint32_t &hud_text_draw_unknown_4730;
+    datum_index &localization_strings;
+    float &color_scale;
+    int16_t &ui_prompt_clip_x;
+    int16_t &ui_prompt_clip_y;
+};
+
+Globals &globals();
 
 uint8_t text_char_is_double_byte(uint8_t *string);
 uint16_t text_get_next_character(uint8_t *string, int16_t *cursor);

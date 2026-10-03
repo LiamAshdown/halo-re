@@ -19,6 +19,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/text/api.hpp"
 
 extern "C" {
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state;
@@ -36,7 +37,6 @@ extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
-extern int16_t hud_text_draw_background_mode;
 extern void rasterizer_set_shader_stage_config(int16_t mode);
 extern void hud_text_draw_configure(int16_t font_table_index, uint16_t color_or_flags, int16_t column,
     uint32_t unknown_4730, int16_t color_table_index, int16_t color_index);
@@ -71,7 +71,6 @@ extern int16_t frame_statistics_count;
 extern int32_t time_query_performance_counter_ms(void);
 extern lens_flare_batch_key lens_flare_current_key;
 extern uint32_t lens_flare_vertex_specular;
-extern float text_color_scale;
 extern float rasterizer_default_z_near;
 extern float rasterizer_default_z_far;
 extern uint32_t rasterizer_frustum_z_values[2];
@@ -156,7 +155,7 @@ static void set_text_state(const float color[4], const int16_t tab_stops[6])
     hud_text_draw_color_r = color[1];
     hud_text_draw_color_g = color[2];
     hud_text_draw_color_b = color[3];
-    hud_text_draw_background_mode = 6;
+    halo::text::globals().hud_text_draw_background_mode = 6;
     for (i = 0; i < 6; i++) {
         text_tab_stops[i] = tab_stops[i];
     }
@@ -481,7 +480,7 @@ void draw(uint8_t render_graph, uint8_t render_infos)
 
     hud_text_draw_configure(1, 0xffff, 0, 0, 5, 0);
     hud_text_draw_color_a = white[0];
-    hud_text_draw_background_mode = 0;
+    halo::text::globals().hud_text_draw_background_mode = 0;
     hud_text_draw_color_r = white[1];
     hud_text_draw_color_g = white[2];
     hud_text_draw_color_b = white[3];
@@ -578,7 +577,7 @@ void lens_flare_set_vertex_specular(float intensity)
     uint32_t byte_value;
     uint32_t packed;
 
-    byte_value = (uint32_t)(int32_t)(long long)((double)(intensity * text_color_scale)) & 0xff;
+    byte_value = (uint32_t)(int32_t)(long long)((double)(intensity * halo::text::globals().color_scale)) & 0xff;
     packed = byte_value;
     packed = (packed << 8) | byte_value;
     packed = (packed << 8) | byte_value;
@@ -703,7 +702,7 @@ void draw(void)
     chimera__draw_8_bit_text(0, (int32_t *)&bounds, &cursor, -4, text);
 
     hud_text_draw_color_a = restore_color[0];
-    hud_text_draw_background_mode = 0;
+    halo::text::globals().hud_text_draw_background_mode = 0;
     hud_text_draw_color_r = restore_color[1];
     hud_text_draw_color_g = restore_color[2];
     hud_text_draw_color_b = restore_color[3];

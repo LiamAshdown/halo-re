@@ -23,8 +23,6 @@ extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern float hud_text_draw_color_a;
 extern uint16_t hud_text_draw_color_or_flags;
-extern int16_t hud_text_draw_column;
-extern uint32_t hud_text_draw_unknown_4730;
 extern int32_t hud_text_draw_font_tag_id;
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern int32_t select_players_to_display(int32_t mode, int32_t max_count, scoreboard_entry *out);
@@ -106,8 +104,8 @@ void EngineHud::scoreboard_draw_white_line(Rectangle2D *rect, wchar_t *text, flo
     hud_text_draw_color_g = global_white_argb->green;
     hud_text_draw_color_b = global_white_argb->blue;
     hud_text_draw_color_or_flags = 0xffffu;
-    hud_text_draw_column = 1;
-    hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_column = 1;
+    halo::text::globals().hud_text_draw_unknown_4730 = 0;
     chimera__draw_16_bit_text(0, (int32_t *)rect, 0, 0, (const int16_t *)text);
 }
 

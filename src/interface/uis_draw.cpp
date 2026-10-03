@@ -36,8 +36,6 @@ extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_
                                 int16_t *clip_rect, uint32_t vertex_color);
 extern int16_t ui_button_prompt_index_from_string(uint16_t *text);
 extern uint16_t formatted_prompt_scratch[0x100];
-extern int16_t ui_prompt_clip_y;
-extern int16_t ui_prompt_clip_x;
 extern uint16_t prompt_percent_text[];
 extern uint16_t hud_text_quote[];
 extern uint16_t hud_text_unbound[];
@@ -65,8 +63,8 @@ static void draw_span_inline(Rectangle2D *origin, Rectangle2D *cursor, const uin
     Rectangle2D out;
     int16_t delta = (int16_t)(cursor->left - origin->left);
 
-    ui_prompt_clip_y = 0;
-    ui_prompt_clip_x = (delta < 0) ? 0 : delta;
+    halo::text::globals().ui_prompt_clip_y = 0;
+    halo::text::globals().ui_prompt_clip_x = (delta < 0) ? 0 : delta;
     halo::text::text_measure_string_extents(origin, cursor, &out, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     out.left = origin->left;
@@ -445,8 +443,8 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
             if (cursor != (uint16_t *)0) {
                 ui_widget_draw_prompt_span(cursor, &cursor_rect, bounds);
             }
-            ui_prompt_clip_x = 0;
-            ui_prompt_clip_y = 0;
+            halo::text::globals().ui_prompt_clip_x = 0;
+            halo::text::globals().ui_prompt_clip_y = 0;
             return;
         }
         *percent = 0;
@@ -522,8 +520,8 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
         }
     next_span:
         if (cursor == (uint16_t *)0) {
-            ui_prompt_clip_x = 0;
-            ui_prompt_clip_y = 0;
+            halo::text::globals().ui_prompt_clip_x = 0;
+            halo::text::globals().ui_prompt_clip_y = 0;
             return;
         }
     }
@@ -543,8 +541,8 @@ void UiDraw::widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor, 
     Rectangle2D bounds;
     int16_t delta = (int16_t)(cursor->left - origin->left);
 
-    ui_prompt_clip_y = 0;
-    ui_prompt_clip_x = (delta < 0) ? 0 : delta;
+    halo::text::globals().ui_prompt_clip_y = 0;
+    halo::text::globals().ui_prompt_clip_x = (delta < 0) ? 0 : delta;
     halo::text::text_measure_string_extents(origin, cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     bounds.left = origin->left;

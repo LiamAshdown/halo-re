@@ -17,8 +17,6 @@ extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern Globals *global_globals;
 extern const ColorARGB *global_white_argb;
 extern uint16_t hud_text_draw_color_or_flags;
-extern int16_t hud_text_draw_column;
-extern uint32_t hud_text_draw_unknown_4730;
 extern int32_t hud_text_draw_font_tag_id;
 extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
@@ -155,8 +153,8 @@ void LocalPlayers::state_reset()
     hud_text_draw_color_g = global_white_argb->green;
     hud_text_draw_color_b = global_white_argb->blue;
     hud_text_draw_color_or_flags = 0xffff;
-    hud_text_draw_column = 0;
-    hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_column = 0;
+    halo::text::globals().hud_text_draw_unknown_4730 = 0;
 }
 
 /**

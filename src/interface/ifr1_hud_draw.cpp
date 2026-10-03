@@ -22,8 +22,6 @@ extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t seque
                                            void **out_data, int32_t *out_offset);
 extern void hud_draw_bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, int16_t anchor,
                                const Point2DInt *screen_position, float scale, float rotation, uint32_t color);
-extern int16_t ui_prompt_clip_x;
-extern int16_t ui_prompt_clip_y;
 extern game_engine_definition *current_game_engine;
 extern void ui_widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t use_text_color,
                                                    const uint16_t *text);
@@ -341,8 +339,8 @@ void HudDraw::message_text_span(Rectangle2D *cursor, Rectangle2D *origin, const 
 {
     Rectangle2D bounds;
 
-    ui_prompt_clip_x = (int16_t)(cursor->left - origin->left);
-    ui_prompt_clip_y = 0;
+    halo::text::globals().ui_prompt_clip_x = (int16_t)(cursor->left - origin->left);
+    halo::text::globals().ui_prompt_clip_y = 0;
     halo::text::text_measure_string_extents(origin, cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     bounds.left = origin->left;
