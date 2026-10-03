@@ -164,12 +164,12 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
                         if (material->breakable_surface == (uint16_t)-1 ||
                             (breakable_surface_state->active[global_structure_bsp_index][bit_array_word(material->breakable_surface)] &
                              bit_array_mask(material->breakable_surface)) != 0) {
-                            if (shader_type_is_transparent(shader->shader_type)) {
+                            if (render::shader_type_is_transparent(shader->shader_type)) {
                                 if (transparent_material_cb != 0) {
-                                    void *coplanar_vector = has((material_flag)material->flags, material_flag::fog_plane)
+                                    void *coplanar_vector = test_flag(material->flags, tags::scenario_structure_bsp_material_tag_flag::fog_plane)
                                         ? (void *)&fog_plane_vector
                                         : (void *)global_origin3d_pointer;
-                                    void *lightmap_vertices = has((material_flag)material->flags, material_flag::coplanar)
+                                    void *lightmap_vertices = test_flag(material->flags, tags::scenario_structure_bsp_material_tag_flag::coplanar)
                                         ? (void *)&material->plane
                                         : (void *)0;
                                     transparent_material_cb(shader, material->shader_permutation, bitmap_data,

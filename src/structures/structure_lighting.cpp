@@ -254,7 +254,7 @@ void bsp_lighting::lightmap_uv_rect_build(int16_t sequence_index, int16_t sprite
     out_sprite_rect[2] = sprite->top;
     out_sprite_rect[3] = sprite->bottom;
 
-    if ((decal_definition->flags & k_decal_preserve_aspect_flag) != 0) {
+    if (test_flag(decal_definition->flags, tags::decal_tag_flag::preserve_aspect)) {
         aspect = ((sprite->right - sprite->left) / (sprite->bottom - sprite->top)) *
             ((real)(int32_t)(int16_t)data->height / (real)(int32_t)(int16_t)data->width);
     }

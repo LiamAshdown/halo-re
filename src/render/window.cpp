@@ -16,6 +16,7 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/render/layout.hpp"
 
 extern "C" {
 extern uint8_t render_cluster_has_sky;
@@ -68,7 +69,7 @@ extern uint8_t decals_for_all_responses;
 extern int16_t visible_cluster_count;
 extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters];
 extern int16_t visible_surface_count;
-extern int32_t visible_surface_indices[0x4000];
+extern int32_t visible_surface_indices[halo::structures::k_maximum_visible_surfaces];
 extern uint8_t picked_surfaces_valid;
 extern int32_t picked_surfaces_geometry;
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -156,7 +157,7 @@ typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
  */
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, state, value);
+    halo::d3d9::device_function<d3d_call2_fn>(rasterizer_device, halo::d3d9::device_method::set_render_state)(rasterizer_device, state, value);
 }
 
 /**
@@ -176,12 +177,12 @@ static void draw_visible_cluster_decals(void)
  */
 static void reset_decal_fog_and_depth_bias(void)
 {
-    set_render_state(0x1c, 0);
-    if ((rasterizer_caps.raster_caps & 0x04000000) != 0) {
-        set_render_state(0xc3, 0);
+    set_render_state((uint32_t)halo::d3d9::render_state::fog_enable, 0);
+    if (halo::test_flag(rasterizer_caps.raster_caps, halo::d3d9::raster_cap::depth_bias)) {
+        set_render_state((uint32_t)halo::d3d9::render_state::depth_bias, 0);
     }
-    if ((rasterizer_caps.raster_caps & 0x02000000) != 0) {
-        set_render_state(0xaf, 0);
+    if (halo::test_flag(rasterizer_caps.raster_caps, halo::d3d9::raster_cap::slope_scale_depth_bias)) {
+        set_render_state((uint32_t)halo::d3d9::render_state::slope_scale_depth_bias, 0);
     }
     if (rasterizer_decal_layer == 3) {
         rasterizer_set_shader_stage_config(2);
@@ -225,19 +226,19 @@ void sky(void)
     if (!render_cluster_has_sky) {
         return;
     }
-    sky_tag = 0xffffffff;
+    sky_tag = k_dword_none;
     if (render_cluster_sky_index >= 0 &&
         (int32_t)render_cluster_sky_index < (int32_t)global_scenario->skies.count) {
         sky_tag = tag_id_of(((ScenarioSky *)global_scenario->skies.pointer)[render_cluster_sky_index].sky.tag_id);
     }
     sky = 0;
-    if (sky_tag != 0xffffffff) {
+    if (sky_tag != k_dword_none) {
         sky = (Sky *)tag_instances[(uint16_t)sky_tag].data;
     }
     model = (GBXModel *)tag_instances[sky->model.tag_id.index].data;
     model_nodes_get_default_transforms(model, nodes);
 
-    if (tag_id_of(sky->animation_graph.tag_id) != 0xffffffff) {
+    if (tag_id_of(sky->animation_graph.tag_id) != k_dword_none) {
         ModelAnimations *graph =
             (ModelAnimations *)tag_instances[sky->animation_graph.tag_id.index].data;
 
@@ -276,7 +277,7 @@ void sky(void)
         real_vector3d up;
         real length;
 
-        if (tag_id_of(light->lens_flare.tag_id) == 0xffffffff) {
+        if (tag_id_of(light->lens_flare.tag_id) == k_dword_none) {
             continue;
         }
         if (light->lens_flare_marker_name.string[0] == '\0') {
@@ -350,11 +351,11 @@ void sky(void)
     render_model(sky->model.tag_id, matrices, 0.0f, 0, 0, function_values, &lighting,
                  &render_camera_global.position, 0.0f, 0, 0, 0, 1);
 
-    if (console_debug_toggle_6893ec && rasterizer_device_version < 0xffff0101) {
+    if (console_debug_toggle_6893ec && rasterizer_device_version < d3d9::k_pixel_shader_version_1_1) {
         d3d_set_render_state_fn set_render_state =
-            (d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4];
+            d3d9::device_function<d3d_set_render_state_fn>(rasterizer_device, d3d9::device_method::set_render_state);
 
-        set_render_state(rasterizer_device, 0x89, 0);
+        set_render_state(rasterizer_device, (uint32_t)d3d9::render_state::lighting, 0);
     }
 }
 
@@ -405,7 +406,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     structure_picked_polygon_draw();
     lens_flare_update_samples();
     if (console_debug_toggle_69c614) {
-        shadow_data.object_index = 0xffffffff;
+        shadow_data.object_index = k_dword_none;
         shadow_data.unknown_44 = -1;
         shadow_data.lighting = 0;
         shadow_data.shadow_pass = 1;
@@ -525,7 +526,7 @@ namespace halo::render::window_structure {
 void lightmap_begin_0x511f90(void *bitmap_data)
 {
     if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f7 == 0 ||
-        rasterizer_device_version < 0xffff0104) {
+        rasterizer_device_version < k_device_version_lightmap_pass) {
         return;
     }
     if (bitmap_data != 0) {

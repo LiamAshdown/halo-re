@@ -10,19 +10,13 @@
 #include "halo/core/collision_flags.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/flags.hpp"
+#include "halo/structures/limits.hpp"
+#include "halo/core/flag_bits.hpp"
+#include "halo/render/shader_types.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/structures/structures_types.hpp"
 
 namespace halo::structures {
-
-/** ScenarioStructureBSPMaterial.flags. */
-enum class material_flag : uint16_t {
-    none = 0,
-    coplanar = 0x01,
-    fog_plane = 0x02,
-};
-
-/** Flag bit of the decal tag that keeps the sprite aspect ratio. */
-inline constexpr uint16_t k_decal_preserve_aspect_flag = 0x100;
 
 /** First byte of a decal's shader record: flags, bit 0x10 means the decal does not spawn from structure bsp placement. */
 inline constexpr uint8_t k_decal_shader_skip_structure_flag = 0x10;
@@ -34,26 +28,10 @@ inline constexpr uint16_t k_cluster_fog_index_mask = 0x7fff;
 /** Rendered vertex type stored by some compiled maps for uncompressed vertices (treated like type 0). */
 inline constexpr int16_t k_vertex_type_uncompressed_rendered_alias = 0xc;
 
-/** Shader types that draw through the transparent material callback: effect (1) and transparent_generic..transparent_plasma (5..11). */
-inline constexpr int16_t k_shader_type_effect = 1;
-inline constexpr int16_t k_shader_type_model = 4;
-inline constexpr int16_t k_shader_type_environment = 3;
-inline constexpr int16_t k_shader_type_first_transparent = 5;
-inline constexpr int16_t k_shader_type_after_transparent = 0xc;
-
-/** True when the shader draws through the transparent pass. */
-constexpr bool shader_type_is_transparent(int16_t shader_type) noexcept {
-    return shader_type == k_shader_type_effect ||
-           (shader_type > k_shader_type_model && shader_type < k_shader_type_after_transparent);
-}
-
 /** Largest number of clusters the flood fills track; also the size of the per-cluster scratch tables. */
-inline constexpr int32_t k_maximum_flood_clusters = 0x200;
 inline constexpr int32_t k_maximum_cluster_object_references = 0x800;
 inline constexpr int32_t k_maximum_object_clusters = 0x40;
-inline constexpr int32_t k_cluster_visible_bit_words = 0x10;
 inline constexpr int32_t k_maximum_clip_polygon_points = 0x100;
-inline constexpr int32_t k_maximum_visible_surfaces = 0x4000;
 inline constexpr int32_t k_maximum_query_surfaces = 0x1000;
 
 /** Index of the (single) bit-bound byte pair of a compressed bsp3d node bound that means "no bound, use the parent". */
@@ -104,10 +82,6 @@ inline constexpr size_t k_visible_cluster_screen_bounds_offset = 4;
 inline constexpr size_t k_visible_cluster_frustum_offset = 0x14;
 
 }  // namespace halo::structures
-
-namespace halo {
-template <> struct enable_bit_flags<structures::material_flag> : std::true_type {};
-}  // namespace halo
 
 namespace halo::structures {
 

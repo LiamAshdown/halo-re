@@ -16,6 +16,7 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/render/layout.hpp"
 
 extern "C" {
 extern real_point3d *global_zero_vector3d_pointer;
@@ -315,13 +316,15 @@ void facing_frame_build(float *out, float distance)
     float pz = camera_forward_x[2] * distance + render_camera_global[2];
     int32_t i;
 
-    out[0x10] = camera_forward_x[0];
-    out[0x11] = camera_forward_x[1];
-    out[0x12] = camera_forward_x[2];
-    out[0x13] = px * out[0x10] + py * out[0x11] + pz * out[0x12];
+    facing_frame *frame = (facing_frame *)out;
+
+    frame->plane[0] = camera_forward_x[0];
+    frame->plane[1] = camera_forward_x[1];
+    frame->plane[2] = camera_forward_x[2];
+    frame->plane[3] = px * frame->plane[0] + py * frame->plane[1] + pz * frame->plane[2];
 
     for (i = 0; i < 16; i++) {
-        out[i] = render_camera_facing_basis[i];
+        frame->basis[i] = render_camera_facing_basis[i];
     }
 }
 
@@ -576,7 +579,7 @@ void compute_screen_clip_bounds(float out[4], render_frustum *frustum)
 int16_t test_bounding_box(render_frustum *frustum, real_rectangle3d *box, uint8_t validate)
 {
     real_point3d corners[8];
-    uint8_t all_outside = 0x3f;
+    uint8_t all_outside = to_bits(frustum_plane_bit::all);
     uint8_t any_outside = 0;
     int i;
 
@@ -609,18 +612,18 @@ int16_t test_bounding_box(render_frustum *frustum, real_rectangle3d *box, uint8_
     }
 
     if (validate) {
-        uint8_t vertex_separates = 0x3f;
+        uint8_t vertex_separates = to_bits(box_side_bit::all);
 
         for (i = 0; i < 5; i++) {
             real_point3d *v = &frustum->world_vertices[i];
             uint8_t bits = 0;
 
-            if (v->x <= box->x.lower) bits |= 0x01;
-            if (v->x >= box->x.upper) bits |= 0x02;
-            if (v->y >= box->y.upper) bits |= 0x04;
-            if (v->y <= box->y.lower) bits |= 0x08;
-            if (v->z <= box->z.lower) bits |= 0x10;
-            if (v->z >= box->z.upper) bits |= 0x20;
+            if (v->x <= box->x.lower) bits |= to_bits(box_side_bit::x_lower);
+            if (v->x >= box->x.upper) bits |= to_bits(box_side_bit::x_upper);
+            if (v->y >= box->y.upper) bits |= to_bits(box_side_bit::y_upper);
+            if (v->y <= box->y.lower) bits |= to_bits(box_side_bit::y_lower);
+            if (v->z <= box->z.lower) bits |= to_bits(box_side_bit::z_lower);
+            if (v->z >= box->z.upper) bits |= to_bits(box_side_bit::z_upper);
 
             vertex_separates &= bits;
         }
