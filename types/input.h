@@ -1,3 +1,4 @@
+#pragma once
 // Blam input module (halo.exe 1.0.10 retail, 0x48b3e0..0x492340, 80 Ghidra functions).
 // Two layers:
 //   - input abstraction: the four per-controller binding/sensitivity blocks, the four
@@ -242,6 +243,7 @@ typedef struct joystick_state {
     int16_t axes[0x20];            // 0x20 raw axis value, -0x1000 .. 0x1000
     int32_t povs[0x10];            // 0x60 octant 0 (north) .. 7 clockwise, -1 centered
 } joystick_state;                  // size 0xa0
+static_assert(sizeof(joystick_state) == 0xa0, "joystick_state layout");
 
 // ---------------------------------------------------------------------------
 // joystick_raw_state  (0xe0 bytes; the custom DirectInput data format, see the header)
@@ -253,6 +255,7 @@ typedef struct joystick_raw_state {
     uint32_t povs[0x10];           // 0x80 hundredths of a degree; low word 0xffff centered
     uint8_t buttons[0x20];         // 0xc0 bit 7 set while pressed
 } joystick_raw_state;              // size 0xe0
+static_assert(sizeof(joystick_raw_state) == 0xe0, "joystick_raw_state layout");
 
 // ---------------------------------------------------------------------------
 // di_mouse_state2  (0x14 bytes, DIMOUSESTATE2; the GetDeviceState buffer of the mouse)
@@ -263,6 +266,7 @@ typedef struct di_mouse_state2 {
     int32_t z;                     // 0x08 wheel, in granularity units
     uint8_t buttons[8];            // 0x0c bit 7 set while pressed
 } di_mouse_state2;                 // size 0x14
+static_assert(sizeof(di_mouse_state2) == 0x14, "di_mouse_state2 layout");
 
 // ---------------------------------------------------------------------------
 // mouse_state  (0x1c bytes; input_mouse_state_process 0x491bc0 builds it from a
@@ -280,6 +284,7 @@ typedef struct mouse_state {
                                    //      up now; 0x491c01..0x491c0d), else 0. The menu
                                    //      generator double click reads [0] (a completed click)
 } mouse_state;                     // size 0x1c
+static_assert(sizeof(mouse_state) == 0x1c, "mouse_state layout");
 
 // ---------------------------------------------------------------------------
 // input_device  (0x240 bytes; 8 at 0x006b1868, count input_device_count)
@@ -306,6 +311,7 @@ typedef struct input_device {
     int32_t button_count;          // 0x238 DIDEVCAPS dwButtons clamped to 0x20
     int32_t pov_count;             // 0x23c DIDEVCAPS dwPOVs clamped to 0x10
 } input_device;                    // size 0x240
+static_assert(sizeof(input_device) == 0x240, "input_device layout");
 
 // ---------------------------------------------------------------------------
 // key_block_timer  (8 bytes; 4 at 0x006b1600)
@@ -321,6 +327,7 @@ typedef struct key_block_timer {
     int16_t key;                   // 0x04 input_key, -1 free
     int16_t pad_06;                // 0x06 never written
 } key_block_timer;                 // size 0x08
+static_assert(sizeof(key_block_timer) == 0x8, "key_block_timer layout");
 
 // ---------------------------------------------------------------------------
 // menu_repeat_state  (8 bytes; 4 at 0x0068e4fc, .data, initialized {0, -1})
@@ -332,6 +339,7 @@ typedef struct menu_repeat_state {
     uint32_t last_event_time;      // 0x00 milliseconds of the last event, 0 when released
     int32_t key;                   // 0x04 key index + 1 of the owning key, -1 none
 } menu_repeat_state;               // size 0x08
+static_assert(sizeof(menu_repeat_state) == 0x8, "menu_repeat_state layout");
 
 // ---------------------------------------------------------------------------
 // mouse_acceleration_point  (0x10 bytes; 7 at 0x0068e41c (defaults, .data) and 7 at
@@ -351,6 +359,7 @@ typedef struct mouse_acceleration_point {
     float rate;                    // 0x08 output per count at this threshold (radians, UNSURE)
     float boost;                   // 0x0c multiplied by the sensitivity argument
 } mouse_acceleration_point;        // size 0x10
+static_assert(sizeof(mouse_acceleration_point) == 0x10, "mouse_acceleration_point layout");
 
 // ---------------------------------------------------------------------------
 // input_event_queue  (0x10c bytes at 0x00712cc0; input_queue_initialize 0x492250,
@@ -370,6 +379,7 @@ typedef struct input_event_queue {
                                    //      rewrites it
     ui_input_event events[4][8];   // 0x0c [queue][slot]
 } input_event_queue;               // size 0x10c
+static_assert(sizeof(input_event_queue) == 0x10c, "input_event_queue layout");
 
 // ---------------------------------------------------------------------------
 // input_abstraction_globals  (0x25f0 bytes at 0x00710328; zeroed as 0x97c dwords by
@@ -403,6 +413,7 @@ typedef struct input_abstraction_globals {
                                              //        binding that last drove it; device_type 0
                                              //        means not known yet
 } input_abstraction_globals;                 // size 0x25f0
+static_assert(sizeof(input_abstraction_globals) == 0x25f0, "input_abstraction_globals layout");
 
 // ---------------------------------------------------------------------------
 // DirectInput 8 SDK records the module builds or reads (dinput.h layouts; the offsets the
@@ -416,6 +427,7 @@ typedef struct di_object_data_format {
     uint32_t type;                 // 0x08 DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | axis/pov/button
     uint32_t flags;                // 0x0c 0
 } di_object_data_format;           // size 0x10
+static_assert(sizeof(di_object_data_format) == 0x10, "di_object_data_format layout");
 
 // DIDATAFORMAT; the joystick one at 0x0068e51c (.data), c_dfDIKeyboard at 0x0064dfdc and
 // c_dfDIMouse2 at 0x0064e1e4 (.rdata)
@@ -427,6 +439,7 @@ typedef struct di_data_format {
     uint32_t object_count;         // 0x10 0x50 joystick, 0x100 keyboard, 0x0b mouse
     uint32_t objects;              // 0x14 di_object_data_format *
 } di_data_format;                  // size 0x18
+static_assert(sizeof(di_data_format) == 0x18, "di_data_format layout");
 
 // DIPROPHEADER; the argument head of Get/SetProperty
 typedef struct di_property_header {
@@ -435,6 +448,7 @@ typedef struct di_property_header {
     uint32_t object;               // 0x08 0 for the device, 8 DIMOFS_Z, or an object id
     uint32_t how;                  // 0x0c 0 DIPH_DEVICE, 1 DIPH_BYOFFSET, 2 DIPH_BYID
 } di_property_header;              // size 0x10
+static_assert(sizeof(di_property_header) == 0x10, "di_property_header layout");
 
 // DIPROPDWORD; DIPROP_BUFFERSIZE (keyboard create), DIPROP_GRANULARITY of the mouse wheel
 // (acquire, into mouse_wheel_granularity), DIPROP_DEADZONE 1000 (0x491c50)
@@ -442,6 +456,7 @@ typedef struct di_property_dword {
     di_property_header header;     // 0x00
     uint32_t data;                 // 0x10
 } di_property_dword;               // size 0x14
+static_assert(sizeof(di_property_dword) == 0x14, "di_property_dword layout");
 
 // DIPROPRANGE; DIPROP_RANGE -0x1000 .. 0x1000 on every axis (0x491c50)
 typedef struct di_property_range {
@@ -449,6 +464,7 @@ typedef struct di_property_range {
     int32_t minimum;               // 0x10
     int32_t maximum;               // 0x14
 } di_property_range;               // size 0x18
+static_assert(sizeof(di_property_range) == 0x18, "di_property_range layout");
 
 // DIDEVICEOBJECTDATA (DirectInput 8); the keyboard GetDeviceData record, cbObjectData 0x14
 typedef struct di_device_object_data {
@@ -458,6 +474,7 @@ typedef struct di_device_object_data {
     uint32_t sequence;             // 0x0c
     uint32_t app_data;             // 0x10
 } di_device_object_data;           // size 0x14
+static_assert(sizeof(di_device_object_data) == 0x14, "di_device_object_data layout");
 
 // DIDEVCAPS; read by the enumeration callback 0x491d70 (dwSize 0x2c)
 typedef struct di_device_caps {
@@ -473,6 +490,7 @@ typedef struct di_device_caps {
     uint32_t hardware_revision;    // 0x24
     uint32_t ff_driver_version;    // 0x28
 } di_device_caps;                  // size 0x2c
+static_assert(sizeof(di_device_caps) == 0x2c, "di_device_caps layout");
 
 // DIDEVICEINSTANCEA; the first argument of the enumeration callback 0x491d70
 typedef struct di_device_instance {
@@ -486,6 +504,7 @@ typedef struct di_device_instance {
     uint16_t usage_page;           // 0x240
     uint16_t usage;                // 0x242
 } di_device_instance;              // size 0x244
+static_assert(sizeof(di_device_instance) == 0x244, "di_device_instance layout");
 
 // DIDEVICEOBJECTINSTANCEA (DirectInput 8); the first argument of the EnumObjects callback
 // 0x491c50 (not a Ghidra function), which reads type (+0x18, axis when bits 0..1 are set and
@@ -507,6 +526,7 @@ typedef struct di_device_object_instance {
     uint16_t exponent;             // 0x138
     uint16_t reserved;             // 0x13a
 } di_device_object_instance;       // size 0x13c
+static_assert(sizeof(di_device_object_instance) == 0x13c, "di_device_object_instance layout");
 
 // ---------------------------------------------------------------------------
 // DirectInput 8 entry point and COM methods, called through the interface vtable
@@ -669,6 +689,7 @@ typedef struct control_binding_entry {
     uint8_t device_mask;                // 0x06 one bit per device type (types 1..4: bits 1, 0, 3, 2)
     uint8_t unknown_07;
 } control_binding_entry;                // size 0x08
+static_assert(sizeof(control_binding_entry) == 0x8, "control_binding_entry layout");
 
 typedef struct control_binding_half {
     int32_t entry_count;                // 0x00
@@ -677,10 +698,12 @@ typedef struct control_binding_half {
     int32_t profile_default;            // 0x0c -1, or from the globals tag (+0x168 block) per profile
     control_binding_entry entries[8];   // 0x10
 } control_binding_half;                 // size 0x50
+static_assert(sizeof(control_binding_half) == 0x50, "control_binding_half layout");
 
 typedef struct control_binding_slot {
     control_binding_half halves[2];     // 0x00 primary, 0x50 secondary control word
 } control_binding_slot;                 // size 0xa0; the table holds 6
+static_assert(sizeof(control_binding_slot) == 0xa0, "control_binding_slot layout");
 typedef char control_binding_half_size[sizeof(control_binding_half) == 0x50 ? 1 : -1];
 typedef char control_binding_entries_at_10[offsetof(control_binding_half, entries) == 0x10 ? 1 : -1];
 

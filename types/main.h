@@ -1,3 +1,4 @@
+#pragma once
 // Blam main module (halo.exe 1.0.10 retail, 0x43ed20 plus 0x4c6390..0x4ca1a0, 51 Ghidra functions).
 // The top level of the engine: the main loop (0x4c7610, Ghidra name game_state_save_core, and its
 // split-off tail 0x4c7f10), the frame pacer and timers (0x4c6e80, 0x4c9f30, 0x4c9f90), the queued
@@ -187,6 +188,7 @@ typedef struct console_globals {
                                       //       clamped to history_count - 1
     uint8_t unknown_9c2[2];           // 0x9c2 never referenced (alignment)
 } console_globals;                    // size 0x9c4
+static_assert(sizeof(console_globals) == 0x9c4, "console_globals layout");
 
 // ---------------------------------------------------------------------------
 // main_globals  (0x00719700 .. 0x00719aaf)
@@ -283,6 +285,7 @@ typedef struct main_globals {
     int16_t screenshot_tile_count;    // 0x3ac pending screenshot: n by n tiles, 0 when idle
     uint8_t unknown_3ae[2];           // 0x3ae never referenced
 } main_globals;                       // size 0x3b0
+static_assert(sizeof(main_globals) == 0x3b0, "main_globals layout");
 
 // ---------------------------------------------------------------------------
 // main_frame_rate_average  (0x00719ab0; game_frame_rate_average_update 0x4c6e80 and the end of
@@ -296,6 +299,7 @@ typedef struct main_frame_rate_average {
     int32_t history[k_main_frame_time_history_count]; // 0x08 milliseconds, newest first
     int32_t count;                    // 0x48
 } main_frame_rate_average;            // size 0x4c
+static_assert(sizeof(main_frame_rate_average) == 0x4c, "main_frame_rate_average layout");
 
 // ---------------------------------------------------------------------------
 // timedemo_bucket / timedemo_globals  (0x00719afc; timedemo_benchmark_update 0x4c6f30, and the
@@ -307,6 +311,7 @@ typedef struct timedemo_bucket {
     uint32_t time_ms;                 // 0x00
     uint32_t frames;                  // 0x04
 } timedemo_bucket;                    // size 0x08
+static_assert(sizeof(timedemo_bucket) == 0x8, "timedemo_bucket layout");
 
 typedef struct timedemo_globals {
     uint32_t frame_count;             // 0x00
@@ -320,6 +325,7 @@ typedef struct timedemo_globals {
     int32_t last_game_time;           // 0x64 game_time_globals.game_time the benchmark last ran
                                       //      for; the loop calls it once per new tick
 } timedemo_globals;                   // size 0x68
+static_assert(sizeof(timedemo_globals) == 0x68, "timedemo_globals layout");
 
 // ---------------------------------------------------------------------------
 // multiplayer_map_table_entry  (.data 0x0068e588, 19 entries; the main loop feeds each one to
@@ -330,6 +336,7 @@ typedef struct multiplayer_map_table_entry {
     uint32_t name;                    // 0x04 char * (beavercreek, sidewinder, ...)
     int32_t unknown_08;               // 0x08 1 for the first 13 entries, 0 after; not read here
 } multiplayer_map_table_entry;        // size 0x0c
+static_assert(sizeof(multiplayer_map_table_entry) == 0xc, "multiplayer_map_table_entry layout");
 
 // ---------------------------------------------------------------------------
 // bink_movie_prefix  (movie_play_bink 0x43ed20)
@@ -344,6 +351,7 @@ typedef struct bink_movie_prefix {
     uint8_t unknown_10[0xfc - 0x10];  // 0x10
     int32_t paused;                   // 0xfc toggled with _BinkPause@8 around device loss
 } bink_movie_prefix;                  // size 0x100 (prefix only)
+static_assert(sizeof(bink_movie_prefix) == 0x100, "bink_movie_prefix layout");
 
 // ---------------------------------------------------------------------------
 // globals this module owns
