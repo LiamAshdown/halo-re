@@ -151,33 +151,33 @@ void ActorView::update_firing_state()
             a->firing_target_distance = p->distance;
             a->firing_target_point = p->center_of_mass;
             W(a, 0x626) = p->obstruction;
-            ((uint8_t *)a)[0x621] = p->in_water;
-            ((uint8_t *)a)[0x624] = 1;
+            a->unknown_620[1] = p->in_water;
+            a->unknown_620[4] = 1;
             if (p->cluster_index != -1) {
                 int32_t bit = p->cluster_index;
 
-                ((uint8_t *)a)[0x624] = (uint8_t)!(*(uint32_t *)&local_player_globals->cluster_pvs[(bit >> 5)] & (1u << (bit & 0x1f)));
+                a->unknown_620[4] = (uint8_t)!(*(uint32_t *)&local_player_globals->cluster_pvs[(bit >> 5)] & (1u << (bit & 0x1f)));
             }
         } else {
             a->firing_target_point = *(real_point3d *)&a->firing_target_prop_index;
             a->firing_target_distance = halo::math::vector3d_distance(*(real_point3d *)((uint8_t *)a + 0x610), a->aim_origin);
-            ((uint8_t *)a)[0x621] = 0;
-            ((uint8_t *)a)[0x624] = 0;
+            a->unknown_620[1] = 0;
+            a->unknown_620[4] = 0;
             if (a->firing_target_ticks % 10 == 0) {
                 W(a, 0x626) = (int16_t)halo::ai::actor_evaluate_engagement_reachability(W(a, 0x148), -1,
                     &a->firing_target_point, &a->aim_origin, 0, 0, k_datum_index_none,
                     (uint8_t)(a->active_unit_index != k_datum_index_none));
             }
         }
-        ((uint8_t *)a)[0x622] = (uint8_t)(F(def, 0x148) > 0.0f && a->firing_target_distance > F(def, 0x148));
-        ((uint8_t *)a)[0x623] = (uint8_t)(a->unknown_455[0] && F(def, 0x14c) > 0.0f);
+        a->unknown_620[2] = (uint8_t)(F(def, 0x148) > 0.0f && a->firing_target_distance > F(def, 0x148));
+        a->unknown_620[3] = (uint8_t)(a->unknown_455[0] && F(def, 0x14c) > 0.0f);
         if (!halo::items::weapon_trigger_get_aiming_vector(weapon, 0, &a->aim_origin, &a->firing_target_point,
-                                              ((uint8_t *)a)[0x622], (real_vector3d *)((uint8_t *)a + 0x63c), 0, (real *)((uint8_t *)a + 0x648),
+                                              a->unknown_620[2], (real_vector3d *)((uint8_t *)a + 0x63c), 0, (real *)((uint8_t *)a + 0x648),
                                               &used_straight_line)) {
             a->firing_target_type = 0;
         }
     }
-    if (a->firing_target_type == 0 || ((uint8_t *)a)[0x624]) {
+    if (a->firing_target_type == 0 || a->unknown_620[4]) {
         goto idle;
     }
 
@@ -192,15 +192,15 @@ void ActorView::update_firing_state()
             if ((actor_tag[4] & 2) && a->crouching) goto idle;
             if ((actor_tag[4] & 4) && a->moving) goto idle;
         }
-        if (((uint8_t *)a)[0x621] || a->in_water) goto idle;
+        if (a->unknown_620[1] || a->in_water) goto idle;
         if (weapon_tag != 0 && F(weapon_tag, 0x40c) > 0.0f && a->firing_target_distance < F(weapon_tag, 0x40c)) goto idle;
-        if (a->flee_reason == 0 || W(a, 0x3ec) != 2 || a->unknown_58c[0]) goto idle;
+        if (a->flee_reason == 0 || a->flee_source.code != 2 || a->unknown_58c[0]) goto idle;
         if (a->firing_state == 2) {
             wants_fire = 1;
             goto dispatch;
         }
         a->unknown_620[0] = (uint8_t)(W(a, 0x626) == 0 || W(a, 0x626) == 1);
-        if (!a->unknown_620[0] && !((uint8_t *)a)[0x623]) goto idle;
+        if (!a->unknown_620[0] && !a->unknown_620[3]) goto idle;
         if (!forced && !(a->firing_target_distance < a->maximum_firing_distance)) goto idle;
         wants_fire = 1;
         a->target_in_firing_range = 1;
@@ -276,12 +276,12 @@ dispatch:
 
             exclude = D(p, 0x114);
             f = weapon_get_zoom_fov_resolved(0xf, a->team) + F(def, 0xbc);
-            if (!(f <= 0.0f && f < 1.0f) && !((uint8_t *)a)[0x623]) {
+            if (!(f <= 0.0f && f < 1.0f) && !a->unknown_620[3]) {
                 real_vector3d delta;
 
                 delta.i = F(p, 0xc8) - F(a, 0x64c);
-                delta.j = F(p, 0xcc) - F(a, 0x650);
-                delta.k = F(p, 0xd0) - F(a, 0x654);
+                delta.j = p->center_of_mass.y - a->aim_target_point.y;
+                delta.k = p->center_of_mass.z - a->aim_target_point.z;
                 halo::math::point3d_add_scaled(*aim_point, delta, *aim_point, F(def, 0xbc));
             }
             f = weapon_get_zoom_fov_resolved(0x10, a->team) + F(def, 0xc0);
@@ -290,16 +290,16 @@ dispatch:
                 real t = halo::items::weapon_trigger_projectile_time_fraction(weapon, (int16_t)(a->special_fire_secondary != 0), F(a, 0x648));
 
                 aim_point->x += t * F(p, 0xd4) * lead;
-                aim_point->y += t * F(p, 0xd8) * lead;
-                aim_point->z += t * F(p, 0xdc) * lead;
+                aim_point->y += t * p->velocity.y * lead;
+                aim_point->z += t * p->velocity.z * lead;
             }
         }
         F(a, 0x664) = F(a, 0x670) + F(a, 0x664);
-        F(a, 0x668) = F(a, 0x674) + F(a, 0x668);
-        F(a, 0x66c) = F(a, 0x678) + F(a, 0x66c);
+        a->aim_wander_offset.j = a->aim_recoil_per_tick.j + a->aim_wander_offset.j;
+        a->aim_wander_offset.k = a->aim_recoil_per_tick.k + a->aim_wander_offset.k;
         final_point->x = F(a, 0x664) + aim_point->x;
-        final_point->y = aim_point->y + F(a, 0x668);
-        final_point->z = aim_point->z + F(a, 0x66c);
+        final_point->y = aim_point->y + a->aim_wander_offset.j;
+        final_point->z = aim_point->z + a->aim_wander_offset.k;
 
         if (a->active_unit_index != k_datum_index_none) {
             halo::units::unit_get_camera_position(a->unit_index, &origin);
@@ -329,8 +329,8 @@ dispatch:
                 real_vector3d facing;
 
                 facing.i = F(a, 0x12c) - final_point->x;
-                facing.j = F(a, 0x130) - final_point->y;
-                facing.k = F(a, 0x134) - final_point->z;
+                facing.j = a->body_position.y - final_point->y;
+                facing.k = a->body_position.z - final_point->z;
                 if (halo::math::vector2d_normalize_with_length(*((real_vector2d *)&facing)) > 0.0f) {
                     facing.k = 0.0f;
                 } else {
@@ -341,7 +341,7 @@ dispatch:
             }
         }
 
-        halo::items::weapon_trigger_get_aiming_vector(weapon, (int16_t)(a->special_fire_secondary != 0), &origin, final_point, ((uint8_t *)a)[0x622],
+        halo::items::weapon_trigger_get_aiming_vector(weapon, (int16_t)(a->special_fire_secondary != 0), &origin, final_point, a->unknown_620[2],
                                          &a->firing_vector, 0, 0, &used_straight_line);
         a->firing_vector_ballistic = (uint8_t)(used_straight_line == 0);
         {
