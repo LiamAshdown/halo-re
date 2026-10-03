@@ -86,7 +86,7 @@ int16_t structure_bsp_query::node_query_recursive(int32_t node_index, real_recta
 
 int16_t structure_bsp_query::leaf_query(int32_t raw_child, int16_t inherited_classification, real_rectangle3d *parent_bounds, uint32_t *visited_bits, int32_t *output_array, int32_t max_count, real_rectangle3d *query_box, int16_t plane_count, real_plane3d *planes)
 {
-    int32_t leaf_index = raw_child & 0x7fffffff;
+    int32_t leaf_index = raw_child & k_leaf_index_mask;
     ScenarioStructureBSPLeaf *leaf =
         &((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index];
     int32_t written = 0;
@@ -111,8 +111,8 @@ int16_t structure_bsp_query::leaf_query(int32_t raw_child, int16_t inherited_cla
     int32_t end = first + leaf->surface_reference_count;
     for (int32_t i = first; i < end; i++) {
         int32_t surface = leaf_surfaces[i].surface;
-        int32_t word = surface >> 5;
-        uint32_t mask = 1u << (surface & 0x1f);
+        int32_t word = bit_array_word(surface);
+        uint32_t mask = bit_array_mask(surface);
         if ((surface_visible_bits[word] & mask) == 0) {
             continue;
         }
@@ -159,7 +159,7 @@ int32_t structure_bsp_query::collect_surfaces_in_clusters(int32_t *out_surfaces,
             for (int32_t k = 0; k < (int32_t)subcluster->surface_indices.count; k++) {
                 int32_t surface = indices[k];
                 int32_t word = surface >> 5;
-                uint32_t mask = 1u << (surface & 0x1f);
+                uint32_t mask = bit_array_mask(surface);
                 if ((surface_visible_bits[word] & mask) != 0 && (visited_bits[word] & mask) == 0) {
                     if (written >= max_count) {
                         break;
@@ -177,7 +177,7 @@ int32_t structure_bsp_query::collect_surfaces_in_clusters(int32_t *out_surfaces,
 int16_t structure_bsp_query::query_surfaces(real_rectangle3d *query_box, real_point3d *query_point, int32_t *out_surfaces, int32_t max_count, float radius, int16_t plane_count, real_plane3d *planes, int16_t cluster_count, int16_t *cluster_indices)
 {
     uint32_t visited_bits[k_maximum_visible_surface_bits];
-    int32_t visited_dwords = (global_structure_bsp->surfaces.count + 0x1f) >> 5;
+    int32_t visited_dwords = bit_array_word_count(global_structure_bsp->surfaces.count);
     for (int32_t i = 0; i < visited_dwords; i++) {
         visited_bits[i] = 0;
     }
@@ -198,12 +198,12 @@ int16_t structure_bsp_query::query_surfaces(real_rectangle3d *query_box, real_po
         int32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp,
                                              query_point);
         if (leaf != -1) {
-            int32_t leaf_index = leaf & 0x7fffffff;
+            int32_t leaf_index = leaf & k_leaf_index_mask;
             uint16_t leaf_cluster =
                 ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index].cluster;
-            if (leaf_cluster != 0xffff) {
-                int16_t flood_clusters[0x200];
-                int32_t flood_count = cluster_flood::seed(query_point, radius, (int16_t)leaf_cluster, flood_clusters, 0x200);
+            if (leaf_cluster != k_word_none) {
+                int16_t flood_clusters[k_maximum_flood_clusters];
+                int32_t flood_count = cluster_flood::seed(query_point, radius, (int16_t)leaf_cluster, flood_clusters, k_maximum_flood_clusters);
                 return (int16_t)structure_bsp_query::collect_surfaces_in_clusters(out_surfaces, (int16_t)max_count, query_box, plane_count, planes, visited_bits, (int16_t)flood_count, flood_clusters);
             }
         }
@@ -228,7 +228,7 @@ uint8_t structure_bsp_query::points_within_band(real_point3d *points, int16_t po
 
 uint8_t structure_bsp_query::leaf_find_material_surface(real_point3d *point, int32_t accepted_plane, int16_t *out_lightmap_index, int16_t *out_material_index, int32_t *out_surface, void *out_barycentric_u, void *out_barycentric_v, int32_t raw_child)
 {
-    int32_t leaf_index = raw_child & 0x7fffffff;
+    int32_t leaf_index = raw_child & k_leaf_index_mask;
     ScenarioStructureBSPLeaf *leaf =
         &((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index];
     ScenarioStructureBSPSurfaceReference *leaf_surfaces =
@@ -262,19 +262,19 @@ uint8_t structure_bsp_query::leaf_find_material_surface(real_point3d *point, int
         material = &((ScenarioStructureBSPMaterial *)
             lightmaps[*out_lightmap_index].materials.pointer)[*out_material_index];
 
-        if (material->rendered_vertices_type == 1) {
+        if (material->rendered_vertices_type == vertextype_structure_bsp_compressed_rendered_vertices) {
             uint8_t *vertices = (uint8_t *)material->compressed_vertices.pointer;
             for (corner = 0; corner < 3; corner = corner + 1) {
-                float *v = (float *)(vertices + (&surface->vertex0_index)[corner] * 0x20);
+                float *v = (float *)(vertices + (&surface->vertex0_index)[corner] * sizeof(ScenarioStructureBSPMaterialCompressedRenderedVertex));
                 triangle[corner].x = v[0];
                 triangle[corner].y = v[1];
                 triangle[corner].z = v[2];
             }
-        } else if (material->rendered_vertices_type == 0 ||
-                   material->rendered_vertices_type == 0xc) {
+        } else if (material->rendered_vertices_type == vertextype_structure_bsp_uncompressed_rendered_vertices ||
+                   material->rendered_vertices_type == k_vertex_type_uncompressed_rendered_alias) {
             uint8_t *vertices = (uint8_t *)material->uncompressed_vertices.pointer;
             for (corner = 0; corner < 3; corner = corner + 1) {
-                float *v = (float *)(vertices + (&surface->vertex0_index)[corner] * 0x38);
+                float *v = (float *)(vertices + (&surface->vertex0_index)[corner] * sizeof(ScenarioStructureBSPMaterialUncompressedRenderedVertex));
                 triangle[corner].x = v[0];
                 triangle[corner].y = v[1];
                 triangle[corner].z = v[2];
@@ -301,14 +301,14 @@ uint8_t structure_bsp_query::resolve_position_to_surface(real_point3d *start_pos
     for (;;) {
         ScenarioStructureBSPLightmap *lightmaps;
 
-        if (!collision_test_movement_segment(0x21, position, direction, 0xffffffff, &result)) {
+        if (!collision_test_movement_segment(to_bits(k_structure_surface_query), position, direction, k_dword_none, &result)) {
             return 0;
         }
         *position = result.point;
 
-        if (structure_bsp_query::leaf_find_material_surface(position, (int32_t)(result.plane_index & 0x7fffffff), out_lightmap_index, out_material_index, out_surface, out_barycentric_u, out_barycentric_v, result.leaf.leaf_index)) {
+        if (structure_bsp_query::leaf_find_material_surface(position, (int32_t)(result.plane_index & k_index_magnitude_mask), out_lightmap_index, out_material_index, out_surface, out_barycentric_u, out_barycentric_v, result.leaf.leaf_index)) {
             lightmaps = (ScenarioStructureBSPLightmap *)global_structure_bsp->lightmaps.pointer;
-            if (lightmaps[*out_lightmap_index].bitmap != 0xffff) {
+            if (lightmaps[*out_lightmap_index].bitmap != k_word_none) {
                 return 1;
             }
         }
