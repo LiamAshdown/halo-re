@@ -1670,11 +1670,7 @@ typedef struct ai_conversation {
     int32_t start_tick;               // 0x0c the game tick the instance was created
     int32_t player_unit_index;        // 0x10 the nearest player's unit, the addressee for player lines
     uint32_t participant_mask;        // 0x14 bit i set once participant i has been resolved
-    uint32_t unknown_18;              // 0x18
-    uint32_t unknown_1c;              // 0x1c
-    int16_t unknown_20;               // 0x20
-    int16_t unknown_22;               // 0x22
-    uint32_t unknown_24;              // 0x24
+    int16_t participant_variant[8];   // 0x18 the line variant chosen for each participant when it was resolved
     datum_index participant_actor[8]; // 0x28 one actor datum per resolved participant
     int16_t line_index;               // 0x48 index into ScenarioAIConversation.lines, -1 before the first
     int16_t speaker_participant_index; // 0x4a line->participant
