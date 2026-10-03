@@ -49,7 +49,7 @@ void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_t
     }
 
     if (unit_tag_id != k_datum_index_none) {
-        uint8_t *tag_data = (uint8_t *)tag_instances[unit_tag_id & 0xffff].data;
+        uint8_t *tag_data = (uint8_t *)tag_instances[halo::datum_slot(unit_tag_id)].data;
         datum_index effect = *(datum_index *)(tag_data + 0x120);
         if (effect != k_datum_index_none) {
             sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,
@@ -69,8 +69,8 @@ void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_t
 uint32_t UnitView::update_marker_traction_effects()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     uint8_t *graph;
     uint8_t *node_array;
     uint8_t *physics;

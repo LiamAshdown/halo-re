@@ -64,7 +64,7 @@ void unit_apply_network_control_update(unit_network_control_packet *packet)
         return;
     }
     unit_index = (uint32_t)(*(int32_t **)(object_network_id_table + 0x28))[message.unit_key];
-    if (unit_index == 0xffffffff) {
+    if (unit_index == k_datum_index_none) {
         return;
     }
     throttle = message.no_throttle == 1 ? (const real_vector2d *)0 : &message.throttle;
@@ -78,7 +78,7 @@ void unit_apply_network_control_update(unit_network_control_packet *packet)
         UnitView(unit_index).update_stance_and_jump(message.stance_flags[0], message.stance_flags[1], message.stance_flags[2], message.stance_flags[3], message.stance_flags[4], message.turn_angle, message.weapon_class_index, throttle, 1);
     }
     unit = (uint8_t *)object_try_and_get(unit_index, 3);
-    if (unit != 0 && ((unit_object *)unit)->unit.controlling_player != (datum_index)0xffffffff) {
+    if (unit != 0 && ((unit_object *)unit)->unit.controlling_player != k_datum_index_none) {
         uint8_t *player = (uint8_t *)datum_get(((unit_object *)unit)->unit.controlling_player, player_data);
 
         if (player != 0) {
@@ -90,7 +90,7 @@ void unit_apply_network_control_update(unit_network_control_packet *packet)
     if (unit != 0) {
         ((unit_object *)unit)->base.network_role = 3;
     }
-    if ((((object_header *)object_data->data)[unit_index & 0xffff].flags & 8) == 0) {
+    if ((((object_header *)object_data->data)[halo::datum_slot(unit_index)].flags & 8) == 0) {
         network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
     }
 }
@@ -127,7 +127,7 @@ void UnitView::apply_network_health_update(void *message)
         message_delta_decode_compound_field_staged(message);
         return;
     }
-    guard = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    guard = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     record = (uint8_t *)((void **)message)[0x11];
     reliable = **(int32_t **)message == 1;
     if ((((struct object *)guard)->flags & 0x8000000) != 0 && reliable) {
@@ -180,7 +180,7 @@ void unit_broadcast_state_change_event(unit_state_change_record record)
     void *items[2];
     int32_t sent;
 
-    if (record.unit != (datum_index)-1) {
+    if (record.unit != k_datum_index_none) {
         resolved = hash_table_get((hash_table *)(object_network_id_table + 0xc), (int32_t)record.unit);
         if (resolved == -1) {
             resolved = 0;

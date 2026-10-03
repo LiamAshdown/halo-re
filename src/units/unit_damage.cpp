@@ -65,9 +65,9 @@ extern void object_set_shield_depleted_flag(uint32_t object_index);
 
 namespace halo::units {
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_HEADER(h) (((object_header *)object_data->data)[halo::datum_slot((h))])
+#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
 namespace unit_apply_damage_effects_local {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
@@ -463,9 +463,9 @@ local_reactions:
 void UnitView::apply_fall_damage(float fall_speed)
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     uint8_t *fall_table = (uint8_t *)global_globals->falling_damage.pointer;
     uint32_t exempt;
 
@@ -520,8 +520,8 @@ void UnitView::apply_fall_damage(float fall_speed)
 void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_object_index, int16_t damage_param4, int16_t damage_param5, int16_t damage_param6, uint32_t damage_param7)
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Unit *tag = (Unit *)tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    Unit *tag = (Unit *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     real_point3d origin_pos = obj->bounding_center;
     real_point3d target_pos;
     object_marker melee_marker;
@@ -552,7 +552,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
         target_pos = origin_pos;
     }
 
-    obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     {
         unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
         damage_effect = *(datum_index *)&tag->melee_damage.tag_id;
@@ -560,8 +560,8 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
         if (unit->current_weapon_index != -1) {
             datum_index weapon_index = unit->weapons[unit->current_weapon_index];
             if (weapon_index != k_datum_index_none) {
-                object *weapon_obj = ((object_header *)object_data->data)[weapon_index & 0xffff].data;
-                Weapon *weapon_tag = (Weapon *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+                object *weapon_obj = ((object_header *)object_data->data)[halo::datum_slot(weapon_index)].data;
+                Weapon *weapon_tag = (Weapon *)tag_instances[halo::datum_slot(weapon_obj->definition_tag)].data;
                 if ((weapon_tag->weapon_flags & 0x8000) != 0) {
                     damage_effect = *(datum_index *)&weapon_tag->player_melee_response.tag_id;
                 }
@@ -580,7 +580,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
         dd.multiplier = 1.0f;
         dd.material_type = -1;
 
-        if (target_object_index == 0xffffffff) {
+        if (target_object_index == k_datum_index_none) {
             damage_apply_area_effect(&dd, 0xffffffff);
         } else {
             object_apply_damage(&dd, target_object_index, damage_param4, damage_param5, damage_param6, damage_param7);
@@ -604,7 +604,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
 void UnitView::enter_stunned_state(uint32_t responsible_object)
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     UnitView(unit_index).drop_current_weapon(1);
@@ -637,8 +637,8 @@ void UnitView::enter_stunned_state(uint32_t responsible_object)
 void UnitView::melee_lunge_damage_tick()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     datum_index target = ((unit_object *)obj)->base.parent_object;
     uint8_t hit = 0;
     real_plane3d plane;
@@ -700,8 +700,8 @@ void UnitView::melee_lunge_damage_tick()
     obj[0x28a]--;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
 /**
  * Engine function unit_process_melee_special_interaction.
  *
@@ -773,14 +773,14 @@ void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t ta
 void UnitView::record_recent_damage_and_react(float damage_amount, int16_t response_index, uint8_t allow_broadcast, uint32_t responsible_player, int16_t team_index, uint32_t responsible_object)
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     int32_t current_tick = game_time->game_time;
     uint8_t merged = 0;
 
     unit_recent_damage *slot = unit->recent_damage;
     for (int32_t i = 4; i != 0; i--, slot++) {
-        if (((responsible_player != 0xffffffff) && (slot->responsible_player == responsible_player)) ||
+        if (((responsible_player != k_datum_index_none) && (slot->responsible_player == responsible_player)) ||
             (slot->responsible_unit == responsible_object)) {
             slot->tick = current_tick;
             merged = 1;
@@ -849,12 +849,12 @@ broadcast_check:
         uint8_t *attacker = 0;
         uint32_t attacker_handle = 0xffffffff;
 
-        if (responsible_player != 0xffffffff) {
+        if (responsible_player != k_datum_index_none) {
             uint32_t controlled_unit = *(uint32_t *)((uint8_t *)player_data->data +
-                                                     (responsible_player & 0xffff) * 0x200 + 0x34);
+                                                     halo::datum_slot(responsible_player) * 0x200 + 0x34);
 
-            if (controlled_unit != 0xffffffff) {
-                attacker = (uint8_t *)((object_header *)object_data->data)[controlled_unit & 0xffff].data;
+            if (controlled_unit != k_datum_index_none) {
+                attacker = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(controlled_unit)].data;
                 attacker_handle = controlled_unit;
             }
         }
@@ -862,7 +862,7 @@ broadcast_check:
             object_header *hdr = 0;
 
             attacker_handle = responsible_object;
-            if ((responsible_object != 0xffffffff) && (0 <= (int16_t)responsible_object) &&
+            if ((responsible_object != k_datum_index_none) && (0 <= (int16_t)responsible_object) &&
                 ((int16_t)responsible_object < object_data->maximum_count)) {
                 object_header *candidate = (object_header *)((uint8_t *)object_data->data +
                                                              (int16_t)responsible_object * object_data->size);
@@ -884,9 +884,9 @@ broadcast_check:
         {
             uint32_t link = *(uint32_t *)(attacker + (response_index == 9 ? 0x324 : 0x328));
 
-            if (link != 0xffffffff) {
+            if (link != k_datum_index_none) {
                 attacker_handle = link;
-                attacker = (uint8_t *)((object_header *)object_data->data)[link & 0xffff].data;
+                attacker = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(link)].data;
             }
         }
 
@@ -900,7 +900,7 @@ broadcast_check:
             }
             *(int16_t *)(attacker + 0x42a) = (int16_t)(*(int16_t *)(attacker + 0x42a) + 1);
             *(int32_t *)(attacker + 0x42c) = tick;
-            threshold = (*(uint32_t *)(attacker + 0x218) != 0xffffffff) ? 5 : 3;
+            threshold = (*(uint32_t *)(attacker + 0x218) != k_datum_index_none) ? 5 : 3;
             if (*(int16_t *)(attacker + 0x42a) >= threshold) {
                 ai_communication_broadcast(1, (datum_index)attacker_handle, 0xffffffff, -1, 0xffffffff,
                                            0xffffffff, 0);
@@ -923,7 +923,7 @@ broadcast_check:
 void UnitView::update_recoil_decay()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
     real_vector3d forward = obj->forward;
     real_vector3d up = obj->up;
@@ -989,7 +989,7 @@ void UnitView::update_vitality_fractions(float body_delta, float shield_delta)
     if (unit_index == (uint32_t)-1) {
         return;
     }
-    obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     if ((obj->vitality_flags & _object_health_frozen_bit) != 0) {
         return;
     }

@@ -51,7 +51,7 @@ int32_t UnitView::build_network_update(int32_t buffer, int32_t bit_budget)
 {
     using namespace unit_build_network_update_local;
     uint32_t object_index = datum_handle;
-    uint8_t *biped = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *biped = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     hash_table *keys = &object_network_id_table->id_to_index;
     biped_network_create_record record;
     void *item = &record;
@@ -59,7 +59,7 @@ int32_t UnitView::build_network_update(int32_t buffer, int32_t bit_budget)
     int32_t creator = 0;
     int32_t machine = 0;
 
-    if (object_index != 0xffffffff) {
+    if (object_index != k_datum_index_none) {
         key = hash_table_get(keys, (int32_t)object_index);
     }
     if (*(int32_t *)&((unit_object *)biped)->base.creator_object != -1) {

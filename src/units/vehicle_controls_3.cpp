@@ -31,8 +31,8 @@ namespace halo::units {
 void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output, uint8_t *contact_points)
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    Vehicle *tag = (Vehicle *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     uint8_t *physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;

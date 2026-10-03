@@ -32,9 +32,9 @@ extern void object_for_each_light_attachment(uint32_t object_index, int32_t regi
 
 namespace halo::units {
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_HEADER(h) (((object_header *)object_data->data)[halo::datum_slot((h))])
+#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
 namespace unit_release_transient_state_local {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
@@ -174,7 +174,7 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
         }
         if (((unit_object *)obj)->unit.actor_index != k_datum_index_none) {
             datum_index actor_index = ((unit_object *)obj)->unit.actor_index;
-            uint8_t *actor_record = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+            uint8_t *actor_record = (uint8_t *)actor_data->data + halo::datum_slot(actor_index) * 0x724;
 
             ((struct unit_object *)obj)->unit.encounter_index = *(int16_t *)&((actor *)actor_record)->encounter_index;
             ((struct unit_object *)obj)->unit.squad_index = ((actor *)actor_record)->squad_index;
@@ -183,7 +183,7 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
         }
         if (((unit_object *)obj)->unit.swarm_actor_index != k_datum_index_none) {
             datum_index swarm_index = ((unit_object *)obj)->unit.swarm_actor_index;
-            uint8_t *actor_record = (uint8_t *)actor_data->data + (swarm_index & 0xffff) * 0x724;
+            uint8_t *actor_record = (uint8_t *)actor_data->data + halo::datum_slot(swarm_index) * 0x724;
 
             ((struct unit_object *)obj)->unit.encounter_index = *(int16_t *)&((actor *)actor_record)->encounter_index;
             ((struct unit_object *)obj)->unit.squad_index = ((actor *)actor_record)->squad_index;

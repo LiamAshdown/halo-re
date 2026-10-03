@@ -31,12 +31,12 @@ namespace vehicle_create_local {
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+    return *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
 }
 
 static uint8_t *object_definition(uint8_t *object)
 {
-    return (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+    return (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)object)].data;
 }
 
 }
@@ -83,7 +83,7 @@ uint8_t VehicleView::create()
 uint8_t VehicleView::is_old_enough()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     int32_t stamp = ((unit_object *)obj)->base.network_update_tick;
 
     if (stamp == -1) {
@@ -105,7 +105,7 @@ uint8_t VehicleView::is_old_enough()
 void VehicleView::reset_state()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
 
     vehicle->flags = 0;
@@ -133,8 +133,8 @@ void VehicleView::reset_state()
     vehicle->active_marker_mask = 0;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
 #define F(p, o) (*(float *)((p) + (o)))
 /**
  * Engine function vehicle_update.

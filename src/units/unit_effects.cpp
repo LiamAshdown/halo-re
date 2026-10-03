@@ -33,7 +33,7 @@ namespace halo::units {
 void UnitView::add_marker_relative_offset(uint32_t mode, float *world_point, uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     datum_index parent_index = ((unit_object *)unit)->base.parent_object;
     real_point3d reference;
     int have_reference = 0;
@@ -44,7 +44,7 @@ void UnitView::add_marker_relative_offset(uint32_t mode, float *world_point, uin
             return;
         }
     } else if (((unit_object *)unit)->base.type == 0 && parent_index != k_datum_index_none) {
-        uint8_t *parent = (uint8_t *)((object_header *)object_data->data)[parent_index & 0xffff].data;
+        uint8_t *parent = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(parent_index)].data;
 
         if (((object *)parent)->type == 1 && UnitView(parent_index).predict_aim_target_position(&reference) != -1) {
             have_reference = 1;
@@ -68,7 +68,7 @@ void UnitView::add_marker_relative_offset(uint32_t mode, float *world_point, uin
 void UnitView::calculate_luminosity()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     object *parent = object_try_and_get(obj->parent_object, 3);
 
@@ -95,8 +95,8 @@ void UnitView::calculate_luminosity()
 void UnitView::compute_marker_offset_position(real_vector3d *reference_direction, int16_t mode, real_point3d *out_position, float *base_position, float *offsets)
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     uint8_t *tag_data = (uint8_t *)tag;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
@@ -146,7 +146,7 @@ void UnitView::compute_marker_offset_position(real_vector3d *reference_direction
 uint8_t UnitView::get_average_active_marker_direction(real_vector3d *out_direction)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     uint32_t mask = *(uint32_t *)(obj + 0x520);
     object_physics_context ctx;
     uint8_t *physics;
@@ -212,7 +212,7 @@ uint8_t UnitView::get_average_active_marker_direction(real_vector3d *out_directi
 void UnitView::get_forward_vector_or_marker_normal(real_vector3d *out)
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
 
     if (unit_obj->parent_object == k_datum_index_none) {
         if (out != (real_vector3d *)0) {
@@ -221,7 +221,7 @@ void UnitView::get_forward_vector_or_marker_normal(real_vector3d *out)
         return;
     }
 
-    object *parent = ((object_header *)object_data->data)[unit_obj->parent_object & 0xffff].data;
+    object *parent = ((object_header *)object_data->data)[halo::datum_slot(unit_obj->parent_object)].data;
     if (out != (real_vector3d *)0) {
         real_matrix4x3 *node = (real_matrix4x3 *)((uint8_t *)parent + parent->nodes.offset) + unit_obj->parent_marker_index;
         matrix4x3_transform_normal(out, &unit_obj->forward, node);
@@ -275,8 +275,8 @@ void UnitView::get_secondary_eye_marker_position(real_point3d *out)
 void UnitView::update_marker_skid_effects(uint8_t *contact_points)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     uint8_t *physics_tag;
     int32_t count;
     int16_t i;

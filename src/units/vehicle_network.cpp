@@ -61,7 +61,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
         return;
     }
     record = (uint8_t *)message[0x11];
-    guard = (uint8_t *)((object_header *)object_data->data)[vehicle_index & 0xffff].data;
+    guard = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(vehicle_index)].data;
     if ((((struct object *)guard)->flags & 0x8000000) != 0 && **(int32_t **)message == 1) {
         int32_t incoming = record[5];
         int32_t current = ((struct vehicle_object *)vehicle)->vehicle.network_update_sequence;
@@ -158,7 +158,7 @@ int32_t VehicleView::encode_network_create(int32_t buffer, int32_t bit_budget)
 {
     using namespace vehicle_encode_network_create_local;
     datum_index vehicle_index = datum_handle;
-    uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[vehicle_index & 0xffff].data;
+    uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(vehicle_index)].data;
     hash_table *keys = &object_network_id_table->id_to_index;
     vehicle_network_create_record record;
     void *item = &record;
@@ -167,7 +167,7 @@ int32_t VehicleView::encode_network_create(int32_t buffer, int32_t bit_budget)
     int32_t machine = 0;
     int32_t i;
 
-    if (vehicle_index != (datum_index)0xffffffff) {
+    if (vehicle_index != k_datum_index_none) {
         key = hash_table_get(keys, (int32_t)vehicle_index);
     }
     if (*(int32_t *)&((unit_object *)vehicle)->base.creator_object != -1) {

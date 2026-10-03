@@ -74,7 +74,7 @@ int32_t VehicleView::encode_network_update(void *buffer, int32_t bit_budget, int
     vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
 
     key = 0;
-    if (vehicle_index != (datum_index)0xffffffff) {
+    if (vehicle_index != k_datum_index_none) {
         key = hash_table_get(&object_network_id_table->id_to_index, (int32_t)vehicle_index);
         if (key == -1) {
             key = 0;

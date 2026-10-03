@@ -71,8 +71,8 @@ void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key)
     return;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
 #define LOOK_BLEND_NEW 0.3f
 #define LOOK_BLEND_OLD 0.7f
 /**
@@ -279,7 +279,7 @@ controls:
                 }
                 if (player_index_from_unit_index(unit_index) != k_datum_index_none &&
                     *(int16_t *)((uint8_t *)player_data->data +
-                        (player_index_from_unit_index(unit_index) & 0xffff) * 0x200 + 2) != -1) {
+                        halo::datum_slot(player_index_from_unit_index(unit_index)) * 0x200 + 2) != -1) {
                     datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.current_weapon_index);
 
                     if (weapon != k_datum_index_none) {

@@ -29,10 +29,10 @@ namespace halo::units {
 void BipedView::update_facing(int8_t *out_animation_state)
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     real_vector3d target;
     real_vector3d scratch;

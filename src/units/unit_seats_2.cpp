@@ -37,9 +37,9 @@ extern object *object_iterator_next(void *iterator);
 
 namespace halo::units {
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_HEADER(h) (((object_header *)object_data->data)[halo::datum_slot((h))])
+#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
 namespace unit_detach_child_at_named_seat_local {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
@@ -183,7 +183,7 @@ int16_t UnitView::detach_child_at_named_seat(char *seat_marker_name)
     unit_seat_iterator iterator;
     uint8_t *child;
 
-    if (unit_index == 0xffffffff) {
+    if (unit_index == k_datum_index_none) {
         return 0;
     }
     unit_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(unit_index));

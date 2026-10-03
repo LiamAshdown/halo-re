@@ -102,11 +102,11 @@ void unit_spawn_with_starting_weapons(void *command_record)
     memcpy(placement + 0x34, &message.forward, 12);
     memcpy(placement + 0x40, &message.up, 12);
     vehicle_index = object_new_with_datum_role_control((object_placement_data *)placement, 1);
-    if (vehicle_index == (datum_index)0xffffffff) {
+    if (vehicle_index == k_datum_index_none) {
         return;
     }
     network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)vehicle_index);
-    vehicle = (uint8_t *)((object_header *)object_data->data)[vehicle_index & 0xffff].data;
+    vehicle = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(vehicle_index)].data;
     memcpy(vehicle + 0x52c, &message.position, 12);
     memcpy(vehicle + 0x538, &message.velocity, 12);
     memcpy(vehicle + 0x544, &message.angular_velocity, 12);
