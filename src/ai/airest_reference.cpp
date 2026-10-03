@@ -238,9 +238,9 @@ void ReferenceView::actor_iterator_new(ai_reference_actor_iterator *out_iterator
 {
     uint32_t packed_reference = handle;
     int32_t encounter_index = (int32_t)(packed_reference & halo::k_slot_mask);
-    int32_t *field0 = (int32_t *)(out_iterator->unknown_00 + 0x00);
-    int32_t *squad_filter = (int32_t *)(out_iterator->unknown_00 + 0x04);
-    int32_t *platoon_filter = (int32_t *)(out_iterator->unknown_00 + 0x08);
+    int32_t *field0 = &out_iterator->encounter_index;
+    int32_t *squad_filter = &out_iterator->squad_filter;
+    int32_t *platoon_filter = &out_iterator->platoon_filter;
 
     *field0 = encounter_index;
 
@@ -267,7 +267,7 @@ void ReferenceView::actor_iterator_new(ai_reference_actor_iterator *out_iterator
         }
     }
 
-    halo::ai::ai_reference_actor_iterator_init_cursor(encounter_index, (datum_index *)((uint8_t *)out_iterator + 0xc));
+    halo::ai::ai_reference_actor_iterator_init_cursor(encounter_index, &out_iterator->cursor_start);
 }
 
 /**
@@ -277,8 +277,8 @@ void ReferenceView::actor_iterator_new(ai_reference_actor_iterator *out_iterator
  */
 actor * ReferenceView::actor_iterator_next(ai_reference_actor_iterator *iterator)
 {
-    int32_t *squad_filter = (int32_t *)(iterator->unknown_00 + 0x04);
-    int32_t *platoon_filter = (int32_t *)(iterator->unknown_00 + 0x08);
+    int32_t *squad_filter = &iterator->squad_filter;
+    int32_t *platoon_filter = &iterator->platoon_filter;
     actor *base = (actor *)halo::ai::globals().actor_data->data;
 
     for (;;) {
@@ -289,14 +289,14 @@ actor * ReferenceView::actor_iterator_next(ai_reference_actor_iterator *iterator
             return 0;
         }
 
-        next = *(datum_index *)iterator->unknown_14;
+        next = iterator->next_actor_index;
         iterator->actor_index = next;
         if (next == (datum_index)k_datum_index_none) {
             return 0;
         }
 
         candidate = &base[next & halo::k_slot_mask];
-        *(datum_index *)iterator->unknown_14 = candidate->next_in_encounter;
+        iterator->next_actor_index = candidate->next_in_encounter;
 
         if (*squad_filter == -1 || *squad_filter == candidate->squad_index) {
             if (*platoon_filter == -1 || *platoon_filter == candidate->platoon_index) {
@@ -591,15 +591,15 @@ uint32_t ReferenceView::get_stat_pair(int16_t stat_kind, int32_t *out_member_cou
                         &halo::ai::globals().platoon_states[enc->first_platoon + platoon_sub_index];
                     if (stat_kind == 0) {
                         result = (uint32_t)state->living_count;
-                        extra = *(uint32_t *)&state->average_vitality;
+                        extra = halo::bit_cast<uint32_t>(state->average_vitality);
                         member_count = state->member_count;
                     } else if (stat_kind == 1) {
                         result = (uint32_t)state->swarm_count;
-                        extra = *(uint32_t *)&state->average_vitality;
+                        extra = halo::bit_cast<uint32_t>(state->average_vitality);
                         member_count = state->member_count;
                     } else {
                         int32_t diff;
-                        extra = *(uint32_t *)&state->average_vitality;
+                        extra = halo::bit_cast<uint32_t>(state->average_vitality);
                         member_count = state->member_count;
                         diff = (int32_t)state->living_count - (int32_t)state->swarm_count;
                         result = (uint32_t)(diff & ~(diff >> 31));
@@ -812,7 +812,7 @@ void ReferenceView::refill_grenades()
     ai_reference_actor_iterator iterator;
     actor *a;
     ActorVariant *variant_data;
-    uint8_t *unit;
+    unit_object *unit;
     int32_t rolled;
     int16_t current;
     int16_t grenade_type;
@@ -822,10 +822,10 @@ void ReferenceView::refill_grenades()
     while (a != 0) {
         if (a->unit_index != (datum_index)k_datum_index_none) {
             variant_data = halo::ai::tag_data<ActorVariant>(a->actor_variant_tag);
-            unit = (uint8_t *)halo::ai::object_at(a->unit_index);
+            unit = (unit_object *)halo::ai::object_at(a->unit_index);
 
-            ((unit_object *)unit)->base.body_vitality = (((unit_object *)unit)->base.maximum_body_vitality <= 0.0f) ? k_real_zero : k_real_one;
-            ((unit_object *)unit)->base.shield_vitality = (((unit_object *)unit)->base.maximum_shield_vitality <= 0.0f) ? k_real_zero : k_real_one;
+            unit->base.body_vitality = (unit->base.maximum_body_vitality <= 0.0f) ? k_real_zero : k_real_one;
+            unit->base.shield_vitality = (unit->base.maximum_shield_vitality <= 0.0f) ? k_real_zero : k_real_one;
 
             if (variant_data->grenade_type != -1) {
                 halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
@@ -834,24 +834,24 @@ void ReferenceView::refill_grenades()
                                     (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10) +
                          (int32_t)(uint16_t)variant_data->grenade_count[0];
 
-                unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)
+                unit = (unit_object *)((object_header *)halo::objects::globals().object_data->data)
                     [a->unit_index & halo::k_slot_mask].data;
-                current = (int16_t)((unit_object *)unit)->unit.current_grenade_index;
+                current = (int16_t)unit->unit.current_grenade_index;
                 if (current == -1) {
                     current = 0;
                 } else {
-                    current = (int16_t)*(int8_t *)(unit + 0x31e + current);
+                    current = (int16_t)unit->unit.grenade_counts[current];
                 }
 
                 if (current < (int16_t)rolled) {
                     grenade_type = variant_data->grenade_type;
-                    unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)
+                    unit = (unit_object *)((object_header *)halo::objects::globals().object_data->data)
                         [a->unit_index & halo::k_slot_mask].data;
-                    *(int8_t *)(unit + 0x31e + grenade_type) =
-                        (int8_t)(*(int8_t *)(unit + 0x31e + grenade_type) +
+                    unit->unit.grenade_counts[grenade_type] =
+                        (int8_t)(unit->unit.grenade_counts[grenade_type] +
                                  ((int8_t)rolled - (int8_t)current));
-                    ((struct unit_object *)unit)->unit.desired_grenade_index = static_cast<int8_t>((uint8_t)grenade_type);
-                    ((struct unit_object *)unit)->unit.current_grenade_index = static_cast<int8_t>((uint8_t)grenade_type);
+                    unit->unit.desired_grenade_index = static_cast<int8_t>((uint8_t)grenade_type);
+                    unit->unit.current_grenade_index = static_cast<int8_t>((uint8_t)grenade_type);
                 }
             }
         }
@@ -1431,7 +1431,7 @@ void ReferenceView::units_exit_vehicles()
         datum_index unit_index = actor_record->unit_index;
         int16_t index = (int16_t)unit_index;
         int16_t salt = (int16_t)(unit_index >> 16);
-        uint8_t *header;
+        object_header *header;
         unit_object *self;
         datum_index vehicle_index;
 
@@ -1439,12 +1439,12 @@ void ReferenceView::units_exit_vehicles()
             unit_index == k_datum_index_none || index < 0 || index >= halo::objects::globals().object_data->maximum_count) {
             continue;
         }
-        header = (uint8_t *)halo::objects::globals().object_data->data + halo::objects::globals().object_data->size * index;
-        if (*(int16_t *)header == 0 || (salt != 0 && *(int16_t *)header != salt) ||
-            ((1u << (header[3] & 0x1f)) & 3) == 0) {
+        header = (object_header *)((uint8_t *)halo::objects::globals().object_data->data + halo::objects::globals().object_data->size * index);
+        if (header->identifier == 0 || (salt != 0 && header->identifier != salt) ||
+            ((1u << (header->type & 0x1f)) & 3) == 0) {
             continue;
         }
-        self = *(unit_object **)(header + 0x8);
+        self = (unit_object *)header->data;
         if (self == 0 || halo::networking::globals().game_mode == 1 ||
             (vehicle_index = self->base.parent_object) == k_datum_index_none ||
             self->unit.vehicle_seat_index == -1) {

@@ -2307,9 +2307,12 @@ typedef struct actor_iterator_state {
 // squad/team reference. Only its size (a 0x18-byte stack slot in both call sites) and the
 // actor-handle slot are established.
 typedef struct ai_reference_actor_iterator {
-    uint8_t unknown_00[0x10]; // 0x00
+    int32_t encounter_index;  // 0x00 the encounter being walked, -1 once the reference is invalid
+    int32_t squad_filter;     // 0x04 squad index to keep, -1 for every squad
+    int32_t platoon_filter;   // 0x08 platoon index to keep, -1 for every platoon
+    datum_index cursor_start; // 0x0c first of the three cursor dwords ai_reference_actor_iterator_init_cursor fills
     datum_index actor_index;  // 0x10 handle of the actor the last _next returned
-    uint8_t unknown_14[4];    // 0x14
+    datum_index next_actor_index; // 0x14 the actor the next call returns
 } ai_reference_actor_iterator; // size 0x18
 
 // One candidate of the grenade-avoidance scan: built by actor_grenade_avoidance_entry_init
