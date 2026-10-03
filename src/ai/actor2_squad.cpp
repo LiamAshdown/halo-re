@@ -149,7 +149,7 @@ extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int32_t object_iterator_next(object_iterator *iterator);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
-    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
+    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index,
     int32_t *chain_value);
 extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode);
 extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out);

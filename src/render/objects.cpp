@@ -34,7 +34,6 @@ extern uint8_t render_lighting_smoothing_enabled;
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,
     real_vector3d *out_angular_velocity);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern uint8_t console_debug_toggle_6893ec;
 extern uint32_t rasterizer_device_version;
 extern void *rasterizer_device;
 extern real vector3d_normalize_with_length(real_vector3d *v);
@@ -62,7 +61,6 @@ extern uint8_t rasterizer_object_shadow_begin(real_matrix4x3 *projection, ColorR
     float *out_radius);
 extern rasterizer_window_parameters rasterizer_window;
 extern uint8_t rasterizer_caps_flag_689;
-extern uint8_t console_debug_toggle_6893f2;
 extern uint8_t rasterizer_object_shadow_window_restored;
 extern void structure_debug_draw_surfaces_simple(real_point3d *query_point, float radius, real_rectangle3d *query_box,
     real_plane3d *planes, int16_t plane_count);
@@ -418,7 +416,7 @@ void halo::render::ObjectRenderData::shadow_end()
 
     structure_debug_draw_surfaces_simple(position, data->shadow_radius * 4.0f, &box, planes, 6);
 
-    if (rasterizer_window.type == 1 && rasterizer_caps_flag_689 == 0 && console_debug_toggle_6893f2 != 0 &&
+    if (rasterizer_window.type == 1 && rasterizer_caps_flag_689 == 0 && halo::rasterizer::globals::object_shadows_enabled != 0 &&
         rasterizer_object_shadow_window_restored == 0) {
         rasterizer_render_target_set_active(1, 0, 0);
         rasterizer_object_shadow_window_restored = 1;
@@ -684,7 +682,7 @@ namespace halo::render::lighting {
  */
 void disable_workaround(void)
 {
-    if (console_debug_toggle_6893ec != 0 && rasterizer_device_version < 0xffff0101) {
+    if (halo::rasterizer::globals::models_enabled != 0 && rasterizer_device_version < 0xffff0101) {
         void **vtable = *(void ***)rasterizer_device;
         d3d_set_render_state_fn set_render_state = (d3d_set_render_state_fn)vtable[0xe4 / 4];
         set_render_state(rasterizer_device, 0x89, 0);
@@ -904,7 +902,7 @@ void s(void)
     uint8_t pass;
     uint8_t first_iteration;
 
-    if (console_debug_toggle_6893ec != 0) {
+    if (halo::rasterizer::globals::models_enabled != 0) {
         rasterizer_render_states_dirty = 1;
         halo::rasterizer::globals::sky_pass_active = 0;
         if (rasterizer_device_version < 0xffff0101) {
@@ -932,7 +930,7 @@ void s(void)
         pass = 1;
     } while (first_iteration);
 
-    if (console_debug_toggle_6893ec != 0 && rasterizer_device_version < 0xffff0101) {
+    if (halo::rasterizer::globals::models_enabled != 0 && rasterizer_device_version < 0xffff0101) {
         void **vtable = *(void ***)rasterizer_device;
         d3d_set_render_state_fn set_render_state = (d3d_set_render_state_fn)vtable[0xe4 / 4];
         set_render_state(rasterizer_device, 0x89, 0);

@@ -43,7 +43,7 @@ extern void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern int32_t ai_select_communication_target(uint32_t param_a, uint32_t param_b, int16_t line_id, int16_t sub_id, float *out_weight);
 extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sight, datum_index *out_player_object_index, float *out_distance, datum_index object_index);
-extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value);
+extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index, int32_t *chain_value);
 extern uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command);
 extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
 extern void ai_propagate_communication_reaction(datum_index object_index, ai_communication_order *order);

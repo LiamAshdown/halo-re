@@ -52,7 +52,6 @@ extern real transition_function_evaluate(transition_function_t type, real phase)
 extern double sqrt(double x);
 extern double fabs(double x);
 extern render_camera render_camera_global;
-extern float unknown_00672f20;
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
 extern data_array *contrail_point_data;
@@ -283,7 +282,7 @@ void halo::render::SpriteBuilder::billboard_build_orientation_basis(int16_t rend
         dot = build_sprite_view_up.j * normal->j + build_sprite_view_up.i * normal->i +
               build_sprite_view_up.k * normal->k;
         axis = &build_sprite_view_up;
-        if ((normal->i * normal->i + normal->j * normal->j + normal->k * normal->k) * unknown_00672f20 < dot * dot) {
+        if ((normal->i * normal->i + normal->j * normal->j + normal->k * normal->k) * 0.99f < dot * dot) {
             axis = &build_sprite_view_left;
         }
 

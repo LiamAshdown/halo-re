@@ -50,7 +50,7 @@ transparent_geometry_group * rasterizer_transparent_geometry_group_build(transpa
     uint8_t test_immediate;
     uint32_t flags;
 
-    if (!console_debug_toggle_6893ec || !console_debug_toggle_6893ed) {
+    if (!halo::rasterizer::globals::models_enabled || !console_debug_toggle_6893ed) {
         return NULL;
     }
     skip = (shader != NULL && *(int16_t *)&((struct Shader *)shader)->shader_type == 4 && (shader[0x28] & 8) != 0);
@@ -972,7 +972,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
         rasterizer_set_render_state(0xe, 0);
         rasterizer_camouflage_fade_active = 1;
         rasterizer_camouflage_fade = 1.0f - amount;
-        if (console_debug_toggle_6893ec != 0) {
+        if (halo::rasterizer::globals::models_enabled != 0) {
             rasterizer_render_states_dirty = 1;
             halo::rasterizer::globals::sky_pass_active = 0;
             if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
@@ -1157,7 +1157,7 @@ void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32_t dyna
     transparent_geometry_group *group;
     float dx, dy, dz;
 
-    if (console_debug_toggle_689400 == 0) {
+    if (halo::rasterizer::globals::transparent_object_append_enabled == 0) {
         return;
     }
 

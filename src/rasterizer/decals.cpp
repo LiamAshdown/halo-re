@@ -223,7 +223,7 @@ void rasterizer_decal_pass_begin(int16_t stage)
     if (decals_for_all_responses == 0 && stage != 3) {
         proceed = 0;
     }
-    if (*(int16_t *)&console_debug_toggle_6893e4 != 0 || !proceed) {
+    if (*(int16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || !proceed) {
         rasterizer_decal_layer = stage;
         return;
     }
@@ -366,7 +366,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
     if (decals_for_all_responses == 0 && rasterizer_decal_layer != 3) {
         layer_enabled = 0;
     }
-    if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || !layer_enabled) {
+    if (*(uint16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || !layer_enabled) {
         return;
     }
 
@@ -569,7 +569,7 @@ namespace rasterizer_shader_decal_pass_set_states_impl {
 void rasterizer_shader_decal_pass_set_states(void)
 {
 
-    if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893fa == 0 ||
+    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::specular_enabled == 0 ||
         rasterizer_caps.pixel_shader_version <= 0xffff0100) {
         return;
     }

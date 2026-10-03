@@ -389,7 +389,8 @@ typedef struct actor {
     uint8_t unknown_40[10];           // 0x40
     int16_t idle_counter;             // 0x4a 0x429430 advances it and trips the global update stagger past 15
     uint8_t needs_new_path;           // 0x4c 0x4017b0 issues a fresh path request while set; 0x429430 also writes it
-    uint8_t unknown_4d[3];            // 0x4d
+    uint8_t unknown_4d;               // 0x4d
+    int16_t target_reaction_threshold;// 0x4e ticks a prop's reaction_timer must reach before the actor refreshes its aim (set by the target relationship pass)
     datum_index first_prop;           // 0x50 head of the prop list, chained through prop.next_in_actor at +0x08
     datum_index nearest_orphan_prop_index; // 0x54 actor_target_relationship_think 0x41abd0 stores the nearest prop in
                                            //    state 4..5 (orphan) each pass (none while target itself is an
@@ -433,7 +434,7 @@ typedef struct actor {
     uint8_t witnessed_death;          // 0x8d actor_scan_backup_and_panic_reaction 0x423220 sets it whenever a prop's
                                       //    just_died is processed; encounter_recompute_morale needs has_engaged &&
                                       //    this to start post-combat
-    uint8_t unknown_8e;               // 0x8e actor_new sets 0
+    uint8_t command_list_run_immediately;// 0x8e when set, actor_process_order_request runs pending_command_list even while awareness_level is 0 and without the reload check; cleared with it; nothing raises it in this build
     uint8_t unknown_8f;               // 0x8f
     int16_t pending_command_list;     // 0x90 command list index stored when the actor is told to run one while
                                       //   inactive (0x407140), -1 none (actor_new / ai_unit_create_actor)
@@ -736,7 +737,10 @@ typedef struct actor {
     int16_t secondary_action;         // 0x418 0x417a60 queues it, actor_action_has_queued_secondary reads it
     uint8_t unknown_41a[16];          // 0x41a
     uint8_t unknown_42a;              // 0x42a
-    uint8_t unknown_42b[5];           // 0x42b
+    uint8_t unknown_42b;              // 0x42b
+    int16_t movement_style_override;  // 0x42c control_animation_mode to use; -1 derives it from the awareness level
+                                      //    (reset to -1 every update, set by the obey mode update)
+    int16_t strafe_axis_override;     // 0x42e steering axis passed to actor_movement_apply_steering (its cached_axis); reset to -1 every update
     uint8_t move_in_direction;        // 0x430 when set actor_movement_update steers straight along unknown_434; set
                                       //    by actor_mode_obey_update (command-list aim bit 0 / look)
                                       //   unknown_434 instead of running the avoidance sampler
@@ -1376,7 +1380,7 @@ typedef struct ai_scored_candidate {
 // @0x435900 hands out and ai_object_attention_remove @0x435990 compacts, keyed by an object
 // handle. The count lives in ai_globals.unknown_3b6 and the table runs 0x3b8..0x8b7, which is
 // exactly up to ai_globals.vehicle_entry_count at 0x8b8.
-// ai_globals.object_attention_table is this table (the earlier overlapping unknown_3f0/3fa were unit fields).
+// ai_globals.object_attention_table is this table (the earlier overlapping communication_hold_tick/3fa were unit fields).
 typedef struct ai_object_attention_record {
     datum_index object_index;  // 0x00 the key; the search compares the whole 32-bit handle
     float weight;              // 0x04 seeded to 8.0 on creation
@@ -1490,7 +1494,7 @@ typedef struct ai_globals {
     int16_t object_attention_count;   // 0x3b6 entries of the 32 x 0x28 object attention table at 0x3b8
     ai_object_attention_record object_attention_table[32]; // 0x3b8 0x500 bytes, runs 0x3b8..0x8b7; the count is
                                       //    object_attention_count at 0x3b6 (ai_object_attention_find_or_create /
-                                      //    ai_object_attention_remove). The old unknown_3f0/3f4/3fa/3fc fields
+                                      //    ai_object_attention_remove). The old communication_hold_tick/3f4/3fa/3fc fields
                                       //    were phantoms: ai_communication_record_line_played (objdump-verified)
                                       //    reads +0x3f0/+0x3fa off the SPEAKING UNIT, not ai_globals, so they
                                       //    are just record 1 (0x3e0..0x407) of this table
@@ -1547,7 +1551,8 @@ typedef struct path_find_context {
                                       //    +0x1058c, searches +0x12dac) that ai_navigate_around_obstacles reads;
                                       //    callers pass 0 for none
     uint8_t have_goal;                // 0x4c the whole search and the reconstruction are gated on this
-    uint8_t unknown_4d[3];            // 0x4d
+    uint8_t unknown_4d;               // 0x4d
+    int16_t target_reaction_threshold;// 0x4e ticks a prop's reaction_timer must reach before the actor refreshes its aim (set by the target relationship pass)
     real_point3d goal_position;       // 0x50
     uint32_t goal_vertex_id;          // 0x5c
     float goal_cost;                  // 0x60

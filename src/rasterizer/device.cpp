@@ -185,7 +185,7 @@ void rasterizer_begin_frame(rasterizer_window_parameters *source)
     rasterizer_set_fog_constants(&source->fog);
 
     {
-        uint32_t clear_color = (console_debug_toggle_6893e4 == 1) ? 0 : color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color);
+        uint32_t clear_color = (halo::rasterizer::globals::rasterizer_debug_mode == 1) ? 0 : color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color);
         if (rasterizer_window.type == 1 || rasterizer_window.type == 2) {
             rasterizer_render_target_set_active(rasterizer_window.type, clear_color, source->clear_target == 0);
         }
@@ -193,7 +193,7 @@ void rasterizer_begin_frame(rasterizer_window_parameters *source)
 
     chimera__rasterizer_set_frustum_z_func(0xbf800000, 0xbf800000);
 
-    render_device().set_render_state(8, 3 - (uint32_t)(console_debug_toggle_6893e6 != 0));
+    render_device().set_render_state(8, 3 - (uint32_t)(halo::rasterizer::globals::rasterizer_wireframe != 0));
 }
 
 /**
@@ -635,7 +635,7 @@ void rasterizer_end_frame(void)
         viewport.max_z = 1.0f;
         render_device().set_viewport(&viewport);
 
-        if (console_debug_toggle_6893e6 != 0) {
+        if (halo::rasterizer::globals::rasterizer_wireframe != 0) {
             rasterizer_set_render_state(8, 3);
         }
 
@@ -690,7 +690,7 @@ void rasterizer_end_frame(void)
             }
         }
 
-        if (console_debug_toggle_6893e6 != 0) {
+        if (halo::rasterizer::globals::rasterizer_wireframe != 0) {
             rasterizer_set_render_state(8, 2);
         }
     }
@@ -1209,7 +1209,7 @@ uint8_t rasterizer_reset_device_if_needed(void)
         console_debug_toggle_6893f9 = 0;
         halo::rasterizer::globals::device_reset_cleared_flag = 0;
         halo::rasterizer::globals::fog_screen_overlay_enabled = 0;
-        console_debug_toggle_6893f2 = 0;
+        halo::rasterizer::globals::object_shadows_enabled = 0;
     }
 
     if (rasterizer_device_lost != 0) {

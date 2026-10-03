@@ -79,7 +79,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
     self->pending_order_request = -1;
     self->standing_order_request = -1;
     self->last_order_request_time = -1;
-    self->unknown_8e = 0;
+    self->command_list_run_immediately = 0;
     self->pending_command_list = -1;
     self->command_list_finished_time = -1;
     self->mode = 0;

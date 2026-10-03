@@ -2053,7 +2053,7 @@ void rasterizer_water_fade_compute_and_set_states(void)
 {
     float plane_distance;
 
-    if (console_debug_toggle_6893e4 != 0 || rasterizer_fog_enabled == 0 ||
+    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || rasterizer_fog_enabled == 0 ||
         rasterizer_caps.pixel_shader_version <= 0xffff0100) {
         return;
     }
@@ -2154,7 +2154,7 @@ void rasterizer_water_ripple_draw(rasterizer_vertex_buffer *vertex_buffer, const
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || rasterizer_fog_enabled == 0 ||
+    if (*(uint16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || rasterizer_fog_enabled == 0 ||
         rasterizer_caps.pixel_shader_version < 0xffff0101 || effect == 0) {
         return;
     }

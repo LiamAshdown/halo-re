@@ -51,8 +51,8 @@ void ActorView::update_activation_state()
 
     memset(&self->flee_reason, 0, 0x21 * sizeof(uint32_t));
     self->secondary_action = -1;
-    *(int16_t *)((uint8_t *)self + 0x42c) = -1;
-    *(int16_t *)((uint8_t *)self + 0x42e) = -1;
+    self->movement_style_override = -1;
+    self->strafe_axis_override = -1;
 
     actor_run_mode_transition_loop(actor_index);
 

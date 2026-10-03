@@ -215,18 +215,18 @@ void rasterizer_fog_screen_overlay_set_states(void)
     uint32_t max_anisotropy;
     uint32_t fog_color;
 
-    if (console_debug_toggle_6893f4 == 0) {
+    if (halo::rasterizer::globals::rasterizer_environment_diffuse_textures == 0) {
         return;
     }
 
     render_device().set_render_state(0x16, 3);
     render_device().set_render_state(0xa8, (console_debug_toggle_68941d != 0) * 8 + 7);
     render_device().set_render_state(0x1b, 1);
-    render_device().set_render_state(0x13, (-(uint32_t)(console_debug_toggle_6893e4 != 1) & 7) + 2);
-    render_device().set_render_state(0x14, (console_debug_toggle_6893e4 == 1) + 1);
+    render_device().set_render_state(0x13, (-(uint32_t)(halo::rasterizer::globals::rasterizer_debug_mode != 1) & 7) + 2);
+    render_device().set_render_state(0x14, (halo::rasterizer::globals::rasterizer_debug_mode == 1) + 1);
     render_device().set_render_state(0xab, 1);
     render_device().set_render_state(0xf, 0);
-    render_device().set_render_state(7, console_debug_toggle_6893e4 != 1);
+    render_device().set_render_state(7, halo::rasterizer::globals::rasterizer_debug_mode != 1);
     render_device().set_render_state(0x17, 3);
     render_device().set_render_state(0xe, 0);
 

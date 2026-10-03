@@ -48,7 +48,7 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f3 == 0 || effect == 0) {
+    if (*(uint16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || console_debug_toggle_6893f3 == 0 || effect == 0) {
         return;
     }
 
@@ -136,7 +136,7 @@ void rasterizer_light_cone_set_orientation_constants(int32_t light_index)
     float constants_vs[5][4];
     float constants_ps[1][4];
 
-    if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f3 == 0 ||
+    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || console_debug_toggle_6893f3 == 0 ||
         rasterizer_caps.pixel_shader_version <= 0xffff0100) {
         return;
     }
@@ -209,7 +209,7 @@ namespace rasterizer_light_cone_set_texture_stage_states_impl {
 void rasterizer_light_cone_set_texture_stage_states(void)
 {
 
-    if (console_debug_toggle_6893e4 == 0 && console_debug_toggle_6893f3 != 0 &&
+    if (halo::rasterizer::globals::rasterizer_debug_mode == 0 && console_debug_toggle_6893f3 != 0 &&
         0xffff0100 < rasterizer_caps.pixel_shader_version &&rasterizer_effects[4].effect != 0) {
 
         render_device().set_sampler_state(0, 1, 1);
@@ -527,7 +527,7 @@ void rasterizer_projected_light_constants_build(int32_t light_index)
     rasterizer_light *light;
     Light *definition;
 
-    if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f6 == 0 ||
+    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::specular_projected_light_enabled == 0 ||
         rasterizer_caps.pixel_shader_version <= 0xffff0103) {
         return;
     }
@@ -592,7 +592,7 @@ void rasterizer_projected_light_constants_build_cube_map(int32_t light_index)
     float radius;
     float scale;
 
-    if (console_debug_toggle_6893f6 == 0 || rasterizer_caps.pixel_shader_version <= 0xffff0103) {
+    if (halo::rasterizer::globals::specular_projected_light_enabled == 0 || rasterizer_caps.pixel_shader_version <= 0xffff0103) {
         return;
     }
 
@@ -679,7 +679,7 @@ void rasterizer_set_fog_constants(const render_fog *fog)
     if (window_fog->atmospheric_maximum_density <= 0.0f) {
         window_fog->atmospheric_maximum_density = 1.0f;
     }
-    if (window_fog->atmospheric_maximum_distance == 0.0f || console_debug_toggle_689407 == 0) {
+    if (window_fog->atmospheric_maximum_distance == 0.0f || halo::rasterizer::globals::rasterizer_fog_atmosphere == 0) {
         window_fog->atmospheric_maximum_distance = rasterizer_window.camera.z_far + rasterizer_window.camera.z_far;
         window_fog->atmospheric_maximum_density = 0.0f;
         window_fog->atmospheric_minimum_distance = rasterizer_window.camera.z_far;
@@ -689,7 +689,7 @@ void rasterizer_set_fog_constants(const render_fog *fog)
         window_fog->planar_maximum_density = 1.0f;
     }
     if (window_fog->planar_mode == 0 || (fog->flags & _render_fog_no_planar_bit) != 0 ||
-        console_debug_toggle_689408 == 0) {
+        halo::rasterizer::globals::rasterizer_fog_plane == 0) {
 
         window_fog->planar_mode = 0;
         window_fog->planar_maximum_density = 0.0f;

@@ -190,7 +190,7 @@ restart:
             self->ticks_since_engaged = 0;
         }
 
-        *(int16_t *)&self->unknown_4d[1] = (int16_t)reaction_ticks;
+        self->target_reaction_threshold = (int16_t)reaction_ticks;
         self->nearest_orphan_prop_index = result;
         return;
     }
@@ -263,7 +263,7 @@ restart:
         if (target->distance_class > 2) {
             timer = (int16_t)(timer >> 1);
         }
-        if (danger_reacted == 0 && timer >= *(int16_t *)&self->unknown_4d[1]) {
+        if (danger_reacted == 0 && timer >= self->target_reaction_threshold) {
             need_aim_refresh = 1;
             refresh_needed = 1;
             timer = 0;

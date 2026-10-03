@@ -522,7 +522,7 @@ extern data_array *actor_data;
 extern ai_globals *ai_globals_ptr;
 extern void actor_recompute_grenade_eligibility(datum_index actor_index);
 extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
-    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
+    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index,
     int32_t *chain_value);
 extern int32_t unit_commit_speech(uint32_t unit_index, const void *source, int16_t mode);
 extern void ai_communication_target_result_reset(void *record);

@@ -9,6 +9,17 @@
  */
 extern "C" {
 extern uint8_t unknown_006893ef;
+extern uint8_t console_debug_toggle_6893e0;
+extern uint8_t console_debug_toggle_6893e4;
+extern uint8_t console_debug_toggle_6893e6;
+extern uint8_t console_debug_toggle_6893ec;
+extern uint8_t console_debug_toggle_6893f2;
+extern uint8_t console_debug_toggle_6893f4;
+extern uint8_t console_debug_toggle_6893fa;
+extern uint8_t console_debug_toggle_689400;
+extern uint8_t console_debug_toggle_689407;
+extern uint8_t console_debug_toggle_689408;
+extern uint8_t console_debug_toggle_69c614;
 extern uint8_t unknown_006893ff;
 extern int16_t unknown_00689450;
 extern uint16_t unknown_006893e2;
@@ -379,5 +390,82 @@ inline void (*&keystone_window_release)(int32_t document) = unknown_00721ec8;
  * @address 0x721edc
  */
 inline void (*&keystone_window_show)(int32_t document, uint32_t visible) = unknown_00721edc;
+
+/**
+ * hs global "rasterizer_fps": show the frame rate statistics; also enables the frame statistics sampler.
+ *
+ * @address 0x6893e0
+ */
+inline uint8_t &rasterizer_fps = console_debug_toggle_6893e0;
+
+/**
+ * Non-zero selects a debug rendering mode: decals, dynamic geometry, specular and projected light passes are skipped and the clear colour is black when it equals 1 (the script debug table lists it as "rasterizer_mode"). A 16 bit value.
+ *
+ * @address 0x6893e4
+ */
+inline uint8_t &rasterizer_debug_mode = console_debug_toggle_6893e4;
+
+/**
+ * hs global "rasterizer_wireframe": draw everything as wireframe (fill mode 2) and skip text backdrops.
+ *
+ * @address 0x6893e6
+ */
+inline uint8_t &rasterizer_wireframe = console_debug_toggle_6893e6;
+
+/**
+ * Gates the model draw path: while set the model begin selects its shader stage configuration and render states, and the sky, object and camouflage passes mark the render states dirty.
+ *
+ * @address 0x6893ec
+ */
+inline uint8_t &models_enabled = console_debug_toggle_6893ec;
+
+/**
+ * Object shadows: set from the profile shadows setting (zero on shader versions below 1.1 and by the device reset); read by the model shadow passes and shown as Shadows by the time demo.
+ *
+ * @address 0x6893f2
+ */
+inline uint8_t &object_shadows_enabled = console_debug_toggle_6893f2;
+
+/**
+ * hs global "rasterizer_environment_diffuse_textures": draw environment diffuse textures.
+ *
+ * @address 0x6893f4
+ */
+inline uint8_t &rasterizer_environment_diffuse_textures = console_debug_toggle_6893f4;
+
+/**
+ * Specular: set from the profile specular setting with the other specular gates and shown as Specular by the time demo; read by the decal pass and the environment specular passes.
+ *
+ * @address 0x6893fa
+ */
+inline uint8_t &specular_enabled = console_debug_toggle_6893fa;
+
+/**
+ * Gate of rasterizer_transparent_object_append (default 1, read nowhere else).
+ *
+ * @address 0x689400
+ */
+inline uint8_t &transparent_object_append_enabled = console_debug_toggle_689400;
+
+/**
+ * hs global "rasterizer_fog_atmosphere": atmospheric fog.
+ *
+ * @address 0x689407
+ */
+inline uint8_t &rasterizer_fog_atmosphere = console_debug_toggle_689407;
+
+/**
+ * hs global "rasterizer_fog_plane": planar fog.
+ *
+ * @address 0x689408
+ */
+inline uint8_t &rasterizer_fog_plane = console_debug_toggle_689408;
+
+/**
+ * Gate of the object shadow pass of the window render.
+ *
+ * @address 0x69c614
+ */
+inline uint8_t &object_shadow_pass_enabled = console_debug_toggle_69c614;
 
 }

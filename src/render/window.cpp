@@ -32,7 +32,6 @@ extern real_vector3d *global_up3d_pointer;
 extern real_matrix4x3 *k_render_identity_matrix_ptr;
 extern ColorRGB *global_white_color;
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
-extern uint8_t console_debug_toggle_6893ec;
 extern uint8_t rasterizer_render_states_dirty;
 extern uint32_t rasterizer_device_version;
 extern void *rasterizer_device;
@@ -62,8 +61,6 @@ extern render_frustum render_frustum_global;
 extern render_fog render_fog_state;
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state;
 extern rasterizer_window_parameters rasterizer_window;
-extern uint8_t console_debug_toggle_69c614;
-extern int16_t console_debug_toggle_6893e4;
 extern uint8_t decals_for_all_responses;
 extern int16_t visible_cluster_count;
 extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters];
@@ -114,7 +111,6 @@ extern void first_person_weapon_update_screen_effects(void);
 extern void rasterizer_screen_flash_render(void);
 extern void widget_draw_fullscreen_region(int16_t controller_index);
 extern void function_do_nothing(void);
-extern uint8_t console_debug_toggle_6893f7;
 extern void *rasterizer_lightmap_bitmap;
 extern uint8_t rasterizer_lightmap_bitmap_missing;
 extern void rasterizer_shader_environment_set_lightmap(void *lightmap);
@@ -332,7 +328,7 @@ void sky(void)
         matrix4x3_multiply_procedure(&sky_transform, &matrices[i], &matrices[i]);
     }
 
-    if (console_debug_toggle_6893ec) {
+    if (halo::rasterizer::globals::models_enabled) {
         rasterizer_render_states_dirty = 1;
         halo::rasterizer::globals::sky_pass_active = 1;
     }
@@ -348,7 +344,7 @@ void sky(void)
     render_model(sky->model.tag_id, matrices, 0.0f, 0, 0, function_values, &lighting,
                  &render_camera_global.position, 0.0f, 0, 0, 0, 1);
 
-    if (console_debug_toggle_6893ec && rasterizer_device_version < 0xffff0101) {
+    if (halo::rasterizer::globals::models_enabled && rasterizer_device_version < 0xffff0101) {
         d3d_set_render_state_fn set_render_state =
             (d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4];
 
@@ -402,7 +398,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     structure_picked_polygon_refresh();
     structure_picked_polygon_draw();
     lens_flare_update_samples();
-    if (console_debug_toggle_69c614) {
+    if (halo::rasterizer::globals::object_shadow_pass_enabled) {
         shadow_data.object_index = 0xffffffff;
         shadow_data.unknown_44 = -1;
         shadow_data.lighting = 0;
@@ -413,7 +409,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     }
     lights_apply_spot_falloff();
 
-    if (console_debug_toggle_6893e4 == 0 && decals_for_all_responses) {
+    if (halo::rasterizer::globals::rasterizer_debug_mode == 0 && decals_for_all_responses) {
         rasterizer_decal_pass_begin(2);
         draw_visible_cluster_decals();
         rasterizer_end_decal_pass();
@@ -429,7 +425,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
         rasterizer_force_bilinear_filtering();
     }
 
-    if (console_debug_toggle_6893e4 == 0 && decals_for_all_responses) {
+    if (halo::rasterizer::globals::rasterizer_debug_mode == 0 && decals_for_all_responses) {
         rasterizer_decal_pass_begin(0);
         draw_visible_cluster_decals();
         rasterizer_end_decal_pass();
@@ -522,7 +518,7 @@ namespace halo::render::window_structure {
  */
 void lightmap_begin_0x511f90(void *bitmap_data)
 {
-    if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f7 == 0 ||
+    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::specular_lightmap_enabled == 0 ||
         rasterizer_device_version < 0xffff0104) {
         return;
     }

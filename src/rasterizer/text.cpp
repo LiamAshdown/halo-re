@@ -366,7 +366,7 @@ void rasterizer_draw_text_begin(ui_quad_render_state *state)
     set_render_state(0x18, 0);
     set_render_state(0x7, 0);
     set_render_state(0x1c, 0);
-    if (console_debug_toggle_6893e6 != 0) {
+    if (halo::rasterizer::globals::rasterizer_wireframe != 0) {
         set_render_state(8, 3);
     }
 
@@ -422,7 +422,7 @@ namespace rasterizer_draw_text_end_impl {
 void rasterizer_draw_text_end(void)
 {
 
-    if (console_debug_toggle_6893e6 != 0) {
+    if (halo::rasterizer::globals::rasterizer_wireframe != 0) {
         render_device().set_render_state(8, 2);
     }
     render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);

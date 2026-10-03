@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 
 extern "C" {
@@ -389,7 +390,7 @@ namespace rasterizer_dynamic_light_technique_ps2_set_states_impl {
 void rasterizer_dynamic_light_technique_ps2_set_states(void)
 {
 
-    if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f7 == 0 ||
+    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::specular_lightmap_enabled == 0 ||
         render_force_flag != 0 || rasterizer_caps.pixel_shader_version <= 0xffff0103) {
         return;
     }

@@ -81,11 +81,11 @@ void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, ui
     rasterizer_model_draw_context *context;
     uint8_t *overlay;
 
-    debug_fp_dispatch_note(console_debug_toggle_6893ec, rasterizer_active_model_mode, *(int16_t *)&((struct Shader *)shader)->shader_type,
+    debug_fp_dispatch_note(halo::rasterizer::globals::models_enabled, rasterizer_active_model_mode, *(int16_t *)&((struct Shader *)shader)->shader_type,
         primitive_count, shader_environment_draw, shader_environment_draw_simple,
         rasterizer_active_model_context ? (void *)(uintptr_t)rasterizer_active_model_context->group_parameters.shader : 0);
 
-    if (!console_debug_toggle_6893ec) {
+    if (!halo::rasterizer::globals::models_enabled) {
         return;
     }
     context = rasterizer_active_model_context;
@@ -173,7 +173,7 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
 {
     float matrix[16];
 
-    if (console_debug_toggle_6893ec == 0) {
+    if (halo::rasterizer::globals::models_enabled == 0) {
         return;
     }
     if (((uint8_t *)rasterizer_active_model_context)[0] & 8) {
@@ -297,7 +297,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
     uint32_t passes;
     uint32_t pass;
 
-    if (!console_debug_toggle_6893ec) {
+    if (!halo::rasterizer::globals::models_enabled) {
         return;
     }
     context = ((uint8_t *)rasterizer_active_model_context);
@@ -508,7 +508,7 @@ void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t f
 {
     float matrix[16];
 
-    if (console_debug_toggle_6893ec == 0) {
+    if (halo::rasterizer::globals::models_enabled == 0) {
         return;
     }
     if (((uint8_t *)rasterizer_active_model_context)[0] & 8) {
@@ -625,7 +625,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f9 == 0 ||
+    if (*(uint16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || console_debug_toggle_6893f9 == 0 ||
         rasterizer_window.has_mirror == 0 || rasterizer_window.type != 1) {
         return;
     }
@@ -774,7 +774,7 @@ void rasterizer_shader_environment_lightmap_draw(uint8_t *shader, int16_t frame,
     uint32_t passes;
     uint32_t pass;
 
-    if (!console_debug_toggle_6893f4) {
+    if (!halo::rasterizer::globals::rasterizer_environment_diffuse_textures) {
         return;
     }
     index = (int16_t)(*(uint16_t *)(shader + 0x2a) * 3 + *(uint16_t *)(shader + 0xb0));
@@ -846,7 +846,7 @@ void rasterizer_shader_environment_lightmap_draw_single_stream(const ShaderEnvir
 {
     d3d_call3_fn set_texture_stage_state;
 
-    if (console_debug_toggle_6893f4 == 0) {
+    if (halo::rasterizer::globals::rasterizer_environment_diffuse_textures == 0) {
         return;
     }
     chimera__rasterizer_set_texture(*(uint32_t *)&((struct ShaderEnvironment *)shader)->base_map.tag_id, 0, 0, 1, frame);
@@ -893,7 +893,7 @@ void rasterizer_shader_environment_lightmap_draw_two_stream(const ShaderEnvironm
     int16_t *base_size;
     int16_t base_width, base_height;
 
-    if (console_debug_toggle_6893f4 == 0) {
+    if (halo::rasterizer::globals::rasterizer_environment_diffuse_textures == 0) {
         return;
     }
     effect_index = (int16_t)((uint16_t)(((uint16_t)(*(uint16_t *)&((struct ShaderEnvironment *)raw)->shader_environment_type * 3) + *(uint16_t *)&((struct ShaderEnvironment *)raw)->detail_map_function) * 3) +
@@ -981,7 +981,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f7 == 0 || render_force_flag != 0 ||
+    if (*(uint16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::specular_lightmap_enabled == 0 || render_force_flag != 0 ||
         rasterizer_lightmap_bitmap_missing != 0 || rasterizer_caps.pixel_shader_version < 0xffff0104) {
         return;
     }
@@ -1147,7 +1147,7 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f6 == 0 ||
+    if (*(uint16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::specular_projected_light_enabled == 0 ||
         rasterizer_caps.pixel_shader_version < 0xffff0104) {
         return;
     }
@@ -1267,7 +1267,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893fa == 0 ||
+    if (*(uint16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::specular_enabled == 0 ||
         rasterizer_caps.pixel_shader_version < 0xffff0101) {
         return;
     }
@@ -1819,8 +1819,8 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
  */
 void rasterizer_shader_environment_set_lightmap(BitmapData *lightmap)
 {
-    if (console_debug_toggle_6893e4 == 0 && console_debug_toggle_6893f8 != 0 &&
-        console_debug_toggle_6893fa != 0 && render_force_flag == 0 &&
+    if (halo::rasterizer::globals::rasterizer_debug_mode == 0 && halo::rasterizer::globals::environment_multipurpose_enabled != 0 &&
+        halo::rasterizer::globals::specular_enabled != 0 && render_force_flag == 0 &&
         rasterizer_active_environment_effect != 0 &&
         rasterizer_active_environment_effect->effect != 0) {
         if (lightmap != 0) {
@@ -1858,7 +1858,7 @@ void rasterizer_shader_environment_technique_draw(rasterizer_vertex_buffer *vert
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f8 == 0 || console_debug_toggle_6893fa == 0 ||
+    if (*(uint16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::environment_multipurpose_enabled == 0 || halo::rasterizer::globals::specular_enabled == 0 ||
         render_force_flag != 0 || rasterizer_environment_lightmap_missing != 0) {
         return;
     }
@@ -1925,8 +1925,8 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
 void rasterizer_shader_environment_technique_multipurpose_set_states(void)
 {
 
-    if (console_debug_toggle_6893e4 == 0 && console_debug_toggle_6893f8 != 0 &&
-        console_debug_toggle_6893fa != 0 && render_force_flag == 0) {
+    if (halo::rasterizer::globals::rasterizer_debug_mode == 0 && halo::rasterizer::globals::environment_multipurpose_enabled != 0 &&
+        halo::rasterizer::globals::specular_enabled != 0 && render_force_flag == 0) {
         render_device().set_render_state(0x16, 3);
         render_device().set_render_state(0xa8, 8);
         render_device().set_render_state(0x1b, 1);
@@ -1964,7 +1964,7 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
 void rasterizer_shader_environment_technique_ps2_set_states(void)
 {
 
-    if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f6 == 0 ||
+    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::specular_projected_light_enabled == 0 ||
         rasterizer_caps.pixel_shader_version <= 0xffff0103) {
         return;
     }
@@ -2024,7 +2024,7 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
 void rasterizer_shader_environment_technique_self_illumination_set_states(void)
 {
 
-    if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f9 == 0 ||
+    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || console_debug_toggle_6893f9 == 0 ||
         rasterizer_window.has_mirror == 0 || rasterizer_window.type != 1) {
         return;
     }

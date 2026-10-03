@@ -134,7 +134,7 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
         set_sampler_state(3, 7, 2);
     }
 
-    if (console_debug_toggle_6893ec != 0) {
+    if (halo::rasterizer::globals::models_enabled != 0) {
         if ((int8_t)context->flags < 0 && mode == 0) {
             rasterizer_set_shader_stage_config(1);
             chimera__rasterizer_set_frustum_z_func(rasterizer_frustum_z_values[0], rasterizer_frustum_z_values[1]);
@@ -256,7 +256,7 @@ void rasterizer_model_draw_restore_states(void)
 {
     rasterizer_model_draw_context *context = (rasterizer_model_draw_context *)rasterizer_active_model_context;
 
-    if (console_debug_toggle_6893ec == 0) {
+    if (halo::rasterizer::globals::models_enabled == 0) {
         return;
     }
 
@@ -318,7 +318,7 @@ uint8_t rasterizer_object_shadow_begin(const real_matrix4x3 *projection, const C
     if (rasterizer_window.type != 1) {
         return 1;
     }
-    if (rasterizer_caps_flag_689 != 0 || console_debug_toggle_6893f2 == 0) {
+    if (rasterizer_caps_flag_689 != 0 || halo::rasterizer::globals::object_shadows_enabled == 0) {
         if (out_radius != NULL) {
             *out_radius = 0.0f;
         }
@@ -459,7 +459,7 @@ void rasterizer_object_shadow_blur(void)
     uint32_t stage;
     uint32_t pass;
 
-    if (rasterizer_caps_flag_689 != 0 || console_debug_toggle_6893f2 == 0 || console_debug_toggle_68941e == 0) {
+    if (rasterizer_caps_flag_689 != 0 || halo::rasterizer::globals::object_shadows_enabled == 0 || console_debug_toggle_68941e == 0) {
         return;
     }
     effect = (void *)(uintptr_t)rasterizer_effects[45].effect;
@@ -564,7 +564,7 @@ void rasterizer_object_shadow_model_draw(const ShaderModel *shader, int16_t fram
     float constants[3][4];
     rasterizer_model_draw_context *context;
 
-    if (rasterizer_window.type != 1 || rasterizer_caps_flag_689 != 0 || console_debug_toggle_6893f2 == 0) {
+    if (rasterizer_window.type != 1 || rasterizer_caps_flag_689 != 0 || halo::rasterizer::globals::object_shadows_enabled == 0) {
         return;
     }
     if (shader->base.shader_type != 4) {
@@ -642,7 +642,7 @@ void rasterizer_object_shadow_structure_draw(rasterizer_vertex_buffer *vertex_bu
     uint32_t passes;
     uint32_t pass;
 
-    if (rasterizer_window.type != 1 || rasterizer_caps_flag_689 != 0 || console_debug_toggle_6893f2 == 0) {
+    if (rasterizer_window.type != 1 || rasterizer_caps_flag_689 != 0 || halo::rasterizer::globals::object_shadows_enabled == 0) {
         return;
     }
     if (rasterizer_effects[47].effect == 0) {
