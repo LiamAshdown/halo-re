@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/ai/ai_constants.hpp"
 
 namespace c_actor_action_has_queued_secondary {
 extern "C" {
@@ -977,7 +978,7 @@ void halo::ai::actor_ref::iterator_new(actor_iterator_state *out_iterator, uint8
         out_iterator->filter_array = encounter_data;
         out_iterator->next_index = 0;
         out_iterator->cursor = -1;
-        out_iterator->signature = (uint32_t)encounter_data ^ 0x69746572;
+        out_iterator->signature = (uint32_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         out_iterator->encounterless_done = 0;
         out_iterator->active = active_only;
         out_iterator->actor_index = (datum_index)k_datum_index_none;

@@ -832,7 +832,7 @@ static uint8_t path_find_search(path_find_context *context)
                 f = goal_distance + g;
             }
             key = (int32_t)(f * 10.0f);
-            if (key >= 0x7fff) {
+            if (key >= INT16_MAX) {
                 continue;
             }
             if (request->have_limit && travelled > request->limit_distance) {

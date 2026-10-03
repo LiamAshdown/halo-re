@@ -10,6 +10,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/ai/ai_constants.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -205,7 +206,7 @@ void Encounters::release_actors_and_swarms()
     iterator.filter_array = encounter_data;
     iterator.next_index = 0;
     iterator.cursor = -1;
-    iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+    iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
     iterator.encounterless_done = 0;
     iterator.active = 1;
     iterator.actor_index = -1;
@@ -327,7 +328,7 @@ int Encounters::release_inactive_swarms(char *buffer, uint8_t *has_more)
     iterator.filter_array = encounter_data;
     iterator.next_index = 0;
     iterator.cursor = -1;
-    iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+    iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
     iterator.encounterless_done = 0;
     iterator.active = 0;
     iterator.actor_index = -1;
@@ -3090,7 +3091,7 @@ void Encounters::note_hostile_object(datum_index object_index)
         iterator.data = encounter_data;
         iterator.next_index = 0;
         iterator.index = (datum_index)k_datum_index_none;
-        iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.active_only = 1;
     }
 
@@ -3145,7 +3146,7 @@ void Encounters::recompute_dirty()
         iterator.data = encounter_data;
         iterator.next_index = 0;
         iterator.index = (datum_index)k_datum_index_none;
-        iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.active_only = 0;
     }
 
@@ -3229,7 +3230,7 @@ void Encounters::spawn_initial()
         iterator.data = encounter_data;
         iterator.next_index = 0;
         iterator.index = (datum_index)k_datum_index_none;
-        iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.active_only = 0;
     }
 
@@ -3278,7 +3279,7 @@ void Encounters::update()
         iterator.data = encounter_data;
         iterator.next_index = 0;
         iterator.index = (datum_index)k_datum_index_none;
-        iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.active_only = 1;
     }
 
@@ -3447,7 +3448,7 @@ void Encounters::update_activation()
     iterator.data = encounter_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
-    iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
+    iterator.signature = (uint32_t)encounter_data ^ halo::ai::k_iterator_signature_key;
 
     enc = (encounter *)halo::memory::data_iterator_next((data_iterator *)&iterator);
     while (enc != 0) {

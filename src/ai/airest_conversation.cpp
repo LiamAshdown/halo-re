@@ -8,6 +8,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/ai/ai_constants.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -662,7 +663,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
                 actor_iterator.filter_array = encounter_data;
                 actor_iterator.next_index = 0;
                 actor_iterator.cursor = -1;
-                actor_iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+                actor_iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
                 actor_iterator.encounterless_done = 0;
                 actor_iterator.active = 1;
                 actor_iterator.actor_index = -1;

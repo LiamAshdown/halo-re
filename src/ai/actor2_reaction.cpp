@@ -426,8 +426,8 @@ void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, 
         }
 
         ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
-        if (ticks > 0x7fff) {
-            ticks = 0x7fff;
+        if (ticks > INT16_MAX) {
+            ticks = INT16_MAX;
         }
 
         self->vocalization_state = (int16_t)ticks;
@@ -478,8 +478,8 @@ void ActorOps::queue_point_reaction_dialogue(const real_point3d *point, datum_in
 
             {
                 int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
-                if (ticks > 0x7fff) {
-                    ticks = 0x7fff;
+                if (ticks > INT16_MAX) {
+                    ticks = INT16_MAX;
                 }
 
                 self->vocalization_variant = actor_dialogue_variant_table_g[self->combat_status >= 4];
@@ -545,8 +545,8 @@ void ActorView::queue_recognized_target_dialogue(datum_index target_prop_index)
                 }
 
                 int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
-                if (ticks > 0x7fff) {
-                    ticks = 0x7fff;
+                if (ticks > INT16_MAX) {
+                    ticks = INT16_MAX;
                 }
 
                 self->vocalization_state = (int16_t)ticks;
@@ -744,8 +744,8 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
                 }
 
                 int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
-                if (ticks > 0x7fff) {
-                    ticks = 0x7fff;
+                if (ticks > INT16_MAX) {
+                    ticks = INT16_MAX;
                 }
 
                 self->vocalization_line = 4;
@@ -910,8 +910,8 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
 
         {
             int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
-            if (ticks > 0x7fff) {
-                ticks = 0x7fff;
+            if (ticks > INT16_MAX) {
+                ticks = INT16_MAX;
             }
 
             self->vocalization_state = (int16_t)ticks;
@@ -983,8 +983,8 @@ void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index
 
         {
             int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
-            if (ticks > 0x7fff) {
-                ticks = 0x7fff;
+            if (ticks > INT16_MAX) {
+                ticks = INT16_MAX;
             }
 
             self->vocalization_variant = actor_dialogue_variant_table_d[self->combat_status >= 4];
@@ -1091,8 +1091,8 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
                 }
 
                 int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
-                if (ticks > 0x7fff) {
-                    ticks = 0x7fff;
+                if (ticks > INT16_MAX) {
+                    ticks = INT16_MAX;
                 }
 
                 self->vocalization_state = (int16_t)ticks;

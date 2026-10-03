@@ -5,6 +5,7 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/ai/ai_constants.hpp"
 
 namespace halo::ai {
 
@@ -316,7 +317,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
                 players.data = player_data;
                 players.next_index = 0;
                 players.index = k_datum_index_none;
-                players.signature = (uint32_t)(uintptr_t)player_data ^ 0x69746572;
+                players.signature = (uint32_t)(uintptr_t)player_data ^ halo::ai::k_iterator_signature_key;
                 for (player = (uint8_t *)halo::memory::data_iterator_next(&players); player != 0; player = (uint8_t *)halo::memory::data_iterator_next(&players)) {
                     datum_index player_unit = ((struct player *)player)->unit;
 

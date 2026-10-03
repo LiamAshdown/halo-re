@@ -8,6 +8,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/ai/ai_constants.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -111,7 +112,7 @@ void AiCommunication::broadcast_communication_event(int16_t gate, real_point3d *
         iterator.filter_array = encounter_data;
         iterator.next_index = 0;
         iterator.cursor = -1;
-        iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = k_datum_index_none;
@@ -1637,7 +1638,7 @@ datum_index AiCommunication::select_speaker_by_team(int16_t match_mode, datum_in
         iterator.filter_array = encounter_data;
         iterator.next_index = 0;
         iterator.cursor = -1;
-        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = -1;
@@ -2120,7 +2121,7 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
     iterator.filter_array = encounter_data;
     iterator.next_index = 0;
     iterator.cursor = -1;
-    iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+    iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
     iterator.encounterless_done = 0;
     iterator.active = 1;
     iterator.actor_index = k_datum_index_none;

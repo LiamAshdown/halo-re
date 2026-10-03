@@ -10,6 +10,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/ai/ai_constants.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -229,7 +230,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
         iterator.filter_array = encounter_data;
         iterator.next_index = 0;
         iterator.cursor = -1;
-        iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = k_datum_index_none;
@@ -537,7 +538,7 @@ void AiSystem::mark_recognized_objects_for_reaction(int16_t team_a, int16_t team
         iterator.filter_array = encounter_data;
         iterator.next_index = 0;
         iterator.cursor = -1;
-        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = -1;
@@ -592,7 +593,7 @@ void AiSystem::notify_actors_of_encounter_state_change(int16_t zone_a, int16_t z
         iterator.filter_array = encounter_data;
         iterator.next_index = 0;
         iterator.cursor = -1;
-        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = -1;
@@ -757,7 +758,7 @@ void AiSystem::recompute_all_relationship_flags()
         iterator.filter_array = encounter_data;
         iterator.next_index = 0;
         iterator.cursor = -1;
-        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = -1;
@@ -818,7 +819,7 @@ void AiSystem::reset_all_actors_perception()
     iterator.filter_array = encounter_data;
     iterator.next_index = 0;
     iterator.cursor = -1;
-    iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+    iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
     iterator.encounterless_done = 0;
     iterator.active = 1;
     iterator.actor_index = -1;

@@ -158,8 +158,8 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
     }
 
     ticks = (int32_t)(duration * 30.0f + 0.5f);
-    if (ticks > 0x7fff) {
-        ticks = 0x7fff;
+    if (ticks > INT16_MAX) {
+        ticks = INT16_MAX;
     }
 
     if (variant == 1) {

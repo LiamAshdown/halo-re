@@ -238,7 +238,7 @@ restart:
     if (target->retain_timer > 0 && target->just_created == 0) {
         target->retain_timer -= 1;
     }
-    if (target->engaged_ticks > 0 && target->engaged_ticks < 0x7fff) {
+    if (target->engaged_ticks > 0 && target->engaged_ticks < INT16_MAX) {
         target->engaged_ticks += 1;
     }
     if (target->friends_killed_timer > 0) {
@@ -252,7 +252,7 @@ restart:
     }
     if (target->visual_perception < 2) {
         target->sighted_ticks = 0;
-    } else if (target->sighted_ticks < 0x7fff) {
+    } else if (target->sighted_ticks < INT16_MAX) {
         target->sighted_ticks += 1;
     }
 

@@ -194,8 +194,8 @@ void ActorView::schedule_grenade_throw()
         delay = halo::math::random_real_range(lo, hi) * delay;
     }
     ticks = fistp_round(delay * 30.0f);
-    if (ticks > 0x7fff) {
-        ticks = 0x7fff;
+    if (ticks > INT16_MAX) {
+        ticks = INT16_MAX;
     }
     ((actor *)a)->vocalization_state = (int16_t)ticks;
     ((actor *)a)->vocalization_line = 8;
