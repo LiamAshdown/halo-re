@@ -1,0 +1,2121 @@
+====================================================================================================
+autopatch_check_for_update_start.c
+====================================================================================================
+// autopatch_check_for_update_start  (Ghidra: autopatch_check_for_update_start, already named)
+// address 0x577240, size 205 bytes
+// name confidence: 0.5   rewrite confidence: 0.4
+// evidence: string "currentupdate.cfg"; shares the file_reference reset preamble (0x43 dwords
+// zeroed, then "file" + 0xffff stamped into the head, matching types/hs.h's own comment on
+// file_reference) with the savegame_index_* family in src/game; path_append_component and
+// path_remove_last_component are the same two helpers that family already pins.
+// register convention: no register-passed arguments.
+// UNSURE: the exact path this file_reference resolves to (an implicit global path component,
+// like saved_game_root_path is for the savegame family, not independently identified here).
+
+// FIXED (objdump): path_append_component takes (destination = the file reference's path buffer at +8, in ESI;
+//   component, in EBX); the draft passed them swapped, and read the component array as a pointer.
+#include "win32.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "hs.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t autopatch_update_check_state; // 0x0069fe04, -1 not started, 0 failed, 1 running
+
+extern uint8_t *autopatch_update_cfg_directory; // UNSURE: implicit path component this resolves against
+extern int32_t security_check_write_access(void); // 0x542840, this module
+extern char file_reference_exists(file_reference *reference); // 0x555720
+extern uint8_t file_reference_delete(void); // 0x555670, UNSURE args elided
+extern void path_append_component(char *destination, const char *component); // 0x555ec0
+extern void path_remove_last_component(uint8_t *path); // 0x555f80
+extern uint32_t autopatch_version_check_request(void); // 0x5771e0, this module
+
+// One-time entry point that kicks off the background thread which checks bungie.net for a game
+// update: if the update-config directory is writable, deletes any stale "currentupdate.cfg"
+// first, then starts the version-check thread.
+int32_t autopatch_check_for_update_start(void)
+{
+    if (autopatch_update_check_state == -1) {
+        file_reference reference;
+        uint8_t *flags = (uint8_t *)&reference + 8;
+        void *thread;
+        uint32_t thread_id;
+
+        if (security_check_write_access() != 0) {
+            uint32_t *raw = (uint32_t *)&reference;
+            int32_t i;
+            for (i = 0; i < 0x43; i++) {
+                raw[i] = 0;
+            }
+            *(int32_t *)((uint8_t *)&reference + 4) = 0x66696c6f; // "ofil" (little-endian "file")
+            *(uint16_t *)((uint8_t *)&reference + 6) = 0xffff;
+            if ((*flags & 1) != 0) {
+                path_remove_last_component((uint8_t *)&reference + 8);
+            }
+            path_append_component((char *)&reference + 8, "currentupdate.cfg"); // 0x67219c
+            *flags = *flags | 1;
+            if (file_reference_exists(&reference) != 0) {
+                file_reference_delete();
+            }
+        }
+
+        thread = CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)autopatch_version_check_request, 0, 0, (LPDWORD)&thread_id);
+        if (thread != (void *)0xffffffff) {
+            autopatch_update_check_state = 1;
+            CloseHandle(thread);
+            return autopatch_update_check_state;
+        }
+        autopatch_update_check_state = 0;
+    }
+    return autopatch_update_check_state;
+}
+
+#if 0
+Original Ghidra decompilation (0x577240):
+
+int autopatch_check_for_update_start(void)
+
+{
+  char cVar1;
+  int iVar2;
+  HANDLE hObject;
+  DWORD *pDVar3;
+  DWORD local_11c [2];
+  byte local_114;
+  undefined2 local_112;
+
+  if (DAT_0069fe04 == -1) {
+    iVar2 = security_check_write_access();
+    if (iVar2 != 0) {
+      pDVar3 = local_11c;
+      for (iVar2 = 0x43; pDVar3 = pDVar3 + 1, iVar2 != 0; iVar2 = iVar2 + -1) {
+        *pDVar3 = 0;
+      }
+      local_11c[1] = 0x66696c6f;
+      local_112 = 0xffff;
+      if ((local_114 & 1) != 0) {
+        path_remove_last_component();
+      }
+      path_append_component();
+      local_114 = local_114 | 1;
+      cVar1 = file_reference_exists();
+      if (cVar1 != '\0') {
+        file_reference_delete();
+      }
+    }
+    hObject = CreateThread((LPSECURITY_ATTRIBUTES)0x0,0x10400,autopatch_version_check_request,
+                           (LPVOID)0x0,0,local_11c);
+    if (hObject != (HANDLE)0xffffffff) {
+      DAT_0069fe04 = 1;
+      CloseHandle(hObject);
+      return DAT_0069fe04;
+    }
+    DAT_0069fe04 = 0;
+  }
+  return DAT_0069fe04;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_current_version_string_get.c
+====================================================================================================
+// autopatch_current_version_string_get  (Ghidra: autopatch_current_version_string_get, already named)
+// address 0x578190, size 38 bytes
+// name confidence: 0.6   rewrite confidence: 0.7
+// evidence: out/phase4/networking_functions.md summary: "Writes the hardcoded current game build
+// version string (\"01.00.10.0621\") into a caller buffer." The four dwords decode exactly to
+// that ASCII text plus a NUL.
+// register convention: destination buffer in EAX (in_EAX, unresolved register read).
+// blam-cc: EAX -> out
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+// blam-cc: EAX -> out
+// Writes the hardcoded current game build version string ("01.00.10.0621") into out (a 14-byte
+// buffer, including the NUL).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+void autopatch_current_version_string_get(char *out)
+{
+    int32_t i;
+    static const char version[] = "01.00.10.0621";
+    for (i = 0; i <= 13; i++) {
+        out[i] = version[i];
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x578190):
+
+void autopatch_current_version_string_get(void)
+
+{
+  undefined4 *in_EAX;
+
+  *in_EAX = 0x302e3130;
+  in_EAX[1] = 0x30312e30;
+  in_EAX[2] = 0x3236302e;
+  *(undefined2 *)(in_EAX + 3) = 0x31;
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_download_complete_callback.c
+====================================================================================================
+// autopatch_download_complete_callback  (Ghidra: autopatch_download_complete_callback, already named)
+// address 0x576ad0, size 165 bytes
+// name confidence: 0.5   rewrite confidence: 0.6
+// evidence: strides autopatch_download_slots[] (types/networking.h) by 5 dwords (0x14 bytes),
+// matching autopatch_download_slot exactly; sets state to k_autopatch_download_error (5) on
+// error, or allocates and NUL-terminates the payload and sets k_autopatch_download_ready (4) on
+// success -- unless a close was already requested (the byte immediately after local_file, offset
+// +0x11, which autopatch_download_pool_shutdown also sets), in which case the data is left alone.
+// register convention: the four __cdecl stack parameters Ghidra recognized.
+
+#include "win32.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
+
+
+// Completion callback for an asynchronous download/read: on success, copies the received data
+// into a heap buffer (unless the slot's close-requested flag is set) and marks the matching pool
+// slot ready or errored.
+uint32_t autopatch_download_complete_callback(int32_t request_id, int32_t error, uint8_t *data, uint32_t size)
+{
+    int32_t i;
+
+    for (i = 0; i < 2; i++) {
+        if (autopatch_download_slots[i].request_id == request_id) {
+            if (error != 0) {
+                autopatch_download_slots[i].state = k_autopatch_download_error;
+                return 1;
+            }
+            if (((uint8_t *)&autopatch_download_slots[i].local_file)[1] == 0) {
+                uint8_t *buffer = (uint8_t *)GlobalAlloc(0, size + 1);
+                uint32_t j;
+
+                autopatch_download_slots[i].data = buffer;
+                for (j = 0; j < size; j++) {
+                    buffer[j] = data[j];
+                }
+                buffer[size] = 0;
+                autopatch_download_slots[i].size = size + 1;
+            }
+            autopatch_download_slots[i].state = k_autopatch_download_ready;
+            return 1;
+        }
+    }
+    return 1;
+}
+
+#if 0
+Original Ghidra decompilation (0x576ad0):
+
+undefined4
+autopatch_download_complete_callback(int param_1,int param_2,undefined4 *param_3,uint param_4)
+
+{
+  int *piVar1;
+  undefined4 *puVar2;
+  int iVar3;
+  uint uVar4;
+
+  piVar1 = &DAT_006ef93c;
+  iVar3 = 0;
+  do {
+    if (*piVar1 == param_1) {
+      if (iVar3 != -1) {
+        if (param_2 != 0) {
+          (&DAT_006ef940)[iVar3 * 5] = 5;
+          return 1;
+        }
+        if (*(char *)(&DAT_006ef94c + iVar3 * 5) == '\0') {
+          puVar2 = GlobalAlloc(0,param_4 + 1);
+          (&DAT_006ef944)[iVar3 * 5] = puVar2;
+          for (uVar4 = param_4 >> 2; uVar4 != 0; uVar4 = uVar4 - 1) {
+            *puVar2 = *param_3;
+            param_3 = param_3 + 1;
+            puVar2 = puVar2 + 1;
+          }
+          for (uVar4 = param_4 & 3; uVar4 != 0; uVar4 = uVar4 - 1) {
+            *(undefined1 *)puVar2 = *(undefined1 *)param_3;
+            param_3 = (undefined4 *)((int)param_3 + 1);
+            puVar2 = (undefined4 *)((int)puVar2 + 1);
+          }
+          *(undefined1 *)((&DAT_006ef944)[iVar3 * 5] + param_4) = 0;
+          (&DAT_006ef948)[iVar3 * 5] = param_4 + 1;
+        }
+        (&DAT_006ef940)[iVar3 * 5] = 4;
+      }
+      return 1;
+    }
+    piVar1 = piVar1 + 5;
+    iVar3 = iVar3 + 1;
+  } while ((int)piVar1 < 0x6ef964);
+  return 1;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_download_get_result.c
+====================================================================================================
+// autopatch_download_get_result  (Ghidra: autopatch_download_get_result, already named)
+// address 0x576f00, size 61 bytes
+// name confidence: 0.55   rewrite confidence: 0.55
+// evidence: out/phase4/networking_functions.md summary; requires the slot index to be 0 or 1,
+// state == k_autopatch_download_ready and the close-requested byte clear before handing back the
+// data pointer and size.
+// register convention: slot index in ECX (in_ECX, unresolved register read); the two out
+// parameters are the recognized __cdecl stack parameters.
+// blam-cc: ECX -> slot_index, stack -> out_data, out_size
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
+
+// blam-cc: ECX -> slot_index, stack -> out_data, out_size
+// Retrieves the completed data pointer and size from a finished download pool slot, if ready.
+// Returns 1 (with *out_data/*out_size filled) on success, 0 otherwise.
+uint8_t autopatch_download_get_result(void **out_data, int32_t *out_size, int32_t slot_index)
+{
+    if (slot_index >= 0 && slot_index < 2 &&
+        autopatch_download_slots[slot_index].state == k_autopatch_download_ready &&
+        ((uint8_t *)&autopatch_download_slots[slot_index].local_file)[1] == 0) {
+        *out_data = autopatch_download_slots[slot_index].data;
+        *out_size = autopatch_download_slots[slot_index].size;
+        return 1;
+    }
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x576f00):
+
+uint autopatch_download_get_result(undefined4 *param_1,undefined4 *param_2)
+
+{
+  undefined4 uVar1;
+  uint in_EAX;
+  uint uVar2;
+  int in_ECX;
+
+  uVar2 = in_EAX & 0xffffff00;
+  if ((((-1 < in_ECX) && (in_ECX < 2)) && ((&DAT_006ef940)[in_ECX * 5] == 4)) &&
+     (*(char *)(&DAT_006ef94c + in_ECX * 5) == '\0')) {
+    *param_1 = (&DAT_006ef944)[in_ECX * 5];
+    uVar1 = (&DAT_006ef948)[in_ECX * 5];
+    *param_2 = uVar1;
+    uVar2 = CONCAT31((int3)((uint)uVar1 >> 8),1);
+  }
+  return uVar2;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_download_pool_initialize.c
+====================================================================================================
+// autopatch_download_pool_initialize  (Ghidra: autopatch_download_pool_initialize, already named)
+// address 0x576c30, size 380 bytes
+// name confidence: 0.55   rewrite confidence: 0.5
+// evidence: out/phase4/networking_types_notes.md "network_mutex_record (0x28) /
+// network_thread_record (0x08)": "autopatch_download_pool_initialize (0x576c30) inlines both
+// allocators and confirms the same offsets independently." String "mutex_%ld" confirms the
+// mutex-name format matches mutex_create's own.
+// register convention: no register-passed arguments.
+// UNSURE: ghttpStartup (a foreign initialization call before the mutex/thread setup).
+
+#include "win32.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
+extern network_mutex_record network_mutex_table[k_network_mutex_table_count];   // 0x006f0db0
+extern int32_t network_mutex_name_counter;                                      // 0x006f0cac
+extern network_thread_record network_thread_table[k_network_thread_table_count]; // 0x006f0cb0
+extern network_mutex_record *autopatch_download_mutex;   // 0x007227c0
+extern network_thread_record *autopatch_download_thread; // 0x007227c4
+extern uint8_t autopatch_download_pool_stop;              // 0x007227bc, set to 1 once init has run
+extern uint8_t autopatch_download_active_count;           // 0x007227c8, UNSURE: used as a stop signal, see autopatch_download_worker_thread.c
+
+extern void ghttpStartup(void); // foreign, UNSURE
+
+extern int32_t _snprintf(char *buffer, uint32_t count, const char *format, ...);
+extern uint32_t autopatch_download_worker_thread(void); // 0x576b80, this module
+
+// VERIFIED against disassembly 0x576c30..0x576db0 (2026-09-30): slot init (5 dwords, request id -1), the 32 entry 0x28 byte
+//   mutex scan (in_use at +0x24, name at +4), the 32 entry 8 byte thread scan, the CreateThread/SetThreadPriority/ResumeThread
+//   sequence and the cleanup match. Fixed: 0x7227c8 (autopatch_download_active_count) is a BYTE everywhere in the original (the
+//   4-byte C store clobbered 0x7227c9..0x7227cb), and the mutex name uses the CRT _snprintf.
+// Initializes the two-slot asynchronous download table, then inline-allocates a named mutex
+// (mirroring mutex_create) and a suspended worker thread (mirroring network_thread_create),
+// resuming it on success. Returns 1 once the pool is fully up, 0 if the mutex or thread could
+// not be created (the pool is left initialized but idle either way).
+uint8_t autopatch_download_pool_initialize(void)
+{
+    int32_t i;
+    network_mutex_record *mutex_slot;
+    network_thread_record *thread_slot;
+    uint32_t thread_id;
+    uint8_t started;
+
+    for (i = 0; i < 2; i++) {
+        autopatch_download_slots[i].request_id = 0;
+        autopatch_download_slots[i].state = 0;
+        autopatch_download_slots[i].data = 0;
+        autopatch_download_slots[i].size = 0;
+        autopatch_download_slots[i].local_file = 0;
+        autopatch_download_slots[i].request_id = -1;
+    }
+
+    ghttpStartup();
+
+    started = 0;
+    mutex_slot = 0;
+    for (i = 0; i < k_network_mutex_table_count; i++) {
+        if (network_mutex_table[i].in_use == 0) {
+            mutex_slot = &network_mutex_table[i];
+            mutex_slot->name[0] = 0;
+            mutex_slot->handle = 0;
+            network_mutex_table[i].in_use = 1;
+            break;
+        }
+    }
+    if (mutex_slot != 0) {
+        int32_t name_index = network_mutex_name_counter;
+        network_mutex_name_counter = network_mutex_name_counter + 1;
+        _snprintf(mutex_slot->name, 0x20, "mutex_%ld", name_index); // 0x576cbb: CRT _snprintf (0x623a2d)
+        mutex_slot->handle = CreateMutexA(0, 0, 0);
+        if (mutex_slot->handle == 0) {
+            mutex_slot = 0;
+        } else {
+            started = 1;
+        }
+    }
+    autopatch_download_mutex = mutex_slot;
+
+    if (started) {
+        thread_slot = 0;
+        for (i = 0; i < 0x20; i++) {
+            if (network_thread_table[i].in_use == 0) {
+                thread_slot = &network_thread_table[i];
+                thread_slot->handle = 0;
+                network_thread_table[i].in_use = 1;
+                thread_slot->handle = CreateThread(0, 0x4000, (LPTHREAD_START_ROUTINE)autopatch_download_worker_thread,
+                                                    0, 4, (LPDWORD)&thread_id);
+                autopatch_download_thread = thread_slot;
+                if (thread_slot->handle != 0) {
+                    if (SetThreadPriority(thread_slot->handle, 0) != 0 &&
+                        ResumeThread(thread_slot->handle) != 0xffffffff) {
+                        autopatch_download_pool_stop = 1;
+                        autopatch_download_active_count = 0;
+                        return 1;
+                    }
+                    CloseHandle(thread_slot->handle);
+                }
+                break;
+            }
+        }
+        CloseHandle(autopatch_download_mutex->handle);
+        autopatch_download_mutex->in_use = 0;
+        autopatch_download_mutex->handle = 0;
+        autopatch_download_mutex = 0;
+        autopatch_download_thread = 0;
+    }
+    autopatch_download_pool_stop = 1;
+    autopatch_download_active_count = 0;
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x576c30):
+
+undefined1 autopatch_download_pool_initialize(void)
+
+{
+  bool bVar1;
+  undefined4 *puVar2;
+  char *pcVar3;
+  HANDLE pvVar4;
+  BOOL BVar5;
+  DWORD DVar6;
+  int iVar7;
+  DWORD local_4;
+
+  puVar2 = &DAT_006ef93c;
+  do {
+    *puVar2 = 0;
+    puVar2[1] = 0;
+    puVar2[2] = 0;
+    puVar2[3] = 0;
+    puVar2[4] = 0;
+    *puVar2 = 0xffffffff;
+    puVar2 = puVar2 + 5;
+  } while ((int)puVar2 < 0x6ef964);
+  FUN_0061bd00();
+  bVar1 = false;
+  puVar2 = (undefined4 *)0x0;
+  iVar7 = 0;
+  pcVar3 = &DAT_006f0dd4;
+  do {
+    if (*pcVar3 == '\0') {
+      iVar7 = iVar7 * 0x28;
+      puVar2 = (undefined4 *)(iVar7 + 0x6f0db0);
+      *(undefined1 *)(iVar7 + 0x6f0db4) = 0;
+      *puVar2 = 0;
+      (&DAT_006f0dd4)[iVar7] = 1;
+      break;
+    }
+    pcVar3 = pcVar3 + 0x28;
+    iVar7 = iVar7 + 1;
+  } while ((int)pcVar3 < 0x6f12d4);
+  iVar7 = DAT_006f0cac;
+  if (puVar2 != (undefined4 *)0x0) {
+    DAT_006f0cac = DAT_006f0cac + 1;
+    __snprintf((char *)(puVar2 + 1),0x20,"mutex_%ld",iVar7);
+    pvVar4 = CreateMutexA((LPSECURITY_ATTRIBUTES)0x0,0,(LPCSTR)0x0);
+    *puVar2 = pvVar4;
+    if (pvVar4 == (HANDLE)0x0) {
+      puVar2 = (undefined4 *)0x0;
+    }
+    else {
+      bVar1 = true;
+    }
+  }
+  DAT_007227c0 = puVar2;
+  if (bVar1) {
+    iVar7 = 0;
+    do {
+      if ((&DAT_006f0cb4)[iVar7 * 8] == '\0') {
+        puVar2 = (undefined4 *)(iVar7 * 8 + 0x6f0cb0);
+        *puVar2 = 0;
+        (&DAT_006f0cb4)[iVar7 * 8] = 1;
+        pvVar4 = CreateThread((LPSECURITY_ATTRIBUTES)0x0,0x4000,autopatch_download_worker_thread,
+                              (LPVOID)0x0,4,&local_4);
+        *puVar2 = pvVar4;
+        DAT_007227c4 = puVar2;
+        if (pvVar4 != (HANDLE)0x0) {
+          BVar5 = SetThreadPriority(pvVar4,0);
+          if ((BVar5 != 0) && (DVar6 = ResumeThread((HANDLE)*puVar2), DVar6 != 0xffffffff)) {
+            DAT_007227bc = 1;
+            DAT_007227c8 = 0;
+            return 1;
+          }
+          CloseHandle((HANDLE)*puVar2);
+        }
+        break;
+      }
+      iVar7 = iVar7 + 1;
+    } while (iVar7 < 0x20);
+    puVar2 = DAT_007227c0;
+    CloseHandle((HANDLE)*DAT_007227c0);
+    *(undefined1 *)(puVar2 + 1) = 0;
+    *puVar2 = 0;
+    *(undefined1 *)(puVar2 + 9) = 0;
+    DAT_007227c0 = (undefined4 *)0x0;
+    DAT_007227c4 = (undefined4 *)0x0;
+  }
+  DAT_007227bc = 1;
+  DAT_007227c8 = 0;
+  return 0;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_download_pool_shutdown.c
+====================================================================================================
+// autopatch_download_pool_shutdown  (Ghidra: autopatch_download_pool_shutdown, already named)
+// address 0x576db0, size 164 bytes
+// name confidence: 0.55   rewrite confidence: 0.45
+// evidence: out/phase4/networking_functions.md summary; sets every in-use slot's close-requested
+// byte (local_file+1, offset +0x11, the same byte autopatch_download_pool_tick tests), signals
+// the worker thread to stop via autopatch_download_active_count, waits for it to exit, then
+// closes both the thread and mutex handles autopatch_download_pool_initialize created.
+// register convention: no register-passed arguments.
+// UNSURE: ghttpCleanup (a foreign teardown call at the end).
+
+#include "win32.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
+extern uint8_t autopatch_download_active_count;              // 0x007227c8, UNSURE: stop signal, see autopatch_download_worker_thread.c
+extern network_thread_record *autopatch_download_thread;     // 0x007227c4
+extern network_mutex_record *autopatch_download_mutex;       // 0x007227c0
+
+extern int32_t ghttpCleanup(void); // foreign, UNSURE
+
+// Signals the download pool's worker thread to stop, waits for it to exit (STILL_ACTIVE ==
+// 0x103), then closes its thread and mutex handles and resets the pool table slots.
+uint32_t autopatch_download_pool_shutdown(void)
+{
+    int32_t i;
+    uint32_t exit_code;
+
+    for (i = 0; i < 2; i++) {
+        if (autopatch_download_slots[i].request_id != -1) {
+            ((uint8_t *)&autopatch_download_slots[i].local_file)[1] = 1;
+        }
+    }
+
+    autopatch_download_active_count = 1;
+    do {
+        while (GetExitCodeThread(autopatch_download_thread->handle, (LPDWORD)&exit_code) == 0) {
+        }
+    } while (exit_code == 0x103);
+
+    CloseHandle(autopatch_download_thread->handle);
+    autopatch_download_thread->handle = 0;
+    autopatch_download_thread->in_use = 0;
+
+    CloseHandle(autopatch_download_mutex->handle);
+    autopatch_download_mutex->in_use = 0;
+    autopatch_download_mutex->handle = 0;
+    autopatch_download_mutex->name[0] = 0;
+
+    autopatch_download_thread = 0;
+    autopatch_download_mutex = 0;
+
+    return (uint32_t)ghttpCleanup() & 0xffffff00;
+}
+
+#if 0
+Original Ghidra decompilation (0x576db0):
+
+uint autopatch_download_pool_shutdown(void)
+
+{
+  undefined4 *puVar1;
+  undefined1 *puVar2;
+  BOOL BVar3;
+  uint uVar4;
+  DWORD local_4;
+
+  puVar2 = (undefined1 *)((int)&DAT_006ef94c + 1);
+  do {
+    if (((0x6ef94c < (int)puVar2) && ((int)puVar2 < 0x6ef975)) && (*(int *)(puVar2 + -0x11) != -1))
+    {
+      *puVar2 = 1;
+    }
+    puVar2 = puVar2 + 0x14;
+  } while ((int)puVar2 < 0x6ef975);
+  DAT_007227c8 = 1;
+  do {
+    do {
+      BVar3 = GetExitCodeThread((HANDLE)*DAT_007227c4,&local_4);
+      puVar1 = DAT_007227c4;
+    } while (BVar3 == 0);
+  } while (local_4 == 0x103);
+  CloseHandle((HANDLE)*DAT_007227c4);
+  *puVar1 = 0;
+  *(undefined1 *)(puVar1 + 1) = 0;
+  puVar1 = DAT_007227c0;
+  CloseHandle((HANDLE)*DAT_007227c0);
+  *(undefined1 *)(puVar1 + 1) = 0;
+  *puVar1 = 0;
+  *(undefined1 *)(puVar1 + 9) = 0;
+  DAT_007227c4 = (undefined4 *)0x0;
+  DAT_007227c0 = (undefined4 *)0x0;
+  uVar4 = FUN_0061bd40();
+  return uVar4 & 0xffffff00;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_download_pool_tick.c
+====================================================================================================
+// autopatch_download_pool_tick  (Ghidra: autopatch_download_pool_tick, already named)
+// address 0x576bc0, size 103 bytes
+// name confidence: 0.5   rewrite confidence: 0.55
+// evidence: strides autopatch_download_slots[] exactly like autopatch_download_complete_callback;
+// a slot whose close-requested byte (local_file+1, offset +0x11) is set gets its data freed
+// (unless the local-file flag itself is set) and its underlying transfer canceled via
+// ghttpCancelRequest, then is reset to the free state (-1).
+// register convention: no register-passed arguments.
+
+#include "win32.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
+
+extern void ghttpThink(void); // foreign, UNSURE
+extern void ghttpCancelRequest(int32_t request_id); // foreign, UNSURE
+
+// Advances/cleans up the small asynchronous download slot table and returns the count of still
+// (non-free) slots.
+int32_t autopatch_download_pool_tick(void)
+{
+    int32_t active_count;
+    int32_t i;
+
+    active_count = 0;
+    for (i = 0; i < 2; i++) {
+        if (autopatch_download_slots[i].request_id != -1) {
+            active_count = active_count + 1;
+        }
+        if (((uint8_t *)&autopatch_download_slots[i].local_file)[1] != 0) {
+            if (autopatch_download_slots[i].data != 0 && autopatch_download_slots[i].local_file == 0) {
+                GlobalFree(autopatch_download_slots[i].data);
+            }
+            ghttpCancelRequest(autopatch_download_slots[i].request_id);
+            autopatch_download_slots[i].request_id = 0;
+            autopatch_download_slots[i].state = 0;
+            autopatch_download_slots[i].data = 0;
+            autopatch_download_slots[i].size = 0;
+            autopatch_download_slots[i].local_file = 0;
+            autopatch_download_slots[i].request_id = -1;
+        }
+    }
+    ghttpThink();
+    return active_count;
+}
+
+#if 0
+Original Ghidra decompilation (0x576bc0):
+
+int autopatch_download_pool_tick(void)
+
+{
+  int iVar1;
+  int *piVar2;
+
+  iVar1 = 0;
+  piVar2 = &DAT_006ef93c;
+  do {
+    if (*piVar2 != -1) {
+      iVar1 = iVar1 + 1;
+    }
+    if (*(char *)((int)piVar2 + 0x11) != '\0') {
+      if (((HGLOBAL)piVar2[2] != (HGLOBAL)0x0) && ((char)piVar2[4] == '\0')) {
+        GlobalFree((HGLOBAL)piVar2[2]);
+      }
+      FUN_0061c030(*piVar2);
+      *piVar2 = 0;
+      piVar2[1] = 0;
+      piVar2[2] = 0;
+      piVar2[3] = 0;
+      piVar2[4] = 0;
+      *piVar2 = -1;
+    }
+    piVar2 = piVar2 + 5;
+  } while ((int)piVar2 < 0x6ef964);
+  FUN_0061c020();
+  return iVar1;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_download_progress_callback.c
+====================================================================================================
+// autopatch_download_progress_callback  (Ghidra: LAB_00576a70, not a function; no C existed)
+// address 0x576a70, size 86 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x576a70..0x576ac5: the ghttp progress callback autopatch_download_start passes:
+//   finds the download slot holding the request (0x6ef93c, two 0x14-byte slots); a request no slot owns is cancelled
+//   (ghttpCancelRequest 0x61c030). Otherwise the slot's state becomes 3 while ghttp is receiving the status, headers
+//   or file (ghttp states 5..7), else 2.
+// blam-cc: cdecl (a ghttp progress callback: request, state, buffer, len, bytes received, total size, param)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
+extern void ghttpCancelRequest(int32_t request); // 0x61c030
+
+void autopatch_download_progress_callback(int32_t request, int32_t state, const char *buffer, int32_t buffer_length,
+    int32_t bytes_received, int32_t total_size, void *param)
+{
+    int32_t i;
+
+    (void)buffer;
+    (void)buffer_length;
+    (void)bytes_received;
+    (void)total_size;
+    (void)param;
+    for (i = 0; i < 2; i++) {
+        if (autopatch_download_slots[i].request_id == request) {
+            break;
+        }
+    }
+    if (i == 2) {
+        ghttpCancelRequest(request);
+        return;
+    }
+    if (state >= 5 && state <= 7) {
+        autopatch_download_slots[i].state = 3;
+    } else {
+        autopatch_download_slots[i].state = 2;
+    }
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_download_start.c
+====================================================================================================
+// autopatch_download_start  (Ghidra: autopatch_download_start, already named)
+// address 0x576e60, size 160 bytes
+// name confidence: 0.55   rewrite confidence: 0.45
+// evidence: out/phase4/networking_functions.md summary; finds a free slot (request_id == -1),
+// marks it active and starts either an HTTP-ish download (ghttpGetEx, when local_file == 0) or
+// a local file read (ghttpSaveEx, when local_file != 0), storing the caller-visible request id
+// and resetting the slot to free again on failure.
+// register convention: the URL/path as the recognized stack parameter (param_1), a local-file
+// flag in EDX (in_EDX, unresolved register read).
+// blam-cc: stack -> path, EDX -> local_file
+// UNSURE: ghttpGetEx's and ghttpSaveEx's full argument lists (foreign, GameSpy/CRT-shaped);
+// transcribed with the arguments Ghidra recovered plus &LAB_00576a70 and this module's own
+// completion callback.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
+
+extern int32_t ghttpGetEx(void *path, int32_t a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6,
+                             int32_t a7, void *progress_callback, void *complete_callback, int32_t a8); // foreign, UNSURE
+extern int32_t ghttpSaveEx(void *url, void *filename, void *headers, void *post, int32_t throttle, int32_t blocking,
+                             void *progress_callback, void *complete_callback, void *param); // 0x61bef0 ghttpSaveEx
+extern void autopatch_download_progress_callback(int32_t request, int32_t state, const char *buffer,
+    int32_t buffer_length, int32_t bytes_received, int32_t total_size, void *param); // 0x576a70
+extern uint32_t autopatch_download_complete_callback(int32_t request_id, int32_t error, uint8_t *data, uint32_t size); // 0x576ad0, this module
+
+// blam-cc: stack -> path, EDX -> local_file
+// Starts an asynchronous download (or local file read, when local_file is set) into a free pool
+// slot, using autopatch_download_complete_callback for completion, and returns the slot index (or
+// -1 if the pool is full or the start call itself failed).
+int32_t autopatch_download_start(void *path, int32_t local_file)
+{
+    int32_t slot_index;
+    int32_t request_id;
+
+    slot_index = -1;
+    for (int32_t i = 0; i < 2; i++) {
+        if (autopatch_download_slots[i].request_id == -1) {
+            slot_index = i;
+            break;
+        }
+    }
+    if (slot_index == -1) {
+        return -1;
+    }
+
+    autopatch_download_slots[slot_index].state = k_autopatch_download_active;
+    if (local_file == 0) {
+        request_id = ghttpGetEx(path, 0, 0, 0, 0, 0, 0, (void *)autopatch_download_progress_callback,
+                                   (void *)autopatch_download_complete_callback, 0);
+        autopatch_download_slots[slot_index].local_file = 0;
+    } else {
+        // FIXED 2026-09-28 (0x576eb3): EDX is the file to save into, passed on to ghttpSaveEx with the same
+        // progress / completion callbacks as the download.
+        request_id = ghttpSaveEx(path, (void *)local_file, 0, 0, 0, 0, (void *)autopatch_download_progress_callback,
+                                  (void *)autopatch_download_complete_callback, 0);
+        autopatch_download_slots[slot_index].local_file = 1;
+    }
+    autopatch_download_slots[slot_index].request_id = request_id;
+    if (request_id == -1) {
+        autopatch_download_slots[slot_index].request_id = 0;
+        autopatch_download_slots[slot_index].state = 0;
+        autopatch_download_slots[slot_index].data = 0;
+        autopatch_download_slots[slot_index].size = 0;
+        autopatch_download_slots[slot_index].local_file = 0;
+        autopatch_download_slots[slot_index].request_id = -1;
+        return -1;
+    }
+    return slot_index;
+}
+
+#if 0
+Original Ghidra decompilation (0x576e60):
+
+int autopatch_download_start(undefined4 param_1)
+
+{
+  int *piVar1;
+  int iVar2;
+  int in_EDX;
+  int iVar3;
+
+  iVar2 = 0;
+  piVar1 = &DAT_006ef93c;
+  do {
+    iVar3 = iVar2;
+    if (*piVar1 == -1) break;
+    piVar1 = piVar1 + 5;
+    iVar2 = iVar2 + 1;
+    iVar3 = -1;
+  } while ((int)piVar1 < 0x6ef964);
+  if (iVar3 != -1) {
+    piVar1 = &DAT_006ef93c + iVar3 * 5;
+    (&DAT_006ef940)[iVar3 * 5] = 1;
+    if (in_EDX == 0) {
+      iVar2 = FUN_0061bd80(param_1,0,0,0,0,0,0,&LAB_00576a70,autopatch_download_complete_callback,0)
+      ;
+      *(undefined1 *)(&DAT_006ef94c + iVar3 * 5) = 0;
+    }
+    else {
+      iVar2 = FUN_0061bef0(param_1);
+      *(undefined1 *)(&DAT_006ef94c + iVar3 * 5) = 1;
+    }
+    *piVar1 = iVar2;
+    if (iVar2 == -1) {
+      *piVar1 = 0;
+      (&DAT_006ef940)[iVar3 * 5] = 0;
+      (&DAT_006ef944)[iVar3 * 5] = 0;
+      (&DAT_006ef948)[iVar3 * 5] = 0;
+      (&DAT_006ef94c)[iVar3 * 5] = 0;
+      *piVar1 = -1;
+      return -1;
+    }
+  }
+  return iVar3;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_download_worker_thread.c
+====================================================================================================
+// autopatch_download_worker_thread  (Ghidra: autopatch_download_worker_thread, already named)
+// address 0x576b80, size 59 bytes
+// name confidence: 0.55   rewrite confidence: 0.7
+// evidence: out/phase4/networking_functions.md summary; polls autopatch_download_pool_tick,
+// sleeping 20ms while slots are active and 1000ms once the pool goes idle, until told to stop.
+// register convention: no register-passed arguments.
+
+#include "win32.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint8_t autopatch_download_active_count; // 0x007227c8, UNSURE: per types/networking.h's
+                                                 // name, but used here as a 0/nonzero stop signal
+                                                 // (autopatch_download_pool_shutdown sets it to 1
+                                                 // to request the worker thread exit)
+
+extern int32_t autopatch_download_pool_tick(void); // 0x576bc0, this module
+
+// Background worker thread that repeatedly polls the download pool until told to stop.
+uint32_t autopatch_download_worker_thread(void)
+{
+    int32_t active_count = 1;
+
+    do {
+        Sleep(active_count < 1 ? 1000 : 0x14);
+        active_count = autopatch_download_pool_tick();
+    } while (autopatch_download_active_count == 0);
+    autopatch_download_active_count = 0;
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x576b80):
+
+undefined4 autopatch_download_worker_thread(void)
+
+{
+  int iVar1;
+  DWORD dwMilliseconds;
+
+  iVar1 = 1;
+  do {
+    if (iVar1 < 1) {
+      dwMilliseconds = 1000;
+    }
+    else {
+      dwMilliseconds = 0x14;
+    }
+    Sleep(dwMilliseconds);
+    iVar1 = autopatch_download_pool_tick();
+  } while (DAT_007227c8 == '\0');
+  DAT_007227c8 = 0;
+  return 0;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_get_proxy_settings.c
+====================================================================================================
+// autopatch_get_proxy_settings  (Ghidra: autopatch_get_proxy_settings, already named)
+// address 0x576f40, size 639 bytes (0x576f40..0x5771be, single `ret`)
+// name confidence: 0.7   rewrite confidence: 0.75
+// evidence: objdump -d -M intel 0x576f40..0x5771bf, used instead of the decompile because Ghidra
+//   merged the two Win32 records on the stack into one tangle (it reads WINHTTP_PROXY_INFO's
+//   string pointers out of the WINHTTP_AUTOPROXY_OPTIONS slots and aims WideCharToMultiByte at
+//   the wrong buffer). The real frame, relative to esp after the four register pushes:
+//     +0x010 DWORD  query_length (0x3ff)
+//     +0x014 WINHTTP_AUTOPROXY_OPTIONS { dwFlags = 1 (AUTO_DETECT), dwAutoDetectFlags = 3
+//            (DHCP | DNS_A), lpszAutoConfigUrl = 0, lpvReserved = 0, dwReserved = 0,
+//            fAutoLogonIfChallenged = 1 }   (writes at 0x577056..0x57708f)
+//     +0x02c WINHTTP_PROXY_INFO { dwAccessType, lpszProxy (+0x30), lpszProxyBypass (+0x34) }
+//     +0x038 char proxy_list[0x400]
+//     +0x438 INTERNET_PROXY_INFO buffer[0x400] (lpszProxy at +0x43c)
+//   Strings: 0x672118 "winhttp.dll", 0x672100 "WinHttpGetProxyForUrl", 0x6720f4 "WinHttpOpen",
+//   0x6720e0 "WinHttpCloseHandle", 0x6720d0 L"HaloPC", 0x6720a4 L"http://www.bungie.net",
+//   0x6720a0 " ;", 0x672098 "http=", 0x672090 "http://". InternetQueryOptionA is reached through
+//   the wininet delay-load slot at 0x0069ffd0; 0x26 is INTERNET_OPTION_PROXY. strstr is the
+//   CRT strstr (src/input/input_joystick_axis_name_to_index.c names it so).
+//   Sole caller: autopatch_proxy_initialize (0x5771c0), which hands the returned string to the
+//   HTTP client setup.
+// Not Blam engine logic (Win32 proxy discovery for the autopatch HTTP client), but it is a real
+// Bungie-written function in the networking range, so it is rewritten like the rest.
+// UNSURE: the name of the 0x100-byte result buffer at 0x007227d0 (this file's own name).
+// register convention: no parameters.
+//   // blam-cc: none -> returns char * (always autopatch_proxy_server)
+
+#include "crt.h"
+#include "win32.h"
+#include <wininet.h>
+#include <ctype.h>
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+typedef struct internet_proxy_info {       // Win32 INTERNET_PROXY_INFO
+    uint32_t access_type;
+    const char *proxy;
+    const char *proxy_bypass;
+} internet_proxy_info;
+
+typedef struct winhttp_autoproxy_options { // Win32 WINHTTP_AUTOPROXY_OPTIONS
+    uint32_t flags;
+    uint32_t auto_detect_flags;
+    const uint16_t *auto_config_url;
+    void *reserved_pointer;
+    uint32_t reserved;
+    int32_t auto_logon_if_challenged;
+} winhttp_autoproxy_options;
+
+typedef struct winhttp_proxy_info {        // Win32 WINHTTP_PROXY_INFO
+    uint32_t access_type;
+    uint16_t *proxy;
+    uint16_t *proxy_bypass;
+} winhttp_proxy_info;
+
+typedef void *(__stdcall *winhttp_open_proc)(const uint16_t *agent, uint32_t access_type,
+    const uint16_t *proxy, const uint16_t *bypass, uint32_t flags);
+typedef int32_t (__stdcall *winhttp_get_proxy_for_url_proc)(void *session, const uint16_t *url,
+    winhttp_autoproxy_options *options, winhttp_proxy_info *proxy_info);
+typedef int32_t (__stdcall *winhttp_close_handle_proc)(void *handle);
+
+extern char autopatch_proxy_server[0x100]; // 0x007227d0, 0x007228cf is its last byte
+
+
+static const uint16_t k_agent_halopc[] = { 'H', 'a', 'l', 'o', 'P', 'C', 0 }; // 0x6720d0
+static const uint16_t k_bungie_url[] = { 'h', 't', 't', 'p', ':', '/', '/', 'w', 'w', 'w', '.',
+    'b', 'u', 'n', 'g', 'i', 'e', '.', 'n', 'e', 't', 0 };                       // 0x6720a4
+
+// Finds the HTTP proxy the autopatch client should use: first the WinInet (Internet Explorer)
+// setting, then WinHTTP auto-detection (WPAD) for http://www.bungie.net. From the proxy list it
+// takes the "http=" entry (or the first entry), strips any leading "http://" prefixes and copies
+// it into autopatch_proxy_server, which it always returns (empty when no proxy was found).
+char *autopatch_get_proxy_settings(void)
+{
+    uint32_t query_length;
+    winhttp_autoproxy_options options;
+    winhttp_proxy_info proxy_info;
+    char proxy_list[0x400];
+    uint8_t query_buffer[0x400];
+    void *winhttp;
+    winhttp_get_proxy_for_url_proc get_proxy_for_url;
+    winhttp_open_proc open;
+    winhttp_close_handle_proc close_handle;
+    void *session;
+    char *token;
+    char *proxy;
+    char *cursor;
+    int32_t token_count;
+    int32_t i;
+
+    for (i = 0; i < 0x400; i++) {
+        query_buffer[i] = 0;
+        proxy_list[i] = 0;
+    }
+    for (i = 0; i < 0x100; i++) {
+        autopatch_proxy_server[i] = 0;
+    }
+
+    // 1. the WinInet proxy setting
+    query_length = 0x3ff;
+    if (InternetQueryOptionA(0, 0x26, query_buffer, (LPDWORD)&query_length) && query_length > 1 &&
+        ((internet_proxy_info *)query_buffer)->proxy != 0) {
+        strncpy(proxy_list, ((internet_proxy_info *)query_buffer)->proxy, 0x400);
+        proxy_list[0x3ff] = 0;
+    }
+
+    // 2. WinHTTP auto-detection
+    if (proxy_list[0] == 0) {
+        winhttp = LoadLibraryA("winhttp.dll");
+        if (winhttp != 0) {
+            get_proxy_for_url = (winhttp_get_proxy_for_url_proc)GetProcAddress((HMODULE)winhttp, "WinHttpGetProxyForUrl");
+            open = (winhttp_open_proc)GetProcAddress((HMODULE)winhttp, "WinHttpOpen");
+            close_handle = (winhttp_close_handle_proc)GetProcAddress((HMODULE)winhttp, "WinHttpCloseHandle");
+            if (get_proxy_for_url != 0 && open != 0 && close_handle != 0) {
+                session = open(k_agent_halopc, 0, 0, 0, 0);
+                if (session != 0) {
+                    options.flags = 1;
+                    options.auto_detect_flags = 3;
+                    options.auto_config_url = 0;
+                    options.reserved_pointer = 0;
+                    options.reserved = 0;
+                    options.auto_logon_if_challenged = 1;
+                    if (get_proxy_for_url(session, k_bungie_url, &options, &proxy_info)) {
+                        if (proxy_info.proxy != 0) {
+                            if (proxy_info.proxy[0] != 0) {
+                                WideCharToMultiByte(0, 0, (LPCWCH)proxy_info.proxy, -1, proxy_list, 0x400, 0, 0);
+                                proxy_list[0x3ff] = 0;
+                            }
+                            if (proxy_info.proxy != 0) {
+                                GlobalFree(proxy_info.proxy);
+                            }
+                        }
+                        if (proxy_info.proxy_bypass != 0) {
+                            GlobalFree(proxy_info.proxy_bypass);
+                        }
+                    }
+                    close_handle(session);
+                }
+            }
+            FreeLibrary((HMODULE)winhttp);
+        }
+        if (proxy_list[0] == 0) {
+            return autopatch_proxy_server;
+        }
+    }
+
+    // 3. pick the http entry out of "http=host:port;https=..." or a bare "host:port" list
+    for (cursor = proxy_list; *cursor != 0; cursor++) {
+        *cursor = (char)tolower((uint8_t)*cursor);
+    }
+
+    token_count = 0;
+    token = strtok(proxy_list, " ;");
+    if (token == 0) {
+        return autopatch_proxy_server;
+    }
+    do {
+        token_count++;
+        if (strstr(token, "http=") == token) {
+            proxy = token + 5;
+            if (proxy == 0) {   // kept from the original (`test esi,esi` at 0x57716d)
+                return autopatch_proxy_server;
+            }
+            goto copy_proxy;
+        }
+        token = strtok(0, " ;");
+    } while (token != 0);
+    if (token_count <= 0) {
+        return autopatch_proxy_server;
+    }
+    proxy = proxy_list; // no "http=" entry: the first token (strtok has already cut it off)
+
+copy_proxy:
+    while (strstr(proxy, "http://") == proxy) {
+        proxy += 7;
+    }
+    strncpy(autopatch_proxy_server, proxy, 0x100);
+    autopatch_proxy_server[0xff] = 0;
+    return autopatch_proxy_server;
+}
+
+#if 0
+Original Ghidra decompilation (0x576f40):
+
+undefined4 * autopatch_get_proxy_settings(void)
+
+{
+  byte bVar1;
+  HMODULE hModule;
+  FARPROC pFVar2;
+  FARPROC pFVar3;
+  FARPROC pFVar4;
+  int iVar5;
+  char *pcVar6;
+  char *pcVar7;
+  byte *pbVar8;
+  int iVar9;
+  byte *pbVar10;
+  undefined4 *puVar11;
+  uint local_830;
+  undefined4 uStack_82c;
+  undefined4 uStack_828;
+  undefined4 uStack_824;
+  LPCWSTR pWStack_820;
+  HGLOBAL pvStack_81c;
+  undefined4 uStack_818;
+  undefined1 auStack_814 [12];
+  byte local_808;
+  undefined4 local_807;
+  undefined1 uStack_419;
+  undefined1 local_409;
+  undefined1 local_408;
+  undefined1 local_407 [1027];
+
+  local_408 = 0;
+  puVar11 = (undefined4 *)local_407;
+  for (iVar9 = 0xff; iVar9 != 0; iVar9 = iVar9 + -1) {
+    *puVar11 = 0;
+    puVar11 = puVar11 + 1;
+  }
+  *(undefined2 *)puVar11 = 0;
+  *(undefined1 *)((int)puVar11 + 2) = 0;
+  local_808 = 0;
+  puVar11 = &local_807;
+  for (iVar9 = 0xff; iVar9 != 0; iVar9 = iVar9 + -1) {
+    *puVar11 = 0;
+    puVar11 = puVar11 + 1;
+  }
+  *(undefined2 *)puVar11 = 0;
+  *(undefined1 *)((int)puVar11 + 2) = 0;
+  puVar11 = &DAT_007227d0;
+  for (iVar9 = 0x40; iVar9 != 0; iVar9 = iVar9 + -1) {
+    *puVar11 = 0;
+    puVar11 = puVar11 + 1;
+  }
+  local_830 = 0x3ff;
+  iVar9 = InternetQueryOptionA(0,0x26,&local_408,&local_830);
+  if (((iVar9 != 0) && (1 < local_830)) && ((char *)local_407._3_4_ != (char *)0x0)) {
+    _strncpy((char *)&local_808,(char *)local_407._3_4_,0x400);
+    local_409 = 0;
+  }
+  if (local_808 == 0) {
+    hModule = LoadLibraryA("winhttp.dll");
+    if (hModule != (HMODULE)0x0) {
+      pFVar2 = GetProcAddress(hModule,"WinHttpGetProxyForUrl");
+      pFVar3 = GetProcAddress(hModule,"WinHttpOpen");
+      pFVar4 = GetProcAddress(hModule,"WinHttpCloseHandle");
+      if (((pFVar2 != (FARPROC)0x0) && (pFVar3 != (FARPROC)0x0)) &&
+         ((pFVar4 != (FARPROC)0x0 && (iVar9 = (*pFVar3)(L"HaloPC",0,0,0,0), iVar9 != 0)))) {
+        uStack_824 = 0;
+        pWStack_820 = (LPCWSTR)0x0;
+        pvStack_81c = (HGLOBAL)0x0;
+        uStack_82c = 1;
+        uStack_828 = 3;
+        uStack_818 = 1;
+        iVar5 = (*pFVar2)(iVar9,L"http://www.bungie.net",&uStack_82c,auStack_814);
+        if (iVar5 != 0) {
+          if (pWStack_820 != (LPCWSTR)0x0) {
+            if (*pWStack_820 != L'\0') {
+              WideCharToMultiByte(0,0,pWStack_820,-1,(LPSTR)&uStack_818,0x400,(LPCSTR)0x0,
+                                  (LPBOOL)0x0);
+              uStack_419 = 0;
+            }
+            if (pWStack_820 != (LPCWSTR)0x0) {
+              GlobalFree(pWStack_820);
+            }
+          }
+          if (pvStack_81c != (HGLOBAL)0x0) {
+            GlobalFree(pvStack_81c);
+          }
+        }
+        (*pFVar4)(iVar9);
+      }
+      FreeLibrary(hModule);
+    }
+    if (local_808 == 0) {
+      return &DAT_007227d0;
+    }
+  }
+  iVar9 = 0;
+  pbVar10 = &local_808;
+  bVar1 = local_808;
+  while (bVar1 != 0) {
+    iVar5 = _tolower((uint)*pbVar10);
+    *pbVar10 = (byte)iVar5;
+    pbVar8 = pbVar10 + 1;
+    pbVar10 = pbVar10 + 1;
+    bVar1 = *pbVar8;
+  }
+  pcVar6 = _strtok((char *)&local_808," ;");
+  if (pcVar6 != (char *)0x0) {
+    do {
+      iVar9 = iVar9 + 1;
+      pcVar7 = (char *)FUN_00625430(pcVar6,"http=");
+      if (pcVar7 == pcVar6) {
+        pbVar10 = (byte *)(pcVar6 + 5);
+        if (pbVar10 == (byte *)0x0) {
+          return &DAT_007227d0;
+        }
+        goto LAB_00577171;
+      }
+      pcVar6 = _strtok((char *)0x0," ;");
+    } while (pcVar6 != (char *)0x0);
+    if (0 < iVar9) {
+      pbVar10 = &local_808;
+LAB_00577171:
+      pbVar8 = (byte *)FUN_00625430(pbVar10,"http://");
+      if (pbVar8 == pbVar10) {
+        do {
+          pbVar10 = pbVar10 + 7;
+          pbVar8 = (byte *)FUN_00625430(pbVar10,"http://");
+        } while (pbVar8 == pbVar10);
+      }
+      _strncpy((char *)&DAT_007227d0,(char *)pbVar10,0x100);
+      DAT_007228cf = 0;
+    }
+  }
+  return &DAT_007227d0;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_launch_updater.c
+====================================================================================================
+// autopatch_launch_updater  (Ghidra: autopatch_launch_updater, already named)
+// address 0x577310, size 945 bytes (0x577310..0x5776c0, `ret`s at 0x5776a4 and 0x5776c0)
+// name confidence: 0.75   rewrite confidence: 0.7
+// evidence: objdump -d -M intel 0x577310..0x5776c1; every file_reference_* / path_* callee takes
+//   register arguments Ghidra dropped, recovered here from the instruction right before each
+//   call and matched against the callee files in src/saved_games:
+//     file_reference_create   EAX = &config            (0x577363)
+//     file_reference_open     ESI = &config, stack 2   (0x577374..0x57737a, 2 = _file_open_write)
+//     file_reference_seek     EAX = 0, ECX = &config   (0x57738a..0x57738e)
+//     path_remove_last_component EBX = path; path_append_component ESI = path, EBX = component
+//     path_build_full         EAX = module_ref.path, EDX = full_path, CX = module_ref.location
+//     path_split_components   EBX = &directory, ESI = full_path, EDI = &file_name, stack
+//                             (&path_start, &extension, module_ref.flags & 1)  (0x57744e..0x577477)
+//     path_append_extension   ESI = module_path, EBX = extension
+//     file_reference_write    EDX = &config, ECX = line, ESI = strlen(line)
+//     file_reference_close / file_reference_delete  ESI = &config
+//   Strings: 0x67219c "currentupdate.cfg", 0x672190 "gamemode 1\n", 0x672184 "url \"%s\"\n",
+//   0x672170 "updateversion \"%s\"\n", 0x672158 "gamecommand \"%s %s\"\n", 0x672148
+//   "%s waitprocessid=%d", 0x672134 "haloupdate.exe". The two file_reference_record set-ups
+//   (signature 'filo', location -1, the dead `flags & 1` test, append the name, set bit 0) are the
+//   same inlined constructor src/game/savegame_index_*.c document.
+//   On success it writes main_globals (types/main.h, base 0x00719700): +0x57
+//   return_to_main_menu = 0 and +0x5b quit = 1, plus 0x007196d4 = 1, i.e. the game quits so the
+//   updater can replace it. On a CreateProcess failure it deletes the config and sets
+//   autopatch_update_check_state (0x0069fe04) to 4.
+//   Called only from 0x4a4190, a two-instruction UI handler (call; mov al,1; ret).
+// The file_name/extension out-parameters: path_split_components with split_extension set stores
+//   the text after the last '.' through its fifth argument and the file name after the last '\'
+//   through EDI (src/saved_games/path_split_components.c calls them ext_start_out and
+//   ext_fallback_out), so module_path ends up as the bare executable name, e.g. "halo.exe".
+// UNSURE: each line is NUL-terminated at line[0x400] (`mov BYTE PTR [esp+0x7a0],0` against a
+//   0x400-byte _snprintf limit on the buffer at esp+0x3a0), one byte past a 0x400 buffer; the
+//   frame has room for it (the next local starts at esp+0x7a8), so the buffer is declared 0x401
+//   bytes here. 0x007196d4's owner is unresolved (src names it movie_playback_abort).
+// NOTE: the PROCESS_INFORMATION handles are never closed; kept as the original does.
+// register convention: no parameters; returns a bool in AL.
+//   // blam-cc: none
+
+#include "crt.h"
+#include "win32.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include "saved_games.h"
+#include "main.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+typedef struct win32_process_information { // Win32 PROCESS_INFORMATION
+    void *process;
+    void *thread;
+    uint32_t process_id;
+    uint32_t thread_id;
+} win32_process_information;
+
+typedef struct win32_startupinfo {         // Win32 STARTUPINFOA, 0x44 bytes on x86
+    uint32_t cb;
+    uint8_t unknown_04[0x40];
+} win32_startupinfo;
+
+extern char autopatch_update_url[0x100];     // 0x007228d8, UNSURE name
+extern char autopatch_update_version[0x100]; // 0x007229d8, UNSURE name
+extern char *shell_command_line;             // 0x006e35c0
+extern main_globals main_globals_data;       // 0x00719700
+extern int32_t movie_playback_abort;         // 0x007196d4, UNSURE owner
+extern int32_t autopatch_update_check_state; // 0x0069fe04
+
+extern uint8_t file_reference_create(file_reference_record *ref);                       // 0x5555b0, blam-cc: EAX ref
+extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode);           // 0x5557a0, blam-cc: ESI ref, stack mode
+extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref);         // 0x5558f0, blam-cc: EAX offset, ECX ref
+extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, blam-cc: EDX ref, ECX buffer, ESI size
+extern uint8_t file_reference_close(file_reference_record *ref);                        // 0x555890, blam-cc: ESI ref
+extern uint8_t file_reference_delete(file_reference_record *ref);                       // 0x555670, blam-cc: ESI ref
+extern void path_remove_last_component(char *path);                                     // 0x555f80, blam-cc: EBX path
+extern void path_append_component(char *destination, const char *component);            // 0x555ec0, blam-cc: ESI destination, EBX component
+extern void path_append_extension(char *destination, const char *suffix);               // 0x555f20, blam-cc: ESI destination, EBX suffix
+extern void path_build_full(char *source, char *destination, int16_t location);         // 0x5560d0, blam-cc: EAX source, EDX destination, CX location
+extern void path_split_components(char **dir_start_out, char *path, char **ext_fallback_out,
+    char **name_end_out, char **ext_start_out, uint8_t split_extension);                // 0x556000, blam-cc: EBX, ESI, EDI, then stack
+
+static uint32_t autopatch_string_length(const char *string)
+{
+    const char *end = string;
+    while (*end != 0) {
+        end++;
+    }
+    return (uint32_t)(end - string);
+}
+
+// Writes currentupdate.cfg (game mode, update URL, target version and the command line that
+// relaunches the game), starts haloupdate.exe with this process's id, and asks the main loop to
+// quit. Returns true once the updater process has started.
+uint8_t autopatch_launch_updater(void)
+{
+    file_reference_record config;       // esp+0x030
+    file_reference_record module_ref;   // esp+0x188
+    char module_path[0x105];            // esp+0x298
+    char line[0x401];                   // esp+0x3a0, see the UNSURE note on line[0x400]
+    char full_path[0x100];              // esp+0x7a8
+    char *extension;                    // esp+0x010
+    char *file_name;                    // esp+0x014
+    char *path_start;                   // esp+0x028
+    char *directory;                    // esp+0x02c
+    win32_process_information process;  // esp+0x018
+    win32_startupinfo startup;          // esp+0x140
+    uint32_t i;
+
+    for (i = 0; i < sizeof(config); i++) {
+        ((uint8_t *)&config)[i] = 0;
+    }
+    config.signature = k_file_reference_signature;
+    config.location = -1;
+    if (config.flags & _file_reference_is_file_bit) {
+        path_remove_last_component(config.path);
+    }
+    path_append_component(config.path, "currentupdate.cfg");
+    config.flags |= _file_reference_is_file_bit;
+
+    if (!file_reference_create(&config) || !file_reference_open(&config, _file_open_write) ||
+        !file_reference_seek(0, &config)) {
+        return 0;
+    }
+
+    for (i = 0; i < sizeof(module_path); i++) {
+        module_path[i] = 0;
+    }
+    if ((int32_t)GetModuleFileNameA(0, module_path, 0x104) <= 0) {
+        return 0;
+    }
+
+    for (i = 0; i < sizeof(module_ref); i++) {
+        ((uint8_t *)&module_ref)[i] = 0;
+    }
+    module_ref.signature = k_file_reference_signature;
+    module_ref.location = -1;
+    if (module_ref.flags & _file_reference_is_file_bit) {
+        path_remove_last_component(module_ref.path);
+    }
+    path_append_component(module_ref.path, module_path);
+    module_ref.flags |= _file_reference_is_file_bit;
+
+    for (i = 0; i < sizeof(full_path); i++) {
+        full_path[i] = 0;
+    }
+    path_build_full(module_ref.path, full_path, module_ref.location);
+    path_split_components(&directory, full_path, &file_name, &path_start, &extension,
+        (uint8_t)(module_ref.flags & _file_reference_is_file_bit));
+    module_path[0] = 0;
+    path_append_component(module_path, file_name);
+    path_append_extension(module_path, extension);
+
+    _snprintf(line, 0x400, "gamemode 1\n");
+    line[0x400] = 0;
+    if (!file_reference_write(&config, line, autopatch_string_length(line))) {
+        return 0;
+    }
+    _snprintf(line, 0x400, "url \"%s\"\n", autopatch_update_url);
+    line[0x400] = 0;
+    if (!file_reference_write(&config, line, autopatch_string_length(line))) {
+        return 0;
+    }
+    _snprintf(line, 0x400, "updateversion \"%s\"\n", autopatch_update_version);
+    line[0x400] = 0;
+    if (!file_reference_write(&config, line, autopatch_string_length(line))) {
+        return 0;
+    }
+    _snprintf(line, 0x400, "gamecommand \"%s %s\"\n", module_path, shell_command_line);
+    line[0x400] = 0;
+    if (!file_reference_write(&config, line, autopatch_string_length(line))) {
+        return 0;
+    }
+    if (!file_reference_close(&config)) {
+        return 0;
+    }
+
+    process.process = 0;
+    process.thread = 0;
+    process.process_id = 0;
+    process.thread_id = 0;
+    for (i = 0; i < sizeof(startup); i++) {
+        ((uint8_t *)&startup)[i] = 0;
+    }
+    startup.cb = 0x44;
+    sprintf(line, "%s waitprocessid=%d", "haloupdate.exe", GetCurrentProcessId());
+    // 0x4000020 = CREATE_DEFAULT_ERROR_MODE | NORMAL_PRIORITY_CLASS
+    if (CreateProcessA(0, line, 0, 0, 0, 0x4000020, 0, 0, (LPSTARTUPINFOA)&startup, (LPPROCESS_INFORMATION)&process)) {
+        main_globals_data.return_to_main_menu = 0;
+        main_globals_data.quit = 1;
+        movie_playback_abort = 1;
+        return 1;
+    }
+
+    file_reference_delete(&config);
+    autopatch_update_check_state = 4;
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x577310):
+
+uint autopatch_launch_updater(void)
+
+{
+  char cVar1;
+  uint uVar2;
+  char *pcVar3;
+  DWORD DVar4;
+  BOOL BVar5;
+  int iVar6;
+  CHAR *pCVar7;
+  undefined4 *puVar8;
+  _STARTUPINFOA *p_Var9;
+  undefined1 local_8a0 [8];
+  _PROCESS_INFORMATION local_898;
+  undefined1 local_888 [8];
+  undefined4 local_880;
+  ushort local_87c;
+  undefined2 local_87a;
+  _STARTUPINFOA local_770;
+  undefined4 local_728;
+  byte local_724;
+  undefined2 local_722;
+  CHAR local_618 [264];
+  char local_510 [1024];
+  undefined1 local_110;
+  undefined1 local_108;
+  undefined4 local_107;
+
+  puVar8 = &local_880;
+  for (iVar6 = 0x43; iVar6 != 0; iVar6 = iVar6 + -1) {
+    *puVar8 = 0;
+    puVar8 = puVar8 + 1;
+  }
+  local_880 = 0x66696c6f;
+  local_87a = 0xffff;
+  if ((local_87c & 1) != 0) {
+    path_remove_last_component();
+  }
+  path_append_component();
+  local_87c = local_87c | 1;
+  uVar2 = file_reference_create();
+  if ((char)uVar2 != '\0') {
+    uVar2 = file_reference_open(2);
+    if ((char)uVar2 != '\0') {
+      uVar2 = file_reference_seek();
+      if ((char)uVar2 != '\0') {
+        pCVar7 = local_618;
+        for (iVar6 = 0x41; iVar6 != 0; iVar6 = iVar6 + -1) {
+          pCVar7[0] = '\0';
+          pCVar7[1] = '\0';
+          pCVar7[2] = '\0';
+          pCVar7[3] = '\0';
+          pCVar7 = pCVar7 + 4;
+        }
+        *pCVar7 = '\0';
+        uVar2 = GetModuleFileNameA((HMODULE)0x0,local_618,0x104);
+        if (0 < (int)uVar2) {
+          puVar8 = &local_728;
+          for (iVar6 = 0x43; iVar6 != 0; iVar6 = iVar6 + -1) {
+            *puVar8 = 0;
+            puVar8 = puVar8 + 1;
+          }
+          local_728 = 0x66696c6f;
+          local_722 = 0xffff;
+          if ((local_724 & 1) != 0) {
+            path_remove_last_component();
+          }
+          path_append_component();
+          local_724 = local_724 | 1;
+          local_108 = 0;
+          puVar8 = &local_107;
+          for (iVar6 = 0x3f; iVar6 != 0; iVar6 = iVar6 + -1) {
+            *puVar8 = 0;
+            puVar8 = puVar8 + 1;
+          }
+          *(undefined2 *)puVar8 = 0;
+          *(undefined1 *)((int)puVar8 + 2) = 0;
+          path_build_full();
+          path_split_components(local_888,local_8a0,local_724 & 1);
+          local_618[0] = '\0';
+          path_append_component();
+          path_append_extension();
+          __snprintf(local_510,0x400,"gamemode 1\n");
+          pcVar3 = local_510;
+          local_110 = 0;
+          do {
+            cVar1 = *pcVar3;
+            pcVar3 = pcVar3 + 1;
+          } while (cVar1 != '\0');
+          uVar2 = file_reference_write();
+          if ((char)uVar2 != '\0') {
+            __snprintf(local_510,0x400,"url \"%s\"\n",&DAT_007228d8);
+            pcVar3 = local_510;
+            local_110 = 0;
+            do {
+              cVar1 = *pcVar3;
+              pcVar3 = pcVar3 + 1;
+            } while (cVar1 != '\0');
+            uVar2 = file_reference_write();
+            if ((char)uVar2 != '\0') {
+              __snprintf(local_510,0x400,"updateversion \"%s\"\n",&DAT_007229d8);
+              pcVar3 = local_510;
+              local_110 = 0;
+              do {
+                cVar1 = *pcVar3;
+                pcVar3 = pcVar3 + 1;
+              } while (cVar1 != '\0');
+              uVar2 = file_reference_write();
+              if ((char)uVar2 != '\0') {
+                __snprintf(local_510,0x400,"gamecommand \"%s %s\"\n",local_618,DAT_006e35c0);
+                pcVar3 = local_510;
+                local_110 = 0;
+                do {
+                  cVar1 = *pcVar3;
+                  pcVar3 = pcVar3 + 1;
+                } while (cVar1 != '\0');
+                uVar2 = file_reference_write();
+                if ((char)uVar2 != '\0') {
+                  uVar2 = file_reference_close();
+                  if ((char)uVar2 != '\0') {
+                    local_898.hProcess = (HANDLE)0x0;
+                    local_898.hThread = (HANDLE)0x0;
+                    local_898.dwProcessId = 0;
+                    local_898.dwThreadId = 0;
+                    p_Var9 = &local_770;
+                    for (iVar6 = 0x11; iVar6 != 0; iVar6 = iVar6 + -1) {
+                      p_Var9->cb = 0;
+                      p_Var9 = (_STARTUPINFOA *)&p_Var9->lpReserved;
+                    }
+                    local_770.cb = 0x44;
+                    DVar4 = GetCurrentProcessId();
+                    _sprintf(local_510,"%s waitprocessid=%d","haloupdate.exe",DVar4);
+                    BVar5 = CreateProcessA((LPCSTR)0x0,local_510,(LPSECURITY_ATTRIBUTES)0x0,
+                                           (LPSECURITY_ATTRIBUTES)0x0,0,0x4000020,(LPVOID)0x0,
+                                           (LPCSTR)0x0,&local_770,&local_898);
+                    if (BVar5 != 0) {
+                      DAT_00719754._3_1_ = 0;
+                      DAT_0071975b = 1;
+                      DAT_007196d4 = 1;
+                      return 1;
+                    }
+                    uVar2 = file_reference_delete();
+                    DAT_0069fe04 = 4;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return uVar2 & 0xffffff00;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_proxy_initialize.c
+====================================================================================================
+// autopatch_proxy_initialize  (Ghidra: autopatch_proxy_initialize, already named)
+// address 0x5771c0, size 26 bytes
+// name confidence: 0.5   rewrite confidence: 0.6
+// evidence: out/phase4/networking_functions.md summary; installs the proxy string
+// autopatch_get_proxy_settings determines into the foreign WinInet-shaped setup thunk, then
+// signals readiness.
+// register convention: no register-passed arguments.
+// UNSURE: autopatch_get_proxy_settings (0x576f40) is out of scope for this rewrite (WinInet/
+// WinHTTP glue with nothing Blam-shaped, per out/phase4/networking_types_notes.md's
+// "misattributed" list), so its return type here is treated opaquely.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint8_t autopatch_proxy_ready; // 0x007228d0
+
+extern void *autopatch_get_proxy_settings(void); // 0x576f40, out of this rewrite's scope
+extern void ghttpSetProxy(void *proxy_settings); // foreign WinInet/WinHTTP setup, UNSURE
+
+// Detects and installs the proxy configuration used by the autopatch HTTP client, then signals
+// it is ready.
+// FIXED 2026-09-28: a CreateThread routine (network_initialize), __stdcall with the unused thread parameter --
+// the original ends ret 4 (0x5771d7).
+uint32_t __stdcall autopatch_proxy_initialize(void *parameter)
+{
+    (void)parameter;
+    void *settings = autopatch_get_proxy_settings();
+    ghttpSetProxy(settings);
+    autopatch_proxy_ready = 1;
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x5771c0):
+
+undefined4 autopatch_proxy_initialize(void)
+
+{
+  undefined4 uVar1;
+
+  uVar1 = autopatch_get_proxy_settings();
+  thunk_FUN_00622050(uVar1);
+  DAT_007228d0 = 1;
+  return 0;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_temp_name_generate.c
+====================================================================================================
+// autopatch_temp_name_generate  (Ghidra: FUN_00575fa0; named per this rewrite)
+// address 0x575fa0, size 68 bytes
+// name confidence: 0.45   rewrite confidence: 0.55
+// evidence: out/phase4/networking_functions.md summary: "Seeds the RNG from the system clock and
+// writes a random 7-letter lowercase string into a static buffer, likely used as a temporary
+// file name for downloads."
+// register convention: no register-passed arguments.
+
+#include "crt.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint8_t ai_update_stagger[11]; // 0x006ef910, bytes 0..10
+extern uint8_t autopatch_temp_name_flag;       // 0x006ef91b, UNSURE: cleared here, adjacent to the buffer
+
+// Seeds the CRT RNG from the current time (xored with a constant) and writes a random 7-letter
+// lowercase string into the shared temp-name buffer, used as a scratch download file name.
+char *autopatch_temp_name_generate(void)
+{
+    uint32_t now;
+    int32_t i;
+
+    now = (uint32_t)_time32(0);
+    srand(now ^ 0x33333333);
+    autopatch_temp_name_flag = 0;
+    for (i = 10; i >= 4; i--) {
+        ai_update_stagger[i] = (uint8_t)(rand() % 0x1a) + 'a';
+    }
+    return (char *)&ai_update_stagger[4]; // 0x006ef914
+}
+
+#if 0
+Original Ghidra decompilation (0x575fa0):
+
+undefined * FUN_00575fa0(void)
+
+{
+  uint uVar1;
+  int iVar2;
+  int iVar3;
+  int iVar4;
+
+  uVar1 = FID_conflict___time32((__time32_t *)0x0);
+  FUN_006240c2(uVar1 ^ 0x33333333);
+  DAT_006ef91b = 0;
+  iVar4 = 7;
+  do {
+    iVar3 = iVar4 + -1;
+    iVar2 = _rand();
+    *(char *)((int)&DAT_006ef910 + iVar4 + 3) = (char)(iVar2 % 0x1a) + 'a';
+    iVar4 = iVar3;
+  } while (iVar3 != 0);
+  return &DAT_006ef914;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_version_check_completed.c
+====================================================================================================
+// autopatch_version_check_completed  (not a Ghidra function; no C existed)
+// address 0x5777d0, size 118 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x5777d0..0x577845: the ptCheckForPatch callback (available, mandatory, version
+//   name, file id, download url, param): with a patch and a url, keeps the url (0xff chars, 0x007228d8) and the
+//   version name (0x3f chars, 0x007229d8), the file id (0x007228d4) and state 3; otherwise clears them and sets state
+//   2.
+// blam-cc: cdecl (the autopatch check callback)
+
+#include "tags.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern char autopatch_update_url[0x100];      // 0x007228d8
+extern char autopatch_update_version[0x100];  // 0x007229d8
+extern int32_t autopatch_update_file_id;      // 0x007228d4
+extern int32_t autopatch_update_check_state;  // 0x0069fe04
+extern char *strncpy(char *dest, const char *source, unsigned int count);
+
+void autopatch_version_check_completed(int32_t available, int32_t mandatory, const char *version_name, int32_t file_id,
+    const char *download_url, void *param)
+{
+    (void)mandatory;
+    (void)param;
+    if (available == 0 || download_url[0] == 0) {
+        autopatch_update_file_id = 0;
+        autopatch_update_url[0] = 0;
+        autopatch_update_version[0] = 0;
+        autopatch_update_check_state = 2;
+        return;
+    }
+    strncpy(autopatch_update_url, download_url, 0xff);
+    autopatch_update_url[0xff] = 0;
+    autopatch_update_check_state = 3;
+    autopatch_update_file_id = file_id;
+    strncpy(autopatch_update_version, version_name, 0x3f);
+    autopatch_update_version[0x3f] = 0;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_version_check_request.c
+====================================================================================================
+// autopatch_version_check_request  (Ghidra: autopatch_version_check_request, already named)
+// address 0x5771e0, size 96 bytes
+// name confidence: 0.5   rewrite confidence: 0.45
+// evidence: out/phase4/networking_functions.md summary; reads the installed version/dist id via
+// this module's own registry_get_halo_version/registry_get_dist_id, then waits for
+// autopatch_proxy_initialize to finish before sending the check.
+// register convention: no register-passed arguments.
+// UNSURE: ptCheckForPatch's full argument list (a foreign HTTP-request-shaped helper; the constant
+// 0x281b and the callback &autopatch_version_check_completed are transcribed as-is).
+
+#include "win32.h"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint8_t autopatch_proxy_ready;       // 0x007228d0
+extern int32_t autopatch_update_check_state; // 0x0069fe04, -1 not started, 0 no update thread failed, 1 running
+
+extern char *registry_get_halo_version(void);  // 0x5776d0, this module
+extern uint32_t registry_get_dist_id(void);    // 0x577760, this module
+extern int32_t ptCheckForPatch(int32_t request_type, char *version, uint32_t dist_id,
+                             void *callback, int32_t a5, int32_t a6); // foreign, UNSURE
+extern void autopatch_version_check_completed(void); // UNSURE: the request-completion callback
+
+// Thread that waits for proxy setup and then sends the current game version and distribution id
+// to check for an update; clears the "check succeeded" flag if the version string is empty or
+// the request could not be sent.
+uint32_t autopatch_version_check_request(void)
+{
+    char *version = registry_get_halo_version();
+    uint32_t dist_id = registry_get_dist_id();
+
+    while (autopatch_proxy_ready != 1) {
+        Sleep(0);
+    }
+
+    if (version[0] == 0 ||
+        ptCheckForPatch(0x281b, version, dist_id, (void *)autopatch_version_check_completed, 1, 0) == 0) {
+        autopatch_update_check_state = 0;
+    }
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x5771e0):
+
+undefined4 autopatch_version_check_request(void)
+
+{
+  char *pcVar1;
+  undefined4 uVar2;
+  int iVar3;
+
+  pcVar1 = (char *)registry_get_halo_version();
+  uVar2 = registry_get_dist_id();
+  while (DAT_007228d0 != '\x01') {
+    Sleep(0);
+  }
+  if ((*pcVar1 == '\0') || (iVar3 = FUN_0061c260(0x281b,pcVar1,uVar2,&LAB_005777d0,1,0), iVar3 == 0)
+     ) {
+    DAT_0069fe04 = 0;
+  }
+  return 0;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+autopatch_version_string_is_outdated.c
+====================================================================================================
+// autopatch_version_string_is_outdated  (Ghidra: autopatch_version_string_is_outdated, already named)
+// address 0x5781c0, size 238 bytes
+// name confidence: 0.5   rewrite confidence: 0.55
+// evidence: out/phase4/networking_functions.md summary: "Compares a version string against the
+// current build and a minimum baseline build to decide whether the client is out of date."; the
+// two hardcoded strings decode to "01.00.08.0616" (a minimum baseline) and "01.00.10.0621" (the
+// current build, matching autopatch_current_version_string_get).
+// register convention: the version string to check in EDX (in_EDX, unresolved register read).
+// blam-cc: EDX -> version
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t strcmp(const char *a, const char *b);
+
+// blam-cc: EDX -> version
+// UNSURE: despite computing a signed strcmp-shaped result, only equality is ever tested here.
+// Returns 1 if version exactly matches either the current build string ("01.00.10.0621") or the
+// minimum baseline ("01.00.08.0616"), 0 for any other string -- so, despite the name, this reads
+// as a "recognized version" check rather than a true outdated/not-outdated comparison.
+uint32_t autopatch_version_string_is_outdated(char *version)
+{
+    static const char minimum_baseline[] = "01.00.08.0616";
+    static const char current_build[] = "01.00.10.0621";
+
+    if (strcmp(version, current_build) != 0) {
+        if (strcmp(version, minimum_baseline) != 0) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+#if 0
+Original Ghidra decompilation (0x5781c0):
+
+undefined4 autopatch_version_string_is_outdated(void)
+
+{
+  byte bVar1;
+  byte *pbVar2;
+  int iVar3;
+  byte *in_EDX;
+  byte *pbVar4;
+  undefined4 *puVar5;
+  bool bVar6;
+  byte local_118 [16];
+  byte local_108;
+  undefined1 auStack_107 [7];
+  undefined4 local_100;
+  undefined2 local_fc;
+
+  local_118[0] = 0x30;
+  local_118[1] = 0x31;
+  local_118[2] = 0x2e;
+  local_118[3] = 0x30;
+  local_118[4] = 0x30;
+  local_118[5] = 0x2e;
+  local_118[6] = 0x30;
+  local_118[7] = 0x38;
+  local_118[8] = 0x2e;
+  local_118[9] = 0x30;
+  local_118[10] = 0x36;
+  local_118[0xb] = 0x31;
+  local_118[0xc] = 0x36;
+  local_118[0xd] = 0;
+  puVar5 = (undefined4 *)auStack_107;
+  for (iVar3 = 0x3f; iVar3 != 0; iVar3 = iVar3 + -1) {
+    *puVar5 = 0;
+    puVar5 = puVar5 + 1;
+  }
+  *(undefined2 *)puVar5 = 0;
+  *(undefined1 *)((int)puVar5 + 2) = 0;
+  _local_108 = 0x302e3130;
+  auStack_107._3_4_ = 0x30312e30;
+  local_100 = 0x3236302e;
+  local_fc = 0x31;
+  pbVar4 = &local_108;
+  pbVar2 = in_EDX;
+  do {
+    bVar1 = *pbVar2;
+    bVar6 = bVar1 < *pbVar4;
+    if (bVar1 != *pbVar4) {
+LAB_00578259:
+      iVar3 = (1 - (uint)bVar6) - (uint)(bVar6 != 0);
+      goto LAB_0057825e;
+    }
+    if (bVar1 == 0) break;
+    bVar1 = pbVar2[1];
+    bVar6 = bVar1 < pbVar4[1];
+    if (bVar1 != pbVar4[1]) goto LAB_00578259;
+    pbVar2 = pbVar2 + 2;
+    pbVar4 = pbVar4 + 2;
+  } while (bVar1 != 0);
+  iVar3 = 0;
+LAB_0057825e:
+  if (iVar3 != 0) {
+    pbVar4 = local_118;
+    do {
+      bVar1 = *in_EDX;
+      bVar6 = bVar1 < *pbVar4;
+      if (bVar1 != *pbVar4) {
+LAB_00578290:
+        iVar3 = (1 - (uint)bVar6) - (uint)(bVar6 != 0);
+        goto LAB_00578295;
+      }
+      if (bVar1 == 0) break;
+      bVar1 = in_EDX[1];
+      bVar6 = bVar1 < pbVar4[1];
+      if (bVar1 != pbVar4[1]) goto LAB_00578290;
+      in_EDX = in_EDX + 2;
+      pbVar4 = pbVar4 + 2;
+    } while (bVar1 != 0);
+    iVar3 = 0;
+LAB_00578295:
+    if (iVar3 != 0) {
+      return 0;
+    }
+  }
+  return 1;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
