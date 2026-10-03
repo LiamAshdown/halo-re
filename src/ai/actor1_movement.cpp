@@ -769,8 +769,8 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
         if (prop->enemy == 0 && other_index != k_datum_index_none) {
             actor *other = actor_try_get(other_index);
 
-            if (other != 0 && other->mode == 9 && *(datum_index *)((uint8_t *)other + 0x9c) == vehicle_index &&
-                *(int16_t *)((uint8_t *)other + 0xa0) == seat_index) {
+            if (other != 0 && other->mode == 9 && other->mode_data.vehicle.vehicle_index == vehicle_index &&
+                other->mode_data.vehicle.seat_index == seat_index) {
                 float dx = *(float *)((uint8_t *)other + 0xcc) - other->body_position.x;
                 float dy = *(float *)((uint8_t *)other + 0xd0) - other->body_position.y;
 
