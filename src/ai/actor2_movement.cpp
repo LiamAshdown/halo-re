@@ -253,7 +253,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
             request.exclude_object_index_b = (datum_index)self->active_movement.extra;
         }
         if (self->danger_type > 0 && self->danger_is_own == 0 &&
-            (((uint8_t *)actor_definition)[4] & 0x10) == 0) {
+            !halo::ai::flag_set(actor_definition->more_flags, halo::tags::actor_more_tag_flag::pathfinding_ignores_danger)) {
             halo::ai::path_find_set_avoid_sphere((path_find_context *)&request, &self->flee_from_point, self->danger_object_radius,
                          self->danger_object_index, 10.0f);
         }

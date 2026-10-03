@@ -847,7 +847,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, struct actor *actor)
         }
         cluster = halo::ai::object_at(root)->location_cluster_index;
         if (cluster == -1 ||
-            (*(uint32_t *)&halo::game::globals().local_player_globals->cluster_pvs[(cluster >> 5)] & (1u << (cluster & 0x1f))) == 0) {
+            (halo::game::globals().local_player_globals->cluster_pvs[(cluster >> 5)] & (1u << (cluster & 0x1f))) == 0) {
             hidden_units[hidden++] = unit_index;
         }
     }
@@ -887,7 +887,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, struct actor *actor)
  */
 void AiSystem::reset_fire_group_assignments()
 {
-    int32_t encounter_count = *(int32_t *)&halo::scenario::globals().scenario->encounters.count;
+    int32_t encounter_count = (int32_t)halo::scenario::globals().scenario->encounters.count;
     int16_t e;
     datum_index actor_index;
 

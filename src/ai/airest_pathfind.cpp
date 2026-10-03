@@ -818,8 +818,7 @@ static uint8_t path_find_search(path_find_context *context)
 
                 if ((record->flags & 8) != 0) {
                     uint32_t bit = (uint8_t)record->breakable_surface;
-                    uint32_t word = *(uint32_t *)(breakable_surface_state + 1 +
-                        ((bit >> 5) + halo::scenario::globals().structure_bsp_index * 8) * 4);
+                    uint32_t word = breakable_surface_state_typed->active[halo::scenario::globals().structure_bsp_index][bit >> 5];
 
                     if ((word & (1u << (bit & 0x1f))) == 0) {
                         continue; // 0x43aa82: the glass is still intact
@@ -1321,7 +1320,7 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
 {
     ModelCollisionGeometryBSP *bsp = map_collision_bsp(map);
     uint8_t *walkable = map_surface_permissions(map);
-    uint32_t *broken = (uint32_t *)(breakable_surface_state + 1 + halo::scenario::globals().structure_bsp_index * 32);
+    uint32_t *broken = breakable_surface_state_typed->active[halo::scenario::globals().structure_bsp_index];
     float dx = end->x - start->x;
     float dy = end->y - start->y;
     uint8_t retried = 0;
@@ -1463,7 +1462,7 @@ uint8_t PathFindGeometry::trace_cluster_boundary(void *map, int32_t edge_index, 
 {
     ModelCollisionGeometryBSP *bsp = map_collision_bsp(map);
     uint8_t *walkable = map_surface_permissions(map);
-    uint32_t *broken = (uint32_t *)(breakable_surface_state + 1 + halo::scenario::globals().structure_bsp_index * 32);
+    uint32_t *broken = breakable_surface_state_typed->active[halo::scenario::globals().structure_bsp_index];
     int32_t first_pivot = -1;
     int32_t previous = -1;
     int32_t current = edge_index;

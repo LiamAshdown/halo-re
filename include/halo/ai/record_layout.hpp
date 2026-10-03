@@ -366,7 +366,7 @@ static_assert(offsetof(struct actor, control_animation_mode) == 1756);
 static_assert(offsetof(struct actor, unknown_6de) == 1758);
 static_assert(offsetof(struct actor, throttle) == 1760);
 static_assert(offsetof(struct actor, control_animation_impulse) == 1772);
-static_assert(offsetof(struct actor, unknown_6ee) == 1774);
+static_assert(offsetof(struct actor, control_animation_alignment) == 1776 && offsetof(struct actor, control_aiming_speed) == 1784);
 static_assert(offsetof(struct actor, snapshot_facing) == 1788);
 static_assert(offsetof(struct actor, aiming_vector_snapshot) == 1800);
 static_assert(offsetof(struct actor, looking_vector_snapshot) == 1812);

@@ -1126,7 +1126,7 @@ void ActorView::update_look_target()
             priority = (int16_t)static_cast<uint16_t>(a->vocalization_variant);
         }
         if (a->moving != 0 &&
-            *(int16_t *)((uint8_t *)actor_mode_definitions + a->mode * 0x38 + 4) == 2 && priority > 5) {
+            actor_mode_definitions[a->mode].combat_grade == 2 && priority > 5) {
             priority = 5;
         }
         if (a->vocalization_state > 0) {
@@ -1473,7 +1473,7 @@ void ActorView::update_look_target()
             break;
         }
     }
-    *(int16_t *)((uint8_t *)a + 0x6f8) = aim_speed_zero ? 0 : 1;
+    a->control_aiming_speed = aim_speed_zero ? 0 : 1;
 }
 
 
@@ -1780,7 +1780,7 @@ uint8_t ActorView::update_movement_destination()
             claimed = halo::ai::actor_claim_firing_position(actor_index, previous_owner, &path_context, selected, path_ok);
             actor = halo::ai::actor_at(actor_index);
             if (claimed == -1) {
-                *(int16_t *)((uint8_t *)actor + 0x9c) = 0;
+                actor->mode_data.fight.position_hold_countdown = 0;
             } else if (claimed != previous) {
                 float wait = halo::math::random_real_range(actor_tag->combat_position_time[0], actor_tag->combat_position_time[1]);
 
@@ -1793,7 +1793,7 @@ uint8_t ActorView::update_movement_destination()
                         wait = cap;
                     }
                 }
-                *(int16_t *)((uint8_t *)actor + 0x9c) = (int16_t)(int32_t)(wait * 30.0f);
+                actor->mode_data.fight.position_hold_countdown = (int16_t)(int32_t)(wait * 30.0f);
             }
         }
     }

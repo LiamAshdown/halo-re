@@ -153,7 +153,7 @@ void ActorView::update_firing_state()
                 if (p->location.cluster_index != -1) {
                     int32_t bit = p->location.cluster_index;
 
-                    a->firing_target_hidden = (uint8_t)!(*(uint32_t *)&local_player_globals->cluster_pvs[(bit >> 5)] & (1u << (bit & 0x1f)));
+                    a->firing_target_hidden = (uint8_t)!(local_player_globals->cluster_pvs[(bit >> 5)] & (1u << (bit & 0x1f)));
                 }
             } else {
                 a->firing_target_point = *(real_point3d *)&a->firing_target_prop_index;

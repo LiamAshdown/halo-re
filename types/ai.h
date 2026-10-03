@@ -1235,7 +1235,10 @@ typedef struct actor {
     int16_t control_animation_impulse; // 0x6ec 0x416790 copies secondary_action record 0x418..0x423 (CEA animation
                                        //    impulse+alignment) here; 0x42a640 starts it on the unit (0x569530) with
                                        //    alignment 0x6f0
-    uint8_t unknown_6ee[14];          // 0x6ee
+    uint8_t unknown_6ee[2];           // 0x6ee
+    real_vector2d control_animation_alignment; // 0x6f0 the alignment 0x42a640 starts the scripted action animation with
+    int16_t control_aiming_speed;     // 0x6f8 the aiming speed of the unit control block, 0 or 1
+    uint8_t unknown_6fa[2];           // 0x6fa
     real_vector3d snapshot_facing;    // 0x6fc copy of facing taken by actor_snapshot_orientation
     real_vector3d aiming_vector_snapshot;// 0x708 copy of unit_aiming_vector
     real_vector3d looking_vector_snapshot;// 0x714 copy of unit_looking_vector
