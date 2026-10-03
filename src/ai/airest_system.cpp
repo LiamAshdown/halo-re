@@ -1059,13 +1059,10 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
                     }
                 }
 
-                if (hard_difficulty != 0 && a->firing_state == 0 && a->mode != _actor_mode_vehicle) {
-                    if (15.0f < p->distance) {
-                        goto next_prop;
-                    }
-                }
+                bool too_far = hard_difficulty != 0 && a->firing_state == 0 && a->mode != _actor_mode_vehicle &&
+                               15.0f < p->distance;
 
-                if (!skip_close_check) {
+                if (!too_far && !skip_close_check) {
                     kind = p->state;
                     if ((kind < 4 || 5 < kind) && p->last_seen_time != -1 &&
                         current_tick <= p->last_seen_time + 0x5a) {
@@ -1093,7 +1090,6 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
                 }
             }
         }
-next_prop:
         p = (prop *)halo::memory::data_iterator_next(&iterator);
     }
     return 0;
@@ -1334,6 +1330,8 @@ uint8_t ProjectileAim::solve_ballistic_arc(real_point3d *target, real_point3d *o
         }
     }
 
+    bool found_root = false;
+
     if (!((double)chosen_max < shallow_speed_ext)) {
         double a_ext = (double)dzg - (double)chosen_max * (double)chosen_max;
         double disc2_ext;
@@ -1347,15 +1345,16 @@ uint8_t ProjectileAim::solve_ballistic_arc(real_point3d *target, real_point3d *o
             root2 = (real)root2_ext;
             if (root2_ext > 0.0) {
                 t = (real)halo::libm::sqrt((double)root2);
-                goto have_root;
+                found_root = true;
             }
         }
     }
-    used_root = 0;
-    t = shallow_time;
-    chosen_max = (real)shallow_speed_ext;
+    if (!found_root) {
+        used_root = 0;
+        t = shallow_time;
+        chosen_max = (real)shallow_speed_ext;
+    }
 
-have_root:
     inv_t = 1.0 / (double)t;
     dir.i = (real)((double)dx * inv_t);
     dir.j = (real)((double)dy * inv_t);

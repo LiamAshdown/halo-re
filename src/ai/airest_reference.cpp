@@ -421,7 +421,8 @@ void ReferenceView::expand_to_platoon_range(ai_reference_platoon_range *out_rang
 
     if (halo::scenario::globals().scenario == 0 || halo::ai::globals().state->actors_valid == 0 ||
         (int32_t)halo::scenario::globals().scenario->encounters.count <= (int32_t)encounter_index) {
-        goto fail;
+        out_range->encounter_index = -1;
+        return;
     }
 
     encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[encounter_index];
@@ -433,29 +434,27 @@ void ReferenceView::expand_to_platoon_range(ai_reference_platoon_range *out_rang
         return;
     }
     if (kind > 2) {
-        goto fail;
+        out_range->encounter_index = -1;
+        return;
     }
 
     platoon_index = (packed_reference >> 0x10) & 0xff;
-    if (kind == 2) {
-        if ((int32_t)platoon_index < encounter_definition->squads.count) {
+    if (kind == 2 && (int32_t)platoon_index >= encounter_definition->squads.count) {
+        out_range->platoon_start = -1;
+    } else {
+        if (kind == 2) {
             ScenarioSquad *squad = &((ScenarioSquad *)encounter_definition->squads.pointer)[platoon_index];
             platoon_index = squad->platoon;
-        } else {
-            out_range->platoon_start = -1;
-            goto validate;
         }
+        out_range->platoon_start = (int32_t)platoon_index;
     }
-    out_range->platoon_start = (int32_t)platoon_index;
 
-validate:
     platoon_index = out_range->platoon_start;
     if ((int32_t)platoon_index >= 0 && (int32_t)platoon_index < encounter_definition->platoons.count) {
         out_range->platoon_end = platoon_index;
         return;
     }
 
-fail:
     out_range->encounter_index = -1;
 }
 
@@ -1207,7 +1206,8 @@ void ReferenceView::squad_iterator_new(ai_reference_squad_iterator *out_iterator
 
     if (halo::scenario::globals().scenario == 0 || halo::ai::globals().state->actors_valid == 0 ||
         (int32_t)halo::scenario::globals().scenario->encounters.count <= (int32_t)encounter_index) {
-        goto fail;
+        out_iterator->encounter_index = -1;
+        return;
     }
 
     encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[encounter_index];
@@ -1224,17 +1224,14 @@ void ReferenceView::squad_iterator_new(ai_reference_squad_iterator *out_iterator
     } else {
         uint32_t squad_index = (int8_t)(packed_reference >> 0x10);
         if (kind != 2 || (int32_t)squad_index >= encounter_definition->squads.count) {
-            goto fail;
+            out_iterator->encounter_index = -1;
+            return;
         }
         out_iterator->cursor = -1;
         out_iterator->squad_end = (int32_t)squad_index;
         out_iterator->squad_start = (int32_t)squad_index;
     }
     out_iterator->platoon_filter = -1;
-    return;
-
-fail:
-    out_iterator->encounter_index = -1;
 }
 
 /**

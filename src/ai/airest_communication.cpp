@@ -622,6 +622,8 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             lipsync = (uint16_t)(int32_t)tail + recent_value;
         }
 
+        bool look_found = false;
+
         switch (row->look_target_selector) {
         case 1:
         case 2:
@@ -632,7 +634,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             if (looked != k_datum_index_none) {
                 look_kind = 1;
                 look_object = looked;
-                goto look_marker_default;
+                look_found = true;
             }
             break;
         }
@@ -643,18 +645,18 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                 if (a->danger_type > 0) {
                     look_kind = 2;
                     look_object = a->danger_object_index;
-                    goto look_marker_default;
+                    look_found = true;
                 }
             }
             break;
         default:
             break;
-        look_marker_default:
+        }
+        if (look_found) {
             look_marker = row->look_marker_selector;
             if (look_marker == -1 || look_marker == 1) {
                 look_marker = ai_communication_class_look_marker[(int16_t)class_word];
             }
-            break;
         }
         follow_up = row->fallback_order;
         if (follow_up == -1 || follow_up == 1) {
@@ -1160,9 +1162,7 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    player = halo::memory::data_iterator_next(&iterator);
-    if (player != 0) {
-        do {
+    for (player = halo::memory::data_iterator_next(&iterator); player != 0; player = halo::memory::data_iterator_next(&iterator)) {
             if (((struct player *)player)->unit != (datum_index)k_datum_index_none) {
                 datum_index player_unit = ((struct player *)player)->unit;
 
@@ -1202,7 +1202,7 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                                  [bitmap_row_dwords * (int32_t)self_cluster +
                                   ((int32_t)player_cluster >> 5)] &
                              (1u << ((uint8_t)player_cluster & 0x1f))) == 0) {
-                            goto advance;
+                            continue;
                         }
                         }
                         to_self.i = dx;
@@ -1244,15 +1244,10 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                     }
                 }
             }
-advance:
-            player = halo::memory::data_iterator_next(&iterator);
-        } while (player != 0);
-        if (saw_any_player) {
-            goto done;
-        }
     }
-    best_score = 1.0f;
-done:
+    if (!saw_any_player) {
+        best_score = 1.0f;
+    }
     if (out_distance != 0) {
         *out_distance = best_distance;
     }
@@ -1361,12 +1356,13 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
                 if (prop_index != (datum_index)k_datum_index_none) {
                     p = halo::ai::prop_at(prop_index);
                     if (p->distance <= radius) {
+                        bool reachable = true;
+
                         reach_mode = 2;
                         if (p->state < 2 || 3 < p->state) {
                             if (p->enemy != 0) {
-                                goto check_b;
-                            }
-                            if (allow_unreachable == 0 &&
+                                reachable = false;
+                            } else if (allow_unreachable == 0 &&
                                 p->auditory_perception < 2 &&
                                 p->ambient_perception < 2) {
                                 if (p->flashlight_on == 0) {
@@ -1377,19 +1373,20 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
                                                      (uint8_t)reach_mode, 1,
                                                      halo::ai::actor_target_get_priority_class(actor_index, prop_index));
                                 if (reach < 2) {
-                                    goto check_b;
+                                    reachable = false;
                                 }
                             }
                         }
-                        scratch.score = (1.0f - p->distance / radius) * 10.0f + scratch.score;
-                        matched_a = 1;
+                        if (reachable) {
+                            scratch.score = (1.0f - p->distance / radius) * 10.0f + scratch.score;
+                            matched_a = 1;
+                        }
                     } else {
                         matched_a = 0;
                     }
                 }
             }
         }
-check_b:
         if (object_b != (datum_index)k_datum_index_none) {
             if (a->unit_index == object_b) {
                 if ((flags & 0x10) == 0) {
@@ -2175,7 +2172,6 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
                                 if (timestamp_pair[1] != -1 && timestamp_pair[1] != now &&
                                     -1 < timestamp_pair[1] - now) {
                                     result = -1;
-                                    goto next_entry;
                                 }
                             }
                         }
@@ -2185,7 +2181,6 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
                     break;
                 }
             }
-next_entry:
             index = index + 1;
             terminator = entry + 0x11;
             entry = entry + 0x12;

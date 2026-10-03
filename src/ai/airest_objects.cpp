@@ -506,6 +506,12 @@ int16_t ObjectListView::max_flee_grade()
             obj = entry->data;
             unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
             grade = 0;
+            bool keep_grade = false;
+            auto recently_hurt = [&]() {
+                if (a->command_list_finished_time != -1 && tick <= a->command_list_finished_time + 0x96) {
+                    grade = 1;
+                }
+            };
 
             if (unit->actor_index == (datum_index)k_datum_index_none) {
                 if (unit->swarm_actor_index != (datum_index)k_datum_index_none) {
@@ -529,10 +535,12 @@ int16_t ObjectListView::max_flee_grade()
                             grade = (uint32_t)(uint16_t)halo::ai::ai_actor_type_get_morale_grade(*(int16_t *)&a->mode_data,
                                 (uint8_t *)&((swarm_component *)halo::ai::globals().swarm_component_data->data)
                                     [sw->component_index[component_index] & halo::k_slot_mask] + 0x1c);
-                            goto have_grade;
+                            keep_grade = (int16_t)grade != 0;
                         }
                     }
-                    goto recently_hurt;
+                    if (!keep_grade) {
+                        recently_hurt();
+                    }
                 }
             } else {
                 a = &((actor *)halo::ai::globals().actor_data->data)[unit->actor_index & halo::k_slot_mask];
@@ -546,17 +554,12 @@ int16_t ObjectListView::max_flee_grade()
                     } else {
                         grade = 1;
                     }
-have_grade:
-                    if ((int16_t)grade != 0) {
-                        goto keep_best;
-                    }
+                    keep_grade = (int16_t)grade != 0;
                 }
-recently_hurt:
-                if (a->command_list_finished_time != -1 && tick <= a->command_list_finished_time + 0x96) {
-                    grade = 1;
+                if (!keep_grade) {
+                    recently_hurt();
                 }
             }
-keep_best:
             if ((int16_t)best <= (int16_t)grade) {
                 best = grade;
             }
@@ -1124,16 +1127,17 @@ uint8_t AiObjects::pursuit_note_object(datum_index object_index, datum_index enc
 
         for (i = 0; i < k_ai_pursuit_object_count; i++) {
             if (pursuit->object_index[i] == object_index) {
-                goto stamp;
+                break;
             }
         }
 
-        pursuit->object_index[pursuit->cursor] = object_index;
-        pursuit->count = pursuit->count + 1;
-        pursuit->cursor = (int16_t)((pursuit->cursor + 1) % k_ai_pursuit_object_count);
-        added = 1;
+        if (i >= k_ai_pursuit_object_count) {
+            pursuit->object_index[pursuit->cursor] = object_index;
+            pursuit->count = pursuit->count + 1;
+            pursuit->cursor = (int16_t)((pursuit->cursor + 1) % k_ai_pursuit_object_count);
+            added = 1;
+        }
 
-    stamp:
         pursuit->last_tick = halo::game::globals().game_time->game_time;
     }
 
@@ -1377,63 +1381,64 @@ void AiObjects::set_squad_reference(datum_index object_index, uint32_t packed_re
     out_squad = halo::k_word_none;
 
     encounter_index = (int16_t)packed_reference;
-    if (packed_reference == halo::k_dword_none || encounter_index < 0 ||
-        halo::scenario::globals().scenario->encounters.count <= (int32_t)encounter_index) {
-        goto store;
-    }
+    [&]() {
+        if (packed_reference == halo::k_dword_none || encounter_index < 0 ||
+            halo::scenario::globals().scenario->encounters.count <= (int32_t)encounter_index) {
+            return;
+        }
 
-    definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[encounter_index];
-    squad_index = 0;
-
-    if (packed_reference >> 0x1e == 1) {
-        squad_count = definition->squads.count;
+        definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[encounter_index];
         squad_index = 0;
-        if (0 < squad_count) {
-            i = 0;
-            do {
-                if (((ScenarioSquad *)definition->squads.pointer)[i].platoon ==
-                    (uint16_t)(uint8_t)(packed_reference >> 0x10)) {
-                    break;
-                }
-                squad_index = squad_index + 1;
-                i = (int32_t)(int16_t)squad_index;
-            } while (i < squad_count);
-        }
-        if ((int16_t)squad_index >= squad_count) {
+
+        if (packed_reference >> 0x1e == 1) {
+            squad_count = definition->squads.count;
             squad_index = 0;
-        } else if ((int16_t)squad_index < 0) {
-            goto store;
+            if (0 < squad_count) {
+                i = 0;
+                do {
+                    if (((ScenarioSquad *)definition->squads.pointer)[i].platoon ==
+                        (uint16_t)(uint8_t)(packed_reference >> 0x10)) {
+                        break;
+                    }
+                    squad_index = squad_index + 1;
+                    i = (int32_t)(int16_t)squad_index;
+                } while (i < squad_count);
+            }
+            if ((int16_t)squad_index >= squad_count) {
+                squad_index = 0;
+            } else if ((int16_t)squad_index < 0) {
+                return;
+            }
+        } else if (packed_reference >> 0x1e == 2) {
+            squad_index = (uint32_t)(uint8_t)(packed_reference >> 0x10);
+            if ((int16_t)squad_index < 0) {
+                return;
+            }
         }
-    } else if (packed_reference >> 0x1e == 2) {
-        squad_index = (uint32_t)(uint8_t)(packed_reference >> 0x10);
-        if ((int16_t)squad_index < 0) {
-            goto store;
-        }
-    }
 
-    if ((int32_t)(int16_t)squad_index < definition->squads.count) {
-        out_squad = squad_index;
-        out_encounter = encounter_index;
-        if (encounter_index != -1 && (int16_t)squad_index != -1 &&
-            *(int16_t *)((uint8_t *)obj + 0x334) != -1) {
-            datum_index cursor[3];
+        if ((int32_t)(int16_t)squad_index < definition->squads.count) {
+            out_squad = squad_index;
+            out_encounter = encounter_index;
+            if (encounter_index != -1 && (int16_t)squad_index != -1 &&
+                *(int16_t *)((uint8_t *)obj + 0x334) != -1) {
+                datum_index cursor[3];
 
-            halo::ai::ai_reference_actor_iterator_init_cursor((int32_t)*(int16_t *)((uint8_t *)obj + 0x334), cursor);
-            actor_index = cursor[2];
-            while (halo::ai::globals().state->actors_valid != 0 &&
-                   actor_index != (datum_index)k_datum_index_none) {
-                datum_index current = actor_index;
-                a = &((actor *)halo::ai::globals().actor_data->data)[current & halo::k_slot_mask];
-                actor_index = a->next_in_encounter;
-                if (a->active_unit_index == object_index) {
-                    halo::ai::actor_reset_squad_link_for_type_change(current, (datum_index)(int32_t)encounter_index,
-                        (int16_t)squad_index);
+                halo::ai::ai_reference_actor_iterator_init_cursor((int32_t)*(int16_t *)((uint8_t *)obj + 0x334), cursor);
+                actor_index = cursor[2];
+                while (halo::ai::globals().state->actors_valid != 0 &&
+                       actor_index != (datum_index)k_datum_index_none) {
+                    datum_index current = actor_index;
+                    a = &((actor *)halo::ai::globals().actor_data->data)[current & halo::k_slot_mask];
+                    actor_index = a->next_in_encounter;
+                    if (a->active_unit_index == object_index) {
+                        halo::ai::actor_reset_squad_link_for_type_change(current, (datum_index)(int32_t)encounter_index,
+                            (int16_t)squad_index);
+                    }
                 }
             }
         }
-    }
+    }();
 
-store:
     *(int16_t *)((uint8_t *)obj + 0x334) = out_encounter;
     *(int16_t *)((uint8_t *)obj + 0x336) = (int16_t)out_squad;
 }
