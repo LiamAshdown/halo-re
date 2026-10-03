@@ -1,3 +1,7 @@
+#include "halo/objects/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "halo/hs/records.hpp"
 #include "halo/ai/airest_reference.hpp"
@@ -1352,7 +1356,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            ((struct object *)object)->flags &= ~1u;
+            ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -1482,7 +1486,7 @@ void ReferenceView::units_exit_vehicles()
                         halo::objects::object_for_each_light_attachment(unit_index, 0, 1);
                     }
                     if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                        ((struct object *)object)->flags &= ~1u;
+                        ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
                         OBJECT_HEADER(unit_index).flags |= 2;
                     }
                 }

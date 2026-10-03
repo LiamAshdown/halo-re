@@ -1,3 +1,7 @@
+#include "halo/objects/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/hs/records.hpp"
 #include "halo/ai/records.hpp"
 #include "halo/hs/hs2_commands.hpp"
@@ -391,7 +395,7 @@ void ObjectCommands::evaluate_object_set_collideable(int16_t function_index, uin
 
 
             if (halo::hs::argument_byte(arguments[1]) == 0) {
-                ((struct object *)object)->flags |= 0x1000000;
+                ((struct object *)object)->flags |= halo::to_bits(halo::objects::object_flag::unknown_1000000);
             } else {
                 ((struct object *)object)->flags &= 0xfeffffff;
             }

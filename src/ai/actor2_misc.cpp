@@ -1,3 +1,7 @@
+#include "halo/objects/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/models/api.hpp"
@@ -712,7 +716,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            ((struct object *)object)->flags &= ~1u;
+            ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -859,7 +863,7 @@ uint8_t ActorView::process_vehicle_seat_exit()
                             halo::objects::object_for_each_light_attachment(rider_index, 0, 1);
                         }
                         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                            ((struct object *)object)->flags &= ~1u;
+                            ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
                             OBJECT_HEADER(rider_index).flags |= 2;
                         }
                     }
@@ -2061,7 +2065,7 @@ void ActorView::set_combat_alert_flag(uint8_t new_flag)
         cluster_unit = self->cluster_unit_index;
         while (cluster_unit != k_datum_index_none) {
             cluster_obj = halo::ai::object_at(cluster_unit);
-            cluster_obj->vitality_flags |= 0x80;
+            cluster_obj->vitality_flags |= halo::to_bits(halo::objects::vitality_flag::region_response_80);
             cluster_unit = ((unit_data *)((uint8_t *)cluster_obj + k_unit_data_offset))->swarm_next_unit_index;
         }
     }

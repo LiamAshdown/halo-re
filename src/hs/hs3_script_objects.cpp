@@ -1,3 +1,7 @@
+#include "halo/objects/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/hs/records.hpp"
 #include "halo/ai/records.hpp"
 #include "halo/hs/hs3_objects.hpp"
@@ -82,11 +86,11 @@ static void hs_unit_leave_seat(uint32_t object_index)
         unit = OBJ(object_index);
         unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & halo::k_slot_mask].data;
         if (*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id != k_datum_index_none) {
-            if ((((unit_object *)unit)->base.flags & 1) != 0) {
+            if (halo::ai::flag_set(((unit_object *)unit)->base.flags, halo::objects::object_flag::no_collision)) {
                 halo::objects::object_for_each_light_attachment(object_index, 0, 1);
             }
             if (*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id != k_datum_index_none) {
-                ((unit_object *)unit)->base.flags &= ~1u;
+                ((unit_object *)unit)->base.flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
                 ((uint8_t *)&((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask])[2] |= 2;
             }
         }

@@ -1,3 +1,5 @@
+#include "halo/objects/flags.hpp"
+#include "halo/units/flags.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/ai/flags.hpp"
 #include "halo/core/bit_cast.hpp"
@@ -599,7 +601,7 @@ void halo::ai::flee_mode::exit()
     if (unit_index != k_datum_index_none) {
         unit_object *obj = (unit_object *)halo::ai::object_at(unit_index);
 
-        obj->unit.flags &= ~0x2000000u;
+        obj->unit.flags &= ~halo::to_bits(halo::units::unit_flag::idle_turn_seeded);
     }
 }
 

@@ -1,3 +1,7 @@
+#include "halo/objects/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/hs/records.hpp"
 #include "halo/ai/airest_objects.hpp"
 #include "halo/math/api.hpp"
@@ -758,9 +762,9 @@ void ObjectListView::set_unit_flag_400(char flag)
         if (obj != 0) {
             unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
             if (flag == 0) {
-                unit->flags &= ~0x400u;
+                unit->flags &= ~halo::to_bits(halo::units::unit_flag::unknown_400);
             } else {
-                unit->flags |= 0x400u;
+                unit->flags |= halo::to_bits(halo::units::unit_flag::unknown_400);
             }
         }
 
@@ -803,9 +807,9 @@ void ObjectListView::set_unit_flag_800(char flag)
         if (obj != 0) {
             unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
             if (flag == 0) {
-                unit->flags &= ~0x800u;
+                unit->flags &= ~halo::to_bits(halo::units::unit_flag::unknown_800);
             } else {
-                unit->flags |= 0x800u;
+                unit->flags |= halo::to_bits(halo::units::unit_flag::unknown_800);
             }
         }
 

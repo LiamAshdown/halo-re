@@ -1,3 +1,7 @@
+#include "halo/objects/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/hs/records.hpp"
 #include "halo/hs/hs3_commands.hpp"
 #include "units.h"
@@ -29,9 +33,9 @@ void UnitCommands::evaluate_unit_aim_without_turning(int16_t function_index, uin
             uint8_t *unit = (uint8_t *)halo::ai::object_at(arguments[0]);
 
             if ((uint8_t)arguments[1]) {
-                ((unit_object *)unit)->unit.flags |= 0x4000;
+                ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::unknown_4000);
             } else {
-                ((unit_object *)unit)->unit.flags &= ~0x4000u;
+                ((unit_object *)unit)->unit.flags &= ~halo::to_bits(halo::units::unit_flag::unknown_4000);
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
@@ -55,9 +59,9 @@ void UnitCommands::evaluate_unit_can_blink(int16_t function_index, uint32_t thre
             uint8_t *unit = (uint8_t *)halo::ai::object_at(arguments[0]);
 
             if (!(uint8_t)arguments[1]) {
-                ((unit_object *)unit)->unit.flags |= 0x400000;
+                ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::unknown_400000);
             } else {
-                ((unit_object *)unit)->unit.flags &= ~0x400000u;
+                ((unit_object *)unit)->unit.flags &= ~halo::to_bits(halo::units::unit_flag::unknown_400000);
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
@@ -486,7 +490,7 @@ void UnitCommands::evaluate_unit_set_enterable_by_player(int16_t function_index,
             uint8_t *unit = (uint8_t *)halo::ai::object_at(arguments[0]);
 
             if (halo::hs::argument_byte(arguments[1]) == 0) {
-                ((unit_object *)unit)->unit.flags |= 0x10000;
+                ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::unknown_10000);
             } else {
                 ((unit_object *)unit)->unit.flags &= 0xfffeffff;
             }

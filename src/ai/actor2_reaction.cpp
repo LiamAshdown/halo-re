@@ -1,3 +1,6 @@
+#include "halo/objects/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/hs/script_globals.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
@@ -749,7 +752,7 @@ broadcast_check:
             while (cluster_index != (datum_index)k_datum_index_none) {
                 object_header *header = &((object_header *)halo::objects::globals().object_data->data)[cluster_index & halo::k_slot_mask];
                 struct object *unit_object = header->data;
-                unit_object->vitality_flags |= 0x20;
+                unit_object->vitality_flags |= halo::to_bits(halo::objects::vitality_flag::unknown_20);
                 cluster_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
             }
         }

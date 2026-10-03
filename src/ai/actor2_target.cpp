@@ -1,3 +1,6 @@
+#include "halo/objects/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/scenario/api.hpp"
@@ -142,7 +145,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
             goto after_reassign;
         }
         {
-            if (((unit_obj->vitality_flags & 4) == 0 || *(int16_t *)((uint8_t *)unit_obj + 0x420) != 0) ||
+            if ((!halo::ai::flag_set(unit_obj->vitality_flags, halo::objects::vitality_flag::health_frozen) || *(int16_t *)((uint8_t *)unit_obj + 0x420) != 0) ||
                 (target->perception_level != 0 || 0.010000001f <= halo::math::vector3d_magnitude_squared(unit_obj->velocity))) {
                 is_eligible = 0;
             } else {

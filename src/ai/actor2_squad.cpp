@@ -1,3 +1,7 @@
+#include "halo/objects/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -51,7 +55,7 @@ void ActorView::obey_member_enter(datum_index unit_index, uint16_t command_list_
     if (list[0x20] & 0x10) {
         uint8_t *unit = (uint8_t *)halo::ai::object_at(unit_index);
 
-        ((unit_object *)unit)->unit.flags |= 0x1000;
+        ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::unknown_1000);
     }
 }
 
@@ -75,7 +79,7 @@ void ActorView::obey_member_exit(datum_index unit_index, uint16_t command_list_i
         halo::ai::actor_squad_action_reset_entry(actor_index, unit_index, action, (int16_t)command_list_index,
             aim, &next_action);
     }
-    ((unit_object *)unit)->unit.flags &= ~0x1000u;
+    ((unit_object *)unit)->unit.flags &= ~halo::to_bits(halo::units::unit_flag::unknown_1000);
 }
 
 namespace actor_obey_member_tick_local {
