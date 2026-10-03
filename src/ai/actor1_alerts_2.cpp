@@ -26,16 +26,16 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
     using namespace c_actor_investigate_disturbance_update;
     uint32_t actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    void *vehicle = halo::objects::object_try_and_get(*(datum_index *)&act->mode_data, 2);
+    void *vehicle = halo::objects::object_try_and_get(act->mode_data.vehicle.vehicle_index, 2);
 
     if (act->active_unit_index != k_datum_index_none) {
         act->mode_data.vehicle.unit_replaced = 1;
     } else if (act->mode_data.vehicle.seated == 0) {
         if (vehicle == 0) {
-            *(datum_index *)&act->mode_data = k_datum_index_none;
+            act->mode_data.vehicle.vehicle_index = k_datum_index_none;
             act->mode_data.vehicle.failed = 1;
         } else if (!halo::ai::actor_is_within_alert_range(act->mode_data.vehicle.unknown_06 == 0, act->mode_data.vehicle.alert_range_min, act->mode_data.vehicle.alert_range_max, 0, 1,
-                                                actor_index, *(datum_index *)&act->mode_data)) {
+                                                actor_index, act->mode_data.vehicle.vehicle_index)) {
             act->mode_data.vehicle.failed = 1;
         } else {
             real_point3d entry;
@@ -55,7 +55,7 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
                 }
             }
             if (act->mode_data.vehicle.stuck_count >= 8 ||
-                !halo::ai::actor_evaluate_search_node(actor_index, *(datum_index *)&act->mode_data, act->mode_data.vehicle.seat_index, &entry,
+                !halo::ai::actor_evaluate_search_node(actor_index, act->mode_data.vehicle.vehicle_index, act->mode_data.vehicle.seat_index, &entry,
                                             &direction, &hint, 0, &close, &facing, &in_front)) {
                 act->mode_data.vehicle.failed = 1;
             } else {
@@ -70,18 +70,18 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
                 }
                 if (close) {
                     if (facing) {
-                        halo::units::unit_enter_vehicle_seat(*(datum_index *)&act->mode_data, act->mode_data.vehicle.seat_index,
+                        halo::units::unit_enter_vehicle_seat(act->mode_data.vehicle.vehicle_index, act->mode_data.vehicle.seat_index,
                                                 act->unit_index);
                         act->mode_data.vehicle.seated = 1;
                     } else {
                         halo::ai::actor_movement_action_stop(actor_index);
                     }
                 } else if (act->needs_new_path != 0) {
-                    if (halo::ai::actor_avoid_obstacle_and_project(actor_index, *(datum_index *)&act->mode_data, &entry, &hint,
+                    if (halo::ai::actor_avoid_obstacle_and_project(actor_index, act->mode_data.vehicle.vehicle_index, &entry, &hint,
                                                          (uint8_t *)act + 0xa3, (real_point3d *)((uint8_t *)act + 0xcc),
                                                          (int32_t *)((uint8_t *)act + 0xe4)) &&
                         halo::ai::actor_movement_set_destination_point((real_point3d *)((uint8_t *)act + 0xcc), actor_index,
-                                                             act->mode_data.vehicle.path_surface, *(datum_index *)&act->mode_data)) {
+                                                             act->mode_data.vehicle.path_surface, act->mode_data.vehicle.vehicle_index)) {
                         act->mode_data.vehicle.path_failures = 0;
                     } else {
                         act->mode_data.vehicle.path_failures += 1;
