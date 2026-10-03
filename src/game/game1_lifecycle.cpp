@@ -68,7 +68,8 @@ static auto &game_engine_post_game_fade = halo::link::ref<float>(halo::game::var
 static auto &game_engine_dedicated_idle = halo::link::ref<uint8_t>(halo::game::vars().game_engine_dedicated_idle);
 static auto &game_engine_dedicated_idle_timer = halo::link::ref<float>(halo::game::vars().game_engine_dedicated_idle_timer);
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
-static auto &game_engine_map_table_value = halo::link::ref<int32_t>(halo::game::vars().game_engine_map_table_value);
+static auto &game_engine_map_table_value = halo::link::ref<uint8_t>(halo::game::vars().game_engine_map_table_value);
+static auto &server_end_game_requested = halo::link::ref<uint8_t>(halo::game::vars().g_006f1d25);
 static auto &network_build_string = halo::link::ref<char []>(halo::networking::vars().network_build_string);
 static auto &map_per_map_table = halo::link::ref<uint8_t []>(halo::game::vars().map_per_map_table);
 static auto &network_session_host_state = halo::link::ref<uint8_t>(halo::networking::vars().network_session_host_state);
@@ -402,7 +403,7 @@ void Lifecycle::initialize_for_new_game(void)
         map_index = halo::interface::map_list_find_known_map_index(network_build_string);
         game_engine_map_table_value = 0;
         if (map_index < 0x13) {
-            game_engine_map_table_value = *(int32_t *)(map_per_map_table + map_index * 0x30);
+            game_engine_map_table_value = map_per_map_table[map_index * 12];
         }
         halo::game::game_engine_validate_scenario_placements_noop();
 
@@ -429,7 +430,7 @@ void Lifecycle::initialize_for_new_game(void)
         halo::game::game_engine_touch_multiplayer_predicted_resources();
         game_engine_dedicated_idle = 0;
         game_engine_dedicated_idle_timer = 0.0f;
-        ((uint8_t *)&game_engine_map_table_value)[1] = 0;
+        server_end_game_requested = 0;
         if (network_session_host_state != 2) {
             network_session_host_state = 1;
         }
