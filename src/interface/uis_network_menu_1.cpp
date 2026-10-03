@@ -193,7 +193,7 @@ uint8_t UiNetworkMenu::network_game_options_populate(widget_instance *widget, co
 void UiNetworkMenu::network_game_options_refresh(widget_instance *widget, const saved_player_profile *options_record)
 {
     halo::saved_games::player_profile_set_default_server_options(&profile_globals_block[0].profile);
-    halo::interface::widget_play_sound_effect(0);
+    halo::interface::widget_play_sound_effect(2);
     halo::interface::ui_network_game_options_populate(widget, options_record);
 }
 
@@ -483,7 +483,7 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
                 }
             }
         } else {
-            halo::interface::widget_play_sound_effect(0);
+            halo::interface::widget_play_sound_effect(4);
         }
     }
     return 0;

@@ -191,7 +191,7 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
         quit_confirm_error_modal = 1;
         quit_confirm_error_is_error = 0;
     }
-    halo::interface::widget_play_sound_effect(0);
+    halo::interface::widget_play_sound_effect(4);
     new_profile_name_entry_player_00692b00 = -1;
     return 0;
 }
@@ -326,7 +326,7 @@ uint8_t UiProfiles::profile_list_apply_selection(widget_instance *widget, int16_
     (void)event;
 
     if (entry_id == -1) {
-        halo::interface::widget_play_sound_effect(0);
+        halo::interface::widget_play_sound_effect(4);
         return 0;
     }
 
@@ -337,7 +337,7 @@ uint8_t UiProfiles::profile_list_apply_selection(widget_instance *widget, int16_
             quit_confirm_error_modal = 1;
             quit_confirm_error_is_error = 0;
         }
-        halo::interface::widget_play_sound_effect(0);
+        halo::interface::widget_play_sound_effect(4);
         *out_handled = 1;
         return 0;
     }
@@ -389,7 +389,7 @@ uint32_t UiProfiles::profile_list_apply_selection_for_player(widget_instance *wi
         (&quit_confirm_error_modal)[player_slot * 6] = 1;
         (&quit_confirm_error_is_error)[player_slot * 6] = 0;
     }
-    halo::interface::widget_play_sound_effect(0);
+    halo::interface::widget_play_sound_effect(4);
     return 0;
 }
 
