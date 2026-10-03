@@ -1,0 +1,1409 @@
+#include "halo/networking/net1_session.hpp"
+#include <string.h>
+#include <wchar.h>
+#include <stdint.h>
+#include "units.h"
+#include "items.h"
+#include <stdio.h>
+#include <stdarg.h>
+
+extern "C" {
+extern object *object_iterator_next(object_iterator *iterator);
+extern void *object_type_definitions[12];
+extern uint8_t network_message_scratch[0x7ff8];
+extern int32_t object_type_override_get_0x64(uint8_t *out_buffer, int32_t out_buffer_size);
+extern uint32_t network_session_send_to_machine(int32_t machine_id, uint8_t *data, int32_t bits, int32_t reliable, int32_t unknown_a, int32_t unknown_b, int32_t priority);
+extern datum_index machine_to_player[16];
+extern data_array *player_data;
+extern void *datum_get(datum_index handle, data_array *array);
+extern void update_server_queue_push_history(int16_t machine_index, int32_t tick_count, uint32_t *source, uint32_t extra);
+extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, void *field_bindings, const void *previous, void *destination);
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
+extern char network_client_check_connection_quality(void);
+extern void network_game_client_apply_position_update(void *state, uint32_t *packet, void *tick_count, void *object);
+extern void network_player_update_history_log_write(const char *format, ...);
+extern wchar_t empty_string;
+extern void *tag_instances;
+extern random_seed effect_random_seed;
+extern int32_t tag_lookup(const char *path);
+extern wchar_t *text_string_list_get_string(int32_t tag_index, int32_t string_index);
+extern network_client_globals *network_client;
+extern network_server_globals *network_server;
+extern uint32_t profile_globals_block[];
+extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload);
+extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
+extern game_time_globals *game_time;
+extern int32_t data_packet_group_encode_packet(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version);
+extern uint16_t network_challenge_packet_block[];
+extern uint16_t *network_message_block_build(uint16_t *buffer, uint32_t *source, uint8_t flags, uint32_t length);
+extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1, void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
+extern void network_object_record_last_sender(uint32_t round);
+extern uint8_t network_server_host_valid;
+extern uint8_t network_game_info_packet_flag;
+extern uint8_t network_session_host_flags_byte;
+extern uint8_t network_channels_open_ok;
+extern int32_t message_delta_vector3d_mode;
+extern uint8_t network_host_handoff_requested;
+extern int32_t interface_loading_screen_address_a;
+extern int32_t interface_loading_screen_address_b;
+extern int32_t join_ui_state;
+extern int32_t interface_loading_screen_progress;
+extern int16_t progress_screen_text;
+extern int16_t progress_screen_subtext;
+extern int32_t interface_loading_screen_request_id;
+extern int32_t game_variant_history_current;
+extern int16_t network_game_mode;
+extern uint8_t network_disconnect_timeout_flag;
+extern int32_t sv_maxplayers_value;
+extern void network_channels_open(void);
+extern void network_game_server_host_dispose(network_server_globals *server);
+extern void network_client_globals_dispose(void);
+extern uint8_t network_game_server_host_create(void);
+extern network_client_globals *network_session_create(void);
+extern uint8_t game_engine_ensure_variant_history_has_entry(void);
+extern void game_engine_apply_current_custom_variant(void);
+extern void game_engine_sync_variant_defaults(void);
+extern void network_host_round_reset(void);
+extern void widget_close_all(void);
+extern void *data_iterator_next(data_iterator *iterator);
+extern int32_t message_delta_encode_message(int32_t a, int32_t type, int32_t b, void **entries, int32_t c, int32_t count, char d);
+extern int16_t network_join_error_code;
+extern void chat_close(void);
+extern char network_player_entry_validate(network_player_entry *entry);
+extern wchar_t *network_game_get_random_player_name(void);
+extern uint8_t *main_game_globals;
+extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state);
+extern void game_unload_map(void);
+extern void game_start_new_map(void);
+extern void game_stop_current_map(void);
+extern void game_engine_reset_all_players(void);
+extern void game_engine_apply_variant(const game_variant *variant);
+extern void game_engine_init_tick_record_for_mode(void);
+extern void main_menu_music_stop(void);
+extern int32_t network_channel_key_open(network_player_entry *entry);
+extern char scenario_load(char *path);
+extern uint8_t network_channel_table_default_flag;
+extern char network_player_entry_find(network_game_session *session, network_player_entry *key);
+extern int64_t performance_frequency;
+extern uint32_t player_data_iterator_advance(uint8_t slot_index);
+extern int32_t game_engine_notify_object_value_event(int32_t team);
+extern int32_t game_engine_player_profile_cache_find(void);
+extern void game_engine_capture_player_profile(int32_t value);
+extern uint8_t network_player_update_log_enabled;
+extern char *network_player_update_history_log_path;
+extern char player_update_log_file_mode_string[];
+extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server);
+extern void *network_session_host_object;
+extern int32_t network_session_host_state;
+extern int32_t network_console_connection_id;
+extern void network_session_host_update(void);
+extern void gcd_shutdown(void);
+extern void qr2_shutdown(void *object);
+extern int32_t network_game_socket;
+extern void function_do_nothing(void);
+extern void network_session_host_natneg_completed(int32_t result, uint32_t socket, const uint8_t *remote_address, void *user_data);
+extern int32_t NNBeginNegotiationWithSocket(uint32_t socket, int32_t cookie, int32_t client_index, void *progress_callback, void *completed_callback, void *user_data);
+extern uint16_t gt2NetworkToHostShort(uint16_t value);
+extern char *gt2AddressToString(uint32_t ip, uint16_t port, char *string);
+typedef struct ColorARGB ColorARGB;
+extern void *console_message_default_color;
+extern void console_printf_verbose(ColorARGB *color, char *format, ...);
+extern void *current_game_engine;
+extern void qr2_buffer_add(void *buffer, const char *value);
+extern void qr2_buffer_add_int(void *buffer, int32_t value);
+extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id);
+extern uint8_t game_engine_teams_enabled_flag;
+extern int32_t players_active_count(void);
+extern void gcd_authenticate_user(int32_t game_id, int32_t local_id, uint32_t ip, const char *challenge, const char *response, void *callback, void *instance);
+extern const char *gcd_getkeyhash(int32_t game_id, int32_t local_id);
+extern void gcd_disconnect_user(int32_t game_id, int32_t local_id);
+extern void gcd_disconnect_all(int32_t game_id);
+extern uint8_t ban_list_check_and_reject_player(char *key);
+extern void network_session_host_cd_key_callback(int32_t game_id, int32_t local_id, int32_t authenticated, const char *message, void *instance);
+extern int32_t network_session_start_game_type;
+extern char network_session_start_host_name[];
+extern char network_session_start_map_name[];
+extern void network_session_host_dispose(void);
+extern int32_t qr2_init_socketA(void **qrec_out, uint32_t socket, int32_t port, const char *gamename, const char *secret_key, int32_t ispublic, int32_t natnegotiate, void *server_key, void *player_key, void *team_key, void *key_list, void *count, void *adderror, void *userdata);
+extern void qr2_register_natneg_callback(void *qrec, void *callback);
+extern void gcd_init_qr2(void *qrec, int32_t game_id, int32_t use_network);
+extern void network_session_host_natneg_callback(int32_t cookie);
+extern void network_session_host_qr2_server_key(int32_t key_id, void *buffer, void *user_data);
+extern void network_session_host_dispatch_message(int32_t key_id, int32_t index, void *buffer, void *user_data);
+extern void network_session_host_qr2_team_key(int32_t key_id, int32_t index, void *buffer, void *user_data);
+extern void network_session_host_qr2_key_list(int32_t key_type, void *keybuffer, void *user_data);
+extern int32_t network_session_host_qr2_count(int32_t key_type, void *user_data);
+extern void network_session_host_qr2_add_error(int32_t error, char *message, void *user_data);
+extern char network_session_start_variant_name[];
+extern void qr2_register_key(int32_t keyid, const char *key);
+extern uint8_t network_session_host_closing;
+extern int32_t network_session_host_last_tick;
+extern int32_t time_query_performance_counter_ms(void);
+extern void qr2_send_statechanged(void *object);
+extern void qr2_think(void *object);
+}
+
+namespace halo::networking {
+
+/**
+ * Encodes and broadcasts an object-update packet for every live object whose network_role is
+ * zero and whose type-table team slot is populated, accumulating the total encoded size into
+ * *bytes_sent and the object count into *object_count.
+ *
+ * @address 0x4df950
+ */
+void GameRuntime::broadcast_team_object_updates(int32_t *object_count, uint32_t param_1, int32_t *bytes_sent)
+{
+    object_iterator iterator;
+    object *obj;
+    int32_t encoded_bits;
+
+    (void)param_1;
+    iterator.type_mask = 0xffffffff;
+    iterator.flags_mask = 0;
+    iterator.index = 0;
+    iterator.handle = 0xffffffff;
+
+    obj = object_iterator_next(&iterator);
+    while (obj != 0) {
+        if (obj->network_role == 0 &&
+            *(int32_t *)((uint8_t *)object_type_definitions[obj->type] + 0x10) != -1) {
+            encoded_bits = object_type_override_get_0x64(network_message_scratch, 0x7ff8);
+            if (encoded_bits > 0) {
+                *bytes_sent = *bytes_sent + encoded_bits;
+                *object_count = *object_count + 1;
+                network_session_send_to_machine(1, network_message_scratch, encoded_bits, 1, 0, 0, 3);
+            }
+        }
+        obj = object_iterator_next(&iterator);
+    }
+}
+
+/**
+ * Applies one position/orientation delta record from `packet` onto `object`, but only if the
+ * packet's tick is not older than the last one recorded in `state`, its delta-item count is 0
+ * or 1, and `state`'s machine-index slot resolves (through machine_to_player and player_data)
+ * to a player that currently has a live unit.
+ *
+ * @address 0x4dff70
+ */
+void GameRuntime::client_apply_position_update(uint8_t *state, uint32_t *packet, void *tick_count, void *object)
+{
+    int16_t delta_count;
+    uint32_t delta[16];
+    int32_t i;
+    uint32_t *src;
+    datum_index player_datum;
+    player *plr;
+
+    if (*(uint32_t *)(state + 4) > (*packet & 0x7fffffff)) {
+        return;
+    }
+    delta_count = *(int16_t *)((uint8_t *)packet + 6);
+    if (delta_count < 0 || delta_count >= 2) {
+        return;
+    }
+
+    for (i = 0; i < 8; i = i + 1) {
+        delta[i] = 0;
+    }
+    if (delta_count > 0) {
+        src = packet + 2;
+        for (i = 0; i < 8; i = i + 1) {
+            delta[i] = src[i];
+        }
+    }
+
+    player_datum = machine_to_player[*(uint16_t *)(state + 0xc)];
+    if (player_datum == (datum_index)0xffffffff) {
+        return;
+    }
+    plr = (player *)datum_get(player_datum, player_data);
+    if (plr == 0 || plr->unit == (datum_index)0xffffffff) {
+        return;
+    }
+
+    update_server_queue_push_history(*(int16_t *)(state + 0xc), (int32_t)tick_count, delta,
+        (uint32_t)object);
+    *(uint32_t *)(state + 4) = *packet & 0x7fffffff;
+    for (i = 0; i < 8; i = i + 1) {
+        delta[8 + i] = delta[i];
+    }
+    plr = (player *)datum_get(player_datum, player_data);
+    if (plr != 0) {
+        plr->unknown_11c = delta[8] & 0x4d0;
+    }
+}
+
+/**
+ * Stages `machine`'s connect_state, dispatches the message record by its type (either merges
+ * changed sub-fields or takes the FUN_004ec590 path), restores connect_state, and -- if the
+ * staged copy's first byte is set -- checks connection quality and, on success, applies the
+ * position/orientation update and logs it.
+ *
+ * @address 0x4e0280
+ */
+void GameRuntime::client_apply_received_update(network_machine *machine, uint32_t server, void **message)
+{
+    uint8_t staged[0x34];
+    uint8_t staged2[0x34];
+    int32_t *msg;
+    int32_t delta_bits;
+
+    (void)server;
+    memcpy(staged, machine->connect_state, 0x34);
+
+    msg = (int32_t *)*message;
+    if (*msg == 1) {
+
+        delta_bits = message_delta_read_changed_subfields((message_delta_decode_state *)msg,
+            message + 1, machine->connect_state, staged);
+        msg[3] = msg[3] + delta_bits;
+        *((uint8_t *)msg + 0x1d) = 1;
+    } else {
+
+        message_delta_decode_compound_field(message, staged);
+    }
+
+    memcpy(machine->connect_state, staged, 0x34);
+
+    if (staged[0] != 0) {
+        char quality_ok;
+
+        memcpy(staged2, staged, 0x34);
+        quality_ok = network_client_check_connection_quality();
+        if (quality_ok == 1) {
+            network_game_client_apply_position_update(staged2, (uint32_t *)msg, 0, 0);
+            if (*(int16_t *)(machine->connect_state + 0xc) != 0) {
+                GetTickCount();
+                network_player_update_history_log_write("[%d]: [%d]:\t Received update [%d] for [%d] ticks.\n");
+            }
+        }
+    }
+}
+
+/**
+ * Original `network_game_get_random_player_name`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4dea80
+ */
+wchar_t * GameRuntime::get_random_player_name()
+{
+    uint32_t tag_id;
+    void *definition;
+
+    tag_id = tag_lookup("ui\\random_player_names");
+    if (tag_id != 0xffffffff) {
+        definition = *(void **)((uint8_t *)tag_instances + (tag_id & 0xffff) * 0x20 + 0x14);
+        if (definition != 0 && *(int32_t *)definition != 0) {
+            effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
+            return text_string_list_get_string((int32_t)tag_id, 0);
+        }
+    }
+    return &empty_string;
+}
+
+/**
+ * Original `network_game_is_active`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4ddca0
+ */
+int32_t GameRuntime::is_active()
+{
+    if (network_client == 0 && network_server == 0) {
+        return 0;
+    }
+    return 1;
+}
+
+/**
+ * Original `network_game_settings_ack_send`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4d9f50
+ */
+char GameRuntime::settings_ack_send(uint8_t *client, int16_t template_row)
+{
+
+    uint8_t frame[0x2070];
+    uint32_t *dst, *src;
+    int32_t i;
+    int32_t mode;
+    int32_t *challenge;
+    uint8_t *channel;
+    int32_t bits_to_send;
+    int32_t total_bits;
+    int32_t free_bits;
+    char result;
+
+    src = &profile_globals_block[(uint32_t)template_row * 0x801];
+    dst = (uint32_t *)(frame + 0x46);
+    for (i = 0x7ff; i != 0; i = i - 1) {
+        *dst = *src;
+        src = src + 1;
+        dst = dst + 1;
+    }
+    *(uint8_t *)(frame + 0x23) = (uint8_t)template_row;
+    *(uint8_t *)(frame + 0x22) = *client;
+    wcsncpy((wchar_t *)(frame + 0x6), (const wchar_t *)(frame + 0x48), 0xb);
+    *(uint16_t *)(frame + 0x1e) = *(uint16_t *)(frame + 0x160);
+    *(uint16_t *)(frame + 0x20) = 0xffff;
+    *(uint8_t *)(frame + 0x24) = 0xff;
+    *(uint8_t *)(frame + 0x25) = 0xff;
+    *(uint16_t *)(frame + 0x1c) = 0;
+
+    mode = *(int16_t *)(client + 0xeda);
+    switch (mode) {
+    case 0:
+    case 1:
+    case 4:
+        return 0;
+    case 2:
+    case 3:
+        for (i = 0; i < 8; i = i + 1) {
+            ((uint32_t *)(frame + 0x26))[i] = ((uint32_t *)(frame + 0x6))[i];
+        }
+
+        challenge = (int32_t *)network_prepare_challenge_packet(0x0f, frame + 0x26);
+        if (challenge == 0) {
+            return 1;
+        }
+        channel = *(uint8_t **)(client + 0xadc);
+        bits_to_send = (uint32_t)(*(uint16_t *)challenge >> 4) * 8;
+        total_bits = bits_to_send + 1;
+        if ((*(uint8_t *)&((network_channel *)channel)->flags & 1) != 0) {
+            return 1;
+        }
+        free_bits = ((*(int32_t *)&((network_channel *)channel)->outgoing.stream.last_bit + *(int32_t *)&((network_channel *)channel)->outgoing.stream.byte_cursor * -8) -
+                     *(int32_t *)&((network_channel *)channel)->outgoing.stream.bit_cursor) + 1;
+        break;
+    default:
+        return 1;
+    }
+
+    result = 1;
+    if (total_bits <= free_bits || (result = network_channel_stream_flush((network_channel_stream *)(channel + 0x10), (network_channel *)channel, 1), result != 0)) {
+
+        ((network_channel *)channel)->send_budget = ((network_channel *)channel)->send_budget + bits_to_send + 1;
+        { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
+        ((network_channel *)channel)->outgoing.empty = 0;
+        bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
+        ((network_channel *)channel)->outgoing.empty = 0;
+    }
+    return result;
+}
+
+/**
+ * Original `network_game_settings_broadcast_send`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4df0e0
+ */
+uint32_t GameRuntime::settings_broadcast_send(uint32_t round, uint32_t *record)
+{
+    uint8_t buffer[0x604];
+    int32_t capacity;
+    int32_t tick_plus_offset;
+    uint32_t *dest;
+    int32_t i;
+    int32_t send_result;
+
+    dest = (uint32_t *)buffer;
+    for (i = 0; i < 8; i++) {
+        dest[i] = record[i];
+    }
+    tick_plus_offset = game_time->game_time + 0x21;
+    (void)tick_plus_offset;
+    capacity = 0x600;
+    if (data_packet_group_encode_packet(buffer, &capacity, 0x18, 1) != 0) {
+
+        send_result = (int32_t)network_message_block_build(network_challenge_packet_block,
+                                                           (uint32_t *)buffer, 3, (uint32_t)capacity);
+        if (send_result != 0) {
+            network_session_broadcast_to_all(network_server, 0, (void *)(uintptr_t)send_result,
+                1, 0, 0, 3);
+            network_object_record_last_sender(round);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ * Tears down any existing hosted session, opens the network channels, creates the server host
+ * and (if not already present) the shared client/session globals, applies default UI/engine
+ * state, switches network_game_mode to host (2), and writes name/password into the new server.
+ * Returns 1 on success, 0 on any failure (each of which also tears the partial state back down).
+ *
+ * @address 0x4e4150
+ */
+uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, uint16_t *name, uint16_t *password)
+{
+    uint8_t ok;
+
+    if (network_server != 0) {
+        network_game_server_host_dispose(network_server);
+        network_server = 0;
+        network_server_host_valid = 0;
+    }
+    network_client_globals_dispose();
+    if (*name == 0) {
+        static const uint16_t default_name[] = { 'H', 'a', 'l', 'o', 0 };
+        name = (uint16_t *)default_name;
+    }
+    network_session_host_flags_byte = network_game_info_packet_flag;
+    network_channels_open();
+    if (network_channels_open_ok == 0) {
+        goto fail;
+    }
+    message_delta_vector3d_mode = (network_game_info_packet_flag == 1);
+    ok = network_game_server_host_create();
+    if (ok == 1) {
+        if (((network_server->flags >> 2) & 1) == 0) {
+            network_client = network_session_create();
+            ok = 0;
+            if (network_client == 0) {
+                goto fail_or_dispose;
+            }
+            network_host_handoff_requested = 0;
+            *(int32_t *)((uint8_t *)network_client + 0xf4c) = 4;
+        }
+        interface_loading_screen_address_a = -1;
+        interface_loading_screen_address_b = -1;
+        join_ui_state = 0;
+        interface_loading_screen_progress = 0;
+        progress_screen_text = 0;
+        progress_screen_subtext = 0;
+        interface_loading_screen_request_id = -1;
+        ok = game_engine_ensure_variant_history_has_entry();
+        if (ok == 0) {
+        fail:
+            if (network_server != 0) {
+                network_game_server_host_dispose(network_server);
+                network_server = 0;
+                network_server_host_valid = 0;
+            }
+            network_client_globals_dispose();
+            return 0;
+        }
+        game_variant_history_current = -1;
+        game_engine_apply_current_custom_variant();
+        game_engine_sync_variant_defaults();
+        network_game_mode = 2;
+        network_host_round_reset();
+        network_disconnect_timeout_flag = 1;
+    } else {
+    fail_or_dispose:
+        if (ok == 0) {
+            goto fail;
+        }
+    }
+    if (network_server == 0) {
+        network_client_globals_dispose();
+        return 0;
+    }
+    {
+        network_channel *listen_channel = network_server->listen_channel;
+        network_server->flags = network_server->flags | 1;
+        listen_channel->listening = 1;
+
+        *((uint8_t *)network_server + 0x9d5) = 0;
+
+        wcsncpy((wchar_t *)((uint8_t *)network_server + 8), (const wchar_t *)name, 0x3f);
+        *(uint16_t *)((uint8_t *)network_server + 0x86) = 0;
+        wcsncpy((wchar_t *)network_server->password, (const wchar_t *)password, 8);
+        network_server->password[8] = 0;
+        {
+            int32_t max_players = sv_maxplayers_value;
+            if (max_players < 0) {
+                max_players = 0;
+                sv_maxplayers_value = 0;
+            } else if (0x10 < max_players) {
+                max_players = 0x10;
+                sv_maxplayers_value = 0x10;
+            }
+            network_server->session.maximum_players = (uint8_t)max_players;
+        }
+        widget_close_all();
+        network_server->new_server_pending = 1;
+        if (((network_server->flags >> 2) & 1) == 0) {
+            join_ui_state = 2;
+        }
+        return 1;
+    }
+}
+
+/**
+ * this module, 0x4e19c0
+ *
+ * @address 0x4deec0
+ */
+void GameRuntime::map_cycle_list_broadcast()
+{
+    void *entries[16];
+    uint8_t encoded[1024];
+    network_map_cycle_entry scratch[16];
+    int32_t count;
+    data_iterator iterator;
+    void *item;
+
+    for (count = 0; count < 16; count++) {
+        entries[count] = 0;
+    }
+    count = 0;
+    iterator.data = 0;
+    iterator.next_index = 0;
+    iterator.index = 0;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    item = data_iterator_next(&iterator);
+    if (item != 0) {
+        do {
+            scratch[count].unknown_00 = *(uint8_t *)((uint8_t *)item + 0x67);
+            scratch[count].unknown_04 = *(uint32_t *)&((struct item_object *)item)->base.maximum_shield_vitality;
+            entries[count] = &scratch[count];
+            count = count + 1;
+            item = data_iterator_next(&iterator);
+        } while (item != 0 && count < 16);
+        if (count > 0) {
+            message_delta_encode_message(0, 0x35, 0, entries, 0, count, 0);
+            network_session_broadcast_to_all(network_server, 1, encoded, 0, 0, 0, 3);
+        }
+    }
+}
+
+/**
+ * Original `network_session_disconnect_with_error`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4d97e0
+ */
+void GameRuntime::disconnect_with_error(int16_t error_code)
+{
+    if (network_join_error_code == -1) {
+        network_join_error_code = error_code + 0x2b;
+    }
+    network_host_handoff_requested = 1;
+    chat_close();
+}
+
+/**
+ * Original `network_game_generate_unique_random_name`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4df730
+ */
+void GameSessionView::generate_unique_random_name(wchar_t *out_name)
+{
+    network_game_session *session = self;
+    wchar_t *candidate;
+    int32_t collisions;
+    int32_t i;
+
+    do {
+        candidate = network_game_get_random_player_name();
+        collisions = 0;
+        for (i = 0; i < 0x10; i++) {
+            if (network_player_entry_validate(&session->players[i]) != 0 &&
+                wcscmp((wchar_t *)session->players[i].name, candidate) == 0) {
+                collisions = collisions + 1;
+            }
+        }
+    } while (collisions != 0);
+    wcsncpy(out_name, candidate, 0xb);
+    out_name[0xb] = L'\0';
+}
+
+/**
+ * Original `network_game_scenario_load_request`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4de6d0
+ */
+char GameSessionView::scenario_load_request()
+{
+    network_game_session *session = self;
+    network_scenario_load_request request;
+    int32_t i;
+    char loaded;
+    network_game_session *shared_session;
+
+    memset(&request, 0, sizeof(request));
+    request.difficulty = 1;
+    request.salt = 0xdeadbeef;
+    strncpy(request.map_name, session->server_name, 0x7f);
+    request.difficulty = session->difficulty;
+
+    if (network_game_mode > 0) {
+        if (network_game_mode < 3) {
+            if (network_server != 0) {
+                shared_session = &network_server->session;
+            } else if (network_client != 0) {
+                shared_session = &network_client->session;
+            } else {
+                shared_session = 0;
+            }
+            if (shared_session != 0) {
+                request.salt = *(uint32_t *)((uint8_t *)shared_session + 0x3a4);
+            }
+        } else if (network_game_mode == 3) {
+            request.salt = *(uint32_t *)((uint8_t *)session + 0x3a4);
+        }
+    }
+    cache_file_switch_map_by_path(request.map_name, 1);
+    if (game_time->initialized != 0 && (game_time->active != 0 || game_time->paused != 0)) {
+        game_stop_current_map();
+        game_unload_map();
+    }
+    main_menu_music_stop();
+    if (*(int32_t *)((uint8_t *)session + 0x134) != 0) {
+        game_engine_apply_variant(&session->variant);
+    }
+    cache_file_switch_map_by_path(request.map_name, 1);
+    memcpy(main_game_globals + 8, &request, sizeof(request));
+    loaded = scenario_load(request.map_name);
+    if (loaded == 0) {
+        if (*main_game_globals == 0) {
+            return session->map_loaded;
+        }
+    } else {
+        *main_game_globals = 1;
+    }
+    session->map_loaded = 1;
+    game_start_new_map();
+    if (network_game_mode == 2) {
+        for (i = 0; i < 0x10; i++) {
+            if (network_player_entry_validate(&session->players[i]) == 0) {
+                break;
+            }
+            if (network_channel_key_open(&session->players[i]) == 0) {
+                session->map_loaded = 0;
+                break;
+            }
+        }
+        if (((*(uint8_t *)((uint8_t *)network_server + 6) >> 2) & 1) != 0) {
+            game_engine_init_tick_record_for_mode();
+            game_engine_reset_all_players();
+        }
+    }
+    return session->map_loaded;
+}
+
+/**
+ * session->unknown_3ac by this function, matching the header's own note on that field
+ * Zeroes the whole session, then explicitly resets maximum_players to 16, player_count to 0,
+ * every player row to its documented empty state, and unknown_3ac from the global flag.
+ *
+ * @address 0x4de470
+ */
+void GameSessionView::session_reset()
+{
+    network_game_session *session = self;
+    int32_t i;
+    network_player_entry *player;
+
+    memset(session, 0, sizeof(network_game_session));
+    session->player_count = 0;
+    for (i = 0; i < 16; i++) {
+        player = &session->players[i];
+        player->name[0] = 0;
+        player->color_index = -1;
+        player->icon_index = -1;
+        player->machine_index = -1;
+        player->machine_player_index = -1;
+        player->team_index = -1;
+        player->slot_index = -1;
+    }
+    session->maximum_players = 0x10;
+    session->map_loaded = network_channel_table_default_flag != 0;
+}
+
+/**
+ * Original `network_player_assign_random_color`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4df790
+ */
+void GameSessionView::assign_random_color(network_player_entry *entry)
+{
+    network_game_session *session = self;
+    int32_t attempt;
+    uint32_t seed;
+    int16_t candidate;
+    int32_t in_use;
+    int32_t i;
+
+    attempt = 0;
+    seed = effect_random_seed;
+    for (;;) {
+        seed = seed * 0x19660d + 0x3c6ef35f;
+        if (attempt < 10) {
+            candidate = (int16_t)((int32_t)(seed >> 0x10) * 3 >> 0x10);
+        } else {
+            candidate = (int16_t)((int32_t)(seed >> 0x10) * 0x11 >> 0x10);
+        }
+        in_use = 0;
+        effect_random_seed = seed;
+        for (i = 0; i < 0x10; i++) {
+            if (network_player_entry_validate(&session->players[i]) != 0 &&
+                session->players[i].color_index == candidate) {
+                in_use = 1;
+                break;
+            }
+        }
+        attempt = attempt + 1;
+        if (!in_use) {
+            entry->color_index = candidate;
+            return;
+        }
+    }
+}
+
+/**
+ * Looks up an existing player row by (machine_index, machine_player_index); if none matches,
+ * validates the incoming record (network_player_entry_validate), finds a free row (preferring the incoming
+ * record's own slot_index if it names an empty row), copies the 32-byte record in, and bumps
+ * player_count. Returns 1 on success, 0 on failure (only AL is defined; the upper bytes of EAX
+ * are leftovers, not a packed slot index).
+ *
+ * @address 0x4de4e0
+ */
+uint32_t GameSessionView::add(network_player_entry *incoming)
+{
+    network_game_session *session = self;
+    int8_t machine_index;
+    int8_t machine_player_index;
+    int32_t i;
+    int32_t free_index;
+    int8_t incoming_slot;
+    uint32_t *src;
+    uint32_t *dst;
+    int32_t k;
+
+    if (session->player_count >= session->maximum_players) {
+        return 0;
+    }
+    machine_index = incoming->machine_index;
+    machine_player_index = incoming->machine_player_index;
+    if (machine_index < 0 || machine_index >= 0x10 ||
+        machine_player_index < 0 || machine_player_index >= 1) {
+        return 0;
+    }
+
+    for (i = 0; i < 0x10; i++) {
+        if (session->players[i].machine_index == machine_index &&
+            session->players[i].machine_player_index == machine_player_index) {
+            break;
+        }
+    }
+    if (i == 0x10 && network_player_entry_validate(incoming) != 0) {
+        free_index = -1;
+        for (k = 0; k < 0x10; k++) {
+            if (session->players[k].slot_index == -1) {
+                free_index = k;
+                break;
+            }
+        }
+        incoming_slot = incoming->slot_index;
+        if (incoming_slot != -1 && free_index != incoming_slot) {
+            free_index = incoming_slot;
+        }
+        if (free_index != -1) {
+            incoming->slot_index = (int8_t)free_index;
+            dst = (uint32_t *)&session->players[free_index];
+            src = (uint32_t *)incoming;
+            for (k = 0; k < 8; k++) {
+                dst[k] = src[k];
+            }
+            session->player_count = session->player_count + 1;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ * Original `network_player_entry_find`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4de900
+ */
+char GameSessionView::find(network_player_entry *key)
+{
+    network_game_session *session = self;
+    int32_t i;
+
+    if (network_player_entry_validate(key) == 0) {
+        return 0;
+    }
+    for (i = 0; i < 0x10; i++) {
+        if (session->players[i].machine_index == key->machine_index &&
+            session->players[i].machine_player_index == key->machine_player_index) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ * Original `network_player_entry_remove`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4de640
+ */
+uint32_t GameSessionView::remove(network_player_entry *key)
+{
+    network_game_session *session = self;
+    int32_t i;
+    network_player_entry *slot;
+
+    if (network_player_entry_find(session, key) == 0) {
+        return 0;
+    }
+    for (i = 0; ; i++) {
+        if (network_player_entry_validate(key) != 0 && session->players[i].machine_index == key->machine_index &&
+            session->players[i].machine_player_index == key->machine_player_index) {
+            break;
+        }
+        if (i > 0xf) {
+            return 0;
+        }
+    }
+    slot = &session->players[i];
+    slot->team_index = -1;
+    slot->machine_player_index = -1;
+    slot->icon_index = -1;
+    slot->slot_index = -1;
+    slot->name[0] = 0;
+    slot->color_index = -1;
+    slot->machine_index = -1;
+    session->player_count = session->player_count - 1;
+    return ((uint32_t)i << 8) | 1;
+}
+
+/**
+ * Original `network_player_entry_update`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4de5f0
+ */
+uint8_t GameSessionView::update_(network_player_entry *incoming)
+{
+    network_game_session *session = self;
+    int32_t slot_index;
+    network_player_entry *slot;
+    uint32_t *src;
+    uint32_t *dst;
+    int32_t i;
+
+    if (network_player_entry_find(session, incoming) == 0) {
+        return 0;
+    }
+    slot_index = incoming->slot_index;
+    slot = &session->players[slot_index];
+    if (slot->machine_player_index == incoming->machine_player_index &&
+        slot->machine_index == incoming->machine_index) {
+        dst = (uint32_t *)slot;
+        src = (uint32_t *)incoming;
+        for (i = 0; i < 8; i++) {
+            dst[i] = src[i];
+        }
+        return ((uint32_t)slot_index << 8) | 1;
+    }
+    return 0;
+}
+
+/**
+ * Original `network_player_name_collision_check`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4df6f0
+ */
+uint8_t GameSessionView::name_collision_check(uint16_t *candidate_name)
+{
+    network_game_session *session = self;
+    int32_t i;
+
+    for (i = 0; i < 0x10; i++) {
+        if (network_player_entry_validate(&session->players[i]) != 0) {
+            if (wcscmp((wchar_t *)session->players[i].name, (wchar_t *)candidate_name) == 0) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+/**
+ * Original `network_game_search_entry_is_fresh`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4da770
+ */
+uint8_t SearchEntryView::entry_is_fresh()
+{
+    network_game_search_entry *entry = self;
+    large_integer counter;
+    int32_t now_ms;
+    int32_t elapsed_ms;
+
+    if (entry->in_use == 0) {
+        return 0;
+    }
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    elapsed_ms = now_ms - entry->received_ms;
+    if (elapsed_ms < 0x1771) {
+        return 1;
+    }
+    return 0;
+}
+
+/**
+ * Original `network_game_search_results_add_or_update`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x4da7d0
+ */
+int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement)
+{
+    network_game_search_entry *results = self;
+    large_integer counter;
+    int32_t now_ms;
+    int32_t i;
+    int32_t slot;
+    char joinable;
+    network_game_search_entry *entry;
+    const wchar_t *name_source;
+
+    joinable = 1;
+    if ((*(announcement + 0x15e) & 2) == 0 || *(const int16_t *)(announcement + 0x156) > 0xf) {
+        joinable = 0;
+    }
+
+    for (i = 0; i < 9; i = i + 1) {
+        entry = &results[i];
+        if (entry->in_use == 0) {
+            memset(entry, 0, sizeof(network_game_search_entry));
+            continue;
+        }
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+        if (6000 < now_ms - entry->received_ms) {
+            memset(entry, 0, sizeof(network_game_search_entry));
+        }
+    }
+
+    slot = -1;
+    for (i = 0; i < 9; i = i + 1) {
+        if (*(const uint32_t *)announcement == results[i].identity[0]) {
+            slot = i;
+            break;
+        }
+    }
+
+    if (slot == -1) {
+        for (i = 0; i < 9; i = i + 1) {
+            if (results[i].in_use == 0) {
+                slot = i;
+                break;
+            }
+        }
+    }
+
+    if (slot == -1) {
+        if (!joinable) {
+            return 0;
+        }
+        for (i = 0; i < 9; i = i + 1) {
+            if (results[i].joinable == 0) {
+                memset(&results[i], 0, sizeof(network_game_search_entry));
+                slot = i;
+                break;
+            }
+        }
+        if (slot == -1) {
+            return 0;
+        }
+    }
+
+    entry = &results[slot];
+    entry->in_use = 1;
+    entry->identity[0] = *(const uint32_t *)(announcement + 0x00);
+    entry->identity[1] = *(const uint32_t *)(announcement + 0x04);
+    entry->identity[2] = *(const uint32_t *)(announcement + 0x08);
+    entry->identity[3] = *(const uint32_t *)(announcement + 0x0c);
+    entry->identity[4] = *(const uint32_t *)(announcement + 0x10);
+    entry->identity[5] = *(const uint32_t *)(announcement + 0x14);
+
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    entry->received_ms = now_ms;
+
+    entry->unknown_12a = *(const int16_t *)(announcement + 0x1c);
+    name_source = (const wchar_t *)(announcement + 0x1e);
+    if (*name_source == L'\0') {
+        name_source = L"???";
+    }
+    wcsncpy((wchar_t *)entry->name, name_source, 0x3f);
+    entry->name[63] = 0;
+
+    entry->game_engine_index = *(const int16_t *)(announcement + 0x154);
+    for (i = 0; i < 0x21; i = i + 1) {
+        entry->info[i] = *(const uint32_t *)(announcement + 0xd0 + i * 4);
+    }
+    entry->player_count = *(const int16_t *)(announcement + 0x156);
+    entry->unknown_124 = *(const int16_t *)(announcement + 0x158);
+    entry->unknown_126 = *(const int16_t *)(announcement + 0x15a);
+    entry->unknown_128 = *(const int16_t *)(announcement + 0x15c);
+    entry->joinable = joinable;
+    entry->stats_logging = (*(announcement + 0x15e) >> 2) & 1;
+
+    if (entry->game_engine_index == 3 && (*(announcement + 0x15e) & 8) != 0) {
+        entry->unknown_12f = 1;
+        return 1;
+    }
+    entry->unknown_12f = 0;
+    return 1;
+}
+
+/**
+ * Returns the desired team index of the player currently occupying object->unknown_00c's
+ * machine slot, or -1 if the slot is empty, out of range, or the player datum is not live.
+ *
+ * @address 0x4e0cf0
+ */
+int32_t ObjectOwnership::owner_team_index_desired(object *obj)
+{
+    uint16_t slot;
+    datum_index resolved;
+    player *plr;
+
+    slot = *(uint16_t *)&((struct object *)obj)->network_update_tick;
+    if (slot != 0xffff && &machine_to_player[slot] != 0 && machine_to_player[slot] != (datum_index)0xffffffff) {
+        resolved = machine_to_player[slot];
+        plr = (player *)datum_get(resolved, player_data);
+        if (plr != 0) {
+            return (int32_t)plr->team_index_desired;
+        }
+    }
+    return -1;
+}
+
+/**
+ * Resolves `slot_index` to a player datum; if it is live, notifies game_engine_notify_object_value_event of the
+ * player's team and, if a local ownership claim is active, clears it.
+ *
+ * @address 0x4dfc10
+ */
+void ObjectOwnership::release_ownership_claim(uint8_t slot_index)
+{
+    uint32_t datum;
+    int16_t player_index;
+    int16_t salt;
+    player *plr;
+
+    datum = player_data_iterator_advance(slot_index);
+    if (datum == 0xffffffff) {
+        return;
+    }
+    player_index = (int16_t)datum;
+    if (player_index < 0 || player_index >= player_data->maximum_count) {
+        return;
+    }
+    plr = (player *)((uint8_t *)player_data->data + player_data->size * player_index);
+    if (plr->identifier == 0) {
+        return;
+    }
+    salt = (int16_t)(datum >> 16);
+    if (salt != 0 && plr->identifier != salt) {
+        return;
+    }
+    game_engine_notify_object_value_event(plr->team);
+    if (game_engine_player_profile_cache_find() != -1) {
+        game_engine_capture_player_profile(0);
+    }
+}
+
+/**
+ * True when entry is non-NULL, its machine_player_index is 0, its machine_index is 0..15, and
+ * its name field contains a NUL within its first 12 UTF-16 code units.
+ *
+ * @address 0x4de9f0
+ */
+char PlayerEntryView::validate()
+{
+    network_player_entry *entry = self;
+    int32_t i;
+
+    if (entry != 0 && entry->machine_player_index >= 0 && entry->machine_player_index < 1 &&
+        entry->machine_index >= 0 && entry->machine_index < 0x10) {
+        for (i = 0; i < 12; i++) {
+            if (entry->name[i] == 0) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+/**
+ * fopen: <stdio.h>, resolved to the game CRT at 0x624186 // 0x624186, fopen-shaped CRT wrapper
+ * Formats format (with its trailing varargs) into a scratch buffer, then appends it to
+ * ServerPlayerUpdateHistory.log when server player-update-history logging is enabled.
+ *
+ * @address 0x4e7f90
+ */
+void PlayerReports::update_history_log_write_v(const char *format, va_list args)
+{
+    char buffer[0x400];
+    FILE *file;
+
+    vsprintf(buffer, format, args);
+    if (network_player_update_log_enabled == 1) {
+        file = (FILE *)fopen(network_player_update_history_log_path,
+            player_update_log_file_mode_string);
+        if (file != 0) {
+            fprintf(file, buffer);
+            fclose(file);
+        }
+    }
+}
+
+/**
+ * Original `network_session_host_cd_key_callback`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x5760a0
+ */
+void HostSession::cd_key_callback(int32_t game_id, int32_t local_id, int32_t authenticated, const char *message, void *instance)
+{
+    network_server_globals *server = network_server;
+    network_machine *machine = 0;
+    int32_t i;
+
+    (void)game_id;
+    (void)message;
+    (void)instance;
+    if (authenticated != 0) {
+        return;
+    }
+    for (i = 0; i < 0x10; i++) {
+        if (*(int32_t *)((uint8_t *)server + 0x414 + i * 0x60) == local_id) {
+            machine = (network_machine *)((uint8_t *)server + 0x3b8 + i * 0x60);
+            break;
+        }
+    }
+    network_server_notify_or_resend_challenge(4, machine, server);
+}
+
+/**
+ * Tears down the network channel/session object created by network_session_host_start, if one
+ * exists.
+ *
+ * @address 0x5778f0
+ */
+void HostSession::dispose()
+{
+    if (network_session_host_object != 0) {
+        if (network_session_host_state != 2) {
+            network_session_host_state = 2;
+        }
+        network_session_host_update();
+        network_console_connection_id = -1;
+        gcd_shutdown();
+        qr2_shutdown(network_session_host_object);
+        network_session_host_object = 0;
+    }
+}
+
+/**
+ * Original `network_session_host_natneg_callback`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x578160
+ */
+void HostSession::natneg_callback(int32_t cookie)
+{
+    NNBeginNegotiationWithSocket(*(uint32_t *)network_game_socket, cookie, 0, (void *)function_do_nothing,
+        (void *)network_session_host_natneg_completed, 0);
+}
+
+/**
+ * Original `network_session_host_natneg_completed`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x578120
+ */
+void HostSession::natneg_completed(int32_t result, uint32_t socket, const uint8_t *remote_address, void *user_data)
+{
+    char text[0x16];
+
+    (void)socket;
+    (void)user_data;
+    if (result == 0) {
+        gt2AddressToString(*(const uint32_t *)(remote_address + 4), gt2NetworkToHostShort(*(const uint16_t *)(remote_address + 2)), text);
+    }
+}
+
+/**
+ * Original `network_session_host_qr2_add_error`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x578100
+ */
+void HostSession::qr2_add_error(int32_t error, char *message, void *user_data)
+{
+    (void)error;
+    (void)user_data;
+    console_printf_verbose((ColorARGB *)console_message_default_color, (char *)"qr2_adderror_callback - %s", message);
+}
+
+/**
+ * Original `network_session_host_qr2_count`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x5780c0
+ */
+int32_t HostSession::qr2_count(int32_t key_type, void *user_data)
+{
+    int32_t (*hook)(int32_t);
+
+    (void)user_data;
+    if (current_game_engine == 0) {
+        return 0;
+    }
+    hook = *(int32_t (**)(int32_t))((uint8_t *)current_game_engine + 0xa8);
+    if (hook != 0) {
+        return hook(key_type);
+    }
+    if (key_type == 1) {
+        return players_active_count();
+    }
+    if (key_type == 2 && game_engine_teams_enabled_flag != 0) {
+        return 2;
+    }
+    return 0;
+}
+
+/**
+ * Original `network_session_host_qr2_team_key`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x577f40
+ */
+void HostSession::qr2_team_key(int32_t key_id, int32_t index, void *buffer, void *user_data)
+{
+    (void)user_data;
+    if (current_game_engine != 0) {
+        uint8_t (*hook)(int32_t, int32_t, void *) = *(uint8_t (**)(int32_t, int32_t, void *))((uint8_t *)current_game_engine + 0xa4);
+
+        if (hook != 0 && hook(key_id, index, buffer) != 0) {
+            return;
+        }
+    }
+    if (key_id == 0x1c) {
+        qr2_buffer_add(buffer, index == 1 ? "Blue" : "Red");
+        return;
+    }
+    qr2_buffer_add(buffer, "");
+}
+
+/**
+ * Original `network_session_host_reject_or_cleanup_client`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x575ff0
+ */
+uint8_t HostSession::reject_or_cleanup_client(const char *response, const char *challenge, uint32_t ip, int32_t local_id)
+{
+    network_server_globals *server;
+    network_machine *machine = 0;
+    int32_t i;
+
+    gcd_authenticate_user(network_console_connection_id, local_id, ip, challenge, response, (void *)network_session_host_cd_key_callback, 0);
+    if (ban_list_check_and_reject_player((char *)gcd_getkeyhash(network_console_connection_id, local_id)) == 0) {
+        return 1;
+    }
+    server = network_server;
+    for (i = 0; i < 0x10; i++) {
+        if (*(int32_t *)((uint8_t *)server + 0x414 + i * 0x60) == local_id) {
+            machine = (network_machine *)((uint8_t *)server + 0x3b8 + i * 0x60);
+            break;
+        }
+    }
+    network_server_notify_or_resend_challenge(6, machine, server);
+    if (local_id == -1) {
+        gcd_disconnect_all(network_console_connection_id);
+    } else {
+        gcd_disconnect_user(network_console_connection_id, local_id);
+    }
+    return 0;
+}
+
+/**
+ * Original `network_session_host_start`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ *
+ * @address 0x577850
+ */
+int32_t HostSession::start(void *user_data)
+{
+    int32_t result;
+
+    network_session_host_dispose();
+    network_channels_open();
+    result = qr2_init_socketA(&network_session_host_object, *(uint32_t *)network_game_socket, network_session_start_game_type,
+        network_session_start_host_name, network_session_start_map_name, network_session_host_flags_byte, 1,
+        (void *)network_session_host_qr2_server_key, (void *)network_session_host_dispatch_message,
+        (void *)network_session_host_qr2_team_key, (void *)network_session_host_qr2_key_list,
+        (void *)network_session_host_qr2_count, (void *)network_session_host_qr2_add_error, user_data);
+    qr2_register_natneg_callback(network_session_host_object, (void *)network_session_host_natneg_callback);
+    network_console_connection_id = 0x319;
+    gcd_init_qr2(network_session_host_object, 0x319, network_session_host_flags_byte);
+    return result;
+}
+
+/**
+ * Stashes the host, map and (optional) variant names plus a game-type value into the globals a
+ * new network session is started from, then registers the well-known hs script globals
+ * (dedicated, player_flags, game_flags, game_classic) a dedicated server exposes.
+ *
+ * @address 0x576100
+ */
+void HostSession::start_info_set(char *host_name, char *map_name, char *variant_name, int32_t game_type)
+{
+    char *dest;
+    char *src;
+
+    dest = network_session_start_host_name;
+    src = host_name;
+    do {
+        *dest++ = *src;
+    } while (*src++ != 0);
+
+    dest = network_session_start_map_name;
+    src = map_name;
+    do {
+        *dest++ = *src;
+    } while (*src++ != 0);
+
+    if (variant_name != 0) {
+        dest = network_session_start_variant_name;
+        src = variant_name;
+        do {
+            *dest++ = *src;
+        } while (*src++ != 0);
+    }
+
+    network_session_start_game_type = game_type;
+    qr2_register_key(0x33, "dedicated");
+    qr2_register_key(0x34, "player_flags");
+    qr2_register_key(0x35, "game_flags");
+    qr2_register_key(0x36, "game_classic");
+}
+
+/**
+ * Periodic per-frame update for the network channel/session object: flushes it on timeout (1000+
+ * ticks since the last flush) or on a pending close request, then pumps it either way.
+ *
+ * @address 0x577940
+ */
+void HostSession::update_()
+{
+    if (network_session_host_object != 0) {
+        if (network_session_host_state != 0) {
+            int32_t now = time_query_performance_counter_ms();
+            if (network_session_host_state == 2 || (uint32_t)(now - network_session_host_last_tick) > 999) {
+                network_session_host_closing = (network_session_host_state == 2);
+                qr2_send_statechanged(network_session_host_object);
+                network_session_host_state = 0;
+                network_session_host_last_tick = now;
+            }
+        }
+        qr2_think(network_session_host_object);
+        network_session_host_closing = 0;
+    }
+}
+
+}
