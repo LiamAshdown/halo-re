@@ -12,10 +12,10 @@ namespace halo::ai {
 namespace actor_react_to_disturbance_local {
 extern "C" {
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (actor[(o)])
-#define W(o) (*(int16_t *)(actor + (o)))
-#define D(o) (*(uint32_t *)(actor + (o)))
-#define F(o) (*(float *)(actor + (o)))
+#define B(o) (((uint8_t *)actor)[(o)])
+#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
+#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
+#define F(o) (*(float *)((uint8_t *)actor + (o)))
 extern int32_t __ftol(void);
 }
 }
@@ -28,51 +28,51 @@ extern int32_t __ftol(void);
 uint8_t ActorView::react_to_disturbance(int16_t threshold)
 {
     using namespace actor_react_to_disturbance_local;
-    uint8_t *actor = ACTOR(actor_index);
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[D(0x5c) & halo::k_slot_mask].data;
+    struct actor *actor = halo::ai::actor_at(actor_index);
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_variant_tag & halo::k_slot_mask].data;
     real_vector2d direction;
     int16_t action = 4;
     datum_index object = k_datum_index_none;
     int32_t reason = 0;
 
-    if (B(0x160) != 0 || W(0x2ee) < threshold) {
-        W(0x2ee) = 0;
+    if (actor->order_committed != 0 || actor->look_at_priority < threshold) {
+        actor->look_at_priority = 0;
         return 0;
     }
-    if (B(0x2f8) != 0) {
-        direction.i = F(0x2fc);
-        direction.j = F(0x300);
+    if (actor->look_at_has_point != 0) {
+        direction.i = actor->look_at_point.x;
+        direction.j = actor->look_at_point.y;
         halo::math::vector2d_normalize_with_length(direction);
-        if (direction.j * F(0x5a8) + direction.i * F(0x5a4) < 0.0f) {
+        if (direction.j * actor->desired_facing_vector.y + direction.i * actor->desired_facing_vector.x < 0.0f) {
             direction.i = -direction.i;
             direction.j = -direction.j;
             action = 5;
         }
     } else {
-        direction.i = F(0x174);
-        direction.j = F(0x178);
+        direction.i = actor->facing.i;
+        direction.j = actor->facing.j;
         halo::math::vector2d_normalize_with_length(direction);
     }
     halo::ai::actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
-    if (D(0x2f4) != halo::k_dword_none) {
-        uint8_t *prop = (uint8_t *)halo::ai::globals().prop_data->data + (D(0x2f4) & halo::k_slot_mask) * k_prop_size;
+    if (actor->look_at_reference != halo::k_dword_none) {
+        struct prop *prop = halo::ai::prop_at(actor->look_at_reference);
 
-        object = ((struct prop *)prop)->object_index;
-        reason = (prop[0x60] != 0) + 2;
+        object = prop->object_index;
+        reason = (prop->enemy != 0) + 2;
     }
-    halo::ai::ai_communication_broadcast(0x29, D(0x18), object, reason, halo::k_dword_none, halo::k_dword_none, 0);
+    halo::ai::ai_communication_broadcast(0x29, actor->unit_index, object, reason, halo::k_dword_none, halo::k_dword_none, 0);
     if (*(float *)(definition + 0x90) > 0.0f) {
-        W(0x5f2) = 4;
-        W(0x5f4) = (int16_t)(int32_t)(*(float *)(definition + 0x90) * 30.0f);
+        actor->firing_state = 4;
+        actor->firing_state_timer = (int16_t)(int32_t)(*(float *)(definition + 0x90) * 30.0f);
     }
     if (*(float *)(definition + 0x8c) > 0.0f) {
         halo::ai::actor_raise_timer_5f6(actor_index, (int32_t)(*(float *)(definition + 0x8c) * 30.0f));
     }
-    B(0x2f0) = 1;
-    if (D(0x2f4) != halo::k_dword_none) {
-        halo::ai::actor_consider_target_candidate(actor_index, D(0x2f4));
+    actor->unknown_2f0[0] = 1;
+    if (actor->look_at_reference != halo::k_dword_none) {
+        halo::ai::actor_consider_target_candidate(actor_index, actor->look_at_reference);
     }
-    W(0x2ee) = 0;
+    actor->look_at_priority = 0;
     return 1;
 }
 

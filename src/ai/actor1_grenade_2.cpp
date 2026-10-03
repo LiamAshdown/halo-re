@@ -5,6 +5,7 @@
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 
 namespace c_actor_compute_grenade_throw_vector {
 extern "C" {
@@ -25,20 +26,20 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
 {
     using namespace c_actor_compute_grenade_throw_vector;
     datum_index actor_index = datum;
-    uint8_t *a = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    actor *a = halo::ai::actor_at(actor_index);
     uint32_t target_object = halo::k_dword_none;
     real_vector3d direction;
     float speed;
 
-    if (*(datum_index *)&((struct actor *)a)->grenade_target_prop_index != k_datum_index_none) {
-        uint8_t *p = (uint8_t *)halo::ai::globals().prop_data->data + (*(datum_index *)&((struct actor *)a)->grenade_target_prop_index & halo::k_slot_mask) * k_prop_size;
-        int16_t kind = ((prop *)p)->state;
+    if (*(datum_index *)&a->grenade_target_prop_index != k_datum_index_none) {
+        prop *p = halo::ai::prop_at(*(datum_index *)&a->grenade_target_prop_index);
+        int16_t kind = p->state;
 
         if (kind >= 2 && kind <= 3) {
-            target_object = ((prop *)p)->object_index;
+            target_object = p->object_index;
         }
         if (kind < 0 || kind > 1) {
-            real_point3d point = *(real_point3d *)&((prop *)p)->last_known_position.x;
+            real_point3d point = *(real_point3d *)&p->last_known_position.x;
 
             point.z += 0.2f;
             halo::ai::actor_validate_grenade_impact_point(actor_index, &point);
@@ -46,15 +47,15 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
     }
     halo::ai::actor_solve_grenade_lob(actor_index, grenade_position);
 
-    direction = ((actor *)a)->grenade_throw_direction;
-    if (((actor *)a)->active_unit_index == k_datum_index_none) {
+    direction = a->grenade_throw_direction;
+    if (a->active_unit_index == k_datum_index_none) {
         real length = (real)sqrt(direction.j * direction.j + direction.i * direction.i);
 
         if (!(fabs(length) < 9.999999747378752e-05)) {
             real inverse = 1.0f / length;
             real flat_i = direction.i * inverse;
             real flat_j = direction.j * inverse;
-            real_vector3d *facing = &((struct actor *)a)->facing;
+            real_vector3d *facing = &a->facing;
 
             if (length > 0.0f && !(flat_j * facing->j + flat_i * facing->i >= 0.8660254f)) {
 
@@ -70,7 +71,7 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
             }
         }
     }
-    speed = ((actor *)a)->grenade_throw_speed;
+    speed = a->grenade_throw_speed;
     out_vector->i = direction.i * speed;
     out_vector->j = direction.j * speed;
     out_vector->k = speed * direction.k;

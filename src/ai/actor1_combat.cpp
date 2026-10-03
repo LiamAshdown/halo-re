@@ -10,6 +10,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/ai/records.hpp"
 
 namespace c_actor_check_burst_length_exceeded {
 }
@@ -56,8 +57,8 @@ void halo::ai::combat_ops::check_melee_target_reachable(int16_t *order)
     using namespace c_actor_check_melee_target_reachable;
     uint32_t actor_index = datum;
     uint8_t *record = (uint8_t *)order;
-    uint8_t *actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & halo::k_slot_mask].data;
+    struct actor *actor = halo::ai::actor_at(actor_index);
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
     static actor_firing_position_query query;
     static path_find_context path_context;
     actor_firing_position_candidate candidate;
@@ -94,28 +95,28 @@ void halo::ai::combat_ops::check_melee_target_reachable(int16_t *order)
 
     if (claimed != -1 && *(datum_index *)(record + 0x1c) != k_datum_index_none) {
         datum_index prop_index = *(datum_index *)(record + 0x1c);
-        uint8_t *target = (uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size;
+        prop *target = halo::ai::prop_at(prop_index);
         uint32_t ignore_object;
         uint32_t request[0x12];
         uint8_t *goal = (uint8_t *)candidate.position;
         static path_find_context target_context;
 
-        if (((prop *)target)->state >= 2 && ((prop *)target)->state <= 3) {
+        if (target->state >= 2 && target->state <= 3) {
             halo::ai::actor_target_get_relationship_object(prop_index);
         }
-        ignore_object = *(uint32_t *)&((prop *)target)->relationship_object_index;
+        ignore_object = *(uint32_t *)&target->relationship_object_index;
         if (ignore_object == halo::k_dword_none) {
-            ignore_object = *(uint32_t *)&((prop *)target)->object_index;
+            ignore_object = *(uint32_t *)&target->object_index;
         }
-        actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+        actor = halo::ai::actor_at(actor_index);
         memset(request, 0, sizeof(request));
         request[0] = *(uint32_t *)&((Actor *)actor_tag)->pathfinding_radius;
         ((uint8_t *)request)[4] = 0;
         request[2] = ignore_object;
-        request[3] = *(uint32_t *)&((struct actor *)actor)->unit_index;
+        request[3] = *(uint32_t *)&actor->unit_index;
         ((uint8_t *)request)[0x10] = 1;
-        *(real_point3d *)&request[5] = *(real_point3d *)&((prop *)target)->pathfinding_point.x;
-        request[8] = *(uint32_t *)&((prop *)target)->pathfinding_surface_index;
+        *(real_point3d *)&request[5] = *(real_point3d *)&target->pathfinding_point.x;
+        request[8] = *(uint32_t *)&target->pathfinding_surface_index;
         memset(&target_context, 0, sizeof(target_context));
         target_context.structure_bsp = (uint32_t)halo::scenario::globals().structure_bsp;
         memcpy(&target_context, request, sizeof(request));
@@ -802,52 +803,52 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
 {
     using namespace c_actor_evaluate_custom_charge_trigger;
     datum_index actor_index = datum;
-    uint8_t *self = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-    const uint8_t *variant = (const uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((actor *)self)->actor_variant_tag & halo::k_slot_mask].data;
+    actor *self = halo::ai::actor_at(actor_index);
+    const uint8_t *variant = (const uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&self->actor_variant_tag & halo::k_slot_mask].data;
     const uint8_t *def = (const uint8_t *)halo::ai::actor_get_actor_definition(actor_index);
-    uint32_t unit_index = *(uint32_t *)&((actor *)self)->unit_index;
+    uint32_t unit_index = *(uint32_t *)&self->unit_index;
     const uint8_t *unit;
-    const uint8_t *target = 0;
+    prop *target = 0;
     uint8_t decision;
     int16_t variant_mode;
 
-    if (!halo::units::unit_is_in_busy_animation_state(unit_index) && self[0x4a8] == 0) {
+    if (!halo::units::unit_is_in_busy_animation_state(unit_index) && self->movement_action_complete == 0) {
         goto return_true;
     }
-    if (((actor *)self)->awareness_level < 3) {
+    if (self->awareness_level < 3) {
         goto return_true;
     }
-    if (((struct actor *)self)->combat_status < 5) {
+    if (self->combat_status < 5) {
         goto return_false;
     }
     unit = (const uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
-    if (*(uint32_t *)&((actor *)self)->target_unit_index != halo::k_dword_none) {
-        target = (const uint8_t *)halo::ai::globals().prop_data->data + (*(uint32_t *)&((actor *)self)->target_unit_index & halo::k_slot_mask) * k_prop_size;
+    if (*(uint32_t *)&self->target_unit_index != halo::k_dword_none) {
+        target = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data + (*(uint32_t *)&self->target_unit_index & halo::k_slot_mask) * k_prop_size);
     }
-    if (unit[0x2a3] == 0x17 && self[0x378] == 0) {
+    if (unit[0x2a3] == 0x17 && self->berserking == 0) {
         goto return_true;
     }
-    if (target != 0 && *(const float *)(target + 0x11c) > *(const float *)(def + 0x74)) {
+    if (target != 0 && target->distance > *(const float *)(def + 0x74)) {
         goto return_false;
     }
-    if (self[0x378] != 0 && target != 0 &&
-        *(const float *)(target + 0x11c) > *(const float *)(def + 0x16c)) {
+    if (self->berserking != 0 && target != 0 &&
+        target->distance > *(const float *)(def + 0x16c)) {
         goto return_false;
     }
     if ((int8_t)unit[0x106] < 0) {
         goto return_true;
     }
-    if (self[0x378] != 0) {
+    if (self->berserking != 0) {
         goto return_false;
     }
-    if (((actor *)self)->mode == 10 &&
-        (*(int16_t *)(self + 0xa0) == 2 || *(int16_t *)(self + 0xa0) == 3)) {
+    if (self->mode == 10 &&
+        (self->mode_data.charge.stage == 2 || self->mode_data.charge.stage == 3)) {
         goto return_false;
     }
     if (!halo::ai::actor_has_unshielded_threat_weapon(actor_index)) {
         goto return_false;
     }
-    if (self[0x15d] != 0) {
+    if (self->in_water != 0) {
         goto return_false;
     }
     variant_mode = *(int16_t *)&((ActorVariant *)variant)->movement_type;
@@ -857,17 +858,17 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     if (variant_mode == 1) {
         goto return_true;
     }
-    if (target != 0 && !(*(const float *)(target + 0x11c) >= *(const float *)(def + 0xa0))) {
+    if (target != 0 && !(target->distance >= *(const float *)(def + 0xa0))) {
         goto return_true;
     }
 
-    if (self[0x362] != 0) {
-        if (*(int16_t *)(self + 0x366) > 0) {
-            *(int16_t *)(self + 0x366) -= 1;
-        } else if ((variant[0] & 8) != 0 && (int8_t)self[0x245] > 0) {
+    if (self->unknown_362[0] != 0) {
+        if (*(int16_t *)((uint8_t *)self + 0x366) > 0) {
+            *(int16_t *)((uint8_t *)self + 0x366) -= 1;
+        } else if ((variant[0] & 8) != 0 && (int8_t)self->tally.group_c_total > 0) {
 
-            const uint8_t *axis_prop = (const uint8_t *)halo::ai::globals().prop_data->data +
-                (*(uint32_t *)&((actor *)self)->target_unit_index & halo::k_slot_mask) * k_prop_size;
+            prop *axis_prop = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data +
+                (*(uint32_t *)&self->target_unit_index & halo::k_slot_mask) * k_prop_size);
             actor_prop_iterator iterator;
             uint32_t cursor;
             int32_t ahead = 0, level = 0, behind = 0;
@@ -875,30 +876,30 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
             halo::ai::actor_prop_iterator_init(actor_index, &iterator);
             cursor = iterator.next;
             while (cursor != halo::k_dword_none) {
-                const uint8_t *p = (const uint8_t *)halo::ai::globals().prop_data->data + (cursor & halo::k_slot_mask) * k_prop_size;
-                int16_t kind = ((struct prop *)p)->state;
+                prop *p = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data + (cursor & halo::k_slot_mask) * k_prop_size);
+                int16_t kind = p->state;
                 uint32_t owner;
-                const uint8_t *other;
+                actor *other;
                 float dot;
 
-                cursor = *(const uint32_t *)(p + 0x8);
-                if (kind < 2 || kind > 3 || p[0x60] != 0 || p[0x127] != 0) {
+                cursor = p->next_in_actor;
+                if (kind < 2 || kind > 3 || p->enemy != 0 || p->dead != 0) {
                     continue;
                 }
-                if (((struct prop *)p)->distance >= 15.0f) {
+                if (p->distance >= 15.0f) {
                     continue;
                 }
-                owner = *(const uint32_t *)(p + 0x1c);
+                owner = p->owner_actor_index;
                 if (owner == halo::k_dword_none) {
                     continue;
                 }
-                other = (const uint8_t *)halo::ai::globals().actor_data->data + (owner & halo::k_slot_mask) * k_actor_size;
-                if (other[0x362] == 0) {
+                other = (actor *)((const uint8_t *)halo::ai::globals().actor_data->data + (owner & halo::k_slot_mask) * k_actor_size);
+                if (other->unknown_362[0] == 0) {
                     continue;
                 }
-                dot = (*(const float *)(other + 0x134) - ((actor *)self)->body_position.z) * *(const float *)(axis_prop + 0xe8) +
-                      (*(const float *)(other + 0x130) - ((actor *)self)->body_position.y) * *(const float *)(axis_prop + 0xe4) +
-                      (*(const float *)(other + 0x12c) - ((actor *)self)->body_position.x) * *(const float *)(axis_prop + 0xe0);
+                dot = (other->body_position.z - self->body_position.z) * axis_prop->direction.z +
+                      (other->body_position.y - self->body_position.y) * axis_prop->direction.y +
+                      (other->body_position.x - self->body_position.x) * axis_prop->direction.x;
                 if (dot > 1.4f) {
                     ahead++;
                 } else if (dot >= -1.4f) {
@@ -908,7 +909,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 }
             }
 
-            if (self[0x363] != 0) {
+            if (self->unknown_362[1] != 0) {
                 if ((int16_t)behind == 0 && (int16_t)ahead > (int16_t)level) {
                     decision = 0;
                     goto apply_decision;
@@ -917,40 +918,40 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 goto flip_decision;
             }
         }
-        *(int16_t *)(self + 0x364) -= 1;
-        if (*(int16_t *)(self + 0x364) != 0) {
-            return self[0x363];
+        *(int16_t *)((uint8_t *)self + 0x364) -= 1;
+        if (*(int16_t *)((uint8_t *)self + 0x364) != 0) {
+            return self->unknown_362[1];
         }
     flip_decision:
-        decision = (self[0x363] == 0);
+        decision = (self->unknown_362[1] == 0);
     } else {
         float chance = ((ActorVariant *)variant)->initial_crouch_chance;
         float roll;
 
-        if ((int8_t)self[0x200] > 0) {
-            uint32_t cursor = *(uint32_t *)&((actor *)self)->first_prop;
+        if ((int8_t)self->tally.group_a_total > 0) {
+            uint32_t cursor = *(uint32_t *)&self->first_prop;
             int16_t without = 0, with = 0;
 
             while (cursor != halo::k_dword_none) {
-                const uint8_t *p = (const uint8_t *)halo::ai::globals().prop_data->data + (cursor & halo::k_slot_mask) * k_prop_size;
-                int16_t kind = ((struct prop *)p)->state;
+                prop *p = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data + (cursor & halo::k_slot_mask) * k_prop_size);
+                int16_t kind = p->state;
                 uint32_t owner;
-                const uint8_t *other;
+                actor *other;
 
-                cursor = *(const uint32_t *)(p + 0x8);
-                if (kind < 2 || kind > 3 || p[0x60] != 0 || p[0x127] != 0) {
+                cursor = p->next_in_actor;
+                if (kind < 2 || kind > 3 || p->enemy != 0 || p->dead != 0) {
                     continue;
                 }
-                owner = *(const uint32_t *)(p + 0x1c);
+                owner = p->owner_actor_index;
                 if (owner == halo::k_dword_none) {
                     continue;
                 }
-                other = (const uint8_t *)halo::ai::globals().actor_data->data + (owner & halo::k_slot_mask) * k_actor_size;
-                if (((struct actor *)other)->type != ((actor *)self)->type ||
-                    *(const int16_t *)(other + 0x6e) < 5) {
+                other = (actor *)((const uint8_t *)halo::ai::globals().actor_data->data + (owner & halo::k_slot_mask) * k_actor_size);
+                if (other->type != self->type ||
+                    other->combat_status < 5) {
                     continue;
                 }
-                if (other[0x358] != 0) {
+                if (other->crouch_active != 0) {
                     with++;
                 } else {
                     without++;
@@ -961,7 +962,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         }
 
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
-        self[0x362] = 1;
+        self->unknown_362[0] = 1;
         roll = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
         decision = (roll >= chance) ? 0 : 1;
     }
@@ -970,7 +971,7 @@ apply_decision:
     {
         float ticks;
 
-        self[0x363] = decision;
+        self->unknown_362[1] = decision;
         if (decision != 0) {
             ticks = halo::math::random_real_range(*(const float *)(variant + 0x54), *(const float *)(variant + 0x58));
         } else {
@@ -980,17 +981,17 @@ apply_decision:
         if (!(ticks > 31.0f)) {
             ticks = 31.0f;
         }
-        *(int16_t *)(self + 0x364) = (int16_t)(int32_t)ticks;
-        *(int16_t *)(self + 0x366) = 0x1e;
+        *(int16_t *)((uint8_t *)self + 0x364) = (int16_t)(int32_t)ticks;
+        *(int16_t *)((uint8_t *)self + 0x366) = 0x1e;
     }
-    return self[0x363];
+    return self->unknown_362[1];
 
 return_true:
-    self[0x362] = 0;
+    self->unknown_362[0] = 0;
     return 1;
 
 return_false:
-    self[0x362] = 0;
+    self->unknown_362[0] = 0;
     return 0;
 }
 
@@ -1331,7 +1332,7 @@ datum_index halo::ai::combat_ops::get_squad_recent_attacker_target(char require_
         uint8_t *unit;
         datum_index source;
         datum_index prop_index;
-        uint8_t *p;
+        prop *p;
 
         if (responsible == k_datum_index_none) {
             continue;
@@ -1354,11 +1355,11 @@ datum_index halo::ai::combat_ops::get_squad_recent_attacker_target(char require_
         if (prop_index == k_datum_index_none) {
             continue;
         }
-        p = (uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size;
-        if (((struct prop *)p)->state < 2 || ((struct prop *)p)->state > 3) {
+        p = halo::ai::prop_at(prop_index);
+        if (p->state < 2 || p->state > 3) {
             continue;
         }
-        if (!p[0x60] && require_is_unit) {
+        if (!p->enemy && require_is_unit) {
             continue;
         }
         if (*(uint32_t *)record > best_tick) {
@@ -1425,7 +1426,7 @@ void halo::ai::combat_ops::get_target_state_flags(int16_t ax_mode, int16_t cx_mo
 
                     halo::ai::actor_target_get_relationship_object(a->target_unit_index);
                 }
-                *out_f = halo::ai::actor_firing_position_near_point(actor_index, (real_point3d *)((uint8_t *)p + 0xf0), *(uint32_t *)&((struct prop *)p)->pathfinding_surface_index, 1);
+                *out_f = halo::ai::actor_firing_position_near_point(actor_index, &p->pathfinding_point, *(uint32_t *)&((struct prop *)p)->pathfinding_surface_index, 1);
             }
         } else {
             *out_a = 0;

@@ -11,6 +11,7 @@
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/ai/records.hpp"
 
 namespace c_actor_allocate_paired_prop {
 }
@@ -546,8 +547,8 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
 {
     using namespace c_actor_find_danger_escape;
     datum_index actor_index = datum;
-    uint8_t *act = ACTOR(actor_index);
-    uint8_t *unit_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(((actor *)act)->unit_index));
+    actor *act = halo::ai::actor_at(actor_index);
+    uint8_t *unit_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(act->unit_index));
     float step = *(float *)(unit_tag + 0x238);
     int16_t kind = -1;
     uint8_t blocked = 0;
@@ -555,7 +556,7 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
     real_vector2d axis = {0.0f, 0.0f};
 
     if (step > 0.0f) {
-        uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
+        uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
         float sideways = (*(uint32_t *)actor_tag & 0x2000000) ? 8.0f : 0.0f;
         float length;
         real_vector3d path;
@@ -574,8 +575,8 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
         uint8_t extra[0x30];
         uint8_t have_axis = 0;
 
-        axis.i = -*(float *)(act + 0x2bc);
-        axis.j = -*(float *)(act + 0x2c0);
+        axis.i = -*(float *)((uint8_t *)act + 0x2bc);
+        axis.j = -*(float *)((uint8_t *)act + 0x2c0);
         length = (float)sqrt(axis.j * axis.j + axis.i * axis.i);
         if (fabs(length) >= 9.999999747378752e-05) {
             float inverse = 1.0f / length;
@@ -587,38 +588,38 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
             }
         }
         if (!have_axis) {
-            axis.i = ((actor *)act)->flee_from_point.x - ((actor *)act)->body_position.x;
-            axis.j = ((actor *)act)->flee_from_point.y - ((actor *)act)->body_position.y;
+            axis.i = act->flee_from_point.x - act->body_position.x;
+            axis.j = act->flee_from_point.y - act->body_position.y;
             if (halo::math::vector2d_normalize_with_length(axis) == 0.0f) {
-                axis.i = ((actor *)act)->facing.i;
-                axis.j = ((actor *)act)->facing.j;
+                axis.i = act->facing.i;
+                axis.j = act->facing.j;
                 if (halo::math::vector2d_normalize_with_length(axis) == 0.0f) {
                     axis = *global_forward2d_pointer;
                 }
             }
         }
-        path.i = ((actor *)act)->danger_segment_end.x - ((actor *)act)->flee_from_point.x;
-        path.j = ((actor *)act)->danger_segment_end.y - ((actor *)act)->flee_from_point.y;
-        path.k = ((actor *)act)->danger_segment_end.z - ((actor *)act)->flee_from_point.z;
+        path.i = act->danger_segment_end.x - act->flee_from_point.x;
+        path.j = act->danger_segment_end.y - act->flee_from_point.y;
+        path.k = act->danger_segment_end.z - act->flee_from_point.z;
         left.i = -axis.j;
         left.j = axis.i;
         left.k = 0.0f;
         right.i = axis.j;
         right.j = -axis.i;
         right.k = 0.0f;
-        left_point.x = left.i * step + ((actor *)act)->body_position.x;
-        left_point.y = axis.i * step + ((actor *)act)->body_position.y;
-        left_point.z = step * 0.0f + ((actor *)act)->body_position.z;
-        right_point.x = axis.j * step + ((actor *)act)->body_position.x;
-        right_point.y = right.j * step + ((actor *)act)->body_position.y;
-        right_point.z = step * 0.0f + ((actor *)act)->body_position.z;
+        left_point.x = left.i * step + act->body_position.x;
+        left_point.y = axis.i * step + act->body_position.y;
+        left_point.z = step * 0.0f + act->body_position.z;
+        right_point.x = axis.j * step + act->body_position.x;
+        right_point.y = right.j * step + act->body_position.y;
+        right_point.z = step * 0.0f + act->body_position.z;
 
         left_hit = halo::ai::actor_check_step_obstruction(actor_index, (real_vector2d *)&left, step, sideways, &left_blocked, extra);
-        left_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(((struct actor *)act)->flee_from_point, path, left_point));
-        left_out = (uint8_t)(left_hit && left_distance > ((actor *)act)->danger_object_radius);
+        left_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(act->flee_from_point, path, left_point));
+        left_out = (uint8_t)(left_hit && left_distance > act->danger_object_radius);
         right_hit = halo::ai::actor_check_step_obstruction(actor_index, (real_vector2d *)&right, step, sideways, &right_blocked, extra);
-        right_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(((struct actor *)act)->flee_from_point, path, right_point));
-        right_out = (uint8_t)(right_hit && right_distance > ((actor *)act)->danger_object_radius);
+        right_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(act->flee_from_point, path, right_point));
+        right_out = (uint8_t)(right_hit && right_distance > act->danger_object_radius);
 
         if (left_hit) {
             if (right_hit) {
@@ -673,43 +674,43 @@ enum {
     k_prop_admit_keep,
 };
 
-static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uint8_t *p, float distance_squared,
+static int actor_prop_still_admitted(datum_index actor_index, actor *self, prop *p, float distance_squared,
     uint8_t *far_out)
 {
-    datum_index owner_index = ((prop *)p)->owner_actor_index;
-    float radius = ((struct prop *)p)->danger_radius;
-    int16_t pinned_ticks = ((struct prop *)p)->retain_timer;
-    int16_t since_fired = ((struct prop *)p)->dead_ticks;
-    uint8_t *owner = 0;
+    datum_index owner_index = p->owner_actor_index;
+    float radius = p->danger_radius;
+    int16_t pinned_ticks = p->retain_timer;
+    int16_t since_fired = p->dead_ticks;
+    actor *owner = 0;
 
     *far_out = 0;
-    if (p[0x12e] != 0) {
+    if (p->is_parented != 0) {
         return k_prop_admit_keep;
     }
     if (owner_index != k_datum_index_none) {
-        owner = (uint8_t *)halo::ai::globals().actor_data->data + (owner_index & halo::k_slot_mask) * k_actor_size;
+        owner = halo::ai::actor_at(owner_index);
     }
-    if (owner != 0 && (owner[8] == 0 || owner[0x13] != 0)) {
+    if (owner != 0 && (owner->active == 0 || owner->keep_unit_alive != 0)) {
         return k_prop_admit_drop;
     }
-    if (p[0x63] != 0 || pinned_ticks > 0) {
+    if (p->in_use != 0 || pinned_ticks > 0) {
         return k_prop_admit_keep;
     }
     if (distance_squared > 1600.0f) {
         return k_prop_admit_drop;
     }
-    if (p[0x127] != 0) {
-        datum_index encounter_index = ((actor *)self)->encounter_index;
+    if (p->dead != 0) {
+        datum_index encounter_index = self->encounter_index;
 
         if (encounter_index != k_datum_index_none) {
-            uint8_t *encounter = (uint8_t *)halo::ai::globals().encounter_data->data + (encounter_index & halo::k_slot_mask) * k_encounter_size;
-            uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[((prop *)p)->object_index & halo::k_slot_mask].data;
-            int32_t reference = ((struct encounter *)encounter)->last_idle_time;
+            struct encounter *encounter = halo::ai::encounter_at(encounter_index);
+            uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->object_index & halo::k_slot_mask].data;
+            int32_t reference = encounter->last_idle_time;
             uint8_t counts = 1;
             uint8_t calm;
 
-            if (!(reference > *(int32_t *)&((struct actor *)self)->found_body_time)) {
-                reference = *(int32_t *)&((struct actor *)self)->found_body_time;
+            if (!(reference > *(int32_t *)&self->found_body_time)) {
+                reference = *(int32_t *)&self->found_body_time;
             }
             if (reference != -1) {
                 int32_t fired = ((struct unit_object *)unit)->unit.death_time;
@@ -718,7 +719,7 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
                     counts = 0;
                 }
             }
-            calm = encounter[0x45] == 0 && encounter[0x44] == 0 && encounter[0x42] == 0;
+            calm = encounter->engaged == 0 && encounter->has_live_target == 0 && encounter->stood_down == 0;
             if (!counts) {
                 return k_prop_admit_drop;
             }
@@ -731,7 +732,7 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
             return k_prop_admit_keep;
         }
         {
-            uint8_t enemy = p[0x60];
+            uint8_t enemy = p->enemy;
             float limit;
 
             if (enemy && since_fired > 0x96) {
@@ -741,20 +742,20 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
                 return k_prop_admit_drop;
             }
             limit = 16.0f;
-            if (!enemy && ((actor *)self)->awareness_level < 3) {
+            if (!enemy && self->awareness_level < 3) {
                 limit = 64.0f;
             }
             return distance_squared < limit ? k_prop_admit_keep : k_prop_admit_drop;
         }
     }
 
-    if (p[0x60] != 0) {
+    if (p->enemy != 0) {
         *far_out = distance_squared > 36.0f;
         return k_prop_admit_keep;
     }
-    if (((struct actor *)self)->combat_status >= 4) {
+    if (self->combat_status >= 4) {
         *far_out = 1;
-    } else if (self[0x1cc] == 0) {
+    } else if (self->grenade_ally_phase_flag == 0) {
         *far_out = distance_squared > 16.0f;
     } else {
         *far_out = 0;
@@ -774,8 +775,8 @@ datum_index halo::ai::prop_ops::find_or_allocate_prop(uint32_t object_index, cha
 {
     using namespace c_actor_find_or_allocate_prop;
     datum_index actor_index = datum;
-    uint8_t *self = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-    datum_index cursor = ((actor *)self)->first_prop;
+    actor *self = halo::ai::actor_at(actor_index);
+    datum_index cursor = self->first_prop;
     datum_index drop_choice = k_datum_index_none;
     datum_index far_choice = k_datum_index_none;
     float drop_distance = 3.4028234663852886e+38f;
@@ -785,17 +786,17 @@ datum_index halo::ai::prop_ops::find_or_allocate_prop(uint32_t object_index, cha
 
     while (cursor != k_datum_index_none) {
         datum_index current = cursor;
-        uint8_t *p = (uint8_t *)halo::ai::globals().prop_data->data + (cursor & halo::k_slot_mask) * k_prop_size;
-        int16_t prop_kind = ((prop *)p)->state;
-        float distance = ((prop *)p)->distance;
+        prop *p = halo::ai::prop_at(cursor);
+        int16_t prop_kind = p->state;
+        float distance = p->distance;
         uint8_t far_flag;
 
-        cursor = ((prop *)p)->next_in_actor;
-        if ((prop_kind >= 4 && prop_kind <= 5) || ((prop *)p)->pair_index != k_datum_index_none) {
+        cursor = p->next_in_actor;
+        if ((prop_kind >= 4 && prop_kind <= 5) || p->pair_index != k_datum_index_none) {
             continue;
         }
         if (actor_prop_still_admitted(actor_index, self, p, distance * distance, &far_flag) == k_prop_admit_keep) {
-            if ((char)p[0x60] != kind) {
+            if ((char)p->enemy != kind) {
                 continue;
             }
             same_kind_count++;
@@ -819,7 +820,7 @@ datum_index halo::ai::prop_ops::find_or_allocate_prop(uint32_t object_index, cha
     if (result == k_datum_index_none) {
         result = halo::memory::datum_new(halo::ai::globals().prop_data);
     } else {
-        uint8_t *p = (uint8_t *)halo::ai::globals().prop_data->data + (result & halo::k_slot_mask) * k_prop_size;
+        prop *p = halo::ai::prop_at(result);
         int16_t salt = *(int16_t *)p;
 
         halo::ai::actor_replace_object_reference(actor_index, halo::k_dword_none, result);
@@ -1126,21 +1127,21 @@ void halo::ai::prop_ops::mark_prop_seen_with_delta(datum_index object_index, dat
     }
     prop_index = halo::ai::actor_find_or_create_shared_prop(object_index, actor_index, 1, 1);
     if (prop_index != k_datum_index_none) {
-        uint8_t *p = PROP(prop_index);
-        datum_index pair = ((struct prop *)p)->pair_index;
+        prop *p = halo::ai::prop_at(prop_index);
+        datum_index pair = p->pair_index;
         int16_t kind;
 
-        *(int16_t *)(p + 0x6c) = 0;
-        p[0x74] = 1;
-        *(float *)(p + 0x70) = delta + *(float *)(p + 0x70);
+        p->seen_state = 0;
+        p->seen = 1;
+        p->unknown_70 = delta + p->unknown_70;
         if (pair != k_datum_index_none) {
-            uint8_t *q = PROP(pair);
+            prop *q = halo::ai::prop_at(pair);
 
-            *(int16_t *)(q + 0x6c) = 0;
-            q[0x74] = 1;
-            *(float *)(q + 0x70) = delta + *(float *)(q + 0x70);
+            q->seen_state = 0;
+            q->seen = 1;
+            q->unknown_70 = delta + q->unknown_70;
         }
-        kind = ((struct prop *)p)->state;
+        kind = p->state;
         if (kind < 2 || kind > 3) {
             prop_index = k_datum_index_none;
         }

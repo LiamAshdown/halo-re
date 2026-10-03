@@ -9,13 +9,14 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/ai/records.hpp"
 
 namespace c_actor_build_guard_mode_data {
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (actor[(o)])
-#define W(o) (*(int16_t *)(actor + (o)))
-#define D(o) (*(uint32_t *)(actor + (o)))
-#define F(o) (*(float *)(actor + (o)))
+#define B(o) (((uint8_t *)actor)[(o)])
+#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
+#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
+#define F(o) (*(float *)((uint8_t *)actor + (o)))
 
 }
 
@@ -30,24 +31,24 @@ uint8_t halo::ai::order_builder::build_guard_mode_data(uint8_t *out)
 {
     using namespace c_actor_build_guard_mode_data;
     datum_index actor_index = datum;
-    uint8_t *actor = ACTOR(actor_index);
+    struct actor *actor = halo::ai::actor_at(actor_index);
 
     memset(out, 0, 0x44);
-    *(int16_t *)out = W(0x33c);
-    if (B(0x160) != 0 || B(6) != 0) {
+    *(int16_t *)out = (int16_t)actor->search_velocity_ticks;
+    if (actor->order_committed != 0 || actor->swarm != 0) {
         *(int16_t *)(out + 0x24) = 1;
-    } else if (B(0x314) != 0 &&
-               halo::ai::actor_firing_position_near_point(actor_index, &((struct actor *)actor)->search_position, (int32_t)D(0x324), 1)) {
+    } else if (actor->search_position_valid != 0 &&
+               halo::ai::actor_firing_position_near_point(actor_index, &actor->search_position, (int32_t)(uint32_t)actor->search_surface_index, 1)) {
         *(int16_t *)(out + 0x24) = 2;
-        memcpy(out + 0x28, actor + 0x318, 12);
-        *(uint32_t *)(out + 0x34) = D(0x324);
-        *(uint32_t *)(out + 0x38) = D(0x328);
+        memcpy(out + 0x28, (uint8_t *)actor + 0x318, 12);
+        *(uint32_t *)(out + 0x34) = (uint32_t)actor->search_surface_index;
+        *(uint32_t *)(out + 0x38) = actor->search_position_extra;
     } else if (*(int16_t *)out > 0) {
         *(int16_t *)(out + 0x24) = 1;
-        out[0x14] = B(0x32c);
+        out[0x14] = actor->search_velocity_valid;
         out[0x15] = 0;
-        if (B(0x32c) != 0) {
-            memcpy(out + 0x18, actor + 0x330, 12);
+        if (actor->search_velocity_valid != 0) {
+            memcpy(out + 0x18, (uint8_t *)actor + 0x330, 12);
             if (halo::math::vector3d_normalize_with_length(*(real_vector3d *)(out + 0x18)) == 0.0f) {
                 out[0x14] = 0;
             }
@@ -56,14 +57,14 @@ uint8_t halo::ai::order_builder::build_guard_mode_data(uint8_t *out)
         *(int16_t *)(out + 0x24) = 0;
         out[0x0e] = 1;
     }
-    if (W(0x312) == 2) {
+    if (actor->search_priority == 2) {
         out[0x0f] = 1;
-        *(uint32_t *)(out + 0x10) = D(0x340);
+        *(uint32_t *)(out + 0x10) = actor->search_prop_index;
     }
-    *(uint32_t *)(out + 0x3c) = D(0x340);
-    if (D(0x340) != halo::k_dword_none) {
-        *(int16_t *)(out + 0x02) = W(0x344);
-        out[0x40] = B(0x348);
+    *(uint32_t *)(out + 0x3c) = actor->search_prop_index;
+    if (actor->search_prop_index != halo::k_dword_none) {
+        *(int16_t *)(out + 0x02) = (int16_t)actor->search_prop_value;
+        out[0x40] = actor->search_prop_flag;
     }
     return 1;
 }
@@ -390,14 +391,14 @@ namespace c_actor_build_order_investigate_encounter_point {
 uint8_t halo::ai::order_builder::investigate_encounter_point(uint32_t vehicle_index, uint32_t actor_index, int16_t seat_index, uint8_t *order)
 {
     using namespace c_actor_build_order_investigate_encounter_point;
-    uint8_t *act = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    actor *act = halo::ai::actor_at(actor_index);
     uint8_t *vehicle;
     real_point3d entry;
     real_vector3d direction;
     real_point3d hint;
 
     memset(order, 0, 0x4c);
-    if (((actor *)act)->active_unit_index != k_datum_index_none || act[0x6] != 0) {
+    if (act->active_unit_index != k_datum_index_none || act->swarm != 0) {
         return 0;
     }
     vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[vehicle_index & halo::k_slot_mask].data;
@@ -407,7 +408,7 @@ uint8_t halo::ai::order_builder::investigate_encounter_point(uint32_t vehicle_in
     *(datum_index *)(order + 0x0) = vehicle_index;
     *(int16_t *)(order + 0x4) = seat_index;
     order[0x6] = 0;
-    if (!halo::units::unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat_index)) {
+    if (!halo::units::unit_seat_index_is_valid(act->unit_index, vehicle_index, seat_index)) {
         return 0;
     }
     if (!halo::ai::actor_evaluate_search_node(actor_index, vehicle_index, seat_index, &entry, &direction, &hint, 0, 0, 0, 0)) {
@@ -657,7 +658,7 @@ namespace c_actor_build_order_search_object {
 uint8_t halo::ai::order_builder::search_object(uint32_t vehicle_index, uint32_t actor_index, float radius_a, float radius_b, uint8_t *order)
 {
     using namespace c_actor_build_order_search_object;
-    uint8_t *act = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    actor *act = halo::ai::actor_at(actor_index);
     real_point3d entry;
     real_vector3d direction;
     real_point3d hint;
@@ -666,7 +667,7 @@ uint8_t halo::ai::order_builder::search_object(uint32_t vehicle_index, uint32_t 
     memset(order, 0, 0x4c);
     *(float *)(order + 0x20) = radius_a;
     *(float *)(order + 0x24) = radius_b;
-    if (((actor *)act)->active_unit_index != k_datum_index_none || act[0x6] != 0 || ((actor *)act)->mode == 9) {
+    if (act->active_unit_index != k_datum_index_none || act->swarm != 0 || act->mode == 9) {
         return 0;
     }
     if (!halo::ai::actor_is_within_alert_range(0, radius_a, radius_b, 0, 0, actor_index, vehicle_index)) {
@@ -679,7 +680,7 @@ uint8_t halo::ai::order_builder::search_object(uint32_t vehicle_index, uint32_t 
         return 0;
     }
     order[0x6] = 1;
-    if (!halo::units::unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat)) {
+    if (!halo::units::unit_seat_index_is_valid(act->unit_index, vehicle_index, seat)) {
         return 0;
     }
     if (!halo::ai::actor_avoid_obstacle_and_project(actor_index, vehicle_index, &entry, &hint, 0, (real_point3d *)(order + 0x30),

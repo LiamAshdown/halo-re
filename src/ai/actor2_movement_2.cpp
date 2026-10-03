@@ -8,6 +8,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 
 namespace halo::ai {
 
@@ -35,11 +36,11 @@ extern const float actor_avoidance_ray_weights[2];
 void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real_vector3d *out_direction, float *out_scale)
 {
     using namespace actor_movement_choose_avoidance_direction_local;
-    uint8_t *act = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    actor *act = halo::ai::actor_at(actor_index);
     const real_vector3d *zero = global_origin3d_pointer;
     real_vector3d result = *zero;
     float out = 0.0f;
-    datum_index unit_index = ((actor *)act)->active_unit_index;
+    datum_index unit_index = act->active_unit_index;
     uint8_t *obj;
     actor_movement_context context;
     float weights[8];
@@ -58,12 +59,12 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
     float index_out;
     float delta;
     float scale;
-    int16_t *best_saved = &((struct actor *)act)->avoidance_last_direction;
-    int16_t *hold = &((struct actor *)act)->avoidance_turn_around_ticks;
+    int16_t *best_saved = &act->avoidance_last_direction;
+    int16_t *hold = &act->avoidance_turn_around_ticks;
     int16_t held;
 
     if (unit_index == k_datum_index_none) {
-        unit_index = ((actor *)act)->unit_index;
+        unit_index = act->unit_index;
         if (unit_index == k_datum_index_none) {
             *out_direction = result;
             *out_scale = 0.0f;
@@ -124,7 +125,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
 
         for (j = 0; j < 2; j++) {
             hit[j] = halo::ai::actor_movement_test_obstacle_ray(&elevation, actor_avoidance_samples_a[k * 2 + j], &end_point,
-                                                      &context, &ray_distance[j], act + 0x5c8 + k * 2 + j);
+                                                      &context, &ray_distance[j], (uint8_t *)act + 0x5c8 + k * 2 + j);
         }
         for (j = 1; j >= 0; j--) {
             float weight = actor_avoidance_ray_weights[j];
@@ -133,7 +134,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
                 if (blocked) {
                     acc += 1.0f * weight;
                 } else {
-                    uint8_t clear_ticks = act[0x5c8 + k * 2 + j];
+                    uint8_t clear_ticks = ((uint8_t *)act)[0x5c8 + k * 2 + j];
                     float v = 0.0f;
 
                     if (clear_ticks >= 75) {

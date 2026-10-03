@@ -230,16 +230,22 @@ typedef struct actor_recognition_entry {
 // actor_mode_definition.data_size bytes). raw is the byte view; the per-mode views name what each mode's
 // functions (actor_mode_<mode>_*) use, relative to actor + 0x9c.
 typedef struct actor_mode_wait_data {
-    uint8_t unknown_00[3];              // 0x00
+    uint8_t finished;                   // 0x00 actor_mode_wait_process returns it once the wait is over
+    uint8_t unknown_01;                 // 0x01 tested by the process and by the tick together with the unit
+    uint8_t unknown_02;                 // 0x02 process gate (with unknown_04)
     uint8_t following_friend;           // 0x03 0x03 (actor+0x9f) set by actor_mode_wait_process when a nearby friend
                                         //    is further than 3.5 and worth following (then movement goes toward it);
                                         //    while clear the tick runs countdown_0c
-    uint8_t unknown_04[4];              // 0x04
+    uint8_t unknown_04;                 // 0x04
+    uint8_t unknown_05[3];              // 0x05
     int32_t start_game_time;            // 0x08 game_time when waiting began; process gives up after 2700 ticks
-    int16_t countdown_0c;               // 0x0c counted down by the tick while unknown_03 is clear
+    int16_t countdown_0c;               // 0x0c counted down by the tick while following_friend is clear
     int16_t countdown_150;              // 0x0e counted down by the tick; process re-arms it at 150
     int16_t random_countdown;           // 0x10 counted down by the tick; re-armed at 300..599 (random)
+    uint8_t unknown_12[6];              // 0x12
 } actor_mode_wait_data;
+typedef char actor_mode_wait_data_size[sizeof(actor_mode_wait_data) == 0x18 ? 1 : -1];
+
 typedef struct actor_mode_flee_data {
     int16_t countdown_180;              // 0x00 counted down by the tick; process re-arms it at 180
     int16_t countdown_02;               // 0x02 counted down by the tick; enter/tick act when it reaches 0
@@ -247,38 +253,60 @@ typedef struct actor_mode_flee_data {
     uint8_t movement_cancelled;         // 0x06 set by actor_mode_flee_movement_cancelled and by process
     uint8_t unknown_07;                 // 0x07
     int16_t destination;                // 0x08 firing position fled to, -1 for none
-    uint8_t unknown_0a[2];              // 0x0a
+    uint8_t unknown_0a;                 // 0x0a copied to actor.firing_position_without_path by update
+    uint8_t unknown_0b;                 // 0x0b
     int16_t panic;                      // 0x0c update's "panic"; 9..12 is the cowering band
-    uint8_t unknown_0e[0x0a];           // 0x0e
+    uint8_t unknown_0e;                 // 0x0e the type updates fight on (engage) while it is set, else look away
+    uint8_t unknown_0f[9];              // 0x0f
     int32_t ticks_in_mode;              // 0x18 incremented every tick, zeroed on enter
     datum_index reference;              // 0x1c the actor/object fled from (actor_mode_flee_replace_reference)
+    uint8_t unknown_20[0x10];           // 0x20
 } actor_mode_flee_data;
 typedef char actor_mode_flee_data_reference_at_1c[offsetof(actor_mode_flee_data, reference) == 0x1c ? 1 : -1];
+typedef char actor_mode_flee_data_size[sizeof(actor_mode_flee_data) == 0x30 ? 1 : -1];
 
 typedef struct actor_mode_converse_data {
     datum_index conversation;           // 0x00
-    uint8_t unknown_04[4];              // 0x04
+    uint8_t finished;                   // 0x04 actor_mode_converse_process returns it; set when the partner is lost or reached
+    uint8_t arrived;                    // 0x05 set once within approach_distance (or 0.7) of the partner, then movement stops
+    uint8_t unknown_06[2];              // 0x06
     float approach_distance;            // 0x08 process closes to within this of the partner
     datum_index partner_unit;           // 0x0c the partner, turned into partner_prop by actor_find_or_create_shared_prop
     datum_index partner_prop;           // 0x10 the partner's prop (actor_mode_converse_replace_reference swaps it)
 } actor_mode_converse_data;
+typedef char actor_mode_converse_data_size[sizeof(actor_mode_converse_data) == 0x14 ? 1 : -1];
 
 typedef struct actor_mode_uncover_data {
-    uint8_t unknown_00[8];              // 0x00
+    uint8_t crouch;                     // 0x00 copied to the crouch control flags by update; tick recomputes it
+    uint8_t done;                       // 0x01 set by the tick once the uncovering is over; request_path_with_grenade_arc stops pathing
+    uint8_t unknown_02;                 // 0x02 set by the tick while the actor is not making progress
+    uint8_t unknown_03;                 // 0x03 enter tests it
+    uint8_t use_last_seen_position;     // 0x04 request_path_with_grenade_arc passes it as use_last_seen_position, then sets it
+    uint8_t unknown_05[3];              // 0x05
     int16_t stage;                      // 0x08 update branches on 0 / 1
-    uint8_t unknown_0a[0x0a];           // 0x0a
+    uint8_t unknown_0a[2];              // 0x0a
+    int16_t target_cluster;             // 0x0c passed to the grenade path query as explicit_target_cluster_index
+    uint8_t unknown_0e[2];              // 0x0e
+    uint32_t target_object;             // 0x10 passed to the grenade path query as explicit_target_object
     real_point3d position;              // 0x14 the position to uncover; update copies it to the destination
-    uint8_t unknown_20[4];              // 0x20
+    uint8_t target_reached;             // 0x20 set by the path request; the tick ends stage 1 with it
+    uint8_t unknown_21[3];              // 0x21
     int32_t stage_ticks;                // 0x24 counted up, reset to 0; stage 0 acts at 30
     int32_t duration_ticks;             // 0x28 set on enter
     int32_t remaining_ticks;            // 0x2c copied from duration_ticks and counted down by the tick
+    int32_t total_ticks;                // 0x30 counted up whenever remaining_ticks is not refreshed; the tick gives up at 360
 } actor_mode_uncover_data;
 typedef char actor_mode_uncover_data_remaining_at_2c[offsetof(actor_mode_uncover_data, remaining_ticks) == 0x2c ? 1 : -1];
+typedef char actor_mode_uncover_data_size[sizeof(actor_mode_uncover_data) == 0x34 ? 1 : -1];
 
 typedef struct actor_mode_search_data {
-    uint8_t unknown_00[2];              // 0x00 (0x00 is a flag the tick tests)
+    uint8_t finished;                   // 0x00 the process returns it; the tick sets it when the search is over
+    uint8_t unknown_01;                 // 0x01 set by the process and the tick
     uint8_t reachable;                  // 0x02 actor_evaluate_engagement_reachability's result (process)
-    uint8_t unknown_03[5];              // 0x03
+    uint8_t unknown_03;                 // 0x03 set by the tick and the update
+    uint8_t unknown_04;                 // 0x04 process gate for the shared search position
+    uint8_t unknown_05;                 // 0x05 process gate together with reachable
+    uint8_t unknown_06[2];              // 0x06
     int16_t stage;                      // 0x08
     int16_t firing_position;            // 0x0a the firing position searched from, -1 for none
     int16_t target_cluster;             // 0x0c passed as actor_evaluate_engagement_reachability's target_cluster
@@ -289,35 +317,151 @@ typedef struct actor_mode_search_data {
     int32_t elapsed_ticks;              // 0x28 counted up by the tick; acts past 120
 } actor_mode_search_data;
 typedef char actor_mode_search_data_elapsed_at_28[offsetof(actor_mode_search_data, elapsed_ticks) == 0x28 ? 1 : -1];
+typedef char actor_mode_search_data_size[sizeof(actor_mode_search_data) == 0x2c ? 1 : -1];
 
 typedef struct actor_mode_charge_data {
     uint8_t unknown_00[4];              // 0x00
     int16_t stage;                      // 0x04 1..4
-    uint8_t unknown_06[8];              // 0x06 (0x06 and 0x0b are flags the tick tests)
+    uint8_t jump_finished;              // 0x06 the tick (stage 3) stops counting stage_ticks while it is set
+    uint8_t unknown_07[2];              // 0x07
+    uint8_t unknown_09;                 // 0x09 update (stages 2 and 3) waits for it while the actor stands still
+    uint8_t unknown_0a;                 // 0x0a
+    uint8_t jump_started;               // 0x0b update sets it when it issues the jump; the tick counts stage_ticks while it is set (stage 3)
+    uint8_t jump_solved;                // 0x0c set once the leap is solved; update turns it into actor.jump_requested and clears it
+    uint8_t unknown_0d;                 // 0x0d
     int16_t stage_ticks;                // 0x0e counted up by the tick, reset by update
     int32_t stage_start_time;           // 0x10 game_time when update last reset stage_ticks
-    uint8_t unknown_14[0x10];           // 0x14 four dwords update copies to actor + 0x444 (0x1c/0x20 compared as floats)
+    real_vector2d jump_direction;       // 0x14 update copies it to actor.jump_facing
+    float jump_horizontal_speed;        // 0x1c copied to actor.jump_horizontal_velocity (compared with jump_vertical_speed)
+    float jump_vertical_speed;          // 0x20 copied to actor.jump_vertical_velocity
+    uint8_t unknown_24;                 // 0x24
+    uint8_t stand;                      // 0x25 stage 1: the crouch control flags follow !stand
+    uint8_t unknown_26[2];              // 0x26
+    uint8_t unknown_28;                 // 0x28 update's crouch gate
+    uint8_t unknown_29[0x0f];           // 0x29
 } actor_mode_charge_data;
 typedef char actor_mode_charge_data_start_at_10[offsetof(actor_mode_charge_data, stage_start_time) == 0x10 ? 1 : -1];
+typedef char actor_mode_charge_data_size[sizeof(actor_mode_charge_data) == 0x38 ? 1 : -1];
 
 typedef struct actor_mode_guard_data {
     int16_t countdown_00;               // 0x00 counted down by the tick
     int16_t countdown_02;               // 0x02 counted down by the tick
-    uint8_t unknown_04[8];              // 0x04
+    uint8_t settled;                    // 0x04 update sets it once the movement for the stage was issued; the tick needs it for the ambush timers
+    uint8_t command_pending;            // 0x05 report_command_status runs when it is set; the tick clears it when countdown_00 expires
+    uint8_t unknown_06;                 // 0x06
+    uint8_t attack_point;               // 0x07 update fires at guard_point while it is set
+    uint8_t ambush_active;              // 0x08 cleared by movement_cancelled in stage 3
+    uint8_t ambush_triggered;           // 0x09 cleared by the tick when the ambush ends
+    uint8_t ambush_retreat;             // 0x0a the ambush ends when retreat_timer runs out instead of countdown_0c
+    uint8_t unknown_0b;                 // 0x0b
     int16_t countdown_0c;               // 0x0c counted down by the tick; movement_cancelled clears it
-    uint8_t unknown_0e[2];              // 0x0e
+    uint8_t reselect;                   // 0x0e set to ask for a new guard position (movement cancelled, command expired, target cleared)
+    uint8_t watch_pending;              // 0x0f update broadcasts the watch event and clears it when in place
     datum_index hold_reference;         // 0x10 swapped by actor_mode_guard_replace_reference
-    uint8_t unknown_14[0x10];           // 0x14
+    uint8_t look_point_valid;           // 0x14 update looks at look_point (flee source 4) while it is set
+    uint8_t look_point_hostile;         // 0x15 flee reason 5 instead of 3 for the look point
+    uint8_t unknown_16[2];              // 0x16
+    real_point3d look_point;            // 0x18
     int16_t stage;                      // 0x24 0..3
     uint8_t unknown_26[2];              // 0x26
-    int16_t firing_position;            // 0x28 -1 for none
-    uint8_t unknown_2a[0x12];           // 0x2a (0x34 an int32 target_cleared resets to -1, 0x38 a position)
+    union {
+        int16_t firing_position;        // 0x28 stage 3: -1 for none
+        real_point3d guard_point;       // 0x28 stage 2: the point being guarded
+    };
+    int32_t guard_point_surface;        // 0x34 stage 2: pathfinding surface of guard_point; target_cleared and the tick reset it to -1
+    float guard_radius;                 // 0x38 stage 2: distance from guard_point that counts as in place
     datum_index guard_target;           // 0x3c swapped by replace_reference; update makes it the actor's target
+    uint8_t follow_movement;            // 0x40 the countdown_02 tick only runs while the movement completed when it is set
+    uint8_t unknown_41[3];              // 0x41
 } actor_mode_guard_data;
 typedef char actor_mode_guard_data_target_at_3c[offsetof(actor_mode_guard_data, guard_target) == 0x3c ? 1 : -1];
+typedef char actor_mode_guard_data_size[sizeof(actor_mode_guard_data) == 0x44 ? 1 : -1];
+
+typedef struct actor_mode_alert_data {
+    int16_t position_count;             // 0x00 move positions of the squad; actor_select_move_position chooses among them
+    int16_t wait_ticks;                 // 0x02 counted down by the tick once the actor stands on a position
+    uint8_t unknown_04[2];              // 0x04
+    int16_t current_position;           // 0x06 move position being held, -1 for none
+    int16_t next_position;              // 0x08 move position chosen by the process, -1 for none
+    uint8_t position_reached;           // 0x0a set when the process commits to next_position; the tick plays its animation once and clears it
+    uint8_t unknown_0b;                 // 0x0b
+    real_point3d position;              // 0x0c destination of the held move position (first fields of the 0x50 byte record the process copies here)
+    uint8_t unknown_18[0x10];           // 0x18
+    int16_t animation_index;            // 0x28 ai animation reference the tick plays on arrival, -1 for none
+    uint8_t unknown_2a[0x32];           // 0x2a rest of the copied move position record
+} actor_mode_alert_data;
+typedef char actor_mode_alert_data_size[sizeof(actor_mode_alert_data) == 0x5c ? 1 : -1];
+
+typedef struct actor_mode_vehicle_data {
+    datum_index vehicle_index;          // 0x00 the vehicle to board
+    int16_t seat_index;                 // 0x04
+    uint8_t unknown_06;                 // 0x06 selects the retry limit (5 or 50) and the alert-range test of the process
+    uint8_t near_line;                  // 0x07 in/out flag of actor_avoid_obstacle_and_project
+    uint8_t seated;                     // 0x08 the unit entered the seat
+    uint8_t unit_replaced;              // 0x09 the actor already has an active unit; the mode is over
+    uint8_t failed;                     // 0x0a boarding was abandoned; the mode is over
+    uint8_t unknown_0b;                 // 0x0b
+    int16_t path_failures;              // 0x0c failed path requests since the last success
+    int16_t stuck_count;                // 0x0e number of 150 tick checks the actor stayed within 5 units; 8 abandons the boarding
+    int32_t last_progress_time;         // 0x10 game_time of the last stuck check
+    real_point3d last_progress_position;// 0x14 position at the last stuck check
+    float alert_range_min;              // 0x20 passed to actor_is_within_alert_range
+    float alert_range_max;              // 0x24
+    uint8_t close;                      // 0x28 the actor is next to the seat entry
+    uint8_t facing;                     // 0x29 the actor faces the seat entry
+    int16_t in_front_ticks;             // 0x2a consecutive ticks the entry was in front; 30 counts as close and facing
+    uint8_t entry_reached;              // 0x2c the entry point is within 1 unit
+    uint8_t unknown_2d[3];              // 0x2d
+    real_point3d path_destination;      // 0x30
+    real_vector3d entry_direction;      // 0x3c copied to actor.flee_source by update
+    int32_t path_surface;               // 0x48 pathfinding surface of path_destination
+} actor_mode_vehicle_data;
+typedef char actor_mode_vehicle_data_size[sizeof(actor_mode_vehicle_data) == 0x4c ? 1 : -1];
+
+typedef struct actor_mode_obey_data {
+    int16_t command_list_index;         // 0x00 the command list being run
+    uint8_t unknown_02;                 // 0x02
+    uint8_t has_look_target;            // 0x03 update looks and aims at the target while it is set
+    uint8_t unknown_04;                 // 0x04
+    uint8_t finished;                   // 0x05 set once every member finished the list (process)
+    uint8_t unknown_06[6];              // 0x06
+    uint8_t attack_requested;           // 0x0c bit 0: update fights the target while combat_status is 5 or more
+    uint8_t movement_flags;             // 0x0d bit 0: strafe, bit 2: no jump
+    uint8_t unknown_0e[2];              // 0x0e
+    int16_t strafe_axis;                // 0x10 copied to actor.strafe_axis_override; counted down at 0xf
+    uint8_t unknown_12[2];              // 0x12
+    float jump_horizontal_speed;        // 0x14 jump_facing.i / jump_horizontal_velocity of the scripted jump
+    float jump_vertical_speed;          // 0x18
+    uint8_t unknown_1c[0x10];           // 0x1c
+    uint8_t unknown_2c;                 // 0x2c copied to the crouch control flags
+    uint8_t unknown_2d;                 // 0x2d
+    int16_t movement_style;             // 0x2e 1 or 3 stops looking at the target; copied to actor.movement_style_override
+    uint8_t unknown_30[0x14];           // 0x30
+    uint8_t has_look_point;             // 0x44 update looks at look_point while it is set
+    uint8_t unknown_45[3];              // 0x45
+    real_point3d look_point;            // 0x48
+    uint8_t unknown_54[8];              // 0x54
+    uint8_t secondary_action_pending;   // 0x5c a secondary action is queued once actor.secondary_action is free
+    uint8_t unknown_5d;                 // 0x5d
+    int16_t secondary_action;           // 0x5e -1 for none
+    int16_t communication_line;         // 0x60 -1 for none; broadcast once
+    uint8_t has_target_point;           // 0x62 update fires at target_point while it is set
+    uint8_t unknown_63;                 // 0x63
+    real_point3d target_point;          // 0x64
+    uint32_t unknown_70;                // 0x70 copied to actor.burst_duration_override
+    uint8_t unknown_74;                 // 0x74 cleared by update
+    uint8_t unknown_75[0x0f];           // 0x75
+} actor_mode_obey_data;
+typedef char actor_mode_obey_data_size[sizeof(actor_mode_obey_data) == 0x84 ? 1 : -1];
+
+typedef struct actor_mode_fight_data {
+    uint8_t unknown_00[4];              // 0x00
+} actor_mode_fight_data;
 
 typedef union actor_mode_data {
     uint8_t raw[0x84];
+    actor_mode_alert_data alert;
+    actor_mode_fight_data fight;
     actor_mode_wait_data wait;
     actor_mode_flee_data flee;
     actor_mode_converse_data converse;
@@ -325,6 +469,8 @@ typedef union actor_mode_data {
     actor_mode_search_data search;
     actor_mode_charge_data charge;
     actor_mode_guard_data guard;
+    actor_mode_vehicle_data vehicle;
+    actor_mode_obey_data obey;
 } actor_mode_data;                      // size 0x84
 typedef char actor_mode_data_size[sizeof(actor_mode_data) == 0x84 ? 1 : -1];
 

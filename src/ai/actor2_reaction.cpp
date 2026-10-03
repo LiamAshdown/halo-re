@@ -247,7 +247,7 @@ namespace actor_play_first_valid_vocalization_local {
 uint8_t ActorOps::play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index, char *seat_name, int16_t seat_flags, int16_t count)
 {
     using namespace actor_play_first_valid_vocalization_local;
-    uint8_t *act = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    actor *act = halo::ai::actor_at(actor_index);
     int16_t local_list[16];
     uint8_t order[k_actor_mode_data_size];
     int16_t i;
@@ -259,7 +259,7 @@ uint8_t ActorOps::play_first_valid_vocalization(int16_t *seat_list, datum_index 
     for (i = 0; i < count; i++) {
         int16_t seat = seat_list[i];
 
-        if (seat == -1 || !halo::units::unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat)) {
+        if (seat == -1 || !halo::units::unit_seat_index_is_valid(act->unit_index, vehicle_index, seat)) {
             continue;
         }
         if (halo::ai::actor_build_order_investigate_encounter_point(vehicle_index, actor_index, seat, order)) {

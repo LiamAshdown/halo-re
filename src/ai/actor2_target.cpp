@@ -487,7 +487,7 @@ static float sqrt_f(float x) { return (float)sqrt((double)x); }
 uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref, int16_t gate, real_point3d *listener_position)
 {
     using namespace actor_target_hearing_check_local;
-    uint8_t *a = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    actor *a = halo::ai::actor_at(actor_index);
     uint8_t *listener = (uint8_t *)target_ref;
     int16_t listener_cluster;
     int16_t source_cluster;
@@ -508,7 +508,7 @@ uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_inde
     if (source_cluster == -1) {
         return 0;
     }
-    range = *(float *)((uint8_t *)halo::cache::globals().tag_instances[((actor *)a)->actor_definition_tag & halo::k_slot_mask].data + 0x4c);
+    range = *(float *)((uint8_t *)halo::cache::globals().tag_instances[a->actor_definition_tag & halo::k_slot_mask].data + 0x4c);
     dx = listener_position->x - *(float *)(listener + 0x0);
     dy = listener_position->y - *(float *)(listener + 0x4);
     dz = listener_position->z - *(float *)(listener + 0x8);
@@ -516,9 +516,9 @@ uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_inde
     if (!(dz * *(float *)(listener + 0x20) + dy * *(float *)(listener + 0x1c) + dx * *(float *)(listener + 0x18) >= 0.0f)) {
         range = range * 0.8f;
     }
-    if (((actor *)a)->awareness_level == 2) {
+    if (a->awareness_level == 2) {
         range = range * 0.7f;
-    } else if (((actor *)a)->awareness_level == 1) {
+    } else if (a->awareness_level == 1) {
         range = range * 0.4f;
     }
     if (gate == 4) {
@@ -634,13 +634,13 @@ namespace actor_target_reset_combat_flags_local {
 void TargetView::target_reset_combat_flags(datum_index actor_index, uint32_t unused, uint8_t already_noticed)
 {
     using namespace actor_target_reset_combat_flags_local;
-    uint8_t *p = (uint8_t *)halo::ai::globals().prop_data->data + (target_prop_index & halo::k_slot_mask) * k_prop_size;
+    struct prop *p = halo::ai::prop_at(target_prop_index);
 
     (void)unused;
-    p[0xba] = 0;
-    p[0xb9] = 0;
-    p[0xbb] = 0;
-    p[0x64] = 1;
+    p->noticed_b = 0;
+    p->noticed_a = 0;
+    p->noticed_c = 0;
+    p->combat_dirty = 1;
     halo::ai::actor_queue_sighted_target_dialogue(actor_index, target_prop_index, already_noticed);
 }
 

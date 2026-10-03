@@ -22,9 +22,9 @@ namespace actor_type_crew_update_local {
 void ActorView::type_crew_update()
 {
     using namespace actor_type_crew_update_local;
-    uint8_t *actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    struct actor *actor = halo::ai::actor_at(actor_index);
 
-    if (((struct actor *)actor)->mode == 0 && ((struct actor *)actor)->awareness_level != 0) {
+    if (actor->mode == 0 && actor->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -40,7 +40,7 @@ void ActorView::type_crew_update()
         halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
-    switch (((struct actor *)actor)->mode) {
+    switch (actor->mode) {
     case 3:
     case 10:
         if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
@@ -52,7 +52,7 @@ void ActorView::type_crew_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
-        if (actor[0xaa] != 0) {
+        if (actor->mode_data.flee.unknown_0e != 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
@@ -67,25 +67,25 @@ void ActorView::type_crew_update()
         halo::ai::actor_update_special_mode(actor_index);
         return;
     case 9:
-        if (actor[0xa5] != 0) {
+        if (actor->mode_data.vehicle.unit_replaced != 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
-        if (actor[0xa6] != 0) {
+        if (actor->mode_data.vehicle.failed != 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, actor[0x9e], actor[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, actor->mode_data.obey.unknown_02, actor->mode_data.obey.finished);
         return;
     case 12: {
-        uint8_t forced = (actor[0xa0] != 0 || *(uint32_t *)&((struct actor *)actor)->conversation_index == halo::k_dword_none) ? 1 : 0;
+        uint8_t forced = (actor->mode_data.converse.finished != 0 || *(uint32_t *)&actor->conversation_index == halo::k_dword_none) ? 1 : 0;
 
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index), forced);
         return;
     }
     case 13:
-        if (((struct actor *)actor)->danger_type == 0) {
+        if (actor->danger_type == 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
@@ -106,10 +106,10 @@ namespace actor_type_elite_update_local {
 void ActorView::type_elite_update()
 {
     using namespace actor_type_elite_update_local;
-    uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & halo::k_slot_mask].data;
+    actor *act = halo::ai::actor_at(actor_index);
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[act->actor_definition_tag & halo::k_slot_mask].data;
 
-    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
+    if (act->mode == 0 && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -120,7 +120,7 @@ void ActorView::type_elite_update()
         halo::ai::actor_escalate_check_target_close(actor_index);
         halo::ai::actor_escalate_check_weapon_range(actor_index);
         halo::ai::actor_escalate_apply(actor_index, 1);
-        if (!act[0x378]) {
+        if (!act->berserking) {
             halo::ai::actor_alert_from_projectile(actor_index);
             halo::ai::actor_alert_from_flag_1b4(actor_index);
             halo::ai::actor_gate_jump_traversal(actor_index, 9, 0, 11);
@@ -133,7 +133,7 @@ void ActorView::type_elite_update()
         halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
-    switch (((actor *)act)->mode) {
+    switch (act->mode) {
     case 3:
     case 10:
         if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
@@ -142,21 +142,21 @@ void ActorView::type_elite_update()
         halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         return;
     case 6:
-        if (act[0xa4] && !act[0xa5] && !act[0xa6]) {
-            float limit = ((struct actor *)act)->combat_status >= 4 ? ((Actor *)actor_tag)->attack_shield_fraction : ((Actor *)actor_tag)->pursue_shield_fraction;
+        if (act->mode_data.guard.ambush_active && !act->mode_data.guard.ambush_triggered && !act->mode_data.guard.ambush_retreat) {
+            float limit = act->combat_status >= 4 ? ((Actor *)actor_tag)->attack_shield_fraction : ((Actor *)actor_tag)->pursue_shield_fraction;
 
-            if (limit > *(float *)(act + 0x1bc)) {
-                act[0xa4] = 1;
-                ((struct actor *)act)->mode_data.flee.panic = 30;
+            if (limit > *(float *)((uint8_t *)act + 0x1bc)) {
+                act->mode_data.guard.ambush_active = 1;
+                act->mode_data.flee.panic = 30;
             } else {
-                act[0xa4] = 0;
-                ((struct actor *)act)->mode_data.flee.panic = 0;
+                act->mode_data.guard.ambush_active = 0;
+                act->mode_data.flee.panic = 0;
             }
         }
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
-        if (act[0xaa]) {
+        if (act->mode_data.flee.unknown_0e) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
@@ -171,21 +171,21 @@ void ActorView::type_elite_update()
         halo::ai::actor_update_special_mode(actor_index);
         return;
     case 9:
-        if (act[0xa5]) {
+        if (act->mode_data.vehicle.unit_replaced) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
-        } else if (act[0xa6]) {
+        } else if (act->mode_data.vehicle.failed) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
         return;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
-                                     (uint8_t)(act[0xa0] || ((actor *)act)->conversation_index == k_datum_index_none));
+                                     (uint8_t)(act->mode_data.converse.finished || act->conversation_index == k_datum_index_none));
         return;
     case 13:
-        if (((actor *)act)->danger_type == 0) {
+        if (act->danger_type == 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
@@ -208,9 +208,9 @@ namespace actor_type_engineer_update_local {
 void ActorView::type_engineer_update()
 {
     using namespace actor_type_engineer_update_local;
-    uint8_t *act = ACTOR(actor_index);
+    actor *act = halo::ai::actor_at(actor_index);
 
-    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
+    if (act->mode == 0 && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -226,7 +226,7 @@ void ActorView::type_engineer_update()
         halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
-    switch (((actor *)act)->mode) {
+    switch (act->mode) {
     case 3:
     case 10:
         if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
@@ -235,7 +235,7 @@ void ActorView::type_engineer_update()
         halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         break;
     case 4:
-        if (act[0xaa] == 0) {
+        if (act->mode_data.flee.unknown_0e == 0) {
             halo::ai::actor_flee_look_away(actor_index);
         } else {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
@@ -252,19 +252,19 @@ void ActorView::type_engineer_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 9:
-        if (act[0xa5] != 0 || act[0xa6] != 0) {
+        if (act->mode_data.vehicle.unit_replaced != 0 || act->mode_data.vehicle.failed != 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
         break;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
-            (uint8_t)(act[0xa0] != 0 || ((actor *)act)->conversation_index == k_datum_index_none));
+            (uint8_t)(act->mode_data.converse.finished != 0 || act->conversation_index == k_datum_index_none));
         break;
     case 13:
-        if (((actor *)act)->danger_type == 0) {
+        if (act->danger_type == 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;
@@ -287,9 +287,9 @@ namespace actor_type_flood_carrier_update_local {
 void ActorView::type_flood_carrier_update()
 {
     using namespace actor_type_flood_carrier_update_local;
-    uint8_t *act = ACTOR(actor_index);
+    actor *act = halo::ai::actor_at(actor_index);
 
-    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
+    if (act->mode == 0 && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -302,7 +302,7 @@ void ActorView::type_flood_carrier_update()
         halo::ai::actor_escalate_to_guard_or_combat(actor_index);
     }
 
-    switch (((actor *)act)->mode) {
+    switch (act->mode) {
     case 3:
     case 10:
         if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
@@ -311,7 +311,7 @@ void ActorView::type_flood_carrier_update()
         halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         break;
     case 4:
-        if (act[0xaa] != 0) {
+        if (act->mode_data.flee.unknown_0e != 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         } else {
             halo::ai::actor_flee_look_away(actor_index);
@@ -328,7 +328,7 @@ void ActorView::type_flood_carrier_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
         break;
     default:
         break;
@@ -349,9 +349,9 @@ namespace actor_type_flood_update_local {
 void ActorView::type_flood_update()
 {
     using namespace actor_type_flood_update_local;
-    uint8_t *act = ACTOR(actor_index);
+    actor *act = halo::ai::actor_at(actor_index);
 
-    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
+    if (act->mode == 0 && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -363,7 +363,7 @@ void ActorView::type_flood_update()
         halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
-    switch (((actor *)act)->mode) {
+    switch (act->mode) {
     case 3:
     case 10:
         if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
@@ -372,7 +372,7 @@ void ActorView::type_flood_update()
         halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         break;
     case 4:
-        if (act[0xaa] == 0) {
+        if (act->mode_data.flee.unknown_0e == 0) {
             halo::ai::actor_flee_look_away(actor_index);
         } else {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
@@ -389,10 +389,10 @@ void ActorView::type_flood_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
         break;
     case 13:
-        if (((actor *)act)->danger_type == 0) {
+        if (act->danger_type == 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;
@@ -415,11 +415,11 @@ namespace actor_type_grunt_update_local {
 void ActorView::type_grunt_update()
 {
     using namespace actor_type_grunt_update_local;
-    uint8_t *act = ACTOR(actor_index);
-    uint8_t may_broadcast = (uint8_t)((int8_t)act[0x203] > 0);
-    uint8_t panics = (uint8_t)((int8_t)act[0x247] > 0);
+    actor *act = halo::ai::actor_at(actor_index);
+    uint8_t may_broadcast = (uint8_t)((int8_t)act->tally.group_a_by_actor_type[0] > 0);
+    uint8_t panics = (uint8_t)((int8_t)act->tally.group_c_by_actor_type[0] > 0);
 
-    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
+    if (act->mode == 0 && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -438,7 +438,7 @@ void ActorView::type_grunt_update()
         halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
-    switch (((actor *)act)->mode) {
+    switch (act->mode) {
     case 3:
     case 10:
         if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
@@ -450,17 +450,17 @@ void ActorView::type_grunt_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
-        if (panics && ((struct actor *)act)->mode_data.flee.panic > 0 && !halo::ai::actor_order_code_is_grenade_throw(((struct actor *)act)->mode_data.flee.panic)) {
-            act[0xab] = 1;
+        if (panics && act->mode_data.flee.panic > 0 && !halo::ai::actor_order_code_is_grenade_throw(act->mode_data.flee.panic)) {
+            act->mode_data.flee.unknown_0f[0] = 1;
         }
-        if (act[0xaa]) {
+        if (act->mode_data.flee.unknown_0e) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
         if (halo::ai::actor_flee_look_away(actor_index)) {
             return;
         }
-        if (((struct actor *)act)->mode_data.flee.panic == 0 && ((struct actor *)act)->combat_status >= 5) {
+        if (act->mode_data.flee.panic == 0 && act->combat_status >= 5) {
             halo::ai::actor_consider_grenade_throw(actor_index);
         }
         return;
@@ -473,21 +473,21 @@ void ActorView::type_grunt_update()
         halo::ai::actor_update_special_mode(actor_index);
         return;
     case 9:
-        if (act[0xa5]) {
+        if (act->mode_data.vehicle.unit_replaced) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
-        } else if (act[0xa6]) {
+        } else if (act->mode_data.vehicle.failed) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
         return;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
-                                     (uint8_t)(act[0xa0] || ((actor *)act)->conversation_index == k_datum_index_none));
+                                     (uint8_t)(act->mode_data.converse.finished || act->conversation_index == k_datum_index_none));
         return;
     case 13:
-        if (((actor *)act)->danger_type == 0) {
+        if (act->danger_type == 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
@@ -510,9 +510,9 @@ namespace actor_type_hunter_update_local {
 void ActorView::type_hunter_update()
 {
     using namespace actor_type_hunter_update_local;
-    uint8_t *act = ACTOR(actor_index);
+    actor *act = halo::ai::actor_at(actor_index);
 
-    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
+    if (act->mode == 0 && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -524,7 +524,7 @@ void ActorView::type_hunter_update()
         halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
-    switch (((actor *)act)->mode) {
+    switch (act->mode) {
     case 3:
     case 4:
     case 6:
@@ -541,14 +541,14 @@ void ActorView::type_hunter_update()
         }
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
         break;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
-            (uint8_t)(act[0xa0] != 0 || ((actor *)act)->conversation_index == k_datum_index_none));
+            (uint8_t)(act->mode_data.converse.finished != 0 || act->conversation_index == k_datum_index_none));
         break;
     case 13:
-        if (((actor *)act)->danger_type == 0) {
+        if (act->danger_type == 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;
@@ -598,17 +598,17 @@ static void copy3(real_vector3d *out, const void *in)
 void ActorView::type_infection_swarm_update()
 {
     using namespace actor_type_infection_swarm_update_local;
-    uint8_t *actor = ACTOR(actor_index);
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[U32(actor, 0x5c) & halo::k_slot_mask].data;
-    uint8_t *swarm = SWARM(U32(actor, 0x28));
+    struct actor *actor = halo::ai::actor_at(actor_index);
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_variant_tag & halo::k_slot_mask].data;
+    struct swarm *swarm = halo::ai::swarm_at(actor->swarm_index);
     int32_t picked = -1;
     int16_t member;
 
     if (I16(swarm, 0x8) > 0) {
         I16(swarm, 0x8)--;
-    } else if (I16(actor, 0x6c) == 7 || I16(actor, 0x6c) == 10) {
+    } else if (actor->mode == 7 || actor->mode == 10) {
         float delay = ((float)(int32_t)swarm_random_next() * 1.5259022e-05f);
-        int16_t count = I16(swarm, 0x2);
+        int16_t count = swarm->component_count;
 
         delay = (delay + delay + 6.0f) / (float)(int32_t)count * 30.0f;
         if (!(delay > 6.0f)) {
@@ -618,11 +618,11 @@ void ActorView::type_infection_swarm_update()
         picked = (int32_t)(((uint32_t)(int32_t)count * swarm_random_next()) >> 16);
     }
 
-    for (member = 0; member < I16(swarm, 0x2); member++) {
+    for (member = 0; member < swarm->component_count; member++) {
         uint32_t unit = U32(swarm, 0x18 + member * 4);
         uint8_t *object = OBJECT(unit);
         uint8_t *component = COMPONENT(U32(swarm, 0x58 + member * 4));
-        uint8_t *best_prop = 0;
+        struct prop *best_prop = 0;
         datum_index best_handle = k_datum_index_none;
         datum_index target = k_datum_index_none;
         int16_t behaviour = 0;
@@ -646,30 +646,30 @@ void ActorView::type_infection_swarm_update()
             riding = object[0x4cc] & 1;
         }
 
-        if (I16(actor, 0x6e) >= 3) {
+        if (actor->combat_status >= 3) {
             float radius = F(definition, 0xa0);
             float best_score = 0.0f;
             float best_distance = 0.0f;
-            datum_index prop_handle = U32(actor, 0x50);
+            datum_index prop_handle = actor->first_prop;
 
             while (prop_handle != k_datum_index_none) {
-                uint8_t *prop = PROP(prop_handle);
+                struct prop *prop = halo::ai::prop_at(prop_handle);
                 datum_index this_handle = prop_handle;
 
-                prop_handle = U32(prop, 0x8);
-                if (F(prop, 0x50) > 0.0f) {
-                    float dx = F(component, 0x4) - F(prop, 0xbc);
-                    float dy = F(component, 0x8) - F(prop, 0xc0);
-                    float dz = F(component, 0xc) - F(prop, 0xc4);
+                prop_handle = prop->next_in_actor;
+                if (prop->desirability > 0.0f) {
+                    float dx = F(component, 0x4) - prop->last_known_position.x;
+                    float dy = F(component, 0x8) - prop->last_known_position.y;
+                    float dz = F(component, 0xc) - prop->last_known_position.z;
                     float distance = (float)sqrt((double)(dz * dz + dy * dy + dx * dx));
                     float score = 0.0f;
 
                     if (distance < radius) {
                         score = (1.0f - distance / radius) * 10.0f;
                     }
-                    if (I16(prop, 0x24) >= 2 && I16(prop, 0x24) <= 3) {
+                    if (prop->state >= 2 && prop->state <= 3) {
                         score += (this_handle == U32(component, 0x14)) ? 7.0f : 5.0f;
-                        if (prop[0x125] == 0) {
+                        if (prop->child_unit_count == 0) {
                             score += 5.0f;
                         }
                     }
@@ -683,14 +683,14 @@ void ActorView::type_infection_swarm_update()
             }
             U32(component, 0x14) = best_handle;
             if (best_handle != k_datum_index_none && best_distance < F(definition, 0x160) &&
-                I16(best_prop, 0x24) >= 2 && I16(best_prop, 0x24) <= 3) {
+                best_prop->state >= 2 && best_prop->state <= 3) {
                 target_close = 1;
             }
         } else {
             U32(component, 0x14) = best_handle;
         }
 
-        switch (I16(actor, 0x6c)) {
+        switch (actor->mode) {
         case 1:
             behaviour = 0;
             speed = 0;
@@ -700,10 +700,10 @@ void ActorView::type_infection_swarm_update()
             speed = 1;
             break;
         case 4:
-            speed = (uint8_t)((I16(actor, 0xa8) > 0) * 2 + 3);
-            if (U32(actor, 0xb8) != (uint32_t)k_datum_index_none) {
+            speed = (uint8_t)((actor->mode_data.flee.panic > 0) * 2 + 3);
+            if (actor->mode_data.flee.reference != (uint32_t)k_datum_index_none) {
                 behaviour = 5;
-                target = U32(actor, 0xb8);
+                target = actor->mode_data.flee.reference;
             }
             break;
         case 6:
@@ -711,9 +711,9 @@ void ActorView::type_infection_swarm_update()
             speed = 1;
             break;
         case 7:
-            if (I16(actor, 0xa4) == 0 && U32(actor, 0x270) != (uint32_t)k_datum_index_none) {
+            if (actor->mode_data.search.stage == 0 && actor->target_unit_index != (uint32_t)k_datum_index_none) {
                 behaviour = 4;
-                target = U32(actor, 0x270);
+                target = actor->target_unit_index;
             } else {
                 behaviour = 3;
             }
@@ -723,7 +723,7 @@ void ActorView::type_infection_swarm_update()
         case 11:
             speed = 3;
             behaviour = 3;
-            if (I16(actor, 0x6c) == 11 && (component[0x2] & 0x8) != 0) {
+            if (actor->mode == 11 && (component[0x2] & 0x8) != 0) {
                 behaviour = 6;
             } else if (U32(component, 0x14) != (uint32_t)k_datum_index_none) {
                 behaviour = (int16_t)((component[0x1a] != 0) + 4);
@@ -750,9 +750,9 @@ void ActorView::type_infection_swarm_update()
             }
             if (parent_dead) {
                 if (U32(parent, 0x41c) != (uint32_t)k_datum_index_none &&
-                    (int32_t)(U32(parent, 0x41c) + 0x4b) < *(int32_t *)((uint8_t *)halo::game::globals().game_time + 0xc) &&
-                    best_prop != 0 && U32(best_prop, 0x18) != U32(object, 0x11c) &&
-                    I16(best_prop, 0x24) >= 2 && I16(best_prop, 0x24) <= 3) {
+                    (int32_t)(U32(parent, 0x41c) + 0x4b) < *(int32_t *)((uint8_t *)game_time + 0xc) &&
+                    best_prop != 0 && best_prop->object_index != U32(object, 0x11c) &&
+                    best_prop->state >= 2 && best_prop->state <= 3) {
                     detach = 1;
                 }
             } else {
@@ -820,9 +820,9 @@ void ActorView::type_infection_swarm_update()
                     float angle;
 
                     component[0x1d] = (uint8_t)halo::ai::actor_pick_dialogue_variant_b(behaviour);
-                    to_goal.i = F(swarm, 0xc) - F(component, 0x4);
-                    to_goal.j = F(swarm, 0x10) - F(component, 0x8);
-                    to_goal.k = F(swarm, 0x14) - F(component, 0xc);
+                    to_goal.i = swarm->aggregate_position.x - F(component, 0x4);
+                    to_goal.j = swarm->aggregate_position.y - F(component, 0x8);
+                    to_goal.k = swarm->aggregate_position.z - F(component, 0xc);
                     distance_squared = to_goal.k * to_goal.k + to_goal.j * to_goal.j + to_goal.i * to_goal.i;
                     if (!(distance_squared < 0.25f)) {
                         float spread = 0.5f / (float)sqrt((double)distance_squared) * 3.1415927f;
@@ -846,11 +846,11 @@ void ActorView::type_infection_swarm_update()
             break;
         case 4:
         case 5: {
-            uint8_t *prop = PROP(target);
+            struct prop *prop = halo::ai::prop_at(target);
 
-            desired.i = F(prop, 0xbc) - F(component, 0x4);
-            desired.j = F(prop, 0xc0) - F(component, 0x8);
-            desired.k = F(prop, 0xc4) - F(component, 0xc);
+            desired.i = prop->last_known_position.x - F(component, 0x4);
+            desired.j = prop->last_known_position.y - F(component, 0x8);
+            desired.k = prop->last_known_position.z - F(component, 0xc);
             if (behaviour == 5) {
                 desired.i = -desired.i;
                 desired.j = -desired.j;
@@ -940,8 +940,8 @@ void ActorView::type_infection_swarm_update()
             side.i = up.j * desired.k - up.k * desired.j;
             side.j = up.k * desired.i - desired.k * up.i;
             side.k = desired.j * up.i - up.j * desired.i;
-            if (I16(swarm, 0x2) > 0) {
-                for (other = 0; other < I16(swarm, 0x2); other++) {
+            if (swarm->component_count > 0) {
+                for (other = 0; other < swarm->component_count; other++) {
                     uint8_t *other_component;
                     float dx, dy, dz, distance_squared, facing;
 
@@ -1019,7 +1019,7 @@ void ActorView::type_infection_swarm_update()
             U16(component, 0x2) = flags;
             if (flags & 1) {
                 object[0x289] = 3;
-                U32(object, 0x4f4) = best_prop != 0 ? U32(best_prop, 0x18) : (uint32_t)k_datum_index_none;
+                U32(object, 0x4f4) = best_prop != 0 ? best_prop->object_index : (uint32_t)k_datum_index_none;
             } else {
                 object[0x289] = 0;
             }
@@ -1069,9 +1069,9 @@ namespace actor_type_infection_update_local {
 void ActorView::type_infection_update()
 {
     using namespace actor_type_infection_update_local;
-    uint8_t *act = ACTOR(actor_index);
+    actor *act = halo::ai::actor_at(actor_index);
 
-    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
+    if (act->mode == 0 && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -1079,7 +1079,7 @@ void ActorView::type_infection_update()
         halo::ai::actor_escalate_to_guard_or_combat(actor_index);
     }
 
-    switch (((actor *)act)->mode) {
+    switch (act->mode) {
     case 3:
     case 10:
         if (!halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
@@ -1087,7 +1087,7 @@ void ActorView::type_infection_update()
         }
         break;
     case 4:
-        if (act[0xaa] != 0) {
+        if (act->mode_data.flee.unknown_0e != 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         } else {
             halo::ai::actor_flee_look_away(actor_index);
@@ -1104,7 +1104,7 @@ void ActorView::type_infection_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
         break;
     default:
         break;
@@ -1125,10 +1125,10 @@ namespace actor_type_jackal_update_local {
 void ActorView::type_jackal_update()
 {
     using namespace actor_type_jackal_update_local;
-    uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & halo::k_slot_mask].data;
+    actor *act = halo::ai::actor_at(actor_index);
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[act->actor_definition_tag & halo::k_slot_mask].data;
 
-    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
+    if (act->mode == 0 && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -1147,7 +1147,7 @@ void ActorView::type_jackal_update()
         halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
-    switch (((actor *)act)->mode) {
+    switch (act->mode) {
     case 3:
     case 10:
         if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
@@ -1156,21 +1156,21 @@ void ActorView::type_jackal_update()
         halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         return;
     case 6:
-        if (act[0xa4] && !act[0xa5] && !act[0xa6]) {
-            float limit = ((struct actor *)act)->combat_status >= 4 ? ((Actor *)actor_tag)->attack_shield_fraction : ((Actor *)actor_tag)->pursue_shield_fraction;
+        if (act->mode_data.guard.ambush_active && !act->mode_data.guard.ambush_triggered && !act->mode_data.guard.ambush_retreat) {
+            float limit = act->combat_status >= 4 ? ((Actor *)actor_tag)->attack_shield_fraction : ((Actor *)actor_tag)->pursue_shield_fraction;
 
-            if (limit > *(float *)(act + 0x1bc)) {
-                act[0xa4] = 1;
-                ((struct actor *)act)->mode_data.flee.panic = 30;
+            if (limit > *(float *)((uint8_t *)act + 0x1bc)) {
+                act->mode_data.guard.ambush_active = 1;
+                act->mode_data.flee.panic = 30;
             } else {
-                act[0xa4] = 0;
-                ((struct actor *)act)->mode_data.flee.panic = 0;
+                act->mode_data.guard.ambush_active = 0;
+                act->mode_data.flee.panic = 0;
             }
         }
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
-        if (act[0xaa]) {
+        if (act->mode_data.flee.unknown_0e) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
@@ -1187,14 +1187,14 @@ void ActorView::type_jackal_update()
     case 9:
         return;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
         return;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
-                                     (uint8_t)(act[0xa0] || ((actor *)act)->conversation_index == k_datum_index_none));
+                                     (uint8_t)(act->mode_data.converse.finished || act->conversation_index == k_datum_index_none));
         return;
     case 13:
-        if (((actor *)act)->danger_type == 0) {
+        if (act->danger_type == 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
@@ -1217,9 +1217,9 @@ namespace actor_type_marine_update_local {
 void ActorView::type_marine_update()
 {
     using namespace actor_type_marine_update_local;
-    uint8_t *act = ACTOR(actor_index);
+    actor *act = halo::ai::actor_at(actor_index);
 
-    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
+    if (act->mode == 0 && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -1231,7 +1231,7 @@ void ActorView::type_marine_update()
         halo::ai::actor_alert_from_damage(actor_index);
         halo::ai::actor_gate_jump_traversal(actor_index, 1, 0, 14);
         halo::ai::actor_escalate_check_shield_damage(actor_index);
-        halo::ai::actor_escalate_apply(actor_index, (int16_t)((int8_t)act[0x20a] > 2 ? 5 : 3));
+        halo::ai::actor_escalate_apply(actor_index, (int16_t)((int8_t)act->tally.group_a_by_actor_type[7] > 2 ? 5 : 3));
         halo::ai::actor_escalate_to_guard_or_combat(actor_index);
         halo::ai::actor_seek_vehicle_to_board(actor_index);
         halo::ai::actor_process_vehicle_seat_exit(actor_index);
@@ -1239,7 +1239,7 @@ void ActorView::type_marine_update()
         halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
-    switch (((actor *)act)->mode) {
+    switch (act->mode) {
     case 3:
     case 10:
         if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
@@ -1251,7 +1251,7 @@ void ActorView::type_marine_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
-        if (act[0xaa]) {
+        if (act->mode_data.flee.unknown_0e) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
@@ -1266,21 +1266,21 @@ void ActorView::type_marine_update()
         halo::ai::actor_update_special_mode(actor_index);
         return;
     case 9:
-        if (act[0xa5]) {
+        if (act->mode_data.vehicle.unit_replaced) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
-        } else if (act[0xa6]) {
+        } else if (act->mode_data.vehicle.failed) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
         return;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
-                                     (uint8_t)(act[0xa0] || ((actor *)act)->conversation_index == k_datum_index_none));
+                                     (uint8_t)(act->mode_data.converse.finished || act->conversation_index == k_datum_index_none));
         return;
     case 13:
-        if (((actor *)act)->danger_type == 0) {
+        if (act->danger_type == 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
@@ -1303,9 +1303,9 @@ namespace actor_type_mounted_weapon_update_local {
 void ActorView::type_mounted_weapon_update()
 {
     using namespace actor_type_mounted_weapon_update_local;
-    uint8_t *act = ACTOR(actor_index);
+    actor *act = halo::ai::actor_at(actor_index);
 
-    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
+    if (act->mode == 0 && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -1313,7 +1313,7 @@ void ActorView::type_mounted_weapon_update()
         halo::ai::actor_escalate_to_guard_or_combat(actor_index);
     }
 
-    switch (((actor *)act)->mode) {
+    switch (act->mode) {
     case 3:
     case 4:
     case 6:
@@ -1330,7 +1330,7 @@ void ActorView::type_mounted_weapon_update()
         }
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
         break;
     default:
         break;
@@ -1351,9 +1351,9 @@ namespace actor_type_sentinel_update_local {
 void ActorView::type_sentinel_update()
 {
     using namespace actor_type_sentinel_update_local;
-    uint8_t *act = ACTOR(actor_index);
+    actor *act = halo::ai::actor_at(actor_index);
 
-    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
+    if (act->mode == 0 && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -1363,7 +1363,7 @@ void ActorView::type_sentinel_update()
         halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
-    switch (((actor *)act)->mode) {
+    switch (act->mode) {
     case 3:
     case 10:
         if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
@@ -1372,7 +1372,7 @@ void ActorView::type_sentinel_update()
         halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         break;
     case 4:
-        if (act[0xaa] == 0) {
+        if (act->mode_data.flee.unknown_0e == 0) {
             halo::ai::actor_flee_look_away(actor_index);
         } else {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
@@ -1389,14 +1389,14 @@ void ActorView::type_sentinel_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
         break;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
-            (uint8_t)(act[0xa0] != 0 || ((actor *)act)->conversation_index == k_datum_index_none));
+            (uint8_t)(act->mode_data.converse.finished != 0 || act->conversation_index == k_datum_index_none));
         break;
     case 13:
-        if (((actor *)act)->danger_type == 0) {
+        if (act->danger_type == 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;

@@ -7,6 +7,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 
 namespace halo::ai {
 
@@ -453,9 +454,9 @@ extern double fabs(double x);
 void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datum_index actor_index, uint8_t want_avoid_check, float avoid_threshold, uint8_t order_failed, float steering_maximum, float oversteer_min, float oversteer_max, float avoidance_scale, float throttle_maximum, real_vector3d *desired_direction, real_vector3d *out_direction, int16_t *out_axis, real_vector3d *out_heading, uint8_t *out_flag_507, uint8_t *out_flag_506)
 {
     using namespace actor_movement_apply_steering_local;
-    uint8_t *act = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
-    real_vector3d *facing = &((struct actor *)act)->facing;
+    actor *act = halo::ai::actor_at(actor_index);
+    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    real_vector3d *facing = &act->facing;
     float max_turn_cos = 0.8660254f;
     int16_t chosen_axis = -1;
     real_vector3d aim;
@@ -468,8 +469,8 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
     float desired_length_squared;
     float turn_limit = throttle_maximum;
 
-    if (act[0x42a]) {
-        act[0x591] = 1;
+    if (act->unknown_42a) {
+        act->turn_required = 1;
     }
     if (cached_axis >= 0 && cached_axis <= 3) {
         chosen_axis = cached_axis;
@@ -502,9 +503,9 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
             real_vector3d fallback;
 
             desired = *desired_direction;
-            if (act[0x505]) {
-                aim = *(real_vector3d *)&((struct actor *)act)->forced_aim_direction.i;
-                if (((struct actor *)act)->vehicle_driving_type > 0) {
+            if (act->forced_aim) {
+                aim = *(real_vector3d *)&act->forced_aim_direction.i;
+                if (act->vehicle_driving_type > 0) {
                     use_scratch = 1;
                 }
             } else {
@@ -534,8 +535,8 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
                 halo::ai::actor_movement_project_into_frame(keep_z, &aim, &desired, &rotated);
             }
             chosen_axis = 4;
-        } else if (act[0x505]) {
-            halo::ai::actor_movement_choose_strafe_axis(desired_direction, keep_z, facing, &((struct actor *)act)->forced_aim_direction, &aim,
+        } else if (act->forced_aim) {
+            halo::ai::actor_movement_choose_strafe_axis(desired_direction, keep_z, facing, &act->forced_aim_direction, &aim,
                                               &chosen_axis);
         } else {
             aim = *desired_direction;
@@ -550,14 +551,14 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
     }
 
     dot_facing = aim.j * facing->j + aim.k * facing->k + aim.i * facing->i;
-    if (order_failed || ((struct actor *)act)->control_animation_mode == 4) {
+    if (order_failed || act->control_animation_mode == 4) {
         take_step = 1;
     } else {
-        if (!act[0x99]) {
+        if (!act->flying) {
             int32_t surface;
 
             halo::ai::actor_update_target_lead_position(actor_index);
-            surface = ((struct actor *)act)->pathfinding_surface_index;
+            surface = act->pathfinding_surface_index;
             if (surface != -1 && chosen_axis >= 0 && chosen_axis <= 3) {
                 real_vector3d probe;
 
@@ -571,10 +572,10 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
                     real_point3d point;
                     path_find_boundary_crossing crossing;
 
-                    point.x = probe.i * 0.4f + ((actor *)act)->body_position.x;
-                    point.y = probe.j * 0.4f + ((actor *)act)->body_position.y;
-                    point.z = ((actor *)act)->body_position.z;
-                    if (halo::ai::path_find_trace_bsp_boundary(halo::scenario::globals().structure_bsp, act[0x376], &((struct actor *)act)->body_position,
+                    point.x = probe.i * 0.4f + act->body_position.x;
+                    point.y = probe.j * 0.4f + act->body_position.y;
+                    point.z = act->body_position.z;
+                    if (halo::ai::path_find_trace_bsp_boundary(halo::scenario::globals().structure_bsp, act->ignores_glass, &act->body_position,
                                                      surface, &point, -1, &crossing) &&
                         !(max_turn_cos > 0.95f)) {
                         max_turn_cos = 0.95f;
@@ -594,7 +595,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
         *out_flag_506 = (uint8_t)(desired_length_squared <= accuracy * accuracy);
     }
     halo::ai::actor_movement_get_stopping_distances(actor_index, &max_turn_cos, &stop_distance);
-    if (!act[0x46e] && stop_distance * stop_distance > desired_length_squared) {
+    if (!act->active_movement.cancelled && stop_distance * stop_distance > desired_length_squared) {
         float distance = (float)sqrt(desired_length_squared);
 
         if (!(max_turn_cos + 0.05f < distance) || !(stop_distance > max_turn_cos)) {
@@ -623,14 +624,14 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
         heading.k *= turn_limit;
         *out_flag_507 = 0;
     } else {
-        act[0x591] = 1;
+        act->turn_required = 1;
         *out_flag_507 = 1;
     }
 
     if (steering_maximum > 0.0f || oversteer_max > 0.0f) {
         float target_angle;
         float angle;
-        float *held = &((struct actor *)act)->oversteer_angle[0];
+        float *held = &act->oversteer_angle[0];
 
         if (dot_facing >= 1.0f) {
             target_angle = 0.0f;
@@ -657,7 +658,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
             }
         }
         if (angle > *held) {
-            if (act[0x591] && angle > oversteer_min) {
+            if (act->turn_required && angle > oversteer_min) {
                 *held = angle <= oversteer_max ? angle : oversteer_max;
             }
         } else if (*held > 0.0f) {

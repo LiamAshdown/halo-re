@@ -262,7 +262,7 @@ uint8_t ConversationView::current_line_is_ready()
 
                 for (i = 0; (int32_t)i < *(int32_t *)(definition + 0x50); i++) {
                     datum_index actor_index = *(datum_index *)(inst + 0x28 + i * 4);
-                    uint8_t *a;
+                    actor *a;
 
                     if (actor_index == k_datum_index_none) {
                         continue;
@@ -270,9 +270,9 @@ uint8_t ConversationView::current_line_is_ready()
                     if (!(flags & 0x20) && !((flags & 0x10) && actor_index == *(datum_index *)(inst + 0x50))) {
                         continue;
                     }
-                    a = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-                    if (((actor *)a)->mode == 0xc && *(datum_index *)(a + 0xa8) != k_datum_index_none &&
-                        !a[0xa1] && !a[0xa0]) {
+                    a = halo::ai::actor_at(actor_index);
+                    if (a->mode == 0xc && a->mode_data.converse.partner_unit != k_datum_index_none &&
+                        !a->mode_data.converse.arrived && !a->mode_data.converse.finished) {
                         blocked = 1;
                     }
                 }
@@ -1286,25 +1286,25 @@ finished_check:
 
             for (i = 0; (int32_t)i < *(int32_t *)(definition + 0x50); i++) {
                 datum_index actor_index = *(datum_index *)(inst + 0x28 + i * 4);
-                uint8_t *a;
+                actor *a;
                 datum_index unit;
                 uint16_t flags = *(uint16_t *)(inst + 0x4e);
 
                 if (!(*(uint32_t *)(inst + 0x14) & (1u << i)) || actor_index == k_datum_index_none) {
                     continue;
                 }
-                a = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-                unit = ((actor *)a)->unit_index;
-                ((actor *)a)->conversation_index = handle;
-                ((actor *)a)->conversation_participant = k_datum_index_none;
+                a = halo::ai::actor_at(actor_index);
+                unit = a->unit_index;
+                a->conversation_index = handle;
+                a->conversation_participant = k_datum_index_none;
                 if (unit == *(datum_index *)(inst + 0x54)) {
-                    ((actor *)a)->conversation_participant = *(datum_index *)(inst + 0x58);
+                    a->conversation_participant = *(datum_index *)(inst + 0x58);
                 } else if (unit == *(datum_index *)(inst + 0x58) && (flags & 1)) {
-                    ((actor *)a)->conversation_participant = *(datum_index *)(inst + 0x54);
+                    a->conversation_participant = *(datum_index *)(inst + 0x54);
                 } else if (flags & 2) {
-                    ((actor *)a)->conversation_participant = *(datum_index *)(inst + 0x54);
+                    a->conversation_participant = *(datum_index *)(inst + 0x54);
                 } else if (flags & 4) {
-                    ((actor *)a)->conversation_participant = *(datum_index *)(inst + 0x58);
+                    a->conversation_participant = *(datum_index *)(inst + 0x58);
                 }
             }
         }
