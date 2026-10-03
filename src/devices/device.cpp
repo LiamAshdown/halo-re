@@ -5,14 +5,13 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/devices/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern data_array *device_groups;
 extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame, real_orientation *out_orientations);
 extern void animation_overlay_frame_orientations(ModelAnimationsAnimation *animation, int16_t frame, real_orientation *out_orientations);
-extern uint8_t device_group_set_value(uint16_t group_index, float value);
-extern void device_play_state_change_effect(uint32_t object_index, TagID tag_id);
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name, object_marker *marker, uint32_t flags);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void *global_zero_vector3d_pointer;
@@ -20,21 +19,7 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 extern object *object_iterator_next(object_iterator *iterator);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern void device_groups_initialize(void);
 extern Scenario *global_scenario;
-void device_new(uint32_t object_index, device_placement_data *placement);
-uint8_t device_create(datum_index object_index);
-void device_delete(datum_index object_index);
-void device_blend_animations(datum_index object_index, real_orientation *orientations);
-int device_can_change_position(uint32_t object_index);
-void device_change_power_state(float fallback_value, uint32_t object_id);
-void device_compute_function_values(uint32_t object_index);
-uint8_t device_frontfacing(uint32_t device_index, real_vector3d *forward);
-uint8_t device_update_change_values(uint32_t object_index);
-void device_group_set_value_immediate(uint16_t group_index, float value);
-void device_groups_allocate(void);
-void device_groups_clear_disposing_flag(void);
-void device_groups_dispose(void);
 }
 
 namespace {
@@ -280,16 +265,16 @@ void DeviceHandle::change_power_state(float fallback_value)
         break;
     }
 
-    changed = device_group_set_value((uint16_t)group_index, target);
+    changed = halo::devices::device_group_set_value((uint16_t)group_index, target);
     if (!changed) {
-        device_play_state_change_effect(object_id, tag->deny.tag_id); 
+        halo::devices::device_play_state_change_effect(object_id, tag->deny.tag_id); 
         return;
     }
     if (target <= 0.5f) {
-        device_play_state_change_effect(object_id, tag->off.tag_id); 
+        halo::devices::device_play_state_change_effect(object_id, tag->off.tag_id); 
         return;
     }
-    device_play_state_change_effect(object_id, tag->on.tag_id); 
+    halo::devices::device_play_state_change_effect(object_id, tag->on.tag_id); 
 }
 
 /**
@@ -505,15 +490,15 @@ uint8_t DeviceHandle::update_change_values()
                     still_settling = 1;
                     if (dev->position_change != 0.0f &&
                         old_position_change * dev->position_change <= 0.0f) {
-                        device_play_state_change_effect(object_index,
+                        halo::devices::device_play_state_change_effect(object_index,
                             (dev->position_change > old_position_change)
                                 ? tag->open.tag_id
                                 : tag->close.tag_id);
                     }
                 } else if (old_position_change <= 0.0f) {
-                    device_play_state_change_effect(object_index, tag->closed.tag_id);
+                    halo::devices::device_play_state_change_effect(object_index, tag->closed.tag_id);
                 } else {
-                    device_play_state_change_effect(object_index, tag->opened.tag_id);
+                    halo::devices::device_play_state_change_effect(object_index, tag->opened.tag_id);
                 }
 
                 if (old_position != dev->position) {
@@ -524,7 +509,7 @@ uint8_t DeviceHandle::update_change_values()
 
             dev->delay_ticks++;
             if (dev->delay_ticks == 1) {
-                device_play_state_change_effect(object_index, tag->delay_effect.tag_id);
+                halo::devices::device_play_state_change_effect(object_index, tag->delay_effect.tag_id);
                 return still_settling;
             }
         }
@@ -591,7 +576,7 @@ uint8_t DeviceGroupHandle::set_value(float value)
             
             
             
-            device_play_state_change_effect(iterator.handle,
+            halo::devices::device_play_state_change_effect(iterator.handle,
                 (value != 0.0f) ? tag->repowered.tag_id : tag->depowered.tag_id);
         }
         obj = object_iterator_next(&iterator);
@@ -681,7 +666,7 @@ void DeviceGroupPool::dispose()
 {
     device_groups->valid = 1;
     halo::memory::data_delete_all(device_groups);
-    device_groups_initialize();
+    halo::devices::device_groups_initialize();
 }
 
 /**
@@ -714,7 +699,7 @@ void DeviceGroupPool::initialize()
 
 }
 
-extern "C" {
+namespace halo::devices {
 
 void device_new(uint32_t object_index, device_placement_data *placement)
 {

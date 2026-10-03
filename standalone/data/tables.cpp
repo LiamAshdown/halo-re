@@ -6,6 +6,7 @@
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
 #include "code_refs.hpp"
+#include "halo/devices/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/sound/api.hpp"
 
@@ -2093,29 +2094,29 @@ uint32_t message_delta_definitions_0069b1a8[909] = {
     /* +0x09e8 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0a08 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[610], 0, 0, 0, 0, 0, 0,
     /* +0x0a28 */ 0, 0, 0, 0, 0, 0, 0, 0,
-    /* +0x0a48 */ 0, 0, (uint32_t)"device", 0x64657669, 0xffff0214u, 0xffffffffu, 0xffffffffu, (uint32_t)device_groups_allocate,
-    /* +0x0a68 */ (uint32_t)function_do_nothing, (uint32_t)device_groups_dispose, (uint32_t)device_groups_clear_disposing_flag, 0, (uint32_t)device_create, 0, (uint32_t)device_delete, (uint32_t)device_update_change_values,
-    /* +0x0a88 */ (uint32_t)device_compute_function_values, 0, 0, 0, (uint32_t)device_blend_animations, 0, 0, 0,
+    /* +0x0a48 */ 0, 0, (uint32_t)"device", 0x64657669, 0xffff0214u, 0xffffffffu, 0xffffffffu, (uint32_t)&halo::devices::device_groups_allocate,
+    /* +0x0a68 */ (uint32_t)function_do_nothing, (uint32_t)&halo::devices::device_groups_dispose, (uint32_t)&halo::devices::device_groups_clear_disposing_flag, 0, (uint32_t)&halo::devices::device_create, 0, (uint32_t)&halo::devices::device_delete, (uint32_t)&halo::devices::device_update_change_values,
+    /* +0x0a88 */ (uint32_t)&halo::devices::device_compute_function_values, 0, 0, 0, (uint32_t)&halo::devices::device_blend_animations, 0, 0, 0,
     /* +0x0aa8 */ 0, (uint32_t)function_do_nothing, 0, 0, 0, 0, 0, 0,
     /* +0x0ac8 */ 0, 0, (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[660], 0, 0, 0, 0,
     /* +0x0ae8 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0b08 */ 0, 0, 0, 0,
     /* +0x0b18 */ (uint32_t)"machine", 0x6d616368, 0x2940228, 0x4002a0, 0xffffffffu, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing,
-    /* +0x0b38 */ (uint32_t)function_do_nothing, 0, (uint32_t)machine_create, (uint32_t)machine_place, (uint32_t)function_do_nothing, (uint32_t)device_machine_update, 0, 0,
+    /* +0x0b38 */ (uint32_t)function_do_nothing, 0, (uint32_t)&halo::devices::machine_create, (uint32_t)&halo::devices::machine_place, (uint32_t)function_do_nothing, (uint32_t)&halo::devices::device_machine_update, 0, 0,
     /* +0x0b58 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0b78 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0b98 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[660], (uint32_t)&message_delta_definitions_0069b1a8[710], 0, 0, 0, 0, 0,
     /* +0x0bb8 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0bd8 */ 0, 0,
     /* +0x0be0 */ (uint32_t)"control", 0x6374726c, 0x2ac021c, 0x4002b8, 0xffffffffu, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing,
-    /* +0x0c00 */ (uint32_t)function_do_nothing, 0, (uint32_t)object_type_definition_return_true, (uint32_t)control_place, (uint32_t)function_do_nothing, (uint32_t)object_type_definition_return_true, 0, 0,
+    /* +0x0c00 */ (uint32_t)function_do_nothing, 0, (uint32_t)object_type_definition_return_true, (uint32_t)&halo::devices::control_place, (uint32_t)function_do_nothing, (uint32_t)object_type_definition_return_true, 0, 0,
     /* +0x0c20 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0c40 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0c60 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[660], (uint32_t)&message_delta_definitions_0069b1a8[760], 0, 0, 0, 0, 0,
     /* +0x0c80 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0ca0 */ 0, 0,
     /* +0x0ca8 */ (uint32_t)"light_fixture", 0x6c696669, 0x2c4022c, 0x5802d0, 0xffffffffu, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing,
-    /* +0x0cc8 */ (uint32_t)function_do_nothing, 0, (uint32_t)object_type_definition_return_true, (uint32_t)light_fixture_place, (uint32_t)function_do_nothing, (uint32_t)object_type_definition_return_true, 0, 0,
+    /* +0x0cc8 */ (uint32_t)function_do_nothing, 0, (uint32_t)object_type_definition_return_true, (uint32_t)&halo::devices::light_fixture_place, (uint32_t)function_do_nothing, (uint32_t)object_type_definition_return_true, 0, 0,
     /* +0x0ce8 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0d08 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0d28 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[660], (uint32_t)&message_delta_definitions_0069b1a8[810], 0, 0, 0, 0, 0,

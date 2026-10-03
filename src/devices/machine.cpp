@@ -1,28 +1,17 @@
 #include "halo/devices/machine.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/devices/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern void device_new(uint32_t object_index, void *placement);
-extern void device_group_set_value_immediate(uint16_t group_index, float value);
 extern data_array *device_groups;
 extern game_time_globals *game_time;
 extern game_engine_definition *current_game_engine;
 extern void *team_pair_data;
-extern uint8_t device_group_set_value(uint16_t group_index, float value);
 extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location, real_point3d *center, float radius, datum_index *out_objects, int16_t max_output);
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
-extern void device_change_power_state(float fallback_value, uint32_t object_id);
-extern void device_control_activate(uint32_t object_id);
-uint8_t machine_create(datum_index object_index);
-void machine_place(datum_index object_index, uint8_t *placement);
-void device_machine_melee_attacked(uint32_t object_index);
-uint32_t device_machine_update(uint32_t object_index);
-void control_place(datum_index object_index, uint8_t *placement);
-void device_control_touched(uint32_t object_index);
-void light_fixture_place(datum_index object_index, uint8_t *placement);
 }
 
 namespace {
@@ -77,7 +66,7 @@ void MachineHandle::place(uint8_t *placement)
     uint8_t *obj = object_get(object_index);
     ScenarioMachine *scenario_machine = (ScenarioMachine *)placement;
 
-    device_new(object_index, &scenario_machine->power_group);
+    halo::devices::device_new(object_index, (device_placement_data *)(&scenario_machine->power_group));
     ((device_object *)obj)->device.type_flags |= scenario_machine->machine_flags & k_machine_placement_flags_mask;
 }
 
@@ -99,7 +88,7 @@ void MachineHandle::melee_attacked()
     if ((dev->device.type_flags & (1u << _device_machine_opened_by_melee_attack_bit)) != 0 &&
         object_index != (uint32_t)k_datum_index_none &&
         dev->device.position_group != -1) {
-        device_group_set_value_immediate((uint16_t)dev->device.position_group, 1.0f);
+        halo::devices::device_group_set_value_immediate((uint16_t)dev->device.position_group, 1.0f);
     }
 }
 
@@ -194,7 +183,7 @@ uint32_t MachineHandle::update()
             }
             if (should_open) {
                 if (dev->device.position_group != -1) {
-                    device_group_set_value((uint16_t)dev->device.position_group, 1.0f);
+                    halo::devices::device_group_set_value((uint16_t)dev->device.position_group, 1.0f);
                     
                 }
                 dev->ticks_since_fully_open = k_device_machine_open_grace_ticks;
@@ -208,7 +197,7 @@ uint32_t MachineHandle::update()
             dev->ticks_since_fully_open++;
             if ((int32_t)tag->door_open_time_ticks < dev->ticks_since_fully_open &&
                 dev->device.position_group != -1) {
-                device_group_set_value((uint16_t)dev->device.position_group, 0.0f);
+                halo::devices::device_group_set_value((uint16_t)dev->device.position_group, 0.0f);
                 
             }
         } else {
@@ -278,7 +267,7 @@ void ControlHandle::place(uint8_t *placement)
     uint8_t *obj = object_get(object_index);
     ScenarioControl *scenario_control = (ScenarioControl *)placement;
 
-    device_new(object_index, &scenario_control->power_group);
+    halo::devices::device_new(object_index, (device_placement_data *)(&scenario_control->power_group));
     if ((scenario_control->control_flags & to_bits(scenario_control_flags::usable_from_both_sides)) != 0) {
         ((device_object *)obj)->device.type_flags |= to_bits(control_type_flags::usable_from_both_sides);
     }
@@ -306,7 +295,7 @@ void ControlHandle::activate()
     DeviceControl *tag = (DeviceControl *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if (tag->triggers_when == devicetriggerswhen_touched_by_player) {
-        device_change_power_state(0.0f, object_id); 
+        halo::devices::device_change_power_state(0.0f, object_id); 
     }
 }
 
@@ -324,7 +313,7 @@ void ControlHandle::touched()
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
     if (obj->type == _object_type_device_control) {
-        device_control_activate(object_index);
+        halo::devices::device_control_activate(object_index);
     }
 }
 
@@ -341,7 +330,7 @@ void LightFixtureHandle::place(uint8_t *placement)
     ScenarioLightFixture *scenario_light = (ScenarioLightFixture *)placement;
     light_fixture_placement_copy *lights = (light_fixture_placement_copy *)&((device_object *)object)->device.type_flags;
 
-    device_new(object_index, &scenario_light->power_group);
+    halo::devices::device_new(object_index, (device_placement_data *)(&scenario_light->power_group));
     lights->color = scenario_light->color;
     lights->intensity = scenario_light->intensity;
     lights->falloff_angle = scenario_light->falloff_angle;
@@ -350,7 +339,7 @@ void LightFixtureHandle::place(uint8_t *placement)
 
 }
 
-extern "C" {
+namespace halo::devices {
 
 uint8_t machine_create(datum_index object_index)
 {

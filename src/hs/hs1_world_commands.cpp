@@ -1,4 +1,5 @@
 #include "halo/hs/hs1_world_commands.hpp"
+#include "halo/devices/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -23,9 +24,6 @@ extern void hs_damage_apply_with_sound(datum_index object_index, uint32_t damage
 extern void hud_waypoint_deactivate_for_player(datum_index player_index, datum_index target, int16_t kind);
 extern void hud_waypoint_deactivate_for_team(int16_t kind, int16_t team, datum_index target);
 extern data_array *object_data;
-extern data_array *device_groups;
-extern uint8_t device_group_set_value(uint16_t group_index, float value);
-extern void device_group_set_value_immediate(uint16_t group_index, float value);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 
@@ -511,7 +509,7 @@ void DeviceCommands::device_group_change_only_once_more_set(int16_t function_ind
         int16_t group = *(int16_t *)&arguments[0];
 
         if (group != -1) {
-            uint8_t *record = (uint8_t *)device_groups->data + (uint16_t)group * 8;
+            uint8_t *record = (uint8_t *)halo::devices::globals().device_groups->data + (uint16_t)group * 8;
 
             if (*(uint8_t *)&arguments[1] != 0) {
                 record[2] |= 1;
@@ -536,7 +534,7 @@ void DeviceCommands::device_group_get(int16_t function_index, uint32_t thread_in
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        float value = *(float *)((uint8_t *)device_groups->data + (uint16_t)*(uint16_t *)&arguments[0] * 8 + 4);
+        float value = *(float *)((uint8_t *)halo::devices::globals().device_groups->data + (uint16_t)*(uint16_t *)&arguments[0] * 8 + 4);
         hs_thread_return(*(int32_t *)&value, thread_index);
     }
 }
@@ -553,7 +551,7 @@ void DeviceCommands::device_group_set(int16_t function_index, uint32_t thread_in
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)device_group_set_value(*(uint16_t *)&arguments[0], *(float *)&arguments[1]), thread_index);
+    hs_thread_return((int32_t)halo::devices::device_group_set_value(*(uint16_t *)&arguments[0], *(float *)&arguments[1]), thread_index);
     }
 }
 
@@ -569,7 +567,7 @@ void DeviceCommands::device_group_set_immediate(int16_t function_index, uint32_t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        device_group_set_value_immediate(*(uint16_t *)&arguments[0], *(float *)&arguments[1]);
+        halo::devices::device_group_set_value_immediate(*(uint16_t *)&arguments[0], *(float *)&arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }

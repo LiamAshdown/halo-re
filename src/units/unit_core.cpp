@@ -4,13 +4,13 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/devices/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern double sqrt(double x);
 extern uint8_t *global_globals;
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
-extern void device_machine_melee_attacked(uint32_t object_index);
 extern game_engine_definition *current_game_engine;
 extern void object_delete(uint32_t object_index);
 extern uint8_t event9_target;
@@ -196,7 +196,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
             } else {
                 object *best_obj = ((object_header *)object_data->data)[best_object & 0xffff].data;
                 if (best_obj->type == 7) {
-                    device_machine_melee_attacked(best_object);
+                    halo::devices::device_machine_melee_attacked(best_object);
                 }
                 if (*(float *)(global_globals + 0x174 + 0x34) > 0.0f) {
                     float f = (obj->forward.i * obj->velocity.i + obj->forward.j * obj->velocity.j +

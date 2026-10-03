@@ -4,6 +4,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/devices/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -12,7 +13,6 @@ extern char ai_marker_name_a[];
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
-extern void device_machine_melee_attacked(uint32_t object_index);
 }
 
 namespace halo::units {
@@ -159,7 +159,7 @@ void UnitView::melee_attack_scan()
             float speed_scale = *(float *)((uint8_t *)global_globals->player_information.pointer + 0x34);
 
             if (*(int16_t *)(OBJECT_DATA(best_object) + 0xb4) == 7) {
-                device_machine_melee_attacked(best_object);
+                halo::devices::device_machine_melee_attacked(best_object);
             }
             if (speed_scale > 0.0f) {
                 float f = (((unit_object *)obj)->base.velocity.k * ((unit_object *)obj)->base.forward.k +

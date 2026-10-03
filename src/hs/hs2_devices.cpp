@@ -1,4 +1,5 @@
 #include "halo/hs/hs2_commands.hpp"
+#include "halo/devices/api.hpp"
 
 
 #ifdef __cplusplus
@@ -9,8 +10,6 @@ extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t param
     int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern data_array *object_data;
-extern uint8_t device_group_set_value(uint16_t group_index, float value);
-extern void device_group_set_value_immediate(uint16_t group_index, float value);
 #ifdef __cplusplus
 }
 #endif
@@ -38,7 +37,7 @@ void DeviceCommands::evaluate_device_set_position(int16_t function_index, uint32
         uint16_t group = *(uint16_t *)(object + 0x204);
 
         if (group != 0xffff) {
-            result = device_group_set_value(group, *(float *)&arguments[1]);
+            result = halo::devices::device_group_set_value(group, *(float *)&arguments[1]);
         }
     }
     hs_thread_return((int32_t)result, thread_index);
@@ -64,7 +63,7 @@ void DeviceCommands::evaluate_device_set_position_immediate(int16_t function_ind
         uint16_t group = *(uint16_t *)(*(uint8_t **)((uint8_t *)object_data->data + (device & 0xffff) * 0xc + 8) + 0x204);
 
         if (group != 0xffff) {
-            device_group_set_value_immediate(group, *(float *)&arguments[1]);
+            halo::devices::device_group_set_value_immediate(group, *(float *)&arguments[1]);
         }
     }
     hs_thread_return(0, thread_index);
@@ -92,7 +91,7 @@ void DeviceCommands::evaluate_device_set_power(int16_t function_index, uint32_t 
 
         *(uint32_t *)(object + 0x1f4) |= 4;
         *(float *)(object + 0x1fc) = power;
-        device_group_set_value(*(uint16_t *)(object + 0x1f8), power);
+        halo::devices::device_group_set_value(*(uint16_t *)(object + 0x1f8), power);
     }
     hs_thread_return(0, thread_index);
     }

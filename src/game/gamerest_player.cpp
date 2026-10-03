@@ -9,6 +9,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/devices/api.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
@@ -43,8 +44,6 @@ extern void unit_recompute_seat_occupants(uint32_t unit_index);
 extern void unit_pick_and_ready_next_weapon(uint32_t unit_index);
 extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point);
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
-extern uint8_t device_frontfacing(uint32_t device_index, real_vector3d *forward);
-extern uint8_t device_can_change_position(uint32_t candidate_object);
 extern void player_set_pending_interaction_action(int16_t priority_type, int16_t seat, uint32_t player_index, uint32_t candidate_object);
 extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind, int16_t count);
 extern uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index);
@@ -68,7 +67,6 @@ extern uint8_t unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_
 extern void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag, uint8_t fire_trigger_event);
 extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index);
 extern void player_update_history_free_all(void *queue);
-extern void device_control_touched(uint32_t object_index);
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out);
 extern uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index, uint8_t flag_pursue);
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);
@@ -441,8 +439,8 @@ void PlayerView::check_assassination_opportunity(uint32_t candidate_object)
 
     if (halo::math::ray_intersects_sphere_test(candidate->bounding_center, camera_position,
             *(&((unit_data *)((uint8_t *)unit + k_unit_data_offset))->aiming_vector), candidate->bounding_radius)) {
-        if (device_frontfacing(candidate_object, &((unit_data *)((uint8_t *)unit + k_unit_data_offset))->aiming_vector)) {
-            if (device_can_change_position(candidate_object)) {
+        if (halo::devices::device_frontfacing(candidate_object, &((unit_data *)((uint8_t *)unit + k_unit_data_offset))->aiming_vector)) {
+            if (halo::devices::device_can_change_position(candidate_object)) {
                 PlayerView(player_index).set_pending_interaction_action(10, (int16_t)0xffff, candidate_object);
             }
         }
@@ -746,7 +744,7 @@ uint8_t PlayerView::execute_pending_interaction()
         break;
     }
     case 10:
-        device_control_touched(target_index);
+        halo::devices::device_control_touched(target_index);
         break;
     case 11: {
         uint8_t *target = OBJECT_DATA(target_index);
