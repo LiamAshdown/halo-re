@@ -17,6 +17,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 #ifdef interface
 #undef interface
@@ -312,8 +313,8 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
             }
             if (slot < 3) {
                 const uint8_t *profile = profile_carousel_slots[slot].profile;
-                uint16_t flags = *(const uint16_t *)(profile + 0x11c);
-                int16_t color = *(const int16_t *)(profile + 0x11a);
+                uint16_t flags = ((struct saved_player_profile *)profile)->flags;
+                int16_t color = ((struct saved_player_profile *)profile)->player_color;
                 uint16_t *name = (uint16_t *)halo::memory::heap_reallocate(widget->list_render_data, 0x18, widget_memory_pool);
 
                 widget->list_render_data = name;
@@ -358,8 +359,8 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                         }
                     }
                     {
-                        uint16_t *joystick_text = halo::text::text_string_list_get_string(joysticks, *(const uint8_t *)(profile + 0x12d));
-                        uint16_t *button_text = halo::text::text_string_list_get_string(buttons, *(const uint8_t *)(profile + 0x12c));
+                        uint16_t *joystick_text = halo::text::text_string_list_get_string(joysticks, ((struct saved_player_profile *)profile)->joystick_set);
+                        uint16_t *button_text = halo::text::text_string_list_get_string(buttons, ((struct saved_player_profile *)profile)->button_set);
                         halo::text::string_format_wide_va_bounded(0xff, reinterpret_cast<uint16_t *>((wchar_t *)description_row->text), reinterpret_cast<const uint16_t *>(L"%s%hs%s"),
                                                       joystick_text, joystick_set_separator_0065f010, button_text);
                     }
@@ -415,17 +416,17 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     int32_t environment_enabled;
 
     if (safe_mode != 0) {
-        settings[0xb78] = 10;
-        settings[0xb79] = 10;
-        settings[0xb7a] = 6;
-        settings[0xb7b] = 0;
-        settings[0xb7c] = 0;
-        settings[0xb7d] = 0;
-        settings[0xb7e] = 0;
-        settings[0xb7f] = 0;
+        ((struct saved_player_profile *)settings)->master_volume = 10;
+        ((struct saved_player_profile *)settings)->effects_volume = 10;
+        ((struct saved_player_profile *)settings)->music_volume = 6;
+        ((struct saved_player_profile *)settings)->hardware_acceleration = 0;
+        ((struct saved_player_profile *)settings)->eax_enabled = 0;
+        ((struct saved_player_profile *)settings)->sound_quality = 0;
+        ((struct saved_player_profile *)settings)->unknown_b7e = 0;
+        ((struct saved_player_profile *)settings)->sound_variety = 0;
     }
 
-    gain = (float)settings[0xb78] * 0.1f;
+    gain = (float)((struct saved_player_profile *)settings)->master_volume * 0.1f;
     if (gain < 0.0f) {
         gain = 0.0f;
     } else if (gain > 1.0f) {
@@ -433,7 +434,7 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     }
     halo::sound::sound_set_master_gain(gain);
 
-    gain = (float)settings[0xb79] * 0.1f;
+    gain = (float)((struct saved_player_profile *)settings)->effects_volume * 0.1f;
     if (gain < 0.0f) {
         gain = 0.0f;
     } else if (gain > 1.0f) {
@@ -441,7 +442,7 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     }
     halo::sound::sound_set_effects_gain(gain);
 
-    gain = (float)settings[0xb7a] * 0.1f;
+    gain = (float)((struct saved_player_profile *)settings)->music_volume * 0.1f;
     if (gain < 0.0f) {
         gain = 0.0f;
     } else if (gain > 1.0f) {
@@ -449,14 +450,14 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     }
     halo::sound::sound_set_music_gain(gain);
 
-    sound_permutation_limit = settings[0xb7f];
+    sound_permutation_limit = ((struct saved_player_profile *)settings)->sound_variety;
     if (directsound_initialized == 0 || directsound_eax_available == 0 ||
-        settings[0xb7c] == 0) {
+        ((struct saved_player_profile *)settings)->eax_enabled == 0) {
         environment_enabled = 0;
     } else {
         environment_enabled = 1;
     }
-    halo::sound::sound_driver_set_quality(environment_enabled, settings[0xb7b] == 1, settings[0xb7d]);
+    halo::sound::sound_driver_set_quality(environment_enabled, ((struct saved_player_profile *)settings)->hardware_acceleration == 1, ((struct saved_player_profile *)settings)->sound_quality);
 }
 
 /**
@@ -567,7 +568,7 @@ void PlayerProfiles::details_widget_refresh(widget_instance *widget, const uint8
 
     a->text = halo::memory::heap_reallocate(a->text, 0x18, widget_memory_pool);
     if (a->text != 0) {
-        uint16_t flags = *(const uint16_t *)(profile_record + 0x11c);
+        uint16_t flags = ((struct saved_player_profile *)profile_record)->flags;
 
         if ((flags & 1) != 0) {
             datum_index names_tag =
@@ -583,7 +584,7 @@ void PlayerProfiles::details_widget_refresh(widget_instance *widget, const uint8
         ((uint16_t *)a->text)[0xb] = 0;
     }
 
-    sensitivity = *(const int16_t *)(profile_record + 0x11a);
+    sensitivity = ((struct saved_player_profile *)profile_record)->player_color;
     if (sensitivity < 0) {
         sensitivity = 0;
     } else if (sensitivity > 0x11) {
@@ -609,7 +610,7 @@ void PlayerProfiles::details_widget_refresh(widget_instance *widget, const uint8
         }
         f->selection_index = (int16_t)next_level;
         h->selection_index = type;
-        j->selection_index = profile_record[0x12f] == 1;
+        j->selection_index = ((struct saved_player_profile *)profile_record)->look_inverted == 1;
     }
 }
 
@@ -681,11 +682,11 @@ void PlayerProfiles::load(int16_t player_index, void *source_profile, int32_t pr
     halo::interface::player_profile_apply_audio_options(record);
 
     if (halo::game::globals().current_engine == (void *)0 && port_overridden == 0 &&
-        (halo::networking::globals().game_socket_port != *(uint16_t *)(record + 0x1002) ||
-         game_cport != *(uint16_t *)(record + 0x1004))) {
+        (halo::networking::globals().game_socket_port != ((struct saved_player_profile *)record)->server_port ||
+         game_cport != ((struct saved_player_profile *)record)->client_port)) {
         halo::networking::network_channels_close();
-        halo::networking::globals().game_socket_port = *(uint16_t *)(record + 0x1002);
-        game_cport = *(uint16_t *)(record + 0x1004);
+        halo::networking::globals().game_socket_port = ((struct saved_player_profile *)record)->server_port;
+        game_cport = ((struct saved_player_profile *)record)->client_port;
         halo::networking::network_channels_open();
         network_session_start_game_type = halo::networking::globals().game_socket_port;
     }
@@ -719,7 +720,7 @@ void PlayerProfiles::refresh_settings_cache(int16_t player_index)
 
     memset(&settings, 0, sizeof(settings));
 
-    slider = (int32_t)profile[0x12e] - 1;
+    slider = (int32_t)((struct saved_player_profile *)profile)->look_sensitivity - 1;
     if (slider < 0) {
         slider = 0;
     } else if (slider > 9) {
@@ -728,16 +729,16 @@ void PlayerProfiles::refresh_settings_cache(int16_t player_index)
     settings.look_rate_80 = k_table_80[slider];
     settings.look_rate_40 = k_table_40[slider];
 
-    memcpy(settings.keyboard, profile + 0x134, sizeof(settings.keyboard));
-    memcpy(settings.mouse_button, profile + 0x20e, sizeof(settings.mouse_button) + sizeof(settings.mouse_axis));
+    memcpy(settings.keyboard, ((struct saved_player_profile *)profile)->keyboard_bindings, sizeof(settings.keyboard));
+    memcpy(settings.mouse_button, ((struct saved_player_profile *)profile)->mouse_button_bindings, sizeof(settings.mouse_button) + sizeof(settings.mouse_axis));
     memcpy(settings.gamepad_button, profile + 0x22a, sizeof(settings.gamepad_button));
     memcpy(settings.gamepad_action_button, profile + 0x32a, sizeof(settings.gamepad_action_button));
     memcpy(settings.gamepad_axis, profile + 0x33a, sizeof(settings.gamepad_axis));
     memcpy(settings.gamepad_pov, profile + 0x53a, sizeof(settings.gamepad_pov));
     memcpy(&settings.forward_rate, profile + 0x93c, 6 * sizeof(float));
 
-    settings.mouse_look_x_sensitivity = k_table_01[slider_index(profile[0x954])];
-    settings.mouse_look_y_sensitivity = k_table_01[slider_index(profile[0x955])];
+    settings.mouse_look_x_sensitivity = k_table_01[slider_index(((struct saved_player_profile *)profile)->mouse_look_x_sensitivity)];
+    settings.mouse_look_y_sensitivity = k_table_01[slider_index(((struct saved_player_profile *)profile)->mouse_look_y_sensitivity)];
 
     memcpy(&settings.gamepad_axis_scale_x, profile + 0x960, 2 * sizeof(float));
 
@@ -746,8 +747,8 @@ void PlayerProfiles::refresh_settings_cache(int16_t player_index)
         settings.gamepad_rate_40[i] = k_table_40[slider_index(profile[0x95a + i])];
     }
 
-    settings.look_inverted = profile[0x12f];
-    settings.look_inverted_driving = profile[0x131];
+    settings.look_inverted = ((struct saved_player_profile *)profile)->look_inverted;
+    settings.look_inverted_driving = ((struct saved_player_profile *)profile)->look_inverted_driving;
 
     dest_slot = profile_slot_id[player_index];
     if (profile_slot_id[player_index] == -1) {

@@ -26,6 +26,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 extern "C" {
 extern uint8_t *network_client;
@@ -821,12 +822,12 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
     ui_list_current = -1;
     ui_list_has_default = 0;
     if (profile != 0) {
-        int16_t colour = *(int16_t *)(profile + 0x11a);
+        int16_t colour = ((struct saved_player_profile *)profile)->player_color;
 
         colour = (int16_t)(colour < 0 ? 0 : colour > 0x11 ? 0x11 : colour);
-        *(int16_t *)(profile + 0x11a) = colour;
+        ((struct saved_player_profile *)profile)->player_color = colour;
         widget->selection_index = colour;
-        *(int16_t *)&((struct widget_instance *)widget)->text = *(int16_t *)(profile + 0x11a);
+        *(int16_t *)&((struct widget_instance *)widget)->text = ((struct saved_player_profile *)profile)->player_color;
         *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
     }
     indices = (uint8_t *)halo::memory::heap_reallocate(widget->list_items, 0x12, widget_memory_pool);
@@ -888,7 +889,7 @@ uint8_t UiEventHandlers::event_4a0a80(widget_instance *widget, int16_t *event, u
     if (profile == 0) {
         return 0;
     }
-    *(int16_t *)(profile + 0x11a) = (int16_t)id;
+    ((struct saved_player_profile *)profile)->player_color = (int16_t)id;
     return 1;
 }
 
@@ -975,9 +976,9 @@ uint8_t UiEventHandlers::event_4a0c60(widget_instance *widget, int16_t *event, u
         return 0;
     }
     list = first_list_child(widget->first_child);
-    list->selection_index = (int16_t)(profile[0x12d] <= 3 ? profile[0x12d] : 0);
+    list->selection_index = (int16_t)(((struct saved_player_profile *)profile)->joystick_set <= 3 ? ((struct saved_player_profile *)profile)->joystick_set : 0);
     list = first_list_child(widget->first_child->next_sibling);
-    list->selection_index = (int16_t)(profile[0x12c] <= 4 ? profile[0x12c] : 0);
+    list->selection_index = (int16_t)(((struct saved_player_profile *)profile)->button_set <= 4 ? ((struct saved_player_profile *)profile)->button_set : 0);
     return 1;
 }
 
@@ -996,16 +997,16 @@ uint8_t UiEventHandlers::event_4a0d60(widget_instance *widget, int16_t *event, u
         return 0;
     }
     group = widget->first_child;
-    first_list_child(group)->selection_index = (int16_t)(profile[0x12f] == 0 ? 1 : 0);
+    first_list_child(group)->selection_index = (int16_t)(((struct saved_player_profile *)profile)->look_inverted == 0 ? 1 : 0);
     group = group->next_sibling;
-    value = profile[0x12e];
+    value = ((struct saved_player_profile *)profile)->look_sensitivity;
     first_list_child(group)->selection_index = (int16_t)(value > 0 && value <= 10 ? value - 1 : 0);
     group = group->next_sibling;
-    first_list_child(group)->selection_index = (int16_t)(profile[0x130] == 1);
+    first_list_child(group)->selection_index = (int16_t)(((struct saved_player_profile *)profile)->unknown_130 == 1);
     group = group->next_sibling;
-    first_list_child(group)->selection_index = (int16_t)(profile[0x131] == 0);
+    first_list_child(group)->selection_index = (int16_t)(((struct saved_player_profile *)profile)->look_inverted_driving == 0);
     group = group->next_sibling;
-    first_list_child(group)->selection_index = (int16_t)(profile[0x132] == 0);
+    first_list_child(group)->selection_index = (int16_t)(((struct saved_player_profile *)profile)->auto_center_look == 0);
     return 1;
 }
 
@@ -1024,11 +1025,11 @@ uint8_t UiEventHandlers::event_4a0e90(widget_instance *widget, int16_t *event, u
     }
     selection = first_list_child(widget->first_child)->selection_index;
     if (selection >= 0 && selection <= 3) {
-        profile[0x12d] = (uint8_t)selection;
+        ((struct saved_player_profile *)profile)->joystick_set = (uint8_t)selection;
     }
     selection = first_list_child(widget->first_child->next_sibling)->selection_index;
     if (selection >= 0 && selection <= 4) {
-        profile[0x12c] = (uint8_t)selection;
+        ((struct saved_player_profile *)profile)->button_set = (uint8_t)selection;
     }
     return 1;
 }

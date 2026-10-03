@@ -27,6 +27,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 extern "C" {
 extern uint8_t *network_client;
@@ -297,11 +298,11 @@ uint8_t UiEventHandlers::event_4a21c0(widget_instance *widget, int16_t *event, u
         return 0;
     }
     group = widget->parent->parent->first_child;
-    profile[0x954] = (uint8_t)(first_list_child(group)->selection_index + 1);
+    ((struct saved_player_profile *)profile)->mouse_look_x_sensitivity = (uint8_t)(first_list_child(group)->selection_index + 1);
     group = group->next_sibling;
-    profile[0x955] = (uint8_t)(first_list_child(group)->selection_index + 1);
+    ((struct saved_player_profile *)profile)->mouse_look_y_sensitivity = (uint8_t)(first_list_child(group)->selection_index + 1);
     group = group->next_sibling;
-    profile[0x12f] = (uint8_t)(first_list_child(group)->selection_index == 1);
+    ((struct saved_player_profile *)profile)->look_inverted = (uint8_t)(first_list_child(group)->selection_index == 1);
     return 1;
 }
 
@@ -336,20 +337,20 @@ uint8_t UiEventHandlers::event_4a24c0(widget_instance *widget, int16_t *event, u
         return 0;
     }
     group = widget->parent->parent->first_child;
-    profile[0xb78] = clamp_selection(group, 10);
+    ((struct saved_player_profile *)profile)->master_volume = clamp_selection(group, 10);
     group = group->next_sibling;
-    profile[0xb79] = clamp_selection(group, 10);
+    ((struct saved_player_profile *)profile)->effects_volume = clamp_selection(group, 10);
     group = group->next_sibling;
-    profile[0xb7a] = clamp_selection(group, 10);
+    ((struct saved_player_profile *)profile)->music_volume = clamp_selection(group, 10);
     group = group->next_sibling;
-    profile[0xb7c] = (uint8_t)(first_list_child(group)->selection_index != 0);
+    ((struct saved_player_profile *)profile)->eax_enabled = (uint8_t)(first_list_child(group)->selection_index != 0);
     group = group->next_sibling;
-    profile[0xb7d] = clamp_selection(group, 2);
+    ((struct saved_player_profile *)profile)->sound_quality = clamp_selection(group, 2);
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
-    profile[0xb7b] = (uint8_t)(selection >= 1 && profile[0xb7c] != 0);
+    ((struct saved_player_profile *)profile)->hardware_acceleration = (uint8_t)(selection >= 1 && ((struct saved_player_profile *)profile)->eax_enabled != 0);
     group = group->next_sibling;
-    profile[0xb7f] = clamp_selection(group, 2);
+    ((struct saved_player_profile *)profile)->sound_variety = clamp_selection(group, 2);
     return 1;
 }
 
@@ -447,15 +448,15 @@ uint8_t UiEventHandlers::event_4a2f10(widget_instance *widget, int16_t *event, u
 
         halo::interface::saved_item_select(handle);
         profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
-        wcscpy((wchar_t *)(profile + 0xd8c), (const wchar_t *)network_host_name_00719170);
-        wcscpy((wchar_t *)(profile + 0xeac), (const wchar_t *)network_host_subname_007191f0);
+        wcscpy((wchar_t *)(((struct saved_player_profile *)profile)->server_name), (const wchar_t *)network_host_name_00719170);
+        wcscpy((wchar_t *)(((struct saved_player_profile *)profile)->server_password), (const wchar_t *)network_host_subname_007191f0);
         if (save_in_progress_00719010 == 0) {
-            profile[0xebf] = (uint8_t)resolution_selection_00719204;
+            ((struct saved_player_profile *)profile)->server_maximum_players_index = (uint8_t)resolution_selection_00719204;
         }
         if (network_game_info_packet_flag != 0) {
             int32_t quality = quality_selection_00692b04;
 
-            profile[0xfc0] = (uint8_t)(quality < 0 ? 0 : quality > 4 ? 4 : quality);
+            ((struct saved_player_profile *)profile)->connection_type = (uint8_t)(quality < 0 ? 0 : quality > 4 ? 4 : quality);
         }
         if (halo::interface::saved_item_has_unsaved_changes() != 0) {
             halo::interface::player_profile_save();
@@ -758,9 +759,9 @@ uint8_t UiEventHandlers::event_4a39e0(widget_instance *widget, int16_t *event, u
     } else if (selection > 4) {
         selection = 4;
     }
-    profile[0xfc0] = (uint8_t)selection;
-    *(uint16_t *)(profile + 0x1002) = (uint16_t)network_game_option_a_00719210;
-    *(uint16_t *)(profile + 0x1004) = (uint16_t)network_game_option_b_00719214;
+    ((struct saved_player_profile *)profile)->connection_type = (uint8_t)selection;
+    ((struct saved_player_profile *)profile)->server_port = (uint16_t)network_game_option_a_00719210;
+    ((struct saved_player_profile *)profile)->client_port = (uint16_t)network_game_option_b_00719214;
     return 1;
 }
 

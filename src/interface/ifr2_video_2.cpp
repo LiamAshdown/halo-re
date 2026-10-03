@@ -7,6 +7,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 #ifdef interface
 #undef interface
@@ -42,7 +43,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
     uint8_t *node;
 
     if (video_force_mode_flag == 0) {
-        target_refresh = *(int16_t *)(settings + 0xa6c);
+        target_refresh = ((struct saved_player_profile *)settings)->refresh_rate;
     } else {
         if (os_platform == 0) {
             halo::shell::os_platform_identify();
@@ -61,8 +62,8 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
 
     resolution_index = -1;
     for (i = 0; i < video_resolution_count; i++) {
-        if (video_resolutions[i].width == *(int16_t *)(settings + 0xa68) &&
-            video_resolutions[i].height == *(int16_t *)(settings + 0xa6a)) {
+        if (video_resolutions[i].width == ((struct saved_player_profile *)settings)->screen_width &&
+            video_resolutions[i].height == ((struct saved_player_profile *)settings)->screen_height) {
             resolution_index = i;
             break;
         }
@@ -116,7 +117,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
         uint8_t *base = *(uint8_t **)(resolution_field + 0x2c);
 
         for (node = *(uint8_t **)(base + 0x34); node != 0 && *(int16_t *)(node + 0xe) != 2; node = *(uint8_t **)(node + 0x2c)) {}
-        *(uint16_t *)(node + 0x40) = (*(uint8_t *)(settings + 0xa6f) < 3) ? *(uint8_t *)(settings + 0xa6f) : 2;
+        *(uint16_t *)(node + 0x40) = (((struct saved_player_profile *)settings)->frame_rate_mode < 3) ? ((struct saved_player_profile *)settings)->frame_rate_mode : 2;
 
         base = *(uint8_t **)(base + 0x2c);
         for (node = *(uint8_t **)(base + 0x34); node != 0 && *(int16_t *)(node + 0xe) != 2; node = *(uint8_t **)(node + 0x2c)) {}
@@ -156,11 +157,11 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
 
         base = *(uint8_t **)(base + 0x2c);
         for (node = *(uint8_t **)(base + 0x34); node != 0 && *(int16_t *)(node + 0xe) != 2; node = *(uint8_t **)(node + 0x2c)) {}
-        *(uint16_t *)(node + 0x40) = (*(uint8_t *)(settings + 0xa73) < 3) ? *(uint8_t *)(settings + 0xa73) : 2;
+        *(uint16_t *)(node + 0x40) = (((struct saved_player_profile *)settings)->particles < 3) ? ((struct saved_player_profile *)settings)->particles : 2;
 
         base = *(uint8_t **)(base + 0x2c);
         for (node = *(uint8_t **)(base + 0x34); node != 0 && *(int16_t *)(node + 0xe) != 2; node = *(uint8_t **)(node + 0x2c)) {}
-        *(uint16_t *)(node + 0x40) = (*(uint8_t *)(settings + 0xa74) < 3) ? *(uint8_t *)(settings + 0xa74) : 2;
+        *(uint16_t *)(node + 0x40) = (((struct saved_player_profile *)settings)->texture_quality < 3) ? ((struct saved_player_profile *)settings)->texture_quality : 2;
 
         base = *(uint8_t **)(base + 0x2c);
         (void)base;

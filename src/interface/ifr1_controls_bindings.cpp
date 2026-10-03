@@ -9,6 +9,7 @@
 #include "halo/input/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 extern "C" {
 extern uint8_t controls_row_device_mask_table[];
@@ -159,8 +160,8 @@ uint8_t ControlsBindings::apply_preset(widget_instance *widget)
 
             memcpy(&guid, input_default_profile_guid, sizeof(guid));
             if (halo::input::input_device_default_profile_tag_find(guid, profile) != -1) {
-                memcpy(control_keyboard_scan_table, profile + 0x134, 0xda);
-                memcpy(control_mouse_button_scan_table, profile + 0x20e, sizeof(control_mouse_button_scan_table));
+                memcpy(control_keyboard_scan_table, ((struct saved_player_profile *)profile)->keyboard_bindings, 0xda);
+                memcpy(control_mouse_button_scan_table, ((struct saved_player_profile *)profile)->mouse_button_bindings, sizeof(control_mouse_button_scan_table));
             } else {
                 halo::saved_games::control_profile_reset_digital_bindings((saved_player_profile *)saved_item_working_copy);
                 halo::saved_games::control_profile_reset_analog_bindings((saved_player_profile *)saved_item_working_copy);

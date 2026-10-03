@@ -30,6 +30,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -103,27 +104,27 @@ uint8_t UiEventHandlers::event_4a0fb0(widget_instance *widget, int16_t *event, u
     group = widget->first_child;
     selection = first_list_child(group)->selection_index;
     if (selection == 0 || selection == 1) {
-        profile[0x12f] = (uint8_t)(selection == 0);
+        ((struct saved_player_profile *)profile)->look_inverted = (uint8_t)(selection == 0);
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 9) {
-        profile[0x12e] = (uint8_t)(selection + 1);
+        ((struct saved_player_profile *)profile)->look_sensitivity = (uint8_t)(selection + 1);
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection == 0 || selection == 1) {
-        profile[0x130] = (uint8_t)selection;
+        ((struct saved_player_profile *)profile)->unknown_130 = (uint8_t)selection;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection == 0 || selection == 1) {
-        profile[0x131] = (uint8_t)(selection == 0);
+        ((struct saved_player_profile *)profile)->look_inverted_driving = (uint8_t)(selection == 0);
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection == 0 || selection == 1) {
-        profile[0x132] = (uint8_t)(selection == 0);
+        ((struct saved_player_profile *)profile)->auto_center_look = (uint8_t)(selection == 0);
     }
     return 1;
 }
@@ -318,7 +319,7 @@ uint8_t UiEventHandlers::event_4a1480(widget_instance *widget, int16_t *event, u
                 uint8_t opened;
 
                 wcsncpy((wchar_t *)(profile + 2), (const wchar_t *)name, 0xb);
-                *(uint16_t *)(profile + 0x18) = 0;
+                ((struct saved_player_profile *)profile)->name[11] = 0;
                 opened = halo::interface::virtual_keyboard_open((uint16_t *)(profile + 2), 0x18, 8);
                 if (opened != 0) {
                     return opened;
