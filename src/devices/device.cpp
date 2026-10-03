@@ -1,4 +1,5 @@
 #include "halo/devices/device.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -41,7 +42,7 @@ namespace {
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+    return (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 }
 
 }
@@ -61,7 +62,7 @@ void DeviceHandle::construct(device_placement_data *placement)
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
     int16_t power_group = placement->power_group;
     uint16_t position_group;
@@ -72,21 +73,21 @@ void DeviceHandle::construct(device_placement_data *placement)
         if (power_group != -1) {
             device_group *group = &((device_group *)device_groups->data)[(uint16_t)new_group];
             group->flags = (1u << _device_group_object_created_bit);
-            group->value = (placement->flags & 0x02) != 0 ? 0.0f : 1.0f; 
+            group->value = any(scenario_device_flags(placement->flags) & scenario_device_flags::initially_off) ? 0.0f : 1.0f; 
         }
     }
     dev->power_group = power_group;
 
     position_group = placement->position_group;
-    if (position_group == 0xffff) {
+    if (position_group == halo::k_word_none) {
         datum_index new_group = datum_new(device_groups);
         position_group = (uint16_t)new_group;
-        if (position_group != 0xffff) {
+        if (position_group != halo::k_word_none) {
             device_group *group = &((device_group *)device_groups->data)[position_group];
-            group->flags = (uint16_t)(((placement->flags & 0x04) | 0x10) >> 2); 
+            group->flags = (uint16_t)(((placement->flags & to_bits(scenario_device_flags::can_change_only_once)) >> 2) | (1u << _device_group_object_created_bit)); 
                 
                 
-            group->value = (placement->flags & 0x01) != 0 ? 1.0f : 0.0f; 
+            group->value = any(scenario_device_flags(placement->flags) & scenario_device_flags::initially_open) ? 1.0f : 0.0f; 
         }
     }
     dev->position_group = (int16_t)position_group;
@@ -94,10 +95,10 @@ void DeviceHandle::construct(device_placement_data *placement)
     dev->power = ((device_group *)device_groups->data)[(uint16_t)dev->power_group].value;
     dev->position = ((device_group *)device_groups->data)[position_group].value;
 
-    if ((placement->flags & 0x08) != 0) { 
+    if (any(scenario_device_flags(placement->flags) & scenario_device_flags::position_reversed)) { 
         dev->flags |= (1u << _device_position_reversed_bit);
     }
-    if ((placement->flags & 0x10) != 0) { 
+    if (any(scenario_device_flags(placement->flags) & scenario_device_flags::not_usable_from_any_side)) { 
         dev->flags |= (1u << _device_not_usable_from_any_side_bit);
     }
 }
@@ -116,7 +117,7 @@ uint8_t DeviceHandle::create()
 
     ((device_object *)obj)->device.position_group = -1;
     ((device_object *)obj)->device.power_group = -1;
-    ((device_object *)obj)->base.flags |= 0x40000;
+    ((device_object *)obj)->base.flags |= _object_definition_flag0_bit;
     return 1;
 }
 
@@ -133,11 +134,11 @@ void DeviceHandle::destroy()
     uint8_t *obj = object_get(object_index);
     int16_t group = ((device_object *)obj)->device.power_group;
 
-    if (group != -1 && (((uint8_t *)device_groups->data)[(uint16_t)group * 8 + 2] & 4) != 0) {
+    if (group != -1 && (((device_group *)device_groups->data)[(uint16_t)group].flags & (1u << _device_group_object_created_bit)) != 0) {
         datum_delete(device_groups, (datum_index)(int32_t)group);
     }
     group = ((device_object *)obj)->device.position_group;
-    if (group != -1 && (((uint8_t *)device_groups->data)[(uint16_t)group * 8 + 2] & 4) != 0) {
+    if (group != -1 && (((device_group *)device_groups->data)[(uint16_t)group].flags & (1u << _device_group_object_created_bit)) != 0) {
         datum_delete(device_groups, (datum_index)(int32_t)group);
     }
 }
@@ -152,10 +153,10 @@ void DeviceHandle::blend_animations(real_orientation *orientations)
 {
     datum_index object_index = (datum_index)handle;
 
-    device_object *obj = *(device_object **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
-    Device *device_tag = (Device *)tag_instances[obj->base.definition_tag & 0xffff].data;
+    device_object *obj = (device_object *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Device *device_tag = (Device *)tag_instances[halo::datum_slot(obj->base.definition_tag)].data;
     ModelAnimations *graph =
-        (ModelAnimations *)tag_instances[*(datum_index *)&device_tag->base.animation_graph.tag_id & 0xffff].data;
+        (ModelAnimations *)tag_instances[halo::datum_slot(*(datum_index *)&device_tag->base.animation_graph.tag_id)].data;
     ModelAnimationsDeviceAnimations *entry;
     uint8_t *animations;
     int32_t count;
@@ -210,7 +211,7 @@ int DeviceHandle::can_change_position()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
     int can_change = 0;
 
@@ -248,14 +249,14 @@ void DeviceHandle::change_power_state(float fallback_value)
 {
     uint32_t object_id = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[object_id & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_id)].data;
     device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
-    DeviceControl *tag = (DeviceControl *)tag_instances[obj->definition_tag & 0xffff].data;
+    DeviceControl *tag = (DeviceControl *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int16_t group_index = dev->position_group; 
     float target;
     uint8_t changed;
 
-    if (group_index == (int16_t)0xffff) {
+    if (group_index == (int16_t)halo::k_word_none) {
         return;
     }
 
@@ -307,9 +308,9 @@ void DeviceHandle::compute_function_values()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
-    Device *tag = (Device *)tag_instances[obj->definition_tag & 0xffff].data;
+    Device *tag = (Device *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     DeviceIn_t *selector = &tag->device_a_in;
     float *out = obj->function_in_values;
     int i;
@@ -341,7 +342,7 @@ void DeviceHandle::compute_function_values()
             if (obj->type == _object_type_device_machine && dev->position_group != -1) {
                 device_group *group = &((device_group *)device_groups->data)[(uint16_t)dev->position_group];
 
-                if ((dev->type_flags & 0x3) != 0) { 
+                if ((dev->type_flags & (to_bits(control_type_flags::usable_from_both_sides) | to_bits(control_type_flags::unknown_2))) != 0) { 
                     value = 1.0f;
                 }
                 if ((group->flags & (1u << _device_group_can_change_only_once_bit)) != 0 &&
@@ -424,8 +425,8 @@ void DeviceHandle::play_state_change_effect(TagID tag_id)
     uint32_t object_index = (uint32_t)handle;
 
     
-    if (tag_id.index != 0xffff || tag_id.id != 0xffff) {
-        object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    if (tag_id.index != halo::k_word_none || tag_id.id != halo::k_word_none) {
+        object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
         
         uint32_t group_tag = tag_instances[(int16_t)tag_id.index].group_tag;
 
@@ -456,9 +457,9 @@ uint8_t DeviceHandle::update_change_values()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
-    Device *tag = (Device *)tag_instances[obj->definition_tag & 0xffff].data;
+    Device *tag = (Device *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     uint8_t still_settling = 0;
 
     if (dev->power_group != -1) {
@@ -557,7 +558,7 @@ uint8_t DeviceGroupHandle::set_value(float value)
         value = 1.0f;
     }
 
-    if (group_index == 0xffff) {
+    if (group_index == halo::k_word_none) {
         return 0;
     }
 
@@ -585,7 +586,7 @@ uint8_t DeviceGroupHandle::set_value(float value)
         device_data *candidate_dev = (device_data *)((uint8_t *)obj + sizeof(object));
 
         if (candidate_dev->power_group == (int16_t)group_index) { 
-            Device *tag = (Device *)tag_instances[obj->definition_tag & 0xffff].data;
+            Device *tag = (Device *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
             
             
             
@@ -657,7 +658,7 @@ void DeviceGroupHandle::set_value_immediate(float value)
  */
 void DeviceGroupPool::allocate()
 {
-    device_groups = game_state_new((char *)"device groups", 0x400, 0x8);
+    device_groups = game_state_new((char *)"device groups", k_device_group_maximum_count, k_device_group_element_size);
 }
 
 /**
@@ -703,7 +704,7 @@ void DeviceGroupPool::initialize()
         ScenarioDeviceGroup *scenario_group = &scenario_groups[i];
         datum_index new_group = datum_new(device_groups);
 
-        if ((uint16_t)new_group != 0xffff) {
+        if ((uint16_t)new_group != halo::k_word_none) {
             device_group *group = &((device_group *)device_groups->data)[(uint16_t)new_group];
             group->flags = (scenario_group->flags & 0x1) != 0
                 ? (1u << _device_group_can_change_only_once_bit) : 0;
