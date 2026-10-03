@@ -6,6 +6,8 @@
 #include "math.h"
 #include <stdint.h>
 
+namespace halo::memory {
+
 /**
  * Carves a block of requested_size payload bytes out of the pool's free space and links it at the end
  * of the block list. On success the payload address is stored through owner so that compaction can
@@ -15,7 +17,7 @@
  *
  * @address 0x4d1d60
  */
-int32_t memory_pool::allocate(int32_t requested_size, void **owner)
+int32_t memory_pool_view::allocate(int32_t requested_size, void **owner)
 {
     int32_t block_size = requested_size + 0x18;
     memory_pool_block *block;
@@ -57,7 +59,7 @@ int32_t memory_pool::allocate(int32_t requested_size, void **owner)
  *
  * @address 0x4d1eb0
  */
-void memory_pool::compact()
+void memory_pool_view::compact()
 {
     memory_pool_block *src = this->first_block;
     memory_pool_block *dest;
@@ -101,7 +103,7 @@ void memory_pool::compact()
  *
  * @address 0x4d1de0
  */
-int32_t memory_pool::reallocate(void **owner_cell, int32_t new_size)
+int32_t memory_pool_view::reallocate(void **owner_cell, int32_t new_size)
 {
     void *old_payload = *owner_cell;
     memory_pool_block *old_block = (memory_pool_block *)((uint8_t *)old_payload - 0x18);
@@ -142,7 +144,7 @@ int32_t memory_pool::reallocate(void **owner_cell, int32_t new_size)
  *
  * @address 0x4d1e70
  */
-void memory_pool::unlink(void **payload_ptr)
+void memory_pool_view::unlink(void **payload_ptr)
 {
     memory_pool_block *block = (memory_pool_block *)((uint8_t *)*payload_ptr - 0x18);
 
@@ -165,7 +167,7 @@ void memory_pool::unlink(void **payload_ptr)
  *
  * @address 0x4d2140
  */
-void heap::advance_free_slot()
+void heap_view::advance_free_slot()
 {
     int32_t slot;
     heap_block **entry;
@@ -195,7 +197,7 @@ void heap::advance_free_slot()
  *
  * @address 0x4d1f10
  */
-void *heap::allocate(uint32_t size)
+void *heap_view::allocate(uint32_t size)
 {
     heap_block *block = (heap_block *)this->allocate_raw(size);
     void *payload;
@@ -232,7 +234,7 @@ void *heap::allocate(uint32_t size)
  *
  * @address 0x4d2180
  */
-uint32_t heap::allocate_raw(uint32_t size)
+uint32_t heap_view::allocate_raw(uint32_t size)
 {
     uint32_t block_size;
     int32_t free_bytes;
@@ -333,7 +335,7 @@ uint32_t heap::allocate_raw(uint32_t size)
  *
  * @address 0x4d2310
  */
-void heap::compact()
+void heap_view::compact()
 {
     heap_block *src = this->first_block;
     heap_block *dest;
@@ -369,7 +371,7 @@ void heap::compact()
  *
  * @address 0x4d2110
  */
-uint32_t heap::find_first_free_slot()
+uint32_t heap_view::find_first_free_slot()
 {
     uint32_t slot = 0xffffffff;
 
@@ -393,7 +395,7 @@ uint32_t heap::find_first_free_slot()
  *
  * @address 0x4d2370
  */
-int32_t heap::find_free_block(uint32_t size_needed, void **out_predecessor)
+int32_t heap_view::find_free_block(uint32_t size_needed, void **out_predecessor)
 {
     heap_block *prev = this->first_block;
     int32_t result = 0;
@@ -427,7 +429,7 @@ int32_t heap::find_free_block(uint32_t size_needed, void **out_predecessor)
  *
  * @address 0x4d20f0
  */
-int32_t heap::get_free_bytes()
+int32_t heap_view::get_free_bytes()
 {
     int32_t free_bytes = this->size;
 
@@ -445,7 +447,7 @@ int32_t heap::get_free_bytes()
  *
  * @address 0x4d1f80
  */
-void *heap::reallocate(void *old_payload, uint32_t new_size)
+void *heap_view::reallocate(void *old_payload, uint32_t new_size)
 {
     heap_block *old_block = old_payload == 0 ? 0 : (heap_block *)((uint8_t *)old_payload - 0x10);
     uint32_t old_size = 0;
@@ -492,7 +494,7 @@ void *heap::reallocate(void *old_payload, uint32_t new_size)
  *
  * @address 0x4d2020
  */
-void *heap::resize_block(uint32_t new_size, heap_block *old_block)
+void *heap_view::resize_block(uint32_t new_size, heap_block *old_block)
 {
     void *new_block;
 
@@ -524,7 +526,7 @@ void *heap::resize_block(uint32_t new_size, heap_block *old_block)
  *
  * @address 0x4d20a0
  */
-void heap::unlink_block(heap_block *block)
+void heap_view::unlink_block(heap_block *block)
 {
     uint32_t slot = block->slot;
 
@@ -554,7 +556,7 @@ void heap::unlink_block(heap_block *block)
  *
  * @address 0x4d1750
  */
-void cache::initialize(char *name, int32_t block_count, int32_t block_shift, int16_t maximum_count, void *release_procedure, void *in_use_procedure)
+void cache_view::initialize(char *name, int32_t block_count, int32_t block_shift, int16_t maximum_count, void *release_procedure, void *in_use_procedure)
 {
     data_array *entries = &this->entry_data;
 
@@ -566,7 +568,7 @@ void cache::initialize(char *name, int32_t block_count, int32_t block_shift, int
     entries->data = (uint8_t *)this + 0x7c;
     entries->valid = 0;
     entries->valid = 1;
-    entries->delete_all();
+    halo::memory::view(entries)->delete_all();
 
     memset(this, 0, 0x44);
     strncpy(this->name, name, 0x1f);
@@ -592,7 +594,7 @@ void cache::initialize(char *name, int32_t block_count, int32_t block_shift, int
  *
  * @address 0x4d1840
  */
-datum_index cache::allocate_block(uint32_t requested_bytes)
+datum_index cache_view::allocate_block(uint32_t requested_bytes)
 {
     cache_allocation_gap gaps[256];
     cache_allocation_gap best;
@@ -704,7 +706,7 @@ datum_index cache::allocate_block(uint32_t requested_bytes)
         iterator.next_index = 0;
         iterator.index = k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)this->entries ^ k_data_iterator_signature;
-        while ((candidate = (cache_entry *)iterator.next()) != 0) {
+        while ((candidate = (cache_entry *)halo::memory::view(&iterator)->next()) != 0) {
             if (candidate->offset < blocks_needed + best.offset && candidate->size + candidate->offset > best.offset) {
                 this->evict_entry(iterator.index);
             }
@@ -718,7 +720,7 @@ datum_index cache::allocate_block(uint32_t requested_bytes)
         this->evict_entry(lru);
     }
 
-    handle = this->entries->new_datum();
+    handle = halo::memory::view(this->entries)->new_datum();
     if (handle == k_datum_index_none) {
         return handle;
     }
@@ -759,7 +761,7 @@ datum_index cache::allocate_block(uint32_t requested_bytes)
  *
  * @address 0x4d1ca0
  */
-void cache::build_status_bitmap(uint8_t *bitmap)
+void cache_view::build_status_bitmap(uint8_t *bitmap)
 {
     data_iterator iterator;
     cache_entry *entry;
@@ -770,7 +772,7 @@ void cache::build_status_bitmap(uint8_t *bitmap)
     iterator.next_index = 0;
     iterator.index = 0;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    entry = (cache_entry *)iterator.next();
+    entry = (cache_entry *)halo::memory::view(&iterator)->next();
     while (entry != 0) {
         uint8_t status = _cache_block_allocated_bit;
 
@@ -787,7 +789,7 @@ void cache::build_status_bitmap(uint8_t *bitmap)
 
         memset(bitmap + entry->offset, status, (uint32_t)entry->size);
 
-        entry = (cache_entry *)iterator.next();
+        entry = (cache_entry *)halo::memory::view(&iterator)->next();
     }
 }
 
@@ -797,7 +799,7 @@ void cache::build_status_bitmap(uint8_t *bitmap)
  *
  * @address 0x4d1c20
  */
-void cache::evict_entry(datum_index handle)
+void cache_view::evict_entry(datum_index handle)
 {
     cache_entry *entry = (cache_entry *)((uint8_t *)this->entries->data +
         (uint32_t)(uint16_t)handle * sizeof(cache_entry));
@@ -818,11 +820,11 @@ void cache::evict_entry(datum_index handle)
         cache_entry *next = (cache_entry *)((uint8_t *)this->entries->data +
             (uint32_t)(uint16_t)entry->next * sizeof(cache_entry));
         next->previous = entry->previous;
-        this->entries->delete_datum(handle);
+        halo::memory::view(this->entries)->delete_datum(handle);
         return;
     }
     this->last = entry->previous;
-    this->entries->delete_datum(handle);
+    halo::memory::view(this->entries)->delete_datum(handle);
 }
 
 /**
@@ -830,7 +832,7 @@ void cache::evict_entry(datum_index handle)
  *
  * @address 0x4d17f0
  */
-void cache::flush()
+void cache_view::flush()
 {
     data_iterator iterator;
 
@@ -839,7 +841,7 @@ void cache::flush()
     iterator.index = 0;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    while (iterator.next() != 0) {
+    while (halo::memory::view(&iterator)->next() != 0) {
         this->evict_entry(iterator.index);
     }
 }
@@ -847,7 +849,9 @@ void cache::flush()
 /**
  * Returns the cache_entry that the datum handle names, without validating the handle.
  */
-cache_entry *cache::entry_at(datum_index handle)
+cache_entry *cache_view::entry_at(datum_index handle)
 {
     return (cache_entry *)((uint8_t *)this->entries->data + (uint32_t)(uint16_t)handle * sizeof(cache_entry));
 }
+
+} // namespace halo::memory

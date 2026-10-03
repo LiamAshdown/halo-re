@@ -3,6 +3,13 @@
 #include "tags.h"
 #include <string.h>
 
+extern "C" {
+extern char *data_packet_group_error;
+extern byte_swap_definition packet_header_byte_swap_definition;
+}
+
+namespace halo::memory {
+
 /**
  * Walks a byte_swap_definition code table to swap one structure instance in place, or only to measure
  * it when data is zero. The total size is stored through out_size and the number of code entries
@@ -10,7 +17,7 @@
  *
  * @address 0x4cfee0
  */
-void byte_swap_definition::swap(int32_t data, int32_t *codes, int32_t *out_size, int32_t *out_record_count)
+void byte_swap_definition_view::swap(int32_t data, int32_t *codes, int32_t *out_size, int32_t *out_record_count)
 {
     int32_t *field;
     int32_t code;
@@ -41,7 +48,7 @@ next_record:
         case _byte_swap_definition_reference: {
             byte_swap_definition *referenced = (byte_swap_definition *)field[1];
             int32_t referenced_data = (data == 0) ? 0 : offset + data;
-            referenced->swap(referenced_data, referenced->codes, &nested_size, 0);
+            halo::memory::view(referenced)->swap(referenced_data, referenced->codes, &nested_size, 0);
             codes_consumed = codes_consumed + 2;
             offset = offset + nested_size;
             break;
@@ -122,7 +129,7 @@ done:
  *
  * @address 0x4d0d50
  */
-void struct_definition::compute_size(int16_t *out_size, struct_definition_field *fields, int16_t *out_field_count)
+void struct_definition_view::compute_size(int16_t *out_size, struct_definition_field *fields, int16_t *out_field_count)
 {
     struct_definition_field *field = fields;
     uint16_t total_size = 0;
@@ -191,7 +198,7 @@ void struct_definition::compute_size(int16_t *out_size, struct_definition_field 
  *
  * @address 0x4d13c0
  */
-void struct_definition::decode(byte_stream *input, int16_t version, void *dest_instance, int16_t *out_dest_size, struct_definition_field *fields, int16_t *out_field_count)
+void struct_definition_view::decode(byte_stream *input, int16_t version, void *dest_instance, int16_t *out_dest_size, struct_definition_field *fields, int16_t *out_field_count)
 {
     struct_definition_field *field = fields;
     uint8_t *dest_cursor = (uint8_t *)dest_instance;
@@ -287,7 +294,7 @@ void struct_definition::decode(byte_stream *input, int16_t version, void *dest_i
             }
 
             case _struct_field_string: {
-                char *str = input->read_string();
+                char *str = halo::memory::view(input)->read_string();
                 if (str != 0) {
                     strcpy((char *)dest, str);
                 }
@@ -295,7 +302,7 @@ void struct_definition::decode(byte_stream *input, int16_t version, void *dest_i
             }
 
             case _struct_field_variable_data: {
-                uint16_t count = (uint16_t)input->read_ranged_integer(field->count);
+                uint16_t count = (uint16_t)halo::memory::view(input)->read_ranged_integer(field->count);
 
                 uint32_t byte_count = (uint32_t)(int32_t)(int16_t)count;
                 int32_t new_cursor;
@@ -314,7 +321,7 @@ void struct_definition::decode(byte_stream *input, int16_t version, void *dest_i
             }
 
             case _struct_field_struct_array: {
-                int16_t count = (int16_t)input->read_ranged_integer(field->count);
+                int16_t count = (int16_t)halo::memory::view(input)->read_ranged_integer(field->count);
                 int16_t nested_field_count = 0;
                 uint8_t *elem;
                 this->compute_size(0, field + 1, &nested_field_count);
@@ -355,7 +362,7 @@ void struct_definition::decode(byte_stream *input, int16_t version, void *dest_i
  *
  * @address 0x4d0e80
  */
-void struct_definition::encode(byte_stream *output, int16_t version, void *source, int16_t *out_source_size, struct_definition_field *fields, int16_t *out_field_count)
+void struct_definition_view::encode(byte_stream *output, int16_t version, void *source, int16_t *out_source_size, struct_definition_field *fields, int16_t *out_field_count)
 {
     struct_definition_field *field = fields;
     uint8_t *src_cursor = (uint8_t *)source;
@@ -413,7 +420,7 @@ void struct_definition::encode(byte_stream *output, int16_t version, void *sourc
             case _struct_field_variable_data:
             case _struct_field_struct_array:
 
-                output->write_ranged_integer(field->count, 0);
+                halo::memory::view(output)->write_ranged_integer(field->count, 0);
                 break;
             }
         } else {
@@ -489,7 +496,7 @@ void struct_definition::encode(byte_stream *output, int16_t version, void *sourc
 
             case _struct_field_string:
 
-                output->write_string((char *)src_cursor, field->count);
+                halo::memory::view(output)->write_string((char *)src_cursor, field->count);
                 break;
 
             case _struct_field_variable_data: {
@@ -501,7 +508,7 @@ void struct_definition::encode(byte_stream *output, int16_t version, void *sourc
                 }
                 byte_count = count;
 
-                output->write_ranged_integer(field->count, count);
+                halo::memory::view(output)->write_ranged_integer(field->count, count);
                 field = field_start;
                 if (output->size < (int32_t)(byte_count + output->cursor) || output->overflow != 0) {
                     output->overflow = 1;
@@ -526,7 +533,7 @@ void struct_definition::encode(byte_stream *output, int16_t version, void *sourc
                     requested_count = 0;
                 }
 
-                output->write_ranged_integer(field->count, requested_count);
+                halo::memory::view(output)->write_ranged_integer(field->count, requested_count);
                 if (0 < requested_count) {
                     int16_t remaining = requested_count;
                     do {
@@ -564,7 +571,7 @@ void struct_definition::encode(byte_stream *output, int16_t version, void *sourc
  *
  * @address 0x4d0980
  */
-void data_packet_group::compute_sizes()
+void data_packet_group_view::compute_sizes()
 {
     int16_t i;
     int16_t discarded_field_count;
@@ -574,7 +581,7 @@ void data_packet_group::compute_sizes()
     for (i = 0; i < this->type_count; i = i + 1) {
         struct_definition *definition = this->types[i].definition;
         if (definition != 0 && definition->size_computed == 0) {
-            definition->compute_size(&discarded_size, definition->fields, &discarded_field_count);
+            halo::memory::view(definition)->compute_size(&discarded_size, definition->fields, &discarded_field_count);
             definition->size_computed = 1;
         }
     }
@@ -587,13 +594,13 @@ void data_packet_group::compute_sizes()
  *
  * @address 0x4d0b60
  */
-int32_t data_packet_group::append_packet_header(uint8_t *buffer, int16_t *cursor, uint8_t header_byte)
+int32_t data_packet_group_view::append_packet_header(uint8_t *buffer, int16_t *cursor, uint8_t header_byte)
 {
     uint8_t *dest = buffer + *cursor;
 
     if ((uint32_t)(*cursor + 1) < (uint32_t)this->maximum_encoded_size) {
         *dest = header_byte;
-        packet_header_byte_swap_definition.swap((int32_t)dest, packet_header_byte_swap_definition.codes, 0, 0);
+        halo::memory::view(&packet_header_byte_swap_definition)->swap((int32_t)dest, packet_header_byte_swap_definition.codes, 0, 0);
         *cursor = *cursor + 1;
         data_packet_group_error = 0;
         return 1;
@@ -611,7 +618,7 @@ int32_t data_packet_group::append_packet_header(uint8_t *buffer, int16_t *cursor
  *
  * @address 0x4d09d0
  */
-int32_t data_packet_group::decode_packet(int16_t *remaining_length, void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class)
+int32_t data_packet_group_view::decode_packet(int16_t *remaining_length, void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class)
 {
     uint8_t *header_byte;
     int8_t type;
@@ -623,7 +630,7 @@ int32_t data_packet_group::decode_packet(int16_t *remaining_length, void *decode
 
     header_byte = buffer + (*remaining_length - 1);
     if (header_byte != 0) {
-        packet_header_byte_swap_definition.swap((int32_t)header_byte, packet_header_byte_swap_definition.codes, 0, 0);
+        halo::memory::view(&packet_header_byte_swap_definition)->swap((int32_t)header_byte, packet_header_byte_swap_definition.codes, 0, 0);
     }
     type = (int8_t)*header_byte;
 
@@ -639,7 +646,7 @@ int32_t data_packet_group::decode_packet(int16_t *remaining_length, void *decode
         }
         *remaining_length = *remaining_length - 1;
         if (entry->definition != 0 &&
-            entry->definition->decode_packet_body(buffer, *remaining_length, decoded_body, out_version_used, 0) == 0) {
+            halo::memory::view(entry->definition)->decode_packet_body(buffer, *remaining_length, decoded_body, out_version_used, 0) == 0) {
             data_packet_group_error = (char *)"got packet which wouldn't decode";
             return 0;
         }
@@ -656,12 +663,12 @@ int32_t data_packet_group::decode_packet(int16_t *remaining_length, void *decode
  *
  * @address 0x4d0ae0
  */
-int32_t data_packet_group::encode_packet(int16_t version, struct_definition *definition, uint8_t *version_byte_dest, byte_stream *output, uint8_t *buffer, int16_t *cursor, void *source, int16_t *out_wrote_version_byte, uint8_t packet_type)
+int32_t data_packet_group_view::encode_packet(int16_t version, struct_definition *definition, uint8_t *version_byte_dest, byte_stream *output, uint8_t *buffer, int16_t *cursor, void *source, int16_t *out_wrote_version_byte, uint8_t packet_type)
 {
     char *error = 0;
     int32_t ok;
 
-    ok = definition->encode_packet_body(version, version_byte_dest, output, source, out_wrote_version_byte, (int16_t)this->maximum_encoded_size);
+    ok = halo::memory::view(definition)->encode_packet_body(version, version_byte_dest, output, source, out_wrote_version_byte, (int16_t)this->maximum_encoded_size);
     if (ok == 0) {
         error = (char *)"couldn't encode packet";
     } else {
@@ -681,7 +688,7 @@ int32_t data_packet_group::encode_packet(int16_t version, struct_definition *def
  *
  * @address 0x4d0c70
  */
-uint8_t struct_definition::decode_packet_body(uint8_t *buffer, int16_t remaining_length, void *dest, uint16_t *out_version_used, int16_t *out_bytes_consumed)
+uint8_t struct_definition_view::decode_packet_body(uint8_t *buffer, int16_t remaining_length, void *dest, uint16_t *out_version_used, int16_t *out_bytes_consumed)
 {
     byte_stream stream;
     uint16_t version = 0;
@@ -732,7 +739,7 @@ uint8_t struct_definition::decode_packet_body(uint8_t *buffer, int16_t remaining
  *
  * @address 0x4d0bc0
  */
-int32_t struct_definition::encode_packet_body(int16_t version, uint8_t *version_byte_dest, byte_stream *output, void *source, int16_t *out_wrote_version_byte, int16_t capacity_check)
+int32_t struct_definition_view::encode_packet_body(int16_t version, uint8_t *version_byte_dest, byte_stream *output, void *source, int16_t *out_wrote_version_byte, int16_t capacity_check)
 {
     int32_t out_of_room = 0;
     int16_t wrote_version_byte = 0;
@@ -759,8 +766,6 @@ int32_t struct_definition::encode_packet_body(int16_t version, uint8_t *version_
     *out_wrote_version_byte = wrote_version_byte;
     return !out_of_room;
 }
-
-namespace halo::memory {
 
 /**
  * In-place byte-swaps `count` elements of size 8, 4, or 2 bytes (selected by `size_code`, one of

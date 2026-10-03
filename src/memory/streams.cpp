@@ -3,13 +3,20 @@
 #include "tags.h"
 #include "crt.h"
 
+extern "C" {
+extern uint8_t bit_mask_keep[9];
+extern uint8_t bit_mask_clear[8];
+}
+
+namespace halo::memory {
+
 /**
  * Reads a single bit from a bounds-checked bit stream into *out_bit and advances the stream's one-bit
  * cursor. Returns 1 on success, 0 if the stream has no room left.
  *
  * @address 0x4cfb80
  */
-uint32_t bit_stream::read_bit(uint8_t *out_bit)
+uint32_t bit_stream_view::read_bit(uint8_t *out_bit)
 {
     uint32_t pos;
     uint32_t result;
@@ -40,7 +47,7 @@ uint32_t bit_stream::read_bit(uint8_t *out_bit)
  *
  * @address 0x4cfbf0
  */
-uint32_t bit_stream::read_bits(uint32_t bit_count, uint32_t *out_value)
+uint32_t bit_stream_view::read_bits(uint32_t bit_count, uint32_t *out_value)
 {
     int32_t initial_bit_cursor;
     int32_t initial_byte_cursor;
@@ -119,7 +126,7 @@ uint32_t bit_stream::read_bits(uint32_t bit_count, uint32_t *out_value)
  *
  * @address 0x4cf950
  */
-int32_t bit_stream::read_bits_chunked(int32_t total_bit_count, uint32_t *buffer)
+int32_t bit_stream_view::read_bits_chunked(int32_t total_bit_count, uint32_t *buffer)
 {
     int32_t remaining;
     int32_t total_read;
@@ -155,7 +162,7 @@ int32_t bit_stream::read_bits_chunked(int32_t total_bit_count, uint32_t *buffer)
  *
  * @address 0x4cf9a0
  */
-uint8_t bit_stream::write_bit(int32_t bit_value)
+uint8_t bit_stream_view::write_bit(int32_t bit_value)
 {
     int32_t byte_cursor;
     uint32_t pos;
@@ -194,7 +201,7 @@ uint8_t bit_stream::write_bit(int32_t bit_value)
  *
  * @address 0x4cfa20
  */
-uint8_t bit_stream::write_bits(uint32_t bit_count, uint32_t value)
+uint8_t bit_stream_view::write_bits(uint32_t bit_count, uint32_t value)
 {
     int32_t initial_bit_cursor;
     uint32_t last_pos;
@@ -271,7 +278,7 @@ uint8_t bit_stream::write_bits(uint32_t bit_count, uint32_t value)
  *
  * @address 0x4cf8f0
  */
-int32_t bit_stream::write_bits_chunked(const uint32_t *values, int32_t total_bit_count)
+int32_t bit_stream_view::write_bits_chunked(const uint32_t *values, int32_t total_bit_count)
 {
     int32_t remaining = total_bit_count;
 
@@ -299,7 +306,7 @@ int32_t bit_stream::write_bits_chunked(const uint32_t *values, int32_t total_bit
  *
  * @address 0x4d0850
  */
-uint32_t byte_stream::read_long()
+uint32_t byte_stream_view::read_long()
 {
     uint32_t *value_ptr;
 
@@ -322,7 +329,7 @@ uint32_t byte_stream::read_long()
  *
  * @address 0x4d08a0
  */
-uint32_t byte_stream::read_ranged_integer(int32_t maximum)
+uint32_t byte_stream_view::read_ranged_integer(int32_t maximum)
 {
     int32_t next_cursor;
     uint8_t *byte_ptr;
@@ -360,7 +367,7 @@ uint32_t byte_stream::read_ranged_integer(int32_t maximum)
  *
  * @address 0x4d0930
  */
-char *byte_stream::read_string()
+char *byte_stream_view::read_string()
 {
     int32_t start;
     int32_t offset;
@@ -390,7 +397,7 @@ char *byte_stream::read_string()
  *
  * @address 0x4d0700
  */
-uint32_t byte_stream::write_ranged_integer(int32_t maximum, uint32_t value)
+uint32_t byte_stream_view::write_ranged_integer(int32_t maximum, uint32_t value)
 {
     uint8_t *dst;
     uint16_t native16;
@@ -426,7 +433,7 @@ uint32_t byte_stream::write_ranged_integer(int32_t maximum, uint32_t value)
  *
  * @address 0x4d07e0
  */
-uint32_t byte_stream::write_string(char *string, int16_t max_length)
+uint32_t byte_stream_view::write_string(char *string, int16_t max_length)
 {
     int32_t length;
     char *scan;
@@ -457,3 +464,5 @@ uint32_t byte_stream::write_string(char *string, int16_t max_length)
     this->overflow = 1;
     return this->overflow == 0;
 }
+
+} // namespace halo::memory

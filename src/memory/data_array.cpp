@@ -4,13 +4,15 @@
 #include "tags.h"
 #include "win32.h"
 
+namespace halo::memory {
+
 /**
  * Empties the whole array: resets the counters, reseeds next_identifier from the array name with the
  * top bit forced so it is never zero, and clears every element's identifier.
  *
  * @address 0x4d0580
  */
-void data_array::delete_all()
+void data_array_view::delete_all()
 {
     int16_t index;
 
@@ -35,7 +37,7 @@ void data_array::delete_all()
  *
  * @address 0x4d0370
  */
-data_array *data_array::create(int16_t element_size, char *name, int16_t maximum_count)
+data_array *data_array_view::create(int16_t element_size, char *name, int16_t maximum_count)
 {
     data_array *array;
     uint8_t *zero;
@@ -70,7 +72,7 @@ data_array *data_array::create(int16_t element_size, char *name, int16_t maximum
  *
  * @address 0x4d0510
  */
-void data_array::delete_datum(datum_index handle)
+void data_array_view::delete_datum(datum_index handle)
 {
     int16_t index;
     int16_t salt;
@@ -113,7 +115,7 @@ do_delete:
  *
  * @address 0x4d06c0
  */
-void data_array::initialize_element(void *element)
+void data_array_view::initialize_element(void *element)
 {
     int16_t element_size;
     uint32_t words;
@@ -143,7 +145,7 @@ void data_array::initialize_element(void *element)
  *
  * @address 0x4d0680
  */
-void *data_array::get(datum_index handle)
+void *data_array_view::get(datum_index handle)
 {
     void *result;
     int16_t index;
@@ -175,7 +177,7 @@ void *data_array::get(datum_index handle)
  *
  * @address 0x4d0480
  */
-datum_index data_array::new_datum()
+datum_index data_array_view::new_datum()
 {
     int16_t element_size;
     int16_t index;
@@ -229,7 +231,7 @@ datum_index data_array::new_datum()
  *
  * @address 0x4d0430
  */
-datum_index data_array::new_at_index(int16_t index)
+datum_index data_array_view::new_at_index(int16_t index)
 {
     int16_t *element;
 
@@ -258,7 +260,7 @@ datum_index data_array::new_at_index(int16_t index)
  *
  * @address 0x4d03d0
  */
-datum_index data_array::new_at_index_with_salt(datum_index requested_handle)
+datum_index data_array_view::new_at_index_with_salt(datum_index requested_handle)
 {
     int16_t index;
     int16_t salt;
@@ -291,7 +293,7 @@ datum_index data_array::new_at_index_with_salt(datum_index requested_handle)
  *
  * @address 0x4d0630
  */
-datum_index data_array::next_datum(int16_t after_index)
+datum_index data_array_view::next_datum(int16_t after_index)
 {
     uint32_t result;
     int16_t index;
@@ -321,7 +323,7 @@ datum_index data_array::next_datum(int16_t after_index)
  *
  * @address 0x4d05d0
  */
-void *data_iterator::next()
+void *data_iterator_view::next()
 {
     int16_t resume;
     int16_t element_size;
@@ -353,8 +355,6 @@ void *data_iterator::next()
     this->next_index = resume;
     return found;
 }
-
-namespace halo::memory {
 
 /**
  * Sets *out_index to the invalid datum_index sentinel (k_datum_index_none).

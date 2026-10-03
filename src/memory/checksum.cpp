@@ -4,12 +4,19 @@
 
 #define CRC32_POLYNOMIAL 0xedb88320u
 
+extern "C" {
+extern crc32_table crc32_lookup_table;
+extern uint8_t crc32_lookup_table_initialized;
+}
+
+namespace halo::memory {
+
 /**
  * Generates the standard 256 entry reversed CRC-32 table (polynomial 0xedb88320) into this table.
  *
  * @address 0x4d0330
  */
-void crc32_table::build()
+void crc32_table_view::build()
 {
     uint32_t seed;
     uint32_t value;
@@ -35,8 +42,6 @@ void crc32_table::build()
     }
 }
 
-namespace halo::memory {
-
 /**
  * Computes/continues a CRC-32 checksum over `length` bytes of `data`, folding into *crc. Builds the
  * CRC-32 lookup table on first use.
@@ -48,7 +53,7 @@ void crc32_update(uint32_t *crc, uint8_t *data, int32_t length)
     uint32_t value;
 
     if (crc32_lookup_table_initialized == 0) {
-        crc32_lookup_table.build();
+        halo::memory::view(&crc32_lookup_table)->build();
         crc32_lookup_table_initialized = 1;
     }
     value = *crc;

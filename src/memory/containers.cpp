@@ -6,13 +6,15 @@
 
 #define GMEM_MOVEABLE 0x0002
 
+namespace halo::memory {
+
 /**
  * Appends one zero-initialized element, growing the GlobalAlloc-backed storage as needed. Returns the
  * new element's index, or -1 (k_datum_index_none) on allocation failure.
  *
  * @address 0x4cf810
  */
-uint32_t growable_array::add_element()
+uint32_t growable_array_view::add_element()
 {
     uint32_t new_count;
     uint32_t bytes;
@@ -57,7 +59,7 @@ uint32_t growable_array::add_element()
  *
  * @address 0x4cf890
  */
-void growable_array::remove_element(uint32_t index)
+void growable_array_view::remove_element(uint32_t index)
 {
     uint32_t new_count;
     uint32_t element_size;
@@ -93,7 +95,7 @@ void growable_array::remove_element(uint32_t index)
  *
  * @address 0x4d0170
  */
-void circular_buffer::create(char *name, int32_t requested_size)
+void circular_buffer_view::create(char *name, int32_t requested_size)
 {
     circular_buffer *buf;
 
@@ -119,7 +121,7 @@ void circular_buffer::create(char *name, int32_t requested_size)
  *
  * @address 0x4d0240
  */
-uint32_t circular_buffer::read(uint8_t *destination, uint32_t byte_count, char consume)
+uint32_t circular_buffer_view::read(uint8_t *destination, uint32_t byte_count, char consume)
 {
     int32_t read_cursor;
     uint32_t result;
@@ -183,7 +185,7 @@ uint32_t circular_buffer::read(uint8_t *destination, uint32_t byte_count, char c
  *
  * @address 0x4d01c0
  */
-uint32_t circular_buffer::write(uint32_t byte_count, uint8_t *source)
+uint32_t circular_buffer_view::write(uint32_t byte_count, uint8_t *source)
 {
     int32_t write_cursor;
     uint32_t result;
@@ -238,3 +240,5 @@ uint32_t circular_buffer::write(uint32_t byte_count, uint8_t *source)
     }
     return result;
 }
+
+} // namespace halo::memory
