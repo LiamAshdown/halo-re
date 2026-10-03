@@ -46,6 +46,7 @@ uint8_t ServerView::heartbeat_tick()
             char have_players;
             char team_empty;
             char restarting;
+            bool broadcast_countdown = true;
 
             have_players = halo::networking::network_game_all_machines_have_player(server);
             team_empty = have_players != 0 ? halo::networking::network_game_any_team_empty(server) : 0;
@@ -62,24 +63,25 @@ uint8_t ServerView::heartbeat_tick()
                     halo::networking::network_server_any_machine_awaiting_flag(server) != 0 &&
                     server->handshake_blocked == 0) {
                     result = halo::networking::network_host_send_scenario_announcement(server);
-                    goto scenario_check;
-                }
-                if ((uint32_t)(now_ms - static_cast<int32_t>(server->unknown_9d0)) < 0x3e9) {
-                    goto scenario_check;
+                    broadcast_countdown = false;
+                } else if ((uint32_t)(now_ms - static_cast<int32_t>(server->unknown_9d0)) < 0x3e9) {
+                    broadcast_countdown = false;
                 }
             }
-            server->handshake_flag = 0;
-            if (restarting) {
-                halo::networking::network_timer_advance(timer);
-            }
-            {
-                void *packet;
+            if (broadcast_countdown) {
+                server->handshake_flag = 0;
+                if (restarting) {
+                    halo::networking::network_timer_advance(timer);
+                }
+                {
+                    void *packet;
 
-                uint16_t countdown_seconds = restarting ? (uint16_t)(timer->remaining_ms / 1000) : 0xffff;
+                    uint16_t countdown_seconds = restarting ? (uint16_t)(timer->remaining_ms / 1000) : 0xffff;
 
-                packet = halo::networking::network_prepare_challenge_packet(9, &countdown_seconds);
-                if (packet != 0 && halo::networking::network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3) != 0) {
-                    server->unknown_9d0 = now_ms;
+                    packet = halo::networking::network_prepare_challenge_packet(9, &countdown_seconds);
+                    if (packet != 0 && halo::networking::network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3) != 0) {
+                        server->unknown_9d0 = now_ms;
+                    }
                 }
             }
         } else if (static_cast<int32_t>(server->last_challenge_sent_ms) + 5000 < now_ms) {
@@ -114,7 +116,6 @@ uint8_t ServerView::heartbeat_tick()
         }
     }
 
-scenario_check:
     if (server->new_server_pending == 1) {
         if (halo::networking::network_game_server_load_scenario() == 1) {
             server->state = 1;
