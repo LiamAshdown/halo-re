@@ -479,7 +479,7 @@ void player_reset_after_unit_change(uint32_t player_index);
 void player_respawn(uint32_t player_index);
 void player_set_action_result(int16_t function_index, uint32_t thread_index, char first);
 void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_desired);
-datum_index player_spawn_starting_profile_weapon(TagDependency *weapon_dependency, uint32_t role);
+datum_index player_spawn_starting_profile_weapon(TagDependency *weapon_dependency, int16_t rounds_loaded, int16_t rounds_reserved, uint32_t role);
 uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon);
 void player_trigger_full_health_effect(uint32_t player_index);
 void player_trigger_kill_streak_effect(uint32_t player_index);

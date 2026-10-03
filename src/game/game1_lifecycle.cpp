@@ -108,7 +108,7 @@ void Lifecycle::dispose(void)
     sound_class_gains = 0;
 
     if (current_game_engine != (game_engine_definition *)0) {
-        if (current_game_engine->dispose != (void *)0) {
+        if (current_game_engine->dispose != nullptr) {
             ((void (*)(void))current_game_engine->dispose)();
         }
         current_game_engine = (game_engine_definition *)0;
@@ -119,10 +119,10 @@ void Lifecycle::dispose(void)
         player_profile_cache_initialized = 0;
     }
 
-    if (weather_particle_data != (void *)0) {
+    if (weather_particle_data != nullptr) {
         memset(weather_particle_data, 0, 14 * sizeof(uint32_t));
         GlobalFree(weather_particle_data);
-        weather_particle_data = (void *)0;
+        weather_particle_data = nullptr;
     }
     effect_data = 0;
     effect_location_data = 0;
@@ -134,9 +134,9 @@ void Lifecycle::dispose(void)
     local_player_globals = (player_globals *)0;
     halo::effects::globals().decal_data = (data_array *)0;
 
-    if (rasterizer_device != 0 && rasterizer_decal_vertex_cache != (void **)0) {
+    if (rasterizer_device != 0 && rasterizer_decal_vertex_cache != nullptr) {
         ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*rasterizer_decal_vertex_cache + 8)))(rasterizer_decal_vertex_cache);
-        rasterizer_decal_vertex_cache = (void **)0;
+        rasterizer_decal_vertex_cache = nullptr;
     }
     object_render_state_cache = 0;
     halo::objects::objects_dispose();
@@ -419,7 +419,7 @@ void Lifecycle::initialize_for_new_game(void)
         multiplayer_sound_queue_count = 1;
         game_engine_ctf_reset_ticks = 0;
 
-        if (current_game_engine->initialize_for_new_game != (void *)0) {
+        if (current_game_engine->initialize_for_new_game != nullptr) {
             initialize_result =
                 ((uint8_t (*)(void))current_game_engine->initialize_for_new_game)();
             if (initialize_result == 0) {
@@ -473,7 +473,7 @@ int32_t Lifecycle::multiplayer_ui_state_id(void)
 
     if (network_server != (network_server_globals *)0) {
         record = &network_server->session;
-    } else if (network_client != (uint8_t *)0) {
+    } else if (network_client != nullptr) {
         record = &((network_client_globals *)network_client)->session;
     } else {
         return 8;

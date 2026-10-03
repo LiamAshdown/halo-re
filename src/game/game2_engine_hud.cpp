@@ -322,7 +322,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
             address_text = halo::networking::network_address_to_string(&address);
         }
 
-        if (address_text != (char *)0) {
+        if (address_text != nullptr) {
             wchar_t *label = multiplayer_game_text_string(halo::game::mp_text::k_server_address_label);
             wchar_t address_wide[0x100];
             Rectangle2D address_rect;
