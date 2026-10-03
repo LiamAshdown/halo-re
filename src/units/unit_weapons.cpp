@@ -1227,13 +1227,13 @@ void UnitView::release_selected_equipment()
         return;
     }
     object *equipment_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(equipment_index)].data;
-    if (equipment_obj->network_role == 0) {
+    int32_t equipment_role = equipment_obj->network_role;
+    if (equipment_role == 0) {
         halo::objects::object_delete_unparented(equipment_index);
-    } else if (equipment_obj->network_role != 3) {
-        goto clear;
     }
-    halo::objects::object_delete_recursive(equipment_index, 0);
-clear:
+    if (equipment_role == 0 || equipment_role == 3) {
+        halo::objects::object_delete_recursive(equipment_index, 0);
+    }
     unit->equipment_object_index = k_datum_index_none;
     return;
 }

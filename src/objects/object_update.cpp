@@ -596,7 +596,7 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
                 if (weight <= *(float *)permutation) {
                     float t = (float)halo::libm::fmod(halo::libm::fabs(position[1]) + (double)i * (double)0.71210998f, 1.0);
 
-                    halo::bitmaps::color_interpolate((ColorRGB *)&permutation->color_upper_bound, (ColorRGB *)(permutation + 4), working, (color_interpolation_flags)1, t);
+                    halo::bitmaps::color_interpolate((ColorRGB *)&permutation->color_upper_bound, (ColorRGB *)&permutation->color_lower_bound, working, (color_interpolation_flags)1, t);
                     break;
                 }
             }

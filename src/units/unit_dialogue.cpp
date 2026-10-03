@@ -29,18 +29,18 @@ void UnitView::choose_dialogue_variant()
     int16_t permutation_group = *(int16_t *)((uint8_t *)obj + 0xbe);
 
     TagID chosen;
+    bool picked = false;
     if (permutation_group > 0) {
         chosen = ::halo::units::unit_pick_random_dialogue_variant(unit_tag, permutation_group);
-        if (*(uint32_t *)&chosen != (uint32_t)-1) {
-            goto done;
+        picked = *(uint32_t *)&chosen != (uint32_t)-1;
+    }
+    if (!picked) {
+        chosen = ::halo::units::unit_pick_random_dialogue_variant(unit_tag, 0);
+        if (*(uint32_t *)&chosen == (uint32_t)-1) {
+            chosen = ::halo::units::unit_pick_random_dialogue_variant(unit_tag, -1);
         }
     }
-    chosen = ::halo::units::unit_pick_random_dialogue_variant(unit_tag, 0);
-    if (*(uint32_t *)&chosen == (uint32_t)-1) {
-        chosen = ::halo::units::unit_pick_random_dialogue_variant(unit_tag, -1);
-    }
 
-done:
     unit->dialogue_tag_index = *(datum_index *)&chosen;
 }
 

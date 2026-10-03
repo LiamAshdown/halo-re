@@ -56,11 +56,7 @@ int32_t halo::units::object_find_nearest_biped(int32_t reference_object_index)
 int32_t halo::units::object_find_next_untargeted(int32_t starting_object_index)
 {
     int32_t result = -1;
-    if (starting_object_index == -1) {
-        goto from_start;
-    }
-
-    {
+    if (starting_object_index != -1) {
         object_iterator iter = { _object_mask_unit, 0, 0, 0, 0xffffffff };
         object *obj = halo::objects::object_iterator_next(&iter);
         while ((obj != (object *)0) && ((int32_t)iter.handle != starting_object_index)) {
@@ -81,7 +77,6 @@ int32_t halo::units::object_find_next_untargeted(int32_t starting_object_index)
         }
     }
 
-from_start:
     {
         object_iterator iter = { _object_mask_unit, 0, 0, 0, 0xffffffff };
         object *obj = halo::objects::object_iterator_next(&iter);

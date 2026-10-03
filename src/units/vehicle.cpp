@@ -336,7 +336,7 @@ uint32_t VehicleView::update()
         if (test_flag(tag->vehicle_flags, tags::vehicle_tag_flag::kills_riders_at_terminal_velocity) && !unit_updates_suppressed) {
             GlobalsFallingDamage *impact = halo::objects::block_elements<GlobalsFallingDamage>(global_globals->falling_damage);
 
-            if (((struct object *)obj)->velocity.k < -*(float *)(impact + 0x8c)) {
+            if (((struct object *)obj)->velocity.k < -impact->maximum_falling_velocity) {
                 datum_index child = ((unit_object *)obj)->base.first_child_object;
 
                 while (child != k_datum_index_none) {

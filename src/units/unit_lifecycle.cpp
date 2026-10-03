@@ -426,18 +426,14 @@ uint8_t UnitView::new_()
     if (tag->seats.count > 0) {
         int32_t seat_index = 0;
         UnitSeat *seats = (UnitSeat *)tag->seats.pointer;
-        while ((int32_t)halo::objects::tag_handle(seats[seat_index].built_in_gunner) == -1) {
+        while (seat_index < (int32_t)tag->seats.count && (int32_t)halo::objects::tag_handle(seats[seat_index].built_in_gunner) == -1) {
             seat_index = seat_index + 1;
-            if (seat_index >= (int32_t)tag->seats.count) {
-                goto done_seat_scan;
-            }
         }
-        if (halo::ai::globals().state->actors_valid != 0 && halo::ai::globals().state->vehicle_entry_count < 8) {
+        if (seat_index < (int32_t)tag->seats.count && halo::ai::globals().state->actors_valid != 0 && halo::ai::globals().state->vehicle_entry_count < 8) {
             halo::ai::globals().state->vehicle_entry_queue[halo::ai::globals().state->vehicle_entry_count] = (datum_index)object_index;
             halo::ai::globals().state->vehicle_entry_count = halo::ai::globals().state->vehicle_entry_count + 1;
         }
     }
-done_seat_scan:
     return 1;
 }
 

@@ -1076,8 +1076,8 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     if (forced) {
         UnitView(unit_index).set_or_test_seat_and_weapon_label(s_stand, UnitView(unit_index).get_current_weapon_label(), 1);
     }
-    if (new_state == 0x19 && obj->base.type == 0 && (*(uint8_t *)(obj + 0x4cc) & 1) &&
-        (*(int32_t *)(unit_tag + 0x2f4) & 0x400) == 0) {
+    if (new_state == 0x19 && obj->base.type == 0 && test_flag(halo::units::biped_data_of(obj)->flags, units::biped_flag::airborne) &&
+        !test_flag(reinterpret_cast<const Biped *>(unit_tag)->biped_flags, tags::biped_tag_flag::has_no_dying_airborne)) {
         new_state = 0x18;
         if (UnitView(unit_index).try_set_animation_state(0x18)) {
             goto aim;
@@ -1133,7 +1133,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
             if ((int16_t)facing == 3) {
                 set_flag(obj->unit.animation_state_flags, units::unit_animation_state_flag::unknown_8);
             } else {
-                *(uint8_t *)(obj + 0x298) &= 0xf7;
+                clear_flag(obj->unit.animation_state_flags, units::unit_animation_state_flag::unknown_8);
             }
         }
     }
