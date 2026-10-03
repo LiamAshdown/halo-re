@@ -372,6 +372,11 @@ public:
      */
     virtual int32_t query_issue(d3d_arg object, uint32_t flags) = 0;
 
+    /**
+     * Reads the result of an occlusion query (IDirect3DQuery9::GetData).
+     */
+    virtual int32_t query_get_data(d3d_arg object, d3d_arg data, uint32_t size, uint32_t flags) = 0;
+
 
     /* Effects */
 
@@ -504,6 +509,7 @@ public:
     int32_t cube_texture_unlock_rect(d3d_arg object, uint32_t face, uint32_t level) override;
     int32_t cube_texture_get_surface(d3d_arg object, uint32_t face, uint32_t level, d3d_arg out_surface) override;
     int32_t query_issue(d3d_arg object, uint32_t flags) override;
+    int32_t query_get_data(d3d_arg object, d3d_arg data, uint32_t size, uint32_t flags) override;
     int32_t effect_set_vector(d3d_arg object, d3d_arg handle, d3d_arg vector) override;
     int32_t effect_set_texture(d3d_arg object, d3d_arg handle, d3d_arg texture) override;
     int32_t effect_set_technique(d3d_arg object, d3d_arg technique) override;

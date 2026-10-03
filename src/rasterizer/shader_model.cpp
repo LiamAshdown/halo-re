@@ -395,11 +395,8 @@ namespace rasterizer_object_shadow_blur_impl {
 
 
 
-typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
 
-typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
-typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -607,11 +604,8 @@ namespace rasterizer_object_shadow_structure_draw_impl {
 
 
 
-typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
 
-typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
-typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -1106,11 +1100,8 @@ namespace rasterizer_shader_model_draw_pixel_shader_impl {
 
 
 
-typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
 
-typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
-typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
 
 static int32_t set_render_state(uint32_t state, uint32_t value)
@@ -1451,13 +1442,13 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
         goto done;
     }
 
-    ((d3dx_effect_begin_fn)(*(void ***)(uintptr_t)slot->effect)[0x100 / 4])((void *)(uintptr_t)slot->effect, &passes, 3);
+    render_device().effect_begin((void *)(uintptr_t)slot->effect, &passes, 3);
     for (pass = 0; pass < passes; pass++) {
-        ((d3dx_effect_pass_fn)(*(void ***)(uintptr_t)slot->effect)[0x104 / 4])((void *)(uintptr_t)slot->effect, pass);
+        render_device().effect_pass((void *)(uintptr_t)slot->effect, pass);
         rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, vertex_buffer, primitive_count, 0,
                                                   dynamic_vertex_slot);
     }
-    ((d3dx_effect_end_fn)(*(void ***)(uintptr_t)slot->effect)[0x108 / 4])((void *)(uintptr_t)slot->effect);
+    render_device().effect_end((void *)(uintptr_t)slot->effect);
 
     if ((shader[0x28] & 2) && cull) {
 
@@ -1480,9 +1471,9 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
                                           (float)rasterizer_time.time);
         detail_constants[2][2] = model->translucency;
         render_device().set_vertex_shader_constant_f(10, &detail_constants[0][0], 3);
-        ((d3dx_effect_begin_fn)(*(void ***)(uintptr_t)slot->effect)[0x100 / 4])((void *)(uintptr_t)slot->effect, &passes, 3);
+        render_device().effect_begin((void *)(uintptr_t)slot->effect, &passes, 3);
         for (pass = 0; pass < passes; pass++) {
-            ((d3dx_effect_pass_fn)(*(void ***)(uintptr_t)slot->effect)[0x104 / 4])((void *)(uintptr_t)slot->effect, pass);
+            render_device().effect_pass((void *)(uintptr_t)slot->effect, pass);
             set_render_state(0x16, 2);
 
             if (index_buffer != NULL) {
@@ -1498,7 +1489,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
                 rasterizer_dynamic_index_cache_draw(dynamic_index_slot, 0, primitive_count, dynamic_vertex_slot);
             }
         }
-        ((d3dx_effect_end_fn)(*(void ***)(uintptr_t)slot->effect)[0x108 / 4])((void *)(uintptr_t)slot->effect);
+        render_device().effect_end((void *)(uintptr_t)slot->effect);
     }
 
 done:
@@ -1514,7 +1505,6 @@ done:
 
 namespace rasterizer_shader_model_select_technique_impl {
 
-typedef int32_t (__stdcall *d3dx_set_technique_fn)(void *effect, int32_t technique);
 
 /**
  * Direct3D 9 back end function rasterizer_shader_model_select_technique. The original author notes are in
@@ -1562,8 +1552,7 @@ rasterizer_effect_slot * rasterizer_shader_model_select_technique(const ShaderMo
     if (slot->effect == 0) {
         return NULL;
     }
-    if (((d3dx_set_technique_fn)(*(void ***)(uintptr_t)slot->effect)[0xec / 4])((void *)(uintptr_t)slot->effect,
-                                                                                technique) < 0) {
+    if (render_device().effect_set_technique((void *)(uintptr_t)slot->effect, technique) < 0) {
         return NULL;
     }
     return slot;

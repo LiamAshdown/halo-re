@@ -392,6 +392,12 @@ int32_t D3D9Device::query_issue(d3d_arg object, uint32_t flags)
     return com_slot<int32_t (__stdcall *)(void *, uint32_t)>(self, 6)(self, flags);
 }
 
+int32_t D3D9Device::query_get_data(d3d_arg object, d3d_arg data, uint32_t size, uint32_t flags)
+{
+    void *self = object.get();
+    return com_slot<int32_t (__stdcall *)(void *, void *, uint32_t, uint32_t)>(self, 7)(self, data.get(), size, flags);
+}
+
 int32_t D3D9Device::effect_set_vector(d3d_arg object, d3d_arg handle, d3d_arg vector)
 {
     void *self = object.get();

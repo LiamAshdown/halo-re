@@ -653,7 +653,6 @@ namespace rasterizer_render_target_capture_frame_impl {
 
 
 
-typedef int32_t (__stdcall *d3d_get_desc_fn)(void *self, d3d_surface_desc *desc);
 
 
 
@@ -840,10 +839,8 @@ void rasterizer_render_target_dispose(void)
 namespace rasterizer_render_target_initialize_impl {
 
 
-typedef int32_t (__stdcall *d3d_get_desc_fn)(void *surface, d3d_surface_desc *desc);
 
 
-typedef int32_t (__stdcall *d3d_get_surface_level_fn)(void *texture, uint32_t level, uint32_t *surface);
 
 
 
@@ -865,8 +862,7 @@ uint8_t rasterizer_render_target_initialize(void)
         if (render_device().get_render_target(0, &rasterizer_render_targets[1].surface) < 0) {
             ok = 0;
         }
-        if (((d3d_get_desc_fn)(*(void ***)(uintptr_t)rasterizer_render_targets[1].surface)[0x30 / 4])(
-                (void *)(uintptr_t)rasterizer_render_targets[1].surface, &desc) < 0) {
+        if (render_device().surface_get_desc((void *)(uintptr_t)rasterizer_render_targets[1].surface, &desc) < 0) {
             ok = 0;
         }
         rasterizer_render_targets[1].format = desc.format;
@@ -876,8 +872,7 @@ uint8_t rasterizer_render_target_initialize(void)
         if (render_device().get_render_target(0, &rasterizer_render_targets[0].surface) < 0) {
             ok = 0;
         }
-        if (((d3d_get_desc_fn)(*(void ***)(uintptr_t)rasterizer_render_targets[0].surface)[0x30 / 4])(
-                (void *)(uintptr_t)rasterizer_render_targets[0].surface, &desc) < 0) {
+        if (render_device().surface_get_desc((void *)(uintptr_t)rasterizer_render_targets[0].surface, &desc) < 0) {
             ok = 0;
         }
         rasterizer_render_targets[0].format = desc.format;
@@ -901,8 +896,7 @@ uint8_t rasterizer_render_target_initialize(void)
                 if (target->texture == 0) {
                     shell_display_fatal_error_dialog(0x69, 0x72, 1);
                 }
-                if (((d3d_get_surface_level_fn)(*(void ***)(uintptr_t)target->texture)[0x48 / 4])(
-                        (void *)(uintptr_t)target->texture, 0, &target->surface) < 0) {
+                if (render_device().texture_get_surface_level((void *)(uintptr_t)target->texture, 0, &target->surface) < 0) {
                     ok = 0;
                 }
             }
@@ -944,7 +938,6 @@ uint8_t rasterizer_render_target_initialize(void)
 namespace rasterizer_render_target_set_active_impl {
 
 
-typedef int32_t (__stdcall *d3d_get_desc_fn)(void *surface, d3d_surface_desc *out_desc);
 
 
 

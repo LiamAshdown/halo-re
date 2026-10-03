@@ -410,7 +410,6 @@ int32_t rasterizer_bitmap_compute_mipmap_skip_count(BitmapData *bitmap, int16_t 
 
 namespace rasterizer_bitmap_create_hardware_texture_impl {
 
-typedef int32_t (__stdcall *d3d_create_texture_fn)(void *self, uint32_t width, uint32_t height, uint32_t levels, uint32_t usage, int32_t format, uint32_t pool, void *out_texture, void *shared_handle);
 
 typedef int32_t (__stdcall *d3d_create_volume_texture_fn)(void *self, uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t usage, int32_t format, uint32_t pool, void *out_texture, void *shared_handle);
 
@@ -448,9 +447,7 @@ uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap)
 
     if (bitmap->type == 0) {
         mip_skip = rasterizer_bitmap_compute_mipmap_skip_count(bitmap, &width, &height);
-        d3d_create_texture_fn create_texture = (d3d_create_texture_fn)(*(void ***)rasterizer_device)[0x17];
-        hresult = create_texture(rasterizer_device, width, height,
-            (uint32_t)((bitmap->mipmap_count - mip_skip) + 1), 0, format, 1, &bitmap->hardware_texture, 0);
+        hresult = render_device().create_texture(width, height, (uint32_t)((bitmap->mipmap_count - mip_skip) + 1), 0, format, 1, &bitmap->hardware_texture, 0);
         if (hresult < 0) {
             ok = 0;
         }

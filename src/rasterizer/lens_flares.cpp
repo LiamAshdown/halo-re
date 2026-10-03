@@ -790,7 +790,6 @@ uint8_t rasterizer_lens_flare_occlusion_queries_create(void)
 
 namespace rasterizer_lens_flare_occlusion_query_get_result_impl {
 
-typedef int32_t (__stdcall *d3d_query_get_data_fn)(void *query, void *data, uint32_t size, uint32_t flags);
 
 /**
  * Polls the occlusion query for one lens-flare slot until a result is available, returning the query's
@@ -812,13 +811,11 @@ int32_t rasterizer_lens_flare_occlusion_query_get_result(int32_t slot_index)
 
     query = lens_flare_occlusion_queries[slot_index];
     if (query != 0 && slot_index < k_lens_flare_occlusion_queries) {
-        void **vt = *(void ***)query;
-        d3d_query_get_data_fn get_data = (d3d_query_get_data_fn)vt[0x1c / 4];
 
-        hr = get_data(query, &value, 4, 1);
+        hr = render_device().query_get_data(query, &value, 4, 1);
         while (hr == 1) {
             query = lens_flare_occlusion_queries[slot_index];
-            hr = get_data(query, &value, 4, 1);
+            hr = render_device().query_get_data(query, &value, 4, 1);
         }
         return value;
     }

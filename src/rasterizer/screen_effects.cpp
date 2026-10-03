@@ -878,15 +878,10 @@ namespace rasterizer_screen_effect_render_impl {
 
 
 
-typedef int32_t (__stdcall *d3dx_effect_set_vector_fn)(void *effect, uint32_t handle, const float *vector);
 
-typedef int32_t (__stdcall *d3dx_set_technique_fn)(void *effect, uint32_t technique);
 
-typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
 
-typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
-typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -917,14 +912,14 @@ static void draw_screen_quad(void)
 
 static void set_technique(uint32_t technique)
 {
-    ((d3dx_set_technique_fn)(*(void ***)screen_effect())[0xec / 4])(screen_effect(), technique);
+    render_device().effect_set_technique(screen_effect(), technique);
 }
 
 static void set_vector(int handle_index, const float *vector)
 {
     uint32_t *handles = (uint32_t *)(uintptr_t)rasterizer_effects[114].constant_handles;
 
-    ((d3dx_effect_set_vector_fn)(*(void ***)screen_effect())[0x88 / 4])(screen_effect(), handles[handle_index], vector);
+    render_device().effect_set_vector(screen_effect(), handles[handle_index], vector);
 }
 
 static void set_blend(uint32_t source, uint32_t destination)
@@ -1111,10 +1106,10 @@ void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
                 set_blend(6, 1);
             }
             set_technique(technique);
-            ((d3dx_effect_begin_fn)(*(void ***)screen_effect())[0x100 / 4])(screen_effect(), &passes, 3);
-            ((d3dx_effect_pass_fn)(*(void ***)screen_effect())[0x104 / 4])(screen_effect(), (uint32_t)(int32_t)pass);
+            render_device().effect_begin(screen_effect(), &passes, 3);
+            render_device().effect_pass(screen_effect(), (uint32_t)(int32_t)pass);
             draw_screen_quad();
-            ((d3dx_effect_end_fn)(*(void ***)screen_effect())[0x108 / 4])(screen_effect());
+            render_device().effect_end(screen_effect());
             continue;
         }
 
@@ -1155,12 +1150,12 @@ void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
         } else if (pass == pass_count - 1) {
             set_blend(6, 1);
         }
-        ((d3dx_effect_begin_fn)(*(void ***)screen_effect())[0x100 / 4])(screen_effect(), &passes, 3);
+        render_device().effect_begin(screen_effect(), &passes, 3);
         for (effect_pass = 0; effect_pass < passes; effect_pass++) {
-            ((d3dx_effect_pass_fn)(*(void ***)screen_effect())[0x104 / 4])(screen_effect(), effect_pass);
+            render_device().effect_pass(screen_effect(), effect_pass);
             draw_screen_quad();
         }
-        ((d3dx_effect_end_fn)(*(void ***)screen_effect())[0x108 / 4])(screen_effect());
+        render_device().effect_end(screen_effect());
     }
     rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
     render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
@@ -1398,11 +1393,8 @@ namespace rasterizer_screen_flash_render_impl {
 
 
 
-typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *pass_count, uint32_t flags);
 
-typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
-typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -1670,11 +1662,8 @@ namespace rasterizer_sun_glow_blur_impl {
 
 
 
-typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
 
-typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
-typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -1763,11 +1752,8 @@ namespace rasterizer_sun_glow_capture_impl {
 
 
 
-typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
 
-typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
-typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -1929,11 +1915,8 @@ namespace rasterizer_sun_glow_render_impl {
 
 
 
-typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
 
-typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
-typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -2186,11 +2169,8 @@ namespace rasterizer_ui_quad_draw_impl {
 
 
 
-typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
 
-typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
-typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
 
 static void set_render_state(uint32_t state, uint32_t value)
