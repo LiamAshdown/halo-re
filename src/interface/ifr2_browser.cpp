@@ -3,6 +3,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/ui_event.hpp"
 
 #ifdef interface
 #undef interface
@@ -222,7 +223,7 @@ uint8_t ListRowHandler::handle(widget_instance *widget, int16_t *event, uint8_t 
         rows[i] = page_down;
         page_down = page_down->next_sibling;
     }
-    if (event[0] == 4 && ((uint8_t *)event)[4] == 3) {
+    if (event[0] == 4 && halo::interface::event_code(event) == 3) {
         return 1;
     }
     if (widget == page_up) {

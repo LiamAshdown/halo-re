@@ -76,7 +76,7 @@ void UiGameSetup::game_variant_list_widget_build(widget_instance *widget)
  */
 uint32_t UiGameSetup::start_campaign_from_level_one(void *widget, int16_t *event)
 {
-    int16_t requested_index = *(int16_t *)((uint8_t *)event + 2);
+    int16_t requested_index = event[1];
     int16_t i;
 
     (void)widget;

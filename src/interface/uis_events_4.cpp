@@ -38,6 +38,7 @@
 #include "halo/interface/constants.hpp"
 #include "halo/interface/flags.hpp"
 #include "halo/interface/wide_text.hpp"
+#include "halo/interface/ui_event.hpp"
 
 extern "C" {
 extern uint8_t input_event_queue_active;
@@ -627,7 +628,7 @@ uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, u
     int32_t row;
     int32_t position;
 
-    if (event[0] == 3 && (((uint8_t *)event)[4] == 0 || ((uint8_t *)event)[4] == 0xc) &&
+    if (event[0] == 3 && (halo::interface::event_code(event) == 0 || halo::interface::event_code(event) == 0xc) &&
         halo::cseries::time_query_performance_counter_ms() - (uint32_t)widget->creation_time > 0xfa) {
         double_click = 1;
     }

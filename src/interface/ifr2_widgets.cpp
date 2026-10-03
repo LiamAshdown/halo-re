@@ -19,6 +19,7 @@
 #include "halo/interface/constants.hpp"
 #include "halo/interface/flags.hpp"
 #include "halo/interface/widget_pool.hpp"
+#include "halo/interface/ui_event.hpp"
 
 #ifdef interface
 #undef interface
@@ -121,6 +122,7 @@ void WidgetLifecycle::prepend(widget_history_node *template_record, widget_histo
 void WidgetLifecycle::close()
 {
     uint8_t *self = (uint8_t *)widget;
+    static_assert(offsetof(UIWidgetDefinition, event_handlers) == 0x54 && sizeof(ChildWidgetReference) == 0x50, "UIWidgetDefinition block layout");
 
     if (widget->closing != 0) {
         return;
@@ -135,13 +137,12 @@ void WidgetLifecycle::close()
     }
 
     {
-        void *tag_data = halo::interface::tag_data<void>(widget->definition);
-        TagReflexive *event_handlers = (TagReflexive *)((uint8_t *)tag_data + 0x54);
+        UIWidgetDefinition *definition = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
+        TagReflexive *event_handlers = &definition->event_handlers;
         int32_t i;
 
         for (i = 0; i < (int32_t)event_handlers->count; i++) {
-            EventHandlerReference *handler =
-                (EventHandlerReference *)((uint8_t *)event_handlers->pointer + i * sizeof(EventHandlerReference));
+            EventHandlerReference *handler = halo::interface::reflexive_elements<EventHandlerReference>(*event_handlers) + i;
 
             if (handler->event_type == uieventtype_deleted && (int8_t)handler->flags < 0) {
                 uint16_t function = (uint16_t)handler->function;
@@ -336,10 +337,10 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
     }
 
     if (tag->child_widgets.count > 0) {
-        uint8_t *entries = (uint8_t *)tag->child_widgets.pointer;
+        ChildWidgetReference *entries = halo::interface::reflexive_elements<ChildWidgetReference>(tag->child_widgets);
 
         for (i = 0; i < tag->child_widgets.count; i++) {
-            ChildWidgetReference *entry = (ChildWidgetReference *)(entries + i * 0x50);
+            ChildWidgetReference *entry = entries + i;
             datum_index child_tag_index = halo::interface::tag_handle(entry->widget_tag.tag_id);
 
             if (child_tag_index != (datum_index)-1) {
@@ -1022,17 +1023,17 @@ void WidgetView::handle_input_event(UIWidgetDefinition *tag, int16_t *event, uin
     }
 after_close_check:
 
-    if (controller_matches && handled == 0 && event[0] == 3 && *((int8_t *)event + 5) == 1) {
+    if (controller_matches && handled == 0 && event[0] == 3 && halo::interface::event_state(event) == 1) {
         int8_t code = (int8_t)event[2];
         uint8_t found = 0;
 
         if (code == '\r') {
             if (tag->event_handlers.count > 0) {
-                int16_t *entry = (int16_t *)(tag->event_handlers.pointer + 4);
+                EventHandlerReference *entry = halo::interface::reflexive_elements<EventHandlerReference>(tag->event_handlers);
                 int32_t i;
 
-                for (i = 0; i < tag->event_handlers.count; i++, entry += 0x24) {
-                    if (*entry == 0xd) {
+                for (i = 0; i < tag->event_handlers.count; i++, entry++) {
+                    if (entry->event_type == 0xd) {
                         found = 1;
                         break;
                     }
@@ -1040,11 +1041,11 @@ after_close_check:
             }
         } else if (code == 1) {
             if (tag->event_handlers.count > 0) {
-                int16_t *entry = (int16_t *)(tag->event_handlers.pointer + 4);
+                EventHandlerReference *entry = halo::interface::reflexive_elements<EventHandlerReference>(tag->event_handlers);
                 int32_t i;
 
-                for (i = 0; i < tag->event_handlers.count; i++, entry += 0x24) {
-                    if (*entry == 1) {
+                for (i = 0; i < tag->event_handlers.count; i++, entry++) {
+                    if (entry->event_type == 1) {
                         found = 1;
                         break;
                     }
@@ -1109,7 +1110,7 @@ after_close_check:
                 goto dispatch_to_children;
             }
             if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_up_down_tabs_thru_children) && widget->focused_child != (widget_instance *)0 && handled == 0) {
-                if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
+                if (event[0] == 3 && halo::interface::event_state(event) == 1) {
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\b') {
@@ -1145,7 +1146,7 @@ after_close_check:
 
         dpad_lr_nav:
             if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_left_right_tabs_thru_children) && widget->focused_child != (widget_instance *)0 && handled == 0) {
-                if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
+                if (event[0] == 3 && halo::interface::event_state(event) == 1) {
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\n') {
@@ -1170,7 +1171,7 @@ after_close_check:
         dpad_lr_nav_done:
             if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_up_down_tabs_thru_list_items) && (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
                 list_nav_done == 0 && handled == 0) {
-                if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
+                if (event[0] == 3 && halo::interface::event_state(event) == 1) {
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\b') {
@@ -1199,7 +1200,7 @@ after_close_check:
         dpad_ud_nav:
             if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_left_right_tabs_thru_list_items) && (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
                 list_nav_done == 0 && handled == 0) {
-                if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
+                if (event[0] == 3 && halo::interface::event_state(event) == 1) {
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\n') {
@@ -1231,8 +1232,7 @@ after_close_check:
 dispatch_to_children:
 
     if (controller_matches && tag->event_handlers.count > 0) {
-        int16_t *entry_base = (int16_t *)tag->event_handlers.pointer;
-        int32_t offset = 0;
+        EventHandlerReference *entry_base = halo::interface::reflexive_elements<EventHandlerReference>(tag->event_handlers);
 
         handler_scan_count = 0;
         while (handler_scan_count < tag->event_handlers.count) {
@@ -1240,8 +1240,8 @@ dispatch_to_children:
                 break;
             }
             {
-                uint8_t *entry = (uint8_t *)entry_base + offset;
-                int16_t event_type = *(int16_t *)(entry + 4);
+                EventHandlerReference *entry = entry_base + handler_scan_count;
+                int16_t event_type = entry->event_type;
                 uint8_t match = 0;
 
                 switch (event[0]) {
@@ -1265,11 +1265,11 @@ dispatch_to_children:
                     break;
                 case 3:
                     if (event_type == (uint16_t)(uint8_t)event[2]) {
-                        match = (*((int8_t *)event + 5) == 1);
+                        match = (halo::interface::event_state(event) == 1);
                     }
                     break;
                 case 4:
-                    if (*((int8_t *)event + 5) == 1 && halo::interface::widget_instance_point_in_bounds(widget) != 0) {
+                    if (halo::interface::event_state(event) == 1 && halo::interface::widget_instance_point_in_bounds(widget) != 0) {
                         switch (event_type) {
                         case 0x1c: match = ((int8_t)event[2] == 0); break;
                         case 0x1d: match = ((int8_t)event[2] == 1); break;
@@ -1287,12 +1287,11 @@ dispatch_to_children:
                 }
                 if (match) {
                     list_nav_done = 1;
-                    halo::interface::ui_widget_list_item_activate(widget, tag, event, (EventHandlerReference *)entry, &handled);
+                    halo::interface::ui_widget_list_item_activate(widget, tag, event, entry, &handled);
                 }
             }
         scan_next:
             handler_scan_count = handler_scan_count + 1;
-            offset = offset + 0x48;
         }
     }
 
@@ -1516,10 +1515,10 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
                 (uint16_t)((int16_t)offset_xy + widget->local_x);
 
     if (tag->game_data_inputs.count > 0) {
-        uint8_t *entry = (uint8_t *)tag->game_data_inputs.pointer;
+        GameDataInputReference *entry = halo::interface::reflexive_elements<GameDataInputReference>(tag->game_data_inputs);
 
-        for (i = 0; i < tag->game_data_inputs.count; i++, entry += 0x24) {
-            int16_t function_id = *(int16_t *)entry;
+        for (i = 0; i < tag->game_data_inputs.count; i++, entry++) {
+            int16_t function_id = entry->function;
 
             if (function_id >= 0 && function_id < 0x3b) {
                 ((ui_game_data_input_function)game_data_input_function_table[function_id])(widget);
@@ -1611,15 +1610,15 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
 
 post_render:
     if (tag->event_handlers.count > 0) {
-        uint8_t *entry = (uint8_t *)tag->event_handlers.pointer;
+        EventHandlerReference *entry = halo::interface::reflexive_elements<EventHandlerReference>(tag->event_handlers);
 
-        for (i = 0; i < tag->event_handlers.count; i++, entry += 0x48) {
-            if (*(int16_t *)(entry + 4) == 0x21) {
+        for (i = 0; i < tag->event_handlers.count; i++, entry++) {
+            if (entry->event_type == 0x21) {
                 int16_t event[4] = {0, 0, 0, 0};
                 uint8_t handled;
 
                 event[1] = widget->controller_index;
-                halo::interface::ui_widget_list_item_activate(widget, tag, event, (EventHandlerReference *)entry, &handled);
+                halo::interface::ui_widget_list_item_activate(widget, tag, event, entry, &handled);
             }
         }
     }
