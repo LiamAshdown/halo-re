@@ -2,6 +2,7 @@
 #include "halo/cache/api.hpp"
 
 #include <string.h>
+#include "halo/units/api.hpp"
 extern "C" {
 extern data_array *object_data;
 extern int tolower(int c);

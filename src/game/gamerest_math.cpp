@@ -3,9 +3,9 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
-extern void unit_get_look_origin_and_direction(uint32_t object_index, uint32_t *out_status, real_vector3d *out_direction, real_point3d *out_origin);
 extern void vector3d_clamp_length(real_vector3d *v, real max_length);
 extern double sqrt(double x);
 extern double response_curve_scale_limit;
@@ -100,7 +100,7 @@ void ScalarMath::closest_point_on_segment(datum_index unit_index, real_vector3d 
     real_vector3d nudge;
     real dot;
 
-    unit_get_look_origin_and_direction(unit_index, &autoaim_width_bits, &direction, &origin);
+    halo::units::unit_get_look_origin_and_direction(unit_index, &autoaim_width_bits, &direction, &origin);
 
     cross.i = direction.j * aux_vector->k - direction.k * aux_vector->j;
     cross.j = direction.k * aux_vector->i - direction.i * aux_vector->k;

@@ -4,6 +4,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -23,7 +24,6 @@ extern double fmod(double x, double y);
 extern long lrint(double x);
 extern int32_t __ftol(double x);
 extern int32_t ui_real_to_int_truncate(float value);
-extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *point, void *frustum,
                                                     void *camera);
 extern uint32_t color_rgb_float_to_int(const float *rgb);
@@ -280,7 +280,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
         unit_index = ((player *)((uint8_t *)player_data->data +
                                  (local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
     }
-    unit_get_camera_position(unit_index, &camera);
+    halo::units::unit_get_camera_position(unit_index, &camera);
     {
         float dx = position->x - camera.x;
         float dy = position->y - camera.y;

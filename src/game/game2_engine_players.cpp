@@ -4,6 +4,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/units/api.hpp"
 
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 
@@ -37,18 +38,11 @@ extern player_globals *local_player_globals;
 extern network_client_globals *network_client;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_get_node_local_transform(datum_index object_index, int32_t node_index, void *out_transform, int32_t unknown);
-extern void unit_try_set_animation_state(datum_index unit_handle, int32_t state);
 extern void object_snap_to_parent_marker_and_detach(datum_index object_index);
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
-extern void unit_recompute_seat_occupants(void);
-extern void unit_pick_and_ready_next_weapon(void);
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request);
-extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index);
 extern void object_recalculate_bounding_radius_recursive(datum_index object_index);
-extern uint8_t unit_all_seats_unoccupied(void);
 extern void player_update_history_free_all(void *queue);
-extern void unit_dispatch_scripted_event_9(uint8_t flag);
 extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point);
 extern int16_t game_engine_recent_location_count;
 extern int16_t game_engine_recent_location_table[];
@@ -833,7 +827,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
 
                     if (driver_unit->driver_unit_index == unit_handle &&
                         *((int8_t *)driver_obj + 0x2a3) != '%' && unit_obj->parent_object != (datum_index)-1) {
-                        unit_try_set_animation_state(unit_obj->parent_object, 0x25);
+                        halo::units::unit_try_set_animation_state(unit_obj->parent_object, 0x25);
                     }
 
                     unit->last_parent_object_index = driver;
@@ -876,9 +870,9 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                     }
                 }
 
-                unit_recompute_seat_occupants();
-                unit_pick_and_ready_next_weapon();
-                unit_update_animation_state_machine(unit_handle, k_unit_exit_seat_request);
+                halo::units::unit_recompute_seat_occupants(unit_handle);
+                halo::units::unit_pick_and_ready_next_weapon(unit_handle);
+                halo::units::unit_update_animation_state_machine(unit_handle, k_unit_exit_seat_request);
 
                 {
                     uint8_t *marker_ptr = (uint8_t *)unit_obj + *((int16_t *)((uint8_t *)unit_obj + 0x1ea)) + 0x10;
@@ -886,11 +880,11 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                 }
 
                 if (unit_obj->type == _object_type_biped) {
-                    unit_reset_orientation_and_find_position(unit_handle, driver);
+                    halo::units::unit_reset_orientation_and_find_position(unit_handle, driver);
                 }
                 object_recalculate_bounding_radius_recursive(unit_handle);
 
-                if (unit_all_seats_unoccupied() == 1) {
+                if (halo::units::unit_all_seats_unoccupied(unit_handle) == 1) {
                     object *local_obj = object_try_and_get((datum_index)-1, _object_mask_vehicle);
                     if (local_obj != (object *)0) {
                         *(int32_t *)((uint8_t *)local_obj + 0x5ac) = game_time->game_time;
@@ -911,7 +905,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
             }
 
             if (unit_obj->network_role == 0) {
-                unit_dispatch_scripted_event_9(1);
+                halo::units::unit_dispatch_scripted_event_9(1, (int32_t)unit_handle);
             }
 
             if (network_game_mode == 1) {

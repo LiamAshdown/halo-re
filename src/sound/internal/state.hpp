@@ -58,7 +58,6 @@ extern double pow(double base, double exponent);
 extern int16_t sound_channel_count;
 extern sound_listener sound_listeners[1];
 extern const real_point3d *global_zero_vector3d_pointer;
-extern void unit_accumulate_clamped_offset(uint32_t object_index, float new_value);
 extern double sqrt(double x);
 extern uint8_t sound_paused;
 extern uint8_t sound_stopping_all;

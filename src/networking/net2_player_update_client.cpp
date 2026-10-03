@@ -14,6 +14,7 @@
 #include "halo/networking/net2_player_update_client.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array * player_data;
@@ -47,7 +48,6 @@ extern void unit_snap_position_if_far(real_point3d *new_position, object *obj,
 extern void player_update_history_log_printf_filtered(player *target_player, int32_t category,
     const char *format, ...);
 extern uint8_t circular_queue_push(circular_queue *queue, void *source);
-extern void unit_propagate_position_delta_to_children(const real_point3d *position, datum_index object_index);
 void player_update_client_local_player_update_from_network(int32_t *decode_context);
 void player_update_client_local_player_vehicle_update_from_network(int32_t *decode_context);
 void player_update_client_remote_player_action_update_from_network(int32_t **decode_context);
@@ -736,7 +736,7 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
                         object *vehicle_object = object_try_and_get(vehicle.parent_or_tag, 3);
 
                         if (vehicle_object != 0) {
-                            unit_propagate_position_delta_to_children(&vehicle.position, vehicle.parent_or_tag);
+                            halo::units::unit_propagate_position_delta_to_children(&vehicle.position, vehicle.parent_or_tag);
                             vehicle_object->velocity = vehicle.velocity;
                             vehicle_object->angular_velocity = vehicle.angular_velocity;
                             vehicle_object->forward = vehicle.forward;

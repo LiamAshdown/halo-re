@@ -8,6 +8,7 @@
 #include "halo/projectiles/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "code_refs.hpp"
+#include "halo/units/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/cutscene/api.hpp"
@@ -2031,24 +2032,24 @@ uint32_t message_delta_definitions_0069b1a8[909] = {
     /* +0x0220 */ 0, 0, 0, 0, 0, 0, (uint32_t)&message_delta_definitions_0069b1a8[110], 0,
     /* +0x0240 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0260 */ 0, 0, 0, 0, 0, 0, 0, 0,
-    /* +0x0280 */ (uint32_t)"unit", 0x756e6974, 0xffff04ccu, 0xffffffffu, 0xffffffffu, (uint32_t)unit_ai_update_stagger_allocate, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)unit_ai_update_stagger_reset,
-    /* +0x02a0 */ (uint32_t)&halo::cseries::function_do_nothing, 0, (uint32_t)unit_new, 0, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)unit_update, (uint32_t)unit_update_scale_function_inputs, (uint32_t)unit_forget_object_reference,
-    /* +0x02c0 */ (uint32_t)unit_region_damage_reaction, 0, (uint32_t)unit_update_aiming_overlay_angles, (uint32_t)unit_update_ik_detail_nodes, 0, 0, (uint32_t)unit_play_default_reaction_sound, (uint32_t)&halo::cseries::function_do_nothing,
+    /* +0x0280 */ (uint32_t)"unit", 0x756e6974, 0xffff04ccu, 0xffffffffu, 0xffffffffu, (uint32_t)&halo::units::unit_ai_update_stagger_allocate, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::units::unit_ai_update_stagger_reset,
+    /* +0x02a0 */ (uint32_t)&halo::cseries::function_do_nothing, 0, (uint32_t)&halo::units::unit_new, 0, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::units::unit_update, (uint32_t)&halo::units::unit_update_scale_function_inputs, (uint32_t)&halo::units::unit_forget_object_reference,
+    /* +0x02c0 */ (uint32_t)&halo::units::unit_region_damage_reaction, 0, (uint32_t)&halo::units::unit_update_aiming_overlay_angles, (uint32_t)&halo::units::unit_update_ik_detail_nodes, 0, 0, (uint32_t)&halo::units::unit_play_default_reaction_sound, (uint32_t)&halo::cseries::function_do_nothing,
     /* +0x02e0 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0300 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[160], 0, 0, 0, 0, 0, 0,
     /* +0x0320 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0340 */ 0, 0,
     /* +0x0348 */ (uint32_t)"biped", 0x62697064, 0x2280550, 0x780234, 0x4, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::cseries::function_do_nothing,
-    /* +0x0368 */ (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)biped_placement_offset_centered_pill, (uint32_t)biped_create, (uint32_t)unit_place, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)biped_update, (uint32_t)biped_update_scale_function_inputs, 0,
-    /* +0x0388 */ 0, 0, (uint32_t)&halo::cseries::function_do_nothing, 0, (uint32_t)biped_reset_state, (uint32_t)biped_clear_ground_surface_references, 0, (uint32_t)&halo::cseries::function_do_nothing,
-    /* +0x03a8 */ (uint32_t)halo::projectiles::object_type_definition_return_false, (uint32_t)unit_build_network_update, (uint32_t)biped_network_baseline_take, (uint32_t)unit_submit_periodic_network_update, (uint32_t)unit_apply_network_health_update, (uint32_t)biped_is_old_enough, (uint32_t)halo::projectiles::object_type_definition_return_true, (uint32_t)&halo::items::item_stamp_age_timestamp,
+    /* +0x0368 */ (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::units::biped_placement_offset_centered_pill, (uint32_t)&halo::units::biped_create, (uint32_t)&halo::units::unit_place, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::units::biped_update, (uint32_t)&halo::units::biped_update_scale_function_inputs, 0,
+    /* +0x0388 */ 0, 0, (uint32_t)&halo::cseries::function_do_nothing, 0, (uint32_t)&halo::units::biped_reset_state, (uint32_t)&halo::units::biped_clear_ground_surface_references, 0, (uint32_t)&halo::cseries::function_do_nothing,
+    /* +0x03a8 */ (uint32_t)halo::projectiles::object_type_definition_return_false, (uint32_t)&halo::units::unit_build_network_update, (uint32_t)&halo::units::biped_network_baseline_take, (uint32_t)&halo::units::unit_submit_periodic_network_update, (uint32_t)&halo::units::unit_apply_network_health_update, (uint32_t)&halo::units::biped_is_old_enough, (uint32_t)halo::projectiles::object_type_definition_return_true, (uint32_t)&halo::items::item_stamp_age_timestamp,
     /* +0x03c8 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[160], (uint32_t)&message_delta_definitions_0069b1a8[210], 0, 0, 0, 0, 0,
     /* +0x03e8 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0408 */ 0, 0,
     /* +0x0410 */ (uint32_t)"vehicle", 0x76656869, 0x24005c0, 0x78024c, 0x5, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::cseries::function_do_nothing,
-    /* +0x0430 */ (uint32_t)&halo::cseries::function_do_nothing, 0, (uint32_t)vehicle_create, (uint32_t)unit_place, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)vehicle_update, (uint32_t)vehicle_calculate_animation_controls, 0,
-    /* +0x0450 */ 0, 0, (uint32_t)vehicle_blend_animations, 0, (uint32_t)vehicle_reset_state, 0, 0, (uint32_t)&halo::cseries::function_do_nothing,
-    /* +0x0470 */ (uint32_t)halo::projectiles::object_type_definition_return_false, (uint32_t)vehicle_encode_network_create, (uint32_t)vehicle_network_baseline_take, (uint32_t)vehicle_encode_network_update, (uint32_t)vehicle_apply_network_update, (uint32_t)vehicle_is_old_enough, (uint32_t)halo::projectiles::object_type_definition_return_true, (uint32_t)&halo::items::item_stamp_age_timestamp,
+    /* +0x0430 */ (uint32_t)&halo::cseries::function_do_nothing, 0, (uint32_t)&halo::units::vehicle_create, (uint32_t)&halo::units::unit_place, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::units::vehicle_update, (uint32_t)&halo::units::vehicle_calculate_animation_controls, 0,
+    /* +0x0450 */ 0, 0, (uint32_t)&halo::units::vehicle_blend_animations, 0, (uint32_t)&halo::units::vehicle_reset_state, 0, 0, (uint32_t)&halo::cseries::function_do_nothing,
+    /* +0x0470 */ (uint32_t)halo::projectiles::object_type_definition_return_false, (uint32_t)&halo::units::vehicle_encode_network_create, (uint32_t)&halo::units::vehicle_network_baseline_take, (uint32_t)&halo::units::vehicle_encode_network_update, (uint32_t)&halo::units::vehicle_apply_network_update, (uint32_t)&halo::units::vehicle_is_old_enough, (uint32_t)halo::projectiles::object_type_definition_return_true, (uint32_t)&halo::items::item_stamp_age_timestamp,
     /* +0x0490 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[160], (uint32_t)&message_delta_definitions_0069b1a8[260], 0, 0, 0, 0, 0,
     /* +0x04b0 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x04d0 */ 0, 0, (uint32_t)"item", 0x6974656d, 0xffff022cu, 0xffffffffu, 0xffffffffu, (uint32_t)&halo::cseries::function_do_nothing,

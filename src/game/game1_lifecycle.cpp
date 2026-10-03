@@ -15,6 +15,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -51,7 +52,6 @@ extern void network_shutdown(void);
 extern data_array *object_data;
 extern object *object_iterator_next(object_iterator *iterator);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern uint8_t unit_any_dying_or_seat_transition(void);
 extern uint8_t ai_scan_for_recent_combat_activity(uint32_t param);
 extern void player_respawn(datum_index player_handle);
 extern uint8_t player_attach_unit_to_parent(datum_index player_handle, datum_index parent_object,
@@ -210,7 +210,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
         obj_iter.flags_mask = 0;
         obj_iter.index = 0;
         obj_iter.handle = (datum_index)-1;
-        if (object_iterator_next(&obj_iter) != (object *)0 || unit_any_dying_or_seat_transition() != 0) {
+        if (object_iterator_next(&obj_iter) != (object *)0 || halo::units::unit_any_dying_or_seat_transition() != 0) {
             local_player_globals->mode = 1;
             return 0;
         }

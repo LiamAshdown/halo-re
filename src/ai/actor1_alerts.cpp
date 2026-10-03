@@ -1,6 +1,7 @@
 #include "halo/ai/actor_alerts.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace c_actor_alert_from_damage {
 extern "C" {
@@ -462,8 +463,6 @@ extern int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3
 extern uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index, datum_index actor_index,
     float radius);
 extern void actor_movement_actions_cancel(datum_index actor_index);
-extern uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, uint32_t out_dx_to_key_frame,
-    uint32_t out_dx_total, int16_t *out_frame_count, int16_t *out_key_frame_index);
 }
 }
 
@@ -527,7 +526,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
                 mode = 3;
             }
         }
-        if (!unit_get_weapon_marker_indices(((struct actor *)actor)->unit_index, leap, (uint32_t)&dx_to_key_frame,
+        if (!halo::units::unit_get_weapon_marker_indices(((struct actor *)actor)->unit_index, leap, (uint32_t)&dx_to_key_frame,
                 (uint32_t)&dx_total, &frame_count, &key_frame)) {
             goto done;
         }

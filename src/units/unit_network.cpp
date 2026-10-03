@@ -6,6 +6,7 @@
 #include "game.h"
 #include "networking.h"
 #include "halo/memory/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -51,7 +52,7 @@ typedef struct unit_network_control_message {
  *
  * @address 0x566c90
  */
-void unit_apply_network_control_update(unit_network_control_packet *packet)
+void halo::units::unit_apply_network_control_update(unit_network_control_packet *packet)
 {
     using namespace unit_apply_network_control_update_local;
     unit_network_control_message message;
@@ -177,7 +178,7 @@ void UnitView::apply_network_health_update(void *message)
  *
  * @address 0x566c00
  */
-void unit_broadcast_state_change_event(unit_state_change_record record)
+void halo::units::unit_broadcast_state_change_event(unit_state_change_record record)
 {
     int32_t resolved = 0;
     void *items[2];

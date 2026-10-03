@@ -14,6 +14,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -416,7 +417,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
-        ::unit_try_set_animation_state(((unit_object *)self)->base.parent_object, 0x25);
+        halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
     }
     ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
     ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
@@ -718,7 +719,7 @@ tail:
  *
  * @address 0x55eaa0
  */
-void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base)
+void halo::units::biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base)
 {
     uint8_t *biped = (uint8_t *)object_base;
     float t0 = *(float *)(timing_table + 0x3dc) * 0.033333335f;
@@ -841,7 +842,7 @@ void BipedView::update_scale_function_inputs()
  *
  * @address 0x55e0a0
  */
-void biped_update_target_lock_timer(datum_index target, uint32_t object_index)
+void halo::units::biped_update_target_lock_timer(datum_index target, uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);

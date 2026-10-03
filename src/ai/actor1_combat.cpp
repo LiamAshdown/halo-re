@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace c_actor_check_burst_length_exceeded {
 extern "C" {
@@ -203,8 +204,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
-    uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator);
 extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
     real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
     datum_index exclude_object_index, uint8_t flying);
@@ -239,7 +238,7 @@ uint8_t halo::ai::combat_ops::check_weapon_pickup_reachable(uint8_t *record)
         int16_t status;
         real_point3d self_position;
 
-        unit_add_marker_relative_offset(a->unit_index, 2, (float *)&positions[firing_position_index], 0, 0, &self_position);
+        halo::units::unit_add_marker_relative_offset(a->unit_index, 2, (float *)&positions[firing_position_index], 0, 0, &self_position);
         status = (int16_t)actor_evaluate_engagement_reachability(
             *(int16_t *)((uint8_t *)&positions[firing_position_index] + 0xe), p->cluster_index,
             (real_point3d *)&p->head_position_x, &self_position, 1, 0, p->relationship_object_index,
@@ -838,7 +837,6 @@ extern data_array *prop_data;
 
 extern void * actor_get_actor_definition(datum_index actor_index);
 extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterator *out_iterator);
 }
 }
@@ -864,7 +862,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     uint8_t decision;
     int16_t variant_mode;
 
-    if (!unit_is_in_busy_animation_state(unit_index) && self[0x4a8] == 0) {
+    if (!halo::units::unit_is_in_busy_animation_state(unit_index) && self[0x4a8] == 0) {
         goto return_true;
     }
     if (((actor *)self)->awareness_level < 3) {
@@ -1168,8 +1166,6 @@ namespace c_actor_get_aim_from_position {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vector3d *world_direction,
-                                                          uint8_t use_aiming_bounds);
 }
 }
 
@@ -1211,7 +1207,7 @@ void halo::ai::combat_ops::get_aim_from_position(uint32_t out_position[3])
     out_position[1] = *(uint32_t *)((uint8_t *)unit_obj + 0x240);
     out_position[2] = *(uint32_t *)((uint8_t *)unit_obj + 0x244);
 
-    unit_clamp_direction_to_aim_or_look_bounds(unit_index, (real_vector3d *)out_position, 1);
+    halo::units::unit_clamp_direction_to_aim_or_look_bounds(unit_index, (real_vector3d *)out_position, 1);
 }
 
 extern "C" void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[3])

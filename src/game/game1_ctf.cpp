@@ -21,6 +21,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern ctf_globals ctf_globals_live;
@@ -79,8 +80,6 @@ extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_play
     int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast);
 extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
     datum_index subject, char broadcast);
-extern void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index);
-extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);
 extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index);
 extern game_engine_state game_engine_state_value;
 extern uint8_t ctf_team_return_credit_active[2];
@@ -713,9 +712,9 @@ void Ctf::player_drop_flag(uint32_t player_index, datum_index flag_object_index)
     object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
 
     if (unit_obj->network_role == 0) {
-        unit_dispatch_scripted_event_1b(1, unit_index);
+        halo::units::unit_dispatch_scripted_event_1b(1, unit_index);
     }
-    unit_drop_current_weapon(unit_index, 1);
+    halo::units::unit_drop_current_weapon(unit_index, 1);
     game_engine_ctf_reset_team_return_credit(flag_object_index);
 }
 

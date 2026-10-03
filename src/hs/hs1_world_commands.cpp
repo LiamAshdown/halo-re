@@ -1,5 +1,6 @@
 #include "halo/hs/hs1_world_commands.hpp"
 #include "halo/devices/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -17,7 +18,6 @@ extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t co
 extern void cheat_all_weapons(void);
 extern void cheat_spawn_warthog(void);
 extern void cheat_teleport_to_camera(void);
-extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name, uint8_t interpolate);
 extern uint8_t ai_object_list_start_user_animation_until_failure(datum_index object_list_header_handle, datum_index graph_tag_id, const char *animation_name, uint8_t interpolate);
 extern void hs_damage_apply_at_location(int16_t location_index, uint32_t damage_effect);
 extern void hs_damage_apply_with_sound(datum_index object_index, uint32_t damage_effect);
@@ -250,7 +250,7 @@ void WorldStateCommands::custom_animation(int16_t function_index, uint32_t threa
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)unit_start_user_animation((uint32_t)arguments[0], (datum_index)arguments[1],
+    hs_thread_return((int32_t)halo::units::unit_start_user_animation((uint32_t)arguments[0], (datum_index)arguments[1],
         (const char *)arguments[2], *(uint8_t *)&arguments[3]), thread_index);
     }
 }

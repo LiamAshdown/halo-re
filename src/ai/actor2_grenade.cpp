@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace halo::ai {
 
@@ -134,7 +135,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
-extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out);
 extern int32_t fistp_round(float x);
 }
 }
@@ -171,7 +171,7 @@ void ActorView::schedule_grenade_throw()
         *(datum_index *)(request + 0x4) = prop;
     } else {
         *(int16_t *)request = 3;
-        unit_get_primary_eye_marker_position(source, (real_point3d *)(request + 0x4));
+        halo::units::unit_get_primary_eye_marker_position(source, (real_point3d *)(request + 0x4));
     }
     actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data;
     if (!(((actor *)a)->awareness_level > 1) || ((actor *)a)->vocalization_line > 8) {
@@ -513,10 +513,6 @@ extern "C" {
 extern data_array *actor_data;
 extern ai_globals *ai_globals_ptr;
 extern void actor_recompute_grenade_eligibility(datum_index actor_index);
-extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
-    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index,
-    int32_t *chain_value);
-extern int32_t unit_commit_speech(uint32_t unit_index, const void *source, int16_t mode);
 extern void ai_communication_target_result_reset(void *record);
 }
 }
@@ -554,7 +550,7 @@ void ActorView::update_grenade_eligibility_state()
         if (self->grenade_recheck_ticks == 0) {
             out_a = (int16_t)(eligible != 0);
             out_b = -1;
-            result = (int16_t)unit_animation_change_priority_check(self->unit_index, 1, 1, 0, 0, &out_a, &out_b);
+            result = (int16_t)halo::units::unit_animation_change_priority_check(self->unit_index, 1, 1, 0, 0, &out_a, &out_b);
             if (0 < result) {
                 int i;
                 for (i = 0; i < 12; i++) {
@@ -564,7 +560,7 @@ void ActorView::update_grenade_eligibility_state()
                 *((uint32_t *)((uint8_t *)buffer + 4)) = out_b;
                 *(int16_t *)buffer = 1;
                 ai_communication_target_result_reset((uint8_t *)buffer + 0x10);
-                unit_commit_speech(self->unit_index, buffer, result);
+                halo::units::unit_commit_speech(self->unit_index, (const unit_speech *)buffer, result);
             }
         }
     }

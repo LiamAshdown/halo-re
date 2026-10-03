@@ -1,5 +1,6 @@
 #include "halo/hs/hs3_commands.hpp"
 #include "units.h"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -7,28 +8,13 @@ extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t param
     int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern data_array *object_data;
-extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state);
-extern uint8_t unit_set_custom_animation_frame(uint32_t unit_index, uint8_t warn_if_missing,
-    datum_index graph_tag_id, const char *animation_name, int16_t frame);
-extern void unit_mark_zone_occupants_flag(uint32_t zone_list_index);
-extern void unit_detach_and_enter_named_seat(uint32_t unit_index, uint32_t target_parent_index, char *seat_marker_name);
-extern void unit_try_exit_controlled_seat(uint32_t unit_index);
-extern int32_t unit_get_custom_animation_time_remaining(uint32_t object_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern uint8_t unit_has_weapon_of_type(uint32_t unit_index, int32_t weapon_group_tag);
-extern uint8_t unit_current_weapon_is_type(uint32_t unit_index, datum_index weapon_tag_id);
 extern void ai_object_list_set_unit_flag_800000(datum_index object_list_header_handle, char flag);
-extern void unit_update_vitality_fractions(uint32_t unit_index, float body_delta, float shield_delta);
 extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
-extern void unit_scripting_set_emotion_animation(uint32_t unit_index, const char *emotion_name);
 extern void object_initialize_shield_stun_thresholds(uint32_t object_index, float *override_max_body_vitality,
     float *override_max_shield_vitality);
-extern int16_t unit_base_animation_state_from_name(const char *name);
-extern uint8_t unit_local_player_weapon_flag_check(void);
-extern void unit_reset_velocity_and_ground_flag(uint32_t unit_index, uint8_t set_flag);
 extern void ai_object_list_update_vitality_fractions(datum_index object_list_header_handle, float body_delta,
     float shield_delta);
-extern void unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t use_second_bit);
 extern void ai_object_list_initialize_shield_stun_thresholds(datum_index object_list_header_handle, float override_max_body_vitality,
     float override_max_shield_vitality);
 }
@@ -101,7 +87,7 @@ void UnitCommands::evaluate_unit_close(int16_t function_index, uint32_t thread_i
 
     if (arguments != 0) {
     if ((datum_index)arguments[0] != k_datum_index_none) {
-        unit_try_set_animation_state((uint32_t)arguments[0], 0x26);
+        halo::units::unit_try_set_animation_state((uint32_t)arguments[0], 0x26);
     }
     hs_thread_return(0, thread_index);
     }
@@ -120,7 +106,7 @@ void UnitCommands::evaluate_unit_custom_animation_at_frame(int16_t function_inde
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)unit_set_custom_animation_frame((uint32_t)arguments[0], *(uint8_t *)&arguments[3],
+    hs_thread_return((int32_t)halo::units::unit_set_custom_animation_frame((uint32_t)arguments[0], *(uint8_t *)&arguments[3],
         (datum_index)arguments[1], (const char *)arguments[2], *(int16_t *)&arguments[4]), thread_index);
     }
 }
@@ -138,7 +124,7 @@ void UnitCommands::evaluate_unit_doesnt_drop_items(int16_t function_index, uint3
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    unit_mark_zone_occupants_flag((uint32_t)arguments[0]);
+    halo::units::unit_mark_zone_occupants_flag((uint32_t)arguments[0]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -155,7 +141,7 @@ void UnitCommands::evaluate_unit_enter_vehicle(int16_t function_index, uint32_t 
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    unit_detach_and_enter_named_seat((uint32_t)arguments[0], (uint32_t)arguments[1], (char *)arguments[2]);
+    halo::units::unit_detach_and_enter_named_seat((uint32_t)arguments[0], (uint32_t)arguments[1], (char *)arguments[2]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -173,7 +159,7 @@ void UnitCommands::evaluate_unit_exit_vehicle(int16_t function_index, uint32_t t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    unit_try_exit_controlled_seat((uint32_t)arguments[0]);
+    halo::units::unit_try_exit_controlled_seat((uint32_t)arguments[0]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -215,7 +201,7 @@ void UnitCommands::evaluate_unit_get_custom_animation_time(int16_t function_inde
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)(uint16_t)unit_get_custom_animation_time_remaining((uint32_t)arguments[0]), thread_index);
+    hs_thread_return((int32_t)(uint16_t)halo::units::unit_get_custom_animation_time_remaining((uint32_t)arguments[0]), thread_index);
     }
 }
 
@@ -304,7 +290,7 @@ void UnitCommands::evaluate_unit_has_weapon(int16_t function_index, uint32_t thr
         uint8_t has = 0;
 
         if (arguments[0] != -1 && arguments[1] != -1) {
-            has = unit_has_weapon_of_type((uint32_t)arguments[0], arguments[1]);
+            has = halo::units::unit_has_weapon_of_type((uint32_t)arguments[0], arguments[1]);
         }
         hs_thread_return((int32_t)(uint8_t)(has), thread_index);
     }
@@ -323,7 +309,7 @@ void UnitCommands::evaluate_unit_has_weapon_readied(int16_t function_index, uint
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        uint8_t readied = unit_current_weapon_is_type((uint32_t)arguments[0], (datum_index)arguments[1]);
+        uint8_t readied = halo::units::unit_current_weapon_is_type((uint32_t)arguments[0], (datum_index)arguments[1]);
         hs_thread_return((int32_t)readied, thread_index);
     }
 }
@@ -404,7 +390,7 @@ void UnitCommands::evaluate_unit_open(int16_t function_index, uint32_t thread_in
 
     if (arguments != 0) {
     if ((datum_index)arguments[0] != k_datum_index_none) {
-        unit_try_set_animation_state((uint32_t)arguments[0], 0x25);
+        halo::units::unit_try_set_animation_state((uint32_t)arguments[0], 0x25);
     }
     hs_thread_return(0, thread_index);
     }
@@ -423,7 +409,7 @@ void UnitCommands::evaluate_unit_set_current_vitality(int16_t function_index, ui
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    unit_update_vitality_fractions((uint32_t)arguments[0], *(float *)&arguments[1], *(float *)&arguments[2]);
+    halo::units::unit_update_vitality_fractions((uint32_t)arguments[0], *(float *)&arguments[1], *(float *)&arguments[2]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -486,7 +472,7 @@ void UnitCommands::evaluate_unit_set_emotion_animation(int16_t function_index, u
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        unit_scripting_set_emotion_animation((uint32_t)arguments[0], (const char *)arguments[1]);
+        halo::units::unit_scripting_set_emotion_animation((uint32_t)arguments[0], (const char *)arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -561,7 +547,7 @@ void UnitCommands::evaluate_unit_set_seat(int16_t function_index, uint32_t threa
     if (unit != k_datum_index_none) {
         uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (unit & 0xffff) * 0xc + 8);
 
-        object[0x20f] = (uint8_t)unit_base_animation_state_from_name((const char *)arguments[1]);
+        object[0x20f] = (uint8_t)halo::units::unit_base_animation_state_from_name((const char *)arguments[1]);
     }
     hs_thread_return(0, thread_index);
     }
@@ -578,7 +564,7 @@ void UnitCommands::evaluate_unit_solo_player_integrated_night_vision_is_active(i
 {
     (void)function_index;
     (void)first;
-    uint8_t active = unit_local_player_weapon_flag_check();
+    uint8_t active = halo::units::unit_local_player_weapon_flag_check();
     hs_thread_return((int32_t)active, thread_index);
 }
 
@@ -599,7 +585,7 @@ void UnitCommands::evaluate_unit_stop_custom_animation(int16_t function_index, u
 
     if (unit != k_datum_index_none &&
         *(*(uint8_t **)((uint8_t *)object_data->data + (unit & 0xffff) * 0xc + 8) + 0x2a3) == 0x1c) {
-        unit_try_set_animation_state(unit, 0);
+        halo::units::unit_try_set_animation_state(unit, 0);
     }
     hs_thread_return(0, thread_index);
     }
@@ -618,7 +604,7 @@ void UnitCommands::evaluate_unit_suspended(int16_t function_index, uint32_t thre
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    unit_reset_velocity_and_ground_flag((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
+    halo::units::unit_reset_velocity_and_ground_flag((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -655,7 +641,7 @@ void UnitCommands::evaluate_units_set_desired_flashlight_state(int16_t function_
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        unit_mark_zone_list_alt_flag((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
+        halo::units::unit_mark_zone_list_alt_flag((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }

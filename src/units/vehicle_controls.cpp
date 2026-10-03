@@ -9,6 +9,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -595,7 +596,7 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
  *
  * @address 0x5739a0
  */
-void vehicle_calculate_hover_lift_toward_target(void)
+void halo::units::vehicle_calculate_hover_lift_toward_target(void)
 {
 }
 
@@ -604,7 +605,7 @@ void vehicle_calculate_hover_lift_toward_target(void)
  *
  * @address 0x5738b0
  */
-void vehicle_calculate_hover_turn_controls(void)
+void halo::units::vehicle_calculate_hover_turn_controls(void)
 {
 }
 

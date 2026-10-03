@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern double sqrt(double x);
@@ -16,7 +17,7 @@ namespace halo::units {
  *
  * @address 0x56bee0
  */
-int32_t object_find_nearest_biped(int32_t reference_object_index)
+int32_t halo::units::object_find_nearest_biped(int32_t reference_object_index)
 {
     int32_t best_index = -1;
     float best_distance = 3.4028235e+38f;
@@ -54,7 +55,7 @@ int32_t object_find_nearest_biped(int32_t reference_object_index)
  *
  * @address 0x56bdc0
  */
-int32_t object_find_next_untargeted(int32_t starting_object_index)
+int32_t halo::units::object_find_next_untargeted(int32_t starting_object_index)
 {
     int32_t result = -1;
     if (starting_object_index == -1) {

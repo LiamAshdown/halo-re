@@ -3,6 +3,7 @@
 #include "halo/math/api.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;

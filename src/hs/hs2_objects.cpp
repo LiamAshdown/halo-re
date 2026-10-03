@@ -5,6 +5,7 @@
 #include "game.h"
 #include "cache.h"
 #include "halo/cache/api.hpp"
+#include "halo/units/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,8 +17,6 @@ extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern void hs_effect_spawn_at_location(int16_t location_index, uint32_t effect);
 extern void hs_effect_spawn_on_marker(datum_index object_index, datum_index effect, char *marker_name);
 extern data_array *player_data;
-extern uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t forced, const void *direction);
-extern int16_t unit_base_animation_state_from_name(const char *name);
 extern int16_t magic_seat_animation_state_0069fde0;
 extern data_array *object_data;
 extern void object_hash_clear_flag_bit3(uint32_t key);
@@ -107,7 +106,7 @@ void ObjectCommands::evaluate_magic_melee_attack(int16_t function_index, uint32_
 {
     uint8_t *player = (uint8_t *)player_data->data;
 
-    unit_try_ready_weapon(*(uint32_t *)&((struct player *)player)->unit, 0, 0);
+    halo::units::unit_try_ready_weapon(*(uint32_t *)&((struct player *)player)->unit, 0, 0);
     hs_thread_return(0, thread_index);
 }
 
@@ -124,7 +123,7 @@ void ObjectCommands::evaluate_magic_seat_name(int16_t function_index, uint32_t t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        magic_seat_animation_state_0069fde0 = unit_base_animation_state_from_name((const char *)arguments[0]);
+        magic_seat_animation_state_0069fde0 = halo::units::unit_base_animation_state_from_name((const char *)arguments[0]);
         hs_thread_return(0, thread_index);
     }
 }

@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
 extern "C" {
@@ -11,9 +12,6 @@ extern data_array *object_data;
 extern player_globals *local_player_globals;
 extern const uint8_t actor_control_animation_state_table[];
 
-extern void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag);
-extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id);
-extern uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int16_t command, const real_vector2d *direction);
 }
 }
 
@@ -51,12 +49,12 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
         return;
     }
     if (actor[0x07] != 0) {
-        unit_refresh_targeting_flag_and_weapons(unit_index, 1);
+        halo::units::unit_refresh_targeting_flag_and_weapons(unit_index, 1);
         actor[0x07] = 0;
     }
-    unit_apply_control_block(*(uint32_t *)&((struct actor *)actor)->unit_index, &control, -1);
+    halo::units::unit_apply_control_block(*(uint32_t *)&((struct actor *)actor)->unit_index, &control, -1);
     if (((struct actor *)actor)->control_animation_impulse != -1) {
-        unit_try_start_scripted_action_animation(*(uint32_t *)&((struct actor *)actor)->unit_index, ((struct actor *)actor)->control_animation_impulse,
+        halo::units::unit_try_start_scripted_action_animation(*(uint32_t *)&((struct actor *)actor)->unit_index, ((struct actor *)actor)->control_animation_impulse,
             (const real_vector2d *)(actor + 0x6f0));
     }
     if (((struct actor *)actor)->persistent_control_ticks > 0) {
@@ -392,7 +390,6 @@ extern data_array *prop_data;
 
 extern void *object_try_and_get(datum_index object_index, int32_t kind);
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
-extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out);
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant,
                                         actor_vocalization_context *context);
 }
@@ -439,7 +436,7 @@ void halo::ai::look_ops::issue_order_or_vocalize(datum_index prop_index, datum_i
 
     if (prop_index == (datum_index)k_datum_index_none || kind < 2 || 3 < kind) {
         context.code = 3;
-        unit_get_primary_eye_marker_position(vehicle_object_index, &context.payload.point);
+        halo::units::unit_get_primary_eye_marker_position(vehicle_object_index, &context.payload.point);
     } else {
         context.code = 1;
         context.payload.handle = prop_index;

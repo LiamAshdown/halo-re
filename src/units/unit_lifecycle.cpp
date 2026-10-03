@@ -16,6 +16,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -172,7 +173,7 @@ void UnitView::find_nearest_valid_surface_plane()
  *
  * @address 0x55a500
  */
-uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientation_object, real_point3d *out_position, float radius, char grid_mode, char skip_reposition, char scale_radius, uint32_t object_index_a, real_vector3d *reference_direction)
+uint32_t halo::units::unit_find_placement_position(uint32_t anchor_object, uint32_t orientation_object, real_point3d *out_position, float radius, char grid_mode, char skip_reposition, char scale_radius, uint32_t object_index_a, real_vector3d *reference_direction)
 {
     uint8_t found = 0;
     uint8_t borrowed_anchor = 0;
@@ -545,7 +546,7 @@ void UnitView::place(uint8_t *placement)
  *
  * @address 0x570cb0
  */
-void unit_propagate_position_delta_to_children(real_point3d *new_position, uint32_t unit_index)
+void halo::units::unit_propagate_position_delta_to_children(real_point3d *new_position, uint32_t unit_index)
 {
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     real_vector3d delta;

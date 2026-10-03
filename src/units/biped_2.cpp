@@ -11,6 +11,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -902,7 +903,7 @@ step_crouch:
  *
  * @address 0x55efd0
  */
-void biped_movement_solve(biped_movement_solver_data *solve)
+void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
 {
     uint16_t flags = (uint16_t)solve->flags;
     uint16_t *result_flags = (uint16_t *)&solve->result_flags;

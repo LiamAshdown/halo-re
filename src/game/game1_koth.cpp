@@ -20,6 +20,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern uint8_t hill_pulse_fade_done;
@@ -86,7 +87,6 @@ extern void game_engine_koth_alt_scorer_tick(uint32_t player_index);
 extern void game_engine_koth_update_occupant_table(uint32_t index);
 extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player,
     int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast);
-extern uint16_t unit_find_weapon_index_by_flag(uint32_t unit_index, uint8_t flag_bit);
 extern uint8_t king_hill_player_in_hill[16];
 extern int32_t king_bucket_last_credit_tick[16];
 extern uint8_t game_engine_koth_player_in_hill_bounds(uint32_t player_index);
@@ -729,7 +729,7 @@ uint8_t Koth::player_eligible_to_score(uint32_t object_handle, uint32_t player_i
         player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
         uint8_t eligible = 1;
         if (p->unit != (datum_index)0xffffffff) {
-            uint16_t found = unit_find_weapon_index_by_flag((uint32_t)p->unit, 3);
+            uint16_t found = halo::units::unit_find_weapon_index_by_flag((uint32_t)p->unit, 3);
             eligible = 1 - (found != 0);
             if (eligible != 0) {
                 *(uint32_t *)((uint8_t *)obj + 0x22c) |= 0x40;

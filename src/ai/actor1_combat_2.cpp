@@ -3,6 +3,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace c_actor_evaluate_engagement_reachability {
 extern "C" {
@@ -139,7 +140,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 
-extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
 }
 }
 
@@ -176,7 +176,7 @@ datum_index halo::ai::combat_ops::get_threat_weapon_object_index()
         if ((*variant_tag & 0x40) == 0) {
 
             object *own_unit = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
-            return unit_get_weapon_object_index(self->unit_index, *(int16_t *)((uint8_t *)own_unit + 0x2f2));
+            return halo::units::unit_get_weapon_object_index(self->unit_index, *(int16_t *)((uint8_t *)own_unit + 0x2f2));
         }
     }
     return result;

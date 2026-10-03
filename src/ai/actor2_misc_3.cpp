@@ -1,6 +1,7 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace halo::ai {
 
@@ -10,7 +11,6 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern void *object_try_and_get(datum_index object_index, int32_t kind);
 extern void object_get_position(real_point3d *out_position, datum_index object_index);
-extern void unit_get_primary_eye_marker_position(datum_index object_index, real_point3d *out);
 }
 }
 
@@ -97,7 +97,7 @@ uint8_t ActorOps::resolve_flee_source_point(actor_flee_source_reason *reason, re
             return 0;
         }
         if ((1 << (target_object->type & 0x1f) & 3) != 0) {
-            unit_get_primary_eye_marker_position(reason->payload.handle, &source_position);
+            halo::units::unit_get_primary_eye_marker_position(reason->payload.handle, &source_position);
         } else {
             object_get_position(&source_position, reason->payload.handle);
         }

@@ -3,6 +3,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -11,13 +12,11 @@ extern char s_primary_trigger_marker[];
 extern char s_secondary_trigger_marker[];
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *markers, uint32_t max_count);
-extern void unit_project_onto_aiming_axis(datum_index unit_index, real *out_speed, uint8_t project_point, uint8_t use_unit_aiming_vector, real_point3d *point, real_vector3d *axis);
 extern uint32_t camera_observer_update(datum_index player_index, real_point3d *observer_position, real_vector3d *fallback_facing);
 extern uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point3d *target_point, real_vector3d *out_direction, float *out_698);
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
 extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index, int16_t distribution_function, real distribution_angle, uint32_t flags);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
-extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out);
 extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position, uint32_t ignore_object_index);
 extern double fabs(double x);
 extern double sqrt(double x);
@@ -138,7 +137,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
             if (D(holder_object, 0x328) != k_datum_index_none) {
                 project_point = 0;
             }
-            unit_project_onto_aiming_axis(holder, &speed, use_aiming_vector, project_point, &origin, &forward);
+            halo::units::unit_project_onto_aiming_axis(holder, &speed, use_aiming_vector, project_point, &origin, &forward);
             if (player != k_datum_index_none) {
                 real_vector3d left;
                 real_vector3d up;
@@ -274,7 +273,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
             if (from_player) {
                 real_point3d camera;
 
-                unit_get_camera_position(holder, &camera);
+                halo::units::unit_get_camera_position(holder, &camera);
                 object_reposition_to_spawn_location(projectile, &camera, holder);
             }
             if (target != k_datum_index_none) {

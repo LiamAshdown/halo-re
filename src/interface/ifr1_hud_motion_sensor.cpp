@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_motion_sensor.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -12,7 +13,6 @@ extern float motion_sensor_sweep;
 extern float motion_sensor_sweep_scale;
 extern double fmod(double x, double y);
 extern object *object_iterator_next(object_iterator *iterator);
-extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
 extern uint8_t motion_sensor_object_is_detected(datum_index unit_index);
 extern void motion_sensor_blip_fill(int16_t local_player_index, datum_index object_index,
                                     motion_sensor_blip *blip);
@@ -92,7 +92,7 @@ void HudMotionSensor::update(void)
             cameras[local_player_index].y = 0.0f;
             cameras[local_player_index].z = 0.0f;
             if (unit_index != (datum_index)-1) {
-                unit_get_camera_position(unit_index, &cameras[local_player_index]);
+                halo::units::unit_get_camera_position(unit_index, &cameras[local_player_index]);
             }
             frame->blip_count = 0;
             for (i = 0; i < 0x10; i++) {

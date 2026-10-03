@@ -20,6 +20,7 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
@@ -81,12 +82,6 @@ extern data_array *player_data;
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern uint8_t *team_pair_data;
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index);
-extern void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t flags, float shield_damage, float body_damage, int32_t region_index, uint8_t is_local);
-extern void unit_apply_impulse(uint32_t object_index, real_vector3d *impulse);
-extern void unit_apply_impulse_to_seat(uint32_t unit_index, real_vector3d *impulse);
-extern uint8_t unit_point_in_front_and_asleep(real_point3d *world_point, uint32_t unit_index);
-extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction, uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle, int16_t weapon_class_index, const real_vector2d *throttle, uint8_t require_still);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 }
@@ -667,7 +662,7 @@ void halo::objects::DamageSystem::apply_shield_charge_and_notify(void **message)
                 if (notify == 1) {
                     object_set_shield_depleted_flag(0);
                 }
-                unit_update_stance_and_jump(effect, 0, 0, 0, 0, 0, 0, k_datum_index_none, 0, 0);
+                halo::units::unit_update_stance_and_jump(effect, 0, 0, 0, 0, 0, 0, k_datum_index_none, 0, 0);
             }
         }
     }
@@ -1009,7 +1004,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
         if (halo::hs::globals::omnipotent && dd->responsible_player != k_datum_index_none) {
             kill = 1;
         }
-        if (*(int16_t *)effect_block == 2 && unit_point_in_front_and_asleep(&dd->origin, id) &&
+        if (*(int16_t *)effect_block == 2 && halo::units::unit_point_in_front_and_asleep(&dd->origin, id) &&
             ((uint8_t)(((struct object *)obj)->vitality_flags >> 8) & 8) == 0) {
             kill = 1;
         }
@@ -1471,15 +1466,15 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
         case 1:
             if (*(float *)(effect + 0x1f4) > 0.0001f && (*(uint32_t *)(obj + 0x204) & 0x800000) == 0) {
                 if (type == 0) {
-                    unit_apply_impulse(target_index, &impulse);
+                    halo::units::unit_apply_impulse(target_index, &impulse);
                 } else {
                     if (*(uint32_t *)(effect + 0x1c8) & 0x20) {
                         impulse.i = impulse.i + impulse.i;
                         impulse.j = impulse.j + impulse.j;
                         impulse.k = impulse.k + impulse.k;
                     }
-                    if (((object *)obj)->network_role != 1 || unit_any_flagged_seat_occupied(target_index) == 1) {
-                        unit_apply_impulse_to_seat(target_index, &impulse);
+                    if (((object *)obj)->network_role != 1 || halo::units::unit_any_flagged_seat_occupied(target_index) == 1) {
+                        halo::units::unit_apply_impulse_to_seat(target_index, &impulse);
                     }
                 }
             }
@@ -1524,7 +1519,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
         }
     }
     if ((1u << ((uint8_t)((struct object *)obj)->type & 0x1f)) & 3) {
-        unit_apply_damage_effects(target_index, dd, notify_flags, shield_damage, body_damage, region_index,
+        halo::units::unit_apply_damage_effects(target_index, dd, notify_flags, shield_damage, body_damage, region_index,
             (uint8_t)is_local);
     }
 }

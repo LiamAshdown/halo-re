@@ -6,6 +6,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 typedef struct netgame_equipment_spawn_message {
     int32_t object_hash;
@@ -65,7 +66,6 @@ extern void chimera__hud_message(int16_t local_player_index, wchar_t *text);
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern void player_update_history_free_all(void *queue);
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
-extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern void game_engine_scan_netgame_flags_noop(int16_t needle);
 extern void object_notify_predicted_resources_if_valid(datum_index definition_tag);
@@ -81,7 +81,6 @@ extern void game_engine_reset_vehicles_or_race_cleanup(void);
 extern void game_engine_reset_player_profile_stats(void);
 extern void object_delete_unparented(datum_index object_index);
 extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings);
-extern void unit_set_facing_from_index_table(uint32_t object_index);
 }
 
 namespace halo::game {
@@ -702,7 +701,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
             unit_object = ((object_header *)object_data->data)[unit & 0xffff].data;
             forward = unit_object->forward;
             p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-            unit_get_crouch_height_offset(&destination_position, p->unit, &pill_height, &pill_radius);
+            halo::units::unit_get_crouch_height_offset(&destination_position, p->unit, &pill_height, &pill_radius);
 
             destination_position.x = exit_flag->position.x;
             destination_position.y = exit_flag->position.y;
@@ -1024,7 +1023,7 @@ void EnginePlacement::reset_vehicles_or_race_cleanup(void)
     } else {
         obj = object_iterator_next(&iter);
         while (obj != (object *)0) {
-            unit_set_facing_from_index_table((uint32_t)iter.handle);
+            halo::units::unit_set_facing_from_index_table((uint32_t)iter.handle);
             obj = object_iterator_next(&iter);
         }
     }

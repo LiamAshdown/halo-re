@@ -1,6 +1,7 @@
 #include "halo/ai/actor_modes.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace c_actor_mode_charge_enter {
 extern "C" {
@@ -69,8 +70,6 @@ extern uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d
     real_vector3d *out_direction, real *max_speed_override, real *out_speed,
     real *out_time_of_flight, real *out_range, real *out_half_gravity_term,
     real *out_horizontal_speed);
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
-extern uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t forced, const real_vector2d *direction);
 }
 }
 
@@ -203,7 +202,7 @@ uint8_t halo::ai::charge_mode::process()
     if (md[0x6]) {
         datum_index unit_index = ((actor *)act)->unit_index;
 
-        md[0x7] = (uint8_t)!(unit_index != k_datum_index_none && unit_is_in_busy_animation_state(unit_index));
+        md[0x7] = (uint8_t)!(unit_index != k_datum_index_none && halo::units::unit_is_in_busy_animation_state(unit_index));
     } else if (!md[0xc] && (*(int16_t *)(md + 0x4) == 2 || *(int16_t *)(md + 0x4) == 3) && target != 0) {
         real_vector3d direction;
         float along = 0.0f;
@@ -312,7 +311,7 @@ uint8_t halo::ai::charge_mode::process()
                 flat.i = ((actor *)act)->facing.i;
                 flat.j = ((actor *)act)->facing.j;
             }
-            if (unit_try_ready_weapon(((actor *)act)->unit_index, 0, &flat)) {
+            if (halo::units::unit_try_ready_weapon(((actor *)act)->unit_index, 0, &flat)) {
                 ai_communication_broadcast(0x2b, ((actor *)act)->unit_index, *(datum_index *)(target + 0x18), 3, -1, -1, 0);
                 md[0x6] = 1;
             }
@@ -585,7 +584,6 @@ extern data_array *actor_data;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 
-extern void unit_initialize_random_turn_angle(uint32_t object_index);
 }
 }
 
@@ -609,7 +607,7 @@ void halo::ai::flee_mode::enter()
         act[0x98] = 0;
     }
     if (((struct actor *)act)->mode_data.flee.countdown_02 == 0 && ((actor *)act)->unit_index != k_datum_index_none && kind >= 9 && kind <= 12) {
-        unit_initialize_random_turn_angle(((actor *)act)->unit_index);
+        halo::units::unit_initialize_random_turn_angle(((actor *)act)->unit_index);
     }
 }
 
@@ -747,7 +745,6 @@ extern void actor_update_target_combat_status(datum_index actor_index);
 extern void actor_update_awareness_level(datum_index actor_index);
 extern uint8_t actor_check_weapon_pickup_reachable(uint32_t actor_index, uint8_t *record);
 extern void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order);
-extern uint8_t unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_code);
 }
 }
 
@@ -863,9 +860,9 @@ uint8_t halo::ai::flee_mode::process()
             now = game_time->game_time;
             if (!announced || *(int32_t *)(mode_data + 0x14) + 60 >= now) {
                 if (kind == 11 || kind == 12) {
-                    unit_dispatch_reaction_animation(unit_index, 2);
+                    halo::units::unit_dispatch_reaction_animation(unit_index, 2);
                 } else if (kind == 9 || kind == 10) {
-                    unit_dispatch_reaction_animation(unit_index, 1);
+                    halo::units::unit_dispatch_reaction_animation(unit_index, 1);
                 } else {
                     datum_index source_object = k_datum_index_none;
 
@@ -935,7 +932,6 @@ extern data_array *actor_data;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 
 extern game_time_globals *game_time;
-extern void unit_initialize_random_turn_angle(uint32_t object_index);
 }
 }
 
@@ -961,7 +957,7 @@ void halo::ai::flee_mode::tick()
         ((struct actor *)act)->mode_data.flee.countdown_02 -= 1;
         if (((struct actor *)act)->mode_data.flee.countdown_02 == 0 && ((actor *)act)->unit_index != k_datum_index_none &&
             ((struct actor *)act)->mode_data.flee.panic >= 9 && ((struct actor *)act)->mode_data.flee.panic <= 12) {
-            unit_initialize_random_turn_angle(((actor *)act)->unit_index);
+            halo::units::unit_initialize_random_turn_angle(((actor *)act)->unit_index);
         }
     }
     if (((struct actor *)act)->mode_data.flee.panic > 0) {

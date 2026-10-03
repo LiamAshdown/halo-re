@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace halo::ai {
 
@@ -1114,7 +1115,6 @@ extern float *actor_get_idle_facing_range(datum_index actor_index);
 extern int32_t actor_look_get_wait_ticks(datum_index actor_index, int16_t mode, uint32_t flags, float *deviation_table);
 extern uint8_t actor_reset_queued_look_vector(datum_index actor_index);
 extern void actor_update_facing_change_timer(datum_index actor_index);
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern double cos(double x);
 extern double fabs(double x);
 #define ULT_V3(p) (*(real_point3d *)(p))
@@ -1465,7 +1465,7 @@ void ActorView::update_look_target()
     clear_hold:
         a[0x55f] = 0;
     body_turn:
-        if (a[0x504] == 0 && a[0x505] == 0 && !unit_is_in_busy_animation_state(*(uint32_t *)&((actor *)a)->unit_index) &&
+        if (a[0x504] == 0 && a[0x505] == 0 && !halo::units::unit_is_in_busy_animation_state(*(uint32_t *)&((actor *)a)->unit_index) &&
             ((actor *)a)->active_unit_index == k_datum_index_none) {
             if (ult_cone((real_point3d *)cache_b, cache_a, cos_aim) &&
                 !ult_cone((real_point3d *)cache_b, a + 0x174, cos_aim)) {
@@ -2212,8 +2212,6 @@ namespace actor_update_target_lead_position_local {
 extern "C" {
 extern data_array *actor_data;
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern datum_index biped_get_cached_look_at_position(uint32_t object_index, real_point3d *out_position);
-extern int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3d *out_position);
 }
 }
 
@@ -2243,12 +2241,12 @@ void ActorView::update_target_lead_position()
         int16_t seat_kind = ((struct actor *)a)->vehicle_driving_type;
 
         if (seat_kind >= 2 && seat_kind <= 3) {
-            ((struct actor *)a)->pathfinding_surface_index = unit_predict_aim_target_position(vehicle, point);
+            ((struct actor *)a)->pathfinding_surface_index = halo::units::unit_predict_aim_target_position(vehicle, point);
         }
         return;
     }
     if (object_try_and_get(((actor *)a)->unit_index, 1) != 0) {
-        ((struct actor *)a)->pathfinding_surface_index = (int32_t)biped_get_cached_look_at_position(((actor *)a)->unit_index, point);
+        ((struct actor *)a)->pathfinding_surface_index = (int32_t)halo::units::biped_get_cached_look_at_position(((actor *)a)->unit_index, point);
     }
 }
 

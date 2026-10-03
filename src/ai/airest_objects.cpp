@@ -5,6 +5,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -35,12 +36,9 @@ extern void actor_dispatch_perception_reset(datum_index actor_index);
 extern void actor_set_units_active(datum_index actor_index, uint8_t dormant);
 extern void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index);
 extern void ai_reference_spawn_starting_location_object(datum_index unit_index, uint32_t packed_reference);
-extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name, uint8_t interpolate);
-extern void unit_update_vitality_fractions(uint32_t unit_index, float body_delta, float shield_delta);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator);
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
-extern int16_t unit_find_seats_matching_name_and_flags(uint32_t unit_index, char *name_filter, uint16_t flag_selector, int16_t *out_indices, int16_t max_indices);
 extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index, char *seat_name, int16_t seat_flags, int16_t count);
 extern data_array *ai_pursuit_data;
 extern datum_index squad_recent_object_get_or_create(datum_index encounter_index, int16_t type, int32_t min_last_tick, char create_if_missing);
@@ -1013,7 +1011,7 @@ uint8_t ObjectListView::start_user_animation_until_failure(datum_index graph_tag
         }
 
         if (entry != 0 && ((1 << (entry->type & 0x1f)) & 3) != 0 && entry->data != 0) {
-            if (still_succeeding && unit_start_user_animation((uint32_t)object_index, graph_tag_id, animation_name,
+            if (still_succeeding && halo::units::unit_start_user_animation((uint32_t)object_index, graph_tag_id, animation_name,
                     interpolate) != 0) {
                 still_succeeding = 1;
             } else {
@@ -1060,7 +1058,7 @@ void ObjectListView::update_vitality_fractions(float body_delta, float shield_de
     }
 
     while (object_index != (datum_index)k_datum_index_none) {
-        unit_update_vitality_fractions((uint32_t)object_index, body_delta, shield_delta);
+        halo::units::unit_update_vitality_fractions((uint32_t)object_index, body_delta, shield_delta);
 
         if (node_index == (datum_index)k_datum_index_none) {
             object_index = (datum_index)k_datum_index_none;
@@ -1095,7 +1093,7 @@ void AiObjects::object_process_nearby_actors(uint32_t ai_reference, datum_index 
         ai_nearby_actor_candidate candidates[0x40];
 
         object_get_position(&reference_position, vehicle_index);
-        seat_count = unit_find_seats_matching_name_and_flags(vehicle_index, seat_name, 0xffff, seat_list, 0x10);
+        seat_count = halo::units::unit_find_seats_matching_name_and_flags(vehicle_index, seat_name, 0xffff, seat_list, 0x10);
 
         if (seat_count > 0) {
             ai_reference_actor_iterator iterator;

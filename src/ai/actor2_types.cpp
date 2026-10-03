@@ -1,6 +1,7 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace halo::ai {
 
@@ -727,9 +728,6 @@ extern game_time_globals *game_time;
 extern const real_point3d *global_origin3d_pointer;
 extern int32_t actor_pick_dialogue_variant_a(int16_t category);
 extern int32_t actor_pick_dialogue_variant_b(int16_t category);
-extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id);
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
-extern void unit_detach_reposition_and_nudge(uint32_t unit_index);
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
@@ -931,7 +929,7 @@ void ActorView::type_infection_swarm_update()
                 }
             }
             if (detach) {
-                unit_detach_reposition_and_nudge(unit);
+                halo::units::unit_detach_reposition_and_nudge(unit);
                 component[0x2] &= 0xfc;
             } else {
                 component[0x2] |= 2;
@@ -1048,7 +1046,7 @@ void ActorView::type_infection_swarm_update()
                 }
             }
             if (script_flags & 4) {
-                if ((script_flags & 8) == 0 && I16(component, 0x24) == 0 && !unit_is_in_busy_animation_state(unit)) {
+                if ((script_flags & 8) == 0 && I16(component, 0x24) == 0 && !halo::units::unit_is_in_busy_animation_state(unit)) {
                     U16(component, 0x2) = (uint16_t)(flags | 0x10);
                     component[0x21] = (uint8_t)(script_flags | 8);
                 }
@@ -1210,7 +1208,7 @@ void ActorView::type_infection_swarm_update()
         *(real_vector3d *)((uint8_t *)&control + 0x1c) = desired;
         *(real_vector3d *)((uint8_t *)&control + 0x28) = desired;
         *(real_vector3d *)((uint8_t *)&control + 0x34) = desired;
-        unit_apply_control_block(unit, &control, -1);
+        halo::units::unit_apply_control_block(unit, &control, -1);
     }
 }
 

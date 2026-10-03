@@ -15,6 +15,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -93,7 +94,7 @@ uint8_t UnitView::all_seats_unoccupied()
  *
  * @address 0x56c070
  */
-uint8_t unit_any_dying_or_seat_transition(void)
+uint8_t halo::units::unit_any_dying_or_seat_transition(void)
 {
     object_iterator iter = { _object_mask_unit, 1, 0, 0, 0xffffffff };
     object *obj = object_iterator_next(&iter);
@@ -241,7 +242,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
-        ::unit_try_set_animation_state(((unit_object *)self)->base.parent_object, 0x25);
+        halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
     }
     ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
     ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
@@ -395,7 +396,7 @@ void UnitView::detach_and_enter_named_seat(uint32_t target_parent_index, char *s
  *
  * @address 0x570140
  */
-void unit_detach_from_parent(object *obj, uint32_t unit_index, real_vector3d *cross_out, real_vector3d *cross_ecx_operand, real_vector3d *cross_stack_operand, real_point3d *reposition_target)
+void halo::units::unit_detach_from_parent(object *obj, uint32_t unit_index, real_vector3d *cross_out, real_vector3d *cross_ecx_operand, real_vector3d *cross_stack_operand, real_point3d *reposition_target)
 {
     halo::math::vector3d_cross_product(*cross_out, *cross_ecx_operand, *cross_stack_operand);
     object_set_position_and_relink(reposition_target, unit_index, 0);
@@ -435,7 +436,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
-        ::unit_try_set_animation_state(((unit_object *)self)->base.parent_object, 0x25);
+        halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
     }
     ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
     ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
@@ -563,7 +564,7 @@ void UnitView::detach_from_seat(uint8_t suppress_trigger, uint8_t require_client
  *
  * @address 0x56c440
  */
-void unit_detach_if_flag_clear(uint8_t skip_flag, uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag, uint8_t fire_trigger_event)
+void halo::units::unit_detach_if_flag_clear(uint8_t skip_flag, uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag, uint8_t fire_trigger_event)
 {
     if (!skip_flag) {
         UnitView(unit_index).detach_from_seat(suppress_trigger, require_client_flag, fire_trigger_event);
@@ -649,7 +650,7 @@ typedef struct unit_seat_exit_message {
  *
  * @address 0x56c400
  */
-void unit_dispatch_seat_exit_message(int32_t *message)
+void halo::units::unit_dispatch_seat_exit_message(int32_t *message)
 {
     using namespace unit_dispatch_seat_exit_message_local;
     unit_seat_exit_message decoded;
@@ -717,7 +718,7 @@ void UnitView::dispatch_seat_overlay_command(int16_t command)
  *
  * @address 0x566970
  */
-uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index)
+uint32_t halo::units::unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index)
 {
     uint8_t *unit;
     uint8_t *seat;
@@ -793,7 +794,7 @@ uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uin
  *
  * @address 0x56fd40
  */
-void unit_exit_seat_end(void)
+void halo::units::unit_exit_seat_end(void)
 {
 }
 
@@ -804,7 +805,7 @@ void unit_exit_seat_end(void)
  *
  * @address 0x568120
  */
-void unit_exit_vehicle_seat(uint32_t player_index)
+void halo::units::unit_exit_vehicle_seat(uint32_t player_index)
 {
     if ((player_index != k_datum_index_none) && (0 <= (int16_t)player_index) &&
         ((int16_t)player_index < player_data->maximum_count)) {
@@ -991,7 +992,7 @@ int16_t UnitView::find_next_zone_permitted_weapon_slot(int32_t start_slot, int16
  *
  * @address 0x560cb0
  */
-TagID unit_get_seat_hud_interface_tag_id(Unit *unit_tag, int16_t seat_index, uint8_t use_second)
+TagID halo::units::unit_get_seat_hud_interface_tag_id(Unit *unit_tag, int16_t seat_index, uint8_t use_second)
 {
     UnitSeat *seat = (UnitSeat *)((uint8_t *)unit_tag->seats.pointer + seat_index * 0x11c);
     int32_t index = (int32_t)seat->unit_hud_interface.count - 1;
@@ -1104,7 +1105,7 @@ uint8_t UnitView::is_seat_control_available(int16_t command)
  *
  * @address 0x56cc10
  */
-uint8_t unit_is_seat_occupied(int32_t parent_index, int16_t seat_index)
+uint8_t halo::units::unit_is_seat_occupied(int32_t parent_index, int16_t seat_index)
 {
     object_iterator iter = { _object_mask_unit, 0, 0, 0, 0xffffffff };
     object *obj = object_iterator_next(&iter);
@@ -1126,7 +1127,7 @@ uint8_t unit_is_seat_occupied(int32_t parent_index, int16_t seat_index)
  *
  * @address 0x56c1d0
  */
-void unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t use_second_bit)
+void halo::units::unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t use_second_bit)
 {
     uint32_t object_index = k_datum_index_none;
     uint32_t next_link = k_datum_index_none;
@@ -1182,7 +1183,7 @@ void unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t use_second_b
  *
  * @address 0x56b290
  */
-void unit_mark_zone_occupants_flag(uint32_t zone_list_index)
+void halo::units::unit_mark_zone_occupants_flag(uint32_t zone_list_index)
 {
     uint32_t object_index = k_datum_index_none;
     uint32_t next_link = k_datum_index_none;
@@ -1462,7 +1463,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
-        ::unit_try_set_animation_state(((unit_object *)self)->base.parent_object, 0x25);
+        halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
     }
     ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
     ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
@@ -1575,7 +1576,7 @@ static datum_index object_list_next(datum_index *reference)
  *
  * @address 0x56a4c0
  */
-int16_t unit_seat_candidates_from_zone_and_enter(datum_index vehicle_index, char *seat_name, datum_index object_list)
+int16_t halo::units::unit_seat_candidates_from_zone_and_enter(datum_index vehicle_index, char *seat_name, datum_index object_list)
 {
     using namespace unit_seat_candidates_from_zone_and_enter_local;
     int16_t seated = 0;
@@ -1709,7 +1710,7 @@ uint8_t UnitView::seat_flag_bit3(int16_t seat_index)
  *
  * @address 0x565150
  */
-uint8_t unit_seat_index_is_valid(uint32_t other_object_index, uint32_t unit_index, int16_t seat_index)
+uint8_t halo::units::unit_seat_index_is_valid(uint32_t other_object_index, uint32_t unit_index, int16_t seat_index)
 {
     object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
@@ -1732,7 +1733,7 @@ uint8_t unit_seat_index_is_valid(uint32_t other_object_index, uint32_t unit_inde
  *
  * @address 0x566840
  */
-uint8_t unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_index, uint32_t vehicle_index, uint32_t *out_occupant_index)
+uint8_t halo::units::unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_index, uint32_t vehicle_index, uint32_t *out_occupant_index)
 {
     object *self_obj = ((object_header *)object_data->data)[halo::datum_slot(self_index)].data;
     unit_data *self_unit = (unit_data *)((uint8_t *)self_obj + k_unit_data_offset);
@@ -1874,7 +1875,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
-        ::unit_try_set_animation_state(((unit_object *)self)->base.parent_object, 0x25);
+        halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
     }
     ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
     ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;

@@ -1,5 +1,6 @@
 #include "halo/ai/actor_alerts.hpp"
 #include "halo/math/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace c_actor_investigate_disturbance_update {
 extern "C" {
@@ -16,7 +17,6 @@ extern void actor_movement_action_stop(datum_index actor_index);
 extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
                                                     int32_t parameter, uint32_t extra);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index);
 }
 }
 
@@ -77,7 +77,7 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
                 }
                 if (close) {
                     if (facing) {
-                        unit_enter_vehicle_seat(*(datum_index *)&((struct actor *)act)->mode_data, *(int16_t *)(act + 0xa0),
+                        halo::units::unit_enter_vehicle_seat(*(datum_index *)&((struct actor *)act)->mode_data, *(int16_t *)(act + 0xa0),
                                                 ((actor *)act)->unit_index);
                         act[0xa4] = 1;
                     } else {

@@ -8,6 +8,7 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
@@ -17,9 +18,7 @@ extern void object_type_override_call_0x70_release_node(void **context, network_
 extern void hud_receive_item_message(void **context);
 extern void game_engine_apply_player_join_message(void **context);
 extern void game_engine_apply_player_spawn_loadout_message(void **context);
-extern void unit_dispatch_seat_exit_message(void **context);
 extern uint8_t game_engine_apply_player_interaction_message(void **context);
-extern void unit_apply_network_control_update(void **context);
 extern uint8_t game_engine_apply_kill_streak_message(void **context);
 extern void chat_dispatch_incoming(void **context);
 extern void game_engine_invoke_profile_post_update_callback(network_client_globals *client, void **context);
@@ -29,9 +28,6 @@ extern void game_engine_apply_partial_round_reset_message(void **context);
 extern void game_engine_handle_kill_feed_network_event(void **context);
 extern void game_engine_handle_sound_status_event(void **context);
 extern void game_engine_client_apply_team_assignment(void **context);
-extern void unit_scripting_set_or_drop_weapon(void **context);
-extern void unit_spawn_with_starting_weapons(void **context);
-extern void unit_network_create_update_apply(void **context);
 extern int32_t network_channel_key_send_state(network_client_globals *client, void **context);
 extern void message_delta_parameters_protocol_receive_update(void **context);
 extern void message_delta_definitions_invoke_field_bindings(void);
@@ -161,9 +157,9 @@ void GameClientView::action_apply(void **context)
     case 0x05: object_type_override_call_0x70_release_node(context, client); break;
     case 0x07: game_engine_apply_player_join_message(context); break;
     case 0x08: game_engine_apply_player_spawn_loadout_message(context); break;
-    case 0x09: unit_dispatch_seat_exit_message(context); break;
+    case 0x09: halo::units::unit_dispatch_seat_exit_message((int32_t *)context); break;
     case 0x0a: game_engine_apply_player_interaction_message(context); break;
-    case 0x0c: unit_apply_network_control_update(context); break;
+    case 0x0c: halo::units::unit_apply_network_control_update((unit_network_control_packet *)context); break;
     case 0x0e: game_engine_apply_kill_streak_message(context); break;
     case 0x10:
     case 0x11:
@@ -175,9 +171,9 @@ void GameClientView::action_apply(void **context)
     case 0x17: game_engine_apply_partial_round_reset_message(context); break;
     case 0x18: game_engine_handle_kill_feed_network_event(context); break;
     case 0x19: game_engine_handle_sound_status_event(context); break;
-    case 0x1b: unit_scripting_set_or_drop_weapon(context); break;
-    case 0x1c: unit_spawn_with_starting_weapons(context); break;
-    case 0x1d: unit_network_create_update_apply(context); break;
+    case 0x1b: halo::units::unit_scripting_set_or_drop_weapon((int32_t *)context); break;
+    case 0x1c: halo::units::unit_spawn_with_starting_weapons(context); break;
+    case 0x1d: halo::units::unit_network_create_update_apply(context); break;
     case 0x1e: halo::projectiles::projectile_create_from_network(context); break;
     case 0x1f: halo::items::equipment_create_from_creation_message(context); break;
     case 0x20: halo::items::weapon_create_from_creation_message(context); break;

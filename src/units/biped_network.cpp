@@ -1,5 +1,6 @@
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern double fcos(double x);
@@ -14,7 +15,7 @@ namespace halo::units {
  *
  * @address 0x55e9ff
  */
-void biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *object_base, float magnitude, float dir_x, float dir_y, float dir_z, char already_idle, uint8_t *state_out)
+void halo::units::biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *object_base, float magnitude, float dir_x, float dir_y, float dir_z, char already_idle, uint8_t *state_out)
 {
     unit_data *unit = (unit_data *)((uint8_t *)object_base + k_unit_data_offset);
 

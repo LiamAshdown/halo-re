@@ -3,11 +3,11 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace c_actor_action_has_queued_secondary {
 extern "C" {
 extern data_array *actor_data;
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 }
 }
 
@@ -28,7 +28,7 @@ uint8_t halo::ai::actor_ref::action_has_queued_secondary()
     if (self->secondary_action != (int16_t)-1) {
         return 1;
     }
-    if (self->unit_index != (datum_index)k_datum_index_none && unit_is_in_busy_animation_state(self->unit_index)) {
+    if (self->unit_index != (datum_index)k_datum_index_none && halo::units::unit_is_in_busy_animation_state(self->unit_index)) {
         return 1;
     }
     return 0;
@@ -97,7 +97,6 @@ extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern void actor_refresh_combat_context(datum_index actor_index);
 extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index);
 extern void object_mark_pending_delete(datum_index object_index);
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag);
 }
 }
 
@@ -165,7 +164,7 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
         }
     }
 
-    unit_refresh_targeting_flag_and_weapons(unit_index, 1);
+    halo::units::unit_refresh_targeting_flag_and_weapons(unit_index, 1);
 }
 
 extern "C" void actor_attach_to_unit(datum_index actor_index, datum_index unit_index)
@@ -681,7 +680,6 @@ extern data_array *actor_data;
 extern data_array *object_data;
 
 
-extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out);
 }
 }
 
@@ -706,7 +704,7 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
         reference.k = a->facing.k;
     } else {
 
-        unit_get_forward_vector_or_marker_normal(unit_index, &reference);
+        halo::units::unit_get_forward_vector_or_marker_normal(unit_index, &reference);
     }
 
     switch (request->axis) {
@@ -1062,7 +1060,6 @@ extern void actor_unlink_unit(datum_index actor_index);
 extern void swarm_add_component(datum_index component_index, uint32_t unit_index, datum_index swarm_index);
 extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index);
 extern void object_mark_pending_delete(datum_index object_index);
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag);
 }
 }
 
@@ -1141,7 +1138,7 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
         }
     }
 
-    unit_refresh_targeting_flag_and_weapons(unit_index, 1);
+    halo::units::unit_refresh_targeting_flag_and_weapons(unit_index, 1);
     return 1;
 }
 

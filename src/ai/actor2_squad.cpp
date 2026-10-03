@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace halo::ai {
 
@@ -142,15 +143,6 @@ extern datum_index object_lookup_table_get(int16_t name_index);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int32_t object_iterator_next(object_iterator *iterator);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
-extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
-    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index,
-    int32_t *chain_value);
-extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode);
-extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out);
-extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out);
-extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_t grenade_type, int8_t delta);
-extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
-    uint8_t interpolate);
 extern const char k_empty_string[];
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
@@ -321,7 +313,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
                         real_point3d eye;
                         float distance;
 
-                        unit_get_primary_eye_marker_position(player_unit, &eye);
+                        halo::units::unit_get_primary_eye_marker_position(player_unit, &eye);
                         distance = halo::math::vector3d_distance_squared(*(real_point3d *)(act + 0x120), eye);
                         if (distance <= best) {
                             best = distance;
@@ -363,7 +355,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         } else {
             context.code = 3;
             if (look_object != k_datum_index_none) {
-                unit_get_primary_eye_marker_position(look_object, &context.payload.point);
+                halo::units::unit_get_primary_eye_marker_position(look_object, &context.payload.point);
             } else {
                 context.payload.point = *(real_point3d *)&points[(int16_t)look_point].position;
             }
@@ -410,7 +402,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         if (grenade_type == -1 || p < 0 || p >= point_count) {
             return 0;
         }
-        unit_set_grenade_type_and_count_delta(unit_index, grenade_type, 1);
+        halo::units::unit_set_grenade_type_and_count_delta(unit_index, grenade_type, 1);
         aim_state[0x49] = 0;
         aim_state[0x48] = 0;
         *(real_point3d *)(aim_state + 0x4c) = *(real_point3d *)&points[p].position;
@@ -534,7 +526,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         case 5: interpolate = 0; flag_8 = 1; flag_4 = 1; break;
         default: break;
         }
-        if (!unit_start_user_animation(check_object_index, graph, (const char *)reference, interpolate)) {
+        if (!halo::units::unit_start_user_animation(check_object_index, graph, (const char *)reference, interpolate)) {
             return 0;
         }
         biped = (uint8_t *)object_try_and_get(check_object_index, 1);
@@ -589,7 +581,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         int32_t mode;
         unit_speech speech;
 
-        mode = unit_animation_change_priority_check(check_object_index, 1, 6, 1, 0, &dialogue, &chain);
+        mode = halo::units::unit_animation_change_priority_check(check_object_index, 1, 6, 1, 0, &dialogue, &chain);
         if ((int16_t)mode <= 0) {
             return 0;
         }
@@ -598,7 +590,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         speech.scream_type = dialogue;
         speech.sound_tag = (datum_index)chain;
         ai_communication_target_result_reset((ai_communication_target_result *)((uint8_t *)&speech + 0x10));
-        unit_commit_speech(check_object_index, &speech, (int16_t)mode);
+        halo::units::unit_commit_speech(check_object_index, &speech, (int16_t)mode);
         return 1;
     }
 
@@ -664,7 +656,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
             return 0;
         }
         destination = (real_point3d *)&points[p].position;
-        unit_get_forward_vector_or_marker_normal(check_object_index, &forward);
+        halo::units::unit_get_forward_vector_or_marker_normal(check_object_index, &forward);
         if (facing_point >= 0 && facing_point < point_count) {
             real_point3d *facing = (real_point3d *)&points[facing_point].position;
             uint8_t *biped = (uint8_t *)object_try_and_get(check_object_index, 1);
@@ -681,7 +673,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
                 length = halo::math::vector2d_normalize_with_length(*((real_vector2d *)&forward));
             }
             if (length == 0.0f) {
-                unit_get_forward_vector_or_marker_normal(check_object_index, &forward);
+                halo::units::unit_get_forward_vector_or_marker_normal(check_object_index, &forward);
             }
         }
         object_set_position_and_orientation(check_object_index, &forward, 0, destination);
@@ -712,8 +704,6 @@ extern void actor_movement_action_stop(datum_index actor_index);
 extern uint8_t actor_movement_action_in_progress(datum_index actor_index);
 extern float actor_compute_accuracy_scale(datum_index actor_index);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
-extern uint32_t unit_get_biped_specific_value(uint32_t object_index);
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
@@ -844,7 +834,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
             *(int16_t *)(state + 0x2) = ticks;
             return ticks == 0;
         }
-        if (!unit_is_in_busy_animation_state(check_object_index)) {
+        if (!halo::units::unit_is_in_busy_animation_state(check_object_index)) {
             real_point3d target = *(real_point3d *)(aim_state + 0x4c);
 
             if (actor_commit_grenade_toss(actor_index, &target, 0xffffffff, 0xffffffff)) {
@@ -863,7 +853,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
         if (check_object_index == unit_index) {
             landed = act[0x15c];
         } else {
-            landed = (uint8_t)unit_get_biped_specific_value(check_object_index);
+            landed = (uint8_t)halo::units::unit_get_biped_specific_value(check_object_index);
         }
         if ((state[0x5] & 8) && landed) {
             *(int16_t *)(state + 0x2) = 0;

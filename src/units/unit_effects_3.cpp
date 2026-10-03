@@ -5,6 +5,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -28,7 +29,7 @@ namespace halo::units {
  *
  * @address 0x56f210
  */
-void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id, datum_index object_index)
+void halo::units::unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id, datum_index object_index)
 {
     uint8_t *material_record;
 

@@ -17,6 +17,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" { void halo::physics::collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index, real_point3d *origin, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 extern "C" { uint8_t halo::physics::collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
@@ -28,7 +29,6 @@ extern "C" { uint8_t halo::physics::object_collision_test_nearby_chain(uint32_t 
 extern "C" { uint8_t halo::physics::object_collision_test_ray_nearby_chain(uint32_t start_object_index, uint32_t type_mask, uint32_t test_flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *out_result); }
 
 extern "C" { extern data_array *object_data; }
-extern "C" { extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out); }
 namespace halo::physics {
 
 /**
@@ -79,7 +79,7 @@ void CollisionWorld::gather_nearby_object_shapes(uint32_t flags, uint32_t start_
                     float pill_height;
                     float pill_radius;
 
-                    unit_get_crouch_height_offset(&position, object_index, &pill_height, &pill_radius);
+                    halo::units::unit_get_crouch_height_offset(&position, object_index, &pill_height, &pill_radius);
                     position.z += pill_height;
                     halo::physics::physics_shape_vertex_to_sphere(model, &position, -1, pill_height + x_offset,
                         pill_radius + y_offset, object_index, -1, 0, -1);

@@ -11,6 +11,7 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/devices/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
@@ -36,45 +37,22 @@ extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
-extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index);
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request);
-extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state);
-extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index);
-extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key);
-extern void unit_recompute_seat_occupants(uint32_t unit_index);
-extern void unit_pick_and_ready_next_weapon(uint32_t unit_index);
 extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point);
-extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
 extern void player_set_pending_interaction_action(int16_t priority_type, int16_t seat, uint32_t player_index, uint32_t candidate_object);
 extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind, int16_t count);
-extern uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index);
 extern void player_apply_pickup_effect(uint32_t player_index, uint32_t pickup_object);
-extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index);
-extern int16_t unit_count_deployed_weapons(uint32_t unit_index);
 extern uint8_t player_is_busy_with_interaction(uint32_t candidate_object, uint32_t unit_or_player_index);
-extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index);
-extern uint8_t unit_weapon_is_best_of_type(uint32_t reference_weapon_index, uint32_t unit_index);
 extern void unit_invalidate_local_player_zoom_level(datum_index unit);
 extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_key, uint32_t mode, int32_t interaction_type, int32_t interaction_seat, int32_t secondary_key);
-extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
 extern Globals *global_globals;
 extern double cos(double x);
-extern uint8_t unit_current_weapon_type_is_2_or_3(uint32_t unit_index);
-extern int16_t unit_find_best_seat_to_enter(uint32_t unit_index, uint32_t vehicle_index, uint32_t *out_seat);
 extern double fabs(double x);
-extern void unit_clear_selected_equipment(uint32_t unit_index);
-extern uint8_t unit_try_select_equipment(uint32_t unit_index, uint32_t new_equipment_object_index, int16_t release_current);
-extern uint8_t unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_index, uint32_t vehicle_index, uint32_t *out_occupant_index);
-extern void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag, uint8_t fire_trigger_event);
-extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index);
 extern void player_update_history_free_all(void *queue);
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out);
 extern uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index, uint8_t flag_pursue);
-extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);
 extern real_vector3d *global_origin3d_pointer;
 extern real_point3d player_placement_ring[9];
 extern uint32_t object_get_root_object_index(uint32_t object_index);
-extern uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientation_object, real_point3d *out_position, float radius, char grid_mode, char skip_reposition, char scale_radius, uint32_t object_index_a, real_vector3d *reference_direction);
 extern void player_release_unit_and_reset(uint32_t player_index, int32_t previous_unit_override);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern void game_engine_build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_t local_players_only);
@@ -82,7 +60,6 @@ extern game_engine_definition *current_game_engine;
 extern game_engine_state game_engine_state_value;
 extern void game_engine_attribute_player_death(datum_index victim_unit, datum_index killer, datum_index death_object, int32_t killer_team, char credit_kills);
 extern void object_set_health_frozen_flag(uint32_t object_index);
-extern void unit_exit_vehicle_seat(uint32_t player_index);
 extern void player_reset_after_unit_change(uint32_t player_index);
 extern player_control_globals *player_control_globals_ptr;
 extern data_array *update_server_queues;
@@ -95,16 +72,12 @@ extern uint32_t global_006889d4;
 extern uint32_t global_007102ec;
 extern uint32_t global_006889d8;
 extern uint32_t global_006889dc;
-extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force);
 extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location, real_point3d *center, float radius, datum_index *out_objects, int16_t max_output);
 extern void player_check_vehicle_interaction(uint32_t player_index, uint32_t candidate_object);
 extern void player_check_vehicle_boarding_interaction(uint32_t player_index, uint32_t candidate_object);
 extern void player_check_assassination_opportunity(uint32_t player_index, uint32_t candidate_object);
 extern void player_check_vehicle_boarding_interaction_lightweight(uint32_t player_index, uint32_t candidate_object);
-extern uint8_t unit_seat_flag_bit2(datum_index parent_object, int16_t vehicle_seat_index);
 extern double sqrt(double x);
-extern int16_t unit_count_deployed_weapons(uint32_t unit_or_player_index);
-extern uint8_t unit_lacks_weapon_type_of(uint32_t candidate_object, uint32_t unit_or_player_index);
 extern uint8_t game_engine_ctf_unit_weapon_must_be_readied(uint32_t candidate_object);
 extern uint8_t unit_current_weapon_prevents_camo_depower(datum_index player_handle);
 extern void player_kill_streak_begin(int32_t slot, uint32_t player_handle);
@@ -148,7 +121,6 @@ extern int32_t game_engine_player_profile_cache_find(datum_index player_handle);
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
-extern uint8_t biped_is_idle_eligible(datum_index unit_handle);
 extern int32_t catchup_backlog_threshold;
 extern int32_t catchup_time_threshold;
 extern uint8_t network_client_vehicle_ack_enabled;
@@ -158,19 +130,14 @@ extern void apply_remote_player_position_update(player *plr, object *unit_obj);
 extern void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj);
 extern void player_update_history_log_printf_filtered(player *target_player, int32_t unused_arg, const char *format, ...);
 extern void object_update(uint32_t object_index);
-extern uint8_t unit_update(uint32_t unit_index);
-extern uint32_t biped_update(uint32_t object_index);
-extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id);
 extern data_array *team_data;
 extern int32_t game_state_cursor;
 extern uint8_t *game_state_base;
 extern uint32_t game_state_crc;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out);
 extern void game_engine_reattach_player_unit_unused(uint32_t player_index, uint32_t target_object, void *local_offset);
 extern uint8_t players_any_with_local_player_index(int16_t local_player_index);
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_handle, uint8_t attaching);
 extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index);
 extern float camera_point[];
 extern float camera_position_y_table[];
@@ -202,7 +169,7 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && vehicle[0x2a3] != 0x25 &&
         ((struct object *)self)->parent_object != k_datum_index_none) {
-        unit_try_set_animation_state(((struct object *)self)->parent_object, 0x25);
+        halo::units::unit_try_set_animation_state(((struct object *)self)->parent_object, 0x25);
     }
     *(datum_index *)(self + 0x32c) = vehicle_index;
     *(int32_t *)(self + 0x330) = game_time->game_time;
@@ -245,19 +212,19 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
     if (((vehicle_object *)vehicle)->unit.gunner_unit_index == object_index) {
         ((vehicle_object *)vehicle)->unit.gunner_unit_index = k_datum_index_none;
     }
-    unit_recompute_seat_occupants(vehicle_index);
-    unit_pick_and_ready_next_weapon(object_index);
+    halo::units::unit_recompute_seat_occupants(vehicle_index);
+    halo::units::unit_pick_and_ready_next_weapon(object_index);
     {
         int8_t request[2] = { 0x14, 0 };
 
-        unit_update_animation_state_machine(object_index, request);
+        halo::units::unit_update_animation_state_machine(object_index, request);
     }
     *(real_point3d *)(self + ((struct object *)self)->node_function_values.offset + 0x10) = default_translation;
     if (((struct object *)self)->type == 0) {
-        unit_reset_orientation_and_find_position(object_index, vehicle_index);
+        halo::units::unit_reset_orientation_and_find_position(object_index, vehicle_index);
     }
     object_recalculate_bounding_radius_recursive(object_index);
-    if (unit_all_seats_unoccupied(vehicle_index) == 1) {
+    if (halo::units::unit_all_seats_unoccupied(vehicle_index) == 1) {
         uint8_t *empty = (uint8_t *)object_try_and_get(vehicle_index, 2);
 
         if (empty != 0) {
@@ -395,7 +362,7 @@ uint8_t PlayerView::attach_unit_to_parent(uint32_t target_object, void *local_of
         }
 
         if (((struct object *)self)->network_role == 0) {
-            unit_dispatch_scripted_event_9(1, (int32_t)unit_index);
+            halo::units::unit_dispatch_scripted_event_9(1, (int32_t)unit_index);
         }
         if (network_game_mode == 1) {
             datum_index player_handle = *(datum_index *)(self + 0x218);
@@ -432,7 +399,7 @@ void PlayerView::check_assassination_opportunity(uint32_t candidate_object)
     object *candidate = (object *)((object_header *)object_data->data)[candidate_object & 0xffff].data;
     real_point3d camera_position;
 
-    unit_get_camera_position(p->unit, &camera_position);
+    halo::units::unit_get_camera_position(p->unit, &camera_position);
 
     if (halo::math::ray_intersects_sphere_test(candidate->bounding_center, camera_position,
             *(&((unit_data *)((uint8_t *)unit + k_unit_data_offset))->aiming_vector), candidate->bounding_radius)) {
@@ -489,7 +456,7 @@ void PlayerView::check_vehicle_boarding_interaction(uint32_t candidate_object)
         int16_t type = *(int16_t *)(equipment_tag + 0x308);
 
         if (type == 6) {
-            if (unit_try_give_grenade(candidate_object, unit_index)) {
+            if (halo::units::unit_try_give_grenade(candidate_object, unit_index)) {
                 hud_post_item_message(1, (int32_t)*(datum_index *)equipment, 0xff, local_player_index, machine);
             }
         } else if (type != 0) {
@@ -503,7 +470,7 @@ void PlayerView::check_vehicle_boarding_interaction(uint32_t candidate_object)
     }
 
     weapon = (uint8_t *)object_try_and_get(candidate_object, 4);
-    if (weapon == 0 || !unit_check_weapon_use_permission(unit_index, candidate_object)) {
+    if (weapon == 0 || !halo::units::unit_check_weapon_use_permission(unit_index, candidate_object)) {
         return;
     }
     weapon_tag = TAG_DATA(*(datum_index *)weapon);
@@ -514,7 +481,7 @@ void PlayerView::check_vehicle_boarding_interaction(uint32_t candidate_object)
 
         current_weapon = (slot != -1) ? *(datum_index *)(holder + 0x2f8 + slot * 4) : k_datum_index_none;
     }
-    weapon_count = unit_count_deployed_weapons(unit_index);
+    weapon_count = halo::units::unit_count_deployed_weapons(unit_index);
     keep_current = 0;
     if (weapon_count >= 2 && current_weapon != k_datum_index_none && (weapon_tag[0x308] & 0x10) == 0 &&
         (TAG_DATA(*(datum_index *)OBJECT_DATA(current_weapon))[0x308] & 0x10) != 0) {
@@ -526,7 +493,7 @@ void PlayerView::check_vehicle_boarding_interaction(uint32_t candidate_object)
     if (PlayerView(unit_index).is_busy_with_interaction(candidate_object)) {
         datum_index tag;
 
-        if (!unit_pickup_weapon(1, candidate_object, unit_index)) {
+        if (!halo::units::unit_pickup_weapon(1, candidate_object, unit_index)) {
             return;
         }
         tag = *(datum_index *)OBJECT_DATA(candidate_object);
@@ -541,7 +508,7 @@ void PlayerView::check_vehicle_boarding_interaction(uint32_t candidate_object)
         }
         return;
     }
-    if (keep_current || !unit_weapon_is_best_of_type(candidate_object, unit_index)) {
+    if (keep_current || !halo::units::unit_weapon_is_best_of_type(candidate_object, unit_index)) {
         return;
     }
     {
@@ -587,15 +554,15 @@ void PlayerView::check_vehicle_boarding_interaction_lightweight(uint32_t candida
         return;
     }
     weapon_candidate = object_try_and_get(candidate_object, 4);
-    if (weapon_candidate == 0 || unit_check_weapon_use_permission((uint32_t)unit_handle, candidate_object) == 0) {
+    if (weapon_candidate == 0 || halo::units::unit_check_weapon_use_permission((uint32_t)unit_handle, candidate_object) == 0) {
         return;
     }
     weapon_tag = (uint8_t *)halo::cache::globals().tag_instances[weapon_candidate->definition_tag & 0xffff].data;
     unit_flag_1800 = (uint8_t)((*(uint32_t *)(unit_obj + 0x208) & 0x1800) != 0);
 
-    current_weapon = unit_get_weapon_object_index((uint32_t)p->unit,
+    current_weapon = halo::units::unit_get_weapon_object_index((uint32_t)p->unit,
         *(int16_t *)((uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data + 0x2f2));
-    weapon_count = unit_count_deployed_weapons((uint32_t)p->unit);
+    weapon_count = halo::units::unit_count_deployed_weapons((uint32_t)p->unit);
     if (weapon_count >= 2 && current_weapon != (datum_index)0xffffffff && (weapon_tag[0x308] & 0x10) == 0) {
         object *held = ((object_header *)object_data->data)[current_weapon & 0xffff].data;
 
@@ -609,7 +576,7 @@ void PlayerView::check_vehicle_boarding_interaction_lightweight(uint32_t candida
     if (PlayerView((uint32_t)p->unit).is_busy_with_interaction(candidate_object) != 0 || holds_exclusive) {
         return;
     }
-    if (unit_weapon_is_best_of_type(candidate_object, (uint32_t)p->unit) == 0) {
+    if (halo::units::unit_weapon_is_best_of_type(candidate_object, (uint32_t)p->unit) == 0) {
         return;
     }
     current_weapon_obj = object_try_and_get(current_weapon, 4);
@@ -649,7 +616,7 @@ void PlayerView::check_vehicle_interaction(uint32_t candidate_object)
             player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
             uint32_t unit_index = (uint32_t)p->unit;
 
-            if (unit_current_weapon_type_is_2_or_3(unit_index) == 0) {
+            if (halo::units::unit_current_weapon_type_is_2_or_3(unit_index) == 0) {
                 object *unit_obj = (object *)((object_header *)object_data->data)[unit_index & 0xffff].data;
                 float unit_speed_sq = unit_obj->velocity.k * unit_obj->velocity.k +
                     unit_obj->velocity.j * unit_obj->velocity.j + unit_obj->velocity.i * unit_obj->velocity.i;
@@ -659,7 +626,7 @@ void PlayerView::check_vehicle_interaction(uint32_t candidate_object)
 
                 if (unit_speed_sq < 0.01f && vehicle_spin_sq < 0.01f) {
                     uint32_t seat = 0xffffffff;
-                    int16_t result = unit_find_best_seat_to_enter(unit_index, candidate_object, &seat);
+                    int16_t result = halo::units::unit_find_best_seat_to_enter(unit_index, candidate_object, (int16_t *)&seat);
                     if (result == 1) {
                         PlayerView(player_index).set_pending_interaction_action(9, (int16_t)seat, candidate_object);
                         return;
@@ -690,8 +657,8 @@ uint8_t PlayerView::execute_pending_interaction()
 
     switch (((player *)record)->interaction_type) {
     case 5:
-        unit_clear_selected_equipment(unit_index);
-        if (unit_try_select_equipment(unit_index, target_index, 0)) {
+        halo::units::unit_clear_selected_equipment(unit_index);
+        if (halo::units::unit_try_select_equipment(unit_index, target_index, 0)) {
             hud_post_item_message(0, (int32_t)*(datum_index *)OBJECT_DATA(target_index), 0,
                 ((player *)record)->local_player_index, (int8_t)record[0x64]);
         }
@@ -704,18 +671,18 @@ uint8_t PlayerView::execute_pending_interaction()
             (unit_index == k_datum_index_none || object_try_and_get(unit_index, 3) == 0)) {
             return 0;
         }
-        if (network_game_mode == 1 && !unit_seat_is_occupied_by_other(unit_index, (int16_t)seat, target_index,
+        if (network_game_mode == 1 && !halo::units::unit_seat_is_occupied_by_other(unit_index, (int16_t)seat, target_index,
                                                                       &occupant)) {
             datum_index self_index = ((player *)record)->unit;
             uint8_t *self = (uint8_t *)object_try_and_get(self_index, 3);
 
             if (self != 0 && self[0x2a3] == 0x1b) {
-                unit_detach_from_seat(self_index, 1, 1, 0);
+                halo::units::unit_detach_from_seat(self_index, 1, 1, 0);
             }
         }
-        if (unit_seat_is_occupied_by_other(((player *)record)->unit, (int16_t)*(uint16_t *)&((player *)record)->interaction_seat,
+        if (halo::units::unit_seat_is_occupied_by_other(((player *)record)->unit, (int16_t)*(uint16_t *)&((player *)record)->interaction_seat,
                                            ((player *)record)->interaction_object, &occupant)) {
-            unit_enter_vehicle_seat(((player *)record)->interaction_object, (int16_t)*(uint16_t *)&((player *)record)->interaction_seat,
+            halo::units::unit_enter_vehicle_seat(((player *)record)->interaction_object, (int16_t)*(uint16_t *)&((player *)record)->interaction_seat,
                 ((player *)record)->unit);
             handled = 1;
             if (network_game_mode == 1) {
@@ -806,8 +773,8 @@ uint8_t PlayerView::execute_weapon_drop_interaction()
         if (slot != -1) {
             held_weapon = *(datum_index *)(current + 0x2f8 + slot * 4);
         }
-        if (unit_drop_current_weapon(unit_index, 1) &&
-            unit_pickup_weapon(1, ((player *)record)->interaction_object, unit_index)) {
+        if (halo::units::unit_drop_current_weapon(unit_index, 1) &&
+            halo::units::unit_pickup_weapon(1, ((player *)record)->interaction_object, unit_index)) {
             hud_add_item_message(((player *)record)->local_player_index,
                 (int32_t)*(datum_index *)OBJECT_DATA(((player *)record)->interaction_object), 0, 0);
             LocalPlayerUnit(unit_index).invalidate_local_player_zoom_level();
@@ -820,7 +787,7 @@ uint8_t PlayerView::execute_weapon_drop_interaction()
         break;
     }
     case 7:
-        if (!unit_pickup_weapon(1, ((player *)record)->interaction_object, unit_index)) {
+        if (!halo::units::unit_pickup_weapon(1, ((player *)record)->interaction_object, unit_index)) {
             return 0;
         }
         hud_add_item_message(((player *)record)->local_player_index,
@@ -851,7 +818,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
 
     if (target_object == k_datum_index_none ||
         object_get_root_object_index(target_object) == target_object) {
-        placed = (uint8_t)unit_find_placement_position(unit_index, target_object, 0, 2.0f, 0, 0, 1, 0,
+        placed = (uint8_t)halo::units::unit_find_placement_position(unit_index, target_object, 0, 2.0f, 0, 0, 1, 0,
             (real_vector3d *)point);
     } else {
         uint32_t root = object_get_root_object_index(target_object);
@@ -882,7 +849,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
             int16_t attempt;
 
             halo::math::matrix4x3_transform_point(spot, player_placement_ring[i], ring);
-            placed = (uint8_t)unit_find_placement_position(unit_index, root, 0, 2.0f, 0, 0, 1, 0,
+            placed = (uint8_t)halo::units::unit_find_placement_position(unit_index, root, 0, 2.0f, 0, 0, 1, 0,
                 (real_vector3d *)&spot);
             for (attempt = 0; !placed && attempt < 8; attempt++) {
                 real_point3d jittered;
@@ -894,7 +861,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
                 jittered.x = facing.i * collision_radius + spot.x;
                 jittered.y = facing.j * collision_radius + spot.y;
                 jittered.z = facing.k * collision_radius + spot.z;
-                placed = (uint8_t)unit_find_placement_position(unit_index, root, 0, 2.0f, 0, 0, 1, 0,
+                placed = (uint8_t)halo::units::unit_find_placement_position(unit_index, root, 0, 2.0f, 0, 0, 1, 0,
                     (real_vector3d *)&jittered);
             }
         }
@@ -996,7 +963,7 @@ void PlayerView::kill_and_release_unit(int32_t respawn_timer_override)
         unit_obj->body_vitality = 0.0f;
     }
     object_set_health_frozen_flag(unit_handle);
-    unit_exit_vehicle_seat(player_index);
+    halo::units::unit_exit_vehicle_seat(player_index);
     PlayerView(player_index).reset_after_unit_change();
 }
 
@@ -1246,13 +1213,13 @@ uint8_t PlayerView::swap_to_weapon(datum_index target_weapon)
             for (i = 0; i < 4; i++) {
                 if (*(datum_index *)(unit + 0x2f8 + i * 4) == target_weapon) {
                     ((unit_object *)unit)->unit.desired_weapon_index = (int16_t)i;
-                    unit_ready_desired_weapon(unit_index, 1);
+                    halo::units::unit_ready_desired_weapon(unit_index, 1);
                     break;
                 }
             }
         }
-        if (unit_drop_current_weapon(unit_index, 1) &&
-            unit_pickup_weapon(1, interaction_object, unit_index)) {
+        if (halo::units::unit_drop_current_weapon(unit_index, 1) &&
+            halo::units::unit_pickup_weapon(1, interaction_object, unit_index)) {
             hud_add_item_message(((struct player *)record)->local_player_index,
                 (int32_t)*(datum_index *)OBJECT_DATA(interaction_object), 0, 0);
             LocalPlayerUnit(unit_index).invalidate_local_player_zoom_level();
@@ -1260,7 +1227,7 @@ uint8_t PlayerView::swap_to_weapon(datum_index target_weapon)
         return 1;
     }
     case 7:
-        if (unit_pickup_weapon(1, interaction_object, unit_index)) {
+        if (halo::units::unit_pickup_weapon(1, interaction_object, unit_index)) {
             hud_add_item_message(((struct player *)record)->local_player_index,
                 (int32_t)*(datum_index *)OBJECT_DATA(interaction_object), 0, 0);
         }
@@ -1394,7 +1361,7 @@ uint8_t PlayerView::unit_has_parent()
     if (unit_obj == (object *)0 || unit_obj->parent_object == (datum_index)-1) {
         return 0;
     }
-    return unit_seat_flag_bit2(unit_obj->parent_object, *(int16_t *)((uint8_t *)unit_obj + 0x2f0));
+    return halo::units::unit_seat_flag_bit2(unit_obj->parent_object, *(int16_t *)((uint8_t *)unit_obj + 0x2f0));
 }
 
 /**
@@ -1448,9 +1415,9 @@ void PlayerView::set_pending_interaction_action(int16_t priority_type, int16_t s
 uint8_t PlayerView::is_busy_with_interaction(uint32_t candidate_object)
 {
     uint32_t unit_or_player_index = player_index;
-    int16_t value = unit_count_deployed_weapons(unit_or_player_index);
+    int16_t value = halo::units::unit_count_deployed_weapons(unit_or_player_index);
 
-    if (unit_lacks_weapon_type_of(candidate_object, unit_or_player_index)) {
+    if (halo::units::unit_lacks_weapon_type_of(candidate_object, unit_or_player_index)) {
         object *tag_data = object_try_and_get(candidate_object, 4);
 
         datum_index definition_tag = *(datum_index *)tag_data;
@@ -1462,7 +1429,7 @@ uint8_t PlayerView::is_busy_with_interaction(uint32_t candidate_object)
 
     if (value != 0) {
         if (current_game_engine == 0) {
-            if (unit_lacks_weapon_type_of(candidate_object, unit_or_player_index) != 0 && value < 2) {
+            if (halo::units::unit_lacks_weapon_type_of(candidate_object, unit_or_player_index) != 0 && value < 2) {
                 return 1;
             }
         }
@@ -1616,7 +1583,7 @@ void PlayerView::update_active_camouflage_depower()
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     weapon_slot = unit->current_weapon_index;
 
-    weapon_handle = unit_get_weapon_object_index(unit_handle, weapon_slot);
+    weapon_handle = halo::units::unit_get_weapon_object_index(unit_handle, weapon_slot);
     prevents_depower = PlayerView(player_handle).current_weapon_prevents_camo_depower();
 
     rate = 0.1f;
@@ -2443,7 +2410,7 @@ uint8_t Players::any_pending_seat_or_respawn()
             airborne_check_obj = (object *)0;
             if (unit_obj->parent_object == (datum_index)-1) {
                 if (unit_obj->type == _object_type_biped) {
-                    if (biped_is_idle_eligible(plr->unit) != 0) {
+                    if (halo::units::biped_is_idle_eligible(plr->unit) != 0) {
                         return 1;
                     }
                 } else if (unit_obj->type == _object_type_vehicle) {
@@ -2672,14 +2639,14 @@ void Players::client_catchup_on_server_updates()
                         apply = 1;
                     }
                     if (apply) {
-                        unit_apply_control_block(plr->unit, &control, -1);
+                        halo::units::unit_apply_control_block(plr->unit, &control, -1);
                     }
 
                     if (PlayerView(iter.index).unit_has_parent() != 0 && network_client_vehicle_ack_enabled != 0) {
                         object_update((uint32_t)unit_obj->parent_object);
                     } else {
-                        unit_update(plr->unit);
-                        biped_update(plr->unit);
+                        halo::units::unit_update(plr->unit);
+                        halo::units::biped_update(plr->unit);
                     }
                 }
             }
@@ -2897,7 +2864,7 @@ void StructureBsp::switch_regroup()
         if (!halo::scenario::scenario_trigger_volume_contains_point(trigger_volume, (real_point3d *)(unit_object + 0xa0))) {
             continue;
         }
-        unit_get_crouch_height_offset(&probe, entry->unit, &height, &radius);
+        halo::units::unit_get_crouch_height_offset(&probe, entry->unit, &height, &radius);
         offset = radius;
         leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &probe);
         if (leaf == 0xffffffff ||
@@ -2988,12 +2955,12 @@ void LocalPlayers::set_controlled_unit(datum_index new_unit, int16_t local_playe
         obj = ((object_header *)object_data->data)[old_unit & 0xffff].data;
         unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
         unit->controlling_player = (datum_index)-1;
-        unit_refresh_targeting_flag_and_weapons(old_unit, 0);
+        halo::units::unit_refresh_targeting_flag_and_weapons(old_unit, 0);
     }
 
     if (new_unit != (datum_index)-1) {
         obj = ((object_header *)object_data->data)[new_unit & 0xffff].data;
-        unit_refresh_targeting_flag_and_weapons(new_unit, 1);
+        halo::units::unit_refresh_targeting_flag_and_weapons(new_unit, 1);
         owner = (datum_index)-1;
         if (local_player_index != -1 && local_player_index <= 0) {
             owner = local_player_globals->local_players[local_player_index];

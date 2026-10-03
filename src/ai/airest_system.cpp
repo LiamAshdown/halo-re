@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -46,7 +47,6 @@ extern float actor_rate_potential_target(datum_index actor_index, datum_index ta
 extern void team_pair_override_clear_flag(int16_t index_b, int16_t index_a);
 extern float k_random_scale_65536;
 extern datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum_index encounter_index, int16_t squad_index, uint8_t use_palette_entry, uint16_t unit_type_index, const actor_placement_request *placement_request);
-extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index);
 extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern void actor_dispatch_perception_reset(datum_index actor_index);
@@ -720,7 +720,7 @@ void AiSystem::process_vehicle_entry_queue()
             }
             actor_index = actor_place_new_unit(gunner_tag, k_datum_index_none, -1, 0, 0, &request);
             if (actor_index != k_datum_index_none) {
-                unit_enter_vehicle_seat(vehicle_index, seat_index,
+                halo::units::unit_enter_vehicle_seat(vehicle_index, seat_index,
                     *(datum_index *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724 + 0x18));
             }
         }

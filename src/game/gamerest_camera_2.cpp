@@ -1,10 +1,10 @@
 #include "halo/game/gamerest_camera.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern uint32_t unit_noop_569670(uint32_t object_index);
 extern void *player_control_globals_ptr;
 extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out);
 extern char camera_observer_find_best_target(real_point3d *observer_position, observer_target_cone *cone, real_vector3d *facing, datum_index exclude_object, int16_t team, observer_target_candidate *out);
@@ -42,7 +42,7 @@ uint32_t CameraObserver::get_target_id(datum_index *out_id, int16_t local_player
     player_index = (local_player_slot != -1 && local_player_slot < 1)
         ? local_player_globals->local_players[local_player_slot] : k_datum_index_none;
     player_record = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
-    exclude_object = unit_noop_569670(*(uint32_t *)(player_record + 0x34));
+    exclude_object = halo::units::unit_noop_569670(*(uint32_t *)(player_record + 0x34));
     if (local_player_slot != -1) {
         zoom_requirement = *(int16_t *)(*(uint8_t **)&player_control_globals_ptr + local_player_slot * 0x40 + 0x34);
     }

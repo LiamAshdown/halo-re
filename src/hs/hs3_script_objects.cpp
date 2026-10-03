@@ -7,6 +7,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -14,7 +15,6 @@ extern char ai_marker_name_a[];
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
     uint32_t maximum);
-extern uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point);
 extern datum_index *object_name_list;
 extern datum_index object_new_from_scenario_name(int16_t name_index);
 extern data_array *player_data;
@@ -31,15 +31,8 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
 extern void object_reset_velocity_and_wake(uint32_t object_index);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_object, void *local_offset);
-extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request);
-extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state);
-extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index);
-extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key);
-extern void unit_recompute_seat_occupants(uint32_t unit_index);
-extern void unit_pick_and_ready_next_weapon(uint32_t unit_index);
 extern void player_update_history_free_all(void *history);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern uint32_t player_index_from_unit_index(datum_index object_index);
@@ -50,8 +43,6 @@ extern void object_notify_children_recursive(datum_index object_index);
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
 extern char hs_object_hierarchy_test(datum_index object_index);
 extern void object_delete(datum_index object_index);
-extern void unit_detach_from_seat(datum_index object_index, int32_t suppress_trigger, int32_t require_client_flag,
-    int32_t fire_trigger_event);
 extern void object_delete_unparented(uint32_t object_index);
 extern void object_delete_recursive(datum_index object_index, int32_t recurse_siblings);
 extern void *object_iterator_next(hs_object_iterator_state *iterator);
@@ -90,7 +81,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
         delta.k = nodes->position.z - marker.node_transform.position.z;
         if (*(datum_index *)(parent + 0x324) == object_index && (int8_t)parent[0x2a3] != 0x25 &&
             ((unit_object *)unit)->base.parent_object != k_datum_index_none) {
-            unit_try_set_animation_state(((unit_object *)unit)->base.parent_object, 0x25);
+            halo::units::unit_try_set_animation_state(((unit_object *)unit)->base.parent_object, 0x25);
         }
         ((unit_object *)unit)->unit.last_parent_object_index = parent_index;
         ((unit_object *)unit)->unit.last_seat_change_tick = game_time->game_time;
@@ -128,16 +119,16 @@ static void hs_unit_leave_seat(uint32_t object_index)
         if (*(datum_index *)(parent + 0x328) == object_index) {
             *(datum_index *)(parent + 0x328) = k_datum_index_none;
         }
-        unit_recompute_seat_occupants(parent_index);
-        unit_pick_and_ready_next_weapon(object_index);
-        unit_update_animation_state_machine(object_index, k_unit_exit_seat_request);
+        halo::units::unit_recompute_seat_occupants(parent_index);
+        halo::units::unit_pick_and_ready_next_weapon(object_index);
+        halo::units::unit_update_animation_state_machine(object_index, k_unit_exit_seat_request);
         unit = OBJ(object_index);
         *(real_vector3d *)(unit + ((unit_object *)unit)->base.node_function_values.offset + 0x10) = root_offset;
         if (((unit_object *)unit)->base.type == 0) {
-            unit_reset_orientation_and_find_position(object_index, parent_index);
+            halo::units::unit_reset_orientation_and_find_position(object_index, parent_index);
         }
         object_recalculate_bounding_radius_recursive(object_index);
-        if (unit_all_seats_unoccupied(parent_index) == 1) {
+        if (halo::units::unit_all_seats_unoccupied(parent_index) == 1) {
             uint8_t *vehicle = (uint8_t *)object_try_and_get(parent_index, 2);
             if (vehicle != 0) {
                 ((vehicle_object *)vehicle)->vehicle.network_update_tick = game_time->game_time;
@@ -157,7 +148,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
     {
         uint8_t *unit = OBJ(object_index);
         if (((unit_object *)unit)->base.network_role == 0) {
-            unit_dispatch_scripted_event_9(1, (int32_t)object_index);
+            halo::units::unit_dispatch_scripted_event_9(1, (int32_t)object_index);
             unit = OBJ(object_index);
         }
         if (network_game_mode == 1) {
@@ -206,7 +197,7 @@ uint8_t ScriptObjects::object_angle_predicate_helper(datum_index object_index, d
 
         point = *(real_point3d *)(object + 0xa0);
     }
-    return unit_point_within_look_cone(angle_degrees * 0.017453292f, viewer_unit, &point);
+    return halo::units::unit_point_within_look_cone(angle_degrees * 0.017453292f, viewer_unit, &point);
 }
 
 /**
@@ -447,7 +438,7 @@ uint32_t ScriptObjects::object_list_any_angle_match_gated(datum_index header_ind
                 salt = (int16_t)((uint32_t)object_index >> 0x10);
                 if ((salt == 0 || entry->identifier == salt) &&
                     (1 << (entry->type_flag & 0x1f) & 3) != 0 && entry->data != 0 &&
-                    gate != 0 && unit_point_within_look_cone(angle_degrees * 0.017453292f, object_index,
+                    gate != 0 && halo::units::unit_point_within_look_cone(angle_degrees * 0.017453292f, object_index,
                         (real_point3d *)((uint8_t *)halo::scenario::globals().scenario->cutscene_flags.pointer + gate * 0x5c + 0x24)) != 0) {
 
                     return 1;
@@ -687,7 +678,7 @@ void ScriptObjects::object_runtime_cleanup() const
                 top = hs_object_record_get(walk)->parent;
             } while (top != k_datum_index_none);
             if (walk != unit) {
-                unit_detach_from_seat(unit, 0, 1, 1);
+                halo::units::unit_detach_from_seat(unit, 0, 1, 1);
             }
         }
         player_element = halo::memory::data_iterator_next(&player_iter);

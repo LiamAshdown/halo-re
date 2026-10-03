@@ -18,6 +18,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -39,13 +40,10 @@ extern network_id_table *object_network_id_table;
 extern uint8_t player_execute_pending_interaction(uint32_t handle);
 extern uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag);
 extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index);
 extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle,
     uint8_t reset_stats);
 extern void game_engine_apply_player_grenade_counts(uint32_t player_index);
-extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index);
-extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index);
 extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle);
 extern uint8_t game_engine_teams_enabled_flag;
 extern int16_t network_game_mode;
@@ -325,7 +323,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                         unit_obj->owner_linkage = (uint32_t)owner_handle;
                         unit_obj->owner_team = (int16_t)p->team;
                         ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->controlling_player = owner_handle;
-                        unit_refresh_targeting_flag_and_weapons(new_unit, 1);
+                        halo::units::unit_refresh_targeting_flag_and_weapons(new_unit, 1);
 
                         if (p->local_player_index == -1) {
                             ((struct player *)p)->position_updates.read_index = 0;
@@ -361,7 +359,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                                 if (weapon == -1) {
                                     unit->weapons[i] = (datum_index)0xffffffff;
                                 } else {
-                                    unit_pickup_weapon(0, (uint32_t)weapon, new_unit);
+                                    halo::units::unit_pickup_weapon(0, (uint32_t)weapon, new_unit);
                                 }
                             }
                             unit->current_weapon_index = -1;
@@ -372,7 +370,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                             datum_index vehicle = (datum_index)((int32_t *)object_network_id_table->handles)[
                                 message.seat_vehicle_pooled_id];
                             if (vehicle != (datum_index)0xffffffff) {
-                                unit_enter_vehicle_seat(vehicle, (int16_t)message.seat_number, p->unit);
+                                halo::units::unit_enter_vehicle_seat(vehicle, (int16_t)message.seat_number, p->unit);
                             }
                         }
 

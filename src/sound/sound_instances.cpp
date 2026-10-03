@@ -9,6 +9,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace halo::sound {
 
@@ -786,7 +787,7 @@ void update_active(void)
 
                 if (game_looping_sound_data->valid &&
                     object_try_and_get(instance->owner_index, 3) != 0) {
-                    unit_accumulate_clamped_offset(instance->owner_index, lip_sync_value);
+                    halo::units::unit_accumulate_clamped_offset(instance->owner_index, lip_sync_value);
                 }
             }
         }

@@ -3,6 +3,7 @@
 #include "game.h"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -128,7 +129,7 @@ void UnitView::dialogue_determine_variant()
  *
  * @address 0x561a00
  */
-TagID unit_pick_random_dialogue_variant(Unit *unit_tag, int16_t variant_number)
+TagID halo::units::unit_pick_random_dialogue_variant(Unit *unit_tag, int16_t variant_number)
 {
     UnitDialogueVariant *variants = (UnitDialogueVariant *)unit_tag->dialogue_variants.pointer;
     int32_t count = (int32_t)unit_tag->dialogue_variants.count;

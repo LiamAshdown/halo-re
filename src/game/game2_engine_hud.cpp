@@ -4,6 +4,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -31,7 +32,6 @@ extern wchar_t *game_engine_get_default_multiplayer_string(const scoreboard_entr
 extern int32_t hud_draw_world_relative_text(hud_world_text_params *params, int16_t row, wchar_t *text, uint8_t highlighted);
 extern int32_t game_engine_multiplayer_ui_state_id(void);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
-extern uint16_t unit_find_weapon_index_by_flag(uint32_t unit_index, uint8_t flag_bit);
 extern char *network_address_to_string(s_network_address *addr);
 extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue);
 extern game_time_globals *game_time;
@@ -55,7 +55,6 @@ extern uint8_t network_session_send_to_machine(int32_t machine_id, network_serve
 extern network_machine *network_machine_find_by_id(network_server_globals *server, int32_t machine_id);
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
 extern uint8_t custom_waypoint_matches_filter(int32_t candidate, player *reference_player, int32_t slot_index);
-extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out);
 extern int16_t hud_waypoint_visibility(int16_t local_player_index, const real_point3d *eye, const real_point3d *target, datum_index ignore_object);
 extern void hud_waypoint_draw(const real_point3d *position, int16_t local_player_index, int16_t arrow_index, int16_t visibility, uint8_t show_distance);
 }
@@ -247,7 +246,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
 
                         if (unit_header->identifier != 0 && (unit_salt == 0 || unit_header->identifier == unit_salt) &&
                             (((1u << (unit_header->type & 0x1f)) & 3) != 0) && unit_header->data != 0) {
-                            starred = (uint8_t)unit_find_weapon_index_by_flag(p->unit, 3);
+                            starred = (uint8_t)halo::units::unit_find_weapon_index_by_flag(p->unit, 3);
                         }
                     }
                 }
@@ -562,7 +561,7 @@ void EngineHud::update_custom_waypoint_navpoints(int16_t local_player_slot)
         return;
     }
 
-    unit_get_primary_eye_marker_position(p->unit, &eye);
+    halo::units::unit_get_primary_eye_marker_position(p->unit, &eye);
 
     for (slot = 0; slot < k_maximum_custom_waypoints; slot++) {
         if (custom_waypoint_matches_filter((int32_t)local_player, p, slot) != 0) {

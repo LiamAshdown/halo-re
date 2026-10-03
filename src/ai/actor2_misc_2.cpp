@@ -2,6 +2,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace halo::ai {
 
@@ -88,7 +89,6 @@ extern uint8_t halo::scenario::scenario_location_get_water_and_weather(real_poin
 extern void *actor_get_actor_definition(datum_index actor_index);
 extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
     int16_t squad_index);
-extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out);
 #define A_U8(offset) (*(uint8_t *)(self + (offset)))
 #define A_I16(offset) (*(int16_t *)(self + (offset)))
 #define A_I32(offset) (*(int32_t *)(self + (offset)))
@@ -281,7 +281,7 @@ void ActorView::refresh_combat_context()
         A_I32(0x164) = *(int32_t *)(unit_object + 0x4dc);
         *(real_vector3d *)&((struct actor *)self)->pathfinding_point = *(real_vector3d *)(unit_object + 0x4e0);
     }
-    unit_get_forward_vector_or_marker_normal(A_I16(0x15e) > 0 ? A_I32(0x158) : A_I32(0x18),
+    halo::units::unit_get_forward_vector_or_marker_normal(A_I16(0x15e) > 0 ? A_I32(0x158) : A_I32(0x18),
         (real_vector3d *)(self + 0x174));
     if (A_U8(0x99) == 0) {
         if (halo::math::vector2d_normalize_with_length(*(real_vector2d *)(self + 0x174)) > 0.0f) {
@@ -295,7 +295,7 @@ void ActorView::refresh_combat_context()
         uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)vehicle & 0xffff].data;
 
         if (*(uint32_t *)(vehicle_tag + 0x2f0) & 0x100) {
-            unit_get_forward_vector_or_marker_normal(A_I32(0x18), (real_vector3d *)(self + 0x180));
+            halo::units::unit_get_forward_vector_or_marker_normal(A_I32(0x18), (real_vector3d *)(self + 0x180));
         } else {
             *(real_vector3d *)&((struct actor *)self)->unit_aiming_vector.i = *(real_vector3d *)&((vehicle_object *)vehicle)->unit.aiming_vector.i;
         }
@@ -321,7 +321,6 @@ namespace actor_reset_queued_look_vector_local {
 extern "C" {
 extern data_array *actor_data;
 extern const real_vector3d *global_origin3d_pointer;
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern uint8_t actor_wants_reload_or_swap(datum_index actor_index);
 }
 }
@@ -342,7 +341,7 @@ uint8_t ActorView::reset_queued_look_vector()
         return 0;
     }
     if (self->unit_index != (datum_index)k_datum_index_none) {
-        if (unit_is_in_busy_animation_state(self->unit_index)) {
+        if (halo::units::unit_is_in_busy_animation_state(self->unit_index)) {
             return 0;
         }
     }

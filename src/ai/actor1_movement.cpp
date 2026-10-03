@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace c_actor_avoid_obstacle_and_project {
 extern "C" {
@@ -712,11 +713,6 @@ extern data_array *prop_data;
 extern data_array *object_data;
 
 extern double sqrt(double x);
-extern uint8_t unit_is_seat_occupied(int32_t parent_index, int16_t seat_index);
-extern uint8_t unit_seat_flag_bit10(uint32_t unit_index, int16_t seat_index);
-extern uint8_t unit_seat_flag_bit3(uint32_t unit_index, int16_t seat_index);
-extern uint8_t unit_find_weapon_marker_transform(uint32_t unit_index, uint32_t vehicle_index, int16_t seat_index,
-    real_point3d *out_entry, real_point3d *out_seat, real_point3d *out_hint);
 extern void object_get_position(real_point3d *out_position, datum_index object_index);
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
@@ -769,13 +765,13 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
     uint8_t in_front;
     datum_index prop_index;
 
-    if (unit_is_seat_occupied((int32_t)vehicle_index, seat_index)) {
+    if (halo::units::unit_is_seat_occupied((int32_t)vehicle_index, seat_index)) {
         return 0;
     }
-    if ((TAG_DATA(((actor *)act)->actor_definition_tag)[0x4] & 8) && !unit_seat_flag_bit10(vehicle_index, seat_index)) {
+    if ((TAG_DATA(((actor *)act)->actor_definition_tag)[0x4] & 8) && !halo::units::unit_seat_flag_bit10(vehicle_index, seat_index)) {
         return 0;
     }
-    if (!unit_find_weapon_marker_transform(((actor *)act)->unit_index, vehicle_index, seat_index, &entry, &seat,
+    if (!halo::units::unit_find_weapon_marker_transform(((actor *)act)->unit_index, vehicle_index, seat_index, &entry, &seat,
                                            &hint)) {
         return 0;
     }
@@ -821,7 +817,7 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
     facing = (uint8_t)(dot > 0.6f);
     in_front = (uint8_t)(distance < 1.1f && dot > 0.0f);
     score = 10.0f / (distance + 1.0f);
-    if ((unit_seat_flag_bit3(vehicle_index, seat_index) != 0) != ((variant[0] & 0x80) != 0)) {
+    if ((halo::units::unit_seat_flag_bit3(vehicle_index, seat_index) != 0) != ((variant[0] & 0x80) != 0)) {
         score = score + 3.5f;
     }
     if (out_entry != 0) {

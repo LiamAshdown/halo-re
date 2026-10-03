@@ -2,6 +2,7 @@
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern void unit_invalidate_local_player_zoom_level(void);
@@ -25,7 +26,7 @@ namespace halo::units {
  *
  * @address 0x565a70
  */
-void unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_notify, datum_index sound_definition_index)
+void halo::units::unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_notify, datum_index sound_definition_index)
 {
     if (!skip_notify) {
         halo::sound::sound_start_unspatialized(sound_definition_index, 1.0f);
@@ -62,7 +63,7 @@ typedef struct vehicle_network_create_message {
  *
  * @address 0x572110
  */
-void unit_spawn_with_starting_weapons(void *command_record)
+void halo::units::unit_spawn_with_starting_weapons(void *command_record)
 {
     using namespace unit_spawn_with_starting_weapons_local;
     vehicle_network_create_message message;

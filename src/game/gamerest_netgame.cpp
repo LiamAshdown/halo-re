@@ -4,6 +4,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/units/api.hpp"
 
 #ifdef __cplusplus
 #define CTF_CUSTOM_WAYPOINT_ZERO custom_waypoint{}
@@ -28,10 +29,6 @@ extern int32_t ctf_team_return_credit_ticks[2];
 extern datum_index ctf_team_flag_object[2];
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
-extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force);
-extern void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index);
-extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);
 extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type, datum_index subject, char broadcast);
 extern void object_delete(datum_index object_index);
 extern void game_engine_ctf_respawn_team_flag(int32_t team, real_point3d *forwarded_position, uint16_t forwarded_name_index);
@@ -88,22 +85,22 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                                 unit_data *unit =
                                     (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
                                 datum_index current_weapon =
-                                    unit_get_weapon_object_index((uint32_t)carrier->unit, unit->current_weapon_index);
+                                    halo::units::unit_get_weapon_object_index((uint32_t)carrier->unit, unit->current_weapon_index);
                                 if (current_weapon != (datum_index)flag_handle) {
                                     int32_t slot;
                                     for (slot = 0; slot < k_maximum_weapons_per_unit; slot++) {
                                         if (unit->weapons[slot] == (datum_index)flag_handle) {
                                             unit->current_weapon_index = (int16_t)slot;
-                                            unit_ready_desired_weapon((uint32_t)carrier->unit, 1);
+                                            halo::units::unit_ready_desired_weapon((uint32_t)carrier->unit, 1);
                                             break;
                                         }
                                     }
                                 }
-                                current_weapon = unit_get_weapon_object_index(
+                                current_weapon = halo::units::unit_get_weapon_object_index(
                                     (uint32_t)carrier->unit, unit->current_weapon_index);
                                 if (current_weapon == (datum_index)flag_handle) {
-                                    unit_dispatch_scripted_event_1b(1, (uint32_t)carrier->unit);
-                                    unit_drop_current_weapon((uint32_t)carrier->unit, 1);
+                                    halo::units::unit_dispatch_scripted_event_1b(1, (uint32_t)carrier->unit);
+                                    halo::units::unit_drop_current_weapon((uint32_t)carrier->unit, 1);
                                 }
                             }
                         }

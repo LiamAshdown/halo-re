@@ -6,6 +6,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -16,7 +17,6 @@ extern real_vector3d *global_origin3d_pointer;
 extern game_main_globals *main_game_globals;
 extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind, int16_t noise, int32_t unused);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-extern void unit_get_secondary_eye_marker_position(uint32_t object_index, real_point3d *out);
 extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);
@@ -173,7 +173,7 @@ int ProjectileHandle::update()
                     fade = 1.0f;
                 }
             }
-            unit_get_secondary_eye_marker_position(tracked_index, &target);
+            halo::units::unit_get_secondary_eye_marker_position(tracked_index, &target);
             angle_a = halo::math::periodic_function_evaluate(_periodic_function_wander,
                 (double)((real)(int32_t)((salt * 7 + tick) & halo::k_datum_slot_mask) * 0.011111111f)) * 6.2831855f;
             angle_b = 3.1415927f - halo::math::periodic_function_evaluate(_periodic_function_wander,

@@ -3,6 +3,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace c_actor_allocate_paired_prop {
 extern "C" {
@@ -105,12 +106,9 @@ extern void object_initialize_shield_stun_thresholds(uint32_t object_index, floa
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
     datum_index role);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
-extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index);
 
 extern void object_delete_unparented(uint32_t object_index);
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
-extern uint8_t unit_try_select_equipment(uint32_t unit_index, uint32_t new_equipment_object_index,
-    int16_t release_current);
 extern void object_delete(uint32_t object_index);
 
 static uint8_t *object_get(datum_index object_index)
@@ -173,7 +171,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
     if (*(datum_index *)&((ActorVariant *)variant)->weapon.tag_id != k_datum_index_none) {
         datum_index weapon = actor_create_unit_item(*(datum_index *)&((ActorVariant *)variant)->weapon.tag_id, unit_index);
 
-        if (weapon != k_datum_index_none && !unit_pickup_weapon(2, weapon, unit_index)) {
+        if (weapon != k_datum_index_none && !halo::units::unit_pickup_weapon(2, weapon, unit_index)) {
             int32_t role = *(int32_t *)(object_get(weapon) + 4);
 
             if (role == 0) {
@@ -203,7 +201,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         if (equipment_kind != 0 && equipment_kind != 6) {
             datum_index equipment = actor_create_unit_item(*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id, unit_index);
 
-            if (equipment != k_datum_index_none && !unit_try_select_equipment(unit_index, equipment, 1)) {
+            if (equipment != k_datum_index_none && !halo::units::unit_try_select_equipment(unit_index, equipment, 1)) {
                 object_delete(equipment);
             }
         }

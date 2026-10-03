@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -19,9 +20,6 @@ extern void hud_set_action_text_shown(int16_t local_player_index, uint8_t shown)
 extern int16_t object_get_hud_text_message_index(datum_index object_index);
 extern uint8_t weapon_hud_ammo_state_is_empty(const weapon_hud_ammo_state *state);
 extern uint8_t game_engine_pick_hud_hint(datum_index player_index, int32_t maximum_length, uint16_t *out_text);
-extern int16_t unit_count_deployed_weapons(datum_index unit_index);
-extern int16_t unit_find_next_zone_permitted_weapon_slot(datum_index unit_index, int32_t start_slot, int16_t direction);
-extern datum_index unit_get_weapon_object_index(datum_index unit_index, int16_t slot_index);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern hud_globals_flags *hud_flags;
 extern uint8_t current_game_engine;
@@ -188,7 +186,7 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
         datum_index unit_index = p->unit;
         uint8_t *unit_object = object_get(unit_index);
         unit_data *unit = (unit_data *)(unit_object + k_unit_data_offset);
-        datum_index current_weapon = unit_get_weapon_object_index(unit_index, unit->current_weapon_index);
+        datum_index current_weapon = halo::units::unit_get_weapon_object_index(unit_index, unit->current_weapon_index);
         datum_index parent = *(datum_index *)(unit_object + 0x11c);
         uint8_t can_switch = 1;
         weapon_hud_ammo_state ammo;
@@ -202,13 +200,13 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
             halo::items::weapon_build_hud_ammo_state(current_weapon, &ammo);
             if (weapon_hud_ammo_state_is_empty(&ammo)) {
                 int16_t slot = unit->current_weapon_index;
-                int16_t remaining = unit_count_deployed_weapons(unit_index);
+                int16_t remaining = halo::units::unit_count_deployed_weapons(unit_index);
                 datum_index candidate;
 
                 for (;;) {
-                    slot = unit_find_next_zone_permitted_weapon_slot(unit_index, slot, 1);
+                    slot = halo::units::unit_find_next_zone_permitted_weapon_slot(unit_index, slot, 1);
                     unit_index = p->unit;
-                    candidate = unit_get_weapon_object_index(unit_index, slot);
+                    candidate = halo::units::unit_get_weapon_object_index(unit_index, slot);
                     halo::items::weapon_build_hud_ammo_state(candidate, &ammo);
                     if (!weapon_hud_ammo_state_is_empty(&ammo)) {
                         break;

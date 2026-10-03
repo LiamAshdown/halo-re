@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern datum_index ai_conversation_new(int16_t conversation_definition_index, uint8_t allow_eviction);
@@ -18,8 +19,6 @@ extern int32_t __ftol(double x);
 extern data_array *object_data;
 extern game_time_globals *game_time;
 extern int32_t ai_communication_quiet_until_tick;
-extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index, int32_t *chain_value);
-extern int32_t unit_commit_speech(uint32_t unit_index, const void *source, int16_t mode);
 extern ai_globals *ai_globals_ptr;
 extern data_array *encounter_data;
 extern datum_index *object_name_list;
@@ -34,7 +33,6 @@ extern data_array *player_data;
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
 extern int32_t ai_conversation_get_run_to_player_range(ai_conversation_range_lookup *out, uint32_t conversation_index);
-extern uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point);
 extern int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *out_resolved, uint8_t *out_wants_alternate, uint8_t *out_blocked_by_player, float *inout_minimum_distance, datum_index conversation_index);
 extern uint8_t ai_conversation_activate_next_participant(datum_index instance_handle);
 extern uint8_t ai_conversation_current_line_is_ready(datum_index instance_handle);
@@ -299,7 +297,7 @@ uint8_t ConversationView::current_line_is_ready()
             if (*(datum_index *)(inst + 0x54) != k_datum_index_none && !inst[0x60]) {
                 int16_t dialogue_index = -1;
                 int32_t chain_value = (int32_t)sound;
-                int16_t result = (int16_t)unit_animation_change_priority_check(*(datum_index *)(inst + 0x54), 0, 6, 1, 0,
+                int16_t result = (int16_t)halo::units::unit_animation_change_priority_check(*(datum_index *)(inst + 0x54), 0, 6, 1, 0,
                     &dialogue_index, &chain_value);
 
                 if (result == 1) {
@@ -320,7 +318,7 @@ uint8_t ConversationView::current_line_is_ready()
                     *(int16_t *)(speech + 0x1e) = 1;
                     *(datum_index *)(speech + 0x20) = *(datum_index *)(inst + 0x54);
                     *(int16_t *)(speech + 0x24) = 0;
-                    unit_commit_speech(*(datum_index *)(inst + 0x54), speech, result);
+                    halo::units::unit_commit_speech(*(datum_index *)(inst + 0x54), (const unit_speech *)speech, result);
                 }
             } else {
                 halo::sound::sound_impulse_start(k_datum_index_none, sound, 1.0f);
@@ -1091,7 +1089,7 @@ check_looking:
         if (((struct player *)player)->unit != (datum_index)k_datum_index_none) {
             for (j = 0; j < (int32_t)definition->participants.count; j++) {
                 if (instance->participant_actor[j] != (datum_index)k_datum_index_none &&
-                    unit_point_within_look_cone(0.5235988f, ((struct player *)player)->unit,
+                    halo::units::unit_point_within_look_cone(0.5235988f, ((struct player *)player)->unit,
                         (real_point3d *)((uint8_t *)actor_data->data +
                             (instance->participant_actor[j] & 0xffff) * k_actor_size + 0x120)) != 0) {
                     found_looking = 1;

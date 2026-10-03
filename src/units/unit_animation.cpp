@@ -16,6 +16,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern uint8_t *game_state_base;
@@ -61,7 +62,7 @@ namespace halo::units {
  *
  * @address 0x561fe0
  */
-void unit_ai_update_stagger_allocate(void)
+void halo::units::unit_ai_update_stagger_allocate(void)
 {
     uint8_t *block = game_state_base + game_state_cursor;
     int32_t size = 8;
@@ -77,7 +78,7 @@ void unit_ai_update_stagger_allocate(void)
  *
  * @address 0x562020
  */
-void unit_ai_update_stagger_reset(void)
+void halo::units::unit_ai_update_stagger_reset(void)
 {
     ai_update_stagger->threshold = 0;
     ai_update_stagger->highest = 0;
@@ -168,7 +169,7 @@ int32_t UnitView::animation_change_priority_check(uint8_t follow_fallback, int16
  *
  * @address 0x569450
  */
-void unit_animation_set_state(void)
+void halo::units::unit_animation_set_state(void)
 {
     return;
 }
@@ -178,7 +179,7 @@ void unit_animation_set_state(void)
  *
  * @address 0x565d60
  */
-uint8_t unit_animation_state_allows_parent_ik(uint8_t *animation_block)
+uint8_t halo::units::unit_animation_state_allows_parent_ik(uint8_t *animation_block)
 {
     int32_t state_index = (int32_t)*(int8_t *)(animation_block + 0x0b) - 0x17;
 
@@ -194,7 +195,7 @@ uint8_t unit_animation_state_allows_parent_ik(uint8_t *animation_block)
  *
  * @address 0x565d00
  */
-uint8_t unit_animation_state_allows_weapon_ik(uint8_t *animation_block)
+uint8_t halo::units::unit_animation_state_allows_weapon_ik(uint8_t *animation_block)
 {
     uint8_t result = *(int16_t *)(animation_block + 0x1a) == -1;
     int32_t state_index;
@@ -218,7 +219,7 @@ uint8_t unit_animation_state_allows_weapon_ik(uint8_t *animation_block)
  *
  * @address 0x565da0
  */
-int32_t unit_animation_state_from_seat_type(int16_t animation_state)
+int32_t halo::units::unit_animation_state_from_seat_type(int16_t animation_state)
 {
     switch (animation_state) {
     case 0: case 2: case 3:
@@ -240,7 +241,7 @@ int32_t unit_animation_state_from_seat_type(int16_t animation_state)
  *
  * @address 0x565be0
  */
-uint8_t unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state)
+uint8_t halo::units::unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state)
 {
     switch ((int8_t)animation_block[0xb]) {
     case 2:
@@ -276,7 +277,7 @@ uint8_t unit_animation_state_is_compatible(const uint8_t *animation_block, int16
  *
  * @address 0x56eb90
  */
-int16_t unit_base_animation_state_from_name(const char *name)
+int16_t halo::units::unit_base_animation_state_from_name(const char *name)
 {
     int16_t index;
 
@@ -640,7 +641,7 @@ uint8_t UnitView::is_in_busy_animation_state()
  *
  * @address 0x5692b0
  */
-int32_t unit_map_action_command_to_animation_state(int16_t command, int16_t *out_priority)
+int32_t halo::units::unit_map_action_command_to_animation_state(int16_t command, int16_t *out_priority)
 {
     int32_t state = -1;
     switch (command) {
@@ -1017,7 +1018,7 @@ uint8_t UnitView::start_user_animation(datum_index graph_tag, const char *animat
  *
  * @address 0x565c60
  */
-uint8_t unit_state_is_scripted_animation(unit_data *unit)
+uint8_t halo::units::unit_state_is_scripted_animation(unit_data *unit)
 {
     switch (unit->animation_state) {
     case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b:
@@ -1191,7 +1192,7 @@ uint8_t UnitView::try_start_scripted_action_animation(int16_t command, const rea
  *
  * @address 0x56c470
  */
-uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_index)
+uint8_t halo::units::unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_index)
 {
     uint8_t *self = (uint8_t *)object_try_and_get(unit_index, 3);
     datum_index vehicle_index;
@@ -1358,7 +1359,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
 
                 object_set_collision_enabled(unit_index, (uint8_t)(~seat_flags & 1));
                 if (((struct unit_object *)parent)->unit.driver_unit_index == unit_index) {
-                    ::unit_notify_weapon_removed_dup((int32_t)((unit_object *)unit)->base.parent_object);
+                    halo::units::UnitView((int32_t)((unit_object *)unit)->base.parent_object).notify_weapon_removed_dup();
                 }
                 break;
             }

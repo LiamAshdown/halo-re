@@ -1,6 +1,7 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace halo::ai {
 
@@ -418,9 +419,6 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
                                        datum_index object_a, int32_t param_d,
                                        datum_index object_b, datum_index object_c,
                                        uint32_t *param_g);
-extern uint8_t unit_try_ready_weapon_variant(datum_index unit_index, const real_vector2d *facing);
-extern uint8_t unit_is_in_busy_animation_state(datum_index actor_index);
-extern uint8_t unit_get_average_active_marker_direction(datum_index unit_index, real_vector3d *out_direction);
 }
 }
 
@@ -660,7 +658,7 @@ void ActorView::movement_update()
             take_sideslip = 1;
         } else if (movement_style == 4) {
             real_vector3d direction;
-            if (unit_get_average_active_marker_direction(a->active_unit_index, &direction) == 0) {
+            if (halo::units::unit_get_average_active_marker_direction(a->active_unit_index, &direction) == 0) {
                 cached_axis = 0;
                 sidestep_mode = 1;
                 order_failed = 1;
@@ -736,7 +734,7 @@ void ActorView::movement_update()
     }
 
     if (a->secondary_action == -1 &&
-        (a->unit_index == (datum_index)k_datum_index_none || unit_is_in_busy_animation_state(a->unit_index) == 0) &&
+        (a->unit_index == (datum_index)k_datum_index_none || halo::units::unit_is_in_busy_animation_state(a->unit_index) == 0) &&
         a->active_unit_index == (datum_index)k_datum_index_none &&
         a->airborne == 0 && a->berserking != 0 && a->berserk_announced == 0) {
         real_vector2d facing;
@@ -778,7 +776,7 @@ void ActorView::movement_update()
                     facing = *global_forward2d_pointer;
                 }
             }
-            if (unit_try_ready_weapon_variant(a->unit_index, &facing) != 0) {
+            if (halo::units::unit_try_ready_weapon_variant(a->unit_index, &facing) != 0) {
                 ai_communication_broadcast(0x2f, a->unit_index,
                                            (datum_index)k_datum_index_none, -1,
                                            (datum_index)k_datum_index_none,

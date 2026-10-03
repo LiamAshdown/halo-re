@@ -4,6 +4,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace halo::ai {
 
@@ -253,9 +254,6 @@ int32_t ActorOps::pick_dialogue_variant_b(int16_t category)
 namespace actor_play_first_valid_vocalization_local {
 extern "C" {
 extern data_array *actor_data;
-extern uint8_t unit_seat_index_is_valid(uint32_t other_object_index, uint32_t unit_index, int16_t seat_index);
-extern int16_t unit_find_seats_matching_name_and_flags(uint32_t unit_index, char *name_filter, uint16_t flag_selector,
-                                                       int16_t *out_indices, int16_t max_indices);
 extern uint8_t actor_build_order_investigate_encounter_point(uint32_t vehicle_index, uint32_t actor_index, int16_t seat_index,
                                                              uint8_t *order);
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
@@ -277,12 +275,12 @@ uint8_t ActorOps::play_first_valid_vocalization(int16_t *seat_list, datum_index 
 
     if (seat_list == 0) {
         seat_list = local_list;
-        count = unit_find_seats_matching_name_and_flags(vehicle_index, seat_name, (uint16_t)seat_flags, local_list, 16);
+        count = halo::units::unit_find_seats_matching_name_and_flags(vehicle_index, seat_name, (uint16_t)seat_flags, local_list, 16);
     }
     for (i = 0; i < count; i++) {
         int16_t seat = seat_list[i];
 
-        if (seat == -1 || !unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat)) {
+        if (seat == -1 || !halo::units::unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat)) {
             continue;
         }
         if (actor_build_order_investigate_encounter_point(vehicle_index, actor_index, seat, order)) {
@@ -645,7 +643,6 @@ namespace actor_queue_secondary_action_local {
 extern "C" {
 extern data_array *actor_data;
 extern void actor_set_units_active(datum_index actor_index, uint8_t dormant);
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 }
 }
 
@@ -665,7 +662,7 @@ uint8_t ActorView::queue_secondary_action(int16_t action, uint32_t payload[2])
     if (self->secondary_action != (int16_t)-1) {
         return 0;
     }
-    if (self->unit_index != (datum_index)k_datum_index_none && unit_is_in_busy_animation_state(self->unit_index)) {
+    if (self->unit_index != (datum_index)k_datum_index_none && halo::units::unit_is_in_busy_animation_state(self->unit_index)) {
         return 0;
     }
 

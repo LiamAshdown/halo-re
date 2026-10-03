@@ -5,6 +5,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -28,7 +29,6 @@ extern void object_delete_recursive(datum_index object_index, uint8_t recurse_si
 extern void weapon_magazine_reload_tick(datum_index item_index, int16_t magazine_index);
 extern void weapon_notify_reload_cancel(datum_index item_index, int16_t magazine_index);
 extern double floor(double x);
-extern void unit_dispatch_seat_overlay_command(uint32_t unit_index, int16_t command);
 extern void object_delete(uint32_t object_index);
 void halo::items::weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out);
 real halo::items::weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
@@ -1038,7 +1038,7 @@ skip_animation:
             unit_index = parent;
         }
         if (object_try_and_get(unit_index, _object_mask_unit) != 0) {
-            unit_dispatch_seat_overlay_command(unit_index, new_state);
+            halo::units::unit_dispatch_seat_overlay_command(unit_index, new_state);
         }
     }
     return 1;

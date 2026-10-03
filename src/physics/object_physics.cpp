@@ -18,6 +18,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" { void halo::physics::object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }
 extern "C" { uint8_t halo::physics::object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t candidate_object_index); }
@@ -118,11 +119,9 @@ extern "C" { extern data_array *object_data; }
 extern "C" { extern Globals *global_globals; }
 extern "C" { extern game_time_globals *game_time; }
 extern "C" { extern float k_impact_damage_scale_table[]; }
-extern "C" { extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out); }
 extern "C" { extern uint32_t object_collision_context_test_point(object_collision_context *context, real_point3d *point); }
 extern "C" { extern uint8_t object_collision_context_gather_sphere_shapes(void *context, real_point3d *origin, float radius_scale, float margin, float thickness, physics_model *model); }
 extern "C" { extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *point, physics_model_contact *out_contact); }
-extern "C" { extern void unit_apply_impulse(uint32_t object_index, real_vector3d *impulse); }
 extern "C" { extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location); }
 extern "C" { extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane); }
 extern "C" { extern double sqrt(double x); }
@@ -151,7 +150,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
     float relative_speed;
     float clamped_speed;
 
-    unit_get_crouch_height_offset(contact_point, candidate_object_index, &sample[0], &sample[1]);
+    halo::units::unit_get_crouch_height_offset(contact_point, candidate_object_index, &sample[0], &sample[1]);
 
     if (!halo::physics::object_collision_context_test_point((object_collision_context *)self_object_index, contact_point)) {
         physics_model model;
@@ -198,7 +197,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
     impulse.j = (impulse.j * clamped_speed + self_obj->velocity.j) * 0.5f;
     impulse.k = (clamped_speed * impulse.k + self_obj->velocity.k) * 0.5f;
 
-    unit_apply_impulse(candidate_object_index, &impulse);
+    halo::units::unit_apply_impulse(candidate_object_index, &impulse);
 
     contact_point->x = impulse.i + impulse.i + contact_point->x;
     contact_point->y = impulse.j + impulse.j + contact_point->y;
@@ -1092,7 +1091,6 @@ void ObjectPhysics::mass_point_update_orientation(real_vector3d *axis, real_vect
 }
 
 extern "C" { extern float k_physics_collision_damping; }
-extern "C" { extern uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index); }
 namespace halo::physics {
 
 /**
@@ -1226,7 +1224,7 @@ uint8_t ObjectPhysics::resolve_mass_point_overlap(object_physics_context *self, 
         object *self_object = ((object_header *)object_data->data)[self->object_index & 0xffff].data;
         object *other_object = ((object_header *)object_data->data)[other->object_index & 0xffff].data;
 
-        if (self_object->network_role != 1 || unit_any_flagged_seat_occupied(self->object_index) == 1) {
+        if (self_object->network_role != 1 || halo::units::unit_any_flagged_seat_occupied(self->object_index) == 1) {
             vehicle_data *self_vehicle = (vehicle_data *)((uint8_t *)self_object + k_unit_object_size);
             self_vehicle->accumulated_force.i += self_force.i;
             self_vehicle->accumulated_force.j += self_force.j;
@@ -1239,7 +1237,7 @@ uint8_t ObjectPhysics::resolve_mass_point_overlap(object_physics_context *self, 
         }
 
         if (other_definition->radius <= 0.0f &&
-            (other_object->network_role != 1 || unit_any_flagged_seat_occupied(other->object_index) == 1)) {
+            (other_object->network_role != 1 || halo::units::unit_any_flagged_seat_occupied(other->object_index) == 1)) {
             vehicle_data *other_vehicle = (vehicle_data *)((uint8_t *)other_object + k_unit_object_size);
             other_vehicle->accumulated_force.i += other_force.i;
             other_vehicle->accumulated_force.j += other_force.j;

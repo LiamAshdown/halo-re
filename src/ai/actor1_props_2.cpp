@@ -1,5 +1,6 @@
 #include "halo/ai/actor_props.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace c_actor_danger_update_reaction {
 extern "C" {
@@ -23,7 +24,6 @@ extern int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t 
     uint8_t stance_a, uint8_t check_facing, uint16_t range_class);
 extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index,
     void *target_ref, int16_t gate, real_point3d *listener_position);
-extern int32_t unit_get_animation_frames_remaining(uint32_t unit_index, int16_t *out_animation_state);
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant, void *context);
 
 #define A_W(o) (*(int16_t *)(actor + (o)))
@@ -124,7 +124,7 @@ void halo::ai::prop_ops::danger_update_reaction()
                 noticed = seen;
             }
         }
-        frames = unit_get_animation_frames_remaining(A_D(0x28c), &state);
+        frames = halo::units::unit_get_animation_frames_remaining(A_D(0x28c), &state);
         A_W(0x2e8) = state == 0x19 ? (int16_t)frames : -1;
         break;
     }

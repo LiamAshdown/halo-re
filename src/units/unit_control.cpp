@@ -15,6 +15,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -385,7 +386,7 @@ uint8_t UnitView::is_look_target_valid()
  *
  * @address 0x56c100
  */
-uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point)
+uint8_t halo::units::unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point)
 {
     if (unit_index == k_datum_index_none) {
         return 0;
@@ -469,7 +470,7 @@ int32_t UnitView::predict_aim_target_position(real_point3d *out_position)
  *
  * @address 0x55cca0
  */
-uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vector3d *out_forward_delta, real_vector3d *out_up_delta, float time_fraction)
+uint32_t halo::units::unit_predict_movement_delta(real_vector3d *out_position_delta, real_vector3d *out_forward_delta, real_vector3d *out_up_delta, float time_fraction)
 {
     if (game_time->paused != 0) {
         return 0;
@@ -780,7 +781,7 @@ void UnitView::set_facing_from_index_table()
  *
  * @address 0x565ca0
  */
-uint8_t unit_state_allows_control(const uint8_t *animation_block)
+uint8_t halo::units::unit_state_allows_control(const uint8_t *animation_block)
 {
     switch ((int8_t)animation_block[0xb]) {
     case 1: case 2: case 3:
@@ -1208,7 +1209,7 @@ static void level_to_world_up(object *obj)
  *
  * @address 0x560800
  */
-void unit_update_up_vector(Biped *biped_tag, object *obj)
+void halo::units::unit_update_up_vector(Biped *biped_tag, object *obj)
 {
     using namespace unit_update_up_vector_local;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);

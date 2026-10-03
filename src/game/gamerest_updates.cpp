@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "halo/memory/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern int32_t update_client_unknown_ea0;
@@ -41,7 +42,6 @@ extern double sqrt(double x);
 extern int32_t vehicle_wait_tick_counter;
 extern uint8_t vehicle_update_queue_find_and_remove(circular_queue *queue, int32_t target_tick, vehicle_update_record *out);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void unit_propagate_position_delta_to_children(void);
 extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern void apply_remote_player_position_update(player *plr, object *unit_obj);
 extern void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj);
@@ -710,7 +710,7 @@ void PlayerNetworkState::apply_remote_vehicle_position_update(object *unit_obj)
 
                 *(float *)&plr->vehicle_update_error_total = dist + *(float *)&plr->vehicle_update_error_total;
                 plr->vehicle_updates_applied_count = plr->vehicle_updates_applied_count + 1;
-                unit_propagate_position_delta_to_children();
+                halo::units::unit_propagate_position_delta_to_children(&parent_obj->position, (uint32_t)record.body.parent_or_tag);
                 parent_obj->velocity = record.body.velocity;
                 parent_obj->angular_velocity = record.body.angular_velocity;
                 parent_obj->forward = record.body.forward;

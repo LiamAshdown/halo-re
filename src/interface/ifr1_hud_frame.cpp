@@ -5,6 +5,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -22,8 +23,6 @@ extern data_array *object_data;
 extern Globals *global_globals;
 extern game_time_globals *game_time;
 extern hud_weapon_interface_state *hud_weapon_state;
-extern int8_t unit_get_current_grenade_index(uint32_t unit_index);
-extern int32_t unit_get_grenade_count(uint32_t unit_index, int16_t grenade_type);
 extern void hud_draw_static_element(int16_t local_player_index, uint16_t *anchor,
                                     const hud_static_element_placement *element, uint32_t draw_flags,
                                     int32_t flash_start_time);
@@ -31,8 +30,6 @@ extern void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_pla
                             int16_t fraction, uint32_t flags, int32_t flash_start_time, float scale);
 extern void hud_draw_overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t type_mask,
                               int32_t flash_start_time, uint32_t draw_flags, uint8_t split_screen);
-extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
-extern int16_t unit_count_deployed_weapons(datum_index unit_index);
 extern void hud_weapon_crosshairs_draw(datum_index hud_tag, const player *p, const weapon_hud_ammo_state *ammo);
 extern void hud_weapon_interface_draw_elements(datum_index hud_tag, int16_t local_player_index, const Weapon *weapon_tag,
                                                const weapon_hud_ammo_state *ammo, const uint16_t *parent_state_flags,
@@ -50,8 +47,6 @@ extern int32_t ui_real_to_int_truncate(float value);
 extern uint8_t game_engine_is_valid_team_player(uint32_t identifier);
 extern uint8_t game_engine_scores_tracked_individually(void);
 extern float *game_engine_get_player_color(uint32_t player_index, float *out_rgb);
-extern TagID unit_get_hud_interface_tag_id(Unit *unit_tag, uint8_t use_second);
-extern TagID unit_get_seat_hud_interface_tag_id(Unit *unit_tag, int16_t seat_index, uint8_t use_second);
 extern uint32_t color_rgb_float_to_int(const float *rgb);
 extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
                                                  const int16_t *offset, int16_t *out, int32_t selector);
@@ -271,7 +266,7 @@ void HudFrame::draw_grenade_interface(int16_t local_player_index, datum_index un
                                 flags, *flash_start_time);
     }
     if (hud->total_grenades_numbers_maximum_number_of_digits != 0) {
-        int32_t total = unit_get_grenade_count(unit_index, unit_get_current_grenade_index(unit_index));
+        int32_t total = halo::units::unit_get_grenade_count(unit_index, halo::units::unit_get_current_grenade_index(unit_index));
         hud_draw_number((void *)(int32_t)local_player_index, (uint16_t *)hud,
                         (const hud_number_placement *)&hud->total_grenades_numbers_anchor_offset, (int16_t)total, -1,
                         flags, *flash_start_time, 0.0f);
@@ -316,7 +311,7 @@ void HudFrame::draw_weapon_interface(player *p)
             uint8_t *seats = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)parent_object & 0xffff].data + 0x2e8);
 
             if ((seats[seat * 0x11c] & 8) != 0) {
-                weapon = unit_get_weapon_object_index(parent, *(int16_t *)(parent_object + 0x2f2));
+                weapon = halo::units::unit_get_weapon_object_index(parent, *(int16_t *)(parent_object + 0x2f2));
                 if (weapon == (datum_index)-1) {
                     no_weapon = 1;
                 }
@@ -335,7 +330,7 @@ void HudFrame::draw_weapon_interface(player *p)
             hud_weapon_crosshairs_draw(hud_tag, p, &ammo);
             hud_weapon_interface_draw_elements(hud_tag, p->local_player_index, weapon_tag, &ammo, 0, 0, 0);
         }
-    } else if (no_weapon && unit_count_deployed_weapons(p->unit) == 0) {
+    } else if (no_weapon && halo::units::unit_count_deployed_weapons(p->unit) == 0) {
         memset(&ammo, 0, sizeof(ammo));
         hud_weapon_crosshairs_draw(*(datum_index *)((uint8_t *)hud_globals_tag_data + 0x2cc), p, &ammo);
     }
@@ -387,7 +382,7 @@ uint8_t HudFrame::player_weapon_ammo_state(const player *p, weapon_hud_ammo_stat
         }
         parent = ((unit_object *)unit)->base.parent_object;
         parent_object = (uint8_t *)((object_header *)object_data->data)[parent & 0xffff].data;
-        weapon = unit_get_weapon_object_index(parent, *(int16_t *)(parent_object + 0x2f2));
+        weapon = halo::units::unit_get_weapon_object_index(parent, *(int16_t *)(parent_object + 0x2f2));
         if (weapon == (datum_index)-1) {
             return 0;
         }
@@ -467,7 +462,7 @@ void HudFrame::render_unit_interface(player *p)
             uint8_t *parent_object = (uint8_t *)((object_header *)object_data->data)[parent & 0xffff].data;
             Unit *parent_tag = (Unit *)halo::cache::globals().tag_instances[*(datum_index *)parent_object & 0xffff].data;
             uint8_t split = local_player_globals->local_player_count > 1;
-            TagID parent_hud = unit_get_hud_interface_tag_id(parent_tag, split);
+            TagID parent_hud = halo::units::unit_get_hud_interface_tag_id(parent_tag, split);
             uint8_t *seats = *(uint8_t **)&((struct Unit *)parent_tag)->seats.pointer;
 
             if ((seats[*(int16_t *)(unit_object + 0x2f0) * 0x11c] & 4) != 0) {
@@ -484,7 +479,7 @@ void HudFrame::render_unit_interface(player *p)
 
                     if (child_object != 0 && ((struct object *)child_object)->parent_object == parent &&
                         *(int16_t *)(child_object + 0x2f0) != -1) {
-                        TagID seat_hud = unit_get_seat_hud_interface_tag_id(parent_tag, *(int16_t *)(child_object + 0x2f0),
+                        TagID seat_hud = halo::units::unit_get_seat_hud_interface_tag_id(parent_tag, *(int16_t *)(child_object + 0x2f0),
                                                                             split);
                         objects[count] = child;
                         hud_tags[count] = *(datum_index *)&seat_hud;

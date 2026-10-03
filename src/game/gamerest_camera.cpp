@@ -6,6 +6,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -31,7 +32,6 @@ extern double acos(double x);
 extern datum_index object_get_root_object_index(datum_index object_index);
 extern Globals *global_globals;
 extern real distance_falloff_fraction(real value, real max_range);
-extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 
@@ -434,7 +434,7 @@ void SpectateCamera::spectate_fp_camera_position(camera_basis_out *out, int16_t 
         object *u = (object *)(*(void **)((uint8_t *)object_data->data +
             (uint32_t)(uint16_t)unit * object_data->size + 8));
 
-        unit_get_camera_position(unit, &out->position);
+        halo::units::unit_get_camera_position(unit, &out->position);
 
         if (u->parent_object != k_datum_index_none) {
             object *parent = object_try_and_get(u->parent_object, _object_mask_vehicle);

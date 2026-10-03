@@ -5,6 +5,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -13,7 +14,6 @@ extern player_control_globals *player_control_globals_ptr;
 extern Globals *global_globals;
 extern void *global_zero_vector3d_pointer;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern uint8_t biped_is_idle_eligible(datum_index unit_index);
 extern void first_person_weapon_update_state(int16_t local_player_index);
 extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot,
                                           int16_t new_state);
@@ -134,7 +134,7 @@ void FirstPersonWeaponController::update()
                 is_moving = 0;
             }
         }
-        if (object_get(fp->unit_index)->type == 0 && biped_is_idle_eligible(fp->unit_index) != 0) {
+        if (object_get(fp->unit_index)->type == 0 && halo::units::biped_is_idle_eligible(fp->unit_index) != 0) {
             is_moving = 0;
         }
 

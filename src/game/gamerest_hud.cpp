@@ -3,6 +3,7 @@
 #include <wchar.h>
 #include "halo/cache/api.hpp"
 #include "halo/text/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -20,7 +21,6 @@ extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *
 extern player_control_globals *player_control_globals_ptr;
 extern data_array *object_data;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
 extern void game_engine_compute_local_player_look_vector(real_vector3d *out_forward, int16_t local_player_index);
 extern int32_t object_collect_local_player_relevant_objects(real_point3d *point, uint8_t (*filter)(uint32_t, void *), void *filter_context, int32_t max_count, datum_index *out);
 extern uint32_t camera_observer_target_direction(real_point3d *candidate_point, real_vector3d *facing, real_point3d *reference_position, datum_index object, datum_index exclude_object, real_vector3d *out_direction, real *out_distance, real *out_angle);
@@ -193,7 +193,7 @@ datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player
         }
     }
 
-    unit_get_camera_position(p->unit, &camera);
+    halo::units::unit_get_camera_position(p->unit, &camera);
     game_engine_compute_local_player_look_vector(&look, p->local_player_index);
     candidate_count = object_collect_local_player_relevant_objects(&camera, hud_nameplate_candidate_filter,
         &player_handle, 0x20, candidates);

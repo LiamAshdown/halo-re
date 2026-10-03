@@ -19,6 +19,7 @@
 #include "halo/game/legacy_globals.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/units/api.hpp"
 
 #define k_degrees_to_radians 0.017453292f
 #define k_seconds_per_tick   0.033333335f
@@ -47,7 +48,6 @@ extern uint32_t camera_observer_get_target_angles(real *out_weight_primary,
     real *out_weight_secondary, real *out_yaw_pitch, real *out_yaw_pitch_rate,
     int16_t local_player_slot);
 extern uint32_t camera_observer_get_target_id(datum_index *out_id, int16_t local_player_slot);
-extern float unit_get_active_weapon_scale(uint32_t unit_index, int16_t zoom_level);
 extern double sqrt(double x);
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch,
     real_vector3d *out_forward);
@@ -190,7 +190,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
             out->throttle_x = input->throttle_x;
             out->throttle_y = input->throttle_y;
             if (plr->unit != (datum_index)-1 && control->desired_zoom_level != -1) {
-                scale = 1.0f / unit_get_active_weapon_scale(plr->unit, control->desired_zoom_level);
+                scale = 1.0f / halo::units::unit_get_active_weapon_scale(plr->unit, control->desired_zoom_level);
             }
             if (plr->unit != (datum_index)-1) {
                 unit_data *unit = (unit_data *)((uint8_t *)
@@ -228,7 +228,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
 
             if (plr->unit != (datum_index)-1 && control->desired_zoom_level != -1) {
                 real inverse_scale =
-                    1.0f / unit_get_active_weapon_scale(plr->unit, control->desired_zoom_level);
+                    1.0f / halo::units::unit_get_active_weapon_scale(plr->unit, control->desired_zoom_level);
 
                 yaw_delta = yaw_delta * inverse_scale;
                 pitch_delta = inverse_scale * pitch_delta;

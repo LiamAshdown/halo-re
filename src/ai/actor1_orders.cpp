@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace c_actor_build_guard_mode_data {
 extern "C" {
@@ -397,7 +398,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 
-extern uint8_t unit_seat_index_is_valid(uint32_t other_object_index, uint32_t unit_index, int16_t seat_index);
 extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index,
     real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score,
     uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front);
@@ -436,7 +436,7 @@ uint8_t halo::ai::order_builder::investigate_encounter_point(uint32_t vehicle_in
     *(datum_index *)(order + 0x0) = vehicle_index;
     *(int16_t *)(order + 0x4) = seat_index;
     order[0x6] = 0;
-    if (!unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat_index)) {
+    if (!halo::units::unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat_index)) {
         return 0;
     }
     if (!actor_evaluate_search_node(actor_index, vehicle_index, seat_index, &entry, &direction, &hint, 0, 0, 0, 0)) {
@@ -685,7 +685,6 @@ extern data_array *actor_data;
 extern uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius_a, float radius_b, uint8_t vitality_only, uint8_t use_radius_b, uint32_t actor_index, uint32_t object_index);
 extern int16_t actor_find_best_search_node(datum_index actor_index, datum_index vehicle_index, real_point3d *out_entry,
                                            real_vector3d *out_direction, real_point3d *out_hint);
-extern uint8_t unit_seat_index_is_valid(uint32_t other_object_index, uint32_t unit_index, int16_t seat_index);
 extern uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index vehicle_index, real_point3d *entry,
     real_point3d *hint, uint8_t *in_out_near_line, real_point3d *out_point, int32_t *out_surface_index);
 extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
@@ -726,7 +725,7 @@ uint8_t halo::ai::order_builder::search_object(uint32_t vehicle_index, uint32_t 
         return 0;
     }
     order[0x6] = 1;
-    if (!unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat)) {
+    if (!halo::units::unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat)) {
         return 0;
     }
     if (!actor_avoid_obstacle_and_project(actor_index, vehicle_index, &entry, &hint, 0, (real_point3d *)(order + 0x30),

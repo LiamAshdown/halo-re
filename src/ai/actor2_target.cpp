@@ -5,6 +5,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/units/api.hpp"
 
 namespace halo::ai {
 
@@ -115,7 +116,6 @@ extern void object_get_position(real_point3d *out_position, datum_index object_i
 extern datum_index object_get_root_object_index(uint32_t object_index);
 extern uint8_t halo::scenario::scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out);
-extern char unit_get_tag_flag_bit7(uint32_t unit_index);
 extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index, char stamp_group);
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
 }
@@ -233,7 +233,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
                 target->is_vehicle_gunner = 0;
             }
             if (*(int32_t *)((uint8_t *)parent_obj + 0x324) == (int32_t)target->object_index &&
-                unit_get_tag_flag_bit7(parent_index) != 0) {
+                halo::units::unit_get_tag_flag_bit7(parent_index) != 0) {
                 target->is_vehicle_driver = 1;
             } else {
                 target->is_vehicle_driver = 0;
@@ -418,9 +418,7 @@ uint16_t ActorView::target_get_priority_class(datum_index target_prop_index)
 namespace actor_target_get_relationship_object_local {
 extern "C" {
 extern data_array *prop_data;
-extern int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3d *out_position);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern datum_index biped_get_cached_look_at_position(uint32_t object_index, real_point3d *out_position);
 }
 }
 
@@ -443,13 +441,13 @@ void TargetView::target_get_relationship_object()
 
     if (*cache == -1) {
         if (target->relationship_object_index != -1) {
-            *cache = unit_predict_aim_target_position(target->relationship_object_index,
+            *cache = halo::units::unit_predict_aim_target_position(target->relationship_object_index,
                                                       (real_point3d *)((uint8_t *)target + 0xf0));
             return;
         }
         resolved = target->object_index;
         if (object_try_and_get(resolved, 1) != (void *)0) {
-            resolved = biped_get_cached_look_at_position(resolved, (real_point3d *)((uint8_t *)target + 0xf0));
+            resolved = halo::units::biped_get_cached_look_at_position(resolved, (real_point3d *)((uint8_t *)target + 0xf0));
             *cache = (int32_t)resolved;
         }
     }

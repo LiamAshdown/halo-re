@@ -1,13 +1,12 @@
 #include "halo/game/gamerest_hsplayer.hpp"
 #include <stdint.h>
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern uint8_t unit_is_child_seated_at_named_marker(datum_index unit_index, const char *seat_label, datum_index child_object_index);
-extern int32_t unit_build_seat_occupant_zone_list(int32_t object_handle);
 extern data_array *object_data;
 }
 
@@ -48,8 +47,8 @@ void HsPlayerFunctions::vehicle_test_seat_evaluate(int16_t function_index, uint3
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        uint8_t seated = unit_is_child_seated_at_named_marker((datum_index)arguments[0],
-            (const char *)(uintptr_t)(uint32_t)arguments[1], (datum_index)arguments[2]);
+        uint8_t seated = halo::units::unit_is_child_seated_at_named_marker((datum_index)arguments[0],
+            (char *)((const char *)(uintptr_t)(uint32_t)arguments[1]), (datum_index)arguments[2]);
         hs_thread_return((int32_t)seated, thread_index);
     }
 }
@@ -68,7 +67,7 @@ void HsPlayerFunctions::camo_screen_effect(int16_t index, uint32_t thread_index,
     (void)index;
 
     if (args != 0) {
-        int32_t result = unit_build_seat_occupant_zone_list(args[0]);
+        int32_t result = halo::units::unit_build_seat_occupant_zone_list(args[0]);
         hs_thread_return(result, thread_index);
     }
 }

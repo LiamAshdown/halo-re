@@ -6,6 +6,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern player_control_globals *player_control_globals_ptr;
@@ -16,7 +17,6 @@ extern real game_engine_get_max_look_pitch(int16_t local_player_index);
 extern data_array *object_data;
 extern double sqrt(double x);
 extern double fabs(double x);
-extern void unit_get_camera_position(datum_index unit, real_point3d *out);
 extern double asin(double x);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int16_t object_get_node_local_transform(datum_index object_index, const char *marker_name, object_marker *markers, int32_t maximum_count);
@@ -139,7 +139,7 @@ void FirstPersonCamera::apply_weapon_offset(real_point3d *position, datum_index 
 
     unit_object = ((object_header *)object_data->data)[(uint16_t)unit].data;
     properties = halo::camera::unit_get_camera_properties(unit);
-    unit_get_camera_position(unit, position);
+    halo::units::unit_get_camera_position(unit, position);
 
     unit_extension = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
     *aiming_direction = unit_extension->aiming_vector;
@@ -195,7 +195,7 @@ void FirstPersonCamera::deterministic(Point3D *out_position, datum_index unit, V
     object *unit_object = headers[halo::datum_slot(unit)].data;
     datum_index parent;
 
-    unit_get_camera_position(unit, (real_point3d *)out_position);
+    halo::units::unit_get_camera_position(unit, (real_point3d *)out_position);
     *out_direction = *(Vector3D *)&((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->aiming_vector; 
 
     parent = unit_object->parent_object;
@@ -257,7 +257,7 @@ void FirstPersonCamera::for_unit_and_vector(observer_command *command, Vector3D 
         datum_index parent;
         object *parent_object;
 
-        unit_get_camera_position(unit, (real_point3d *)&command->parameters.position);
+        halo::units::unit_get_camera_position(unit, (real_point3d *)&command->parameters.position);
         object_get_root_object_velocities(unit, (real_vector3d *)&command->velocity, (real_vector3d *)0);
 
         parent = unit_object->parent_object;
