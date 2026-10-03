@@ -201,7 +201,7 @@ void UiScreens::error_modal_update(void)
         if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
             strstr(ui_root_widget[0]->name, "error_modal");
         }
-        player_count_field = *(int16_t *)((char *)halo::game::globals().local_player_globals + 0xc);
+        player_count_field = halo::game::globals().local_player_globals->local_player_count;
         if (player_count_field > 1) {
             Rectangle2D bar;
 

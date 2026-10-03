@@ -699,7 +699,7 @@ typedef struct player_globals {
     uint8_t teleported;                // 0x16 attach_players_to_new_bsp skips the projectile/combat respawn_failure
                                        //    checks while set, clears it on success; OpenSauce
                                        //    players_globals.teleported at 0x16
-    uint8_t unknown_17;                // 0x17
+    uint8_t bsp_switch_state;          // 0x17 high nibble: regroup stage counter; low nibble: local player index being moved
     uint32_t cluster_pvs[0x20];        // 0x18 a bit per structure cluster the local players can see
                                        //      (game_engine_build_visible_cluster_bitmask fills it)
 } player_globals;                      // size 0x98

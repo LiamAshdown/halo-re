@@ -639,7 +639,7 @@ void StructureBsp::switch_structure_bsp()
                         int16_t destination = (int16_t)entry->destination;
 
                         {
-                            uint8_t *stage_byte = (uint8_t *)local_player_globals + 0x17;
+                            uint8_t *stage_byte = &local_player_globals->bsp_switch_state;
                             uint8_t low = (uint8_t)(*stage_byte & 0xf);
                             *stage_byte = low;
                             *stage_byte = (uint8_t)((((uint8_t)plr->local_player_index ^ low) & 0xf) ^ low);
@@ -672,7 +672,7 @@ void StructureBsp::switch_structure_bsp()
     }
 
     {
-        uint8_t *stage = (uint8_t *)local_player_globals + 0x17;
+        uint8_t *stage = &local_player_globals->bsp_switch_state;
         if ((*stage & 0xf) != 0xf) {
             *stage = (uint8_t)(((*stage & 0xf0) + 0x10) ^ (*stage & 0xf));
             if ((*stage & 0xf0) > 0xc0) {
