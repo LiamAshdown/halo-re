@@ -30,24 +30,24 @@ void ActorView::mode_uncover_tick()
     uint8_t target_visible = 0;
     uint8_t done;
 
-    if (((uint8_t *)act)[0x9d]) {
+    if (act->mode_data.uncover.done) {
         return;
     }
     actor_tag = TAG_DATA(act->actor_definition_tag);
     kind = act->mode_data.uncover.stage;
-    ((uint8_t *)act)[0x9c] = 0;
+    act->mode_data.uncover.crouch = 0;
     if (kind == 0) {
         if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4) {
-            ((uint8_t *)act)[0x9c] = (uint8_t)(act->target_combat_status != 6);
+            act->mode_data.uncover.crouch = (uint8_t)(act->target_combat_status != 6);
         } else if ((actor_tag[0] & 2) && act->target_combat_status == 5 &&
                    (int8_t)PROP(act->target_unit_index)[0x121] <= 2) {
-            ((uint8_t *)act)[0x9c] = 1;
+            act->mode_data.uncover.crouch = 1;
         }
     } else if (kind == 1) {
         if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4 ||
             ((actor_tag[0] & 4) &&
              halo::math::vector3d_distance_squared(*(&act->mode_data.uncover.position), act->body_position) < 100.0f)) {
-            ((uint8_t *)act)[0x9c] = 1;
+            act->mode_data.uncover.crouch = 1;
         }
     }
     if (act->moving) {
@@ -65,22 +65,22 @@ void ActorView::mode_uncover_tick()
             keep_going = (uint8_t)!(target_visible && act->target_combat_status < 5);
         }
     } else {
-        keep_going = (uint8_t)(((uint8_t *)act)[0xbc] == 0);
+        keep_going = (uint8_t)(act->mode_data.uncover.target_reached == 0);
     }
     if (act->firing_position_index != -1 && keep_going && (act->vehicle_gunner_bombards[0] || target_visible || act->moving)) {
         act->mode_data.uncover.remaining_ticks = act->mode_data.uncover.duration_ticks;
     } else {
-        ((uint8_t *)act)[0x9e] = 1;
+        act->mode_data.uncover.unknown_02 = 1;
         if (act->mode_data.uncover.remaining_ticks > 0) {
             act->mode_data.uncover.remaining_ticks -= 1;
         }
-        *(int32_t *)((uint8_t *)act + 0xcc) += 1;
+        act->mode_data.uncover.total_ticks += 1;
     }
-    done = (uint8_t)(act->mode_data.uncover.remaining_ticks == 0 || *(int32_t *)((uint8_t *)act + 0xcc) >= 360);
-    if (kind == 1 && ((uint8_t *)act)[0xbc]) {
+    done = (uint8_t)(act->mode_data.uncover.remaining_ticks == 0 || act->mode_data.uncover.total_ticks >= 360);
+    if (kind == 1 && act->mode_data.uncover.target_reached) {
         done = 1;
     }
-    ((uint8_t *)act)[0x9d] = done;
+    act->mode_data.uncover.done = done;
 }
 
 #undef ACTOR
@@ -132,12 +132,12 @@ void ActorView::mode_uncover_update()
             act->flee_source.code = 2;
         } else if (act->mode_data.uncover.stage == 1) {
             act->flee_source.code = 3;
-            *(real_point3d *)((uint8_t *)act + 0x3f0) = act->mode_data.uncover.position;
+            act->flee_source.payload.point = act->mode_data.uncover.position;
         }
     }
     act->look_posture = 3;
-    act->unknown_41a[12] = ((uint8_t *)act)[0x9c];
-    act->unknown_41a[13] = ((uint8_t *)act)[0x9c];
+    act->unknown_41a[12] = act->mode_data.uncover.crouch;
+    act->unknown_41a[13] = act->mode_data.uncover.crouch;
     act->unknown_41a[14] = 0;
     act->unknown_41a[10] = 0;
     act->unknown_41a[11] = 1;
@@ -164,9 +164,9 @@ void ActorView::mode_vehicle_enter()
     using namespace actor_mode_vehicle_enter_local;
     actor *act = halo::ai::actor_at(actor_index);
 
-    *(int16_t *)((uint8_t *)act + 0xaa) = 0;
-    *(int32_t *)((uint8_t *)act + 0xac) = game_time->game_time;
-    *(real_point3d *)((uint8_t *)act + 0xb0) = *(real_point3d *)&act->body_position.x;
+    act->mode_data.vehicle.stuck_count = 0;
+    act->mode_data.vehicle.last_progress_time = game_time->game_time;
+    act->mode_data.vehicle.last_progress_position = *(real_point3d *)&act->body_position.x;
 }
 
 #undef ACTOR
@@ -185,10 +185,10 @@ void ActorView::mode_vehicle_update()
     using namespace actor_mode_vehicle_update_local;
     actor *act = halo::ai::actor_at(actor_index);
 
-    if (((uint8_t *)act)[0xc8]) {
+    if (act->mode_data.vehicle.entry_reached) {
         act->flee_reason = 4;
         act->flee_source.code = 4;
-        *(real_vector3d *)((uint8_t *)act + 0x3f0) = *(real_vector3d *)((uint8_t *)act + 0xd8);
+        *(real_vector3d *)((uint8_t *)act + 0x3f0) = act->mode_data.vehicle.entry_direction;
     } else if (act->movement_action_complete) {
         act->flee_reason = 3;
         act->flee_source.code = 0;
@@ -225,56 +225,56 @@ uint8_t ActorView::mode_wait_process()
     actor *act = halo::ai::actor_at(actor_index);
 
     if (!act->needs_new_path) {
-        return ((uint8_t *)act)[0x9c];
+        return act->mode_data.wait.finished;
     }
     act->mode_data.wait.following_friend = 0;
     halo::ai::actor_find_nearest_grenade_ally(actor_index, act->grenade_ally_phase_flag);
-    if (((uint8_t *)act)[0x9d]) {
+    if (act->mode_data.wait.unknown_01) {
         if (act->nearby_friend_prop_index == k_datum_index_none) {
             if (act->mode_data.wait.countdown_150 == 0) {
                 act->mode_data.wait.countdown_150 = 150;
             }
         } else if (game_time->game_time >= act->mode_data.wait.start_game_time + 2700) {
-            ((uint8_t *)act)[0x9c] = 1;
+            act->mode_data.wait.finished = 1;
         }
     } else {
-        ((uint8_t *)act)[0x9c] = 1;
+        act->mode_data.wait.finished = 1;
         if (act->nearby_friend_prop_index != k_datum_index_none) {
             prop *ally = halo::ai::prop_at(act->nearby_friend_prop_index);
             float distance = ally->distance;
             uint8_t follow;
 
-            if (((uint8_t *)act)[0x9e] && !((uint8_t *)act)[0xa0]) {
+            if (act->mode_data.wait.unknown_02 && !act->mode_data.wait.unknown_04) {
                 follow = 1;
             } else if (ally->visual_perception < 2 || !(distance < 8.0f)) {
                 follow = 0;
                 goto decided;
             } else {
-                follow = ((uint8_t *)act)[0xa0] == 0;
+                follow = act->mode_data.wait.unknown_04 == 0;
             }
             if (follow && distance > 3.5f) {
                 act->mode_data.wait.following_friend = 1;
-                ((uint8_t *)act)[0x9c] = 0;
+                act->mode_data.wait.finished = 0;
             } else {
                 act->mode_data.wait.following_friend = 0;
-                ((uint8_t *)act)[0x9c] = 0;
+                act->mode_data.wait.finished = 0;
             }
         }
     }
 decided:
     if (act->swarm) {
-        return ((uint8_t *)act)[0x9c];
+        return act->mode_data.wait.finished;
     }
     if (act->mode_data.wait.following_friend) {
-        uint8_t done = ((uint8_t *)act)[0x9c];
+        uint8_t done = act->mode_data.wait.finished;
 
         if (!halo::ai::actor_movement_set_destination_near_target(act->nearby_friend_prop_index, actor_index, 8.0f)) {
-            ((uint8_t *)act)[0xa0] = 1;
+            act->mode_data.wait.unknown_04 = 1;
         }
         return done;
     }
     halo::ai::actor_movement_action_stop(actor_index);
-    return ((uint8_t *)act)[0x9c];
+    return act->mode_data.wait.finished;
 }
 
 #undef ACTOR
@@ -308,10 +308,10 @@ void ActorView::mode_wait_tick()
     if (act->mode_data.wait.countdown_150 > 0) {
         act->mode_data.wait.countdown_150 -= 1;
         if (act->mode_data.wait.countdown_150 == 0) {
-            if (((uint8_t *)act)[0x9d] && unit_index != k_datum_index_none) {
+            if (act->mode_data.wait.unknown_01 && unit_index != k_datum_index_none) {
                 halo::ai::ai_communication_broadcast(0x14, unit_index, -1, -1, -1, -1, 0);
             }
-            ((uint8_t *)act)[0x9c] = 1;
+            act->mode_data.wait.finished = 1;
         }
     }
     if (!act->mode_data.wait.following_friend && act->mode_data.wait.countdown_0c > 0) {
@@ -341,7 +341,7 @@ void ActorView::mode_wait_update()
     } else if (!act->grenade_ally_phase_flag && *(int32_t *)&act->nearby_friend_prop_index != -1 && act->mode_data.wait.countdown_0c > 0) {
         act->flee_reason = 5;
         act->flee_source.code = 1;
-        *(int32_t *)((uint8_t *)act + 0x3f0) = *(int32_t *)&act->nearby_friend_prop_index;
+        act->flee_source.payload.handle = *(int32_t *)&act->nearby_friend_prop_index;
     } else {
         act->flee_reason = 1;
     }
