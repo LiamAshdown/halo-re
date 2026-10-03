@@ -1224,9 +1224,9 @@ void game_engine_server_update_player_positions(void)
  *
  * @address 0x467010
  */
-void game_engine_send_player_profile_update(void *has_payload, void *profile_tail, int32_t target)
+void game_engine_send_player_profile_update(const int32_t *machine_hash, const void *cached_profile, int32_t commit, const void *current_profile, int32_t target)
 {
-    halo::game::EnginePlayerSync::send_player_profile_update(has_payload, profile_tail, target);
+    halo::game::EnginePlayerSync::send_player_profile_update(machine_hash, cached_profile, commit, current_profile, target);
 }
 
 /**

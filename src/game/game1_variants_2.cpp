@@ -68,7 +68,7 @@ void Variants::capture_player_profile(int32_t slot, int32_t commit)
         *low_word = *low_word / 30;
     }
 
-    halo::game::game_engine_send_player_profile_update(&lookup_result, &snapshot.kills, -1);
+    halo::game::game_engine_send_player_profile_update(&lookup_result, &player_profile_cache[slot].kills, commit, &snapshot.kills, -1);
 
     if (commit == 1) {
         player_profile_cache[slot].kills = snapshot.kills;

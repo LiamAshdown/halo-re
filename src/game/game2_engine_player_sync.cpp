@@ -409,22 +409,29 @@ void EnginePlayerSync::server_update_player_positions(void)
 }
 
 /**
- * Encodes `profile_tail` as network message type 0x15 and either broadcasts it (target == -1) or sends it to
- * one machine, when `broadcast_mode` selects the "commit" wire shape and the encode produces a payload.
- * UNSURE: see header -- `has_payload` and the alternate (non-commit) wire shape are reproduced only at the
- * level Ghidra's own decompile supports.
+ * Encodes a player profile update (network message 0x15) and sends it to one machine, or broadcasts it when
+ * `target` is -1. `machine_hash` is the hashed machine index of the player (optional), `cached_profile` the
+ * profile last sent for the slot and `current_profile` the freshly captured one. With a non-zero `commit` the
+ * message is encoded as the change from the cached profile to the current one; otherwise the cached profile is
+ * sent as it stands.
  *
  * @address 0x467010
  */
-void EnginePlayerSync::send_player_profile_update(void *has_payload, void *profile_tail, int32_t target)
+void EnginePlayerSync::send_player_profile_update(const int32_t *machine_hash, const void *cached_profile, int32_t commit, const void *current_profile, int32_t target)
 {
+    const void *machine_slot = machine_hash;
+    const void *cached_slot = cached_profile;
+    const void *current_slot = current_profile;
+    int32_t machine_argument = (machine_hash != (const int32_t *)0) ? (int32_t)(uintptr_t)&machine_slot : 0;
     int32_t encoded_size;
-    void *payload_ptr;
 
-    payload_ptr = (has_payload != (void *)0) ? profile_tail : (void *)0;
-
-    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1, halo::networking::message_id(halo::networking::delta_message::player_profile_update), (uint32_t)payload_ptr, &payload_ptr,
-                                                 (uint32_t)profile_tail, 1, 0);
+    if (commit == 0) {
+        encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::player_profile_update), machine_argument, (void **)&cached_slot,
+                                                     0, 1, 0);
+    } else {
+        encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1, halo::networking::message_id(halo::networking::delta_message::player_profile_update), machine_argument, (void **)&current_slot,
+                                                     (int32_t)(uintptr_t)&cached_slot, 1, 0);
+    }
     if (encoded_size > 0) {
         if (target == -1) {
             halo::networking::network_session_broadcast_to_flagged(encoded_size, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);

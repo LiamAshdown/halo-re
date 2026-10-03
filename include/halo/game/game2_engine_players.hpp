@@ -39,7 +39,7 @@ public:
     static void players_update_client(void);
     static void players_update_server(void);
     static void server_update_player_positions(void);
-    static void send_player_profile_update(void *has_payload, void *profile_tail, int32_t target);
+    static void send_player_profile_update(const int32_t *machine_hash, const void *cached_profile, int32_t commit, const void *current_profile, int32_t target);
     static void send_unit_weapon_loadout(uint32_t unit_index, datum_index player_handle, int32_t value, int32_t machine_index);
     static void update_local_player_control(int16_t local_player_index, real delta_time, int32_t ticks_this_frame);
     static void update_local_player_look(int16_t local_player_index, real yaw_delta, real pitch_delta);

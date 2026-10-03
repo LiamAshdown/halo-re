@@ -345,7 +345,7 @@ void game_engine_resolve_player_team(uint32_t player_index);
 void game_engine_scan_netgame_flags_noop(int16_t needle);
 uint8_t game_engine_scores_tracked_individually(void);
 void game_engine_send_end_game_notification(uint32_t reason);
-void game_engine_send_player_profile_update(void *has_payload, void *profile_tail, int32_t target);
+void game_engine_send_player_profile_update(const int32_t *machine_hash, const void *cached_profile, int32_t commit, const void *current_profile, int32_t target);
 void game_engine_send_round_reset_message(void);
 void game_engine_send_team_allegiance_message(char broadcast);
 void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index player_handle, int32_t value, int32_t machine_index);
