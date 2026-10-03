@@ -421,9 +421,7 @@ void TargetView::target_get_relationship_object()
 }
 
 namespace actor_target_has_conflicting_neighbor_local {
-extern "C" {
 static float fabs_f(float x) { return (float)halo::libm::fabs((double)x); }
-}
 }
 
 /**
@@ -473,9 +471,7 @@ uint8_t ActorView::target_has_conflicting_neighbor(datum_index target_prop_index
 }
 
 namespace actor_target_hearing_check_local {
-extern "C" {
 static float sqrt_f(float x) { return (float)halo::libm::sqrt((double)x); }
-}
 }
 
 /**
@@ -1145,9 +1141,7 @@ uint8_t ActorView::target_update_active_flag(datum_index target_prop_index)
 }
 
 namespace actor_target_update_tracking_speed_local {
-extern "C" {
 static float sqrtf_(float x) { return (float)halo::libm::sqrt((double)x); }
-}
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 

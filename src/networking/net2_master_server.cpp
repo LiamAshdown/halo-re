@@ -16,6 +16,7 @@
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &negotiatorList = halo::link::ref<void *>(halo::networking::vars().negotiatorList);
 static auto &server_list_mutex = halo::link::ref<network_mutex_record *>(halo::networking::vars().server_list_mutex);
@@ -28,18 +29,10 @@ static auto &server_list = halo::link::ref<server_list_globals>(halo::networking
 static auto &server_browser_require_valid_entry = halo::link::ref<uint8_t>(halo::networking::vars().server_browser_require_valid_entry);
 static auto &network_session_start_game_type = halo::link::ref<uint32_t>(halo::networking::vars().network_session_start_game_type);
 static auto &server_browser_selected_index = halo::link::ref<int32_t>(halo::networking::vars().server_browser_selected_index);
-extern "C" {
-extern int32_t ServerBrowserUpdate(void *engine, int32_t flag, int32_t unused_a, void *buffer,
-                              int32_t buffer_length, int32_t unused_b);
-}
 static auto &qr2_registered_key_list = halo::link::ref<const char * [255]>(halo::networking::vars().qr2_registered_key_list);
 static auto &server_browser_join_requested = halo::link::ref<uint8_t>(halo::networking::vars().server_browser_join_requested);
 static auto &network_session_start_host_name = halo::link::ref<char []>(halo::networking::vars().network_session_start_host_name);
 static auto &network_session_start_map_name = halo::link::ref<char []>(halo::networking::vars().network_session_start_map_name);
-extern "C" {
-extern void * ServerBrowserNew(const char *queryForGamename, const char *queryFromGamename, const char *queryFromKey,
-    int32_t queryFromVersion, int32_t maxConcurrentUpdates, int32_t queryVersion, void *callback, void *instance);
-}
 
 
 namespace halo::networking {

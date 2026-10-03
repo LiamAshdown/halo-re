@@ -12,9 +12,7 @@
 #include "../gamespy/gamespy_calls.hpp"
 
 static auto &current_game_engine = halo::link::ref<void *>(halo::game::vars().current_game_engine);
-extern "C" {
 typedef struct data_array data_array;
-}
 static auto &player_data = halo::link::ref<uint8_t *>(halo::game::vars().player_data);
 static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
 static auto &network_qr2_text = halo::link::ref<char [0x100]>(halo::networking::vars().network_qr2_text);

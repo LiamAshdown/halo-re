@@ -37,6 +37,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &playlist_profiles_need_defaults = halo::link::ref<uint8_t>(halo::ui::vars().playlist_profiles_need_defaults);
 static auto &console_color_00685214 = halo::link::ref<void *>(halo::networking::vars().console_color_00685214);
@@ -68,9 +69,6 @@ static auto &server_browser_player_ticker = halo::link::ref<ticker_text_buffer>(
 static auto &server_browser_variant_ticker = halo::link::ref<ticker_text_buffer>(halo::ui::vars().server_browser_variant_ticker);
 static auto &string_widen_scratch = halo::link::ref<wchar_t [0x400]>(halo::networking::vars().string_widen_scratch);
 static auto &server_browser_custom_options_text = halo::link::ref<char []>(halo::networking::vars().server_browser_custom_options_text);
-extern "C" {
-extern int32_t sscanf(const char *buffer, const char *format, ...);
-}
 static auto &server_browser_sort_column = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_sort_column);
 static auto &server_browser_sort_ascending = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_sort_ascending);
 static auto &server_browser_allow_password = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_allow_password);
@@ -91,10 +89,6 @@ static auto &server_browser_initialized = halo::link::ref<uint8_t>(halo::network
 static auto &network_session_start_host_name = halo::link::ref<uint8_t []>(halo::networking::vars().network_session_start_host_name);
 static auto &network_session_start_map_name = halo::link::ref<uint8_t []>(halo::networking::vars().network_session_start_map_name);
 static auto &profile_globals_block = halo::link::ref<uint8_t []>(halo::ui::vars().profile_globals_block);
-extern "C" {
-extern void * ServerBrowserNew(void *a, void *b, void *c, int32_t d, int32_t e, int32_t f,
-                           void *callback, int32_t h);
-}
 static auto &hud_text_unbound = halo::link::ref<wchar_t []>(halo::ui::vars().hud_text_unbound);
 static auto &server_browser_skip_reselect = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_skip_reselect);
 static auto &server_browser_ping_limits = halo::link::ref<int32_t []>(halo::networking::vars().server_browser_ping_limits);
@@ -1402,7 +1396,7 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     halo::networking::network_channels_open();
     if (server_browser_initialized == 0 && halo::networking::master_server_connection_start() == 0) {
         server_browser_join_requested = 1;
-        master_server_query_engine = ServerBrowserNew(&network_session_start_host_name, &network_session_start_host_name, &network_session_start_map_name, 0,
+        master_server_query_engine = ServerBrowserNew((const char *)&network_session_start_host_name, (const char *)&network_session_start_host_name, (const char *)&network_session_start_map_name, 0,
                                                     10, 1, (void *)halo::networking::network_channel_gap_4ba660, 0);
     }
     server_browser_join_target = 0;

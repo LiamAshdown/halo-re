@@ -64,9 +64,7 @@ static auto &network_session_host_object = halo::link::ref<void *>(halo::network
 static auto &network_session_host_state = halo::link::ref<int32_t>(halo::networking::vars().network_session_host_state);
 static auto &network_console_connection_id = halo::link::ref<int32_t>(halo::networking::vars().network_console_connection_id);
 static auto &network_game_socket = halo::link::ref<int32_t>(halo::networking::vars().network_game_socket);
-extern "C" {
 typedef struct ColorARGB ColorARGB;
-}
 static auto &console_message_default_color = halo::link::ref<void *>(halo::networking::vars().console_message_default_color);
 static auto &current_game_engine = halo::link::ref<void *>(halo::game::vars().current_game_engine);
 static auto &network_session_start_game_type = halo::link::ref<int32_t>(halo::networking::vars().network_session_start_game_type);

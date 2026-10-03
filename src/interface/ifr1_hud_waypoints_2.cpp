@@ -22,10 +22,6 @@ static auto &render_camera_global = halo::link::ref<uint8_t []>(halo::render::va
 static auto &render_viewport_top = halo::link::ref<int16_t>(halo::ui::vars().render_viewport_top);
 static auto &waypoint_fade_near = halo::link::ref<float>(halo::ui::vars().waypoint_fade_near);
 static auto &waypoint_fade_far = halo::link::ref<float>(halo::ui::vars().waypoint_fade_far);
-extern "C" {
-extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *view_point,
-                                              const void *frustum, const void *camera);
-}
 
 namespace halo::interface {
 

@@ -10,8 +10,6 @@
 #include "halo/networking/server_sort.hpp"
 #include "halo/networking/api.hpp"
 
-extern "C" {
-}
 
 namespace halo::networking {
 

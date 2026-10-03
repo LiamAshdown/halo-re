@@ -566,7 +566,6 @@ void ActorView::type_hunter_update()
 namespace actor_type_infection_swarm_update_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
@@ -586,7 +585,6 @@ static void copy3(real_vector3d *out, const void *in)
     out->i = ((const float *)in)[0];
     out->j = ((const float *)in)[1];
     out->k = ((const float *)in)[2];
-}
 }
 }
 

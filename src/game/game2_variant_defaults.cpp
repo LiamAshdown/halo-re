@@ -1,7 +1,5 @@
 #include "halo/game/game2_variants.hpp"
 
-extern "C" {
-}
 
 namespace halo::game {
 

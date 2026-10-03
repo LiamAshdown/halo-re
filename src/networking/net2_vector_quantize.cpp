@@ -9,11 +9,9 @@
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/core/libm.hpp"
+#include <float.h>
 
 static auto &message_delta_vector3d_mode = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_vector3d_mode);
-extern "C" {
-extern int _isnan(double x);
-}
 
 static real unsigned_int_to_float(int32_t value)
 {

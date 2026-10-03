@@ -92,7 +92,6 @@ const Vars &vars()
         cursor_sensitivity_x,
         cursor_sensitivity_y,
         d3d_adapter,
-        debug_fp_state_armed,
         default_profile_data,
         directsound_eax_available,
         directsound_initialized,

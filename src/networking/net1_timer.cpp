@@ -2,8 +2,6 @@
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
 
-extern "C" {
-}
 
 namespace halo::networking {
 

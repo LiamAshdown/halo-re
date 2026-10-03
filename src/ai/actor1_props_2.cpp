@@ -10,7 +10,6 @@
 #include "halo/core/x87.hpp"
 
 namespace c_actor_danger_update_reaction {
-extern "C" {
 
 
 
@@ -43,7 +42,6 @@ static uint8_t actor_danger_stance(datum_index actor_index)
     struct actor *actor = halo::ai::actor_at(actor_index);
 
     return actor->combat_status >= 2 ? 2 : (actor->awareness_level >= 3);
-}
 }
 }
 

@@ -6,9 +6,7 @@
 #include "halo/game/vars.hpp"
 
 static auto &update_server_tick = halo::link::ref<int32_t>(halo::game::vars().update_server_tick);
-extern "C" {
-extern uint32_t update_server_history[32 * (0x308 / 4)];
-}
+static auto &update_server_history = halo::link::ref<uint32_t [32 * (0x308 / 4)]>(halo::game::vars().update_server_history);
 static auto &update_server_queues = halo::link::ref<data_array *>(halo::game::vars().update_server_queues);
 
 namespace halo::game {

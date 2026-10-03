@@ -27,6 +27,7 @@
 #include "halo/effects/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include <stdlib.h>
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
@@ -34,10 +35,6 @@ static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
 static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
 static auto &missing_string_text = halo::link::ref<wchar_t []>(halo::ui::vars().missing_string_text);
-extern "C" {
-extern void qsort(void *base, uint32_t count, uint32_t size,
-    uint32_t (*compare)(const void *, const void *));
-}
 static auto &game_engine_bucket_scores = halo::link::ref<int32_t [16]>(halo::game::vars().game_engine_bucket_scores);
 static auto &game_engine_bucket_scores_extra = halo::link::ref<int32_t [16]>(halo::game::vars().game_engine_bucket_scores_extra);
 static auto &game_engine_end_game_timer = halo::link::ref<float>(halo::game::vars().game_engine_end_game_timer);
@@ -301,8 +298,8 @@ int32_t Scoreboard::build_sorted_player_list(uint8_t invert_low_stat, scoreboard
     }
 
     qsort(out_entries, (uint32_t)count, sizeof(scoreboard_entry),
-        (mode == 0) ? (uint32_t (*)(const void *, const void *))(void *)halo::game::scoreboard_entry_compare
-                    : (uint32_t (*)(const void *, const void *))(void *)halo::game::scoreboard_entry_compare_by_unknown_04);
+        (mode == 0) ? (int (*)(const void *, const void *))(void *)halo::game::scoreboard_entry_compare
+                    : (int (*)(const void *, const void *))(void *)halo::game::scoreboard_entry_compare_by_unknown_04);
 
     for (i = 0; i < count; i = i + 1) {
         entry = &out_entries[i];

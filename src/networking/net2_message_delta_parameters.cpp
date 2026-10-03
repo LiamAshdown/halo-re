@@ -26,9 +26,6 @@ static auto &message_delta_config_write_mode_string = halo::link::ref<char []>(h
 static auto &message_delta_parameter_count = halo::link::ref<int32_t>(halo::networking::vars().message_delta_parameter_count);
 static auto &message_delta_parameters = halo::link::ref<message_delta_parameter []>(halo::networking::vars().message_delta_parameters);
 static auto &message_delta_config_value_delimiters = halo::link::ref<char []>(halo::networking::vars().message_delta_config_value_delimiters);
-extern "C" {
-extern int32_t sscanf(const char *buffer, const char *format, ...);
-}
 static auto &message_delta_parameters_protocol_sequence = halo::link::ref<int32_t>(halo::networking::vars().message_delta_parameters_protocol_sequence);
 static auto &message_delta_config_mode_string = halo::link::ref<char []>(halo::networking::vars().message_delta_config_mode_string);
 static auto &message_delta_parameters_sending = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_sending);

@@ -15,7 +15,6 @@ namespace halo::ai {
 
 namespace actor_target_evaluate_squad_link_local {
 static auto &object_cluster_stamp = halo::link::ref<int32_t>(halo::physics::vars().object_cluster_stamp);
-extern "C" {
 #define OBJ(i) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(i) & halo::k_slot_mask].data)
 static void squad_link_add_far(uint8_t *list, datum_index object_index, float distance_squared)
 {
@@ -250,7 +249,6 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, actor *self, da
         }
     }
     self->danger_owner_unit = owner_unit;
-}
 }
 }
 

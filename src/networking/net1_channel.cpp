@@ -33,10 +33,8 @@ static auto &network_game_receive_buffer = halo::link::ref<uint8_t [0x2000]>(hal
 static auto &natneg_magic = halo::link::ref<const uint8_t [6]>(halo::networking::vars().natneg_magic);
 static auto &network_session_host_object = halo::link::ref<void *>(halo::networking::vars().network_session_host_object);
 static auto &network_query_receive_buffer = halo::link::ref<uint8_t [0x2000]>(halo::networking::vars().network_query_receive_buffer);
-extern "C" {
 typedef struct network_receive_queue network_receive_queue;
 typedef struct server_list_globals server_list_globals;
-}
 static auto &server_browser_initialized = halo::link::ref<uint8_t>(halo::networking::vars().server_browser_initialized);
 static auto &server_browser_query_elapsed_ms = halo::link::ref<int32_t>(halo::networking::vars().server_browser_query_elapsed_ms);
 static auto &server_browser_selected_index = halo::link::ref<int32_t>(halo::networking::vars().server_browser_selected_index);

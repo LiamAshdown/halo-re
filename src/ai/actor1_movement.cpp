@@ -20,14 +20,12 @@
 namespace c_actor_avoid_obstacle_and_project {
 static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);
 static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
-extern "C" {
 
 
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-}
 }
 
 
@@ -672,7 +670,6 @@ void actor_delete_swarm(datum_index actor_index)
 }
 
 namespace c_actor_evaluate_search_node {
-extern "C" {
 
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
@@ -692,7 +689,6 @@ static actor *actor_try_get(datum_index handle)
         return 0;
     }
     return record;
-}
 }
 }
 
@@ -815,13 +811,11 @@ uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_
 
 namespace c_actor_fill_unit_position_context {
 static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
-extern "C" {
 
 
 static uint8_t *object_get(datum_index object_index)
 {
     return *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
-}
 }
 }
 

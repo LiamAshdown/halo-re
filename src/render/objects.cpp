@@ -38,8 +38,6 @@
 #include "halo/rasterizer/vars.hpp"
 #include "halo/render/vars.hpp"
 
-extern uint8_t rasterizer_object_shadow_begin(real_matrix4x3 *projection, ColorRGB *color, float radius,
-    float *out_radius);
 static auto &render_frustum_global = halo::link::ref<render_frustum>(halo::render::vars().render_frustum_global);
 static auto &object_render_state_cache = halo::link::ref<data_array *>(halo::game::vars().object_render_state_cache);
 static auto &render_uncached_object_lighting = halo::link::ref<render_lighting>(halo::render::vars().render_uncached_object_lighting);

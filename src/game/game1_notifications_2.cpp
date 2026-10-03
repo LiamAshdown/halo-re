@@ -20,10 +20,6 @@ static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars(
 static auto &network_client = halo::link::ref<uint8_t *>(halo::networking::vars().network_client);
 static auto &update_client_queues = halo::link::ref<data_array *>(halo::game::vars().update_client_queues);
 static auto &join_message_table = halo::link::ref<uint8_t []>(halo::game::vars().join_message_table);
-extern "C" {
-extern void game_set_local_player(datum_index player_handle,
-    int16_t local_player_index);
-}
 
 namespace halo::game::engine1 {
 

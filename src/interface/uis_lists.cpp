@@ -41,11 +41,6 @@ static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [
 static auto &ui_event_function_table = halo::link::ref<void *[0xbe]>(halo::ui::vars().ui_event_function_table);
 static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
 static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
-extern "C" {
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection);
-}
 
 namespace halo::ui {
 

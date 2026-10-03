@@ -7,8 +7,6 @@
 #include "halo/memory/api.hpp"
 #include "halo/networking/api.hpp"
 
-extern "C" {
-}
 
 
 namespace halo::networking {

@@ -12,11 +12,9 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
+#include <stdio.h>
 
 static auto &message_delta_metrics_filename_suffix = halo::link::ref<char []>(halo::networking::vars().message_delta_metrics_filename_suffix);
-extern "C" {
-extern int32_t snprintf(char *dest, uint32_t count, const char *format, ...);
-}
 
 
 namespace halo::networking {

@@ -437,9 +437,7 @@ void ActorView::movement_advance_waypoint()
 
 namespace actor_movement_apply_steering_local {
 static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
-extern "C" {
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-}
 }
 
 /**

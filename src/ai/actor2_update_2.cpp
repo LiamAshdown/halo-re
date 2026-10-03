@@ -18,14 +18,12 @@ namespace halo::ai {
 
 namespace actor_update_firing_state_local {
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
-extern "C" {
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
 #define W(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
 #define D(p, o) (*(datum_index *)((uint8_t *)(p) + (o)))
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-}
 }
 
 /**

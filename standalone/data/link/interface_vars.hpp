@@ -87,7 +87,6 @@ extern char cursor_sensitivity_curve_scale[];
 extern char cursor_sensitivity_x[];
 extern char cursor_sensitivity_y[];
 extern char d3d_adapter[];
-extern char debug_fp_state_armed[];
 extern char default_profile_data[];
 extern char directsound_eax_available[];
 extern char directsound_initialized[];

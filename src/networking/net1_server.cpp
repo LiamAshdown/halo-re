@@ -19,13 +19,11 @@
 #include "../gamespy/gamespy_calls.hpp"
 
 static auto &network_incoming_message_scratch = halo::link::ref<uint8_t [0x510]>(halo::networking::vars().network_incoming_message_scratch);
-extern "C" {
 typedef struct network_item_stream {
     bit_stream stream;
     uint32_t bit_count;
 } network_item_stream;
 
-}
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &network_challenge_packet_block = halo::link::ref<uint16_t []>(halo::networking::vars().network_challenge_packet_block);
@@ -35,9 +33,7 @@ static auto &update_client_queues = halo::link::ref<data_array *>(halo::game::va
 static auto &update_server_queues = halo::link::ref<data_array *>(halo::game::vars().update_server_queues);
 static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
-extern "C" {
 typedef void (*network_join_complete_callback)(int32_t unused, int32_t machine_id);
-}
 static auto &network_console_connection_id = halo::link::ref<int32_t>(halo::networking::vars().network_console_connection_id);
 static auto &network_session_active2 = halo::link::ref<uint8_t>(halo::networking::vars().network_session_active2);
 static auto &network_session_host_object = halo::link::ref<void *>(halo::networking::vars().network_session_host_object);
@@ -47,12 +43,10 @@ static auto &network_scenario_round_counter_a = halo::link::ref<int32_t>(halo::g
 static auto &network_scenario_round_counter_b = halo::link::ref<uint8_t>(halo::game::vars().network_scenario_round_counter_b);
 static auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);
 static auto &variant_defaults_source = halo::link::ref<char []>(halo::networking::vars().variant_defaults_source);
-extern "C" {
 typedef struct rcon_request_decode {
     char password[20];
     char command[64];
 } rcon_request_decode;
-}
 static auto &sv_rcon_password_value = halo::link::ref<char [9]>(halo::networking::vars().sv_rcon_password_value);
 static auto &global_white_argb = halo::link::ref<void *>(halo::networking::vars().global_white_argb);
 static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);

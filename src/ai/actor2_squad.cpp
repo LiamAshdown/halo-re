@@ -117,10 +117,8 @@ void ActorView::obey_member_tick(datum_index unit_index, uint16_t command_list_i
 namespace actor_squad_action_execute_local {
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &k_empty_string = halo::link::ref<const char []>(halo::networking::vars().k_empty_string);
-extern "C" {
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-}
 }
 
 /**

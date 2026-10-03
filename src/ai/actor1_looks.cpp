@@ -206,12 +206,10 @@ void actor_clear_vocalization(datum_index actor_index)
 }
 
 namespace c_actor_dispatch_look_handler_by_posture {
-extern "C" {
 
 
 
 static const float k_perception_range_class_scale[4] = {0.4f, 0.6f, 0.8f, 1.0f};
-}
 }
 
 

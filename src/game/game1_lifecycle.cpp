@@ -56,10 +56,6 @@ static auto &profile_globals_block = halo::link::ref<uint32_t [0x1829]>(halo::ui
 static auto &game_state_write_buffer_allocated = halo::link::ref<uint8_t>(halo::game::vars().game_state_write_buffer_allocated);
 static auto &game_state_persistent_storage = halo::link::ref<void *>(halo::game::vars().game_state_persistent_storage);
 static auto &game_state_persistent_storage_created = halo::link::ref<uint8_t>(halo::game::vars().game_state_persistent_storage_created);
-extern "C" {
-extern uint8_t player_attach_unit_to_parent(datum_index player_handle, datum_index parent_object,
-                             void *local_offset);
-}
 static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
 static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
 static auto &game_engine_end_game_timer = halo::link::ref<float>(halo::game::vars().game_engine_end_game_timer);

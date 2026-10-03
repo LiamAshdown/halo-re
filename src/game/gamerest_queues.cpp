@@ -1,8 +1,6 @@
 #include "halo/game/gamerest_queues.hpp"
 #include "halo/game/api.hpp"
 
-extern "C" {
-}
 
 namespace halo::game {
 

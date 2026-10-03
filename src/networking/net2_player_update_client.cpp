@@ -29,12 +29,6 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 static auto &object_network_id_table = halo::link::ref<void *>(halo::units::vars().object_network_id_table);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
-extern "C" {
-extern uint8_t position_update_queue_push(circular_queue *queue, real x, real y, real z,
-    int32_t tick, int32_t sequence);
-extern void unit_snap_position_if_far(real_point3d *new_position, object *obj,
-    datum_index unit_index);
-}
 
 
 namespace halo::networking {

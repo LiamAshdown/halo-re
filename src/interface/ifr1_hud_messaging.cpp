@@ -35,10 +35,6 @@ static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars
 static auto &empty_wide_string_pointer = halo::link::ref<uint16_t *>(halo::ui::vars().empty_wide_string_pointer);
 static auto &global_zero_vector3d_pointer = halo::link::ref<void *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
-extern "C" {
-extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
-                                 int16_t count);
-}
 static auto &hud_flags = halo::link::ref<hud_globals_flags *>(halo::ui::vars().hud_flags);
 
 namespace halo::interface {

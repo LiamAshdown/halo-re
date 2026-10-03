@@ -14,13 +14,10 @@
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
 #ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
 #endif
 
-}
 inline auto &message_delta_field_type_table = halo::link::ref<message_delta_field_type_vtable [28]>(halo::networking::vars().message_delta_field_type_table);
 inline auto &message_delta_item_count_bits = halo::link::ref<uint8_t []>(halo::networking::vars().message_delta_item_count_bits);
-extern "C" {
 
  // 0x4cf8f0
       // 0x4cf950
@@ -60,6 +57,5 @@ static __inline uint32_t message_delta_stream_position(const bit_stream *stream)
 }
 
 #ifdef __cplusplus
-} /* HALO_CXX_LINKAGE */
 #endif
 #endif

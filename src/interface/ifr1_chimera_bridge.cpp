@@ -43,12 +43,6 @@ static auto &chat_state_00719a9a = halo::link::ref<uint8_t>(halo::ui::vars().cha
 static auto &chat_state_00719a79 = halo::link::ref<uint8_t>(halo::ui::vars().chat_state_00719a79);
 static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
 static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
-extern "C" {
-extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence,
-                                                     int16_t frame);
-extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
-                                      int32_t unknown_1, const uint16_t *text);
-}
 static auto &main_menu_reload_pending = halo::link::ref<uint8_t>(halo::ui::vars().main_menu_reload_pending);
 static auto &ui_input_batch_mode = halo::link::ref<uint8_t>(halo::ui::vars().ui_input_batch_mode);
 static auto &loading_thread_result = halo::link::ref<uint8_t>(halo::ui::vars().loading_thread_result);

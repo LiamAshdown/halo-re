@@ -13,10 +13,6 @@
 #include "halo/interface/vars.hpp"
 
 static auto &game_looping_sound_data = halo::link::ref<data_array *>(halo::ui::vars().game_looping_sound_data);
-extern "C" {
-extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t unknown_0, int32_t unknown_1,
-                            void *callback_data, int32_t unknown_3, int32_t unknown_4);
-}
 static auto &hud_unit_meters = halo::link::ref<hud_unit_meter_globals *>(halo::ui::vars().hud_unit_meters);
 
 namespace halo::interface {

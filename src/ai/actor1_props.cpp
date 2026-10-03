@@ -98,7 +98,6 @@ datum_index actor_allocate_paired_prop_with_kind(datum_index actor_index, datum_
 
 namespace c_actor_apply_unit_definition_properties {
 static auto &object_type_definitions = halo::link::ref<object_type_definition *[12]>(halo::game::vars().object_type_definitions);
-extern "C" {
 
 
 static uint8_t *object_get(datum_index object_index)
@@ -120,7 +119,6 @@ static datum_index actor_create_unit_item(datum_index definition_tag, datum_inde
         }
     }
     return halo::objects::object_new_with_datum_role_control(&placement, role);
-}
 }
 }
 
@@ -407,11 +405,9 @@ uint8_t actor_danger_register_point(datum_index actor_index, datum_index source_
 }
 
 namespace c_actor_danger_register_stationary_object {
-extern "C" {
 static float sqrt_f(float x) { return (float)halo::libm::sqrt((double)x); }
 
 
-}
 }
 
 
@@ -525,13 +521,11 @@ uint8_t actor_danger_register_stationary_object(const float *reference, datum_in
 
 namespace c_actor_find_danger_escape {
 static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(halo::ai::vars().global_forward2d_pointer);
-extern "C" {
 
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-}
 }
 
 

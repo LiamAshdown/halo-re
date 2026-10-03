@@ -40,6 +40,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/shell/standalone.hpp"
 
 
 namespace halo::main {
@@ -74,7 +75,6 @@ void Console::chimera__exec_init(void)
 }
 
 static auto &console_globals_data = halo::link::ref<console_globals>(halo::main::vars().console_globals_data);
-extern "C" { extern int standalone_devmode(void); }
 namespace halo::main {
 
 /**
@@ -123,7 +123,7 @@ void Console::autocomplete_command(void)
     }
 
     match_count = halo::hs::hs_autocomplete_gather(0x28, names, word, 0x100,
-        standalone_devmode() ? 0 : _console_context_default_bit);
+        halo::shell::standalone_devmode() ? 0 : _console_context_default_bit);
     if (match_count == 0) {
         return;
     }
@@ -518,7 +518,7 @@ char Console::process_command(char *command_line, uint32_t context_flags)
     console_globals_data.history_browse_index = -1;
 
     context_mask = halo::main::console_command_context_mask(context_flags);
-    if (standalone_devmode()) {
+    if (halo::shell::standalone_devmode()) {
         context_mask = 0;
     }
     match_count = halo::hs::hs_autocomplete_gather(0x28, out_names, command_name, 0x100, (uint16_t)context_mask);

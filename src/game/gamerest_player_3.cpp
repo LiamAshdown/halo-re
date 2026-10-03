@@ -4,8 +4,6 @@
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
 
-extern "C" {
-}
 
 namespace halo::game {
 

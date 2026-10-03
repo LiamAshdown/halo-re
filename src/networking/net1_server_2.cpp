@@ -23,7 +23,6 @@ static auto &network_summary_log_file = halo::link::ref<FILE *>(halo::networking
 static auto &network_build_string = halo::link::ref<char []>(halo::networking::vars().network_build_string);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &network_challenge_packet_block = halo::link::ref<uint16_t []>(halo::networking::vars().network_challenge_packet_block);
-extern "C" {
 typedef struct network_game_info_record {
     char short_name[7];
     uint8_t nul;
@@ -34,7 +33,6 @@ typedef struct network_game_info_record {
     uint8_t scratch[0x600];
 } network_game_info_record;
 
-}
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 static auto &network_console_connection_id = halo::link::ref<int32_t>(halo::networking::vars().network_console_connection_id);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);

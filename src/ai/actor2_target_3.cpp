@@ -13,14 +13,12 @@ namespace halo::ai {
 
 namespace actor_target_relationship_think_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-extern "C" {
 static const uint8_t k_relationship_recheck_case[4][4] = {
     { 0, 0, 1, 3 },
     { 0, 1, 2, 3 },
     { 0, 2, 3, 4 },
     { 0, 3, 4, 4 },
 };
-}
 }
 
 /**

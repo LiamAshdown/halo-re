@@ -79,12 +79,10 @@ void ActorView::update_activation_state()
 }
 
 namespace actor_update_aim_wander_local {
-extern "C" {
 static float aim_wander_random_fraction(void)
 {
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     return (float)(int32_t)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f;
-}
 }
 }
 
@@ -721,12 +719,10 @@ void ActorView::update_crouch_state()
 
 namespace actor_update_danger_avoidance_local {
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
-extern "C" {
 #define B(o) (((uint8_t *)actor)[(o)])
 #define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
 #define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
 #define F(o) (*(float *)((uint8_t *)actor + (o)))
-}
 }
 
 /**
@@ -1026,7 +1022,6 @@ void ActorView::update_idle_stagger()
 
 namespace actor_update_look_target_local {
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
-extern "C" {
 #define ULT_V3(p) (*(real_point3d *)(p))
 static uint8_t ult_cone(real_point3d *point, uint8_t *reference, float cos_threshold)
 {
@@ -1035,7 +1030,6 @@ static uint8_t ult_cone(real_point3d *point, uint8_t *reference, float cos_thres
 static uint8_t ult_lane(real_point3d *point, uint8_t *forward, uint8_t *axis, float cos_threshold, float *side)
 {
     return halo::ai::actor_point_in_directional_lane(point, (real_point3d *)forward, (real_point3d *)axis, cos_threshold, side);
-}
 }
 }
 
@@ -1465,7 +1459,6 @@ void ActorView::update_look_target()
 namespace actor_update_melee_combat_action_local {
 static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
-extern "C" {
 #define W(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
 #define D(p, o) (*(datum_index *)((uint8_t *)(p) + (o)))
 static uint8_t actor_combat_commit_position(datum_index actor_index, actor *a, prop *target, int16_t position)
@@ -1480,7 +1473,6 @@ static uint8_t actor_combat_commit_position(datum_index actor_index, actor *a, p
         W(a, 0x3c4) += 1;
     }
     return 1;
-}
 }
 }
 

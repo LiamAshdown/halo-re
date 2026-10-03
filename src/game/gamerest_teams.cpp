@@ -6,11 +6,9 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/shell/standalone.hpp"
 
 static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
-extern "C" {
-extern void __cdecl standalone_log(const char *format, ...);
-}
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 
 namespace halo::game {
@@ -24,7 +22,7 @@ namespace halo::game {
  */
 void TeamPairOverride::set(uint8_t active, uint8_t clear_secondary)
 {
-    standalone_log("DIAG team_pair_set a=%d b=%d BL=%d clear=%d entry_active=%d refcount=%d", entry->index_a,
+    halo::shell::standalone_log("DIAG team_pair_set a=%d b=%d BL=%d clear=%d entry_active=%d refcount=%d", entry->index_a,
         entry->index_b, active, clear_secondary, entry->active, entry->refcount);
     int32_t index;
     int32_t reverse_index;

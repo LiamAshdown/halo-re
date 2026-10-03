@@ -53,10 +53,6 @@ static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud
 static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
 static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
-extern "C" {
-extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
-                                      int32_t unknown_1, const uint16_t *text);
-}
 
 namespace halo::ui {
 

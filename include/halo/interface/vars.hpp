@@ -90,7 +90,6 @@ struct Vars {
     void *cursor_sensitivity_x;
     void *cursor_sensitivity_y;
     void *d3d_adapter;
-    void *debug_fp_state_armed;
     void *default_profile_data;
     void *directsound_eax_available;
     void *directsound_initialized;

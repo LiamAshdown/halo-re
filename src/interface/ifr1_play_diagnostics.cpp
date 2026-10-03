@@ -11,18 +11,14 @@
 #include "halo/ai/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
+#include "halo/shell/standalone.hpp"
 
 static auto &rasterizer_window = halo::link::ref<uint8_t []>(halo::rasterizer::vars().rasterizer_window);
-extern "C" {
-extern void __cdecl standalone_log(const char *format, ...);
-}
 static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
 static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
 static auto &camera_position = halo::link::ref<real_point3d>(halo::ui::vars().camera_position);
-extern "C" {
 
 int32_t debug_fp_state_armed;
-}
 
 static int32_t debug_play_tick;
 
@@ -64,7 +60,7 @@ void PlayDiagnostics::run(void)
 
         player_team = ((unit_object *)unit)->base.owner_team;
     }
-    standalone_log("DIAG fp attached=%d unit=%08x weapon=%08x state=%d anim=%d frame=%d weapon_hud=%d device_hud=%d "
+    halo::shell::standalone_log("DIAG fp attached=%d unit=%08x weapon=%08x state=%d anim=%d frame=%d weapon_hud=%d device_hud=%d "
                    "anim14=%d",
         raw[0], fp->unit_index, fp->weapon_index, fp->state, ((struct first_person_weapon_interface *)raw)->current_animation, *(int16_t *)(raw + 0x18),
         raw[0x1d8c], raw[0x1e0e], ((struct first_person_weapon_interface *)raw)->animation_index);
@@ -72,27 +68,27 @@ void PlayDiagnostics::run(void)
         int32_t ab = player_team * 10 + 2;
         int32_t ba = 2 * 10 + player_team;
 
-        standalone_log("DIAG teams player_team=%d allied(p,2)=%d allied(2,p)=%d secondary(p,2)=%d overrides=%d",
+        halo::shell::standalone_log("DIAG teams player_team=%d allied(p,2)=%d allied(2,p)=%d secondary(p,2)=%d overrides=%d",
             player_team, (team_pair_data->enemy_bits[ab >> 5] >> (ab & 31)) & 1,
             (team_pair_data->enemy_bits[ba >> 5] >> (ba & 31)) & 1,
             (team_pair_data->secondary_bits[ab >> 5] >> (ab & 31)) & 1, team_pair_data->override_count);
     } else {
-        standalone_log("DIAG teams player_team=%d (out of range)", player_team);
+        halo::shell::standalone_log("DIAG teams player_team=%d (out of range)", player_team);
     }
-    standalone_log("DIAG bits enemy_bits=%08x %08x %08x %08x secondary=%08x %08x", team_pair_data->enemy_bits[0],
+    halo::shell::standalone_log("DIAG bits enemy_bits=%08x %08x %08x %08x secondary=%08x %08x", team_pair_data->enemy_bits[0],
         team_pair_data->enemy_bits[1], team_pair_data->enemy_bits[2], team_pair_data->enemy_bits[3],
         team_pair_data->secondary_bits[0], team_pair_data->secondary_bits[1]);
     for (i = 0; i < team_pair_data->override_count && i < 8; i++) {
         team_pair_override *o = &team_pair_data->overrides[i];
 
-        standalone_log("DIAG override %d a=%d b=%d threshold=%d timer_reset=%d u08=%d u09=%d active=%d status=%d u0c=%d "
+        halo::shell::standalone_log("DIAG override %d a=%d b=%d threshold=%d timer_reset=%d u08=%d u09=%d active=%d status=%d u0c=%d "
                        "refcount=%d timer=%d", i, o->index_a, o->index_b, o->threshold, o->timer_reset, o->unknown_08,
             o->unknown_09, o->active, o->status, o->unknown_0c, o->refcount, o->timer);
     }
     {
         float *node0 = (float *)(raw + 0x108c);
 
-        standalone_log("DIAG gun node0 pos=(%.3f %.3f %.3f) scale=%.3f fwd=(%.3f %.3f %.3f) camera=(%.3f %.3f %.3f)",
+        halo::shell::standalone_log("DIAG gun node0 pos=(%.3f %.3f %.3f) scale=%.3f fwd=(%.3f %.3f %.3f) camera=(%.3f %.3f %.3f)",
             node0[10], node0[11], node0[12], node0[0], node0[1], node0[2], node0[3],
             camera_position.x, camera_position.y, camera_position.z);
     }
@@ -109,7 +105,7 @@ void PlayDiagnostics::run(void)
             if (owner != (datum_index)halo::k_dword_none) {
                 actor_team = *(int16_t *)((uint8_t *)halo::ai::globals().actor_data->data + (owner & halo::k_slot_mask) * halo::ai::globals().actor_data->size + 0x3e);
             }
-            standalone_log("DIAG prop %d actor=%08x actor_team=%d prop_team(+12)=%d enemy(+60)=%d kind(+24)=%d "
+            halo::shell::standalone_log("DIAG prop %d actor=%08x actor_team=%d prop_team(+12)=%d enemy(+60)=%d kind(+24)=%d "
                            "u61=%d u62=%d", i, owner, actor_team, *(int16_t *)(p + 0x12), p[0x60],
                 *(int16_t *)(p + 0x24), p[0x61], p[0x62]);
         }
@@ -126,7 +122,7 @@ void PlayDiagnostics::fp_render_model_note(uint32_t model_tag, float pixels, int
     if ((debug_fp_draw_count++ % 90) != 0) {
         return;
     }
-    standalone_log("DIAG fpdraw model=%08x pixels=%.3f cutoff8=%.3f early_out=%d lod=%d nodes=%d node0 pos=(%.3f %.3f %.3f) "
+    halo::shell::standalone_log("DIAG fpdraw model=%08x pixels=%.3f cutoff8=%.3f early_out=%d lod=%d nodes=%d node0 pos=(%.3f %.3f %.3f) "
                    "left=(%.3f %.3f %.3f) center=(%.3f %.3f %.3f)",
         model_tag, pixels, *(float *)(model + 0x8), early_out, lod, ((GBXModel *)model)->nodes.count,
         node0 ? node0[10] : 0.0f, node0 ? node0[11] : 0.0f, node0 ? node0[12] : 0.0f,
@@ -142,20 +138,20 @@ void PlayDiagnostics::fp_render_model_note(uint32_t model_tag, float pixels, int
         int32_t p;
 
         if (geometry_index < 0) {
-            standalone_log("DIAG fpdraw region %d geometry=-1", r);
+            halo::shell::standalone_log("DIAG fpdraw region %d geometry=-1", r);
             continue;
         }
         {
             GBXModelGeometry *geometry = &((GBXModelGeometry *)((GBXModel *)model)->geometries.pointer)[geometry_index];
 
-            standalone_log("DIAG fpdraw region %d geometry=%d parts=%d", r, geometry_index, geometry->parts.count);
+            halo::shell::standalone_log("DIAG fpdraw region %d geometry=%d parts=%d", r, geometry_index, geometry->parts.count);
             for (p = 0; p < (int32_t)geometry->parts.count && p < 6; p++) {
                 GBXModelGeometryPart *part = &((GBXModelGeometryPart *)geometry->parts.pointer)[p];
                 ModelShaderReference *ref =
                     &((ModelShaderReference *)((GBXModel *)model)->shaders.pointer)[(int16_t)part->base.shader_index];
                 uint8_t *shader = (uint8_t *)halo::cache::globals().tag_instances[ref->shader.tag_id.index].data;
 
-                standalone_log("DIAG fpdraw   part %d shader_type=%d part_flags=%x triangles=%d", p,
+                halo::shell::standalone_log("DIAG fpdraw   part %d shader_type=%d part_flags=%x triangles=%d", p,
                     *(int16_t *)&((struct Shader *)shader)->shader_type, part->base.flags, part->base.triangle_count);
             }
         }
@@ -188,7 +184,7 @@ void PlayDiagnostics::fp_clip_note(const float *world, int32_t effect_type)
         clip[i] = v[0] * projection[0 * 4 + i] + v[1] * projection[1 * 4 + i] + v[2] * projection[2 * 4 + i] +
                   projection[3 * 4 + i];
     }
-    standalone_log("DIAG fpclip effect_type=%d view=(%.3f %.3f %.3f) clip=(%.3f %.3f %.3f %.3f) ndc=(%.3f %.3f %.3f) "
+    halo::shell::standalone_log("DIAG fpclip effect_type=%d view=(%.3f %.3f %.3f) clip=(%.3f %.3f %.3f %.3f) ndc=(%.3f %.3f %.3f) "
                    "proj22=%.5f proj32=%.5f", effect_type, v[0], v[1], v[2], clip[0], clip[1], clip[2], clip[3],
         clip[3] != 0.0f ? clip[0] / clip[3] : 0.0f, clip[3] != 0.0f ? clip[1] / clip[3] : 0.0f,
         clip[3] != 0.0f ? clip[2] / clip[3] : 0.0f, projection[2 * 4 + 2], projection[3 * 4 + 2]);
@@ -228,7 +224,7 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
                 c[k] = -999.0f;
             }
             ((debug_get_ps_constants_fn)(*(void ***)halo::rasterizer::globals().device)[0x1b8 / 4])(halo::rasterizer::globals().device, 0, c, 8);
-            standalone_log("DIAG fpps %s %s count=%u c0=(%.2f %.2f %.2f %.2f) c1=(%.2f %.2f %.2f %.2f) c2=(%.2f %.2f %.2f "
+            halo::shell::standalone_log("DIAG fpps %s %s count=%u c0=(%.2f %.2f %.2f %.2f) c1=(%.2f %.2f %.2f %.2f) c2=(%.2f %.2f %.2f "
                            "%.2f) c3=(%.2f %.2f %.2f %.2f) c4=(%.2f %.2f %.2f %.2f) c5=(%.2f %.2f %.2f %.2f) c6=(%.2f %.2f "
                            "%.2f %.2f) c7=(%.2f %.2f %.2f %.2f)", debug_fp_state_armed ? "FP" : "other", site,
                 primitive_count, c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8], c[9], c[10], c[11], c[12], c[13],
@@ -263,7 +259,7 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
             c[k] = 0.0f;
         }
         ((debug_get_vs_constants_fn)vtable[0x17c / 4])(halo::rasterizer::globals().device, 0, c, 4);
-        standalone_log("DIAG fpvs c0=(%.3f %.3f %.3f %.3f) c1=(%.3f %.3f %.3f %.3f) c2=(%.3f %.3f %.3f %.3f) "
+        halo::shell::standalone_log("DIAG fpvs c0=(%.3f %.3f %.3f %.3f) c1=(%.3f %.3f %.3f %.3f) c2=(%.3f %.3f %.3f %.3f) "
                        "c3=(%.3f %.3f %.3f %.3f)", c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8], c[9], c[10],
             c[11], c[12], c[13], c[14], c[15]);
         for (k = 0; k < 3; k++) {
@@ -272,7 +268,7 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
             for (j = 0; j < 3; j++) {
                 point[k][j] = debug_fp_node0[10 + j] + along * debug_fp_node0[1 + j];
             }
-            standalone_log("DIAG fpvs point%d (node0 %+.1f fwd)=(%.3f %.3f %.3f) clip=(%.3f %.3f %.3f %.3f)", k, along,
+            halo::shell::standalone_log("DIAG fpvs point%d (node0 %+.1f fwd)=(%.3f %.3f %.3f) clip=(%.3f %.3f %.3f %.3f)", k, along,
                 point[k][0], point[k][1], point[k][2],
                 c[0] * point[k][0] + c[1] * point[k][1] + c[2] * point[k][2] + c[3],
                 c[4] * point[k][0] + c[5] * point[k][1] + c[6] * point[k][2] + c[7],
@@ -280,7 +276,7 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
                 c[12] * point[k][0] + c[13] * point[k][1] + c[14] * point[k][2] + c[15]);
         }
     }
-    standalone_log("DIAG fpstate %s hr=%08x prim=%u verts=%u count=%u z=%u zw=%u zf=%u cull=%u ab=%u src=%u dst=%u "
+    halo::shell::standalone_log("DIAG fpstate %s hr=%08x prim=%u verts=%u count=%u z=%u zw=%u zf=%u cull=%u ab=%u src=%u dst=%u "
                    "at=%u aref=%u af=%u st=%u sf=%u sref=%u smask=%x swmask=%x cw=%x vp=(%u %u %u %u %.3f %.3f) "
                    "vs=%p ps=%p tex0=%p",
         site, (uint32_t)hresult, primitive_type, vertex_count, primitive_count,
@@ -307,7 +303,7 @@ void PlayDiagnostics::fp_dispatch_note(int32_t toggle, int32_t mode, int32_t sha
         return;
     }
     debug_fp_dispatch_lines++;
-    standalone_log("DIAG fpdispatch toggle=%d mode=%d shader_type=%d primitives=%d draw=%p draw_simple=%p overlay=%p",
+    halo::shell::standalone_log("DIAG fpdispatch toggle=%d mode=%d shader_type=%d primitives=%d draw=%p draw_simple=%p overlay=%p",
         toggle, mode, shader_type, primitives, draw, draw_simple, overlay);
 }
 

@@ -16,10 +16,6 @@
 
 static auto &hud_messaging = halo::link::ref<uint8_t *>(halo::ui::vars().hud_messaging);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
-extern "C" {
-extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
-                                 int16_t count);
-}
 
 namespace halo::interface {
 

@@ -176,9 +176,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
 
 namespace actor_new_and_attach_to_unit_local {
 static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
-extern "C" {
 #define ACTOR_AT(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -277,9 +275,7 @@ attach:
 
 namespace actor_place_new_unit_local {
 static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
-extern "C" {
 #define TAG_DATA(h) ((uint8_t *)halo::cache::globals().tag_instances[(h) & halo::k_slot_mask].data)
-}
 }
 
 /**
@@ -661,7 +657,6 @@ uint8_t ActorView::process_pending_command_list()
 namespace actor_process_vehicle_seat_exit_local {
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-extern "C" {
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask])
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -777,7 +772,6 @@ static void biped_free_local_player_history(uint8_t *self)
     if (halo::networking::globals().client != 0) {
         halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
     }
-}
 }
 }
 
@@ -2519,17 +2513,13 @@ void ActorView::swarm_for_each_component_thunk()
 }
 
 namespace actor_take_danger_escape_local {
-extern "C" {
 typedef struct actor_dodge_entry {
     int16_t action;
     int16_t direction;
     float bias;
 } actor_dodge_entry;
-}
 static auto &actor_dodge_table = halo::link::ref<const actor_dodge_entry []>(halo::ai::vars().actor_dodge_table);
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -2725,11 +2715,9 @@ void ActorView::unlink_unit()
 
 namespace actor_vehicle_not_recently_left_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-}
 }
 
 /**

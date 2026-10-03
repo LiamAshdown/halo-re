@@ -998,10 +998,8 @@ uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
 }
 
 namespace c_actor_evaluate_flank_offset {
-extern "C" {
 static float sqrt_f(float x) { return (float)halo::libm::sqrt((double)x); }
 static float fabs_f(float x) { return (float)halo::libm::fabs((double)x); }
-}
 }
 
 

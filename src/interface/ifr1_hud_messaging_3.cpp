@@ -47,10 +47,6 @@ static auto &hud_text_quote = halo::link::ref<const uint16_t []>(halo::ui::vars(
 static auto &hud_text_unbound = halo::link::ref<const uint16_t []>(halo::ui::vars().hud_text_unbound);
 static auto &hud_text_unknown = halo::link::ref<const uint16_t []>(halo::ui::vars().hud_text_unknown);
 static auto &hud_text_no_button_icon = halo::link::ref<const uint16_t []>(halo::ui::vars().hud_text_no_button_icon);
-extern "C" {
-extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
-                                      int32_t unknown_1, const uint16_t *text);
-}
 
 static void hud_messaging_set_text_state(datum_index font, const ColorARGB *color)
 {

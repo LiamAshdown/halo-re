@@ -24,10 +24,6 @@ static auto &render_frustum_global = halo::link::ref<uint8_t []>(halo::render::v
 static auto &render_camera_global = halo::link::ref<uint8_t []>(halo::render::vars().render_camera_global);
 static auto &render_viewport_top = halo::link::ref<int16_t>(halo::ui::vars().render_viewport_top);
 static auto &screen_safe_area_right = halo::link::ref<Rectangle2D>(halo::game::vars().screen_safe_area_right);
-extern "C" {
-extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *point, void *frustum,
-                                                    void *camera);
-}
 static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::vars().current_local_player_index);
 
 static float hud_clamp01(float value)

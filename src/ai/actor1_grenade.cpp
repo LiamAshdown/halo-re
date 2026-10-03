@@ -574,13 +574,11 @@ uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *o
 }
 
 namespace c_actor_find_nearest_grenade_ally {
-extern "C" {
 
 
 
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 
