@@ -201,7 +201,7 @@ void HudFrame::draw_grenade_interface(int16_t local_player_index, datum_index un
         return;
     }
     hud_tag = *(datum_index *)(*(uint8_t **)((uint8_t *)global_globals + 0x12c) + grenade * 0x44 + 0x20);
-    flash_start_time = (int32_t *)((uint8_t *)hud_weapon_state + local_player_index * 0x28 + 0x24);
+    flash_start_time = &hud_weapon_state->players[local_player_index].grenade_flash_start_time;
     if (hud_tag == (datum_index)-1) {
         return;
     }
@@ -299,7 +299,7 @@ void HudFrame::draw_weapon_interface(player *p)
 
     halo::interface::hud_draw_grenade_interface(p->local_player_index, p->unit);
     if (p->local_player_index != -1) {
-        *(datum_index *)((uint8_t *)hud_weapon_state + p->local_player_index * 0x28 + 0x20) = weapon;
+        hud_weapon_state->players[p->local_player_index].weapon = weapon;
     }
 }
 
@@ -653,7 +653,7 @@ void HudFrame::render_unit_interface(player *p)
                 if ((overlay_types & (1u << *(uint8_t *)&overlay->type)) == 0) {
                     continue;
                 }
-                if ((*(uint8_t *)&overlay->flags & 1) != 0) {
+                if ((overlay->flags & 1) != 0) {
                     *(uint32_t *)&overlay->default_color = halo::interface::color_rgb_float_to_int((const float *)(object + 0x188)) | 0xff000000;
                 }
                 halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)&hud->auxiliary_overlay_anchor,

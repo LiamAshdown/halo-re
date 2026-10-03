@@ -95,7 +95,7 @@ void UiNetworkMenu::network_adapter_details_refresh(widget_instance *widget)
     }
     row->background_bitmap_frame = 0;
 
-    if (entry == (ui_list_item *)0 || entry->data == (void *)0) {
+    if (entry == (ui_list_item *)0 || entry->data == nullptr) {
         c4->state = 0;
         c5->state = 0;
         c6->state = 0;
@@ -118,7 +118,7 @@ void UiNetworkMenu::network_adapter_details_refresh(widget_instance *widget)
         c2->background_bitmap_frame = (int16_t)blob[0];
 
         c3->text = halo::memory::heap_reallocate(c3->text, 0x40, widget_memory_pool);
-        if (c3->text != (void *)0) {
+        if (c3->text != nullptr) {
             wcsncpy((wchar_t *)((uint16_t *)c3->text), (const wchar_t *)(blob + 4), 0x1f);
             ((uint16_t *)c3->text)[0x1f] = 0;
         }
@@ -146,7 +146,7 @@ uint8_t UiNetworkMenu::network_client_connect_and_save(void)
 
     halo::interface::saved_item_select(halo::saved_games::globals().player_profile_slots_handle);
     {
-        uint8_t *record = ((selected_saved_item & 0xf) == 0) ? saved_item_working_copy : (uint8_t *)0;
+        uint8_t *record = ((selected_saved_item & 0xf) == 0) ? saved_item_working_copy : nullptr;
         wcslen((const wchar_t *)network_host_name_field_00719238);
         wcscpy((wchar_t *)((uint16_t *)(record + 0xfc2)), (const wchar_t *)network_host_name_field_00719238);
     }
@@ -171,7 +171,7 @@ uint8_t UiNetworkMenu::network_game_options_populate(widget_instance *widget, co
     widget_instance *control;
     uint8_t value;
 
-    if (options_record == (const uint8_t *)0) {
+    if (options_record == nullptr) {
         return 0;
     }
 
@@ -217,7 +217,7 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
 
     buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x80, widget_memory_pool);
     control->text = buffer;
-    if (buffer != (uint16_t *)0) {
+    if (buffer != nullptr) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_name_00719170, 0x3f);
         ((uint16_t *)control->text)[0x3f] = 0;
     }
@@ -229,7 +229,7 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
     control = row->first_child->next_sibling;
     buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x12, widget_memory_pool);
     control->text = buffer;
-    if (buffer != (uint16_t *)0) {
+    if (buffer != nullptr) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_subname_007191f0, 8);
         ((uint16_t *)control->text)[8] = 0;
     }
@@ -276,7 +276,7 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
     row->hidden = 1;
     ip_control = row->first_child->next_sibling;
     ip_control->text = halo::memory::heap_reallocate(ip_control->text, 0x40, widget_memory_pool);
-    if (ip_control->text != (void *)0) {
+    if (ip_control->text != nullptr) {
         uint32_t swapped = ((network_resolved_local_address << 0x10 | network_resolved_local_address & 0xff00 |
                              network_resolved_local_address >> 0x10 & 0xff) << 8) |
                             (network_resolved_local_address >> 0x18);
@@ -327,7 +327,7 @@ void UiNetworkMenu::network_name_fields_refresh(widget_instance *widget)
 
     buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x40, widget_memory_pool);
     control->text = buffer;
-    if (buffer != (uint16_t *)0) {
+    if (buffer != nullptr) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_name_field_00719238, 0x1f);
         ((uint16_t *)control->text)[0x1f] = 0;
     }
@@ -339,7 +339,7 @@ void UiNetworkMenu::network_name_fields_refresh(widget_instance *widget)
     control = row->first_child->next_sibling;
     buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x12, widget_memory_pool);
     control->text = buffer;
-    if (buffer != (uint16_t *)0) {
+    if (buffer != nullptr) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_subname_007191f0, 8);
         ((uint16_t *)control->text)[8] = 0;
     }
@@ -439,7 +439,7 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
     (void)event;
 
     if (widget->focused_child != (widget_instance *)0 && widget->selection_index >= 0 &&
-        widget->selection_index < (int16_t)widget->item_count && widget->list_items != (void *)0 &&
+        widget->selection_index < (int16_t)widget->item_count && widget->list_items != nullptr &&
         widget->item_count != 0) {
         uint8_t **entries = (uint8_t **)widget->list_items;
         uint8_t *entry = entries[widget->selection_index];

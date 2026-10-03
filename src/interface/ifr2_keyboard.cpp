@@ -412,7 +412,7 @@ finish:
             if (character_map[0] <= 0) {
                 goto rejected;
             }
-            glyph = (character_map[0] == 0x100) ? (int16_t *)(uintptr_t)character_map[1] + ch : (int16_t *)0;
+            glyph = (character_map[0] == 0x100) ? (int16_t *)(uintptr_t)character_map[1] + ch : nullptr;
             if (*glyph == -1 || *(int32_t *)(font + 0x80) + *glyph * 0x14 == 0 ||
                 !halo::interface::virtual_keyboard_character_is_legal(virtual_keyboard.validation_mode, ch)) {
                 goto rejected;

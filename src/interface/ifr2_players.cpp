@@ -544,7 +544,7 @@ void PlayerProfiles::details_widget_refresh(widget_instance *widget, const uint8
     widget_instance *j = i->next_sibling;
     int16_t sensitivity;
 
-    if (profile_record == (const uint8_t *)0) {
+    if (profile_record == nullptr) {
         a->state = 0;
         b->background_bitmap_frame = 0x12;
         d->state = 1;
@@ -640,7 +640,7 @@ uint8_t PlayerProfiles::get_flag_by_id(int16_t id)
     int32_t slot;
 
     slot = id;
-    if (halo::networking::globals().client == (void *)0 && halo::networking::globals().server == (void *)0) {
+    if (halo::networking::globals().client == nullptr && halo::networking::globals().server == nullptr) {
         slot = -1;
         if (profile_slot_id[0] == id) {
             slot = 0;
@@ -681,7 +681,7 @@ void PlayerProfiles::load(int16_t player_index, void *source_profile, int32_t pr
     halo::interface::player_profile_apply_video_options(record);
     halo::interface::player_profile_apply_audio_options(record);
 
-    if (halo::game::globals().current_engine == (void *)0 && port_overridden == 0 &&
+    if (halo::game::globals().current_engine == nullptr && port_overridden == 0 &&
         (halo::networking::globals().game_socket_port != ((struct saved_player_profile *)record)->server_port ||
          game_cport != ((struct saved_player_profile *)record)->client_port)) {
         halo::networking::network_channels_close();

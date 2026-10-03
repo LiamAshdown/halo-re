@@ -74,7 +74,7 @@ void InterfaceMain::draw_cursor()
         if (bitmap_data != 0) {
             rect.bottom = (int16_t)(ui_cursor_y + 0x20);
             rect.right = (int16_t)(ui_cursor_x + 0x20);
-            halo::interface::ui_draw_screen_quad((int16_t *)0, (int16_t *)&rect, bitmap_data, (int16_t *)0, 0xffffffffu);
+            halo::interface::ui_draw_screen_quad(nullptr, (int16_t *)&rect, bitmap_data, nullptr, 0xffffffffu);
             return;
         }
     }
@@ -127,7 +127,7 @@ void InterfaceMain::loading_screen_reset()
  */
 void InterfaceMain::loading_screen_set_text(const char *text)
 {
-    if (text == (const char *)0) {
+    if (text == nullptr) {
         progress_screen_text[0] = 0;
     } else {
         halo::text::string_convert_ascii_to_unicode(progress_screen_text, 0x40, text);
@@ -270,7 +270,7 @@ void MapList::get_friendly_level_name(wchar_t *destination, char *map_path, int3
     }
 
     filename = strrchr(map_path, '\\');
-    if (filename != (char *)0) {
+    if (filename != nullptr) {
         halo::text::string_convert_ascii_to_unicode((uint16_t *)destination, destination_capacity * 2, filename + 1);
         return;
     }
@@ -292,7 +292,7 @@ void InterfaceMain::set_profile_name(widget_instance *widget, const uint16_t *na
     void *buffer = halo::memory::heap_reallocate(widget->text, 0x80, widget_memory_pool);
 
     widget->text = buffer;
-    if (buffer != (void *)0) {
+    if (buffer != nullptr) {
         if (tag_id != (datum_index)-1) {
             UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(tag_id);
 
@@ -327,8 +327,8 @@ void InterfaceMain::string_replace_all_in_place(char *buffer, char *search, char
     buffer_end = buffer + strlen(buffer) + 1;
 
     cursor = buffer;
-    if (buffer != (char *)0) {
-        while ((cursor = strstr(cursor, search)) != (char *)0) {
+    if (buffer != nullptr) {
+        while ((cursor = strstr(cursor, search)) != nullptr) {
             uint32_t tail_size = (uint32_t)(buffer_end - cursor) - 1;
 
             memmove(cursor, replacement, replacement_length);

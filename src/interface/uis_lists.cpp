@@ -687,7 +687,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
         if ((handler->flags & 0x100) != 0 && handled == 0 &&
             *(uint32_t *)&handler->widget_tag.tag_id != 0xffffffffu) {
             widget_instance *replacement =
-                halo::interface::chimera__load_ui_widget((char *)0, *(datum_index *)&handler->widget_tag.tag_id,
+                halo::interface::chimera__load_ui_widget(nullptr, *(datum_index *)&handler->widget_tag.tag_id,
                                          widget, widget->controller_index, (datum_index)-1,
                                          (datum_index)-1, -1);
 

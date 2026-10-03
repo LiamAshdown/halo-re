@@ -67,11 +67,11 @@ void UiWidgets::widget_sync_profile_status_flag(widget_instance *widget)
  */
 void UiWidgets::widget_text_ensure_and_refresh(widget_instance *widget)
 {
-    if (widget->text == (void *)0) {
+    if (widget->text == nullptr) {
         uint32_t *block = (uint32_t *)halo::memory::heap_reallocate(widget->text, 0x80, widget_memory_pool);
 
         widget->text = block;
-        if (block != (uint32_t *)0) {
+        if (block != nullptr) {
             int32_t i;
 
             for (i = 0; i < 0x20; i++) {
@@ -79,7 +79,7 @@ void UiWidgets::widget_text_ensure_and_refresh(widget_instance *widget)
             }
         }
     }
-    if (widget->text != (void *)0) {
+    if (widget->text != nullptr) {
         wcsncpy((wchar_t *)((uint16_t *)widget->text), (const wchar_t *)global_text_field_00719278, 0x3f);
         ((uint16_t *)widget->text)[0x3f] = 0;
     }

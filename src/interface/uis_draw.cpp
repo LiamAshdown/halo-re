@@ -82,7 +82,7 @@ void UiDraw::button_prompt_draw_icon(HUDGlobalsButtonIcon *icon)
 {
     uint8_t *bitmaps = (global_globals->interface_bitmaps.count != 0)
                            ? (uint8_t *)global_globals->interface_bitmaps.pointer
-                           : (uint8_t *)0;
+                           : nullptr;
     datum_index bitmap_tag = *(datum_index *)(bitmaps + 0xec);
     int32_t zero = 0;
     int64_t counter;
@@ -169,7 +169,7 @@ void UiDraw::draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect)
     for (i = 0; i < (int32_t)(sizeof(state) / sizeof(int32_t)); i++) {
         ((int32_t *)&state)[i] = 0;
     }
-    state.meter_parameters = (void *)0;
+    state.meter_parameters = nullptr;
     state.maps[0] = &default_2d_bitmap_data[1];
     state.map_scales[0].x = 1.0f;
     state.map_scales[0].y = 1.0f;
@@ -210,7 +210,7 @@ void UiDraw::draw_rotated_screen_quad(int16_t *origin, int32_t source_record, fl
     uint8_t quad[0x60];
     ui_quad_render_state state;
 
-    if (corner_uvs == (float *)0) {
+    if (corner_uvs == nullptr) {
         corner_uvs = default_uvs;
     }
 
@@ -263,7 +263,7 @@ void UiDraw::draw_rotated_screen_quad(int16_t *origin, int32_t source_record, fl
 void UiDraw::draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
                           int16_t *clip_rect, uint32_t vertex_color)
 {
-    if (bitmap_data != 0 && dest_rect != (int16_t *)0) {
+    if (bitmap_data != 0 && dest_rect != nullptr) {
         uint8_t submit_buffer[0x60];
         ui_quad_render_state state;
         int16_t fallback_rect[4];
@@ -275,7 +275,7 @@ void UiDraw::draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t 
         float *corner_pair;
         int32_t i;
 
-        if (source_rect == (int16_t *)0) {
+        if (source_rect == nullptr) {
             fallback_rect[0] = 0;
             fallback_rect[1] = 0;
             fallback_rect[3] = *(int16_t *)(bitmap_data + 4);
@@ -293,7 +293,7 @@ void UiDraw::draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t 
         corners[6] = corners[0];
         corners[7] = corners[5];
 
-        if (clip_rect != (int16_t *)0) {
+        if (clip_rect != nullptr) {
             int16_t v;
 
             v = clip_rect[1];
@@ -407,7 +407,7 @@ uint8_t UiDraw::string_has_button_prompt_token(uint16_t *text)
 {
     uint16_t *percent;
 
-    while (text != (uint16_t *)0 && (percent = (uint16_t *)wcschr((const wchar_t *)text, L'%')) != (uint16_t *)0) {
+    while (text != nullptr && (percent = (uint16_t *)wcschr((const wchar_t *)text, L'%')) != nullptr) {
         text = percent + 1;
         if (halo::interface::ui_button_prompt_index_from_string(text) != halo::k_word_none) {
             return 1;
@@ -435,8 +435,8 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
         uint16_t *next;
         int16_t token;
 
-        if (percent == (uint16_t *)0) {
-            if (cursor != (uint16_t *)0) {
+        if (percent == nullptr) {
+            if (cursor != nullptr) {
                 halo::interface::ui_widget_draw_prompt_span(cursor, &cursor_rect, bounds);
             }
             halo::text::globals().ui_prompt_clip_x = 0;
@@ -515,7 +515,7 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
             }
         }
     next_span:
-        if (cursor == (uint16_t *)0) {
+        if (cursor == nullptr) {
             halo::text::globals().ui_prompt_clip_x = 0;
             halo::text::globals().ui_prompt_clip_y = 0;
             return;

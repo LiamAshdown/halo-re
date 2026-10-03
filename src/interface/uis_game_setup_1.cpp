@@ -107,9 +107,9 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
     ui_lists[0].count = 0;
     ui_lists[1].count = 0;
     ui_lists[2].count = 0;
-    ui_lists[0].data = (void *)0;
-    ui_lists[1].data = (void *)0;
-    ui_lists[2].data = (void *)0;
+    ui_lists[0].data = nullptr;
+    ui_lists[1].data = nullptr;
+    ui_lists[2].data = nullptr;
     ui_list_current = -1;
     ui_list_has_default = 0;
 
@@ -161,7 +161,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
             ui_list_item *item = (ui_list_item *)ui_lists[1].data + element_index;
             uint32_t name_length = wcslen((const wchar_t *)entry_name);
 
-            item->data = (void *)0;
+            item->data = nullptr;
             item->name = (uint16_t *)GlobalAlloc(0, name_length * 2 + 2);
             item->id = i;
             item->is_default = is_selected;

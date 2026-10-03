@@ -35,17 +35,17 @@ void MenuListView::update()
     int32_t i;
     widget_instance *row;
 
-    server_list_entries_006b380c[0] = (void *)0;
-    server_list_entries_006b380c[1] = (void *)0;
-    server_list_entries_006b380c[2] = (void *)0;
-    server_list_entries_006b380c[3] = (void *)0;
-    server_list_entries_006b380c[4] = (void *)0;
-    server_list_entries_006b380c[5] = (void *)0;
-    server_list_entries_006b380c[6] = (void *)0;
-    server_list_entries_006b380c[7] = (void *)0;
-    server_list_entries_006b380c[8] = (void *)0;
+    server_list_entries_006b380c[0] = nullptr;
+    server_list_entries_006b380c[1] = nullptr;
+    server_list_entries_006b380c[2] = nullptr;
+    server_list_entries_006b380c[3] = nullptr;
+    server_list_entries_006b380c[4] = nullptr;
+    server_list_entries_006b380c[5] = nullptr;
+    server_list_entries_006b380c[6] = nullptr;
+    server_list_entries_006b380c[7] = nullptr;
+    server_list_entries_006b380c[8] = nullptr;
 
-    if (client == (uint8_t *)0) {
+    if (client == nullptr) {
         return;
     }
 
@@ -95,7 +95,7 @@ void MenuListView::update()
         uint8_t *entry = (uint8_t *)server_list_entries_006b380c[i];
 
         row->text = buf;
-        if (buf != (uint16_t *)0) {
+        if (buf != nullptr) {
             if (entry[300] == 1) {
                 wcsncpy((wchar_t *)buf, (const wchar_t *)((const uint16_t *)(entry + 0x1c)), 0xf);
                 ((uint16_t *)row->text)[0xf] = 0;
@@ -155,13 +155,13 @@ void MenuListView::update()
                 uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r8->text, 8, widget_memory_pool);
 
                 r8->text = b;
-                if (b != (uint16_t *)0) b[0] = 0;
+                if (b != nullptr) b[0] = 0;
             }
             {
                 uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r9->text, 8, widget_memory_pool);
 
                 r9->text = b;
-                if (b != (uint16_t *)0) b[0] = 0;
+                if (b != nullptr) b[0] = 0;
             }
             r10->selection_index = 1;
             r3->selection_index = (uint32_t)(now_ms - widget->creation_time) > 999;
@@ -214,7 +214,7 @@ void MenuListView::update()
                 uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r8->text, 8, widget_memory_pool);
 
                 r8->text = b;
-                if (b != (uint16_t *)0) {
+                if (b != nullptr) {
                     halo::text::string_format_wide_va_bounded(3, reinterpret_cast<uint16_t *>((wchar_t *)b), reinterpret_cast<const uint16_t *>((const wchar_t *)chat_local_prompt_string),
                                                    (int32_t)*(uint16_t *)(sel + 0x124));
                     ((uint16_t *)r8->text)[3] = 0;
@@ -224,7 +224,7 @@ void MenuListView::update()
                 uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r9->text, 8, widget_memory_pool);
 
                 r9->text = b;
-                if (b != (uint16_t *)0) {
+                if (b != nullptr) {
                     halo::text::string_format_wide_va_bounded(3, reinterpret_cast<uint16_t *>((wchar_t *)b), reinterpret_cast<const uint16_t *>((const wchar_t *)chat_local_prompt_string),
                                                    (int32_t)*(int16_t *)(sel + 0x128));
                     ((uint16_t *)r9->text)[3] = 0;

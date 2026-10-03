@@ -134,7 +134,7 @@ uint32_t FirstPersonWeaponController::get_marker_data(datum_index weapon_index, 
     if (fp->weapon_hud_valid != 0 && *(int32_t *)(item_tag_data + 0x468) != -1 &&
         *(int32_t *)(item_tag_data + 0x478) != -1) {
         return (uint32_t)halo::models::model_markers_get_by_name(*(datum_index *)(item_tag_data + 0x468), marker_name,
-            (uint8_t *)0, fp->weapon_hud_element, (real_matrix4x3 *)fp->node_matrices, 0, out, (int16_t)maximum);
+            nullptr, fp->weapon_hud_element, (real_matrix4x3 *)fp->node_matrices, 0, out, (int16_t)maximum);
     }
     return 0;
 }
@@ -209,7 +209,7 @@ void FirstPersonWeaponController::interface_initialize()
         return;
     }
     node_array_block = *(int32_t **)(hud_interface_tag_data + 0x4c);
-    if (node_array_block == (int32_t *)0) {
+    if (node_array_block == nullptr) {
         halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
         return;
     }
@@ -848,7 +848,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
 
 post_hud:
     halo::interface::hud_update_player();
-    if (halo::game::globals().current_engine != (void *)0) {
+    if (halo::game::globals().current_engine != nullptr) {
         if ((int32_t)halo::game::globals().state > 1) {
             halo::game::game_engine_post_rasterize_post_game();
             return;

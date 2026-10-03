@@ -330,7 +330,7 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
     if (object_or_slot_index == halo::k_dword_none || item_type_code == -1) {
         return;
     }
-    if (halo::objects::object_try_and_get((datum_index)object_or_slot_index, 4) == (void *)0) {
+    if (halo::objects::object_try_and_get((datum_index)object_or_slot_index, 4) == nullptr) {
         return;
     }
 
@@ -358,7 +358,7 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
     hud_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances + hud_tag_index * 0x20 + 0x14);
 
     block_a_count = *(int32_t *)(hud_tag_data + 0x48);
-    block_a_base = (block_a_count != 0) ? *(uint8_t **)(hud_tag_data + 0x4c) : (uint8_t *)0;
+    block_a_base = (block_a_count != 0) ? *(uint8_t **)(hud_tag_data + 0x4c) : nullptr;
 
     if (animation_stage < 0) {
         return;

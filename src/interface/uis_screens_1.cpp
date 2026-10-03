@@ -191,7 +191,7 @@ void UiScreens::error_modal_update(void)
 {
     int16_t player_count_field;
 
-    if ((halo::game::globals().current_engine == (void *)0 || (int32_t)halo::game::globals().state < 2 || (int32_t)halo::game::globals().state > 3) &&
+    if ((halo::game::globals().current_engine == nullptr || (int32_t)halo::game::globals().state < 2 || (int32_t)halo::game::globals().state > 3) &&
         halo::cutscene::globals().cinematic_globals->in_progress == 0) {
         if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
             strstr(ui_root_widget[0]->name, "error_modal");

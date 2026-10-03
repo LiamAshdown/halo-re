@@ -166,7 +166,7 @@ uint8_t GamepadBindings::list_remove(const controls_gamepad_record *entry, contr
  */
 uint8_t GamepadBindings::lists_load(widget_instance *screen)
 {
-    uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : (uint8_t *)0;
+    uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : nullptr;
     widget_instance *nodes[17];
     controls_gamepad_record entry;
     uint8_t have_entry = 0;

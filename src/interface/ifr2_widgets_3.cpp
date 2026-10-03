@@ -46,7 +46,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         byte_len = wcslen((const wchar_t *)src) * 2;
         buf = (uint16_t *)halo::memory::heap_reallocate(widget->text, byte_len + 2, widget_memory_pool);
         widget->text = buf;
-        if (buf == (uint16_t *)0) {
+        if (buf == nullptr) {
             widget->text = ui_out_of_memory_text;
         } else {
             uint8_t *dst8 = (uint8_t *)buf;
@@ -59,14 +59,14 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         }
     }
 
-    if (widget->text == (void *)0 || *(uint16_t *)widget->text == 0) {
+    if (widget->text == nullptr || *(uint16_t *)widget->text == 0) {
         return;
     }
 
     for (i = 0; i < tag->search_and_replace_functions.count; i++) {
         uint8_t *entry = (uint8_t *)tag->search_and_replace_functions.pointer + i * 0x22;
 
-        if (entry != (uint8_t *)0 && *entry != 0) {
+        if (entry != nullptr && *entry != 0) {
             int16_t fn = *(int16_t *)(entry + 0x20);
             const uint16_t *replacement;
             uint16_t search[0x20];

@@ -95,7 +95,7 @@ void UiControlsMenu::controls_4wide_selector_refresh(widget_instance *widget)
  */
 uint32_t UiControlsMenu::controls_options_free_list(widget_instance *widget)
 {
-    if (widget->list_items != (void *)0) {
+    if (widget->list_items != nullptr) {
         heap_block *block = (heap_block *)((uint8_t *)widget->list_items - 0x10);
         uint32_t size = block->size;
 
@@ -103,7 +103,7 @@ uint32_t UiControlsMenu::controls_options_free_list(widget_instance *widget)
         widget_memory_pool->bytes_allocated =
             widget_memory_pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
         widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
-        widget->list_items = (void *)0;
+        widget->list_items = nullptr;
     }
     halo::interface::ui_list_free_all();
     return 1;

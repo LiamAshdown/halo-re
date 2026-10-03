@@ -141,7 +141,7 @@ void ChimeraBridge::do_show_loading_screen(void)
     bounds.bottom = 0x1e0;
     bounds.right = 0x280;
     if (bitmap_data != 0) {
-        halo::interface::ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, (int16_t *)0,
+        halo::interface::ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, nullptr,
                             packed_color);
     }
     halo::text::text_set_render_context(font, &text_color, -1, 2, 0);
@@ -215,7 +215,7 @@ void ChimeraBridge::load_main_menu(void)
 {
     ui_input_batch_mode = 0;
     if (main_menu_reload_pending == 1) {
-        if (halo::shell::globals().command_line != (char *)0) {
+        if (halo::shell::globals().command_line != nullptr) {
             _stricmp(halo::shell::globals().command_line, "xdemo");
         }
         ui_input_batch_mode = 1;

@@ -120,7 +120,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
     widget_instance *ancestor;
     uint8_t in_bounds;
     int32_t cursor_side;
-    uint16_t *text = (uint16_t *)0;
+    uint16_t *text = nullptr;
     uint8_t scroll_dir_up = 0;
     uint8_t scroll_dir_down = 0;
     int16_t x_off = (int16_t)offset_xy;
@@ -166,7 +166,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
             int16_t frame = (int16_t)(arrow == 0 ? scroll_dir_up : scroll_dir_down);
             int32_t bitmap;
 
-            if (in_bounds != 0 && bitmap_tag_data != (uint8_t *)0 && *(int32_t *)(bitmap_tag_data + 0x60) == 4 &&
+            if (in_bounds != 0 && bitmap_tag_data != nullptr && *(int32_t *)(bitmap_tag_data + 0x60) == 4 &&
                 halo::interface::widget_instance_point_in_bounds(widget) != 0 &&
                 (arrow == 0 ? cursor_side <= 0 : cursor_side > 0)) {
                 frame = (int16_t)(frame + 2);
@@ -201,7 +201,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
         int32_t i;
 
         text = buf;
-        if (buf == (uint16_t *)0) {
+        if (buf == nullptr) {
             goto free_and_return;
         }
         {
@@ -219,7 +219,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
             for (i = 0; i < tag->search_and_replace_functions.count; i++) {
                 uint8_t *entry = entries + i * 0x22;
 
-                if (entry != (uint8_t *)0 && *entry != 0) {
+                if (entry != nullptr && *entry != 0) {
 
                     const uint16_t *replacement = halo::interface::ui_search_replace_function_call(*(int16_t *)(entry + 0x20), widget);
                     uint16_t search[0x20];
@@ -230,7 +230,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
         }
     }
 
-    if (text != (uint16_t *)0 && *(uint32_t *)&tag->text_font.tag_id != 0xffffffffu) {
+    if (text != nullptr && *(uint32_t *)&tag->text_font.tag_id != 0xffffffffu) {
         int16_t justification = tag->justification;
 
         if (justification >= 0 && justification < 3) {
@@ -268,7 +268,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
     }
 
 free_and_return:
-    if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != 0xffffffffu && text != (uint16_t *)0) {
+    if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != 0xffffffffu && text != nullptr) {
         heap_block *block = (heap_block *)((uint8_t *)text - 0x10);
         uint32_t size = block->size;
 

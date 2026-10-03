@@ -39,9 +39,9 @@ void NetworkSetup::game_host_start(char *map_name, char *variant_name, uint8_t d
     game_variant variant;
 
     halo::interface::widget_close_all();
-    if (halo::networking::globals().server != (void *)0) {
+    if (halo::networking::globals().server != nullptr) {
         halo::networking::network_game_server_host_dispose(halo::networking::globals().server);
-        halo::networking::globals().server = (network_server_globals *)((void *)0);
+        halo::networking::globals().server = (network_server_globals *)(nullptr);
         halo::networking::globals().server_host_valid = 0;
     }
     halo::networking::network_client_globals_dispose();
@@ -61,7 +61,7 @@ void NetworkSetup::game_host_start(char *map_name, char *variant_name, uint8_t d
         halo::networking::globals().disconnect_timeout_flag = disconnect_timeout_flag;
         if (halo::networking::network_game_server_host_create() != 0) {
             halo::networking::globals().client = (network_client_globals *)(halo::networking::network_session_create());
-            if (halo::networking::globals().client != (void *)0) {
+            if (halo::networking::globals().client != nullptr) {
                 halo::networking::globals().host_handoff_requested = 0;
                 game_variant_history_current = -1;
                 halo::game::game_engine_apply_current_custom_variant();
@@ -70,9 +70,9 @@ void NetworkSetup::game_host_start(char *map_name, char *variant_name, uint8_t d
                 return;
             }
         }
-        if (halo::networking::globals().server != (void *)0) {
+        if (halo::networking::globals().server != nullptr) {
             halo::networking::network_game_server_host_dispose(halo::networking::globals().server);
-            halo::networking::globals().server = (network_server_globals *)((void *)0);
+            halo::networking::globals().server = (network_server_globals *)(nullptr);
             halo::networking::globals().server_host_valid = 0;
         }
         halo::networking::network_client_globals_dispose();

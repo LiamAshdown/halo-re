@@ -77,7 +77,7 @@ void ConsoleTerminal::out(ColorARGB *color, char *format, va_list args)
     message->color = *color;
     _vsnprintf(message->text, 0xfe, format, args);
 
-    message->is_command_echo = strstr(message->text, console_echo_prefix) != (char *)0;
+    message->is_command_echo = strstr(message->text, console_echo_prefix) != nullptr;
     halo::interface::chimera__console_out_copy(message->text);
 }
 
@@ -108,8 +108,8 @@ void ConsoleTerminal::out_copy(char *text)
         halo::interface::string_replace_all_in_place(line, state::console_newline_escape, state::console_newline_text);
         length = strlen(line);
         halo::interface::console_clear_bottom_line(1);
-        WriteConsoleA(console_output_handle, line, length, (LPDWORD)&chars_written, (void *)0);
-        WriteConsoleA(console_output_handle, state::console_newline_text, 1, (LPDWORD)&chars_written, (void *)0);
+        WriteConsoleA(console_output_handle, line, length, (LPDWORD)&chars_written, nullptr);
+        WriteConsoleA(console_output_handle, state::console_newline_text, 1, (LPDWORD)&chars_written, nullptr);
         halo::interface::console_draw_input_line();
     }
 }
@@ -499,7 +499,7 @@ void ConsoleTerminal::printf_verbose(ColorARGB *color, char *format, va_list arg
     message->color = *color;
     _vsnprintf(message->text, 0xfe, format, args);
 
-    message->is_command_echo = strstr(message->text, console_echo_prefix) != (char *)0;
+    message->is_command_echo = strstr(message->text, console_echo_prefix) != nullptr;
     halo::interface::chimera__console_out_copy(message->text);
 }
 

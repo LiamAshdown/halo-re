@@ -41,7 +41,7 @@ void WidgetLifecycle::memory_pool_initialize()
     uint8_t *clear_cursor;
 
     allocation = GlobalAlloc(0, 0x20000);
-    if (allocation != (void *)0) {
+    if (allocation != nullptr) {
         widget_memory_pool->base = (uint8_t *)allocation;
         widget_memory_pool->size = 0x20000;
     }
@@ -73,7 +73,7 @@ void WidgetLifecycle::memory_pool_initialize()
     quit_confirm_error_string_index = -1;
     ui_pending_errors[0].error_string_index = -1;
     state::screen_fade_progress = -1.0f;
-    widget_memory_pool_valid = (allocation != (void *)0);
+    widget_memory_pool_valid = (allocation != nullptr);
 }
 
 } // namespace halo::interface

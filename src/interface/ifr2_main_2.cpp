@@ -130,7 +130,7 @@ void InterfaceMain::tick()
         root = ui_root_widget[0];
         if (got_exit_code != 0 && exit_code != 0x103  ) {
             CloseHandle(loading_thread->handle);
-            loading_thread->handle = (void *)0;
+            loading_thread->handle = nullptr;
             loading_thread->unknown_04 = 0;
             loading_thread = (loading_thread_record *)0;
             ui_input_batch_mode = 0;
@@ -189,7 +189,7 @@ void InterfaceMain::tick()
                         root = ui_root_widget[0];
                         if (popped.definition != (datum_index)-1) {
                             widget_instance *reopened = halo::interface::chimera__load_ui_widget(
-                                (char *)0, popped.definition, (widget_instance *)0,
+                                nullptr, popped.definition, (widget_instance *)0,
                                 (uint16_t)popped.controller_index, (datum_index)-1, (datum_index)-1, -1);
 
                             root = ui_root_widget[0];
@@ -344,7 +344,7 @@ void MapList::add_entry(char *path, int32_t map_id)
     }
 
     entry = &map_list[map_list_count];
-    entry->path = (char *)0;
+    entry->path = nullptr;
     entry->map_id = map_id;
     entry->cache_file_exists = 0;
 
@@ -353,7 +353,7 @@ void MapList::add_entry(char *path, int32_t map_id)
     strcpy(entry->path, path);
 
     extension = strstr(entry->path, ".map");
-    if (extension != (char *)0) {
+    if (extension != nullptr) {
         *extension = '\0';
     }
 
@@ -362,7 +362,7 @@ void MapList::add_entry(char *path, int32_t map_id)
     }
 
     filename = strrchr(entry->path, '\\');
-    filename = (filename != (char *)0) ? filename + 1 : entry->path;
+    filename = (filename != nullptr) ? filename + 1 : entry->path;
     entry->cache_file_exists = halo::cache::cache_file_exists(filename, &header);
     map_list_count = map_list_count + 1;
 }

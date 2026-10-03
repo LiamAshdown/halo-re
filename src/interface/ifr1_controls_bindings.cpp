@@ -195,7 +195,7 @@ uint8_t ControlsBindings::binding_clear(int32_t action_index, int32_t device)
         return 0;
     }
     if (device >= 2 && (entry[0x14] & 4) != 0) {
-        uint8_t *profile = (selected_saved_item & 0xf) != 0 ? (uint8_t *)0 : saved_item_working_copy;
+        uint8_t *profile = (selected_saved_item & 0xf) != 0 ? nullptr : saved_item_working_copy;
         int16_t gamepad = record[1];
         int16_t control = record[3];
 
@@ -507,7 +507,7 @@ void ControlsBindings::binding_rows_toggle_device_mode(widget_instance *widget, 
  */
 void ControlsBindings::build_device_label_table(void)
 {
-    uint8_t *profile = ((selected_saved_item & 0xf) != 0) ? (uint8_t *)0 : saved_item_working_copy;
+    uint8_t *profile = ((selected_saved_item & 0xf) != 0) ? nullptr : saved_item_working_copy;
     datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
     int i;

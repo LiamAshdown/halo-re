@@ -71,7 +71,7 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
 
     slot_ids = (int32_t *)halo::memory::heap_reallocate(widget->list_items, 400, widget_memory_pool);
     widget->list_items = slot_ids;
-    if (slot_ids != (int32_t *)0) {
+    if (slot_ids != nullptr) {
         uint8_t profile_buffer[0x1ffc];
         int32_t matched_profile;
         int32_t i;
@@ -88,9 +88,9 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
         ui_lists[0].count = 0;
         ui_lists[1].count = 0;
         ui_lists[2].count = 0;
-        ui_lists[0].data = (void *)0;
-        ui_lists[1].data = (void *)0;
-        ui_lists[2].data = (void *)0;
+        ui_lists[0].data = nullptr;
+        ui_lists[1].data = nullptr;
+        ui_lists[2].data = nullptr;
         ui_list_current = -1;
         ui_list_has_default = 0;
 
@@ -132,7 +132,7 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
  */
 uint32_t UiProfiles::free_profile_list(widget_instance *widget)
 {
-    if (widget->list_items != (void *)0) {
+    if (widget->list_items != nullptr) {
         heap_block *block = (heap_block *)((uint8_t *)widget->list_items - 0x10);
         uint32_t size = block->size;
 
@@ -140,7 +140,7 @@ uint32_t UiProfiles::free_profile_list(widget_instance *widget)
         widget_memory_pool->bytes_allocated =
             widget_memory_pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
         widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
-        widget->list_items = (void *)0;
+        widget->list_items = nullptr;
     }
     widget->item_count = 0;
     halo::interface::ui_list_free_all();
@@ -180,7 +180,7 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
             }
         }
         if (halo::saved_games::player_profile_get_or_cached_default((saved_player_profile *)default_profile_data, (int32_t)profile_id) != 0) {
-            halo::interface::player_profile_load((int16_t)profile_id, (void *)0, profile_id);
+            halo::interface::player_profile_load((int16_t)profile_id, nullptr, profile_id);
             if (new_profile_name_flag_0071916e != 0) {
                 halo::interface::saved_item_select(-1);
             }

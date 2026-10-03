@@ -153,7 +153,7 @@ void WidgetLifecycle::close()
                     ui_event_function fn = (ui_event_function)ui_event_function_table[function];
                     uint8_t handled = 0;
 
-                    if (fn(widget, (int16_t *)0, &handled) == 1 && (handler->flags & 0x08) != 0 &&
+                    if (fn(widget, nullptr, &handled) == 1 && (handler->flags & 0x08) != 0 &&
                         *(uint32_t *)&handler->widget_tag.tag_id != halo::k_dword_none) {
                         halo::interface::widget_reopen_as_root_with_history(widget, *(datum_index *)&handler->widget_tag.tag_id);
                     }
@@ -202,14 +202,14 @@ void WidgetLifecycle::close()
         heap *pool = widget_memory_pool;
 
         if (widget->widget_type == 1) {
-            if (widget->text != (void *)0) {
+            if (widget->text != nullptr) {
                 heap_block *block = (heap_block *)((uint8_t *)widget->text - 0x10);
 
                 halo::memory::heap_unlink_block(block, widget_memory_pool);
                 pool = widget_memory_pool;
             }
         } else if (widget->widget_type > 1 && widget->widget_type < 4) {
-            if (widget->list_render_data != (void *)0) {
+            if (widget->list_render_data != nullptr) {
                 heap_block *block = (heap_block *)((uint8_t *)widget->list_render_data - 0x10);
 
                 halo::memory::heap_unlink_block(block, widget_memory_pool);
@@ -314,7 +314,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
 
         widget_creating_children = 1;
         for (i = 0; i < list->strings.count; i++) {
-            widget_instance *child = halo::interface::chimera__load_ui_widget((char *)0, widget->definition, widget,
+            widget_instance *child = halo::interface::chimera__load_ui_widget(nullptr, widget->definition, widget,
                                                                widget->controller_index, (datum_index)-1,
                                                                (datum_index)-1, -1);
 
@@ -352,7 +352,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
                 if ((entry->flags & 1) != 0 && entry->custom_controller_index < 4) {
                     controller = entry->custom_controller_index;
                 }
-                child = halo::interface::chimera__load_ui_widget((char *)0, child_tag_index, widget, controller,
+                child = halo::interface::chimera__load_ui_widget(nullptr, child_tag_index, widget, controller,
                                                  (datum_index)-1, (datum_index)-1, -1);
                 if (child == (widget_instance *)0) {
                     ok = 0;
@@ -378,7 +378,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
     if ((widget->widget_type == 2 || widget->widget_type == 3) &&
         *(uint32_t *)&tag->extended_description_widget.tag_id != 0xffffffffu) {
         widget_instance *desc = halo::interface::chimera__load_ui_widget(
-            (char *)0, *(uint32_t *)&tag->extended_description_widget.tag_id, widget,
+            nullptr, *(uint32_t *)&tag->extended_description_widget.tag_id, widget,
             widget->controller_index, (datum_index)-1, (datum_index)-1, -1);
 
         widget->extended_description = desc;
@@ -866,7 +866,7 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
     widget->parent = parent;
     if (widget->widget_type == 1) {
         widget->selection_index = -1;
-        widget->list_render_data = (void *)0;
+        widget->list_render_data = nullptr;
     }
     if (*(uint32_t *)&tag->background_bitmap.tag_id != 0xffffffffu) {
         tag_instance *bg = &halo::cache::globals().tag_instances[*(uint32_t *)&tag->background_bitmap.tag_id & halo::k_slot_mask];
@@ -941,7 +941,7 @@ void WidgetLifecycle::close_and_restore_previous()
 
     if (history_definition != (datum_index)-1) {
         ui_restoring_previous_widget = 1;
-        reopened = halo::interface::chimera__load_ui_widget((char *)0, history_definition, (widget_instance *)0,
+        reopened = halo::interface::chimera__load_ui_widget(nullptr, history_definition, (widget_instance *)0,
                                             (uint16_t)history.controller_index,
                                             (datum_index)-1, (datum_index)-1, -1);
         ui_restoring_previous_widget = 0;
@@ -1831,7 +1831,7 @@ uint8_t WidgetList::select_next()
 {
     UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
 
-    if (widget->list_items != (void *)0 && widget->item_count != 0) {
+    if (widget->list_items != nullptr && widget->item_count != 0) {
         int16_t next_index = widget->selection_index + 1;
 
         if ((int32_t)(uint16_t)widget->item_count <= next_index) {
@@ -1922,7 +1922,7 @@ uint8_t WidgetList::select_previous()
 {
     UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
 
-    if (widget->list_items != (void *)0 && widget->item_count != 0) {
+    if (widget->list_items != nullptr && widget->item_count != 0) {
         int16_t prev_index = widget->selection_index - 1;
 
         if (prev_index < 0) {
@@ -2232,7 +2232,7 @@ widget_instance * WidgetLifecycle::reopen_as_root_with_history(datum_index open_
         }
     }
 
-    return halo::interface::chimera__load_ui_widget((char *)0, open_tag, (widget_instance *)0, controller_index,
+    return halo::interface::chimera__load_ui_widget(nullptr, open_tag, (widget_instance *)0, controller_index,
                              root->definition, parent_definition, sibling_index);
 }
 
