@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_frame.hpp"
 #include <wchar.h>
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
@@ -17,7 +18,6 @@ extern void hud_set_action_text_shown(int16_t local_player_index, uint8_t shown)
 extern int16_t object_get_hud_text_message_index(datum_index object_index);
 extern uint8_t weapon_hud_ammo_state_is_empty(const weapon_hud_ammo_state *state);
 extern uint8_t game_engine_pick_hud_hint(datum_index player_index, int32_t maximum_length, uint16_t *out_text);
-extern void weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out);
 extern int16_t unit_count_deployed_weapons(datum_index unit_index);
 extern int16_t unit_find_next_zone_permitted_weapon_slot(datum_index unit_index, int32_t start_slot, int16_t direction);
 extern datum_index unit_get_weapon_object_index(datum_index unit_index, int16_t slot_index);
@@ -199,7 +199,7 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
         }
 
         if (current_weapon != (datum_index)-1 && can_switch) {
-            weapon_build_hud_ammo_state(current_weapon, &ammo);
+            halo::items::weapon_build_hud_ammo_state(current_weapon, &ammo);
             if (weapon_hud_ammo_state_is_empty(&ammo)) {
                 int16_t slot = unit->current_weapon_index;
                 int16_t remaining = unit_count_deployed_weapons(unit_index);
@@ -209,7 +209,7 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
                     slot = unit_find_next_zone_permitted_weapon_slot(unit_index, slot, 1);
                     unit_index = p->unit;
                     candidate = unit_get_weapon_object_index(unit_index, slot);
-                    weapon_build_hud_ammo_state(candidate, &ammo);
+                    halo::items::weapon_build_hud_ammo_state(candidate, &ammo);
                     if (!weapon_hud_ammo_state_is_empty(&ammo)) {
                         break;
                     }

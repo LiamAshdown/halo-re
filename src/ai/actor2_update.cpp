@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/items/api.hpp"
 
 namespace halo::ai {
 
@@ -99,7 +100,6 @@ extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index)
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
-extern float weapon_trigger_get_average_damage(datum_index weapon_tag_id, float *out_max_rate_of_fire);
 extern real vector3d_normalize_with_length(real_vector3d *v);
 static float aim_wander_random_fraction(void)
 {
@@ -185,7 +185,7 @@ void ActorView::update_aim_wander()
 
         if (weapon != k_datum_index_none) {
             float rate;
-            float damage = weapon_trigger_get_average_damage(
+            float damage = halo::items::weapon_trigger_get_average_damage(
                 *(datum_index *)((object_header *)object_data->data)[weapon & 0xffff].data, &rate);
 
             if (((ActorVariant *)variant)->rate_of_fire > 0.0f && rate > ((ActorVariant *)variant)->rate_of_fire) {

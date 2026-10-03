@@ -4,6 +4,7 @@
 #include <wchar.h>
 #include "halo/input/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
@@ -20,7 +21,6 @@ extern void player_trigger_full_health_effect(uint32_t player_index);
 extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle);
 extern void player_trigger_kill_streak_effect(uint32_t player_index);
 extern void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t local_player_index, int8_t machine_id);
-extern void equipment_pickup_play_sound(uint32_t object_index);
 extern void object_delete(uint32_t object_index);
 extern game_time_globals *game_time;
 extern network_client_globals *network_client;
@@ -46,7 +46,6 @@ extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *or
 extern uint8_t device_frontfacing(uint32_t device_index, real_vector3d *forward);
 extern uint8_t device_can_change_position(uint32_t candidate_object);
 extern void player_set_pending_interaction_action(int16_t priority_type, int16_t seat, uint32_t player_index, uint32_t candidate_object);
-extern uint32_t weapon_transfer_ammunition(datum_index target_item_index, datum_index source_item_index, int16_t requesting_player_index, int16_t *out_transferred);
 extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind, int16_t count);
 extern uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index);
 extern void player_apply_pickup_effect(uint32_t player_index, uint32_t pickup_object);
@@ -143,7 +142,6 @@ extern uint32_t global_006889e8;
 extern uint32_t global_006889f0;
 extern uint32_t global_006889ec;
 extern uint32_t global_007102f8;
-extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level);
 extern real_vector3d global_origin3d;
 extern void object_set_position_and_recalculate(void *position_or_object, uint32_t unknown);
 extern wchar_t empty_string;
@@ -389,7 +387,7 @@ void PlayerView::apply_pickup_effect(uint32_t pickup_object)
     hud_post_item_message(0, (int32_t)pickup->definition_tag, 0, p->local_player_index,
                           (int8_t)*((uint8_t *)p + 0x64));
     if (p->local_player_index != -1) {
-        equipment_pickup_play_sound(pickup_object);
+        halo::items::equipment_pickup_play_sound(pickup_object);
     }
     object_delete(pickup_object);
 }
@@ -495,7 +493,7 @@ void PlayerView::check_vehicle_boarding_interaction(uint32_t candidate_object)
         int16_t transferred;
 
         if (carried != k_datum_index_none &&
-            (uint8_t)weapon_transfer_ammunition(carried, candidate_object, local_player_index, &transferred)) {
+            (uint8_t)halo::items::weapon_transfer_ammunition(carried, candidate_object, local_player_index, &transferred)) {
             if (transferred > 0) {
                 hud_post_item_message(transferred, (int32_t)*(datum_index *)OBJECT_DATA(carried), 1,
                     local_player_index, machine);
@@ -1991,7 +1989,7 @@ uint8_t LocalPlayerUnit::get_current_weapon_autoaim_cone(int16_t require_zoomed,
         return 0;
     }
 
-    aspect = weapon_get_zoom_magnification(weapon_index, require_zoomed);
+    aspect = halo::items::weapon_get_zoom_magnification(weapon_index, require_zoomed);
     inv_aspect = 1.0f / aspect;
     out[0] = inv_aspect * weapon->autoaim_angle;
     out[1] = aspect * weapon->autoaim_range;

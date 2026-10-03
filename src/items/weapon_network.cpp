@@ -1,11 +1,11 @@
 #include "halo/items/items.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern network_id_table *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void weapon_reset_triggers(datum_index item_index);
 extern data_array *object_data;
 extern real weapon_network_update_position_tolerance;
 extern double sqrt(double x);
@@ -21,16 +21,15 @@ extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand);
 extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
-extern void weapon_build_creation_message(datum_index item_index, uint32_t unused_param_2, uint32_t unused_param_3, uint32_t object_flags);
-int32_t weapon_add_ammunition(void **message_record);
-void weapon_apply_ammo_correction(void **message_record);
-void weapon_apply_ammo_correction_and_resync(void **message_record);
-void weapon_apply_network_update(datum_index item_index, uint32_t *update_record);
-int32_t weapon_build_network_update(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
-void weapon_create_from_creation_message(void *incoming_record);
-void weapon_network_baseline_take(uint32_t item_index);
-void weapon_predict_ammo(void **message_record);
-void weapon_send_creation(uint32_t item_index, uint32_t arg2, uint32_t arg3);
+int32_t halo::items::weapon_add_ammunition(void **message_record);
+void halo::items::weapon_apply_ammo_correction(void **message_record);
+void halo::items::weapon_apply_ammo_correction_and_resync(void **message_record);
+void halo::items::weapon_apply_network_update(datum_index item_index, uint32_t *update_record);
+int32_t halo::items::weapon_build_network_update(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
+void halo::items::weapon_create_from_creation_message(void *incoming_record);
+void halo::items::weapon_network_baseline_take(uint32_t item_index);
+void halo::items::weapon_predict_ammo(void **message_record);
+void halo::items::weapon_send_creation(uint32_t item_index, uint32_t arg2, uint32_t arg3);
 }
 
 namespace halo::items {
@@ -151,7 +150,7 @@ void weapon_ref::apply_ammo_correction_and_resync(void **message_record)
     magazine->rounds_unloaded = decoded.rounds_unloaded;
     magazine->rounds_loaded = decoded.rounds_loaded;
     wd->flags = wd->flags & ~(uint32_t)_weapon_ammo_prediction_pending_bit;
-    weapon_reset_triggers(item_index);
+    halo::items::weapon_reset_triggers(item_index);
 }
 
 /**
@@ -542,15 +541,15 @@ void weapon_ref::send_creation(uint32_t arg2, uint32_t arg3)
     item_data *id = (item_data *)((uint8_t *)obj + k_item_data_offset);
 
     if ((obj->flags & _object_at_rest_bit) != 0 && (id->flags & _item_at_rest_on_structure_bit) == 0) {
-        weapon_build_creation_message(item_index, arg2, arg3, _object_at_rest_bit);
+        halo::items::weapon_build_creation_message(item_index, arg2, arg3, _object_at_rest_bit);
         return;
     }
-    weapon_build_creation_message(item_index, arg2, arg3, 0);
+    halo::items::weapon_build_creation_message(item_index, arg2, arg3, 0);
 }
 
 }
 
-extern "C" {
+namespace halo::items {
 
 int32_t weapon_add_ammunition(void **message_record)
 {

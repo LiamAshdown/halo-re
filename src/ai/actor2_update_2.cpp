@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/items/api.hpp"
 
 namespace halo::ai {
 
@@ -37,10 +38,6 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern int32_t fistp_round(float x);
 extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
-extern uint8_t weapon_trigger_get_aiming_vector(datum_index weapon_index, int16_t trigger_index, real_point3d *origin,
-    real_point3d *target, uint8_t use_high_arc, real_vector3d *out_direction, real *out_time, real *out_range,
-    uint8_t *out_used_straight_line);
-extern real weapon_trigger_projectile_time_fraction(datum_index item_index, int16_t trigger_index, real elapsed);
 extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out);
 extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point, uint32_t reference_direction,
     uint32_t offsets, real_point3d *accumulator);
@@ -199,7 +196,7 @@ void ActorView::update_firing_state()
         }
         a[0x622] = (uint8_t)(F(def, 0x148) > 0.0f && F(a, 0x638) > F(def, 0x148));
         a[0x623] = (uint8_t)(a[0x455] && F(def, 0x14c) > 0.0f);
-        if (!weapon_trigger_get_aiming_vector(weapon, 0, (real_point3d *)(a + 0x120), (real_point3d *)(a + 0x62c),
+        if (!halo::items::weapon_trigger_get_aiming_vector(weapon, 0, (real_point3d *)(a + 0x120), (real_point3d *)(a + 0x62c),
                                               a[0x622], (real_vector3d *)(a + 0x63c), 0, (real *)(a + 0x648),
                                               &used_straight_line)) {
             W(a, 0x60c) = 0;
@@ -315,7 +312,7 @@ dispatch:
             f = weapon_get_zoom_fov_resolved(0x10, W(a, 0x3e)) + F(def, 0xc0);
             if (!(f <= 0.0f && f < 1.0f)) {
                 float lead = F(def, 0xc0);
-                real t = weapon_trigger_projectile_time_fraction(weapon, (int16_t)(a[0x603] != 0), F(a, 0x648));
+                real t = halo::items::weapon_trigger_projectile_time_fraction(weapon, (int16_t)(a[0x603] != 0), F(a, 0x648));
 
                 aim_point->x += t * F(p, 0xd4) * lead;
                 aim_point->y += t * F(p, 0xd8) * lead;
@@ -369,7 +366,7 @@ dispatch:
             }
         }
 
-        weapon_trigger_get_aiming_vector(weapon, (int16_t)(a[0x603] != 0), &origin, final_point, a[0x622],
+        halo::items::weapon_trigger_get_aiming_vector(weapon, (int16_t)(a[0x603] != 0), &origin, final_point, a[0x622],
                                          (real_vector3d *)(a + 0x68c), 0, 0, &used_straight_line);
         a[0x688] = (uint8_t)(used_straight_line == 0);
         {

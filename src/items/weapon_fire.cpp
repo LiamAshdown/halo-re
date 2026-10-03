@@ -1,4 +1,5 @@
 #include "halo/items/items.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -17,14 +18,9 @@ extern void unit_update_active_camouflage_depower(datum_index player_handle);
 extern uint32_t local_player_index_for_weapon(datum_index item_index);
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
-extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force);
-extern void trigger_create_projectiles(datum_index item_index, int16_t trigger_index, int32_t role);
 extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority, int16_t stimulus_value);
 extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
-extern void weapon_reload_recovery_finish(datum_index item_index);
-extern void weapon_trigger_finish_shot(datum_index item_index, int16_t trigger_index);
-extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a, real scale_b);
-uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index);
+uint32_t halo::items::weapon_fire_trigger(datum_index item_index, int16_t trigger_index);
 }
 
 namespace halo::items {
@@ -244,7 +240,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
         }
     }
 
-    weapon_set_state(item_index, (trigger_index != 0) + 1, 0);
+    halo::items::weapon_set_state(item_index, (trigger_index != 0) + 1, 0);
 
     if (!is_misfire) {
         if (is_alternate_shot) {
@@ -266,7 +262,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
                 role = 3;
             }
             if (create_locally) {
-                trigger_create_projectiles(item_index, trigger_index, role);
+                halo::items::trigger_create_projectiles(item_index, trigger_index, role);
             }
             ai_refresh_unit_stimulus_and_alert(holder_index, *(int16_t *)&((struct WeaponTrigger *)tag_trigger)->firing_noise, 1);
         }
@@ -308,14 +304,14 @@ tail:
     if (weapon_tag->heat_detonation_threshold < wd->heat) {
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
         if ((real)(random_seed_global >> 0x10) * 1.5259022e-05f < weapon_tag->heat_detonation_fraction) {
-            weapon_reload_recovery_finish(item_index);
+            halo::items::weapon_reload_recovery_finish(item_index);
         }
     }
 
     if (has_ammo) {
         if (trigger->effect_state != _weapon_trigger_effect_spewing || is_misfire) {
             if ((tag_trigger->flags & 1) == 0) {
-                weapon_trigger_finish_shot(item_index, trigger_index);
+                halo::items::weapon_trigger_finish_shot(item_index, trigger_index);
             } else {
                 trigger->effect_state = _weapon_trigger_effect_tracking;
                 trigger->effect_state_ticks = -1;
@@ -327,12 +323,12 @@ tail:
     }
 
     trigger->flags = trigger->flags & ~(uint32_t)_weapon_trigger_not_pulled_bit;
-    return weapon_play_trigger_tag_effect(item_index, selected_effect_tag, effect_scale_a, effect_scale_b);
+    return halo::items::weapon_play_trigger_tag_effect(item_index, selected_effect_tag, effect_scale_a, effect_scale_b);
 }
 
 }
 
-extern "C" {
+namespace halo::items {
 
 uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
 {

@@ -1,4 +1,5 @@
 #include "halo/items/items.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -7,8 +8,6 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t *global_structure_collision_bsp;
 extern random_seed random_seed_global;
 extern real_vector3d *global_up3d_pointer;
-extern void item_detonation_timer_start(uint32_t object_index);
-extern void item_compute_rotation(uint32_t object_index);
 extern void object_list_membership_set(uint32_t object_index, char add);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
@@ -26,9 +25,9 @@ extern double fcos(double x);
 extern data_array *player_data;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void *datum_get(datum_index handle, data_array *array);
-void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer);
-void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal, real_point3d *point);
-uint8_t item_get_effective_position(datum_index object_index, real_point3d *out_position);
+void halo::items::item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer);
+void halo::items::item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal, real_point3d *point);
+uint8_t halo::items::item_get_effective_position(datum_index object_index, real_point3d *out_position);
 }
 
 namespace halo::items {
@@ -56,7 +55,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
     if (apply_detonation_timer != 0 && current_game_engine == 0) {
         Item *tag = (Item *)tag_instances[obj->definition_tag & 0xffff].data;
         if ((tag->item_flags & 0x02) != 0) {
-            item_detonation_timer_start(item_index);
+            halo::items::item_detonation_timer_start(item_index);
         }
     }
 
@@ -132,7 +131,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         obj->angular_velocity.k += axis.k * angle;
     }
 
-    item_compute_rotation(item_index);
+    halo::items::item_compute_rotation(item_index);
     object_list_membership_set(item_index, 0);
 }
 
@@ -278,7 +277,7 @@ uint8_t item_ref::get_effective_position(real_point3d *out_position)
 
 }
 
-extern "C" {
+namespace halo::items {
 
 void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer)
 {

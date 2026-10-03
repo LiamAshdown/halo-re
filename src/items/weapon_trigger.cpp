@@ -1,4 +1,5 @@
 #include "halo/items/items.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -19,7 +20,6 @@ extern uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, rea
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, random_seed *seed, real lo, real hi);
 extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
-extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index, int16_t distribution_function, real distribution_angle, uint32_t flags);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out);
 extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position, uint32_t ignore_object_index);
@@ -28,37 +28,27 @@ extern double sqrt(double x);
 extern double cos(double x);
 extern double sin(double x);
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
-extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force);
 extern uint32_t local_player_index_for_weapon(datum_index item_index);
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
 extern int16_t network_game_mode;
-extern int32_t weapon_triggers_idle(datum_index item_index);
-extern void weapon_trigger_effect_clear(datum_index item_index, int16_t trigger_index);
-extern void weapon_notify_reload_begin(datum_index item_index, int16_t magazine_index);
-extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a, real scale_b);
 extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code);
-extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category, int16_t mode);
-extern void weapon_fire_trigger(datum_index item_index, int16_t trigger_index);
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
-extern void weapon_trigger_effect_set_state(datum_index item_index, int16_t trigger_index, int8_t state, int16_t counter);
 extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag, real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override, uint8_t use_high_arc, real_vector3d *out_direction, real *out_speed, real *out_time_or_fraction, real *out_range_or_length, uint8_t *out_used_straight_line);
-extern void weapon_reload_recovery_finish(datum_index item_index);
-extern void weapon_trigger_enter_recovery(datum_index item_index, int16_t trigger_index);
-void trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint32_t role);
-void weapon_trigger_become_charged(datum_index item_index, int16_t trigger_index);
-void weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index, int8_t is_client_predicted);
-void weapon_trigger_continue_burst(datum_index item_index, int16_t trigger_index);
-void weapon_trigger_effect_set_out_of_ammo(datum_index item_index, int16_t trigger_index);
-void weapon_trigger_finish_shot(datum_index item_index, int16_t trigger_index);
-void weapon_trigger_fire_or_reload(datum_index item_index, int16_t trigger_index, int8_t force);
-uint8_t weapon_trigger_get_aiming_vector(datum_index weapon_index, int16_t trigger_index, real_point3d *origin, real_point3d *target, uint8_t use_high_arc, real_vector3d *out_direction, real *out_time, real *out_range, uint8_t *out_used_straight_line);
-real weapon_trigger_get_average_damage(datum_index weapon_tag_id, float *out_max_rate_of_fire);
-real weapon_trigger_get_charge_fraction(datum_index item_index, int16_t trigger_index);
-void weapon_trigger_handle_empty(datum_index item_index, int16_t trigger_index);
-real weapon_trigger_projectile_time_fraction(datum_index item_index, int16_t trigger_index, real elapsed);
-int32_t weapon_trigger_ready_to_fire(datum_index item_index, int16_t trigger_index);
-void weapon_trigger_reset_tracking(datum_index item_index, int16_t trigger_index);
+void halo::items::trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint32_t role);
+void halo::items::weapon_trigger_become_charged(datum_index item_index, int16_t trigger_index);
+void halo::items::weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index, int8_t is_client_predicted);
+void halo::items::weapon_trigger_continue_burst(datum_index item_index, int16_t trigger_index);
+void halo::items::weapon_trigger_effect_set_out_of_ammo(datum_index item_index, int16_t trigger_index);
+void halo::items::weapon_trigger_finish_shot(datum_index item_index, int16_t trigger_index);
+void halo::items::weapon_trigger_fire_or_reload(datum_index item_index, int16_t trigger_index, int8_t force);
+uint8_t halo::items::weapon_trigger_get_aiming_vector(datum_index weapon_index, int16_t trigger_index, real_point3d *origin, real_point3d *target, uint8_t use_high_arc, real_vector3d *out_direction, real *out_time, real *out_range, uint8_t *out_used_straight_line);
+real halo::items::weapon_trigger_get_average_damage(datum_index weapon_tag_id, float *out_max_rate_of_fire);
+real halo::items::weapon_trigger_get_charge_fraction(datum_index item_index, int16_t trigger_index);
+void halo::items::weapon_trigger_handle_empty(datum_index item_index, int16_t trigger_index);
+real halo::items::weapon_trigger_projectile_time_fraction(datum_index item_index, int16_t trigger_index, real elapsed);
+int32_t halo::items::weapon_trigger_ready_to_fire(datum_index item_index, int16_t trigger_index);
+void halo::items::weapon_trigger_reset_tracking(datum_index item_index, int16_t trigger_index);
 }
 
 namespace halo::items {
@@ -262,7 +252,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
                     placement.up.k = (float)(placement.up.k * inverse);
                 }
             }
-            weapon_trigger_barrel_spread_offset(&placement.forward, &placement.up, (uint16_t)shot, W(trigger, 0x6c),
+            halo::items::weapon_trigger_barrel_spread_offset(&placement.forward, &placement.up, (uint16_t)shot, W(trigger, 0x6c),
                                                 F(trigger, 0x70), (uint32_t)count);
             projectile_definition = TAG_DATA(projectile_tag);
             if (projectile_definition != 0 && (*(uint32_t *)(projectile_definition + 0x17c) & 0x10) &&
@@ -369,7 +359,7 @@ void weapon_trigger_ref::become_charged(int16_t trigger_index)
     wd->triggers[trigger_index].effect_state_ticks = (int16_t)(tag_trigger->charged_time * 30.0f);
     wd->triggers[trigger_index].effect_state = _weapon_trigger_effect_charged;
 
-    weapon_set_state(item_index, trigger_index + 7, 1);
+    halo::items::weapon_set_state(item_index, trigger_index + 7, 1);
     action_handle = local_player_index_for_weapon(item_index);
     first_person_weapon_process_action(action_handle, 0x0e);
     if ((int16_t)action_handle == -1) {
@@ -402,9 +392,9 @@ void weapon_trigger_ref::begin_reload(int16_t magazine_index, int8_t is_client_p
 
     if (item_obj->network_role == 1 &&
         (magazine->state == 0 || magazine->state == 2) &&
-        weapon_triggers_idle(item_index) == 0 &&
+        halo::items::weapon_triggers_idle(item_index) == 0 &&
         wd->triggers[0].effect_state == _weapon_trigger_effect_out_of_ammo) {
-        weapon_trigger_effect_clear(item_index, 0);
+        halo::items::weapon_trigger_effect_clear(item_index, 0);
     }
 
     if ((magazine->state == 0 || magazine->state == 2) &&
@@ -419,10 +409,10 @@ void weapon_trigger_ref::begin_reload(int16_t magazine_index, int8_t is_client_p
             int16_t ticks;
 
             if (is_client_predicted == 1 && item_obj->network_role == 0 && network_game_mode == 2) {
-                weapon_notify_reload_begin(item_index, magazine_index);
+                halo::items::weapon_notify_reload_begin(item_index, magazine_index);
             }
-            weapon_set_state(item_index, magazine_index + 5, 0);
-            weapon_play_trigger_tag_effect(item_index, *(datum_index *)&magazine_tag->reloading_effect.tag_id,
+            halo::items::weapon_set_state(item_index, magazine_index + 5, 0);
+            halo::items::weapon_play_trigger_tag_effect(item_index, *(datum_index *)&magazine_tag->reloading_effect.tag_id,
                 0.0f, 0.0f);
             weapon_action_notify_for_weapon(item_index, magazine->rounds_loaded != 0 ? 10 : 9);
 
@@ -433,7 +423,7 @@ void weapon_trigger_ref::begin_reload(int16_t magazine_index, int8_t is_client_p
             }
 
             magazine->state = _weapon_magazine_reloading;
-            ticks = weapon_get_first_person_animation_time(item_index, 7, 0, mode);
+            ticks = halo::items::weapon_get_first_person_animation_time(item_index, 7, 0, mode);
             magazine->state_ticks = ticks;
             magazine->state_ticks_total = ticks;
         }
@@ -459,7 +449,7 @@ void weapon_trigger_ref::continue_burst(int16_t trigger_index)
     weapon_tag = (Weapon *)tag_instances[(uint16_t)item_obj->definition_tag].data;
 
     if (trigger_index + 1 < weapon_tag->triggers.count) {
-        weapon_fire_trigger(item_index, (int16_t)(trigger_index + 1));
+        halo::items::weapon_fire_trigger(item_index, (int16_t)(trigger_index + 1));
     }
 
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
@@ -544,7 +534,7 @@ void weapon_trigger_ref::enter_recovery(int16_t trigger_index)
     }
 
     if (weapon_tag->triggers.count > 1) {
-        weapon_fire_trigger(item_index, 1);
+        halo::items::weapon_fire_trigger(item_index, 1);
     }
     wd->triggers[trigger_index].idle_ticks = 0;
     wd->triggers[trigger_index].effect_state = 0;
@@ -604,7 +594,7 @@ void weapon_trigger_ref::fire_or_reload(int16_t trigger_index, int8_t force)
         if (force == 0) {
             if (tag_trigger->charging_time > 0.0f) {
                 if ((weapon_tag->weapon_flags & 0x800) != 0 && wd->age >= 1.0f) {
-                    weapon_fire_trigger(item_index, trigger_index);
+                    halo::items::weapon_fire_trigger(item_index, trigger_index);
                     return;
                 }
                 if (weapon_tag->triggers.count < 2) {
@@ -612,23 +602,23 @@ void weapon_trigger_ref::fire_or_reload(int16_t trigger_index, int8_t force)
                         wd->triggers[trigger_index].flags &= ~0x20;
                     } else {
                         wd->triggers[trigger_index].flags |= 0x20;
-                        weapon_fire_trigger(item_index, trigger_index);
+                        halo::items::weapon_fire_trigger(item_index, trigger_index);
                     }
                 } else {
                     wd->triggers[trigger_index].effect_handle =
-                        weapon_play_trigger_tag_effect(item_index, *(datum_index *)&tag_trigger->charging_effect.tag_id, 0, 0);
+                        halo::items::weapon_play_trigger_tag_effect(item_index, *(datum_index *)&tag_trigger->charging_effect.tag_id, 0, 0);
                 }
-                weapon_trigger_effect_set_state(item_index, trigger_index, _weapon_trigger_effect_charging,
+                halo::items::weapon_trigger_effect_set_state(item_index, trigger_index, _weapon_trigger_effect_charging,
                     (int16_t)(int32_t)(tag_trigger->charging_time * 30.0f));
                 return;
             }
             if (tag_trigger->overload_time > 0.0f) {
-                weapon_trigger_effect_set_state(item_index, trigger_index, _weapon_trigger_effect_overloading,
+                halo::items::weapon_trigger_effect_set_state(item_index, trigger_index, _weapon_trigger_effect_overloading,
                     (int16_t)(int32_t)(tag_trigger->overload_time * 30.0f));
                 return;
             }
         }
-        weapon_fire_trigger(item_index, trigger_index);
+        halo::items::weapon_fire_trigger(item_index, trigger_index);
     }
 }
 
@@ -748,9 +738,9 @@ void weapon_trigger_ref::handle_empty(int16_t trigger_index)
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
 
     if (tag_trigger->overcharged_action == 1) {
-        weapon_reload_recovery_finish(item_index);
+        halo::items::weapon_reload_recovery_finish(item_index);
     } else if (tag_trigger->overcharged_action == 2) {
-        weapon_trigger_enter_recovery(item_index, trigger_index);
+        halo::items::weapon_trigger_enter_recovery(item_index, trigger_index);
     }
 }
 
@@ -851,7 +841,7 @@ void weapon_trigger_ref::reset_tracking(int16_t trigger_index)
 
 }
 
-extern "C" {
+namespace halo::items {
 
 void trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint32_t role)
 {

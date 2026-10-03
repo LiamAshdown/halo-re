@@ -15,6 +15,7 @@
 #include "cache.h"
 
 #include "halo/game/game1_koth.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern uint8_t hill_pulse_fade_done;
@@ -34,11 +35,9 @@ extern game_variant game_engine_variant;
 extern uint32_t king_hill_occupant_table[16];
 extern int32_t king_hill_occupant_last_tick[16];
 extern int32_t king_hill_idle_timeout;
-extern uint8_t item_get_effective_position(datum_index object_index, real_point3d *out_position);
 extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position,
     float height_offset, datum_index player_filter, int16_t team_filter);
 extern void game_engine_koth_relocate_object_hill(uint32_t object_index);
-extern uint8_t weapon_must_be_readied(void);
 extern void *data_iterator_next(data_iterator *iterator);
 extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
     datum_index subject, char broadcast);
@@ -219,7 +218,7 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
     object_header *hdr;
     int32_t tick;
 
-    if (item_get_effective_position((datum_index)object_handle, &position) != 1) {
+    if (halo::items::item_get_effective_position((datum_index)object_handle, &position) != 1) {
         return;
     }
 
@@ -236,7 +235,7 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
         if (network_game_mode != 2) {
             return;
         }
-        if (weapon_must_be_readied() == 0 || (obj->flags >> 0xb & 1) == 0 || obj->parent_object != (datum_index)0xffffffff) {
+        if (halo::items::weapon_must_be_readied((datum_index)object_handle) == 0 || (obj->flags >> 0xb & 1) == 0 || obj->parent_object != (datum_index)0xffffffff) {
             goto check_relocation;
         }
         if ((*(uint8_t *)((uint8_t *)obj + 0x22c) & 0x40) != 0) {

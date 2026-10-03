@@ -4,6 +4,7 @@
 #include "physics.h"
 #include "projectiles.h"
 #include "halo/physics/api.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -45,7 +46,6 @@ extern game_engine_definition *current_game_engine;
 extern char *s_stand;
 extern double fabs(double x);
 extern int32_t random_int_range(int16_t min, int16_t max);
-extern uint32_t weapon_must_be_readied(uint32_t weapon_object_index);
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern void object_delete_teardown(uint32_t object_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
@@ -1128,7 +1128,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
             if (!keep_still && network_game_mode != 0) {
                 datum_index weapon = UnitView(unit_index).get_weapon_object_index(OBJECT_I16(obj, 0x2f2));
 
-                if (object_try_and_get(weapon, 4) != 0 && weapon_must_be_readied(weapon) == 1) {
+                if (object_try_and_get(weapon, 4) != 0 && halo::items::weapon_must_be_readied(weapon) == 1) {
                     keep_still = 1;
                 }
             }

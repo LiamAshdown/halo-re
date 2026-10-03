@@ -1,6 +1,7 @@
 #include "halo/items/items.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -20,23 +21,20 @@ extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
-extern void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal, real_point3d *point);
 extern void object_list_membership_set(uint32_t object_index, char add);
 extern real_matrix4x3 *object_get_node_marker_address(uint32_t object_index, int16_t node_index);
 extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point);
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
-extern void item_compute_rotation(uint32_t object_index);
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int8_t breakable_surface_is_intact(int16_t bit_index);
-extern void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer);
 extern void object_recompute_basis_from_marker_delta(object *obj, object_marker *marker, real_matrix4x3 *output_matrix);
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern void object_delete(uint32_t object_index);
 extern double fabs(double x);
 extern double sqrt(double x);
-uint8_t item_update(uint32_t item_index);
+uint8_t halo::items::item_update(uint32_t item_index);
 }
 
 namespace halo::items {
@@ -53,7 +51,7 @@ static void item_start_falling(uint32_t item_index)
     fall.i = halo::physics::globals().gravity * global_down3d_pointer->i;
     fall.j = halo::physics::globals().gravity * global_down3d_pointer->j;
     fall.k = halo::physics::globals().gravity * global_down3d_pointer->k;
-    item_accelerate(item_index, &fall, 0);
+    halo::items::item_accelerate(item_index, &fall, 0);
 }
 
 /**
@@ -130,7 +128,7 @@ uint8_t item_ref::update()
                     real spin;
 
                     target = hit.point;
-                    item_align_to_normal_and_point(&target, item_index, &hit.plane.normal, &hit.point);
+                    halo::items::item_align_to_normal_and_point(&target, item_index, &hit.plane.normal, &hit.point);
                     spin = ((item_object *)obj)->base.angular_velocity.j * hit.plane.normal.j + ((item_object *)obj)->base.angular_velocity.k * hit.plane.normal.k +
                            ((item_object *)obj)->base.angular_velocity.i * hit.plane.normal.i;
                     velocity.i = 0.0f;
@@ -154,7 +152,7 @@ uint8_t item_ref::update()
                         ((item_object *)obj)->item.resting_bsp_index = global_structure_bsp_index;
                     }
                     ((item_object *)obj)->item.rotation_axis = hit.plane.normal;
-                    item_compute_rotation(item_index);
+                    halo::items::item_compute_rotation(item_index);
                     ((item_object *)obj)->item.ignore_object_index = k_datum_index_none;
                 } else {
                     real impulse = hit.plane.normal.i * velocity.i * -1.4f - hit.plane.normal.j * velocity.j * 1.4f -
@@ -198,7 +196,7 @@ uint8_t item_ref::update()
 
                     matrix4x3_transform_point(&contact, &((item_object *)obj)->item.contact_point,
                                               object_get_node_marker_address(support, 0));
-                    item_align_to_normal_and_point(0, item_index, &((item_object *)obj)->item.rotation_axis, &contact);
+                    halo::items::item_align_to_normal_and_point(0, item_index, &((item_object *)obj)->item.rotation_axis, &contact);
                 } else {
                     ((item_object *)obj)->item.flags = flags & ~0x10u;
                     item_start_falling(item_index);
@@ -207,7 +205,7 @@ uint8_t item_ref::update()
             ((item_object *)obj)->base.angular_velocity.i *= 0.9f;
             ((item_object *)obj)->base.angular_velocity.j *= 0.9f;
             ((item_object *)obj)->base.angular_velocity.k *= 0.9f;
-            item_compute_rotation(item_index);
+            halo::items::item_compute_rotation(item_index);
         }
 
         if (((item_object *)obj)->item.flags & 4) {
@@ -257,7 +255,7 @@ uint8_t item_ref::update()
 
 }
 
-extern "C" {
+namespace halo::items {
 
 uint8_t item_update(uint32_t item_index)
 {

@@ -1,5 +1,6 @@
 #include "halo/ai/actor_grenade.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/items/api.hpp"
 
 namespace c_actor_attempt_grenade_throw {
 extern "C" {
@@ -15,8 +16,6 @@ extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slo
 extern void unit_set_control_countdown(uint32_t unit_index, int32_t countdown, uint32_t extra_control_flags);
 extern void encounter_recompute_morale(datum_index encounter_index);
 extern void actor_delete(datum_index actor_index, uint32_t flag);
-extern void weapon_set_loaded_ammo_fraction(datum_index item_index, real fraction);
-extern void weapon_set_ammo_counts(datum_index item_index, int16_t *reserve_counts);
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 
@@ -103,14 +102,14 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
         if (lo > 0.0f || hi > 0.0f) {
             real r = (real)(int32_t)actor_death_random_16() * 1.5259022e-05f;
 
-            weapon_set_loaded_ammo_fraction(weapon, (hi - lo) * r + lo);
+            halo::items::weapon_set_loaded_ammo_fraction(weapon, (hi - lo) * r + lo);
         }
         if (least > 0 || most > 0) {
             int16_t counts[2] = {0, 0};
             uint32_t r = actor_death_random_16();
 
             counts[0] = (int16_t)((uint32_t)(((int32_t)(int16_t)(most + 1) - least) * (int32_t)r) >> 16) + least;
-            weapon_set_ammo_counts(weapon, counts);
+            halo::items::weapon_set_ammo_counts(weapon, counts);
         }
     }
     actor_delete(actor_index, 1);

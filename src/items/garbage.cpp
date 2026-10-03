@@ -1,4 +1,5 @@
 #include "halo/items/items.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -6,8 +7,8 @@ extern object_globals *object_globals_pointer;
 extern uint32_t random_seed_global;
 extern void object_delete_unparented(uint32_t object_index);
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
-uint8_t garbage_new(uint32_t object_index);
-int32_t garbage_update(uint32_t object_index);
+uint8_t halo::items::garbage_new(uint32_t object_index);
+int32_t halo::items::garbage_update(uint32_t object_index);
 }
 
 namespace halo::items {
@@ -72,7 +73,7 @@ int32_t garbage_ref::update()
 
 }
 
-extern "C" {
+namespace halo::items {
 
 uint8_t garbage_new(uint32_t object_index)
 {

@@ -1,71 +1,61 @@
 #include "halo/items/items.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern tag_instance *tag_instances;
 extern real k_weapon_zoom_fov_maximum;
 extern real k_weapon_zoom_fov_minimum;
-extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level);
-extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force);
 extern char k_empty_string[1];
 extern double pow(double x, double y);
 extern game_time_globals *game_time;
 extern int32_t k_weapon_minimum_age_ticks;
 extern game_engine_definition *current_game_engine;
-extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a, real scale_b);
 extern int16_t network_game_mode;
 extern uint8_t weapon_bottomless_clip;
-extern void weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index, int8_t is_client_predicted);
-extern void weapon_notify_reload_step(datum_index item_index, int16_t magazine_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern void *effect_try_and_get(datum_index effect_index);
 extern const real_point3d *global_zero_vector3d_pointer;
 extern const real_vector3d *global_forward3d_pointer;
-extern void weapon_reset_triggers(datum_index item_index);
 extern uint32_t local_player_index_for_weapon(datum_index item_index);
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
-extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category, int16_t mode);
 extern void object_delete_unparented(datum_index object_index);
 extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings);
-extern void weapon_magazine_reload_tick(datum_index item_index, int16_t magazine_index);
-extern void weapon_notify_reload_cancel(datum_index item_index, int16_t magazine_index);
 extern real transition_function_evaluate(transition_function_t type, real phase);
 extern double floor(double x);
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern void unit_dispatch_seat_overlay_command(uint32_t unit_index, int16_t command);
 extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index, int16_t change_color_index, int16_t u, int16_t v);
-extern void equipment_definition_play_pickup_sound(uint32_t equipment_tag_id);
 extern void object_delete(uint32_t object_index);
-extern void weapon_notify_ammo_pickup(datum_index item_index, int16_t magazine_index, int16_t rounds);
-void weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out);
-real weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
-void weapon_force_settled_state(datum_index item_index);
-char * weapon_get_label(datum_index item_index);
-int32_t weapon_get_next_zoom_level(int32_t current_level, datum_index item_index);
-int32_t weapon_has_active_state(datum_index item_index);
-uint8_t weapon_is_old_enough(uint32_t object_index);
-uint8_t weapon_is_out_of_ammo(datum_index item_index);
-int32_t weapon_is_reloading(datum_index item_index);
-void weapon_magazine_begin_chamber(datum_index item_index, int16_t magazine_index);
-void weapon_magazine_reload_tick_predicted(datum_index item_index, int16_t magazine_index);
-uint32_t weapon_must_be_readied(datum_index item_index);
-uint8_t weapon_new(uint32_t object_index);
-datum_index weapon_new_from_placement(datum_index weapon_object_index, ScenarioWeapon *placement);
-uint32_t weapon_prevents_grenade_throwing(datum_index item_index);
-uint32_t weapon_prevents_melee_attack(datum_index item_index);
-void weapon_ready(datum_index item_index);
-void weapon_reload_recovery_finish(datum_index item_index);
-void weapon_set_ammo_counts(datum_index item_index, int16_t *reserve_counts);
-void weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger);
-void weapon_set_loaded_ammo_fraction(datum_index item_index, real fraction);
-void weapon_set_ready_timer(datum_index item_index, real value);
-void weapon_set_state_indicator_flags(datum_index item_index);
-uint32_t weapon_stop_object_effect(datum_index item_index, datum_index tag_id);
-uint32_t weapon_transfer_ammunition(datum_index target_item_index, datum_index source_item_index, int16_t requesting_player_index, int16_t *out_transferred);
-int32_t weapon_triggers_idle(datum_index item_index);
+void halo::items::weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out);
+real halo::items::weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
+void halo::items::weapon_force_settled_state(datum_index item_index);
+char * halo::items::weapon_get_label(datum_index item_index);
+int32_t halo::items::weapon_get_next_zoom_level(int32_t current_level, datum_index item_index);
+int32_t halo::items::weapon_has_active_state(datum_index item_index);
+uint8_t halo::items::weapon_is_old_enough(uint32_t object_index);
+uint8_t halo::items::weapon_is_out_of_ammo(datum_index item_index);
+int32_t halo::items::weapon_is_reloading(datum_index item_index);
+void halo::items::weapon_magazine_begin_chamber(datum_index item_index, int16_t magazine_index);
+void halo::items::weapon_magazine_reload_tick_predicted(datum_index item_index, int16_t magazine_index);
+uint32_t halo::items::weapon_must_be_readied(datum_index item_index);
+uint8_t halo::items::weapon_new(uint32_t object_index);
+datum_index halo::items::weapon_new_from_placement(datum_index weapon_object_index, ScenarioWeapon *placement);
+uint32_t halo::items::weapon_prevents_grenade_throwing(datum_index item_index);
+uint32_t halo::items::weapon_prevents_melee_attack(datum_index item_index);
+void halo::items::weapon_ready(datum_index item_index);
+void halo::items::weapon_reload_recovery_finish(datum_index item_index);
+void halo::items::weapon_set_ammo_counts(datum_index item_index, int16_t *reserve_counts);
+void halo::items::weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger);
+void halo::items::weapon_set_loaded_ammo_fraction(datum_index item_index, real fraction);
+void halo::items::weapon_set_ready_timer(datum_index item_index, real value);
+void halo::items::weapon_set_state_indicator_flags(datum_index item_index);
+uint32_t halo::items::weapon_stop_object_effect(datum_index item_index, datum_index tag_id);
+uint32_t halo::items::weapon_transfer_ammunition(datum_index target_item_index, datum_index source_item_index, int16_t requesting_player_index, int16_t *out_transferred);
+int32_t halo::items::weapon_triggers_idle(datum_index item_index);
 }
 
 namespace halo::items {
@@ -120,7 +110,7 @@ real weapon_ref::clamp_zoom_fov(int16_t zoom_level, real base_fov)
     real magnification;
     real fov;
 
-    magnification = weapon_get_zoom_magnification(item_index, zoom_level);
+    magnification = halo::items::weapon_get_zoom_magnification(item_index, zoom_level);
     if (magnification == 1.0f) {
         return base_fov;
     }
@@ -149,7 +139,7 @@ void weapon_ref::force_settled_state()
     state = wd->state;
 
     if (state < 7 || (state > 8 && state != 10)) {
-        weapon_set_state(item_index, _weapon_state_idle, 1);
+        halo::items::weapon_set_state(item_index, _weapon_state_idle, 1);
     }
 }
 
@@ -404,8 +394,8 @@ void weapon_ref::magazine_begin_chamber(int16_t magazine_index)
 
     if ((magazine->state == 0 || magazine->state == _weapon_magazine_chamber_pending) &&
         wd->triggers[0].effect_state == 0 && wd->triggers[1].effect_state == 0 && wd->state == 0) {
-        weapon_set_state(item_index, magazine_index + 3, 0);
-        weapon_play_trigger_tag_effect(item_index, *(datum_index *)&magazine_tag->chambering_effect.tag_id, 0, 0);
+        halo::items::weapon_set_state(item_index, magazine_index + 3, 0);
+        halo::items::weapon_play_trigger_tag_effect(item_index, *(datum_index *)&magazine_tag->chambering_effect.tag_id, 0, 0);
         magazine->state = _weapon_magazine_chambering;
         magazine->state_ticks = (int16_t)(magazine_tag->chamber_time * 30.0f);
     }
@@ -465,11 +455,11 @@ void weapon_ref::magazine_reload_tick(int16_t magazine_index)
 
     if (magazine->rounds_unloaded > 0 && new_loaded < magazine_tag->rounds_loaded_maximum &&
         (magazine_tag->flags & 1) == 0 && (wd->control_flags & 0x26) == 0) {
-        weapon_trigger_begin_reload(item_index, magazine_index, 0);
+        halo::items::weapon_trigger_begin_reload(item_index, magazine_index, 0);
         return;
     }
     if (item_obj->network_role == 0 && network_game_mode == 2) {
-        weapon_notify_reload_step(item_index, magazine_index);
+        halo::items::weapon_notify_reload_step(item_index, magazine_index);
     }
     item_obj->flags = item_obj->flags | _object_changed_bit;
 }
@@ -518,7 +508,7 @@ void weapon_ref::magazine_reload_tick_predicted(int16_t magazine_index)
         (magazine_tag->flags & 1) == 0 && (wd->control_flags & 0x26) == 0) {
         magazine->state = _weapon_magazine_chamber_pending;
         magazine->state_ticks = 0;
-        weapon_trigger_begin_reload(item_index, magazine_index, 0);
+        halo::items::weapon_trigger_begin_reload(item_index, magazine_index, 0);
     }
 }
 
@@ -768,8 +758,8 @@ void weapon_ref::ready()
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     weapon_tag = (Weapon *)tag_instances[(uint16_t)item_obj->definition_tag].data;
 
-    weapon_reset_triggers(item_index);
-    weapon_set_state(item_index, _weapon_state_ready, 1);
+    halo::items::weapon_reset_triggers(item_index);
+    halo::items::weapon_set_state(item_index, _weapon_state_ready, 1);
 
     action_handle = local_player_index_for_weapon(item_index);
     first_person_weapon_process_action(action_handle, 0xc);
@@ -777,8 +767,8 @@ void weapon_ref::ready()
         hud_play_pickup_notification(item_index, 0xc);
     }
 
-    weapon_play_trigger_tag_effect(item_index, *(datum_index *)&weapon_tag->ready_effect.tag_id, 0.0f, 0.0f);
-    wd->action_ticks = weapon_get_first_person_animation_time(item_index, 10, 0, -1);
+    halo::items::weapon_play_trigger_tag_effect(item_index, *(datum_index *)&weapon_tag->ready_effect.tag_id, 0.0f, 0.0f);
+    wd->action_ticks = halo::items::weapon_get_first_person_animation_time(item_index, 10, 0, -1);
 
     if (item_obj->network_role == 0) {
         item_obj->flags = item_obj->flags | _object_changed_bit;
@@ -797,7 +787,7 @@ void weapon_ref::reload_recovery_finish()
     object *item_obj;
 
     item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
-    weapon_play_trigger_tag_effect(item_index,
+    halo::items::weapon_play_trigger_tag_effect(item_index,
         *(datum_index *)&((Weapon *)tag_instances[(uint16_t)item_obj->definition_tag].data)->overheat_detonation.tag_id, 0, 0);
 
     if (item_obj->network_role == 0) {
@@ -835,13 +825,13 @@ void weapon_ref::reset_triggers()
         weapon_magazine_state *magazine = &wd->magazines[i];
 
         if (magazine->state == _weapon_magazine_reloading) {
-            int16_t fresh_length = weapon_get_first_person_animation_time(item_index, 7, 0, -1);
+            int16_t fresh_length = halo::items::weapon_get_first_person_animation_time(item_index, 7, 0, -1);
             if (magazine->state_ticks * 2 < fresh_length) {
                 if (item_obj->network_role != 1) {
-                    weapon_magazine_reload_tick(item_index, i);
+                    halo::items::weapon_magazine_reload_tick(item_index, i);
                 }
             } else if (item_obj->network_role == 0) {
-                weapon_notify_reload_cancel(item_index, i);
+                halo::items::weapon_notify_reload_cancel(item_index, i);
             }
         }
         magazine->state = 0;
@@ -1166,7 +1156,7 @@ uint32_t weapon_ref::transfer_ammunition(datum_index source_item_index, int16_t 
                         }
                         if (source_obj->network_role == 0 &&
                             source_wd->magazines[magazine_index].state == _weapon_magazine_reloading) {
-                            weapon_notify_ammo_pickup(source_item_index, magazine_index, moved);
+                            halo::items::weapon_notify_ammo_pickup(source_item_index, magazine_index, moved);
                         }
                     }
                     any_transferred = 1;
@@ -1186,7 +1176,7 @@ uint32_t weapon_ref::transfer_ammunition(datum_index source_item_index, int16_t 
                                 int32_t source_role;
 
                                 if (requesting_player_index != -1) {
-                                    equipment_definition_play_pickup_sound(
+                                    halo::items::equipment_definition_play_pickup_sound(
                                         *(uint32_t *)&magazine_object->equipment.tag_id);
                                 }
                                 source_role = ((object_header *)object_data->data)[(uint16_t)source_item_index].data->network_role;
@@ -1236,7 +1226,7 @@ int32_t weapon_ref::triggers_idle()
 
 }
 
-extern "C" {
+namespace halo::items {
 
 void weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out)
 {

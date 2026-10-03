@@ -1,4 +1,5 @@
 #include "halo/items/items.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern object *object_iterator_next(object_iterator *iterator);
@@ -8,11 +9,11 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
 extern real random_real_range(real min, real max);
 extern game_time_globals *game_time;
 extern void object_list_membership_set(uint32_t object_index, char add);
-uint32_t item_any_detonating();
-void item_detonation_timer_start(uint32_t object_index);
-uint8_t item_new(uint32_t object_index);
-void item_set_holder(uint32_t item_index, datum_index holder_index);
-void item_stamp_age_timestamp(uint32_t object_index);
+uint32_t halo::items::item_any_detonating();
+void halo::items::item_detonation_timer_start(uint32_t object_index);
+uint8_t halo::items::item_new(uint32_t object_index);
+void halo::items::item_set_holder(uint32_t item_index, datum_index holder_index);
+void halo::items::item_stamp_age_timestamp(uint32_t object_index);
 }
 
 namespace halo::items {
@@ -153,7 +154,7 @@ void item_ref::stamp_age_timestamp()
 
 }
 
-extern "C" {
+namespace halo::items {
 
 uint32_t item_any_detonating()
 {

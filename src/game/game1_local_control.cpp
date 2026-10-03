@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "halo/game/game1_local_control.hpp"
+#include "halo/items/api.hpp"
 
 #define k_degrees_to_radians 0.017453292f
 #define k_seconds_per_tick   0.033333335f
@@ -55,7 +56,6 @@ extern uint8_t *cinematic_globals_ptr;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
 extern uint8_t unknown_0071973b;
-extern real weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
 }
 
 namespace halo::game::engine1 {
@@ -578,7 +578,7 @@ real LocalControl::get_max_look_pitch(int16_t local_player_index)
         uint8_t *tag_data = (uint8_t *)tag_instances[(uint16_t)o->definition_tag].data;
 
         if (u->current_weapon_index != -1 && u->weapons[u->current_weapon_index] != k_datum_index_none) {
-            result = weapon_clamp_zoom_fov(u->weapons[u->current_weapon_index], look->desired_zoom_level,
+            result = halo::items::weapon_clamp_zoom_fov(u->weapons[u->current_weapon_index], look->desired_zoom_level,
                                            *(real *)(tag_data + 0x1a0));
         } else {
             result = *(real *)(tag_data + 0x1a0);

@@ -3,6 +3,7 @@
 #include "hs.h"
 #include "networking.h"
 #include "halo/physics/api.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -30,9 +31,6 @@ extern real_vector3d *global_forward3d_pointer;
 extern real_point3d *global_origin3d_pointer;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
-extern uint32_t weapon_prevents_melee_attack(datum_index item_index);
-extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category, int16_t mode);
-extern void weapon_reset_triggers(datum_index item_index);
 extern void *datum_get(datum_index handle, data_array *array);
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern void player_update_history_free_all(void *history);
@@ -658,18 +656,18 @@ uint8_t BipedView::update()
         if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none && (int8_t)obj[0x208] < 0) {
             datum_index weapon = UnitView(object_index).get_weapon_object_index(*(int16_t *)(OBJECT_DATA(object_index) + 0x2f2));
 
-            if (!weapon_prevents_melee_attack(weapon) && obj[0x320] == 0xff) {
+            if (!halo::items::weapon_prevents_melee_attack(weapon) && obj[0x320] == 0xff) {
                 int8_t total;
                 int8_t quarter;
                 int8_t tail_time;
 
                 UnitView(object_index).start_seat_overlay_animation_a(7);
-                weapon_reset_triggers(weapon);
+                halo::items::weapon_reset_triggers(weapon);
                 weapon_action_notify_for_unit(object_index, 4);
-                total = (int8_t)weapon_get_first_person_animation_time(weapon, 0xd, 0, -1);
+                total = (int8_t)halo::items::weapon_get_first_person_animation_time(weapon, 0xd, 0, -1);
                 quarter = (int8_t)(total >> 2);
                 obj[0x505] = (uint8_t)(total - quarter);
-                tail_time = (int8_t)weapon_get_first_person_animation_time(weapon, 0xd, 1, -1);
+                tail_time = (int8_t)halo::items::weapon_get_first_person_animation_time(weapon, 0xd, 1, -1);
                 obj[0x506] = (uint8_t)(total - quarter - tail_time);
                 if (unit_updates_suppressed) {
                     goto tail;

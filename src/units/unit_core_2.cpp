@@ -3,6 +3,7 @@
 #include "networking.h"
 #include "effects.h"
 #include "halo/sound/api.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern uint8_t *object_network_id_table;
@@ -30,8 +31,6 @@ extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, c
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const void *color, const void *tint_source);
 extern uint8_t game_engine_is_valid_team_player(uint32_t identifier);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
-extern void weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger);
-extern void weapon_set_ready_timer(datum_index item_index, real value);
 extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
 extern void vector3d_rotate_toward_with_acceleration(real_vector3d *direction, real_vector3d *target_direction, real_vector3d *angular_velocity, real maximum_velocity, real acceleration);
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
@@ -405,7 +404,7 @@ controls:
                     control |= 4;
                 }
                 if ((*(uint32_t *)(TAG_DATA(*(datum_index *)obj) + 0x17c) & 0x800000) != 0) {
-                    weapon_set_ready_timer(UnitView(unit_index).get_weapon_object_index(*(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2)), ((struct unit_object *)obj)->unit.integrated_light_power);
+                    halo::items::weapon_set_ready_timer(UnitView(unit_index).get_weapon_object_index(*(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2)), ((struct unit_object *)obj)->unit.integrated_light_power);
                 }
                 if ((((unit_object *)obj)->unit.control_flags & 0x400) != 0) {
                     control |= 8;
@@ -426,7 +425,7 @@ controls:
             if (*(int16_t *)(unit_now + 0x2f2) != -1) {
                 weapon = *(datum_index *)(unit_now + 0x2f8 + *(int16_t *)(unit_now + 0x2f2) * 4);
             }
-            weapon_set_control_flags(weapon, (uint16_t)control, trigger);
+            halo::items::weapon_set_control_flags(weapon, (uint16_t)control, trigger);
         }
     }
 

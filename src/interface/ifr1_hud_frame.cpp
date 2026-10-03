@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_frame.hpp"
 #include <string.h>
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -22,7 +23,6 @@ extern tag_instance *tag_instances;
 extern Globals *global_globals;
 extern game_time_globals *game_time;
 extern hud_weapon_interface_state *hud_weapon_state;
-extern uint32_t weapon_prevents_grenade_throwing(datum_index item_index);
 extern int8_t unit_get_current_grenade_index(uint32_t unit_index);
 extern int32_t unit_get_grenade_count(uint32_t unit_index, int16_t grenade_type);
 extern void hud_draw_static_element(int16_t local_player_index, uint16_t *anchor,
@@ -33,7 +33,6 @@ extern void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_pla
 extern void hud_draw_overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t type_mask,
                               int32_t flash_start_time, uint32_t draw_flags, uint8_t split_screen);
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
-extern void weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out);
 extern int16_t unit_count_deployed_weapons(datum_index unit_index);
 extern void hud_weapon_crosshairs_draw(datum_index hud_tag, const player *p, const weapon_hud_ammo_state *ammo);
 extern void hud_weapon_interface_draw_elements(datum_index hud_tag, int16_t local_player_index, const Weapon *weapon_tag,
@@ -241,7 +240,7 @@ void HudFrame::draw_grenade_interface(int16_t local_player_index, datum_index un
     int8_t count;
     uint32_t flags;
 
-    if (weapon_prevents_grenade_throwing(weapon) != 0 || grenade == -1) {
+    if (halo::items::weapon_prevents_grenade_throwing(weapon) != 0 || grenade == -1) {
         return;
     }
     parent = (uint8_t *)object_try_and_get(((unit_object *)unit)->base.parent_object, 3);
@@ -334,7 +333,7 @@ void HudFrame::draw_weapon_interface(player *p)
         Weapon *weapon_tag = (Weapon *)tag_instances[*(datum_index *)weapon_object & 0xffff].data;
         datum_index hud_tag;
 
-        weapon_build_hud_ammo_state(weapon, &ammo);
+        halo::items::weapon_build_hud_ammo_state(weapon, &ammo);
         hud_tag = *(datum_index *)&((struct Weapon *)weapon_tag)->hud_interface.tag_id;
         if (hud_tag != (datum_index)-1) {
             hud_weapon_crosshairs_draw(hud_tag, p, &ammo);
@@ -397,7 +396,7 @@ uint8_t HudFrame::player_weapon_ammo_state(const player *p, weapon_hud_ammo_stat
             return 0;
         }
     }
-    weapon_build_hud_ammo_state(weapon, out);
+    halo::items::weapon_build_hud_ammo_state(weapon, out);
     return 1;
 }
 

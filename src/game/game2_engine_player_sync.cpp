@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_players.hpp"
+#include "halo/items/api.hpp"
 
 #define k_uninitialized_fill 0xfafafafau
 
@@ -59,7 +60,6 @@ extern int32_t object_find_nearest_biped(int32_t reference_object_index);
 extern void unit_sample_camera_shake_from_velocity(uint32_t unit_index);
 extern int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t start_slot, int16_t direction);
 extern uint16_t unit_find_weapon_index_with_fixed_flag(uint32_t unit_index);
-extern int32_t weapon_get_next_zoom_level(int32_t current_level, datum_index item_index);
 extern uint8_t player_profile_get_flag_by_id(int16_t local_player_index);
 extern void chimera__spectate_fp_camera_position(camera_basis_out *out, int16_t local_player_index);
 extern void value_step_toward_target(float *value, float target, float max_step);
@@ -706,7 +706,7 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
         game_time->paused == 0 && current_weapon != (datum_index)-1 &&
         cinematic_globals_ptr[9] == 0) {
         control->desired_zoom_level =
-            (int16_t)weapon_get_next_zoom_level(control->desired_zoom_level, current_weapon);
+            (int16_t)halo::items::weapon_get_next_zoom_level(control->desired_zoom_level, current_weapon);
     }
 
     if (local_player_look_frozen[local_player_index * 0xf8] == 0) {

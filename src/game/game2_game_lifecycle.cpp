@@ -2,6 +2,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -45,7 +46,6 @@ extern void saved_game_files_initialize(void);
 extern void detail_objects_globals_allocate(void);
 extern object *object_iterator_next(object_iterator *iterator);
 extern uint8_t players_any_without_unit(void);
-extern uint8_t item_any_detonating(void);
 extern uint8_t effect_check_object_collisions(void);
 extern uint8_t unit_any_dying_or_seat_transition(void);
 extern uint8_t ai_scan_for_recent_combat_activity(uint32_t hard_difficulty);
@@ -214,7 +214,7 @@ uint32_t GameLifecycle::safe_to_pause(void)
     iterator.handle = k_datum_index_none;
 
     if (object_iterator_next(&iterator) == (object *)0) {
-        if (item_any_detonating() == 0 && effect_check_object_collisions() == 0 && unit_any_dying_or_seat_transition() == 0 && ai_scan_for_recent_combat_activity(0) == 0) {
+        if (halo::items::item_any_detonating() == 0 && effect_check_object_collisions() == 0 && unit_any_dying_or_seat_transition() == 0 && ai_scan_for_recent_combat_activity(0) == 0) {
             return 1;
         }
     }
@@ -250,7 +250,7 @@ uint8_t GameLifecycle::safe_to_save(void)
         }
         return 0;
     }
-    if (item_any_detonating() != 0) {
+    if (halo::items::item_any_detonating() != 0) {
         if (debug_print_safety_checks != 0) {
             console_print_va("not safe to save: dangerous_items_near_player");
         }

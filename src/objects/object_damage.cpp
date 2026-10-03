@@ -8,6 +8,7 @@
 #include "projectiles.h"
 #include <stdint.h>
 #include "halo/physics/api.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
@@ -37,7 +38,6 @@ extern real_vector3d *global_origin3d_pointer;
 extern int16_t global_structure_bsp_index;
 extern int32_t hash_table_get(hash_table *table, uint32_t key);
 extern void hud_unit_meter_apply_predictive_damage(datum_index player_index, float damage);
-extern void item_accelerate(real_vector3d *impulse, int32_t param_2);
 extern player_globals *local_player_globals;
 extern game_main_globals *main_game_globals;
 extern int8_t message_delta_decode_compound_field(void *globals, void *out_value);
@@ -1434,12 +1434,12 @@ void halo::objects::DamageSystem::apply_linked_impulse(void **message)
         impulse.i = direction_i * impulse_scale;
         impulse.j = direction_j * impulse_scale;
         impulse.k = direction_k * impulse_scale;
-        item_accelerate(&impulse, 0);
+        halo::items::item_accelerate((uint32_t)((int32_t *)object_network_id_table->handles)[network_id], &impulse, 0);
     }
 }
 
 namespace {
-static void (*const item_accelerate__as_object_damage_notify_and_impulse)(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer) = reinterpret_cast<void (*)(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer)>(&item_accelerate);
+static void (*const item_accelerate__as_object_damage_notify_and_impulse)(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer) = reinterpret_cast<void (*)(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer)>(&halo::items::item_accelerate);
 }
 
 /**
