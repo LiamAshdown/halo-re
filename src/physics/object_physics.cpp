@@ -15,6 +15,7 @@
 
 #include "halo/physics/object_physics.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" { void object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }
 extern "C" { uint8_t object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t candidate_object_index); }
@@ -112,7 +113,6 @@ void ObjectPhysics::blend_friction_axes(int16_t friction_type, float parallel_sc
 }
 
 extern "C" { extern data_array *object_data; }
-extern "C" { extern tag_instance *tag_instances; }
 extern "C" { extern Globals *global_globals; }
 extern "C" { extern game_time_globals *game_time; }
 extern "C" { extern float k_impact_damage_scale_table[]; }
@@ -268,7 +268,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
 
         breakable_damage_tag_id = *(int32_t *)(collision_damage_tag + 0x58);
         if (breakable_damage_tag_id != -1) {
-            void *candidate_tag = tag_instances[candidate_obj->definition_tag & 0xffff].data;
+            void *candidate_tag = halo::cache::globals().tag_instances[candidate_obj->definition_tag & 0xffff].data;
 
             memset(&dd, 0, sizeof(dd));
             dd.epicentre = candidate_obj->bounding_center;
@@ -676,7 +676,7 @@ namespace halo::physics {
 uint8_t ObjectPhysics::context_build(uint32_t object_index, object_physics_context *out_context)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    void *object_tag_data = tag_instances[obj->definition_tag & 0xffff].data;
+    void *object_tag_data = halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     int32_t physics_tag_id = *(int32_t *)((uint8_t *)object_tag_data + 0x8c);
     void *physics_definition;
 
@@ -685,7 +685,7 @@ uint8_t ObjectPhysics::context_build(uint32_t object_index, object_physics_conte
     }
 
     out_context->object_index = object_index;
-    physics_definition = tag_instances[(uint16_t)physics_tag_id].data;
+    physics_definition = halo::cache::globals().tag_instances[(uint16_t)physics_tag_id].data;
     out_context->definition = physics_definition;
     out_context->scale = 1.0f;
 
@@ -1383,8 +1383,8 @@ namespace halo::physics {
 void ObjectPhysics::tick(uint32_t object_index, powered_mass_point_state *powered_states, uint32_t mass_points, real_vector3d *extra_force, real_vector3d *extra_torque)
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *object_tag = (Object *)tag_instances[((object *)obj)->definition_tag & 0xffff].data;
-    Physics *physics = (Physics *)tag_instances[*(datum_index *)&object_tag->physics.tag_id & 0xffff].data;
+    Object *object_tag = (Object *)halo::cache::globals().tag_instances[((object *)obj)->definition_tag & 0xffff].data;
+    Physics *physics = (Physics *)halo::cache::globals().tag_instances[*(datum_index *)&object_tag->physics.tag_id & 0xffff].data;
     object_physics_context context;
     real_vector3d torque;
     real_vector3d force;

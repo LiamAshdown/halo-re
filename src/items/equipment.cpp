@@ -1,5 +1,6 @@
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern real equipment_network_update_position_tolerance;
@@ -19,7 +20,6 @@ extern int message_delta_encode_message(int flag, int message_type, int changed_
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
-extern tag_instance *tag_instances;
 extern uint32_t sound_play_new(uint32_t sound_tag_id, void *parameters, uint32_t owner_index, int32_t extra_size, void *extra, uint32_t extra_count, uint32_t allow_deferred);
 extern void *game_time;
 extern int32_t k_equipment_minimum_age_ticks;
@@ -328,7 +328,7 @@ void equipment_ref::definition_play_pickup_sound(uint32_t equipment_tag_id)
     int32_t pickup_sound_tag_id;
     uint8_t parameters[16];
 
-    tag = (Equipment *)tag_instances[equipment_tag_id & 0xffff].data;
+    tag = (Equipment *)halo::cache::globals().tag_instances[equipment_tag_id & 0xffff].data;
     pickup_sound_tag_id = *(int32_t *)&tag->pickup_sound.tag_id;
 
     if (pickup_sound_tag_id != -1) {
@@ -455,7 +455,7 @@ void equipment_ref::pickup_play_sound()
     uint8_t parameters[16];
 
     obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    tag = (Equipment *)tag_instances[obj->definition_tag & 0xffff].data;
+    tag = (Equipment *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     item = (item_data *)((uint8_t *)obj + k_item_data_offset);
     item->flags &= ~(uint32_t)_item_unknown_40_bit;

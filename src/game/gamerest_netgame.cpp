@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 #ifdef __cplusplus
 #define CTF_CUSTOM_WAYPOINT_ZERO custom_waypoint{}
@@ -16,7 +17,6 @@ extern int32_t ctf_flag_auto_return_ticks;
 extern uint8_t ctf_single_flag_mode;
 extern data_array *player_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern player_globals *local_player_globals;
 extern uint8_t ctf_active_team;
@@ -178,7 +178,7 @@ notify_teams:
         goto weapon_coordination;
     }
     {
-        int16_t obj_type = *(int16_t *)tag_instances[(uint32_t)flag_obj->definition_tag & 0xffff].data;
+        int16_t obj_type = *(int16_t *)halo::cache::globals().tag_instances[(uint32_t)flag_obj->definition_tag & 0xffff].data;
         object_type_definition *type_def = object_type_definitions[obj_type];
         if ((*(uint32_t *)((uint8_t *)type_def + 0x308) >> 3 & 1) == 0) {
             goto weapon_coordination;

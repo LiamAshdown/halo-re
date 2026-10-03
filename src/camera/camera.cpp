@@ -1,6 +1,7 @@
 #include "halo/camera/camera.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern director_globals camera_director_globals;
@@ -22,7 +23,6 @@ extern player_control_globals *player_control_globals_ptr;
 extern int16_t camera_get_seat_camera_state(datum_index unit, int16_t *out_state);
 extern void camera_third_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern data_array *player_data;
 extern Scenario *global_scenario;
 extern float observer_dt;
@@ -293,7 +293,7 @@ int16_t CameraSystem::get_seat_camera_state(datum_index unit, int16_t *out_state
     {
         object *parent_object = headers[parent & 0xffff].data;
         if ((1 << (parent_object->type & 0x1f)) & 3) {
-            Unit *parent_unit_tag = (Unit *)tag_instances[parent_object->definition_tag & 0xffff].data;
+            Unit *parent_unit_tag = (Unit *)halo::cache::globals().tag_instances[parent_object->definition_tag & 0xffff].data;
             uint8_t *seats = (uint8_t *)parent_unit_tag->seats.pointer;
             int16_t seat_index = ((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->vehicle_seat_index;
             uint32_t seat_flags = *(uint32_t *)(seats + (int32_t)seat_index * sizeof(UnitSeat));
@@ -339,7 +339,7 @@ void CameraSystem::script_set_animation(datum_index animation_tag, char *name)
     if (animation_tag == k_datum_index_none) {
         return;
     }
-    tag = (ModelAnimations *)tag_instances[animation_tag & 0xffff].data;
+    tag = (ModelAnimations *)halo::cache::globals().tag_instances[animation_tag & 0xffff].data;
     if (tag->nodes.count != 1) {
         return;
     }

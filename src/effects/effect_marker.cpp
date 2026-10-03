@@ -1,9 +1,9 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
-extern tag_instance *tag_instances;
 extern const real_vector3d *global_down3d_pointer;
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
@@ -35,7 +35,7 @@ namespace halo::effects {
  */
 void effect_view::environment_probe(uint32_t definition_index, int16_t location_index, real_point3d *marker_position, uint32_t sound_param)
 {
-    TagReflexive *reflexive = (TagReflexive *)tag_instances[definition_index & 0xffff].data;
+    TagReflexive *reflexive = (TagReflexive *)halo::cache::globals().tag_instances[definition_index & 0xffff].data;
 
     if (location_index < (int32_t)reflexive->count) {
         real_point3d origin;
@@ -222,7 +222,7 @@ void effect_view::release_first_person_markers(int16_t first_person_weapon_index
 
     while (effect_index != k_datum_index_none) {
         effect *self = &((effect *)effect_data->data)[(uint16_t)effect_index];
-        Effect *tag = (Effect *)tag_instances[(uint16_t)self->definition_index].data;
+        Effect *tag = (Effect *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
 
         if (self->first_person_weapon_index == first_person_weapon_index) {
             int32_t location_index;

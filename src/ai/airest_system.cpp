@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -42,7 +43,6 @@ extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_in
 extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index);
 extern void team_pair_override_clear_flag(int16_t index_b, int16_t index_a);
 extern float k_random_scale_65536;
-extern tag_instance *tag_instances;
 extern datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum_index encounter_index, int16_t squad_index, uint8_t use_palette_entry, uint16_t unit_type_index, const actor_placement_request *placement_request);
 extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index);
 extern game_engine_definition *current_game_engine;
@@ -695,7 +695,7 @@ void AiSystem::process_vehicle_entry_queue()
 
     for (queue_index = 0; queue_index < ai_globals_ptr->vehicle_entry_count; queue_index++) {
         datum_index vehicle_index = ai_globals_ptr->vehicle_entry_queue[queue_index];
-        uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)OBJECT_DATA(vehicle_index) & 0xffff].data;
+        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)OBJECT_DATA(vehicle_index) & 0xffff].data;
         int16_t seat_index;
 
         for (seat_index = 0; seat_index < *(int32_t *)(vehicle_tag + 0x2e4); seat_index++) {
@@ -1097,7 +1097,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
                 linked_unit_index = a->swarm ? a->cluster_unit_index : a->unit_index;
 
                 linked_object = ((object_header *)object_data->data)[linked_unit_index & 0xffff].data;
-                linked_unit_tag = (Unit *)tag_instances[linked_object->definition_tag & 0xffff].data;
+                linked_unit_tag = (Unit *)halo::cache::globals().tag_instances[linked_object->definition_tag & 0xffff].data;
 
                 skip_close_check = 0;
                 if ((linked_unit_tag->unit_flags & 0x80000) != 0) { // "inconsequential"

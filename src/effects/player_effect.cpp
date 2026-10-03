@@ -1,6 +1,7 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -8,7 +9,6 @@ extern player_globals *local_player_globals;
 extern double sqrt(double x);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void player_effect_apply_continuous_damage(uint32_t tag_reference, int16_t local_player_index, float distance);
-extern tag_instance *tag_instances;
 extern player_effect_globals *player_effect_globals_pointer;
 extern game_time_globals *game_time;
 extern const ColorARGB *global_white_argb;
@@ -85,7 +85,7 @@ void player_effect_ref::apply_at_object(uint32_t tag_reference, int16_t local_pl
 void player_effect_ref::apply_continuous_damage(uint32_t tag_reference, int16_t local_player_index, float distance)
 {
     ContinuousDamageEffect *effect =
-        (ContinuousDamageEffect *)tag_instances[tag_reference & 0xffff].data;
+        (ContinuousDamageEffect *)halo::cache::globals().tag_instances[tag_reference & 0xffff].data;
 
     if (distance < effect->radius[1]) {
         player_effect *self = &player_effect_globals_pointer->players[local_player_index];
@@ -295,7 +295,7 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
         return;
     }
     self = (player_effect *)((uint8_t *)player_effect_globals_pointer + local_player_index * 0xec);
-    tag = (uint8_t *)tag_instances[dd->damage_effect_tag & 0xffff].data;
+    tag = (uint8_t *)halo::cache::globals().tag_instances[dd->damage_effect_tag & 0xffff].data;
     player_effect_set_screen_flash(self, (player_screen_flash *)(tag + 0x24), random_blend, 1.0f);
     player_effect_set_camera_impulse(self, local_player_index, (real *)(tag + 0x98), (real *)direction,
         random_blend, 1.0f);

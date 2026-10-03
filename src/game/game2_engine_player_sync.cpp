@@ -1,6 +1,7 @@
 #include "halo/game/game2_engine_players.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 #define k_uninitialized_fill 0xfafafafau
 
@@ -25,7 +26,6 @@ extern void unit_release_selected_equipment(datum_index unit_handle);
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward);
 extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id);
 extern void game_engine_build_visible_cluster_bitmask(void *out_bitmask, uint32_t flag);
-extern tag_instance *tag_instances;
 extern uint32_t update_client_queue_apply_tick(player_action *out_actions, client_update_carry *out_carry);
 extern void build_remote_player_transform_update(datum_index player_handle, int32_t field1, int32_t field2, player_action action);
 extern uint8_t player_execute_pending_interaction(datum_index player_handle);
@@ -323,7 +323,7 @@ void EnginePlayerSync::players_update_server(void)
                         datum_index weapon_handle = unit->weapons[unit->current_weapon_index];
                         if (weapon_handle != (datum_index)-1) {
                             object *weapon_obj = ((object_header *)object_data->data)[weapon_handle & 0xffff].data;
-                            Weapon *weapon_tag = (Weapon *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+                            Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
                             if ((weapon_tag->weapon_flags & 0x08) != 0) {
                                 if ((action->control_flags & 0x1800) != 0) {
                                     if (unit_obj->network_role == 0) {
@@ -799,7 +799,7 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
 
     if (camera.seat_index != -1) {
         uint8_t *unit_object = (uint8_t *)((object_header *)object_data->data)[camera.unit & 0xffff].data;
-        uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit_object & 0xffff].data;
+        uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit_object & 0xffff].data;
         uint8_t *seat = *(uint8_t **)(unit_tag + 0x2e8) + (int32_t)camera.seat_index * 0x11c;
         real yaw_min = *(real *)(seat + 0xf0);
         real yaw_max = *(real *)(seat + 0xf4);
@@ -1039,7 +1039,7 @@ void EnginePlayerSync::spawn_player_starting_loadout(uint32_t starting_equipment
                 object_placement_data_initialize(&placement, picked_tag, (datum_index)0xffffffff);
 
                 if (network_game_mode == 2) {
-                    tag_instance *tag_inst = &tag_instances[picked_tag & 0xffff];
+                    tag_instance *tag_inst = &halo::cache::globals().tag_instances[picked_tag & 0xffff];
                     Object *object_tag = (Object *)tag_inst->data;
                     if (object_type_definitions[object_tag->object_type]->network_delta_message_type != -1) {
                         role = 0;

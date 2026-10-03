@@ -6,6 +6,7 @@
 
 #include "internal/state.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 
@@ -235,7 +236,7 @@ void rasterizer_decal_pass_begin(int16_t stage)
     {
         TagID *fallback_tag_id = (TagID *)((uint8_t *)rasterizer_globals_data + 0xb8);
         if (*(uint32_t *)fallback_tag_id != 0xffffffff) {
-            Bitmap *bitmap = (Bitmap *)tag_instances[fallback_tag_id->index].data;
+            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[fallback_tag_id->index].data;
             if (bitmap != (Bitmap *)0 && bitmap->bitmap_data.count > 1) {
                 uint8_t *first_submap = (uint8_t *)bitmap->bitmap_data.pointer;
                 if (first_submap != (uint8_t *)(uint32_t)-0x30) {
@@ -372,7 +373,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
     while (decal_index != 0xffffffff) {
         uint8_t *decal = (uint8_t *)decal_data->data + (decal_index & 0xffff) * 0x38;
         uint32_t definition_tag = *(uint32_t *)&((struct decal *)decal)->definition_index;
-        uint8_t *definition = (uint8_t *)tag_instances[definition_tag & 0xffff].data + 0xbc;
+        uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[definition_tag & 0xffff].data + 0xbc;
         int16_t type = *(int16_t *)(definition + 4);
 
         if (rasterizer_decal_blend_mode != type) {
@@ -526,7 +527,7 @@ void rasterizer_decals_initialize(void)
     game_state_cursor = game_state_cursor + 0xe07c;
     halo::memory::crc32_update(&game_state_crc, &region_size, 4);
 
-    halo::memory::cache_new((char *)"decal vertex cache", (cache *)block, 0xa00, 6, 0x800, (void *)decal_vertex_cache_release,
+    halo::memory::cache_new((char *)"decal vertex cache", (::cache *)block, 0xa00, 6, 0x800, (void *)decal_vertex_cache_release,
               (void *)decal_vertex_cache_in_use);
     rasterizer_decal_vertex_cache_handle = block;
 }

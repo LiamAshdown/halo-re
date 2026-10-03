@@ -1,5 +1,6 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
@@ -392,7 +393,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern const real_vector3d *global_origin3d_pointer;
 extern const real_vector2d *global_forward2d_pointer;
 extern double sin(double x);
@@ -434,7 +434,7 @@ void ActorView::movement_update()
     using namespace actor_movement_update_local;
     actor *a = &((actor *)actor_data->data)[actor_index & 0xffffu];
     uint8_t *actor_base = (uint8_t *)a;
-    Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
+    Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[a->actor_definition_tag & 0xffff].data;
 
     uint8_t sidestep_mode = 0;
     uint8_t face_along_heading = 0;
@@ -616,7 +616,7 @@ void ActorView::movement_update()
         }
     } else {
         object *unit_object = ((object_header *)object_data->data)[a->active_unit_index & 0xffff].data;
-        Vehicle *vehicle_def = (Vehicle *)tag_instances[unit_object->definition_tag & 0xffff].data;
+        Vehicle *vehicle_def = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
         uint8_t take_sideslip = 0;
 
         steering_maximum = vehicle_def->ai_steering_maximum;

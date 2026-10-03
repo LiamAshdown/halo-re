@@ -1,6 +1,7 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *decal_data;
@@ -16,7 +17,6 @@ extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint8_t decals_enabled;
 extern uint8_t decals_for_all_responses;
-extern tag_instance *tag_instances;
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t sequence_index);
 extern game_time_globals *game_time;
@@ -588,7 +588,7 @@ void decal_ref::spawn_for_response(datum_index response_tag_index, uint8_t deter
 
     if (decals_for_all_responses == 0 &&
         (deterministic != 1 ||
-            *(int16_t *)((uint8_t *)tag_instances[response_tag_index & 0xffff].data + 4) != 3)) {
+            *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[response_tag_index & 0xffff].data + 4) != 3)) {
         allowed = 0;
     }
     if (decals_enabled == 0 || !allowed) {
@@ -602,7 +602,7 @@ void decal_ref::spawn_for_response(datum_index response_tag_index, uint8_t deter
     }
     if (collision_test_movement_segment(0x100061, origin, direction, 0xffffffff, &result) &&
         result.type == 2 &&
-        (*(uint8_t *)tag_instances[response_tag_index & 0xffff].data & 0x10) == 0) {
+        (*(uint8_t *)halo::cache::globals().tag_instances[response_tag_index & 0xffff].data & 0x10) == 0) {
         decal_place(response_tag_index, &result, direction, radius, deterministic, (int16_t)marker_index);
     }
     if (deterministic != 0) {

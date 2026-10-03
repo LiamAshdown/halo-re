@@ -1,10 +1,10 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
-extern tag_instance *tag_instances;
 extern data_array *decal_data;
 extern game_time_globals *game_time;
 extern const decal_type_parameters k_decal_type_parameters[4];
@@ -18,7 +18,6 @@ extern double fabs(double x);
 extern double cos(double x);
 extern double sin(double x);
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
-extern void *texture_cache_get(void *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern void structure_lightmap_uv_rect_build(int16_t sequence_index, int16_t sprite_index, real scale, real *out_extent, real *out_sprite_rect, const Decal *decal_definition);
 extern datum_index decal_new(datum_index requested_handle, int16_t cluster_index, int16_t layer, datum_index insert_before, uint8_t object_attached);
 extern void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
@@ -305,8 +304,8 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
     }
 
     for (;;) {
-        Decal *definition = (Decal *)tag_instances[(uint16_t)decal_tag_index].data;
-        Bitmap *bitmap = (Bitmap *)tag_instances[*(uint16_t *)&definition->map.tag_id].data;
+        Decal *definition = (Decal *)halo::cache::globals().tag_instances[(uint16_t)decal_tag_index].data;
+        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[*(uint16_t *)&definition->map.tag_id].data;
         int16_t sprite_bitmap_index;
         uint16_t queue_count;
         uint16_t fallback_count = 0;
@@ -419,7 +418,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
         }
 
         if (object_attached == 0 &&
-            texture_cache_get(&((BitmapData *)bitmap->bitmap_data.pointer)[sprite_bitmap_index], 0, 1) == 0) {
+            halo::cache::texture_cache_get(&((BitmapData *)bitmap->bitmap_data.pointer)[sprite_bitmap_index], 0, 1) == 0) {
             return;
         }
 

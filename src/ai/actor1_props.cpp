@@ -1,6 +1,7 @@
 #include "halo/ai/actor_props.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_allocate_paired_prop {
 extern "C" {
@@ -94,7 +95,6 @@ extern "C" datum_index actor_allocate_paired_prop_with_kind(datum_index actor_in
 namespace c_actor_apply_unit_definition_properties {
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern int16_t network_game_mode;
 extern object_type_definition *object_type_definitions[12];
 
@@ -125,7 +125,7 @@ static datum_index actor_create_unit_item(datum_index definition_tag, datum_inde
 
     object_placement_data_initialize(&placement, definition_tag, unit_index);
     if (network_game_mode == 2) {
-        int16_t type = *(int16_t *)tag_instances[placement.definition_tag & 0xffff].data;
+        int16_t type = *(int16_t *)halo::cache::globals().tag_instances[placement.definition_tag & 0xffff].data;
 
         if (object_type_definitions[type]->network_delta_message_type != -1) {
             role = 0;
@@ -147,9 +147,9 @@ extern "C" void actor_apply_unit_definition_properties(datum_index actor_variant
 void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_variant_tag, datum_index unit_index)
 {
     using namespace c_actor_apply_unit_definition_properties;
-    uint8_t *variant = (uint8_t *)tag_instances[actor_variant_tag & 0xffff].data;
+    uint8_t *variant = (uint8_t *)halo::cache::globals().tag_instances[actor_variant_tag & 0xffff].data;
     uint8_t *unit = object_get(unit_index);
-    uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)&((ActorVariant *)variant)->actor_definition.tag_id & 0xffff].data;
+    uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((ActorVariant *)variant)->actor_definition.tag_id & 0xffff].data;
     int16_t i;
 
     if (((ActorVariant *)variant)->body_vitality > 0.0f || ((ActorVariant *)variant)->shield_vitality > 0.0f) {
@@ -197,7 +197,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         object[0x31c] = (uint8_t)type;
     }
     if (*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id != k_datum_index_none) {
-        int16_t equipment_kind = *(int16_t *)((uint8_t *)tag_instances[*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id & 0xffff].data
+        int16_t equipment_kind = *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id & 0xffff].data
             + 0x308);
 
         if (equipment_kind != 0 && equipment_kind != 6) {
@@ -441,7 +441,6 @@ static float sqrt_f(float x) { return (float)sqrt((double)x); }
 
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 
 extern void object_get_position(real_point3d *out_position, datum_index object_index);
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
@@ -483,7 +482,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
     }
 
     obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    tag_data = (uint8_t *)tag_instances[obj->definition_tag & 0xffff].data;
+    tag_data = (uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if ((int8_t)tag_data[0x2f0] < 0) {
         velocity_sq = obj->velocity.k * obj->velocity.k + obj->velocity.j * obj->velocity.j +
@@ -562,7 +561,6 @@ namespace c_actor_find_danger_escape {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern const real_vector2d *global_forward2d_pointer;
 
 extern double sqrt(double x);
@@ -572,7 +570,7 @@ extern uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 }
 
@@ -1081,7 +1079,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
@@ -1130,7 +1127,7 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
 
     if (object_index != (datum_index)0xffffffff) {
         uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + 8 + (object_index & 0xffff) * 0xc);
-        uint8_t *object_type = (uint8_t *)tag_instances[*(uint16_t *)object & 0xffff].data;
+        uint8_t *object_type = (uint8_t *)halo::cache::globals().tag_instances[*(uint16_t *)object & 0xffff].data;
         uint8_t is_vault;
 
         p->team = ((struct object *)object)->owner_team;

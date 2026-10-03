@@ -1,5 +1,6 @@
 #include "halo/camera/observer.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern observer observers[1];
@@ -15,7 +16,6 @@ extern double sqrt(double x);
 extern double fabs(double x);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point);
-extern void predicted_resource_list_touch(TagReflexive *resources);
 extern void observer_avoid_collision(real_vector3d *forward, real_point3d *position, real_vector3d *up, float *distance, float radius_scale);
 extern int16_t observer_derivative_float_counts[5];
 extern float observer_channel_acceleration_limit[5];
@@ -163,7 +163,7 @@ void ObserverHandle::commit()
 
         if (new_cluster != -1) {
             if (new_cluster != camera->cluster_index) {
-                predicted_resource_list_touch(
+                halo::cache::predicted_resource_list_touch(
                     &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[new_cluster]
                         .predicted_resources);
             }

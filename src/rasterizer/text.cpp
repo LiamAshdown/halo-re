@@ -5,13 +5,13 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 
 extern void text_wrap_and_draw_wide(void *glyph_callback, void *dest_rect, uint32_t position_or_color1, void *clip_rect, uint32_t position_or_color2, const int16_t *text);
 extern void text_wrap_and_draw_narrow(void *glyph_callback, void *dest_rect, uint32_t position_or_color1, void *clip_rect, uint32_t position_or_color2, const char *text);
 extern uint16_t *bitmap_data_get_row_address(BitmapData *bitmap, int32_t mip_level, int32_t x, int32_t y);
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern uint32_t bitmap_data_calculate_pixel_data_size(BitmapData *bitmap);
 
 }  // extern "C"
@@ -354,7 +354,7 @@ void rasterizer_draw_text_begin(ui_quad_render_state *state)
 
     part0 = *(void **)(context + 0xc);
     if (part0 != 0) {
-        texture_cache_get((BitmapData *)part0, 1, 1);
+        halo::cache::texture_cache_get((BitmapData *)part0, 1, 1);
         set_texture(0, *(uint32_t *)((uint8_t *)part0 + 0x28));
     }
 
@@ -386,7 +386,7 @@ void rasterizer_draw_text_begin(ui_quad_render_state *state)
             set_texture(part, 0);
             break;
         }
-        texture_cache_get((BitmapData *)part_texture, 1, 1);
+        halo::cache::texture_cache_get((BitmapData *)part_texture, 1, 1);
         set_texture(part, *(uint32_t *)((uint8_t *)part_texture + 0x28));
 
         address_mode = (context[0x18 + part] == 0) ? 3u : 1u;

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern encounter_platoon_state *encounter_platoon_states;
@@ -44,7 +45,6 @@ extern void ai_release_actors_filtered(datum_index encounter_index, int32_t plat
 extern int32_t scenario_find_encounter_index_by_name(Scenario *scenario, char *name);
 extern int32_t encounter_definition_find_squad_index_by_name(ScenarioEncounter *encounter_definition, char *name);
 extern int32_t encounter_definition_find_platoon_index_by_name(ScenarioEncounter *encounter_definition, char *name);
-extern tag_instance *tag_instances;
 extern float k_real_zero;
 extern float k_real_one;
 extern void actor_clear_perceived_props(datum_index actor_index);
@@ -871,7 +871,7 @@ void ReferenceView::refill_grenades()
     a = ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
         if (a->unit_index != (datum_index)k_datum_index_none) {
-            variant_data = (uint8_t *)tag_instances[a->actor_variant_tag & 0xffff].data;
+            variant_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_variant_tag & 0xffff].data;
             unit = (uint8_t *)((object_header *)object_data->data)[a->unit_index & 0xffff].data;
 
             ((unit_object *)unit)->base.body_vitality = (((unit_object *)unit)->base.maximum_body_vitality <= 0.0f) ? k_real_zero : k_real_one;
@@ -1221,11 +1221,11 @@ void ReferenceView::spawn_starting_location_object(datum_index unit_index, uint3
 
             if (actor_variant_tag != (datum_index)k_datum_index_none) {
                 uint8_t *actor_variant_data =
-                    (uint8_t *)tag_instances[actor_variant_tag & 0xffff].data;
+                    (uint8_t *)halo::cache::globals().tag_instances[actor_variant_tag & 0xffff].data;
                 datum_index actor_definition_tag = *(datum_index *)(actor_variant_data + 0x10);
 
                 if (actor_definition_tag != (datum_index)k_datum_index_none) {
-                    uint8_t *actor_tag_data = (uint8_t *)tag_instances[actor_definition_tag & 0xffff].data;
+                    uint8_t *actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[actor_definition_tag & 0xffff].data;
                     uint32_t actor_tag_flags = *(uint32_t *)actor_tag_data;
                     char reuse_existing = (char)((actor_tag_flags >> 0x1a) & 1); // Actor.flags bit 26, "swarm"
                     char start_active =
@@ -1348,7 +1348,7 @@ void ReferenceView::squad_set_unknown_10(uint8_t value)
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 namespace {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)

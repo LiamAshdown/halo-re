@@ -5,6 +5,7 @@
 #include "crt.h"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -15,7 +16,6 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
 extern uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point);
 extern datum_index *object_name_list;
 extern datum_index object_new_from_scenario_name(int16_t name_index);
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 extern data_array *player_data;
 extern int16_t network_game_mode;
@@ -73,11 +73,11 @@ static void hs_unit_leave_seat(uint32_t object_index)
     datum_index parent_index = ((unit_object *)unit)->base.parent_object;
     if (parent_index != k_datum_index_none && ((unit_object *)unit)->unit.vehicle_seat_index != -1) {
         uint8_t *parent = OBJ(parent_index);
-        uint8_t *parent_tag = (uint8_t *)tag_instances[*(datum_index *)parent & 0xffff].data;
+        uint8_t *parent_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)parent & 0xffff].data;
         uint8_t *seat = *(uint8_t **)(parent_tag + 0x2e8) + ((unit_object *)unit)->unit.vehicle_seat_index * 0x11c;
         real_matrix4x3 *nodes = (real_matrix4x3 *)(unit + ((unit_object *)unit)->base.nodes.offset);
-        uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
-        uint8_t *model = (uint8_t *)tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id & 0xffff].data;
+        uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data;
+        uint8_t *model = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id & 0xffff].data;
         uint8_t *root_node = *(uint8_t **)(model + 0xbc);
         real_vector3d root_offset = *(real_vector3d *)(root_node + 0x28);
         real_matrix4x3 *root_matrix = (real_matrix4x3 *)(root_node + 0x68);
@@ -111,7 +111,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
         *(real_vector3d *)&((unit_object *)unit)->base.forward.i = basis.forward;
         *(real_vector3d *)&((unit_object *)unit)->base.up.i = basis.up;
         unit = OBJ(object_index);
-        unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
+        unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data;
         if (*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id != k_datum_index_none) {
             if ((((unit_object *)unit)->base.flags & 1) != 0) {
                 object_for_each_light_attachment(object_index, 0, 1);
@@ -764,10 +764,10 @@ void ScriptObjects::hs_object_set_permutation_by_name(datum_index object_index, 
         if (name[0] != '\0') {
             object_data = *(void ***)((uint8_t *)object_headers->data +
                 (object_index & 0xffff) * 0x0c + 8);
-            referenced_tag_id = *(uint32_t *)((uint8_t *)tag_instances[
+            referenced_tag_id = *(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[
                 (*(uint32_t *)object_data & 0xffff) & 0xffff].data + 0x34);
             if (referenced_tag_id != 0xffffffff) {
-                definition = (uint8_t *)tag_instances[(referenced_tag_id & 0xffff) & 0xffff].data;
+                definition = (uint8_t *)halo::cache::globals().tag_instances[(referenced_tag_id & 0xffff) & 0xffff].data;
                 permutation_count = *(int32_t *)(definition + 0xc4);
                 index = 0;
                 if (0 < permutation_count) {

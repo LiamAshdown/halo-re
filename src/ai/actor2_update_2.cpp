@@ -1,5 +1,6 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
@@ -8,7 +9,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern player_globals *local_player_globals;
 extern uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kind);
 extern uint8_t actor_target_is_visible_or_object_count_ok(datum_index actor_index, int16_t kind);
@@ -44,7 +44,7 @@ extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_
 #define D(p, o) (*(datum_index *)((p) + (o)))
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 }
 

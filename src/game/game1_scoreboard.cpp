@@ -15,16 +15,15 @@
 
 #include "halo/game/game1_scoreboard.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
-extern tag_instance *tag_instances;
 extern game_engine_definition *current_game_engine;
 extern game_engine_state game_engine_state_value;
 extern game_variant game_engine_variant;
 extern wchar_t empty_string;
 extern wchar_t missing_string_text[];
-extern datum_index tag_lookup(tag_group group, char *path);
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...);
 extern uint32_t game_engine_is_object_winning(uint32_t handle);
@@ -89,7 +88,7 @@ namespace halo::game::engine1 {
  */
 wchar_t *Scoreboard::multiplayer_game_text_string(int16_t index)
 {
-    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     if (tag_id == k_datum_index_none) {
         return &empty_string;
@@ -139,11 +138,11 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
         }
 
         if (result == -1) {
-            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             wchar_t *text = &empty_string;
 
             if (tag_id != k_datum_index_none) {
-                int32_t *tag_data = (int32_t *)tag_instances[tag_id & 0xffff].data;
+                int32_t *tag_data = (int32_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
                 text = missing_string_text;
                 if (0x37 < *tag_data) {
                     uint8_t *entry = (uint8_t *)tag_data[1];
@@ -675,7 +674,7 @@ wchar_t *Scoreboard::get_default_multiplayer_string(const scoreboard_entry *entr
     int32_t place = entry->place & 0x7f;
     int32_t index = (place > 0xf) ? 0xf : place;
 
-    tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
     if (tag_id == k_datum_index_none) {
         return &empty_string;
     }
@@ -710,7 +709,7 @@ wchar_t *Scoreboard::get_multiplayer_text_list(uint32_t rank)
             index += 0x10;
         }
     }
-    tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
     if (tag_id == k_datum_index_none) {
         return &empty_string;
     }

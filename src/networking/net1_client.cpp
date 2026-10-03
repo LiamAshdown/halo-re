@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern network_client_globals *network_client;
@@ -106,7 +107,6 @@ extern void network_channel_reliable_pool_store(network_channel *channel, void *
 extern char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child);
 extern char network_client_identity_tick(network_client_globals *client);
 extern void network_host_presence_broadcast_tick(network_client_globals *client);
-extern char cache_file_request_map(int32_t unknown);
 extern char network_build_string[];
 extern int32_t network_signal_quality_glyph(void);
 extern void network_receive_queue_close_socket(void);
@@ -143,6 +143,17 @@ extern void network_join_hostname_resolved_callback(int32_t resolve_failed, uint
 extern void function_do_nothing(void);
 extern int32_t NNBeginNegotiationWithSocket(int32_t hostname, int32_t request_id, int32_t one, void (*progress_callback)(void), void (*complete_callback)(int32_t, uint32_t, uint8_t *), int32_t zero);
 extern uint32_t network_game_client_connect_to_address(char *address_string, uint16_t *target_string);
+}
+
+/**
+ * Calls halo::cache::cache_file_request_map with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static char cache_file_request_map_unresolved(int32_t unknown)
+{
+    using call_t = char (*)(int32_t unknown);
+    return reinterpret_cast<call_t>(&halo::cache::cache_file_request_map)(unknown);
 }
 
 /**
@@ -1413,7 +1424,7 @@ void HostClientView::presence_broadcast_tick()
 
     if (client->last_presence_broadcast_ms + 1000 < now_ms) {
         client->last_presence_broadcast_ms = now_ms;
-        if (cache_file_request_map(1) != 0) {
+        if (cache_file_request_map_unresolved(1) != 0) {
             memset(buffer, 0, sizeof(buffer));
             strncpy((char *)buffer, network_build_string, 0x100);
 

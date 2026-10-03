@@ -1,13 +1,13 @@
 #include "halo/game/game2_engine_hud.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
 extern game_variant game_engine_variant;
 extern data_array *player_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern network_server_globals *network_server;
 extern network_client_globals *network_client;
 extern player_globals *local_player_globals;
@@ -24,7 +24,6 @@ extern uint16_t hud_text_draw_color_or_flags;
 extern int16_t hud_text_draw_column;
 extern uint32_t hud_text_draw_unknown_4730;
 extern int32_t hud_text_draw_font_tag_id;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
@@ -71,7 +70,7 @@ namespace halo::game {
  */
 wchar_t * EngineHud::multiplayer_game_text_string(int16_t index)
 {
-    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     if (tag_id == k_datum_index_none) {
         return &empty_string;

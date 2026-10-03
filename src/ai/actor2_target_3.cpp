@@ -1,6 +1,7 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
@@ -9,7 +10,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *encounter_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern void actor_target_scan_potential_targets(datum_index actor_index);
 extern void actor_danger_update_reaction(datum_index actor_index);
@@ -77,7 +77,7 @@ void ActorView::target_relationship_think()
     struct { int16_t team; int16_t object_type; char is_enemy; } payload;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
 
     reaction_ticks = 1;
     danger_reacted = 0;

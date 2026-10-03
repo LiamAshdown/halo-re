@@ -1,6 +1,7 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
@@ -511,7 +512,6 @@ extern "C" {
 extern double sqrt(double x);
 static float sqrt_f(float x) { return (float)sqrt((double)x); }
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint8_t scenario_location_background_sound_is_deafening_to_ais(bsp_leaf_reference *location);
 extern uint8_t cluster_sound_distance_lookup(int16_t cluster_a, int16_t cluster_b,
@@ -550,7 +550,7 @@ uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_inde
     if (source_cluster == -1) {
         return 0;
     }
-    range = *(float *)((uint8_t *)tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data + 0x4c);
+    range = *(float *)((uint8_t *)halo::cache::globals().tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data + 0x4c);
     dx = listener_position->x - *(float *)(listener + 0x0);
     dy = listener_position->y - *(float *)(listener + 0x4);
     dz = listener_position->z - *(float *)(listener + 0x8);
@@ -1244,7 +1244,6 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
 extern data_array *encounter_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,
@@ -1306,7 +1305,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
         return;
     }
 
-    actor_def = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    actor_def = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
     enc = (self->encounter_index == (datum_index)k_datum_index_none)
               ? (encounter *)0
               : &((encounter *)encounter_data->data)[self->encounter_index & 0xffff];
@@ -1439,7 +1438,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
         p->perception_range_class = 2;
 
         if (unit_obj->type == _object_type_biped) {
-            void *own_tag_data = tag_instances[unit_obj->definition_tag & 0xffff].data;
+            void *own_tag_data = halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
             p->flying = (uint8_t)((*(uint32_t *)((uint8_t *)own_tag_data + 0x2f4)) >> 2) & 1;
         } else {
             p->flying = 0;

@@ -14,6 +14,7 @@
 
 #include "halo/physics/object_physics.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" { extern double fabs(double x); }
 extern "C" { extern double sqrt(double x); }
@@ -24,7 +25,6 @@ extern "C" { extern ScenarioStructureBSP *global_structure_bsp; }
 extern "C" { extern ModelCollisionGeometryBSP *global_collision_bsp; }
 extern "C" { extern real_vector3d *global_down3d_pointer; }
 extern "C" { extern float k_physics_gravity; }
-extern "C" { extern tag_instance *tag_instances; }
 extern "C" { extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); }
 extern "C" { extern void object_physics_mass_point_resolve_ground_contact(uint32_t exclude_object_index, mass_point_state *mass_point, PhysicsMassPoint *definition); }
 extern "C" { extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point); }
@@ -61,8 +61,8 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
     int32_t ground_contact_count = 0, on_ground_surface_count = 0, at_rest_count = 0, water_contact_count = 0;
     int32_t i;
 
-    object_tag_data = tag_instances[self->definition_tag & 0xffff].data;
-    definition = (Physics *)tag_instances[(uint16_t)(*(int32_t *)((uint8_t *)object_tag_data + 0x8c)) & 0xffff].data;
+    object_tag_data = halo::cache::globals().tag_instances[self->definition_tag & 0xffff].data;
+    definition = (Physics *)halo::cache::globals().tag_instances[(uint16_t)(*(int32_t *)((uint8_t *)object_tag_data + 0x8c)) & 0xffff].data;
     gravity_scale = k_physics_gravity * definition->gravity_scale;
 
     halo::math::matrix4x3_from_forward_up(self->up, self->forward, step_matrix);

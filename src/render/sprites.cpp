@@ -18,6 +18,7 @@
 #include "halo/render/render.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern float build_sprite_screen_coverage;
@@ -25,7 +26,6 @@ extern int16_t build_sprite_large_quad_count;
 extern real_vector3d build_sprite_view_up;
 extern real_vector3d build_sprite_view_left;
 extern render_frustum render_frustum_global;
-extern tag_instance *tag_instances;
 extern const ColorARGB *global_white_argb;
 extern real_rectangle3d *global_null_rectangle3d_pointer;
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
@@ -33,7 +33,6 @@ extern double sin(double x);
 extern double cos(double x);
 extern int16_t rasterizer_vertex_buffer_lock_state;
 extern uint8_t build_sprite_group_warning;
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern int32_t rasterizer_dynamic_vertex_cache_reserve(int16_t vertex_type, int32_t count);
 extern void *rasterizer_dynamic_vertex_cache_lock(int32_t slot_index);
 extern double fmod(double x, double y);
@@ -119,7 +118,7 @@ int16_t halo::render::SpriteBuilder::get_group(BitmapData *bitmap)
         data->group_count = count + 1;
         group->bitmap = (uint32_t)bitmap;
 
-        if (texture_cache_get(bitmap, 0, 1) == 0) {
+        if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
             group->vertices = 0;
             group->vertex_slot = -1;
         } else {
@@ -196,7 +195,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
             float quad_rotation;
             uint32_t quad_flags = 1;
 
-            bitmap_group = (Bitmap *)tag_instances[(uint16_t)data->bitmap_group_index].data;
+            bitmap_group = (Bitmap *)halo::cache::globals().tag_instances[(uint16_t)data->bitmap_group_index].data;
             sequences = (BitmapGroupSequence *)bitmap_group->bitmap_group_sequence.pointer;
             count = (int16_t)sequences[first_sequence_index + 1].sprites.count;
 
@@ -225,7 +224,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
         float side_fade = (1.0f - t) * fade;
         float side_rotation;
 
-        bitmap_group = (Bitmap *)tag_instances[(uint16_t)data->bitmap_group_index].data;
+        bitmap_group = (Bitmap *)halo::cache::globals().tag_instances[(uint16_t)data->bitmap_group_index].data;
         sequences = (BitmapGroupSequence *)bitmap_group->bitmap_group_sequence.pointer;
         count = (int16_t)sequences[first_sequence_index].sprites.count;
         side_rotation = (real)atan2(transformed_axis.j, transformed_axis.i);
@@ -425,7 +424,7 @@ void draw(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
     uint32_t mirror_v;
     int16_t corner;
 
-    bitmap_group = (Bitmap *)tag_instances[(uint16_t)data->bitmap_group_index].data;
+    bitmap_group = (Bitmap *)halo::cache::globals().tag_instances[(uint16_t)data->bitmap_group_index].data;
     if (color == 0) {
         color = (ColorARGB *)global_white_argb;
     }
@@ -696,7 +695,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
     bitmap = bitmap_group_sequence_get_bitmap_data(*(datum_index *)&definition->bitmap.tag_id,
                                                    c->frame_index, c->sequence_index);
     rasterizer_vertex_buffer_lock_state = 0xf;
-    if (texture_cache_get(bitmap, 0, 1) == 0) {
+    if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         rasterizer_vertex_buffer_lock_state = 0;
         return;
     }
@@ -756,7 +755,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         }
         if (c->object_index != 0xffffffff) {
             object *o = ((object_header *)object_data->data)[(uint16_t)c->object_index].data;
-            Object *object_definition = (Object *)tag_instances[o->definition_tag & 0xffff].data;
+            Object *object_definition = (Object *)halo::cache::globals().tag_instances[o->definition_tag & 0xffff].data;
             int16_t change_color = (int16_t)(*(int16_t *)((uint8_t *)object_definition->attachments.pointer +
                                              (int32_t)c->attachment_index * 0x48 + 0x34) - 1);
 
@@ -937,7 +936,7 @@ void render_all(uint32_t render_type_flags)
 
     while (index != k_datum_index_none) {
         contrail *c = &((contrail *)contrail_data->data)[(uint16_t)index];
-        Contrail *definition = (Contrail *)tag_instances[(uint16_t)c->definition_index].data;
+        Contrail *definition = (Contrail *)halo::cache::globals().tag_instances[(uint16_t)c->definition_index].data;
         int16_t i;
 
         for (i = 0; i < 4; i++) {
@@ -1040,7 +1039,7 @@ void particles(void)
 
         group_first = records;
         for (group = 0; group < group_count; group++) {
-            Particle *definition = (Particle *)tag_instances[group_first->definition_index].data;
+            Particle *definition = (Particle *)halo::cache::globals().tag_instances[group_first->definition_index].data;
             int16_t in_group = (int16_t)group_counts[group];
             int16_t drawn = 0;
             float radius_sum = 0.0f;
@@ -1059,7 +1058,7 @@ void particles(void)
             for (k = 0; k < in_group; k++, group_first++) {
                 uint16_t particle_index = group_first->particle_index;
                 particle *p = &((particle *)particle_data->data)[particle_index];
-                Particle *pd = (Particle *)tag_instances[(uint16_t)p->definition_index].data;
+                Particle *pd = (Particle *)halo::cache::globals().tag_instances[(uint16_t)p->definition_index].data;
                 float radius = ((pd->radius_animation[1] - pd->radius_animation[0]) *
                                 (p->age / p->lifespan) + pd->radius_animation[0]) * p->scale;
                 real_point3d origin;

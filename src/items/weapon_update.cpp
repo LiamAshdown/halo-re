@@ -1,8 +1,8 @@
 #include "halo/items/items.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern uint8_t unit_updates_suppressed;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter, char use_matched_index);
@@ -69,7 +69,7 @@ int32_t weapon_ref::update()
     item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     id = (item_data *)((uint8_t *)item_obj + k_item_data_offset);
-    weapon_tag = (Weapon *)tag_instances[(uint16_t)item_obj->definition_tag].data;
+    weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
     if (unit_updates_suppressed == 1) {
         return 1;
@@ -102,7 +102,7 @@ int32_t weapon_ref::update()
             } else if (holder->definition_tag == (datum_index)0xffffffff) {
                 skip_decrement = 0;
             } else {
-                Unit *holder_tag = (Unit *)tag_instances[(uint16_t)holder->definition_tag].data;
+                Unit *holder_tag = (Unit *)halo::cache::globals().tag_instances[(uint16_t)holder->definition_tag].data;
                 skip_decrement = (holder_tag->unit_flags & 0x800000) != 0;
             }
         }
@@ -438,7 +438,7 @@ void weapon_ref::update_function_values()
 {
     uint32_t object_index = datum;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Weapon *tag = (Weapon *)tag_instances[(uint16_t)obj->definition_tag].data;
+    Weapon *tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     object *destination = obj;
 
     while ((destination->flags & _object_no_collision_bit) != 0 &&

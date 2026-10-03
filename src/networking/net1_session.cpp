@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern object *object_iterator_next(object_iterator *iterator);
@@ -24,8 +25,6 @@ extern char network_client_check_connection_quality(void);
 extern void network_game_client_apply_position_update(void *state, uint32_t *packet, void *tick_count, void *object);
 extern void network_player_update_history_log_write(const char *format, ...);
 extern wchar_t empty_string;
-extern void *tag_instances;
-extern int32_t tag_lookup(const char *path);
 extern wchar_t *text_string_list_get_string(int32_t tag_index, int32_t string_index);
 extern network_client_globals *network_client;
 extern network_server_globals *network_server;
@@ -139,6 +138,17 @@ extern int32_t network_session_host_last_tick;
 extern int32_t time_query_performance_counter_ms(void);
 extern void qr2_send_statechanged(void *object);
 extern void qr2_think(void *object);
+}
+
+/**
+ * Calls halo::cache::tag_lookup with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static int32_t tag_lookup_unresolved(const char *path)
+{
+    using call_t = int32_t (*)(const char *path);
+    return reinterpret_cast<call_t>(&halo::cache::tag_lookup)(path);
 }
 
 /**
@@ -307,9 +317,9 @@ wchar_t * GameRuntime::get_random_player_name()
     uint32_t tag_id;
     void *definition;
 
-    tag_id = tag_lookup("ui\\random_player_names");
+    tag_id = tag_lookup_unresolved("ui\\random_player_names");
     if (tag_id != 0xffffffff) {
-        definition = *(void **)((uint8_t *)tag_instances + (tag_id & 0xffff) * 0x20 + 0x14);
+        definition = *(void **)((uint8_t *)halo::cache::globals().tag_instances + (tag_id & 0xffff) * 0x20 + 0x14);
         if (definition != 0 && *(int32_t *)definition != 0) {
             halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
             return text_string_list_get_string((int32_t)tag_id, 0);

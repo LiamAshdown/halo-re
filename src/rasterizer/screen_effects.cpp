@@ -6,6 +6,7 @@
 
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 
@@ -15,7 +16,6 @@ extern double pow(double base, double exponent);
 extern int __cdecl _stricmp(const char *a, const char *b);
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
 extern double exp(double x);
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern float effect_random_fraction(void);
 extern weapon_screen_effect_parameters *cinematic_screen_effect_update(weapon_screen_effect_parameters *input);
 extern double floor(double x);
@@ -52,7 +52,7 @@ void chimera__cinematic_screen_effect(rasterizer_frame_time *time_source)
 
     lens_flare_update_visibility();
 
-    *(int32_t *)(texture_cache + 0x30) = *(int32_t *)(texture_cache + 0x30) + 1;
+    *(int32_t *)(halo::cache::globals().texture_cache + 0x30) = *(int32_t *)(halo::cache::globals().texture_cache + 0x30) + 1;
     if (decals_for_all_responses != 0) {
         *(int32_t *)(rasterizer_decal_vertex_cache_handle + 0x30) = *(int32_t *)(rasterizer_decal_vertex_cache_handle + 0x30) + 1;
         decals_update_fade();
@@ -350,7 +350,7 @@ static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 
 static BitmapData *first_bitmap_data(uint32_t tag_id)
 {
-    uint8_t *bitmap = (uint8_t *)tag_instances[tag_id & 0xffff].data;
+    uint8_t *bitmap = (uint8_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
 
     if (bitmap != NULL && *(int32_t *)(bitmap + 0x60) > 0) {
         return (BitmapData *)(uintptr_t)*(uint32_t *)(bitmap + 0x64);
@@ -385,10 +385,10 @@ void rasterizer_motion_sensor_begin(void)
     if (rasterizer_caps_flag_689 || !console_debug_toggle_689403) {
         return;
     }
-    if (texture_cache_get(blip_bitmap, 0, 1) == NULL) {
+    if (halo::cache::texture_cache_get(blip_bitmap, 0, 1) == NULL) {
         return;
     }
-    if (texture_cache_get(goo_bitmap, 0, 1) == NULL) {
+    if (halo::cache::texture_cache_get(goo_bitmap, 0, 1) == NULL) {
         return;
     }
 
@@ -543,7 +543,7 @@ static void set_vertex(rasterizer_dynamic_screen_vertex *vertex, float x, float 
 
 static BitmapData *first_bitmap_data(uint32_t tag_id)
 {
-    uint8_t *bitmap = (uint8_t *)tag_instances[tag_id & 0xffff].data;
+    uint8_t *bitmap = (uint8_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
 
     if (bitmap != NULL && *(int32_t *)(bitmap + 0x60) > 0) {
         return (BitmapData *)(uintptr_t)*(uint32_t *)(bitmap + 0x64);
@@ -576,8 +576,8 @@ void rasterizer_motion_sensor_end(const float *position, float sweep)
         return;
     }
     if (!rasterizer_motion_sensor_ready ||
-        texture_cache_get(sweep_bitmap, 0, 1) == NULL ||
-        texture_cache_get(mask_bitmap, 0, 1) == NULL) {
+        halo::cache::texture_cache_get(sweep_bitmap, 0, 1) == NULL ||
+        halo::cache::texture_cache_get(mask_bitmap, 0, 1) == NULL) {
 
         if (console_debug_toggle_689403 && rasterizer_motion_sensor_ready) {
             rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
@@ -2308,7 +2308,7 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
         const uint32_t *meter = (const uint32_t *)state->meter_parameters;
 
         for (stage = 0; stage < 3 && state->maps[stage] != NULL; stage++) {
-            texture_cache_get(state->maps[stage], 1, 1);
+            halo::cache::texture_cache_get(state->maps[stage], 1, 1);
             set_texture(stage, *(const uint32_t *)((const uint8_t *)state->maps[stage] + 0x28));
         }
         render_device().set_pixel_shader(0);
@@ -2419,7 +2419,7 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
         uint32_t pass;
 
         for (stage = 0; stage < 3 && state->maps[stage] != NULL; stage++) {
-            texture_cache_get(state->maps[stage], 1, 1);
+            halo::cache::texture_cache_get(state->maps[stage], 1, 1);
             render_device().effect_set_texture(effect, slot->texture_handles[stage], *(const uint32_t *)((const uint8_t *)state->maps[stage] + 0x28));
         }
         if (rasterizer_caps.pixel_shader_version < 0xffff0101) {

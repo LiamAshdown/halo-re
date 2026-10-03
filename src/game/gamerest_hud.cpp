@@ -1,6 +1,7 @@
 #include "halo/game/gamerest_hud.hpp"
 #include <string.h>
 #include <wchar.h>
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -53,14 +54,12 @@ extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, w
 extern void game_engine_notify_kill_event(uint32_t player_index, int32_t hash_key, int32_t message_type, datum_index subject);
 extern void chimera__multiplayer_message(wchar_t *text);
 extern void chimera__hud_message(int16_t local_player_index, wchar_t *text);
-extern datum_index tag_lookup(tag_group group, char *path);
 extern wchar_t *unicode_string_list_get_string(char *path, int16_t index);
 extern void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_buffer *self);
 extern void server_browser_custom_options_unpack(char *text, server_browser_custom_options *out);
 extern void server_browser_gametype1_flags_unpack(uint32_t code, server_browser_gametype1_decoded *out);
 extern void server_browser_gametype3_flags_unpack(uint32_t code, server_browser_gametype3_options *out);
 extern void server_browser_gametype5_flags_unpack(uint32_t code, int32_t *out);
-extern tag_instance *tag_instances;
 extern wchar_t ticker_field_separator[];
 extern wchar_t missing_string_text[];
 extern wchar_t unicode_string_list_scratch_buffer;
@@ -724,11 +723,11 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
 
-            datum_index tag_id = tag_lookup(0x75737472,
+            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;
@@ -804,11 +803,11 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
             is_custom_variant = 1;
-            datum_index tag_id = tag_lookup(0x75737472,
+            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;
@@ -861,11 +860,11 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
             is_custom_variant = 1;
-            datum_index tag_id = tag_lookup(0x75737472,
+            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;
@@ -952,11 +951,11 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
             is_custom_variant = 1;
-            datum_index tag_id = tag_lookup(0x75737472,
+            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;
@@ -995,11 +994,11 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
             is_custom_variant = 1;
-            datum_index tag_id = tag_lookup(0x75737472,
+            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;

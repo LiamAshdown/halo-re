@@ -19,6 +19,7 @@
 
 #include "halo/interface/uis_lists.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t ui_list_has_default;
@@ -26,7 +27,6 @@ extern growable_array ui_lists[3];
 extern int32_t ui_list_current;
 extern map_list_entry *map_list;
 extern int32_t map_list_count;
-extern tag_instance *tag_instances;
 extern uint8_t ui_widget_opened;
 extern int32_t ui_list_find_default(int32_t group_index);
 extern int32_t ui_list_widget_compute_scroll_start(widget_instance *widget);
@@ -273,7 +273,7 @@ int32_t UiLists::list_widget_compute_scroll_start(widget_instance *widget)
     int32_t item_count;
     uint8_t needs_paging;
 
-    tag_data = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
+    tag_data = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
     visible_rows = (int32_t)tag_data->child_widgets.count;
     scroll_start_value = *scroll_start;
 
@@ -319,7 +319,7 @@ int32_t UiLists::list_widget_compute_scroll_start(widget_instance *widget)
  */
 void UiLists::list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item)
 {
-    UIWidgetDefinition *tag_data = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag_data = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
     int32_t visible_rows = (int32_t)tag_data->child_widgets.count;
     widget_instance *first_row = widget->first_child;
     int16_t *scroll_start_field = (int16_t *)((uint8_t *)widget + 0x3e);

@@ -11,12 +11,11 @@
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
 extern uint16_t missing_string_text[];
-extern tag_instance *tag_instances;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,
     uint32_t out_path_size);
@@ -100,12 +99,12 @@ void allocate_new_slot(uint16_t *out_name)
     char scratch_path[0x100];
 
     out_name[0] = 0;
-    tag_index = tag_lookup('ustr', (char *)"ui\\saved_game_file_strings");
+    tag_index = halo::cache::tag_lookup('ustr', (char *)"ui\\saved_game_file_strings");
     if (tag_index != -1) {
         memset(scratch_path, 0, sizeof(scratch_path));
         number = 0;
         do {
-            string_list = (UnicodeStringList *)tag_instances[tag_index & 0xffff].data;
+            string_list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_index & 0xffff].data;
             format_string = missing_string_text;
             if (2 < (int32_t)string_list->strings.count) {
                 string_entry = (UnicodeStringListString *)string_list->strings.pointer + 2;
@@ -1012,11 +1011,11 @@ int16_t index_register_default_playlists(void)
     uint8_t written;
 
     count = default_game_variant_count;
-    tag_id = tag_lookup(0x75737472, (char *)"ui\\default_multiplayer_game_setting_names");
+    tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\default_multiplayer_game_setting_names");
     i = 0;
     last = 0;
     if (tag_id != k_datum_index_none && 0 < count) {
-        name_list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
+        name_list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
         do {
             source_name = missing_string_text;
             if (0 <= i && i < (int32_t)name_list->strings.count) {
@@ -1117,11 +1116,11 @@ int16_t index_register_default_profiles(void)
     saved_player_profile_file file;
     uint8_t written;
 
-    tag_id = tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\default_player_profile_names");
+    tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\default_player_profile_names");
     i = 0;
     last = 0;
     if (tag_id != k_datum_index_none) {
-        name_list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
+        name_list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
         do {
             source_name = missing_string_text;
             if (0 <= i && i < (int32_t)name_list->strings.count) {
@@ -1639,7 +1638,7 @@ uint8_t verify_version_and_checksum(game_state_header *header, uint8_t report_er
         return 0;
     }
 
-    tag_path = tag_instances[(int16_t)global_scenario_index].path;
+    tag_path = halo::cache::globals().tag_instances[(int16_t)global_scenario_index].path;
     if (strcmp(header->scenario_name, tag_path) == 0 &&
         header->allocation_checksum == game_state_crc &&
         header->local_player_count == local_player_count &&

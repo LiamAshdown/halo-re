@@ -1,5 +1,6 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
@@ -73,7 +74,6 @@ extern data_array *swarm_component_data;
 extern data_array *encounter_data;
 extern encounter_squad_state *encounter_squad_states;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern const real_point3d *global_zero_vector3d_pointer;
@@ -107,7 +107,7 @@ void ActorView::refresh_combat_context()
 {
     using namespace actor_refresh_combat_context_local;
     uint8_t *self = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)tag_instances[((struct actor *)self)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)self)->actor_definition_tag & 0xffff].data;
     uint8_t *unit;
     uint8_t *parent = 0;
     datum_index parent_index;
@@ -167,7 +167,7 @@ void ActorView::refresh_combat_context()
     A_U8(0x99) = (uint8_t)((*(uint32_t *)actor_tag >> 21) & 1);
 
     if (parent != 0 && *(int16_t *)(parent + 0xb4) == 1) {
-        uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)parent & 0xffff].data;
+        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)parent & 0xffff].data;
         uint32_t vehicle_flags;
 
         A_U8(0x161) = 0;
@@ -291,7 +291,7 @@ void ActorView::refresh_combat_context()
     }
     if (A_U8(0x161)) {
         uint8_t *vehicle = object_get(A_I32(0x158));
-        uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)vehicle & 0xffff].data;
+        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)vehicle & 0xffff].data;
 
         if (*(uint32_t *)(vehicle_tag + 0x2f0) & 0x100) {
             unit_get_forward_vector_or_marker_normal(A_I32(0x18), (real_vector3d *)(self + 0x180));

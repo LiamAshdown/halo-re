@@ -3,10 +3,10 @@
 #include "game.h"
 #include "hs.h"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern int32_t k_vehicle_minimum_age_ticks;
@@ -35,7 +35,7 @@ static uint8_t *object_get(datum_index object_index)
 
 static uint8_t *object_definition(uint8_t *object)
 {
-    return (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+    return (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & 0xffff].data;
 }
 
 }
@@ -133,7 +133,7 @@ void VehicleView::reset_state()
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define F(p, o) (*(float *)((p) + (o)))
 /**
  * Engine function vehicle_update.

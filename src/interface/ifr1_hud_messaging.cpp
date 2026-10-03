@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
@@ -21,7 +22,6 @@ extern chat_gui_finalize_fn chat_gui_finalize;
 extern chat_gui_release_fn chat_gui_release;
 extern uint32_t hud_chat_listbox_remove_oldest(void);
 extern HUDGlobals *hud_globals_tag_data;
-extern tag_instance *tag_instances;
 extern player_globals *local_player_globals;
 extern uint16_t *empty_wide_string_pointer;
 extern void chimera__hud_message(int16_t local_player_index, const uint16_t *text);
@@ -178,7 +178,7 @@ void HudMessaging::display_checkpoint_message(uint8_t is_begin)
         const uint16_t *text = empty_wide_string_pointer;
         int32_t string_list_tag_id = *(int32_t *)&hud_globals->item_message_text.tag_id;
         if (string_list_tag_id != -1) {
-            int32_t *string_list_tag_data = (int32_t *)tag_instances[string_list_tag_id & 0xffff].data;
+            int32_t *string_list_tag_data = (int32_t *)halo::cache::globals().tag_instances[string_list_tag_id & 0xffff].data;
             if (string_list_tag_data != 0 && message_index > -1 && message_index < *string_list_tag_data) {
                 text = text_string_list_get_string((datum_index)string_list_tag_id, message_index);
             }
@@ -223,7 +223,7 @@ uint16_t * HudMessaging::get_message_string(int32_t message_index)
     int32_t string_list_tag_id = *(int32_t *)&hud_globals->item_message_text.tag_id;
 
     if (string_list_tag_id != -1) {
-        int32_t *string_list_tag_data = (int32_t *)tag_instances[string_list_tag_id & 0xffff].data;
+        int32_t *string_list_tag_data = (int32_t *)halo::cache::globals().tag_instances[string_list_tag_id & 0xffff].data;
         if (string_list_tag_data != 0 && message_index > -1 && message_index < *string_list_tag_data) {
             return text_string_list_get_string((datum_index)string_list_tag_id, (int16_t)message_index);
         }
@@ -353,7 +353,7 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
     object_base = (uint8_t *)header->data;
 
     tag_index = *(uint32_t *)object_base & 0xffff;
-    item_tag_data = *(uint8_t **)((uint8_t *)tag_instances + tag_index * 0x20 + 0x14);
+    item_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances + tag_index * 0x20 + 0x14);
 
     hud_tag_ref = *(int32_t *)(item_tag_data + 0x478);
     if (hud_tag_ref == -1) {
@@ -370,7 +370,7 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
     }
 
     hud_tag_index = (uint32_t)hud_tag_ref & 0xffff;
-    hud_tag_data = *(uint8_t **)((uint8_t *)tag_instances + hud_tag_index * 0x20 + 0x14);
+    hud_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances + hud_tag_index * 0x20 + 0x14);
 
     block_a_count = *(int32_t *)(hud_tag_data + 0x48);
     block_a_base = (block_a_count != 0) ? *(uint8_t **)(hud_tag_data + 0x4c) : (uint8_t *)0;
@@ -484,7 +484,7 @@ void HudMessaging::set_help_text(int16_t message_index)
         return;
     }
     hud_messaging->help_text =
-        (HUDMessageTextMessage *)((HUDMessageText *)tag_instances[tag_id & 0xffff].data)->messages.pointer +
+        (HUDMessageTextMessage *)((HUDMessageText *)halo::cache::globals().tag_instances[tag_id & 0xffff].data)->messages.pointer +
         message_index;
 }
 
@@ -543,7 +543,7 @@ void HudMessaging::set_objective_text(int16_t message_index)
     if (tag_id == (datum_index)-1) {
         return;
     }
-    messages_tag = (HUDMessageText *)tag_instances[tag_id & 0xffff].data;
+    messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
     message = (HUDMessageTextMessage *)messages_tag->messages.pointer + message_index;
     if (message->panel_count != 1) {
         return;
@@ -577,7 +577,7 @@ void HudMessaging::set_player_message(int16_t message_index, int16_t local_playe
     }
     record = &hud_messaging->players[local_player_index];
     if (message_index != -1) {
-        HUDMessageText *messages = (HUDMessageText *)tag_instances[tag_id & 0xffff].data;
+        HUDMessageText *messages = (HUDMessageText *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
         if ((int32_t)message_index < (int32_t)messages->messages.count) {
             record->message = (HUDMessageTextMessage *)messages->messages.pointer + message_index;
             record->argument_is_string = 0;

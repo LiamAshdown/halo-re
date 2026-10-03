@@ -1,5 +1,6 @@
 #include "halo/projectiles/network.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -15,7 +16,6 @@ extern int message_delta_encode_message(int flag, int message_type, int changed_
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern network_id_table *machine_table;
 extern int32_t network_index_cache_find_or_allocate_slot(uint32_t key);
-extern tag_instance *tag_instances;
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index);
 extern void *network_object_index_cache;
 extern void network_index_cache_insert_if_free(void *pooled_node_globals, datum_index object_index, int32_t object_hash);
@@ -336,7 +336,7 @@ void ProjectileNetwork::attach_apply(void *incoming_record)
     }
 
     {
-        Projectile *tag = (Projectile *)tag_instances[self->definition_tag & 0xffff].data;
+        Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[self->definition_tag & 0xffff].data;
         projectile_data *self_pd = (projectile_data *)((uint8_t *)self + k_projectile_data_offset);
 
         if ((tag->projectile_flags & _projectile_definition_has_super_combining_explosion_bit) != 0) {

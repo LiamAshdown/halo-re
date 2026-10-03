@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
@@ -25,7 +26,6 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
 extern uint32_t point_physics_tick(real_vector3d *velocity , uint32_t mode, void *physics_tag_data, bsp_leaf_reference *node_ref, uint32_t flags, real_point3d *position, real_vector3d *wind_direction, void *unused_c, void *unused_d, float damping_constant, float dt);
 extern double sin(double x);
 extern double sqrt(double x);
-extern tag_instance *tag_instances;
 }
 
 /**
@@ -92,7 +92,7 @@ datum_index halo::objects::AntennaSystem::create(datum_index antenna_tag)
     datum_index handle = k_datum_index_none;
 
     if (antenna_tag != k_datum_index_none) {
-        Antenna *tag = (Antenna *)tag_instances[antenna_tag & 0xffff].data;
+        Antenna *tag = (Antenna *)halo::cache::globals().tag_instances[antenna_tag & 0xffff].data;
         handle = halo::memory::datum_new(antenna_data);
 
         if (handle != k_datum_index_none) {
@@ -123,7 +123,7 @@ datum_index halo::objects::AntennaSystem::create(datum_index antenna_tag)
                 vertex->step_count = 0;
 
                 if (tag->bitmaps.tag_id.index != 0xffff) {
-                    Bitmap *bitmap = (Bitmap *)tag_instances[tag->bitmaps.tag_id.index & 0xffff].data;
+                    Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[tag->bitmaps.tag_id.index & 0xffff].data;
                     int16_t sequence_index = tag_vertex->sequence_index;
 
                     if ((sequence_index >= 0) && (sequence_index < (int16_t)bitmap->bitmap_group_sequence.count)) {
@@ -182,7 +182,7 @@ void halo::objects::AntennaSystem::destroy(datum_index antenna_index)
 void halo::objects::AntennaSystem::render_callback(datum_index object_index, datum_index antenna_index)
 {
     antenna *self = (antenna *)((uint8_t *)antenna_data->data + (antenna_index & 0xffff) * 0x2bc);
-    Antenna *tag = (Antenna *)tag_instances[self->definition_tag & 0xffff].data;
+    Antenna *tag = (Antenna *)halo::cache::globals().tag_instances[self->definition_tag & 0xffff].data;
 
     if (self->degenerate) {
         return;
@@ -214,7 +214,7 @@ void halo::objects::AntennaSystem::update(float dt)
         if (ant->degenerate == 0) {
             ant->update_counter = ant->update_counter + 1;
             if ((ant->object_index != k_datum_index_none) && (ant->update_counter < 5)) {
-                Antenna *tag = (Antenna *)tag_instances[ant->definition_tag & 0xffff].data;
+                Antenna *tag = (Antenna *)halo::cache::globals().tag_instances[ant->definition_tag & 0xffff].data;
                 float clamped_dt = (dt <= 0.06666667f) ? dt : 0.06666667f;
                 antenna_update_physics(ant, tag, clamped_dt);
             }
@@ -274,7 +274,7 @@ void halo::objects::AntennaView::update_physics(Antenna *antenna_tag, float dt)
                     new_position = vertex->position;
 
                     point_physics_tick(&vertex->velocity, 0,
-                        tag_instances[antenna_tag->physics.tag_id.index].data,
+                        halo::cache::globals().tag_instances[antenna_tag->physics.tag_id.index].data,
                         &node_ref, 0xffffffff, &new_position, 0, 0, 0, 0.02f, dt);
 
                     {

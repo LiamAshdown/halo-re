@@ -16,12 +16,12 @@
 
 #include "halo/physics/breakable_surface.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" { extern uint8_t breakable_surfaces_enabled; }
 extern "C" { extern ModelCollisionGeometryBSP *global_structure_collision_bsp; }
 extern "C" { extern uint8_t *global_structure_bsp; }
 extern "C" { extern Globals *global_globals; }
-extern "C" { extern tag_instance *tag_instances; }
 extern "C" { extern const real_point3d *global_origin3d_pointer; }
 extern "C" { extern void particle_new(particle_creation_data *creation_data); }
 extern "C" { extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, color_interpolation_flags flags, float t); }
@@ -310,7 +310,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                     }
 
                     {
-                        uint8_t *damage_effect = (uint8_t *)tag_instances[*(uint32_t *)damage_raw & 0xffff].data + 0x194;
+                        uint8_t *damage_effect = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)damage_raw & 0xffff].data + 0x194;
                         real_vector3d velocity;
                         real_vector3d away;
                         float distance;

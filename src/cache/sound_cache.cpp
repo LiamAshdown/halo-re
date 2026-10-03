@@ -7,26 +7,13 @@
 #include <stdint.h>
 #include "crt.h"
 #include "math.h"
+#include "halo/cache/globals.hpp"
 
-#define cache_io_sound_decode_thunk ((void (*)(cache_io_completion *))(void *)code_address_cache_io_sound_decode_thunk)
 
 extern "C" {
-extern int32_t sound_decode_buffer_size;
-extern void *sound_decode_buffer;
-extern tag_instance *tag_instances;
 extern int32_t sound_decode_dispatch(int16_t channel_count, void *destination, void *source, int32_t source_size);
-extern data_array *sound_cache_entries;
-extern int32_t sound_cache_page_count;
-extern struct cache *sound_cache;
 extern int32_t sound_cache_size_megabytes;
 extern char file_open_mode_w[];
-extern void *sound_cache_base;
-extern void *sound_cache_memory;
-extern uint8_t sound_cache_initialized;
-extern void sound_cache_entry_release(void);
-extern void sound_cache_entry_in_use(void);
-extern uint8_t code_address_cache_io_sound_decode_thunk[];
-extern cache_io_request *cache_io_requests;
 extern int64_t performance_frequency;
 extern int32_t sound_time;
 extern uint32_t sound_idle_update(void);
@@ -52,25 +39,25 @@ void sound_cache_manager::decode_permutation(SoundPermutation *permutation)
     if (permutation->format == 1) {
         buffer_size = permutation->buffer_size;
 
-        if (sound_decode_buffer_size < (int32_t)buffer_size) {
-            if (sound_decode_buffer != (void *)0) {
-                GlobalFree(sound_decode_buffer);
+        if (globals().sound_decode_buffer_size < (int32_t)buffer_size) {
+            if (globals().sound_decode_buffer != (void *)0) {
+                GlobalFree(globals().sound_decode_buffer);
             }
-            sound_decode_buffer_size = buffer_size;
-            sound_decode_buffer = GlobalAlloc(0, buffer_size);
+            globals().sound_decode_buffer_size = buffer_size;
+            globals().sound_decode_buffer = GlobalAlloc(0, buffer_size);
         }
 
         {
-            Sound *sound_tag = (Sound *)tag_instances[*(datum_index *)&permutation->tag_id_1 & 0xffff].data;
+            Sound *sound_tag = (Sound *)globals().tag_instances[*(datum_index *)&permutation->tag_id_1 & 0xffff].data;
             int16_t channel_count = (int16_t)(1 + (sound_tag->channel_count == 1));
             decode_context = permutation->cache_page;
-            if (sound_decode_dispatch(channel_count, sound_decode_buffer, decode_context,
+            if (sound_decode_dispatch(channel_count, globals().sound_decode_buffer, decode_context,
                                       (int32_t)permutation->samples.size) != 0) {
                 return;
             }
         }
         {
-            source = (uint8_t *)sound_decode_buffer;
+            source = (uint8_t *)globals().sound_decode_buffer;
             destination = (uint8_t *)permutation->cache_page;
 
             for (words = buffer_size >> 2; words != 0; words--) {
@@ -99,7 +86,7 @@ void sound_cache_manager::dispose()
     data_iterator iterator;
     sound_cache_entry *entry;
 
-    iterator.data = sound_cache_entries;
+    iterator.data = globals().sound_cache_entries;
     iterator.next_index = 0;
     iterator.index = 0;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -109,12 +96,12 @@ void sound_cache_manager::dispose()
         entry = (sound_cache_entry *)halo::memory::view(&iterator)->next();
     }
 
-    sound_cache_entries->valid = 0;
+    globals().sound_cache_entries->valid = 0;
 
-    if (sound_decode_buffer != (void *)0) {
-        GlobalFree(sound_decode_buffer);
-        sound_decode_buffer = (void *)0;
-        sound_decode_buffer_size = 0;
+    if (globals().sound_decode_buffer != (void *)0) {
+        GlobalFree(globals().sound_decode_buffer);
+        globals().sound_decode_buffer = (void *)0;
+        globals().sound_decode_buffer_size = 0;
     }
     return;
 }
@@ -145,14 +132,14 @@ void sound_cache_manager::dump_to_file()
     SoundPermutation *permutation;
     int32_t entry_number;
 
-    saved_page_count = sound_cache_page_count;
+    saved_page_count = globals().sound_cache_page_count;
     current_pages = 0;
     allocated_pages = 0;
     old_pages = 0;
     locked_pages = 0;
     sound_count = 0;
 
-    bitmap = (uint8_t *)GlobalAlloc(0, sound_cache_page_count);
+    bitmap = (uint8_t *)GlobalAlloc(0, globals().sound_cache_page_count);
     file = fopen("sound_cache_dump.txt", file_open_mode_w);
 
     for (scan = line, bit = 0x100; bit != 0; bit--) {
@@ -161,10 +148,10 @@ void sound_cache_manager::dump_to_file()
     }
 
     if (file != (void *)0) {
-        halo::memory::view(sound_cache)->build_status_bitmap(bitmap);
+        halo::memory::view(globals().sound_cache)->build_status_bitmap(bitmap);
 
         for (bit = 0; bit < 4; bit++) {
-            for (page = 0; page < (uint32_t)sound_cache_page_count; page++) {
+            for (page = 0; page < (uint32_t)globals().sound_cache_page_count; page++) {
                 if ((bitmap[page] & (1 << (bit & 0x1f))) != 0) {
                     if (bit == 0) {
                         allocated_pages++;
@@ -179,7 +166,7 @@ void sound_cache_manager::dump_to_file()
             }
         }
 
-        iterator.data = sound_cache_entries;
+        iterator.data = globals().sound_cache_entries;
         iterator.next_index = 0;
         iterator.index = 0;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -216,7 +203,7 @@ void sound_cache_manager::dump_to_file()
         }
         fwrite("[sounds in cache]\n\n", 1, 0x12, (FILE *)file);
 
-        iterator.data = sound_cache_entries;
+        iterator.data = globals().sound_cache_entries;
         iterator.next_index = 0;
         iterator.index = 0;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -225,7 +212,7 @@ void sound_cache_manager::dump_to_file()
             permutation = entry->permutation;
             if (permutation != (SoundPermutation *)0) {
                 sprintf(line, "%d - %s %d c bytes %d u bytes\n", entry_number,
-                    tag_instances[permutation->tag_id_1.index].path,
+                    globals().tag_instances[permutation->tag_id_1.index].path,
                     permutation->samples.size, permutation->buffer_size);
                 for (scan = line; *scan != '\0'; scan++) {
                 }
@@ -250,7 +237,7 @@ void sound_cache_manager::dump_to_file()
  */
 uint8_t sound_cache_manager::entry_in_use(datum_index handle)
 {
-    uint8_t *entry = (uint8_t *)sound_cache_entries->data + (handle & 0xffff) * 0x10;
+    uint8_t *entry = (uint8_t *)globals().sound_cache_entries->data + (handle & 0xffff) * 0x10;
     return entry[2] == 0 || entry[5] != 0 || entry[6] != 0;
 }
 
@@ -262,12 +249,12 @@ uint8_t sound_cache_manager::entry_in_use(datum_index handle)
  */
 void sound_cache_manager::entry_release(datum_index handle)
 {
-    sound_cache_entry *entry = (sound_cache_entry *)sound_cache_entries->data + (handle & 0xffff);
+    sound_cache_entry *entry = (sound_cache_entry *)globals().sound_cache_entries->data + (handle & 0xffff);
     SoundPermutation *permutation = entry->permutation;
 
     permutation->samples_pointer = (uint32_t)-1;
     permutation->cache_page = 0;
-    halo::memory::view(sound_cache_entries)->delete_datum(handle);
+    halo::memory::view(globals().sound_cache_entries)->delete_datum(handle);
 }
 
 /**
@@ -281,18 +268,18 @@ void sound_cache_manager::initialize()
     int32_t scaled_megabytes;
     void *cache_memory;
 
-    sound_cache_entries = halo::memory::data_array_view::create(sizeof(sound_cache_entry), (char *)"pc sound", k_sound_cache_maximum_entries);
+    globals().sound_cache_entries = halo::memory::data_array_view::create(sizeof(sound_cache_entry), (char *)"pc sound", k_sound_cache_maximum_entries);
 
     scaled_megabytes = (int32_t)*(int16_t *)&sound_cache_size_megabytes * 0x100000;
-    sound_cache_page_count = (scaled_megabytes + ((scaled_megabytes >> 0x1f) & 0xfff)) >> k_sound_cache_page_shift;
+    globals().sound_cache_page_count = (scaled_megabytes + ((scaled_megabytes >> 0x1f) & 0xfff)) >> k_sound_cache_page_shift;
 
     cache_memory = GlobalAlloc(0, 0x387c);
     if (cache_memory != (void *)0) {
-        halo::memory::view((struct cache *)cache_memory)->initialize((char *)"pc sound cache", sound_cache_page_count, k_sound_cache_page_shift, k_sound_cache_maximum_entries, (void *)sound_cache_entry_release, (void *)sound_cache_entry_in_use);
+        halo::memory::view((struct cache *)cache_memory)->initialize((char *)"pc sound cache", globals().sound_cache_page_count, k_sound_cache_page_shift, k_sound_cache_maximum_entries, (void *)&sound_cache_manager::entry_release, (void *)&sound_cache_manager::entry_in_use);
     }
-    sound_cache = (struct cache *)cache_memory;
-    sound_cache_base = sound_cache_memory;
-    sound_cache_initialized = 1;
+    globals().sound_cache = (struct cache *)cache_memory;
+    globals().sound_cache_base = globals().sound_cache_memory;
+    globals().sound_cache_initialized = 1;
     return;
 }
 
@@ -322,7 +309,7 @@ void sound_cache_manager::page_allocate(SoundPermutation *permutation, uint8_t p
         int32_t channel_factor;
         Sound *sound;
 
-        sound = (Sound *)tag_instances[permutation->tag_id_1.index].data;
+        sound = (Sound *)globals().tag_instances[permutation->tag_id_1.index].data;
         channel_factor = (sound->channel_count == 1) + 1;
         requested_bytes =
             (channel_factor * 0x400 >> 3) *
@@ -334,21 +321,21 @@ void sound_cache_manager::page_allocate(SoundPermutation *permutation, uint8_t p
         requested_bytes = permutation->samples.size;
     }
 
-    page_datum = halo::memory::view(sound_cache)->allocate_block((uint32_t)requested_bytes);
+    page_datum = halo::memory::view(globals().sound_cache)->allocate_block((uint32_t)requested_bytes);
     if (page_datum != 0xffffffff) {
-        page_address = (((cache_entry *)((uint8_t *)sound_cache->entries->data +
-            (page_datum & 0xffff) * sizeof(cache_entry)))->offset << (sound_cache->block_shift & 0x1f)) +
-            (int32_t)sound_cache_base;
+        page_address = (((cache_entry *)((uint8_t *)globals().sound_cache->entries->data +
+            (page_datum & 0xffff) * sizeof(cache_entry)))->offset << (globals().sound_cache->block_shift & 0x1f)) +
+            (int32_t)globals().sound_cache_base;
 
-        halo::memory::view(sound_cache_entries)->new_at_index_with_salt(page_datum);
-        entry = (sound_cache_entry *)((uint8_t *)sound_cache_entries->data + (page_datum & 0xffff) * sizeof(sound_cache_entry));
+        halo::memory::view(globals().sound_cache_entries)->new_at_index_with_salt(page_datum);
+        entry = (sound_cache_entry *)((uint8_t *)globals().sound_cache_entries->data + (page_datum & 0xffff) * sizeof(sound_cache_entry));
 
         permutation->samples_pointer = page_datum;
         permutation->cache_page = (void *)page_address;
         entry->permutation = permutation;
 
         completion.flag = &entry->loaded;
-        completion.procedure = (permutation->format != 1) ? cache_io_sound_decode_thunk : 0;
+        completion.procedure = (permutation->format != 1) ? &cache_io::sound_decode_thunk : 0;
         completion.data = entry;
         entry->io_request_index = halo::cache::cache_io::request_new(&completion, permutation->samples.file_offset, permutation->samples.size, (void *)page_address, priority, data_file_index);
         return;
@@ -370,8 +357,8 @@ void sound_cache_manager::release_unused()
     data_iterator iterator;
     sound_cache_entry *entry;
 
-    if (sound_cache_entries != (data_array *)0 && sound_cache_entries->valid != 0) {
-        iterator.data = sound_cache_entries;
+    if (globals().sound_cache_entries != (data_array *)0 && globals().sound_cache_entries->valid != 0) {
+        iterator.data = globals().sound_cache_entries;
         iterator.next_index = 0;
         iterator.index = 0;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -410,14 +397,14 @@ uint8_t sound_cache_manager::touch(uint8_t allocate_if_missing, uint8_t lock, ui
         }
     }
 
-    entry = (sound_cache_entry *)((uint8_t *)sound_cache_entries->data +
+    entry = (sound_cache_entry *)((uint8_t *)globals().sound_cache_entries->data +
         (permutation->samples_pointer & 0xffff) * sizeof(sound_cache_entry));
 
-    ((cache_entry *)((uint8_t *)sound_cache->entries->data +
-        (permutation->samples_pointer & 0xffff) * sizeof(cache_entry)))->age = sound_cache->age;
+    ((cache_entry *)((uint8_t *)globals().sound_cache->entries->data +
+        (permutation->samples_pointer & 0xffff) * sizeof(cache_entry)))->age = globals().sound_cache->age;
 
     if (wait_until_loaded != 0 && entry->loaded == 0) {
-        cache_io_requests[entry->io_request_index].priority = 1;
+        globals().cache_io_requests[entry->io_request_index].priority = 1;
     }
 
     for (;;) {
@@ -458,7 +445,7 @@ uint8_t sound_cache_manager::touch(uint8_t allocate_if_missing, uint8_t lock, ui
 void sound_cache_manager::release_page(SoundPermutation *permutation)
 {
     if (permutation->samples_pointer != 0xffffffff) {
-        halo::memory::view(sound_cache)->evict_entry((datum_index)permutation->samples_pointer);
+        halo::memory::view(globals().sound_cache)->evict_entry((datum_index)permutation->samples_pointer);
     }
     permutation->samples_pointer = 0xffffffff;
     permutation->cache_page = 0;
@@ -479,7 +466,7 @@ void sound_cache_manager::touch_tag_permutations(TagID tag)
     int16_t permutation_index;
     SoundPermutation *permutations;
 
-    sound = (Sound *)tag_instances[tag.index].data;
+    sound = (Sound *)globals().tag_instances[tag.index].data;
 
     if (0 < (int32_t)sound->pitch_ranges.count) {
         pitch_range_index = 0;

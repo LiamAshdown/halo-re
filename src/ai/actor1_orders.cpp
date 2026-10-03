@@ -1,10 +1,10 @@
 #include "halo/ai/actor_orders.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_build_guard_mode_data {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 #define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
 #define B(o) (actor[(o)])
@@ -462,7 +462,6 @@ extern "C" uint8_t actor_build_order_investigate_encounter_point(uint32_t vehicl
 namespace c_actor_build_order_look {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 }
 }
@@ -507,7 +506,7 @@ int32_t halo::ai::order_builder::look(actor_order *order, actor_look_request *re
     o[0x0a] = need_random_duration ? 0 : 1;
 
     if (need_random_duration) {
-        Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
+        Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[a->actor_definition_tag & 0xffff].data;
         float min, max;
 
         if (o[0x09] == 0) {
@@ -867,7 +866,6 @@ namespace c_actor_build_path_find_request {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 
 extern void actor_update_target_lead_position(datum_index actor_index);
 }
@@ -897,13 +895,13 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     unit_index = self->unit_index;
-    actor_definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
     radius = actor_definition->pathfinding_radius;
 
     if (self->vehicle_driving_type > 0) {
         unit_index = self->active_unit_index;
         unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-        vehicle_definition = (Vehicle *)tag_instances[unit_object->definition_tag & 0xffff].data;
+        vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
         if (vehicle_definition->ai_pathfinding_radius > 0.0f) {
             radius = vehicle_definition->ai_pathfinding_radius;
         }

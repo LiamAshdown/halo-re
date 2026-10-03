@@ -20,6 +20,7 @@
 #include <wchar.h>
 
 #include "halo/main/level.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" { int campaign_level_find_index_for_path(char *path); }
 extern "C" { void credits_load_directly_for_endgame(void); }
@@ -122,7 +123,6 @@ extern "C" { extern void game_stop_current_map(void); }
 extern "C" { extern void game_unload_map(void); }
 extern "C" { extern void camera_debug_start(int16_t camera_point_index, int16_t ticks, datum_index relative_object); }
 extern "C" { extern void camera_debug_compute_pov(director_camera_data *data, camera_input *input, observer_command *command); }
-extern "C" { extern void predicted_resource_list_touch(TagReflexive *resources); }
 namespace halo::main {
 
 /**
@@ -176,7 +176,7 @@ void LevelControl::chimera__load_ui_map(char play_title_music)
     main_globals_data.unknown_06b = 1;
 
     if (play_title_music != 0 && global_scenario != 0) {
-        predicted_resource_list_touch(&global_scenario->predicted_resources);
+        halo::cache::predicted_resource_list_touch(&global_scenario->predicted_resources);
     }
 }
 
@@ -184,7 +184,6 @@ void LevelControl::chimera__load_ui_map(char play_title_music)
 
 extern "C" { extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; }
 extern "C" { extern int32_t hud_text_message_cycle_state_00719230; }
-extern "C" { extern datum_index tag_lookup(tag_group group, char *path); }
 extern "C" { extern void player_profile_write_data(int32_t handle, saved_player_profile *profile); }
 extern "C" { extern void main_menu_return_and_reset(void); }
 extern "C" { extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection); }
@@ -207,7 +206,7 @@ void LevelControl::credits_load_directly_for_endgame(void)
         player_profile_write_data(profile_globals_block[0].handle, &profile_globals_block[0].profile);
     }
     main_menu_return_and_reset();
-    main_menu_tag = tag_lookup(0x44654c61 , (char *)"ui\\shell\\main_menu\\main_menu");
+    main_menu_tag = halo::cache::tag_lookup(0x44654c61 , (char *)"ui\\shell\\main_menu\\main_menu");
     chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\credits_screen", (datum_index)-1,
                              (widget_instance *)0, (uint16_t)-1, main_menu_tag, (datum_index)-1,
                              -1);
@@ -524,7 +523,6 @@ void LevelControl::queue_map_change(char *map_name)
 }
 
 extern "C" { extern void map_list_get_friendly_level_name(wchar_t *destination, char *map_path, int32_t destination_capacity); }
-extern "C" { extern uint8_t cache_file_request_map(char *name, uint8_t quit_on_fail); }
 namespace halo::main {
 
 /**
@@ -549,7 +547,7 @@ uint8_t LevelControl::queue_map_change_by_name_or_clear(char *name)
     } else {
         map_list_get_friendly_level_name((wchar_t *)progress_screen_subtext, name, 0x40);
     }
-    return cache_file_request_map(main_globals_data.multiplayer_map_name, 0);
+    return halo::cache::cache_file_request_map(main_globals_data.multiplayer_map_name, 0);
 }
 
 }

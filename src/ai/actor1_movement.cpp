@@ -1,12 +1,12 @@
 #include "halo/ai/actor_movement.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_avoid_obstacle_and_project {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern const real_vector3d *global_down3d_pointer;
 
@@ -20,7 +20,7 @@ extern double sqrt(double x);
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 }
 
@@ -331,7 +331,6 @@ extern "C" uint8_t actor_avoidance_interpolate_sample(const real_vector3d *direc
 namespace c_actor_check_step_obstruction {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern const real_vector3d *global_down3d_pointer;
 
 extern void actor_update_target_lead_position(datum_index actor_index);
@@ -368,7 +367,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
     real_point3d step_point;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
 
     if (self->flying == 0) {
         uint8_t trace_ok;
@@ -715,7 +714,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 
 extern double sqrt(double x);
 extern uint8_t unit_is_seat_occupied(int32_t parent_index, int16_t seat_index);
@@ -726,7 +724,7 @@ extern uint8_t unit_find_weapon_marker_transform(uint32_t unit_index, uint32_t v
 extern void object_get_position(real_point3d *out_position, datum_index object_index);
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 
 static uint8_t *actor_try_get(datum_index handle)
 {
@@ -923,7 +921,6 @@ extern "C" void actor_fill_unit_position_context(datum_index unit_index, actor_u
 namespace c_actor_find_best_search_node {
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 
 extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index,
     real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score,
@@ -943,7 +940,7 @@ int16_t halo::ai::movement_ops::find_best_search_node(datum_index vehicle_index,
 {
     using namespace c_actor_find_best_search_node;
     datum_index actor_index = datum;
-    uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)((object_header *)object_data->data)
+    uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)((object_header *)object_data->data)
                                                         [vehicle_index & 0xffff].data & 0xffff].data;
     int16_t best_seat = -1;
     float best_score = 0.0f;

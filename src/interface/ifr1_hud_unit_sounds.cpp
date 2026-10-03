@@ -1,12 +1,12 @@
 #include "halo/interface/ifr1_hud_unit_sounds.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *game_looping_sound_data;
 extern void sound_impulse_fade_out(int32_t sound_handle);
 extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t unknown_0, int32_t unknown_1,
                             void *callback_data, int32_t unknown_3, int32_t unknown_4);
-extern tag_instance *tag_instances;
 extern player_globals *local_player_globals;
 extern hud_unit_meter_globals *hud_unit_meters;
 extern cinematic_globals *cinematic_globals_ptr;
@@ -104,7 +104,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
     if (unit == 0) {
         return;
     }
-    unit_tag = (Unit *)tag_instances[*(datum_index *)unit & 0xffff].data;
+    unit_tag = (Unit *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data;
     choice = (int16_t)(local_player_globals->local_player_count > 1);
     last = (int32_t)((struct Unit *)unit_tag)->new_hud_interfaces.count - 1;
     if (choice > last) {
@@ -117,7 +117,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
     if (hud_tag == (datum_index)-1) {
         return;
     }
-    hud = (UnitHUDInterface *)tag_instances[hud_tag & 0xffff].data;
+    hud = (UnitHUDInterface *)halo::cache::globals().tag_instances[hud_tag & 0xffff].data;
 
     mask = 0;
     if ((unit[0x10] & 4) != 0 || !(((unit_object *)unit)->base.body_vitality > 0.0f)) {

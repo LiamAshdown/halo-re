@@ -6,6 +6,7 @@
 
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 
@@ -48,7 +49,7 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
 
     bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     if (console_debug_toggle_689409 != 0 && bump_map_tag != 0xffffffff) {
-        Bitmap *bitmap = (Bitmap *)tag_instances[bump_map_tag & 0xffff].data;
+        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
 
         if (count > 0) {
@@ -62,7 +63,7 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
         uint32_t default_tag = *(uint32_t *)&rasterizer_globals_data->default_2d.tag_id;
 
         if (default_tag != 0xffffffff) {
-            Bitmap *bitmap = (Bitmap *)tag_instances[default_tag & 0xffff].data;
+            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & 0xffff].data;
 
             if (bitmap != 0 && (int32_t)bitmap->bitmap_data.count > 3) {
                 bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);

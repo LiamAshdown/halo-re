@@ -2,6 +2,7 @@
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -28,7 +29,6 @@ extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed);
 extern uint32_t color_rgb_float_to_int(const float *rgb);
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset);
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern void hud_draw_bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, int16_t anchor,
                                const Point2DInt *screen_position, float scale, float rotation, uint32_t color);
 extern void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_placement *placement, int16_t value,
@@ -329,7 +329,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
     hud_meter_resolve_bitmap_frame(*(datum_index *)&globals->arrow_bitmap.tag_id,
                                    (int16_t)(&arrow->on_screen_sequence_index)[visibility], 0, (void **)&bitmap,
                                    &uv_offset);
-    if (bitmap == 0 || texture_cache_get(bitmap, 0, 1) == 0) {
+    if (bitmap == 0 || halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         return;
     }
     uv = (const float *)uv_offset;

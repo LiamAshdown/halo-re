@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
@@ -8,7 +9,6 @@ extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *encounter_data;
 extern int32_t object_cluster_stamp;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern double sqrt(double x);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
@@ -77,7 +77,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
         return;
     }
 
-    unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
+    unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data;
     controlled = ((unit_object *)unit)->unit.controlling_player != k_datum_index_none;
     enemies = teams_are_enemies(((unit_object *)unit)->base.owner_team, ((actor *)self)->team);
     if ((unit[0x106] & 4) != 0 && ((struct unit_object *)unit)->unit.feign_death_ticks == 0) {
@@ -203,7 +203,7 @@ add:
 }
 static void squad_link_evaluate_projectile(uint32_t actor_index, uint8_t *self, datum_index object_index, uint8_t *object)
 {
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & 0xffff].data;
     float radius = *(float *)(tag + 0x1a8);
     real_point3d position;
     uint32_t block[14];

@@ -1,6 +1,7 @@
 #include "halo/ai/actor_looks.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
 extern "C" {
@@ -74,7 +75,6 @@ namespace c_actor_begin_vocalization {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 
 extern float actor_vocalization_duration[14];
@@ -107,7 +107,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     awareness = self->awareness_level;
-    actor_definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
 
     if ((awareness < 2 && line < 13) || line < self->vocalization_line) {
         return 0;
@@ -211,7 +211,6 @@ extern "C" void actor_clear_vocalization(datum_index actor_index)
 namespace c_actor_dispatch_look_handler_by_posture {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 extern double sqrt(double x);
 extern double atan2(double y, double x);
@@ -237,7 +236,7 @@ int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, ui
 {
     using namespace c_actor_dispatch_look_handler_by_posture;
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
     uint8_t *definition;
     float *from = (float *)origin;
     float *to = (float *)target;
@@ -352,7 +351,6 @@ extern "C" uint32_t actor_flee_look_away(datum_index actor_index)
 namespace c_actor_get_idle_facing_range {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 }
 }
 
@@ -374,7 +372,7 @@ float * halo::ai::look_ops::get_idle_facing_range()
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     state = self->look_posture;
-    definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
 
     if (state == 2) {
         return definition->guard_idle_facing;
@@ -460,7 +458,6 @@ namespace c_actor_look_get_wait_ticks {
 extern "C" {
 
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index);
 extern int32_t fistp_round(float x);
 }
@@ -516,7 +513,7 @@ int32_t halo::ai::look_ops::look_get_wait_ticks(int16_t mode, uint32_t flags, fl
         datum_index weapon = actor_get_threat_weapon_object_index(actor_index);
 
         weapon_definition = weapon == k_datum_index_none ? 0 :
-            tag_instances[*(datum_index *)((object_header *)object_data->data)[weapon & 0xffff].data & 0xffff].data;
+            halo::cache::globals().tag_instances[*(datum_index *)((object_header *)object_data->data)[weapon & 0xffff].data & 0xffff].data;
     }
     if (weapon_definition != 0 && 0.0f < *(float *)((uint8_t *)weapon_definition + 0x410)) {
         fraction = fraction * *(float *)((uint8_t *)weapon_definition + 0x410);
@@ -637,7 +634,6 @@ extern "C" uint8_t actor_look_pick_random_point_in_cone(void *origin, float yaw_
 namespace c_actor_look_randomize_direction {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 extern double cos(double x);
 
@@ -672,7 +668,7 @@ void halo::ai::look_ops::look_randomize_direction(float *deviation_table, real_v
     real_point3d look_point;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
     out_in_front = 0;
     self->idle_look_state[1] = 0;
 

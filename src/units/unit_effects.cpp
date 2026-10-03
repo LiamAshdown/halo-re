@@ -3,6 +3,7 @@
 #include "hs.h"
 #include "physics.h"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -10,7 +11,6 @@ extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_sample_total_lighting_at_point(real_point3d *point, bsp_leaf_reference *location, real_vector3d *out_rgb);
 extern real object_sum_attached_light_luminance(uint32_t object_index);
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern real_point3d *global_zero_vector3d_pointer;
 extern uint8_t object_physics_context_build(uint32_t object_index, object_physics_context *out_context);
@@ -94,7 +94,7 @@ void UnitView::compute_marker_offset_position(real_vector3d *reference_direction
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     uint8_t *tag_data = (uint8_t *)tag;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
@@ -274,7 +274,7 @@ void UnitView::update_marker_skid_effects(uint8_t *contact_points)
 {
     uint32_t unit_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     uint8_t *physics_tag;
     int32_t count;
     int16_t i;
@@ -282,7 +282,7 @@ void UnitView::update_marker_skid_effects(uint8_t *contact_points)
     if (*(int32_t *)(tag + 0x3dc) == -1) {
         return;
     }
-    physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     count = *(int32_t *)(physics_tag + 0x74);
     for (i = 0; (int32_t)i < count; i++) {
         uint8_t *contact = contact_points + (int32_t)i * 0x130;

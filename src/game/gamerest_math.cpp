@@ -1,6 +1,7 @@
 #include "halo/game/gamerest_math.hpp"
 #include <stdint.h>
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern void unit_get_look_origin_and_direction(uint32_t object_index, uint32_t *out_status, real_vector3d *out_direction, real_point3d *out_origin);
@@ -15,7 +16,6 @@ extern void *main_game_globals;
 extern int16_t weapon_zoom_index_substitutions[];
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern int32_t __ftol(void);
-extern tag_instance *tag_instances;
 extern int32_t random_advance_draws(TagReflexive *reflexive);
 }
 
@@ -348,7 +348,7 @@ void RandomTable::get_table_point(real_point3d *out)
  */
 int32_t RandomTable::pick_weighted_random_index(datum_index tag_id)
 {
-    TagReflexive *reflexive = (TagReflexive *)tag_instances[tag_id & 0xffff].data;
+    TagReflexive *reflexive = (TagReflexive *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
     int32_t count = (int32_t)reflexive->count;
     int16_t total = (int16_t)RandomTable::advance_draws(reflexive);
     uint8_t *element;

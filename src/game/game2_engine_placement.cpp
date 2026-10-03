@@ -1,6 +1,7 @@
 #include "halo/game/game2_engine_placement.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 typedef struct netgame_equipment_spawn_message {
     int32_t object_hash;
@@ -18,7 +19,6 @@ extern game_engine_definition *current_game_engine;
 extern game_variant game_engine_variant;
 extern float game_engine_rate_location_crowding(uint32_t self_index, real_point3d *point);
 extern float game_engine_rate_location_ally_bonus(uint32_t self_index, real_point3d *point);
-extern tag_instance *tag_instances;
 extern int32_t game_engine_resolve_netgame_flag_role(uint32_t handle);
 extern uint32_t game_engine_resolve_multiplayer_placement(uint32_t handle);
 extern Globals *global_globals;
@@ -53,7 +53,6 @@ extern uint32_t teleport_flash_green;
 extern uint32_t teleport_flash_blue;
 extern uint32_t teleport_flash_duration;
 extern int16_t teleport_flash_fade_function;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern double atan2(double y, double x);
 extern void player_effect_set_screen_flash_for_player(datum_index player_index, player_screen_flash *descriptor, float intensity_falloff);
 extern int game_engine_find_valid_starting_locations(real_point3d *origin, float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type, int32_t max_results, int32_t *results);
@@ -71,7 +70,6 @@ extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern void game_engine_scan_netgame_flags_noop(int16_t needle);
 extern void object_notify_predicted_resources_if_valid(datum_index definition_tag);
-extern void predicted_resource_list_touch(TagReflexive *resources);
 extern object *object_iterator_next(object_iterator *iterator);
 extern void game_engine_notify_item_expired(datum_index object_index);
 extern int32_t game_engine_round_reset_tick;
@@ -245,7 +243,7 @@ uint32_t EnginePlacement::remap_placement_by_type(uint32_t handle)
     if (current_game_engine == 0 || handle == 0xffffffff) {
         return handle;
     }
-    type = **(int16_t **)&tag_instances[handle & 0xffff].data;
+    type = **(int16_t **)&halo::cache::globals().tag_instances[handle & 0xffff].data;
     if (type == 2) {
         return (uint32_t)game_engine_resolve_netgame_flag_role(handle);
     }
@@ -269,7 +267,7 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
     int32_t index;
     int32_t i;
 
-    tag_data = (handle == 0xffffffff) ? 0 : (uint8_t *)tag_instances[handle & 0xffff].data;
+    tag_data = (handle == 0xffffffff) ? 0 : (uint8_t *)halo::cache::globals().tag_instances[handle & 0xffff].data;
 
     weapon_list_count = (int32_t)global_globals->weapon_list.count;
     weapon_list = (weapon_list_count == 0) ? 0
@@ -578,7 +576,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                 respawn_interval = equipment->spawn_time * 0x1e;
             } else if (item_collection_tag != (datum_index)0xffffffff) {
                 int16_t permutation_count =
-                    *(int16_t *)((uint8_t *)tag_instances[item_collection_tag & 0xffff].data + 0x0c);
+                    *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[item_collection_tag & 0xffff].data + 0x0c);
                 if (permutation_count != 0) {
                     respawn_interval = permutation_count * 0x1e;
                 }
@@ -636,7 +634,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
 
                             item->held_game_time = item->held_game_time + respawn_interval - 900;
 
-                            if (*(int32_t *)tag_instances[item_collection_tag & 0xffff].data == 1) {
+                            if (*(int32_t *)halo::cache::globals().tag_instances[item_collection_tag & 0xffff].data == 1) {
                                 item->flags = item->flags | 0x40;
                                 equipment->unknown_ffffffff = new_object;
                             } else {
@@ -739,7 +737,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
 
                 if (teleport_message_cooldown < 1) {
                     wchar_t *text;
-                    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
                     teleport_message_cooldown = 0x78;
                     text = (tag_id == k_datum_index_none) ? &empty_string
@@ -845,8 +843,8 @@ void EnginePlacement::touch_tag_if_valid(int32_t tag_id)
 {
     uint8_t *tag_data;
     if (tag_id != -1) {
-        tag_data = (uint8_t *)tag_instances[tag_id & 0xffff].data;
-        predicted_resource_list_touch((TagReflexive *)(tag_data + 0x170));
+        tag_data = (uint8_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+        halo::cache::predicted_resource_list_touch((TagReflexive *)(tag_data + 0x170));
     }
 }
 
@@ -951,7 +949,7 @@ void EnginePlacement::update_item_scale_and_pickup(void)
         item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
 
         if ((item->flags & _item_in_inventory_bit) == 0) {
-            Item *tag = (Item *)tag_instances[obj->definition_tag & 0xffff].data;
+            Item *tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
             obj->scale = (tag->scale == 0.0f) ? 1.0f : tag->scale;
         } else {
             obj->scale = 1.0f;
@@ -961,7 +959,7 @@ void EnginePlacement::update_item_scale_and_pickup(void)
             object_header *hdr = (object_header *)halo::memory::datum_get(iterator.handle, object_data);
 
             if (hdr != 0 && (1u << hdr->type) == _object_mask_weapon && hdr->data != 0 &&
-                ((*(uint32_t *)((uint8_t *)tag_instances[obj->definition_tag & 0xffff].data + 0x308) >> 3) & 1) != 0) {
+                ((*(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data + 0x308) >> 3) & 1) != 0) {
                 game_engine_notify_item_expired(iterator.handle);
                 ((void (*)(datum_index, object *))current_game_engine->object_in_play_update)(
                     iterator.handle, hdr->data);

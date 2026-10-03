@@ -1,5 +1,6 @@
 #include "halo/game/game2_engines.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -10,7 +11,6 @@ extern int32_t slayer_player_score[16];
 extern int32_t slayer_unknown_0087a4a0[16];
 extern int32_t slayer_unknown_0087a4e0[16];
 extern wchar_t empty_string;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
@@ -45,7 +45,7 @@ namespace halo::game {
  */
 const uint16_t * SlayerEngine::game_text(int16_t index)
 {
-    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : text_string_list_get_string(tag_id, index);
 }

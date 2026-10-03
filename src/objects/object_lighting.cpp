@@ -3,6 +3,7 @@
 #include "rasterizer.h"
 #include <stdint.h>
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern BitmapData *bitmap_group_get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index);
@@ -29,8 +30,6 @@ extern real object_sum_attached_light_luminance(uint32_t object_index);
 extern double pow(double x, double y);
 extern double sqrt(double x);
 extern uint8_t structure_bsp_resolve_position_to_surface(real_point3d *start_position, real_point3d *position, int16_t *out_lightmap_index, void *out_barycentric_v, real_vector3d *direction, int16_t *out_material_index, int32_t *out_surface, void *out_barycentric_u);
-extern tag_instance *tag_instances;
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 }
 
 /**
@@ -45,7 +44,7 @@ real halo::objects::ObjectLighting::sum_attached_light_luminance()
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
     object *obj = headers[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     int32_t attachment_count = definition->attachments.count;
     real total = 0.0f;
     int32_t i;
@@ -105,7 +104,7 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
             uint16_t *triangle =
                 (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
 
-            if (texture_cache_get(bitmap, 0, 0) != 0) {
+            if (halo::cache::texture_cache_get(bitmap, 0, 0) != 0) {
                 bsp_lightmap_sample_vertex_color(bitmap, weight_1, weight_2, (ColorRGB *)color, material, triangle);
             }
         }
@@ -158,10 +157,10 @@ static void *object_lightmap_texture_ready(BitmapData *bitmap, uint8_t wait_for_
     void *texture = 0;
 
     if (wait_for_textures) {
-        texture = texture_cache_get(bitmap, 1, 1);
+        texture = halo::cache::texture_cache_get(bitmap, 1, 1);
     }
     if (texture == 0) {
-        texture = texture_cache_get(bitmap, 0, 0);
+        texture = halo::cache::texture_cache_get(bitmap, 0, 0);
     }
     return texture;
 }
@@ -205,7 +204,7 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
     bsp = global_structure_bsp;
     lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
     material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
-    shader = (uint8_t *)tag_instances[*(uint32_t *)&material->shader.tag_id & 0xffff].data;
+    shader = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&material->shader.tag_id & 0xffff].data;
 
     if (*(int16_t *)&((struct Shader *)shader)->shader_type != 3 ||
         *(int32_t *)&bsp->lightmaps_bitmap.tag_id == -1 ||
@@ -217,7 +216,7 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
     lightmap_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
         (int16_t)lightmap->bitmap);
     base_map = *(datum_index *)(shader + 0x94);
-    base_map_tag = (uint8_t *)tag_instances[base_map & 0xffff].data;
+    base_map_tag = (uint8_t *)halo::cache::globals().tag_instances[base_map & 0xffff].data;
     base_map_bitmap = bitmap_group_get_bitmap_data(base_map,
         (int16_t)((int32_t)(int16_t)material->shader_permutation % *(int32_t *)(base_map_tag + 0x60)));
 
@@ -266,7 +265,7 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *object_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *object_tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     uint8_t flags = (int8_t)(obj->flags >> 8) < 0 ? 1 : 0;
     char center_ok;
     int16_t successes;
@@ -513,7 +512,7 @@ void halo::objects::ObjectLighting::for_each_light_attachment(int32_t register_i
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
     if ((obj->flags & 0x100) != 0) {
-        Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+        Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
         int16_t i;
 
         for (i = 0; i < (int16_t)definition->attachments.count; i++) {

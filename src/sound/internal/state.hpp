@@ -11,18 +11,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *game_looping_sound_data;
 extern game_sound_globals *game_sound_globals_ptr;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern datum_index tag_iterator_next(tag_iterator *iterator);
 extern SoundEnvironment sound_environment;
 extern uint32_t sound_cluster_audible_bitmap[k_sound_cluster_bitmap_words];
 extern int64_t performance_frequency;
@@ -34,14 +33,11 @@ extern sound_class_definition sound_class_definitions[k_maximum_sound_classes];
 extern data_array *looping_sound_data;
 extern data_array *sound_data;
 extern int32_t sound_time;
-extern uint8_t sound_cache_touch(uint8_t allocate_if_missing, uint8_t lock, uint8_t wait_until_loaded, void *permutation);
 extern uint8_t sound_initialized;
 extern uint8_t sound_enabled;
 extern uint8_t sound_disabled;
 extern uint8_t sound_update_toggle;
 extern const real_point3d *global_origin3d_pointer;
-extern data_array *sound_cache_entries;
-extern struct cache *sound_cache;
 extern void player_effect_apply_at_object(uint32_t tag_reference, int16_t local_player_index, real_point3d *origin);
 extern char k_empty_string[];
 extern sound_channel sound_channels[k_maximum_sound_channels];
@@ -56,7 +52,6 @@ extern uint8_t *cinematic_globals_ptr;
 extern const float sound_delay_per_world_unit;
 extern char ai_marker_name_a[];
 extern void object_type_definitions_notify_0x58(uint32_t object_index, datum_index definition_index, datum_index sound_index);
-extern void sound_permutation_release_page(SoundPermutation *permutation);
 extern float sound_fade_duration_scale;
 extern float sound_fade_curve_exponent;
 extern double pow(double base, double exponent);
@@ -98,12 +93,8 @@ extern float sound_effects_gain;
 extern sound_driver *sound_drivers[2];
 extern sound_driver_parameters driver_parameters;
 extern uint16_t sound_channel_type_flag_table[4];
-extern void sound_cache_new(void);
-extern void *sound_cache_base;
-extern uint8_t sound_cache_initialized;
 extern console_globals console_globals_data;
 extern game_engine_definition *current_game_engine;
-extern void sound_cache_release_unused(void);
 extern uint8_t shell_window_proc_bypass;
 extern uint8_t directsound_eax_enabled;
 extern uint8_t directsound_eax_available;
@@ -114,7 +105,6 @@ extern int16_t adpcm_index_table[16];
 extern int16_t adpcm_step_table[89];
 extern sound_decode_block_proc k_sound_decode_procs[3];
 extern sound_decode_block_proc sound_decode_proc;
-extern void *sound_cache_memory;
 extern int32_t sound_cache_size_megabytes;
 extern char error_text_buffer[];
 extern int32_t sound_ogg_underrun_count;

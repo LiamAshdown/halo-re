@@ -1,5 +1,6 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
@@ -98,7 +99,6 @@ namespace actor_movement_action_resolve_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint8_t actor_movement_check_arrival(datum_index actor_index);
@@ -258,7 +258,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
         }
     }
 
-    actor_definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
     distance = halo::math::vector3d_distance(self->destination, self->body_position);
 
     if (self->flying != 0) {
@@ -474,7 +474,6 @@ void ActorView::movement_advance_waypoint()
 namespace actor_movement_apply_steering_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern const real_vector3d *global_origin3d_pointer;
 extern double acos(double x);
@@ -493,7 +492,7 @@ extern void actor_movement_project_into_frame(uint8_t use_3d, const real_vector3
                                               const real_vector3d *v, real_vector3d *out);
 extern uint8_t path_find_trace_bsp_boundary(void *map, uint8_t ignore_permission, real_point3d *start, int32_t start_surface,
     real_point3d *end, int32_t target_surface, path_find_boundary_crossing *out_result);
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 }
 
@@ -861,7 +860,6 @@ void ActorOps::movement_choose_strafe_axis(const real_vector3d *direction, uint8
 namespace actor_movement_collect_obstacle_candidates_local {
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern double sqrt(double x);
 extern int16_t object_find_in_sphere(int32_t kind, int32_t type_mask, const void *from,
                                      const real_point3d *center, float radius,
@@ -912,9 +910,9 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
     do {
         if (*cursor != (datum_index)k_datum_index_none && *cursor != context->unit_index) {
             candidate_object = ((object_header *)object_data->data)[*cursor & 0xffff].data;
-            candidate_definition = (Object *)tag_instances[candidate_object->definition_tag & 0xffff].data;
+            candidate_definition = (Object *)halo::cache::globals().tag_instances[candidate_object->definition_tag & 0xffff].data;
             collision_model = (ModelCollisionGeometry *)
-                tag_instances[candidate_definition->collision_model.tag_id.index].data;
+                halo::cache::globals().tag_instances[candidate_definition->collision_model.tag_id.index].data;
             if ((int32_t)collision_model->pathfinding_spheres.count > 0) {
                 candidate_object = ((object_header *)object_data->data)[*cursor & 0xffff].data;
                 origin_x = ((struct object *)candidate_object)->bounding_center.x;
@@ -976,7 +974,6 @@ namespace actor_movement_flying_needs_steering_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 }
 }
 
@@ -1003,7 +1000,7 @@ uint8_t ActorView::movement_flying_needs_steering(const real_point3d *destinatio
 
     if (self->vehicle_driving_type == 4) {
         unit_object = ((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
-        vehicle_definition = (Vehicle *)tag_instances[unit_object->definition_tag & 0xffff].data;
+        vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
         avoidance_distance = vehicle_definition->ai_avoidance_distance;
         if (avoidance_distance > 0.0f && self->avoidance_emergency > 0.9f) {
             delta.i = destination->x - self->body_position.x;
@@ -1030,7 +1027,6 @@ namespace actor_movement_get_stopping_distances_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 }
@@ -1062,7 +1058,7 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
         if (self->unit_index != (datum_index)k_datum_index_none) {
             unit_object = (object *)object_try_and_get(self->unit_index, 1);
             if (unit_object != (object *)0) {
-                biped_definition = (Biped *)tag_instances[unit_object->definition_tag & 0xffff].data;
+                biped_definition = (Biped *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
                 speed = unit_object->velocity.i * unit_object->forward.i +
                         unit_object->velocity.j * unit_object->forward.j +
                         unit_object->velocity.k * unit_object->forward.k;
@@ -1080,7 +1076,7 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
         }
     } else if (self->vehicle_driving_type > 1 && self->vehicle_driving_type < 4) {
         unit_object = ((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
-        vehicle_definition = (Vehicle *)tag_instances[unit_object->definition_tag & 0xffff].data;
+        vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
         speed = unit_object->velocity.i * unit_object->forward.i +
                 unit_object->velocity.j * unit_object->forward.j +
                 unit_object->velocity.k * unit_object->forward.k;

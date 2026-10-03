@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "halo/input/binding_names.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" { extern input_device input_devices[8]; }
 extern "C" { extern int32_t joystick_slot_devices[4]; }
@@ -25,8 +26,6 @@ extern "C" { extern int16_t gamepad_button_bindings[k_control_gamepad_count][k_c
 extern "C" { extern int16_t gamepad_axis_bindings[k_control_gamepad_count][k_control_gamepad_axis_count][2]; }
 extern "C" { extern int16_t gamepad_pov_bindings[k_control_gamepad_count][k_control_gamepad_pov_count][k_control_gamepad_pov_direction_count]; }
 extern "C" { extern char input_action_names[k_input_action_count][0x10]; }
-extern "C" { extern tag_instance *tag_instances; }
-extern "C" { extern datum_index tag_lookup(tag_group group, char *path); }
 extern "C" { extern uint16_t missing_string_text[]; }
 extern "C" { extern void input_get_keyboard_key_name(int16_t key_index, uint16_t *out_name); }
 extern "C" { extern void input_get_mouse_axis_name(int16_t axis_index, uint8_t direction, uint16_t *out_name); }
@@ -47,10 +46,10 @@ static uint16_t *lookup_named_string(const char *tag_path, int32_t index)
     uint16_t *source;
 
     source = missing_string_text;
-    tag_id = tag_lookup(0x75737472,
+    tag_id = halo::cache::tag_lookup(0x75737472,
         (char *)tag_path);
     if (tag_id != (datum_index)0xffffffff) {
-        list = (UnicodeStringList *)tag_instances[(uint16_t)tag_id].data;
+        list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (index >= 0 && index < (int32_t)list->strings.count) {
             entry = &((UnicodeStringListString *)list->strings.pointer)[index];
             if ((int32_t)entry->string.size > 0) {

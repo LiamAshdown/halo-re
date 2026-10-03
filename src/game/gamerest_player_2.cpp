@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -13,7 +14,6 @@ extern int16_t network_game_mode;
 extern Globals *global_globals;
 extern Scenario *global_scenario;
 extern uint8_t network_message_scratch;
-extern tag_instance *tag_instances;
 extern network_server_globals *network_server;
 extern observer observers[];
 extern void object_mark_pending_delete(uint32_t object_index);
@@ -87,7 +87,7 @@ static void player_respawn_drop_lights(datum_index object_index)
 {
     uint8_t *header = (uint8_t *)object_data->data + (object_index & 0xffff) * 0xc;
     uint8_t *obj = *(uint8_t **)(header + 8);
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
 
     if (*(int32_t *)&((Object *)tag)->model.tag_id == -1) {
         return;
@@ -288,7 +288,7 @@ void PlayerView::compute_view_forward_vector(real *yaw_pitch, real_vector3d *out
     }
 
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-    parent_definition = (Unit *)tag_instances[parent_obj->definition_tag & 0xffff].data;
+    parent_definition = (Unit *)halo::cache::globals().tag_instances[parent_obj->definition_tag & 0xffff].data;
     seat = &((UnitSeat *)parent_definition->seats.pointer)[unit->vehicle_seat_index];
     if ((seat->flags & 0x10) != 0) {
         return;
@@ -529,7 +529,7 @@ void Players::server_catchup_on_client_updates()
                 if (unit->current_weapon_index != -1) {
                     datum_index weapon_index = unit->weapons[unit->current_weapon_index];
                     if (weapon_index != (datum_index)-1) {
-                        Weapon *weapon = (Weapon *)tag_instances[object_from_index(weapon_index)->definition_tag & 0xffff].data;
+                        Weapon *weapon = (Weapon *)halo::cache::globals().tag_instances[object_from_index(weapon_index)->definition_tag & 0xffff].data;
                         if ((weapon->weapon_flags & 0x8) != 0) {
                             action.weapon_index = unit->current_weapon_index;
                         }

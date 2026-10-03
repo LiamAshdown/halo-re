@@ -17,6 +17,7 @@
 #include "halo/game/game1_koth.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t hill_pulse_fade_done;
@@ -79,7 +80,6 @@ extern double floor(double x);
 extern void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
     uint32_t *position_override, uint32_t *orientation_override, uint32_t param_4,
     uint32_t param_5, float *vertex_source);
-extern tag_instance *tag_instances;
 extern game_engine_state game_engine_state_value;
 extern void unit_reset_gauge_if_flagged(void);
 extern void game_engine_koth_alt_scorer_tick(uint32_t player_index);
@@ -634,7 +634,7 @@ uint32_t Koth::dispatch_player_scoring(uint32_t player_index)
             datum_index weapon = unit->weapons[unit->current_weapon_index];
             if (weapon != (datum_index)0xffffffff) {
                 object *weapon_obj = ((object_header *)object_data->data)[weapon & 0xffff].data;
-                uint32_t *tag_data = (uint32_t *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+                uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
                 if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
                     int32_t score = king_alt_player_score[idx];
                     if (score > 0 && score % 0x96 == 0 && score < king_alt_score_target) {
@@ -986,7 +986,7 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
             }
         }
 
-        tag_data = *(int32_t *)((uint8_t *)tag_instances[tag_handle_as_uint & 0xffff].data + 0);
+        tag_data = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_handle_as_uint & 0xffff].data + 0);
         local_f0 = (vertex_source[0x33] + vertex_source[0x22] + vertex_source[0x11] + vertex_source[0]) * 0.25f;
         fStack_ec = (vertex_source[0x34] + vertex_source[0x23] + vertex_source[0x12] + vertex_source[1]) * 0.25f;
         {
@@ -1223,7 +1223,7 @@ void Koth::update_occupant_table(uint32_t index)
             datum_index weapon = unit_obj->weapons[slot];
             if (weapon != (datum_index)0xffffffff) {
                 object *weapon_obj = ((object_header *)object_data->data)[weapon & 0xffff].data;
-                uint32_t *tag_data = (uint32_t *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+                uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
                 if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
                     int16_t team = ((struct object *)weapon_obj)->owner_team;
                     king_hill_occupant_table[team] = index;

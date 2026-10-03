@@ -10,11 +10,11 @@
 #include "saved_games.h"
 #include "halo/saved_games/saved_games.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
 extern int32_t game_state_revert_time;
-extern void *map_memory;
 extern uint8_t *game_state_snapshot_source;
 extern uint8_t game_state_write_buffer_allocated;
 extern uint32_t game_state_size;
@@ -28,7 +28,6 @@ extern game_state_header *game_state_header_ptr;
 extern uint8_t game_state_header_valid;
 extern uint8_t game_state_revert_available;
 extern datum_index global_scenario_index;
-extern tag_instance *tag_instances;
 extern int16_t local_player_count;
 extern game_main_globals *main_game_globals;
 extern uint32_t cache_file_current_header_crc32;
@@ -89,8 +88,8 @@ void *allocate_buffer(int32_t cpu_size, int32_t extra_size)
 {
     void *base;
 
-    base = map_memory;
-    game_state_snapshot_source = (uint8_t *)map_memory;
+    base = halo::cache::globals().map_memory;
+    game_state_snapshot_source = (uint8_t *)halo::cache::globals().map_memory;
     game_state_size = cpu_size + extra_size;
     game_state_write_buffer_allocated = 1;
     game_state_write_buffer = (uint8_t *)GlobalAlloc(0, game_state_size);
@@ -127,7 +126,7 @@ void build_header(void)
         zero = zero + 1;
     }
 
-    src = tag_instances[(int16_t)global_scenario_index].path;
+    src = halo::cache::globals().tag_instances[(int16_t)global_scenario_index].path;
     dst = header->scenario_name;
     do {
         *dst = *src;

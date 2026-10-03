@@ -1,8 +1,8 @@
 #include "halo/devices/machine.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern void device_new(uint32_t object_index, void *placement);
 extern void device_group_set_value_immediate(uint16_t group_index, float value);
 extern data_array *device_groups;
@@ -33,7 +33,7 @@ static uint8_t *object_get(datum_index object_index)
 
 static uint8_t *object_definition(uint8_t *object)
 {
-    return (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+    return (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & 0xffff].data;
 }
 
 }
@@ -116,7 +116,7 @@ uint32_t MachineHandle::update()
 
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     device_machine_data *dev = (device_machine_data *)((uint8_t *)obj + sizeof(object));
-    DeviceMachine *tag = (DeviceMachine *)tag_instances[obj->definition_tag & 0xffff].data;
+    DeviceMachine *tag = (DeviceMachine *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     
     
@@ -158,7 +158,7 @@ uint32_t MachineHandle::update()
                 int passes_side_test = 1;
 
                 if (((candidate->vitality_flags & _object_health_frozen_bit) != 0) ||
-                    ((*(uint32_t *)((uint8_t *)tag_instances[candidate->definition_tag & 0xffff].data
+                    ((*(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[candidate->definition_tag & 0xffff].data
                         + sizeof(Object)) & 0x4000) != 0)) { 
                     counts = 0;
                 }
@@ -299,7 +299,7 @@ void ControlHandle::activate()
     uint32_t object_id = (uint32_t)handle;
 
     object *obj = ((object_header *)object_data->data)[object_id & 0xffff].data;
-    DeviceControl *tag = (DeviceControl *)tag_instances[obj->definition_tag & 0xffff].data;
+    DeviceControl *tag = (DeviceControl *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if (tag->triggers_when == devicetriggerswhen_touched_by_player) {
         device_change_power_state(0.0f, object_id); 

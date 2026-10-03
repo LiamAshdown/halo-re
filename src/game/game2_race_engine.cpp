@@ -1,5 +1,6 @@
 #include "halo/game/game2_engines.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -17,7 +18,6 @@ extern datum_index object_new(object_placement_data *placement);
 extern double cos(double x);
 extern double sin(double x);
 extern wchar_t empty_string;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
@@ -178,7 +178,7 @@ uint8_t RaceEngine::allow_grenade_counts(datum_index player_index)
  */
 const uint16_t * RaceEngine::game_text(int16_t index)
 {
-    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : text_string_list_get_string(tag_id, index);
 }
@@ -279,7 +279,7 @@ wchar_t * RaceEngine::build_player_text(datum_index player, wchar_t *buffer)
  */
 uint16_t * RaceEngine::multiplayer_text(int16_t index)
 {
-    datum_index list = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index list = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     return list == 0xffffffff ? (uint16_t *)L"" : text_string_list_get_string(list, index);
 }

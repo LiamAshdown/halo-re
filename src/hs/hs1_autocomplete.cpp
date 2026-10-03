@@ -1,6 +1,7 @@
 #include "halo/hs/hs1_autocomplete.hpp"
 #include <string.h>
 #include <stdlib.h>
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern char hs_evaluate_variadic_arguments(uint32_t thread_index, int32_t value, uint32_t *out_count, int32_t **out_values);
@@ -16,7 +17,6 @@ extern char **hs_autocomplete_results;
 extern uint8_t hs_gametype_flags_applicable(uint8_t flags);
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
-extern tag_instance *tag_instances;
 extern Globals *global_globals;
 extern void hs_autocomplete_scan_candidates(char **table, int16_t end, int16_t start);
 extern char *hs_script_type_names[k_hs_script_type_count];
@@ -185,7 +185,7 @@ void ScriptAutocomplete::autocomplete_add_hud_message_names(void)
     datum_index hud_messages = *(datum_index *)&global_scenario->hud_messages.tag_id;
 
     if (hud_messages != k_datum_index_none) {
-        hs_autocomplete_scan_globals((TagReflexive *)((uint8_t *)tag_instances[hud_messages & 0xffff].data + 0x20),
+        hs_autocomplete_scan_globals((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_messages & 0xffff].data + 0x20),
             0, 0x40);
     }
 }
@@ -202,7 +202,7 @@ void ScriptAutocomplete::autocomplete_add_navpoint_names(void)
     datum_index hud_globals = *(datum_index *)(interface_bitmaps + 0x6c);
 
     if (hud_globals != k_datum_index_none) {
-        hs_autocomplete_scan_globals((TagReflexive *)((uint8_t *)tag_instances[hud_globals & 0xffff].data + 0x160),
+        hs_autocomplete_scan_globals((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_globals & 0xffff].data + 0x160),
             0, 0x68);
     }
 }

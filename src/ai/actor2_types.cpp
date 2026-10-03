@@ -1,5 +1,6 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
@@ -142,7 +143,6 @@ extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-extern tag_instance *tag_instances;
 }
 }
 
@@ -155,7 +155,7 @@ void ActorView::type_elite_update()
 {
     using namespace actor_type_elite_update_local;
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = (uint8_t *)tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
         actor_process_order_request(actor_index, 0xffff);
@@ -723,7 +723,6 @@ extern data_array *prop_data;
 extern data_array *object_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern const real_point3d *global_origin3d_pointer;
 extern int32_t actor_pick_dialogue_variant_a(int16_t category);
@@ -767,7 +766,7 @@ void ActorView::type_infection_swarm_update()
 {
     using namespace actor_type_infection_swarm_update_local;
     uint8_t *actor = ACTOR(actor_index);
-    uint8_t *definition = (uint8_t *)tag_instances[U32(actor, 0x5c) & 0xffff].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[U32(actor, 0x5c) & 0xffff].data;
     uint8_t *swarm = SWARM(U32(actor, 0x28));
     int32_t picked = -1;
     int16_t member;
@@ -924,7 +923,7 @@ void ActorView::type_infection_swarm_update()
                     detach = 1;
                 }
             } else {
-                uint8_t *parent_tag = (uint8_t *)tag_instances[U32(parent, 0x0) & 0xffff].data;
+                uint8_t *parent_tag = (uint8_t *)halo::cache::globals().tag_instances[U32(parent, 0x0) & 0xffff].data;
 
                 if ((I16(parent, 0xb4) != 0 || (int8_t)parent_tag[0x17d] < 0) && component[0x18] > 0x2d) {
                     component[0x1a] = 0x2d;
@@ -1332,7 +1331,6 @@ extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-extern tag_instance *tag_instances;
 }
 }
 
@@ -1345,7 +1343,7 @@ void ActorView::type_jackal_update()
 {
     using namespace actor_type_jackal_update_local;
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = (uint8_t *)tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
         actor_process_order_request(actor_index, 0xffff);

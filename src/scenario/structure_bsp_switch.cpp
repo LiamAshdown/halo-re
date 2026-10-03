@@ -5,6 +5,7 @@
  */
 
 #include "halo/scenario/scenario.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern structure_bsp_procedure structure_bsp_activate_procedures[k_structure_bsp_activate_procedure_count];
@@ -17,12 +18,6 @@ extern scenario_game_globals *global_scenario_game_globals;
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern tag_instance *tag_instances;
-extern uint32_t structure_bsp_load(ScenarioBSP *bsp);
-extern void structure_bsp_dispose(ScenarioBSP *bsp);
-extern void *structure_bsp_data;
-extern void structure_bsp_dispose_material_vertex_buffers(
-    ScenarioStructureBSPCompiledHeader *compiled_header);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 }
 
@@ -71,18 +66,18 @@ uint8_t structure_bsp_switcher::switch_to(int16_t structure_bsp_index)
         structure_bsp_switcher::deactivate_callbacks();
         old_entry = &((ScenarioBSP *)global_scenario->structure_bsps.pointer)
                         [global_structure_bsp_index];
-        structure_bsp_dispose(old_entry);
+        halo::cache::structure_bsp_dispose(old_entry);
         global_scenario_game_globals->structure_bsp_index = -1;
         global_structure_bsp_index = -1;
     }
 
-    if (!structure_bsp_load(new_entry)) {
+    if (!halo::cache::structure_bsp_load(new_entry)) {
         unknown_0071976a = 1;
         return 0;
     }
 
     tag_index = new_entry->structure_bsp.tag_id.index;
-    global_structure_bsp = (ScenarioStructureBSP *)tag_instances[tag_index].data;
+    global_structure_bsp = (ScenarioStructureBSP *)halo::cache::globals().tag_instances[tag_index].data;
     global_structure_collision_bsp =
         (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;
     global_collision_bsp = (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;
@@ -109,13 +104,13 @@ void structure_bsp_switcher::switch_after_load(void)
 
     old_entry = &((ScenarioBSP *)global_scenario->structure_bsps.pointer)
                     [global_structure_bsp_index];
-    structure_bsp_dispose_material_vertex_buffers(
-        (ScenarioStructureBSPCompiledHeader *)structure_bsp_data);
+    halo::cache::structure_bsp_dispose_material_vertex_buffers(
+        (ScenarioStructureBSPCompiledHeader *)halo::cache::globals().structure_bsp_data);
 
     tag_index = (int16_t)old_entry->structure_bsp.tag_id.index;
 
-    tag_instances[tag_index].data = 0;
-    structure_bsp_data = 0;
+    halo::cache::globals().tag_instances[tag_index].data = 0;
+    halo::cache::globals().structure_bsp_data = 0;
 
     requested_index = global_scenario_game_globals->structure_bsp_index;
     global_structure_bsp_index = -1;

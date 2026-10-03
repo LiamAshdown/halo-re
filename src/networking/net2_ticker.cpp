@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include "halo/networking/net2_ticker.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern heap * widget_memory_pool;
@@ -23,7 +24,6 @@ extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern int32_t hud_text_draw_unknown_4730;
 extern int32_t text_measure_string_fit_width(int32_t *max_width_inout);
-extern uint8_t * tag_instances;
 void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self);
 void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_buffer *self);
 void ticker_text_buffer_reset(ticker_text_buffer *self);
@@ -43,7 +43,7 @@ void TickerTextBuffer::advance(uint8_t *widget, ticker_text_buffer *self)
 
     *(int16_t *)(row_object + 0x40) = (int16_t)self->start_column;
 
-    font_record = *(uint8_t **)(tag_instances + (*text_row & 0xffff) * 0x20 + 0x14);
+    font_record = *(uint8_t **)(halo::cache::globals().tag_instances + (*text_row & 0xffff) * 0x20 + 0x14);
     hud_text_draw_font_tag_id = *(void **)(font_record + 0x108);
     max_width[0] = (int32_t)*(int16_t *)(font_record + 0x2a) - (int32_t)*(int16_t *)(font_record + 0x26);
     max_width[1] = 0;

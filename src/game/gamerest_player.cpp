@@ -4,12 +4,12 @@
 #include <wchar.h>
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
 extern data_array *player_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern player_globals *local_player_globals;
 extern uint8_t *main_game_globals;
 extern int16_t network_game_mode;
@@ -188,7 +188,7 @@ extern float camera_position_z_table[];
 namespace {
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_index)
 {
     uint8_t *self = OBJECT_DATA(object_index);
@@ -332,7 +332,7 @@ void PlayerView::apply_pickup_effect(uint32_t pickup_object)
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
     object *pickup = (object *)((object_header *)object_data->data)[pickup_object & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[pickup->definition_tag & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[pickup->definition_tag & 0xffff].data;
     int16_t amount = (int16_t)(int32_t)(*(float *)(tag + 0x30c) * 30.0f);
     int16_t discriminator;
 
@@ -598,7 +598,7 @@ void PlayerView::check_vehicle_boarding_interaction_lightweight(uint32_t candida
     if (weapon_candidate == 0 || unit_check_weapon_use_permission((uint32_t)unit_handle, candidate_object) == 0) {
         return;
     }
-    weapon_tag = (uint8_t *)tag_instances[weapon_candidate->definition_tag & 0xffff].data;
+    weapon_tag = (uint8_t *)halo::cache::globals().tag_instances[weapon_candidate->definition_tag & 0xffff].data;
     unit_flag_1800 = (uint8_t)((*(uint32_t *)(unit_obj + 0x208) & 0x1800) != 0);
 
     current_weapon = unit_get_weapon_object_index((uint32_t)p->unit,
@@ -607,7 +607,7 @@ void PlayerView::check_vehicle_boarding_interaction_lightweight(uint32_t candida
     if (weapon_count >= 2 && current_weapon != (datum_index)0xffffffff && (weapon_tag[0x308] & 0x10) == 0) {
         object *held = ((object_header *)object_data->data)[current_weapon & 0xffff].data;
 
-        if ((((uint8_t *)tag_instances[held->definition_tag & 0xffff].data)[0x308] & 0x10) != 0) {
+        if ((((uint8_t *)halo::cache::globals().tag_instances[held->definition_tag & 0xffff].data)[0x308] & 0x10) != 0) {
             holds_exclusive = 1;
         }
     }
@@ -877,7 +877,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
                 facing = *(real_vector3d *)&((struct object *)root_object)->forward.i;
             }
         }
-        collision_radius = *(float *)((uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data + 0x42c);
+        collision_radius = *(float *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data + 0x42c);
         facing.k = 0.0f;
         facing.i = -facing.i;
         facing.j = -facing.j;
@@ -1053,7 +1053,7 @@ void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
             unit_header->flags = unit_header->flags & ~1;
         }
         {
-            uint8_t *unit_tag_data = (uint8_t *)tag_instances[unit_obj->definition_tag & 0xffff].data;
+            uint8_t *unit_tag_data = (uint8_t *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
             if (*(int32_t *)(unit_tag_data + 0x34) != -1 && (unit_obj->flags & 1) == 0) {
                 object_for_each_light_attachment(1, 0, 0);
             }
@@ -1064,7 +1064,7 @@ void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
         if (weapon_handle != (datum_index)-1) {
             object_header *weapon_header = &((object_header *)object_data->data)[weapon_handle & 0xffff];
             object *weapon_obj = weapon_header->data;
-            uint8_t *weapon_tag_data = (uint8_t *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+            uint8_t *weapon_tag_data = (uint8_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
             if (*(int32_t *)(weapon_tag_data + 0x34) != -1 && (weapon_obj->flags & 1) == 0) {
                 object_for_each_light_attachment(1, 0, 0);
             }
@@ -1462,7 +1462,7 @@ uint8_t PlayerView::is_busy_with_interaction(uint32_t candidate_object)
         object *tag_data = object_try_and_get(candidate_object, 4);
 
         datum_index definition_tag = *(datum_index *)tag_data;
-        uint8_t *weapon_tag_data = (uint8_t *)tag_instances[definition_tag & 0xffff].data;
+        uint8_t *weapon_tag_data = (uint8_t *)halo::cache::globals().tag_instances[definition_tag & 0xffff].data;
         if ((weapon_tag_data[0x308] & 0x10) != 0) {
             return 1;
         }
@@ -1526,7 +1526,7 @@ uint8_t PlayerView::current_weapon_prevents_camo_depower()
         return 0;
     }
 
-    weapon_tag = (Weapon *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+    weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
     return (uint8_t)((weapon_tag->weapon_flags >> 13) & 1);
 }
 
@@ -1555,7 +1555,7 @@ uint8_t PlayerView::has_must_be_readied_weapon()
         datum_index weapon = *(datum_index *)((uint8_t *)unit + 0x2f8 + i * 4);
         if (weapon != (datum_index)0xffffffff) {
             object *weapon_obj = ((object_header *)object_data->data)[weapon & 0xffff].data;
-            uint8_t *weapon_tag_data = (uint8_t *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+            uint8_t *weapon_tag_data = (uint8_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
             if (((*(uint32_t *)(weapon_tag_data + 0x308) >> 3) & 1) != 0) {
                 return 1;
             }
@@ -1632,7 +1632,7 @@ void PlayerView::update_active_camouflage_depower()
         rate = 0.0f;
     } else if (weapon_handle != (datum_index)0xffffffff) {
         object *weapon_obj = ((object_header *)object_data->data)[weapon_handle & 0xffff].data;
-        Weapon *weapon_tag = (Weapon *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+        Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
         if (weapon_tag->active_camo_ding != 0.0f) {
             rate = weapon_tag->active_camo_ding;
         }
@@ -1973,7 +1973,7 @@ uint8_t LocalPlayerUnit::get_current_weapon_autoaim_cone(int16_t require_zoomed,
         return 0;
     }
     weapon_obj = ((object_header *)object_data->data)[weapon_index & 0xffff].data;
-    weapon = (Weapon *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+    weapon = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
     if (require_zoomed == -1 && (weapon->weapon_flags & 0x20) != 0) {
         return 0;
     }
@@ -2365,7 +2365,7 @@ datum_index Players::spawn_starting_profile_weapon(TagDependency *weapon_depende
         {
             uint32_t datum_role = 3;
             if (network_game_mode == 2) {
-                tag_instance *inst = &tag_instances[weapon_dependency->tag_id.index];
+                tag_instance *inst = &halo::cache::globals().tag_instances[weapon_dependency->tag_id.index];
                 Object *tag_data = (Object *)inst->data;
                 object_type_definition *def = object_type_definitions[tag_data->object_type];
                 if (def->network_delta_message_type != -1) {
@@ -2470,7 +2470,7 @@ uint8_t Players::any_pending_seat_or_respawn()
                 }
                 if (parent_header != 0 && (1u << (parent_header->type & 0x1f) & _object_mask_vehicle) != 0 &&
                     parent_header->data != 0) {
-                    Item *parent_tag = (Item *)tag_instances[parent_header->data->definition_tag & 0xffff].data;
+                    Item *parent_tag = (Item *)halo::cache::globals().tag_instances[parent_header->data->definition_tag & 0xffff].data;
                     if ((parent_tag->item_flags & 0x40) != 0) {
                         airborne_check_obj = parent_header->data;
                     }

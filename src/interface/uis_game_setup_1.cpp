@@ -17,6 +17,7 @@
 
 #include "halo/interface/uis_game_setup.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern int16_t local_player_count;
@@ -34,14 +35,12 @@ extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
 extern campaign_level_entry known_campaign_levels_00692acc[10];
 extern uint16_t missing_string_text[];
-extern tag_instance *tag_instances;
 extern int16_t level_select_frame_00719168;
 extern int32_t last_level_widget_selection_00692afc;
 extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern void ui_build_level_select_list_coop(widget_instance *widget, void *param_2, void *param_3);
 extern uint8_t game_state_read_checkpoint_summary(uint8_t *corrupt_flag, int16_t *out_difficulty,
     char *out_scenario_name);
@@ -53,7 +52,6 @@ extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index
 extern void multiplayer_settings_select_list_update_item(widget_instance *description_widget, void *variant_data);
 extern map_list_entry *map_list;
 extern int32_t map_list_count;
-extern uint8_t cache_file_exists(char *name, cache_file_header *header_out);
 extern void main_queue_map_change_by_name_or_clear(char *name);
 extern void saved_game_last_mp_map_clear(const void *data);
 extern void widget_play_sound_effect(int16_t effect_id);
@@ -94,7 +92,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
         return 1;
     }
 
-    string_list_tag = tag_lookup(0x75737472 , (char *)"ui\\shell\\main_menu\\map_list_oneline");
+    string_list_tag = halo::cache::tag_lookup(0x75737472 , (char *)"ui\\shell\\main_menu\\map_list_oneline");
     memset(level_select_entries, 0, sizeof(level_select_entries));
 
     if (saved_player_profile_slots_handle != cached_saved_game_something) {
@@ -150,7 +148,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
 
         entry_name = missing_string_text;
         if (string_list_tag != (datum_index)-1) {
-            UnicodeStringList *list = (UnicodeStringList *)tag_instances[string_list_tag & 0xffff].data;
+            UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[string_list_tag & 0xffff].data;
 
             if (i >= 0 && i < (int32_t)list->strings.count) {
                 UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;
@@ -352,7 +350,7 @@ uint8_t UiGameSetup::map_select_confirm_choice(widget_instance *widget)
 
     file_name = strrchr(path, '\\');
     file_name = (file_name != 0) ? file_name + 1 : path;
-    exists = cache_file_exists(file_name, &header);
+    exists = halo::cache::cache_file_exists(file_name, &header);
     if (!exists) {
         widget_play_sound_effect(4);
         return exists;

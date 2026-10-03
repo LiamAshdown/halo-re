@@ -6,10 +6,10 @@
 #include "physics.h"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern data_array *player_data;
 extern int16_t network_game_mode;
 extern game_time_globals *game_time;
@@ -56,7 +56,7 @@ namespace halo::units {
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 namespace unit_apply_damage_effects_local {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
@@ -454,7 +454,7 @@ void UnitView::apply_fall_damage(float fall_speed)
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     uint8_t *fall_table = (uint8_t *)global_globals->falling_damage.pointer;
     uint32_t exempt;
 
@@ -510,7 +510,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Unit *tag = (Unit *)tag_instances[obj->definition_tag & 0xffff].data;
+    Unit *tag = (Unit *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     real_point3d origin_pos = obj->bounding_center;
     real_point3d target_pos;
     object_marker melee_marker;
@@ -550,7 +550,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
             datum_index weapon_index = unit->weapons[unit->current_weapon_index];
             if (weapon_index != k_datum_index_none) {
                 object *weapon_obj = ((object_header *)object_data->data)[weapon_index & 0xffff].data;
-                Weapon *weapon_tag = (Weapon *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+                Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
                 if ((weapon_tag->weapon_flags & 0x8000) != 0) {
                     damage_effect = *(datum_index *)&weapon_tag->player_melee_response.tag_id;
                 }
@@ -627,7 +627,7 @@ void UnitView::melee_lunge_damage_tick()
 {
     uint32_t unit_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     datum_index target = ((unit_object *)obj)->base.parent_object;
     uint8_t hit = 0;
     real_plane3d plane;
@@ -690,7 +690,7 @@ void UnitView::melee_lunge_damage_tick()
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 /**
  * Engine function unit_process_melee_special_interaction.
  *

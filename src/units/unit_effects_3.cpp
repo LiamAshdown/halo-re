@@ -1,10 +1,10 @@
 #include "halo/units/unit.hpp"
 #include "projectiles.h"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
-extern tag_instance *tag_instances;
 extern uint8_t material_table_warning_issued;
 extern int32_t material_table_bad_index;
 extern uint8_t material_table_fallback[0x374];
@@ -45,7 +45,7 @@ void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_t
     }
 
     if (unit_tag_id != k_datum_index_none) {
-        uint8_t *tag_data = (uint8_t *)tag_instances[unit_tag_id & 0xffff].data;
+        uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[unit_tag_id & 0xffff].data;
         datum_index effect = *(datum_index *)(tag_data + 0x120);
         if (effect != k_datum_index_none) {
             sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,
@@ -66,7 +66,7 @@ uint32_t UnitView::update_marker_traction_effects()
 {
     uint32_t object_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     uint8_t *graph;
     uint8_t *node_array;
     uint8_t *physics;
@@ -77,7 +77,7 @@ uint32_t UnitView::update_marker_traction_effects()
     if (*(int32_t *)&((Unit *)tag)->base.animation_graph.tag_id == -1) {
         return 0;
     }
-    graph = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.animation_graph.tag_id & 0xffff].data;
+    graph = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.animation_graph.tag_id & 0xffff].data;
     if (*(int32_t *)&((ModelAnimations *)graph)->vehicles.count == 0) {
         return 0;
     }
@@ -85,7 +85,7 @@ uint32_t UnitView::update_marker_traction_effects()
     if (node_array == 0) {
         return 0;
     }
-    physics = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    physics = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     halo::math::matrix4x3_from_forward_up(*(real_vector3d *)(obj + 0x80), *(real_vector3d *)(obj + 0x74), basis);
     basis.position = *(real_point3d *)&((unit_object *)obj)->base.position.x;
 

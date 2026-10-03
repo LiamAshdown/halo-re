@@ -4,6 +4,7 @@
 #include "units.h"
 #include "game.h"
 #include "cache.h"
+#include "halo/cache/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,8 +42,6 @@ extern void hs_object_detach_and_place_at_location(int16_t location_index, datum
 extern void hs_object_set_permutation_by_name(datum_index object_index, void *permutation_name, char *name);
 extern void object_set_scale_and_refresh_nodes(uint32_t object_index, float scale, int16_t ticks);
 extern void hs_object_set_health_fraction(datum_index object_index, float fraction);
-extern tag_instance *tag_instances;
-extern void predicted_resource_list_touch(TagReflexive *resources);
 extern void object_reorient_relative_to_marker(uint32_t parent_index, char *parent_marker_name,
     uint32_t object_index, char *object_marker_name);
 extern uint32_t hs_object_list_any_angle_match_gated(datum_index header_index, int16_t gate,
@@ -597,7 +596,7 @@ void ObjectCommands::evaluate_object_type_predict(int16_t function_index, uint32
     datum_index tag = (datum_index)arguments[0];
 
     if (tag != k_datum_index_none) {
-        predicted_resource_list_touch((TagReflexive *)((uint8_t *)tag_instances[tag & 0xffff].data + 0x170));
+        halo::cache::predicted_resource_list_touch((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[tag & 0xffff].data + 0x170));
     }
     hs_thread_return(0, thread_index);
     }

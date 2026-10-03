@@ -1,10 +1,10 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern float *global_zero_vector2d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void animation_replace_frame_orientations(void *animation, int16_t frame, void *out_orientations);
@@ -58,8 +58,8 @@ void UnitView::update_aiming_overlay_angles(void *output)
     using namespace unit_update_aiming_overlay_angles_local;
     uint32_t unit_index = datum_handle;
     uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
-    uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
-    uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id & 0xffff].data;
+    uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data;
+    uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id & 0xffff].data;
     uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
     uint8_t *block;
     float aim_yaw;

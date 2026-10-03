@@ -1,6 +1,7 @@
 #include "halo/game/game2_engine_players.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 
@@ -32,7 +33,6 @@ extern void object_delete_unparented(datum_index object_index);
 extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings);
 extern player_globals *local_player_globals;
 extern Scenario *global_scenario;
-extern tag_instance *tag_instances;
 extern network_client_globals *network_client;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
@@ -815,7 +815,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
             if (driver != (datum_index)-1 && *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) != -1) {
                 object *driver_obj = ((object_header *)object_data->data)[driver & 0xffff].data;
                 unit_data *driver_unit = (unit_data *)((uint8_t *)driver_obj + k_unit_data_offset);
-                Unit *driver_tag = (Unit *)tag_instances[driver_obj->definition_tag & 0xffff].data;
+                Unit *driver_tag = (Unit *)halo::cache::globals().tag_instances[driver_obj->definition_tag & 0xffff].data;
                 real_matrix4x3 local_transform;
                 real_matrix4x3 result_transform;
                 Unit *unit_tag;
@@ -826,8 +826,8 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                                        *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) * 0x11c),
                     &local_transform, 1);
 
-                unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
-                unit_as_vehicle_tag = (Vehicle *)tag_instances[
+                unit_tag = (Unit *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
+                unit_as_vehicle_tag = (Vehicle *)halo::cache::globals().tag_instances[
                     ((TagID *)((uint8_t *)unit_tag + 0x34))->index & 0xffff].data;
                 {
                     uint8_t *unknown_block = (uint8_t *)unit_as_vehicle_tag + 0xbc;
@@ -854,7 +854,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                     unit_obj->up = result_transform.up;
 
                     {
-                        uint8_t *unit_tag_data = (uint8_t *)tag_instances[unit_obj->definition_tag & 0xffff].data;
+                        uint8_t *unit_tag_data = (uint8_t *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
                         if (*(int32_t *)(unit_tag_data + 0x34) != -1) {
                             if ((unit_obj->flags & 1) != 0) {
                                 object_for_each_light_attachment(0, 1, 0);

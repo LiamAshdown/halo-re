@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t terminal_initialized;
@@ -22,7 +23,6 @@ extern terminal_console *console_active;
 extern char console_window_title[0x20];
 extern void console_position_cursor(void);
 extern Globals *global_globals;
-extern tag_instance *tag_instances;
 extern uint8_t console_caret_visible;
 extern uint8_t console_show_messages;
 extern datum_index console_message_head;
@@ -265,7 +265,7 @@ void ConsoleTerminal::draw_overlay(void)
         return;
     }
 
-    font = (Font *)tag_instances[(uint16_t)font_terminal_id].data;
+    font = (Font *)halo::cache::globals().tag_instances[(uint16_t)font_terminal_id].data;
     line_height = font->ascending_height + font->descending_height + font->leading_height;
 
     if (console_active != (terminal_console *)0) {

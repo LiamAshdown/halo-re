@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -44,7 +45,6 @@ extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_ind
 extern data_array *ai_pursuit_data;
 extern datum_index squad_recent_object_get_or_create(datum_index encounter_index, int16_t type, int32_t min_last_tick, char create_if_missing);
 extern void ai_alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t stimulus, int16_t gate);
-extern tag_instance *tag_instances;
 extern uint8_t *actor_type_procs[];
 extern datum_index actor_new(datum_index actor_variant_tag);
 extern void actor_attach_to_unit(datum_index actor_index, datum_index unit_index);
@@ -1280,12 +1280,12 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
         return;
     }
 
-    actor_definition_tag = *(datum_index *)((uint8_t *)tag_instances
+    actor_definition_tag = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances
         [actor_variant_tag & 0xffff].data + 0x10);
     if (actor_definition_tag == (datum_index)k_datum_index_none) {
         return;
     }
-    if ((**(uint32_t **)&tag_instances[actor_definition_tag & 0xffff].data & 0x4000000) != 0) {
+    if ((**(uint32_t **)&halo::cache::globals().tag_instances[actor_definition_tag & 0xffff].data & 0x4000000) != 0) {
         return; // Actor.flags bit 26, "swarm"
     }
 
@@ -1379,8 +1379,8 @@ void AiUnitView::remap_actor_to_squad(uint32_t packed_reference, char notify)
     if (actor_index != (datum_index)k_datum_index_none && packed_reference != (uint32_t)k_datum_index_none) {
         actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
         char already_in_target = (a->encounter_index & 0xffff) == (packed_reference & 0xffff);
-        uint8_t *actor_tag_data = (uint8_t *)tag_instances[a->actor_definition_tag & 0xffff].data;
-        uint8_t *actor_variant_data = (uint8_t *)tag_instances[a->actor_variant_tag & 0xffff].data;
+        uint8_t *actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_definition_tag & 0xffff].data;
+        uint8_t *actor_variant_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_variant_tag & 0xffff].data;
         int32_t best_squad = ai_squad_find_best_matching_member(packed_reference, a->squad_index, actor_tag_data,
                                                                   actor_variant_data, already_in_target);
 
@@ -1538,7 +1538,7 @@ void AiActorView::get_move_speed_for_range(float param_a, float param_b, float p
     float low_break_08;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
 
     if (definition->peripheral_vision_angle < param_dist) {
         *out_b = 0.0f;

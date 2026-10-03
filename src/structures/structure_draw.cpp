@@ -5,6 +5,7 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern int16_t geometry_buffer_warning;
@@ -13,7 +14,6 @@ extern int32_t rasterizer_dynamic_index_cache_reserve(int16_t vertex_count);
 extern void *rasterizer_dynamic_index_slot_lock(int32_t geometry_handle);
 extern ScenarioStructureBSP *global_structure_bsp;
 extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare);
-extern tag_instance *tag_instances;
 extern breakable_surface_globals *breakable_surface_state;
 extern int16_t global_structure_bsp_index;
 extern real_vector3d fog_plane_vector;
@@ -130,7 +130,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
 
             if (global_structure_bsp->lightmaps_bitmap.tag_id.index != 0xffff) {
                 uint16_t bitmap_index = lightmap->bitmap;
-                Bitmap *bitmap = (Bitmap *)tag_instances[global_structure_bsp->lightmaps_bitmap.tag_id.index].data;
+                Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[global_structure_bsp->lightmaps_bitmap.tag_id.index].data;
                 if (bitmap != 0 && bitmap_index < bitmap->bitmap_data.count) {
                     bitmap_data = (uint8_t *)bitmap->bitmap_data.pointer + bitmap_index * 0x30;
                 }
@@ -149,7 +149,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
                         break;
                     }
                     if (*surface_indices < material_end) {
-                        Shader *shader = (Shader *)tag_instances[material->shader.tag_id.index].data;
+                        Shader *shader = (Shader *)halo::cache::globals().tag_instances[material->shader.tag_id.index].data;
                         int32_t *scan = surface_indices;
                         int16_t consumed;
 

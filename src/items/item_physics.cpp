@@ -1,10 +1,10 @@
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern game_engine_definition *current_game_engine;
 extern uint8_t *global_structure_collision_bsp;
 extern void item_detonation_timer_start(uint32_t object_index);
@@ -48,7 +48,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
     }
 
     if (apply_detonation_timer != 0 && current_game_engine == 0) {
-        Item *tag = (Item *)tag_instances[obj->definition_tag & 0xffff].data;
+        Item *tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
         if ((tag->item_flags & 0x02) != 0) {
             item_detonation_timer_start(item_index);
         }

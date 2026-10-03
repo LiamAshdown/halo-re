@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::sound {
 
@@ -136,9 +137,9 @@ int32_t pcm_buffer_read(uint32_t *position, SoundPermutation *permutation, uint3
     }
     *bytes_read_out = remaining;
 
-    if (sample_pointer >= (uint32_t)sound_cache_memory &&
+    if (sample_pointer >= (uint32_t)halo::cache::globals().sound_cache_memory &&
         permutation->samples.size + sample_pointer <=
-            ((uint32_t)(int32_t)*(int16_t *)&sound_cache_size_megabytes << 20) + (uint32_t)sound_cache_memory) {
+            ((uint32_t)(int32_t)*(int16_t *)&sound_cache_size_megabytes << 20) + (uint32_t)halo::cache::globals().sound_cache_memory) {
         uint8_t *src = (uint8_t *)(sample_pointer + (*position & 0xfffffffeu));
         uint8_t *dst = (uint8_t *)destination;
         uint32_t new_position;
@@ -317,8 +318,8 @@ uint32_t StreamDecoder::fill_buffer(SoundPermutation *permutation, void *destina
     uint32_t sample_pointer = *(uint32_t *)&((struct SoundPermutation *)permutation)->cache_page;
     int32_t remaining;
 
-    if (sample_pointer < (uint32_t)sound_cache_memory ||
-        (uint32_t)sound_cache_size_megabytes * 0x100000 + (uint32_t)sound_cache_memory <
+    if (sample_pointer < (uint32_t)halo::cache::globals().sound_cache_memory ||
+        (uint32_t)sound_cache_size_megabytes * 0x100000 + (uint32_t)halo::cache::globals().sound_cache_memory <
             permutation->samples.size + sample_pointer) {
         if (strlen(error_text_buffer) < 0xd6) {
             sprintf(error_text_buffer + strlen(error_text_buffer), "trying to queue sound but samples is null.");

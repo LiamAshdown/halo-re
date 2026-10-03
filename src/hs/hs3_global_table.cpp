@@ -1,5 +1,6 @@
 #include "halo/hs/hs3_machine.hpp"
 #include "crt.h"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
@@ -8,9 +9,7 @@ extern datum_index global_scenario_index;
 extern void hs_global_read_value(hs_global_reference reference);
 extern data_array *hs_globals_data;
 extern char *hs_empty_string;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
-extern tag_instance *tag_instances;
 }
 
 namespace halo::hs::part3 {
@@ -230,15 +229,15 @@ float *GlobalTable::sound_get_gain_reference(char *name) const
     uint8_t *sound_data;
     uint8_t *looping_data;
 
-    tag_id = tag_lookup(0x736e6421, name);
+    tag_id = halo::cache::tag_lookup(0x736e6421, name);
     if (tag_id != k_datum_index_none) {
-        sound_data = (uint8_t *)tag_instances[(tag_id & 0xffff) & 0xffff].data;
+        sound_data = (uint8_t *)halo::cache::globals().tag_instances[(tag_id & 0xffff) & 0xffff].data;
         return (float *)(sound_data + 0x28);
     }
 
-    tag_id = tag_lookup(0x6c736e64, name);
+    tag_id = halo::cache::tag_lookup(0x6c736e64, name);
     if (tag_id != k_datum_index_none) {
-        looping_data = (uint8_t *)tag_instances[(tag_id & 0xffff) & 0xffff].data;
+        looping_data = (uint8_t *)halo::cache::globals().tag_instances[(tag_id & 0xffff) & 0xffff].data;
         if (0 < *(int32_t *)(looping_data + 0x3c)) {
             return (float *)(*(uint32_t *)(looping_data + 0x40) + 4);
         }

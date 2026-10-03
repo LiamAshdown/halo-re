@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <wchar.h>
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t network_message_scratch[0x7ff8];
@@ -35,7 +36,6 @@ extern chat_gui_set_property_int_fn chat_gui_set_property_int;
 extern chat_gui_set_state_fn chat_gui_set_state;
 extern chat_gui_release_fn chat_gui_release;
 extern uint8_t chat_gui_active;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern uint16_t *text_string_list_get_string(void);
 extern uint8_t game_engine_get_teams_enabled(void);
 extern void input_keyboard_set_capture_mode(void);
@@ -216,7 +216,7 @@ void ChatDialog::open(int32_t chat_scope)
     if (chat_scope == 0) {
 all_scope:
         {
-            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                        : (const void *)text_string_list_get_string();
             chat_scope_active = 0;
@@ -234,7 +234,7 @@ all_scope:
             int32_t unit_index = chat_default_team_channel();
             int32_t player_index = player_get_vehicle((datum_index)unit_index);
             if (player_index != -1) {
-                datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                            : (const void *)text_string_list_get_string();
                 chat_scope_active = 2;
@@ -245,7 +245,7 @@ team_scope:
         {
             datum_index tag_id;
             chat_scope_active = 1;
-            tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                        : (const void *)text_string_list_get_string();
             if (chat_scope_active == -1) {

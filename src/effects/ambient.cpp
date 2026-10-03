@@ -1,11 +1,11 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern int16_t weather_particle_system_count;
 extern weather_particle_system_state weather_wind_states[8];
 extern ScenarioStructureBSP *global_structure_bsp;
-extern tag_instance *tag_instances;
 extern const real_point3d *global_origin3d_pointer;
 extern void ambient_color_sample(ColorRGB *out, real_point3d *position, real hash_scale, real intensity);
 extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point);
@@ -36,7 +36,7 @@ void ambient_color::for_marker(int16_t weather_row, real_point3d *position, uint
         ScenarioStructureBSPWeatherPalette *palette_row =
             (ScenarioStructureBSPWeatherPalette *)((uint8_t *)global_structure_bsp->weather_palette.pointer) +
             weather_row;
-        Wind *wind_tag = (Wind *)tag_instances[palette_row->wind.tag_id.index].data;
+        Wind *wind_tag = (Wind *)halo::cache::globals().tag_instances[palette_row->wind.tag_id.index].data;
         weather_particle_system_state *wind = &weather_wind_states[weather_row];
         real local_variation = (flags & 1) == 0 ? wind_tag->local_variation_weight : 0.0f;
         ColorRGB sample;
@@ -86,7 +86,7 @@ uint8_t ambient_color::marker_visible(bsp_leaf_reference *location, real_point3d
                 datum_index fog_tag = *(datum_index *)((uint8_t *)global_structure_bsp->fog_palette.pointer + fog * 0x88 + 0x2c);
 
                 if (fog_tag != k_datum_index_none) {
-                    uint8_t *fog_data = (uint8_t *)tag_instances[fog_tag & 0xffff].data;
+                    uint8_t *fog_data = (uint8_t *)halo::cache::globals().tag_instances[fog_tag & 0xffff].data;
 
                     if (fog_data[0] & 1) {
                         if ((filter_flags & 8) == 0) {
@@ -194,7 +194,7 @@ void ambient_color::sample(ColorRGB *out, real_point3d *position, real hash_scal
  */
 void material_effects::play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset)
 {
-    MaterialEffects *definition = (MaterialEffects *)tag_instances[material_effects_tag & 0xffff].data;
+    MaterialEffects *definition = (MaterialEffects *)halo::cache::globals().tag_instances[material_effects_tag & 0xffff].data;
 
     if (material_type < (int32_t)definition->effects.count) {
         MaterialEffectsMaterialEffect *material =

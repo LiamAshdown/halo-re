@@ -2,6 +2,7 @@
 #include <string.h>
 #include <wchar.h>
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t controls_row_device_mask_table[];
@@ -44,8 +45,6 @@ extern uint16_t *controls_action_display_name(int32_t device, const char *action
 extern uint8_t controls_device_sensitivity_a[];
 extern uint8_t controls_device_sensitivity_b[];
 extern int32_t controls_device_label_count;
-extern tag_instance *tag_instances;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern void controls_device_label_add(const uint16_t *name, int32_t device_type);
 extern int32_t controls_reserved_action_table[9];
 extern uint8_t control_profile_find_binding_for_action(const char *action_name, const int16_t *binding);
@@ -522,7 +521,7 @@ void ControlsBindings::binding_rows_toggle_device_mode(widget_instance *widget, 
 void ControlsBindings::build_device_label_table(void)
 {
     uint8_t *profile = ((selected_saved_item & 0xf) != 0) ? (uint8_t *)0 : saved_item_working_copy;
-    datum_index tag_id = tag_lookup(0x75737472,
+    datum_index tag_id = halo::cache::tag_lookup(0x75737472,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
     int i;
     const uint16_t *tag_supplied_label = (const uint16_t *)L"<missing string>";
@@ -534,9 +533,9 @@ void ControlsBindings::build_device_label_table(void)
     controls_device_label_count = 0;
 
     if (tag_id != (datum_index)-1) {
-        int32_t *reflexive = *(int32_t **)&tag_instances[tag_id & 0xffff].data;
-        if (*(int32_t *)((uint8_t *)tag_instances[tag_id & 0xffff].data) > 0) {
-            uint32_t *item = (uint32_t *)((int32_t *)tag_instances[tag_id & 0xffff].data)[1];
+        int32_t *reflexive = *(int32_t **)&halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+        if (*(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data) > 0) {
+            uint32_t *item = (uint32_t *)((int32_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data)[1];
             uint32_t count = item[0];
             (void)reflexive;
             if ((int32_t)count > 0) {

@@ -3,6 +3,7 @@
 #include "crt.h"
 #include <wchar.h>
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -14,10 +15,8 @@ extern network_client_globals *network_client;
 extern int64_t performance_frequency;
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
-extern tag_instance *tag_instances;
 extern uint16_t chat_local_prompt_string[];
 extern uint8_t network_game_search_entry_is_fresh(const uint8_t *entry);
-extern datum_index tag_lookup(tag_group group, char *path);
 extern void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...);
 }
 
@@ -98,11 +97,11 @@ void MenuListView::update()
                 wcsncpy((wchar_t *)buf, (const wchar_t *)((const uint16_t *)(entry + 0x1c)), 0xf);
                 ((uint16_t *)row->text)[0xf] = 0;
             } else {
-                datum_index tag = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                datum_index tag = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 uint16_t *source = missing_string_text;
 
                 if (tag != (datum_index)-1) {
-                    UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag & 0xffff].data;
+                    UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag & 0xffff].data;
 
                     if (list->strings.count > 0x13) {
                         UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;

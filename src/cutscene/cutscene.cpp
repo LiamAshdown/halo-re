@@ -1,4 +1,5 @@
 #include "halo/cutscene/cutscene.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern void sound_set_music_gain(float gain);
@@ -16,7 +17,6 @@ extern ui_pending_error ui_pending_errors[4];
 extern int32_t ROUND(float x);
 extern float fabsf(float x);
 extern Scenario *global_scenario;
-extern tag_instance *tag_instances;
 extern HUDGlobals *hud_globals_tag_data;
 extern uint8_t widget_memory_pool_valid;
 extern widget_instance *ui_root_widget[1];
@@ -231,7 +231,7 @@ void CutsceneDirector::letterbox()
 
             {
                 UnicodeStringList *help_text_data =
-                    (UnicodeStringList *)tag_instances[help_text_list & 0xffff].data;
+                    (UnicodeStringList *)halo::cache::globals().tag_instances[help_text_list & 0xffff].data;
                 if ((int32_t)(int16_t)title->string_index >= (int32_t)help_text_data->strings.count) {
                     continue;
                 }

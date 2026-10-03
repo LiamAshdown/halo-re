@@ -5,6 +5,7 @@
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -20,7 +21,6 @@ extern void actor_update_activation_state(datum_index actor_index);
 extern void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead);
 extern void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only);
 extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor);
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 extern void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_index, int32_t squad_index, uint8_t is_dead);
 extern void ai_reference_squad_iterator_new(uint32_t packed_reference, ai_reference_squad_iterator *out_iterator);
@@ -290,7 +290,7 @@ int32_t Encounters::release_inactive_encounters(char *buffer, uint8_t *has_more,
             ai_release_actors_filtered((datum_index)index, -1, -1, 1);
         } else {
             self = &((actor *)actor_data->data)[index & 0xffff];
-            path = tag_instances[(int16_t)self->actor_variant_tag].path;
+            path = halo::cache::globals().tag_instances[(int16_t)self->actor_variant_tag].path;
             file_name = strrchr(path, '\\');
             if (file_name != 0) {
                 file_name = file_name + 1;
@@ -377,11 +377,11 @@ int32_t Encounters::find_best_matching_member(uint32_t packed_reference, int16_t
                     &((TagDependency *)global_scenario->actor_palette.pointer)[actor_palette_index];
                 datum_index actor_variant_tag = *(datum_index *)&entry->tag_id;
                 if (actor_variant_tag != (datum_index)k_datum_index_none &&
-                    tag_instances[actor_variant_tag & 0xffff].group_tag == 0x61637476 /* 'actv' */) {
-                    actor_variant_data = (uint8_t *)tag_instances[actor_variant_tag & 0xffff].data;
+                    halo::cache::globals().tag_instances[actor_variant_tag & 0xffff].group_tag == 0x61637476 /* 'actv' */) {
+                    actor_variant_data = (uint8_t *)halo::cache::globals().tag_instances[actor_variant_tag & 0xffff].data;
                     if (*(uint32_t *)(actor_variant_data + 0x10) != (uint32_t)k_datum_index_none) {
                         datum_index actor_tag = *(datum_index *)(actor_variant_data + 0x10);
-                        actor_data = (uint8_t *)tag_instances[actor_tag & 0xffff].data;
+                        actor_data = (uint8_t *)halo::cache::globals().tag_instances[actor_tag & 0xffff].data;
                     }
                 }
             }
@@ -453,10 +453,10 @@ int16_t Encounters::resolve_actor_type(ScenarioSquad *squad)
         TagDependency *entry = &((TagDependency *)global_scenario->actor_palette.pointer)[actor_palette_index];
         datum_index actor_variant_tag = *(datum_index *)&entry->tag_id;
         if (actor_variant_tag != (datum_index)k_datum_index_none) {
-            uint8_t *actor_variant_data = (uint8_t *)tag_instances[actor_variant_tag & 0xffff].data;
+            uint8_t *actor_variant_data = (uint8_t *)halo::cache::globals().tag_instances[actor_variant_tag & 0xffff].data;
             datum_index actor_definition_tag = *(datum_index *)(actor_variant_data + 0x10);
             if (actor_definition_tag != (datum_index)k_datum_index_none) {
-                uint8_t *actor_tag_data = (uint8_t *)tag_instances[actor_definition_tag & 0xffff].data;
+                uint8_t *actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[actor_definition_tag & 0xffff].data;
                 return *(int16_t *)(actor_tag_data + 0x14);
             }
         }
@@ -520,13 +520,13 @@ void Encounters::merge(uint32_t source_reference, uint32_t target_encounter_inde
             datum_index variant_tag = *(datum_index *)(entry + 0xc);
 
             if (variant_tag != (datum_index)k_datum_index_none &&
-                tag_instances[(int16_t)variant_tag].group_tag == 0x61637476 /* 'actv' */) {
+                halo::cache::globals().tag_instances[(int16_t)variant_tag].group_tag == 0x61637476 /* 'actv' */) {
                 datum_index actor_tag;
 
-                variant_data = (uint8_t *)tag_instances[variant_tag & 0xffff].data;
+                variant_data = (uint8_t *)halo::cache::globals().tag_instances[variant_tag & 0xffff].data;
                 actor_tag = *(datum_index *)(variant_data + 0x10);
                 if (actor_tag != (datum_index)k_datum_index_none) {
-                    actor_tag_data = (uint8_t *)tag_instances[actor_tag & 0xffff].data;
+                    actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[actor_tag & 0xffff].data;
                 }
             }
         }
@@ -943,7 +943,7 @@ void EncounterView::choose_vocalizations()
     while (ai_globals_ptr->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
         current = actor_index;
         a = &((actor *)actor_data->data)[current & 0xffff];
-        actor_definition = (uint8_t *)tag_instances[a->actor_definition_tag & 0xffff].data;
+        actor_definition = (uint8_t *)halo::cache::globals().tag_instances[a->actor_definition_tag & 0xffff].data;
         actor_index = a->next_in_encounter;
         has_unit_prop = 0;
 
@@ -2928,7 +2928,7 @@ uint8_t EncounterView::squad_spawn_actor(int16_t squad_index, uint32_t unit_type
     if (variant_tag == k_datum_index_none) {
         return 0;
     }
-    if (*(datum_index *)((uint8_t *)tag_instances[variant_tag & 0xffff].data + 0x30) != k_datum_index_none) {
+    if (*(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[variant_tag & 0xffff].data + 0x30) != k_datum_index_none) {
         uint8_t enabled = 0;
         float bias = 0.0f;
 

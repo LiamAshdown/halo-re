@@ -5,6 +5,7 @@
 #include "projectiles.h"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern int32_t __ftol();
@@ -62,11 +63,9 @@ extern uint8_t object_type_definitions_query_0x44(uint32_t object_index);
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern data_array *player_data;
 extern int32_t player_index_from_unit_index(datum_index object_index);
-extern void predicted_resource_list_touch(uint8_t *predicted_resources_field);
 extern void projectile_compute_rotation(uint32_t object_index);
 extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point);
 extern double sqrt(double x);
-extern tag_instance *tag_instances;
 extern int32_t time_query_performance_counter_ms(void);
 }
 
@@ -547,7 +546,7 @@ char * halo::objects::ObjectRef::get_attachment_marker_name(int16_t attachment_i
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *object_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *object_tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if (attachment_index >= 0 && attachment_index < (int32_t)object_tag->attachments.count) {
         return (char *)object_tag->attachments.pointer + 0x10 + attachment_index * 0x48;
@@ -570,7 +569,7 @@ int32_t halo::objects::ObjectRef::get_node_local_transform(char *marker_name, ob
     void *node_array = (uint8_t *)obj + obj->nodes.offset;
 
     int32_t result = model_markers_get_by_name(
-        *(datum_index *)((uint8_t *)tag_instances[obj->definition_tag & 0xffff].data + 0x34), marker_name,
+        *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data + 0x34), marker_name,
         (uint8_t *)obj + 0x180, (int16_t *)0, (real_matrix4x3 *)node_array, (uint8_t)((obj->flags >> 0xc) & 1),
         marker, (int16_t)maximum_markers);
 
@@ -862,7 +861,7 @@ void halo::objects::ObjectRef::set_collision_enabled(uint8_t enable)
     uint32_t object_index = handle;
     object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
     object *obj = header->data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     int has_model = (definition->model.tag_id.index != 0xffff);
     int currently_disabled = (obj->flags & _object_no_collision_bit) != 0;
     int requesting_disabled = (enable == 0);
@@ -1026,8 +1025,8 @@ void halo::objects::ObjectRef::copy_default_node_transforms(int16_t requested_co
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
-    GBXModel *model = (GBXModel *)tag_instances[definition->model.tag_id.index & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[definition->model.tag_id.index & 0xffff].data;
     int32_t byte_count = (int16_t)model->nodes.count << 5;
 
     uint8_t *src = (uint8_t *)obj + obj->node_function_defaults.offset;
@@ -1074,9 +1073,9 @@ void halo::objects::ObjectRef::solve_two_bone_ik_to_marker(char *marker_a_name, 
     char *marker_b_name, uint8_t *node_base)
 {
     uint32_t object_index = handle;
-    Object *definition = (Object *)tag_instances[
+    Object *definition = (Object *)halo::cache::globals().tag_instances[
         ((object_header *)object_data->data)[object_index & 0xffff].data->definition_tag & 0xffff].data;
-    GBXModel *model = (GBXModel *)tag_instances[definition->model.tag_id.index & 0xffff].data;
+    GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[definition->model.tag_id.index & 0xffff].data;
     uint8_t *nodes = (uint8_t *)model->nodes.pointer;
 
     object_marker marker_a;
@@ -1306,8 +1305,8 @@ void halo::objects::ObjectRef::notify_children_recursive()
         object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
         if (obj->definition_tag != k_datum_index_none) {
-            uint8_t *tag_data = (uint8_t *)tag_instances[obj->definition_tag & 0xffff].data;
-            predicted_resource_list_touch(tag_data + 0x170);
+            uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+            halo::cache::predicted_resource_list_touch((TagReflexive *)(tag_data + 0x170));
         }
 
         object_notify_children_recursive(obj->first_child_object);
@@ -1390,7 +1389,7 @@ void halo::objects::ObjectRef::notify_node_array_if_animated()
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if ((definition->model.tag_id.index != 0xffff) && (definition->animation_graph.tag_id.index != 0xffff)) {
         object_type_definitions_notify_0x4c(object_index, (uint8_t *)obj + obj->nodes.offset);
@@ -1513,7 +1512,7 @@ void halo::objects::ObjectRef::start_animation(datum_index graph_tag, char *name
     uint32_t object_index = handle;
     if ((object_index != k_datum_index_none) && (graph_tag != k_datum_index_none)) {
         object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-        void *graph = tag_instances[graph_tag & 0xffff].data;
+        void *graph = halo::cache::globals().tag_instances[graph_tag & 0xffff].data;
 
         int16_t animation_index = animation_graph_find_animation_by_name(graph_tag, name);
 
@@ -1541,7 +1540,7 @@ void halo::objects::ObjectRef::start_animation(datum_index graph_tag, char *name
         }
 
         console_print_va("the animation '%s' doesn't exist in the graph '%s'", name,
-            *(char **)((uint8_t *)&tag_instances[graph_tag & 0xffff] + 0x10));
+            *(char **)((uint8_t *)&halo::cache::globals().tag_instances[graph_tag & 0xffff] + 0x10));
     }
 }
 
@@ -1560,7 +1559,7 @@ uint32_t halo::objects::ObjectRef::animation_get_frames_remaining()
     uint8_t *extended_flags = (uint8_t *)obj + 0x1f4;
 
     if ((*extended_flags & 1) != 0) {
-        void *graph = tag_instances[obj->animation_graph & 0xffff].data;
+        void *graph = halo::cache::globals().tag_instances[obj->animation_graph & 0xffff].data;
         uint8_t *nodes = *(uint8_t **)((uint8_t *)graph + 0x78);
         int32_t frame_count = *(int16_t *)(nodes + obj->animation_index * 0xb4 + 0x22);
         int32_t remaining = (frame_count - obj->animation_frame) - 2;

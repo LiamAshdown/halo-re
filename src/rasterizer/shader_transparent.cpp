@@ -6,6 +6,7 @@
 
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 
@@ -17,7 +18,6 @@ extern void shader_texture_animation_evaluate(const void *function_source, const
 extern double pow(double base, double exponent);
 extern double sin(double x);
 extern double cos(double x);
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern long lrint(double x);
 
 }  // extern "C"
@@ -396,7 +396,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
         render_device().set_vertex_shader_constant_f(0xa, constants, 3);
 
         if (console_debug_toggle_689409 != 0 && bump_map_tag != 0xffffffff) {
-            Bitmap *bitmap = (Bitmap *)tag_instances[bump_map_tag & 0xffff].data;
+            Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
             int32_t count = (int32_t)bitmap->bitmap_data.count;
 
             if (count > 0) {
@@ -411,7 +411,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
             uint32_t default_tag = *(uint32_t *)&rasterizer_globals_data->default_2d.tag_id;
 
             if (default_tag != 0xffffffff) {
-                Bitmap *bitmap = (Bitmap *)tag_instances[default_tag & 0xffff].data;
+                Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & 0xffff].data;
 
                 if (bitmap != 0 && (int32_t)bitmap->bitmap_data.count > 3) {
                     bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);
@@ -769,7 +769,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         uint32_t tag_id = *(uint32_t *)(layers + layer * 0x10 + 0xc);
 
         copy.sorted_index = -1;
-        copy.shader = (uint32_t)(uintptr_t)tag_instances[tag_id & 0xffff].data;
+        copy.shader = (uint32_t)(uintptr_t)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
         rasterizer_transparent_geometry_group_draw(&copy, attached);
     }
 
@@ -782,7 +782,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
     chimera__rasterizer_set_framebuffer_blend_function(*(int16_t *)&((struct ShaderTransparentChicago *)shader)->framebuffer_blend_function);
 
     if ((int8_t)shader[0x29] < 0 && group->lighting_extra != 0 && *(int32_t *)&((struct ShaderTransparentChicago *)shader)->maps.count > 0) {
-        const uint8_t *bitmap = (const uint8_t *)tag_instances[*(uint32_t *)(maps + 0x78) & 0xffff].data;
+        const uint8_t *bitmap = (const uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(maps + 0x78) & 0xffff].data;
         int16_t base = *(int16_t *)(bitmap + 0x60);
 
         if (shader[0x60] & 2) {
@@ -1103,7 +1103,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
         uint32_t tag_id = *(uint32_t *)(layers + layer * 0x10 + 0xc);
 
         copy.sorted_index = -1;
-        copy.shader = (uint32_t)(uintptr_t)tag_instances[tag_id & 0xffff].data;
+        copy.shader = (uint32_t)(uintptr_t)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
         rasterizer_transparent_geometry_group_draw(&copy, attached);
     }
 
@@ -1117,7 +1117,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
 
     if ((int8_t)shader[0x29] < 0 && group->lighting_extra != 0 && *(int32_t *)&((struct ShaderTransparentChicagoExtended *)shader)->maps_4_stage.count > 0) {
         const uint8_t *maps_4_stage = (const uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_4_stage.pointer;
-        const uint8_t *bitmap = (const uint8_t *)tag_instances[*(uint32_t *)(maps_4_stage + 0x78) & 0xffff].data;
+        const uint8_t *bitmap = (const uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(maps_4_stage + 0x78) & 0xffff].data;
         int16_t base = *(int16_t *)(bitmap + 0x60);
 
         if (shader[0x6c] & 2) {
@@ -2226,7 +2226,7 @@ static void set_linear_clamped_stage(uint32_t stage)
 
 static void bind_ripple_bitmap(uint32_t stage, uint8_t *bitmap)
 {
-    texture_cache_get((BitmapData *)bitmap, 1, 1);
+    halo::cache::texture_cache_get((BitmapData *)bitmap, 1, 1);
     render_device().set_texture(stage, ((struct BitmapData *)bitmap)->hardware_texture);
     rasterizer_bound_bitmap_size_a[0] = *(int16_t *)&((struct BitmapData *)bitmap)->width;
     rasterizer_bound_bitmap_size_a[1] = *(int16_t *)&((struct BitmapData *)bitmap)->height;
@@ -2371,7 +2371,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
                 uint8_t bound = 0;
 
                 if (console_debug_toggle_689409 != 0 && ripple_bitmap != k_datum_index_none) {
-                    uint8_t *bitmap_tag = (uint8_t *)tag_instances[ripple_bitmap & 0xffff].data;
+                    uint8_t *bitmap_tag = (uint8_t *)halo::cache::globals().tag_instances[ripple_bitmap & 0xffff].data;
                     int32_t bitmap_count = *(int32_t *)(bitmap_tag + 0x60);
 
                     if (bitmap_count > 0) {
@@ -2391,7 +2391,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
                     datum_index fallback = *(datum_index *)((uint8_t *)rasterizer_globals_data + 0xb8);
 
                     if (fallback != k_datum_index_none) {
-                        uint8_t *bitmap_tag = (uint8_t *)tag_instances[fallback & 0xffff].data;
+                        uint8_t *bitmap_tag = (uint8_t *)halo::cache::globals().tag_instances[fallback & 0xffff].data;
 
                         if (bitmap_tag != 0 && *(int32_t *)(bitmap_tag + 0x60) > 3) {
                             bind_ripple_bitmap((uint32_t)stage, *(uint8_t **)(bitmap_tag + 0x64) + 0x90);

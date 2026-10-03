@@ -1,12 +1,12 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *particle_system_data;
 extern data_array *particle_system_particle_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern void (*particle_system_update_physics_table[2])(particle_system *self, float delta_time);
 extern void (*particle_update_physics_table[1])(particle_system *self, int32_t type_index, float delta_time, particle_system_particle *particle);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
@@ -31,7 +31,7 @@ void particle_system_ref::update(float delta_time)
 {
     datum_index handle = datum;
     particle_system *self = &((particle_system *)particle_system_data->data)[handle & 0xffff];
-    ParticleSystem *definition = (ParticleSystem *)tag_instances[self->definition_index & 0xffff].data;
+    ParticleSystem *definition = (ParticleSystem *)halo::cache::globals().tag_instances[self->definition_index & 0xffff].data;
     int32_t type_index;
     int32_t types_alive = 0;
 

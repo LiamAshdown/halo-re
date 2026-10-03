@@ -18,6 +18,7 @@
 #include "halo/game/game1_ctf.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -36,7 +37,6 @@ extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1,
 extern data_array *player_data;
 extern int32_t ctf_team_flag_touch_count[2];
 extern wchar_t empty_string;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
@@ -44,7 +44,6 @@ extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern int32_t ctf_flag_auto_return_ticks;
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t count, wchar_t *dest);
 extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
-extern tag_instance *tag_instances;
 extern uint16_t missing_string_text[];
 extern Globals *global_globals;
 extern int16_t network_game_mode;
@@ -189,7 +188,7 @@ void Ctf::broadcast_state(void *request_fields, int32_t machine_index)
  */
 const uint16_t *Ctf::game_text(int16_t index)
 {
-    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : text_string_list_get_string(tag_id, index);
 }
@@ -266,13 +265,13 @@ wchar_t *Ctf::build_player_text(datum_index player, wchar_t *buffer)
  */
 uint16_t *Ctf::multiplayer_text(int16_t index)
 {
-    datum_index list = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index list = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     if (list == 0xffffffff) {
         return (uint16_t *)L"";
     }
     {
-        uint8_t *strings = (uint8_t *)tag_instances[list & 0xffff].data;
+        uint8_t *strings = (uint8_t *)halo::cache::globals().tag_instances[list & 0xffff].data;
 
         if (*(int32_t *)strings > index) {
             uint8_t *element = *(uint8_t **)(strings + 4) + index * 0x14;
@@ -337,7 +336,7 @@ datum_index Ctf::create_flag_object(real_point3d *position, uint16_t name_index)
 
     role = 3;
     if (network_game_mode == 2) {
-        int16_t object_type = *(int16_t *)tag_instances[(uint32_t)placement.definition_tag & 0xffff].data;
+        int16_t object_type = *(int16_t *)halo::cache::globals().tag_instances[(uint32_t)placement.definition_tag & 0xffff].data;
         if (object_type_definitions[object_type]->network_delta_message_type != -1) {
             role = 0;
         }
@@ -979,7 +978,7 @@ uint8_t Ctf::unit_weapon_must_be_readied(datum_index unit_handle)
     }
 
     unit_obj = ((object_header *)object_data->data)[unit_handle & 0xffff].data;
-    weapon_tag = (Weapon *)tag_instances[unit_obj->definition_tag & 0xffff].data;
+    weapon_tag = (Weapon *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
     return (uint8_t)((weapon_tag->weapon_flags >> 3) & 1);
 }
 

@@ -5,6 +5,7 @@
 #include "projectiles.h"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -15,7 +16,6 @@ extern double fcos(double x);
 extern double fsin(double x);
 extern double sqrt(double x);
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
@@ -214,7 +214,7 @@ void UnitView::get_camera_position(real_point3d *out)
 
     if (unit_obj->parent_object == k_datum_index_none) {
         if (((unit_obj->vitality_flags & _object_health_frozen_bit) == 0) && (unit_obj->type == _object_type_biped)) {
-            Biped *biped_tag = (Biped *)tag_instances[unit_obj->definition_tag & 0xffff].data;
+            Biped *biped_tag = (Biped *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
             object_get_position(out, unit_index);
             biped_data *biped = (biped_data *)((uint8_t *)unit_obj + k_unit_object_size);
             float height = biped->crouch_fraction;
@@ -233,7 +233,7 @@ void UnitView::get_camera_position(real_point3d *out)
             object_get_node_local_transform(unit_index, (char *)"head", &marker, 1);
         } else {
             object *gunner = ((object_header *)object_data->data)[unit->gunner_unit_index & 0xffff].data;
-            Unit *unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
+            Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
             UnitSeat *seat = (UnitSeat *)unit_tag->seats.pointer +
                 ((unit_data *)((uint8_t *)gunner + k_unit_data_offset))->vehicle_seat_index;
             object_get_node_local_transform(unit_index, seat->marker_name.string, &marker, 1);
@@ -251,7 +251,7 @@ void UnitView::get_camera_position(real_point3d *out)
         if (unit->vehicle_seat_index == -1) {
             return;
         }
-        parent_tag = (Unit *)tag_instances[parent->definition_tag & 0xffff].data;
+        parent_tag = (Unit *)halo::cache::globals().tag_instances[parent->definition_tag & 0xffff].data;
         seat = (UnitSeat *)parent_tag->seats.pointer + unit->vehicle_seat_index;
         if (parent->type == _object_type_vehicle && seat->camera_marker_name.string[0] == '\0') {
             return;
@@ -274,7 +274,7 @@ void UnitView::get_look_origin_and_direction(uint32_t *out_autoaim_width, real_v
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     real_matrix4x3 *nodes = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset);
 
     if (tag->pelvis_model_node_index != 0xffff && tag->head_model_node_index != 0xffff) {
@@ -414,7 +414,7 @@ int32_t UnitView::predict_aim_target_position(real_point3d *out_position)
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
+    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     real_point3d base_position;
     real_vector3d delta;
     char hit;
@@ -496,7 +496,7 @@ uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vec
 
             {
                 object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-                void *tag_data = tag_instances[obj->definition_tag & 0xffff].data;
+                void *tag_data = halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
                 uint8_t working_copy[0x550];
                 object *copy = (object *)working_copy;
                 unit_data *copy_unit = (unit_data *)(working_copy + 0x1f4);
@@ -730,7 +730,7 @@ void UnitView::set_facing_from_index_table()
     }
 
     obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     facing_index = *(int16_t *)((uint8_t *)obj + 0x5b0);
 
     object_reset_velocity_and_wake(object_index);
@@ -845,12 +845,12 @@ void UnitView::update_look_delta_controls()
         forward = obj->forward;
         up = obj->up;
         {
-            Unit *tag = (Unit *)tag_instances[obj->definition_tag & 0xffff].data;
+            Unit *tag = (Unit *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
             scale = (real_vector3d *)((uint8_t *)tag + 0x200);
         }
     } else {
         object *parent = ((object_header *)object_data->data)[obj->parent_object & 0xffff].data;
-        Unit *parent_tag = (Unit *)tag_instances[parent->definition_tag & 0xffff].data;
+        Unit *parent_tag = (Unit *)halo::cache::globals().tag_instances[parent->definition_tag & 0xffff].data;
         UnitSeat *seat = (UnitSeat *)((uint8_t *)*(uint8_t **)&((struct Unit *)parent_tag)->seats.pointer +
                                        unit->vehicle_seat_index * sizeof(UnitSeat));
         object_marker marker;
@@ -994,7 +994,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     using namespace unit_update_stance_and_jump_local;
     uint32_t unit_index = datum_handle;
     uint8_t *obj = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
-    uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     uint8_t forced = force_ready;
     uint8_t soft_ping;
     uint8_t hard_ping;
@@ -1046,7 +1046,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         return;
     }
     graph_tag = *(datum_index *)&((struct Object *)unit_tag)->animation_graph.tag_id;
-    graph = (uint8_t *)tag_instances[graph_tag & 0xffff].data;
+    graph = (uint8_t *)halo::cache::globals().tag_instances[graph_tag & 0xffff].data;
 
     if (!hard_ping && !forced) {
         if (OBJECT_I16(obj, 0x2b2) != -1 && OBJECT_I16(obj, 0x2b4) <= OBJECT_I16(unit_tag, 0x2c8)) {

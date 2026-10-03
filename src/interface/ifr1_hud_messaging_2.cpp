@@ -1,10 +1,10 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
 #include <string.h>
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t *hud_messaging;
-extern tag_instance *tag_instances;
 extern data_array *player_data;
 extern int16_t network_game_mode;
 extern int8_t message_delta_decode_compound_field(void *message, hud_item_message *out_payload);
@@ -71,7 +71,7 @@ void HudMessaging::receive_item_message(void **message)
     }
 
     hud_add_item_message(p->local_player_index, payload.item_definition, payload.kind, payload.count);
-    item_tag = (int16_t *)tag_instances[payload.item_definition & 0xffff].data;
+    item_tag = (int16_t *)halo::cache::globals().tag_instances[payload.item_definition & 0xffff].data;
     if (item_tag[0] == 3) {
         switch (*(int16_t *)((uint8_t *)item_tag + 0x308)) {
         case 2:

@@ -1,6 +1,7 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -21,7 +22,6 @@ extern datum_index sound_start_at_location(datum_index definition_index, sound_p
 extern const ColorRGB *global_white_color;
 extern data_array *effect_location_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern const real_vector3d *global_down3d_pointer;
 extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
 extern real_matrix4x3 *effect_resolve_marker_transform(effect *self, int16_t marker);
@@ -237,7 +237,7 @@ void effect_view::set_placement(const ColorRGB *color, const effect_tint_source 
 void effect_view::change_color_evaluate()
 {
     effect * self = record;
-    Effect *tag = (Effect *)tag_instances[(uint16_t)self->definition_index].data;
+    Effect *tag = (Effect *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
     EffectEvent *event = &((EffectEvent *)tag->events.pointer)[self->event_index];
     EffectPart *parts = (EffectPart *)event->parts.pointer;
     int32_t part_index;

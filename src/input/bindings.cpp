@@ -17,6 +17,7 @@
 #include <string.h>
 
 #include "halo/input/bindings.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" { extern uint8_t game_engine_teams_enabled_flag; }
 extern "C" { extern uint8_t g_control_binding_state; }
@@ -411,8 +412,6 @@ uint8_t Bindings::apply_control_binding(control_binding_descriptor *binding, int
 
 }
 
-extern "C" { extern tag_instance *tag_instances; }
-extern "C" { extern datum_index tag_iterator_next(tag_iterator *iterator); }
 extern "C" { extern uint32_t saved_game_create_default_profile(uint16_t *name); }
 extern "C" { extern uint8_t player_profile_get(int32_t index, saved_player_profile *out_buffer); }
 extern "C" { extern uint8_t input_profile_copy_bindings_by_device(int32_t category, saved_player_profile *dst, saved_player_profile *src); }
@@ -439,19 +438,19 @@ void Bindings::apply_named_device_default_profile(uint16_t *device_name)
     iterator.next_index = -1;
     iterator.group_tag = (tag_group)0x64657663;
 
-    tag_id = tag_iterator_next(&iterator);
+    tag_id = halo::cache::tag_iterator_next(&iterator);
     if (tag_id == (datum_index)0xffffffff) {
         return;
     }
 
     for (;;) {
-        defaults = (InputDeviceDefaults *)tag_instances[(uint16_t)tag_id].data;
+        defaults = (InputDeviceDefaults *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         tag_profile_name = (uint16_t *)(defaults->profile.pointer + 2);
         if (defaults->device_type == inputdevicedefaultsdevicetype_full_profile_definition &&
             _wcsicmp((const wchar_t *)device_name, (const wchar_t *)tag_profile_name) == 0) {
             break;
         }
-        tag_id = tag_iterator_next(&iterator);
+        tag_id = halo::cache::tag_iterator_next(&iterator);
         if (tag_id == (datum_index)0xffffffff) {
             return;
         }
@@ -621,9 +620,9 @@ uint32_t Bindings::device_default_profile_tag_find(input_guid device_guid, void 
     iterator.next_index = -1;
     iterator.group_tag = (tag_group)0x64657663;
 
-    tag_id = tag_iterator_next(&iterator);
+    tag_id = halo::cache::tag_iterator_next(&iterator);
     while (tag_id != (datum_index)0xffffffff) {
-        defaults = (InputDeviceDefaults *)tag_instances[(uint16_t)tag_id].data;
+        defaults = (InputDeviceDefaults *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (defaults->device_type == inputdevicedefaultsdevicetype_mouse_and_keyboard ||
             defaults->device_type == inputdevicedefaultsdevicetype_joysticks_gamepads_etc) {
             if (memcmp(&device_guid, (void *)defaults->device_id.pointer, sizeof(input_guid)) == 0) {
@@ -631,7 +630,7 @@ uint32_t Bindings::device_default_profile_tag_find(input_guid device_guid, void 
                 return (uint32_t)tag_id;
             }
         }
-        tag_id = tag_iterator_next(&iterator);
+        tag_id = halo::cache::tag_iterator_next(&iterator);
     }
     return 0xffffffff;
 }

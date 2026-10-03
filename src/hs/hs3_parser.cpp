@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern char hs_parse_primitive(datum_index node_index);
@@ -21,7 +22,6 @@ extern char hs_parse(datum_index node_index, hs_type_t expected_type);
 extern char hs_compile_error_buffer[0x100];
 extern datum_index hs_parse_cond_recursive(datum_index cond_node_index, datum_index pair_index);
 extern char hs_compile_error_buffer[k_hs_error_buffer_size];
-extern tag_instance *tag_instances;
 extern char hs_get_parameter_indices(char *function_name, int16_t required_count, datum_index node_index,
     datum_index *out_indices);
 extern Globals *global_globals;
@@ -472,7 +472,7 @@ char Parser::parse_hud_message(datum_index node_index) const
         return 0;
     }
     return hs_parse_scenario_datum(node_index, 0,
-        (TagReflexive *)((uint8_t *)tag_instances[hud_messages & 0xffff].data + 0x20), 0x40);
+        (TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_messages & 0xffff].data + 0x20), 0x40);
 }
 
 /**
@@ -651,7 +651,7 @@ char Parser::parse_navpoint(datum_index node_index) const
         return 0;
     }
     return hs_parse_scenario_datum(node_index, 0,
-        (TagReflexive *)((uint8_t *)tag_instances[hud_globals & 0xffff].data + 0x160), 0x68);
+        (TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_globals & 0xffff].data + 0x160), 0x68);
 }
 
 /**

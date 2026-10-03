@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <wchar.h>
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t chat_dialog_open;
@@ -23,7 +24,6 @@ extern void *shell_module_handle;
 extern wchar_t empty_string;
 extern uint8_t message_delta_decode_compound_field(void *event, chat_incoming_record *out_record);
 extern void message_delta_decode_compound_field_staged(void *event);
-extern datum_index tag_lookup(tag_group group, char *path);
 extern wchar_t *text_string_list_get_string(datum_index tag, int16_t index);
 extern wchar_t *string_format_wide_va(wchar_t *dest, const wchar_t *format, ...);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
@@ -49,7 +49,7 @@ extern char network_channel_stream_flush(network_channel_stream *stream, network
 
 static const wchar_t *chat_prefix_format(int16_t string_index)
 {
-    datum_index tag = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
     if (tag == (datum_index)-1) {
         return &empty_string;
     }

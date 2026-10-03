@@ -1,10 +1,10 @@
 #include "halo/objects/widgets.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern data_array *widget_data;
 extern widget_type_definition widget_type_definitions[k_maximum_widget_types];
 }
@@ -79,7 +79,7 @@ void halo::objects::WidgetSystem::dispose_clear_flag()
 void halo::objects::WidgetSystem::create(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     int32_t i;
 
     obj->first_widget = (datum_index)0xffffffff;

@@ -6,17 +6,16 @@
 
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias);
 extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed);
 extern ScenarioStructureBSP *global_structure_bsp;
-extern tag_instance *tag_instances;
 extern render_lighting object_lighting_default;
 extern real_vector3d object_lightmap_probe_direction[1];
 extern real_vector3d object_lighting_probe_sideways[4];
 extern BitmapData *bitmap_group_get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index);
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern void bsp_compressed_rendered_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedRenderedVertex *vertex,
     real_vector3d *out);
 extern void bsp_compressed_lightmap_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedLightmapVertex *vertex,
@@ -167,7 +166,7 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
     bsp = global_structure_bsp;
     lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
     material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
-    shader = (uint8_t *)tag_instances[*(uint32_t *)&material->shader.tag_id & 0xffff].data;
+    shader = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&material->shader.tag_id & 0xffff].data;
 
     if (*(int16_t *)&((struct Shader *)shader)->shader_type != 3 ||
         *(int32_t *)&bsp->lightmaps_bitmap.tag_id == -1 ||
@@ -179,11 +178,11 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
     triangle = (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
     lightmap_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
         (int16_t)lightmap->bitmap);
-    base_map_tag = (uint8_t *)tag_instances[*(uint32_t *)(shader + 0x94) & 0xffff].data;
+    base_map_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(shader + 0x94) & 0xffff].data;
     base_map_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)(shader + 0x94),
         (int16_t)((int32_t)(int16_t)material->shader_permutation % *(int32_t *)(base_map_tag + 0x60)));
     if (lightmap_bitmap == 0 || base_map_bitmap == 0 ||
-        texture_cache_get(lightmap_bitmap, 1, 1) == 0 || texture_cache_get(base_map_bitmap, 1, 1) == 0) {
+        halo::cache::texture_cache_get(lightmap_bitmap, 1, 1) == 0 || halo::cache::texture_cache_get(base_map_bitmap, 1, 1) == 0) {
         return 0;
     }
 
@@ -237,7 +236,7 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
 void bsp_lighting::lightmap_uv_rect_build(int16_t sequence_index, int16_t sprite_index, real scale, real *out_extent, real *out_sprite_rect, const Decal *decal_definition)
 {
     const Bitmap *bitmap =
-        (const Bitmap *)tag_instances[*(const uint16_t *)&decal_definition->map.tag_id].data;
+        (const Bitmap *)halo::cache::globals().tag_instances[*(const uint16_t *)&decal_definition->map.tag_id].data;
     const BitmapGroupSequence *sequence =
         &((const BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer)[sequence_index];
     const BitmapGroupSprite *sprite = &((const BitmapGroupSprite *)sequence->sprites.pointer)[sprite_index];

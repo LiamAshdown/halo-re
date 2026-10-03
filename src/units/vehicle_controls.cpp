@@ -2,10 +2,10 @@
 #include "halo/units/unit.hpp"
 #include "projectiles.h"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame, real_orientation *out_orientations);
 extern void animation_aiming_screen_blend(ModelAnimationsAnimation *animation, animation_aiming_screen *screen, real yaw, real pitch, real_orientation *orientation_out);
 extern double fabs(double x);
@@ -55,7 +55,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
     using namespace vehicle_blend_animations_local;
     datum_index object_index = datum_handle;
     uint8_t *obj = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
-    uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     datum_index graph_tag = *(datum_index *)&((struct Object *)vehicle_tag)->animation_graph.tag_id;
     uint8_t *graph;
     uint8_t *entry;
@@ -67,7 +67,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
     if (graph_tag == k_datum_index_none) {
         return;
     }
-    graph = (uint8_t *)tag_instances[graph_tag & 0xffff].data;
+    graph = (uint8_t *)halo::cache::globals().tag_instances[graph_tag & 0xffff].data;
     if (*(int32_t *)&((ModelAnimations *)graph)->vehicles.count == 0) {
         return;
     }
@@ -144,7 +144,7 @@ void VehicleView::calculate_animation_controls()
 {
     uint32_t unit_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[*(uint32_t *)obj & 0xffff].data;
+    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[*(uint32_t *)obj & 0xffff].data;
     real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
     real_vector3d *forward = (real_vector3d *)(obj + 0x74);
     real_vector3d *up = (real_vector3d *)(obj + 0x80);
@@ -307,8 +307,8 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
 {
     uint32_t unit_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *physics = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     uint8_t *powered = (uint8_t *)out_record;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real mass = *(real *)(physics + 0x8);
@@ -419,8 +419,8 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
 {
     uint32_t unit_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *physics = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     uint8_t *powered = (uint8_t *)out_record;
     real max_speed = *(real *)(tag + 0x2f8);
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
@@ -505,8 +505,8 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
 {
     uint32_t unit_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *physics = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     uint16_t flags = ((struct vehicle_object *)obj)->vehicle.flags;
     real max_speed = *(real *)(tag + 0x2f8);
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
@@ -617,8 +617,8 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
 {
     uint32_t unit_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *physics = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
     real_vector3d *forward = (real_vector3d *)(obj + 0x74);
     real_vector3d *up = (real_vector3d *)(obj + 0x80);
@@ -708,8 +708,8 @@ void VehicleView::calculate_mounted_controls_dispatch(void *out_transform, void 
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
-    uint8_t *physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
 
     if (*(float *)physics_tag > 0.0f) {
         VehicleView(unit_index).calculate_ground_contact_lean_alt(out_record, out_transform);
@@ -731,7 +731,7 @@ void VehicleView::create_hover_thruster_effects()
 {
     uint32_t unit_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     uint8_t markers[16 * 0x6c];
     int16_t hover_count;
     int16_t total;
@@ -796,7 +796,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
 {
     uint32_t unit_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     uint8_t markers[15 * 0x6c];
     int16_t count;
     int16_t i;

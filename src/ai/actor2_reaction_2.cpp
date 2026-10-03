@@ -1,12 +1,12 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_react_to_disturbance_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 #define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -31,7 +31,7 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
 {
     using namespace actor_react_to_disturbance_local;
     uint8_t *actor = ACTOR(actor_index);
-    uint8_t *definition = (uint8_t *)tag_instances[D(0x5c) & 0xffff].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[D(0x5c) & 0xffff].data;
     real_vector2d direction;
     int16_t action = 4;
     datum_index object = k_datum_index_none;

@@ -6,13 +6,13 @@
 
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 
 extern uint32_t bitmap_data_calculate_mip_level_pixel_count(BitmapData *bitmap, int32_t mip_level);
 extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index);
 extern int32_t fistp_round(float x);
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern void dxt1_decode_block_texel(void *out, void *block, int32_t x, int32_t y);
 extern void dxt3_decode_alpha_texel(int32_t x, int32_t y, void *texel_out, void *block);
 extern void dxt5_decode_alpha_texel(void *block, void *texel_out, int32_t x, int32_t y);
@@ -192,7 +192,7 @@ static BitmapData *rasterizer_default_bitmap(int16_t bitmap_type, int16_t defaul
     if (tag == 0xffffffff) {
         return 0;
     }
-    bitmap = (Bitmap *)tag_instances[tag & 0xffff].data;
+    bitmap = (Bitmap *)halo::cache::globals().tag_instances[tag & 0xffff].data;
     if (bitmap == 0 || default_index < 0 || default_index >= (int32_t)bitmap->bitmap_data.count) {
         return 0;
     }
@@ -209,7 +209,7 @@ static BitmapData *rasterizer_tag_bitmap(uint32_t bitmap_tag_id, int16_t bitmap_
     if ((console_debug_toggle_689409 == 0 && default_index == 3) || bitmap_tag_id == 0xffffffff) {
         return 0;
     }
-    bitmap = (Bitmap *)tag_instances[bitmap_tag_id & 0xffff].data;
+    bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag_id & 0xffff].data;
     count = (int32_t)bitmap->bitmap_data.count;
     if (count <= 0) {
         return 0;
@@ -245,7 +245,7 @@ int16_t * chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage,
 
 static BitmapData *bitmap_group_frame(uint32_t bitmap_tag_id, int16_t frame)
 {
-    Bitmap *bitmap = (Bitmap *)tag_instances[bitmap_tag_id & 0xffff].data;
+    Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag_id & 0xffff].data;
     int32_t count = (int32_t)bitmap->bitmap_data.count;
     int16_t index;
 
@@ -334,7 +334,7 @@ uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap)
     if (bitmap == 0) {
         return 0;
     }
-    texture_cache_get(bitmap, 1, 1);
+    halo::cache::texture_cache_get(bitmap, 1, 1);
     if (render_device().set_texture((uint32_t)(int32_t)stage, *(void **)&((struct BitmapData *)bitmap)->hardware_texture) < 0) {
         return 0;
     }
@@ -359,7 +359,7 @@ uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasteriz
     if (bitmap == 0) {
         return 0;
     }
-    texture_cache_get(bitmap, 1, 1);
+    halo::cache::texture_cache_get(bitmap, 1, 1);
     effect = (void *)effect_slot->effect;
     render_device().effect_set_texture(effect, effect_slot->texture_handles[stage], *(void **)&((struct BitmapData *)bitmap)->hardware_texture);
     return 1;
@@ -968,7 +968,7 @@ uint8_t rasterizer_resolve_and_cache_submap_c(uint32_t bitmap_tag_id, int16_t bi
     BitmapData *data = rasterizer_tag_bitmap(bitmap_tag_id, bitmap_type, default_index, frame, &resolved);
 
     if (resolved) {
-        if (texture_cache_get(data, 0, 1) == 0) {
+        if (halo::cache::texture_cache_get(data, 0, 1) == 0) {
             return 1;
         }
     }
@@ -1029,7 +1029,7 @@ uint8_t rasterizer_validate_and_rebind_texture(uint32_t bitmap_tag_id, int16_t s
     if (data == 0) {
         return 0;
     }
-    if (texture_cache_get(data, 0, 1) == 0) {
+    if (halo::cache::texture_cache_get(data, 0, 1) == 0) {
         return 1;
     }
     rasterizer_bind_texture_d3d9(stage, data);

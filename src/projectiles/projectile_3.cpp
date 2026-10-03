@@ -1,9 +1,9 @@
 #include "halo/projectiles/projectile.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern real_vector3d *global_down3d_pointer;
 extern real_point3d *global_origin3d_pointer;
 extern char *projectile_effect_coordinate_system_names[5];
@@ -45,7 +45,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
     datum_index projectile_index = (datum_index)handle;
 
     object *obj = ((object_header *)object_data->data)[projectile_index & 0xffff].data;
-    Projectile *tag = (Projectile *)tag_instances[obj->definition_tag & 0xffff].data;
+    Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     projectile_data *pd = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
 
     int16_t new_material_index = hit->material_type; 

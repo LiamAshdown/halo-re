@@ -3,10 +3,10 @@
 #include "physics.h"
 #include "projectiles.h"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern data_array *player_data;
 extern real_point3d *global_origin3d_pointer;
 extern Globals *global_globals;
@@ -52,7 +52,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
     uint32_t object_index = datum_handle;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     biped_movement_solver_data solve;
     GlobalsPlayerInformation player_info_copy;
@@ -137,7 +137,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
          (tag->biped_flags & 0x00000004) == 0) &&
         (unit->animation_state_flags & _unit_animation_flag_unknown_4) == 0) {
         ModelAnimationsAnimation *animation =
-            (ModelAnimationsAnimation *)((uint8_t *)*(void **)((uint8_t *)tag_instances[obj->animation_graph & 0xffff].data + 0x78) +
+            (ModelAnimationsAnimation *)((uint8_t *)*(void **)((uint8_t *)halo::cache::globals().tag_instances[obj->animation_graph & 0xffff].data + 0x78) +
                                          obj->animation_index * 0xb4);
         float *frame_info = (float *)(uint8_t *)animation->frame_info.pointer;
 
@@ -447,7 +447,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     biped_movement_solver_data solve;
     GlobalsPlayerInformation player_info_copy;
@@ -533,7 +533,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
          (tag->biped_flags & 0x00000004) == 0) &&
         (unit->animation_state_flags & _unit_animation_flag_unknown_4) == 0) {
         ModelAnimationsAnimation *animation =
-            (ModelAnimationsAnimation *)(*(uint8_t **)((uint8_t *)tag_instances[obj->animation_graph & 0xffff].data + 0x78) +
+            (ModelAnimationsAnimation *)(*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[obj->animation_graph & 0xffff].data + 0x78) +
                                          obj->animation_index * 0xb4);
         float *frame_info = (float *)(uint8_t *)animation->frame_info.pointer;
 
@@ -1362,7 +1362,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                 }
             }
             if (header != 0 && (int8_t)(1 << (header->type & 0x1f)) < 0 && header->data != 0) {
-                uint8_t *tag = (uint8_t *)tag_instances[header->data->definition_tag & 0xffff].data;
+                uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[header->data->definition_tag & 0xffff].data;
                 if ((tag[0x292] & 4) != 0 && *(int16_t *)(tag + 0x2ea) != -1) {
                     solve->result_surface_index = object_index;
                 }
@@ -1384,7 +1384,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
             unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
             if (unit->controlling_player != 0xffffffff) {
-                Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+                Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
                 if ((tag->biped_flags & 0x18) == 0) {
                     float half_height = tag->standing_collision_height * 0.5f;
                     uint32_t query_flags = (flags & 0x80) != 0 ? 0xc0a0 : 0x20c3a0;

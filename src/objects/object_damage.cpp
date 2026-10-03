@@ -8,6 +8,7 @@
 #include "projectiles.h"
 #include <stdint.h>
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
@@ -80,7 +81,6 @@ extern data_array *player_data;
 extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd, const real_vector3d *direction, float random_blend, float damage_amount);
 extern void player_effect_send_network_update(datum_index player_handle, const real_vector3d *direction, const damage_data *dd, float random_blend, float damage_amount);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
-extern tag_instance *tag_instances;
 extern uint8_t *team_pair_data;
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index);
@@ -108,11 +108,11 @@ void halo::objects::ObjectDamage::initialize_shield_stun_thresholds(float *overr
     object *obj = headers[object_index & 0xffff].data;
     float max_body_vitality = 0.0f;
     float max_shield_vitality = 0.0f;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     TagID collision_model = definition->collision_model.tag_id;
 
     if (collision_model.index != 0xffff) {
-        ModelCollisionGeometry *geometry = (ModelCollisionGeometry *)tag_instances[collision_model.index].data;
+        ModelCollisionGeometry *geometry = (ModelCollisionGeometry *)halo::cache::globals().tag_instances[collision_model.index].data;
         if (geometry != 0) {
             max_body_vitality = geometry->maximum_body_vitality;
             max_shield_vitality = geometry->maximum_shield_vitality;
@@ -171,12 +171,12 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
 {
     uint32_t object_index = handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *object_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     uint16_t *vitality_flags = (uint16_t *)(obj + 0x106);
     float *shield = (float *)(obj + 0xe4);
 
     if (*(datum_index *)&((struct Object *)object_tag)->collision_model.tag_id != k_datum_index_none) {
-        uint8_t *geometry = (uint8_t *)tag_instances[*(datum_index *)&((struct Object *)object_tag)->collision_model.tag_id & 0xffff].data;
+        uint8_t *geometry = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Object *)object_tag)->collision_model.tag_id & 0xffff].data;
 
         if (geometry != 0) {
             uint16_t flags = *vitality_flags;
@@ -337,10 +337,10 @@ void halo::objects::ObjectDamage::set_health_frozen_flag()
 
     obj->vitality_flags |= _object_health_frozen_bit;
 
-    if (((Object *)tag_instances[obj->definition_tag & 0xffff].data)->collision_model.tag_id.index != 0xffff) {
+    if (((Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data)->collision_model.tag_id.index != 0xffff) {
 
         effect_new_on_object(object_index,
-            *(datum_index *)((uint8_t *)tag_instances[((Object *)tag_instances[obj->definition_tag & 0xffff].data)
+            *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[((Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data)
                 ->collision_model.tag_id.index].data + 0xb4),
             object_index, -1, 0.0f, 0.0f, 0, 0);
     }
@@ -381,12 +381,12 @@ void halo::objects::ObjectDamage::set_shield_depleted_flag()
     }
 
     {
-        datum_index collision_model = *(datum_index *)&((Object *)tag_instances[obj->definition_tag & 0xffff].data)->collision_model.tag_id;
+        datum_index collision_model = *(datum_index *)&((Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data)->collision_model.tag_id;
 
         if (collision_model != k_datum_index_none) {
 
             effect_new_on_object(object_index,
-                *(datum_index *)((uint8_t *)tag_instances[collision_model & 0xffff].data + 0x1a4),
+                *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[collision_model & 0xffff].data + 0x1a4),
                 object_index, -1, 0.0f, 0.0f, 0, 0);
         }
     }
@@ -435,7 +435,7 @@ void halo::objects::DamageDataView::apply_area_effect()
 {
     damage_data *dd = self;
     datum_index candidates[k_maximum_damage_candidates + 1];
-    DamageEffect *effect = (DamageEffect *)tag_instances[dd->damage_effect_tag & 0xffff].data;
+    DamageEffect *effect = (DamageEffect *)halo::cache::globals().tag_instances[dd->damage_effect_tag & 0xffff].data;
     int16_t found = (int16_t)object_find_in_sphere(0, 0, &dd->location_leaf_index, &dd->epicentre,
         effect->radius[1], candidates, k_maximum_damage_candidates);
 
@@ -451,7 +451,7 @@ void halo::objects::DamageDataView::apply_area_effect()
 
 namespace {
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 
 /**
@@ -685,7 +685,7 @@ static uint8_t *object_get(datum_index object_index)
 
 static uint8_t *tag_get(datum_index tag_index)
 {
-    return (uint8_t *)tag_instances[tag_index & 0xffff].data;
+    return (uint8_t *)halo::cache::globals().tag_instances[tag_index & 0xffff].data;
 }
 
 static uint8_t teams_are_friends(int32_t bit)
@@ -1451,8 +1451,8 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
 {
     uint32_t target_index = handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[target_index & 0xffff].data;
-    uint8_t *object_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *effect = (uint8_t *)tag_instances[dd->damage_effect_tag & 0xffff].data;
+    uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *effect = (uint8_t *)halo::cache::globals().tag_instances[dd->damage_effect_tag & 0xffff].data;
     int16_t type;
 
     if (((struct Object *)object_tag)->acceleration_scale > 0.0001f) {
@@ -1645,12 +1645,12 @@ void halo::objects::ObjectDamage::destroy_region(int32_t region_index)
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
     object *obj = headers[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if (definition->collision_model.tag_id.index != 0xffff) {
         if ((obj->destroyed_region_flags & (1 << (region_index & 0x1f))) == 0) {
             ModelCollisionGeometry *geometry =
-                (ModelCollisionGeometry *)tag_instances[definition->collision_model.tag_id.index].data;
+                (ModelCollisionGeometry *)halo::cache::globals().tag_instances[definition->collision_model.tag_id.index].data;
             ModelCollisionGeometryRegion *region = &((ModelCollisionGeometryRegion *)geometry->regions.pointer)[region_index];
 
             effect_new_on_object(object_index, *(datum_index *)&((struct ModelCollisionGeometryRegion *)region)->destroyed_effect.tag_id, object_index, -1,

@@ -3,6 +3,7 @@
 #include "sound.h"
 #include <string.h>
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -10,7 +11,6 @@
 
 extern "C" {
 extern heap *widget_memory_pool;
-extern tag_instance *tag_instances;
 extern widget_instance *ui_root_widget[1];
 extern void *ui_event_function_table[0xbe];
 extern int16_t ui_pause_depth;
@@ -75,7 +75,6 @@ extern widget_instance *widget_find_by_tag_id(widget_instance *widget, datum_ind
 extern uint8_t widget_instance_is_input_eligible(widget_instance *widget);
 extern widget_instance *widget_list_get_child_by_index(widget_instance *list, int32_t index);
 extern void widget_relink_focus_by_tag_id(widget_instance *widget, datum_index child_definition);
-extern datum_index tag_lookup(tag_group group, char *path);
 extern void widget_play_sound_effect_tag(datum_index sound_tag);
 extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index, sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint);
 extern void text_clamp_byte_length_to_character_boundary(char *string, int16_t *length);
@@ -94,7 +93,7 @@ namespace halo::interface {
  */
 uint8_t WidgetView::widget_is_focus_candidate(widget_instance *candidate)
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[candidate->definition & 0xffff].data;
+    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[candidate->definition & 0xffff].data;
     return (uint8_t)(candidate->hidden == 0 &&
                       (tag->game_data_inputs.count > 0 || candidate->widget_type == 2 ||
                        candidate->widget_type == 3));
@@ -173,7 +172,7 @@ void WidgetLifecycle::close()
     }
 
     {
-        void *tag_data = tag_instances[widget->definition & 0xffff].data;
+        void *tag_data = halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
         TagReflexive *event_handlers = (TagReflexive *)((uint8_t *)tag_data + 0x54);
         int32_t i;
 
@@ -345,7 +344,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
 
     if ((tag->flags_2 & 2) != 0) {
         UnicodeStringList *list =
-            (UnicodeStringList *)tag_instances[*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id & 0xffff].data;
+            (UnicodeStringList *)halo::cache::globals().tag_instances[*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id & 0xffff].data;
 
         widget_creating_children = 1;
         for (i = 0; i < list->strings.count; i++) {
@@ -443,7 +442,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
                 }
                 {
                     UIWidgetDefinition *child_tag =
-                        (UIWidgetDefinition *)tag_instances[child->definition & 0xffff].data;
+                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & 0xffff].data;
 
                     if (child->hidden == 0 &&
                         (child_tag->event_handlers.count > 0 || child->widget_type == 2 ||
@@ -468,7 +467,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
  */
 int32_t WidgetView::cursor_side_of_midpoint()
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
     int16_t cumulative_x = 0;
     widget_instance *ancestor;
     int16_t left;
@@ -674,7 +673,7 @@ void WidgetList::extended_description_sync_selection()
         list_child = sibling->first_child;
         for (; list_child != 0; list_child = list_child->next_sibling) {
             if (list_child->widget_type == uiwidgettype_spinner_list) {
-                list_tag = (UIWidgetDefinition *)tag_instances[list_child->definition & 0xffff].data;
+                list_tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[list_child->definition & 0xffff].data;
                 if (sibling == focused) {
                     if ((list_tag->flags_2 & 4) == 0) {
                         index = index + list_child->selection_index;
@@ -756,7 +755,7 @@ void WidgetView::focus_next_child()
     }
 
     while (candidate != current) {
-        UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[candidate->definition & 0xffff].data;
+        UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[candidate->definition & 0xffff].data;
 
         if ((tag->game_data_inputs.count > 0 || (tag->flags & 1) != 0 ||
              widget->widget_type == 2 || widget->widget_type == 3) &&
@@ -815,7 +814,7 @@ void WidgetView::focus_previous_child()
             if (candidate == focused) {
                 return;
             }
-            tag = (UIWidgetDefinition *)tag_instances[candidate->definition & 0xffff].data;
+            tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[candidate->definition & 0xffff].data;
             if ((tag->game_data_inputs.count > 0 || (tag->flags & 1) != 0 ||
                  widget->widget_type == 2 || widget->widget_type == 3) &&
                 candidate->hidden == 0) {
@@ -903,7 +902,7 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
         widget->list_render_data = (void *)0;
     }
     if (*(uint32_t *)&tag->background_bitmap.tag_id != 0xffffffffu) {
-        tag_instance *bg = &tag_instances[*(uint32_t *)&tag->background_bitmap.tag_id & 0xffff];
+        tag_instance *bg = &halo::cache::globals().tag_instances[*(uint32_t *)&tag->background_bitmap.tag_id & 0xffff];
         Bitmap *bitmap = (Bitmap *)bg->data;
         BitmapGroupSequence *seq = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer;
 
@@ -928,7 +927,7 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
         widget_instance *child;
 
         for (child = widget->first_child; child != (widget_instance *)0; child = child->next_sibling) {
-            UIWidgetDefinition *child_tag = (UIWidgetDefinition *)tag_instances[child->definition & 0xffff].data;
+            UIWidgetDefinition *child_tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & 0xffff].data;
 
             if (child->hidden == 0 &&
                 (child_tag->event_handlers.count > 0 || child->widget_type == 2 || child->widget_type == 3)) {
@@ -1344,7 +1343,7 @@ dispatch_to_children:
                 if (child != (widget_instance *)0 &&
                     (child->controller_index == -1 || child->controller_index == event[1])) {
                     UIWidgetDefinition *child_tag =
-                        (UIWidgetDefinition *)tag_instances[child->definition & 0xffff].data;
+                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & 0xffff].data;
 
                     widget_instance_handle_input_event(child, child_tag, event, &handled);
                 }
@@ -1354,7 +1353,7 @@ dispatch_to_children:
                 while (child != (widget_instance *)0) {
                     if (child->controller_index == -1 || child->controller_index == event[1]) {
                         UIWidgetDefinition *child_tag =
-                            (UIWidgetDefinition *)tag_instances[child->definition & 0xffff].data;
+                            (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & 0xffff].data;
 
                         widget_instance_handle_input_event(child, child_tag, event, &handled);
                         if (handled == 1) {
@@ -1407,7 +1406,7 @@ uint8_t WidgetView::is_input_eligible()
     }
     result = 1;
     tag_source = cursor;
-    tag_data = tag_instances[cursor->definition & 0xffff].data;
+    tag_data = halo::cache::globals().tag_instances[cursor->definition & 0xffff].data;
     while (cursor != (widget_instance *)0 && result != 0) {
         UIWidgetDefinition *definition = (UIWidgetDefinition *)tag_data;
 
@@ -1418,7 +1417,7 @@ uint8_t WidgetView::is_input_eligible()
             result = 1;
         }
         cursor = cursor->parent;
-        tag_data = tag_instances[tag_source->definition & 0xffff].data;
+        tag_data = halo::cache::globals().tag_instances[tag_source->definition & 0xffff].data;
     }
     return result;
 }
@@ -1535,7 +1534,7 @@ void WidgetView::relink_focus(widget_instance *child)
  */
 void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, int32_t flag2)
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
     float scale = widget->scale;
     widget_instance *ancestor;
     int32_t i;
@@ -1728,7 +1727,7 @@ void WidgetList::select_list_index(datum_index list_definition, int32_t selectio
 
     if ((int16_t)selection < 0) {
         if (widget_instance_is_input_eligible(target) != 0) {
-            UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[target->definition & 0xffff].data;
+            UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[target->definition & 0xffff].data;
 
             if (target->widget_type != 2 || tag->child_widgets.count < 2) {
                 widget_instance_relink_focus(target, target);
@@ -1744,7 +1743,7 @@ void WidgetList::select_list_index(datum_index list_definition, int32_t selectio
             if (cursor == (widget_instance *)0) {
                 return;
             }
-            tag = (UIWidgetDefinition *)tag_instances[cursor->definition & 0xffff].data;
+            tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[cursor->definition & 0xffff].data;
             if (cursor->widget_type == 2 && tag->child_widgets.count > 1) {
                 return;
             }
@@ -1863,7 +1862,7 @@ clamp:
  */
 uint8_t WidgetList::select_next()
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
 
     if (widget->list_items != (void *)0 && widget->item_count != 0) {
         int16_t next_index = widget->selection_index + 1;
@@ -1954,7 +1953,7 @@ commit:
  */
 uint8_t WidgetList::select_previous()
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
 
     if (widget->list_items != (void *)0 && widget->item_count != 0) {
         int16_t prev_index = widget->selection_index - 1;
@@ -2037,7 +2036,7 @@ uint8_t WidgetList::select_previous()
             do {
                 if (cursor->hidden == 0) {
                     UIWidgetDefinition *cursor_tag =
-                        (UIWidgetDefinition *)tag_instances[cursor->definition & 0xffff].data;
+                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[cursor->definition & 0xffff].data;
 
                     if (cursor_tag->event_handlers.count > 0 || cursor->widget_type == 2 ||
                         cursor->widget_type == 3) {
@@ -2101,19 +2100,19 @@ void WidgetLifecycle::play_sound_effect(int16_t effect_id)
 
     switch (effect_id) {
     case 1:
-        sound_tag = tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\cursor");
+        sound_tag = halo::cache::tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\cursor");
         widget_play_sound_effect_tag(sound_tag);
         return;
     case 2:
-        sound_tag = tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\forward");
+        sound_tag = halo::cache::tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\forward");
         widget_play_sound_effect_tag(sound_tag);
         return;
     case 3:
-        sound_tag = tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\back");
+        sound_tag = halo::cache::tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\back");
         widget_play_sound_effect_tag(sound_tag);
         return;
     case 4:
-        sound_tag = tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\flag_failure");
+        sound_tag = halo::cache::tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\flag_failure");
         widget_play_sound_effect_tag(sound_tag);
         return;
     default:
@@ -2207,7 +2206,7 @@ void WidgetView::relink_focus_by_tag_id(datum_index child_definition)
  */
 widget_instance * WidgetLifecycle::reopen_as_root_with_history(datum_index open_tag)
 {
-    UIWidgetDefinition *open_definition = (UIWidgetDefinition *)tag_instances[open_tag & 0xffff].data;
+    UIWidgetDefinition *open_definition = (UIWidgetDefinition *)halo::cache::globals().tag_instances[open_tag & 0xffff].data;
     uint16_t controller_index;
     widget_instance *ancestor;
     widget_instance *root;

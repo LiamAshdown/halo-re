@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern void ai_search_heap_sift_up(ai_search_context *context, int16_t index);
@@ -16,7 +17,6 @@ extern void ai_search_compute_point_tangents(ai_search_obstacle_list *list, int1
 extern uint8_t ai_search_evaluate_edge_cost(void *context, uint8_t ignore_permission, ai_search_obstacle_list *obstacle_list, int16_t exclude_index, real_point2d *point, int32_t start_surface_index, float distance, float base_cost, uint8_t skip_direct, uint8_t apply_offset, uint8_t require_unflagged, ai_search_edge_result *out_result, real_vector2d *direction);
 extern real_point2d *ai_default_2d_direction;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location, real_point3d *center, float radius, datum_index *out_objects, int16_t max_output);
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out);
 extern uint8_t ai_search_append_obstacle(ai_search_obstacle_list *list, uint16_t flags, uint32_t object_index, real_point2d *position, float radius);
@@ -570,7 +570,7 @@ void ObstacleList::flood_fill_group(float radius, uint32_t *out_bitmask, int16_t
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 /**
  * Behaviour of ai search gather obstacles, moved unchanged from the original free function.
  *

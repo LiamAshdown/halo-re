@@ -7,6 +7,7 @@
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::sound {
 
@@ -43,7 +44,7 @@ void revert_scripting_sounds(void)
 
     while (index != k_datum_index_none) {
         game_looping_sound *self = &((game_looping_sound *)game_looping_sound_data->data)[(uint16_t)index];
-        SoundLooping *definition = (SoundLooping *)tag_instances[self->definition_index & 0xffff].data;
+        SoundLooping *definition = (SoundLooping *)halo::cache::globals().tag_instances[self->definition_index & 0xffff].data;
 
         if (*(uint32_t *)&definition->runtime_scripting_sound == (uint32_t)index) {
             *(uint32_t *)&definition->runtime_scripting_sound = (uint32_t)k_datum_index_none;
@@ -63,7 +64,7 @@ void reconcile_scripting_state(void)
         game_looping_sound *self = &((game_looping_sound *)game_looping_sound_data->data)[(uint16_t)index];
 
         if ((self->flags & _game_looping_sound_scripted_bit) != 0) {
-            SoundLooping *definition = (SoundLooping *)tag_instances[self->definition_index & 0xffff].data;
+            SoundLooping *definition = (SoundLooping *)halo::cache::globals().tag_instances[self->definition_index & 0xffff].data;
 
             if ((definition->flags & 0x02) == 0) {
                 *(uint32_t *)&definition->runtime_scripting_sound = (uint32_t)index;
@@ -78,11 +79,11 @@ void reconcile_scripting_state(void)
     iterator.next_index = 0;
     iterator.group_tag = 0x736e6421;
 
-    tag_id = tag_iterator_next(&iterator);
+    tag_id = halo::cache::tag_iterator_next(&iterator);
     while (tag_id != (datum_index)0xffffffff) {
-        Sound *sound_tag = (Sound *)tag_instances[(uint16_t)tag_id].data;
+        Sound *sound_tag = (Sound *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         sound_tag->scripting_time = 0xffffffff;
-        tag_id = tag_iterator_next(&iterator);
+        tag_id = halo::cache::tag_iterator_next(&iterator);
     }
 }
 
@@ -152,7 +153,7 @@ void touch_if_valid(datum_index looping_sound_index)
 void update_sound(datum_index looping_sound_index, int32_t *root_location)
 {
     game_looping_sound *self = &((game_looping_sound *)game_looping_sound_data->data)[looping_sound_index & 0xffff];
-    SoundLooping *definition = (SoundLooping *)tag_instances[self->definition_index & 0xffff].data;
+    SoundLooping *definition = (SoundLooping *)halo::cache::globals().tag_instances[self->definition_index & 0xffff].data;
     uint8_t stale = self->last_update == -1 || self->last_update == game_sound_globals_ptr->update_count - 1;
     uint32_t flags = self->flags;
     uint8_t alternate = (uint8_t)((flags >> 3) & 1);
@@ -304,7 +305,7 @@ void update(void)
                     }
                 }
             } else {
-                SoundLooping *definition = (SoundLooping *)tag_instances[self->definition_index & 0xffff].data;
+                SoundLooping *definition = (SoundLooping *)halo::cache::globals().tag_instances[self->definition_index & 0xffff].data;
                 if (*(uint32_t *)&definition->runtime_scripting_sound == (uint32_t)index) {
                     *(uint32_t *)&definition->runtime_scripting_sound = (uint32_t)k_datum_index_none;
                 }
@@ -331,7 +332,7 @@ void stop_loops_conflicting_with_music(void)
             uint32_t has_music_loop = looping::definition_has_music_loop(looping_definition);
 
             if (has_music_loop != 0 && looping_definition != k_datum_index_none) {
-                SoundLooping *definition = (SoundLooping *)tag_instances[looping_definition & 0xffff].data;
+                SoundLooping *definition = (SoundLooping *)halo::cache::globals().tag_instances[looping_definition & 0xffff].data;
                 datum_index scripted_sound = *(datum_index *)&definition->runtime_scripting_sound;
 
                 if (scripted_sound != k_datum_index_none) {

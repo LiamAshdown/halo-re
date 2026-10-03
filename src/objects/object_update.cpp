@@ -2,6 +2,7 @@
 #include "game.h"
 #include "models.h"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern float angle_delta_wrapped(float from, float to);
@@ -38,7 +39,6 @@ extern void object_update_change_colors(uint32_t object_index);
 extern void object_update_functions(uint32_t object_index);
 extern void object_update_vitality_and_regeneration(uint32_t object_index);
 extern double pow(double base, double exponent);
-extern tag_instance *tag_instances;
 }
 
 /**
@@ -53,9 +53,9 @@ void halo::objects::ObjectUpdater::regions_reset_permutation_lock(int8_t unlock)
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
     object *obj = headers[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     ModelCollisionGeometry *geometry =
-        (ModelCollisionGeometry *)tag_instances[definition->collision_model.tag_id.index].data;
+        (ModelCollisionGeometry *)halo::cache::globals().tag_instances[definition->collision_model.tag_id.index].data;
     ModelCollisionGeometryRegion *regions = (ModelCollisionGeometryRegion *)geometry->regions.pointer;
     int32_t region_count = (int32_t)geometry->regions.count;
     int32_t region_index;
@@ -78,14 +78,14 @@ void halo::objects::ObjectUpdater::set_permutation_by_name(char *name, int16_t r
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if (definition->model.tag_id.index == 0xffff) {
         return;
     }
 
     {
-        GBXModel *model = (GBXModel *)tag_instances[definition->model.tag_id.index & 0xffff].data;
+        GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[definition->model.tag_id.index & 0xffff].data;
         int16_t region_index;
         for (region_index = 0; region_index < (int16_t)model->regions.count; region_index++) {
             ModelRegion *region;
@@ -125,7 +125,7 @@ uint8_t halo::objects::ObjectUpdater::update()
     uint32_t object_index = handle;
     object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
     object *obj = header->data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if ((header->flags & _object_header_just_created_bit) != 0) {
         return 1;
@@ -206,7 +206,7 @@ void halo::objects::ObjectUpdater::update_export_functions()
 {
     datum_index object_index = handle;
     uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
-    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & 0xffff].data;
     int32_t i;
 
     for (i = 0; i < 4; i++) {
@@ -370,7 +370,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius_recursive()
 
 namespace {
 #define OFS(base, off, type) (*(type *)((uint8_t *)(base) + (off)))
-#define TAG_DATA(id) ((uint8_t *)tag_instances[(uint32_t)(id) & 0xffff].data)
+#define TAG_DATA(id) ((uint8_t *)halo::cache::globals().tag_instances[(uint32_t)(id) & 0xffff].data)
 static void matrix4x3_set_translation_only(real_matrix4x3 *m, const real_point3d *position)
 {
     m->scale = 1.0f;
@@ -604,7 +604,7 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
 {
     uint32_t object_index = handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     float *position = (float *)(obj + 0x5c);
     int32_t i;
 
@@ -742,10 +742,10 @@ void halo::objects::ObjectUpdater::refresh_region_permutations()
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if (definition->model.tag_id.index != 0xffff) {
-        GBXModel *model = (GBXModel *)tag_instances[definition->model.tag_id.index & 0xffff].data;
+        GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[definition->model.tag_id.index & 0xffff].data;
         int16_t *cached_group = (int16_t *)((uint8_t *)obj + 0xbe);
 
         if ((*cached_group <= 0) || (object_regions_initialize_permutations(object_index, *cached_group, model) == 0)) {
@@ -769,7 +769,7 @@ void halo::objects::ObjectUpdater::update_change_colors()
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if ((definition->scales_change_colors & 1) != 0) {
         int32_t count = definition->change_colors.count;
@@ -824,7 +824,7 @@ void halo::objects::ObjectUpdater::update_functions()
 {
     uint32_t object_index = handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     float phase = (float)(int32_t)((object_index & 0xffff) * 0x39 + game_time->game_time) * 0.033333335f;
     int16_t i;
 

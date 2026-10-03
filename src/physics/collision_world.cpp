@@ -13,6 +13,7 @@
 
 #include "halo/physics/collision_world.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" { void collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index, real_point3d *origin, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 extern "C" { uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
@@ -209,7 +210,6 @@ extern "C" { extern uint8_t collision_bsp_query_segment_init(uint32_t flags, col
 extern "C" { extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point); }
 extern "C" { extern breakable_surface_globals *breakable_surface_state; }
 extern "C" { extern int16_t global_structure_bsp_index; }
-extern "C" { extern tag_instance *tag_instances; }
 extern "C" { extern double fabs(double x); }
 namespace halo::physics {
 
@@ -337,7 +337,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                     ScenarioStructureBSPFogPalette *palette = &((ScenarioStructureBSPFogPalette *)
                         global_structure_bsp->fog_palette.pointer)[fog_palette_index];
                     uint32_t fog_tag_index = palette->fog.tag_id.index;
-                    float world_offset = *(float *)((uint8_t *)tag_instances[fog_tag_index].data + 0x74);
+                    float world_offset = *(float *)((uint8_t *)halo::cache::globals().tag_instances[fog_tag_index].data + 0x74);
                     float d = fog_plane->plane.w - world_offset;
                     float side_a = (ni * origin->x + nk * origin->z + nj * origin->y) - d;
                     float side_b = ni * delta->i + nk * delta->k + nj * delta->j;
@@ -505,13 +505,13 @@ namespace halo::physics {
 uint8_t CollisionWorld::context_build(uint32_t object_index, object_collision_context *out_context)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *object_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *object_tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if (object_tag->collision_model.tag_id.index != 0xffff ||
         object_tag->collision_model.tag_id.id != 0xffff) {
         out_context->object_index = object_index;
         out_context->definition =
-            tag_instances[object_tag->collision_model.tag_id.index & 0xffff].data;
+            halo::cache::globals().tag_instances[object_tag->collision_model.tag_id.index & 0xffff].data;
         out_context->region_permutations = (uint8_t *)obj + 0x180;
         out_context->nodes = (uint8_t *)obj + ((object *)obj)->nodes.offset;
         return 1;

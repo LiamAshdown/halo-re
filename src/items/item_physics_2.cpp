@@ -1,9 +1,9 @@
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode;
@@ -61,7 +61,7 @@ uint8_t item_ref::update()
 {
     uint32_t item_index = datum;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[item_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     real_vector3d *forward = &((item_object *)obj)->base.forward;
     real_vector3d *up = &((item_object *)obj)->base.up;
 

@@ -1,6 +1,7 @@
 #include "halo/objects/flag.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern void *const flag_render_device_slot;
@@ -31,7 +32,6 @@ extern void rasterizer_shader_environment_draw_dispatch(int32_t a, int32_t b, in
 extern void rasterizer_transparent_geometry_group_build(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f, int32_t g, void *h);
 extern int8_t scenario_location_get_water_and_weather(int32_t *a, void *b);
 extern double sqrt(double x);
-extern tag_instance *tag_instances;
 }
 
 /**
@@ -97,7 +97,7 @@ datum_index halo::objects::FlagSystem::create(datum_index flag_tag)
     datum_index handle = (datum_index)0xffffffff;
 
     if (flag_tag != (datum_index)0xffffffff) {
-        Flag *tag = (Flag *)tag_instances[flag_tag & 0xffff].data;
+        Flag *tag = (Flag *)halo::cache::globals().tag_instances[flag_tag & 0xffff].data;
 
         handle = halo::memory::datum_new(flag_data);
         if (handle != (datum_index)0xffffffff) {
@@ -290,7 +290,7 @@ void halo::objects::FlagSystem::render_callback(datum_index object_index, datum_
     uint32_t arg4)
 {
     uint8_t *self = (uint8_t *)flag_data->data + (flag_index & 0xffff) * 0x16bc;
-    Flag *tag = (Flag *)tag_instances[*(datum_index *)(self + 0xc) & 0xffff].data;
+    Flag *tag = (Flag *)halo::cache::globals().tag_instances[*(datum_index *)(self + 0xc) & 0xffff].data;
 
     *(datum_index *)(self + 8) = object_index;
     if (*(int16_t *)(self + 6) > 5 || self[3] == 0) {
@@ -326,7 +326,7 @@ void halo::objects::FlagSystem::update(float dt)
         {
             flag *entry = (flag *)((uint8_t *)flags->data + (current & 0xffff) * flags->size);
             datum_index object_index = entry->object_index;
-            void *tag_data = tag_instances[entry->definition_tag & 0xffff].data;
+            void *tag_data = halo::cache::globals().tag_instances[entry->definition_tag & 0xffff].data;
             int16_t *update_counter = (int16_t *)((uint8_t *)entry + 6);
 
             *update_counter = *update_counter + 1;
@@ -426,11 +426,11 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                     mode = 1;
 
                     if (!moving) {
-                        wind_scale = *(float *)((uint8_t *)tag_instances[tag->physics.tag_id.index].data + 0x24) *
+                        wind_scale = *(float *)((uint8_t *)halo::cache::globals().tag_instances[tag->physics.tag_id.index].data + 0x24) *
                                      tag->wind_noise * 0.0004f;
                     } else {
                         mode = 3;
-                        wind_scale = *(float *)((uint8_t *)tag_instances[tag->physics.tag_id.index].data + 0x28) *
+                        wind_scale = *(float *)((uint8_t *)halo::cache::globals().tag_instances[tag->physics.tag_id.index].data + 0x28) *
                                      tag->wind_noise * 0.00016f;
                     }
 
@@ -447,7 +447,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                     target = *vertex;
 
                     point_physics_tick((real_vector3d *)((uint8_t *)vertex + 0x0c)  , mode,
-                        tag_instances[tag->physics.tag_id.index].data, &node_ref,
+                        halo::cache::globals().tag_instances[tag->physics.tag_id.index].data, &node_ref,
                         physics_b, &target, &wind_dir, 0, 0, 0.02f, dt);
 
                     if (col == 0 && column_marker_index[row_cursor] != -1) {
@@ -797,7 +797,7 @@ void halo::objects::FlagSystem::render(uint32_t *entry, uint32_t *submission_blo
     }
 
     {
-        Flag *fallback_tag = (Flag *)tag_instances[  0].data;
+        Flag *fallback_tag = (Flag *)halo::cache::globals().tag_instances[  0].data;
         int32_t stride = height;
         float *v0 = (float *)(second_geometry + 4 + stride * 0x18);
         float *v1 = (float *)(second_geometry + 0x1c + stride * (width - 1) * 0x18);

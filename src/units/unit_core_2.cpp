@@ -3,6 +3,7 @@
 #include "networking.h"
 #include "effects.h"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t *object_network_id_table;
@@ -14,7 +15,6 @@ extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern data_array *player_data;
 extern uint8_t unit_updates_suppressed;
 extern uint8_t *ai_update_stagger;
@@ -68,7 +68,7 @@ void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key)
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define LOOK_BLEND_NEW 0.3f
 #define LOOK_BLEND_OLD 0.7f
 /**

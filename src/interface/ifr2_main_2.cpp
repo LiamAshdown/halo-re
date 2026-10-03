@@ -8,6 +8,7 @@ extern "C" input_event_queue input_event_queue_active;
 #include "crt.h"
 #include <string.h>
 #include <ctype.h>
+#include "halo/cache/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -39,7 +40,6 @@ extern uint8_t ui_widget_opened;
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
 extern uint8_t controls_input_capture_flags;
-extern tag_instance *tag_instances;
 extern int64_t performance_frequency;
 extern void display_error(int16_t error_string_index, int32_t unknown, uint8_t modal, uint8_t is_error);
 extern uint8_t ui_check_for_pause_game(void);
@@ -58,7 +58,6 @@ extern int32_t widget_get_sibling_index(widget_instance *widget);
 extern map_list_entry *map_list;
 extern int32_t map_list_count;
 extern int32_t map_list_capacity;
-extern uint8_t cache_file_exists(char *name, cache_file_header *header_out);
 extern uint8_t product_id_read;
 extern uint32_t cached_product_id;
 }
@@ -152,7 +151,7 @@ void InterfaceMain::tick()
 
                 root = widget;
                 if (widget != (widget_instance *)0) {
-                    UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
+                    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
                     int32_t scratch_i;
                     uint8_t looped = 0;
 
@@ -246,7 +245,7 @@ shared_tail:
                     widget_instance_verify_stack_chain(hit) == 0) {
                     widget_instance *parent = hit->parent;
                     UIWidgetDefinition *parent_tag =
-                        (UIWidgetDefinition *)tag_instances[parent->definition & 0xffff].data;
+                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[parent->definition & 0xffff].data;
 
                     if (parent->focused_child != hit) {
                         widget_play_sound_effect(1);
@@ -362,7 +361,7 @@ void MapList::add_entry(char *path, int32_t map_id)
 
     filename = strrchr(entry->path, '\\');
     filename = (filename != (char *)0) ? filename + 1 : entry->path;
-    entry->cache_file_exists = cache_file_exists(filename, &header);
+    entry->cache_file_exists = halo::cache::cache_file_exists(filename, &header);
     map_list_count = map_list_count + 1;
 }
 

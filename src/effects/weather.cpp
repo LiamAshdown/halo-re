@@ -1,11 +1,11 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern weather_instance weather_instances[1];
 extern int32_t weather_instance_count;
-extern tag_instance *tag_instances;
 extern data_array *weather_particle_data;
 extern datum_index weather_particle_new(int16_t instance_index, int16_t type_index);
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -63,7 +63,7 @@ void weather_instance_ref::activate(datum_index definition_index, real intensity
 {
     int16_t instance_index = slot;
     weather_instance *instance = &weather_instances[instance_index];
-    WeatherParticleSystem *tag = (WeatherParticleSystem *)tag_instances[(uint16_t)definition_index].data;
+    WeatherParticleSystem *tag = (WeatherParticleSystem *)halo::cache::globals().tag_instances[(uint16_t)definition_index].data;
     int32_t i;
 
     instance->definition_index = definition_index;
@@ -133,7 +133,7 @@ void weather_instance_ref::build_render_geometry()
     int16_t instance_index = slot;
     weather_instance *instance = &weather_instances[instance_index];
     WeatherParticleSystem *tag =
-        (WeatherParticleSystem *)tag_instances[(uint16_t)instance->definition_index].data;
+        (WeatherParticleSystem *)halo::cache::globals().tag_instances[(uint16_t)instance->definition_index].data;
     int32_t type_index;
 
     weather_instance_update(instance_index);
@@ -165,7 +165,7 @@ void weather_instance_ref::deactivate()
     int16_t instance_index = slot;
     weather_instance *instance = &weather_instances[instance_index];
     WeatherParticleSystem *tag =
-        (WeatherParticleSystem *)tag_instances[(uint16_t)instance->definition_index].data;
+        (WeatherParticleSystem *)halo::cache::globals().tag_instances[(uint16_t)instance->definition_index].data;
     int32_t i;
 
     for (i = 0; i < (int32_t)tag->particle_types.count; i++) {
@@ -199,7 +199,7 @@ void weather_instance_ref::update()
     int16_t instance_index = slot;
     weather_instance *instance = &weather_instances[instance_index];
     WeatherParticleSystem *tag =
-        (WeatherParticleSystem *)tag_instances[(uint16_t)instance->definition_index].data;
+        (WeatherParticleSystem *)halo::cache::globals().tag_instances[(uint16_t)instance->definition_index].data;
     int32_t i;
 
     instance->delta_time = render_time_since_frame;
@@ -256,10 +256,10 @@ datum_index weather_particle_ref::create(int16_t instance_index, int16_t type_in
         weather_instance *instance = &weather_instances[instance_index];
         weather_instance_type *slot = &instance->types[type_index];
         WeatherParticleSystem *system_tag =
-            (WeatherParticleSystem *)tag_instances[(uint16_t)instance->definition_index].data;
+            (WeatherParticleSystem *)halo::cache::globals().tag_instances[(uint16_t)instance->definition_index].data;
         WeatherParticleSystemParticleType *type =
             (WeatherParticleSystemParticleType *)system_tag->particle_types.pointer + type_index;
-        Bitmap *bitmap = (Bitmap *)tag_instances[type->sprite_bitmap.tag_id.index].data;
+        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[type->sprite_bitmap.tag_id.index].data;
         weather_particle *p = &((weather_particle *)weather_particle_data->data)[(uint16_t)handle];
 
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
@@ -342,7 +342,7 @@ void weather_particle_ref::update(int16_t type_index, int16_t instance_index)
     datum_index weather_particle_handle = datum;
     weather_instance *instance = &weather_instances[instance_index];
     WeatherParticleSystem *system_tag =
-        (WeatherParticleSystem *)tag_instances[(uint16_t)instance->definition_index].data;
+        (WeatherParticleSystem *)halo::cache::globals().tag_instances[(uint16_t)instance->definition_index].data;
     WeatherParticleSystemParticleType *type =
         (WeatherParticleSystemParticleType *)system_tag->particle_types.pointer + type_index;
     weather_particle *p =
@@ -384,7 +384,7 @@ void weather_particle_ref::update(int16_t type_index, int16_t instance_index)
 
     {
         uint32_t flags_arg = (instance->in_sky != 0) ? 7u : 5u;
-        PointPhysics *physics = (PointPhysics *)tag_instances[type->physics.tag_id.index].data;
+        PointPhysics *physics = (PointPhysics *)halo::cache::globals().tag_instances[type->physics.tag_id.index].data;
         int16_t material_type;
 
         point_physics_tick(&p->velocity, flags_arg, physics,
@@ -436,7 +436,7 @@ void weather_system::update()
         if (*(uint32_t *)&row->wind.tag_id == 0xffffffffu) {
             *active = 0;
         } else {
-            Wind *wind_tag = (Wind *)tag_instances[row->wind.tag_id.index].data;
+            Wind *wind_tag = (Wind *)halo::cache::globals().tag_instances[row->wind.tag_id.index].data;
             real yaw_base, pitch_base, yaw, pitch, cos_pitch;
 
             halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;

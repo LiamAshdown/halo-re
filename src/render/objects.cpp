@@ -18,6 +18,7 @@
 #include "halo/render/render.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -40,7 +41,6 @@ extern void *rasterizer_device;
 extern int16_t camera_get_type_for_player(int16_t local_player_index);
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern tag_instance *tag_instances;
 extern render_fog render_fog_state;
 extern int8_t widget_list_has_flag(datum_index first_widget);
 extern int16_t current_local_player_index;
@@ -170,7 +170,7 @@ void halo::render::ObjectRenderData::draw()
         sample_full_lighting = 1;
 
     sampled:
-        definition = (Object *)tag_instances[(uint16_t)obj->definition_tag].data;
+        definition = (Object *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
 
         if (sample_full_lighting) {
             real level_of_detail_pixels = object_compute_level_of_detail_pixels(data->object_index);
@@ -227,13 +227,13 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
         }
 
         if ((obj->flags & _object_no_collision_bit) == 0) {
-            Object *tag_data = (Object *)tag_instances[(uint16_t)obj->definition_tag].data;
+            Object *tag_data = (Object *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
             real lod = object_compute_level_of_detail_pixels(object_index);
 
             if (data->shadow_pass == 0) {
                 if (*(uint32_t *)&tag_data->modifier_shader.tag_id != 0xffffffffu) {
                     Shader *shader_data =
-                        (Shader *)tag_instances[tag_data->modifier_shader.tag_id.index].data;
+                        (Shader *)halo::cache::globals().tag_instances[tag_data->modifier_shader.tag_id.index].data;
 
                     effect.modifier_shader = (uint32_t)(uintptr_t)shader_data;
                     if (shader_data->shader_type == 1 ||
@@ -827,7 +827,7 @@ int16_t local_player_gunner_seat_visible(int16_t local_player_index)
 
     parent_header = &((object_header *)object_data->data)[(uint16_t)parent_index];
     parent = parent_header->data;
-    vehicle_tag = &tag_instances[(uint16_t)parent->definition_tag];
+    vehicle_tag = &halo::cache::globals().tag_instances[(uint16_t)parent->definition_tag];
     vehicle = (Unit *)vehicle_tag->data;
     seats = (UnitSeat *)vehicle->seats.pointer;
 
@@ -851,7 +851,7 @@ void _get_cull_sphere(datum_index object_index, real_point3d *center, float *rad
     Object *definition;
 
     *center = o->bounding_center;
-    definition = (Object *)tag_instances[(uint16_t)o->definition_tag].data;
+    definition = (Object *)halo::cache::globals().tag_instances[(uint16_t)o->definition_tag].data;
     *radius = definition->render_bounding_radius;
 }
 

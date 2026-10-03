@@ -1,6 +1,7 @@
 #include "halo/ai/actor_core.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_action_has_queued_secondary {
 extern "C" {
@@ -631,7 +632,6 @@ namespace c_actor_get_actor_definition {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index);
 }
 }
@@ -653,17 +653,17 @@ void * halo::ai::actor_ref::get_actor_definition()
     datum_index weapon_object;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    default_definition = tag_instances[self->actor_variant_tag & 0xffff].data;
+    default_definition = halo::cache::globals().tag_instances[self->actor_variant_tag & 0xffff].data;
 
     weapon_object = actor_get_threat_weapon_object_index(actor_index);
     if (weapon_object != (datum_index)k_datum_index_none) {
         object_header *hdr = (object_header *)object_data->data + (weapon_object & 0xffff);
         object *obj = hdr->data;
-        void *weapon_definition = tag_instances[obj->definition_tag & 0xffff].data;
+        void *weapon_definition = halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
         if (weapon_definition != 0) {
             uint32_t override_index = *(uint32_t *)((uint8_t *)weapon_definition + 0x3c8);
             if (override_index != (uint32_t)-1) {
-                return tag_instances[override_index & 0xffff].data;
+                return halo::cache::globals().tag_instances[override_index & 0xffff].data;
             }
         }
     }

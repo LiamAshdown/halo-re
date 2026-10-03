@@ -1,8 +1,8 @@
 #include "halo/interface/ifr1_hud_frame.hpp"
 #include <wchar.h>
+#include "halo/cache/api.hpp"
 
 extern "C" {
-extern tag_instance *tag_instances;
 extern data_array *object_data;
 extern player_globals *local_player_globals;
 extern data_array *player_data;
@@ -47,19 +47,19 @@ static uint8_t *object_get(datum_index object_index)
 
 static uint8_t *object_tag_data(datum_index object_index)
 {
-    return (uint8_t *)tag_instances[*(datum_index *)object_get(object_index) & 0xffff].data;
+    return (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object_get(object_index) & 0xffff].data;
 }
 
 static const int16_t *weapon_hud_messaging(const uint8_t *weapon_object)
 {
     datum_index weapon_tag = *(const datum_index *)weapon_object;
-    datum_index hud = *(datum_index *)((uint8_t *)tag_instances[weapon_tag & 0xffff].data + 0x48c);
+    datum_index hud = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[weapon_tag & 0xffff].data + 0x48c);
     const int16_t *messaging;
 
     if (hud == (datum_index)-1) {
         return 0;
     }
-    messaging = (const int16_t *)((uint8_t *)tag_instances[hud & 0xffff].data + 0x13c);
+    messaging = (const int16_t *)((uint8_t *)halo::cache::globals().tag_instances[hud & 0xffff].data + 0x13c);
     return (*messaging == -1) ? 0 : messaging;
 }
 

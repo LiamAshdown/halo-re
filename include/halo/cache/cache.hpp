@@ -56,8 +56,10 @@ struct cache_files {
  */
 struct cache_io {
     static void completion_routine(uint32_t error_code, uint32_t bytes_transferred, cache_io_request *overlapped);
+    static void __stdcall completion_routine_stdcall(uint32_t error_code, uint32_t bytes_transferred, cache_io_request *overlapped);
     static void read_file_ex_retry(void *read_file_ex, void *file, void *buffer, cache_io_request *request, uint32_t size, uint32_t offset, void *completion_routine);
     static void request_completion_routine(uint32_t error_code, uint32_t bytes_transferred, cache_io_request *overlapped);
+    static void __stdcall request_completion_routine_stdcall(uint32_t error_code, uint32_t bytes_transferred, cache_io_request *overlapped);
     static int16_t request_find_free_slot();
     static int16_t request_new(cache_io_completion *completion, int32_t offset, uint32_t size, void *destination, uint8_t priority, uint8_t data_file_index);
     static void sound_decode_thunk(cache_io_completion *record);

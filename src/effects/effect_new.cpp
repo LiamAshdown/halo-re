@@ -1,9 +1,9 @@
 #include "halo/effects/effects.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
-extern tag_instance *tag_instances;
 extern void effect_start_event(datum_index effect_handle, int16_t event_index);
 extern const ColorRGB *global_white_color;
 extern datum_index effect_new(datum_index definition_index, datum_index creator_object_index, uint8_t force_create);
@@ -43,7 +43,7 @@ datum_index effect_ref::create(datum_index definition_index, datum_index creator
     datum_index handle = k_datum_index_none;
 
     if (definition_index != k_datum_index_none) {
-        Effect *tag = (Effect *)tag_instances[(uint16_t)definition_index].data;
+        Effect *tag = (Effect *)halo::cache::globals().tag_instances[(uint16_t)definition_index].data;
 
         if ((force_create != 0 || (tag->flags & 4) == 0) && tag->events.count > 0) {
             handle = halo::memory::datum_new(effect_data);
@@ -57,7 +57,7 @@ datum_index effect_ref::create(datum_index definition_index, datum_index creator
                     for (;;) {
                         effect *candidate = &((effect *)effect_data->data)[(uint16_t)handle];
                         Effect *candidate_tag =
-                            (Effect *)tag_instances[(uint16_t)candidate->definition_index].data;
+                            (Effect *)halo::cache::globals().tag_instances[(uint16_t)candidate->definition_index].data;
 
                         if ((candidate_tag->flags & 4) == 0) {
                             break;

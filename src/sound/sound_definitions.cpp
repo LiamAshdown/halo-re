@@ -6,6 +6,7 @@
 
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::sound {
 
@@ -13,7 +14,7 @@ namespace definitions {
 
 float maximum_distance(datum_index sound_definition)
 {
-    Sound *tag = (Sound *)tag_instances[sound_definition & 0xffff].data;
+    Sound *tag = (Sound *)halo::cache::globals().tag_instances[sound_definition & 0xffff].data;
     float distance = tag->maximum_distance;
 
     if (distance == 0.0f) {
@@ -163,7 +164,7 @@ uint32_t has_audible_permutations(TagID sound_tag_id)
     Sound *sound;
     SoundPitchRange *pitch_range;
 
-    sound = (Sound *)tag_instances[sound_tag_id.index].data;
+    sound = (Sound *)halo::cache::globals().tag_instances[sound_tag_id.index].data;
     if (sound->pitch_ranges.count != 0) {
         pitch_range = (SoundPitchRange *)sound->pitch_ranges.pointer;
         if (pitch_range->permutations.count != 0 &&
@@ -181,7 +182,7 @@ int16_t check_promotion(TagID sound_tag_id)
     int32_t accumulated;
     int32_t threshold;
 
-    sound = (Sound *)tag_instances[sound_tag_id.index].data;
+    sound = (Sound *)halo::cache::globals().tag_instances[sound_tag_id.index].data;
     if (sound->promotion_count == 0) {
         return 0;
     }

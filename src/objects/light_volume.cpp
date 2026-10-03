@@ -2,6 +2,7 @@
 #include "bitmaps.h"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern void antenna_tip_jitter(real_vector3d *amplitude, real_point3d *position, real_matrix4x3 *m);
@@ -32,8 +33,17 @@ extern void rasterizer_transparent_object_append(uint32_t a, int32_t b, int32_t 
 extern int16_t rasterizer_vertex_buffer_lock_state;
 extern float render_camera_global;
 extern real_vector3d *shared_constant_vector_696704;
-extern tag_instance *tag_instances;
-extern int32_t texture_cache_get(uint32_t a, uint32_t b);
+}
+
+/**
+ * Calls halo::cache::texture_cache_get with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static int32_t texture_cache_get_unresolved(uint32_t a, uint32_t b)
+{
+    using call_t = int32_t (*)(uint32_t a, uint32_t b);
+    return reinterpret_cast<call_t>(&halo::cache::texture_cache_get)(a, b);
 }
 
 /**
@@ -163,7 +173,7 @@ void halo::objects::LightVolumeSystem::render(uint32_t object_index, datum_index
     }
 
     {
-        uint8_t *tag = (uint8_t *)tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
+        uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
 
         if (*(int16_t *)(tag + 0x6e) > 0 && *(int32_t *)(tag + 0x120) > 0 &&
             (*(int16_t *)(tag + 0x44) == 0 || function_context == 0 ||
@@ -235,7 +245,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
             }
         }
     }
-    tag = (uint8_t *)tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
+    tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
     if (*(int16_t *)(tag + 0x6e) <= 0 || *(int32_t *)(tag + 0x120) <= 0) {
         return;
     }
@@ -412,7 +422,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                 instance = (uint8_t *)off;
             }
         }
-        tag = (uint8_t *)tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
+        tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
     }
 
     if (*(int32_t *)(tag + 0x98) <= 0) {
@@ -430,8 +440,8 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
 
     {
         uint32_t shader_something = *(uint32_t *)(
-            (uint8_t *)tag_instances[*(uint32_t *)(tag + 0x40) & 0xffff].data + 100);
-        int32_t device = texture_cache_get(0, 1);
+            (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(tag + 0x40) & 0xffff].data + 100);
+        int32_t device = texture_cache_get_unresolved(0, 1);
 
         int16_t shard;
         if (device == 0) {

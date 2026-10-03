@@ -1,9 +1,9 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t particle_spawn_debug_mode;
-extern tag_instance *tag_instances;
 extern data_array *object_data;
 extern uint8_t *first_person_weapon_interfaces;
 extern const real_point3d *global_origin3d_pointer;
@@ -92,7 +92,7 @@ void effect_view::spawn_particles()
     if (particle_spawn_debug_mode == 0) {
         return;
     }
-    tag = (Effect *)tag_instances[(uint16_t)self->definition_index].data;
+    tag = (Effect *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
     event = &((EffectEvent *)tag->events.pointer)[self->event_index];
     previous_fraction = self->previous_event_fraction;
     current_fraction = (self->event_duration > 0.0f) ? self->event_time / self->event_duration : 1.0f;

@@ -1,9 +1,9 @@
 #include "halo/projectiles/projectile.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern player_globals *local_player_globals;
 extern data_array *player_data;
@@ -66,7 +66,7 @@ int ProjectileHandle::update()
     uint32_t projectile_index = (uint32_t)handle;
 
     uint8_t *obj = OBJECT_DATA(projectile_index);                 
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data; 
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data; 
     real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
     real_vector3d *forward = (real_vector3d *)(obj + 0x74);
     real_vector3d *up = (real_vector3d *)(obj + 0x80);

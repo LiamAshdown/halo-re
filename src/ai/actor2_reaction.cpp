@@ -1,6 +1,7 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
@@ -38,7 +39,6 @@ void ActorView::notify_squad_and_flag_danger(uint8_t alternate_event, uint8_t ra
 namespace actor_notify_squad_of_threat_direction_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
                                         real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
@@ -59,7 +59,7 @@ void ActorOps::notify_squad_of_threat_direction(const real_point3d *point, datum
 {
     using namespace actor_notify_squad_of_threat_direction_local;
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
     datum_index unit_index = self->unit_index;
 
     if (unit_index == (datum_index)k_datum_index_none) {
@@ -341,7 +341,6 @@ extern "C" {
 extern double sqrt(double x);
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
                                         real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
@@ -409,7 +408,7 @@ void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, 
         payload = 0;
     }
 
-    actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
 
     if (self->awareness_level > 1 && self->vocalization_line < 12 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0) &&
@@ -443,7 +442,6 @@ void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, 
 namespace actor_queue_point_reaction_dialogue_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern int16_t actor_dialogue_variant_table_g[];
 }
 }
@@ -461,7 +459,7 @@ void ActorOps::queue_point_reaction_dialogue(const real_point3d *point, datum_in
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
 
     if (self->awareness_level != 1) {
-        Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+        Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
 
         if (self->awareness_level > 1 && self->vocalization_line < 2 &&
             (self->mode != 11 || self->mode_data.raw[3] != 0) &&
@@ -495,7 +493,6 @@ void ActorOps::queue_point_reaction_dialogue(const real_point3d *point, datum_in
 namespace actor_queue_recognized_target_dialogue_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern data_array *prop_data;
 extern int16_t actor_dialogue_variant_table_c[];
@@ -513,7 +510,7 @@ void ActorView::queue_recognized_target_dialogue(datum_index target_prop_index)
 {
     using namespace actor_queue_recognized_target_dialogue_local;
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
 
     if (self->awareness_level > 1 && self->vocalization_line < 6 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0)) {
@@ -688,7 +685,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern uint8_t ai_debug_gate_87abc6;
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
@@ -720,7 +716,7 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
         goto broadcast_check;
     }
 
-    actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
 
     if (self->awareness_level > 1 && self->vocalization_line < 5 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0)) {
@@ -856,7 +852,6 @@ void ActorOps::queue_velocity_search_from_prop(datum_index prop_index, datum_ind
 namespace actor_react_to_flee_point_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern data_array *object_data;
 extern double fabs(double x);
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
@@ -881,7 +876,7 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
 {
     using namespace actor_react_to_flee_point_local;
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
     real_vector3d direction;
     float length;
 
@@ -935,7 +930,6 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
 namespace actor_react_to_registered_danger_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern double fabs(double x);
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
@@ -958,7 +952,7 @@ void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index
 {
     using namespace actor_react_to_registered_danger_local;
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
     real_vector3d direction;
 
     if (self->danger_type >= 1 && self->danger_object_index == danger_object_index && self->danger_unknown_284 >= 1) {
@@ -1013,7 +1007,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern data_array *player_data;
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
@@ -1071,7 +1064,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
                                     0xffffffff, 0, 90, target_prop_index, 150, 0);
     }
 
-    actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
 
     if (self->awareness_level > 1 && self->vocalization_line < 8 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0)) {
@@ -1184,7 +1177,6 @@ namespace actor_scan_allies_for_backup_request_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern uint8_t actor_target_get_backup_priority(datum_index target_prop_index);
 extern int16_t ai_group_bucket_find_or_add(void *buckets, int32_t key, int16_t *count,
@@ -1204,7 +1196,7 @@ void ActorView::scan_allies_for_backup_request()
 {
     using namespace actor_scan_allies_for_backup_request_local;
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    Actor *actor_def = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
     prop *props = (prop *)prop_data->data;
 
     ai_group_bucket_entry buckets[16];
@@ -1359,7 +1351,6 @@ namespace actor_scan_ally_death_panic_reaction_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern uint8_t actor_scale_value_by_ally_exposure(datum_index actor_index, float *value);
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
@@ -1377,7 +1368,7 @@ void TargetView::scan_ally_death_panic_reaction(datum_index actor_index)
 {
     using namespace actor_scan_ally_death_panic_reaction_local;
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
     prop *target = &((prop *)prop_data->data)[target_prop_index & 0xffff];
 
     if (target->enemy == 0 && (actor_tag->more_flags & 0x20) != 0  &&
@@ -1413,7 +1404,6 @@ namespace actor_scan_backup_and_panic_reaction_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern datum_index actor_get_relevant_squad_member_target(uint32_t unused_param, datum_index member_prop_index, char require_is_unit);
 extern uint8_t actor_scale_value_by_ally_exposure(datum_index actor_index, float *value);
@@ -1432,7 +1422,7 @@ void TargetView::scan_backup_and_panic_reaction(datum_index actor_index)
     using namespace actor_scan_backup_and_panic_reaction_local;
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
     prop *target = &((prop *)prop_data->data)[target_prop_index & 0xffff];
-    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
     datum_index relevant;
 
     self->witnessed_death = 1;

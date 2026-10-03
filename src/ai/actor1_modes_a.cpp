@@ -1,5 +1,6 @@
 #include "halo/ai/actor_modes.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_mode_alert_movement_cancelled {
 extern "C" {
@@ -38,7 +39,6 @@ namespace c_actor_mode_alert_process {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 
 #define B(o) (actor[(o)])
@@ -168,7 +168,6 @@ namespace c_actor_mode_alert_tick {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 
 #define B(o) (actor[(o)])
@@ -220,7 +219,7 @@ void halo::ai::alert_mode::tick()
         if (graph == k_datum_index_none) {
             uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[D(0x18) & 0xffff].data;
 
-            graph = *(datum_index *)((uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data + 0x44);
+            graph = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data + 0x44);
         }
         unit_start_user_animation(D(0x18), graph, (const char *)animation, 1);
     }
@@ -241,7 +240,6 @@ namespace c_actor_mode_alert_update {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 
 #define B(o) (actor[(o)])
@@ -266,7 +264,7 @@ void halo::ai::alert_mode::update()
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
 
     W(0x3fc) = 1;
-    if (*(uint8_t *)tag_instances[D(0x58) & 0xffff].data & 0x40) {
+    if (*(uint8_t *)halo::cache::globals().tag_instances[D(0x58) & 0xffff].data & 0x40) {
         B(0x426) = 1;
         B(0x427) = 1;
     }
@@ -582,7 +580,6 @@ namespace c_actor_mode_obey_process {
 extern "C" {
 extern data_array *actor_data;
 extern Scenario *global_scenario;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback,
     uint32_t callback_extra, uint16_t *caller_record);
@@ -614,7 +611,7 @@ uint8_t halo::ai::obey_mode::process()
         int mark = 1;
 
         if ((list[0x20] & 0x10) && actor[0x15c] != 0) {
-            uint8_t *variant = (uint8_t *)tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
+            uint8_t *variant = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
 
             if ((*(uint32_t *)variant & 0x200000) == 0) {
                 mark = 0;
@@ -821,7 +818,6 @@ extern data_array *actor_data;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 
-extern tag_instance *tag_instances;
 }
 }
 
@@ -838,7 +834,7 @@ void halo::ai::search_mode::enter()
     using namespace c_actor_mode_search_enter;
     datum_index actor_index = datum;
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = (uint8_t *)tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
     float lo;
     float hi;
     float t;
@@ -1039,10 +1035,9 @@ extern "C" uint8_t actor_mode_search_process(datum_index actor_index)
 namespace c_actor_mode_search_tick {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
@@ -1124,10 +1119,9 @@ extern "C" void actor_mode_search_tick(datum_index actor_index)
 namespace c_actor_mode_search_update {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 }
 

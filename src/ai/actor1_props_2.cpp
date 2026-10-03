@@ -1,4 +1,5 @@
 #include "halo/ai/actor_props.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_danger_update_reaction {
 extern "C" {
@@ -6,7 +7,6 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *encounter_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 
 extern double sqrt(double x);
 extern int32_t fistp_round(float x);
@@ -148,7 +148,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         if (actor_danger_asleep(actor)) {
             break;
         }
-        tag = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+        tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & 0xffff].data;
         if (!(A_F(0x2d4) < *(float *)(tag + 0x19c))) {
             break;
         }
@@ -168,7 +168,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         break;
     }
     case 3: {
-        uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+        uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & 0xffff].data;
         float vi = ((struct object *)object)->velocity.i;
         float vj = ((struct object *)object)->velocity.j;
         float vk = ((struct object *)object)->velocity.k;

@@ -7,6 +7,7 @@
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::sound {
 
@@ -39,12 +40,12 @@ void environment_update(uint32_t *out_environment_ptr, void **out_environment_sl
             if (fog_tag_id == 0xffffffff) {
                 fog_id = -0x8000;
             } else {
-                Fog *fog_tag = (Fog *)tag_instances[fog_tag_id & 0xffff].data;
+                Fog *fog_tag = (Fog *)halo::cache::globals().tag_instances[fog_tag_id & 0xffff].data;
                 uint32_t env_tag = *(uint32_t *)&fog_tag->sound_environment.tag_id;
                 if (env_tag == 0xffffffff) {
                     fog_id = -0x8000;
                 } else {
-                    SoundEnvironment *env_tag_data = (SoundEnvironment *)tag_instances[env_tag & 0xffff].data;
+                    SoundEnvironment *env_tag_data = (SoundEnvironment *)halo::cache::globals().tag_instances[env_tag & 0xffff].data;
                     if (env_tag_data->priority < -0x7fff) {
                         fog_id = -0x8000;
                     } else {
@@ -63,7 +64,7 @@ void environment_update(uint32_t *out_environment_ptr, void **out_environment_sl
         if (sound_environment_index != -1) {
             uint32_t override_tag = *(uint32_t *)&((ScenarioStructureBSPSoundEnvironmentPalette *)structure_bsp->sound_environment_palette.pointer)[sound_environment_index].sound_environment.tag_id;
             if (override_tag != 0xffffffff) {
-                SoundEnvironment *override_data = (SoundEnvironment *)tag_instances[override_tag & 0xffff].data;
+                SoundEnvironment *override_data = (SoundEnvironment *)halo::cache::globals().tag_instances[override_tag & 0xffff].data;
                 if (fog_id < override_data->priority) {
                     int16_t background_sound_index = (int16_t)cluster_record->background_sound;
                     is_water = 0;
@@ -86,7 +87,7 @@ skip_environment_lookup:
         if (sound_tag_id == 0xffffffff) {
             source = (uint32_t *)&k_default_sound_environment;
         } else {
-            source = (uint32_t *)tag_instances[sound_tag_id & 0xffff].data;
+            source = (uint32_t *)halo::cache::globals().tag_instances[sound_tag_id & 0xffff].data;
         }
 
         if (is_water == global_scenario_game_globals->sound_environment_is_water) {
@@ -314,7 +315,7 @@ void update_range_and_ducking(void)
     sound_handle = halo::memory::datum_next(-1, sound_data);
     while (sound_handle != 0xffffffff) {
         instance = (sound *)((uint8_t *)sound_data->data + (sound_handle & 0xffff) * sizeof(sound));
-        definition = (Sound *)tag_instances[instance->definition_index & 0xffff].data;
+        definition = (Sound *)halo::cache::globals().tag_instances[instance->definition_index & 0xffff].data;
 
         if ((instance->channel_index != -1 && channels::release_detail_buffers(instance->channel_index) == 0 &&
              instance->play_state != _sound_play_loop && instance->play_state != _sound_play_loop_stopping) ||

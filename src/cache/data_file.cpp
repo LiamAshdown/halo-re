@@ -4,16 +4,12 @@
 
 #include "win32.h"
 #include "crt.h"
+#include "halo/cache/globals.hpp"
 
 extern "C" {
 extern int32_t printf(const char *format, ...);
 extern void os_platform_identify(void);
-extern data_file bitmaps_data_file;
-extern data_file sounds_data_file;
-extern int16_t cache_file_index;
 extern int32_t os_platform;
-extern cache_io_request *cache_io_requests;
-extern cache_file_slot cache_file_slots[k_cache_file_slot_count];
 }
 
 namespace halo::cache {
@@ -106,10 +102,10 @@ void data_files::open()
     char path[260];
     uint32_t flags;
 
-    halo::cache::data_files::zero(&bitmaps_data_file);
-    cache_file_index = (int16_t)0xffff;
-    bitmaps_data_file.name = (char *)"bitmaps";
-    bitmaps_data_file.unknown_24 = 0;
+    halo::cache::data_files::zero(&globals().bitmaps_data_file);
+    globals().cache_file_index = (int16_t)0xffff;
+    globals().bitmaps_data_file.name = (char *)"bitmaps";
+    globals().bitmaps_data_file.unknown_24 = 0;
     sprintf(path, "maps\\%s.map", "bitmaps");
 
     flags = 0x48000080;
@@ -119,31 +115,31 @@ void data_files::open()
     if (os_platform < 3) {
         flags = 0x8000080;
     }
-    bitmaps_data_file.file = CreateFileA(path, 0x80000000, 1, (LPSECURITY_ATTRIBUTES)((void *)0), 4, flags, (void *)0);
-    if (bitmaps_data_file.file == (void *)0xffffffff) {
+    globals().bitmaps_data_file.file = CreateFileA(path, 0x80000000, 1, (LPSECURITY_ATTRIBUTES)((void *)0), 4, flags, (void *)0);
+    if (globals().bitmaps_data_file.file == (void *)0xffffffff) {
         printf("### FAILED TO OPEN DATA-CACHE FILE.\n\n");
     } else {
 
-        if (halo::cache::view(&bitmaps_data_file)->read_header(1) == 0 ||
-            halo::cache::view(&bitmaps_data_file)->read_data_block() == 0 ||
-            halo::cache::view(&bitmaps_data_file)->read_offset_table() == 0) {
-            if (bitmaps_data_file.data != 0) {
-                GlobalFree(bitmaps_data_file.data);
-                bitmaps_data_file.data = 0;
+        if (halo::cache::view(&globals().bitmaps_data_file)->read_header(1) == 0 ||
+            halo::cache::view(&globals().bitmaps_data_file)->read_data_block() == 0 ||
+            halo::cache::view(&globals().bitmaps_data_file)->read_offset_table() == 0) {
+            if (globals().bitmaps_data_file.data != 0) {
+                GlobalFree(globals().bitmaps_data_file.data);
+                globals().bitmaps_data_file.data = 0;
             }
-            if (bitmaps_data_file.references != 0) {
-                GlobalFree(bitmaps_data_file.references);
-                bitmaps_data_file.references = 0;
+            if (globals().bitmaps_data_file.references != 0) {
+                GlobalFree(globals().bitmaps_data_file.references);
+                globals().bitmaps_data_file.references = 0;
             }
             printf("### FAILED TO OPEN DATA-CACHE FILE.\n\n");
         } else {
-            SetFilePointer(bitmaps_data_file.file, bitmaps_data_file.data_offset, (PLONG)((void *)0), 0);
+            SetFilePointer(globals().bitmaps_data_file.file, globals().bitmaps_data_file.data_offset, (PLONG)((void *)0), 0);
         }
     }
 
-    halo::cache::data_files::zero(&sounds_data_file);
-    sounds_data_file.name = (char *)"sounds";
-    sounds_data_file.unknown_24 = 0;
+    halo::cache::data_files::zero(&globals().sounds_data_file);
+    globals().sounds_data_file.name = (char *)"sounds";
+    globals().sounds_data_file.unknown_24 = 0;
     sprintf(path, "maps\\%s.map", "sounds");
 
     flags = 0x48000080;
@@ -153,27 +149,27 @@ void data_files::open()
     if (os_platform < 3) {
         flags = 0x8000080;
     }
-    sounds_data_file.file = CreateFileA(path, 0x80000000, 1, (LPSECURITY_ATTRIBUTES)((void *)0), 4, flags, (void *)0);
-    if (sounds_data_file.file != (void *)0xffffffff) {
-        if (halo::cache::view(&sounds_data_file)->read_header(2) != 0 &&
-            halo::cache::view(&sounds_data_file)->read_data_block() != 0 &&
-            halo::cache::view(&sounds_data_file)->read_offset_table() != 0) {
-            SetFilePointer(sounds_data_file.file, sounds_data_file.data_offset, (PLONG)((void *)0), 0);
+    globals().sounds_data_file.file = CreateFileA(path, 0x80000000, 1, (LPSECURITY_ATTRIBUTES)((void *)0), 4, flags, (void *)0);
+    if (globals().sounds_data_file.file != (void *)0xffffffff) {
+        if (halo::cache::view(&globals().sounds_data_file)->read_header(2) != 0 &&
+            halo::cache::view(&globals().sounds_data_file)->read_data_block() != 0 &&
+            halo::cache::view(&globals().sounds_data_file)->read_offset_table() != 0) {
+            SetFilePointer(globals().sounds_data_file.file, globals().sounds_data_file.data_offset, (PLONG)((void *)0), 0);
             goto allocate_io_queue;
         }
-        if (sounds_data_file.data != 0) {
-            GlobalFree(sounds_data_file.data);
-            sounds_data_file.data = 0;
+        if (globals().sounds_data_file.data != 0) {
+            GlobalFree(globals().sounds_data_file.data);
+            globals().sounds_data_file.data = 0;
         }
-        if (sounds_data_file.references != 0) {
-            GlobalFree(sounds_data_file.references);
-            sounds_data_file.references = 0;
+        if (globals().sounds_data_file.references != 0) {
+            GlobalFree(globals().sounds_data_file.references);
+            globals().sounds_data_file.references = 0;
         }
     }
     printf("### FAILED TO OPEN DATA-CACHE FILE.\n\n");
 
 allocate_io_queue:
-    cache_io_requests = (cache_io_request *)GlobalAlloc(0, 0x6000);
+    globals().cache_io_requests = (cache_io_request *)GlobalAlloc(0, 0x6000);
     halo::cache::cache_io::thread_start();
 }
 
@@ -188,41 +184,41 @@ void data_files::close()
     uint32_t *destination;
     int32_t i;
 
-    if (cache_file_index != -1) {
+    if (globals().cache_file_index != -1) {
         halo::cache::cache_io::wait_all_requests();
-        CloseHandle(cache_file_slots[cache_file_index].file);
-        destination = (uint32_t *)&cache_file_slots[cache_file_index];
+        CloseHandle(globals().cache_file_slots[globals().cache_file_index].file);
+        destination = (uint32_t *)&globals().cache_file_slots[globals().cache_file_index];
         for (i = 0x203; i != 0; i--) {
             *destination++ = 0;
         }
-        cache_file_index = -1;
+        globals().cache_file_index = -1;
     }
 
-    CloseHandle(bitmaps_data_file.file);
-    if (bitmaps_data_file.data != 0) {
-        GlobalFree(bitmaps_data_file.data);
+    CloseHandle(globals().bitmaps_data_file.file);
+    if (globals().bitmaps_data_file.data != 0) {
+        GlobalFree(globals().bitmaps_data_file.data);
     }
-    if (bitmaps_data_file.references != 0) {
-        GlobalFree(bitmaps_data_file.references);
+    if (globals().bitmaps_data_file.references != 0) {
+        GlobalFree(globals().bitmaps_data_file.references);
     }
-    bitmaps_data_file.file_id = 0;
-    bitmaps_data_file.data_offset = 0;
-    bitmaps_data_file.table_offset = 0;
-    bitmaps_data_file.entry_count = 0;
+    globals().bitmaps_data_file.file_id = 0;
+    globals().bitmaps_data_file.data_offset = 0;
+    globals().bitmaps_data_file.table_offset = 0;
+    globals().bitmaps_data_file.entry_count = 0;
 
-    CloseHandle(sounds_data_file.file);
-    if (sounds_data_file.data != 0) {
-        GlobalFree(sounds_data_file.data);
+    CloseHandle(globals().sounds_data_file.file);
+    if (globals().sounds_data_file.data != 0) {
+        GlobalFree(globals().sounds_data_file.data);
     }
-    if (sounds_data_file.references != 0) {
-        GlobalFree(sounds_data_file.references);
+    if (globals().sounds_data_file.references != 0) {
+        GlobalFree(globals().sounds_data_file.references);
     }
-    sounds_data_file.file_id = 0;
-    sounds_data_file.data_offset = 0;
-    sounds_data_file.table_offset = 0;
-    sounds_data_file.entry_count = 0;
+    globals().sounds_data_file.file_id = 0;
+    globals().sounds_data_file.data_offset = 0;
+    globals().sounds_data_file.table_offset = 0;
+    globals().sounds_data_file.entry_count = 0;
 
-    GlobalFree(cache_io_requests);
+    GlobalFree(globals().cache_io_requests);
 }
 
 /**

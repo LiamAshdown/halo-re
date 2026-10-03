@@ -4,6 +4,7 @@
 #include "structures.h"
 #include "hs.h"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern void *ai_gc_callback_table;
@@ -70,7 +71,6 @@ extern void objects_garbage_collection(void);
 extern void objects_get_statistics(void *out);
 extern int32_t sprintf(char *buffer, const char *format, ...);
 extern void structure_decals_update_switch_transitions(void *previous_pvs, void *current_pvs, int32_t cluster_count);
-extern tag_instance *tag_instances;
 extern widget_type_definition widget_type_definitions[k_maximum_widget_types];
 extern void widgets_dispose(void);
 extern void widgets_dispose_clear_flag(void);
@@ -899,7 +899,7 @@ void halo::objects::ObjectMemoryDumpRecordView::write(void *file)
             name = object_type_definitions[record->type]->name;
         }
     } else {
-        name = tag_instances[(int16_t)record->definition_tag].path;
+        name = halo::cache::globals().tag_instances[(int16_t)record->definition_tag].path;
     }
 
     fprintf((FILE *)file, "% 6d (% 6d) [% 7d/% 7d/% 7d/% 7d] % 7d % 7d %s\r\n",

@@ -1,13 +1,13 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_new_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern void actor_clear_recognition_history(datum_index actor_index, uint8_t keep_when_typed);
 extern void actor_dispatch_type_vtable_0x10(datum_index actor_index);
 }
@@ -34,13 +34,13 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
         return (datum_index)k_datum_index_none;
     }
 
-    variant = (ActorVariant *)(tag_instances[actor_variant_tag & 0xffff].data);
+    variant = (ActorVariant *)(halo::cache::globals().tag_instances[actor_variant_tag & 0xffff].data);
     actor_definition_tag = *(datum_index *)&variant->actor_definition.tag_id;
     if (actor_definition_tag == (datum_index)k_datum_index_none) {
         return (datum_index)k_datum_index_none;
     }
 
-    actor_tag = (Actor *)(tag_instances[actor_definition_tag & 0xffff].data);
+    actor_tag = (Actor *)(halo::cache::globals().tag_instances[actor_definition_tag & 0xffff].data);
 
     actor_index = halo::memory::datum_new(actor_data);
     if (actor_index == (datum_index)k_datum_index_none) {
@@ -281,7 +281,6 @@ attach:
 
 namespace actor_place_new_unit_local {
 extern "C" {
-extern tag_instance *tag_instances;
 extern data_array *object_data;
 extern Scenario *global_scenario;
 extern int16_t network_game_mode;
@@ -299,7 +298,7 @@ extern datum_index actor_new_and_attach_to_unit(
     char reuse_existing, datum_index unit_index, datum_index actor_variant_tag,
     uint32_t encounter_or_none, int16_t squad_index, char ignore_squad, datum_index exclude_actor,
     char start_active, uint16_t unknown_60, int16_t unknown_62, uint16_t unknown_90, uint8_t unknown_68);
-#define TAG_DATA(h) ((uint8_t *)tag_instances[(h) & 0xffff].data)
+#define TAG_DATA(h) ((uint8_t *)halo::cache::globals().tag_instances[(h) & 0xffff].data)
 }
 }
 
@@ -659,7 +658,6 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
 namespace actor_process_pending_command_list_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 #define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -709,7 +707,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern data_array *player_data;
 extern int16_t network_game_mode;
 extern game_time_globals *game_time;
@@ -739,7 +736,7 @@ extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key);
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
 {
     uint8_t *self = OBJECT_DATA(object_index);
@@ -1053,7 +1050,6 @@ void ActorView::propagate_unit_field(int16_t value)
 namespace actor_raise_timer_5f6_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 #define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -1089,7 +1085,6 @@ namespace actor_rate_potential_target_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern void * actor_get_actor_definition(datum_index actor_index);
 extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);
 extern uint8_t *actor_get_threat_weapon_definition(datum_index actor_index);
@@ -1132,8 +1127,8 @@ float ActorView::rate_potential_target(datum_index target_prop_index)
     }
 
     extra = 0.0f;
-    actor_def = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
-    variant_def = (ActorVariant *)tag_instances[self->actor_variant_tag & 0xffff].data;
+    actor_def = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
+    variant_def = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & 0xffff].data;
     bonus_b = 0;
     bonus_c = 0;
 
@@ -1498,7 +1493,6 @@ int32_t ActorView::report_command_status()
 namespace actor_request_move_and_face_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override);
 extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query,
     actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context,
@@ -1518,7 +1512,7 @@ uint8_t ActorView::request_move_and_face()
 {
     using namespace actor_request_move_and_face_local;
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
 
     if (actor[6] != 0) {
         *(int16_t *)(actor + 0xc0) = 1;
@@ -1694,7 +1688,6 @@ void ActorView::reset_squad_link_for_type_change(datum_index encounter_index, in
 namespace actor_resolve_look_target_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require_trust, uint8_t skip_lane_test,
                                                 actor_recognition_scan_result *out_result, uint8_t *out_in_front);
 extern uint8_t actor_look_pick_random_point_in_cone(void *origin, float yaw_min, float yaw_max, float pitch_min, float pitch_max, real_vector3d *base_direction, uint8_t check_obstruction, real_point3d *out);
@@ -1720,7 +1713,7 @@ uint8_t ActorOps::resolve_look_target(real_point3d *preferred_direction, datum_i
     int32_t wait_ticks;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
     out_in_front = 0;
     self->idle_major_active = 0;
 
@@ -2052,7 +2045,6 @@ namespace actor_select_facing_target_prop_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern double cos(double x);
 extern uint8_t actor_point_in_directional_lane(real_point3d *to_point, real_point3d *forward, real_point3d *cone_axis,
@@ -2089,7 +2081,7 @@ uint8_t ActorView::select_facing_target_prop(uint8_t require_trust, uint8_t skip
     float best_score;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
     now = game_time->game_time;
 
     if (self->awareness_level == 3) {
@@ -2561,7 +2553,6 @@ namespace actor_spawn_additional_units_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern double cos(double x);
 extern double sin(double x);
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
@@ -2616,9 +2607,9 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
         }
 
         {
-            const uint8_t *variant_tag_data = (const uint8_t *)(tag_instances[actor_variant_tag & 0xffff].data);
+            const uint8_t *variant_tag_data = (const uint8_t *)(halo::cache::globals().tag_instances[actor_variant_tag & 0xffff].data);
             const uint32_t *variant = (const uint32_t *)variant_tag_data;
-            const uint8_t *actor_tag_data = (const uint8_t *)(tag_instances[variant[4] & 0xffff].data);
+            const uint8_t *actor_tag_data = (const uint8_t *)(halo::cache::globals().tag_instances[variant[4] & 0xffff].data);
             int16_t i;
 
             for (i = 0; i < spawn_count; i++) {
@@ -3015,11 +3006,10 @@ void ActorView::unlink_unit()
 namespace actor_vehicle_not_recently_left_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 }
 }

@@ -6,6 +6,7 @@
 
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -13,7 +14,6 @@ extern uint8_t *runtime_decals_suppressed;
 extern Scenario *global_scenario;
 extern uint8_t decals_for_all_responses;
 extern uint8_t decals_enabled;
-extern tag_instance *tag_instances;
 extern double cos(double x);
 extern double sin(double x);
 extern void decal_evict_object_decals(int32_t cluster_slot);
@@ -89,7 +89,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
                     orientation.k = (float)sin(pitch);
 
                     if (decals_for_all_responses == 0) {
-                        Decal *shader_decal = (Decal *)tag_instances[shader_tag_id.index].data;
+                        Decal *shader_decal = (Decal *)halo::cache::globals().tag_instances[shader_tag_id.index].data;
                         if (shader_decal->layer != decallayer_alpha_tested) {
                             spawn_ok = 0;
                         }
@@ -104,7 +104,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
                                 (real_point3d *)&decal->position, &orientation, 0xffffffff,
                                 &placement) != 0 &&
                             placement.type == _collision_result_type_structure &&
-                            (*(uint8_t *)tag_instances[shader_tag_id.index].data & 0x10) == 0) {
+                            (*(uint8_t *)halo::cache::globals().tag_instances[shader_tag_id.index].data & 0x10) == 0) {
                             decal_place(*(datum_index *)&shader_tag_id, &placement, &orientation, 1.0f, 1, -1);
                         }
                     }

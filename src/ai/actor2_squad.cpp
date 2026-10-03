@@ -1,6 +1,7 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
@@ -117,7 +118,6 @@ extern double fsin(double x);
 extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *player_data;
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 extern void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request);
 extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index,
@@ -155,7 +155,7 @@ extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_
     uint8_t interpolate);
 extern const char k_empty_string[];
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 }
 
@@ -708,7 +708,6 @@ namespace actor_squad_action_is_complete_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 extern uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle,
                                           uint32_t exclude_object_index);
@@ -720,7 +719,7 @@ extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern uint32_t unit_get_biped_specific_value(uint32_t object_index);
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 }
 

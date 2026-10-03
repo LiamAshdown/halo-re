@@ -7,10 +7,10 @@
 #include "halo/bitmaps/bitmaps.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count];
-extern struct cache *texture_cache;
 extern uint8_t file_reference_create(file_reference_record *ref);
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode);
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size);
@@ -280,7 +280,7 @@ void bitmap_data_view::free()
 
     if (self->flags & _bitmap_data_texture_cache_bit) {
         if (self->pointer != (uint32_t)k_datum_index_none) {
-            halo::memory::cache_evict_entry((datum_index)self->pointer, texture_cache);
+            halo::memory::cache_evict_entry((datum_index)self->pointer, halo::cache::globals().texture_cache);
         }
         self->pointer = (uint32_t)k_datum_index_none;
         self->pixel_base = 0;

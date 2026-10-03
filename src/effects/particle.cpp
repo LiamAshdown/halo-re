@@ -1,10 +1,10 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *particle_data;
-extern tag_instance *tag_instances;
 extern uint8_t particle_advance_frame(datum_index particle_handle);
 extern uint8_t particle_next_sequence(datum_index particle_handle);
 extern void particle_impact_response_dispatch(particle *self, tag_group fourcc, datum_index definition_index, real intensity);
@@ -51,7 +51,7 @@ uint8_t particle_ref::advance_animation(real delta_time)
 {
     datum_index particle_handle = datum;
     particle *self = &((particle *)particle_data->data)[(uint16_t)particle_handle];
-    Particle *tag = (Particle *)tag_instances[(uint16_t)self->definition_index].data;
+    Particle *tag = (Particle *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
     uint8_t has_frame = 1;
 
     if ((tag->flags & 0x2) != 0   &&
@@ -102,8 +102,8 @@ uint8_t particle_ref::advance_frame()
 {
     datum_index particle_handle = datum;
     particle *self = &((particle *)particle_data->data)[(uint16_t)particle_handle];
-    Particle *tag = (Particle *)tag_instances[(uint16_t)self->definition_index].data;
-    Bitmap *bitmap = (Bitmap *)tag_instances[tag->bitmap.tag_id.index].data;
+    Particle *tag = (Particle *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
+    Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[tag->bitmap.tag_id.index].data;
     BitmapGroupSequence *sequences = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer;
 
     self->animation_timer = 0.0f;
@@ -147,7 +147,7 @@ real particle_ref::current_radius()
 {
     datum_index particle_handle = datum;
     particle *self = &((particle *)particle_data->data)[(uint16_t)particle_handle];
-    Particle *tag = (Particle *)tag_instances[(uint16_t)self->definition_index].data;
+    Particle *tag = (Particle *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
 
     return ((tag->radius_animation[1] - tag->radius_animation[0]) * (self->age / self->lifespan) +
             tag->radius_animation[0]) * self->scale;
@@ -163,7 +163,7 @@ void particle_ref::impact()
 {
     datum_index particle_handle = datum;
     particle *self = &((particle *)particle_data->data)[(uint16_t)particle_handle];
-    Particle *tag = (Particle *)tag_instances[(uint16_t)self->definition_index].data;
+    Particle *tag = (Particle *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
 
     if (*(uint32_t *)&tag->death_effect.tag_id != 0xffffffffu) {
         particle_impact_response_dispatch(self, *(tag_group *)&tag->death_effect.tag_fourcc,
@@ -232,7 +232,7 @@ void particle_ref::create(particle_creation_data *creation_data)
     if (creation_data->definition_index == (datum_index)0xffffffff) {
         return;
     }
-    tag = (Particle *)tag_instances[(uint16_t)creation_data->definition_index].data;
+    tag = (Particle *)halo::cache::globals().tag_instances[(uint16_t)creation_data->definition_index].data;
 
     if (creation_data->object_index == (datum_index)0xffffffff) {
         position = creation_data->position;
@@ -313,7 +313,7 @@ void particle_ref::create(particle_creation_data *creation_data)
 
             if (self->object_index == (datum_index)0xffffffff) {
                 real radius = particle_current_radius(handle);
-                PointPhysics *physics = (PointPhysics *)tag_instances[tag->physics.tag_id.index].data;
+                PointPhysics *physics = (PointPhysics *)halo::cache::globals().tag_instances[tag->physics.tag_id.index].data;
                 real fold = radius * physics->mass_scale * radius * radius;
 
                 self->velocity.i = self->velocity.i + fold * creation_data->gravity.i;
@@ -342,7 +342,7 @@ void particle_ref::create(particle_creation_data *creation_data)
             }
 
             if (particle_next_sequence(handle) != 0) {
-                Bitmap *bitmap = (Bitmap *)tag_instances[tag->bitmap.tag_id.index].data;
+                Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[tag->bitmap.tag_id.index].data;
                 BitmapGroupSequence *sequence =
                     (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer + self->sequence_index;
 
@@ -374,8 +374,8 @@ uint8_t particle_ref::next_sequence()
 {
     datum_index particle_handle = datum;
     particle *self = &((particle *)particle_data->data)[(uint16_t)particle_handle];
-    Particle *tag = (Particle *)tag_instances[(uint16_t)self->definition_index].data;
-    Bitmap *bitmap = (Bitmap *)tag_instances[tag->bitmap.tag_id.index].data;
+    Particle *tag = (Particle *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
+    Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[tag->bitmap.tag_id.index].data;
 
     self->sequence_index = -1;
 
@@ -447,7 +447,7 @@ uint8_t particle_ref::update_motion(real delta_time)
 {
     datum_index particle_handle = datum;
     particle *self = &((particle *)particle_data->data)[(uint16_t)particle_handle];
-    Particle *tag = (Particle *)tag_instances[(uint16_t)self->definition_index].data;
+    Particle *tag = (Particle *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
     uint8_t settled = 0;
 
     if ((self->flags & _particle_at_rest_bit) != 0) {
@@ -462,7 +462,7 @@ uint8_t particle_ref::update_motion(real delta_time)
     }
 
     if (self->object_index == k_datum_index_none) {
-        PointPhysics *physics = (PointPhysics *)tag_instances[tag->physics.tag_id.index].data;
+        PointPhysics *physics = (PointPhysics *)halo::cache::globals().tag_instances[tag->physics.tag_id.index].data;
         real radius = particle_current_radius(particle_handle);
         real_vector3d out_normal;
         int16_t out_material_type;
@@ -516,7 +516,7 @@ uint8_t particle_ref::update_motion(real delta_time)
                 tag->contact_deterioration;
         }
     } else {
-        PointPhysics *physics = (PointPhysics *)tag_instances[tag->physics.tag_id.index].data;
+        PointPhysics *physics = (PointPhysics *)halo::cache::globals().tag_instances[tag->physics.tag_id.index].data;
         real radius;
         real friction, mass_related, decay;
 
@@ -646,7 +646,7 @@ void particle_ref::update(real delta_time)
     while (particle_index != k_datum_index_none) {
         particle *self = &((particle *)particle_data->data)[(uint16_t)particle_index];
         real age_before = self->age;
-        Particle *tag = (Particle *)tag_instances[(uint16_t)self->definition_index].data;
+        Particle *tag = (Particle *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
 
         if (render_frame_index - self->last_update_tick < 0x10) {
             self->age = delta_time + self->age;

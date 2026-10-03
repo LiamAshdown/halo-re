@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "halo/game/game1_local_control.hpp"
+#include "halo/cache/api.hpp"
 
 #define k_degrees_to_radians 0.017453292f
 #define k_seconds_per_tick   0.033333335f
@@ -23,7 +24,6 @@ extern "C" {
 extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern player_control_globals *player_control_globals_ptr;
 extern game_time_globals *game_time;
 extern Globals *global_globals;
@@ -140,7 +140,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
             object *parent =
                 ((object_header *)object_data->data)[unit_object->parent_object & 0xffff].data;
             Unit *parent_definition =
-                (Unit *)tag_instances[parent->definition_tag & 0xffff].data;
+                (Unit *)halo::cache::globals().tag_instances[parent->definition_tag & 0xffff].data;
             UnitSeat *seat =
                 &((UnitSeat *)parent_definition->seats.pointer)[unit->vehicle_seat_index];
 
@@ -575,7 +575,7 @@ real LocalControl::get_max_look_pitch(int16_t local_player_index)
             (uint32_t)(uint16_t)look->unit * object_data->size + 8);
         object *o = (object *)base;
         unit_data *u = (unit_data *)((uint8_t *)base + k_unit_data_offset);
-        uint8_t *tag_data = (uint8_t *)tag_instances[(uint16_t)o->definition_tag].data;
+        uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[(uint16_t)o->definition_tag].data;
 
         if (u->current_weapon_index != -1 && u->weapons[u->current_weapon_index] != k_datum_index_none) {
             result = weapon_clamp_zoom_fov(u->weapons[u->current_weapon_index], look->desired_zoom_level,

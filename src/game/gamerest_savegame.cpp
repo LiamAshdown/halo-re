@@ -1,6 +1,7 @@
 #include "halo/game/gamerest_savegame.hpp"
 #include <wchar.h>
 #include <stdint.h>
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity);
@@ -24,10 +25,8 @@ extern uint8_t file_reference_seek(int32_t offset, file_reference *ref);
 extern uint8_t file_reference_read(file_reference *ref, void *buffer, uint32_t size);
 extern uint32_t user_save_path_keys[k_maximum_user_save_paths];
 extern char user_save_paths[k_maximum_user_save_paths][k_user_save_path_slot_stride];
-extern tag_instance *tag_instances;
 extern wchar_t missing_string_text[];
 extern wchar_t unicode_string_list_scratch_buffer;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern void *global_sound_effect_object;
 extern player_profile player_profile_cache[16];
 extern int32_t player_profile_cache_count;
@@ -741,11 +740,11 @@ wchar_t * UnicodeStringLists::get_string(char *path, int16_t index)
     UnicodeStringListString *entry;
     int32_t char_count;
 
-    tag_id = tag_lookup(0x75737472, path);
+    tag_id = halo::cache::tag_lookup(0x75737472, path);
     source = missing_string_text;
 
     if (tag_id != k_datum_index_none && index >= 0) {
-        list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
+        list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
         if (index < (int32_t)list->strings.count) {
             entry = (UnicodeStringListString *)list->strings.pointer + index;
             char_count = (int32_t)entry->string.size;

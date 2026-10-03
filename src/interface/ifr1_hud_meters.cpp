@@ -1,16 +1,15 @@
 #include "halo/interface/ifr1_hud_meters.hpp"
 #include <string.h>
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
-extern tag_instance *tag_instances;
 extern int32_t ui_real_to_int_truncate(float value);
 extern uint32_t color_rgb_float_to_int(const float *rgb);
 extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed);
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs,
                                     void *meter_parameters, BitmapData *bitmap, uint16_t *anchor,
                                     float scale, float rotation, uint32_t color, uint8_t split_screen);
@@ -58,7 +57,7 @@ namespace halo::interface {
 void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t flags, float fraction, float fraction_2, const hud_meter_placement *meter)
 {
     datum_index bitmap_tag = *(datum_index *)&meter->meter_bitmap.tag_id;
-    uint8_t *bitmap_tag_data = (uint8_t *)tag_instances[bitmap_tag & 0xffff].data;
+    uint8_t *bitmap_tag_data = (uint8_t *)halo::cache::globals().tag_instances[bitmap_tag & 0xffff].data;
     BitmapData *bitmap = bitmap_group_sequence_get_bitmap_data(bitmap_tag, 0, (int16_t)meter->sequence_index);
     const uint8_t *sprite_rect = 0;
     uint8_t is_sprite_bitmap;
@@ -68,12 +67,12 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
     hud_meter_color_block block;
     ColorARGB gray;
 
-    if (texture_cache_get(bitmap, 0, 1) == 0) {
+    if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         return;
     }
 
     if (bitmap_tag != (datum_index)-1 && meter->sequence_index != 0xffff) {
-        uint8_t *bitmap_definition = (uint8_t *)tag_instances[bitmap_tag & 0xffff].data;
+        uint8_t *bitmap_definition = (uint8_t *)halo::cache::globals().tag_instances[bitmap_tag & 0xffff].data;
         int16_t sequence = (int16_t)meter->sequence_index;
         if (sequence < *(int32_t *)(bitmap_definition + 0x54)) {
             uint8_t *sequence_entry = *(uint8_t **)(bitmap_definition + 0x58) + sequence * 0x40;
@@ -166,8 +165,8 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
  */
 uint8_t HudMeters::find_matching_elements(uint32_t source_tag_ref, uint32_t target_tag_ref, int16_t *out)
 {
-    char *target_data = (char *)tag_instances[(uint16_t)target_tag_ref].data;
-    char *source_data = (char *)tag_instances[(uint16_t)source_tag_ref].data;
+    char *target_data = (char *)halo::cache::globals().tag_instances[(uint16_t)target_tag_ref].data;
+    char *source_data = (char *)halo::cache::globals().tag_instances[(uint16_t)source_tag_ref].data;
     uint8_t all_matched = 1;
     int32_t target_count = *(int32_t *)(target_data + 0xb8);
     int32_t target_index;
@@ -258,7 +257,7 @@ uint32_t HudMeters::flash_color_blend(const hud_flash_parameters *flash, int32_t
  */
 void HudMeters::permute_node_records(uint8_t *dest, uint8_t *source, uint32_t target_tag_ref, int16_t *lookup)
 {
-    char *target_data = (char *)tag_instances[(uint16_t)target_tag_ref].data;
+    char *target_data = (char *)halo::cache::globals().tag_instances[(uint16_t)target_tag_ref].data;
     int32_t count = *(int32_t *)(target_data + 0xb8);
     int32_t i;
 
@@ -279,7 +278,7 @@ void HudMeters::resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_in
     int32_t frame = frame_index;
 
     if (bitmap_tag != (datum_index)-1) {
-        Bitmap *bitmap = (Bitmap *)tag_instances[bitmap_tag & 0xffff].data;
+        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag & 0xffff].data;
         int16_t sequence = (int16_t)sequence_index;
 
         if (sequence < (int32_t)bitmap->bitmap_group_sequence.count) {

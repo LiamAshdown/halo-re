@@ -1,5 +1,6 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
@@ -478,7 +479,6 @@ namespace actor_update_crouch_state_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern double exp2(double x);
 extern int32_t __ftol(double x);
 extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type);
@@ -535,7 +535,7 @@ void ActorView::update_crouch_state()
     uint8_t want_crouch;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    actor_definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
 
     threat_level           = &self->unknown_350;
     threat_level_smoothed  = &self->danger_meter;
@@ -769,7 +769,6 @@ void ActorView::update_crouch_state()
 namespace actor_update_danger_avoidance_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern actor_mode_definition actor_mode_definitions[16];
 extern uint8_t actor_action_has_queued_secondary(datum_index actor_index);
 extern uint8_t actor_movement_action_is_complete(datum_index actor_index);
@@ -937,7 +936,7 @@ uint8_t ActorView::update_danger_avoidance()
                 goto flee_check;
             }
             if (take || reacting) {
-                uint8_t *definition = (uint8_t *)tag_instances[D(0x58) & 0xffff].data;
+                uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[D(0x58) & 0xffff].data;
                 float distance = (*(uint32_t *)definition & 0x2000000) ? 8.0f : 0.0f;
 
                 result = actor_take_danger_escape(&path_delta, actor_index, escape, *(uint32_t *)escape_position,
@@ -982,7 +981,6 @@ namespace actor_update_facing_change_timer_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern int32_t __ftol(double x);
 }
 }
@@ -998,7 +996,7 @@ void ActorView::update_facing_change_timer()
 {
     using namespace actor_update_facing_change_timer_local;
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
     uint8_t *pending_flag = &self->unknown_358;
     int16_t *ticks_field = &self->unknown_35a;
     float *smoothing_field = &self->danger_meter;
@@ -1101,7 +1099,6 @@ void ActorView::update_idle_stagger()
 namespace actor_update_look_target_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern actor_mode_definition actor_mode_definitions[16];
 extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index);
 extern uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_vector3d *out,
@@ -1139,7 +1136,7 @@ void ActorView::update_look_target()
 {
     using namespace actor_update_look_target_local;
     uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *definition = (uint8_t *)tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data;
     uint8_t *cache_a = a + 0x5a4;
     uint8_t *cache_b = a + 0x5b0;
     uint8_t *cache_c = a + 0x5bc;
@@ -1558,7 +1555,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *encounter_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern uint8_t *actor_type_procs[];
 extern actor_mode_definition actor_mode_definitions[16];
 extern void ai_starting_location_derive_placement_flags(datum_index encounter_index, int16_t starting_location_index,
@@ -1619,7 +1615,7 @@ uint8_t ActorView::update_melee_combat_action()
 {
     using namespace actor_update_melee_combat_action_local;
     uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)tag_instances[D(a, 0x58) & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[D(a, 0x58) & 0xffff].data;
     datum_index encounter_index = D(a, 0x34);
     uint8_t *encounter = encounter_index != k_datum_index_none
         ? (uint8_t *)encounter_data->data + (encounter_index & 0xffff) * 0x6c : 0;
@@ -1820,7 +1816,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 extern void *actor_get_actor_definition(datum_index actor_index);
 extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point,
@@ -1863,7 +1858,7 @@ uint8_t ActorView::update_movement_destination()
     if (A_B(0x4c) == 0) {
         return 0;
     }
-    actor_tag = (uint8_t *)tag_instances[A_D(0x58) & 0xffff].data;
+    actor_tag = (uint8_t *)halo::cache::globals().tag_instances[A_D(0x58) & 0xffff].data;
     definition = (uint8_t *)actor_get_actor_definition(actor_index);
 
     if (A_B(0x160) == 0) {
@@ -1922,7 +1917,7 @@ uint8_t ActorView::update_movement_destination()
 
                 if (A_W(0x15e) > 0) {
                     uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[A_D(0x158) & 0xffff].data;
-                    uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)vehicle & 0xffff].data;
+                    uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)vehicle & 0xffff].data;
                     float cap = *(float *)(vehicle_tag + 0x3a8);
 
                     if (cap > 0.0f && wait > cap) {

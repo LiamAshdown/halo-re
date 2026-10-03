@@ -2,10 +2,10 @@
 #include "game.h"
 #include "networking.h"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern double sqrt(double x);
 extern uint8_t *global_globals;
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
@@ -44,7 +44,7 @@ void UnitView::apply_impulse(real_vector3d *impulse)
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    void *tag_data = tag_instances[obj->definition_tag & 0xffff].data;
+    void *tag_data = halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
@@ -103,7 +103,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Unit *tag = (Unit *)tag_instances[obj->definition_tag & 0xffff].data;
+    Unit *tag = (Unit *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     uint32_t best_object = 0xffffffff;
@@ -158,7 +158,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
             datum_index weapon_index = unit->weapons[unit->current_weapon_index];
             if (weapon_index != k_datum_index_none) {
                 object *weapon_obj = ((object_header *)object_data->data)[weapon_index & 0xffff].data;
-                Weapon *weapon_tag = (Weapon *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+                Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
                 weapon_response_tag = *(int32_t *)&weapon_tag->player_melee_response.tag_id;
                 secondary_damage_effect = *(int32_t *)&((struct Weapon *)weapon_tag)->player_melee_response.tag_id;
             }
@@ -383,7 +383,7 @@ uint32_t UnitView::get_biped_specific_value()
 void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
@@ -463,7 +463,7 @@ uint32_t UnitView::get_tag_flag_bit7()
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[obj->definition_tag & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     return (*(uint32_t *)(tag + 0x2f0) >> 7) & 1;
 }
 
@@ -572,7 +572,7 @@ uint8_t unit_point_in_front_and_asleep(real_point3d *world_point, uint32_t unit_
     if (obj == 0 || ((unit_object *)obj)->base.type != 0) {
         return 0;
     }
-    if (*(uint32_t *)((uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data + 0x17c) & 0x10000) {
+    if (*(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data + 0x17c) & 0x10000) {
         return 0;
     }
     dot = (((unit_object *)obj)->base.bounding_center.z - world_point->z) * ((unit_object *)obj)->unit.looking_vector.k +
@@ -602,8 +602,8 @@ void UnitView::update_ground_contact_counter(uint8_t *contact_points)
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
-    uint8_t *physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+    uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
     int32_t count = *(int32_t *)(physics_tag + 0x74);
     int32_t i;

@@ -21,6 +21,7 @@
 #include "halo/networking/net2_server_browser.hpp"
 #include "halo/networking/server_sort.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t playlist_profiles_need_defaults;
@@ -81,7 +82,6 @@ extern void master_server_list_refresh_request(void);
 extern uint8_t autopatch_download_get_result(void **out_data, int32_t *out_size, int32_t slot_index);
 extern wchar_t * string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source);
 extern wchar_t string_widen_scratch[0x400];
-extern datum_index tag_lookup(tag_group group, char *path);
 extern uint16_t * text_string_list_get_string(datum_index list_id, int16_t index);
 extern int32_t map_list_count;
 extern map_list_entry * map_list;
@@ -654,7 +654,7 @@ scroll_fade_settled:
                 DAT_00695420 = -1;
                 DAT_00719698 = 2;
                 DAT_00719498[0] = 0;
-                tag_idx = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
+                tag_idx = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
                 if (tag_idx != -1) {
                     src = text_string_list_get_string(tag_idx, 5);
                     wcsncpy(DAT_00719498, (const wchar_t *)src, 0xff);
@@ -676,7 +676,7 @@ void ServerBrowser::ticker_string_copy(uint16_t *buffer, int32_t capacity, int32
     uint16_t *source;
 
     *buffer = 0;
-    tag_index = tag_lookup(0x75737472,
+    tag_index = halo::cache::tag_lookup(0x75737472,
         (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
     if (tag_index != -1) {
         source = text_string_list_get_string(tag_index, (int16_t)string_index);
@@ -1486,7 +1486,6 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     uint8_t &DAT_00719698 = reinterpret_cast<uint8_t &>(::DAT_00719698);
     uint8_t &DAT_00719696 = reinterpret_cast<uint8_t &>(::DAT_00719696);
     int32_t &server_browser_player_ticker = reinterpret_cast<int32_t &>(::server_browser_player_ticker);
-    int32_t (*const tag_lookup)(const char *path) = reinterpret_cast<int32_t (*)(const char *path)>(&::tag_lookup);
     uint16_t * (*const text_string_list_get_string)(int32_t tag_index, int32_t string_index) = reinterpret_cast<uint16_t * (*)(int32_t tag_index, int32_t string_index)>(&::text_string_list_get_string);
     void (*const server_list_reset)(void) = reinterpret_cast<void (*)(void)>(&::server_list_reset);
     void (*const join_game_server_browser_tick)(network_ui_widget *root) = reinterpret_cast<void (*)(network_ui_widget *root)>(&::join_game_server_browser_tick);
@@ -1525,8 +1524,8 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     }
     if (DAT_00719498[0] == 0) {
         DAT_00719498[0] = 0;
-        tag_index = tag_lookup(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
+        tag_index = halo::cache::tag_lookup(0x75737472,
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
         if (tag_index != -1) {
             source = text_string_list_get_string(tag_index, 0);
             wcsncpy(DAT_00719498, (const wchar_t *)source, 0xff);

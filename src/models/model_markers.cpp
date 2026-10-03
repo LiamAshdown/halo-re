@@ -6,10 +6,8 @@
 
 #include "halo/models/models.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
-extern "C" {
-extern tag_instance *tag_instances;
-}
 
 namespace halo::models {
 
@@ -23,7 +21,7 @@ int16_t model_markers::group_index_from_name(datum_index model_tag_id, const cha
         return -1;
     }
 
-    model = (GBXModel *)tag_instances[model_tag_id & 0xffff].data;
+    model = (GBXModel *)halo::cache::globals().tag_instances[model_tag_id & 0xffff].data;
     markers = (ModelMarker *)model->markers.pointer;
 
     lo = 0;
@@ -58,7 +56,7 @@ int16_t model_markers::get_by_name(datum_index model_tag_id, const char *name, u
         return 0;
     }
 
-    model = (GBXModel *)tag_instances[model_tag_id & 0xffff].data;
+    model = (GBXModel *)halo::cache::globals().tag_instances[model_tag_id & 0xffff].data;
     marker = &((ModelMarker *)model->markers.pointer)[group_index];
     if (marker->instances.count <= 0) {
         return 0;

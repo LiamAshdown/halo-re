@@ -1,5 +1,6 @@
 #include "halo/ai/actor_combat.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_evaluate_engagement_reachability {
 extern "C" {
@@ -136,7 +137,6 @@ namespace c_actor_get_threat_weapon_object_index {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
 }
@@ -171,7 +171,7 @@ datum_index halo::ai::combat_ops::get_threat_weapon_object_index()
     }
 
     if (self->unit_index != (datum_index)k_datum_index_none) {
-        uint8_t *variant_tag = (uint8_t *)tag_instances[self->actor_variant_tag & 0xffff].data;
+        uint8_t *variant_tag = (uint8_t *)halo::cache::globals().tag_instances[self->actor_variant_tag & 0xffff].data;
         if ((*variant_tag & 0x40) == 0) {
 
             object *own_unit = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;

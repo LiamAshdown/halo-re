@@ -1,15 +1,15 @@
 #include "halo/ai/actor_behavior.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_mode_uncover_tick_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern data_array *prop_data;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type);
 }
@@ -90,10 +90,9 @@ void ActorView::mode_uncover_tick()
 namespace actor_mode_uncover_update_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern data_array *prop_data;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 }
 }
@@ -218,9 +217,8 @@ void ActorView::mode_vehicle_update()
 namespace actor_mode_wait_process_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 extern int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_search);

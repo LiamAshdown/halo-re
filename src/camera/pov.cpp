@@ -1,6 +1,7 @@
 #include "halo/camera/pov.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern player_control_globals *player_control_globals_ptr;
@@ -16,7 +17,6 @@ extern void unit_get_camera_position(datum_index unit, real_point3d *out);
 extern unit_camera_properties *unit_get_camera_properties(datum_index unit);
 extern void first_person_camera_track_offset(unit_camera_properties *properties, float angle, Vector3D *out);
 extern double asin(double x);
-extern tag_instance *tag_instances;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int16_t object_get_node_local_transform(datum_index object_index, const char *marker_name, object_marker *markers, int32_t maximum_count);
 extern const real_point3d *global_origin3d_pointer;
@@ -220,7 +220,7 @@ void FirstPersonCamera::deterministic(Point3D *out_position, datum_index unit, V
         }
 
         {
-            Unit *parent_unit_tag = (Unit *)tag_instances[parent_object->definition_tag & 0xffff].data;
+            Unit *parent_unit_tag = (Unit *)halo::cache::globals().tag_instances[parent_object->definition_tag & 0xffff].data;
             uint8_t *seats = (uint8_t *)parent_unit_tag->seats.pointer;
             int16_t seat_index = ((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->vehicle_seat_index;
             int8_t seat_flags = *(int8_t *)(seats + (int32_t)seat_index * sizeof(UnitSeat));
@@ -283,7 +283,7 @@ void FirstPersonCamera::for_unit_and_vector(observer_command *command, Vector3D 
         }
 
         {
-            Unit *parent_unit_tag = (Unit *)tag_instances[parent_object->definition_tag & 0xffff].data;
+            Unit *parent_unit_tag = (Unit *)halo::cache::globals().tag_instances[parent_object->definition_tag & 0xffff].data;
             uint8_t *seats = (uint8_t *)parent_unit_tag->seats.pointer;
             int16_t seat_index = ((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->vehicle_seat_index;
             uint8_t seat_flags = *(uint8_t *)(seats + (int32_t)seat_index * sizeof(UnitSeat));
@@ -363,7 +363,7 @@ void FirstPersonCamera::track_offset(unit_camera_properties *properties, float a
             default_unit_camera_track.tag_id;
     }
 
-    track = (CameraTrack *)tag_instances[track_tag & 0xffff].data;
+    track = (CameraTrack *)halo::cache::globals().tag_instances[track_tag & 0xffff].data;
     control_point_count = (int32_t)track->control_points.count;
 
     
@@ -419,7 +419,7 @@ unit_camera_properties * FirstPersonCamera::unit_properties(datum_index unit)
         vehicle_object = object_try_and_get(unit_object->parent_object, _object_mask_vehicle);
         if (vehicle_object != 0) {
             unit_extension = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
-            vehicle_tag = (Unit *)tag_instances[vehicle_object->definition_tag & 0xffff].data;
+            vehicle_tag = (Unit *)halo::cache::globals().tag_instances[vehicle_object->definition_tag & 0xffff].data;
             seat = &((UnitSeat *)vehicle_tag->seats.pointer)[unit_extension->vehicle_seat_index];
             if ((seat->flags & 0x15) != 0) {
                 
@@ -429,7 +429,7 @@ unit_camera_properties * FirstPersonCamera::unit_properties(datum_index unit)
         }
     }
     return (unit_camera_properties *)
-        ((uint8_t *)tag_instances[unit_object->definition_tag & 0xffff].data + 0x1a8);
+        ((uint8_t *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data + 0x1a8);
 }
 
 /**
@@ -718,7 +718,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
     }
 
     case _camera_script_mode_animation: {
-        ModelAnimations *anims = (ModelAnimations *)tag_instances[camera_script.animation_tag & 0xffff].data;
+        ModelAnimations *anims = (ModelAnimations *)halo::cache::globals().tag_instances[camera_script.animation_tag & 0xffff].data;
         ModelAnimationsAnimation *anim =
             (ModelAnimationsAnimation *)((uint8_t *)anims->animations.pointer +
                                          (int32_t)camera_script.animation_index * sizeof(ModelAnimationsAnimation));

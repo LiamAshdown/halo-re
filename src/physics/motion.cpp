@@ -11,6 +11,7 @@
 #include "projectiles.h"
 
 #include "halo/physics/motion.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" { void physics_clamp_value_to_spring_range(float *value, physics_scalar_rates *rates, float step); }
 extern "C" { void physics_scalar_advance_and_wrap(physics_scalar_range *range, float *value, uint8_t wrap, float delta); }
@@ -81,7 +82,6 @@ void PhysicsMotion::clamp_value_to_spring_range(float *value, physics_scalar_rat
 }
 
 extern "C" { extern data_array *object_data; }
-extern "C" { extern tag_instance *tag_instances; }
 extern "C" { extern ScenarioStructureBSP *global_structure_bsp; }
 namespace halo::physics {
 
@@ -101,10 +101,10 @@ int16_t PhysicsMotion::resolve_material_type(uint32_t object_index, int16_t vert
 
     if (object_index != 0xffffffff) {
         object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-        void *object_tag_data = tag_instances[obj->definition_tag & 0xffff].data;
+        void *object_tag_data = halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
         int32_t collision_model_id = *(int32_t *)((uint8_t *)object_tag_data + 0x7c);
         ModelCollisionGeometry *geometry =
-            (ModelCollisionGeometry *)tag_instances[(uint16_t)collision_model_id].data;
+            (ModelCollisionGeometry *)halo::cache::globals().tag_instances[(uint16_t)collision_model_id].data;
 
         return ((ModelCollisionGeometryMaterial *)geometry->materials.pointer)[vertex_slot].material_type;
     }

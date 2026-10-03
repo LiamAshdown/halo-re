@@ -13,18 +13,17 @@
 
 #include "halo/game/game1_king.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern int32_t king_bucket_credit_ticks[16];
 extern wchar_t empty_string;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
 extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
-extern tag_instance *tag_instances;
 extern uint16_t missing_string_text[];
 extern Scenario *global_scenario;
 extern int32_t king_team_hill_seconds_network[16];
@@ -69,7 +68,7 @@ namespace halo::game::engine1 {
  */
 const uint16_t *King::game_text(int16_t index)
 {
-    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : text_string_list_get_string(tag_id, index);
 }
@@ -133,13 +132,13 @@ wchar_t *King::build_player_text(datum_index player, wchar_t *buffer)
  */
 uint16_t *King::multiplayer_text(int16_t index)
 {
-    datum_index list = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index list = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     if (list == 0xffffffff) {
         return (uint16_t *)L"";
     }
     {
-        uint8_t *strings = (uint8_t *)tag_instances[list & 0xffff].data;
+        uint8_t *strings = (uint8_t *)halo::cache::globals().tag_instances[list & 0xffff].data;
 
         if (*(int32_t *)strings > index) {
             uint8_t *element = *(uint8_t **)(strings + 4) + index * 0x14;

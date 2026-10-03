@@ -17,6 +17,7 @@
 
 #include "halo/input/game_actions.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::input {
 
@@ -729,7 +730,6 @@ float GameActions::sensitivity_to_turn_rate(float sensitivity)
 extern "C" { extern player_globals *local_player_globals; }
 extern "C" { extern data_array *player_data; }
 extern "C" { extern data_array *object_data; }
-extern "C" { extern tag_instance *tag_instances; }
 extern "C" { extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); }
 namespace halo::input {
 
@@ -778,7 +778,7 @@ uint8_t GameActions::should_invert_look(int16_t local_player_index)
 
     parent_header = &((object_header *)object_data->data)[(uint16_t)unit_object->parent_object];
     parent_object = parent_header->data;
-    parent_tag = (Vehicle *)tag_instances[(uint16_t)parent_object->definition_tag].data;
+    parent_tag = (Vehicle *)halo::cache::globals().tag_instances[(uint16_t)parent_object->definition_tag].data;
 
     if (parent_tag->vehicle_type == 3 || parent_tag->vehicle_type == 5) {
         seat = (UnitSeat *)((uint8_t *)parent_tag->base.seats.pointer +

@@ -1,6 +1,7 @@
 #include "halo/game/game2_game_lifecycle.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -119,19 +120,15 @@ extern void font_glyph_cache_clear_all(void);
 extern void game_sound_revert_scripting_sounds(void);
 extern void sound_fade_out_and_stop_all(void);
 extern void widget_close_all(void);
-extern uint8_t map_download_in_progress;
 extern uint32_t global_scenario_index;
 extern uint16_t global_structure_bsp_index;
 extern void *global_structure_bsp;
 extern void *global_structure_collision_bsp;
 extern void *global_collision_bsp;
 extern Globals *global_globals;
-extern int16_t cache_file_download_status_get(float *progress_out, int32_t unaff_ecx);
 extern void render_pregame_view_initialize(void);
 extern void movie_capture_frame_export(void);
 extern void interface_handle_quit_request(void);
-extern void cache_file_download_finish(void);
-extern void cache_file_unload(void);
 }
 
 namespace halo::game {
@@ -415,7 +412,7 @@ void GameLifecycle::stop_current_map(void)
     }
     if (rasterizer_decal_vertex_cache_handle != 0) {
         decal_clear_flags(1);
-        halo::memory::cache_flush((cache *)rasterizer_decal_vertex_cache_handle);
+        halo::memory::cache_flush((::cache *)rasterizer_decal_vertex_cache_handle);
     }
     decal_data->valid = 0;
     if (object_render_state_cache != (data_array *)0 && object_render_state_cache->valid != 0) {
@@ -469,10 +466,10 @@ void GameLifecycle::unload_map(void)
 {
     int16_t status;
 
-    if (map_download_in_progress != 0) {
+    if (halo::cache::globals().map_download_in_progress != 0) {
         main_game_globals->map_loading_in_progress = 1;
         do {
-            status = cache_file_download_status_get(&main_game_globals->map_load_progress, 0);
+            status = halo::cache::cache_file_download_status_get(&main_game_globals->map_load_progress, 0);
             render_pregame_view_initialize();
             movie_capture_frame_export();
         } while (status == 0);
@@ -480,10 +477,10 @@ void GameLifecycle::unload_map(void)
         if (status == 2) {
             interface_handle_quit_request();
         }
-        cache_file_download_finish();
+        halo::cache::cache_file_download_finish();
     }
     if (main_game_globals->map_loaded != 0) {
-        cache_file_unload();
+        halo::cache::cache_file_unload();
         global_scenario_game_globals->structure_bsp_index = -1;
         global_scenario_index = 0xffffffff;
         global_structure_bsp_index = 0xffff;

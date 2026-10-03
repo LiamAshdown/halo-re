@@ -6,9 +6,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "halo/cache/globals.hpp"
 
 extern "C" {
-extern tag_instance *tag_instances;
 extern void *rasterizer_device;
 extern uint8_t rasterizer_vertex_buffer_create(int16_t *record, int16_t vertex_type, int32_t count, uint32_t *source_data, int32_t second_stream, uint32_t size);
 extern uint8_t rasterizer_index_buffer_create(int32_t count, int16_t type, rasterizer_index_buffer *out, const void *source);
@@ -41,7 +41,7 @@ void model_vertex_buffers::dispose()
 
     tag_id = halo::cache::view(&iterator)->next();
     while (tag_id != (datum_index)0xffffffff) {
-        model = (GBXModel *)tag_instances[(uint16_t)tag_id].data;
+        model = (GBXModel *)globals().tag_instances[(uint16_t)tag_id].data;
 
         for (geometry_index = 0; geometry_index < (int32_t)model->geometries.count;
              geometry_index++) {
@@ -119,7 +119,7 @@ void model_vertex_buffers::load(cache_file_tag_header *header)
 
     tag_id = halo::cache::view(&iterator)->next();
     while (tag_id != (datum_index)0xffffffff) {
-        model = (GBXModel *)tag_instances[(uint16_t)tag_id].data;
+        model = (GBXModel *)globals().tag_instances[(uint16_t)tag_id].data;
 
         for (geometry_index = 0; geometry_index < (int32_t)model->geometries.count;
              geometry_index++) {
@@ -179,7 +179,7 @@ void predicted_resources::touch(TagReflexive *resources)
             element = &((PredictedResource *)resources->pointer)[index];
 
             if (element->type == predictedresourcetype_bitmap) {
-                Bitmap *bitmap_tag = (Bitmap *)tag_instances[element->tag.index].data;
+                Bitmap *bitmap_tag = (Bitmap *)globals().tag_instances[element->tag.index].data;
                 BitmapData *bitmap = (BitmapData *)((uint8_t *)bitmap_tag->bitmap_data.pointer +
                     (int32_t)(int16_t)element->resource_index * sizeof(BitmapData));
                 halo::cache::texture_cache_manager::get(bitmap, 0, 1);

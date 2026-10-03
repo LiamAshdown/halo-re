@@ -1,9 +1,9 @@
 #include "halo/interface/ifr1_hud_timer.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
 extern game_time_globals *game_time;
-extern tag_instance *tag_instances;
 extern Globals *global_globals;
 extern HUDGlobals *hud_globals_tag_data;
 extern int16_t current_local_player_index;
@@ -112,7 +112,7 @@ void HudTimer::draw(void)
         : (GlobalsInterfaceBitmaps *)0;
     digits_tag = *(datum_index *)&interface_bitmaps->hud_digits_definition.tag_id;
     if (digits_tag != (datum_index)-1) {
-        HUDNumber *digits = (HUDNumber *)tag_instances[digits_tag & 0xffff].data;
+        HUDNumber *digits = (HUDNumber *)halo::cache::globals().tag_instances[digits_tag & 0xffff].data;
         digit_step = __ftol((double)((float)(int32_t)digits->screen_digit_width + (float)(int32_t)digits->screen_digit_width));
     }
     switch (messaging->timer_anchor) {

@@ -17,12 +17,12 @@
 #include <stdint.h>
 #include "halo/render/render.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state;
 extern game_time_globals *game_time;
 extern GlobalsRasterizerData *rasterizer_globals_data;
-extern tag_instance *tag_instances;
 extern ColorRGB *default_axis_b;
 extern ColorRGB *global_real_rgb_green_pointer;
 extern frame_graph frame_graphs[1];
@@ -297,13 +297,13 @@ void set_video(int16_t overbright_mode, float noise_intensity)
 
     g->video_enabled = 1;
 
-    scanline_tag = &tag_instances[(uint16_t)*(int32_t *)&rasterizer_globals_data->video_scanline_map.tag_id];
+    scanline_tag = &halo::cache::globals().tag_instances[(uint16_t)*(int32_t *)&rasterizer_globals_data->video_scanline_map.tag_id];
     g->video_scanline_map = *(uint32_t *)((uint8_t *)scanline_tag->data + 0x64);
 
     g->video_noise_intensity = noise_intensity;
     g->unknown_30 = 1.0f;
 
-    noise_tag = &tag_instances[(uint16_t)*(int32_t *)&rasterizer_globals_data->video_noise_map.tag_id];
+    noise_tag = &halo::cache::globals().tag_instances[(uint16_t)*(int32_t *)&rasterizer_globals_data->video_noise_map.tag_id];
     g->video_noise_map = *(uint32_t *)((uint8_t *)noise_tag->data + 0x64);
 }
 

@@ -1,10 +1,10 @@
 #include "halo/game/gamerest_camera.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern data_array *player_data;
-extern tag_instance *tag_instances;
 extern uint32_t camera_observer_target_score(real_vector3d *facing, observer_target_cone *cone, datum_index object, observer_target_candidate *out, real_point3d *reference_position);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -76,7 +76,7 @@ uint16_t CameraObserver::collect_target_candidates(observer_target_cone *cone, d
                     (void)candidate_team_player;
                     candidate_team = obj->owner_team;
                     if (teams_are_enemies(candidate_team, observer_team) != 0) {
-                        tag = (Item *)tag_instances[obj->definition_tag & 0xffff].data;
+                        tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
                         if ((tag->item_flags & 0x200000) == 0) {
                             if (CameraObserver::target_score(facing, cone, object_index, &temp, observer_position)  != 0 &&
                                 count < (uint16_t)capacity) {
@@ -406,7 +406,7 @@ uint32_t CameraObserver::target_score(real_vector3d *facing, observer_target_con
                                  distance_falloff_fraction(out->distance, cone->distance_b);
         if (0.0f < out->weight_secondary) {
             target_object = ((object_header *)object_data->data)[target & 0xffff].data;
-            target_tag = (Unit *)tag_instances[target_object->definition_tag & 0xffff].data;
+            target_tag = (Unit *)halo::cache::globals().tag_instances[target_object->definition_tag & 0xffff].data;
             if ((target_tag->unit_flags & 0x80000) != 0) {
                 out->weight_secondary = out->weight_secondary *
                     ((GlobalsPlayerControl *)global_globals->player_control.pointer)
@@ -443,7 +443,7 @@ void SpectateCamera::spectate_fp_camera_position(camera_basis_out *out, int16_t 
             object *parent = object_try_and_get(u->parent_object, _object_mask_vehicle);
 
             if (parent != 0) {
-                uint8_t *vehicle_tag_data = (uint8_t *)tag_instances[(uint16_t)parent->definition_tag].data;
+                uint8_t *vehicle_tag_data = (uint8_t *)halo::cache::globals().tag_instances[(uint16_t)parent->definition_tag].data;
                 int16_t seat_index = *(int16_t *)((uint8_t *)u + 0x2f0);
                 uint8_t *seat_array = *(uint8_t **)(vehicle_tag_data + 0x2e8);
 
@@ -457,7 +457,7 @@ void SpectateCamera::spectate_fp_camera_position(camera_basis_out *out, int16_t 
             }
         }
         if (out->seat_index == -1) {
-            uint8_t *tag_data = (uint8_t *)tag_instances[(uint16_t)u->definition_tag].data;
+            uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[(uint16_t)u->definition_tag].data;
 
             out->marker_offset = tag_data + 0x1a8;
         }

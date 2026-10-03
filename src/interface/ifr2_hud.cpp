@@ -1,5 +1,6 @@
 #include "halo/interface/ifr2_hud.hpp"
 #include <string.h>
+#include "halo/cache/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -21,7 +22,6 @@ extern void hud_waypoints_update_for_player(int16_t local_player_index);
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
 extern int16_t hud_waypoint_visibility(int16_t local_player_index, const real_point3d *eye, const real_point3d *target, datum_index ignore_object);
-extern tag_instance *tag_instances;
 extern data_array *object_data;
 extern game_time_globals *game_time;
 extern hud_weapon_interface_state *hud_weapon_state;
@@ -30,7 +30,6 @@ extern int16_t render_viewport_left;
 extern int16_t render_viewport_bottom;
 extern int16_t render_viewport_right;
 extern long lrint(double x);
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern uint32_t hud_meter_flash_color_blend(const hud_flash_parameters *flash, int32_t start_time);
 extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs, void *meter_parameters, BitmapData *bitmap, uint16_t *anchor, float scale, float rotation, uint32_t color, uint8_t split_screen);
 extern player_control_globals *player_control_globals_ptr;
@@ -316,7 +315,7 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
     unit = (uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data;
 
     memset(chain, 0, sizeof(chain));
-    chain[0] = (WeaponHUDInterface *)tag_instances[hud_tag & 0xffff].data;
+    chain[0] = (WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_tag & 0xffff].data;
     active_mask = (uint32_t)crosshair_state[0x13];
     chain_count = 1;
     do {
@@ -324,7 +323,7 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
         if (child == (datum_index)-1) {
             break;
         }
-        chain[chain_count] = (WeaponHUDInterface *)tag_instances[child & 0xffff].data;
+        chain[chain_count] = (WeaponHUDInterface *)halo::cache::globals().tag_instances[child & 0xffff].data;
         chain_count++;
     } while (chain_count < 0x10);
 
@@ -375,7 +374,7 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
                 }
                 sequence = 0;
                 if ((flags & 2) == 0) {
-                    Bitmap *tag = (Bitmap *)tag_instances[*(datum_index *)&crosshair->crosshair_bitmap.tag_id & 0xffff].data;
+                    Bitmap *tag = (Bitmap *)halo::cache::globals().tag_instances[*(datum_index *)&crosshair->crosshair_bitmap.tag_id & 0xffff].data;
                     sequence = (BitmapGroupSequence *)tag->bitmap_group_sequence.pointer + (int16_t)overlay->sequence_index;
                 }
 
@@ -446,14 +445,14 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
                     break;
                 }
 
-                bitmap_tag = (Bitmap *)tag_instances[*(datum_index *)&crosshair->crosshair_bitmap.tag_id & 0xffff].data;
+                bitmap_tag = (Bitmap *)halo::cache::globals().tag_instances[*(datum_index *)&crosshair->crosshair_bitmap.tag_id & 0xffff].data;
                 {
                     int32_t bitmap_index = sequence != 0
                         ? (int16_t)((BitmapGroupSprite *)sequence->sprites.pointer)[frame].bitmap_index
                         : (int16_t)overlay->sequence_index;
                     bitmap = (BitmapData *)bitmap_tag->bitmap_data.pointer + bitmap_index;
                 }
-                if (texture_cache_get(bitmap, 0, 1) == 0) {
+                if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
                     continue;
                 }
                 pixel_uvs = bitmap_tag->type == 4;
@@ -501,7 +500,7 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
  */
 void WeaponHud::draw_elements(datum_index hud_tag, int16_t local_player_index, const Weapon *weapon_tag, const weapon_hud_ammo_state *ammo, const uint16_t *parent_state_flags, const uint16_t *parent_overlay_types, const int16_t *parent_numbers)
 {
-    WeaponHUDInterface *hud = (WeaponHUDInterface *)tag_instances[hud_tag & 0xffff].data;
+    WeaponHUDInterface *hud = (WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_tag & 0xffff].data;
     int32_t *flash_start_times = (int32_t *)((uint8_t *)hud_weapon_state + local_player_index * 0x28);
     uint16_t state_flags[8];
     uint16_t overlay_types[8];
@@ -738,7 +737,7 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
     }
 
     out_array = (int32_t *)((uint8_t *)hud_weapon_state + *(int16_t *)(player_record + 2) * 0x50 + 0x28);
-    tag_data = (uint8_t *)tag_instances[hud_interface_tag_id & 0xffff].data;
+    tag_data = (uint8_t *)halo::cache::globals().tag_instances[hud_interface_tag_id & 0xffff].data;
     chain[1] = tag_data;
     {
         int i;
@@ -757,7 +756,7 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
         int32_t next = *(int32_t *)(chain[gather_index] + 0xc);
         uint8_t *resolved;
         if (next == -1) break;
-        resolved = (uint8_t *)tag_instances[next & 0xffff].data;
+        resolved = (uint8_t *)halo::cache::globals().tag_instances[next & 0xffff].data;
         present_mask |= *(uint32_t *)(resolved + 0x9c);
         gather_index++;
         chain[gather_index] = resolved;
@@ -987,7 +986,7 @@ void WeaponHud::state_update()
                         evaluate_default = 1;
                     } else {
                         uint8_t *parent_object = (uint8_t *)((object_header *)object_data->data)[parent & 0xffff].data;
-                        uint8_t *seats = *(uint8_t **)((uint8_t *)tag_instances[*(datum_index *)parent_object & 0xffff].data + 0x2e8);
+                        uint8_t *seats = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)parent_object & 0xffff].data + 0x2e8);
 
                         if ((seats[seat * 0x11c] & 8) != 0) {
                             int16_t parent_slot = *(int16_t *)(parent_object + 0x2f2);
@@ -1002,7 +1001,7 @@ void WeaponHud::state_update()
 
                 if (weapon != (datum_index)-1) {
                     uint8_t *weapon_object = (uint8_t *)((object_header *)object_data->data)[weapon & 0xffff].data;
-                    uint8_t *weapon_tag = (uint8_t *)tag_instances[*(datum_index *)weapon_object & 0xffff].data;
+                    uint8_t *weapon_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)weapon_object & 0xffff].data;
                     weapon_hud_ammo_state ammo;
 
                     weapon_build_hud_ammo_state(weapon, &ammo);
@@ -1126,7 +1125,7 @@ int32_t WeaponHud::weapon_hud_interface(float *out_intensity)
                     goto done;
                 }
                 parent_obj = object_get(parent_handle);
-                seats = (uint8_t *)((Unit *)tag_instances[parent_obj->definition_tag & 0xffff].data)
+                seats = (uint8_t *)((Unit *)halo::cache::globals().tag_instances[parent_obj->definition_tag & 0xffff].data)
                             ->seats.pointer;
                 if ((seats[seat_index * 0x11c] & 8) == 0) {
                     goto done;
@@ -1138,7 +1137,7 @@ int32_t WeaponHud::weapon_hud_interface(float *out_intensity)
             }
 
             if (weapon_handle != (datum_index)-1) {
-                Weapon *weapon_tag = (Weapon *)tag_instances[object_get(weapon_handle)->definition_tag & 0xffff].data;
+                Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[object_get(weapon_handle)->definition_tag & 0xffff].data;
                 datum_index hud_interface = *(datum_index *)&weapon_tag->hud_interface.tag_id;
                 if (hud_interface != (datum_index)-1) {
                     *out_intensity = intensity;
@@ -1168,7 +1167,7 @@ void MotionSensor::blip_fill(datum_index object_index, motion_sensor_blip *blip)
     blip->type = blip_type_get(local_player_index, object_index);
     if (object_index != (datum_index)-1 && object_try_and_get(object_index, 3) != 0) {
         uint8_t *object_ptr = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-        int16_t subtype = *(int16_t *)((uint8_t *)tag_instances[*(datum_index *)object_ptr & 0xffff].data + 0x298);
+        int16_t subtype = *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object_ptr & 0xffff].data + 0x298);
 
         blip->subtype = (subtype >= 0 && subtype < 3) ? (uint8_t)subtype : 0;
         return;
@@ -1444,7 +1443,7 @@ int16_t WeaponHud::text_message_index(datum_index object_index)
         return -1;
     }
     obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     return definition->hud_text_message_index;
 }
 

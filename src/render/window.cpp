@@ -17,12 +17,12 @@
 #include <stdint.h>
 #include "halo/render/render.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t render_cluster_has_sky;
 extern int16_t render_cluster_sky_index;
 extern Scenario *global_scenario;
-extern tag_instance *tag_instances;
 extern float render_time_since_frame;
 extern float sky_animation_times[9];
 extern render_camera render_camera_global;
@@ -229,14 +229,14 @@ void sky(void)
     }
     sky = 0;
     if (sky_tag != 0xffffffff) {
-        sky = (Sky *)tag_instances[(uint16_t)sky_tag].data;
+        sky = (Sky *)halo::cache::globals().tag_instances[(uint16_t)sky_tag].data;
     }
-    model = (GBXModel *)tag_instances[sky->model.tag_id.index].data;
+    model = (GBXModel *)halo::cache::globals().tag_instances[sky->model.tag_id.index].data;
     model_nodes_get_default_transforms(model, nodes);
 
     if (tag_id_of(sky->animation_graph.tag_id) != 0xffffffff) {
         ModelAnimations *graph =
-            (ModelAnimations *)tag_instances[sky->animation_graph.tag_id.index].data;
+            (ModelAnimations *)halo::cache::globals().tag_instances[sky->animation_graph.tag_id.index].data;
 
         for (i = 0; (int32_t)i < (int32_t)sky->animations.count; i++) {
             SkyAnimation *entry = &((SkyAnimation *)sky->animations.pointer)[i];

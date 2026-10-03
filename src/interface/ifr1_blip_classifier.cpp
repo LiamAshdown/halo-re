@@ -1,11 +1,11 @@
 #include "halo/interface/ifr1_blip_classifier.hpp"
 #include <string.h>
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern datum_index player_index_from_unit_index(datum_index object_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
@@ -56,7 +56,7 @@ uint8_t BlipClassifier::type_get(int16_t local_player_index, datum_index object_
             return (uint8_t)((teams_are_enemies((int16_t)viewer_team, ((object *)occupant_data)->owner_team) != 0) + 3);
         }
         {
-            uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)object_data_ptr & 0xffff].data;
+            uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object_data_ptr & 0xffff].data;
             if (*(int32_t *)(vehicle_tag + 0x2e4) > 1 &&
                 strncmp(*(char **)(vehicle_tag + 0x2e8) + 4, "c_dropship", 10) == 0) {
                 return _blip_type_vehicle_special;

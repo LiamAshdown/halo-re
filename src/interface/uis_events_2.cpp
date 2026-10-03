@@ -18,6 +18,7 @@
 
 #include "halo/interface/uis_event_handlers.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern network_server_globals *network_server;
@@ -38,8 +39,6 @@ extern void widget_close(widget_instance *widget);
 extern growable_array ui_lists[3];
 extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
-extern datum_index tag_lookup(tag_group group, char *path);
-extern tag_instance *tag_instances;
 extern uint16_t missing_string_text[];
 extern int32_t profile_slot_lookup_cache_00692ac8;
 extern void saved_item_select(int32_t item);
@@ -841,7 +840,7 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
     if (indices == 0) {
         return 1;
     }
-    strings = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\color_edit\\colors_list");
+    strings = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\color_edit\\colors_list");
     for (i = 0; i < 0x12; i++) {
         uint16_t *text = missing_string_text;
         uint8_t is_default;
@@ -849,7 +848,7 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
 
         ((uint8_t *)widget->list_items)[i] = (uint8_t)i;
         if (strings != 0xffffffff) {
-            uint8_t *list = (uint8_t *)tag_instances[strings & 0xffff].data;
+            uint8_t *list = (uint8_t *)halo::cache::globals().tag_instances[strings & 0xffff].data;
 
             if (i < *(int32_t *)list) {
                 uint8_t *element = *(uint8_t **)(list + 4) + i * 0x14;

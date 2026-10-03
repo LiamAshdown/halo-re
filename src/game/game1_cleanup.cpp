@@ -13,11 +13,11 @@
 
 #include "halo/game/game1_cleanup.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern object *object_iterator_next(object_iterator *iterator);
 extern void object_delete(datum_index object_index);
 extern void object_delete_unparented(datum_index object_index);
@@ -58,7 +58,7 @@ void ObjectCleanup::cleanup_dropped_objects(void)
             uint8_t wake_flag = 0;
 
             if (hdr != 0) {
-                tag_instance *ti = &tag_instances[obj->definition_tag & 0xffff];
+                tag_instance *ti = &halo::cache::globals().tag_instances[obj->definition_tag & 0xffff];
                 wake_flag = (uint8_t)((*(uint32_t *)((uint8_t *)ti->data + 0x308) >> 3) & 1);
             }
 
@@ -122,7 +122,7 @@ void ObjectCleanup::cleanup_stray_items(void)
                     (salt == 0 || hdr->identifier == salt) &&
                     ((1 << (hdr->type & 0x1f)) & _object_mask_weapon) != 0) {
                     if (hdr->data != (object *)0) {
-                        uint32_t *tag_data = (uint32_t *)tag_instances[obj->definition_tag & 0xffff].data;
+                        uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
                         if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0 &&
                             game_engine_variant.game_engine_index != _game_engine_oddball) {

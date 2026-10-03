@@ -1,11 +1,11 @@
 #include "halo/ai/actor_grenade.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_attempt_grenade_throw {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern ai_globals *ai_globals_ptr;
 
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
@@ -38,7 +38,7 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
     using namespace c_actor_attempt_grenade_throw;
     datum_index actor_index = datum;
     uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *variant = (uint8_t *)tag_instances[((actor *)a)->actor_variant_tag & 0xffff].data;
+    uint8_t *variant = (uint8_t *)halo::cache::globals().tag_instances[((actor *)a)->actor_variant_tag & 0xffff].data;
     datum_index encounter = ((actor *)a)->encounter_index;
     uint8_t *unit;
     datum_index weapon;
@@ -127,7 +127,6 @@ namespace c_actor_can_throw_grenade_at_target {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *encounter_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
@@ -161,7 +160,7 @@ uint8_t halo::ai::grenade_ops::can_throw_grenade_at_target()
     int16_t random_wait_ticks;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    variant = (ActorVariant *)tag_instances[self->actor_variant_tag & 0xffff].data;
+    variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & 0xffff].data;
     now = game_time->game_time;
 
     if (self->active_unit_index != (datum_index)k_datum_index_none) {
@@ -283,7 +282,6 @@ extern "C" uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index
 namespace c_actor_commit_grenade_toss {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 extern uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *direction, void *origin,
     float range, real_point3d *point, int32_t max_time, float *speed, void *out_time_or_fraction, real_vector3d *out_velocity,
@@ -307,7 +305,7 @@ uint32_t halo::ai::grenade_ops::commit_grenade_toss(real_point3d *point, uint32_
     using namespace c_actor_commit_grenade_toss;
     datum_index actor_index = datum;
     uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *variant = (uint8_t *)tag_instances[((actor *)a)->actor_variant_tag & 0xffff].data;
+    uint8_t *variant = (uint8_t *)halo::cache::globals().tag_instances[((actor *)a)->actor_variant_tag & 0xffff].data;
     real_point3d origin = *(real_point3d *)&((actor *)a)->aim_origin.x;
     real_vector3d direction;
     real_vector3d velocity;
@@ -415,7 +413,6 @@ extern "C" uint32_t actor_compute_grenade_aim_direction(datum_index actor_index,
 namespace c_actor_consider_grenade_throw {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern ai_globals *ai_globals_ptr;
 extern game_time_globals *game_time;
 
@@ -442,7 +439,7 @@ uint8_t halo::ai::grenade_ops::consider_grenade_throw()
     int32_t now;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    variant = (ActorVariant *)tag_instances[self->actor_variant_tag & 0xffff].data;
+    variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & 0xffff].data;
 
     if (self->grenade_throw_pending != 0) {
         return 1;
@@ -485,7 +482,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern uint8_t actor_probe_step_direction(datum_index actor_index, float step_distance, real_vector2d *direction,
     uint16_t *variant, float step_up, uint8_t *out_flag, void *extra_param);
@@ -522,13 +518,13 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
     if (a[0x504] || ((actor *)a)->target_unit_index == k_datum_index_none) {
         return 0;
     }
-    unit_tag = (uint8_t *)tag_instances[*(datum_index *)((uint8_t *)((object_header *)object_data->data)
+    unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)((uint8_t *)((object_header *)object_data->data)
         [((actor *)a)->unit_index & 0xffff].data) & 0xffff].data;
     p = (uint8_t *)prop_data->data + (((actor *)a)->target_unit_index & 0xffff) * 0x138;
     if (!(*(float *)(unit_tag + 0x234) > 0.0f)) {
         return 0;
     }
-    actor_tag = (uint8_t *)tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data;
+    actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data;
     if (*(uint32_t *)actor_tag & 0x200000) {
         float dot = *(float *)(p + 0xe8) * facing[2] + *(float *)(p + 0xe4) * facing[1] + *(float *)(p + 0xe0) * facing[0];
 
@@ -574,7 +570,6 @@ namespace c_actor_find_grenade_landing_spot {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern void actor_choose_random_point_near(real_point3d *inout_point, float radius);
 }
 }
@@ -596,7 +591,7 @@ uint8_t halo::ai::grenade_ops::find_grenade_landing_spot(real_point3d *out_point
     uint8_t result = 0;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    variant = (ActorVariant *)tag_instances[self->actor_variant_tag & 0xffff].data;
+    variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & 0xffff].data;
 
     if (self->target_unit_index != (datum_index)k_datum_index_none) {
         prop *target_prop = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & 0xffff) * sizeof(prop));
@@ -828,7 +823,6 @@ extern "C" int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_
 
 namespace c_actor_get_grenade_launch_velocity {
 extern "C" {
-extern tag_instance *tag_instances;
 extern Globals *global_globals;
 extern float k_physics_gravity;
 
@@ -865,7 +859,7 @@ uint8_t halo::ai::grenade_ops::get_grenade_launch_velocity(int16_t grenade_type,
         return 0;
     }
 
-    projectile_definition = tag_instances[projectile_tag & 0xffff].data;
+    projectile_definition = halo::cache::globals().tag_instances[projectile_tag & 0xffff].data;
     if (projectile_definition == (void *)0) {
         return 0;
     }

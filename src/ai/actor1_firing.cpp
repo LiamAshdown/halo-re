@@ -1,5 +1,6 @@
 #include "halo/ai/actor_firing.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_claim_firing_position {
 extern "C" {
@@ -71,7 +72,6 @@ namespace c_actor_find_best_firing_position {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern const real_vector3d *global_origin3d_pointer;
@@ -157,8 +157,8 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         return 0xffffffff;
     }
 
-    actor_definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
-    variant = (ActorVariant *)tag_instances[self->actor_variant_tag & 0xffff].data;
+    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
+    variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & 0xffff].data;
     encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
                                 [self->encounter_index & 0xffff];
 
@@ -758,7 +758,6 @@ extern "C" uint8_t actor_firing_position_evaluate(actor_firing_position_candidat
 namespace c_actor_firing_position_near_point {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 extern ScenarioStructureBSP *global_structure_bsp;
 
@@ -797,7 +796,7 @@ uint8_t halo::ai::firing_position_ops::firing_position_near_point(real_point3d *
     int32_t n;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    actor_definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
 
     if ((self->flying == 0 && start_surface_index == -1) ||
         self->encounter_index == (datum_index)0xffffffff) {

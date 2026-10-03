@@ -6,6 +6,7 @@
 
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern int32_t render_cluster_index;
@@ -28,7 +29,6 @@ extern uint8_t no_subcluster_path_taken;
 extern int16_t render_frustum_test_sphere(void *frustum, real_point3d *center, float radius);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern Scenario *global_scenario;
-extern tag_instance *tag_instances;
 extern int32_t render_leaf_index;
 extern uint8_t render_cluster_has_sky;
 extern int16_t render_cluster_sky_index;
@@ -178,7 +178,7 @@ void structure_visibility::render_camera_update_leaf_and_cluster(real_point3d *c
         }
 
         if (have_sky_tag_id) {
-            Sky *sky = (Sky *)tag_instances[sky_tag_id.index].data;
+            Sky *sky = (Sky *)halo::cache::globals().tag_instances[sky_tag_id.index].data;
             if (sky != 0 && sky->model.tag_id.index != 0xffff) {
                 render_cluster_has_sky = 1;
             }
@@ -188,7 +188,7 @@ void structure_visibility::render_camera_update_leaf_and_cluster(real_point3d *c
 
 static ShaderEnvironment *mirror_shader_environment(ScenarioStructureBSPMirror *mirror)
 {
-    tag_instance *instance = &tag_instances[mirror->shader.tag_id.index];
+    tag_instance *instance = &halo::cache::globals().tag_instances[mirror->shader.tag_id.index];
     return (ShaderEnvironment *)instance->data;
 }
 

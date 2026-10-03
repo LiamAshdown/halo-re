@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_draw.hpp"
 #include <string.h>
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);
@@ -15,7 +16,6 @@ extern HUDGlobals *hud_globals_tag_data;
 extern game_time_globals *game_time;
 extern player_globals *local_player_globals;
 extern int32_t __ftol(double x);
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset);
 extern void hud_draw_bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, int16_t anchor,
@@ -43,7 +43,6 @@ extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB 
 extern uint8_t hud_player_weapon_ammo_state(const player *p, weapon_hud_ammo_state *out);
 extern void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *vertices);
 extern Globals *global_globals;
-extern tag_instance *tag_instances;
 extern uint32_t hud_meter_flash_color_blend(const hud_flash_parameters *flash, int32_t start_time);
 extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs,
                                     void *meter_parameters, BitmapData *bitmap, uint16_t *anchor,
@@ -306,7 +305,7 @@ void HudDraw::message_icon(const hud_messaging_information *information, Rectang
     hud_meter_resolve_bitmap_frame(*(datum_index *)&hud_globals_tag_data->icon_bitmap.tag_id,
                                    (int16_t)information->sequence_index, (uint16_t)frame, (void **)&bitmap,
                                    &uv_offset);
-    if (bitmap == 0 || texture_cache_get(bitmap, 0, 1) == 0) {
+    if (bitmap == 0 || halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         return;
     }
     uv = (const float *)uv_offset;
@@ -592,12 +591,12 @@ void HudDraw::number(void *unused, uint16_t *anchor, const hud_number_placement 
     if (digits_tag == (datum_index)-1) {
         return;
     }
-    digits = (HUDNumber *)tag_instances[digits_tag & 0xffff].data;
+    digits = (HUDNumber *)halo::cache::globals().tag_instances[digits_tag & 0xffff].data;
     pen.digits_bitmap = *(datum_index *)&digits->digits_bitmap.tag_id;
-    digits_bitmap_data = (uint8_t *)tag_instances[pen.digits_bitmap & 0xffff].data;
+    digits_bitmap_data = (uint8_t *)halo::cache::globals().tag_instances[pen.digits_bitmap & 0xffff].data;
     bitmap = bitmap_group_sequence_get_bitmap_data(pen.digits_bitmap, 0, 0);
     thousands = (value > 999);
-    if (texture_cache_get(bitmap, 0, 1) == 0) {
+    if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         return;
     }
     negative = (value < 0);
@@ -719,7 +718,7 @@ void HudDraw::overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t 
         if ((overlay_flags & 2) != 0 || (type_mask & (uint32_t)(int32_t)(int16_t)overlay->type) == 0) {
             continue;
         }
-        sequence = (const BitmapGroupSequence *)((Bitmap *)tag_instances[tag_id & 0xffff].data)
+        sequence = (const BitmapGroupSequence *)((Bitmap *)halo::cache::globals().tag_instances[tag_id & 0xffff].data)
                        ->bitmap_group_sequence.pointer + (int16_t)overlay->sequence_index;
 
         if ((overlay_flags & 1) != 0 && (draw_flags & 1) != 0) {
@@ -740,7 +739,7 @@ void HudDraw::overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t 
         sprite_uv = 0;
         hud_meter_resolve_bitmap_frame(tag_id, (int16_t)overlay->sequence_index, (uint16_t)frame,
                                        (void **)&bitmap, &sprite_uv);
-        if (bitmap != 0 && texture_cache_get(bitmap, 0, 1) != 0) {
+        if (bitmap != 0 && halo::cache::texture_cache_get(bitmap, 0, 1) != 0) {
             hud_draw_bitmap_element((const float *)sprite_uv, (const hud_element_placement *)overlay, 0, 0,
                                     bitmap, anchor, 1.0f, 0.0f, color, split_screen);
         }
@@ -814,15 +813,15 @@ void HudDraw::static_element(int16_t local_player_index, uint16_t *anchor, const
     int16_t i;
 
     tag_id = *(const datum_index *)&element->interface_bitmap.tag_id;
-    bitmap_tag = (Bitmap *)tag_instances[tag_id & 0xffff].data;
+    bitmap_tag = (Bitmap *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
     bitmap = bitmap_group_sequence_get_bitmap_data(tag_id, 0, (int16_t)element->sequence_index);
-    if (texture_cache_get(bitmap, 0, 1) == 0) {
+    if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         return;
     }
 
     uv = 0;
     if (tag_id != (datum_index)-1 && element->sequence_index != 0xffff) {
-        Bitmap *tag = (Bitmap *)tag_instances[tag_id & 0xffff].data;
+        Bitmap *tag = (Bitmap *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
         if ((int32_t)(int16_t)element->sequence_index < (int32_t)tag->bitmap_group_sequence.count) {
             BitmapGroupSequence *sequence =
                 (BitmapGroupSequence *)tag->bitmap_group_sequence.pointer + (int16_t)element->sequence_index;

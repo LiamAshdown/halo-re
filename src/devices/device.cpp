@@ -1,11 +1,11 @@
 #include "halo/devices/device.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern data_array *device_groups;
-extern tag_instance *tag_instances;
 extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame, real_orientation *out_orientations);
 extern void animation_overlay_frame_orientations(ModelAnimationsAnimation *animation, int16_t frame, real_orientation *out_orientations);
 extern uint8_t device_group_set_value(uint16_t group_index, float value);
@@ -150,9 +150,9 @@ void DeviceHandle::blend_animations(real_orientation *orientations)
     datum_index object_index = (datum_index)handle;
 
     device_object *obj = *(device_object **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
-    Device *device_tag = (Device *)tag_instances[obj->base.definition_tag & 0xffff].data;
+    Device *device_tag = (Device *)halo::cache::globals().tag_instances[obj->base.definition_tag & 0xffff].data;
     ModelAnimations *graph =
-        (ModelAnimations *)tag_instances[*(datum_index *)&device_tag->base.animation_graph.tag_id & 0xffff].data;
+        (ModelAnimations *)halo::cache::globals().tag_instances[*(datum_index *)&device_tag->base.animation_graph.tag_id & 0xffff].data;
     ModelAnimationsDeviceAnimations *entry;
     uint8_t *animations;
     int32_t count;
@@ -247,7 +247,7 @@ void DeviceHandle::change_power_state(float fallback_value)
 
     object *obj = ((object_header *)object_data->data)[object_id & 0xffff].data;
     device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
-    DeviceControl *tag = (DeviceControl *)tag_instances[obj->definition_tag & 0xffff].data;
+    DeviceControl *tag = (DeviceControl *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     int16_t group_index = dev->position_group; 
     float target;
     uint8_t changed;
@@ -306,7 +306,7 @@ void DeviceHandle::compute_function_values()
 
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
-    Device *tag = (Device *)tag_instances[obj->definition_tag & 0xffff].data;
+    Device *tag = (Device *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     DeviceIn_t *selector = &tag->device_a_in;
     float *out = obj->function_in_values;
     int i;
@@ -424,7 +424,7 @@ void DeviceHandle::play_state_change_effect(TagID tag_id)
     if (tag_id.index != 0xffff || tag_id.id != 0xffff) {
         object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
         
-        uint32_t group_tag = tag_instances[(int16_t)tag_id.index].group_tag;
+        uint32_t group_tag = halo::cache::globals().tag_instances[(int16_t)tag_id.index].group_tag;
 
         if (group_tag == k_device_state_change_tag_effect) {
             device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
@@ -455,7 +455,7 @@ uint8_t DeviceHandle::update_change_values()
 
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
-    Device *tag = (Device *)tag_instances[obj->definition_tag & 0xffff].data;
+    Device *tag = (Device *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     uint8_t still_settling = 0;
 
     if (dev->power_group != -1) {
@@ -582,7 +582,7 @@ uint8_t DeviceGroupHandle::set_value(float value)
         device_data *candidate_dev = (device_data *)((uint8_t *)obj + sizeof(object));
 
         if (candidate_dev->power_group == (int16_t)group_index) { 
-            Device *tag = (Device *)tag_instances[obj->definition_tag & 0xffff].data;
+            Device *tag = (Device *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
             
             
             

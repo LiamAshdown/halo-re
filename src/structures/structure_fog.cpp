@@ -5,10 +5,10 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
-extern tag_instance *tag_instances;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint8_t fog_plane_vector_valid;
 extern real_vector3d fog_plane_vector;
@@ -31,7 +31,7 @@ uint32_t structure_fog::resolve_fog_tag(int16_t cluster_index, ScenarioStructure
                           << 16);
         }
         if (sky_tag_id != 0xffffffff) {
-            Sky *sky = (Sky *)tag_instances[sky_tag_id & 0xffff].data;
+            Sky *sky = (Sky *)halo::cache::globals().tag_instances[sky_tag_id & 0xffff].data;
             if (sky != 0) {
                 return *(uint32_t *)&sky->indoor_fog_screen.tag_id;
             }
@@ -86,7 +86,7 @@ void structure_fog::build_fog_environment(int16_t cluster_index, structure_fog_e
         from_sky = 0;
     }
 
-    Fog *fog = (Fog *)tag_instances[fog_tag_id & 0xffff].data;
+    Fog *fog = (Fog *)halo::cache::globals().tag_instances[fog_tag_id & 0xffff].data;
     ScenarioStructureBSPCluster *cluster =
         &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[cluster_index];
 

@@ -1,13 +1,13 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *contrail_data;
 extern int16_t contrail_points_due(datum_index contrail_handle, real elapsed_time);
 extern void contrail_generate_points(datum_index contrail_handle, int16_t point_count, uint8_t force);
 extern data_array *contrail_point_data;
-extern tag_instance *tag_instances;
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 extern data_array *object_data;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
@@ -62,7 +62,7 @@ void contrail_ref::age_points(real delta_time)
 {
     datum_index contrail_handle = datum;
     contrail *self = &((contrail *)contrail_data->data)[(uint16_t)contrail_handle];
-    Contrail *tag = (Contrail *)tag_instances[(uint16_t)self->definition_index].data;
+    Contrail *tag = (Contrail *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
     ContrailPointState *states = (ContrailPointState *)tag->point_states.pointer;
     int32_t state_count = (int32_t)tag->point_states.count;
     int list;
@@ -152,7 +152,7 @@ render:
 
                 if (current_state->physics.tag_id.index != 0xffff || current_state->physics.tag_id.id != 0xffff) {
                     point_physics_tick(&point->velocity, 0,
-                        (PointPhysics *)tag_instances[current_state->physics.tag_id.index].data,
+                        (PointPhysics *)halo::cache::globals().tag_instances[current_state->physics.tag_id.index].data,
                         &point->location, 0xffffffff, &point->position, 0, 0, 0,
                         current_state->width * 0.5f, delta_time);
                 }
@@ -227,7 +227,7 @@ void contrail_ref::generate_points(int16_t point_count, uint8_t force)
 {
     datum_index contrail_handle = datum;
     contrail *self = &((contrail *)contrail_data->data)[(uint16_t)contrail_handle];
-    Contrail *tag = (Contrail *)tag_instances[(uint16_t)self->definition_index].data;
+    Contrail *tag = (Contrail *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
 
     if (point_count == 0) {
         return;
@@ -235,7 +235,7 @@ void contrail_ref::generate_points(int16_t point_count, uint8_t force)
 
     {
         object *owner = ((object_header *)object_data->data)[(uint16_t)self->object_index].data;
-        Object *owner_tag = (Object *)tag_instances[(uint16_t)owner->definition_tag].data;
+        Object *owner_tag = (Object *)halo::cache::globals().tag_instances[(uint16_t)owner->definition_tag].data;
         ObjectAttachment *attachment = (ObjectAttachment *)owner_tag->attachments.pointer +
             self->attachment_index;
         object_marker markers[4];
@@ -365,7 +365,7 @@ datum_index contrail_ref::create(int16_t attachment_index, datum_index object_in
         if (handle != k_datum_index_none) {
             contrail *self = &((contrail *)contrail_data->data)[(uint16_t)handle];
             object *owner = ((object_header *)object_data->data)[(uint16_t)object_index].data;
-            Object *owner_tag = (Object *)tag_instances[(uint16_t)owner->definition_tag].data;
+            Object *owner_tag = (Object *)halo::cache::globals().tag_instances[(uint16_t)owner->definition_tag].data;
             ObjectAttachment *attachment = (ObjectAttachment *)owner_tag->attachments.pointer +
                 attachment_index;
 
@@ -421,8 +421,8 @@ datum_index contrail_ref::create(int16_t attachment_index, datum_index object_in
  */
 void contrail_ref::next_sequence(contrail *self)
 {
-    Contrail *tag = (Contrail *)tag_instances[(uint16_t)self->definition_index].data;
-    Bitmap *bitmap = (Bitmap *)tag_instances[tag->bitmap.tag_id.index].data;
+    Contrail *tag = (Contrail *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
+    Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[tag->bitmap.tag_id.index].data;
     BitmapGroupSequence *sequences = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer;
     int16_t sequence_index;
 
@@ -457,7 +457,7 @@ int16_t contrail_ref::points_due(real elapsed_time)
 {
     datum_index contrail_handle = datum;
     contrail *self = &((contrail *)contrail_data->data)[(uint16_t)contrail_handle];
-    Contrail *tag = (Contrail *)tag_instances[(uint16_t)self->definition_index].data;
+    Contrail *tag = (Contrail *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
     real rate = tag->point_generation_rate;
     int16_t count = 0;
 
@@ -489,7 +489,7 @@ void contrail_ref::update(real delta_time)
 
     while (contrail_index != k_datum_index_none) {
         contrail *self = &((contrail *)contrail_data->data)[(uint16_t)contrail_index];
-        Contrail *tag = (Contrail *)tag_instances[(uint16_t)self->definition_index].data;
+        Contrail *tag = (Contrail *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
         real remaining = delta_time - self->accumulated_delta_time;
 
         self->accumulated_delta_time = 0.0f;

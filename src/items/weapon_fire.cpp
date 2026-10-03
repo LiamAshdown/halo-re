@@ -1,9 +1,9 @@
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern uint8_t weapon_infinite_ammo;
 extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
@@ -58,7 +58,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
     item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     id = (item_data *)((uint8_t *)item_obj + k_item_data_offset);
-    weapon_tag = (Weapon *)tag_instances[(uint16_t)item_obj->definition_tag].data;
+    weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
     trigger = &wd->triggers[trigger_index];
 

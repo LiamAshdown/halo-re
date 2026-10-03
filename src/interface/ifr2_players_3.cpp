@@ -1,5 +1,6 @@
 #include "halo/interface/ifr2_players.hpp"
 #include "halo/interface/engine_state.hpp"
+#include "halo/cache/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -7,9 +8,7 @@
 
 extern "C" {
 extern int32_t saved_player_profile_slots_handle;
-extern tag_instance *tag_instances;
 extern uint8_t profile_globals_block[];
-extern datum_index tag_lookup(tag_group group, char *path);
 extern void hud_message_broadcast_to_local_players(const uint16_t *text);
 extern const uint16_t empty_string[];
 extern const uint16_t missing_string_text[];
@@ -38,11 +37,11 @@ void PlayerProfiles::save_495fb0(uint8_t flag)
 
     state::profile_slot_flag = flag;
     if (saved_player_profile_slots_handle != -1) {
-        string_list_tag = tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\temp_strings");
+        string_list_tag = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\temp_strings");
 
         text = empty_string;
         if (string_list_tag != (datum_index)0xffffffff) {
-            string_list_data = (int32_t *)tag_instances[(uint16_t)string_list_tag].data;
+            string_list_data = (int32_t *)halo::cache::globals().tag_instances[(uint16_t)string_list_tag].data;
             text = missing_string_text;
             if (string_list_data[0] > 1) {
                 block = (char *)string_list_data[1];

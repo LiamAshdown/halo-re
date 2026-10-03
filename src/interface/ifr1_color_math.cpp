@@ -1,9 +1,9 @@
 #include "halo/interface/ifr1_color_math.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);
 extern Globals *global_globals;
-extern tag_instance *tag_instances;
 }
 
 namespace halo::interface {
@@ -69,7 +69,7 @@ void ColorMath::cyclic_color(int16_t table_index, int16_t color_index, ColorARGB
     out->blue = 1.0f;
 
     if (dependency->tag_id.index != 0xffff || dependency->tag_id.id != 0xffff) {
-        color_table = (ColorTable *)tag_instances[dependency->tag_id.index].data;
+        color_table = (ColorTable *)halo::cache::globals().tag_instances[dependency->tag_id.index].data;
         if (color_table->colors.count != 0) {
             ColorTableColor *entry =
                 (ColorTableColor *)((char *)color_table->colors.pointer +

@@ -1,9 +1,9 @@
 #include "halo/projectiles/projectile.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t network_game_mode;
 extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point);
@@ -64,7 +64,7 @@ uint8_t ProjectileHandle::construct()
     uint32_t object_index = (uint32_t)handle;
 
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Projectile *tag = (Projectile *)tag_instances[(uint16_t)obj->definition_tag].data;
+    Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
     float rate;
     datum_index root;
@@ -142,7 +142,7 @@ uint8_t ProjectileHandle::construct()
                 &((ScenarioStructureBSPFogPalette *)global_structure_bsp->fog_palette.pointer)[region->fog];
             datum_index fog_tag_id = *(datum_index *)&fog_entry->fog.tag_id;
             if (fog_tag_id != (datum_index)k_datum_index_none) {
-                Fog *fog_tag = (Fog *)tag_instances[fog_tag_id & 0xffff].data;
+                Fog *fog_tag = (Fog *)halo::cache::globals().tag_instances[fog_tag_id & 0xffff].data;
                 in_water = (*(uint8_t *)fog_tag & 1) != 0;
             }
         }
@@ -181,7 +181,7 @@ void ProjectileHandle::update_function_values()
     uint32_t object_index = (uint32_t)handle;
 
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Projectile *tag = (Projectile *)tag_instances[(uint16_t)obj->definition_tag].data;
+    Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
     ProjectileFunctionIn_t *function_in = &tag->projectile_a_in; 
     float *out = obj->function_in_values;
@@ -224,7 +224,7 @@ void ProjectileHandle::compute_deceleration()
     uint32_t object_index = (uint32_t)handle;
 
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Projectile *tag = (Projectile *)tag_instances[(uint16_t)obj->definition_tag].data;
+    Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
     real near_range;
 
@@ -294,7 +294,7 @@ uint8_t ProjectileHandle::collision_test(real_point3d *target, void *out_record)
     uint32_t object_index = (uint32_t)handle;
 
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Projectile *tag = (Projectile *)tag_instances[(uint16_t)obj->definition_tag].data;
+    Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
     real_vector3d sweep_delta;
     uint8_t hit;
@@ -375,7 +375,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
     uint32_t object_index = (uint32_t)handle;
 
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Projectile *tag = (Projectile *)tag_instances[(uint16_t)obj->definition_tag].data;
+    Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     char *effect_names[2];
     datum_index effect_tag_id;
     real_point3d position_block[2];   

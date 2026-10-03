@@ -6,6 +6,7 @@
 #include <wchar.h>
 #include "units.h"
 #include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t debug_log_level;
@@ -47,7 +48,6 @@ extern void network_hostname_thread_proc(char *hostname_buffer);
 extern uint8_t network_log_path_buffer[0x104];
 extern char network_log_path_format[];
 extern int32_t security_check_write_access(void);
-extern void *tag_lookup(const char *tag_path);
 extern int32_t text_get_character_metrics(uint8_t ch);
 extern uint8_t virtual_keyboard_character_is_legal(uint8_t ch, void *character);
 extern uint8_t ui_wide_string_has_non_whitespace(void);
@@ -75,6 +75,17 @@ extern void network_event_feed_flush(void);
 extern void hash_table_set_or_remove(hash_table *table, int32_t key, int32_t value);
 extern int32_t hash_table_get(hash_table *table, uint32_t key);
 extern uint8_t network_summary_log_needs_open;
+}
+
+/**
+ * Calls halo::cache::tag_lookup with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static void * tag_lookup_unresolved(const char *tag_path)
+{
+    using call_t = void * (*)(const char *tag_path);
+    return reinterpret_cast<call_t>(&halo::cache::tag_lookup)(tag_path);
 }
 
 /**
@@ -471,7 +482,7 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
     int32_t len;
     int32_t i;
 
-    tag_lookup("ui\\small_ui");
+    tag_lookup_unresolved("ui\\small_ui");
     len = strlen(name);
     if (mode == 3) {
         ok = *name != 0;

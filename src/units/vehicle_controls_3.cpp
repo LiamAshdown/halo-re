@@ -1,9 +1,9 @@
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern real_point3d *global_origin3d_pointer;
 extern real_vector3d *g_006966e4;
 extern float scenario_location_water_surface_distance(void);
@@ -48,10 +48,10 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
+    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    uint8_t *physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     int32_t node_count = *(int32_t *)(physics_tag + 0x68);
     float bank_lookup = scenario_location_water_surface_distance();
     real_vector3d push = *(real_vector3d *)global_origin3d_pointer;

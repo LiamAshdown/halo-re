@@ -216,27 +216,27 @@ inline void heap_unlink_block(heap_block *block, heap *self)
     halo::memory::view(self)->unlink_block(block);
 }
 
-inline void cache_new(char *name, cache *self, int32_t block_count, int32_t block_shift, int16_t maximum_count, void *release_procedure, void *in_use_procedure)
+inline void cache_new(char *name, ::cache *self, int32_t block_count, int32_t block_shift, int16_t maximum_count, void *release_procedure, void *in_use_procedure)
 {
     halo::memory::view(self)->initialize(name, block_count, block_shift, maximum_count, release_procedure, in_use_procedure);
 }
 
-inline datum_index cache_allocate_block(cache *self, uint32_t requested_bytes)
+inline datum_index cache_allocate_block(::cache *self, uint32_t requested_bytes)
 {
     return halo::memory::view(self)->allocate_block(requested_bytes);
 }
 
-inline void cache_build_status_bitmap(cache *self, uint8_t *bitmap)
+inline void cache_build_status_bitmap(::cache *self, uint8_t *bitmap)
 {
     halo::memory::view(self)->build_status_bitmap(bitmap);
 }
 
-inline void cache_evict_entry(datum_index handle, cache *self)
+inline void cache_evict_entry(datum_index handle, ::cache *self)
 {
     halo::memory::view(self)->evict_entry(handle);
 }
 
-inline void cache_flush(cache *self)
+inline void cache_flush(::cache *self)
 {
     halo::memory::view(self)->flush();
 }
