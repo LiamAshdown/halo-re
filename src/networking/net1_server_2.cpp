@@ -105,7 +105,7 @@ char ServerView::handle_join_password(network_machine *machine, uint8_t *buffer,
     int16_t out_type;
     uint16_t out_version;
     uint32_t scratch[6];
-    uint8_t body[0x90];
+    network_join_request body;
     int16_t remaining;
     int16_t reason;
 
@@ -121,31 +121,31 @@ char ServerView::handle_join_password(network_machine *machine, uint8_t *buffer,
 
         return result != 0 ? result : 1;
     }
-    if (halo::memory::data_packet_group_decode_packet(&remaining, &network_game_messages_group, body, buffer + 2, &out_type, &out_version,
+    if (halo::memory::data_packet_group_decode_packet(&remaining, &network_game_messages_group, &body, buffer + 2, &out_type, &out_version,
                                          3) == 0) {
         return 1;
     }
     halo::networking::network_channel_remote_address_or_default(machine->channel, (network_resolved_address *)scratch);
     if ((server->flags & 1) == 0 || (server->state != 0 && server->state != 1)) {
         reason = 0;
-    } else if (halo::networking::network_join_request_reset_state(machine, (const char *)body + 0x22) == 0) {
+    } else if (halo::networking::network_join_request_reset_state(machine, (const char *)body.cd_key_response) == 0) {
         reason = 6;
-    } else if ((halo::networking::network_debug_fill_canary_buffer(scratch), memcmp(body, scratch, 0x10)) != 0) {
+    } else if ((halo::networking::network_debug_fill_canary_buffer(scratch), memcmp(body.session_key, scratch, sizeof(body.session_key))) != 0) {
         reason = 1;
     } else {
         halo::networking::network_server_password_get(server, (wchar_t *)scratch);
-        *(uint16_t *)(body + 0x20) = 0;
-        if (wcsncmp((const wchar_t *)(body + 0x10), (const wchar_t *)scratch, 8) != 0 && halo::networking::network_server_password_is_set(server) != 0) {
+        body.password_terminator = 0;
+        if (wcsncmp((const wchar_t *)body.password, (const wchar_t *)scratch, 8) != 0 && halo::networking::network_server_password_is_set(server) != 0) {
             reason = 2;
         } else if (halo::networking::network_machine_reset(machine) == 0 ||
-                   halo::networking::network_game_session_finalize_and_add_player((network_player_entry *)(body + 0x6e), server, machine) == 0) {
+                   halo::networking::network_game_session_finalize_and_add_player(&body.player, server, machine) == 0) {
             reason = 3;
         } else {
             uint32_t payload = 0;
             uint16_t *packet;
 
             halo::networking::network_game_broadcast_player_set_changed((uint8_t *)server);
-            *(int32_t *)((uint8_t *)machine->channel + 0xa88) = network_game_info_packet_flag == 0 ? 4 : body[0x6b];
+            machine->channel->rate_index = network_game_info_packet_flag == 0 ? 4 : body.rate_index;
             packet = halo::networking::network_prepare_challenge_packet(0xa, &payload);
             if (packet != 0 && machine->machine_id != -1) {
                 halo::networking::network_session_send_to_machine(machine->machine_id, server, 0, packet, (uint32_t)(*packet >> 4) << 3, 1, 0, 1, 3);
@@ -665,9 +665,9 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
         halo::networking::network_stats_summary_log_open();
     }
 
-    *(int32_t *)((uint8_t *)host + 0x3b0) = *(int32_t *)((uint8_t *)host + 0x3b0) + 1;
+    host->session.session_counter = host->session.session_counter + 1;
     host->update_tick = 0;
-    *(int32_t *)((uint8_t *)host + 0x9c4) = 0;
+    host->first_join_ms = 0;
     host->scenario_announced = 0;
     host->new_server_pending = 0;
     host->join_finalize_pending = 0;
@@ -680,9 +680,9 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
         machine->player_joined = 0;
     }
 
-    memset((uint8_t *)host + 0x88, 0, 0x21 * 4);
-    memset((uint8_t *)host + 0x10c, 0, 0x26 * 4);
-    *(uint16_t *)((uint8_t *)host + 0x1a8) = 0;
+    memset(&host->session.unknown_080, 0, 0x21 * 4);
+    memset(&host->session.variant, 0, 0x26 * 4);
+    host->session.player_count = 0;
 
     for (i = 0; i < 16; i++) {
         player = &host->session.players[i];
@@ -703,9 +703,9 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
         join_ui_state = 2;
     }
     host->full_state_broadcast_pending = 1;
-    memcpy((uint8_t *)host + 0x10c, game_engine_pending_variant, sizeof(game_engine_pending_variant));
-    strncpy((char *)host + 0x8c, (char *)variant_defaults_source, 0x3f);
-    *(uint8_t *)((uint8_t *)host + 0xcb) = 0;
+    memcpy(&host->session.variant, game_engine_pending_variant, sizeof(game_engine_pending_variant));
+    strncpy(host->session.server_name, (char *)variant_defaults_source, 0x3f);
+    host->session.server_name[63] = 0;
     host->state = host->state | 1;
     host->session.unknown_07e = 0;
     host->session.unknown_080 = 0;

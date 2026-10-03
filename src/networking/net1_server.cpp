@@ -1,4 +1,5 @@
 #include "halo/networking/net1_server.hpp"
+#include "halo/networking/record_layout.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
@@ -607,9 +608,9 @@ int32_t ServerView::host_create()
     if (host != 0) {
         halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
         salt = halo::math::globals().effect_random_seed >> 0x10;
-        *(uint32_t *)((uint8_t *)host + 0x3ac) = salt;
+        host->session.salt = salt;
         if (network_client != 0) {
-            *(uint32_t *)((uint8_t *)network_client + 0xeb8) = salt;
+            network_client->session.salt = salt;
         }
     }
     return host != 0;
@@ -635,7 +636,7 @@ void ServerView::host_dispose()
     uint32_t challenge_payload[4];
 
     gcd_disconnect_all(network_console_connection_id);
-    if (((*(uint8_t *)((uint8_t *)host + 6) >> 2) & 1) != 0) {
+    if (((host->flags >> 2) & 1) != 0) {
         halo::networking::message_delta_parameters_protocol_dump_to_config_file();
         halo::networking::network_stats_summary_log_write();
     }
@@ -713,8 +714,8 @@ void * ServerView::host_new()
             machine->machine_id = -1;
             machine->flags = 0;
             machine->unknown_0f = 0;
-            *(uint32_t *)((uint8_t *)machine + 0x52) = 0;
-            *(uint32_t *)((uint8_t *)machine + 0x56) = 0;
+            machine->unknown_52 = 0;
+            machine->unknown_56 = 0;
             machine->gcd_user_id = -1;
             machine->player_joined = 0;
             machine->players_removed_broadcast = 0;
@@ -728,7 +729,7 @@ void * ServerView::host_new()
         host->scenario_announced = 0;
         host->new_server_pending = 0;
         host->join_finalize_pending = 0;
-        *(int32_t *)((uint8_t *)host + 0x3b0) = *(int32_t *)((uint8_t *)host + 0x3b0) + 1;
+        host->session.session_counter = host->session.session_counter + 1;
         *(uint32_t *)&host->handshake_state = 0;
         if (halo::networking::network_game_session_reset_defaults(host) != 0) {
             halo::networking::network_session_host_start(0);
@@ -738,7 +739,7 @@ void * ServerView::host_new()
     halo::networking::network_game_server_host_dispose(host);
     host = 0;
 done:
-    if (host != 0 && ((*((uint8_t *)host + 6) >> 2) & 1) != 0) {
+    if (host != 0 && ((host->flags >> 2) & 1) != 0) {
         halo::networking::message_delta_protocol_initialize();
         halo::networking::network_stats_summary_log_open();
     }
@@ -1608,7 +1609,7 @@ void HostServerView::round_reset()
     host->scenario_announced = 0;
     host->new_server_pending = 0;
     host->join_finalize_pending = 0;
-    *(int32_t *)((uint8_t *)host + 0x3b0) = *(int32_t *)((uint8_t *)host + 0x3b0) + 1;
+    host->session.session_counter = host->session.session_counter + 1;
     halo::networking::network_game_session_reset_defaults(host);
 }
 

@@ -427,6 +427,24 @@ typedef struct network_player_entry {
 } network_player_entry;          // size 0x20
 
 // ---------------------------------------------------------------------------
+// network_join_request  (0x90 bytes; message 0x0e, the answer to a join challenge)
+// What a client sends the host to join: the version canary the host checks (0x4e21d0 compares the first 16
+// bytes), the 8 character password, the CD key response (network_join_request_reset_state), the channel rate and
+// the player entry the host adds. The client (0x4d94c0) follows it with its 0x1ffc-byte profile.
+// ---------------------------------------------------------------------------
+typedef struct network_join_request {
+    uint32_t session_key[4];     // 0x00 the version canary
+    uint16_t password[8];        // 0x10 UTF-16 password attempt
+    uint16_t password_terminator; // 0x20 the host forces it to 0
+    uint8_t cd_key_response[0x6b - 0x22]; // 0x22 gcd_compute_response of the challenge
+    uint8_t rate_index;          // 0x6b the client's network rate; becomes network_channel::rate_index
+    uint8_t unknown_6c[2];       // 0x6c
+    network_player_entry player; // 0x6e the player to add; name[11] is the terminator
+    uint8_t unknown_8e[2];       // 0x8e
+} network_join_request;          // size 0x90
+typedef char network_join_request_size[sizeof(network_join_request) == 0x90 ? 1 : -1];
+
+// ---------------------------------------------------------------------------
 // network_game_session  (0x4de470 network_channel_table_initialize, 0x4e1820 defaults)
 // The block both the server and the client embed: the advertised server name, the
 // live game variant and the 16-row player table. The variant offset is confirmed
@@ -448,7 +466,9 @@ typedef struct network_game_session {
                                //    session+0x19e; host_new seeds it from pending_difficulty 0x696564
     int16_t player_count;      // 0x1a0 the value the summary log averages
     network_player_entry players[16]; // 0x1a2
-    uint8_t unknown_3a2[10];   // 0x3a2
+    uint8_t unknown_3a2[2];    // 0x3a2
+    uint32_t salt;             // 0x3a4 random per hosted game; the client copies it from its own session
+    int32_t session_counter;   // 0x3a8 host_new sets -1, then it counts up once per new round
     uint8_t map_loaded;        // 0x3ac 0x4de6d0 sets 1 after scenario_load/game_start_new_map (0 on key-open failure)
                                //    and returns it; dispatch/shutdown load the UI map when set then clear
     uint8_t pad_3ad[3];        // 0x3ad

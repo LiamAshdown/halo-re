@@ -595,10 +595,10 @@ char GameSessionView::scenario_load_request()
                 shared_session = 0;
             }
             if (shared_session != 0) {
-                request.salt = *(uint32_t *)((uint8_t *)shared_session + 0x3a4);
+                request.salt = shared_session->salt;
             }
         } else if (network_game_mode == halo::networking::k_game_mode_replay) {
-            request.salt = *(uint32_t *)((uint8_t *)session + 0x3a4);
+            request.salt = session->salt;
         }
     }
     halo::game::cache_file_switch_map_by_path(request.map_name, 1);
@@ -1169,8 +1169,8 @@ void HostSession::cd_key_callback(int32_t game_id, int32_t local_id, int32_t aut
         return;
     }
     for (i = 0; i < 0x10; i++) {
-        if (*(int32_t *)((uint8_t *)server + 0x414 + i * 0x60) == local_id) {
-            machine = (network_machine *)((uint8_t *)server + 0x3b8 + i * 0x60);
+        if (server->machines[i].gcd_user_id == local_id) {
+            machine = &server->machines[i];
             break;
         }
     }
@@ -1316,8 +1316,8 @@ uint8_t HostSession::reject_or_cleanup_client(const char *response, const char *
     }
     server = network_server;
     for (i = 0; i < 0x10; i++) {
-        if (*(int32_t *)((uint8_t *)server + 0x414 + i * 0x60) == local_id) {
-            machine = (network_machine *)((uint8_t *)server + 0x3b8 + i * 0x60);
+        if (server->machines[i].gcd_user_id == local_id) {
+            machine = &server->machines[i];
             break;
         }
     }

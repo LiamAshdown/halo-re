@@ -270,28 +270,12 @@ struct join_challenge_message {
 };
 static_assert(offsetof(join_challenge_message, server_name) == 0x14);
 
-/** The challenge payload (message 0x0e) the client answers a join challenge with: identity, profile and team. */
+/** The challenge payload (message 0x0e) the client answers a join challenge with: the join request and its profile. */
 struct join_request_frame {
-    uint32_t session_key[4];     // 0x00 connect_attempt.session_info[5..8]
-    uint16_t player_name[8];     // 0x10 wide characters lifted from connect_attempt.session_info
-    uint16_t unknown_20;         // 0x20
-    uint8_t challenge_response[0x6b - 0x22]; // 0x22 gcd_compute_response of the challenge
-    uint8_t unknown_6b;          // 0x6b
-    uint8_t unknown_6c[2];       // 0x6c
-    uint16_t profile_name[11];   // 0x6e copied from the profile block
-    uint16_t unknown_84;         // 0x84
-    uint16_t unknown_86;         // 0x86
-    uint16_t unknown_88;         // 0x88
-    uint8_t machine_index;       // 0x8a
-    uint8_t unknown_8b;          // 0x8b
-    uint8_t team_index;          // 0x8c
-    uint8_t unknown_8d;          // 0x8d
-    uint8_t unknown_8e[2];       // 0x8e
+    network_join_request header; // 0x00
     uint8_t profile[0x1ffc];     // 0x90 profile_globals_block
     uint8_t unused[0x2100 - 0x208c];
 };
-static_assert(offsetof(join_request_frame, profile_name) == 0x6e);
-static_assert(offsetof(join_request_frame, machine_index) == 0x8a);
 static_assert(offsetof(join_request_frame, profile) == 0x90);
 static_assert(sizeof(join_request_frame) == 0x2100);
 
@@ -390,25 +374,25 @@ void GameClientView::settings_packet_send(const uint8_t *request)
         }
     }
 
-    memset(&frame, 0, offsetof(join_request_frame, unknown_8e));
+    memset(&frame, 0, offsetof(network_join_request, unknown_8e));
 
-    memcpy(frame.session_key, &client->connect_attempt.session_info[5], sizeof(frame.session_key));
+    memcpy(frame.header.session_key, &client->connect_attempt.session_info[5], sizeof(frame.header.session_key));
     *(uint8_t *)&client->pad_ee2 = 0;
-    wcsncpy((wchar_t *)frame.player_name, (const wchar_t *)((const uint8_t *)client->connect_attempt.session_info + 2), 8);
-    frame.unknown_6b = *((uint8_t *)client + 0xf4c);
-    frame.unknown_20 = 0;
-    gcd_compute_response(shell_product_id, (void *)request, frame.challenge_response);
+    wcsncpy((wchar_t *)frame.header.password, (const wchar_t *)((const uint8_t *)client->connect_attempt.session_info + 2), 8);
+    frame.header.rate_index = *((uint8_t *)client + 0xf4c);
+    frame.header.password_terminator = 0;
+    gcd_compute_response(shell_product_id, (void *)request, frame.header.cd_key_response);
 
     memcpy(frame.profile, profile_globals_block, sizeof(frame.profile));
 
-    frame.machine_index = (uint8_t)challenge_request->machine_index;
-    frame.unknown_8b = 0;
-    wcsncpy((wchar_t *)frame.profile_name, (const wchar_t *)(frame.profile + 2), 0xb);
-    frame.team_index = *(uint8_t *)&client->team_index;
-    frame.unknown_84 = 0;
-    frame.unknown_86 = *(uint16_t *)(frame.profile + 0x11a);
-    frame.unknown_88 = 0xffff;
-    frame.unknown_8d = 0xff;
+    frame.header.player.machine_index = (uint8_t)challenge_request->machine_index;
+    frame.header.player.machine_player_index = 0;
+    wcsncpy((wchar_t *)frame.header.player.name, (const wchar_t *)(frame.profile + 2), 0xb);
+    frame.header.player.team_index = *(uint8_t *)&client->team_index;
+    frame.header.player.name[11] = 0;
+    frame.header.player.color_index = *(uint16_t *)(frame.profile + 0x11a);
+    frame.header.player.icon_index = (int16_t)0xffff;
+    frame.header.player.slot_index = (int8_t)0xff;
     *(uint8_t *)&client->pad_ee2 = 1;
 
     challenge = (int32_t *)halo::networking::network_prepare_challenge_packet(0x0e, &frame);
