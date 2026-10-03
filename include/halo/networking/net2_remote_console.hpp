@@ -16,7 +16,7 @@ namespace halo::networking {
 class RemoteConsole {
 public:
     /**
-     * 0x4d8c50
+     * Original engine function `chimera__on_connect`.
      *
      * @address 0x4d8ed0
      */
@@ -31,14 +31,14 @@ public:
     static void rcon_out(char *text, int32_t unused_machine_id);
 
     /**
-     * 0x496b50, EAX color (NULL = default) Shared get/set implementation for boolean sv_* console commands: with no argument, reports the current value; with one, accepts "0"/"false" or "1"/"true" (case-insensitive, trimmed) and stores it through `value`, then reports the new value the same way.
+     * Shared get/set implementation for boolean sv_* console commands: with no argument, reports the current value; with one, accepts "0"/"false" or "1"/"true" (case-insensitive, trimmed) and stores it through `value`, then reports the new value the same way.
      *
      * @address 0x4e2990
      */
     static void bool_get_set(uint32_t argument_count, uint8_t *value, char **arguments, const char *name);
 
     /**
-     * 0x496b50, EAX color (NULL = default) Console command: packages the password (first argument) and the remaining arguments -- the rcon command bare, every argument after it individually quoted -- into one command line, and sends it to the server via rcon_send_request. Client-only; refuses on a dedicated/listen server, on fewer than 2 arguments, on a password outside 1-8 characters, or if the rebuilt command line would exceed 64 characters.
+     * Console command: packages the password (first argument) and the remaining arguments -- the rcon command bare, every argument after it individually quoted -- into one command line, and sends it to the server via rcon_send_request. Client-only; refuses on a dedicated/listen server, on fewer than 2 arguments, on a password outside 1-8 characters, or if the rebuilt command line...
      *
      * @address 0x4e4c00
      */
@@ -59,14 +59,14 @@ public:
     static uint32_t dist_id(void);
 
     /**
-     * 0x006ef968 Reads the installed game's "Version" value from the Halo registry key and returns it as a string (empty if the key or value could not be read).
+     * Reads the installed game's "Version" value from the Halo registry key and returns it as a string (empty if the key or value could not be read).
      *
      * @address 0x5776d0
      */
     static char * halo_version(void);
 
     /**
-     * 0x4ec450, outside this batch, elided args
+     * Original engine function `update_server_send_update`.
      *
      * @address 0x4ddfb0
      */

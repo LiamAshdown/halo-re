@@ -16,7 +16,7 @@ namespace halo::networking {
 class NetworkUtil {
 public:
     /**
-     * 0x4b7080, this module
+     * Original engine function `dynamic_pointer_array_add_unique`.
      *
      * @address 0x4ba8a0
      */
@@ -37,14 +37,14 @@ public:
     static void remove_at(int32_t index, server_list_globals *array);
 
     /**
-     * this batch, 0x4e5320 Converts time_value to local time and formats it into time_dest ("HH:MM:SS") and date_dest ("YYYY-MM-DD") via format_time_and_date_strings, falling back to an all-zero broken-down time if localtime() fails.
+     * Converts time_value to local time and formats it into time_dest ("HH:MM:SS") and date_dest ("YYYY-MM-DD") via format_time_and_date_strings, falling back to an all-zero broken-down time if localtime() fails.
      *
      * @address 0x4e52c0
      */
     static void local_time_and_date(char *date_dest, int32_t max_len, int32_t time_value, char *time_dest);
 
     /**
-     * VERIFIED against disassembly 0x4e5320..0x4e5381 (2026-09-30); fixed: the original calls the CRT _snprintf (0x623a2d), which writes count characters and does NOT NUL-terminate on truncation (the C99 snprintf the draft used writes a NUL at count-1); the forced NUL at max_len-1 is the only terminator, as here. Formats time_value's hour:min:sec into time_dest and its year-mon-mday into date_dest, each truncated to at most max_len-1 characters with a forced NUL. Either destination may be NULL (skipped), and nothing is written if max_len is 0.
+     * VERIFIED against disassembly 0x4e5320..0x4e5381 (2026-09-30); fixed: the original calls the CRT _snprintf (0x623a2d), which writes count characters and does NOT NUL-terminate on truncation (the C99 snprintf the draft used writes a NUL at count-1); the forced NUL at max_len-1 is the only terminator, as here.
      *
      * @address 0x4e5320
      */
@@ -59,7 +59,7 @@ public:
     static int32_t create(network_mutex_record **out_handle);
 
     /**
-     * 0x00699568, used when unit_table is NULL Parses a leading unsigned integer from `string`, then an optional one-character unit suffix (falling back to default_unit if the suffix is not one strchr recognizes in unit_table, or NULL selects the built-in table). Returns the value in seconds for d/h/m/s, or -1 if the string has no leading digits or its resolved unit is not one of those four.
+     * Parses a leading unsigned integer from `string`, then an optional one-character unit suffix (falling back to default_unit if the suffix is not one strchr recognizes in unit_table, or NULL selects the built-in table). Returns the value in seconds for d/h/m/s, or -1 if the string has no leading digits or its resolved unit is not one of those four.
      *
      * @address 0x4e51c0
      */

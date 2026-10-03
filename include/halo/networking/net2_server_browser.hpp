@@ -16,7 +16,7 @@ namespace halo::networking {
 class ServerBrowser {
 public:
     /**
-     * 0x496b50, EAX color (NULL = default) Console command: lists installed game-variant names (an optional lowercased filter substring), two per output line.
+     * Console command: lists installed game-variant names (an optional lowercased filter substring), two per output line.
      *
      * @address 0x4e4600
      */
@@ -37,7 +37,7 @@ public:
     static void ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index);
 
     /**
-     * 0x496b50, EAX color (NULL = default) Console command: prints every installed map name (lowercased filter substring optional), two per output line.
+     * Console command: prints every installed map name (lowercased filter substring optional), two per output line.
      *
      * @address 0x4e4470
      */
@@ -58,14 +58,14 @@ public:
     static char * custom_options_pack(server_browser_custom_options *options);
 
     /**
-     * VERIFIED against disassembly 0x5764a0..0x576747 (2026-09-30): all seven jump tables (0x576748..0x5767b0), the flag bit moves, both nibble clamps, the byte/dword field offsets and the sscanf "%d,%d" call match. A difftest "process died" here is the modern CRT aborting on an invalid string pointer, not a logic difference. Parses a "%d,%d" text string and unpacks the bitfields back into a custom game-options struct, mirroring server_browser_custom_options_pack field for field and bit for bit.
+     * VERIFIED against disassembly 0x5764a0..0x576747 (2026-09-30): all seven jump tables (0x576748..0x5767b0), the flag bit moves, both nibble clamps, the byte/dword field offsets and the sscanf "%d,%d" call match. A difftest "process died" here is the modern CRT aborting on an invalid string pointer, not a logic difference.
      *
      * @address 0x5764a0
      */
     static void custom_options_unpack(char *text, server_browser_custom_options *out);
 
     /**
-     * 0x4b7f10, this module
+     * Original engine function `server_browser_filter_headers_refresh`.
      *
      * @address 0x4b7f70
      */
@@ -79,7 +79,7 @@ public:
     static void filter_panel_set_mode(network_ui_widget *panel, uint8_t internet_mode);
 
     /**
-     * 0x498e90, outside this session's range
+     * Original engine function `server_browser_filter_widget_clicked`.
      *
      * @address 0x4b7d80
      */
@@ -135,7 +135,7 @@ public:
     static void gametype5_flags_unpack(uint32_t code, int32_t *out);
 
     /**
-     * foreign, outside this session's range
+     * Original engine function `server_browser_latch_join_target`.
      *
      * @address 0x4b6730
      */
@@ -159,42 +159,42 @@ public:
                                         uint8_t flag3, int32_t count_a, int32_t count_b, int32_t ping);
 
     /**
-     * 0x4b80f0, this module
+     * Original engine function `server_browser_open`.
      *
      * @address 0x4b75b0
      */
     static int32_t open(network_ui_widget *root);
 
     /**
-     * 0x4b8a60, this module Clears the ticker, then appends one formatted row per player (name and score, or a default placeholder row when the name lookup fails), clamping the player count to 0..16.
+     * Clears the ticker, then appends one formatted row per player (name and score, or a default placeholder row when the name lookup fails), clamping the player count to 0..16.
      *
      * @address 0x4b73e0
      */
     static int32_t player_list_populate(void *entry);
 
     /**
-     * 0x6175c0, GameSpy: record validity check
+     * Original engine function `server_browser_query_results_ingest`.
      *
      * @address 0x4baae0
      */
     static void query_results_ingest(server_list_globals *list);
 
     /**
-     * outside this batch, unnamed, scroll-window refresh
+     * Original engine function `server_browser_result_array_sort`.
      *
      * @address 0x4ba9c0
      */
     static void result_array_sort(server_list_globals *array);
 
     /**
-     * 0x4b8a60, this module
+     * Original engine function `server_browser_selected_variant_description_build`.
      *
      * @address 0x4b74e0
      */
     static int32_t selected_variant_description_build(void *entry);
 
     /**
-     * foreign, outside this session's range
+     * Original engine function `server_browser_server_passes_filter`.
      *
      * @address 0x4b7080
      */
@@ -208,14 +208,14 @@ public:
     static server_browser_sort_comparator sort_comparator_select(void);
 
     /**
-     * foreign, GameSpy int accessor // 0x617c10, GameSpy accessor
+     * Original engine function `server_browser_total_players_compute`.
      *
      * @address 0x4baa60
      */
     static void total_players_compute(server_list_globals *array);
 
     /**
-     * 0x4b8a60, this module
+     * Original engine function `server_browser_ui_refresh`.
      *
      * @address 0x4b73a0
      */
@@ -236,63 +236,63 @@ public:
     static int32_t compare_by_hostname(const void *a, const void *b);
 
     /**
-     * foreign, outside this session's range
+     * Original engine function `server_list_compare_by_mapname`.
      *
      * @address 0x4b6c20
      */
     static int32_t compare_by_mapname(void **a, void **b);
 
     /**
-     * foreign, GameSpy library
+     * Original engine function `server_list_compare_by_mapname_then_hostname`.
      *
      * @address 0x4b6f20
      */
     static int32_t compare_by_mapname_then_hostname(void **a, void **b);
 
     /**
-     * foreign, GameSpy library, string accessor
+     * Original engine function `server_list_compare_by_ping_then_hostname`.
      *
      * @address 0x4b6da0
      */
     static int32_t compare_by_ping_then_hostname(void **a, void **b);
 
     /**
-     * 0x4b6be0
+     * Original engine function `server_list_compare_by_players`.
      *
      * @address 0x4b6e70
      */
     static int32_t compare_by_players(const void *a, const void *b);
 
     /**
-     * foreign, GameSpy library
+     * Original engine function `server_list_compare_by_string_key`.
      *
      * @address 0x4b6be0
      */
     static int32_t compare_by_string_key(void **a, void **b, const char *key);
 
     /**
-     * 0x007196bc Waits (with a timeout) on the shared server-browser query-result mutex, unless the mutex has never been created, and returns a pointer to the shared server_list object on success (either the wait was not needed, it completed normally, or it timed out after abandonment -- 0x80 is WAIT_ABANDONED_0), or NULL if the wait failed or genuinely timed out.
+     * Waits (with a timeout) on the shared server-browser query-result mutex, unless the mutex has never been created, and returns a pointer to the shared server_list object on success (either the wait was not needed, it completed normally, or it timed out after abandonment -- 0x80 is WAIT_ABANDONED_0), or NULL if the wait failed or genuinely timed out.
      *
      * @address 0x4ba760
      */
     static server_list_globals * mutex_try_lock(uint32_t timeout_ms);
 
     /**
-     * 0x007196a8
+     * Original engine function `server_list_mutex_unlock`.
      *
      * @address 0x4ba7a0
      */
     static void mutex_unlock(server_list_globals **list_slot);
 
     /**
-     * 0x4b8a60, this module
+     * Original engine function `server_list_reset`.
      *
      * @address 0x4b65f0
      */
     static void reset(uint8_t *entry);
 
     /**
-     * 0x007196bc Thread-safely reads server_list.result_count, returning 0 if the mutex could not be acquired.
+     * Thread-safely reads server_list.result_count, returning 0 if the mutex could not be acquired.
      *
      * @address 0x4ba820
      */
@@ -306,21 +306,21 @@ public:
     static void result_reset(uint8_t *entry);
 
     /**
-     * 0x4ba820, this module
+     * Original engine function `server_list_scroll_clamp`.
      *
      * @address 0x4b7360
      */
     static void scroll_clamp(server_list_globals *results);
 
     /**
-     * 0x4ba820, this module
+     * Original engine function `server_list_scroll_page_down`.
      *
      * @address 0x4b7bb0
      */
     static void scroll_page_down(uint8_t jump_to_bottom);
 
     /**
-     * 0x4ba820, this module
+     * Original engine function `server_list_scroll_page_up`.
      *
      * @address 0x4b7b20
      */

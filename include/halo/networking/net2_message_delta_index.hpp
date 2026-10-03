@@ -65,7 +65,7 @@ public:
     static int32_t grenade_index_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 
     /**
-     * 0x0065d51f
+     * Original engine function `message_delta_index_compute_size`.
      *
      * @address 0x4e9af0
      */
@@ -86,28 +86,28 @@ public:
     static int32_t index_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 
     /**
-     * 0x4f0530
+     * Original engine function `message_delta_index_initialize`.
      *
      * @address 0x4e9b10
      */
     static uint8_t index_initialize(message_delta_field_type *field_type);
 
     /**
-     * 0x4f04c0, EDI table
+     * Original engine function `message_delta_index_teardown`.
      *
      * @address 0x4e9b90
      */
     static void index_teardown(message_delta_field_type *field_type);
 
     /**
-     * 0x0069a2e8
+     * Original engine function `message_delta_item_placement_compute_size`.
      *
      * @address 0x4eba40
      */
     static int32_t item_placement_compute_size(message_delta_field_type *field_type);
 
     /**
-     * 0x0069a2e8
+     * Original engine function `message_delta_item_placement_decode`.
      *
      * @address 0x4ebc20
      */
@@ -121,7 +121,7 @@ public:
     static int32_t item_placement_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 
     /**
-     * 0x0071cfa8
+     * Original engine function `message_delta_item_placement_initialize`.
      *
      * @address 0x4eba60
      */
@@ -156,7 +156,7 @@ public:
     static uint8_t pointer_initialize(message_delta_field_type *field_type);
 
     /**
-     * 0x0065d51f
+     * Original engine function `message_delta_range_compute_size`.
      *
      * @address 0x4e9ac0
      */

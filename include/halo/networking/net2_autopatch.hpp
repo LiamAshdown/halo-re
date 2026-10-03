@@ -16,7 +16,7 @@ namespace halo::networking {
 class AutopatchUpdater {
 public:
     /**
-     * 0x5771e0, this module One-time entry point that kicks off the background thread which checks bungie.net for a game update: if the update-config directory is writable, deletes any stale "currentupdate.cfg" first, then starts the version-check thread.
+     * One-time entry point that kicks off the background thread which checks bungie.net for a game update: if the update-config directory is writable, deletes any stale "currentupdate.cfg" first, then starts the version-check thread.
      *
      * @address 0x577240
      */
@@ -30,21 +30,21 @@ public:
     static void current_version_string_get(char *out);
 
     /**
-     * 0x006ef93c Completion callback for an asynchronous download/read: on success, copies the received data into a heap buffer (unless the slot's close-requested flag is set) and marks the matching pool slot ready or errored.
+     * Completion callback for an asynchronous download/read: on success, copies the received data into a heap buffer (unless the slot's close-requested flag is set) and marks the matching pool slot ready or errored.
      *
      * @address 0x576ad0
      */
     static uint32_t download_complete_callback(int32_t request_id, int32_t error, uint8_t *data, uint32_t size);
 
     /**
-     * 0x006ef93c Retrieves the completed data pointer and size from a finished download pool slot, if ready. Returns 1 (with *out_data/*out_size filled) on success, 0 otherwise.
+     * Retrieves the completed data pointer and size from a finished download pool slot, if ready. Returns 1 (with *out_data/*out_size filled) on success, 0 otherwise.
      *
      * @address 0x576f00
      */
     static uint8_t download_get_result(void **out_data, int32_t *out_size, int32_t slot_index);
 
     /**
-     * 0x576b80, this module VERIFIED against disassembly 0x576c30..0x576db0 (2026-09-30): slot init (5 dwords, request id -1), the 32 entry 0x28 byte mutex scan (in_use at +0x24, name at +4), the 32 entry 8 byte thread scan, the CreateThread/SetThreadPriority/ResumeThread sequence and the cleanup match. Fixed: 0x7227c8 (autopatch_download_active_count) is a BYTE everywhere in the original (the 4-byte C store clobbered 0x7227c9..0x7227cb), and the mutex name uses the CRT _snprintf. Initializes the two-slot asynchronous download table, then inline-allocates a named mutex (mirroring mutex_create) and a suspended worker thread (mirroring network_thread_create), resuming it on success. Returns 1 once the pool is fully up, 0 if the mutex or thread could not be created (the pool is left initialized but idle either way).
+     * VERIFIED against disassembly 0x576c30..0x576db0 (2026-09-30): slot init (5 dwords, request id -1), the 32 entry 0x28 byte mutex scan (in_use at +0x24, name at +4), the 32 entry 8 byte thread scan, the CreateThread/SetThreadPriority/ResumeThread sequence and the cleanup match. Fixed: 0x7227c8 (autopatch_download_active_count) is a BYTE everywhere in the original (the 4-byte C store clobbered 0x7227c9..0x7227cb), and the mutex name uses the CRT _snprintf.
      *
      * @address 0x576c30
      */
@@ -65,7 +65,7 @@ public:
     static int32_t download_pool_tick(void);
 
     /**
-     * 0x61c030
+     * Original engine function `autopatch_download_progress_callback`.
      *
      * @address 0x576a70
      */
@@ -73,21 +73,21 @@ public:
     int32_t bytes_received, int32_t total_size, void *param);
 
     /**
-     * 0x576ad0, this module Starts an asynchronous download (or local file read, when local_file is set) into a free pool slot, using autopatch_download_complete_callback for completion, and returns the slot index (or -1 if the pool is full or the start call itself failed).
+     * Starts an asynchronous download (or local file read, when local_file is set) into a free pool slot, using autopatch_download_complete_callback for completion, and returns the slot index (or -1 if the pool is full or the start call itself failed).
      *
      * @address 0x576e60
      */
     static int32_t download_start(void *path, int32_t local_file);
 
     /**
-     * 0x576bc0, this module Background worker thread that repeatedly polls the download pool until told to stop.
+     * Background worker thread that repeatedly polls the download pool until told to stop.
      *
      * @address 0x576b80
      */
     static uint32_t download_worker_thread(void);
 
     /**
-     * 0x6720a4 Finds the HTTP proxy the autopatch client should use: first the WinInet (Internet Explorer) setting, then WinHTTP auto-detection (WPAD) for http://www.bungie.net. From the proxy list it takes the "http=" entry (or the first entry), strips any leading "http://" prefixes and copies it into autopatch_proxy_server, which it always returns (empty when no proxy was found).
+     * Finds the HTTP proxy the autopatch client should use: first the WinInet (Internet Explorer) setting, then WinHTTP auto-detection (WPAD) for http://www.bungie.net. From the proxy list it takes the "http=" entry (or the first entry), strips any leading "http://" prefixes and copies it into autopatch_proxy_server, which it always returns (empty when no proxy was found).
      *
      * @address 0x576f40
      */

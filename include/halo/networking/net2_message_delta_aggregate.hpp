@@ -16,7 +16,7 @@ namespace halo::networking {
 class AggregateFieldCodec {
 public:
     /**
-     * 0x4cfb80, memory module Decodes an array-of-structures field. field_type->array_descriptor holds {count, element_size, element field type}. When previous is NULL every element is decoded unconditionally and the total bit count is returned. Otherwise the per-element "changed" bits live in a block of field_type->reserved_bits reserved at the head of the array and the element payloads follow it, so the loop alternates between the two regions with absolute seeks: for each element it seeks to the element's flag bit, reads it, seeks back to the payload cursor, and then either copies the previous element verbatim or calls the element type's decode. Returns the bits the changed elements consumed, plus field_type->reserved_bits when anything changed at all.
+     * Decodes an array-of-structures field. field_type->array_descriptor holds {count, element_size, element field type}. When previous is NULL every element is decoded unconditionally and the total bit count is returned. Otherwise the per-element "changed" bits live in a block of field_type->reserved_bits reserved at the head of the array and the element payloads follow it, so the loop alternates between the two regions with absolute seeks: for each element it seeks to the element's flag bit, reads it, seeks back to the payload cursor, and then either copies the previous element verbatim or calls the element type's decode.
      *
      * @address 0x4e9330
      */
@@ -24,7 +24,7 @@ public:
     uint8_t *destination, bit_stream *stream);
 
     /**
-     * 0x4cf9a0, memory module; the signature is src/memory/bit_stream_write_bit.c's. Encodes an array-of-structures field. field_type->array_descriptor holds {count, fields[]}. When previous is NULL every element is encoded unconditionally. Otherwise the per-element "changed" bits live in a block of field_type->reserved_bits reserved at the head of the array and the element payloads follow it: for each element the encoder encodes the payload, seeks back to that element's flag bit, writes whether the payload produced any bits, and seeks forward again to the payload cursor. If nothing changed at all it rewinds to the start of the reserved block, so an unchanged array costs nothing.
+     * the signature is src/memory/bit_stream_write_bit.c's. Encodes an array-of-structures field. field_type->array_descriptor holds {count, fields[]}. When previous is NULL every element is encoded unconditionally. Otherwise the per-element "changed" bits live in a block of field_type->reserved_bits reserved at the head of the array and the element payloads follow it: for each element the encoder encodes the payload, seeks back to that element's flag bit, writes whether the payload produced any bits, and seeks forward again to the payload cursor.
      *
      * @address 0x4e95e0
      */
@@ -53,21 +53,21 @@ public:
     static uint8_t compound_initialize(message_delta_field_type *field_type);
 
     /**
-     * 0x4ed070, this module Decodes one array-typed message-delta field: reads its changed-flags/static-field payload via message_delta_decode_field_changed_flags and, on success (or on the degenerate "nothing to decode" case), accumulates the bit count into state->bits_read and marks state->more_items. On failure, rewinds the stream to where it started.
+     * Decodes one array-typed message-delta field: reads its changed-flags/static-field payload via message_delta_decode_field_changed_flags and, on success (or on the degenerate "nothing to decode" case), accumulates the bit count into state->bits_read and marks state->more_items. On failure, rewinds the stream to where it started.
      *
      * @address 0x4ec510
      */
     static int32_t decode_array_field(void **context);
 
     /**
-     * 0x4ed1d0, this module Decodes a compound (multi-subfield) message-delta field with no baseline/incremental branch: every subfield is written straight into `destination`. Returns 1 on success (accumulating the bit count into state->bits_read and setting state->changed), or 0 and rewinds the stream on failure.
+     * Decodes a compound (multi-subfield) message-delta field with no baseline/incremental branch: every subfield is written straight into `destination`. Returns 1 on success (accumulating the bit count into state->bits_read and setting state->changed), or 0 and rewinds the stream on failure.
      *
      * @address 0x4ec590
      */
     static uint8_t decode_compound_field(void **context, void *destination);
 
     /**
-     * 0x4ed1d0, this module Variant of message_delta_decode_compound_field that also forwards a changed-branch offset and can be forced to report success (bits == 0 && force) without touching the stream, matching a field that had nothing to decode but must still be treated as present.
+     * Variant of message_delta_decode_compound_field that also forwards a changed-branch offset and can be forced to report success (bits == 0 && force) without touching the stream, matching a field that had nothing to decode but must still be treated as present.
      *
      * @address 0x4ec600
      */
@@ -75,14 +75,14 @@ public:
                                                     uint8_t force);
 
     /**
-     * 0x4ed1d0, this module Decodes a compound message-delta field through a local 2048-byte scratch buffer instead of a caller-supplied destination, using the buffer as the changed-branch offset too when the message is incremental (state->incremental == 1). Returns 1 on success, 0 on failure (with the usual stream rewind).
+     * Decodes a compound message-delta field through a local 2048-byte scratch buffer instead of a caller-supplied destination, using the buffer as the changed-branch offset too when the message is incremental (state->incremental == 1). Returns 1 on success, 0 on failure (with the usual stream rewind).
      *
      * @address 0x4ec670
      */
     static uint8_t decode_compound_field_staged(void **context);
 
     /**
-     * 0x4cfb80 Decodes an array of 4-byte values. When previous is NULL every element is read unconditionally. Otherwise the per-element changed bits sit in a block of field_type->reserved_bits reserved at the head of the array and the values follow it: for each element the decoder seeks to that element's flag bit, reads it, seeks back to the value cursor and either copies the previous dword verbatim or reads a fresh one. Returns the bits the changed values consumed, plus field_type->reserved_bits when anything changed at all.
+     * Decodes an array of 4-byte values. When previous is NULL every element is read unconditionally. Otherwise the per-element changed bits sit in a block of field_type->reserved_bits reserved at the head of the array and the values follow it: for each element the decoder seeks to that element's flag bit, reads it, seeks back to the value cursor and either copies the previous dword verbatim or reads a fresh one.
      *
      * @address 0x4ea040
      */
@@ -90,7 +90,7 @@ public:
     uint32_t *destination, bit_stream *stream);
 
     /**
-     * 0x4cf9a0, memory module; the signature is src/memory/bit_stream_write_bit.c's. Encodes an array of floats. When previous is NULL every element's raw 32 bits are written unconditionally. Otherwise the per-element changed bits live in a block of field_type->reserved_bits reserved at the head of the array and the values follow it: an element whose difference from the previous value exceeds +/-0.0001 has its raw 32 bits written and its flag set, everything else only costs the flag. Returns the bits the changed values consumed plus field_type->reserved_bits, or rewinds to the head of the reserved block and returns 0 when nothing changed.
+     * the signature is src/memory/bit_stream_write_bit.c's. Encodes an array of floats. When previous is NULL every element's raw 32 bits are written unconditionally. Otherwise the per-element changed bits live in a block of field_type->reserved_bits reserved at the head of the array and the values follow it: an element whose difference from the previous value exceeds +/-0.0001 has its raw 32 bits written and its flag set, everything else only costs the flag.
      *
      * @address 0x4e9db0
      */

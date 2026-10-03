@@ -16,7 +16,7 @@ namespace halo::networking {
 class ParametersProtocol {
 public:
     /**
-     * 0x4ebd50, this module Tears down every message type's field bindings and, if the dynamic-parameters protocol is enabled, writes the current formatted parameter values out to parameters.cfg and frees the registration table.
+     * Tears down every message type's field bindings and, if the dynamic-parameters protocol is enabled, writes the current formatted parameter values out to parameters.cfg and frees the registration table.
      *
      * @address 0x4ec330
      */
@@ -44,14 +44,14 @@ public:
     static void format_registered_values(void);
 
     /**
-     * 0x006b86c0 Frees every GlobalAlloc'd name string in the dynamic-parameters registration table (only while the parameters protocol is enabled) and resets the registration count to zero.
+     * Frees every GlobalAlloc'd name string in the dynamic-parameters registration table (only while the parameters protocol is enabled) and resets the registration count to zero.
      *
      * @address 0x4ebd50
      */
     static void free_registered(void);
 
     /**
-     * 0x006b86c0 Flattens every registered dynamic parameter's current 32-bit value into a contiguous array for network transmission.
+     * Flattens every registered dynamic parameter's current 32-bit value into a contiguous array for network transmission.
      *
      * @address 0x4ec1a0
      */
@@ -65,21 +65,21 @@ public:
     static int32_t parse_value_from_config(char *name, char *format, void *out_value);
 
     /**
-     * 0x4ec230, this module Handles an incoming dynamic-parameters protocol message: for a baseline (non-incremental) message, decodes the sequence byte plus the packed value array and, on success, formats the values back into text and latches the new sequence number; for an incremental message, drains the field through the staged/scratch decoder without applying it.
+     * Handles an incoming dynamic-parameters protocol message: for a baseline (non-incremental) message, decodes the sequence byte plus the packed value array and, on success, formats the values back into text and latches the new sequence number; for an incremental message, drains the field through the staged/scratch decoder without applying it.
      *
      * @address 0x4ec000
      */
     static void receive_update(void **context);
 
     /**
-     * 0x4ec0d0, this module Registers a named dynamic tunable parameter (type 1 == int, otherwise float). When scope is non-NULL the stored name is "<scope>::<name>"; otherwise it is a duplicate of name. If the name is not already registered, appends a new (name, type, value) row. Either way, seeds *value from the previously-loaded parameters.cfg text via the appropriate scanf format.
+     * Registers a named dynamic tunable parameter (type 1 == int, otherwise float). When scope is non-NULL the stored name is "<scope>::<name>"; otherwise it is a duplicate of name. If the name is not already registered, appends a new (name, type, value) row. Either way, seeds *value from the previously-loaded parameters.cfg text via the appropriate scanf format.
      *
      * @address 0x4ebe00
      */
     static void run_register(char *scope, char *name, int32_t type, void *value);
 
     /**
-     * 0x00860b40, shared parameters.cfg text Reads the whole of parameters.cfg into the shared config text buffer, NUL-terminated, so message_delta_parameters_protocol_parse_value_from_config can scan values out of it later.
+     * Reads the whole of parameters.cfg into the shared config text buffer, NUL-terminated, so message_delta_parameters_protocol_parse_value_from_config can scan values out of it later.
      *
      * @address 0x4ebda0
      */

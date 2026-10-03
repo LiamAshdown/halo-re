@@ -16,14 +16,14 @@ namespace halo::networking {
 class DeltaMetrics {
 public:
     /**
-     * logging helper, other module Builds the output path for a network-message-metrics dump ("message metrics\<suffix> <name>") and logs a confirmation that it was written. No caller of this function exists anywhere in the 454-function networking module, so the actual dump/write step this path would feed is not present here.
+     * Builds the output path for a network-message-metrics dump ("message metrics\<suffix> <name>") and logs a confirmation that it was written. No caller of this function exists anywhere in the 454-function networking module, so the actual dump/write step this path would feed is not present here.
      *
      * @address 0x4ec3d0
      */
     static void metrics_dump(char *suffix);
 
     /**
-     * 0x4ed390, this module Builds a 5-field sample record out of three inputs and appends it to the ring buffer.
+     * Builds a 5-field sample record out of three inputs and appends it to the ring buffer.
      *
      * @address 0x4ed310
      */

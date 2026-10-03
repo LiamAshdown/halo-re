@@ -23,7 +23,7 @@ public:
     static int32_t blob_compute_size(message_delta_field_type *field_type);
 
     /**
-     * 0x0065d51f
+     * Original engine function `message_delta_string_compute_size`.
      *
      * @address 0x4e8d90
      */
@@ -44,7 +44,7 @@ public:
     static int32_t string_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 
     /**
-     * 0x0065d51f
+     * Original engine function `message_delta_wide_string_compute_size`.
      *
      * @address 0x4e8f30
      */

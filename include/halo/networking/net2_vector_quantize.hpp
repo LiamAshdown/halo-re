@@ -30,7 +30,7 @@ public:
     static int32_t encode_vector(real_vector3d vector);
 
     /**
-     * FCOS Computes a direction vector from yaw/pitch: x = cos(pitch)*sin(yaw), y = sin(pitch)*sin(yaw), z = cos(yaw) -- an unusual pairing (z from yaw's cosine, not pitch's), transcribed exactly as Ghidra shows it rather than the more common spherical-to-cartesian convention.
+     * Computes a direction vector from yaw/pitch: x = cos(pitch)*sin(yaw), y = sin(pitch)*sin(yaw), z = cos(yaw) -- an unusual pairing (z from yaw's cosine, not pitch's), transcribed exactly as Ghidra shows it rather than the more common spherical-to-cartesian convention.
      *
      * @address 0x4ea7d0
      */
@@ -45,7 +45,7 @@ public:
     int32_t *ratios);
 
     /**
-     * 0x4ea480, ESI max_level
+     * Original engine function `vector3d_quantize`.
      *
      * @address 0x4eb4a0
      */

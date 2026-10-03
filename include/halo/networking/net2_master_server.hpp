@@ -30,56 +30,56 @@ public:
     static void * array_nth(void *array, int32_t index);
 
     /**
-     * 0x615360, GameSpy per-element think
+     * Original engine function `gamespy_think_all`.
      *
      * @address 0x6154f0
      */
     static void think_all(void);
 
     /**
-     * 0x4b5f80, the thread routine Resets the master-server request state, creates the server-list mutex, and starts the background thread that owns the master-server connection. On thread-creation failure, tears the mutex slot back down by hand and reports failure. Returns 1 on success, 0 otherwise (including when the mutex itself could not be created).
+     * Resets the master-server request state, creates the server-list mutex, and starts the background thread that owns the master-server connection. On thread-creation failure, tears the mutex slot back down by hand and reports failure. Returns 1 on success, 0 otherwise (including when the mutex itself could not be created).
      *
      * @address 0x4b6000
      */
     static int32_t connection_start(void);
 
     /**
-     * foreign, outside this session's range Polls the master-server connection thread every 20ms until it exits, pumping FUN_00549960 (roughly every 132ms) while waiting, then closes and clears both the thread handle and the server-list mutex.
+     * Polls the master-server connection thread every 20ms until it exits, pumping FUN_00549960 (roughly every 132ms) while waiting, then closes and clears both the thread handle and the server-list mutex.
      *
      * @address 0x4b6070
      */
     static void connection_wait_thread(void);
 
     /**
-     * 0x4b6660, this module If the master-server connection is already established or connecting (state 1 or 2), abandons any in-flight query (elapsed sentinel 9999) and clears the refresh flag. Otherwise, if a connect attempt cannot be started (result < 1), immediately requests a fresh refresh; if it can, marks the refresh flag and arms the "waiting on connection" request bit.
+     * If the master-server connection is already established or connecting (state 1 or 2), abandons any in-flight query (elapsed sentinel 9999) and clears the refresh flag. Otherwise, if a connect attempt cannot be started (result < 1), immediately requests a fresh refresh; if it can, marks the refresh flag and arms the "waiting on connection" request bit.
      *
      * @address 0x4b66c0
      */
     static void ensure_list_connection(void);
 
     /**
-     * 0x006ac8f8/0x006ac8fc, owned by the timing/system module
+     * Original engine function `master_server_list_refresh_request`.
      *
      * @address 0x4b6660
      */
     static void list_refresh_request(void);
 
     /**
-     * foreign
+     * Original engine function `master_server_process_pending_requests`.
      *
      * @address 0x4b5d70
      */
     static void process_pending_requests(void);
 
     /**
-     * 0x00683990
+     * Original engine function `qr2_register_key`.
      *
      * @address 0x61bb40
      */
     static void register_key(int32_t keyid, const char *key);
 
     /**
-     * 0x616f30
+     * Original engine function `sig__setup_master_server_connection_sig`.
      *
      * @address 0x4b5f80
      */

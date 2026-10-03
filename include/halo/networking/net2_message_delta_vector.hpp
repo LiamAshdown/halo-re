@@ -16,7 +16,7 @@ namespace halo::networking {
 class VectorFieldCodec {
 public:
     /**
-     * If mode is nonzero, decodes three raw chunked values into ratios and interpolates directly via vector3d_lerp_by_mode_denominator, returning the bits consumed. Otherwise decodes a unary-coded index (one bit at a time, directly from the stream's byte buffer) into table's point array (stride 0xc, at +0x1c) and copies that entry into destination; if the index never resolves (stream exhausted or the table's +0x18 field selects a single-index mode without ever seeing a terminating 0 bit), falls back to the same raw chunked-and-interpolated path.
+     * If mode is nonzero, decodes three raw chunked values into ratios and interpolates directly via vector3d_lerp_by_mode_denominator, returning the bits consumed. Otherwise decodes a unary-coded index (one bit at a time, directly from the stream's byte buffer) into table's point array (stride 0xc, at +0x1c) and copies that entry into destination; if the index never resolves...
      *
      * @address 0x4eb890
      */
@@ -24,7 +24,7 @@ public:
     bit_stream *stream);
 
     /**
-     * 0x4cf8f0, EAX stream, ECX values Encodes a 3D position (values) either as a small quantized delta from previous (if the distance between them is within range and each axis's delta fits the configured delta bit width), or as a full quantized absolute position otherwise. previous may be NULL to force the absolute path.
+     * Encodes a 3D position (values) either as a small quantized delta from previous (if the distance between them is within range and each axis's delta fits the configured delta bit width), or as a full quantized absolute position otherwise. previous may be NULL to force the absolute path.
      *
      * @address 0x4eabe0
      */
@@ -32,21 +32,21 @@ public:
     bit_stream *stream);
 
     /**
-     * 0x0069a2dc
+     * Original engine function `message_delta_locality_compute_size`.
      *
      * @address 0x4eab60
      */
     static int32_t locality_compute_size(message_delta_field_type *field_type);
 
     /**
-     * 0x0069b350, nonzero picks the first bit widths
+     * Original engine function `message_delta_locality_decode`.
      *
      * @address 0x4eaed0
      */
     static int32_t locality_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 
     /**
-     * 0x0071cfa8
+     * Original engine function `message_delta_locality_initialize`.
      *
      * @address 0x4eab80
      */
@@ -60,28 +60,28 @@ public:
     static int32_t normal_compute_size(message_delta_field_type *field_type);
 
     /**
-     * 0x4ea7d0, ECX out
+     * Original engine function `message_delta_normal_decode`.
      *
      * @address 0x4eaa70
      */
     static int32_t normal_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 
     /**
-     * 0x4ea720
+     * Original engine function `message_delta_normal_encode`.
      *
      * @address 0x4ea8b0
      */
     static int32_t normal_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 
     /**
-     * 0x0071cfa8
+     * Original engine function `message_delta_normal_initialize`.
      *
      * @address 0x4ea6c0
      */
     static uint8_t normal_initialize(message_delta_field_type *field_type);
 
     /**
-     * CRT floor (0x623e40: SSE2-dispatched; its x87 path reports _FpCodeFloor 11) Maps value from [minimum, maximum] onto an integer index in [0, max_level], rounding to the nearest level and clamping the result to max_level.
+     * Maps value from [minimum, maximum] onto an integer index in [0, max_level], rounding to the nearest level and clamping the result to max_level.
      *
      * @address 0x4ea480
      */
@@ -96,7 +96,7 @@ public:
     static int32_t quantized_real_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 
     /**
-     * 0x4ea480
+     * Original engine function `message_delta_quantized_real_encode`.
      *
      * @address 0x4ea500
      */
@@ -117,28 +117,28 @@ public:
     static int32_t real_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 
     /**
-     * 0x4eb0c0
+     * Original engine function `message_delta_throttle_decode`.
      *
      * @address 0x4eb1d0
      */
     static int32_t throttle_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 
     /**
-     * 0x4eb050
+     * Original engine function `message_delta_throttle_encode`.
      *
      * @address 0x4eb160
      */
     static int32_t throttle_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 
     /**
-     * 0x4ea040
+     * Original engine function `message_delta_vector_decode`.
      *
      * @address 0x4ea250
      */
     static int32_t vector_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 
     /**
-     * 0x4e9db0
+     * Original engine function `message_delta_vector_encode`.
      *
      * @address 0x4ea240
      */
