@@ -101,7 +101,7 @@ void ActorView::refresh_combat_context()
 
     if (self->swarm) {
         struct swarm *swarm = halo::ai::swarm_at(self->swarm_index);
-        real_point3d *center = (real_point3d *)((uint8_t *)swarm + 0xc);
+        real_point3d *center = &swarm->aggregate_position;
         int16_t count = swarm->component_count;
         int16_t i;
 
@@ -223,7 +223,7 @@ void ActorView::refresh_combat_context()
         }
     }
 
-    A_U8(0x1b5) = unit[0x28b] > 0;
+    self->unknown_1b4[1] = unit[0x28b] > 0;
     self->unknown_1b4[0] = 0;
     self->stuck_projectile_index = -1;
     for (child = ((unit_object *)unit)->base.first_child_object; child != k_datum_index_none;
@@ -291,7 +291,7 @@ void ActorView::refresh_combat_context()
     halo::math::vector3d_cross_product(self->looking_left_vector, self->unit_looking_vector, *halo::math::globals().global_up3d_pointer);
     halo::math::vector3d_normalize_with_length(self->looking_left_vector);
     halo::math::vector3d_cross_product(self->looking_up_vector, self->looking_left_vector,
-        *(real_vector3d *)((uint8_t *)self + 0x18c));
+        self->unit_looking_vector);
     A_I32(0x1b8) = *(int32_t *)&((unit_object *)unit)->base.body_vitality;
     A_I32(0x1bc) = *(int32_t *)&((unit_object *)unit)->base.shield_vitality;
     A_I32(0x1c0) = *(int32_t *)&((unit_object *)unit)->base.recent_body_damage;
