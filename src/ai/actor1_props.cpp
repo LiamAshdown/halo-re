@@ -531,7 +531,6 @@ extern double sqrt(double x);
 extern double fabs(double x);
 
 #define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
 
@@ -664,7 +663,6 @@ uint8_t actor_find_danger_escape(datum_index actor_index, uint32_t *out_word, ui
 }
 
 #undef OBJECT_DATA
-#undef TAG_DATA
 
 namespace c_actor_find_or_allocate_prop {
 enum {

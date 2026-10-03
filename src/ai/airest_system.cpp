@@ -963,9 +963,9 @@ void AiSystem::reset_fire_group_assignments()
         for (prop_index = ((struct actor *)ACTOR(actor_index))->first_prop; prop_index != k_datum_index_none;) {
             prop *p = halo::ai::prop_at(prop_index);
 
-            prop_index = *(datum_index *)((uint8_t *)p + 8);
-            p->cluster_index = -1;
-            *(int32_t *)((uint8_t *)p + 0xfc) = -1;
+            prop_index = p->next_in_actor;
+            p->location.cluster_index = -1;
+            p->location.leaf_index = -1;
             p->pathfinding_surface_index = -1;
         }
         actor_index = following;

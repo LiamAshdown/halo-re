@@ -13,7 +13,6 @@ namespace halo::ai {
 namespace actor_seek_vehicle_to_board_local {
 extern "C" {
 extern game_time_globals *game_time;
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 extern uint8_t *ai_globals_ptr;
 }
 }
@@ -165,6 +164,5 @@ uint8_t ActorView::seek_vehicle_to_board()
     return 0;
 }
 
-#undef TAG_DATA
 
 }

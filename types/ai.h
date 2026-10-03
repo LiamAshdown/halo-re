@@ -1233,7 +1233,8 @@ typedef struct swarm {
     int16_t identifier;               // 0x00 datum_header
     int16_t component_count;          // 0x02 0..16
     datum_index actor_index;          // 0x04 the actor that owns this swarm
-    uint8_t unknown_08[4];            // 0x08
+    int16_t component_pick_delay;     // 0x08 ticks until the infection swarm update picks the next component; counted down by it
+    uint8_t unknown_0a[2];            // 0x0a
     real_point3d aggregate_position;  // 0x0c the mean of the swarm_component.position of every
                                       //      component, recomputed each tick by
                                       //      actor_refresh_combat_context @0x4297a0 (which
@@ -1352,9 +1353,7 @@ typedef struct prop {
     real_point3d last_perceived_position; // 0x80 last_known_position when perception_level was last nonzero
     int32_t last_seen_time;           // 0x8c game time visual_perception was last nonzero, -1 never; copied to the
                                       //    actor at 0x26c
-    uint32_t last_seen_position_x;    // 0x90 head_position when last seen (x); a real_point3d in three dword slots
-    uint32_t last_seen_position_y;    // 0x94
-    uint32_t last_seen_position_z;    // 0x98
+    real_point3d last_seen_position;  // 0x90 head_position when last seen
     int16_t engaged_ticks;            // 0x9c 1 when actor_target_mark_engaged (0x41fa80) marks it, 0 when cleared,
                                       //    counts up to 0x7fff
     uint8_t unknown_9e[2];            // 0x9e
@@ -1389,16 +1388,11 @@ typedef struct prop {
                                       //   0xf0/0xf4/0xf8 and the surface index at 0xec.
     real_point3d pathfinding_point;   // 0xf0 the CEA name (actor_move_to_prop)
                                       //   type-5 movement action; the flying path uses aim_offset
-    float location_leaf_index;        // 0xfc the root object's bsp leaf (a dword, not a float); with cluster_index
+    bsp_leaf_reference location;      // 0xfc the root object's bsp leaf and the BSP cluster the tracked object was last seen in (-1 when none);
                                       //    the location for water / weather and hearing
-    int16_t cluster_index;            // 0x100 the BSP cluster the tracked object was last seen in, or -1
-    int16_t unknown_102;              // 0x102
-    uint32_t head_position_x;         // 0x104 the "head" marker's world position (x); a real_point3d in three dword
-                                      //    slots; the perception and LOS target point
-    uint32_t head_position_y;         // 0x108
-    uint32_t head_position_z;         // 0x10c
+    real_point3d head_position;       // 0x104 the "head" marker's world position; the perception and LOS target point
     int32_t relationship_object_index;// 0x110 actor_target_get_relationship_object caches it lazily
-    float parent_object_index;        // 0x114 0x114 actor_target_data_refresh stores -1, then the parent object
+    datum_index parent_object_index;  // 0x114 actor_target_data_refresh stores -1, then the parent object
                                       //    handle when the tracked unit's parent is a non-vehicle unit (biped);
                                       //    actor_update_firing_state reads it as the 'exclude' object of the aim ray
     uint8_t in_water;                 // 0x118 scenario_location_get_water_and_weather at the body marker

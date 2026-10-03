@@ -561,7 +561,6 @@ extern double fabs(double x);
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
 #define U16(p, o) (*(uint16_t *)((uint8_t *)(p) + (o)))
 #define I16(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
-#define U32(p, o) (*(uint32_t *)((uint8_t *)(p) + (o)))
 static uint32_t swarm_random_next(void)
 {
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
@@ -585,13 +584,13 @@ void ActorView::type_infection_swarm_update()
 {
     using namespace actor_type_infection_swarm_update_local;
     struct actor *actor = halo::ai::actor_at(actor_index);
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_variant_tag & halo::k_slot_mask].data;
+    ActorVariant *definition = halo::ai::tag_data<ActorVariant>(actor->actor_variant_tag);
     struct swarm *swarm = halo::ai::swarm_at(actor->swarm_index);
     int32_t picked = -1;
     int16_t member;
 
-    if (I16(swarm, 0x8) > 0) {
-        I16(swarm, 0x8)--;
+    if (swarm->component_pick_delay > 0) {
+        swarm->component_pick_delay--;
     } else if (actor->mode == 7 || actor->mode == 10) {
         float delay = ((float)(int32_t)swarm_random_next() * 1.5259022e-05f);
         int16_t count = swarm->component_count;
@@ -600,14 +599,14 @@ void ActorView::type_infection_swarm_update()
         if (!(delay > 6.0f)) {
             delay = 6.0f;
         }
-        I16(swarm, 0x8) = (int16_t)(int32_t)delay;
+        swarm->component_pick_delay = (int16_t)(int32_t)delay;
         picked = (int32_t)(((uint32_t)(int32_t)count * swarm_random_next()) >> 16);
     }
 
     for (member = 0; member < swarm->component_count; member++) {
-        uint32_t unit = U32(swarm, 0x18 + member * 4);
+        uint32_t unit = *(uint32_t *)((uint8_t *)swarm + 0x18 + member * 4);
         uint8_t *object = OBJECT(unit);
-        uint8_t *component = COMPONENT(U32(swarm, 0x58 + member * 4));
+        uint8_t *component = COMPONENT(*(uint32_t *)((uint8_t *)swarm + 0x58 + member * 4));
         struct prop *best_prop = 0;
         datum_index best_handle = k_datum_index_none;
         datum_index target = k_datum_index_none;
@@ -625,15 +624,15 @@ void ActorView::type_infection_swarm_update()
         unit_control_data control;
 
         copy3(&up, object + 0x80);
-        if (I16(object, 0xb4) == 0) {
-            if (U32(object, 0x4d8) != (uint32_t)k_datum_index_none) {
+        if (*(int16_t *)((uint8_t *)object + 0xb4) == 0) {
+            if (*(uint32_t *)((uint8_t *)object + 0x4d8) != (uint32_t)k_datum_index_none) {
                 copy3(&up, object + 0x514);
             }
             riding = object[0x4cc] & 1;
         }
 
         if (actor->combat_status >= 3) {
-            float radius = F(definition, 0xa0);
+            float radius = definition->desired_combat_range[1];
             float best_score = 0.0f;
             float best_distance = 0.0f;
             datum_index prop_handle = actor->first_prop;
@@ -644,9 +643,9 @@ void ActorView::type_infection_swarm_update()
 
                 prop_handle = prop->next_in_actor;
                 if (prop->desirability > 0.0f) {
-                    float dx = F(component, 0x4) - prop->last_known_position.x;
-                    float dy = F(component, 0x8) - prop->last_known_position.y;
-                    float dz = F(component, 0xc) - prop->last_known_position.z;
+                    float dx = *(float *)((uint8_t *)component + 0x4) - prop->last_known_position.x;
+                    float dy = *(float *)((uint8_t *)component + 0x8) - prop->last_known_position.y;
+                    float dz = *(float *)((uint8_t *)component + 0xc) - prop->last_known_position.z;
                     float distance = (float)sqrt((double)(dz * dz + dy * dy + dx * dx));
                     float score = 0.0f;
 
@@ -654,7 +653,7 @@ void ActorView::type_infection_swarm_update()
                         score = (1.0f - distance / radius) * 10.0f;
                     }
                     if (prop->state >= 2 && prop->state <= 3) {
-                        score += (this_handle == U32(component, 0x14)) ? 7.0f : 5.0f;
+                        score += (this_handle == *(uint32_t *)((uint8_t *)component + 0x14)) ? 7.0f : 5.0f;
                         if (prop->child_unit_count == 0) {
                             score += 5.0f;
                         }
@@ -667,13 +666,13 @@ void ActorView::type_infection_swarm_update()
                     }
                 }
             }
-            U32(component, 0x14) = best_handle;
-            if (best_handle != k_datum_index_none && best_distance < F(definition, 0x160) &&
+            *(uint32_t *)((uint8_t *)component + 0x14) = best_handle;
+            if (best_handle != k_datum_index_none && best_distance < definition->melee_range &&
                 best_prop->state >= 2 && best_prop->state <= 3) {
                 target_close = 1;
             }
         } else {
-            U32(component, 0x14) = best_handle;
+            *(uint32_t *)((uint8_t *)component + 0x14) = best_handle;
         }
 
         switch (actor->mode) {
@@ -711,23 +710,23 @@ void ActorView::type_infection_swarm_update()
             behaviour = 3;
             if (actor->mode == 11 && (component[0x2] & 0x8) != 0) {
                 behaviour = 6;
-            } else if (U32(component, 0x14) != (uint32_t)k_datum_index_none) {
+            } else if (*(uint32_t *)((uint8_t *)component + 0x14) != (uint32_t)k_datum_index_none) {
                 behaviour = (int16_t)((component[0x1a] != 0) + 4);
                 control_byte_1 = 0;
-                target = U32(component, 0x14);
+                target = *(uint32_t *)((uint8_t *)component + 0x14);
             }
             break;
         default:
             break;
         }
 
-        if (U32(object, 0x11c) == (uint32_t)k_datum_index_none) {
+        if (*(uint32_t *)((uint8_t *)object + 0x11c) == (uint32_t)k_datum_index_none) {
             component[0x18] = 0;
             if (component[0x1a] != 0) {
                 component[0x1a]--;
             }
         } else {
-            unit_object *parent = (unit_object *)OBJECT(U32(object, 0x11c));
+            unit_object *parent = (unit_object *)OBJECT(*(uint32_t *)((uint8_t *)object + 0x11c));
             uint8_t parent_dead = (uint8_t)((static_cast<uint8_t>(parent->base.vitality_flags) >> 2) & 1);
             uint8_t detach = 0;
 
@@ -735,16 +734,16 @@ void ActorView::type_infection_swarm_update()
                 component[0x18]++;
             }
             if (parent_dead) {
-                if (U32(parent, 0x41c) != (uint32_t)k_datum_index_none &&
-                    (int32_t)(U32(parent, 0x41c) + 0x4b) < *(int32_t *)((uint8_t *)game_time + 0xc) &&
-                    best_prop != 0 && best_prop->object_index != U32(object, 0x11c) &&
+                if (static_cast<uint32_t>(parent->unit.death_time) != (uint32_t)k_datum_index_none &&
+                    (int32_t)(static_cast<uint32_t>(parent->unit.death_time) + 0x4b) < *(int32_t *)((uint8_t *)game_time + 0xc) &&
+                    best_prop != 0 && best_prop->object_index != *(uint32_t *)((uint8_t *)object + 0x11c) &&
                     best_prop->state >= 2 && best_prop->state <= 3) {
                     detach = 1;
                 }
             } else {
-                uint8_t *parent_tag = (uint8_t *)halo::cache::globals().tag_instances[U32(parent, 0x0) & halo::k_slot_mask].data;
+                uint8_t *parent_tag = (uint8_t *)halo::cache::globals().tag_instances[parent->base.definition_tag & halo::k_slot_mask].data;
 
-                if ((I16(parent, 0xb4) != 0 || (int8_t)parent_tag[0x17d] < 0) && component[0x18] > 0x2d) {
+                if ((parent->base.type != 0 || (int8_t)parent_tag[0x17d] < 0) && component[0x18] > 0x2d) {
                     component[0x1a] = 0x2d;
                     detach = 1;
                 }
@@ -755,14 +754,14 @@ void ActorView::type_infection_swarm_update()
             } else {
                 component[0x2] |= 2;
                 if (parent_dead) {
-                    U16(component, 0x2) &= 0xfffe;
+                    *(uint16_t *)((uint8_t *)component + 0x2) &= 0xfffe;
                 } else {
-                    U16(component, 0x2) |= 1;
+                    *(uint16_t *)((uint8_t *)component + 0x2) |= 1;
                 }
             }
         }
 
-        if (U32(object, 0x11c) != (uint32_t)k_datum_index_none) {
+        if (*(uint32_t *)((uint8_t *)object + 0x11c) != (uint32_t)k_datum_index_none) {
             goto flags;
         }
         if (riding) {
@@ -774,7 +773,7 @@ void ActorView::type_infection_swarm_update()
             component[0x19]++;
         }
         component[0x2] &= 0xfc;
-        flags = U16(component, 0x2);
+        flags = *(uint16_t *)((uint8_t *)component + 0x2);
 
         switch (behaviour) {
         case 1:
@@ -782,17 +781,17 @@ void ActorView::type_infection_swarm_update()
         case 3:
             if ((flags & 4) == 0) {
                 memset(component + 0x1c, 0, 0x14);
-                U16(component, 0x2) = (uint16_t)((flags & 0xfff7) | 4);
+                *(uint16_t *)((uint8_t *)component + 0x2) = (uint16_t)((flags & 0xfff7) | 4);
             }
             if (component[0x1d] != 0) {
                 component[0x1d]--;
                 if (component[0x1d] == 0) {
                     component[0x1c] = (uint8_t)halo::ai::actor_pick_dialogue_variant_a(behaviour);
                 } else {
-                    float damping = F(component, 0x2c) * -0.06666667f;
-                    float angle = halo::math::random_real_range(-0.020943951f, 0.020943951f) + F(component, 0x2c) + damping;
+                    float damping = *(float *)((uint8_t *)component + 0x2c) * -0.06666667f;
+                    float angle = halo::math::random_real_range(-0.020943951f, 0.020943951f) + *(float *)((uint8_t *)component + 0x2c) + damping;
 
-                    F(component, 0x2c) = angle;
+                    *(float *)((uint8_t *)component + 0x2c) = angle;
                     halo::math::vector3d_rotate_about_axis(*(real_vector3d *)(component + 0x20), up, (float)sin((double)angle),
                         (float)cos((double)angle));
                 }
@@ -806,9 +805,9 @@ void ActorView::type_infection_swarm_update()
                     float angle;
 
                     component[0x1d] = (uint8_t)halo::ai::actor_pick_dialogue_variant_b(behaviour);
-                    to_goal.i = swarm->aggregate_position.x - F(component, 0x4);
-                    to_goal.j = swarm->aggregate_position.y - F(component, 0x8);
-                    to_goal.k = swarm->aggregate_position.z - F(component, 0xc);
+                    to_goal.i = swarm->aggregate_position.x - *(float *)((uint8_t *)component + 0x4);
+                    to_goal.j = swarm->aggregate_position.y - *(float *)((uint8_t *)component + 0x8);
+                    to_goal.k = swarm->aggregate_position.z - *(float *)((uint8_t *)component + 0xc);
                     distance_squared = to_goal.k * to_goal.k + to_goal.j * to_goal.j + to_goal.i * to_goal.i;
                     if (!(distance_squared < 0.25f)) {
                         float spread = 0.5f / (float)sqrt((double)distance_squared) * 3.1415927f;
@@ -821,7 +820,7 @@ void ActorView::type_infection_swarm_update()
                     }
                     halo::math::vector3d_rotate_about_axis(*(real_vector3d *)(component + 0x20), up, (float)sin((double)angle),
                         (float)cos((double)angle));
-                    F(component, 0x2c) = 0.0f;
+                    *(float *)((uint8_t *)component + 0x2c) = 0.0f;
                 }
             }
             if (component[0x1d] == 0) {
@@ -834,9 +833,9 @@ void ActorView::type_infection_swarm_update()
         case 5: {
             struct prop *prop = halo::ai::prop_at(target);
 
-            desired.i = prop->last_known_position.x - F(component, 0x4);
-            desired.j = prop->last_known_position.y - F(component, 0x8);
-            desired.k = prop->last_known_position.z - F(component, 0xc);
+            desired.i = prop->last_known_position.x - *(float *)((uint8_t *)component + 0x4);
+            desired.j = prop->last_known_position.y - *(float *)((uint8_t *)component + 0x8);
+            desired.k = prop->last_known_position.z - *(float *)((uint8_t *)component + 0xc);
             if (behaviour == 5) {
                 desired.i = -desired.i;
                 desired.j = -desired.j;
@@ -849,7 +848,7 @@ void ActorView::type_infection_swarm_update()
             uint8_t script_flags = component[0x21];
 
             if (script_flags & 1) {
-                int16_t kind = I16(component, 0x24);
+                int16_t kind = *(int16_t *)((uint8_t *)component + 0x24);
                 uint8_t negate;
 
                 moving = 1;
@@ -867,8 +866,8 @@ void ActorView::type_infection_swarm_update()
                 }
             }
             if (script_flags & 4) {
-                if ((script_flags & 8) == 0 && I16(component, 0x24) == 0 && !halo::units::unit_is_in_busy_animation_state(unit)) {
-                    U16(component, 0x2) = (uint16_t)(flags | 0x10);
+                if ((script_flags & 8) == 0 && *(int16_t *)((uint8_t *)component + 0x24) == 0 && !halo::units::unit_is_in_busy_animation_state(unit)) {
+                    *(uint16_t *)((uint8_t *)component + 0x2) = (uint16_t)(flags | 0x10);
                     component[0x21] = (uint8_t)(script_flags | 8);
                 }
                 copy3(&desired, object + 0x74);
@@ -920,9 +919,9 @@ void ActorView::type_infection_swarm_update()
             real_vector3d side;
             int16_t other;
 
-            behind.x = F(component, 0x4) - desired.i * 0.2f;
-            behind.y = F(component, 0x8) - desired.j * 0.2f;
-            behind.z = F(component, 0xc) - desired.k * 0.2f;
+            behind.x = *(float *)((uint8_t *)component + 0x4) - desired.i * 0.2f;
+            behind.y = *(float *)((uint8_t *)component + 0x8) - desired.j * 0.2f;
+            behind.z = *(float *)((uint8_t *)component + 0xc) - desired.k * 0.2f;
             side.i = up.j * desired.k - up.k * desired.j;
             side.j = up.k * desired.i - desired.k * up.i;
             side.k = desired.j * up.i - up.j * desired.i;
@@ -934,10 +933,10 @@ void ActorView::type_infection_swarm_update()
                     if (other == member) {
                         continue;
                     }
-                    other_component = COMPONENT(U32(swarm, 0x58 + other * 4));
-                    dx = F(other_component, 0x4) - behind.x;
-                    dy = F(other_component, 0x8) - behind.y;
-                    dz = F(other_component, 0xc) - behind.z;
+                    other_component = COMPONENT(*(uint32_t *)((uint8_t *)swarm + 0x58 + other * 4));
+                    dx = *(float *)((uint8_t *)other_component + 0x4) - behind.x;
+                    dy = *(float *)((uint8_t *)other_component + 0x8) - behind.y;
+                    dz = *(float *)((uint8_t *)other_component + 0xc) - behind.z;
                     distance_squared = dz * dz + dy * dy + dx * dx;
                     if (!(distance_squared < 0.64000005f)) {
                         continue;
@@ -988,7 +987,7 @@ void ActorView::type_infection_swarm_update()
         }
 
     flags:
-        flags = U16(component, 0x2);
+        flags = *(uint16_t *)((uint8_t *)component + 0x2);
         if (flags & 0x10) {
             fire = 1;
         } else if (moving && component[0x19] >= 0x2d && (member == (int16_t)picked || target_close || aligned)) {
@@ -1002,10 +1001,10 @@ void ActorView::type_infection_swarm_update()
             } else {
                 flags &= 0xfffe;
             }
-            U16(component, 0x2) = flags;
+            *(uint16_t *)((uint8_t *)component + 0x2) = flags;
             if (flags & 1) {
                 object[0x289] = 3;
-                U32(object, 0x4f4) = best_prop != 0 ? best_prop->object_index : (uint32_t)k_datum_index_none;
+                *(uint32_t *)((uint8_t *)object + 0x4f4) = best_prop != 0 ? best_prop->object_index : (uint32_t)k_datum_index_none;
             } else {
                 object[0x289] = 0;
             }
@@ -1038,7 +1037,6 @@ void ActorView::type_infection_swarm_update()
 #undef F
 #undef U16
 #undef I16
-#undef U32
 
 namespace actor_type_infection_update_local {
 }

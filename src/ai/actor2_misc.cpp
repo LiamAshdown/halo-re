@@ -174,7 +174,6 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
 namespace actor_new_and_attach_to_unit_local {
 extern "C" {
 extern void *actor_type_procs[16];
-#define ACTOR_AT(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -270,7 +269,6 @@ attach:
     return k_datum_index_none;
 }
 
-#undef ACTOR_AT
 
 namespace actor_place_new_unit_local {
 extern "C" {

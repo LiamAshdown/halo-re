@@ -38,7 +38,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
     real_point3d *block_point = (real_point3d *)&block[3];
     datum_index target = object_index;
     datum_index target_actor_index;
-    unit_object *unit = (unit_object *)object;
+    unit_object *unit = object;
     Unit *unit_tag;
     actor *target_actor = 0;
     uint8_t controlled;

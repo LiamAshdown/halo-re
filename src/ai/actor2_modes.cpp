@@ -11,7 +11,6 @@
 namespace halo::ai {
 
 namespace actor_mode_uncover_tick_local {
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 
@@ -83,11 +82,9 @@ void ActorView::mode_uncover_tick()
     act->mode_data.uncover.done = done;
 }
 
-#undef TAG_DATA
 #undef PROP
 
 namespace actor_mode_uncover_update_local {
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 
 /**
@@ -140,7 +137,6 @@ void ActorView::mode_uncover_update()
     act->unknown_424[1] = 1;
 }
 
-#undef TAG_DATA
 
 namespace actor_mode_vehicle_enter_local {
 extern "C" {

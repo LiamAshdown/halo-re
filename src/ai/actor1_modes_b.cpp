@@ -399,7 +399,6 @@ void actor_mode_charge_tick(datum_index actor_index)
 namespace c_actor_mode_charge_update {
 extern "C" {
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
 }
 }
@@ -470,7 +469,6 @@ void actor_mode_charge_update(datum_index actor_index)
 }
 }
 
-#undef TAG_DATA
 
 namespace c_actor_mode_fight_tick {
 }
@@ -615,7 +613,6 @@ void actor_mode_flee_exit(datum_index actor_index)
 namespace c_actor_mode_flee_get_look_weights {
 extern "C" {
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 extern const float *hud_text_message_normal_color;
 extern const float *actor_mode_default_look_weights;
@@ -649,7 +646,6 @@ void actor_mode_flee_get_look_weights(datum_index actor_index, float *out_weight
 }
 }
 
-#undef ACTOR
 
 namespace c_actor_mode_flee_movement_cancelled {
 }
@@ -1275,7 +1271,6 @@ void actor_mode_guard_tick(datum_index actor_index)
 
 
 namespace c_actor_mode_guard_update {
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
 }
 
@@ -1403,10 +1398,8 @@ void actor_mode_guard_update(datum_index actor_index)
 }
 }
 
-#undef TAG_DATA
 
 namespace c_actor_mode_uncover_enter {
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
 }
 
@@ -1456,12 +1449,10 @@ void actor_mode_uncover_enter(datum_index actor_index)
 }
 }
 
-#undef TAG_DATA
 
 namespace c_actor_mode_uncover_get_look_weights {
 extern "C" {
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 extern const float *actor_mode_uncover_look_weights_active;
 extern const float *hud_text_message_hold_color;
@@ -1495,7 +1486,6 @@ void actor_mode_uncover_get_look_weights(datum_index actor_index, float *out_wei
 }
 }
 
-#undef ACTOR
 
 namespace c_actor_mode_uncover_movement_cancelled {
 }

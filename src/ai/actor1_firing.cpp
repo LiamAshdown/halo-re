@@ -170,17 +170,17 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
             query->target_position = target->last_known_position;
             query->target_surface_index = static_cast<uint32_t>(target->pathfinding_surface_index);
             query->target_surface_point = *(real_point3d *)&target->pathfinding_point.x;
-            query->target_cluster_index = target->cluster_index;
+            query->target_cluster_index = target->location.cluster_index;
             query->target_distance = target->distance;
             query->target_prop_index = prop_index;
-            query->target_aim_position = *(real_point3d *)&target->head_position_x;
+            query->target_aim_position = target->head_position;
             query->target_relationship_object = target->relationship_object_index;
             query->target_danger_radius = target->danger_radius;
 
             if (query->use_last_seen_position == 0 || target->last_seen_time == -1) {
-                query->target_lead_position = *(real_point3d *)&target->head_position_x;
+                query->target_lead_position = target->head_position;
             } else {
-                query->target_lead_position = *(real_point3d *)&target->last_seen_position_x;
+                query->target_lead_position = target->last_seen_position;
             }
 
             if (target->state > 3 && target->state < 6) {

@@ -44,7 +44,7 @@ uint8_t ActorOps::resolve_flee_source_point(actor_flee_source_reason *reason, re
         if (target_prop == 0) {
             return 0;
         }
-        target_point = (real_point3d *)&target_prop->head_position_x;
+        target_point = &target_prop->head_position;
         out->i = target_point->x - self->aim_origin.x;
         out->j = target_point->y - self->aim_origin.y;
         out->k = target_point->z - self->aim_origin.z;

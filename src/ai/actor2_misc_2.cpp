@@ -76,8 +76,6 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern const real_point3d *global_zero_vector3d_pointer;
 extern char ai_marker_name_b[];
-#define A_I16(offset) (*(int16_t *)((uint8_t *)self + (offset)))
-#define A_I32(offset) (*(int32_t *)((uint8_t *)self + (offset)))
 static uint8_t *object_get(datum_index object_index)
 {
     return reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
@@ -203,8 +201,8 @@ void ActorView::refresh_combat_context()
             }
             if (move) {
                 if (self->unknown_40[0] == 0) {
-                    A_I32(0x44) = encounter;
-                    A_I16(0x48) = self->squad_index;
+                    *(int32_t *)((uint8_t *)self + 0x44) = encounter;
+                    *(int16_t *)((uint8_t *)self + 0x48) = self->squad_index;
                     self->unknown_40[0] = 1;
                     if (encounter != k_datum_index_none) {
                         *((uint8_t *)halo::ai::globals().encounter_data->data + (encounter & halo::k_slot_mask) * 0x6c + 0x1e) = 1;
@@ -219,7 +217,7 @@ void ActorView::refresh_combat_context()
         self->order_committed = 0;
         self->vehicle_gunner = 0;
         if (self->unknown_40[0]) {
-            halo::ai::actor_reset_squad_link_for_type_change(actor_index, A_I32(0x44), A_I16(0x48));
+            halo::ai::actor_reset_squad_link_for_type_change(actor_index, *(int32_t *)((uint8_t *)self + 0x44), *(int16_t *)((uint8_t *)self + 0x48));
             self->unknown_40[0] = 0;
         }
     }
@@ -293,14 +291,12 @@ void ActorView::refresh_combat_context()
     halo::math::vector3d_normalize_with_length(self->looking_left_vector);
     halo::math::vector3d_cross_product(self->looking_up_vector, self->looking_left_vector,
         self->unit_looking_vector);
-    A_I32(0x1b8) = halo::bit_cast<int32_t>(unit->base.body_vitality);
-    A_I32(0x1bc) = halo::bit_cast<int32_t>(unit->base.shield_vitality);
-    A_I32(0x1c0) = halo::bit_cast<int32_t>(unit->base.recent_body_damage);
-    A_I32(0x1c4) = halo::bit_cast<int32_t>(unit->base.recent_shield_damage);
+    *(int32_t *)((uint8_t *)self + 0x1b8) = halo::bit_cast<int32_t>(unit->base.body_vitality);
+    *(int32_t *)((uint8_t *)self + 0x1bc) = halo::bit_cast<int32_t>(unit->base.shield_vitality);
+    *(int32_t *)((uint8_t *)self + 0x1c0) = halo::bit_cast<int32_t>(unit->base.recent_body_damage);
+    *(int32_t *)((uint8_t *)self + 0x1c4) = halo::bit_cast<int32_t>(unit->base.recent_shield_damage);
 }
 
-#undef A_I16
-#undef A_I32
 
 namespace actor_reset_queued_look_vector_local {
 extern "C" {

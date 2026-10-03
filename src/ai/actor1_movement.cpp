@@ -22,7 +22,6 @@ extern const real_vector3d *global_down3d_pointer;
 extern double sqrt(double x);
 
 #define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
 
@@ -182,7 +181,6 @@ uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index ve
 }
 
 #undef OBJECT_DATA
-#undef TAG_DATA
 
 namespace c_actor_avoidance_build_direction_tables {
 extern "C" {

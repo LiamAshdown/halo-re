@@ -123,8 +123,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
     datum_index reassigned;
     datum_index parent_index;
     datum_index child_index;
-    uint8_t local_transform[0x6c];
-    uint32_t transform_x, transform_y, transform_z;
+    object_marker marker;
     uint8_t is_eligible;
     real_vector3d delta;
     float length;
@@ -177,33 +176,27 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
         }
     }
 
-    halo::objects::object_get_node_local_transform(target->object_index, ai_marker_name_a, (object_marker *)local_transform, 1);
-    transform_x = *(uint32_t *)(local_transform + 0x60);
-    transform_y = *(uint32_t *)(local_transform + 0x64);
-    transform_z = *(uint32_t *)(local_transform + 0x68);
-    target->head_position_x = transform_x;
-    target->head_position_y = transform_y;
-    target->head_position_z = transform_z;
+    halo::objects::object_get_node_local_transform(target->object_index, ai_marker_name_a, &marker, 1);
+    target->head_position = marker.node_transform.position;
 
     halo::objects::object_get_position(&target->last_known_position, target->object_index);
 
-    halo::objects::object_get_node_local_transform(target->object_index, ai_marker_name_b, (object_marker *)local_transform, 1);
-    target->center_of_mass.x = halo::bit_cast<float>(static_cast<uint32_t>(*(uint32_t *)(local_transform + 0x60)));
-    target->center_of_mass.y = halo::bit_cast<float>(static_cast<uint32_t>(*(uint32_t *)(local_transform + 0x64)));
-    target->center_of_mass.z = halo::bit_cast<float>(static_cast<uint32_t>(*(uint32_t *)(local_transform + 0x68)));
+    halo::objects::object_get_node_local_transform(target->object_index, ai_marker_name_b, &marker, 1);
+    target->center_of_mass = marker.node_transform.position;
     *(real_vector3d *)&target->velocity = unit_obj->velocity;
     target->pathfinding_surface_index = -1;
 
     reassigned = halo::objects::object_get_root_object_index(target->object_index);
     parent_obj = halo::ai::object_at(reassigned);
-    target->location_leaf_index = halo::bit_cast<float>(parent_obj->location_leaf_index);
-    *(uint32_t *)&target->cluster_index = *(uint32_t *)&parent_obj->location_cluster_index;
+    target->location.leaf_index = parent_obj->location_leaf_index;
+    target->location.cluster_index = parent_obj->location_cluster_index;
+    target->location.unknown_06 = parent_obj->location_reserved;
 
-    target->in_water = halo::scenario::scenario_location_get_water_and_weather(&target->center_of_mass, (bsp_leaf_reference *)&target->location_leaf_index, 0);
+    target->in_water = halo::scenario::scenario_location_get_water_and_weather(&target->center_of_mass, &target->location, 0);
     target->relationship_object_index = -1;
     target->is_vehicle_gunner = 0;
     target->is_vehicle_driver = 0;
-    target->parent_object_index = halo::bit_cast<float>(static_cast<uint32_t>(halo::k_dword_none));
+    target->parent_object_index = halo::k_dword_none;
 
     parent_index = unit_obj->parent_object;
     if (parent_index != k_datum_index_none) {
@@ -223,7 +216,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
                 target->is_vehicle_driver = 0;
             }
         } else if ((1 << (parent_obj->type & 0x1f) & 3) != 0) {
-            target->parent_object_index = halo::bit_cast<float>(static_cast<uint32_t>(parent_index));
+            target->parent_object_index = parent_index;
         }
     }
 
@@ -1313,7 +1306,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
         {
             int16_t kind_flag = (!p->is_parented || !p->enemy) ? 0 : 2;
             p->obstruction = (int16_t)halo::ai::actor_evaluate_engagement_reachability(
-                *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->head_position_x,
+                *(int16_t *)((uint8_t *)scratch + 0x28), p->location.cluster_index, &p->head_position,
                 (real_point3d *)scratch, kind_flag, 0, p->relationship_object_index,
                 self->active_unit_index != (datum_index)k_datum_index_none);
         }
@@ -1425,9 +1418,7 @@ after_engage:
                     p->just_sighted = (p->visual_perception == 0 && result > 0);
                     p->visual_perception = result;
                     if (result != 0) {
-                        p->last_seen_position_x = p->head_position_x;
-                        p->last_seen_position_y = p->head_position_y;
-                        p->last_seen_position_z = p->head_position_z;
+                        p->last_seen_position = p->head_position;
                         p->last_seen_time = tick;
                     }
                 }
@@ -1492,7 +1483,7 @@ after_engage:
     } else {
         int16_t kind_flag = (!p->is_parented || !p->enemy) ? 0 : 2;
         p->obstruction = (int16_t)halo::ai::actor_evaluate_engagement_reachability(
-            *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->head_position_x,
+            *(int16_t *)((uint8_t *)scratch + 0x28), p->location.cluster_index, &p->head_position,
             (real_point3d *)scratch, kind_flag, 0, p->relationship_object_index,
             self->active_unit_index != (datum_index)k_datum_index_none);
         if (p->disregarded || team_gate) {

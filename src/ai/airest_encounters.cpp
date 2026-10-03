@@ -1581,8 +1581,7 @@ void EncounterView::gather_occupied_clusters(uint32_t *out_clusters, uint8_t rec
                 }
 
                 if (a->target_unit_index != (datum_index)k_datum_index_none) {
-                    cluster = ((prop *)halo::ai::globals().prop_data->data)
-                        [a->target_unit_index & halo::k_slot_mask].cluster_index;
+                    cluster = halo::ai::prop_at(a->target_unit_index)->location.cluster_index;
                     if (cluster != -1) {
                         out_clusters[(int32_t)cluster >> 5] =
                             out_clusters[(int32_t)cluster >> 5] | (1 << (cluster & 0x1f));

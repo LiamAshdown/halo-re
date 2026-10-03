@@ -538,7 +538,6 @@ namespace c_actor_escalate_check_leader_flag {
 extern "C" {
 extern game_time_globals *game_time;
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
 
@@ -572,7 +571,6 @@ uint8_t actor_escalate_check_leader_flag(datum_index actor_index)
 }
 }
 
-#undef TAG_DATA
 
 namespace c_actor_escalate_check_shield_damage {
 extern "C" {

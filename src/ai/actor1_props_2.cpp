@@ -14,8 +14,6 @@ extern double sqrt(double x);
 extern int32_t fistp_round(float x);
 
 
-#define A_W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define A_F(o) (*(float *)((uint8_t *)actor + (o)))
 
 static uint8_t actor_danger_prop_seen_twice(datum_index actor_index, datum_index object_index)
 {
@@ -83,9 +81,9 @@ void halo::ai::prop_ops::danger_update_reaction()
 
         actor->danger_distance = (float)sqrt((double)(dz * dz + dy * dy + dx * dx));
     }
-    actor->danger_segment_end.x = A_F(0x2bc) * 45.0f + position->x;
-    actor->danger_segment_end.y = A_F(0x2c0) * 45.0f + position->y;
-    actor->danger_segment_end.z = A_F(0x2c4) * 45.0f + position->z;
+    actor->danger_segment_end.x = *(float *)((uint8_t *)actor + 0x2bc) * 45.0f + position->x;
+    actor->danger_segment_end.y = *(float *)((uint8_t *)actor + 0x2c0) * 45.0f + position->y;
+    actor->danger_segment_end.z = *(float *)((uint8_t *)actor + 0x2c4) * 45.0f + position->z;
     actor->danger_center.x = (actor->danger_segment_end.x + position->x) * 0.5f;
     actor->danger_center.y = (position->y + actor->danger_segment_end.y) * 0.5f;
     actor->danger_center.z = (position->z + actor->danger_segment_end.z) * 0.5f;
@@ -111,7 +109,7 @@ void halo::ai::prop_ops::danger_update_reaction()
             }
         }
         frames = halo::units::unit_get_animation_frames_remaining(actor->danger_object_index, &state);
-        A_W(0x2e8) = state == 0x19 ? (int16_t)frames : -1;
+        *(int16_t *)((uint8_t *)actor + 0x2e8) = state == 0x19 ? (int16_t)frames : -1;
         break;
     }
     case 2: {
@@ -123,9 +121,9 @@ void halo::ai::prop_ops::danger_update_reaction()
             own = 1;
         }
         if (*(float *)(object + 0x240) > 0.0f && *(float *)(object + 0x244) > 0.0f) {
-            A_W(0x2e8) = (int16_t)fistp_round((1.0f - *(float *)(object + 0x240)) / *(float *)(object + 0x244));
+            *(int16_t *)((uint8_t *)actor + 0x2e8) = (int16_t)fistp_round((1.0f - *(float *)(object + 0x240)) / *(float *)(object + 0x244));
         } else {
-            A_W(0x2e8) = -1;
+            *(int16_t *)((uint8_t *)actor + 0x2e8) = -1;
         }
         if (actor->danger_reaction_delayed != 0 || own) {
             noticed = 1;
@@ -220,6 +218,4 @@ void actor_danger_update_reaction(datum_index actor_index)
 }
 }
 
-#undef A_F
-#undef A_W
 

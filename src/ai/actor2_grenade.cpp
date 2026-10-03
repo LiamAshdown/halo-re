@@ -527,7 +527,6 @@ namespace actor_update_grenade_throw_decision_local {
 extern "C" {
 extern game_time_globals *game_time;
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 }
 
@@ -569,7 +568,6 @@ uint8_t ActorView::update_grenade_throw_decision()
 }
 
 #undef TAG_DATA
-#undef PROP
 
 namespace actor_validate_grenade_ally_candidate_local {
 extern "C" {

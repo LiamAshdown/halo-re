@@ -220,8 +220,8 @@ uint8_t halo::ai::combat_ops::check_weapon_pickup_reachable(actor_mode_flee_data
 
         halo::units::unit_add_marker_relative_offset(a->unit_index, 2, (float *)&positions[firing_position_index], 0, 0, &self_position);
         status = (int16_t)halo::ai::actor_evaluate_engagement_reachability(
-            *(int16_t *)((uint8_t *)&positions[firing_position_index] + 0xe), p->cluster_index,
-            (real_point3d *)&p->head_position_x, &self_position, 1, 0, p->relationship_object_index,
+            *(int16_t *)((uint8_t *)&positions[firing_position_index] + 0xe), p->location.cluster_index,
+            &p->head_position, &self_position, 1, 0, p->relationship_object_index,
             a->active_unit_index != (datum_index)k_datum_index_none);
 
         if (p->state > 1 && p->state < 4) {

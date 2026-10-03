@@ -764,7 +764,6 @@ void actor_mode_search_movement_cancelled(datum_index actor_index)
 
 
 namespace c_actor_mode_search_process {
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
 }
 
@@ -877,10 +876,8 @@ uint8_t actor_mode_search_process(datum_index actor_index)
 }
 }
 
-#undef PROP
 
 namespace c_actor_mode_search_tick {
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
 }
 
@@ -952,10 +949,8 @@ void actor_mode_search_tick(datum_index actor_index)
 }
 }
 
-#undef TAG_DATA
 
 namespace c_actor_mode_search_update {
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 
 
@@ -1011,10 +1006,8 @@ void actor_mode_search_update(datum_index actor_index)
 }
 }
 
-#undef TAG_DATA
 
 namespace c_actor_mode_sleep_update {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 
@@ -1038,5 +1031,4 @@ void actor_mode_sleep_update(datum_index actor_index)
 }
 }
 
-#undef ACTOR
 
