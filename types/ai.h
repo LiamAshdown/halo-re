@@ -175,7 +175,11 @@ typedef struct actor_movement_action {
     int16_t type;                     // 0x00 0 stop, 2 explicit point, and the firing-position / formation / near-target kinds
     uint8_t cancelled;                // 0x02 actor_movement_action_cancel sets it
     uint8_t unknown_03;               // 0x03
-    real_point3d destination;         // 0x04
+    union {
+        real_point3d destination;     // 0x04
+        int16_t slot_index;           // 0x04 types 3 and 4: the firing position / formation slot / move position index
+        uint32_t reference;           // 0x04 type 5: the prop handle
+    };
     int32_t parameter;                // 0x10 object index, firing-position index or formation slot depending on type
     uint32_t extra;                   // 0x14
 } actor_movement_action; // size 0x18

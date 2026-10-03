@@ -1536,7 +1536,7 @@ uint8_t halo::ai::combat_ops::is_target_within_engagement_range()
 
     if ((a->movement_action_complete == 0 || a->movement_completed != 0) &&
         a->active_movement.type == 3 &&
-        *(int16_t *)((uint8_t *)&a->active_movement + 4) == a->firing_position_index) {
+        a->active_movement.slot_index == a->firing_position_index) {
         return 1;
     }
 
