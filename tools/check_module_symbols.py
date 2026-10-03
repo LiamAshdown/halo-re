@@ -94,9 +94,10 @@ def check(mods):
                     syms |= s
         for src, err in errors:
             print("%s: does not compile: %s" % (os.path.relpath(src, ROOT), "; ".join(err)[:200]))
-        missing = sorted(base - syms)
-        new = syms - base
-        mangled = sorted(s for s in new if s.startswith("?") and "@halo@@" in s)   # new C++ API in namespace halo::
+        ignore = lambda s: s.startswith(("__real@", "__xmm@", "__ymm@", "??_C@_", "??_R", "??_7"))   # compiler-generated constants, string literals, RTTI/vtables
+        missing = sorted(s for s in base - syms if not ignore(s))
+        new = {s for s in syms - base if not ignore(s)}
+        mangled = sorted(s for s in new if s.startswith("?") and ("@halo@@" in s or "@glm@@" in s))   # new C++ API in namespaces halo:: and glm::
         extra = sorted(new - set(mangled))
         print("%s: %d baseline symbols, %d now, %d missing, %d extra, %d new halo:: C++ symbols (allowed), %d files failing" %
               (m, len(base), len(syms), len(missing), len(extra), len(mangled), len(errors)))
