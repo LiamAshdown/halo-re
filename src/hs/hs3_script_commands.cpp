@@ -6,6 +6,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/main/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern void player_update_history_log_set_name_filter(char *name);

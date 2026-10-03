@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "halo/memory/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern void sv_ban(uint32_t argument_count, int32_t *arguments);

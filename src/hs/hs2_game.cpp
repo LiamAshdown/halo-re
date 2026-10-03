@@ -16,7 +16,6 @@
 extern "C" {
 #endif
 extern network_client_globals *network_client;
-extern int16_t network_game_mode;
 extern void network_client_rejoin_check(int8_t machine_player_index);
 extern uint8_t console_debug_flag_4;
 extern uint8_t *player_effect_globals_pointer;
@@ -308,7 +307,7 @@ void GameCommands::evaluate_game_save(int16_t function_index, uint32_t thread_in
  */
 void GameCommands::evaluate_game_save_cancel(int16_t function_index, uint32_t thread_index, char first)
 {
-    network_join_error_reason = 0;
+    halo::networking::globals().join_error_reason = 0;
     halo::hs::hs_thread_return(0, thread_index);
 }
 
@@ -352,7 +351,7 @@ void GameCommands::evaluate_game_save_totally_unsafe(int16_t function_index, uin
  */
 void GameCommands::evaluate_game_saving(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::hs::hs_thread_return((int32_t)network_join_error_reason, thread_index);
+    halo::hs::hs_thread_return((int32_t)halo::networking::globals().join_error_reason, thread_index);
 }
 
 /**

@@ -6,6 +6,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern void game_variant_list_matching_substring(uint32_t argument_count, int32_t *arguments);
@@ -47,7 +48,7 @@ void ScriptAutocomplete::game_variant_list_matching_substring_evaluate(int16_t f
     arguments = 0;
     ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
-        halo::networking::game_variant_list_matching_substring(argument_count, arguments);
+        halo::networking::game_variant_list_matching_substring(argument_count, (char **)arguments);
         halo::hs::hs_thread_return(0, thread);
     }
 }

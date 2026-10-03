@@ -153,7 +153,7 @@ void DebugCommands::evaluate_message_metrics_dump(int16_t function_index, uint32
  */
 void DebugCommands::evaluate_net_graph_clear(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::networking::network_bandwidth_graph_instance_history_reset(network_bandwidth_graph_globals);
+    halo::networking::network_bandwidth_graph_instance_history_reset((network_bandwidth_graph *)network_bandwidth_graph_globals);
     halo::hs::hs_thread_return(0, thread_index);
 }
 
