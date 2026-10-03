@@ -1,4 +1,5 @@
 #include "halo/render/d3d9.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "crt.h"
 #include "halo/models/api.hpp"
@@ -203,7 +204,7 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
             real lod = halo::render::object_compute_level_of_detail_pixels(object_index);
 
             if (data->shadow_pass == 0) {
-                if (*(uint32_t *)&tag_data->modifier_shader.tag_id != k_dword_none) {
+                if (halo::tag_id_bits(tag_data->modifier_shader.tag_id) != k_dword_none) {
                     Shader *shader_data =
                         (Shader *)halo::cache::globals().tag_instances[tag_data->modifier_shader.tag_id.index].data;
 

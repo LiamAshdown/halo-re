@@ -5,6 +5,7 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/shaders/api.hpp"
@@ -856,7 +857,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
             rasterizer_set_render_state(halo::d3d9::rs::z_func, 4);
             rasterizer_set_render_state(halo::d3d9::rs::fog_enable, 0);
             rasterizer_set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);
-            chimera__rasterizer_set_texture_direct_d3d9(*(const uint32_t *)&data->active_camouflage_distortion.tag_id, 0, 0);
+            chimera__rasterizer_set_texture_direct_d3d9(halo::tag_id_bits(data->active_camouflage_distortion.tag_id), 0, 0);
             rasterizer_set_sampler_state(0, halo::d3d9::ss::address_u, 3);
             rasterizer_set_sampler_state(0, halo::d3d9::ss::address_v, 3);
             rasterizer_set_sampler_state(0, halo::d3d9::ss::address_w, 3);

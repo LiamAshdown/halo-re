@@ -5,6 +5,7 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -166,7 +167,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
 
 static void set_combine_stages(uint8_t *shader, int16_t frame, const float *matrix)
 {
-    chimera__rasterizer_set_texture(*(uint32_t *)&senv(shader)->base_map.tag_id, 0, 0, 1, frame);
+    chimera__rasterizer_set_texture(halo::tag_id_bits(senv(shader)->base_map.tag_id), 0, 0, 1, frame);
     render_device().set_transform(0x10, matrix);
     set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
     set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
@@ -221,7 +222,7 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
     matrix[0] = rasterizer_active_model_context->base_map_u_scale;
     matrix[5] = rasterizer_active_model_context->base_map_v_scale;
     matrix[15] = 1.0f;
-    chimera__rasterizer_set_texture((senv(shader)->shader_environment_flags & k_senv_alpha_tested) ? *(uint32_t *)&senv(shader)->bump_map.tag_id : 0xffffffff, 1, 0, 1, frame);
+    chimera__rasterizer_set_texture((senv(shader)->shader_environment_flags & k_senv_alpha_tested) ? halo::tag_id_bits(senv(shader)->bump_map.tag_id) : 0xffffffff, 1, 0, 1, frame);
 
     if (rasterizer_active_model_context->flags & _model_draw_fixed_function_fog_bit) {
         render_device().set_vertex_shader(0);
@@ -344,7 +345,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
         vertex_shader = 0x19;
     } else if (context->lighting.point_light_count > 0) {
         vertex_shader = 0x1a;
-    } else if (*(datum_index *)&senv(shader)->reflection_cube_map.tag_id != k_datum_index_none) {
+    } else if (halo::tag_id_bits(senv(shader)->reflection_cube_map.tag_id) != k_datum_index_none) {
         vertex_shader = 0x1c;
     } else if (context->node_count <= 1) {
         vertex_shader = 0x1d;
@@ -360,11 +361,11 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
     render_device().effect_set_technique(effect, (rasterizer_device_version >= halo::d3d9::k_pixel_shader_version_1_4 && !pixel_shader_fog) ?
             environment_techniques_ps14[senv(shader)->detail_map_function] :
             (uint32_t)environment_techniques_no[senv(shader)->detail_map_function]);
-    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->base_map.tag_id, 0, 0, 1, frame, &environment_effect_slot);
-    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->primary_detail_map.tag_id, 0, 1, 2, frame, &environment_effect_slot);
-    rasterizer_resolve_and_cache_submap_b((senv(shader)->shader_environment_flags & k_senv_alpha_tested) ? *(uint32_t *)&senv(shader)->bump_map.tag_id : 0xffffffff, 0, 2, 1, frame,
+    rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->base_map.tag_id), 0, 0, 1, frame, &environment_effect_slot);
+    rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->primary_detail_map.tag_id), 0, 1, 2, frame, &environment_effect_slot);
+    rasterizer_resolve_and_cache_submap_b((senv(shader)->shader_environment_flags & k_senv_alpha_tested) ? halo::tag_id_bits(senv(shader)->bump_map.tag_id) : 0xffffffff, 0, 2, 1, frame,
         &environment_effect_slot);
-    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->reflection_cube_map.tag_id, 2, 3, 0, frame, &environment_effect_slot);
+    rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->reflection_cube_map.tag_id), 2, 3, 0, frame, &environment_effect_slot);
 
     a[0] = senv(shader)->perpendicular_brightness * context->lighting.reflection_tint.alpha;
     a[1] = senv(shader)->perpendicular_color.red * context->lighting.reflection_tint.red;
@@ -553,7 +554,7 @@ void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t f
     if (rasterizer_active_model_context->flags & _model_draw_fixed_function_fog_bit) {
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[14].declaration);
-        chimera__rasterizer_set_texture(*(uint32_t *)&senv(shader)->base_map.tag_id, 0, 0, 1, frame);
+        chimera__rasterizer_set_texture(halo::tag_id_bits(senv(shader)->base_map.tag_id), 0, 0, 1, frame);
         render_device().set_transform(0x10, matrix);
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
         rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, vertex_buffer, primitive_count, 0,
@@ -576,7 +577,7 @@ void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t f
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[15].declaration);
-        chimera__rasterizer_set_texture(*(uint32_t *)&senv(shader)->base_map.tag_id, 0, 0, 1, frame);
+        chimera__rasterizer_set_texture(halo::tag_id_bits(senv(shader)->base_map.tag_id), 0, 0, 1, frame);
         render_device().set_transform(0x10, matrix);
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
         rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, &processed, primitive_count, 0,
@@ -634,7 +635,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
         if ((shader->shader_environment_flags & k_senv_bump_map_is_specular_mask) != 0) {
             reflection_type = 1;
         }
-        if (*(const uint32_t *)&shader->bump_map.tag_id == 0xffffffff) {
+        if (halo::tag_id_bits(shader->bump_map.tag_id) == 0xffffffff) {
             reflection_type = 1;
         }
     }
@@ -666,8 +667,8 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
     render_device().set_vertex_declaration(rasterizer_vertex_declarations[0].declaration);
     render_device().set_vertex_shader(rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
 
-    normalization_tag = *(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id;
-    bump_map_tag = *(const uint32_t *)&shader->bump_map.tag_id;
+    normalization_tag = halo::tag_id_bits(rasterizer_globals_data->vector_normalization.tag_id);
+    bump_map_tag = halo::tag_id_bits(shader->bump_map.tag_id);
     if (bump_map_tag == 0xffffffff) {
         chimera__rasterizer_set_texture_direct_d3dx(normalization_tag, 2, 0, effect_slot);
     } else {
@@ -685,7 +686,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
             }
         }
         if (bump_bitmap == 0) {
-            uint32_t default_tag = *(uint32_t *)&rasterizer_globals_data->default_2d.tag_id;
+            uint32_t default_tag = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
             if (default_tag != 0xffffffff) {
                 Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & 0xffff].data;
@@ -779,10 +780,10 @@ void rasterizer_shader_environment_lightmap_draw(uint8_t *shader, int16_t frame,
     if (slot->effect == 0) {
         return;
     }
-    *(uint32_t *)size[0] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->base_map.tag_id, 0, 0, 1, frame, slot);
-    *(uint32_t *)size[1] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->primary_detail_map.tag_id, 0, 1, 2, frame, slot);
-    *(uint32_t *)size[2] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->secondary_detail_map.tag_id, 0, 2, 2, frame, slot);
-    *(uint32_t *)size[3] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->micro_detail_map.tag_id, 0, 3, 2, frame, slot);
+    *(uint32_t *)size[0] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->base_map.tag_id), 0, 0, 1, frame, slot);
+    *(uint32_t *)size[1] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->primary_detail_map.tag_id), 0, 1, 2, frame, slot);
+    *(uint32_t *)size[2] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->secondary_detail_map.tag_id), 0, 2, 2, frame, slot);
+    *(uint32_t *)size[3] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->micro_detail_map.tag_id), 0, 3, 2, frame, slot);
     if (senv(shader)->diffuse_flags & 1) {
         float base_width = (float)size[0][0];
         float base_height = (float)size[0][1];
@@ -843,7 +844,7 @@ void rasterizer_shader_environment_lightmap_draw_single_stream(const ShaderEnvir
     if (halo::rasterizer::fields::rasterizer_environment_diffuse_textures == 0) {
         return;
     }
-    chimera__rasterizer_set_texture(*(uint32_t *)&((struct ShaderEnvironment *)shader)->base_map.tag_id, 0, 0, 1, frame);
+    chimera__rasterizer_set_texture(halo::tag_id_bits(((struct ShaderEnvironment *)shader)->base_map.tag_id), 0, 0, 1, frame);
     render_device().set_vertex_shader(0);
     render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[19].declaration);
     render_device().set_pixel_shader(0);
@@ -892,15 +893,15 @@ void rasterizer_shader_environment_lightmap_draw_two_stream(const ShaderEnvironm
         return;
     }
 
-    base_size = chimera__rasterizer_set_texture(*(uint32_t *)&((struct ShaderEnvironment *)raw)->base_map.tag_id, 0, 0, 1, frame);
+    base_size = chimera__rasterizer_set_texture(halo::tag_id_bits(((struct ShaderEnvironment *)raw)->base_map.tag_id), 0, 0, 1, frame);
     base_width = base_size[0];
     base_height = base_size[1];
     render_device().set_vertex_shader(0);
     render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[12].declaration);
     render_device().set_pixel_shader(0);
 
-    if (*(int32_t *)&((struct ShaderEnvironment *)raw)->primary_detail_map.tag_id != -1) {
-        int16_t *detail_size = chimera__rasterizer_set_texture(*(uint32_t *)&((struct ShaderEnvironment *)raw)->primary_detail_map.tag_id, 1, 0, 2, frame);
+    if (halo::tag_id_bits<int32_t>(((struct ShaderEnvironment *)raw)->primary_detail_map.tag_id) != -1) {
+        int16_t *detail_size = chimera__rasterizer_set_texture(halo::tag_id_bits(((struct ShaderEnvironment *)raw)->primary_detail_map.tag_id), 1, 0, 2, frame);
         float matrix[16];
 
         memset(matrix, 0, sizeof matrix);
@@ -985,7 +986,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
     render_device().set_vertex_declaration(rasterizer_vertex_declarations[2].declaration);
     render_device().set_vertex_shader(rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
 
-    bump_map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
+    bump_map_tag = halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id);
     bump_bitmap = 0;
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
@@ -999,7 +1000,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
         }
     }
     if (bump_bitmap == 0) {
-        uint32_t default_tag = *(uint32_t *)&rasterizer_globals_data->default_2d.tag_id;
+        uint32_t default_tag = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
         if (default_tag != 0xffffffff) {
             Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & 0xffff].data;
@@ -1020,7 +1021,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
     } else {
         render_device().set_texture(1, 0);
     }
-    normalization_tag = *(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id;
+    normalization_tag = halo::tag_id_bits(rasterizer_globals_data->vector_normalization.tag_id);
     chimera__rasterizer_set_texture_direct_d3dx(normalization_tag, 2, 0, effect_slot);
     chimera__rasterizer_set_texture_direct_d3dx(normalization_tag, 3, 0, effect_slot);
 
@@ -1087,7 +1088,7 @@ static void rasterizer_bind_bump_map(uint32_t bump_map_tag, int16_t frame, raste
         }
     }
     if (bump_bitmap == 0) {
-        uint32_t default_tag = *(uint32_t *)&rasterizer_globals_data->default_2d.tag_id;
+        uint32_t default_tag = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
         if (default_tag == 0xffffffff) {
             return;
@@ -1142,13 +1143,13 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
     render_device().set_vertex_shader(rasterizer_vertex_shaders[effect_slot->vertex_shader_index + rasterizer_projected_light_shader_variant].shader);
     render_device().set_vertex_shader_constant_f(0xd, (const float *)&rasterizer_projected_light, 5);
 
-    rasterizer_bind_bump_map(*(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id, frame, effect_slot);
+    rasterizer_bind_bump_map(halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id), frame, effect_slot);
     if (rasterizer_projected_light_has_cube_map == 1) {
         rasterizer_resolve_and_cache_submap_b(rasterizer_projected_light_cube_map, 2, 1, 1, 0, effect_slot);
     } else {
         chimera__rasterizer_set_texture_direct_d3dx(rasterizer_projected_light_cube_map, 1, 0, effect_slot);
     }
-    normalization_tag = *(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id;
+    normalization_tag = halo::tag_id_bits(rasterizer_globals_data->vector_normalization.tag_id);
     chimera__rasterizer_set_texture_direct_d3dx(normalization_tag, 2, 0, effect_slot);
     chimera__rasterizer_set_texture_direct_d3dx(normalization_tag, 3, 0, effect_slot);
 
@@ -1248,14 +1249,14 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
         if ((raw[0x28] & 2) != 0) {
             reflection_type = 1;
         }
-        if (*(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id == 0xffffffff) {
+        if (halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id) == 0xffffffff) {
             reflection_type = 1;
         }
     }
     if (!(((struct ShaderEnvironment *)raw)->perpendicular_brightness > 0.0f) && !(((struct ShaderEnvironment *)raw)->parallel_brightness > 0.0f)) {
         return;
     }
-    if (*(uint32_t *)&((struct ShaderEnvironment *)raw)->reflection_cube_map.tag_id == 0xffffffff) {
+    if (halo::tag_id_bits(((struct ShaderEnvironment *)raw)->reflection_cube_map.tag_id) == 0xffffffff) {
         return;
     }
 
@@ -1280,7 +1281,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
     render_device().set_vertex_declaration(rasterizer_vertex_declarations[0].declaration);
     render_device().set_vertex_shader(rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
 
-    bump_map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
+    bump_map_tag = halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id);
     bump_bitmap = 0;
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
@@ -1294,7 +1295,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
         }
     }
     if (bump_bitmap == 0) {
-        uint32_t default_tag = *(uint32_t *)&rasterizer_globals_data->default_2d.tag_id;
+        uint32_t default_tag = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
         if (default_tag != 0xffffffff) {
             Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & 0xffff].data;
@@ -1309,9 +1310,9 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
         rasterizer_bound_bitmap_size_b[0] = (int16_t)bump_bitmap->width;
         rasterizer_bound_bitmap_size_b[1] = (int16_t)bump_bitmap->height;
     }
-    chimera__rasterizer_set_texture_direct_d3dx(*(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id, 1, 0, effect_slot);
-    chimera__rasterizer_set_texture_direct_d3dx(*(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id, 2, 0, effect_slot);
-    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&((struct ShaderEnvironment *)raw)->reflection_cube_map.tag_id, 2, 3, 0, frame, effect_slot);
+    chimera__rasterizer_set_texture_direct_d3dx(halo::tag_id_bits(rasterizer_globals_data->vector_normalization.tag_id), 1, 0, effect_slot);
+    chimera__rasterizer_set_texture_direct_d3dx(halo::tag_id_bits(rasterizer_globals_data->vector_normalization.tag_id), 2, 0, effect_slot);
+    rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(((struct ShaderEnvironment *)raw)->reflection_cube_map.tag_id), 2, 3, 0, frame, effect_slot);
 
     constants[0] = *(float *)&((struct ShaderEnvironment *)raw)->bump_map_scale_xy;
     constants[1] = *(const float *)(raw + 0x13c);
@@ -1437,7 +1438,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
 
     render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, (raw[0x28] & 1) != 0 && halo::rasterizer::fields::environment_alpha_testing_enabled != 0 ? 1 : 0);
 
-    map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->map.tag_id;
+    map_tag = halo::tag_id_bits(((struct ShaderEnvironment *)raw)->map.tag_id);
     if (map_tag == 0xffffffff) {
         effect_index = (int16_t)(2 + (halo::rasterizer::fields::environment_effect_variant != 0 ? 1 : 0));
     } else {
@@ -1452,7 +1453,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
     render_device().set_vertex_declaration(rasterizer_vertex_declarations[2].declaration);
     render_device().set_vertex_shader(rasterizer_vertex_shaders[13].shader);
 
-    bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
+    bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id);
     bump_bitmap = 0;
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
@@ -1466,7 +1467,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
         }
     }
     if (bump_bitmap == 0) {
-        uint32_t default_tag = *(uint32_t *)&rasterizer_globals_data->default_2d.tag_id;
+        uint32_t default_tag = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
         if (default_tag != 0xffffffff) {
             Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & 0xffff].data;
@@ -1498,7 +1499,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
     } else {
         render_device().effect_set_texture(effect, effect_slot->texture_handles[2], rasterizer_capture_surfaces[0]);
     }
-    chimera__rasterizer_set_texture_direct_d3dx(*(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id, 3, 0,
+    chimera__rasterizer_set_texture_direct_d3dx(halo::tag_id_bits(rasterizer_globals_data->vector_normalization.tag_id), 3, 0,
                                                 effect_slot);
 
     constants[0] = shader_field(raw, 0x138);
@@ -1616,7 +1617,7 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
     colour = (colour << 8) | ((uint32_t)(int32_t)(*(float *)(raw + 0x114) * 255.0f) & 0xff);
     render_device().set_render_state(halo::d3d9::rs::texture_factor, colour);
 
-    self_illumination = (raw[0x28] & 2) ? k_datum_index_none : *(datum_index *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
+    self_illumination = (raw[0x28] & 2) ? k_datum_index_none : halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id);
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && self_illumination != k_datum_index_none) {
         int32_t count = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[self_illumination & 0xffff].data + 0x60);
 
@@ -1628,7 +1629,7 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
         }
     }
     if (bitmap == 0) {
-        datum_index fallback = *(datum_index *)&rasterizer_globals_data->default_2d.tag_id;
+        datum_index fallback = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
         if (fallback != k_datum_index_none) {
             uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[fallback & 0xffff].data;
@@ -1708,7 +1709,7 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     colour = (colour << 8) | ((uint32_t)(int32_t)(*(float *)(raw + 0x114) * 255.0f) & 0xff);
     render_device().set_render_state(halo::d3d9::rs::texture_factor, colour);
 
-    self_illumination = (raw[0x28] & 2) ? k_datum_index_none : *(datum_index *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
+    self_illumination = (raw[0x28] & 2) ? k_datum_index_none : halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id);
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && self_illumination != k_datum_index_none) {
         int32_t count = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[self_illumination & 0xffff].data + 0x60);
 
@@ -1720,7 +1721,7 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
         }
     }
     if (bitmap == 0) {
-        datum_index fallback = *(datum_index *)&rasterizer_globals_data->default_2d.tag_id;
+        datum_index fallback = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
         if (fallback != k_datum_index_none) {
             uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[fallback & 0xffff].data;

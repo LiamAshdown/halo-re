@@ -310,7 +310,7 @@ datum_index play_new(datum_index definition_index, sound_location *location, dat
                             if (retrigger != 1) {
                                 return k_datum_index_none;
                             }
-                            return instances::play_new(*(uint32_t *)&tag->promotion_sound.tag_id, location,
+                            return instances::play_new(halo::tag_id_bits(tag->promotion_sound.tag_id), location,
                                 owner_index, location_proc, callback_data, callback_data_size, first_person_hint);
                         }
 

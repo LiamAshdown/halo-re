@@ -1,4 +1,5 @@
 #include "crt.h"
+#include "halo/core/datum.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "win32.h"
 #include "tags.h"
@@ -696,7 +697,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
     ContrailPointState *states;
     real_vector3d fade_normal;
 
-    bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(*(datum_index *)&definition->bitmap.tag_id,
+    bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(halo::tag_id_bits(definition->bitmap.tag_id),
                                                    c->frame_index, c->sequence_index);
     halo::rasterizer::globals().vertex_buffer_lock_state = 0xf;
     if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
@@ -1049,7 +1050,7 @@ void particles(void)
             float average;
             int16_t k;
 
-            data.bitmap_group_index = *(datum_index *)&definition->bitmap.tag_id;
+            data.bitmap_group_index = halo::tag_id_bits(definition->bitmap.tag_id);
             data.maximum_sprite_count = in_group;
             data.shader = (uint32_t)(uintptr_t)&definition->_pad_b0;
             data.centroid = *global_zero_vector3d_pointer;

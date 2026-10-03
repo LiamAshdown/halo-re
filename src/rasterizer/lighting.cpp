@@ -5,6 +5,7 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -42,7 +43,7 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
         return;
     }
 
-    bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
+    bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id);
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
@@ -55,7 +56,7 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
         }
     }
     if (bump_bitmap == 0) {
-        uint32_t default_tag = *(uint32_t *)&rasterizer_globals_data->default_2d.tag_id;
+        uint32_t default_tag = halo::tag_id_bits(rasterizer_globals_data->default_2d.tag_id);
 
         if (default_tag != 0xffffffff) {
             Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & 0xffff].data;
@@ -213,7 +214,7 @@ void rasterizer_light_cone_set_texture_stage_states(void)
         render_device().set_sampler_state(1, halo::d3d9::ss::min_filter, 2);
         render_device().set_sampler_state(1, halo::d3d9::ss::mip_filter, 2);
 
-        chimera__rasterizer_set_texture_direct_d3dx(*(uint32_t *)&rasterizer_globals_data->distance_attenuation.tag_id, 2, 0,
+        chimera__rasterizer_set_texture_direct_d3dx(halo::tag_id_bits(rasterizer_globals_data->distance_attenuation.tag_id), 2, 0,
                                                     &rasterizer_effects[4]);
         if ((rasterizer_caps.texture_address_caps & 8) == 0) {
             render_device().set_sampler_state(2, halo::d3d9::ss::address_u, 3);
@@ -229,7 +230,7 @@ void rasterizer_light_cone_set_texture_stage_states(void)
         render_device().set_sampler_state(2, halo::d3d9::ss::min_filter, 1);
         render_device().set_sampler_state(2, halo::d3d9::ss::mip_filter, 1);
 
-        chimera__rasterizer_set_texture_direct_d3dx(*(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id, 3, 0,
+        chimera__rasterizer_set_texture_direct_d3dx(halo::tag_id_bits(rasterizer_globals_data->vector_normalization.tag_id), 3, 0,
                                                     &rasterizer_effects[4]);
         render_device().set_sampler_state(3, halo::d3d9::ss::address_u, 3);
         render_device().set_sampler_state(3, halo::d3d9::ss::address_v, 3);
@@ -515,8 +516,8 @@ void rasterizer_projected_light_constants_build(int32_t light_index)
     definition = (Light *)(uint8_t *)light->definition;
 
     if (*(int32_t *)&((struct Light *)definition)->cos_falloff_angle != (int32_t)0xbf800000 &&
-        (*(int32_t *)&((struct Light *)definition)->primary_cube_map.tag_id != -1 ||
-         *(int32_t *)&((struct Light *)definition)->secondary_cube_map.tag_id != -1)) {
+        (halo::tag_id_bits<int32_t>(((struct Light *)definition)->primary_cube_map.tag_id) != -1 ||
+         halo::tag_id_bits<int32_t>(((struct Light *)definition)->secondary_cube_map.tag_id) != -1)) {
         rasterizer_projected_light_shader_variant = 1;
         rasterizer_projected_light_luminance =
             light->color.red * 0.299f + light->color.green * 0.587f + light->color.blue * 0.114f;
@@ -551,7 +552,7 @@ void rasterizer_projected_light_constants_build(int32_t light_index)
     rasterizer_projected_light.cone_axis.k = 0.0f;
     rasterizer_projected_light.cone_offset = 1.0f;
 
-    rasterizer_projected_light_cube_map = *(int32_t *)&rasterizer_globals_data->distance_attenuation.tag_id;
+    rasterizer_projected_light_cube_map = halo::tag_id_bits<int32_t>(rasterizer_globals_data->distance_attenuation.tag_id);
 }
 
 /**
@@ -578,9 +579,9 @@ void rasterizer_projected_light_constants_build_cube_map(int32_t light_index)
     light = &rasterizer_lights[light_index];
     definition = (Light *)(uint8_t *)light->definition;
 
-    cube_map_tag_index = *(int32_t *)&((struct Light *)definition)->primary_cube_map.tag_id;
+    cube_map_tag_index = halo::tag_id_bits<int32_t>(((struct Light *)definition)->primary_cube_map.tag_id);
     if (cube_map_tag_index == -1) {
-        cube_map_tag_index = *(int32_t *)&((struct Light *)definition)->secondary_cube_map.tag_id;
+        cube_map_tag_index = halo::tag_id_bits<int32_t>(((struct Light *)definition)->secondary_cube_map.tag_id);
     }
 
     halo::math::vector3d_cross_product(cross_axis, light->up, light->forward);
