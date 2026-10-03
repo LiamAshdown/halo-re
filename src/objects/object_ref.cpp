@@ -1,4 +1,6 @@
 #include "halo/objects/object_ref.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/core/lcg.hpp"
 #include "game.h"
@@ -420,7 +422,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
 
         cluster_reference_add_within_radius(object_index, &obj->placement_id, &obj->bounding_center, obj->bounding_radius,
                      &obj->location_leaf_index,
-                     (obj->flags & 0x2000000) != 0 ? (void *)&collideable_cluster_first : (void *)&noncollideable_cluster_first);
+                     test_flag(obj->flags, objects::object_flag::has_collision_model) ? (void *)&collideable_cluster_first : (void *)&noncollideable_cluster_first);
 
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
             int16_t cluster = header->cluster_index;
@@ -465,7 +467,7 @@ void halo::objects::ObjectRef::unlink_cluster_or_notify_parent()
     if (obj->parent_object == k_datum_index_none) {
 
         cluster_reference_remove_all(object_index, (datum_index *)&((struct object *)obj)->placement_id,
-                     (obj->flags & 0x2000000) != 0 ? (void *)&collideable_cluster_first
+                     test_flag(obj->flags, objects::object_flag::has_collision_model) ? (void *)&collideable_cluster_first
                                                    : (void *)&noncollideable_cluster_first);
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
             header = (object_header *)object_data->data + (object_index & 0xffff);
@@ -1532,7 +1534,7 @@ void halo::objects::ObjectRef::start_animation(datum_index graph_tag, char *name
             uint8_t *nodes = *(uint8_t **)((uint8_t *)graph + 0x78);
             uint8_t *extended_flags = (uint8_t *)obj + 0x1f4;
 
-            obj->flags &= ~0x80u;
+            clear_flag(obj->flags, objects::object_flag::unknown_80);
             *extended_flags |= 1;
             obj->animation_index = animation_index;
 

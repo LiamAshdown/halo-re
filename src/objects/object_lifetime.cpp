@@ -1,4 +1,6 @@
 #include "halo/objects/object_lifetime.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "units.h"
 #include "effects.h"
@@ -411,13 +413,13 @@ void halo::objects::ObjectLifetime::create_attachments()
         case 0:
             handle = light_new_attached(tag, object_index, i, first_scale, change_color);
             if (handle != k_datum_index_none) {
-                ((object *)obj)->flags |= 0x100;
+                set_flag(((object *)obj)->flags, objects::object_flag::unknown_100);
             }
             break;
         case 1:
             handle = looping_sound_new(object_index, tag, (char *)(attachment + 0x10), first_scale);
             if (handle != k_datum_index_none) {
-                ((object *)obj)->flags |= 0x400;
+                set_flag(((object *)obj)->flags, objects::object_flag::unknown_400);
             }
             break;
         case 2:

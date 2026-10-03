@@ -1,4 +1,6 @@
 #include "halo/objects/glow.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "halo/core/lcg.hpp"
 #include "game.h"
 #include "rasterizer.h"
@@ -367,7 +369,7 @@ void halo::objects::GlowView::update(uint32_t object_index)
                 *age = (int16_t)(*age + game_time->ticks_this_frame);
                 glow_particle_compute_fade(entry, p);
 
-                if (((uint8_t)((struct Glow *)glow_tag_data)->glow_flags & 0x10) != 0) {
+                if (test_flag(((struct Glow *)glow_tag_data)->glow_flags, tags::glow_tag_flag::trailing_particles_shrink_over_time)) {
                     float fraction = 1.0f - (float)*age / (float)*lifetime;
                     if (fraction < 0.0f) fraction = 0.0f;
                     *(float *)((uint8_t *)p + 0x24) = fraction * *(float *)((uint8_t *)p + 0x20);
@@ -435,7 +437,7 @@ void halo::objects::GlowParticleView::compute_fade(glow *entry)
     glow_particle *particle = self;
     uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(entry->definition_tag)].data;
 
-    if (((uint8_t)((struct Glow *)tag)->glow_flags & 8) == 0) {
+    if (!test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::trailing_particles_fade_over_time)) {
         particle->fade = 1.0f;
         return;
     }
@@ -466,7 +468,7 @@ void halo::objects::GlowParticleView::compute_color(glow *entry)
     glow_particle *particle = self;
     uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(entry->definition_tag)].data;
 
-    if (((uint8_t)((struct Glow *)tag)->glow_flags & 0x20) != 0) {
+    if (test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::trailing_particles_slow_over_time)) {
         float fade = 1.0f - (float)particle->age / (float)particle->lifetime;
         if (fade < 0.0f) {
             fade = 0.0f;
@@ -507,7 +509,7 @@ void halo::objects::GlowParticleView::compute_position(uint32_t object_index, gl
         *(float *)(p + 0x18) = (((struct Glow *)tag)->color_bound_1.blue - ((struct Glow *)tag)->color_bound_0.blue) * driver + ((struct Glow *)tag)->color_bound_0.blue;
     }
 
-    if (((uint8_t)((struct Glow *)tag)->glow_flags & 1) != 0) {
+    if (test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::modify_particle_color_in_range)) {
         float t = ((struct glow_particle *)p)->t;
         float rate = ((struct Glow *)tag)->color_rate_of_change;
 
@@ -639,10 +641,10 @@ void halo::objects::GlowView::chain_build()
             return;
         }
 
-        if (((uint8_t)((struct Glow *)tag)->glow_flags & 2) != 0) {
+        if (test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::particles_move_backwards)) {
             ((struct glow_particle *)p)->flags |= 1;
         }
-        if (((uint8_t)((struct Glow *)tag)->glow_flags & 4) != 0) {
+        if (test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::partices_move_in_both_directions)) {
             uint32_t flags = ((struct glow_particle *)p)->flags;
             if (alternate) {
                 flags &= ~1U;
@@ -699,7 +701,7 @@ glow_particle * halo::objects::GlowView::particle_new(int16_t index, int16_t cou
                       (((struct Glow *)tag)->particle_size_bounds[1] - ((struct Glow *)tag)->particle_size_bounds[0]) * glow_next_random_unit();
             *(float *)(pb + 0x20) = v / (float)entry->particle_count;
         }
-        if (((struct Glow *)tag)->attachment_5 == -1 && ((uint8_t)((struct Glow *)tag)->glow_flags & 1) == 0) {
+        if (((struct Glow *)tag)->attachment_5 == -1 && !test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::modify_particle_color_in_range)) {
             float t = glow_next_random_unit();
             *(uint32_t *)(pb + 0xc) = 0x3f800000;
             *(float *)(pb + 0x10) = (((struct Glow *)tag)->color_bound_1.red - ((struct Glow *)tag)->color_bound_0.red) * t + ((struct Glow *)tag)->color_bound_0.red;

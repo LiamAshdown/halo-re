@@ -1,4 +1,8 @@
 #include "halo/objects/object_damage.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/core/lcg.hpp"
 #include "game.h"
@@ -267,7 +271,7 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
         uint8_t *object = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
         if ((uint32_t)(((struct object *)object)->shield_stun_ticks > 0) != (uint32_t)object[0x538]) {
-            ((struct object *)object)->flags |= 0x4000000;
+            set_flag(((struct object *)object)->flags, objects::object_flag::changed);
         }
     }
 }
@@ -362,7 +366,7 @@ void halo::objects::ObjectDamage::set_health_frozen_flag()
             if (child->type == _object_type_biped &&
                 (*(int32_t *)(child_bytes + 0x218) == -1 || g_0087abc0 == 0) &&
                 *(int16_t *)(child_bytes + 0x2f0) != -1) {
-                child->vitality_flags |= 0x0020;
+                set_flag(child->vitality_flags, objects::vitality_flag::unknown_20);
             }
             child_index = child->next_object;
         }
@@ -1023,7 +1027,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
             ((uint8_t)(((struct object *)obj)->vitality_flags >> 8) & 8) == 0) {
             kill = 1;
         }
-        if (target_is_local == 1 && kill && ((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0 && (!friendly || body_allowed)) {
+        if (target_is_local == 1 && kill && !test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) && (!friendly || body_allowed)) {
             ((object *)obj)->body_vitality = 0.0f;
             object_set_health_frozen_flag(id);
             notify_flags |= 0x41;
@@ -1479,7 +1483,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
         switch (type) {
         case 0:
         case 1:
-            if (*(float *)(effect + 0x1f4) > 0.0001f && (((struct unit_object *)obj)->unit.flags & 0x800000) == 0) {
+            if (*(float *)(effect + 0x1f4) > 0.0001f && !test_flag(((struct unit_object *)obj)->unit.flags, units::unit_flag::unknown_800000)) {
                 if (type == 0) {
                     unit_apply_impulse(target_index, &impulse);
                 } else {
@@ -1665,19 +1669,19 @@ void halo::objects::ObjectDamage::destroy_region(int32_t region_index)
                 0.0f, 0.0f, 0, 0);
             object_set_permutation_by_name(object_index, (char *)"~damaged", (int16_t)region_index, 1);
 
-            if ((region->flags & 0x20) != 0) {
+            if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::inhibits_melee_attack)) {
                 obj->vitality_flags |= _object_region_response_80_bit;
             }
-            if ((region->flags & 0x40) != 0) {
+            if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::inhibits_weapon_attack)) {
                 obj->vitality_flags |= _object_region_response_100_bit;
             }
-            if ((region->flags & 0x80) != 0) {
+            if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::inhibits_walking)) {
                 *((uint8_t *)obj + 0x107) |= 2;
             }
-            if ((region->flags & 0x100) != 0) {
+            if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::forces_drop_weapon)) {
                 *((uint8_t *)obj + 0x107) |= 4;
             }
-            if ((region->flags & 2) != 0) {
+            if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::forces_object_to_die)) {
                 object_set_health_frozen_flag(object_index);
             }
 

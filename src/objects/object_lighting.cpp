@@ -1,4 +1,6 @@
 #include "halo/objects/object_lighting.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "structures.h"
 #include "rasterizer.h"
 #include <stdint.h>
@@ -279,7 +281,7 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
 
     center_ok = object_lighting_sample_point(flags, &obj->bounding_center, (render_lighting *)sample);
 
-    if ((obj->flags & 0x4000) == 0) {
+    if (!test_flag(obj->flags, objects::object_flag::unknown_4000)) {
         float probe[29];
 
         if (center_ok == 0) {
@@ -512,7 +514,7 @@ void halo::objects::ObjectLighting::for_each_light_attachment(int32_t register_i
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
-    if ((obj->flags & 0x100) != 0) {
+    if (test_flag(obj->flags, objects::object_flag::unknown_100)) {
         Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
         int16_t i;
 

@@ -1,4 +1,6 @@
 #include "halo/objects/light_system.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "units.h"
 #include "structures.h"
@@ -152,7 +154,7 @@ datum_index halo::objects::LightSystem::new_attached(datum_index light_tag, datu
     Light *tag = (Light *)tag_instances[halo::datum_slot(light_tag)].data;
     datum_index handle = k_datum_index_none;
 
-    if ((tag->flags & 1) != 0 || *(int32_t *)&((struct Light *)tag)->lens_flare.tag_id != -1) {
+    if (test_flag(tag->flags, tags::light_tag_flag::dynamic) || *(int32_t *)&((struct Light *)tag)->lens_flare.tag_id != -1) {
         handle = datum_new(light_data);
 
         if (handle != k_datum_index_none) {
@@ -569,7 +571,7 @@ void halo::objects::LightSystem::apply_spot_falloff()
                 if (queue_slot != -1) {
                     Light *tag = (Light *)tag_instances[halo::datum_slot(l->definition_tag)].data;
                     int8_t is_cone = (l->flags & _light_needs_cone_update_bit) != 0 &&
-                        (tag->flags & 8) != 0;
+                        test_flag(tag->flags, tags::light_tag_flag::supersize_in_first_person);
                     int16_t marker_count = 0;
                     float radius = l->radius;
                     real_point3d position;
@@ -629,9 +631,9 @@ void halo::objects::LightSystem::apply_spot_falloff_specular()
                 if (queue_slot != -1) {
                     Light *tag = (Light *)tag_instances[halo::datum_slot(l->definition_tag)].data;
 
-                    if (((uint32_t)tag->flags & 2) == 0) {
+                    if (!test_flag(tag->flags, tags::light_tag_flag::no_specular)) {
                         int8_t is_cone = (l->flags & _light_needs_cone_update_bit) != 0 &&
-                            (tag->flags & 8) != 0;
+                            test_flag(tag->flags, tags::light_tag_flag::supersize_in_first_person);
                         int16_t marker_count = 0;
                         float radius = l->radius;
                         real_point3d position;
@@ -640,7 +642,7 @@ void halo::objects::LightSystem::apply_spot_falloff_specular()
                             marker_count = light_collect_object_references(light_active_list[i], 0x200, references);
                         }
 
-                        if (((uint32_t)tag->flags & 2) == 0) {
+                        if (!test_flag(tag->flags, tags::light_tag_flag::no_specular)) {
                             radius = radius * tag->specular_radius_multiplier;
                         }
 

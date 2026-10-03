@@ -1,4 +1,7 @@
 #include "halo/objects/object_factory.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "game.h"
 #include "units.h"
 #include "effects.h"
@@ -420,7 +423,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     obj->shield_damage_ticks = -1;
     obj->body_damage_ticks = -1;
 
-    if ((object_tag->flags & 1) != 0) {
+    if (test_flag(object_tag->flags, tags::object_tag_flag::does_not_cast_shadow)) {
         obj->flags |= _object_definition_flag0_bit;
     }
     if (TAG_ID_AS_DATUM_INDEX(object_tag->collision_model.tag_id) == k_datum_index_none) {
@@ -639,10 +642,10 @@ uint8_t halo::objects::SceneryObject::initialize()
         if (animation != -1) {
             ((struct object *)object)->animation_index = animation;
             ((struct object *)object)->animation_graph = *(datum_index *)&((struct Object *)definition)->animation_graph.tag_id;
-            ((struct object *)object)->flags |= 0x80;
+            set_flag(((struct object *)object)->flags, objects::object_flag::unknown_80);
         }
     }
-    ((struct object *)object)->flags |= 0x40000;
+    set_flag(((struct object *)object)->flags, objects::object_flag::definition_flag0);
     return 1;
 }
 

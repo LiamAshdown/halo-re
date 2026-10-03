@@ -1,4 +1,7 @@
 #include "halo/objects/object_update.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/objects/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "halo/core/lcg.hpp"
 #include "game.h"
 #include "models.h"
@@ -72,7 +75,7 @@ void halo::objects::ObjectUpdater::regions_reset_permutation_lock(int8_t unlock)
     for (region_index = 0; region_index < region_count; region_index++) {
         ModelCollisionGeometryRegion *region = &regions[region_index];
 
-        if ((region->flags & 0x10) != 0 && (int32_t)region->permutations.count > 1) {
+        if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::disappears_when_shield_is_off) && (int32_t)region->permutations.count > 1) {
             obj->region_permutations[region_index] = (unlock == 0);
         }
     }
@@ -159,14 +162,14 @@ uint8_t halo::objects::ObjectUpdater::update()
 
     object_type_definitions_notify_0x38(object_index);
 
-    if ((obj->flags & 0x800000) == 0) {
+    if (!test_flag(obj->flags, objects::object_flag::unknown_800000)) {
         object_recalculate_bounding_radius(object_index);
     }
 
     object_update_functions(object_index);
     object_update_change_colors(object_index);
 
-    if (((obj->flags & 0x2000) != 0) &&
+    if ((test_flag(obj->flags, objects::object_flag::unknown_2000)) &&
         (((obj->flags & _object_no_collision_bit) == 0) || (definition->model.tag_id.index == halo::k_word_none))) {
         object_for_each_light_attachment(object_index, 1, 1);
     }
@@ -236,7 +239,7 @@ void halo::objects::ObjectUpdater::update_export_functions()
                 value = random_real();
             }
             break;
-        case 18: value = ((uint8_t)((struct object *)object)->vitality_flags & 4) != 0 ? 0.0f : 1.0f; break;
+        case 18: value = test_flag(((struct object *)object)->vitality_flags, objects::vitality_flag::health_frozen) ? 0.0f : 1.0f; break;
         case 19: {
             float *forward = (float *)(object + ((struct object *)object)->nodes.offset + 4);
 
@@ -661,7 +664,7 @@ int16_t halo::objects::ObjectUpdater::permutation_find_matching_group(ModelRegio
 
     for (i = 0; (int32_t)i < (int32_t)region->permutations.count; i++) {
         ModelRegionPermutation *perm = (ModelRegionPermutation *)region->permutations.pointer + i;
-        if ((perm->flags & 1) == 0) {
+        if (!test_flag(perm->flags, tags::model_region_permutation_tag_flag::cannot_be_chosen_randomly)) {
 
             if (((int16_t)perm->permutation_number == group) ||
                 ((group == -1) && ((int16_t)perm->permutation_number < 100))) {
