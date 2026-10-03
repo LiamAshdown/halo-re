@@ -1,3 +1,4 @@
+#include "halo/game/multiplayer_game_text.hpp"
 #include "halo/game/game2_engine_hud.hpp"
 #include "halo/core/ui_tag_paths.hpp"
 #include "halo/networking/game_mode.hpp"
@@ -164,11 +165,11 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
     params_header.green = 0.5f;
     params_header.blue = 0.5f;
 
-    col_a = multiplayer_game_text_string(0x43);
-    col_b = multiplayer_game_text_string(0x44);
-    col_c = multiplayer_game_text_string(0x45);
-    col_d = multiplayer_game_text_string(0x46);
-    col_e = multiplayer_game_text_string(0x47);
+    col_a = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_a);
+    col_b = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_b);
+    col_c = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_c);
+    col_d = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_d);
+    col_e = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_e);
     ((void (*)(wchar_t *))current_game_engine->build_score_header_text)(header_names_buf);
     halo::text::string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(L"\t%s\t%s\t%s\t%s\t%s\t%s\t%s"), col_a, col_b, header_names_buf,
                           col_c, col_d, col_e, L"Ping");
@@ -218,9 +219,9 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
 
                 if (game_engine_variant.lives_per_round >= 1 && p->unit == (datum_index)halo::k_dword_none &&
                     (int32_t)(int16_t)p->deaths >= game_engine_variant.lives_per_round) {
-                    status_text = multiplayer_game_text_string(0x8a);
+                    status_text = multiplayer_game_text_string(halo::game::mp_text::k_status_out_of_lives);
                 } else if (p->marked_for_deletion != 0) {
-                    status_text = multiplayer_game_text_string(0x8b);
+                    status_text = multiplayer_game_text_string(halo::game::mp_text::k_status_leaving);
                 } else {
                     status_text = header_names_buf;
                 }
@@ -276,9 +277,9 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
         prompt = multiplayer_game_text_string((int16_t)ui_state);
         if (prompt != (wchar_t *)0) {
             if (current_game_engine != 0 && game_engine_variant.teams == 1) {
-                word = multiplayer_game_text_string(0xc);
+                word = multiplayer_game_text_string(halo::game::mp_text::k_team_label_a);
             } else {
-                word = multiplayer_game_text_string(0xd);
+                word = multiplayer_game_text_string(halo::game::mp_text::k_team_label_b);
             }
             halo::text::string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(L"%s (%s)"), prompt, word);
 
@@ -322,7 +323,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
         }
 
         if (address_text != (char *)0) {
-            wchar_t *label = multiplayer_game_text_string(0xbe);
+            wchar_t *label = multiplayer_game_text_string(halo::game::mp_text::k_server_address_label);
             wchar_t address_wide[0x100];
             Rectangle2D address_rect;
             int32_t len = (int32_t)strlen(address_text);
