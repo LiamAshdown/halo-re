@@ -1631,7 +1631,7 @@ void ServerBrowser::result_array_sort(server_list_globals *array)
                 (server_browser_selected_index < server_list_scroll_offset ||
                  server_list_scroll_offset + 0xf <= server_browser_selected_index)) {
                 server_list_scroll_offset = server_browser_selected_index;
-                halo::networking::server_list_scroll_clamp((server_list_globals *)0);
+                halo::networking::server_list_scroll_clamp(array);
             }
         }
 

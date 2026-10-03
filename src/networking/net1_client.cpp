@@ -133,14 +133,14 @@ uint32_t ClientView::begin_connect(wchar_t *player_name, s_network_address *targ
  *
  * @address 0x4e0080
  */
-uint32_t ClientView::check_connection_quality(uint32_t machine_index, uint8_t units)
+uint32_t ClientView::check_connection_quality(int16_t machine_id, client_update_record update)
 {
     datum_index resolved;
     int16_t player_index;
     player *plr;
     int16_t salt;
 
-    resolved = machine_to_player[machine_index & 0xffff];
+    resolved = machine_to_player[(uint16_t)machine_id];
     if (resolved == (datum_index)0xffffffff) {
         return 0;
     }
@@ -165,7 +165,7 @@ uint32_t ClientView::check_connection_quality(uint32_t machine_index, uint8_t un
         float latency;
 
         now_ms = (int32_t)(((int64_t)(((uint64_t)main_globals_data.frame_counter_high << 32) | main_globals_data.frame_counter_low) * 1000) / halo::cseries::globals().performance_frequency);
-        added = units;
+        added = update.tick_count;
 
         if (plr->connection_quality_started == 0) {
             plr->loss_window_start_ms = now_ms;
@@ -1070,100 +1070,49 @@ int32_t ConnectionView::endpoint_set(const uint32_t *source)
 }
 
 /**
- * out/phase4/networking_functions.md summary ("Begins establishing a connection
- * object to a given address/session, substituting the loopback address 127.0.0.1 when the
- * target turns out to be the local machine"); connection+0xec4 matches types/networking.h's
- * network_client_globals::unknown_ec4 exactly; connection+0xadc matches ::channel; the writes
- * to connection+0xac4/0xac6 as two 16-bit halves of a dword whose low half is set to the literal
- * 4 (k_network_address_size_ipv4) confirm connection+0xab4 is an s_network_address, which
- * upgrades the network_connection_endpoint struct first introduced in
+ * Starts a connection to `target`: stamps the attempt (start time and the 9-dword `session_info`), opens the
+ * transport connection to `connect_address` through the channel's endpoint and, when that succeeds, puts the
+ * client in the connecting state. A failed attempt sets join error 7 unless one is already pending. The
+ * connection endpoint is then rebuilt from `target` (its previous control block is dropped, not freed) and
+ * armed through network_connection_endpoint_set. Returns 1 when the transport connection was opened.
  *
  * @address 0x4d8cf0
  */
-int32_t ConnectionView::initiate(const uint32_t *target, const uint32_t *session_info)
+uint8_t ConnectionView::initiate(const uint32_t *target, const uint32_t *session_info, const uint32_t *connect_address)
 {
-    network_client_globals *connection = self;
-    network_connection_attempt_state *attempt;
-    network_connection_endpoint *endpoint;
+    network_client_globals *client = self;
+    network_connection_attempt_state *attempt = &client->connect_attempt;
+    network_receive_queue *endpoint = client->channel->endpoint;
     large_integer counter;
-    int32_t started_ms;
-    int32_t is_local_connection;
-    int16_t registration_result;
-    uint32_t loopback_a, loopback_b, loopback_c, loopback_d;
-    uint16_t port;
+    uint8_t connected = endpoint != 0;
     int32_t i;
 
-    connection->unknown_ec4 = 1;
-    attempt = &connection->connect_attempt;
+    client->unknown_ec4 = 1;
     attempt->unknown_00 = 0;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    started_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
-
+    attempt->started_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     attempt->elapsed_counter = 0;
     attempt->loading_started = 0;
-    attempt->started_ms = started_ms;
     for (i = 0; i < 9; i = i + 1) {
         attempt->session_info[i] = session_info[i];
     }
 
-    endpoint = &connection->connection;
-    is_local_connection = connection->channel->endpoint != 0;
-    if (is_local_connection && connection->channel->endpoint != 0) {
-        halo::networking::network_address_to_string(&endpoint->address);
-        registration_result = halo::networking::network_channel_attempt_connect(&endpoint->address, (network_receive_queue *)connection->channel, 0x96640, 1);
-        if (registration_result == 0) {
-            goto local_machine_check_done;
-        }
-        is_local_connection = 0;
-    } else {
-local_machine_check_done:
-        if (is_local_connection) {
-            connection->state = 1;
-            goto rebuild_endpoint;
+    if (connected) {
+        halo::networking::network_address_to_string((s_network_address *)connect_address);
+        if (halo::networking::network_channel_attempt_connect((s_network_address *)connect_address, endpoint, 0x96640, 1) != 0) {
+            connected = 0;
         }
     }
-    if (network_join_error_code == -1) {
+    if (connected) {
+        client->state = k_network_client_state_connecting;
+    } else if (network_join_error_code == -1) {
         network_join_error_code = 7;
     }
-rebuild_endpoint:
-    endpoint->address.ipv4 = 0;
-    endpoint->address.ipv6_1 = 0;
-    endpoint->address.ipv6_2 = 0;
-    endpoint->address.ipv6_3 = 0;
-    *(uint32_t *)&endpoint->address.size = 0;
-    endpoint->unknown_14 = 0;
-    endpoint->last_send_ms = 0;
-    endpoint->message_count = 0;
-    endpoint->retry_count = 0;
-    endpoint->current_ping_ms = 0;
-    endpoint->ready = 0;
-    endpoint->unknown_23 = 0;
-    endpoint->control_block = 0;
 
-    if ((int16_t)target[4] == 0) {
-
-        loopback_a = inet_addr("127.0.0.1");
-        loopback_b = inet_addr("127.0.0.1");
-        loopback_c = inet_addr("127.0.0.1");
-        loopback_d = inet_addr("127.0.0.1");
-        port = (uint16_t)network_game_socket_port;
-        endpoint->address.ipv4 = (loopback_a & 0xff0000 | loopback_b >> 0x10) >> 8 |
-                                 (loopback_c << 0x10 | loopback_d & 0xff00) << 8;
-        endpoint->address.size = k_network_address_size_ipv4;
-        endpoint->address.port = port;
-        halo::networking::network_connection_endpoint_set((const uint32_t *)endpoint, connection);
-        return is_local_connection;
-    }
-
-    endpoint->address.ipv4 = target[0];
-    endpoint->address.ipv6_1 = target[1];
-    endpoint->address.ipv6_2 = target[2];
-    endpoint->address.ipv6_3 = target[3];
-    *(uint32_t *)&endpoint->address.size = target[4];
-    endpoint->unknown_14 = target[5];
-    halo::networking::network_connection_endpoint_set(target, connection);
-    return is_local_connection;
+    memset(&client->connection, 0, sizeof(client->connection));
+    halo::networking::network_connection_endpoint_set(target, client);
+    return connected;
 }
 
 /**
@@ -1503,7 +1452,7 @@ uint32_t JoinView::handshake_tick()
         halo::networking::network_debug_fill_canary_buffer((uint32_t *)(frame + 56));
 
         result = (uint32_t)halo::networking::network_connection_initiate(client, (const uint32_t *)(frame + 72),
-                                                         (const uint32_t *)(frame + 36));
+                                                         (const uint32_t *)(frame + 36), (const uint32_t *)(frame + 12));
         if ((char)result == 0) {
             goto retry_limit_check;
         }

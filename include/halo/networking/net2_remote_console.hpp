@@ -70,7 +70,7 @@ public:
      *
      * @address 0x4ddfb0
      */
-    static char send_update(uint32_t *tick_count, char frame_time_overflow);
+    static char send_update(int32_t tick_count, char frame_time_overflow);
 
 };
 

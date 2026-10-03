@@ -180,23 +180,23 @@ char ServerView::load_scenario()
 }
 
 /**
- * When the session flag at server->session.unknown_3ac is set, records `sender` as the last
- * object to update the resolved player's record (player->unknown_d0), provided the resolve
- * succeeded, the resolved index is non-zero, and sender is a valid handle.
+ * Looks up the player in session slot `player_index` and, once the map is loaded, stamps its
+ * quit_tick with `quit_tick` (the game time at which the host removes the player). Returns 0 when
+ * the slot has no player datum, 1 otherwise, including when the stamp is skipped.
  *
  * @address 0x4df900
  */
-uint32_t ServerView::record_last_sender(int32_t sender, int16_t step_count)
+uint32_t ServerView::record_last_sender(int32_t player_index, int32_t quit_tick)
 {
     network_server_globals *server = self;
     uint32_t resolved;
 
-    resolved = halo::networking::player_data_iterator_advance(step_count);
+    resolved = halo::networking::player_data_iterator_advance((int16_t)player_index);
     if (resolved == 0xffffffff) {
         return 0;
     }
-    if (server->session.map_loaded != 0 && resolved != 0 && sender != -1) {
-        *(int32_t *)((uint8_t *)halo::game::globals().player_data->data + (resolved & 0xffff) * 0x200 + 0xd0) = sender;
+    if (server->session.map_loaded != 0 && resolved != 0 && quit_tick != -1) {
+        ((player *)player_data->data)[resolved & 0xffff].quit_tick = quit_tick;
     }
     return 1;
 }
@@ -390,7 +390,7 @@ not_timed_out:
                 memcpy(&copy, entry, sizeof(copy));
                 if (halo::networking::network_player_entry_validate(&copy) != 0 &&
                     (int32_t)copy.machine_index == machine_id) {
-                    if (halo::networking::network_game_settings_broadcast_send((uint32_t)server, (uint32_t *)&copy) != 0) {
+                    if (halo::networking::network_game_settings_broadcast_send(server, &copy) != 0) {
                         halo::networking::network_player_entry_remove(&copy, &server->session);
                         if (network_client != 0 && (int32_t)network_client != -0xb14 &&
                             (machine->flags >> 2 & 1) != 0) {
@@ -408,7 +408,7 @@ not_timed_out:
                         halo::networking::network_channel_remove_child(server->listen_channel, machine->channel);
                     }
                     machine->channel = 0;
-                    machine->unknown_04 = 0;
+                    machine->last_update_id = 0;
                     machine->unknown_08 = 0;
                     machine->machine_id = -1;
 
@@ -459,7 +459,7 @@ not_timed_out:
         for (i = 0; i < 16; i = i + 1) {
             if (halo::networking::network_player_entry_validate(entry) != 0 &&
                 (int16_t)entry->machine_index == machine->machine_id) {
-                if (halo::networking::network_game_settings_broadcast_send((uint32_t)server, (uint32_t *)entry) == 0) {
+                if (halo::networking::network_game_settings_broadcast_send(server, entry) == 0) {
                     local_result = 0;
                     break;
                 }
@@ -674,7 +674,7 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
     for (i = 0; i < 16; i++) {
         machine = &host->machines[i];
         machine->flags = machine->flags & 0xfb;
-        machine->unknown_04 = 0;
+        machine->last_update_id = 0;
         machine->unknown_08 = 0;
         machine->player_joined = 0;
     }

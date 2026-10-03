@@ -12,13 +12,13 @@ public:
     GameRuntime() = delete;
 
     static void broadcast_team_object_updates(int32_t *object_count, uint32_t param_1, int32_t *bytes_sent);
-    static void client_apply_position_update(uint8_t *state, uint32_t *packet, void *tick_count, void *object);
+    static void client_apply_position_update(network_machine *machine, const client_position_packet *packet, int32_t tick_count, uint32_t history_byte);
     static void client_apply_received_update(network_machine *machine, uint32_t server, void **message);
     static wchar_t * get_random_player_name();
     static int32_t is_active();
     static uint32_t process_incoming_message(int32_t length, network_machine *machine, uint16_t *record, network_server_globals *server);
     static char settings_ack_send(uint8_t *client, int16_t template_row);
-    static uint32_t settings_broadcast_send(uint32_t round, uint32_t *record);
+    static uint32_t settings_broadcast_send(network_server_globals *server, const network_player_entry *entry);
     static uint8_t start_new_server_from_profile(uint32_t param_1);
     static uint8_t start_new_server_with_name_and_password(uint32_t unused, uint16_t *name, uint16_t *password);
     static void map_cycle_list_broadcast();

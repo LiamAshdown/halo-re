@@ -715,7 +715,7 @@ void * ServerView::host_new()
         for (i = 0; i < 16; i++) {
             machine = &host->machines[i];
             machine->channel = 0;
-            machine->unknown_04 = 0;
+            machine->last_update_id = 0;
             machine->unknown_08 = 0;
             machine->machine_id = -1;
             machine->flags = 0;
@@ -985,37 +985,76 @@ int32_t ServerView::count_connected_machines()
 }
 
 /**
- * out/phase4/networking_functions.md: "Counts occupied machine-table slots up to the
- * first free one and, for a new connection, fetches its remote address via
- * network_channel_get_remote_address." Ghidra's own decompilation removes eleven blocks as
- * "unreachable", so most of this 438-byte function's body is not available here; only the
- * surviving control flow is transcribed. param_1+6 matches network_server_globals::flags;
- * param_1+0x3c4 matches ::machines[0].machine_id.
+ * Admits a channel the listener just accepted as a new machine of the host. It fails (0) unless the session is
+ * initialised, a machine slot is free and the peer resolves to a non-zero IPv4 address that is either loopback
+ * or this machine's own (any peer passes while network_disconnect_timeout_flag is set). The slot is reset as an
+ * established machine with no timers, no player and the next connection id, the channel joins the listener's
+ * channel list, and the machine is sent its game info packet: the full one when the game is over and the channel
+ * is not connected yet, the short one otherwise. Returns 1 when the channel could be listed.
  *
  * @address 0x4e0d30
  */
-uint32_t ServerView::count_machines_and_resolve_address(uint32_t eax_passthrough, s_network_address *address_out, network_receive_queue **connection)
+uint8_t ServerView::count_machines_and_resolve_address(network_channel *channel)
 {
     network_server_globals *server = self;
-    if ((server->flags & 1) != 0) {
-        int32_t i;
-        int16_t *machine_id_ptr;
+    static int32_t next_connection_id;
+    network_machine *machine;
+    network_resolved_address peer = {};
+    int32_t slot;
+    int32_t connection_id;
+    uint8_t listed;
 
-        i = 0;
-        machine_id_ptr = (int16_t *)((uint8_t *)server + 0x3c4);
-        while (*machine_id_ptr != -1) {
-            i = i + 1;
-            machine_id_ptr = machine_id_ptr + 0x30;
-            if (i > 15) {
-                return ((uint32_t)machine_id_ptr) & 0xffffff00;
-            }
-        }
-        if (*connection != 0) {
-            halo::networking::network_channel_get_remote_address(address_out, *connection);
-        }
-        eax_passthrough = 0;
+    if ((server->flags & 1) == 0) {
+        return 0;
     }
-    return eax_passthrough & 0xffffff00;
+    for (slot = 0; slot < 16; slot = slot + 1) {
+        if (server->machines[slot].machine_id == -1) {
+            break;
+        }
+    }
+    if (slot == 16) {
+        return 0;
+    }
+
+    if (channel->endpoint != 0 && halo::networking::network_channel_get_remote_address(&peer.address, channel->endpoint) != 0) {
+        peer = {};
+    }
+    if (peer.address.ipv4 == 0) {
+        return 0;
+    }
+    if (halo::networking::globals().disconnect_timeout_flag == 0 && peer.address.ipv4 != 0x7f000001 && peer.address.ipv4 != network_local_address) {
+        return 0;
+    }
+
+    machine = &server->machines[slot];
+    machine->channel = channel;
+    machine->timer_14 = 0;
+    machine->timer_18 = 0;
+    machine->machine_id = (int16_t)slot;
+    machine->flags = k_network_machine_established;
+    machine->unknown_0f = 0;
+    machine->disconnect_timer_active = 0;
+    machine->player_joined = 0;
+    machine->players_removed_broadcast = 0;
+    machine->unknown_52 = 0;
+    machine->unknown_56 = 0;
+    connection_id = next_connection_id;
+    next_connection_id = next_connection_id + 1;
+    if (connection_id == -1) {
+        connection_id = next_connection_id;
+        next_connection_id = next_connection_id + 1;
+    }
+    machine->gcd_user_id = connection_id;
+
+    listed = halo::networking::network_channel_list_add(channel->endpoint, server->listen_channel->listen_list) == 0;
+    if (machine->channel != 0 && machine->channel->connected != 0) {
+        halo::networking::network_server_build_game_info_packet(server, machine);
+    } else if (server->game_over != 0) {
+        halo::networking::network_server_build_full_game_info_packet(machine);
+    } else {
+        halo::networking::network_server_build_game_info_packet(server, machine);
+    }
+    return listed;
 }
 
 /**
@@ -1300,12 +1339,12 @@ uint32_t ServerMessageHandlers::client_retry_schedule(network_machine *machine, 
 uint32_t ServerMessageHandlers::client_settings_relay(uint8_t *record, int32_t length)
 {
     network_server_globals *server = self;
-    uint32_t body[8];
+    network_player_entry body;
     int16_t out_type;
     uint16_t version_used;
 
-    if (*(int16_t *)((uint8_t *)server + 4) == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 5) != 0) {
-        return halo::networking::network_game_settings_broadcast_send((uint32_t)server, body);
+    if (*(int16_t *)((uint8_t *)server + 4) == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &body, record + 2, &out_type, &version_used, 5) != 0) {
+        return halo::networking::network_game_settings_broadcast_send(server, &body);
     }
     return 1;
 }
@@ -1522,12 +1561,12 @@ uint32_t ServerMessageHandlers::retry_schedule(network_machine *machine, uint8_t
 uint32_t ServerMessageHandlers::settings_relay(uint8_t *record, int32_t length)
 {
     network_server_globals *server = self;
-    uint32_t body[8];
+    network_player_entry body;
     int16_t out_type;
     uint16_t version_used;
 
-    if (*(int16_t *)((uint8_t *)server + 4) == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0) {
-        return halo::networking::network_game_settings_broadcast_send((uint32_t)server, body);
+    if (*(int16_t *)((uint8_t *)server + 4) == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &body, record + 2, &out_type, &version_used, 3) != 0) {
+        return halo::networking::network_game_settings_broadcast_send(server, &body);
     }
     return 1;
 }
@@ -1545,12 +1584,12 @@ uint32_t ServerMessageHandlers::settings_relay(uint8_t *record, int32_t length)
 uint32_t ServerMessageHandlers::settings_relay_role2(uint8_t *record, int32_t length)
 {
     network_server_globals *server = self;
-    uint32_t body[8];
+    network_player_entry body;
     int16_t out_type;
     uint16_t version_used;
 
-    if (*(int16_t *)((uint8_t *)server + 4) == 2 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 7) != 0) {
-        return halo::networking::network_game_settings_broadcast_send((uint32_t)server, body);
+    if (*(int16_t *)((uint8_t *)server + 4) == 2 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &body, record + 2, &out_type, &version_used, 7) != 0) {
+        return halo::networking::network_game_settings_broadcast_send(server, &body);
     }
     return 1;
 }
@@ -1693,7 +1732,7 @@ char HostServerView::update_tick()
         if (service_result == 1) {
             proceed = 1;
             if (new_child != 0) {
-                service_result = halo::networking::network_server_count_machines_and_resolve_address(0, &sender.address, host, (network_receive_queue **)new_child);
+                service_result = halo::networking::network_server_count_machines_and_resolve_address(host, new_child);
                 if (service_result == 1) {
                     halo::networking::network_channel_remote_address_or_default(new_child, &sender);
                     proceed = 1;
@@ -1799,7 +1838,7 @@ int32_t MachineView::reset()
     machine->timer_14 = 0;
     machine->timer_18 = 0;
     machine->player_joined = 0;
-    memset(machine->connect_state, 0, sizeof(machine->connect_state));
+    memset(&machine->last_update, 0, sizeof(machine->last_update));
     return 1;
 }
 

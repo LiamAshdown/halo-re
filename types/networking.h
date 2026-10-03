@@ -455,6 +455,45 @@ typedef struct network_game_session {
 } network_game_session;        // size 0x3b0
 
 // ---------------------------------------------------------------------------
+// client_update_record  (0x34 bytes; message type 0x0d "client update")
+// What one client sends the host per update: the number of ticks the record covers, the update id it
+// acknowledges, the staged player_action fields and the aim direction derived from yaw and pitch. It is both
+// the delta-coded item of message 0x0d (network_client_globals::last_update_sent is the sender's baseline,
+// network_machine::last_update the host's per-machine copy) and the by-value argument of
+// network_client_check_connection_quality (0x4e0080), which only reads tick_count.
+// ---------------------------------------------------------------------------
+typedef struct client_update_record {
+    uint8_t tick_count;          // 0x00 ticks of simulation this update covers
+    uint8_t pad_01[3];           // 0x01
+    uint32_t update_id;          // 0x04 network_client_globals::last_update_id & 0x7fffffff
+    uint32_t control_flags;      // 0x08 player_action::control_flags
+    float yaw;                   // 0x0c player_action::desired_yaw
+    float pitch;                 // 0x10 player_action::desired_pitch
+    float aim_direction[3];      // 0x14 cos(yaw)cos(pitch), sin(yaw)cos(pitch), sin(pitch)
+    float throttle_x;            // 0x20 player_action::throttle_x
+    float throttle_y;            // 0x24 player_action::throttle_y
+    float primary_trigger;       // 0x28 player_action::primary_trigger
+    int16_t weapon_index;        // 0x2c player_action::weapon_index
+    int16_t grenade_index;       // 0x2e player_action::grenade_index
+    int16_t zoom_level;          // 0x30 player_action::zoom_level
+    int16_t pad_32;              // 0x32
+} client_update_record;          // size 0x34
+typedef char client_update_record_size[sizeof(client_update_record) == 0x34 ? 1 : -1];
+
+// ---------------------------------------------------------------------------
+// client_position_packet  (0x28 bytes with one action; message type 0x1b and the tail of 0x0d)
+// The record network_game_client_apply_position_update (0x4dff70) consumes. action_count is 0 or 1; the
+// action, when present, is a player_action copied verbatim into the server's update queue.
+// ---------------------------------------------------------------------------
+typedef struct client_position_packet {
+    uint32_t update_id;          // 0x00 low 31 bits are compared with network_machine::last_update_id
+    int16_t pad_04;              // 0x04
+    int16_t action_count;        // 0x06 0 or 1
+    uint32_t action[8];          // 0x08 player_action (0x20 bytes) when action_count is 1
+} client_position_packet;        // size 0x28
+typedef char client_position_packet_size[sizeof(client_position_packet) == 0x28 ? 1 : -1];
+
+// ---------------------------------------------------------------------------
 // network_machine  (0x4dec40 init, 0x4df690 reset, 0x4e0810 find by id,
 // 0x4e0b90 clear flag, 0x4e0ef0 timeout, 0x4e11d0 the per-frame pass)
 // One connected peer. The table base and stride are pinned by 0x4e0810, which
@@ -469,7 +508,8 @@ typedef enum network_machine_flags {
 
 typedef struct network_machine {
     network_channel *channel;    // 0x00
-    int32_t unknown_04;          // 0x04
+    uint32_t last_update_id;     // 0x04 network_game_client_apply_position_update ignores packets whose id (low 31 bits)
+                                 //    is below it and stores the accepted id here
     int32_t unknown_08;          // 0x08
     int16_t machine_id;          // 0x0c 0xffff means the slot is free
     uint8_t flags;               // 0x0e see network_machine_flags
@@ -480,7 +520,8 @@ typedef struct network_machine {
     uint8_t pad_11[3];           // 0x11
     int32_t timer_14;            // 0x14 cleared by 0x4df690
     int32_t timer_18;            // 0x18 cleared by 0x4df690
-    uint8_t connect_state[0x34]; // 0x1c zeroed as one block by 0x4df690
+    client_update_record last_update; // 0x1c the last message 0x0d record received from this machine (the delta
+                                 //    baseline); zeroed as one block by 0x4df690
     uint8_t player_joined;       // 0x50 handle_client_join 0x4dfc90 sets 1 after the player is created; player_delete
                                  //    clears via 0x4e0b90; timeout 0x4e0ef0 frees the slot only when 0
     uint8_t players_removed_broadcast; // 0x51 0x4e0ef0: on a timed-out machine that still has players, broadcasts
@@ -659,7 +700,8 @@ typedef struct network_client_globals {
     int32_t team_index;        // 0xf10 identity_tick keeps player->team (+0x20) across reconnect;
                                //    game_settings_updated copies player+0x20; 0x4d94c0 sends it as join frame byte
                                //    0x8c; -1 at create
-    int32_t unknown_f14[13];   // 0xf14 zeroed as one run at create
+    client_update_record last_update_sent; // 0xf14 baseline of the message 0x0d records update_server_send_update sends;
+                               //    zeroed at create
     void *update_history;      // 0xf48 player_update_history *, GlobalAlloc of 0x2c
 } network_client_globals;      // size 0xf4c
 // global 0x0071c2d8: network_client_globals *network_client   points at 0x00872de0

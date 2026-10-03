@@ -1026,9 +1026,9 @@ int32_t network_server_count_connected_machines(network_server_globals *server)
  *
  * @address 0x4e0d30
  */
-uint32_t network_server_count_machines_and_resolve_address(uint32_t eax_passthrough, s_network_address *address_out, network_server_globals *server, network_receive_queue **connection)
+uint8_t network_server_count_machines_and_resolve_address(network_server_globals *server, network_channel *channel)
 {
-    return halo::networking::ServerView(server).count_machines_and_resolve_address(eax_passthrough, address_out, connection);
+    return halo::networking::ServerView(server).count_machines_and_resolve_address(channel);
 }
 
 /**
@@ -1356,9 +1356,9 @@ char network_game_server_load_scenario(void)
  *
  * @address 0x4df900
  */
-uint32_t network_object_record_last_sender(int32_t sender, int16_t step_count, network_server_globals *server)
+uint32_t network_object_record_last_sender(int32_t player_index, int32_t quit_tick, network_server_globals *server)
 {
-    return halo::networking::ServerView(server).record_last_sender(sender, step_count);
+    return halo::networking::ServerView(server).record_last_sender(player_index, quit_tick);
 }
 
 /**
@@ -1476,9 +1476,9 @@ uint32_t network_client_begin_connect(wchar_t *player_name, s_network_address *t
  *
  * @address 0x4e0080
  */
-uint32_t network_client_check_connection_quality(uint32_t machine_index, uint8_t units)
+uint32_t network_client_check_connection_quality(int16_t machine_id, client_update_record update)
 {
-    return halo::networking::ClientView::check_connection_quality(machine_index, units);
+    return halo::networking::ClientView::check_connection_quality(machine_id, update);
 }
 
 /**
@@ -1676,9 +1676,9 @@ int32_t network_connection_endpoint_set(const uint32_t *source, network_client_g
  *
  * @address 0x4d8cf0
  */
-int32_t network_connection_initiate(network_client_globals *connection, const uint32_t *target, const uint32_t *session_info)
+uint8_t network_connection_initiate(network_client_globals *connection, const uint32_t *target, const uint32_t *session_info, const uint32_t *connect_address)
 {
-    return halo::networking::ConnectionView(connection).initiate(target, session_info);
+    return halo::networking::ConnectionView(connection).initiate(target, session_info, connect_address);
 }
 
 /**
@@ -2406,9 +2406,9 @@ void network_game_broadcast_team_object_updates(int32_t *object_count, uint32_t 
  *
  * @address 0x4dff70
  */
-void network_game_client_apply_position_update(uint8_t *state, uint32_t *packet, void *tick_count, void *object)
+void network_game_client_apply_position_update(network_machine *machine, const client_position_packet *packet, int32_t tick_count, uint32_t history_byte)
 {
-    halo::networking::GameRuntime::client_apply_position_update(state, packet, tick_count, object);
+    halo::networking::GameRuntime::client_apply_position_update(machine, packet, tick_count, history_byte);
 }
 
 /**
@@ -2456,9 +2456,9 @@ char network_game_settings_ack_send(uint8_t *client, int16_t template_row)
  *
  * @address 0x4df0e0
  */
-uint32_t network_game_settings_broadcast_send(uint32_t round, uint32_t *record)
+uint32_t network_game_settings_broadcast_send(network_server_globals *server, const network_player_entry *entry)
 {
-    return halo::networking::GameRuntime::settings_broadcast_send(round, record);
+    return halo::networking::GameRuntime::settings_broadcast_send(server, entry);
 }
 
 /**

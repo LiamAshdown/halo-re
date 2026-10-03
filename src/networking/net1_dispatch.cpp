@@ -251,13 +251,13 @@ public:
     uint32_t handle(network_server_globals *server, network_machine *machine, uint8_t *bytes, int32_t length) const override
     {
         if (*(int16_t *)((uint8_t *)server + 4) == 1) {
-            uint32_t body[8];
+            client_position_packet packet;
             int16_t out_type;
             uint16_t version_used;
 
-            if (halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body,
+            if (halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &packet,
                                                 bytes + 2, &out_type, &version_used, 5) != 0) {
-                GameRuntime::client_apply_position_update((uint8_t *)machine, body, (void *)-1, 0);
+                GameRuntime::client_apply_position_update(machine, &packet, -1, 0);
             }
         }
         return 1;

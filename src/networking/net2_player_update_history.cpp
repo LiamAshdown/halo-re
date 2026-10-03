@@ -720,9 +720,9 @@ void player_update_history_log_write(uint32_t category_flags, int32_t use_filter
     fclose(file);
 }
 
-int32_t player_data_iterator_advance(int16_t step_count)
+int32_t player_data_iterator_advance(int16_t player_index)
 {
-    return halo::networking::PlayerUpdateHistory::advance(step_count);
+    return halo::networking::PlayerUpdateHistory::advance(player_index);
 }
 
 uint8_t player_update_history_add(datum_index unit_index, player_update_history *history,

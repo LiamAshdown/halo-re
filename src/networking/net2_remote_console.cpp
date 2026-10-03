@@ -31,9 +31,9 @@ extern network_client_globals * network_client;
 extern char registry_halo_version_buffer[0x40];
 extern double sin(double x);
 extern double cos(double x);
-extern data_array * local_player_globals;
+extern player_globals * local_player_globals;
 extern uint32_t update_client_staged[8];
-extern uint32_t player_data;
+extern data_array * player_data;
 extern void * message_delta_definition_table;
 extern uint8_t update_server_pending_flush;
 extern uint8_t update_server_history_index;
@@ -43,7 +43,7 @@ extern int32_t update_server_last_tick_ms;
 extern void update_server_new(void);
 extern void update_queues_dispose(void);
 extern void update_server_dispose(void);
-extern void update_client_stage_entry(void);
+extern void update_client_stage_entry(uint32_t *source);
 extern void ui_network_wait_timeout_check(void);
 extern void ui_network_wait_timeout_start(void);
 }
@@ -55,79 +55,79 @@ typedef struct rcon_request_record {
 
 namespace halo::networking {
 
+/**
+ * Appends one message of `bit_count` bits from `bits` to the channel's outgoing stream, preceded by a set item
+ * flag bit and counted against the channel's send budget. Flushes the stream first when it has no room; returns
+ * 0 when that flush fails and nothing was staged.
+ */
+static bool stage_channel_item(network_channel *channel, const uint8_t *bits, int32_t bit_count)
+{
+    bit_stream *stream = &channel->outgoing.stream;
+    int32_t free_bits = stream->last_bit - stream->byte_cursor * 8 - stream->bit_cursor + 1;
+    uint32_t item_flag = 1;
+
+    if (bit_count + 1 > free_bits && halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1) == 0) {
+        return false;
+    }
+    channel->send_budget = channel->send_budget + bit_count + 1;
+    halo::memory::bit_stream_write_bits_chunked(stream, &item_flag, 1);
+    channel->outgoing.empty = 0;
+    halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)bits, bit_count);
+    channel->outgoing.empty = 0;
+    return true;
+}
+
+/**
+ * Starts a connection from `client` to `target_address`: stamps the attempt (start time, the 9-dword session
+ * info), opens the transport connection through the channel's endpoint and, when that succeeds, moves the client
+ * to the connecting state, records the target as the connection endpoint and shows the loading screen. Returns
+ * 1 on success; on failure it returns 0 and sets join error 7 unless an error is already pending.
+ *
+ * @address 0x4d8ed0
+ */
 int8_t RemoteConsole::on_connect(const uint32_t *target_address, network_client_globals *client,
                             const uint32_t *session_info)
 {
-    network_connection_attempt_state *attempt;
-    network_connection_endpoint *endpoint;
+    network_connection_attempt_state *attempt = &client->connect_attempt;
+    network_receive_queue *endpoint = client->channel->endpoint;
     large_integer counter;
-    int32_t started_ms;
-    network_channel *endpoint_probe;
-    int16_t registration_result;
+    int8_t connected = 0;
     int32_t i;
 
     halo::networking::network_address_to_string((s_network_address *)target_address);
     client->unknown_ec4 = 1;
-    attempt = &client->connect_attempt;
     attempt->unknown_00 = 0;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    started_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
-
+    attempt->started_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     attempt->elapsed_counter = 0;
-    attempt->started_ms = started_ms;
     attempt->loading_started = 0;
     for (i = 0; i < 9; i = i + 1) {
         attempt->session_info[i] = session_info[i];
     }
 
-    endpoint_probe = client->channel;
-    if (endpoint_probe->endpoint != 0) {
-        halo::networking::network_address_to_string(&(&client->connection)->address);
-        registration_result = halo::networking::network_channel_attempt_connect(&(&client->connection)->address, (network_receive_queue *)client->channel, 0x96640, 1);
-        if (registration_result != 0) {
-            goto retry_limit_check;
+    if (endpoint != 0) {
+        halo::networking::network_address_to_string((s_network_address *)target_address);
+        connected = halo::networking::network_channel_attempt_connect((s_network_address *)target_address, endpoint, 0x96640, 1) == 0;
+    }
+    if (!connected) {
+        if (network_join_error_code == -1) {
+            network_join_error_code = 7;
         }
+        return 0;
     }
-    if (endpoint_probe->endpoint != 0) {
-        client->state = 1;
-        attempt->elapsed_counter = 0;
-        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Connecting"));
 
-        endpoint = &client->connection;
-        endpoint->address.ipv4 = 0;
-        endpoint->address.ipv6_1 = 0;
-        endpoint->address.ipv6_2 = 0;
-        endpoint->address.ipv6_3 = 0;
-        *(uint32_t *)&endpoint->address.size = 0;
-        endpoint->unknown_14 = 0;
-        endpoint->last_send_ms = 0;
-        endpoint->message_count = 0;
-        endpoint->retry_count = 0;
-        endpoint->current_ping_ms = 0;
-        endpoint->ready = 0;
-        endpoint->unknown_23 = 0;
-        endpoint->control_block = 0;
-
-        endpoint->address.ipv4 = target_address[0];
-        endpoint->address.ipv6_1 = target_address[1];
-        endpoint->address.ipv6_2 = target_address[2];
-        endpoint->address.ipv6_3 = target_address[3];
-        *(uint32_t *)&endpoint->address.size = target_address[4];
-        endpoint->unknown_14 = target_address[5];
-
-        interface_loading_screen_progress = 0;
-        join_ui_state = 5;
-        if (endpoint->address.size == k_network_address_size_ipv4) {
-            halo::networking::network_connection_endpoint_set(target_address, client);
-        }
-        return 1;
+    client->state = k_network_client_state_connecting;
+    attempt->elapsed_counter = 0;
+    console_printf_verbose("Connecting");
+    memset(&client->connection, 0, 10 * sizeof(uint32_t));
+    memcpy(&client->connection.address, target_address, 6 * sizeof(uint32_t));
+    interface_loading_screen_progress = 0;
+    join_ui_state = 5;
+    if (client->connection.address.size == k_network_address_size_ipv4) {
+        halo::networking::network_connection_endpoint_set(target_address, client);
     }
-retry_limit_check:
-    if (network_join_error_code == -1) {
-        network_join_error_code = 7;
-    }
-    return 0;
+    return connected;
 }
 
 void RemoteConsole::rcon_out(char *text, int32_t unused_machine_id)
@@ -246,19 +246,9 @@ void RemoteConsole::run_rcon_send_request(char *command, char *password)
     encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x36, 0, items, 0, 1, 0);
     if (encoded_bits > 0) {
         network_channel *channel = network_client->channel;
-        bit_stream *stream = (bit_stream *)((uint8_t *)channel + 0x10);
-        int32_t free_bits = channel->outgoing.stream.last_bit -
-            channel->outgoing.stream.byte_cursor * 8 - channel->outgoing.stream.bit_cursor + 1;
 
-        if ((channel->flags & 1) == 0 &&
-            (encoded_bits + 1 <= free_bits || halo::networking::network_channel_stream_flush((network_channel_stream *)((uint8_t *)channel + 0x10), (network_channel *)channel, 1) != 0)) {
-            uint32_t item_flag = 1;
-
-            channel->send_budget = channel->send_budget + encoded_bits + 1;
-            halo::memory::bit_stream_write_bits_chunked(stream, &item_flag, 1);
-            channel->outgoing.empty = 0;
-            halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)network_message_scratch, encoded_bits);
-            channel->outgoing.empty = 0;
+        if ((channel->flags & k_network_channel_listening) == 0) {
+            stage_channel_item(channel, network_message_scratch, encoded_bits);
         }
     }
 }
@@ -305,29 +295,23 @@ char * RemoteConsole::halo_version(void)
     return registry_halo_version_buffer;
 }
 
-char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
+/**
+ * Per-frame client side of the update stream. Without a client session it tears the update queues down
+ * and resets them. While the client is playing it takes the staged control record, finds the local
+ * player's unit and, if one exists, records the control in the prediction history and builds the
+ * message 0x0d update record (ticks, update id, control and aim direction). A client sends the record
+ * to the host's channel and logs it; a host feeds it straight into client_apply_position_update for its own
+ * machine. The record becomes the baseline of the next delta. Returns 0 when the channel could not be
+ * flushed, which the caller treats as a lost connection.
+ *
+ * @address 0x4ddfb0
+ */
+char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
 {
-    char result;
-    char flush_ok;
+    char result = 1;
     int32_t now_ms;
-    uint32_t reliable_seq;
-    uint16_t player_id;
-    uint32_t control[8];
-    char history_byte;
-    char logged_history_byte;
-    uint32_t record[13];
-    uint32_t checksum;
-    float position[4];
-    float direction[3];
-    void *encoded;
-    network_channel *channel;
-    data_iterator iterator;
-    void *it;
-    int32_t max_bits;
-    datum_index unit_index = k_datum_index_none;
-    int32_t history_update_id = 0;
+    uint8_t sent_update = 0;
 
-    result = 1;
     if (network_client == 0) {
         network_game_mode = 0;
         halo::game::update_queues_dispose();
@@ -336,99 +320,116 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
         halo::interface::ui_network_wait_timeout_check();
         return result;
     }
-    if (network_client->state == 3) {
-        now_ms = halo::cseries::time_query_performance_counter_ms();
-        reliable_seq = network_client->last_update_id & 0x7fffffff;
-        player_id = local_player_globals->maximum_count;
-        memcpy(control, update_client_staged, sizeof(control));
-        history_byte = 0;
-        if ((int32_t)tick_count > 0 && frame_time_overflow == 0) {
-            iterator.data = (data_array *)(uintptr_t)player_data;
-            iterator.next_index = 0;
-            iterator.index = k_datum_index_none;
-            iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-            it = halo::memory::data_iterator_next(&iterator);
-            while (it != 0 && ((player *)it)->local_player_index == -1) {
-                it = halo::memory::data_iterator_next(&iterator);
-            }
-            if (it != 0) {
-                unit_index = ((player *)it)->unit;
-            }
-        }
-        if (network_game_mode == 1) {
-            flush_ok = halo::networking::player_update_history_add(unit_index, (player_update_history *)network_client->update_history, (int32_t)(uintptr_t)tick_count,
-                *(player_action *)control, &history_update_id);
-            if (flush_ok != 1) {
-                uint32_t blank_entry[8] = {0, 0, 0, 0, 0, 0, (uint32_t)network_client->unknown_f14[11], (uint16_t)network_client->unknown_f14[12]};
-                halo::game::update_client_stage_entry(blank_entry);
-                halo::interface::ui_network_wait_timeout_start();
-                goto after_send;
-            }
-        } else {
-            logged_history_byte = update_server_history_index;
-            update_server_history_index = (update_server_history_index + 1) & 0x3f;
-            (void)logged_history_byte;
-        }
-        direction[0] = (float)cos(position[2]);
-        direction[1] = (float)(cos(position[1]) * direction[0]);
-        direction[2] = (float)(sin(position[1]) * direction[0]);
-        history_byte = update_server_history_index;
+    if (network_client->state != k_network_client_state_playing) {
+        halo::interface::ui_network_wait_timeout_start();
+        return result;
+    }
 
-        if (network_game_mode == 1) {
-            encoded = (void *)(uintptr_t)halo::networking::message_delta_encode_single_value(0xd, &history_byte, record,
-                (uint8_t *)network_client + 0xf14, (int32_t)network_message_scratch, 0x7ff8, 1);
-            if (update_server_pending_flush == 1) {
-                halo::cseries::time_query_performance_counter_ms();
-            }
-            channel = network_client->channel;
-            update_server_pending_flush = 0;
-            result = 1;
-            if ((channel->flags & 1) == 0) {
-                max_bits = (channel->outgoing.stream.last_bit - channel->outgoing.stream.byte_cursor * 8) -
-                           channel->outgoing.stream.bit_cursor + 1;
-                if (max_bits < (int32_t)(uintptr_t)encoded + 1) {
-                    flush_ok = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
-                    if (flush_ok == 0) {
-                        goto after_channel_check;
-                    }
-                }
-                channel->send_budget = channel->send_budget + (int32_t)(uintptr_t)encoded + 1;
-                {
-                    uint32_t item_flag = 1;
+    now_ms = halo::cseries::time_query_performance_counter_ms();
+    if (tick_count > 0 && frame_time_overflow == 0) {
+        struct {
+            uint32_t update_id;
+            int16_t pad_04;
+            int16_t local_player_count;
+            player_action action;
+        } position_packet;
+        client_update_record record;
+        player_action control;
+        data_iterator iterator;
+        player *local_player;
+        uint8_t history_byte;
+        int32_t history_update_id = 0;
 
-                    halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
-                    channel->outgoing.empty = 0;
-                    halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)network_message_scratch,
-                                                  (int32_t)(uintptr_t)encoded);
-                    channel->outgoing.empty = 0;
+        position_packet.update_id = network_client->last_update_id & 0x7fffffff;
+        position_packet.pad_04 = 0;
+        position_packet.local_player_count = local_player_globals->local_player_count;
+        memcpy(&position_packet.action, update_client_staged, sizeof(position_packet.action));
+        control = position_packet.action;
+
+        iterator.data = player_data;
+        iterator.next_index = 0;
+        iterator.index = k_datum_index_none;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+        local_player = (player *)halo::memory::data_iterator_next(&iterator);
+        while (local_player != 0 && local_player->local_player_index == -1) {
+            local_player = (player *)halo::memory::data_iterator_next(&iterator);
+        }
+
+        if (local_player != 0 && local_player->unit != k_datum_index_none) {
+            if (network_game_mode == 1) {
+                char added = halo::networking::player_update_history_add(local_player->unit,
+                    (player_update_history *)network_client->update_history, tick_count, control, &history_update_id);
+
+                history_byte = (uint8_t)history_update_id;
+                if (added != 1) {
+                    player_action fallback = {};
+
+                    fallback.weapon_index = network_client->last_update_sent.weapon_index;
+                    fallback.grenade_index = network_client->last_update_sent.grenade_index;
+                    fallback.zoom_level = network_client->last_update_sent.zoom_level;
+                    update_client_stage_entry((uint32_t *)&fallback);
+                    ui_network_wait_timeout_start();
+                    goto note_pending_flush;
                 }
-                flush_ok = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
             } else {
-                flush_ok = 1;
+                history_byte = update_server_history_index;
+                update_server_history_index = (update_server_history_index + 1) & 0x3f;
             }
-        after_channel_check:
-            result = flush_ok;
-            if (flush_ok != 0) {
-                halo::networking::player_update_history_log_write(1, 0, "[%d]: Sent update [%d], [%d] ticks.\n",
-                    halo::game::globals().game_time->game_time, (int32_t)history_byte, (int32_t)(uintptr_t)tick_count);
 
+            {
+                double cos_pitch = cos((double)control.desired_pitch);
+
+                record.tick_count = (uint8_t)tick_count;
+                record.update_id = position_packet.update_id;
+                record.control_flags = control.control_flags;
+                record.yaw = control.desired_yaw;
+                record.pitch = control.desired_pitch;
+                record.aim_direction[0] = (float)(cos((double)control.desired_yaw) * cos_pitch);
+                record.aim_direction[1] = (float)(sin((double)control.desired_yaw) * cos_pitch);
+                record.aim_direction[2] = (float)sin((double)control.desired_pitch);
+                record.throttle_x = control.throttle_x;
+                record.throttle_y = control.throttle_y;
+                record.primary_trigger = control.primary_trigger;
+                record.weapon_index = control.weapon_index;
+                record.grenade_index = control.grenade_index;
+                record.zoom_level = control.zoom_level;
             }
-        } else {
-            network_machine *machine = halo::networking::network_machine_find_by_id(network_server, player_id);
-            halo::networking::network_game_client_apply_position_update((uint8_t *)machine, control, tick_count, network_client);
+
+            if (network_game_mode == 1) {
+                int32_t encoded_bits = halo::networking::message_delta_encode_single_value(0xd, &history_byte, &record,
+                    &network_client->last_update_sent, (int32_t)network_message_scratch, 0x7ff8, 1);
+                network_channel *channel = network_client->channel;
+
+                sent_update = 1;
+                update_server_pending_flush = 0;
+                if ((channel->flags & k_network_channel_listening) != 0) {
+                    result = 1;
+                } else {
+                    result = stage_channel_item(channel, network_message_scratch, encoded_bits) &&
+                        halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
+                }
+                if (result != 0) {
+                    halo::networking::player_update_history_log_write(8, 0, "[%d]: Sent update [%d], [%d] ticks.\n",
+                        game_time->game_time, (int32_t)history_byte, tick_count);
+                }
+            } else {
+                halo::networking::network_game_client_apply_position_update(
+                    halo::networking::network_machine_find_by_id(network_server, (int8_t)local_player->machine_index),
+                    (const client_position_packet *)&position_packet, tick_count, history_byte);
+            }
+            network_client->last_update_sent = record;
         }
-        memcpy(record, control, sizeof(record) < sizeof(control) ? sizeof(record) : sizeof(control));
-        if (history_byte == 0) {
-            goto after_send;
-        }
-    after_send:
+    }
+
+note_pending_flush:
+    if (sent_update == 0) {
         if (update_server_pending_flush == 0) {
             update_server_last_log_ms = halo::cseries::time_query_performance_counter_ms();
             update_server_pending_flush = 1;
         }
-        update_server_last_tick_ms = now_ms;
     }
-    halo::interface::ui_network_wait_timeout_check();
+    update_server_last_tick_ms = now_ms;
+    halo::interface::ui_network_wait_timeout_start();
     return result;
 }
 
@@ -471,7 +472,7 @@ char * registry_get_halo_version(void)
     return halo::networking::RemoteConsole::halo_version();
 }
 
-char update_server_send_update(uint32_t *tick_count, char frame_time_overflow)
+char update_server_send_update(int32_t tick_count, char frame_time_overflow)
 {
     return halo::networking::RemoteConsole::send_update(tick_count, frame_time_overflow);
 }

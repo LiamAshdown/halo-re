@@ -593,7 +593,7 @@ void MainLoop::loop(void)
                 (main_globals_data.game_connection == _game_connection_network_server &&
                  (halo::networking::globals().server->flags & 4) == 0)) {
                 halo::interface::chat_poll_hotkeys();
-                if (halo::networking::update_server_send_update((uint32_t *)ticks, main_globals_data.frame_time_overflow) == 0) {
+                if (halo::networking::update_server_send_update(ticks, main_globals_data.frame_time_overflow) == 0) {
                     if (halo::networking::globals().join_error_code == -1) {
                         halo::networking::globals().join_error_code = 1;
                     }
