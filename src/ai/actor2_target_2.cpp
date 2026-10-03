@@ -10,6 +10,7 @@
 #include "halo/core/link.hpp"
 #include "halo/physics/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/units/api.hpp"
 
 namespace halo::ai {
 

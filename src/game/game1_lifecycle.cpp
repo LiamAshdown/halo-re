@@ -37,6 +37,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/rasterizer/api.hpp"
 
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &player_profile_cache_initialized = halo::link::ref<uint8_t>(halo::game::vars().player_profile_cache_initialized);

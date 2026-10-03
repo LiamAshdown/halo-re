@@ -40,6 +40,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
 #include "halo/render/vars.hpp"
+#include "halo/units/api.hpp"
 
 static auto &render_frustum_global = halo::link::ref<render_frustum>(halo::render::vars().render_frustum_global);
 static auto &object_render_state_cache = halo::link::ref<data_array *>(halo::game::vars().object_render_state_cache);

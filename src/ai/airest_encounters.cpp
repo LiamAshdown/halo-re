@@ -25,6 +25,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/units/api.hpp"
 
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);

@@ -7,6 +7,7 @@
 #include "halo/ai/api.hpp"
 #include "halo/ai/records.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/units/api.hpp"
 
 namespace c_actor_compute_grenade_throw_vector {
 }

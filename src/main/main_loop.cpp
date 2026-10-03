@@ -59,6 +59,7 @@
 #include "halo/saved_games/vars.hpp"
 #include "halo/shell/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/units/api.hpp"
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);

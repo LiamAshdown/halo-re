@@ -31,6 +31,7 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/game/api.hpp"
 #include "halo/units/records.hpp"
+#include "halo/units/api.hpp"
 
 namespace halo::input {
 
