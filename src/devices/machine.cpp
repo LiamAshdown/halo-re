@@ -9,6 +9,7 @@
 #include "halo/devices/vars.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/units/records.hpp"
+#include "halo/units/api.hpp"
 
 static auto &device_groups = halo::link::ref<data_array *>(halo::devices::vars().device_groups);
 static auto &team_pair_data = halo::link::ref<void *>(halo::ai::vars().team_pair_data);

@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/record_access.hpp"
+#include "halo/objects/api.hpp"
 
 
 namespace halo::structures {

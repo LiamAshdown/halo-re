@@ -21,6 +21,7 @@
 #include "halo/units/records.hpp"
 #include "halo/projectiles/records.hpp"
 #include "halo/objects/record_access.hpp"
+#include "halo/units/api.hpp"
 
 static auto &k_empty_string = halo::link::ref<char [1]>(halo::networking::vars().k_empty_string);
 static auto &projectile_default_material_response = halo::link::ref<ProjectileMaterialResponse>(halo::projectiles::vars().projectile_default_material_response);

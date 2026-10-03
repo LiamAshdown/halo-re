@@ -13,6 +13,7 @@
 #include "halo/effects/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/objects/record_access.hpp"
+#include "halo/objects/api.hpp"
 
 static auto &decal_data = halo::link::ref<data_array *>(halo::effects::vars().decal_data);
 static auto &k_decal_type_parameters = halo::link::ref<const decal_type_parameters [4]>(halo::effects::vars().k_decal_type_parameters);

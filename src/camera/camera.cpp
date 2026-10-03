@@ -13,6 +13,7 @@
 #include "halo/core/link.hpp"
 #include "halo/camera/vars.hpp"
 #include "halo/units/records.hpp"
+#include "halo/units/api.hpp"
 
 static auto &camera_director_globals = halo::link::ref<director_globals>(halo::camera::vars().camera_director_globals);
 static auto &directors = halo::link::ref<director [1]>(halo::camera::vars().directors);

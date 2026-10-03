@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include "halo/networking/api.hpp"
 #include "halo/units/records.hpp"
+#include "halo/units/api.hpp"
 
 namespace {
 /** Byte size of the object memory pool and the game state regions the object system reserves. */
