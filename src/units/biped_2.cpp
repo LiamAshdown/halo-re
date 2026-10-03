@@ -14,6 +14,7 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -26,7 +27,6 @@ extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);
 extern double fabs(double x);
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index);
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
@@ -112,7 +112,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
     biped_flags = tag->biped_flags;
     speed_scale = 1.0f;
     if (test_flag(biped_flags, tags::biped_tag_flag::random_speed_increase) && unit->aiming_speed == 0) {
-        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
+        speed_scale = (float)(object_index % 0x89) * 0.00729927f * halo::game::weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
     }
 
     if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||
@@ -508,7 +508,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
     biped_flags = tag->biped_flags;
     speed_scale = 1.0f;
     if (test_flag(biped_flags, tags::biped_tag_flag::random_speed_increase) && unit->aiming_speed == 0) {
-        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
+        speed_scale = (float)(object_index % 0x89) * 0.00729927f * halo::game::weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
     }
 
     if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||

@@ -21,6 +21,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern timedemo_globals timedemo_globals_data; }
@@ -47,7 +48,6 @@ extern "C" { extern int16_t light_count_enabled; }
 extern "C" { extern uint8_t console_debug_toggle_6893f2; }
 extern "C" { extern uint8_t console_debug_toggle_6893fa; }
 extern "C" { extern char hs_compile_and_evaluate(const char *command); }
-extern "C" { extern uint32_t user_profile_signin_state_is_valid(void); }
 namespace halo::main {
 
 /**
@@ -248,7 +248,7 @@ void Timedemo::benchmark_update(void)
             } else {
                 sound_variety = "Low";
             }
-            if (directsound_eax_enabled != 0 && user_profile_signin_state_is_valid() != 0) {
+            if (directsound_eax_enabled != 0 && halo::game::user_profile_signin_state_is_valid() != 0) {
                 environmental_sound = "EAX";
             } else {
                 environmental_sound = "No";

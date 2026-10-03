@@ -3,6 +3,7 @@
 #include "halo/cseries/api.hpp"
 #include "rasterizer.h"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 extern "C" { extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; }
 extern "C" { extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; }
 
@@ -38,7 +39,6 @@ extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern uint16_t hud_text_draw_background_mode;
 extern const char decimal_format_string[];
-extern int32_t hud_text_draw_configure(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f);
 }
 
 namespace halo::networking {
@@ -751,7 +751,7 @@ void BandwidthGraphView::overlay_draw()
 
     device_draw_primitive_up(device, 3, 4, (uint8_t *)graph + 0x44, sizeof(network_graph_vertex));
 
-    hud_text_draw_configure(1, -1, 0, 0, 5, 0);
+    halo::interface::hud_text_draw_configure(1, -1, 0, 0, 5, 0);
     hud_text_draw_color_a = 1.0f;
     hud_text_draw_color_r = 1.0f;
     hud_text_draw_color_g = 1.0f;

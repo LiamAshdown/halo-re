@@ -15,6 +15,7 @@
 #include "halo/networking/net2_player_update_build.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t network_ack_resend_interval_ms;
@@ -42,12 +43,10 @@ extern int32_t network_transform_resend_interval_ms;
 extern int32_t network_vehicle_transform_resend_interval_ms_alt;
 extern int32_t network_attachment_transform_resend_interval_ms_alt;
 extern network_server_globals * network_server;
-extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern double atan2(double y, double x);
 extern double sqrt(double x);
 extern void player_update_history_log_printf_filtered(player *target_player, int32_t category,
     const char *format, ...);
-extern uint8_t circular_queue_push(circular_queue *queue, void *record);
 extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask,
     const char *format, ...);
 int32_t build_local_player_position_update(uint8_t *out_changed, player *plr);
@@ -399,7 +398,7 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
                 encoded_size = build_remote_player_vehicle_update(cache, 0, is_full, is_full,
                     control, network_key);
             } else {
-                if (player_unit_has_parent(*(datum_index *)(plr + 0x34)) != 1) {
+                if (halo::game::player_unit_has_parent(*(datum_index *)(plr + 0x34)) != 1) {
                     goto fallback;
                 }
                 now = (uint32_t)game_time->game_time;
@@ -699,7 +698,7 @@ void PlayerUpdateBuilder::handle_remote_player_action_update(remote_player_actio
             record[1] = first_byte;
             record[2] = first_byte;
             memcpy(&record[3], &control_source->unknown_04, sizeof(uint32_t) * 8);
-            if (!circular_queue_push((circular_queue *)&candidate->update_history, record)) {
+            if (!halo::game::circular_queue_push((circular_queue *)&candidate->update_history, record)) {
                 player_update_history_log_printf_filtered(candidate, 2,
                     "[%d]: Remote player action_queue overflow.\n",
                     game_time->game_time);

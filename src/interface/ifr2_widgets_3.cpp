@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include <wchar.h>
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -15,11 +16,6 @@ extern double cos(double x);
 extern void *ui_replace_function_table[4];
 extern uint16_t ui_invalid_replacement_text[];
 extern uint16_t ui_out_of_memory_text[];
-extern void ui_string_replace_all(const uint16_t *search, const uint16_t *replacement, uint16_t **text);
-extern float widget_instance_get_cumulative_scale(widget_instance *widget);
-extern ColorARGB *ui_get_saved_pulse_color(ColorARGB *out);
-extern uint8_t ui_string_has_button_prompt_token(uint16_t *text);
-extern void ui_widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t use_text_color, const uint16_t *text);
 }
 
 namespace halo::interface {
@@ -80,8 +76,8 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
             } else {
                 replacement = (const uint16_t *)((ui_search_replace_function)ui_replace_function_table[fn])(widget);
             }
-            ui_string_replace_all(halo::text::string_convert_ascii_to_unicode(search, 0x40, (const char *)entry), replacement,
-                                  (uint16_t **)&widget->text);
+            halo::interface::ui_string_replace_all((wchar_t *)(halo::text::string_convert_ascii_to_unicode(search, 0x40, (const char *)entry)), (uint16_t *)replacement,
+                                  (wchar_t **)&widget->text);
         }
     }
 
@@ -96,7 +92,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
     }
 
     {
-        float scale = widget_instance_get_cumulative_scale(widget);
+        float scale = halo::interface::widget_instance_get_cumulative_scale(widget);
         int16_t x = (int16_t)offset_xy;
         int16_t y = (int16_t)(offset_xy >> 16);
         Rectangle2D rects[2];
@@ -113,12 +109,12 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
             color = *(ColorARGB *)&((struct widget_instance *)w)->list_items;
             color.alpha = color.alpha * scale;
         } else if (is_top_of_stack != 0) {
-            color = *ui_get_saved_pulse_color(&highlight);
+            color = *halo::interface::ui_get_saved_pulse_color(&highlight);
             color.alpha = *(float *)&((struct UIWidgetDefinition *)t)->text_color * scale;
         } else {
             color = ((struct UIWidgetDefinition *)t)->text_color;
             if (color.red == 1.0f && color.green == 1.0f && color.blue == 1.0f) {
-                color = *ui_get_saved_pulse_color(&highlight);
+                color = *halo::interface::ui_get_saved_pulse_color(&highlight);
                 color.alpha = *(float *)&((struct UIWidgetDefinition *)t)->text_color;
             }
             color.alpha = color.alpha * scale;
@@ -133,17 +129,17 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         }
 
         halo::text::text_set_render_context(*(datum_index *)&tag->text_font.tag_id, &color, -1, tag->justification, 0);
-        if (ui_string_has_button_prompt_token((uint16_t *)widget->text) == 0) {
+        if (halo::interface::ui_string_has_button_prompt_token((uint16_t *)widget->text) == 0) {
             halo::rasterizer::chimera__draw_16_bit_text(&rects[1], (int32_t *)(&rects[0]), 0, 0, (const int16_t *)((uint16_t *)widget->text));
             return;
         }
-        ui_widget_draw_formatted_prompt_string(&rects[0], 0, (uint16_t *)widget->text);
+        halo::interface::ui_widget_draw_formatted_prompt_string(&rects[0], 0, (uint16_t *)widget->text);
     }
 }
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 void widget_instance_render_text_box(widget_instance *widget, UIWidgetDefinition *tag, Rectangle2D *dest, int32_t offset_xy, uint8_t is_top_of_stack)
 {

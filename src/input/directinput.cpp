@@ -21,6 +21,7 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" { extern int32_t input_device_count; }
 extern "C" { extern input_device input_devices[8]; }
@@ -166,7 +167,6 @@ int32_t DirectInput::device_get_pov_count(int16_t slot_index)
 
 }
 
-extern "C" { extern void console_printf_verbose(ColorARGB *color, char *format, ...); }
 namespace halo::input {
 
 /**
@@ -219,7 +219,7 @@ void DirectInput::device_list_print(void)
         }
         name_ascii[i] = '\0';
 
-        console_printf_verbose((ColorARGB *)0, (char *)"%d) deviceid %s - %s", index, guid_ascii_trimmed, name_ascii);
+        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)"%d) deviceid %s - %s", index, guid_ascii_trimmed, name_ascii);
     }
 }
 

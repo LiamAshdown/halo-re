@@ -2,13 +2,11 @@
 #include <string.h>
 #include "halo/cache/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern datum_index player_index_from_unit_index(datum_index object_index);
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern datum_index local_player_to_player_index(int16_t local_player_index);
 }
 
 static player *blip_player(datum_index player_index)
@@ -35,8 +33,8 @@ uint8_t BlipClassifier::type_get(int16_t local_player_index, datum_index object_
     if (object_index == (datum_index)-1) {
         return _blip_type_unavailable;
     }
-    owner_local_index = player_index_from_unit_index(object_index) == (datum_index)-1
-                            ? -1 : blip_player(player_index_from_unit_index(object_index))->local_player_index;
+    owner_local_index = halo::game::player_index_from_unit_index(object_index) == (datum_index)-1
+                            ? -1 : blip_player(halo::game::player_index_from_unit_index(object_index))->local_player_index;
     if (owner_local_index == local_player_index) {
         return _blip_type_friendly;
     }
@@ -52,7 +50,7 @@ uint8_t BlipClassifier::type_get(int16_t local_player_index, datum_index object_
         }
         if (occupant != (datum_index)-1) {
             uint8_t *occupant_data = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[occupant & 0xffff].data;
-            return (uint8_t)((teams_are_enemies((int16_t)viewer_team, ((object *)occupant_data)->owner_team) != 0) + 3);
+            return (uint8_t)((halo::game::teams_are_enemies((int16_t)viewer_team, ((object *)occupant_data)->owner_team) != 0) + 3);
         }
         {
             uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object_data_ptr & 0xffff].data;
@@ -63,7 +61,7 @@ uint8_t BlipClassifier::type_get(int16_t local_player_index, datum_index object_
         }
         return _blip_type_vehicle;
     }
-    return (uint8_t)((teams_are_enemies((int16_t)blip_player(local_player_to_player_index(local_player_index))->team,
+    return (uint8_t)((halo::game::teams_are_enemies((int16_t)blip_player(halo::game::local_player_to_player_index(local_player_index))->team,
                                         *(int16_t *)(object_data_ptr + 0xb8)) != 0) + 1);
 }
 

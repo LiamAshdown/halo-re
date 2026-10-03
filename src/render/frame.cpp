@@ -25,6 +25,8 @@
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int32_t render_frame_index;
@@ -33,15 +35,9 @@ extern float render_time_since_frame;
 extern int16_t render_window_index;
 extern int16_t screenshot_scale;
 extern game_time_globals *game_time;
-extern void ui_draw_trouble_brewing_indicator(void);
 extern ColorARGB *rasterizer_model_ambient_reflection_tint;
 extern render_camera render_camera_global;
 extern render_frustum render_frustum_global;
-extern void ui_error_modal_update(void);
-extern void hud_timer_draw(void);
-extern void chimera__do_show_loading_screen(void);
-extern void console_draw_overlay(void);
-extern void game_engine_maybe_render_post_game(void);
 extern render_fog render_fog_state;
 extern uint8_t render_clip_warning;
 extern uint32_t rasterizer_device_version;
@@ -52,7 +48,6 @@ extern player_globals *local_player_globals;
 extern int16_t unknown_00719aac;
 extern void halo::scenario::scenario_sky_fog_state_update(int16_t sky_index, int16_t local_player_index,
     real_point3d *camera_position, render_fog *out);
-extern void widget_draw_fullscreen_region(int16_t controller_index);
 }
 
 namespace halo::render::frame {
@@ -110,7 +105,7 @@ void draw(Point2DInt *screenshot_tile, render_view *views, int16_t count, Point2
         }
     }
 
-    ui_draw_trouble_brewing_indicator();
+    halo::interface::ui_draw_trouble_brewing_indicator();
     halo::rasterizer::rasterizer_end_frame();
     halo::rasterizer::rasterizer_unbind_stream_and_textures();
 }
@@ -159,12 +154,12 @@ void nonplayer_frame(uint32_t nonplayer, render_view *view)
 
     if (nonplayer == 0) {
         halo::cutscene::chimera__letterbox();
-        ui_error_modal_update();
-        hud_timer_draw();
-        chimera__do_show_loading_screen();
-        console_draw_overlay();
+        halo::interface::ui_error_modal_update();
+        halo::interface::hud_timer_draw();
+        halo::interface::chimera__do_show_loading_screen();
+        halo::interface::console_draw_overlay();
     } else {
-        game_engine_maybe_render_post_game();
+        halo::game::game_engine_maybe_render_post_game();
     }
 
     if (halo::rasterizer::globals().window.window_index == -1) {
@@ -309,8 +304,8 @@ void pregame_frame(render_view *view)
     params.type = 1;
     halo::rasterizer::rasterizer_begin_frame(&params);
 
-    widget_draw_fullscreen_region(0);
-    chimera__do_show_loading_screen();
+    halo::interface::widget_draw_fullscreen_region(0);
+    halo::interface::chimera__do_show_loading_screen();
 
     if (halo::rasterizer::globals().window.window_index == -1) {
         halo::render::rasterizer_frame_statistics_sample(&halo::rasterizer::globals().frame_statistics, 0);

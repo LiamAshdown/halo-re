@@ -7,6 +7,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *particle_data;
@@ -26,7 +27,6 @@ extern int effect_random_int_between(int16_t minimum, int16_t maximum);
 extern real particle_current_radius(datum_index particle_handle);
 extern void particle_impact(datum_index particle_handle);
 extern double sqrt(double x);
-extern uint8_t any_local_player_within_10_units(real_point3d *position);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 extern uint8_t particle_advance_animation(datum_index particle_handle, real delta_time);
@@ -487,7 +487,7 @@ uint8_t particle_ref::update_motion(real delta_time)
                         *(datum_index *)&tag->collision_effect.tag_id, speed);
                 }
                 if (*(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id != 0xffffffffu &&
-                    any_local_player_within_10_units(&self->position) != 0) {
+                    halo::game::any_local_player_within_10_units(&self->position) != 0) {
                     halo::effects::material_effects_play_at_marker(
                         *(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id,
                         8, out_material_type, (uint32_t *)&self->location,

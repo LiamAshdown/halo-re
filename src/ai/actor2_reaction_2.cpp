@@ -4,6 +4,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -91,9 +92,7 @@ namespace actor_react_to_threat_event_local {
 extern "C" {
 extern void actor_mark_prop_seen_with_delta(datum_index object_index, datum_index actor_index, float delta,
     const real_vector3d *direction);
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
-extern void team_pair_override_refresh(int16_t index_b, int16_t index_a);
 }
 }
 
@@ -154,7 +153,7 @@ no_relationship_object:
     if (self_object_index == relationship_object_index) {
         reason = 1;
     } else if (relationship_obj != 0) {
-        reason = (teams_are_enemies(((struct object *)relationship_obj)->owner_team, ((struct object *)self_obj)->owner_team) != 0) + 2;
+        reason = (halo::game::teams_are_enemies(((struct object *)relationship_obj)->owner_team, ((struct object *)self_obj)->owner_team) != 0) + 2;
     }
 
     if (suppress_vehicle_relay == 0 && reason == 2) {
@@ -170,7 +169,7 @@ no_relationship_object:
                                 event_kind, (datum_index)k_datum_index_none, 0);
 skip_broadcast:
     if (relationship_obj != 0) {
-        team_pair_override_refresh(((struct object *)self_obj)->owner_team,
+        halo::game::team_pair_override_refresh(((struct object *)self_obj)->owner_team,
                                    ((struct object *)relationship_obj)->owner_team);
     }
 }

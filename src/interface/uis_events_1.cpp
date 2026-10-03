@@ -23,15 +23,14 @@
 #include "halo/memory/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t level_select_entries[0x50];
-extern void ui_list_free_all(void);
 extern int16_t pending_difficulty;
-extern void widget_play_sound_effect(int16_t effect_id);
 extern int16_t local_player_count;
 extern uint8_t save_in_progress_00719010;
-extern uint32_t ui_start_campaign_from_level_one(void *widget, int16_t *event);
 extern uint8_t network_join_error_reason;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
@@ -41,42 +40,31 @@ extern void network_game_server_host_dispose(void *host);
 extern uint8_t network_server_host_valid;
 extern uint8_t local_team_00714dd8;
 extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc];
-extern void network_game_setup_teardown(void);
 extern void *network_session_create(void);
 extern network_client_globals *network_client;
 extern int16_t network_game_mode;
 extern uint8_t network_host_handoff_requested;
 extern uint8_t network_disconnect_timeout_flag;
-extern uint32_t game_engine_ensure_variant_history_has_entry(void);
 extern int32_t network_game_server_host_create(void);
 extern int32_t game_variant_history_current;
-extern void game_engine_apply_current_custom_variant(void);
-extern void game_engine_sync_variant_defaults(void);
 extern int32_t selected_saved_item;
-extern void main_menu_play_title_music(void);
 extern void network_dispatch_initialize(void);
 extern uint8_t *map_list;
 extern int32_t map_list_count;
 extern growable_array ui_lists[3];
 extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
-extern void map_list_get_friendly_level_name(wchar_t *destination, char *map_path, int32_t destination_capacity);
 extern int32_t profile_slot_lookup_cache_00692ac8;
 extern uint8_t variant_carousel_slots[0x1d4];
 extern heap *widget_memory_pool;
 extern uint8_t playlist_profiles_need_defaults;
-extern void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, const void *data_blob, uint32_t data_size, uint8_t is_default);
 extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
 extern uint8_t game_variant_saved_default[0x98];
 extern uint8_t game_variant_saved_default_valid;
-extern void widget_close_all(void);
-extern void game_engine_begin_end_game_sequence(void);
-extern void saved_item_select(int32_t item);
 extern uint8_t saved_item_working_copy[0x1ffc];
-extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind);
 extern int32_t network_host_edit_field_00719410;
 extern widget_history_node *ui_widget_history[3];
 }
@@ -141,7 +129,7 @@ uint8_t UiEventHandlers::event_49cdd0(widget_instance *widget, int16_t *event, u
     memset(level_select_entries, 0, 0x50);
     widget->list_items = 0;
     widget->item_count = 0;
-    ui_list_free_all();
+    halo::interface::ui_list_free_all();
     return 1;
 }
 
@@ -158,7 +146,7 @@ uint8_t UiEventHandlers::event_49cfa0(widget_instance *widget, int16_t *event, u
         if (selection >= 0) {
             pending_difficulty = selection;
         }
-        widget_play_sound_effect(2);
+        halo::interface::widget_play_sound_effect(2);
     }
     return 1;
 }
@@ -172,7 +160,7 @@ uint8_t UiEventHandlers::event_49d0d0(widget_instance *widget, int16_t *event, u
 {
     local_player_count = 1;
     save_in_progress_00719010 = 1;
-    ui_start_campaign_from_level_one(widget, event);
+    halo::interface::ui_start_campaign_from_level_one(widget, event);
     return 1;
 }
 
@@ -232,7 +220,7 @@ uint8_t UiEventHandlers::event_49d160(widget_instance *widget, int16_t *event, u
     }
     local_team_00714dd8 = 0;
     coop_profile_globals_block_00714ddc[0] = 0;
-    network_game_setup_teardown();
+    halo::interface::network_game_setup_teardown();
     return 1;
 }
 
@@ -243,7 +231,7 @@ uint8_t UiEventHandlers::event_49d160(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d1a0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    network_game_setup_teardown();
+    halo::interface::network_game_setup_teardown();
     return 1;
 }
 
@@ -260,7 +248,7 @@ uint8_t UiEventHandlers::event_49d1b0(widget_instance *widget, int16_t *event, u
         network_server = 0;
         network_server_host_valid = 0;
     }
-    network_game_setup_teardown();
+    halo::interface::network_game_setup_teardown();
     network_client = (network_client_globals *)network_session_create();
     if (network_client == 0) {
         return 0;
@@ -295,7 +283,7 @@ uint8_t UiEventHandlers::event_49d450(widget_instance *widget, int16_t *event, u
         network_server_host_valid = 0;
     }
     network_client_globals_dispose();
-    network_game_setup_teardown();
+    halo::interface::network_game_setup_teardown();
     return 1;
 }
 
@@ -310,12 +298,12 @@ uint8_t UiEventHandlers::event_49d480(widget_instance *widget, int16_t *event, u
 
     network_disconnect_timeout_flag = 0;
     if (network_server == 0) {
-        game_engine_ensure_variant_history_has_entry();
+        halo::game::game_engine_ensure_variant_history_has_entry();
         ok = (uint8_t)network_game_server_host_create();
         if (ok == 1) {
             game_variant_history_current = -1;
-            game_engine_apply_current_custom_variant();
-            game_engine_sync_variant_defaults();
+            halo::game::game_engine_apply_current_custom_variant();
+            halo::game::game_engine_sync_variant_defaults();
             network_game_mode = 2;
         }
     }
@@ -333,7 +321,7 @@ uint8_t UiEventHandlers::event_49d480(widget_instance *widget, int16_t *event, u
             network_server_host_valid = 0;
         }
         network_client_globals_dispose();
-        network_game_setup_teardown();
+        halo::interface::network_game_setup_teardown();
     }
     return ok;
 }
@@ -361,7 +349,7 @@ uint8_t UiEventHandlers::event_49d540(widget_instance *widget, int16_t *event, u
 
     local_team_00714dd8 = 0;
     coop_profile_globals_block_00714ddc[0] = 0;
-    network_game_setup_teardown();
+    halo::interface::network_game_setup_teardown();
     network_client_globals_dispose();
     if (network_server != 0) {
         network_game_server_host_dispose(network_server);
@@ -375,7 +363,7 @@ uint8_t UiEventHandlers::event_49d540(widget_instance *widget, int16_t *event, u
     local_player_count = 1;
     selected_saved_item = -1;
     if (music_pending == 0) {
-        main_menu_play_title_music();
+        halo::interface::main_menu_play_title_music();
     }
     return 1;
 }
@@ -400,8 +388,8 @@ uint8_t UiEventHandlers::event_49d5b0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d5d0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    game_engine_ensure_variant_history_has_entry();
-    game_engine_apply_current_custom_variant();
+    halo::game::game_engine_ensure_variant_history_has_entry();
+    halo::game::game_engine_apply_current_custom_variant();
     network_server_host_valid = 1;
     return 1;
 }
@@ -447,7 +435,7 @@ uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, u
         uint8_t is_default;
         uint32_t index;
 
-        map_list_get_friendly_level_name((wchar_t *)name, *(char **)(map_list + i * 0xc), 0x100);
+        halo::interface::map_list_get_friendly_level_name((wchar_t *)name, *(char **)(map_list + i * 0xc), 0x100);
         is_default = (uint8_t)(i == widget->selection_index);
         index = halo::memory::growable_array_add_element(&ui_lists[0]);
         if (index != 0xffffffff) {
@@ -477,7 +465,7 @@ uint8_t UiEventHandlers::event_49d7a0(widget_instance *widget, int16_t *event, u
 {
     widget->list_items = 0;
     widget->item_count = 0;
-    ui_list_free_all();
+    halo::interface::ui_list_free_all();
     return 1;
 }
 
@@ -533,7 +521,7 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
         }
         for (i = 0; i < count; i++) {
             if (handles[i] == -1) {
-                game_engine_apply_current_custom_variant();
+                halo::game::game_engine_apply_current_custom_variant();
             } else if (halo::saved_games::saved_game_get_variant(handles[i], (game_variant *)variant) != 0) {
                 int32_t group = 0;
 
@@ -542,7 +530,7 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
 
                     group = (flags & 0x100) != 0 ? 0 : (flags & 0x80) != 0 ? 1 : 2;
                 }
-                ui_list_add_entry(group, (const uint16_t *)variant, i, variant, 0x98, (uint8_t)(last == handles[i]));
+                halo::interface::ui_list_add_entry(group, (const uint16_t *)variant, i, variant, 0x98, (uint8_t)(last == handles[i]));
             }
         }
     }
@@ -570,7 +558,7 @@ uint8_t UiEventHandlers::event_49dab0(widget_instance *widget, int16_t *event, u
             quit_confirm_error_modal = 1;
             quit_confirm_error_is_error = 0;
         }
-        widget_play_sound_effect(4);
+        halo::interface::widget_play_sound_effect(4);
         return 0;
     }
     if (halo::saved_games::saved_game_get_variant(item, (game_variant *)variant) == 0) {
@@ -584,9 +572,9 @@ uint8_t UiEventHandlers::event_49dab0(widget_instance *widget, int16_t *event, u
     if (network_game_mode != 2) {
         return 1;
     }
-    game_engine_ensure_variant_history_has_entry();
-    widget_close_all();
-    game_engine_begin_end_game_sequence();
+    halo::game::game_engine_ensure_variant_history_has_entry();
+    halo::interface::widget_close_all();
+    halo::game::game_engine_begin_end_game_sequence();
     return 0;
 }
 
@@ -604,7 +592,7 @@ uint8_t UiEventHandlers::event_49e170(widget_instance *widget, int16_t *event, u
     item = ((int32_t *)widget->list_items)[id];
     if (item != -1) {
         if (item < 0) {
-            saved_item_select(item);
+            halo::interface::saved_item_select(item);
             return 1;
         }
         if (quit_confirm_error_string_index == -1) {
@@ -614,7 +602,7 @@ uint8_t UiEventHandlers::event_49e170(widget_instance *widget, int16_t *event, u
             quit_confirm_error_is_error = 0;
         }
     }
-    widget_play_sound_effect(4);
+    halo::interface::widget_play_sound_effect(4);
     return 0;
 }
 
@@ -683,7 +671,7 @@ uint8_t UiEventHandlers::event_49e2c0(widget_instance *widget, int16_t *event, u
     if (variant == 0) {
         return 0;
     }
-    if (virtual_keyboard_open((uint16_t *)variant, 0x30, 9) != 0) {
+    if (halo::interface::virtual_keyboard_open((uint16_t *)variant, 0x30, 9) != 0) {
         network_host_edit_field_00719410 = 2;
     }
     return 1;

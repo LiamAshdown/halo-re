@@ -2,6 +2,7 @@
 #include "halo/interface/ifr2_video.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -12,7 +13,6 @@ extern d3d9_interface *rasterizer_direct3d;
 extern uint32_t d3d_adapter;
 extern uint32_t video_memory;
 extern int _stricmp(const char *a, const char *b);
-extern void video_resolution_add(int32_t height, int32_t width, int32_t refresh_rate);
 }
 
 namespace halo::interface {
@@ -78,13 +78,13 @@ void VideoOptions::display_modes_enumerate(uint32_t format)
         if ((mode.width == 0x2d0 || mode.width == 0x350) && (mode.height == 0x240 || mode.height == 0x1e0)) {
             continue;
         }
-        video_resolution_add((int32_t)mode.height, (int32_t)mode.width, (int32_t)mode.refresh_rate);
+        halo::interface::video_resolution_add((int32_t)mode.height, (int32_t)mode.width, (int32_t)mode.refresh_rate);
     }
 }
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 void video_display_modes_enumerate(uint32_t format)
 {

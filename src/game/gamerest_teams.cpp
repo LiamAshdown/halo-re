@@ -1,13 +1,13 @@
 #include "halo/game/gamerest_teams.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern team_pair_globals *team_pair_data;
 extern void ai_notify_actors_of_encounter_state_change(int16_t team_a, int16_t team_b, uint8_t active, uint8_t clear_secondary);
 extern void __cdecl standalone_log(const char *format, ...);
 extern game_engine_definition *current_game_engine;
-extern void team_pair_set(team_pair_override *entry, uint8_t active, uint8_t clear_secondary);
 }
 
 namespace halo::game {
@@ -379,7 +379,7 @@ void TeamPairTable::init_defaults()
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::TeamPairOverride::set; forwards to the C++ implementation.
@@ -391,10 +391,7 @@ extern "C" {
  *
  * @address 0x45c130
  */
-void team_pair_set(team_pair_override *entry, uint8_t active, uint8_t clear_secondary)
-{
-    halo::game::TeamPairOverride(entry).set(active, clear_secondary);
-}
+
 
 /**
  * C entry point for halo::game::TeamPairTable::are_enemies; forwards to the C++ implementation.

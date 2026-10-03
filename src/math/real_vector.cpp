@@ -9,13 +9,13 @@
 
 #include "tags.h"
 #include "halo/physics/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern double sqrt(double x);
 extern double fabs(double x);
 extern double fmod(double x, double y);
 extern double acos(double x);
-extern void vector3d_clamp_length(real_vector3d *v, real max_length);
 }
 
 namespace halo::math {
@@ -321,12 +321,12 @@ void vector3d_delta_toward_gravity_biased_clamp_length(const real_point3d &origi
     if (0.0001f < dot_delta_target) {
         delta_length_squared = out_delta->j * out_delta->j + out_delta->i * out_delta->i + out_delta->k * out_delta->k;
         target_length_squared = target.x * target.x + target.z * target.z + target.y * target.y;
-        vector3d_clamp_length(out_delta,
+        halo::game::vector3d_clamp_length(out_delta,
             (max_length_aligned - max_length_default) *
                 ((dot_delta_target * dot_delta_target) / delta_length_squared / target_length_squared) +
             max_length_default);
     } else {
-        vector3d_clamp_length(out_delta, max_length_default);
+        halo::game::vector3d_clamp_length(out_delta, max_length_default);
     }
 }
 

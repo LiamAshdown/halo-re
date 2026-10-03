@@ -16,6 +16,8 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t *cinematic_globals_ptr;
@@ -37,15 +39,12 @@ extern network_client_globals *network_client;
 extern uint8_t biped_detach_from_flipped_vehicle;
 extern real_point3d *global_origin3d_pointer;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
-extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
 extern uint32_t weapon_prevents_melee_attack(datum_index item_index);
 extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category, int16_t mode);
 extern void weapon_reset_triggers(datum_index item_index);
 extern void player_update_history_free_all(void *history);
 extern double sqrt(double x);
 extern void actor_squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_object_index, datum_index other_object_index);
-extern int32_t unit_get_local_player_weapon_index(datum_index unit);
-extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index);
 }
 
 namespace halo::units {
@@ -662,7 +661,7 @@ uint8_t BipedView::update()
 
                 UnitView(object_index).start_seat_overlay_animation_a(7);
                 halo::items::weapon_reset_triggers(weapon);
-                weapon_action_notify_for_unit(object_index, 4);
+                halo::interface::weapon_action_notify_for_unit(object_index, 4);
                 total = (int8_t)halo::items::weapon_get_first_person_animation_time(weapon, 0xd, 0, -1);
                 quarter = (int8_t)(total >> 2);
                 ((struct biped_object *)obj)->biped.melee_ticks = (uint8_t)(total - quarter);
@@ -868,11 +867,11 @@ void halo::units::biped_update_target_lock_timer(datum_index target, uint32_t ob
         return;
     }
     if (target_obj->type == 0 && halo::hs::fields::bump_possession != 0) {
-        int32_t local_player = unit_get_local_player_weapon_index(object_index);
+        int32_t local_player = halo::game::unit_get_local_player_weapon_index(object_index);
         if ((int16_t)local_player != -1) {
             biped_data *target_biped = (biped_data *)((uint8_t *)target_obj + k_unit_object_size);
             target_biped->bump_ticks = 0xf1;
-            local_player_set_controlled_unit(target, (int16_t)local_player);
+            halo::game::local_player_set_controlled_unit(target, (int16_t)local_player);
         }
     }
     biped->bump_ticks = 0xf1;

@@ -7,6 +7,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern real k_weapon_zoom_fov_maximum;
@@ -20,9 +21,6 @@ extern int16_t network_game_mode;
 extern uint8_t weapon_bottomless_clip;
 extern const real_point3d *global_zero_vector3d_pointer;
 extern void weapon_reset_triggers(datum_index item_index);
-extern uint32_t local_player_index_for_weapon(datum_index item_index);
-extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
-extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
 extern void weapon_magazine_reload_tick(datum_index item_index, int16_t magazine_index);
 extern void weapon_notify_reload_cancel(datum_index item_index, int16_t magazine_index);
 extern double floor(double x);
@@ -757,10 +755,10 @@ void weapon_ref::ready()
     halo::items::weapon_reset_triggers(item_index);
     halo::items::weapon_set_state(item_index, _weapon_state_ready, 1);
 
-    action_handle = local_player_index_for_weapon(item_index);
-    first_person_weapon_process_action(action_handle, 0xc);
+    action_handle = halo::interface::local_player_index_for_weapon(item_index);
+    halo::interface::first_person_weapon_process_action(action_handle, 0xc);
     if ((int16_t)action_handle == -1) {
-        hud_play_pickup_notification(item_index, 0xc);
+        halo::interface::hud_play_pickup_notification(item_index, 0xc);
     }
 
     halo::items::weapon_play_trigger_tag_effect(item_index, *(datum_index *)&weapon_tag->ready_effect.tag_id, 0.0f, 0.0f);

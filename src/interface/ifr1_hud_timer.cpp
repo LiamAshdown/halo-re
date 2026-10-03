@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_timer.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
@@ -8,8 +9,6 @@ extern Globals *global_globals;
 extern HUDGlobals *hud_globals_tag_data;
 extern int16_t current_local_player_index;
 extern int32_t __ftol(double x);
-extern void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_placement *placement, int16_t value,
-                            int16_t fraction, uint32_t flags, int32_t flash_start_time, float scale);
 }
 
 namespace halo::interface {
@@ -150,16 +149,16 @@ void HudTimer::draw(void)
     sub_second = (int16_t)clock % 30;
     minutes = (int16_t)((int16_t)clock / 30) / 60;
     seconds = (int16_t)((int16_t)clock / 30) % 60;
-    hud_draw_number((void *)(uint32_t)current_local_player_index, anchor, &placement, (int16_t)minutes, -1, flash,
+    halo::interface::hud_draw_number((void *)(uint32_t)current_local_player_index, anchor, &placement, (int16_t)minutes, -1, flash,
                     messaging->timer_start_time, 2.0f);
 
     spacing = (double)(int16_t)digit_step * 2.5;
     placement.anchor_offset.x = (int16_t)__ftol((double)placement.anchor_offset.x + spacing);
-    hud_draw_number((void *)(uint32_t)current_local_player_index, anchor, &placement, (int16_t)seconds, -1, flash,
+    halo::interface::hud_draw_number((void *)(uint32_t)current_local_player_index, anchor, &placement, (int16_t)seconds, -1, flash,
                     messaging->timer_start_time, 2.0f);
 
     placement.anchor_offset.x = (int16_t)__ftol((double)placement.anchor_offset.x + spacing);
-    hud_draw_number((void *)(uint32_t)current_local_player_index, anchor, &placement,
+    halo::interface::hud_draw_number((void *)(uint32_t)current_local_player_index, anchor, &placement,
                     (int16_t)(sub_second * 100 / 30), -1, flash, messaging->timer_start_time, 2.0f);
 }
 

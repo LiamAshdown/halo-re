@@ -22,6 +22,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t ui_list_has_default;
@@ -30,28 +31,13 @@ extern int32_t ui_list_current;
 extern map_list_entry *map_list;
 extern int32_t map_list_count;
 extern uint8_t ui_widget_opened;
-extern int32_t ui_list_find_default(int32_t group_index);
-extern int32_t ui_list_widget_compute_scroll_start(widget_instance *widget);
 extern heap *widget_memory_pool;
-extern ColorARGB *ui_get_saved_pulse_color(ColorARGB *out);
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
-extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item);
-extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index, void *list_items);
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
 extern void *ui_event_function_table[0xbe];
 extern widget_instance *ui_root_widget[1];
 extern widget_history_node *ui_widget_history[3];
 extern int16_t hs_script_find_by_name(char *name);
 extern void hs_evaluate_expression(int32_t expression);
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection);
-extern void widget_close(widget_instance *widget);
-extern void widget_play_sound_effect(int16_t effect_id);
-extern widget_instance *widget_find_by_tag_id(widget_instance *widget, datum_index tag_id);
-extern void widget_instance_relink_focus(widget_instance *widget, widget_instance *child);
-extern void widget_instance_close_and_restore_previous(widget_instance *widget);
-extern widget_instance *widget_reopen_as_root_with_history(widget_instance *widget, datum_index open_tag);
 }
 
 namespace halo::ui {
@@ -376,7 +362,7 @@ matched_current:
         } else {
             int32_t default_entry;
 forced_rebuild:
-            default_entry = ui_list_find_default(group_index);
+            default_entry = halo::interface::ui_list_find_default(group_index);
             spinner->selection_index = (int16_t)group_index;
             *scroll_start_field = 0;
             widget->selection_index = 0;
@@ -412,7 +398,7 @@ forced_rebuild:
             window_size = item_count;
         }
         if (scroll_start == -1) {
-            scroll_start = ui_list_widget_compute_scroll_start(widget);
+            scroll_start = halo::interface::ui_list_widget_compute_scroll_start(widget);
         }
 
         row = widget->first_child;
@@ -462,7 +448,7 @@ render_row:
                         row->background_bitmap_frame = 1;
                         if (widget->focused_child == row) {
                             ColorARGB highlight;
-                            *(ColorARGB *)&((struct widget_instance *)label)->list_items = *ui_get_saved_pulse_color(&highlight);
+                            *(ColorARGB *)&((struct widget_instance *)label)->list_items = *halo::interface::ui_get_saved_pulse_color(&highlight);
                         } else {
                             *(uint32_t *)&((struct widget_instance *)label)->list_items = 0;
                         }
@@ -470,7 +456,7 @@ render_row:
                         if (widget->focused_child == row) {
                             ColorARGB highlight;
                             widget->selection_index = (int16_t)item_index;
-                            *(ColorARGB *)&((struct widget_instance *)label)->list_items = *ui_get_saved_pulse_color(&highlight);
+                            *(ColorARGB *)&((struct widget_instance *)label)->list_items = *halo::interface::ui_get_saved_pulse_color(&highlight);
                         } else {
                             *(uint32_t *)&((struct widget_instance *)label)->list_items = 0;
                         }
@@ -584,14 +570,14 @@ void UiLists::selection_list_mirror_value_build(widget_instance *widget)
     widget_instance *target;
 
     memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
+    halo::interface::set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
 
     selected_value = *(int16_t *)&((struct widget_instance *)widget)->text;
     target = widget->extended_description->first_child->next_sibling->first_child;
     target->selection_index = selected_value;
     target->next_sibling->background_bitmap_frame = selected_value;
 
-    ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)ui_list_default_item_format));
+    halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 }
 
 /**
@@ -642,9 +628,9 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
                 while (root->parent != (widget_instance *)0) {
                     root = root->parent;
                 }
-                found = widget_find_by_tag_id(root, *(datum_index *)&handler->widget_tag.tag_id);
+                found = halo::interface::widget_find_by_tag_id(root, *(datum_index *)&handler->widget_tag.tag_id);
                 if (found != (widget_instance *)0) {
-                    widget_instance_relink_focus(root, found);
+                    halo::interface::widget_instance_relink_focus(root, found);
                 }
                 action_kind = 1;
             }
@@ -663,7 +649,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
 
             for (i = 0; i < 1; i++) {
                 if (ui_root_widget[i] != (widget_instance *)0) {
-                    found = widget_find_by_tag_id(ui_root_widget[i], *(datum_index *)&handler->widget_tag.tag_id);
+                    found = halo::interface::widget_find_by_tag_id(ui_root_widget[i], *(datum_index *)&handler->widget_tag.tag_id);
                     if (found != (widget_instance *)0) {
                         break;
                     }
@@ -674,14 +660,14 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
             } else if (found == widget) {
                 close_self_via_root = 1;
             } else {
-                widget_close(found);
+                halo::interface::widget_close(found);
             }
         }
         if ((handler->flags & 4) != 0 && handled == 0) {
             close_all = 1;
         }
         if ((handler->flags & 8) != 0 && *(uint32_t *)&handler->widget_tag.tag_id != 0xffffffffu) {
-            if (widget_reopen_as_root_with_history(widget, *(datum_index *)&handler->widget_tag.tag_id) == 0) {
+            if (halo::interface::widget_reopen_as_root_with_history(widget, *(datum_index *)&handler->widget_tag.tag_id) == 0) {
                 ok = 0;
             } else {
                 if (action_kind == 0) action_kind = 2;
@@ -691,7 +677,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
         if ((handler->flags & 0x100) != 0 && handled == 0 &&
             *(uint32_t *)&handler->widget_tag.tag_id != 0xffffffffu) {
             widget_instance *replacement =
-                chimera__load_ui_widget((char *)0, *(datum_index *)&handler->widget_tag.tag_id,
+                halo::interface::chimera__load_ui_widget((char *)0, *(datum_index *)&handler->widget_tag.tag_id,
                                          widget, widget->controller_index, (datum_index)-1,
                                          (datum_index)-1, -1);
 
@@ -737,7 +723,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
             }
         }
         if ((handler->flags & 0x200) != 0) {
-            widget_instance_close_and_restore_previous(widget);
+            halo::interface::widget_instance_close_and_restore_previous(widget);
             if (action_kind == 0) action_kind = 3;
             handled = 1;
         }
@@ -753,18 +739,18 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
                 while (target->parent != (widget_instance *)0) {
                     target = target->parent;
                 }
-                widget_close(target);
+                halo::interface::widget_close(target);
                 handled = 1;
                 goto after_close;
             }
             if (close_self_via_root != 0) {
-                widget_close(target);
+                halo::interface::widget_close(target);
                 handled = 1;
                 goto after_close;
             }
         } else {
             if (ui_root_widget[0] != (widget_instance *)0) {
-                widget_close(ui_root_widget[0]);
+                halo::interface::widget_close(ui_root_widget[0]);
             }
             {
                 widget_history_node *node = ui_widget_history[0];
@@ -806,14 +792,14 @@ after_run_function:
             if (function_failed == 1 && (entry->flags & 1) != 0 && handled == 0) {
                 datum_index open_tag = *(uint32_t *)&entry->widget_tag.tag_id;
 
-                if (open_tag != (datum_index)-1 && widget_reopen_as_root_with_history(widget, open_tag) != 0) {
+                if (open_tag != (datum_index)-1 && halo::interface::widget_reopen_as_root_with_history(widget, open_tag) != 0) {
                     handled = 1;
                 }
             }
         }
     }
 
-    widget_play_sound_effect((int16_t)action_kind);
+    halo::interface::widget_play_sound_effect((int16_t)action_kind);
     *out_handled = handled;
 }
 

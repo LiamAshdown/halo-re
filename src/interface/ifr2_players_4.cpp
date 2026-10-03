@@ -1,5 +1,6 @@
 #include "halo/interface/ifr2_players.hpp"
 #include <string.h>
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -9,10 +10,6 @@ extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
-extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item);
-extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index, void *list_items);
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
-extern void player_profile_details_widget_refresh(widget_instance *widget, const uint8_t *profile_record);
 }
 
 namespace halo::interface {
@@ -32,10 +29,10 @@ void PlayerProfiles::select_list_widget_build(widget_instance *widget)
     widget_instance *target;
     int32_t depth;
 
-    ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)ui_list_default_item_format));
+    halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 
     memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
+    halo::interface::set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
 
     combo_index = *(int16_t *)&((struct widget_instance *)widget)->text;
     if (combo_index < 0 || (uint16_t)widget->item_count <= combo_index) {
@@ -64,7 +61,7 @@ void PlayerProfiles::select_list_widget_build(widget_instance *widget)
             ui_list_item *entry = (ui_list_item *)ui_lists[ui_list_current].data + combo_index;
             item_data = entry->data;
         }
-        player_profile_details_widget_refresh(widget->extended_description->first_child->next_sibling,
+        halo::interface::player_profile_details_widget_refresh(widget->extended_description->first_child->next_sibling,
                                               (const uint8_t *)item_data);
     }
 
@@ -94,7 +91,7 @@ void PlayerProfiles::select_list_widget_build(widget_instance *widget)
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 void player_profile_select_list_widget_build(widget_instance *widget)
 {

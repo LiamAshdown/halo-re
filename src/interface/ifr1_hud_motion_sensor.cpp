@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_hud_motion_sensor.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -12,9 +13,6 @@ extern game_engine_definition *current_game_engine;
 extern float motion_sensor_sweep;
 extern float motion_sensor_sweep_scale;
 extern double fmod(double x, double y);
-extern uint8_t motion_sensor_object_is_detected(datum_index unit_index);
-extern void motion_sensor_blip_fill(int16_t local_player_index, datum_index object_index,
-                                    motion_sensor_blip *blip);
 }
 
 static int16_t motion_sensor_next_local_player(int16_t local_player_index)
@@ -120,7 +118,7 @@ void HudMotionSensor::update(void)
                 }
             }
             if (header == 0 || ((1u << (header[3] & 0x1f)) & 3) == 0 || *(uint8_t **)(header + 8) == 0 ||
-                ((*(uint8_t **)(header + 8))[0x106] & 4) != 0 || motion_sensor_object_is_detected(object_index) == 0) {
+                ((*(uint8_t **)(header + 8))[0x106] & 4) != 0 || halo::interface::motion_sensor_object_is_detected(object_index) == 0) {
                 continue;
             }
             {
@@ -157,7 +155,7 @@ void HudMotionSensor::update(void)
                     }
                     state = &motion_sensor->players[index];
                     frame = &state->history[motion_sensor->frame_index];
-                    motion_sensor_blip_fill(index, object_index, &frame->blips[blip_counts[index]]);
+                    halo::interface::motion_sensor_blip_fill(index, object_index, &frame->blips[blip_counts[index]]);
                     state->tracked_objects[blip_counts[index]] = object_index;
                     blip_counts[index]++;
                     frame->blip_count++;

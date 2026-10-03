@@ -8,6 +8,7 @@
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/interface/api.hpp"
 
 typedef struct win32_bitmap {
     int32_t type;
@@ -19,8 +20,6 @@ typedef struct win32_bitmap {
 static_assert(sizeof(win32_bitmap) == 0x18, "win32_bitmap layout");
 
 extern "C" {
-extern void chat_close(void);
-extern void chat_submit_input(void);
 
 extern uint8_t shell_window_proc_bypass;
 extern uint8_t shell_application_inactive;
@@ -72,7 +71,7 @@ void GameWindow::suspend_focus()
         if (shell_window != 0 && halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
             ShowWindow((HWND)shell_window, 6);
         }
-        chat_close();
+        halo::interface::chat_close();
     }
 }
 
@@ -374,7 +373,7 @@ keystone_dispatch:
         if (message == 0x100) {
             if (wparam == 0xd) {
                 if (chat_dialog_open != 0) {
-                    chat_submit_input();
+                    halo::interface::chat_submit_input();
                     halo::input::input_key_block_timer_set(0x38, 200);
                     halo::input::input_key_block_timer_set(0x66, 200);
                     return 0;
@@ -383,7 +382,7 @@ keystone_dispatch:
                 if (chat_dialog_open != 0) {
                     halo::input::input_key_block_timer_set(0, 0xfa);
                 }
-                chat_close();
+                halo::interface::chat_close();
             }
         }
         if (handled == 0) {
@@ -436,7 +435,7 @@ void GameWindow::handle_activate_app(uint8_t inactive)
         }
     }
     if (inactive != 0) {
-        chat_close();
+        halo::interface::chat_close();
         return;
     }
 

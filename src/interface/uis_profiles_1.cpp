@@ -19,6 +19,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int32_t profile_slot_lookup_cache_00692ac8;
@@ -30,9 +31,6 @@ extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
 extern uint8_t default_profile_data[0x1ffc];
 extern heap *widget_memory_pool;
-extern void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, const void *data_blob,
-                               uint32_t data_size, uint8_t is_default);
-extern void ui_list_free_all(void);
 extern int16_t new_profile_name_entry_player_00692b00;
 extern virtual_keyboard_globals virtual_keyboard;
 extern uint16_t new_profile_name_buffer_006b37f4[0xb];
@@ -47,16 +45,7 @@ extern uint8_t quit_confirm_error_is_error;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t network_join_error_reason;
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
-extern void saved_item_select(int32_t selection_id);
-extern void widget_play_sound_effect(int16_t effect_id);
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
-extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item);
-extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index, void *list_items);
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
-extern void ui_level_carousel_row_refresh(widget_instance *widget, int32_t slot_index);
-extern int16_t player_profile_find_index_by_id(int16_t id);
-extern uint8_t ui_new_profile_name_entry_open(void *widget, int16_t *event, uint8_t *out_handled);
 }
 
 namespace halo::ui {
@@ -117,7 +106,7 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
             if (slot_id == -1) {
                 memcpy(profile_buffer, default_profile_data, sizeof(profile_buffer));
             } else if (halo::saved_games::player_profile_get(slot_id, (saved_player_profile *)profile_buffer) != 0) {
-                ui_list_add_entry(1, (const uint16_t *)(profile_buffer + 2), i, profile_buffer, 0x1ffc, 0);
+                halo::interface::ui_list_add_entry(1, (const uint16_t *)(profile_buffer + 2), i, profile_buffer, 0x1ffc, 0);
             }
         }
 
@@ -150,7 +139,7 @@ uint32_t UiProfiles::free_profile_list(widget_instance *widget)
         widget->list_items = (void *)0;
     }
     widget->item_count = 0;
-    ui_list_free_all();
+    halo::interface::ui_list_free_all();
     return 1;
 }
 
@@ -187,9 +176,9 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
             }
         }
         if (halo::saved_games::player_profile_get_or_cached_default((saved_player_profile *)default_profile_data, (int32_t)profile_id) != 0) {
-            player_profile_load((int16_t)profile_id, (void *)0, profile_id);
+            halo::interface::player_profile_load((int16_t)profile_id, (void *)0, profile_id);
             if (new_profile_name_flag_0071916e != 0) {
-                saved_item_select(-1);
+                halo::interface::saved_item_select(-1);
             }
             halo::main::main_queue_map_change((char *)"");
             new_profile_name_entry_player_00692b00 = -1;
@@ -208,7 +197,7 @@ fail:
         quit_confirm_error_modal = 1;
         quit_confirm_error_is_error = 0;
     }
-    widget_play_sound_effect(0);
+    halo::interface::widget_play_sound_effect(0);
     new_profile_name_entry_player_00692b00 = -1;
     return 0;
 }
@@ -316,13 +305,13 @@ void UiProfiles::profile_details_list_widget_build(widget_instance *widget)
 {
     uint8_t profile_record[0x1ffc];
 
-    ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)ui_list_default_item_format));
+    halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 
     memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
+    halo::interface::set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
 
     widget->extended_description->first_child->next_sibling->background_bitmap_frame = 0;
-    ui_level_carousel_row_refresh(widget->extended_description->first_child->next_sibling,
+    halo::interface::ui_level_carousel_row_refresh(widget->extended_description->first_child->next_sibling,
                  *(int16_t *)&((struct widget_instance *)widget)->text);
 }
 
@@ -343,7 +332,7 @@ uint8_t UiProfiles::profile_list_apply_selection(widget_instance *widget, int16_
     (void)event;
 
     if (entry_id == -1) {
-        widget_play_sound_effect(0);
+        halo::interface::widget_play_sound_effect(0);
         return 0;
     }
 
@@ -354,15 +343,15 @@ uint8_t UiProfiles::profile_list_apply_selection(widget_instance *widget, int16_
             quit_confirm_error_modal = 1;
             quit_confirm_error_is_error = 0;
         }
-        widget_play_sound_effect(0);
+        halo::interface::widget_play_sound_effect(0);
         *out_handled = 1;
         return 0;
     }
 
     if (halo::saved_games::player_profile_get(entry_id, (saved_player_profile *)profile_data) != 0) {
-        int32_t player_index = player_profile_find_index_by_id((int16_t)entry_id);
+        int32_t player_index = halo::interface::player_profile_find_index_by_id((int16_t)entry_id);
 
-        player_profile_load((int16_t)player_index, profile_data, entry_id);
+        halo::interface::player_profile_load((int16_t)player_index, profile_data, entry_id);
         return 1;
     }
     return 0;
@@ -393,7 +382,7 @@ uint32_t UiProfiles::profile_list_apply_selection_for_player(widget_instance *wi
 
     if (entry_id < 0) {
         if (entry_id != -1 && halo::saved_games::player_profile_get(entry_id, (saved_player_profile *)profile_data) != 0) {
-            player_profile_load((int16_t)entry_id, profile_data, entry_id);
+            halo::interface::player_profile_load((int16_t)entry_id, profile_data, entry_id);
             return 1;
         }
         return 0;
@@ -406,7 +395,7 @@ uint32_t UiProfiles::profile_list_apply_selection_for_player(widget_instance *wi
         (&quit_confirm_error_modal)[player_slot * 6] = 1;
         (&quit_confirm_error_is_error)[player_slot * 6] = 0;
     }
-    widget_play_sound_effect(0);
+    halo::interface::widget_play_sound_effect(0);
     return 0;
 }
 
@@ -424,7 +413,7 @@ uint8_t UiProfiles::profile_require_existing(void *widget, int16_t *event, uint8
     if (count > 0) {
         return 1;
     }
-    ui_new_profile_name_entry_open(widget, event, out_handled);
+    halo::interface::ui_new_profile_name_entry_open(widget, event, out_handled);
     return 0;
 }
 

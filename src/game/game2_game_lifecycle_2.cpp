@@ -13,6 +13,8 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -21,22 +23,10 @@ extern ai_update_stagger_state *ai_update_stagger;
 extern int16_t network_game_mode;
 extern int32_t network_scenario_round_counter_a;
 extern int32_t network_scenario_round_counter_b;
-extern void game_engine_flag_local_player_units(void);
-extern void team_pair_overrides_tick(void);
-extern void game_engine_tick(void);
 extern void hs_runtime_update(void);
 extern void ai_tick_dispatcher(void);
-extern void game_engine_players_update_server(void);
-extern void game_engine_players_update_client(void);
-extern void main_switch_structure_bsp(void);
-extern void game_engine_server_update_player_positions(void);
-extern void players_server_catchup_on_client_updates(void);
-extern void players_client_catchup_on_server_updates(void);
-extern void first_person_weapon_interface_tick(void);
-extern void hud_update_dispatch(void);
 extern void network_client_send_local_player_updates(void);
 extern void network_event_feed_flush(void *queue);
-extern void network_server_broadcast_object_type_changes(void);
 extern game_engine_definition *current_game_engine;
 extern uint8_t player_profile_cache_initialized;
 extern uint32_t player_profile_cache[0xc0];
@@ -61,14 +51,7 @@ extern uint32_t *cinematic_globals_ptr;
 extern uint8_t *object_globals_pointer;
 extern void ai_reset_for_new_map(void);
 extern void encounters_spawn_initial(void);
-extern void team_pair_table_init_defaults(void);
-extern void game_engine_load_from_variant(const game_variant *variant);
-extern void game_engine_initialize_for_new_game(void);
-extern void game_engine_reset_player_look_state(void);
-extern uint8_t update_server_new(void);
-extern void players_dispose(void);
 extern void hs_scripts_reload(void);
-extern void interface_local_player_state_reset(void);
 extern void scenario_objects_place(Scenario *scenario);
 extern void objects_reset(void);
 extern void breakable_surfaces_reset(void);
@@ -84,17 +67,14 @@ extern ai_globals *ai_globals_ptr;
 extern data_array *player_data;
 extern data_array *team_data;
 extern uint32_t text_localization_strings;
-extern void update_queues_dispose(void);
 extern void hs_scripts_free(void);
 extern void objects_flush_dirty_state(void);
-extern void widget_close_all(void);
 extern uint32_t global_scenario_index;
 extern uint16_t global_structure_bsp_index;
 extern void *global_structure_bsp;
 extern void *global_structure_collision_bsp;
 extern void *global_collision_bsp;
 extern Globals *global_globals;
-extern void interface_handle_quit_request(void);
 }
 
 namespace halo::game {
@@ -111,8 +91,8 @@ void GameLifecycle::simulate_tick(uint32_t predict_pass)
 {
     fields::simulation_tick_in_progress = 1;
     _control87(0x9001f, 0xfffff);
-    game_engine_flag_local_player_units();
-    team_pair_overrides_tick();
+    halo::game::game_engine_flag_local_player_units();
+    halo::game::team_pair_overrides_tick();
 
     ai_update_stagger->threshold = ai_update_stagger->highest;
     ai_update_stagger->highest = 0;
@@ -122,14 +102,14 @@ void GameLifecycle::simulate_tick(uint32_t predict_pass)
 
     if (network_game_mode != 0) {
         if (network_game_mode == 1) {
-            game_engine_players_update_client();
+            halo::game::game_engine_players_update_client();
             goto after_role_update;
         }
         if (network_game_mode != 2) {
             goto after_role_update;
         }
     }
-    game_engine_players_update_server();
+    halo::game::game_engine_players_update_server();
 
 after_role_update:
     {
@@ -138,24 +118,24 @@ after_role_update:
     }
 
     halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count + 1;
-    first_person_weapon_interface_tick();
+    halo::interface::first_person_weapon_interface_tick();
     halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count - 1;
 
-    game_engine_tick();
+    halo::game::game_engine_tick();
     hs_runtime_update();
     halo::cutscene::recorded_animations_update();
     halo::objects::objects_update();
-    main_switch_structure_bsp();
-    hud_update_dispatch();
+    halo::game::main_switch_structure_bsp();
+    halo::interface::hud_update_dispatch();
     halo::effects::player_effect_clear_dead_players();
 
     if (network_game_mode == 2) {
         if (predict_pass == 0) {
-            players_server_catchup_on_client_updates();
+            halo::game::players_server_catchup_on_client_updates();
         }
-        game_engine_server_update_player_positions();
+        halo::game::game_engine_server_update_player_positions();
         network_client_send_local_player_updates();
-        network_server_broadcast_object_type_changes();
+        halo::game::network_server_broadcast_object_type_changes();
         if (0 < network_scenario_round_counter_a) {
             network_event_feed_flush(fields::network_event_feed_a);
         }
@@ -164,7 +144,7 @@ after_role_update:
         }
     }
     if (network_game_mode == 1) {
-        players_client_catchup_on_server_updates();
+        halo::game::players_client_catchup_on_server_updates();
     }
 
     fields::simulation_tick_in_progress = 0;
@@ -199,7 +179,7 @@ void GameLifecycle::start_new_map(void)
         player_profile_cache_initialized = 0;
     }
 
-    game_engine_load_from_variant(&game_engine_active_variant);
+    halo::game::game_engine_load_from_variant(&game_engine_active_variant);
     _control87(0x9001f, 0xfffff);
     halo::rasterizer::decal_and_font_system_reset();
     halo::saved_games::game_state_build_header();
@@ -212,9 +192,9 @@ void GameLifecycle::start_new_map(void)
     }
     ((uint8_t *)game_time)[0] = 1;
 
-    interface_local_player_state_reset();
-    team_pair_table_init_defaults();
-    players_dispose();
+    halo::interface::interface_local_player_state_reset();
+    halo::game::team_pair_table_init_defaults();
+    halo::game::players_dispose();
 
     cursor = unknown_00746280_block;
     for (i = 0x343; i != 0; i = i - 1) {
@@ -311,10 +291,10 @@ void GameLifecycle::start_new_map(void)
     k_air_density = fields::air_density_base * 118613.34f;
     k_water_density = fields::water_density_base * 118613.34f;
 
-    game_engine_initialize_for_new_game();
+    halo::game::game_engine_initialize_for_new_game();
     game_engine_attribute_enabled = 1;
-    update_server_new();
-    game_engine_reset_player_look_state();
+    halo::game::update_server_new();
+    halo::game::game_engine_reset_player_look_state();
 
     dst = player_effect_globals_pointer;
     for (i = 0x4a; i != 0; i = i - 1) {
@@ -406,7 +386,7 @@ void GameLifecycle::stop_current_map(void)
     }
 
     halo::sound::sound_fade_out_and_stop_all();
-    update_queues_dispose();
+    halo::game::update_queues_dispose();
 
     if (current_game_engine != (game_engine_definition *)0 && current_game_engine->dispose_from_old_game != (void *)0) {
         ((void (*)(void))current_game_engine->dispose_from_old_game)();
@@ -418,7 +398,7 @@ void GameLifecycle::stop_current_map(void)
         ((uint8_t *)game_time)[1] = 0;
     }
 
-    widget_close_all();
+    halo::interface::widget_close_all();
     halo::main::globals().game_globals->active = 0;
 }
 
@@ -439,9 +419,9 @@ void GameLifecycle::unload_map(void)
             halo::main::render_pregame_view_initialize();
             halo::main::movie_capture_frame_export();
         } while (status == 0);
-        widget_close_all();
+        halo::interface::widget_close_all();
         if (status == 2) {
-            interface_handle_quit_request();
+            halo::interface::interface_handle_quit_request();
         }
         halo::cache::cache_file_download_finish();
     }

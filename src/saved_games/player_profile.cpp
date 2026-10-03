@@ -19,6 +19,8 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 static void copy_profile_block(saved_player_profile *destination, const saved_player_profile *source, size_t first_offset, size_t end_offset)
 {
@@ -42,13 +44,7 @@ extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_pr
 extern void *memset(void *dest, int32_t value, uint32_t count);
 extern void *memcpy(void *dest, const void *src, uint32_t count);
 extern char unknown_00719779[];
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern char savegames_directory[0x100];
-extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry);
-extern uint8_t savegame_index_write_slot(int32_t slot_index, saved_game_index_entry *entry);
-extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,
-    uint32_t out_path_size);
-extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path);
 extern uint16_t empty_string[];
 extern uint32_t rasterizer_device_version;
 extern uint32_t video_memory;
@@ -753,7 +749,7 @@ void mark_level_visited_and_select(int16_t local_player_index)
     profile = profile_globals_block[local_player_index].profile;
     profile.campaign_progress[current_level] |= (uint8_t)(1 << (difficulty & 0x1f));
     halo::saved_games::player_profile_write_data(handle, &profile);
-    player_profile_load(local_player_index, &profile, handle);
+    halo::interface::player_profile_load(local_player_index, &profile, handle);
 }
 
 /**
@@ -777,7 +773,7 @@ uint8_t rename(int32_t handle, uint16_t *new_name)
     uint8_t result;
 
     slot_index = saved_game_handle_slot(handle);
-    found = savegame_index_read_slot((int32_t)slot_index, &entry);
+    found = halo::game::savegame_index_read_slot((int32_t)slot_index, &entry);
     if (found == 0) {
         return 1;
     }
@@ -792,7 +788,7 @@ uint8_t rename(int32_t handle, uint16_t *new_name)
     }
 
     memset(directory, 0, sizeof(directory));
-    create_result = XCreateSaveGame(new_name, savegames_directory, 1, directory, k_saved_game_path_length);
+    create_result = halo::game::XCreateSaveGame(new_name, savegames_directory, 1, directory, k_saved_game_path_length);
     if (create_result != 0) {
         return 1;
     }
@@ -813,12 +809,12 @@ uint8_t rename(int32_t handle, uint16_t *new_name)
         }
         if (result == 1) {
         finalize:
-            XDeleteSaveGame(entry.display_name, savegames_directory);
+            halo::game::XDeleteSaveGame(entry.display_name, savegames_directory);
             strncpy(entry.path, dest_path, k_path_maximum_length);
             wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)new_name, k_saved_game_display_name_length - 1);
             entry.path[0xff] = 0;
             entry.display_name[0x7f] = 0;
-            savegame_index_write_slot((int32_t)slot_index, &entry);
+            halo::game::savegame_index_write_slot((int32_t)slot_index, &entry);
             return 1;
         }
         if (result != 0) {
@@ -834,12 +830,12 @@ uint8_t rename(int32_t handle, uint16_t *new_name)
             _snprintf(dest_path, k_path_maximum_length, "%s%s", directory, "blam.lst");
             result = (uint8_t)CopyFileA(entry.path, dest_path, 1);
             if (result == 1) {
-                XDeleteSaveGame(entry.display_name, savegames_directory);
+                halo::game::XDeleteSaveGame(entry.display_name, savegames_directory);
                 strncpy(entry.path, dest_path, k_path_maximum_length);
                 wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)new_name, k_saved_game_display_name_length - 1);
                 entry.path[0xff] = 0;
                 entry.display_name[0x7f] = 0;
-                savegame_index_write_slot((int32_t)slot_index, &entry);
+                halo::game::savegame_index_write_slot((int32_t)slot_index, &entry);
                 return 1;
             }
             if (result != 0) {
@@ -849,7 +845,7 @@ uint8_t rename(int32_t handle, uint16_t *new_name)
     }
 
 rollback:
-    XDeleteSaveGame(new_name, savegames_directory);
+    halo::game::XDeleteSaveGame(new_name, savegames_directory);
     return 0;
 }
 
@@ -880,7 +876,7 @@ void select_local_slot(int16_t local_player_index)
         profile.last_campaign_level = current_level;
         halo::saved_games::player_profile_write_data(handle, &profile);
     }
-    player_profile_load(local_player_index, &profile, handle);
+    halo::interface::player_profile_load(local_player_index, &profile, handle);
 }
 
 /**

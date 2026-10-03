@@ -12,6 +12,7 @@
 #include "halo/ai/ai_constants.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern datum_index ai_conversation_new(int16_t conversation_definition_index, uint8_t allow_eviction);
@@ -30,7 +31,6 @@ extern actor *actor_iterator_next(actor_iterator_state *iterator);
 extern void ai_reference_actor_iterator_new(uint32_t reference, ai_reference_actor_iterator *iterator);
 extern void *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
 extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sight, datum_index *out_player_object_index, float *out_distance, datum_index object_index);
-extern int8_t teams_are_enemies(int16_t a, int16_t b);
 extern data_array *prop_data;
 extern data_array *player_data;
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
@@ -759,7 +759,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
             case 0:
             case 6:
                 if (player_object != 0 &&
-                    teams_are_enemies(((struct object *)player_object)->owner_team,
+                    halo::game::teams_are_enemies(((struct object *)player_object)->owner_team,
                                       candidate->team) != 0) {
                     continue;
                 }

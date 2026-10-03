@@ -17,6 +17,7 @@
 
 #include "halo/interface/uis_game_setup.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int32_t ui_list_current;
@@ -30,7 +31,6 @@ extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t selected_level_active_00719878;
 extern uint8_t selected_level_pending_00719778;
 extern uint8_t network_wait_flag_00719739;
-extern void widget_play_sound_effect(int16_t effect_id);
 }
 
 namespace halo::ui {
@@ -84,7 +84,7 @@ uint8_t UiGameSetup::level_select_confirm_choice(widget_instance *widget)
         }
     }
     if (unlocked != 1) {
-        widget_play_sound_effect(4);
+        halo::interface::widget_play_sound_effect(4);
         return unlocked;
     }
     split_screen_quit_prompt_armed = 0;

@@ -12,6 +12,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -44,9 +45,7 @@ extern double sqrt(double x);
 extern double fabs(double x);
 extern datum_index ai_communication_select_speaker_by_team(int16_t match_mode, datum_index object_a, datum_index object_b, float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class, uint32_t line_id, int16_t seat_filter, uint8_t flags, int16_t team);
 extern datum_index ai_communication_select_speaker_in_reference(float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class, uint32_t line_id, int16_t seat_filter, uint8_t flags, uint32_t reference, datum_index object_a, datum_index object_b);
-extern uint32_t team_pair_override_adjust_counter(int16_t index_a, int16_t index_b, int16_t delta_selector, uint8_t *out_flag);
 extern void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uint8_t status);
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern int32_t ai_select_communication_target(uint32_t param_a, uint32_t param_b, int16_t line_id, int16_t sub_id, float *out_weight);
 extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sight, datum_index *out_player_object_index, float *out_distance, datum_index object_index);
 extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
@@ -321,7 +320,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                     }
                     if (react) {
                         uint8_t mark = 0;
-                        uint8_t status = (uint8_t)team_pair_override_adjust_counter(team_o, team_u, hostile != 0,
+                        uint8_t status = (uint8_t)halo::game::team_pair_override_adjust_counter(team_o, team_u, hostile != 0,
                                                                                     &mark);
 
                         if (mark) {
@@ -329,7 +328,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                         }
                     }
                 }
-                if (teams_are_enemies(team_o, team_u)) {
+                if (halo::game::teams_are_enemies(team_o, team_u)) {
                     reason = 4;
                 }
             }

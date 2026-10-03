@@ -8,13 +8,12 @@
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern player_control_globals *player_control_globals_ptr;
 extern player_globals *local_player_globals;
 extern director_pov_proc director_last_pov_proc;
-extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward);
-extern real game_engine_get_max_look_pitch(int16_t local_player_index);
 extern double sqrt(double x);
 extern double fabs(double x);
 extern double asin(double x);
@@ -22,7 +21,6 @@ extern const real_point3d *global_origin3d_pointer;
 extern Globals *global_globals;
 extern double fcos(double angle);
 extern double fsin(double angle);
-extern void chimera__spectate_fp_camera_position(camera_basis_out *out, int16_t local_player_index);
 extern data_array *player_data;
 extern game_time_globals *game_time;
 extern game_engine_definition *current_game_engine;
@@ -88,14 +86,14 @@ void FirstPersonCamera::compute_pov(director_camera_data *data, camera_input *in
         local_player = local_player_globals->local_players[input->local_player_index];
     }
 
-    player_compute_view_forward_vector(local_player,
+    halo::game::player_compute_view_forward_vector(local_player,
         &player_control_globals_ptr->local_players[input->local_player_index].yaw,
         (real_vector3d *)&direction);
 
     halo::camera::first_person_camera_for_unit_and_vector(command, &direction,
                                              player_control_globals_ptr->local_players[input->local_player_index].unit);
 
-    fov = game_engine_get_max_look_pitch(input->local_player_index);
+    fov = halo::game::game_engine_get_max_look_pitch(input->local_player_index);
     command->parameters.field_of_view = fov;
     if (*cached_field_of_view != fov) {
         command->interpolation_flags[_observer_parameter_field_of_view] = 1;
@@ -440,7 +438,7 @@ void ThirdPersonCamera::compute_pov(director_camera_data *data, camera_input *in
     float track_magnitude;
     local_player_control *player;
 
-    chimera__spectate_fp_camera_position(&basis, input->local_player_index);
+    halo::game::chimera__spectate_fp_camera_position(&basis, input->local_player_index);
 
     *(real_point3d *)&command->parameters.position = basis.position;
     command->timer = 0.0f;
@@ -1112,7 +1110,7 @@ void OrbitingCamera::update(director_camera_data *data, camera_input *input, obs
     camera_basis_out basis;
     float distance;
 
-    chimera__spectate_fp_camera_position(&basis, input->local_player_index);
+    halo::game::chimera__spectate_fp_camera_position(&basis, input->local_player_index);
     command->parameters.position = *(Point3D *)&basis.position;
 
     if (input->has_look_input) {

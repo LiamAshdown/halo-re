@@ -10,6 +10,7 @@
 #include "halo/tags/flags.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -854,7 +855,6 @@ extern void actor_queue_search_position(datum_index actor_index, real_point3d *p
                                         uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
                                         uint8_t prop_flag);
 extern void actor_record_perception_event(datum_index actor_index, int16_t event, int32_t data);
-extern int8_t teams_are_enemies(int16_t a, int16_t b);
 extern int16_t actor_dialogue_variant_table_e[];
 }
 }
@@ -889,7 +889,7 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
 
     if (flee_source_object != -1) {
         object *source = ((object_header *)halo::objects::globals().object_data->data)[flee_source_object & halo::k_slot_mask].data;
-        if (teams_are_enemies(source->owner_team , self->team) != 0) {
+        if (halo::game::teams_are_enemies(source->owner_team , self->team) != 0) {
             actor_record_perception_event(actor_index, 2, 0x384);
         }
     }
@@ -1003,7 +1003,6 @@ extern void actor_queue_search_position(datum_index actor_index, real_point3d *p
                                         uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
                                         uint8_t prop_flag);
 extern void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index);
-extern int8_t teams_are_enemies(int16_t a, int16_t b);
 extern uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index,
     datum_index owner_reference, datum_index pair_reference);
 extern void actor_forward_target_object_reference(datum_index actor_index, uint32_t param);
@@ -1038,7 +1037,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
 
             if (unknown_40 != -1 && (int32_t)game_time->game_time <= unknown_44 + 0x5a) {
                 object *player_unit = ((object_header *)halo::objects::globals().object_data->data)[unknown_40 & halo::k_slot_mask].data;
-                if (teams_are_enemies(player_unit->owner_team , self->team) != 0) {
+                if (halo::game::teams_are_enemies(player_unit->owner_team , self->team) != 0) {
                     actor_target_data_acquire(actor_index, (datum_index)unknown_40, k_datum_index_none, k_datum_index_none);
                 }
             }

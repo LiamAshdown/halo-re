@@ -1,6 +1,7 @@
 #include "win32.h"
 #include "halo/interface/engine_state.hpp"
 #include "halo/interface/ifr2_widgets.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -77,7 +78,7 @@ void WidgetLifecycle::memory_pool_initialize()
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 void widget_memory_pool_initialize(void)
 {

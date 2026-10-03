@@ -2,6 +2,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -9,26 +11,9 @@ extern game_time_globals *game_time;
 extern data_array *player_data;
 extern int16_t network_game_mode;
 extern game_variant game_engine_variant;
-extern void game_engine_player_profile_cache_sync_all(datum_index player_handle);
-extern void game_engine_broadcast_kill_feed_or_direct(datum_index recipient_or_all, int32_t broadcast_enabled, char broadcast, int32_t hash_key, datum_index subject);
-extern void game_engine_broadcast_kill_feed_gated(int32_t broadcast_enabled, int32_t exclude_index, int32_t alternate_recipient, datum_index subject, char broadcast);
-extern void game_engine_notify_kill_event(uint32_t player_index, int32_t hash_key, int32_t message_type, datum_index subject);
-extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type, datum_index subject, size_t buffer_size);
-extern void chimera__multiplayer_message(wchar_t *text);
 extern game_engine_state game_engine_state_value;
 extern float game_engine_end_game_timer;
 extern uint32_t game_engine_unknown_aa00;
-extern void game_engine_multiplayer_sound_queue_tick(void);
-extern void game_engine_cleanup_dropped_objects(void);
-extern void game_engine_update_item_scale_and_pickup(void);
-extern void game_engine_update_netgame_equipment(char force_respawn);
-extern void game_engine_clear_unit_shields_when_disabled(datum_index player_handle);
-extern void player_kill_streak_set_max(int16_t slot, uint32_t player_index, int16_t value);
-extern void game_engine_update_teleporter(datum_index player_handle);
-extern char game_engine_announce_time_remaining(void);
-extern void game_engine_begin_end_game_sequence(void);
-extern void game_engine_end_game_sequence_stage2(void);
-extern void game_engine_send_end_game_notification(uint32_t reason);
 extern void network_server_advance_connect_state(network_server_globals *server);
 extern network_server_globals *network_server;
 extern int32_t sv_tk_cooldown_ticks;
@@ -42,7 +27,6 @@ extern uint8_t shared_hud_text_draw_state;
 extern uint8_t game_engine_teams_enabled_flag;
 extern uint8_t network_client[];
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern void game_engine_gather_team_score_totals(uint32_t out_count[2], uint32_t out_score[2], int32_t filter_value);
 }
 
 namespace halo::game {
@@ -70,13 +54,13 @@ void EngineMatch::send_message(datum_index target, uint32_t message_type, datum_
         if ((current_game_engine->build_message_text != 0 &&
              ((char (*)(datum_index, uint32_t, datum_index, wchar_t *, uint32_t))current_game_engine->build_message_text)(
                  target, message_type, victim, buffer, 0x400) != 0) ||
-            game_engine_build_kill_feed_message_text(target, buffer, message_type, victim, 0x400) != 0) {
+            halo::game::game_engine_build_kill_feed_message_text(target, buffer, message_type, victim, 0x400) != 0) {
             buffer[0x3ff] = 0;
-            chimera__multiplayer_message(buffer);
+            halo::interface::chimera__multiplayer_message(buffer);
         }
     }
     if (network_game_mode == 2) {
-        game_engine_notify_kill_event(target, target, message_type, victim);
+        halo::game::game_engine_notify_kill_event(target, target, message_type, victim);
     }
 }
 
@@ -163,7 +147,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
     }
 
     if (network_game_mode == 2) {
-        game_engine_player_profile_cache_sync_all((datum_index)0xffffffff);
+        halo::game::game_engine_player_profile_cache_sync_all(1, (void *)0xffffffff);
     }
 
     if (v->marked_for_deletion != 0) {
@@ -172,7 +156,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
 
     if (killer != (datum_index)0xffffffff) {
         if (killer == victim) {
-            game_engine_broadcast_kill_feed_gated(6, -1, victim, killer, 1);
+            halo::game::game_engine_broadcast_kill_feed_gated(6, -1, victim, killer, 1);
             return;
         }
         message_category = (is_suicide != 0) + 4;
@@ -188,7 +172,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
     } else {
         message_category = 1;
     }
-    game_engine_broadcast_kill_feed_gated(message_category, killer, victim, killer, 1);
+    halo::game::game_engine_broadcast_kill_feed_gated(message_category, killer, victim, killer, 1);
 
     if (message_category == 5) {
         message_players(killer, 0x0d, victim, kill_feed_buffer);
@@ -211,7 +195,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
             send_spree = 0;
         }
         if (send_spree) {
-            game_engine_broadcast_kill_feed_or_direct(killer, spree_type, 1, killer, victim);
+            halo::game::game_engine_broadcast_kill_feed_or_direct(killer, spree_type, 1, killer, victim);
         }
 
         message_players(killer, 8, victim, kill_feed_buffer);
@@ -231,15 +215,15 @@ void EngineMatch::tick(void)
         return;
     }
 
-    game_engine_multiplayer_sound_queue_tick();
-    game_engine_cleanup_dropped_objects();
-    game_engine_update_item_scale_and_pickup();
+    halo::game::game_engine_multiplayer_sound_queue_tick();
+    halo::game::game_engine_cleanup_dropped_objects();
+    halo::game::game_engine_update_item_scale_and_pickup();
 
     if (network_game_mode == 2 || network_game_mode == 0) {
-        game_engine_update_netgame_equipment(0);
+        halo::game::game_engine_update_netgame_equipment(0);
     }
     if (network_game_mode == 2) {
-        game_engine_player_profile_cache_sync_all((datum_index)0xffffffff);
+        halo::game::game_engine_player_profile_cache_sync_all(1, (void *)0xffffffff);
     }
 
     {
@@ -253,7 +237,7 @@ void EngineMatch::tick(void)
         player_element = halo::memory::data_iterator_next(&player_iter);
 
         while (player_element != 0) {
-            game_engine_clear_unit_shields_when_disabled(player_iter.index);
+            halo::game::game_engine_clear_unit_shields_when_disabled(player_iter.index);
 
             if (current_game_engine != 0 &&
                 ((game_engine_variant.flags & 0x10) != 0 ||
@@ -261,10 +245,10 @@ void EngineMatch::tick(void)
                   ((char (*)(datum_index, int32_t))current_game_engine->time_scale_override)(
                       player_iter.index, 1) != 0)) &&
                 ((player *)player_element)->unit != k_datum_index_none) {
-                player_kill_streak_set_max(0, player_iter.index, 0xf);
+                halo::game::player_kill_streak_set_max(0, player_iter.index, 0xf);
             }
 
-            game_engine_update_teleporter(player_iter.index);
+            halo::game::game_engine_update_teleporter(player_iter.index);
             if (current_game_engine->update != 0) {
                 ((void (*)(datum_index))current_game_engine->update)(player_iter.index);
             }
@@ -310,8 +294,8 @@ void EngineMatch::tick(void)
     }
 
     if (game_engine_state_value == _game_engine_state_not_started) {
-        if (game_engine_announce_time_remaining() != 0) {
-            game_engine_begin_end_game_sequence();
+        if (halo::game::game_engine_announce_time_remaining() != 0) {
+            halo::game::game_engine_begin_end_game_sequence();
         }
     } else if (game_engine_state_value == _game_engine_state_ending) {
         if (game_engine_end_game_timer <= 2.0f && (game_engine_unknown_aa00 & 0x10) == 0) {
@@ -324,8 +308,8 @@ void EngineMatch::tick(void)
 
         game_engine_end_game_timer = game_engine_end_game_timer - 0.033333335f;
         if (game_engine_end_game_timer <= 0.0f && network_game_mode == 2) {
-            game_engine_end_game_sequence_stage2();
-            game_engine_send_end_game_notification(2);
+            halo::game::game_engine_end_game_sequence_stage2();
+            halo::game::game_engine_send_end_game_notification(2);
             network_server_advance_connect_state(network_server);
         }
     }
@@ -474,7 +458,7 @@ uint8_t EngineMatch::team_close_game_check(int32_t side, int32_t filter_value)
         return 0;
     }
 
-    game_engine_gather_team_score_totals(out_count, out_score, filter_value);
+    halo::game::game_engine_gather_team_score_totals(out_count, out_score, filter_value);
 
     if ((int32_t)out_count[side] > (int32_t)out_count[other_side]) {
         int32_t margin = (int32_t)out_score[other_side] - (int32_t)out_score[side];
@@ -504,7 +488,7 @@ uint8_t EngineMatch::team_is_leading(int32_t filter_value)
         return 0;
     }
 
-    game_engine_gather_team_score_totals(out_count, out_score, filter_value);
+    halo::game::game_engine_gather_team_score_totals(out_count, out_score, filter_value);
     if (out_count[0] != out_count[1]) {
         return out_count[1] <= out_count[0];
     }

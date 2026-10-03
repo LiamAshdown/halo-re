@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -121,7 +122,7 @@ void HsPlayerFunctions::set_action_result(int16_t function_index, uint32_t threa
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::HsPlayerFunctions::vehicle_gunner_evaluate; forwards to the C++ implementation.
@@ -162,10 +163,7 @@ void hs_vehicle_test_seat_evaluate(int16_t function_index, uint32_t thread_index
  *
  * @address 0x47c310
  */
-void player_camo_screen_effect(int16_t index, uint32_t thread_index, hs_function_definition *definition, char first)
-{
-    halo::game::HsPlayerFunctions::camo_screen_effect(index, thread_index, definition, first);
-}
+
 
 /**
  * C entry point for halo::game::HsPlayerFunctions::examine_nearby_vehicle; forwards to the C++ implementation.
@@ -177,10 +175,7 @@ void player_camo_screen_effect(int16_t index, uint32_t thread_index, hs_function
  *
  * @address 0x47b140
  */
-void player_examine_nearby_vehicle(int16_t index, uint32_t thread_index, hs_function_definition *definition, char first)
-{
-    halo::game::HsPlayerFunctions::examine_nearby_vehicle(index, thread_index, definition, first);
-}
+
 
 /**
  * C entry point for halo::game::HsPlayerFunctions::set_action_result; forwards to the C++ implementation.

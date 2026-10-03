@@ -1,10 +1,14 @@
 #include "halo/effects/effects.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/interface/api.hpp"
+
+#ifdef interface
+#undef interface
+#endif
 
 extern "C" {
 extern datum_index effect_marker_new(effect *self, int16_t location_index, object_marker *resolved_marker, uint8_t first_person);
-extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
 }
 
 namespace halo::effects {
@@ -28,7 +32,7 @@ void effect_view::rebuild_markers(effect_marker_resolver resolve_marker)
             markers, 0x10);
         int16_t i;
         uint8_t first_person = (uint8_t)((uint32_t)resolve_marker == 0x492ad0u ||
-            resolve_marker == first_person_weapon_get_marker_data);
+            resolve_marker == (effect_marker_resolver)halo::interface::first_person_weapon_get_marker_data);
 
         for (i = 0; i < count; i++) {
             if (halo::effects::effect_marker_new(self, location_index, &markers[i], first_person) == k_datum_index_none) {

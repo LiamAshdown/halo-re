@@ -20,6 +20,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" { extern uint8_t game_engine_teams_enabled_flag; }
 extern "C" { extern uint8_t g_control_binding_state; }
@@ -299,7 +301,6 @@ void Bindings::control_binding_table_update_b(void)
 
 }
 
-extern "C" { extern uint32_t game_variant_option_default_by_index(uint32_t selector); }
 namespace halo::input {
 
 /**
@@ -312,7 +313,7 @@ uint32_t Bindings::control_word_extract_field(uint32_t which_word, uint32_t fiel
     uint32_t word = (which_word == 1) ? control_word_secondary : control_word_primary;
 
     if ((word & 0xf) != 8) {
-        word = game_variant_option_default_by_index(word & 0xf);
+        word = halo::game::game_variant_option_default_by_index(word & 0xf);
     }
 
     switch (field_index) {
@@ -1244,7 +1245,6 @@ void Bindings::scan_any_bound_input(void)
 
 }
 
-extern "C" { extern void console_printf_verbose(ColorARGB *color, char *format, ...); }
 namespace halo::input {
 
 /**
@@ -1265,10 +1265,10 @@ void Bindings::test_input_device_defaults_find(char *device_id_ansi)
     halo::input::input_guid_parse_ansi(&guid, device_id_ansi);
     tag_id = (int32_t)halo::input::input_device_default_profile_tag_find(guid, saved_profile);
     if (tag_id == -1) {
-        console_printf_verbose((ColorARGB *)0, (char *)"deviceid %s has no default", device_id_ansi);
+        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)"deviceid %s has no default", device_id_ansi);
         return;
     }
-    console_printf_verbose((ColorARGB *)0, (char *)"Default profile in tag %d", tag_id);
+    halo::interface::console_printf_verbose((ColorARGB *)0, (char *)"Default profile in tag %d", tag_id);
 }
 
 }

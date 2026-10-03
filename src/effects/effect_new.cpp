@@ -5,13 +5,12 @@
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
 extern void effect_start_event(datum_index effect_handle, int16_t event_index);
 extern const ColorRGB *global_white_color;
-extern int32_t local_player_index_for_object(datum_index object_index);
-extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
 extern uint8_t first_person_effects_enabled;
 extern void *effect_marker_callback_context;
 extern const real_point3d *global_origin3d_pointer;
@@ -94,7 +93,7 @@ datum_index effect_ref::new_at_texture_coordinate(datum_index definition_index, 
         int i;
 
         self->object_index = object_index;
-        self->first_person_weapon_index = (int16_t)local_player_index_for_object(object_index);
+        self->first_person_weapon_index = (int16_t)halo::interface::local_player_index_for_object(object_index);
         self->a_scale_function_index = u;
         self->b_scale_function_index = v;
         self->change_color_index = change_color_index;
@@ -112,7 +111,7 @@ datum_index effect_ref::new_at_texture_coordinate(datum_index definition_index, 
 
         halo::effects::effect_rebuild_markers(self, (effect_marker_resolver)(halo::objects::object_get_node_local_transform));
         if (self->first_person_weapon_index != -1) {
-            halo::effects::effect_rebuild_markers(self, first_person_weapon_get_marker_data);
+            halo::effects::effect_rebuild_markers(self, (effect_marker_resolver)(halo::interface::first_person_weapon_get_marker_data));
         }
 
         halo::effects::effect_update(handle, 0.0f);
@@ -138,7 +137,7 @@ datum_index effect_ref::new_on_object(datum_index creator_object_index, datum_in
 
         halo::effects::effect_set_placement(self, color, tint_source, a_scale, b_scale);
         self->object_index = object_index;
-        self->first_person_weapon_index = (int16_t)local_player_index_for_object(object_index);
+        self->first_person_weapon_index = (int16_t)halo::interface::local_player_index_for_object(object_index);
 
         if (first_person_effects_enabled != 0 && halo::effects::effect_first_person_screen_timer_active(object_index)) {
             self->flags = self->flags | _effect_first_person_bit;
@@ -150,7 +149,7 @@ datum_index effect_ref::new_on_object(datum_index creator_object_index, datum_in
 
         halo::effects::effect_rebuild_markers(self, (effect_marker_resolver)(halo::objects::object_get_node_local_transform));
         if (self->first_person_weapon_index != -1) {
-            halo::effects::effect_rebuild_markers(self, first_person_weapon_get_marker_data);
+            halo::effects::effect_rebuild_markers(self, (effect_marker_resolver)(halo::interface::first_person_weapon_get_marker_data));
         }
 
         if (first_person_weapon_override != -1) {

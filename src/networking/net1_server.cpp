@@ -9,6 +9,8 @@
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream);
@@ -36,11 +38,8 @@ extern int32_t player_profile_cache_count;
 extern char network_player_join_finalize(void);
 extern char network_channel_key_open(void);
 extern uint32_t player_data_iterator_advance(uint8_t slot_index);
-extern void player_update_queue_create(player_update_queue *queue);
 extern data_array *update_client_queues;
 extern data_array *update_server_queues;
-extern void game_engine_player_new_life(uint32_t player_datum);
-extern int32_t game_engine_player_profile_cache_find(void);
 extern void network_game_server_handoff_object_ownership(int32_t *object_count_passthrough, network_server_globals *server, network_machine *machine);
 extern void network_object_release_ownership_claim(uint8_t slot_index);
 extern data_packet_group network_game_messages_group;
@@ -49,10 +48,7 @@ extern char network_server_build_full_game_info_packet(network_machine *machine)
 extern data_array *player_data;
 extern game_engine_definition *current_game_engine;
 extern void network_game_broadcast_team_object_updates(int32_t *object_count, uint32_t param_1, int32_t *bytes_sent);
-extern int32_t game_engine_notify_object_value_event(int32_t team);
 extern void build_player_full_resync_update(int32_t machine_id);
-extern void game_engine_capture_player_profile(int32_t value);
-extern void game_engine_send_unit_weapon_loadout(void *machine, int32_t team, int32_t machine_id);
 typedef void (*network_join_complete_callback)(int32_t unused, int32_t machine_id);
 extern network_server_globals *network_game_server_host_new(void);
 extern int32_t network_console_connection_id;
@@ -81,11 +77,8 @@ extern char network_game_session_reset_defaults(void);
 extern void * network_session_host_start(int32_t user_data);
 extern void message_delta_protocol_initialize(void);
 extern void network_stats_summary_log_open(void);
-extern void update_server_push_player_tick_history(void);
-extern void game_engine_tick(void);
 extern char network_game_session_finalize_and_add_player(network_player_entry *entry, network_server_globals *server, network_machine *machine);
 extern uint32_t network_game_broadcast_state_snapshot(const uint32_t *record, network_server_globals *server);
-extern uint8_t game_engine_team_is_leading(uint32_t requested_team);
 extern void network_game_generate_unique_random_name(void);
 extern char network_player_name_collision_check(void);
 extern void network_player_assign_random_color(void);
@@ -102,11 +95,9 @@ extern uint8_t message_delta_decode_compound_field(void *decode_context, void *d
 extern void message_delta_decode_compound_field_staged(void *decode_context);
 extern void chimera__rcon_out(char *text, int32_t machine_id);
 extern void *global_white_argb;
-extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t status_bit, void *data, uint32_t bits, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
 extern int16_t network_join_error_code;
 extern uint8_t network_host_handoff_requested;
-extern void chat_close(void);
 extern void network_machine_timer_start(network_machine *machine, int32_t duration_ms);
 extern int32_t network_server_status_last_print_ms;
 extern void sv_status(void);
@@ -478,15 +469,15 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
 
                                     halo::memory::datum_new_at_index_with_salt((datum_index)slot_handle, update_client_queues);
                                     queue_handle = halo::memory::datum_new_at_index_with_salt((datum_index)slot_handle, update_server_queues);
-                                    player_update_queue_create(&((update_server_queue *)update_server_queues->data)[queue_handle & 0xffff].queue);
+                                    halo::game::player_update_queue_create(&((update_server_queue *)update_server_queues->data)[queue_handle & 0xffff].queue);
                                 }
                             }
                         }
                         if (ok != 0) {
                             machine->player_joined = 1;
                             player_datum = player_data_iterator_advance((uint8_t)entry->slot_index) ;
-                            game_engine_player_new_life(player_datum);
-                            if (game_engine_player_profile_cache_find() != -1) {
+                            halo::game::game_engine_player_new_life(player_datum);
+                            if (halo::game::game_engine_player_profile_cache_find((datum_index)player_datum) != -1) {
                                 handled = 1;
                             } else {
 
@@ -628,16 +619,17 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
                         if (salt == 0 || plr->identifier == salt) {
                             team = plr->team;
                             unit = plr->unit;
-                            game_engine_notify_object_value_event(team);
+                            halo::game::game_engine_notify_object_value_event((uint8_t)entry->slot_index, (int32_t)datum, machine_id, (void *)(uintptr_t)team);
                             build_player_full_resync_update(machine_id);
-                            if (game_engine_player_profile_cache_find() != -1) {
-                                game_engine_capture_player_profile(0);
+                            int32_t profile_slot = halo::game::game_engine_player_profile_cache_find((datum_index)datum);
+                            if (profile_slot != -1) {
+                                halo::game::game_engine_capture_player_profile(profile_slot, 0);
                             }
                             if ((uint32_t)unit != 0xffffffff) {
                                 hdr = &((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff];
                                 unit_obj = hdr->data;
                                 if ((unit_obj->vitality_flags & 0x04) == 0) {
-                                    game_engine_send_unit_weapon_loadout(owner, team, machine_id);
+                                    halo::game::game_engine_send_unit_weapon_loadout((uint32_t)unit, (datum_index)datum, (int32_t)team, machine_id);
                                 }
                             }
                         }
@@ -833,7 +825,7 @@ void ServerView::per_frame_tick(int16_t update_count)
             remaining = (uint32_t)update_count;
             do {
                 server->update_tick = server->update_tick + 1;
-                update_server_push_player_tick_history();
+                halo::game::update_server_push_player_tick_history();
                 QueryPerformanceCounter((LARGE_INTEGER *)&counter);
                 remaining = remaining - 1;
             } while (remaining != 0);
@@ -866,7 +858,7 @@ void ServerView::per_frame_tick(int16_t update_count)
             server->join_finalize_pending = 0;
         }
     } else if (server->state == 2) {
-        game_engine_tick();
+        halo::game::game_engine_tick();
     }
 }
 
@@ -903,7 +895,7 @@ uint32_t ServerView::session_finalize_and_add_player(network_player_entry *entry
     reserved[2] = L'|';
     reserved[3] = L'\0';
     if (entry->team_index == -1) {
-        entry->team_index = (int8_t)game_engine_team_is_leading(0xffffffff);
+        entry->team_index = (int8_t)halo::game::game_engine_team_is_leading(0xffffffff);
     }
     if (entry->name[0] == L'\0') {
         network_game_generate_unique_random_name();
@@ -1095,37 +1087,37 @@ void ServerView::handle_rcon_request(network_player_entry *client, void *message
 
     if (*(int32_t *)*(int32_t *)message != 0) {
         message_delta_decode_compound_field_staged(message);
-        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring meaningless rcon_request message from client #%d", machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring meaningless rcon_request message from client #%d", machine_id);
         return;
     }
     memset(&decode, 0, sizeof(decode));
     if (message_delta_decode_compound_field(message, &decode) == 0) {
-        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Could not decode rcon message from client #%d", machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Could not decode rcon message from client #%d", machine_id);
         return;
     }
     if (sv_rcon_password_value[0] == 0) {
         chimera__rcon_out((char *)"rcon command ignored (rcon is disabled)", machine_id);
-        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (rcon is disabled)", machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (rcon is disabled)", machine_id);
         return;
     }
     if (strcmp(sv_rcon_password_value, decode.password) != 0) {
         chimera__rcon_out((char *)"rcon command ignored (bad password)", machine_id);
-        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (bad password)", machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (bad password)", machine_id);
         return;
     }
     if (decode.command[0] == 0) {
         chimera__rcon_out((char *)"rcon command ignored (empty)", machine_id);
-        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (empty command)", machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (empty command)", machine_id);
         return;
     }
     halo::main::console_process_rcon_command(machine_id, decode.command);
     {
         chimera__rcon_out((char *)"rcon command finished", machine_id);
-        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Successfully executed rcon command from client #%d.", machine_id + 1);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Successfully executed rcon command from client #%d.", machine_id + 1);
         return;
     }
     chimera__rcon_out((char *)"rcon command failed", machine_id);
-    chimera__console_out((ColorARGB *)global_white_argb, (char *)"Failure executing rcon command from client #%d.", machine_id);
+    halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Failure executing rcon command from client #%d.", machine_id);
 }
 
 /**
@@ -1149,7 +1141,7 @@ uint8_t ServerView::notify_or_resend_challenge(int16_t reason, network_machine *
             network_join_error_code = (int16_t)(reason + 0x2b);
         }
         network_host_handoff_requested = 1;
-        chat_close();
+        halo::interface::chat_close();
         return 1;
     }
     packet = network_prepare_challenge_packet(6, &payload);

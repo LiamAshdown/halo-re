@@ -10,6 +10,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -19,11 +20,7 @@ extern "C" {
 extern datum_index ui_cursor_bitmap;
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
-extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
-extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern first_person_weapon_interface *first_person_weapon_interfaces;
-extern void terminal_initialize(void);
-extern void hud_state_allocate(void);
 extern int32_t interface_loading_screen_address_b;
 extern uint32_t interface_loading_screen_address_a;
 extern progress_screen_state join_ui_state;
@@ -36,11 +33,9 @@ extern widget_instance *ui_root_widget[1];
 extern int32_t ui_time_milliseconds;
 extern widget_history_node *ui_widget_history[3];
 extern void sound_looping_stop(datum_index sound_tag);
-extern void widget_pool_list_free_all(widget_history_node **head);
 extern int32_t main_menu_music_datum;
 extern map_list_entry *map_list;
 extern int32_t map_list_count;
-extern int32_t map_list_find_known_map_index(char *map_path);
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
 extern data_array *terminal_messages;
@@ -75,13 +70,13 @@ void InterfaceMain::draw_cursor()
         if (bitmap_data != 0) {
             rect.bottom = (int16_t)(ui_cursor_y + 0x20);
             rect.right = (int16_t)(ui_cursor_x + 0x20);
-            ui_draw_screen_quad((int16_t *)0, (int16_t *)&rect, bitmap_data, (int16_t *)0, 0xffffffffu);
+            halo::interface::ui_draw_screen_quad((int16_t *)0, (int16_t *)&rect, bitmap_data, (int16_t *)0, 0xffffffffu);
             return;
         }
     }
     rect.bottom = (int16_t)(ui_cursor_y + 0x10);
     rect.right = (int16_t)(ui_cursor_x + 0x10);
-    ui_draw_filled_rectangle(0x80ff0000, &rect);
+    halo::interface::ui_draw_filled_rectangle(0x80ff0000, &rect);
 }
 
 /**
@@ -95,8 +90,8 @@ void InterfaceMain::globals_allocate()
     int32_t block;
     int32_t size = 0x1ea0;
 
-    terminal_initialize();
-    hud_state_allocate();
+    halo::interface::terminal_initialize();
+    halo::interface::hud_state_allocate();
 
     block = halo::saved_games::globals().game_state_cursor + (int32_t)halo::saved_games::globals().game_state_base;
     halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x1ea0;
@@ -193,7 +188,7 @@ void InterfaceMain::on_shown(int32_t fade_milliseconds)
         ui_root_widget[0]->milliseconds_to_auto_close =
             (ui_time_milliseconds - ui_root_widget[0]->creation_time) + 100;
         if (ui_widget_history[0] != (widget_history_node *)0) {
-            widget_pool_list_free_all(&ui_widget_history[0]);
+            halo::interface::widget_pool_list_free_all(&ui_widget_history[0]);
         }
     }
 }
@@ -261,7 +256,7 @@ void MapList::get_friendly_level_name(wchar_t *destination, char *map_path, int3
     char *filename;
 
     map_list_tag = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\mp_map_list");
-    index = map_list_find_known_map_index(map_path);
+    index = halo::interface::map_list_find_known_map_index(map_path);
     if (-1 < index && index < 0x13 && index != -1) {
 
         source = (wchar_t *)halo::text::text_string_list_get_string(map_list_tag, (int16_t)map_list[index].map_id);
@@ -359,7 +354,7 @@ void InterfaceMain::initialize_terminal()
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 void interface_draw_cursor(void)
 {

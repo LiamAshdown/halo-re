@@ -8,6 +8,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_allocate_paired_prop {
 extern "C" {
@@ -102,8 +103,6 @@ namespace c_actor_apply_unit_definition_properties {
 extern "C" {
 extern int16_t network_game_mode;
 extern object_type_definition *object_type_definitions[12];
-
-
 
 
 static uint8_t *object_get(datum_index object_index)
@@ -431,7 +430,6 @@ static float sqrt_f(float x) { return (float)sqrt((double)x); }
 extern data_array *actor_data;
 
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 }
 }
 
@@ -526,7 +524,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
 
                 if (driver_field != -1) {
 
-                    if (teams_are_enemies(*(int16_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[driver_field & halo::k_slot_mask].data + 0xb8),
+                    if (halo::game::teams_are_enemies(*(int16_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[driver_field & halo::k_slot_mask].data + 0xb8),
                                           ((struct actor *)self)->team) == 0) {
                         self->danger_owner_relation = 1;
                     }
@@ -883,7 +881,6 @@ extern void actor_target_data_refresh(datum_index actor_index, datum_index prop_
                          uint32_t flag);
 extern void actor_target_update_tracking_speed(datum_index actor_index, datum_index prop_index, void *scratch);
 extern uint8_t actor_target_has_conflicting_neighbor(datum_index actor_index, datum_index target_prop_index);
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 }
 }
 
@@ -945,7 +942,7 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
                 uint8_t scratch[56];
 
                 result = actor_find_or_allocate_prop(actor_index, object_index,
-                    (char)teams_are_enemies(((struct object *)object)->owner_team, ((struct actor *)self)->team));
+                    (char)halo::game::teams_are_enemies(((struct object *)object)->owner_team, ((struct actor *)self)->team));
                 if (result != (datum_index)halo::k_dword_none) {
                     prop *p = (prop *)((uint8_t *)prop_data->data + (result & halo::k_slot_mask) * sizeof(prop));
 
@@ -1062,9 +1059,6 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b);
-extern uint8_t team_pair_override_get_flag(int16_t index_a, int16_t index_b);
 }
 }
 
@@ -1113,9 +1107,9 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
 
         p->team = ((struct object *)object)->owner_team;
 
-        p->enemy = teams_are_enemies(p->team, ((struct actor *)self)->team);
-        p->allegiance = team_pair_flag_test(((struct actor *)self)->team, p->team);
-        p->team_pair_status = team_pair_override_get_flag(((struct actor *)self)->team, p->team);
+        p->enemy = halo::game::teams_are_enemies(p->team, ((struct actor *)self)->team);
+        p->allegiance = halo::game::team_pair_flag_test(((struct actor *)self)->team, p->team);
+        p->team_pair_status = halo::game::team_pair_override_get_flag(((struct actor *)self)->team, p->team);
 
         is_vault = (*(uint8_t *)&((struct object *)object)->vitality_flags >> 2) & 1;
         p->dead = is_vault;

@@ -5,28 +5,16 @@
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);
 extern uint32_t render_viewport_top;
-extern void hud_bitmap_anchor_extents(uint8_t pixel_uvs, const BitmapData *bitmap, const float *uv,
-                                      float *out_extents, int16_t anchor);
-extern void hud_draw_rotated_bitmap_quad(const Point2DInt *screen_position, const float *scale,
-                                         void *meter_parameters, BitmapData *bitmap, const float *uv,
-                                         const float *extents, float rotation, uint32_t color);
-extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
-                                                 const int16_t *offset, int16_t *out, int32_t selector);
 extern HUDGlobals *hud_globals_tag_data;
 extern game_time_globals *game_time;
 extern player_globals *local_player_globals;
 extern int32_t __ftol(double x);
-extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
-                                           void **out_data, int32_t *out_offset);
-extern void hud_draw_bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, int16_t anchor,
-                               const Point2DInt *screen_position, float scale, float rotation, uint32_t color);
 extern game_engine_definition *current_game_engine;
-extern void ui_widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t use_text_color,
-                                                   const uint16_t *text);
 extern float sinf(float x);
 extern float cosf(float x);
 extern float sqrtf(float x);
@@ -35,16 +23,7 @@ extern long lrint(double x);
 extern data_array *player_data;
 extern player_control_globals *player_control_globals_ptr;
 extern float hud_multitexture_effector_counter;
-extern uint8_t hud_player_weapon_ammo_state(const player *p, weapon_hud_ammo_state *out);
 extern Globals *global_globals;
-extern uint32_t hud_meter_flash_color_blend(const hud_flash_parameters *flash, int32_t start_time);
-extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs,
-                                    void *meter_parameters, BitmapData *bitmap, uint16_t *anchor,
-                                    float scale, float rotation, uint32_t color, uint8_t split_screen);
-extern void hud_draw_multitexture_overlay(const float *scale, const HUDInterfaceMultitextureOverlay *overlay,
-                                          int16_t local_player_index, const Point2DInt *screen_position,
-                                          const float *uv, const float *extents, float rotation,
-                                          uint32_t color);
 }
 
 static datum_index hud_local_player_index_to_player(int16_t local_player_index)
@@ -74,8 +53,8 @@ static void hud_number_draw_glyph(hud_number_pen *pen, uint16_t glyph, uint8_t a
 
     position.x = pen->x;
     position.y = pen->y;
-    hud_meter_resolve_bitmap_frame(pen->digits_bitmap, 0, glyph, &bitmap_data, &sprite_rect);
-    hud_draw_bitmap_at((const float *)sprite_rect, (BitmapData *)bitmap_data, pen->is_sprite_bitmap, (int16_t)pen->anchor,
+    halo::interface::hud_meter_resolve_bitmap_frame(pen->digits_bitmap, 0, glyph, &bitmap_data, &sprite_rect);
+    halo::interface::hud_draw_bitmap_at((const float *)sprite_rect, (BitmapData *)bitmap_data, pen->is_sprite_bitmap, (int16_t)pen->anchor,
                        &position, pen->scale, 0.0f, pen->color);
     if (advance) {
         pen->x = (int16_t)(int32_t)((float)pen->x - pen->advance);
@@ -229,8 +208,8 @@ void HudDraw::bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, 
     }
     both_scale[0] = scale;
     both_scale[1] = scale;
-    hud_bitmap_anchor_extents(pixel_uvs, bitmap, uv, extents, anchor);
-    hud_draw_rotated_bitmap_quad(screen_position, both_scale, 0, bitmap, uv, extents, rotation, color);
+    halo::interface::hud_bitmap_anchor_extents(pixel_uvs, bitmap, uv, extents, anchor);
+    halo::interface::hud_draw_rotated_bitmap_quad(screen_position, both_scale, 0, bitmap, uv, extents, rotation, color);
 }
 
 /**
@@ -267,10 +246,10 @@ void HudDraw::bitmap_element(const float *uv, const hud_element_placement *place
     if (split_screen != 0 && (*(const uint8_t *)&placement->scaling_flags & 1) == 0) {
         scale_offset = 1;
     }
-    hud_anchor_offset_to_screen_position(anchor, scale_offset, 0.0f, &placement->anchor_offset.x,
+    halo::interface::hud_anchor_offset_to_screen_position(anchor, scale_offset, 0.0f, &placement->anchor_offset.x,
                                          &screen_position.x, 0);
-    hud_bitmap_anchor_extents(pixel_uvs, bitmap, uv, extents, (int16_t)*anchor);
-    hud_draw_rotated_bitmap_quad(&screen_position, element_scale, meter_parameters, bitmap, uv, extents,
+    halo::interface::hud_bitmap_anchor_extents(pixel_uvs, bitmap, uv, extents, (int16_t)*anchor);
+    halo::interface::hud_draw_rotated_bitmap_quad(&screen_position, element_scale, meter_parameters, bitmap, uv, extents,
                                  rotation, color);
 }
 
@@ -296,7 +275,7 @@ void HudDraw::message_icon(const hud_messaging_information *information, Rectang
     if (information->frame_rate != 0) {
         frame = game_time->game_time / (int32_t)information->frame_rate;
     }
-    hud_meter_resolve_bitmap_frame(*(datum_index *)&hud_globals_tag_data->icon_bitmap.tag_id,
+    halo::interface::hud_meter_resolve_bitmap_frame(*(datum_index *)&hud_globals_tag_data->icon_bitmap.tag_id,
                                    (int16_t)information->sequence_index, (uint16_t)frame, (void **)&bitmap,
                                    &uv_offset);
     if (bitmap == 0 || halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
@@ -314,7 +293,7 @@ void HudDraw::message_icon(const hud_messaging_information *information, Rectang
     if ((information->flags & 2) != 0) {
         color = *(const uint32_t *)&information->override_icon_color;
     }
-    hud_draw_bitmap_at(uv, bitmap, 0, 2, &position, scale, 0.0f, color);
+    halo::interface::hud_draw_bitmap_at(uv, bitmap, 0, 2, &position, scale, 0.0f, color);
 
     if ((information->flags & 4) != 0) {
         cursor->left = (int16_t)__ftol((double)((float)information->width_offset * scale + (float)x));
@@ -343,7 +322,7 @@ void HudDraw::message_text_span(Rectangle2D *cursor, Rectangle2D *origin, const 
     cursor->left = (int16_t)(cursor->left - 3);
     bounds.left = origin->left;
     if (allow_button_prompts != 0 && current_game_engine != 0) {
-        ui_widget_draw_formatted_prompt_string(&bounds, 1, text);
+        halo::interface::ui_widget_draw_formatted_prompt_string(&bounds, 1, text);
     } else {
         halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
     }
@@ -387,7 +366,7 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
     sine = sinf(rotation);
     cosine = cosf(rotation);
 
-    hud_player_weapon_ammo_state(
+    halo::interface::hud_player_weapon_ammo_state(
         (const player *)((uint8_t *)player_data->data + (hud_local_player_index_to_player(local_player_index) & 0xffff) * 0x200),
         &ammo);
 
@@ -616,7 +595,7 @@ void HudDraw::number(void *unused, uint16_t *anchor, const hud_number_placement 
     }
     magnitude = (value < 0) ? -value : value;
 
-    hud_anchor_offset_to_screen_position(anchor, (uint8_t)((flags >> 2) & 1), 0.0f,
+    halo::interface::hud_anchor_offset_to_screen_position(anchor, (uint8_t)((flags >> 2) & 1), 0.0f,
                                          (const int16_t *)&placement->anchor_offset, (int16_t *)&origin, 0);
     switch (*anchor) {
     case 0:
@@ -637,7 +616,7 @@ void HudDraw::number(void *unused, uint16_t *anchor, const hud_number_placement 
     if (flags & 2) {
         pen.color = *(uint32_t *)&placement->disabled_color;
     } else if (flags & 1) {
-        pen.color = hud_meter_flash_color_blend(&placement->flash, flash_start_time);
+        pen.color = halo::interface::hud_meter_flash_color_blend(&placement->flash, flash_start_time);
     } else {
         pen.color = *(uint32_t *)&placement->flash.default_color;
     }
@@ -716,7 +695,7 @@ void HudDraw::overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t 
                        ->bitmap_group_sequence.pointer + (int16_t)overlay->sequence_index;
 
         if ((overlay_flags & 1) != 0 && (draw_flags & 1) != 0) {
-            color = hud_meter_flash_color_blend((const hud_flash_parameters *)&overlay->default_color,
+            color = halo::interface::hud_meter_flash_color_blend((const hud_flash_parameters *)&overlay->default_color,
                                                 flash_start_time);
         } else {
             color = *(const uint32_t *)&overlay->default_color;
@@ -731,10 +710,10 @@ void HudDraw::overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t 
 
         bitmap = 0;
         sprite_uv = 0;
-        hud_meter_resolve_bitmap_frame(tag_id, (int16_t)overlay->sequence_index, (uint16_t)frame,
+        halo::interface::hud_meter_resolve_bitmap_frame(tag_id, (int16_t)overlay->sequence_index, (uint16_t)frame,
                                        (void **)&bitmap, &sprite_uv);
         if (bitmap != 0 && halo::cache::texture_cache_get(bitmap, 0, 1) != 0) {
-            hud_draw_bitmap_element((const float *)sprite_uv, (const hud_element_placement *)overlay, 0, 0,
+            halo::interface::hud_draw_bitmap_element((const float *)sprite_uv, (const hud_element_placement *)overlay, 0, 0,
                                     bitmap, anchor, 1.0f, 0.0f, color, split_screen);
         }
     }
@@ -830,14 +809,14 @@ void HudDraw::static_element(int16_t local_player_index, uint16_t *anchor, const
     if ((draw_flags & 2) != 0) {
         color = *(const uint32_t *)&element->disabled_color;
     } else if ((draw_flags & 1) != 0) {
-        color = hud_meter_flash_color_blend(&element->flash, flash_start_time);
+        color = halo::interface::hud_meter_flash_color_blend(&element->flash, flash_start_time);
     } else {
         color = *(const uint32_t *)&element->flash.default_color;
     }
 
     pixel_uvs = bitmap_tag->type == 4;
     scale = (*(const uint8_t *)&element->scaling_flags & 4) != 0 ? 0.5f : 1.0f;
-    hud_draw_bitmap_element(uv, (const hud_element_placement *)element, pixel_uvs, 0, bitmap, anchor,
+    halo::interface::hud_draw_bitmap_element(uv, (const hud_element_placement *)element, pixel_uvs, 0, bitmap, anchor,
                             scale, 0.0f, color, (uint8_t)((draw_flags >> 2) & 1));
 
     if ((int32_t)element->multitexture_overlays.count > 0) {
@@ -869,10 +848,10 @@ void HudDraw::static_element(int16_t local_player_index, uint16_t *anchor, const
             if ((int16_t)(draw_flags & 4) != 0 && (*(const uint8_t *)&element->scaling_flags & 1) == 0) {
                 scale_offset = 1;
             }
-            hud_anchor_offset_to_screen_position(anchor, scale_offset, 0.0f, &element->anchor_offset.x,
+            halo::interface::hud_anchor_offset_to_screen_position(anchor, scale_offset, 0.0f, &element->anchor_offset.x,
                                                  &screen_position.x, 0);
-            hud_bitmap_anchor_extents(pixel_uvs, bitmap, uv, extents, (int16_t)*anchor);
-            hud_draw_multitexture_overlay(element_scale, overlay, local_player_index, &screen_position, uv,
+            halo::interface::hud_bitmap_anchor_extents(pixel_uvs, bitmap, uv, extents, (int16_t)*anchor);
+            halo::interface::hud_draw_multitexture_overlay(element_scale, overlay, local_player_index, &screen_position, uv,
                                           extents, 0.0f, color);
             i++;
         } while ((int32_t)i < (int32_t)element->multitexture_overlays.count);

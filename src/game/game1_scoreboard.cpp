@@ -20,6 +20,8 @@
 #include "halo/sound/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -28,18 +30,8 @@ extern game_engine_state game_engine_state_value;
 extern game_variant game_engine_variant;
 extern wchar_t empty_string;
 extern wchar_t missing_string_text[];
-extern uint32_t game_engine_is_object_winning(uint32_t handle);
-extern wchar_t *game_engine_get_default_multiplayer_string(const scoreboard_entry *entry);
-extern void game_engine_get_player_scoreboard_entry(datum_index player_handle, scoreboard_entry *out);
-extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type,
-    datum_index subject, size_t buffer_size);
 extern void qsort(void *base, uint32_t count, uint32_t size,
     uint32_t (*compare)(const void *, const void *));
-extern uint32_t scoreboard_entry_compare_by_unknown_04(const scoreboard_entry *a,
-    const scoreboard_entry *b);
-extern int32_t scoreboard_entry_compare(const scoreboard_entry *a,
-    const scoreboard_entry *b);
-extern uint32_t game_engine_build_scoreboard_sort_key(uint32_t player_index, int32_t score);
 extern int32_t game_engine_bucket_scores[16];
 extern int32_t game_engine_bucket_scores_extra[16];
 extern int16_t network_game_mode;
@@ -56,26 +48,15 @@ extern uint8_t ui_pause_depth;
 extern int32_t controls_capture_row;
 extern uint8_t controls_input_capture_flags;
 extern uint8_t controls_input_capture_buffer[0xa0 * 4];
-extern void game_engine_player_profile_cache_sync_all(datum_index player_handle);
-extern void widget_close(void *widget);
-extern void widget_pool_list_free_all(void);
-extern int32_t game_engine_get_multiplayer_sound_duration_ticks(int32_t sound_index);
 extern uint8_t network_message_scratch[0x7ff8];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
-extern int32_t players_active_count(void);
-extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_handle);
 extern real *default_color_a;
 extern real *default_color_b;
-extern int32_t game_engine_build_sorted_player_list(uint8_t invert_low_stat,
-    scoreboard_entry entries[16], int32_t mode);
-extern uint8_t game_engine_players_ready_for_bsp_switch(void);
-extern uint8_t game_engine_find_first_eligible_player_on_team(int32_t team);
 extern int32_t game_engine_unknown_aa00;
 extern int16_t light_count_enabled;
-extern datum_index player_index_from_unit_index(datum_index object_or_unit);
 extern float game_engine_nameplate_fade_opacity_array[1];
 }
 
@@ -128,7 +109,7 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
 
         if (current_game_engine != 0) {
             if (current_game_engine->is_winner == 0) {
-                result = (int32_t)game_engine_is_object_winning(player_handle);
+                result = (int32_t)halo::game::game_engine_is_object_winning(player_handle);
             } else {
                 result = ((int32_t (*)(datum_index))current_game_engine->is_winner)(player_handle);
             }
@@ -164,11 +145,11 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
         wchar_t header[0x80];
         wchar_t *fmt;
 
-        game_engine_get_player_scoreboard_entry(player_handle, &entry);
+        halo::game::game_engine_get_player_scoreboard_entry(player_handle, &entry);
         ((void (*)(datum_index, wchar_t *))current_game_engine->build_player_text)(player_handle, header);
 
         fmt = multiplayer_game_text_string((entry.place & 0x80000000) != 0 ? 0x3f : 0x40);
-        halo::text::string_format_wide_va_bounded(0x50, reinterpret_cast<uint16_t *>(out), reinterpret_cast<const uint16_t *>(fmt), game_engine_get_default_multiplayer_string(&entry), header, lives_text);
+        halo::text::string_format_wide_va_bounded(0x50, reinterpret_cast<uint16_t *>(out), reinterpret_cast<const uint16_t *>(fmt), halo::game::game_engine_get_default_multiplayer_string(&entry), header, lives_text);
     } else {
         wchar_t team0_text[14];
         wchar_t team1_text[14];
@@ -209,7 +190,7 @@ uint8_t Scoreboard::build_message_text(wchar_t *out, uint32_t buffer_size, datum
             (param_1, message_type, subject, out, buffer_size);
     }
     if (handled == 0) {
-        return game_engine_build_kill_feed_message_text(param_1, out, message_type, subject, buffer_size);
+        return halo::game::game_engine_build_kill_feed_message_text(param_1, out, message_type, subject, buffer_size);
     }
     return (uint8_t)handled;
 }
@@ -288,7 +269,7 @@ int32_t Scoreboard::build_sorted_player_list(uint8_t invert_low_stat, scoreboard
             if (current_game_engine->get_score != (void *)0) {
                 score = ((int32_t (*)(datum_index, int32_t))current_game_engine->get_score)(
                     entry->player, 0);
-                entry->key_0 = (int32_t)game_engine_build_scoreboard_sort_key(entry->player, score);
+                entry->key_0 = (int32_t)halo::game::game_engine_build_scoreboard_sort_key(entry->player, score);
             }
             entry->key_1 = p->kills;
             entry->key_2 = p->deaths;
@@ -300,7 +281,7 @@ int32_t Scoreboard::build_sorted_player_list(uint8_t invert_low_stat, scoreboard
             if (current_game_engine->get_score != (void *)0) {
                 int32_t score = ((int32_t (*)(datum_index, int32_t))current_game_engine->get_score)(
                     entry->player, 0);
-                entry->single_sort_key = (int32_t)game_engine_build_scoreboard_sort_key(entry->player, score);
+                entry->single_sort_key = (int32_t)halo::game::game_engine_build_scoreboard_sort_key(entry->player, score);
             }
             break;
         }
@@ -323,8 +304,8 @@ int32_t Scoreboard::build_sorted_player_list(uint8_t invert_low_stat, scoreboard
     }
 
     qsort(out_entries, (uint32_t)count, sizeof(scoreboard_entry),
-        (mode == 0) ? (uint32_t (*)(const void *, const void *))(void *)scoreboard_entry_compare
-                    : (uint32_t (*)(const void *, const void *))(void *)scoreboard_entry_compare_by_unknown_04);
+        (mode == 0) ? (uint32_t (*)(const void *, const void *))(void *)halo::game::scoreboard_entry_compare
+                    : (uint32_t (*)(const void *, const void *))(void *)halo::game::scoreboard_entry_compare_by_unknown_04);
 
     for (i = 0; i < count; i = i + 1) {
         entry = &out_entries[i];
@@ -394,7 +375,7 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
         }
     }
 
-    game_engine_player_profile_cache_sync_all(-1);
+    halo::game::game_engine_player_profile_cache_sync_all(1, (void *)0xffffffff);
 
     for (bucket = 0; bucket < 16; bucket++) {
         if (game_engine_bucket_scores[bucket] >= game_engine_variant.score_limit &&
@@ -413,7 +394,7 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
                     }
                 }
             } else {
-                int32_t duration = game_engine_get_multiplayer_sound_duration_ticks(1);
+                int32_t duration = halo::game::game_engine_get_multiplayer_sound_duration_ticks(1);
                 if (multiplayer_sound_queue_count < k_maximum_queued_multiplayer_sounds) {
                     multiplayer_sound_request *slot = &multiplayer_sound_queue[multiplayer_sound_queue_count];
                     slot->player = (datum_index)0xffffffff;
@@ -435,10 +416,10 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
             }
 
             if (ui_root_widget != (void *)0) {
-                widget_close(ui_root_widget);
+                halo::interface::widget_close((widget_instance *)ui_root_widget);
             }
             if (ui_widget_history != (void *)0) {
-                widget_pool_list_free_all();
+                halo::interface::widget_pool_list_free_all((widget_history_node **)&ui_widget_history);
             }
             ui_pause_depth = 0;
             if (controls_capture_row != -1) {
@@ -557,7 +538,7 @@ uint8_t Scoreboard::find_first_eligible_player_on_team(int32_t team)
     int16_t reread_deaths;
     uint8_t skip;
 
-    if (players_active_count() < 2) {
+    if (halo::game::players_active_count() < 2) {
         return 1;
     }
 
@@ -574,7 +555,7 @@ uint8_t Scoreboard::find_first_eligible_player_on_team(int32_t team)
         if (p->marked_for_deletion != 0) {
             skip = 1;
         } else if (p->unit == k_datum_index_none) {
-            skip = (game_engine_player_has_respawn_priority(iterator.index) != 0) ||
+            skip = (halo::game::game_engine_player_has_respawn_priority(iterator.index) != 0) ||
                    (0 < game_engine_variant.lives_per_round &&
                     (reread_unit = p->unit,
                      reread_unit == k_datum_index_none) &&
@@ -753,7 +734,7 @@ void Scoreboard::get_player_scoreboard_entry(datum_index player, scoreboard_entr
     scoreboard_entry entries[16];
     int i;
 
-    game_engine_build_sorted_player_list(0, entries, 0);
+    halo::game::game_engine_build_sorted_player_list(0, entries, 0);
 
     i = 0;
     if (entries[0].player != player) {
@@ -779,7 +760,7 @@ int32_t Scoreboard::get_scoreboard_place(datum_index player, int32_t mode, uint8
     int place;
     int i;
 
-    count = game_engine_build_sorted_player_list(invert_low_stat, entries, mode);
+    count = halo::game::game_engine_build_sorted_player_list(invert_low_stat, entries, mode);
     place = 0;
 
     if (entries[0].player != player && 1 < count) {
@@ -807,7 +788,7 @@ uint32_t Scoreboard::is_object_winning(uint32_t handle)
 {
     if (game_engine_variant.teams == 0) {
         scoreboard_entry entry;
-        game_engine_get_player_scoreboard_entry((datum_index)handle, &entry);
+        halo::game::game_engine_get_player_scoreboard_entry((datum_index)handle, &entry);
         if ((entry.place & 0x80000000) == 0 || (entry.place & 0x7fffffff) != 0) {
             return (entry.place & 0x7fffffff) == 0;
         }
@@ -816,8 +797,8 @@ uint32_t Scoreboard::is_object_winning(uint32_t handle)
         int32_t team1_score = ((int32_t (*)(int32_t))current_game_engine->get_team_score)(1);
         uint8_t winning_team;
 
-        if (game_engine_players_ready_for_bsp_switch() == 0) {
-            winning_team = (game_engine_find_first_eligible_player_on_team(0) == 0);
+        if (halo::game::game_engine_players_ready_for_bsp_switch() == 0) {
+            winning_team = (halo::game::game_engine_find_first_eligible_player_on_team(0) == 0);
         } else {
             if (team0_score == team1_score) {
                 return 0xffffffff;
@@ -864,7 +845,7 @@ uint32_t Scoreboard::is_tracked_object_winner(int32_t team)
         return 0;
     }
     if (current_game_engine->is_winner == 0) {
-        return game_engine_is_object_winning(iter.index);
+        return halo::game::game_engine_is_object_winning(iter.index);
     }
     return ((uint32_t (*)(datum_index))current_game_engine->is_winner)((datum_index)0xffffffff);
 }
@@ -892,7 +873,7 @@ uint8_t Scoreboard::is_valid_team_player(uint32_t identifier)
         return 1;
     }
 
-    player_index = player_index_from_unit_index(identifier);
+    player_index = halo::game::player_index_from_unit_index(identifier);
     if (player_index == 0xffffffff) {
         return 0;
     }

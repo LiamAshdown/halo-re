@@ -5,31 +5,22 @@
 #include "halo/cache/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
-extern int32_t ui_real_to_int_truncate(float value);
-extern uint32_t color_rgb_float_to_int(const float *rgb);
-extern uint32_t color_pack_argb_from_real(ColorARGB *color);
-extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs,
-                                    void *meter_parameters, BitmapData *bitmap, uint16_t *anchor,
-                                    float scale, float rotation, uint32_t color, uint8_t split_screen);
 extern double cos(double x);
 extern double sqrt(double x);
 extern double fmod(double x, double y);
 extern game_time_globals *game_time;
-extern int32_t bitmap_group_sequence_get_bitmap_offset(datum_index bitmap_tag, int16_t sequence_index,
-                                                         int16_t frame_index);
 extern data_array *player_data;
 extern hud_unit_meter_globals *hud_unit_meters;
 extern player_globals *local_player_globals;
-extern void hud_unit_meters_update_for_player(int16_t local_player_index);
 extern hud_globals_flags *hud_flags;
-extern void hud_unit_sounds_update(player *p, uint8_t hud_enabled);
 }
 
 static int32_t hud_meter_alpha(const hud_meter_placement *meter, uint8_t value)
 {
-    int32_t rounded = ui_real_to_int_truncate((float)(int32_t)(meter->alpha_multiplier * value + meter->alpha_bias));
+    int32_t rounded = halo::interface::ui_real_to_int_truncate((float)(int32_t)(meter->alpha_multiplier * value + meter->alpha_bias));
     int32_t clamped = (rounded < 0) ? 0 : (rounded > 0xff) ? 0xff : rounded;
     return ((int32_t)meter->minimum_meter_value > clamped) ? (int32_t)meter->minimum_meter_value : clamped;
 }
@@ -39,7 +30,7 @@ static uint32_t hud_flash_blend(ColorARGB *a, ColorARGB *b, float s)
     ColorARGB out;
     halo::math::vector3d_lerp(*((real_vector3d *)&out), *(real_vector3d *)a, *(real_vector3d *)b, s);
     out.blue = (1.0f - s) * b->blue + a->blue * s;
-    return color_pack_argb_from_real(&out);
+    return halo::interface::color_pack_argb_from_real(&out);
 }
 
 namespace halo::interface {
@@ -110,7 +101,7 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
         flash.blue *= t;
         block.primary = (*(uint32_t *)&meter->color_at_meter_minimum & 0xffffff) | ((uint32_t)(int16_t)alpha_a << 24);
         block.secondary = *(uint32_t *)&meter->color_at_meter_maximum & 0xffffff;
-        block.tint = (color_rgb_float_to_int((const float *)&flash) & 0xffffff) | ((uint32_t)(int16_t)alpha_b << 24);
+        block.tint = (halo::interface::color_rgb_float_to_int((const float *)&flash) & 0xffffff) | ((uint32_t)(int16_t)alpha_b << 24);
     } else if ((flags & 1) && (meter->flags & 2)) {
         ColorRGB minimum, maximum, blended;
         uint32_t alpha = (uint32_t)(int16_t)alpha_a << 24;
@@ -118,8 +109,8 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
         halo::bitmaps::color_rgb_int_to_real(&minimum, *(uint32_t *)&meter->color_at_meter_minimum);
         halo::bitmaps::color_rgb_int_to_real(&maximum, *(uint32_t *)&meter->color_at_meter_maximum);
         halo::bitmaps::color_interpolate(&maximum, &minimum, &blended, static_cast<color_interpolation_flags>(0), t);
-        block.primary = color_rgb_float_to_int((const float *)&blended) | alpha;
-        block.secondary = color_rgb_float_to_int((const float *)&blended);
+        block.primary = halo::interface::color_rgb_float_to_int((const float *)&blended) | alpha;
+        block.secondary = halo::interface::color_rgb_float_to_int((const float *)&blended);
         block.tint = alpha;
     } else {
         uint32_t rgb = *(uint32_t *)(((flags & 1) == 0) ? &meter->color_at_meter_minimum
@@ -138,13 +129,13 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
         gray.red = inverse_opacity;
         gray.green = inverse_opacity;
         gray.blue = inverse_opacity;
-        block.opacity = color_pack_argb_from_real(&gray);
+        block.opacity = halo::interface::color_pack_argb_from_real(&gray);
     }
     block.scale = 1.0f;
     block.flag_10 = 0;
     block.flag_11 = 1;
 
-    hud_draw_bitmap_element((const float *)sprite_rect, (const hud_element_placement *)meter, is_sprite_bitmap,
+    halo::interface::hud_draw_bitmap_element((const float *)sprite_rect, (const hud_element_placement *)meter, is_sprite_bitmap,
                             &block, bitmap, (uint16_t *)dest, alpha_scale, 0.0f, 0xffffffffu,
                             (uint8_t)((flags >> 2) & 1));
 }
@@ -211,7 +202,7 @@ uint32_t HudMeters::flash_color_blend(const hud_flash_parameters *flash, int32_t
 
     if (flash->flash_period == 0.0f || flash->flash_length == 0.0f) {
         halo::bitmaps::color_argb_int_to_real(&default_color, *(uint32_t *)&flash->default_color);
-        return color_pack_argb_from_real(&default_color);
+        return halo::interface::color_pack_argb_from_real(&default_color);
     }
 
     cycle_time = (float)fmod((float)(game_time->game_time - start_time) * (1.0f / 30.0f),
@@ -220,12 +211,12 @@ uint32_t HudMeters::flash_color_blend(const hud_flash_parameters *flash, int32_t
     halo::bitmaps::color_argb_int_to_real(&flashing_color, *(uint32_t *)&flash->flashing_color);
 
     if ((float)flash->number_of_flashes * (flash->flash_delay + flash->flash_length) <= cycle_time) {
-        return color_pack_argb_from_real(&default_color);
+        return halo::interface::color_pack_argb_from_real(&default_color);
     }
     flash_time = (float)fmod(cycle_time, flash->flash_delay + flash->flash_length);
 
     if (start_time == 0) {
-        return color_pack_argb_from_real((flash->flash_flags & 1) ? &default_color : &flashing_color);
+        return halo::interface::color_pack_argb_from_real((flash->flash_flags & 1) ? &default_color : &flashing_color);
     }
     if (flash_time < flash->flash_length) {
         double wave = 1.0 - (cos(flash_time / flash->flash_length * 6.283f) + 1.0) * 0.5;
@@ -241,7 +232,7 @@ uint32_t HudMeters::flash_color_blend(const hud_flash_parameters *flash, int32_t
         }
         return hud_flash_blend(&flashing_color, &default_color, s);
     }
-    return color_pack_argb_from_real((flash->flash_flags & 1) ? &flashing_color : &default_color);
+    return halo::interface::color_pack_argb_from_real((flash->flash_flags & 1) ? &flashing_color : &default_color);
 }
 
 /**
@@ -293,7 +284,7 @@ void HudMeters::resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_in
         }
     }
     if (*out_data != 0) {
-        *out_offset = bitmap_group_sequence_get_bitmap_offset(bitmap_tag, (int16_t)sequence_index, (int16_t)frame);
+        *out_offset = halo::interface::bitmap_group_sequence_get_bitmap_offset(bitmap_tag, (int16_t)sequence_index, (int16_t)frame);
     } else {
         *out_offset = 0;
     }
@@ -347,7 +338,7 @@ void HudMeters::unit_meters_update(void)
     int16_t local_player_index = local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1;
 
     while (local_player_index != -1) {
-        hud_unit_meters_update_for_player(local_player_index);
+        halo::interface::hud_unit_meters_update_for_player(local_player_index);
         local_player_index = (local_player_globals->local_players[0] != (datum_index)-1 && local_player_index < 0)
                                  ? 0 : -1;
     }
@@ -414,7 +405,7 @@ void HudMeters::unit_meters_update_for_player(int16_t local_player_index)
     if (halo::cutscene::globals().cinematic_globals->in_progress != 0 && local_player_index != -1 && local_player_index < 1) {
         player_index = local_player_globals->local_players[local_player_index];
         if (player_index != (datum_index)-1) {
-            hud_unit_sounds_update((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200),
+            halo::interface::hud_unit_sounds_update((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200),
                                    hud_flags->hud_enabled);
         }
     }

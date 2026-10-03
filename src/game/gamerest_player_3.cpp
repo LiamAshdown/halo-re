@@ -2,9 +2,9 @@
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern datum_index player_spawn_starting_profile_weapon(TagDependency *weapon_tag, datum_index owner_unit_handle);
 }
 
 namespace halo::game {
@@ -52,7 +52,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
     }
 
     if (profile->primary_weapon.tag_id.index != 0xffff || profile->primary_weapon.tag_id.id != 0xffff) {
-        weapon_object = player_spawn_starting_profile_weapon(&profile->primary_weapon, unit_handle);
+        weapon_object = halo::game::player_spawn_starting_profile_weapon(&profile->primary_weapon, unit_handle);
         if (weapon_object != (datum_index)-1) {
             if (halo::units::unit_pickup_weapon((int16_t)(reset_stats != 0), weapon_object, unit_handle) == 0) {
                 halo::objects::object_delete(weapon_object);
@@ -61,7 +61,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
     }
 
     if (profile->secondary_weapon.tag_id.index != 0xffff || profile->secondary_weapon.tag_id.id != 0xffff) {
-        weapon_object = player_spawn_starting_profile_weapon(&profile->secondary_weapon, unit_handle);
+        weapon_object = halo::game::player_spawn_starting_profile_weapon(&profile->secondary_weapon, unit_handle);
         if (weapon_object != (datum_index)-1) {
             if (halo::units::unit_pickup_weapon(0, weapon_object, unit_handle) == 0) {
                 halo::objects::object_delete(weapon_object);
@@ -80,7 +80,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::LocalPlayerUnit::apply_starting_profile; forwards to the C++ implementation.

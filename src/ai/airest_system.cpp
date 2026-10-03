@@ -16,13 +16,13 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern ai_globals *ai_globals_ptr;
-extern int32_t game_engine_get_current_tick(void);
 extern void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t source_object, int16_t event_type, int16_t unused);
 extern data_array *prop_data;
 extern data_array *encounter_data;
@@ -32,9 +32,7 @@ extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_i
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index, char create_if_missing, uint32_t flag);
 extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index, int16_t grenade_type);
 extern int ai_squad_priority_compare(const ai_priority_target_record *record_a, const ai_priority_target_record *record_b);
-extern void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b, uint8_t unknown_09, int16_t threshold, int16_t timer_reset, uint8_t unknown_0c);
 extern void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only);
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern void actors_initialize(void);
 extern void encounters_initialize(void);
 extern void ai_communication_initialize(void);
@@ -42,7 +40,6 @@ extern void actor_avoidance_build_direction_tables(void);
 extern char prop_array_name[];
 extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index);
 extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index);
-extern void team_pair_override_clear_flag(int16_t index_b, int16_t index_a);
 extern float k_random_scale_65536;
 extern datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum_index encounter_index, int16_t squad_index, uint8_t use_palette_entry, uint16_t unit_type_index, const actor_placement_request *placement_request);
 extern game_engine_definition *current_game_engine;
@@ -105,7 +102,7 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
     if (!ai_globals_ptr->actors_valid || window_ticks <= 0) {
         return;
     }
-    current_tick = game_engine_get_current_tick();
+    current_tick = halo::game::game_engine_get_current_tick();
     records = (ai_recent_event_record *)&ai_globals_ptr->recent_events;
 
     found = 0;
@@ -367,7 +364,7 @@ void AiSystem::category_matches_wildcard(int16_t category, int16_t other_categor
     if (betrayable && team_a == other) {
         a_is_other = 1;
     }
-    team_pair_override_add(team_a, a_is_other, team_b, b_is_other, threshold, timer, human);
+    halo::game::team_pair_override_add(team_a, a_is_other, team_b, b_is_other, threshold, timer, human);
 }
 
 /**
@@ -402,11 +399,11 @@ void AiSystem::get_difficulty_request(int16_t request_code, uint8_t *out_flag_a,
     switch (request_code) {
     case 1:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1d, halo::main::globals().game_globals->difficulty);
+        *out_value = halo::game::weapon_get_zoom_fov(0x1d, halo::main::globals().game_globals->difficulty);
         break;
     case 2:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1e, halo::main::globals().game_globals->difficulty);
+        *out_value = halo::game::weapon_get_zoom_fov(0x1e, halo::main::globals().game_globals->difficulty);
         break;
     case 3:
         *out_flag_a = 0;
@@ -418,7 +415,7 @@ void AiSystem::get_difficulty_request(int16_t request_code, uint8_t *out_flag_a,
         break;
     default:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1c, halo::main::globals().game_globals->difficulty);
+        *out_value = halo::game::weapon_get_zoom_fov(0x1c, halo::main::globals().game_globals->difficulty);
         break;
     }
 }
@@ -561,7 +558,7 @@ void AiSystem::mark_recognized_objects_for_reaction(int16_t team_a, int16_t team
         }
         a = actor_iterator_next(&iterator);
     }
-    team_pair_override_clear_flag(team_b, team_a);
+    halo::game::team_pair_override_clear_flag(team_b, team_a);
 }
 
 /**

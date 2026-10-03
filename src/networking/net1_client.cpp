@@ -11,6 +11,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern network_client_globals *network_client;
@@ -20,7 +22,6 @@ extern uint8_t profile_globals_block[0x1ffc];
 extern network_client_globals *network_session_create(void);
 extern void network_debug_fill_canary_buffer(void);
 extern int8_t chimera__on_connect(const uint32_t *target_address, network_client_globals *client, const uint32_t *session_info);
-extern uint32_t chat_close(void);
 extern datum_index machine_to_player[16];
 extern data_array *player_data;
 extern uint8_t network_stats_enabled_gate;
@@ -29,8 +30,6 @@ extern int32_t network_connect_timeout_ms;
 extern int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream *stream);
 extern int32_t message_delta_decode_array_field(void **context);
 extern void network_game_client_apply_received_update(network_machine *machine, uint32_t server, void **message);
-extern void chat_server_relay_incoming_message(void **context, network_machine *machine);
-extern void game_engine_update_lead_change_state(void **envelope, uint8_t *message);
 extern uint32_t network_game_message_handle_ping_timestamp(int32_t **message, network_server_globals *server);
 extern void network_server_handle_rcon_request(network_player_entry *client, void *message);
 extern uint8_t network_session_active;
@@ -42,7 +41,6 @@ extern char network_log_path_format[];
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern void message_delta_decode_compound_field_staged(void *decode_context);
 extern void *global_white_argb;
-extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern int32_t network_channel_service_close_if_disconnected(network_channel *channel);
 extern network_server_globals *network_server;
 extern player_globals *local_player_globals;
@@ -52,7 +50,6 @@ extern uint8_t network_channel_table_default_flag;
 extern void network_client_begin_connect(const wchar_t *name);
 extern uint8_t network_client_vehicle_ack_enabled;
 extern network_id_table *machine_table;
-extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern int32_t build_local_player_position_update(uint8_t *out_changed, player *plr);
 extern int32_t build_local_player_vehicle_update(uint8_t *out_changed, player *plr);
 extern uint8_t network_session_send_to_machine(int32_t machine_id, void *data, int32_t bits, int32_t reliable, int32_t unknown_a, int32_t unknown_b, int32_t priority);
@@ -69,7 +66,6 @@ extern void network_game_server_host_dispose(network_server_globals *host);
 extern char network_client_state_dispatch(void);
 extern int32_t network_client_connect_progress_percent(void);
 extern uint8_t network_disconnect_timeout_flag;
-extern void ui_network_wait_timeout_start(void);
 extern char network_channel_service_light(int32_t flag);
 extern void network_channel_record_timestamp(network_channel *channel);
 extern int32_t network_game_process_incoming_messages(network_client_globals *client);
@@ -87,8 +83,6 @@ extern char network_player_entry_validate(network_player_entry *entry);
 extern char network_player_entry_add(network_player_entry *entry, network_game_session *session);
 extern int32_t network_channel_key_open(network_player_entry *entry);
 extern int32_t player_data_iterator_advance(int16_t step_count);
-extern void game_set_local_player(datum_index player_handle, int16_t local_player_index);
-extern void update_server_queue_create_entry(datum_index requested_handle);
 extern data_array *update_client_queues;
 extern network_client_globals network_client_storage;
 extern void message_delta_protocol_initialize(void);
@@ -109,7 +103,6 @@ extern void network_host_presence_broadcast_tick(network_client_globals *client)
 extern char network_build_string[];
 extern int32_t network_signal_quality_glyph(void);
 extern void network_receive_queue_close_socket(void);
-extern void console_printf_verbose(const char *text);
 extern int32_t interface_loading_screen_progress;
 extern int32_t join_ui_state;
 extern int32_t interface_loading_screen_request_id;
@@ -181,7 +174,8 @@ uint32_t ClientView::begin_connect(wchar_t *player_name, s_network_address *targ
             return 1;
         }
         network_host_handoff_requested = 1;
-        result = chat_close() & 0xffffff00;
+        halo::interface::chat_close();
+        result = 0;
     }
     return result;
 }
@@ -342,8 +336,8 @@ char ClientView::drain_queued_updates(network_server_globals *server, network_ma
         current = (uint8_t *)context[0];
         switch (*(int32_t *)(current + 4)) {
         case 0x0d: network_game_client_apply_received_update(machine, (uint32_t)server, context); break;
-        case 0x0f: chat_server_relay_incoming_message(context, machine); break;
-        case 0x1a: game_engine_update_lead_change_state(context, (uint8_t *)machine); break;
+        case 0x0f: halo::interface::chat_server_relay_incoming_message(context, machine); break;
+        case 0x1a: halo::game::game_engine_update_lead_change_state(context, (uint8_t *)machine); break;
         case 0x34: network_game_message_handle_ping_timestamp((int32_t **)context, server); break;
         case 0x36: network_server_handle_rcon_request((network_player_entry *)machine, context); break;
         }
@@ -418,7 +412,7 @@ void ClientView::handle_server_text_message(void *message)
         if (message_delta_decode_compound_field(message, decode_buf) != 0) {
             int32_t text_len = strlen((char *)decode_buf);
             if (text_len != 0) {
-                chimera__console_out((ColorARGB *)global_white_argb, network_log_path_format, decode_buf, text_len);
+                halo::interface::chimera__console_out((ColorARGB *)global_white_argb, network_log_path_format, decode_buf, text_len);
             }
         }
     } else {
@@ -523,7 +517,7 @@ void ClientView::send_local_player_updates()
     candidate = (player *)halo::memory::data_iterator_next(&iter);
     while (candidate != 0) {
         if (candidate->local_player_index == -1 && candidate->unit != (datum_index)-1) {
-            if (player_unit_has_parent(iter.index) == 0 || network_client_vehicle_ack_enabled == 0) {
+            if (halo::game::player_unit_has_parent(iter.index) == 0 || network_client_vehicle_ack_enabled == 0) {
                 encoded_size = build_local_player_position_update(&out_changed, candidate);
             } else {
                 encoded_size = build_local_player_vehicle_update(&out_changed, candidate);
@@ -664,7 +658,7 @@ int8_t ClientView::client_update()
         channel->endpoint != 0 && (channel->endpoint->flags & 1) != 0) {
         if (network_server == 0 || network_disconnect_timeout_flag != 0) {
             if ((flags >> 5 & 1) != 0) {
-                ui_network_wait_timeout_start();
+                halo::interface::ui_network_wait_timeout_start();
             }
             client->connection_stalled = (uint8_t)(flags >> 5) & 1;
         }
@@ -809,11 +803,11 @@ char ClientView::join_finalize(network_player_entry *entry)
         player_handle = (datum_index)player_data_iterator_advance((int16_t)row->slot_index);
 
         if ((int32_t)row->machine_index == (int32_t)*(uint16_t *)client) {
-            game_set_local_player(player_handle, (int16_t)row->machine_player_index);
+            halo::game::game_set_local_player(player_handle, (int16_t)row->machine_player_index);
         }
         halo::memory::datum_new_at_index_with_salt(player_handle, update_client_queues);
         if (network_server != 0) {
-            update_server_queue_create_entry(player_handle);
+            halo::game::update_server_queue_create_entry(player_handle);
         }
     }
     return ok;
@@ -1473,7 +1467,7 @@ int32_t JoinView::connect_retry_tick()
     attempt->unknown_00 = 0;
     if (attempt->loading_started == 0) {
         attempt->elapsed_counter = 0;
-        console_printf_verbose("Loading");
+        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Loading"));
         interface_loading_screen_progress = 0;
         if (network_game_mode == 2) {
             if (join_ui_state != 1) {

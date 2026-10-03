@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -22,45 +23,20 @@ extern uint8_t ui_split_screen;
 extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern player_control_globals *player_control_globals_ptr;
-extern void widget_close(widget_instance *widget);
-extern widget_instance *widget_reopen_as_root_with_history(widget_instance *widget, datum_index open_tag);
 extern widget_history_node *ui_widget_history[3];
 extern int32_t controls_capture_row;
 extern uint8_t controls_input_capture_flags;
 extern uint8_t controls_input_capture_buffer[0x290];
-extern void widget_pool_list_free_all(widget_history_node **head);
 extern uint8_t widget_creating_children;
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection);
 extern int32_t ui_cursor_x;
-extern void widget_list_adjust_rect_for_scroll_arrows(void);
-extern int32_t widget_cursor_side_of_midpoint(widget_instance *widget);
-extern void widget_play_sound_effect(int16_t effect_id);
 extern int32_t last_controller_index_00879f50;
 extern virtual_keyboard_globals virtual_keyboard;
-extern void widget_instance_render(widget_instance *widget, Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, int32_t flag2);
-extern void interface_draw_cursor(void);
-extern void virtual_keyboard_render(void);
-extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern player_globals *local_player_globals;
 extern int32_t ui_time_milliseconds;
-extern uint8_t widget_create_children_from_tag(widget_instance *widget, UIWidgetDefinition *tag);
-extern void ui_widget_list_item_activate(widget_instance *widget, UIWidgetDefinition *tag, int16_t *event, void *handler, uint8_t *out_handled);
-extern void widget_instance_relink_focus(widget_instance *widget, widget_instance *child);
 extern uint8_t ui_restoring_previous_widget;
-extern void list_node_pop(widget_history_node *out, widget_history_node **head);
-extern void widget_instance_select_list_index(widget_instance *widget, datum_index list_definition, int32_t selection);
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
 extern uint8_t split_screen_quit_prompt_armed;
-extern uint8_t widget_list_select_next(widget_instance *widget);
-extern uint8_t widget_list_select_previous(widget_instance *widget);
-extern uint8_t widget_instance_point_in_bounds(widget_instance *widget);
-extern void widget_spinner_list_sync_selected(widget_instance *widget, UIWidgetDefinition *tag);
-extern void widget_column_list_sync_selected(widget_instance *widget);
-extern void widget_focus_next_child(widget_instance *widget);
-extern void widget_focus_previous_child(widget_instance *widget);
-extern void widget_instance_close_and_restore_previous(widget_instance *widget);
-extern void widget_instance_handle_input_event(widget_instance *widget, UIWidgetDefinition *tag, int16_t *event, uint8_t *out_handled);
 extern double cos(double x);
 extern double sin(double x);
 extern void *game_data_input_function_table[0x3b];
@@ -68,19 +44,6 @@ extern float override_color_00879f40;
 extern float override_color_00879f44;
 extern float override_color_00879f48;
 extern float override_color_00879f4c;
-extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
-extern uint8_t widget_instance_is_top_of_stack(widget_instance *widget);
-extern void widget_instance_render_text_box(widget_instance *widget, UIWidgetDefinition *tag, Rectangle2D *dest, int32_t offset_xy, uint32_t flags);
-extern void widget_instance_render_list_head(widget_instance *widget, UIWidgetDefinition *tag, Rectangle2D *dest, int32_t offset_xy, uint32_t flags);
-extern void widget_instance_render_column_list_items(widget_instance *widget, UIWidgetDefinition *tag, Rectangle2D *dest, int32_t offset_xy, uint32_t flags);
-extern widget_instance *widget_find_by_tag_id(widget_instance *widget, datum_index tag_id);
-extern uint8_t widget_instance_is_input_eligible(widget_instance *widget);
-extern widget_instance *widget_list_get_child_by_index(widget_instance *list, int32_t index);
-extern void widget_relink_focus_by_tag_id(widget_instance *widget, datum_index child_definition);
-extern void widget_play_sound_effect_tag(datum_index sound_tag);
-extern void widget_text_edit_clamp_selection(text_edit_state *state);
-extern uint32_t widget_text_edit_get_selection(text_edit_state *state, int16_t *out_start, int16_t *out_end);
-extern void widget_instance_set_state_recursive(widget_instance *widget, uint8_t state);
 }
 
 namespace halo::interface {
@@ -187,7 +150,7 @@ void WidgetLifecycle::close()
 
                     if (fn(widget, (int16_t *)0, &handled) == 1 && (handler->flags & 0x08) != 0 &&
                         *(uint32_t *)&handler->widget_tag.tag_id != 0xffffffff) {
-                        widget_reopen_as_root_with_history(widget, *(datum_index *)&handler->widget_tag.tag_id);
+                        halo::interface::widget_reopen_as_root_with_history(widget, *(datum_index *)&handler->widget_tag.tag_id);
                     }
                 }
             }
@@ -211,7 +174,7 @@ void WidgetLifecycle::close()
         while (child != (widget_instance *)0) {
             widget_instance *next = child->next_sibling;
 
-            widget_close(child);
+            halo::interface::widget_close(child);
             if (next == (widget_instance *)0) {
                 break;
             }
@@ -248,7 +211,7 @@ void WidgetLifecycle::close()
                 pool = widget_memory_pool;
             }
             if (widget->extended_description != (widget_instance *)0) {
-                widget_close(widget->extended_description);
+                halo::interface::widget_close(widget->extended_description);
                 pool = widget_memory_pool;
             }
         }
@@ -293,10 +256,10 @@ void WidgetLifecycle::close_all()
     int32_t i;
 
     if (ui_root_widget[0] != (widget_instance *)0) {
-        widget_close(ui_root_widget[0]);
+        halo::interface::widget_close(ui_root_widget[0]);
     }
     if (ui_widget_history[0] != (widget_history_node *)0) {
-        widget_pool_list_free_all(&ui_widget_history[0]);
+        halo::interface::widget_pool_list_free_all(&ui_widget_history[0]);
     }
     ui_pause_depth = 0;
     if (controls_capture_row != -1) {
@@ -346,7 +309,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
 
         widget_creating_children = 1;
         for (i = 0; i < list->strings.count; i++) {
-            widget_instance *child = chimera__load_ui_widget((char *)0, widget->definition, widget,
+            widget_instance *child = halo::interface::chimera__load_ui_widget((char *)0, widget->definition, widget,
                                                                widget->controller_index, (datum_index)-1,
                                                                (datum_index)-1, -1);
 
@@ -384,7 +347,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
                 if ((entry->flags & 1) != 0 && entry->custom_controller_index < 4) {
                     controller = entry->custom_controller_index;
                 }
-                child = chimera__load_ui_widget((char *)0, child_tag_index, widget, controller,
+                child = halo::interface::chimera__load_ui_widget((char *)0, child_tag_index, widget, controller,
                                                  (datum_index)-1, (datum_index)-1, -1);
                 if (child == (widget_instance *)0) {
                     ok = 0;
@@ -409,7 +372,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
 
     if ((widget->widget_type == 2 || widget->widget_type == 3) &&
         *(uint32_t *)&tag->extended_description_widget.tag_id != 0xffffffffu) {
-        widget_instance *desc = chimera__load_ui_widget(
+        widget_instance *desc = halo::interface::chimera__load_ui_widget(
             (char *)0, *(uint32_t *)&tag->extended_description_widget.tag_id, widget,
             widget->controller_index, (datum_index)-1, (datum_index)-1, -1);
 
@@ -476,9 +439,10 @@ int32_t WidgetView::cursor_side_of_midpoint()
         cumulative_x = cumulative_x + ancestor->local_x;
     }
 
-    left = tag->bounds.left;
-    right = tag->bounds.right;
-    widget_list_adjust_rect_for_scroll_arrows();
+    Rectangle2D rect = tag->bounds;
+    halo::interface::widget_list_adjust_rect_for_scroll_arrows(widget, &rect);
+    left = rect.left;
+    right = rect.right;
 
     midpoint = ((int16_t)(right + cumulative_x) + (int16_t)(left + cumulative_x)) / 2;
     return (midpoint < ui_cursor_x) * 2 - 1;
@@ -489,7 +453,7 @@ int32_t WidgetView::cursor_side_of_midpoint()
  */
 uint32_t WidgetList::cyclable_list_nudge()
 {
-    int32_t side = widget_cursor_side_of_midpoint(widget);
+    int32_t side = halo::interface::widget_cursor_side_of_midpoint(widget);
     int32_t new_index;
 
     if (side < 1) {
@@ -517,10 +481,10 @@ uint32_t WidgetList::cyclable_list_nudge()
         ((struct widget_instance *)widget)->selection_direction = 1;
     }
     widget->selection_index = (int16_t)new_index;
-    widget_play_sound_effect(0);
+    halo::interface::widget_play_sound_effect(0);
 
 play_and_return:
-    widget_play_sound_effect(0);
+    halo::interface::widget_play_sound_effect(0);
     return 1;
 }
 
@@ -541,8 +505,8 @@ void WidgetRender::draw_fullscreen_region(int16_t controller_index)
     last_controller_index_00879f50 = (controller_index == (int16_t)0xffff) ? 0 : controller_index;
 
     if (virtual_keyboard.active != 0) {
-        virtual_keyboard_render();
-        interface_draw_cursor();
+        halo::interface::virtual_keyboard_render();
+        halo::interface::interface_draw_cursor();
         return;
     }
 
@@ -562,13 +526,13 @@ void WidgetRender::draw_fullscreen_region(int16_t controller_index)
              ((widget->controller_index == -1 && i == 0) || widget->controller_index == clamped_controller))) {
             Rectangle2D dest = {0, 0, 0x1e0, 0x280};
 
-            widget_instance_render(widget, &dest, 0, 1, 0);
+            halo::interface::widget_instance_render(widget, &dest, 0, 1, 0);
             drew_any = 1;
         }
     }
 
     if (drew_any != 0) {
-        interface_draw_cursor();
+        halo::interface::interface_draw_cursor();
     }
     if (0.0f <= state::screen_fade_progress && (state::screen_fade_progress < 1.0f) != (state::screen_fade_progress == 1.0f)) {
         Rectangle2D rect = {0, 0, 0x1e0, 0x280};
@@ -578,7 +542,7 @@ void WidgetRender::draw_fullscreen_region(int16_t controller_index)
             state::screen_fade_progress = 1.0f;
         }
         fade_color = (int32_t)(state::screen_fade_progress * 255.0f + 0.5f);
-        ui_draw_filled_rectangle((uint32_t)fade_color, &rect);
+        halo::interface::ui_draw_filled_rectangle((uint32_t)fade_color, &rect);
     }
 }
 
@@ -630,7 +594,7 @@ void WidgetRender::draw_split_screen_region(Rectangle2D *viewport, int16_t contr
             dest.left = 0;
             dest.bottom = viewport->bottom - viewport->top;
             dest.right = viewport->right - viewport->left;
-            widget_instance_render(widget, &dest, offset_xy, 1, 0);
+            halo::interface::widget_instance_render(widget, &dest, offset_xy, 1, 0);
         }
     }
 }
@@ -723,7 +687,7 @@ widget_instance * WidgetView::find_by_tag_id(datum_index tag_id)
     while (child != (widget_instance *)0 && found == (widget_instance *)0) {
         found = child;
         if (child->definition != tag_id) {
-            found = widget_find_by_tag_id(child, tag_id);
+            found = halo::interface::widget_find_by_tag_id(child, tag_id);
         }
         child = child->next_sibling;
     }
@@ -907,7 +871,7 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
         widget->background_bitmap_frames = seq[0].bitmap_count;
     }
     if (widget_creating_children == 0) {
-        widget_create_children_from_tag(widget, tag);
+        halo::interface::widget_create_children_from_tag(widget, tag);
     }
     if (tag->child_widgets.count > 0) {
         uint8_t *entry = (uint8_t *)tag->child_widgets.pointer;
@@ -917,7 +881,7 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
                 uint8_t handled;
                 int16_t event[4] = {0, 0, 0, 0};
 
-                ui_widget_list_item_activate(widget, tag, event, entry, &handled);
+                halo::interface::ui_widget_list_item_activate(widget, tag, event, (EventHandlerReference *)entry, &handled);
             }
         }
     }
@@ -929,7 +893,7 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
 
             if (child->hidden == 0 &&
                 (child_tag->event_handlers.count > 0 || child->widget_type == 2 || child->widget_type == 3)) {
-                widget_instance_relink_focus(widget, child);
+                halo::interface::widget_instance_relink_focus(widget, child);
             }
         }
     }
@@ -960,7 +924,7 @@ void WidgetLifecycle::close_and_restore_previous()
     widget_instance *reopened;
 
     if (ui_widget_history[slot] != (widget_history_node *)0) {
-        list_node_pop(&history, &ui_widget_history[slot]);
+        halo::interface::list_node_pop(&history, &ui_widget_history[slot]);
         history_definition = history.definition;
     }
 
@@ -968,16 +932,16 @@ void WidgetLifecycle::close_and_restore_previous()
     while (root->parent != (widget_instance *)0) {
         root = root->parent;
     }
-    widget_close(root);
+    halo::interface::widget_close(root);
 
     if (history_definition != (datum_index)-1) {
         ui_restoring_previous_widget = 1;
-        reopened = chimera__load_ui_widget((char *)0, history_definition, (widget_instance *)0,
+        reopened = halo::interface::chimera__load_ui_widget((char *)0, history_definition, (widget_instance *)0,
                                             (uint16_t)history.controller_index,
                                             (datum_index)-1, (datum_index)-1, -1);
         ui_restoring_previous_widget = 0;
         if (reopened != (widget_instance *)0) {
-            widget_instance_select_list_index(reopened, history.list_definition, history.selection);
+            halo::interface::widget_instance_select_list_index(reopened, history.list_definition, history.selection);
         }
     }
 }
@@ -1043,14 +1007,14 @@ void WidgetView::handle_input_event(UIWidgetDefinition *tag, int16_t *event, uin
             while (ancestor->parent != (widget_instance *)0) {
                 ancestor = ancestor->parent;
             }
-            widget_close(ancestor);
+            halo::interface::widget_close(ancestor);
             handled = 1;
         } else if (halo::input::globals().joystick_slot_devices[controller] != -1) {
             ancestor = widget;
             while (ancestor->parent != (widget_instance *)0) {
                 ancestor = ancestor->parent;
             }
-            widget_close(ancestor);
+            halo::interface::widget_close(ancestor);
             handled = 1;
         }
     }
@@ -1088,7 +1052,7 @@ after_close_check:
             found = 1;
         }
         if (!found) {
-            widget_instance_close_and_restore_previous(widget);
+            halo::interface::widget_instance_close_and_restore_previous(widget);
             sound_effect = 3;
             list_nav_done = 1;
             handled = 1;
@@ -1109,7 +1073,7 @@ after_close_check:
                 while (ancestor->parent != (widget_instance *)0) {
                     ancestor = ancestor->parent;
                 }
-                widget_close(ancestor);
+                halo::interface::widget_close(ancestor);
                 handled = 1;
                 goto dispatch_to_children;
             }
@@ -1134,9 +1098,9 @@ after_close_check:
             if (*word_5c < 0) *word_5c = 0;
         }
         if (widget->widget_type == 2) {
-            widget_spinner_list_sync_selected(widget, tag);
+            halo::interface::widget_spinner_list_sync_selected(widget, tag);
         } else if (widget->widget_type == 3) {
-            widget_column_list_sync_selected(widget);
+            halo::interface::widget_column_list_sync_selected(widget);
         }
         if (controller_matches) {
             if (list_nav_done != 0) {
@@ -1152,7 +1116,7 @@ after_close_check:
                     if (code != '\t') {
                         goto dpad_lr_nav;
                     }
-                    widget_focus_next_child(widget);
+                    halo::interface::widget_focus_next_child(widget);
                     goto tab_commit;
                 } else if (event[0] == 1) {
                     if (event[3] != (int16_t)0x8000) {
@@ -1166,7 +1130,7 @@ after_close_check:
             }
             goto dpad_lr_nav;
         tab_back:
-            widget_focus_next_child(widget);
+            halo::interface::widget_focus_next_child(widget);
         tab_commit:
             if (sound_effect == 0) {
                 sound_effect = 1;
@@ -1174,7 +1138,7 @@ after_close_check:
             list_nav_done = 1;
             goto dpad_lr_nav_done;
         tab_forward:
-            widget_focus_previous_child(widget);
+            halo::interface::widget_focus_previous_child(widget);
             goto tab_commit;
 
         dpad_lr_nav:
@@ -1183,20 +1147,20 @@ after_close_check:
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\n') {
-                        widget_focus_previous_child(widget);
+                        halo::interface::widget_focus_previous_child(widget);
                         goto tab_commit;
                     }
                     if (code == '\v') {
-                        widget_focus_next_child(widget);
+                        halo::interface::widget_focus_next_child(widget);
                         goto tab_commit;
                     }
                 } else if (event[0] == 1) {
                     if (event[2] == (int16_t)0x8000) {
-                        widget_focus_previous_child(widget);
+                        halo::interface::widget_focus_previous_child(widget);
                         goto tab_commit;
                     }
                     if (event[2] == 0x7fff) {
-                        widget_focus_next_child(widget);
+                        halo::interface::widget_focus_next_child(widget);
                         goto tab_commit;
                     }
                 }
@@ -1208,9 +1172,9 @@ after_close_check:
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\b') {
-                        widget_list_select_previous(widget);
+                        halo::interface::widget_list_select_previous(widget);
                     } else if (code == '\t') {
-                        widget_list_select_next(widget);
+                        halo::interface::widget_list_select_next(widget);
                     } else {
                         goto dpad_ud_nav;
                     }
@@ -1220,11 +1184,11 @@ after_close_check:
                     list_nav_done = 1;
                 } else if (event[0] == 1) {
                     if (event[3] == (int16_t)0x8000) {
-                        widget_list_select_next(widget);
+                        halo::interface::widget_list_select_next(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
                     } else if (event[3] == 0x7fff) {
-                        widget_list_select_previous(widget);
+                        halo::interface::widget_list_select_previous(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
                     }
@@ -1237,9 +1201,9 @@ after_close_check:
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\n') {
-                        widget_list_select_previous(widget);
+                        halo::interface::widget_list_select_previous(widget);
                     } else if (code == '\v') {
-                        widget_list_select_next(widget);
+                        halo::interface::widget_list_select_next(widget);
                     } else {
                         goto dispatch_to_children;
                     }
@@ -1247,11 +1211,11 @@ after_close_check:
                     list_nav_done = 1;
                 } else if (event[0] == 1) {
                     if (event[2] == (int16_t)0x8000) {
-                        widget_list_select_previous(widget);
+                        halo::interface::widget_list_select_previous(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
                     } else if (event[2] == 0x7fff) {
-                        widget_list_select_next(widget);
+                        halo::interface::widget_list_select_next(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
                     }
@@ -1303,7 +1267,7 @@ dispatch_to_children:
                     }
                     break;
                 case 4:
-                    if (*((int8_t *)event + 5) == 1 && widget_instance_point_in_bounds(widget) != 0) {
+                    if (*((int8_t *)event + 5) == 1 && halo::interface::widget_instance_point_in_bounds(widget) != 0) {
                         switch (event_type) {
                         case 0x1c: match = ((int8_t)event[2] == 0); break;
                         case 0x1d: match = ((int8_t)event[2] == 1); break;
@@ -1321,7 +1285,7 @@ dispatch_to_children:
                 }
                 if (match) {
                     list_nav_done = 1;
-                    ui_widget_list_item_activate(widget, tag, event, entry, &handled);
+                    halo::interface::ui_widget_list_item_activate(widget, tag, event, (EventHandlerReference *)entry, &handled);
                 }
             }
         scan_next:
@@ -1343,7 +1307,7 @@ dispatch_to_children:
                     UIWidgetDefinition *child_tag =
                         (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & 0xffff].data;
 
-                    widget_instance_handle_input_event(child, child_tag, event, &handled);
+                    halo::interface::widget_instance_handle_input_event(child, child_tag, event, &handled);
                 }
             } else {
                 widget_instance *child = widget->first_child;
@@ -1353,7 +1317,7 @@ dispatch_to_children:
                         UIWidgetDefinition *child_tag =
                             (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & 0xffff].data;
 
-                        widget_instance_handle_input_event(child, child_tag, event, &handled);
+                        halo::interface::widget_instance_handle_input_event(child, child_tag, event, &handled);
                         if (handled == 1) {
                             break;
                         }
@@ -1379,7 +1343,7 @@ dispatch_to_children:
         }
     }
 
-    widget_play_sound_effect(sound_effect);
+    halo::interface::widget_play_sound_effect(sound_effect);
     *out_handled = handled;
 }
 
@@ -1596,7 +1560,7 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
                 alpha = (float)((cos(t * 0.003) + 1.0) * 0.5 * (double)alpha);
             }
 
-            ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, (int16_t *)clip_arg,
+            halo::interface::ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, (int16_t *)clip_arg,
                                  (uint32_t)((int32_t)(alpha * 255.0f + 0.5f) << 24) | 0xffffffu);
             if ((int8_t)flag2 != 0) {
                 override_color_00879f40 = 0.0f;
@@ -1611,16 +1575,16 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
         uint32_t use_flag1 = flag1;
 
         if ((tag->flags_1 & 8) == 0) {
-            use_flag1 = widget_instance_is_top_of_stack(widget);
+            use_flag1 = halo::interface::widget_instance_is_top_of_stack(widget);
         }
-        widget_instance_render_text_box(widget, tag, dest, offset_xy, use_flag1 & 0xff);
+        halo::interface::widget_instance_render_text_box(widget, tag, dest, offset_xy, use_flag1 & 0xff);
     } else if (widget->widget_type == 2) {
-        widget_instance_render_list_head(widget, tag, dest, offset_xy, flag1);
+        halo::interface::widget_instance_render_list_head(widget, tag, dest, offset_xy, flag1);
         if ((tag->flags_2 & 2) != 0 && tag->child_widgets.count == 0) {
             goto post_render;
         }
     } else if (widget->widget_type == 3) {
-        widget_instance_render_column_list_items(widget, tag, dest, offset_xy, flag1);
+        halo::interface::widget_instance_render_column_list_items(widget, tag, dest, offset_xy, flag1);
         if ((tag->flags_2 & 1) != 0) {
             goto post_render;
         }
@@ -1638,7 +1602,7 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
             } else {
                 child_flag2 = (flag2 >> 8) << 8;
             }
-            widget_instance_render(child, dest, offset_xy, child_flag1, child_flag2);
+            halo::interface::widget_instance_render(child, dest, offset_xy, child_flag1, child_flag2);
         }
     }
 
@@ -1652,7 +1616,7 @@ post_render:
                 uint8_t handled;
 
                 event[1] = widget->controller_index;
-                ui_widget_list_item_activate(widget, tag, event, entry, &handled);
+                halo::interface::ui_widget_list_item_activate(widget, tag, event, (EventHandlerReference *)entry, &handled);
             }
         }
     }
@@ -1679,7 +1643,7 @@ void WidgetRender::render_column_list_items(UIWidgetDefinition *tag, Rectangle2D
             scale = scale * ancestor->scale;
         }
         widget->extended_description->scale = scale;
-        widget_instance_render(widget->extended_description, dest, offset_xy, 0, 1);
+        halo::interface::widget_instance_render(widget->extended_description, dest, offset_xy, 0, 1);
     }
 
     if ((tag->flags_2 & 1) == 0) {
@@ -1697,7 +1661,7 @@ void WidgetRender::render_column_list_items(UIWidgetDefinition *tag, Rectangle2D
         if ((uint16_t)widget->item_count <= (uint16_t)index) {
             break;
         }
-        widget_instance_render(child, dest, offset_xy, flags, index == widget->selection_index);
+        halo::interface::widget_instance_render(child, dest, offset_xy, flags, index == widget->selection_index);
         child = child->next_sibling;
         index = index + 1;
     } while (child != (widget_instance *)0);
@@ -1718,17 +1682,17 @@ void WidgetList::select_list_index(datum_index list_definition, int32_t selectio
     if (list_definition == (datum_index)-1) {
         return;
     }
-    target = widget_find_by_tag_id(widget, list_definition);
+    target = halo::interface::widget_find_by_tag_id(widget, list_definition);
     if (target == (widget_instance *)0) {
         return;
     }
 
     if ((int16_t)selection < 0) {
-        if (widget_instance_is_input_eligible(target) != 0) {
+        if (halo::interface::widget_instance_is_input_eligible(target) != 0) {
             UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[target->definition & 0xffff].data;
 
             if (target->widget_type != 2 || tag->child_widgets.count < 2) {
-                widget_instance_relink_focus(target, target);
+                halo::interface::widget_instance_relink_focus(target, target);
             }
         }
     } else {
@@ -1751,7 +1715,7 @@ void WidgetList::select_list_index(datum_index list_definition, int32_t selectio
             cursor = cursor->next_sibling;
             index = index + 1;
         }
-        widget_instance_relink_focus(cursor, cursor);
+        halo::interface::widget_instance_relink_focus(cursor, cursor);
         if (cursor->parent != (widget_instance *)0 &&
             (cursor->parent->widget_type == 2 || cursor->parent->widget_type == 3)) {
             cursor->parent->selection_index = index;
@@ -1768,7 +1732,7 @@ void WidgetView::set_state_recursive(uint8_t state)
 
     widget->state = state;
     for (; child != (widget_instance *)0; child = child->next_sibling) {
-        widget_instance_set_state_recursive(child, state);
+        halo::interface::widget_instance_set_state_recursive(child, state);
     }
 }
 
@@ -1869,19 +1833,19 @@ uint8_t WidgetList::select_next()
             next_index = 0;
         }
         if (widget->widget_type == 3) {
-            widget_instance *child = widget_list_get_child_by_index(widget, next_index);
+            widget_instance *child = halo::interface::widget_list_get_child_by_index(widget, next_index);
 
             if (child == (widget_instance *)0) {
                 return 0;
             }
-            widget_relink_focus_by_tag_id(widget, child->definition);
+            halo::interface::widget_relink_focus_by_tag_id(widget, child->definition);
         } else if (widget->widget_type == 2) {
             if (tag->child_widgets.count > 1) {
                 widget_instance *focused = widget->focused_child;
 
                 if ((focused == widget->first_child || focused == widget->first_child->next_sibling) &&
                     focused->next_sibling != (widget_instance *)0) {
-                    widget_instance_relink_focus(widget, focused->next_sibling);
+                    halo::interface::widget_instance_relink_focus(widget, focused->next_sibling);
                     widget->selection_index = next_index;
                     widget->selection_direction = 1;
                     widget->scroll_blink = 0xf;
@@ -1909,7 +1873,7 @@ uint8_t WidgetList::select_next()
             widget_instance *cursor = widget->first_child;
             int16_t index = 0;
 
-            widget_relink_focus_by_tag_id(widget, child->definition);
+            halo::interface::widget_relink_focus_by_tag_id(widget, child->definition);
             if (cursor != (widget_instance *)0) {
                 index = 0;
                 do {
@@ -1960,12 +1924,12 @@ uint8_t WidgetList::select_previous()
             prev_index = (int16_t)((uint16_t)widget->item_count - 1);
         }
         if (widget->widget_type == 3) {
-            widget_instance *child = widget_list_get_child_by_index(widget, prev_index);
+            widget_instance *child = halo::interface::widget_list_get_child_by_index(widget, prev_index);
 
             if (child == (widget_instance *)0) {
                 return 0;
             }
-            widget_relink_focus_by_tag_id(widget, child->definition);
+            halo::interface::widget_relink_focus_by_tag_id(widget, child->definition);
             widget->selection_index = prev_index;
             widget->scroll_blink = (int16_t)0xfff1;
             widget->selection_direction = 0xffff;
@@ -1975,7 +1939,7 @@ uint8_t WidgetList::select_previous()
             if (tag->child_widgets.count > 1 && widget->focused_child != widget->first_child &&
                 widget->focused_child != (widget_instance *)0 &&
                 widget->focused_child->previous_sibling != (widget_instance *)0) {
-                widget_instance_relink_focus(widget, widget->focused_child->previous_sibling);
+                halo::interface::widget_instance_relink_focus(widget, widget->focused_child->previous_sibling);
             }
             widget->selection_index = prev_index;
             widget->scroll_blink = (int16_t)0xfff1;
@@ -2061,7 +2025,7 @@ uint8_t WidgetList::select_previous()
             } while (index != widget->selection_index);
         }
 
-        widget_relink_focus_by_tag_id(widget, cursor->definition);
+        halo::interface::widget_relink_focus_by_tag_id(widget, cursor->definition);
         {
             widget_instance *walk = widget->first_child;
             int16_t found_index = 0;
@@ -2099,19 +2063,19 @@ void WidgetLifecycle::play_sound_effect(int16_t effect_id)
     switch (effect_id) {
     case 1:
         sound_tag = halo::cache::tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\cursor");
-        widget_play_sound_effect_tag(sound_tag);
+        halo::interface::widget_play_sound_effect_tag(sound_tag);
         return;
     case 2:
         sound_tag = halo::cache::tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\forward");
-        widget_play_sound_effect_tag(sound_tag);
+        halo::interface::widget_play_sound_effect_tag(sound_tag);
         return;
     case 3:
         sound_tag = halo::cache::tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\back");
-        widget_play_sound_effect_tag(sound_tag);
+        halo::interface::widget_play_sound_effect_tag(sound_tag);
         return;
     case 4:
         sound_tag = halo::cache::tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\flag_failure");
-        widget_play_sound_effect_tag(sound_tag);
+        halo::interface::widget_play_sound_effect_tag(sound_tag);
         return;
     default:
         return;
@@ -2189,9 +2153,9 @@ void WidgetView::relink_focus_by_tag_id(datum_index child_definition)
     while (root->parent != (widget_instance *)0) {
         root = root->parent;
     }
-    found = widget_find_by_tag_id(root, child_definition);
+    found = halo::interface::widget_find_by_tag_id(root, child_definition);
     if (found != (widget_instance *)0) {
-        widget_instance_relink_focus(found, found);
+        halo::interface::widget_instance_relink_focus(found, found);
     }
 }
 
@@ -2263,7 +2227,7 @@ widget_instance * WidgetLifecycle::reopen_as_root_with_history(datum_index open_
         }
     }
 
-    return chimera__load_ui_widget((char *)0, open_tag, (widget_instance *)0, controller_index,
+    return halo::interface::chimera__load_ui_widget((char *)0, open_tag, (widget_instance *)0, controller_index,
                              root->definition, parent_definition, sibling_index);
 }
 
@@ -2341,7 +2305,7 @@ uint32_t TextEdit::get_selection(int16_t *out_start, int16_t *out_end)
     int16_t start;
     int16_t end;
 
-    widget_text_edit_clamp_selection(state);
+    halo::interface::widget_text_edit_clamp_selection(state);
 
     if (state->selection_anchor == -1) {
         return 0;
@@ -2374,7 +2338,7 @@ void TextEdit::insert_string(char *insert_str)
     int32_t insert_len;
     int32_t tail_len;
 
-    has_selection = widget_text_edit_get_selection(state, &sel_start, &sel_end);
+    has_selection = halo::interface::widget_text_edit_get_selection(state, &sel_start, &sel_end);
 
     if (!has_selection) {
         insert_len = (int32_t)strlen(insert_str);
@@ -2424,12 +2388,12 @@ void TextEdit::process_key(ui_key_event *event)
     char *dst;
     int32_t tail_len;
 
-    widget_text_edit_clamp_selection(state);
+    halo::interface::widget_text_edit_clamp_selection(state);
 
     if (event->key_code != _ui_edit_key_backspace && event->key_code != _ui_edit_key_delete) {
         if (event->key_code == _ui_edit_key_left_arrow || event->key_code == _ui_edit_key_right_arrow) {
             has_selection = ((event->modifiers & 1) == 0) &&
-                             widget_text_edit_get_selection(state, &sel_start, &sel_end);
+                             halo::interface::widget_text_edit_get_selection(state, &sel_start, &sel_end);
             if (has_selection) {
                 state->selection_anchor = -1;
                 if (event->key_code != _ui_edit_key_left_arrow) {
@@ -2457,7 +2421,7 @@ void TextEdit::process_key(ui_key_event *event)
                 state->selection_anchor = -1;
             }
         } else if (event->character > 0x1f && event->character != 0xff) {
-            has_selection = widget_text_edit_get_selection(state, &sel_start, &sel_end);
+            has_selection = halo::interface::widget_text_edit_get_selection(state, &sel_start, &sel_end);
             if (has_selection) {
                 src = state->text + sel_end;
                 tail_len = (int32_t)strlen(src);
@@ -2483,7 +2447,7 @@ void TextEdit::process_key(ui_key_event *event)
         return;
     }
 
-    has_selection = widget_text_edit_get_selection(state, &sel_start, &sel_end);
+    has_selection = halo::interface::widget_text_edit_get_selection(state, &sel_start, &sel_end);
     if (has_selection) {
         src = state->text + sel_end;
         tail_len = (int32_t)strlen(src);
@@ -2531,7 +2495,7 @@ void TextEdit::process_key(ui_key_event *event)
  */
 void TextEdit::reset_length()
 {
-    widget_text_edit_clamp_selection(state);
+    halo::interface::widget_text_edit_clamp_selection(state);
 
     state->cursor = (int16_t)strlen(state->text);
     state->selection_anchor = -1;
@@ -2539,7 +2503,7 @@ void TextEdit::reset_length()
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 void list_node_pop(widget_history_node *out, widget_history_node **head)
 {

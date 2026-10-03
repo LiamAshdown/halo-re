@@ -17,6 +17,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
@@ -29,7 +30,6 @@ extern uint8_t biped_detach_from_flipped_vehicle;
 extern uint8_t unit_updates_suppressed;
 extern real_point3d *global_origin3d_pointer;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
-extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
 extern uint8_t *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
@@ -42,8 +42,6 @@ extern char *unit_base_animation_state_names[6];
 extern data_array *actor_data;
 extern void actor_attempt_grenade_throw(uint32_t actor_index);
 extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_index unit_index);
-extern void player_reset_after_unit_change(uint32_t controlling_player);
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 }
 
 namespace halo::units {
@@ -1351,7 +1349,7 @@ void UnitView::release_transient_state_and_detach(uint8_t is_light_reset)
     if (!is_light_reset) {
         unit->feign_death_ticks = 0;
         if (unit->controlling_player != k_datum_index_none) {
-            player_reset_after_unit_change(unit->controlling_player);
+            halo::game::player_reset_after_unit_change(unit->controlling_player);
             unit->controlling_player = k_datum_index_none;
         }
         if (unit->actor_index != k_datum_index_none) {
@@ -1735,7 +1733,7 @@ uint8_t halo::units::unit_seat_is_occupied_by_other(uint32_t self_index, int16_t
             uint32_t reassigned = child;
             if (!match && self_unit->controlling_player != k_datum_index_none) {
                 reassigned = found;
-                match = teams_are_enemies(((struct object *)child_obj)->owner_team, ((struct object *)self_obj)->owner_team) != 0;
+                match = halo::game::teams_are_enemies(((struct object *)child_obj)->owner_team, ((struct object *)self_obj)->owner_team) != 0;
             }
             if (match) {
                 not_found = 0;

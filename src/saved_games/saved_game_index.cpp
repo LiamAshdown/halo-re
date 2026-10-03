@@ -22,36 +22,22 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
 extern uint16_t missing_string_text[];
-extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,
-    uint32_t out_path_size);
-extern int32_t savegame_find_first(const char *root, void *out_find_data);
-extern uint8_t savegame_find_next(void *out_find_data, int32_t handle);
-extern uint8_t user_save_path_remove(int32_t handle);
-extern game_variant *game_engine_variant_defaults_classic_slayer(game_variant *out);
-extern void game_variant_sanitize_options(game_variant *variant);
 extern uint8_t savegame_index_dirty;
 extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
-extern int32_t savegame_index_get_slot_count(void);
-extern uint32_t savegame_slot_handle_pack(uint32_t slot_index, uint32_t type_nibble, uint8_t flag_bit_30,
-    uint8_t flag_bit_31);
-extern uint8_t savegame_index_append_slot(const saved_game_index_entry *entry, int32_t *out_slot);
-extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path);
 extern saved_player_profile default_profile_data;
 extern int32_t cached_saved_game_something;
-extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry);
-extern uint8_t savegame_index_remove_slot(int32_t slot_index);
 extern int32_t saved_player_profile_slots_handle;
 extern network_mutex_record *saved_game_files_mutex;
 extern network_mutex_record *savegame_index_mutex;
 extern file_reference_record savegame_index_file;
-extern uint8_t savegame_index_file_exists(void);
 extern uint8_t saved_game_files_initialized;
 extern char profile_directory[0x105];
 extern char saved_game_root_directory[0x100];
@@ -120,7 +106,7 @@ void allocate_new_slot(uint16_t *out_name)
             next_number = number + 1;
             halo::text::string_format_wide_va_bounded(k_saved_game_display_name_length - 1, out_name, format_string, next_number);
             out_name[0x7f] = 0;
-            create_result = XCreateSaveGame(out_name, savegames_directory, 3, scratch_path, k_saved_game_path_length);
+            create_result = halo::game::XCreateSaveGame(out_name, savegames_directory, 3, scratch_path, k_saved_game_path_length);
             if (create_result != 0) {
                 break;
             }
@@ -158,7 +144,7 @@ int32_t check_storage_availability(void)
         return _saved_game_storage_ok;
     }
 
-    handle = savegame_find_first(savegames_directory, find_data);
+    handle = halo::game::savegame_find_first(savegames_directory, (win32_find_dataa *)find_data);
     count = 1;
     if (handle != -1) {
         do {
@@ -166,10 +152,10 @@ int32_t check_storage_availability(void)
                 break;
             }
             count++;
-            found = savegame_find_next(find_data, handle);
+            found = halo::game::savegame_find_next((win32_find_dataa *)find_data, handle);
         } while (found == 1);
         if (handle != 0) {
-            removed = user_save_path_remove(handle);
+            removed = halo::game::user_save_path_remove(handle);
             if (removed != 0) {
                 FindClose((void *)handle);
             }
@@ -244,10 +230,10 @@ uint32_t create_custom_variant(uint32_t unused, uint16_t *name)
     opened = halo::saved_games::saved_game_open_file_by_handle((int32_t)handle, &ref);
     if (opened != 0) {
         memset(&file, 0, sizeof(file));
-        defaults_ptr = game_engine_variant_defaults_classic_slayer((game_variant *)&file.variant);
+        defaults_ptr = halo::game::game_engine_variant_defaults_classic_slayer((game_variant *)&file.variant);
         memcpy(&file.variant, defaults_ptr, sizeof(file.variant));
         file.variant.variant_flags = (int16_t)((uint16_t)file.variant.variant_flags & 0xfffe);
-        game_variant_sanitize_options(&file.variant);
+        halo::game::game_variant_sanitize_options(&file.variant);
         wcsncpy((wchar_t *)file.variant.name, (const wchar_t *)name, k_game_variant_name_length - 1);
         file.variant.name[0x17] = 0;
         file.checksum = k_crc32_seed;
@@ -352,7 +338,7 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
         return k_datum_index_none;
     }
 
-    entry_count = savegame_index_get_slot_count();
+    entry_count = halo::game::savegame_index_get_slot_count();
     if (k_maximum_saved_game_entries < entry_count) {
         if (quit_confirm_error_string_index != -1) {
             return k_datum_index_none;
@@ -365,7 +351,7 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
     }
 
     memset(directory, 0, sizeof(directory));
-    create_result = XCreateSaveGame(name, savegames_directory, 1, directory, k_saved_game_path_length);
+    create_result = halo::game::XCreateSaveGame(name, savegames_directory, 1, directory, k_saved_game_path_length);
     if (create_result != 0) {
         return k_datum_index_none;
     }
@@ -413,9 +399,9 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
                 }
                 halo::saved_games::file_reference_close(&ref);
             }
-            registered = savegame_index_append_slot(&entry, &appended_slot);
+            registered = halo::game::savegame_index_append_slot(&entry, (uint32_t *)&appended_slot);
             if (registered != 0) {
-                handle = (int32_t)savegame_slot_handle_pack((uint32_t)(int32_t)entry.index, type,
+                handle = (int32_t)halo::game::savegame_slot_handle_pack((uint32_t)(int32_t)entry.index, type,
                     entry.builtin, entry.checksum_valid);
                 return (uint32_t)handle;
             }
@@ -423,7 +409,7 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
     }
 
 rollback:
-    XDeleteSaveGame(name, savegames_directory);
+    halo::game::XDeleteSaveGame(name, savegames_directory);
     return k_datum_index_none;
 }
 
@@ -501,16 +487,16 @@ uint8_t delete_by_handle(int32_t handle)
         slot_index = saved_game_handle_slot(handle);
         result = 0;
         if ((handle & k_saved_game_handle_type_mask) < 2 && slot_index < k_maximum_saved_games) {
-            found = savegame_index_read_slot((int32_t)slot_index, &entry);
+            found = halo::game::savegame_index_read_slot((int32_t)slot_index, &entry);
             if (found != 0) {
                 if ((handle & k_saved_game_handle_builtin_bit) == 0) {
                     result = 1;
-                    delete_result = XDeleteSaveGame(entry.display_name, savegames_directory);
+                    delete_result = halo::game::XDeleteSaveGame(entry.display_name, savegames_directory);
                     if (delete_result != 0) {
                         result = 0;
                     }
                 }
-                removed = savegame_index_remove_slot((int32_t)slot_index);
+                removed = halo::game::savegame_index_remove_slot((int32_t)slot_index);
                 if (removed == 0) {
                     result = 0;
                 }
@@ -583,11 +569,11 @@ void enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only
         if (savegame_index_dirty != 0) {
             halo::saved_games::saved_game_list_rebuild_index();
         }
-        entry_count = savegame_index_get_slot_count();
+        entry_count = halo::game::savegame_index_get_slot_count();
         written = 0;
         wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
         if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
-            opened = savegame_index_file_exists();
+            opened = halo::game::savegame_index_file_exists();
             if (opened != 0) {
                 i = 0;
                 if (*capacity_and_count != 0) {
@@ -601,7 +587,7 @@ void enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only
                         }
                         if (entry.type == (int16_t)type &&
                             (builtin_only == 1 || entry.builtin == 0)) {
-                            handle = savegame_slot_handle_pack(i, entry.type, entry.builtin, entry.checksum_valid);
+                            handle = halo::game::savegame_slot_handle_pack(i, entry.type, entry.builtin, entry.checksum_valid);
                             out_handles[written] = handle;
                             written++;
                         }
@@ -775,8 +761,8 @@ int32_t find_by_name(char *name, int16_t type)
     if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
         wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
         if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
-            entry_count = savegame_index_get_slot_count();
-            opened = savegame_index_file_exists();
+            entry_count = halo::game::savegame_index_get_slot_count();
+            opened = halo::game::savegame_index_file_exists();
             if (opened != 0) {
                 for (i = 0; i < entry_count; i++) {
                     read_ok = halo::saved_games::file_reference_read(&savegame_index_file, &entry, sizeof(entry));
@@ -785,7 +771,7 @@ int32_t find_by_name(char *name, int16_t type)
                     }
                     if (entry.type == type &&
                         _strnicmp(name, entry.path, name_length) == 0) {
-                        handle = savegame_slot_handle_pack(i, entry.type, entry.builtin, entry.checksum_valid);
+                        handle = halo::game::savegame_slot_handle_pack(i, entry.type, entry.builtin, entry.checksum_valid);
                         break;
                     }
                 }
@@ -824,7 +810,7 @@ uint8_t get_directory_by_handle(int32_t handle, char *out_directory)
     if (slot_index >= 999) {
         return 0;
     }
-    found = savegame_index_read_slot((int32_t)slot_index, &entry);
+    found = halo::game::savegame_index_read_slot((int32_t)slot_index, &entry);
     if (found == 0) {
         return 0;
     }
@@ -859,7 +845,7 @@ uint16_t *get_display_name(int32_t handle)
     slot_index = saved_game_handle_slot(handle);
     saved_game_display_name_buffer[0] = 0;
     if (slot_index < k_maximum_saved_games) {
-        found = savegame_index_read_slot(slot_index, &entry);
+        found = halo::game::savegame_index_read_slot(slot_index, &entry);
         if (found != 0) {
             wcsncpy((wchar_t *)saved_game_display_name_buffer, (const wchar_t *)entry.display_name, k_saved_game_display_name_length - 1);
             saved_game_display_name_buffer[0x7f] = 0;
@@ -906,7 +892,7 @@ uint8_t get_variant(int32_t handle, game_variant *out)
     }
 
     if (-1 < handle) {
-        defaults_ptr = game_engine_variant_defaults_classic_slayer(&defaults);
+        defaults_ptr = halo::game::game_engine_variant_defaults_classic_slayer(&defaults);
         memcpy(&defaults, defaults_ptr, sizeof(defaults));
         dead_word = 0;
         display_name = halo::saved_games::saved_game_get_display_name(handle);
@@ -928,7 +914,7 @@ uint8_t get_variant(int32_t handle, game_variant *out)
                 if (checksum == file.checksum) {
                     memcpy(out, &file.variant, sizeof(*out));
                 } else {
-                    defaults_ptr = game_engine_variant_defaults_classic_slayer(&defaults);
+                    defaults_ptr = halo::game::game_engine_variant_defaults_classic_slayer(&defaults);
                     memcpy(&defaults, defaults_ptr, sizeof(defaults));
                     dead_word = 0;
                     display_name = halo::saved_games::saved_game_get_display_name(handle);
@@ -1375,7 +1361,7 @@ void list_rebuild_index(void)
     if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
         index_opened = halo::saved_games::saved_game_index_open_for_write();
         if (index_opened != 0) {
-            find_handle = savegame_find_first(savegames_directory, &find_data);
+            find_handle = halo::game::savegame_find_first(savegames_directory, (win32_find_dataa *)&find_data);
             if (find_handle != -1) {
                 do {
                     if (k_maximum_saved_game_entries < written_count) {
@@ -1457,11 +1443,11 @@ void list_rebuild_index(void)
                     written_count = written_count + 1;
 
                 next_entry:
-                    find_ok = savegame_find_next(&find_data, find_handle);
+                    find_ok = halo::game::savegame_find_next((win32_find_dataa *)&find_data, find_handle);
                 } while (find_ok != 0);
 
                 if (find_handle != 0) {
-                    removed = user_save_path_remove(find_handle);
+                    removed = halo::game::user_save_path_remove(find_handle);
                     if (removed != 0) {
                         FindClose((void *)find_handle);
                     }
@@ -1495,7 +1481,7 @@ uint8_t name_is_available(const uint16_t *name)
     uint32_t result;
 
     if (name != 0 && *name != 0) {
-        result = XCreateSaveGame(name, savegames_directory, 3, scratch, k_saved_game_path_length);
+        result = halo::game::XCreateSaveGame(name, savegames_directory, 3, scratch, k_saved_game_path_length);
         if (result != 0) {
             return 1;
         }
@@ -1516,7 +1502,7 @@ uint8_t open_file_by_handle(int32_t handle, file_reference_record *out_ref)
     uint8_t found;
     uint8_t opened;
 
-    found = savegame_index_read_slot(saved_game_handle_slot(handle), &entry);
+    found = halo::game::savegame_index_read_slot(saved_game_handle_slot(handle), &entry);
     if (found != 0) {
         memset(out_ref, 0, sizeof(*out_ref));
         out_ref->signature = k_file_reference_signature;

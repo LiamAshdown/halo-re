@@ -7,6 +7,8 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/saved_games/api.hpp"
@@ -217,11 +219,11 @@ void * game_state_revert_proc = &halo::sound::game_sound_revert_scripting_sounds
 void * game_state_after_load_procs[13] = {
     halo::scenario::scenario_structure_bsp_switch_after_load, &halo::sound::sound_stop_all,
     &halo::sound::game_sound_reconcile_scripting_state, &halo::camera::observer_initialize,
-    update_queues_revert, &halo::rasterizer::decal_geometry_cache_restore_procs,
+    &halo::game::update_queues_revert, &halo::rasterizer::decal_geometry_cache_restore_procs,
     &halo::cseries::function_do_nothing, &halo::cseries::function_do_nothing,
     halo::structures::detail_objects_invalidate, &halo::saved_games::game_state_after_load_restore_time,
-    players_rebind_local_player_after_load, &halo::camera::director_game_state_loaded,
-    hud_messaging_clear_after_load,
+    &halo::game::players_rebind_local_player_after_load, &halo::camera::director_game_state_loaded,
+    &halo::interface::hud_messaging_clear_after_load,
 };
 
 /* 0x0069e7e8 size 1: checkpoint_sort_newest_first */
@@ -236,25 +238,25 @@ uint32_t player_color_table[18] = {
 
 /* 0x0069e838 size 152: default_game_variant_procs */
 void * default_game_variant_procs[38] = {
-    game_engine_variant_defaults_classic_slayer, game_engine_variant_defaults_classic_slayer_pro,
-    game_engine_variant_defaults_classic_elimination, game_engine_variant_defaults_classic_phantoms,
-    game_engine_variant_defaults_classic_endurance, game_engine_variant_defaults_classic_rockets,
-    game_engine_variant_defaults_classic_snipers, game_engine_variant_defaults_classic_oddball,
-    game_engine_variant_defaults_classic_reverse_tag, game_engine_variant_defaults_classic_accumulation,
-    game_engine_variant_defaults_classic_juggernaut, game_engine_variant_defaults_classic_stalker,
-    game_engine_variant_defaults_classic_king, game_engine_variant_defaults_classic_king_pro,
-    game_engine_variant_defaults_classic_crazy_king, game_engine_variant_defaults_classic_race,
-    game_engine_variant_defaults_classic_rally, game_engine_variant_defaults_classic_ctf,
-    game_engine_variant_defaults_classic_invasion, game_engine_variant_defaults_classic_iron_ctf,
-    game_engine_variant_defaults_classic_ctf_pro, game_engine_variant_defaults_classic_team_race,
-    game_engine_variant_defaults_classic_team_rally, game_engine_variant_defaults_classic_team_oddball,
-    game_engine_variant_defaults_classic_team_king, game_engine_variant_defaults_classic_team_slayer,
-    game_engine_variant_defaults_slayer, game_engine_variant_defaults_oddball,
-    game_engine_variant_defaults_juggernaut, game_engine_variant_defaults_king,
-    game_engine_variant_defaults_crazy_king, game_engine_variant_defaults_race,
-    game_engine_variant_defaults_stalker, game_engine_variant_defaults_assault,
-    game_engine_variant_defaults_team_slayer, game_engine_variant_defaults_team_oddball,
-    game_engine_variant_defaults_team_king, game_engine_variant_defaults_team_race,
+    &halo::game::game_engine_variant_defaults_classic_slayer, &halo::game::game_engine_variant_defaults_classic_slayer_pro,
+    &halo::game::game_engine_variant_defaults_classic_elimination, &halo::game::game_engine_variant_defaults_classic_phantoms,
+    &halo::game::game_engine_variant_defaults_classic_endurance, &halo::game::game_engine_variant_defaults_classic_rockets,
+    &halo::game::game_engine_variant_defaults_classic_snipers, &halo::game::game_engine_variant_defaults_classic_oddball,
+    &halo::game::game_engine_variant_defaults_classic_reverse_tag, &halo::game::game_engine_variant_defaults_classic_accumulation,
+    &halo::game::game_engine_variant_defaults_classic_juggernaut, &halo::game::game_engine_variant_defaults_classic_stalker,
+    &halo::game::game_engine_variant_defaults_classic_king, &halo::game::game_engine_variant_defaults_classic_king_pro,
+    &halo::game::game_engine_variant_defaults_classic_crazy_king, &halo::game::game_engine_variant_defaults_classic_race,
+    &halo::game::game_engine_variant_defaults_classic_rally, &halo::game::game_engine_variant_defaults_classic_ctf,
+    &halo::game::game_engine_variant_defaults_classic_invasion, &halo::game::game_engine_variant_defaults_classic_iron_ctf,
+    &halo::game::game_engine_variant_defaults_classic_ctf_pro, &halo::game::game_engine_variant_defaults_classic_team_race,
+    &halo::game::game_engine_variant_defaults_classic_team_rally, &halo::game::game_engine_variant_defaults_classic_team_oddball,
+    &halo::game::game_engine_variant_defaults_classic_team_king, &halo::game::game_engine_variant_defaults_classic_team_slayer,
+    &halo::game::game_engine_variant_defaults_slayer, &halo::game::game_engine_variant_defaults_oddball,
+    &halo::game::game_engine_variant_defaults_juggernaut, &halo::game::game_engine_variant_defaults_king,
+    &halo::game::game_engine_variant_defaults_crazy_king, &halo::game::game_engine_variant_defaults_race,
+    &halo::game::game_engine_variant_defaults_stalker, &halo::game::game_engine_variant_defaults_assault,
+    &halo::game::game_engine_variant_defaults_team_slayer, &halo::game::game_engine_variant_defaults_team_oddball,
+    &halo::game::game_engine_variant_defaults_team_king, &halo::game::game_engine_variant_defaults_team_race,
 };
 
 /* 0x0069e8d0 size 1: playlist_profiles_need_defaults */
@@ -273,7 +275,7 @@ void * structure_bsp_activate_procedures[13] = {
     halo::effects::particles_refresh_structure_locations, halo::effects::particle_system_resolve_local_players,
     halo::effects::contrail_refresh_lightmap, halo::effects::decal_rehash_object_decals,
     halo::structures::structure_runtime_decals_mark_dirty, &halo::camera::observer_update_location,
-    players_structure_bsp_switch_regroup, halo::sound::sounds_refresh_structure_locations,
+    &halo::game::players_structure_bsp_switch_regroup, halo::sound::sounds_refresh_structure_locations,
     &halo::objects::scenario_objects_place_for_structure_bsp_on_activate,
 };
 

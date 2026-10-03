@@ -12,14 +12,12 @@
 
 #include "halo/interface/uis_profiles.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint16_t new_profile_name_buffer_006b37f4[0xc];
 extern int16_t new_profile_name_entry_player_00692b00;
 extern uint8_t new_profile_name_flag_0071916e;
-extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind);
-extern uint8_t ui_new_profile_name_entry_open(void *widget, int16_t *event, uint8_t *out_handled);
-extern void saved_item_select(int32_t profile_index);
 }
 
 namespace halo::ui {
@@ -40,7 +38,7 @@ uint8_t UiProfiles::new_profile_name_entry_open(void *widget, int16_t *event, ui
     new_profile_name_buffer_006b37f4[0xb] = 0;
     new_profile_name_entry_player_00692b00 = event[1];
     new_profile_name_flag_0071916e = 0;
-    virtual_keyboard_open(new_profile_name_buffer_006b37f4, 0x18, 8);
+    halo::interface::virtual_keyboard_open(new_profile_name_buffer_006b37f4, 0x18, 8);
     return 1;
 }
 
@@ -56,10 +54,10 @@ uint8_t UiProfiles::profile_select_or_create(void *widget, int16_t *event, uint8
 
     halo::saved_games::saved_game_enumerate_by_type(0, &slot, 0, (uint16_t *)&count);
     if (count > 0) {
-        saved_item_select(halo::saved_games::globals().player_profile_slots_handle);
+        halo::interface::saved_item_select(halo::saved_games::globals().player_profile_slots_handle);
         return 1;
     }
-    ui_new_profile_name_entry_open(widget, event, out_handled);
+    halo::interface::ui_new_profile_name_entry_open(widget, event, out_handled);
     new_profile_name_flag_0071916e = 1;
     return 0;
 }

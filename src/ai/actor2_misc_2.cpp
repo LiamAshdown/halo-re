@@ -6,12 +6,12 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_reassign_vehicle_seat_local {
 extern "C" {
-extern int8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern void ai_conversation_clear_object_references(datum_index object_index, uint8_t force_full_scan);
 extern void encounters_note_hostile_object(datum_index object_index);
@@ -58,7 +58,7 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
     } else {
         object *occupant_obj = ((object_header *)halo::objects::globals().object_data->data)[occupant & halo::k_slot_mask].data;
         object *self_obj = ((object_header *)halo::objects::globals().object_data->data)[self_object_index & halo::k_slot_mask].data;
-        reason = teams_are_enemies(((struct object *)occupant_obj)->owner_team,
+        reason = halo::game::teams_are_enemies(((struct object *)occupant_obj)->owner_team,
                                ((struct object *)self_obj)->owner_team) ? 3 : 2;
     }
 

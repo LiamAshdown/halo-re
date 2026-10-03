@@ -15,6 +15,7 @@
 #include "halo/main/network.hpp"
 #include "halo/main/layout.hpp"
 #include "halo/main/api.hpp"
+#include "halo/interface/api.hpp"
 
 
 extern "C" { extern main_globals main_globals_data; }
@@ -88,10 +89,6 @@ extern "C" { extern int32_t join_ui_state; }
 extern "C" { extern char network_address_string_is_valid(char *address_string); }
 extern "C" { extern char network_address_string_normalize(char *address_string, char *out_buffer, uint8_t *out_is_any); }
 extern "C" { extern char network_address_parse_port(char *address_string, int32_t *port_out); }
-extern "C" { extern void widget_close_all(void); }
-extern "C" { extern void interface_loading_screen_reset(void); }
-extern "C" { extern void interface_loading_screen_set_text(const char *text); }
-extern "C" { extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error); }
 namespace halo::main {
 
 /**
@@ -136,10 +133,10 @@ uint8_t ClientConnection::game_client_connect_to_address_async(char *address, ch
         host_copy = (char *)(GlobalAlloc(0, length));
         strcpy(host_copy, address);
 
-        widget_close_all();
-        interface_loading_screen_reset();
+        halo::interface::widget_close_all();
+        halo::interface::interface_loading_screen_reset();
         join_ui_state = 3;
-        interface_loading_screen_set_text(address);
+        halo::interface::interface_loading_screen_set_text(address);
 
         while (connect_thread != 0) {
             Sleep(0);
@@ -160,7 +157,7 @@ uint8_t ClientConnection::game_client_connect_to_address_async(char *address, ch
 
 fail:
     halo::main::network_game_client_connect_to_address_async(0, 0);
-    display_error(k_join_error_connection_failed, -1, 1, 0);
+    halo::interface::display_error(k_join_error_connection_failed, -1, 1, 0);
     return 0;
 }
 
@@ -218,7 +215,7 @@ void ClientConnection::game_client_connect_to_resolved_address(void)
         main_globals_data.save_map = 0;
         main_globals_data.return_to_main_menu = 1;
     } else {
-        widget_close_all();
+        halo::interface::widget_close_all();
         halo::main::main_menu_music_stop();
     }
     main_globals_data.connect_address[0] = 0;

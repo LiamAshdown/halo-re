@@ -3,10 +3,10 @@
 #include <string.h>
 #include <wchar.h>
 #include "halo/cache/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint16_t missing_string_text[];
-extern void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, const void *data_blob, uint32_t data_size, uint8_t is_default);
 }
 
 static void widen(uint16_t *out, const char *in)
@@ -79,7 +79,7 @@ uint8_t CheckpointListRows::add_row(int32_t index, const char *name, int32_t lev
         }
     }
     halo::text::string_format_wide_va(wide, (const uint16_t *)L"%s - %02d:%02d:%02d", level_name, hours, minutes, seconds);
-    ui_list_add_entry(0, wide, index, record, 0x68, (uint8_t)(index == 0));
+    halo::interface::ui_list_add_entry(0, wide, index, record, 0x68, (uint8_t)(index == 0));
     return 1;
 }
 

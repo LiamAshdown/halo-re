@@ -11,6 +11,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern char ai_marker_name_a[];
@@ -20,11 +21,7 @@ extern game_time_globals *game_time;
 extern uint8_t *network_client;
 extern double cos(double x);
 extern double sin(double x);
-extern datum_index player_index_from_unit_index(datum_index unit_index);
-extern uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_object, void *local_offset);
 extern void player_update_history_free_all(void *history);
-extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
-extern uint32_t player_index_from_unit_index(datum_index object_index);
 extern uint8_t hs_object_angle_predicate_helper(datum_index object_index, datum_index viewer_unit, float angle_degrees);
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
 extern char hs_object_hierarchy_test(datum_index object_index);
@@ -228,7 +225,7 @@ void ScriptObjects::object_detach_and_place_at_location(int16_t location_index, 
     unit = halo::objects::object_try_and_get(object_index, 3);
     if (unit != 0) {
         uint8_t *unit_bytes = (uint8_t *)unit;
-        datum_index player_index = player_index_from_unit_index(object_index);
+        datum_index player_index = halo::game::player_index_from_unit_index(object_index);
 
         if (*(datum_index *)(unit_bytes + 0x11c) != k_datum_index_none) {
             uint8_t *parent = OBJ(*(datum_index *)(unit_bytes + 0x11c));
@@ -249,10 +246,10 @@ void ScriptObjects::object_detach_and_place_at_location(int16_t location_index, 
         if (player_index != k_datum_index_none) {
             player = (uint8_t *)player_data->data + (player_index & halo::k_slot_mask) * 0x200;
             if (detach_from_parent) {
-                player_attach_unit_to_parent(player_index, halo::k_dword_none, flag + 0x24);
+                halo::game::player_attach_unit_to_parent(player_index, halo::k_dword_none, flag + 0x24);
             }
             if (reorient && ((struct player *)player)->local_player_index != -1) {
-                game_engine_compute_look_angles_from_vector(&local_forward, ((struct player *)player)->local_player_index);
+                halo::game::game_engine_compute_look_angles_from_vector(&local_forward, ((struct player *)player)->local_player_index);
             }
         }
     }
@@ -277,7 +274,7 @@ char ScriptObjects::object_hierarchy_test(datum_index object_index) const
     datum_index ancestor;
 
     object = hs_object_record_get(object_index);
-    if (player_index_from_unit_index(object_index) != halo::k_dword_none) {
+    if (halo::game::player_index_from_unit_index(object_index) != halo::k_dword_none) {
         return 1;
     }
 
@@ -293,7 +290,7 @@ char ScriptObjects::object_hierarchy_test(datum_index object_index) const
     ancestor = object->parent;
     while (ancestor != k_datum_index_none) {
         node = hs_object_record_get(ancestor);
-        if (player_index_from_unit_index(ancestor) != halo::k_dword_none) {
+        if (halo::game::player_index_from_unit_index(ancestor) != halo::k_dword_none) {
             return 1;
         }
         ancestor = node->parent;

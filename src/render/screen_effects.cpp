@@ -26,6 +26,7 @@
 #include "halo/text/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/interface/api.hpp"
 
 static_assert(offsetof(Bitmap, bitmap_data) + offsetof(TagReflexive, pointer) == halo::render::k_bitmap_data_pointer_offset);
 
@@ -42,8 +43,6 @@ extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern void rasterizer_set_shader_stage_config(int16_t mode);
-extern void hud_text_draw_configure(int16_t font_table_index, uint16_t color_or_flags, int16_t column,
-    uint32_t unknown_4730, int16_t color_table_index, int16_t color_index);
 extern rasterizer_dynamic_index_slot rasterizer_dynamic_index_slots[];
 extern void **rasterizer_effect_pool_scratch;
 extern void rasterizer_lens_flare_batch_flush_all(void);
@@ -460,7 +459,7 @@ void draw(uint8_t render_graph, uint8_t render_infos)
             frame_graphs[0].frame_vertices, sizeof(rasterizer_dynamic_screen_vertex));
     }
 
-    hud_text_draw_configure(1, 0xffff, 0, 0, 5, 0);
+    halo::interface::hud_text_draw_configure(1, 0xffff, 0, 0, 5, 0);
     hud_text_draw_color_a = white[0];
     halo::text::globals().hud_text_draw_background_mode = 0;
     hud_text_draw_color_r = white[1];
@@ -664,7 +663,7 @@ void draw(void)
     bounds.top = (int16_t)(bounds.top + 0x20);
     bounds.bottom = (int16_t)(bounds.bottom + 0x20);
 
-    hud_text_draw_configure(1, 0xffff, 0, 0, 5, 0);
+    halo::interface::hud_text_draw_configure(1, 0xffff, 0, 0, 5, 0);
     sprintf(text, "|n|tframerate|taverage (of %d)|tmin|tmax|tdropped",
             (int32_t)halo::rasterizer::globals().frame_statistics.sample_count);
     tab_stops[0] = left;

@@ -21,6 +21,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int16_t local_player_count;
@@ -43,14 +45,9 @@ extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
-extern void ui_build_level_select_list_coop(widget_instance *widget, void *param_2, void *param_3);
 extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc];
-extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item);
-extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index, void *list_items);
-extern void multiplayer_settings_select_list_update_item(widget_instance *description_widget, void *variant_data);
 extern map_list_entry *map_list;
 extern int32_t map_list_count;
-extern void widget_play_sound_effect(int16_t effect_id);
 extern uint8_t save_in_progress_00719010;
 extern int32_t cached_profile_slot;
 extern int16_t network_game_mode;
@@ -59,7 +56,6 @@ extern char last_profile_name[];
 extern void saved_game_delete_files(void);
 extern uint8_t saved_game_get_directory_by_handle(int32_t slot, char *out_name);
 extern void saved_game_last_profile_clear(char *name);
-extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
 }
 
 namespace halo::ui {
@@ -83,7 +79,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
 
     if (local_player_count > 1) {
         memset(level_select_current_path_00719068, 0, sizeof(level_select_current_path_00719068));
-        ui_build_level_select_list_coop(widget, param_2, param_3);
+        halo::interface::ui_build_level_select_list_coop(widget, param_2, param_3);
         return 1;
     }
 
@@ -288,14 +284,14 @@ void UiGameSetup::game_variant_flag_list_widget_build(widget_instance *widget)
     widget_instance *target;
     int32_t depth;
 
-    ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)ui_list_default_item_format));
+    halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 
     combo_index = *(int16_t *)&((struct widget_instance *)widget)->text;
     if (combo_index > -1 && combo_index < ui_lists[ui_list_current].count) {
         ui_list_item *entry = (ui_list_item *)ui_lists[ui_list_current].data + combo_index;
         variant_data = entry->data;
     }
-    multiplayer_settings_select_list_update_item(widget->extended_description, variant_data);
+    halo::interface::multiplayer_settings_select_list_update_item(widget->extended_description, (const uint16_t *)variant_data);
 
     row = widget->first_child;
     depth = 0;
@@ -347,7 +343,7 @@ uint8_t UiGameSetup::map_select_confirm_choice(widget_instance *widget)
     file_name = (file_name != 0) ? file_name + 1 : path;
     exists = halo::cache::cache_file_exists(file_name, &header);
     if (!exists) {
-        widget_play_sound_effect(4);
+        halo::interface::widget_play_sound_effect(4);
         return exists;
     }
 
@@ -398,7 +394,7 @@ uint8_t UiGameSetup::variant_name_is_available(const uint16_t *name)
     char narrow[0x24];
 
     halo::text::string_convert_unicode_to_ascii((uint8_t *)narrow, (uint16_t *)name, 0x20);
-    return game_engine_get_variant_by_name(narrow, (game_variant *)0) == 0;
+    return halo::game::game_engine_get_variant_by_name(narrow, (game_variant *)0) == 0;
 }
 
 }

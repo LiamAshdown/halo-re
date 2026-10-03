@@ -7,6 +7,7 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_alert_from_damage {
 extern "C" {
@@ -879,7 +880,6 @@ extern void *actor_get_actor_definition(datum_index actor_index);
 extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3);
 extern void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag);
 extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_mode,
     actor_combat_consideration *out);
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
@@ -952,7 +952,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 wide = 1;
             }
             base_delay = a[0x378] ? 0.0f : ((Actor *)actor_tag)->melee_attack_delay;
-            delay = weapon_get_zoom_fov(0x14, difficulty) + weapon_get_zoom_fov(0x15, difficulty) * base_delay;
+            delay = halo::game::weapon_get_zoom_fov(0x14, difficulty) + halo::game::weapon_get_zoom_fov(0x15, difficulty) * base_delay;
             range = wide ? ((ActorVariant *)variant)->berserk_melee_range : ((ActorVariant *)variant)->melee_range;
             if (!(*(int32_t *)&((actor *)a)->search_wait_time != -1 && *(int32_t *)&((actor *)a)->search_wait_time + 0xa >= now) &&
                 distance <= range) {

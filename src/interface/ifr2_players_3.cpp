@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -10,10 +11,8 @@
 
 extern "C" {
 extern uint8_t profile_globals_block[];
-extern void hud_message_broadcast_to_local_players(const uint16_t *text);
 extern const uint16_t empty_string[];
 extern const uint16_t missing_string_text[];
-extern void player_profile_refresh_settings_cache(int16_t player_index);
 }
 
 namespace halo::interface {
@@ -51,20 +50,20 @@ void PlayerProfiles::save_495fb0(uint8_t flag)
                 }
             }
         }
-        hud_message_broadcast_to_local_players(text);
+        halo::interface::hud_message_broadcast_to_local_players(text);
         if (halo::saved_games::globals().player_profile_slots_handle == -1) {
             halo::main::console_out_printf(0, "profile not saved since it was a default profile");
-            player_profile_refresh_settings_cache(0);
+            halo::interface::player_profile_refresh_settings_cache(0);
             return;
         }
         halo::saved_games::player_profile_write_data(halo::saved_games::globals().player_profile_slots_handle, (saved_player_profile *)profile_globals_block);
     }
-    player_profile_refresh_settings_cache(0);
+    halo::interface::player_profile_refresh_settings_cache(0);
 }
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 void player_profile_save_495fb0(uint8_t flag)
 {

@@ -9,6 +9,7 @@
 
 #include "halo/game/game1_notifications.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -21,10 +22,6 @@ extern uint8_t message_delta_decode_compound_field(void *event, void *out_messag
 extern uint8_t network_channel_key_close(void *identifier_record);
 extern void network_index_cache_insert_if_free(uint32_t hash_value, datum_index player_handle,
     void *table);
-extern void game_engine_player_profile_cache_add(uint32_t player_handle);
-extern void game_set_local_player(datum_index player_handle,
-    int16_t local_player_index);
-extern void game_engine_player_new_life(uint32_t player_handle);
 }
 
 namespace halo::game::engine1 {
@@ -64,7 +61,7 @@ void Notifications::apply_player_join_message(void **envelope)
         network_index_cache_insert_if_free(message.hash_value, message.join_key, join_message_table);
         p = (player *)halo::memory::datum_get((datum_index)message.join_key, player_data);
         halo::memory::datum_new_at_index_with_salt((datum_index)message.join_key, update_client_queues);
-        game_engine_player_profile_cache_add(message.join_key);
+        halo::game::game_engine_player_profile_cache_add(message.join_key);
         if (p == 0) {
             return;
         }
@@ -73,7 +70,7 @@ void Notifications::apply_player_join_message(void **envelope)
     p->team = (int32_t)message.team;
     p->team_index = (int8_t)message.team;
     if (p->local_player_index != -1) {
-        game_set_local_player((datum_index)message.join_key,
+        halo::game::game_set_local_player((datum_index)message.join_key,
             (int16_t)*(int8_t *)(identifier_record + 0x1d));
     }
     p->kill_streak[0] = 0;
@@ -81,7 +78,7 @@ void Notifications::apply_player_join_message(void **envelope)
     p->interaction_type = 0;
     p->interaction_object = (datum_index)0xffffffff;
 
-    game_engine_player_new_life(message.join_key);
+    halo::game::game_engine_player_new_life(message.join_key);
     }
 }
 

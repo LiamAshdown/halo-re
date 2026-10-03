@@ -5,13 +5,13 @@
 #include "halo/structures/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
 extern uint8_t *global_structure_collision_bsp;
 extern void item_detonation_timer_start(uint32_t object_index);
 extern void item_compute_rotation(uint32_t object_index);
-extern void random_get_table_point(real_vector3d *out);
 extern double sqrt(double x);
 extern double fsin(double x);
 extern double fcos(double x);
@@ -97,7 +97,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         halo::math::vector3d_cross_product(cross_axis, *delta, *halo::math::globals().global_up3d_pointer);
         length = halo::math::vector3d_normalize_with_length(cross_axis);
         if (length <= 0.0f) {
-            random_get_table_point(&cross_axis);
+            halo::game::random_get_table_point((real_point3d *)&cross_axis);
             seed_snapshot = halo::math::globals().random_seed_global;
         }
 

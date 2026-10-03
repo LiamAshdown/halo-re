@@ -8,6 +8,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern void effect_random_direction_from_table(real_point3d *out);
@@ -24,7 +25,6 @@ extern int16_t current_local_player_index;
 extern uint8_t *first_person_weapon_interfaces;
 extern const real_vector3d *global_origin3d_pointer;
 extern void (*particle_creation_physics_table[3])(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
-extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name, object_marker *out, uint32_t maximum);
 extern player_globals *local_player_globals;
 }
 
@@ -769,7 +769,7 @@ void particle_system_view::spawn(int32_t type_index, float dt)
             datum_index weapon = *(datum_index *)(first_person_weapon_interfaces + current_local_player_index * 0x1ea0 + 8);
 
             if (weapon != k_datum_index_none) {
-                marker_count = (int16_t)first_person_weapon_get_marker_data(weapon, marker_name, markers, 8);
+                marker_count = (int16_t)halo::interface::first_person_weapon_get_marker_data(weapon, marker_name, markers, 8);
                 halo::objects::object_get_root_location((int32_t *)(system + 0x18), weapon);
             }
         }

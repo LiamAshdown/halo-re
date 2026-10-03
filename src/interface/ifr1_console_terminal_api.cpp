@@ -1,4 +1,7 @@
 #include "halo/interface/ifr1_console_terminal.hpp"
+#include "halo/interface/api.hpp"
+
+namespace halo::interface {
 
 /**
  * C ABI entry point; forwards to halo::interface::ConsoleTerminal::out.
@@ -6,7 +9,7 @@
  *
  * @address 0x496b50
  */
-extern "C" void chimera__console_out(ColorARGB *color, char *format, ...)
+void chimera__console_out(ColorARGB *color, char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -20,7 +23,7 @@ extern "C" void chimera__console_out(ColorARGB *color, char *format, ...)
  *
  * @address 0x496e90
  */
-extern "C" void chimera__console_out_copy(char *text)
+void chimera__console_out_copy(char *text)
 {
     halo::interface::ConsoleTerminal::out_copy(text);
 }
@@ -30,7 +33,7 @@ extern "C" void chimera__console_out_copy(char *text)
  *
  * @address 0x497010
  */
-extern "C" void console_clear_bottom_line(uint8_t clear_text)
+void console_clear_bottom_line(uint8_t clear_text)
 {
     halo::interface::ConsoleTerminal::clear_bottom_line(clear_text);
 }
@@ -40,7 +43,7 @@ extern "C" void console_clear_bottom_line(uint8_t clear_text)
  *
  * @address 0x496f90
  */
-extern "C" void console_clear_screen(void)
+void console_clear_screen(void)
 {
     halo::interface::ConsoleTerminal::clear_screen();
 }
@@ -50,7 +53,7 @@ extern "C" void console_clear_screen(void)
  *
  * @address 0x496580
  */
-extern "C" void console_close(terminal_console *console)
+void console_close(terminal_console *console)
 {
     halo::interface::ConsoleTerminal::close(console);
 }
@@ -60,7 +63,7 @@ extern "C" void console_close(terminal_console *console)
  *
  * @address 0x4970a0
  */
-extern "C" void console_draw_input_line(void)
+void console_draw_input_line(void)
 {
     halo::interface::ConsoleTerminal::draw_input_line();
 }
@@ -70,7 +73,7 @@ extern "C" void console_draw_input_line(void)
  *
  * @address 0x496730
  */
-extern "C" void console_draw_overlay(void)
+void console_draw_overlay(void)
 {
     halo::interface::ConsoleTerminal::draw_overlay();
 }
@@ -80,7 +83,7 @@ extern "C" void console_draw_overlay(void)
  *
  * @address 0x496490
  */
-extern "C" void console_message_delete(datum_index message)
+void console_message_delete(datum_index message)
 {
     halo::interface::ConsoleTerminal::message_delete(message);
 }
@@ -90,7 +93,7 @@ extern "C" void console_message_delete(datum_index message)
  *
  * @address 0x4966e0
  */
-extern "C" void console_message_expire_old(void)
+void console_message_expire_old(void)
 {
     halo::interface::ConsoleTerminal::message_expire_old();
 }
@@ -100,7 +103,7 @@ extern "C" void console_message_expire_old(void)
  *
  * @address 0x496420
  */
-extern "C" datum_index console_message_new(void)
+datum_index console_message_new(void)
 {
     return halo::interface::ConsoleTerminal::message_new();
 }
@@ -110,7 +113,7 @@ extern "C" datum_index console_message_new(void)
  *
  * @address 0x496510
  */
-extern "C" uint8_t console_open(terminal_console *console)
+uint8_t console_open(terminal_console *console)
 {
     return halo::interface::ConsoleTerminal::open(console);
 }
@@ -120,7 +123,7 @@ extern "C" uint8_t console_open(terminal_console *console)
  *
  * @address 0x4971a0
  */
-extern "C" void console_position_cursor(void)
+void console_position_cursor(void)
 {
     halo::interface::ConsoleTerminal::position_cursor();
 }
@@ -131,7 +134,7 @@ extern "C" void console_position_cursor(void)
  *
  * @address 0x496a80
  */
-extern "C" void console_printf_verbose(ColorARGB *color, char *format, ...)
+void console_printf_verbose(ColorARGB *color, char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -145,7 +148,7 @@ extern "C" void console_printf_verbose(ColorARGB *color, char *format, ...)
  *
  * @address 0x496c80
  */
-extern "C" void console_process_input_events(void)
+void console_process_input_events(void)
 {
     halo::interface::ConsoleTerminal::process_input_events();
 }
@@ -155,7 +158,7 @@ extern "C" void console_process_input_events(void)
  *
  * @address 0x4965e0
  */
-extern "C" uint8_t console_process_queued_input(void)
+uint8_t console_process_queued_input(void)
 {
     return halo::interface::ConsoleTerminal::process_queued_input();
 }
@@ -165,7 +168,7 @@ extern "C" uint8_t console_process_queued_input(void)
  *
  * @address 0x496c20
  */
-extern "C" void console_restore_cursor(void)
+void console_restore_cursor(void)
 {
     halo::interface::ConsoleTerminal::restore_cursor();
 }
@@ -175,7 +178,9 @@ extern "C" void console_restore_cursor(void)
  *
  * @address 0x496d40
  */
-extern "C" void console_update_display(void)
+void console_update_display(void)
 {
     halo::interface::ConsoleTerminal::update_display();
+}
+
 }

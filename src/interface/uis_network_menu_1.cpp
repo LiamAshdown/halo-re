@@ -18,27 +18,20 @@
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
 extern uint8_t profile_globals_block[0x60a4];
-extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index, void *list_items);
-extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item);
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
 extern heap *widget_memory_pool;
 extern uint16_t network_host_name_field_00719238[32];
 extern uint16_t network_host_subname_007191f0[9];
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern uint8_t network_game_client_connect_to_address_async(char *name, char *address);
-extern void saved_item_select(int32_t profile_index);
-extern uint8_t saved_item_has_unsaved_changes(void);
-extern uint8_t player_profile_save(void);
 extern uint32_t network_game_option_a_00719210;
 extern uint32_t network_game_option_b_00719214;
-extern void widget_play_sound_effect(int16_t effect_id);
-extern uint8_t ui_network_game_options_populate(widget_instance *widget, const uint8_t *options_record);
 extern uint16_t network_host_name_00719170[144];
 extern int32_t quality_selection_00692b04;
 extern int32_t resolution_row_count_table_0065bfb4[5][1];
@@ -56,15 +49,9 @@ extern uint8_t ui_network_wait_timed_out;
 extern network_client_globals *network_client;
 extern int16_t network_game_mode;
 extern uint8_t network_host_handoff_requested;
-extern void *widget_instance_find_root(widget_instance *widget);
-extern int32_t widget_get_sibling_index(widget_instance *widget);
-extern void chat_close(void);
 extern int32_t network_connection_initiate(network_client_globals *connection, const uint32_t *target,
                                             const uint32_t *session_info);
 extern void network_debug_fill_canary_buffer(void);
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection);
 extern uint8_t autopatch_status_state_00719234;
 extern uint8_t autopatch_status_active_00719235;
 extern uint8_t ui_server_option_flag_00692b10;
@@ -86,13 +73,13 @@ void UiNetworkMenu::network_adapter_details_refresh(widget_instance *widget)
     widget_instance *c1, *c2, *c3, *c4, *c5, *c6;
     ui_list_item *entry = (ui_list_item *)0;
 
-    ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)ui_list_default_item_format));
+    halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 
     {
         uint8_t profile_copy[0x2000];
 
         memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
+        halo::interface::set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
     }
 
     row = widget->extended_description->first_child->next_sibling;
@@ -157,14 +144,14 @@ uint8_t UiNetworkMenu::network_client_connect_and_save(void)
         return result;
     }
 
-    saved_item_select(halo::saved_games::globals().player_profile_slots_handle);
+    halo::interface::saved_item_select(halo::saved_games::globals().player_profile_slots_handle);
     {
         uint8_t *record = ((selected_saved_item & 0xf) == 0) ? saved_item_working_copy : (uint8_t *)0;
         wcslen((const wchar_t *)network_host_name_field_00719238);
         wcscpy((wchar_t *)((uint16_t *)(record + 0xfc2)), (const wchar_t *)network_host_name_field_00719238);
     }
-    if (saved_item_has_unsaved_changes() != 0) {
-        player_profile_save();
+    if (halo::interface::saved_item_has_unsaved_changes() != 0) {
+        halo::interface::player_profile_save();
         return result;
     }
     selected_saved_item = -1;
@@ -207,8 +194,8 @@ uint8_t UiNetworkMenu::network_game_options_populate(widget_instance *widget, co
 void UiNetworkMenu::network_game_options_refresh(widget_instance *widget, const uint8_t *options_record)
 {
     halo::saved_games::player_profile_set_default_server_options((saved_player_profile *)profile_globals_block);
-    widget_play_sound_effect(0);
-    ui_network_game_options_populate(widget, options_record);
+    halo::interface::widget_play_sound_effect(0);
+    halo::interface::ui_network_game_options_populate(widget, options_record);
 }
 
 /**
@@ -321,7 +308,7 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
         uint8_t profile_copy[0x2000];
 
         memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
+        halo::interface::set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
     }
 }
 
@@ -371,7 +358,7 @@ void UiNetworkMenu::network_name_fields_refresh(widget_instance *widget)
         uint8_t profile_copy[0x1ffc];
 
         memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        set_profile_name(tab_group->first_child->next_sibling, (const uint16_t *)(profile_copy + 2));
+        halo::interface::set_profile_name(tab_group->first_child->next_sibling, (const uint16_t *)(profile_copy + 2));
     }
 }
 
@@ -468,19 +455,19 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
                                                          session_info);
                 if ((uint8_t)connected == 0) {
                     network_host_handoff_requested = 1;
-                    chat_close();
+                    halo::interface::chat_close();
                     return 0;
                 }
 
                 {
-                    void *page = widget_instance_find_root(widget);
+                    void *page = halo::interface::widget_instance_find_root(widget);
                     datum_index parent_definition = (widget->parent != (widget_instance *)0)
                                                          ? widget->parent->definition
                                                          : (datum_index)-1;
-                    int32_t sibling = widget_get_sibling_index(widget);
+                    int32_t sibling = halo::interface::widget_get_sibling_index(widget);
                     widget_instance *opened;
 
-                    opened = chimera__load_ui_widget(
+                    opened = halo::interface::chimera__load_ui_widget(
                         (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
                         (datum_index)-1, (widget_instance *)0, (uint16_t)-1,
                         *(datum_index *)page, parent_definition, (int16_t)sibling);
@@ -492,7 +479,7 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
                 }
             }
         } else {
-            widget_play_sound_effect(0);
+            halo::interface::widget_play_sound_effect(0);
         }
     }
     return 0;

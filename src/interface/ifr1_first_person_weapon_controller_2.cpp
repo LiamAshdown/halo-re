@@ -9,23 +9,18 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern player_control_globals *player_control_globals_ptr;
 extern Globals *global_globals;
 extern void *global_zero_vector3d_pointer;
-extern void first_person_weapon_update_state(int16_t local_player_index);
-extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot,
-                                          int16_t new_state);
-extern void first_person_weapon_snapshot_pose(int16_t local_player_index, int16_t blend_gap);
-extern void first_person_weapon_interface_tick_reset(int16_t local_player_index);
 extern float effect_random_fraction(void);
-extern float angle_delta_wrapped(float a, float b);
 extern double fmod(double x, double y);
 extern double sqrt(double x);
 extern int32_t __ftol(double x);
-extern void debug_play_diagnostics(void);
 extern real_point3d render_camera_global;
 extern real_vector3d camera_forward_x;
 extern real_vector3d camera_up;
@@ -34,8 +29,6 @@ extern int16_t current_local_player_index;
 extern float zoom_static_tint_r;
 extern float zoom_static_tint_g;
 extern float zoom_static_tint_b;
-extern int32_t local_player_get_weapon_hud_interface(float *out_intensity);
-extern int32_t local_player_get_zoom_level(int16_t local_player_index);
 }
 
 #define FP_FLOAT(fp, offset) (*(float *)((uint8_t *)(fp) + (offset)))
@@ -84,7 +77,7 @@ namespace halo::interface {
  */
 void FirstPersonWeaponController::update()
 {
-    debug_play_diagnostics();
+    halo::interface::debug_play_diagnostics();
     first_person_weapon_interface *fp = &first_person_weapon_interfaces[local_player_index];
 
     if (fp->weapon_index != (datum_index)-1 && halo::objects::object_try_and_get(fp->weapon_index, 4) == 0) {
@@ -106,16 +99,16 @@ void FirstPersonWeaponController::update()
 
         if (fp->state == 3 || fp->state == 1) {
             if ((*weapon_flags & 2) != 0) {
-                first_person_weapon_set_state(local_player_index, 1, 0x16);
+                halo::interface::first_person_weapon_set_state(local_player_index, 1, 0x16);
             }
             if ((*weapon_flags & 1) == 0) {
-                first_person_weapon_set_state(local_player_index, 1, 0);
+                halo::interface::first_person_weapon_set_state(local_player_index, 1, 0);
             }
         }
 
         if (halo::models::animation_state_advance(*(datum_index *)&weapon_tag->first_person_animations.tag_id, reinterpret_cast<animation_state *>(&fp->current_animation),
                          reinterpret_cast<int32_t *>(&frame_sound), static_cast<animation_random_stream>(0)) == 2) {
-            first_person_weapon_update_state(local_player_index);
+            halo::interface::first_person_weapon_update_state(local_player_index);
         }
 
         if (frame_sound != (datum_index)-1 && halo::camera::camera_get_type_for_player(local_player_index) == 0) {
@@ -142,7 +135,7 @@ void FirstPersonWeaponController::update()
                          reinterpret_cast<int32_t *>((datum_index *)0), static_cast<animation_random_stream>(0));
             if (!is_moving) {
                 if (fp->state == 0) {
-                    first_person_weapon_snapshot_pose(local_player_index, 6);
+                    halo::interface::first_person_weapon_snapshot_pose(local_player_index, 6);
                 }
                 fp->moving_animation = -1;
             }
@@ -182,8 +175,8 @@ void FirstPersonWeaponController::update()
                                      *(float *)((uint8_t *)unit_obj + 0x278), 0.08f, 0.5f, -1.0f, 1.0f);
             halo::math::real_seek_toward_clamped(0, FP_FLOAT(fp, 0x3c), FP_FLOAT(fp, 0x34),
                                      *(float *)((uint8_t *)unit_obj + 0x27c), 0.08f, 0.5f, -1.0f, 1.0f);
-            target_yaw = angle_delta_wrapped(FP_FLOAT(fp, 0x68), FP_FLOAT(fp, 0x60)) * 30.0f;
-            target_pitch = angle_delta_wrapped(FP_FLOAT(fp, 0x6c), FP_FLOAT(fp, 0x64)) * -30.0f;
+            target_yaw = halo::game::angle_delta_wrapped(FP_FLOAT(fp, 0x68), FP_FLOAT(fp, 0x60)) * 30.0f;
+            target_pitch = halo::game::angle_delta_wrapped(FP_FLOAT(fp, 0x6c), FP_FLOAT(fp, 0x64)) * -30.0f;
             if (target_yaw < -1.0f) {
                 target_yaw = -1.0f;
             } else if (target_yaw > 1.0f) {
@@ -233,7 +226,7 @@ void FirstPersonWeaponController::update()
                         fp->idle_delay_ticks = 0;
                         if (!(halo::effects::effect_random_fraction() <
                               player_information->first_person_skip_fraction)) {
-                            first_person_weapon_set_state(local_player_index, 1, 5);
+                            halo::interface::first_person_weapon_set_state(local_player_index, 1, 5);
                         }
                     }
                 } else {
@@ -242,7 +235,7 @@ void FirstPersonWeaponController::update()
             } else {
                 fp->idle_ticks = 0;
                 if (fp->state == 5) {
-                    first_person_weapon_set_state(local_player_index, 1, 0);
+                    halo::interface::first_person_weapon_set_state(local_player_index, 1, 0);
                 }
             }
         }
@@ -250,7 +243,7 @@ void FirstPersonWeaponController::update()
 
     fp->shutdown_countdown--;
     if (fp->shutdown_countdown <= 0) {
-        first_person_weapon_interface_tick_reset(local_player_index);
+        halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
     }
 }
 
@@ -395,7 +388,7 @@ void FirstPersonWeaponController::update_zoom_static_tint(uint8_t enabled)
     if (enabled == 0 || current_local_player_index == -1) {
         return;
     }
-    hud_interface = local_player_get_weapon_hud_interface(&intensity);
+    hud_interface = halo::interface::local_player_get_weapon_hud_interface(&intensity);
     if (hud_interface == -1) {
         return;
     }
@@ -405,7 +398,7 @@ void FirstPersonWeaponController::update_zoom_static_tint(uint8_t enabled)
     effect = (WeaponHUDInterfaceScreenEffect *)
         ((WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_interface & 0xffff].data)->screen_effect.pointer;
 
-    if ((int16_t)local_player_get_zoom_level(current_local_player_index) == -1 &&
+    if ((int16_t)halo::game::local_player_get_zoom_level(current_local_player_index) == -1 &&
         (effect->mask_flags & 1) != 0) {
         return;
     }

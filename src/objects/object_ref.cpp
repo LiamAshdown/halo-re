@@ -19,6 +19,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t __ftol();
@@ -45,7 +46,6 @@ extern object_globals *object_globals_pointer;
 extern uint8_t object_marker_scratch[0x6c];
 extern datum_index *object_name_list;
 extern data_array *player_data;
-extern int32_t player_index_from_unit_index(datum_index object_index);
 extern double sqrt(double x);
 }
 
@@ -161,7 +161,7 @@ int32_t halo::objects::ObjectRef::get_controlling_player_index()
                 if ((salt == 0 || header->identifier == salt) &&
                     (1 << (header->type & 0x1f) & _object_mask_unit) != 0 &&
                     header->data != 0) {
-                    return player_index_from_unit_index(object_index);
+                    return halo::game::player_index_from_unit_index(object_index);
                 }
             }
         }

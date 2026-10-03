@@ -23,6 +23,7 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 #define k_degrees_to_radians 0.017453292f
 #define k_seconds_per_tick   0.033333335f
@@ -41,17 +42,7 @@ extern real look_pitch_rate_setting[k_maximum_local_players];
 extern uint8_t look_aim_assist_enabled;
 extern uint8_t look_rate_doubler_zoom_inverts;
 extern uint8_t look_rate_doubler_enabled;
-extern real control_axis_sign(real value);
-extern real response_curve_evaluate(int16_t table_count, real x, real *table);
-extern real game_engine_get_time_scale(void);
-extern void game_engine_digitize_control_input(player_control_input *input);
-extern uint32_t camera_observer_get_target_angles(real *out_weight_primary,
-    real *out_weight_secondary, real *out_yaw_pitch, real *out_yaw_pitch_rate,
-    int16_t local_player_slot);
-extern uint32_t camera_observer_get_target_id(datum_index *out_id, int16_t local_player_slot);
 extern double sqrt(double x);
-extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch,
-    real_vector3d *out_forward);
 extern double atan2(double y, double x);
 extern uint8_t game_engine_input_source_flag;
 extern uint8_t *cinematic_globals_ptr;
@@ -112,7 +103,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     out->button_flags = 0;
 
     if (player_index == (datum_index)-1) {
-        game_engine_digitize_control_input(out);
+        halo::game::game_engine_digitize_control_input(out);
         return;
     }
 
@@ -123,8 +114,8 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     input = &local_player_input_states[plr->local_player_index];
 
     if (network_game_mode != 0) {
-        input->throttle_x = control_axis_sign(input->throttle_x);
-        input->throttle_y = control_axis_sign(input->throttle_y);
+        input->throttle_x = halo::game::control_axis_sign(input->throttle_x);
+        input->throttle_y = halo::game::control_axis_sign(input->throttle_y);
     }
 
     yaw_rate = 0.0f;
@@ -205,7 +196,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
             if (out->pitch_delta < -2.3f) { out->pitch_delta = -2.3f; }
             else if (out->pitch_delta > 2.3f) { out->pitch_delta = 2.3f; }
 
-            control->nameplate_target = camera_observer_get_target_id(
+            control->nameplate_target = halo::game::camera_observer_get_target_id(
                 (datum_index *)&control->nameplate_weight, local_player_index);
         } else {
             real look_yaw_pitch[2];
@@ -219,10 +210,10 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
             rate_multiplier = (real)(doubler + 1);
 
             yaw_delta = rate_multiplier * yaw_rate *
-                response_curve_evaluate((int16_t)player_control->look_function.count, look_x,
+                halo::game::response_curve_evaluate((int16_t)player_control->look_function.count, look_x,
                                         (real *)player_control->look_function.pointer);
             pitch_delta = rate_multiplier * pitch_rate *
-                response_curve_evaluate((int16_t)player_control->look_function.count, look_y,
+                halo::game::response_curve_evaluate((int16_t)player_control->look_function.count, look_y,
                                         (real *)player_control->look_function.pointer);
 
             if (plr->unit != (datum_index)-1 && control->desired_zoom_level != -1) {
@@ -256,7 +247,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
                 control->look_acceleration_timer = delta_time + control->look_acceleration_timer;
             }
 
-            control->nameplate_target = camera_observer_get_target_angles(
+            control->nameplate_target = halo::game::camera_observer_get_target_angles(
                 &control->nameplate_weight, &control->aim_assist_weight,
                 look_yaw_pitch, look_yaw_pitch_rate, local_player_index);
 
@@ -265,7 +256,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
                  control_input_absolute(look_y) > k_look_epsilon ||
                  control_input_absolute(out->throttle_x) > k_look_epsilon ||
                  control_input_absolute(out->throttle_y) > k_look_epsilon)) {
-                real time_scale = game_engine_get_time_scale();
+                real time_scale = halo::game::game_engine_get_time_scale();
                 real friction = player_control->magnetism_friction;
                 real adhesion = player_control->magnetism_adhesion;
                 real keep;
@@ -379,7 +370,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
             out->throttle_y = inverse * out->throttle_y;
         }
     }
-    game_engine_digitize_control_input(out);
+    halo::game::game_engine_digitize_control_input(out);
 }
 
 /**
@@ -398,7 +389,7 @@ void LocalControl::compute_local_player_look_vector(real_vector3d *out_forward, 
     if (local_player_index != -1 && local_player_index < 1) {
         unit = local_player_globals->local_player_units[local_player_index];
     }
-    player_compute_view_forward_vector(unit, &look->yaw, out_forward);
+    halo::game::player_compute_view_forward_vector(unit, &look->yaw, out_forward);
 }
 
 /**

@@ -2,6 +2,7 @@
 #include <string.h>
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -16,8 +17,6 @@ extern uint8_t savegame_index_dirty;
 extern char last_profile_name[];
 extern int32_t cached_profile_slot;
 extern int32_t safe_mode;
-extern void player_profile_refresh_settings_cache(int16_t player_index);
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 }
 
 namespace halo::interface {
@@ -40,7 +39,7 @@ void PlayerProfiles::subsystem_initialize()
     halo::saved_games::player_profile_initialize((saved_player_profile *)profile_globals_block, 0, 0);
     halo::saved_games::globals().player_profile_slots_handle = -1;
     profile_slot_id[0] = -1;
-    player_profile_refresh_settings_cache(0);
+    halo::interface::player_profile_refresh_settings_cache(0);
     selected_saved_item = -1;
 
     enumerated_count = 1;
@@ -72,7 +71,7 @@ have_slot:
             halo::saved_games::player_profile_set_default_video_options((saved_player_profile *)profile_data, 0);
             halo::saved_games::player_profile_set_default_audio_options((saved_player_profile *)profile_data);
         }
-        player_profile_load(0, profile_data, slot_to_load);
+        halo::interface::player_profile_load(0, profile_data, slot_to_load);
         if (safe_mode != 0) {
             if (enumerated_slot == -1) {
                 halo::main::console_out_printf(0, "profile not saved since it was a default profile");
@@ -87,7 +86,7 @@ have_slot:
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 void player_profile_subsystem_initialize(void)
 {

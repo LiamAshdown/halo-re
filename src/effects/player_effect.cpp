@@ -9,6 +9,7 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -22,7 +23,6 @@ extern int16_t screen_flash_pass[8];
 extern int32_t player_effect_reentry_count;
 extern double atan2(double y, double x);
 extern double fabs(double x);
-extern datum_index local_player_to_player_index(int16_t local_player_index);
 extern network_id_table *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void **context);
@@ -311,7 +311,7 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
             player_effect_reentry_count--;
             return;
         }
-        controlling_player = local_player_to_player_index(local_player_index);
+        controlling_player = halo::game::local_player_to_player_index(local_player_index);
         unit_index = (controlling_player == k_datum_index_none) ? k_datum_index_none :
             ((player *)player_data->data)[controlling_player & 0xffff].unit;
         if (halo::objects::object_try_and_get(unit_index, 3) == 0 ||

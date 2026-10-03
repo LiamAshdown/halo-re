@@ -3,6 +3,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "halo/game/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,7 +13,6 @@ extern player_control_globals *player_control_globals_ptr;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
-extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle, uint8_t reset_stats);
 extern uint8_t *player_effect_globals_pointer;
 extern player_globals *local_player_globals;
 extern datum_index hs_object_list_collect_player_units(void);
@@ -187,7 +187,7 @@ void PlayerCommands::evaluate_player_add_equipment(int16_t function_index, uint3
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    unit_apply_starting_profile(*(int16_t *)&arguments[1], (datum_index)arguments[0], *(uint8_t *)&arguments[2]);
+    halo::game::unit_apply_starting_profile(*(int16_t *)&arguments[1], (datum_index)arguments[0], *(uint8_t *)&arguments[2]);
     hs_thread_return(0, thread_index);
     }
 }

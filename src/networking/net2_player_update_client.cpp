@@ -16,6 +16,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array * player_data;
@@ -28,7 +29,6 @@ extern void player_update_history_log_write(uint32_t category_flags, int32_t use
 extern void player_update_history_play_for_update_index(void *update_history, int32_t update_id);
 extern void * object_network_id_table;
 extern network_client_globals * network_client;
-extern datum_index players_find_local_owned_unclear(void);
 extern void player_update_history_play(uint8_t flag, uint32_t control_ec, void *update_history,
     datum_index unit, float x, float y, float z, void *control_ptr);
 extern network_id_table * machine_table;
@@ -40,14 +40,8 @@ extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, 
 extern uint8_t is_remote_player_update_in_order(player *target_player, uint8_t control_sequence,
     int32_t update_id);
 extern int32_t player_update_queue_offset_from_head(player *target_player, int32_t update_id);
-extern uint8_t position_update_queue_push(circular_queue *queue, real x, real y, real z,
-    int32_t tick, int32_t sequence);
-extern int32_t circular_queue_count(circular_queue *queue);
-extern void unit_snap_position_if_far(real_point3d *new_position, object *obj,
-    datum_index unit_index);
 extern void player_update_history_log_printf_filtered(player *target_player, int32_t category,
     const char *format, ...);
-extern uint8_t circular_queue_push(circular_queue *queue, void *source);
 void player_update_client_local_player_update_from_network(int32_t *decode_context);
 void player_update_client_local_player_vehicle_update_from_network(int32_t *decode_context);
 void player_update_client_remote_player_action_update_from_network(int32_t **decode_context);
@@ -138,7 +132,7 @@ void PlayerUpdateClient::local_player_vehicle_update_from_network(int32_t *decod
     halo::math::vector3d_normalize_with_length(ack.vehicle.forward);
     halo::math::vector3d_normalize_with_length(ack.vehicle.up);
 
-    vehicle_handle = players_find_local_owned_unclear();
+    vehicle_handle = halo::game::players_find_local_owned_unclear();
     candidate = (player *)halo::memory::datum_get(vehicle_handle, player_data);
     if (candidate == 0) {
         return;
@@ -310,7 +304,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
             int32_t write_index;
             int32_t read_index;
 
-            if (position_update_queue_push(&target->position_updates, x, y, z, update_id,
+            if (halo::game::position_update_queue_push(&target->position_updates, x, y, z, update_id,
                     distance) == 0) {
                 player_update_history_log_printf_filtered(target, 1,
                     "[%d]: Remote player position_queue overflow.\n",
@@ -347,8 +341,8 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
             out_of_range_count = target->position_update_ignored_count + 1;
             target->position_update_ignored_count = out_of_range_count;
             if (out_of_range_count <= 2) {
-                int32_t position_count = circular_queue_count(&target->position_updates);
-                int32_t action_count = circular_queue_count(&target->update_history.queue);
+                int32_t position_count = halo::game::circular_queue_count(&target->position_updates);
+                int32_t action_count = halo::game::circular_queue_count(&target->update_history.queue);
 
                 player_update_history_log_printf_filtered(target, 1,
                     "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions "
@@ -357,8 +351,8 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
                     out_of_range_count, 2);
 
             } else {
-                int32_t position_count = circular_queue_count(&target->position_updates);
-                int32_t action_count = circular_queue_count(&target->update_history.queue);
+                int32_t position_count = halo::game::circular_queue_count(&target->position_updates);
+                int32_t action_count = halo::game::circular_queue_count(&target->update_history.queue);
 
                 player_update_history_log_printf_filtered(target, 1,
                     "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions "
@@ -385,7 +379,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
                             player_update_history_log_printf_filtered(target, 1,
                                 "Apply immediately dist: [%f] (%f)",
                                 (double)snap_distance, 1.0);
-                            unit_snap_position_if_far(&new_position, unit, target->unit);
+                            halo::game::unit_snap_position_if_far(&new_position, unit);
                         }
                     }
                 }
@@ -672,7 +666,7 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
             record.tick = update_id;
             record.sequence = distance;
             record.body = vehicle;
-            if (circular_queue_push(&target->vehicle_updates, &record) == 0) {
+            if (halo::game::circular_queue_push(&target->vehicle_updates, &record) == 0) {
                 player_update_history_log_printf_filtered(target, 1,
                     "[%d]: Remote player vehicle_update_queue overflow.\n",
                     game_time->game_time);
@@ -710,8 +704,8 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
             target->vehicle_update_ignored_count = out_of_range_count;
             if (out_of_range_count <= 1) {
 
-                int32_t position_count = circular_queue_count(&target->position_updates);
-                int32_t action_count = circular_queue_count(&target->update_history.queue);
+                int32_t position_count = halo::game::circular_queue_count(&target->position_updates);
+                int32_t action_count = halo::game::circular_queue_count(&target->update_history.queue);
 
                 player_update_history_log_printf_filtered(target, 1,
                     "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions "
@@ -720,8 +714,8 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
                     out_of_range_count, 1);
 
             } else {
-                int32_t vehicle_count = circular_queue_count(&target->vehicle_updates);
-                int32_t action_count = circular_queue_count(&target->update_history.queue);
+                int32_t vehicle_count = halo::game::circular_queue_count(&target->vehicle_updates);
+                int32_t action_count = halo::game::circular_queue_count(&target->update_history.queue);
 
                 player_update_history_log_printf_filtered(target, 1,
                     "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions "

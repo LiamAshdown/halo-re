@@ -30,6 +30,7 @@
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern render_frustum render_frustum_global;
@@ -54,7 +55,6 @@ extern int16_t rendered_object_count;
 extern datum_index rendered_objects[halo::render::k_maximum_rendered_objects];
 extern uint8_t rasterizer_render_states_dirty;
 extern uint8_t console_debug_toggle_6893ee;
-extern void first_person_weapon_update_lighting(void);
 extern uint8_t rendered_objects_full_warning;
 }
 
@@ -896,7 +896,7 @@ void s(void)
                 halo::render::render_object(&data);
             }
         } else {
-            first_person_weapon_update_lighting();
+            halo::interface::first_person_weapon_update_lighting();
         }
         first_iteration = (pass == 0);
         pass = 1;

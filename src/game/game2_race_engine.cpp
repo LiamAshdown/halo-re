@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -13,34 +14,21 @@ extern Globals *global_globals;
 extern int32_t race_used_locations[8];
 extern int32_t race_used_location_count;
 extern uint32_t race_vehicle_counts[4];
-extern int32_t game_engine_find_nearest_unused_type4_location(int32_t *excluded_indices, int32_t excluded_count, real_point3d *reference_point);
 extern double cos(double x);
 extern double sin(double x);
 extern wchar_t empty_string;
-extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
-extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern int32_t game_engine_bucket_scores[16];
 extern uint32_t ctf_team_captured_flags_mask[];
 extern game_engine_definition *current_game_engine;
 extern uint8_t game_engine_teams_enabled_flag;
-extern uint8_t game_engine_team_has_scoring_capacity(int32_t team);
-extern uint32_t game_engine_is_object_winning(uint32_t handle);
 extern int32_t game_engine_bucket_scores_extra[16];
-extern void game_engine_check_bucket_scores_and_end_round(void);
 extern game_time_globals *game_time;
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, uint8_t *changed_flags, int32_t changed_offset, int32_t destination_offset);
 extern uint8_t ctf_globals_live[];
 extern uint8_t ctf_globals_network[];
-extern uint32_t players_get_active_by_index(int32_t index);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
-extern void game_engine_begin_end_game_sequence(void);
-extern void game_engine_apply_catchup_speed_boost(void);
 extern int32_t game_engine_state_value;
-extern int game_engine_find_valid_starting_locations(real_point3d *origin, float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type, int32_t max_results, int32_t *results);
-extern int32_t game_engine_find_one_valid_starting_location(int16_t type, int16_t team, real_point3d *origin, float max_horizontal_dist, float max_height_delta);
-extern void game_engine_ctf_score_flag(uint32_t team, int32_t scenario_flag_index);
 }
 
 namespace halo::game {
@@ -131,7 +119,7 @@ void RaceEngine::race_spawn_next_vehicle(datum_index player_index)
     if (count >= 8) {
         return;
     }
-    location_index = game_engine_find_nearest_unused_type4_location(race_used_locations, count,
+    location_index = halo::game::game_engine_find_nearest_unused_type4_location(race_used_locations, count,
         unit != 0 ? (real_point3d *)(unit + 0x5c) : (real_point3d *)0);
     if (location_index == -1) {
         return;
@@ -184,7 +172,7 @@ const uint16_t * RaceEngine::game_text(int16_t index)
  */
 const uint16_t * RaceEngine::place_text(datum_index recipient)
 {
-    return (const uint16_t *)game_engine_get_multiplayer_text_list(game_engine_compare_score_to_others(recipient, 1));
+    return (const uint16_t *)halo::game::game_engine_get_multiplayer_text_list(halo::game::game_engine_compare_score_to_others(recipient, 1));
 }
 
 /**
@@ -350,17 +338,17 @@ uint32_t RaceEngine::is_winner(datum_index player)
     uint8_t capacity[2];
 
     if (current_game_engine == 0 || game_engine_teams_enabled_flag == 0) {
-        return game_engine_is_object_winning(player);
+        return halo::game::game_engine_is_object_winning(player);
     }
-    capacity[0] = game_engine_team_has_scoring_capacity(0);
-    capacity[1] = game_engine_team_has_scoring_capacity(1);
+    capacity[0] = halo::game::game_engine_team_has_scoring_capacity(0);
+    capacity[1] = halo::game::game_engine_team_has_scoring_capacity(1);
     if (capacity[0] != capacity[1]) {
         return (uint32_t)(capacity[*(int32_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0x20)] != 0);
     }
     if (capacity[0] == 0) {
         return 0xffffffff;
     }
-    return game_engine_is_object_winning(player);
+    return halo::game::game_engine_is_object_winning(player);
 }
 
 /**
@@ -380,7 +368,7 @@ void RaceEngine::player_changed_object(datum_index player_index)
     if (player != 0 && game_engine_variant.engine.race.team_scoring == 2) {
         game_engine_bucket_scores_extra[((struct player *)player)->team] += *(int16_t *)(player + 0xc6);
     }
-    game_engine_check_bucket_scores_and_end_round();
+    halo::game::game_engine_check_bucket_scores_and_end_round();
 }
 
 /**
@@ -394,7 +382,7 @@ void RaceEngine::player_new_life(datum_index player)
     *(int32_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0x88) = game_time->game_time;
     ctf_team_captured_flags_mask[player & 0xffff] = 0;
     if (network_game_mode == 2) {
-        game_engine_check_bucket_scores_and_end_round();
+        halo::game::game_engine_check_bucket_scores_and_end_round();
     }
 }
 
@@ -434,7 +422,7 @@ void RaceEngine::player_round_reset(datum_index player_index, uint8_t team_flag)
             ctf_team_captured_flags_mask[player_index & 0xffff] = 0;
         }
     }
-    game_engine_check_bucket_scores_and_end_round();
+    halo::game::game_engine_check_bucket_scores_and_end_round();
 }
 
 /**
@@ -513,7 +501,7 @@ void RaceEngine::profile_post_update(void **context)
  */
 uint8_t RaceEngine::query_player_score(int32_t key, int32_t index, void *buffer)
 {
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(players_get_active_by_index(index), player_data);
+    uint8_t *player = (uint8_t *)halo::memory::datum_get(halo::game::players_get_active_by_index(index), player_data);
 
     if (player == 0 || key != 0x16) {
         return 0;
@@ -548,17 +536,17 @@ void RaceEngine::unknown_48(void)
     uint8_t teams = current_game_engine != 0 ? game_engine_teams_enabled_flag : 0;
 
     if (game_time->game_time == 2) {
-        game_engine_queue_multiplayer_sound(teams ? 0x22 : 0x14, 0xffffffff, 0);
+        halo::game::game_engine_queue_multiplayer_sound(teams ? 0x22 : 0x14, 0xffffffff, 0);
     }
     if (current_game_engine != 0 && game_engine_teams_enabled_flag != 0) {
-        if (game_engine_team_has_scoring_capacity(0) == 0) {
-            game_engine_begin_end_game_sequence();
+        if (halo::game::game_engine_team_has_scoring_capacity(0) == 0) {
+            halo::game::game_engine_begin_end_game_sequence();
         }
-        if (game_engine_team_has_scoring_capacity(1) == 0) {
-            game_engine_begin_end_game_sequence();
+        if (halo::game::game_engine_team_has_scoring_capacity(1) == 0) {
+            halo::game::game_engine_begin_end_game_sequence();
         }
     }
-    game_engine_apply_catchup_speed_boost();
+    halo::game::game_engine_apply_catchup_speed_boost();
 }
 
 /**
@@ -595,12 +583,12 @@ void RaceEngine::update(datum_index player_index)
         uint8_t *parent = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (parent_index & 0xffff) * 12 + 8);
 
         result = -1;
-        game_engine_find_valid_starting_locations((real_point3d *)(parent + 0xa0), 2.5f, 0.0f, 3, -1, 1, &result);
+        halo::game::game_engine_find_valid_starting_locations((real_point3d *)(parent + 0xa0), 2.5f, 0.0f, 3, -1, 1, &result);
     } else {
-        result = game_engine_find_one_valid_starting_location(-1, 3, (real_point3d *)(unit + 0xa0), 1.5f, 0.6f);
+        result = halo::game::game_engine_find_one_valid_starting_location(-1, 3, (real_point3d *)(unit + 0xa0), 1.5f, 0.6f);
     }
     if (result != -1) {
-        game_engine_ctf_score_flag(player_index, result);
+        halo::game::game_engine_ctf_score_flag(player_index, result);
     }
 }
 

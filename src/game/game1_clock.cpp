@@ -20,6 +20,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -27,24 +28,14 @@ extern real chimera_contrail_scale;
 extern int16_t network_game_mode;
 extern double floor(double x);
 extern int32_t game_time_force_single_tick;
-extern void game_simulate_tick(uint32_t predict_pass);
-extern void update_run_catchup_ticks(int16_t tick_count);
 extern network_server_globals *network_server;
 extern void network_game_server_per_frame_tick(int16_t update_count, uint8_t *server);
-extern void game_effects_update(float delta_time);
-extern int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, char keep_remainder);
 extern game_engine_definition *current_game_engine;
 extern data_array *player_data;
-extern uint8_t game_engine_players_ready_for_bsp_switch_strict(void);
-extern int32_t game_engine_get_time_remaining(void);
-extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
-    datum_index subject, char broadcast);
 extern game_variant game_engine_variant;
 extern int32_t game_engine_round_reset_tick;
 extern uint8_t game_time_unknown_49;
 extern int32_t game_time_unknown_48;
-extern void update_server_dispose(void);
-extern void update_client_dispose(void);
 }
 
 namespace halo::game::engine1 {
@@ -122,7 +113,7 @@ int32_t SimulationClock::accumulate_simulation_ticks(float elapsed_seconds, char
  */
 void SimulationClock::advance_simulation_ticks(float delta_time)
 {
-    int32_t tick_count = game_engine_accumulate_simulation_ticks(delta_time, 0);
+    int32_t tick_count = halo::game::game_engine_accumulate_simulation_ticks(delta_time, 0);
     int32_t i;
 
     if (game_time_force_single_tick != 0) {
@@ -134,22 +125,22 @@ void SimulationClock::advance_simulation_ticks(float delta_time)
             game_time->ticks_this_frame = 0;
             return;
         }
-        update_run_catchup_ticks((int16_t)tick_count);
+        halo::game::update_run_catchup_ticks((int16_t)tick_count);
     } else if (network_game_mode == 2) {
         network_game_server_per_frame_tick((int16_t)tick_count, (uint8_t *)network_server);
     }
 
     for (i = tick_count; i > 0; i--) {
-        game_simulate_tick((uint32_t)(i - 1));
+        halo::game::game_simulate_tick((uint32_t)(i - 1));
         game_time->elapsed_ticks = game_time->elapsed_ticks + 1;
         game_time->game_time = game_time->game_time + 1;
     }
     game_time->ticks_this_frame = (int16_t)tick_count;
 
     if (network_game_mode != 1 && network_game_mode != 2) {
-        game_effects_update(game_time->speed * delta_time);
+        halo::game::game_effects_update(game_time->speed * delta_time);
     } else {
-        game_effects_update(delta_time * 1.0f);
+        halo::game::game_effects_update(delta_time * 1.0f);
     }
 }
 
@@ -195,12 +186,12 @@ int32_t SimulationClock::announce_time_remaining(void)
     if (network_game_mode != 2) {
         return 0;
     }
-    ready = game_engine_players_ready_for_bsp_switch_strict();
+    ready = halo::game::game_engine_players_ready_for_bsp_switch_strict();
     if (ready == 0) {
         return 1;
     }
 
-    time_remaining = game_engine_get_time_remaining();
+    time_remaining = halo::game::game_engine_get_time_remaining();
     if (time_remaining == -1) {
         return 0;
     }
@@ -230,7 +221,7 @@ announce:
 
     p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
-        chimera__kill_feed(iterator.index, (int32_t)iterator.index, 0x1e,
+        halo::game::chimera__kill_feed(iterator.index, (int32_t)iterator.index, 0x1e,
                             (datum_index)time_remaining, 1);
         p = (player *)halo::memory::data_iterator_next(&iterator);
     }
@@ -385,11 +376,11 @@ void SimulationClock::init_tick_record_for_mode(void)
     switch (network_game_mode) {
     case 0:
     case 2:
-        update_server_dispose();
+        halo::game::update_server_dispose();
         return;
     case 1:
     case 3:
-        update_client_dispose();
+        halo::game::update_client_dispose();
         return;
     default:
         return;

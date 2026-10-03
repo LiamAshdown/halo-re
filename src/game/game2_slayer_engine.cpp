@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -13,11 +14,7 @@ extern int32_t slayer_player_score[16];
 extern int32_t slayer_unknown_0087a4a0[16];
 extern int32_t slayer_unknown_0087a4e0[16];
 extern wchar_t empty_string;
-extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
-extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern int16_t network_game_mode;
-extern void game_engine_animate_hill_pulse_icons(datum_index fading_player, datum_index growing_player);
-extern void game_engine_player_select_random_target(datum_index player_or_all);
 extern game_engine_definition *current_game_engine;
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, uint8_t *changed_flags, int32_t changed_offset, int32_t destination_offset);
@@ -26,14 +23,9 @@ extern network_server_globals *network_server;
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
 extern uint8_t network_session_send_to_machine(int32_t machine_id, void *server, uint32_t status_bit, void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
-extern uint32_t players_get_active_by_index(int32_t index);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
 extern int32_t game_engine_state_value;
 extern uint8_t custom_waypoints[];
-extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position, const char *icon_name, float height_offset, datum_index player_filter, int16_t team_filter);
-extern uint8_t game_engine_player_respawn_priority_gate(uint32_t player_index);
-extern void game_engine_begin_end_game_sequence(void);
 }
 
 namespace halo::game {
@@ -85,7 +77,7 @@ uint8_t SlayerEngine::build_message_text(datum_index recipient, int32_t message_
         if (player == 0) {
             return 0;
         }
-        place = (const uint16_t *)game_engine_get_multiplayer_text_list(game_engine_compare_score_to_others(recipient, 1));
+        place = (const uint16_t *)halo::game::game_engine_get_multiplayer_text_list(halo::game::game_engine_compare_score_to_others(recipient, 1));
         team = *(int32_t *)(((uint8_t *)player_data->data + ((recipient) & 0xffff) * 0x200) + 0x20);
         if (game_engine_teams_enabled_flag != 0) {
             halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb5), place, slayer_player_score[recipient & 0xffff],
@@ -198,12 +190,12 @@ void SlayerEngine::player_killed(datum_index killer, datum_index death_object, d
         add_score(killer, -1);
         return;
     }
-    game_engine_animate_hill_pulse_icons(killer, victim);
+    halo::game::game_engine_animate_hill_pulse_icons(killer, victim);
     if (game_engine_variant.engine.slayer.kill_in_order != 0 && network_game_mode == 2) {
         if (*(datum_index *)(killer_player + 0x88) != victim) {
             return;
         }
-        game_engine_player_select_random_target(killer);
+        halo::game::game_engine_player_select_random_target(killer);
     }
     add_score(killer, 1);
 }
@@ -356,7 +348,7 @@ void SlayerEngine::profiles_updated(int32_t mode, int32_t machine_index)
  */
 uint8_t SlayerEngine::query_player_score(int32_t key, int32_t index, void *buffer)
 {
-    uint32_t handle = players_get_active_by_index(index);
+    uint32_t handle = halo::game::players_get_active_by_index(index);
     uint8_t *player = (uint8_t *)halo::memory::datum_get(handle, player_data);
 
     if (player == 0 || key != 0x16) {
@@ -404,7 +396,7 @@ void SlayerEngine::reset_round(void)
     uint8_t teams = current_game_engine != 0 ? game_engine_teams_enabled_flag : 0;
 
     (void)teams;
-    game_engine_queue_multiplayer_sound(teams ? 0x23 : 0x15, 0xffffffff, 0);
+    halo::game::game_engine_queue_multiplayer_sound(teams ? 0x23 : 0x15, 0xffffffff, 0);
 }
 
 /**
@@ -449,22 +441,22 @@ void SlayerEngine::update(datum_index player_index)
             if (unit_index != 0xffffffff) {
                 uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & 0xffff) * 12 + 8);
 
-                custom_waypoint_register(0xffffffff, (int16_t)player_index, (real_point3d *)(unit + 0xa0), "target_blue", 0.0f,
+                halo::game::custom_waypoint_register(0xffffffff, (int16_t)player_index, (real_point3d *)(unit + 0xa0), "target_blue", 0.0f,
                     player_index, -1);
             }
         }
         if (network_game_mode == 2) {
             if (((struct player *)player)->unit != 0xffffffff && *(datum_index *)&((struct player *)player)->slayer_target == 0xffffffff) {
-                game_engine_player_select_random_target(player_index);
+                halo::game::game_engine_player_select_random_target(player_index);
             }
             target = *(datum_index *)&((struct player *)player)->slayer_target;
-            if (target != 0xffffffff && game_engine_player_respawn_priority_gate(target) != 0) {
-                game_engine_player_select_random_target(player_index);
+            if (target != 0xffffffff && halo::game::game_engine_player_respawn_priority_gate(target) != 0) {
+                halo::game::game_engine_player_select_random_target(player_index);
             }
         }
     }
     if (slayer_team_score[((struct player *)player)->team] >= game_engine_variant.score_limit) {
-        game_engine_begin_end_game_sequence();
+        halo::game::game_engine_begin_end_game_sequence();
     }
 }
 

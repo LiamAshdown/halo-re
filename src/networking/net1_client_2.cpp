@@ -4,6 +4,7 @@
 #include <string.h>
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t network_disconnect_timeout_flag;
@@ -20,11 +21,9 @@ extern uint8_t network_host_handoff_requested;
 extern char network_player_entry_validate(network_player_entry *entry);
 extern void network_session_info_packet_send(network_client_globals *client);
 extern uint32_t network_send_join_request_packet(network_client_globals *client);
-extern void chat_close(void);
 extern network_server_globals *network_server;
 extern uint8_t network_disconnect_notice_shown;
 extern uint8_t local_player_globals[8];
-extern void display_error(int32_t code, int32_t player_index, uint8_t flag_a, uint8_t flag_b);
 extern uint32_t network_game_socket_port;
 extern int32_t progress_screen_text;
 extern uint32_t network_client_begin_connect(wchar_t *player_name, s_network_address *target_address);
@@ -46,7 +45,6 @@ extern uint8_t split_screen_quit_prompt_string[4];
 extern uint32_t network_game_client_connect_to_address(char *address_string, uint16_t *target_string);
 extern uint32_t gt2NetworkToHostShort(int16_t value);
 extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address);
-extern void console_printf_verbose(const char *format, ...);
 extern int32_t interface_loading_screen_progress;
 extern int32_t join_ui_state;
 extern int16_t network_game_mode;
@@ -170,7 +168,7 @@ void ClientView::rejoin_check(int8_t machine_player_index)
                         return;
                     }
                     network_host_handoff_requested = 1;
-                    chat_close();
+                    halo::interface::chat_close();
                     return;
                 }
             }
@@ -197,7 +195,7 @@ void ClientView::timer_default_or_disconnect()
         return;
     }
     network_host_handoff_requested = 1;
-    chat_close();
+    halo::interface::chat_close();
 }
 
 /**
@@ -224,7 +222,7 @@ void ClientView::disconnect_notify_dropped_machines()
         }
         player_index_16 = (int16_t)player_index;
         while (player_index_16 != -1) {
-            display_error(8, player_index, 1, 0);
+            halo::interface::display_error(8, player_index, 1, 0);
             next = -1;
             if (*(int32_t *)&local_player_globals[4] != -1 && (int16_t)player_index < 0) {
                 next = 0;
@@ -338,7 +336,7 @@ int32_t ConnectionView::send_join_request_packet()
 
     if (network_server == 0 || ((*(uint8_t *)((uint8_t *)network_server + 6) >> 2 & 1) == 0)) {
         network_host_handoff_requested = 1;
-        chat_close();
+        halo::interface::chat_close();
     }
 
     capacity = 0x600;
@@ -427,7 +425,7 @@ void JoinView::status_text_update(int32_t mode)
 
     if (mode == 0) {
         attempt->elapsed_counter = 0;
-        console_printf_verbose("Connecting");
+        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Connecting"));
         interface_loading_screen_progress = 0;
         join_ui_state = 5;
     } else if (mode == 1) {
@@ -440,7 +438,7 @@ void JoinView::status_text_update(int32_t mode)
             count = 0x10;
         }
         strncpy(dots, network_ellipsis_dots, count);
-        console_printf_verbose("Connecting%s", dots);
+        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Connecting%s"), dots);
         interface_loading_screen_progress = attempt->elapsed_counter;
         if (join_ui_state != 1 && join_ui_state != 2) {
             if (join_ui_state == 4) {
@@ -452,7 +450,7 @@ void JoinView::status_text_update(int32_t mode)
         }
     } else {
         attempt->elapsed_counter = 0;
-        console_printf_verbose("Loading");
+        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Loading"));
         interface_loading_screen_progress = 0;
         if (network_game_mode == 2) {
             if (join_ui_state != 1) {

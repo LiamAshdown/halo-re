@@ -8,27 +8,18 @@
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
-extern uint32_t camera_observer_target_score(real_vector3d *facing, observer_target_cone *cone, datum_index object, observer_target_candidate *out, real_point3d *reference_position);
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern int16_t camera_observer_generate_target_candidates(observer_target_cone *cone, int16_t start_cluster, real_point3d *observer_position, real_vector3d *facing, datum_index exclude_object, int16_t team, int16_t capacity, observer_target_candidate *out);
-extern int32_t camera_observer_target_compare(const observer_target_candidate *a, const observer_target_candidate *b);
-extern char camera_observer_target_is_valid(datum_index exclude_object, real_point3d *observer_position, real_point3d *target_position, datum_index target_object);
 extern double sin(double x);
 extern double cos(double x);
-extern uint16_t camera_observer_collect_target_candidates(observer_target_cone *cone, datum_index start_object, real_point3d *observer_position, real_vector3d *facing, real max_distance, real sin_max_angle, real cos_max_angle, datum_index exclude_object, int16_t observer_team, int16_t capacity, observer_target_candidate *out);
 extern player_globals *local_player_globals;
 extern player_control_globals *player_control_globals_ptr;
-extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out);
-extern char camera_observer_find_best_target(real_point3d *observer_position, observer_target_cone *cone, real_vector3d *facing, datum_index exclude_object, int16_t team, observer_target_candidate *out);
 extern double atan2(double y, double x);
 extern double sqrt(double x);
-extern void vector3d_closest_point_on_segment(datum_index unit_index, real_vector3d *aux_vector, real_point3d *reference_point, real_point3d *out_closest);
 extern double acos(double x);
 extern Globals *global_globals;
-extern real distance_falloff_fraction(real value, real max_range);
 }
 
 namespace halo::game {
@@ -68,7 +59,7 @@ uint16_t CameraObserver::collect_target_candidates(observer_target_cone *cone, d
 
                     (void)candidate_team_player;
                     candidate_team = obj->owner_team;
-                    if (teams_are_enemies(candidate_team, observer_team) != 0) {
+                    if (halo::game::teams_are_enemies(candidate_team, observer_team) != 0) {
                         tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
                         if ((tag->item_flags & 0x200000) == 0) {
                             if (CameraObserver::target_score(facing, cone, object_index, &temp, observer_position)  != 0 &&
@@ -115,7 +106,7 @@ char CameraObserver::find_best_target(real_point3d *observer_position, observer_
                 return 0;
             }
             qsort(candidates, (uint32_t)candidate_count, sizeof(observer_target_candidate),
-                  (int (*)(const void *, const void *))camera_observer_target_compare);
+                  (int (*)(const void *, const void *))halo::game::camera_observer_target_compare);
             for (i = 0; i < candidate_count; i = i + 1) {
                 if (CameraObserver::target_is_valid(exclude_object, observer_position, &candidates[i].point, candidates[i].object) != 0) {
                     *out = candidates[i];
@@ -220,7 +211,7 @@ uint32_t CameraObserver::get_target_angles(real *out_weight_primary, real *out_w
     if (local_player_slot != -1) {
         zoom_level = player_control_globals_ptr->local_players[local_player_slot].desired_zoom_level;
     }
-    if (unit_get_current_weapon_autoaim_cone(unit_index, zoom_level, cone_buffer) == 0) {
+    if (halo::game::unit_get_current_weapon_autoaim_cone(unit_index, zoom_level, cone_buffer) == 0) {
         return 0xffffffff;
     }
 
@@ -290,7 +281,7 @@ uint32_t CameraObserver::target_direction(real_point3d *candidate_point, real_ve
 {
     real dot;
 
-    vector3d_closest_point_on_segment(object, facing, reference_position, candidate_point);
+    halo::game::vector3d_closest_point_on_segment(object, facing, reference_position, candidate_point);
     if (CameraObserver::target_is_valid(exclude_object, reference_position, candidate_point, object) != 0) {
         out_direction->i = candidate_point->x - reference_position->x;
         out_direction->j = candidate_point->y - reference_position->y;
@@ -372,7 +363,7 @@ uint32_t CameraObserver::target_score(real_vector3d *facing, observer_target_con
 
     out->object = target;
 
-    vector3d_closest_point_on_segment(target, facing, reference_position, &out->point);
+    halo::game::vector3d_closest_point_on_segment(target, facing, reference_position, &out->point);
 
     out->offset.i = out->point.x - reference_position->x;
     out->offset.j = out->point.y - reference_position->y;
@@ -393,10 +384,10 @@ uint32_t CameraObserver::target_score(real_vector3d *facing, observer_target_con
         out->weight_primary = 0.0f;
         out->weight_secondary = 0.0f;
     } else {
-        out->weight_primary = distance_falloff_fraction(angle, cone->angle_a) *
-                               distance_falloff_fraction(out->distance, cone->distance_a);
-        out->weight_secondary = distance_falloff_fraction(angle, cone->angle_b) *
-                                 distance_falloff_fraction(out->distance, cone->distance_b);
+        out->weight_primary = halo::game::distance_falloff_fraction(angle, cone->angle_a) *
+                               halo::game::distance_falloff_fraction(out->distance, cone->distance_a);
+        out->weight_secondary = halo::game::distance_falloff_fraction(angle, cone->angle_b) *
+                                 halo::game::distance_falloff_fraction(out->distance, cone->distance_b);
         if (0.0f < out->weight_secondary) {
             target_object = ((object_header *)halo::objects::globals().object_data->data)[target & 0xffff].data;
             target_tag = (Unit *)halo::cache::globals().tag_instances[target_object->definition_tag & 0xffff].data;
@@ -459,7 +450,7 @@ void SpectateCamera::spectate_fp_camera_position(camera_basis_out *out, int16_t 
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::CameraObserver::collect_target_candidates; forwards to the C++ implementation.
@@ -470,10 +461,7 @@ extern "C" {
  *
  * @address 0x45a0e0
  */
-uint16_t camera_observer_collect_target_candidates(observer_target_cone *cone, datum_index start_object, real_point3d *observer_position, real_vector3d *facing, real max_distance, real sin_max_angle, real cos_max_angle, datum_index exclude_object, int16_t observer_team, int16_t capacity, observer_target_candidate *out)
-{
-    return halo::game::CameraObserver::collect_target_candidates(cone, start_object, observer_position, facing, max_distance, sin_max_angle, cos_max_angle, exclude_object, observer_team, capacity, out);
-}
+
 
 /**
  * C entry point for halo::game::CameraObserver::find_best_target; forwards to the C++ implementation.
@@ -511,10 +499,7 @@ char camera_observer_find_best_target(real_point3d *observer_position, observer_
  *
  * @address 0x459f70
  */
-int16_t camera_observer_generate_target_candidates(observer_target_cone *cone, int16_t start_cluster, real_point3d *observer_position, real_vector3d *facing, datum_index exclude_object, int16_t team, int16_t capacity, observer_target_candidate *out)
-{
-    return halo::game::CameraObserver::generate_target_candidates(cone, start_cluster, observer_position, facing, exclude_object, team, capacity, out);
-}
+
 
 /**
  * C entry point for halo::game::CameraObserver::get_target_angles; forwards to the C++ implementation.
@@ -571,10 +556,7 @@ uint32_t camera_observer_target_direction(real_point3d *candidate_point, real_ve
  *
  * @address 0x459dd0
  */
-char camera_observer_target_is_valid(datum_index exclude_object, real_point3d *observer_position, real_point3d *target_position, datum_index target_object)
-{
-    return halo::game::CameraObserver::target_is_valid(exclude_object, observer_position, target_position, target_object);
-}
+
 
 /**
  * C entry point for halo::game::CameraObserver::target_score; forwards to the C++ implementation.
@@ -587,10 +569,7 @@ char camera_observer_target_is_valid(datum_index exclude_object, real_point3d *o
  *
  * @address 0x459b10
  */
-uint32_t camera_observer_target_score(real_vector3d *facing, observer_target_cone *cone, datum_index target, observer_target_candidate *out, real_point3d *reference_position)
-{
-    return halo::game::CameraObserver::target_score(facing, cone, target, out, reference_position);
-}
+
 
 /**
  * C entry point for halo::game::SpectateCamera::spectate_fp_camera_position; forwards to the C++ implementation.

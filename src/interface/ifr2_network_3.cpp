@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -250,7 +251,7 @@ void MenuListView::update()
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 void server_list_menu_update(widget_instance *widget)
 {

@@ -3,6 +3,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -11,9 +12,6 @@ extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern ai_globals *ai_globals_ptr;
 extern datum_index ai_reference_build_object_list(uint32_t packed_reference);
 extern void ai_category_matches_wildcard(int16_t category, int16_t other_category);
-extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b);
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern uint32_t team_pair_override_remove(int16_t index_a, int16_t index_b);
 extern void ai_reference_set_charge_allowed(uint32_t packed_reference, char flag);
 extern void ai_reference_set_squads_dormancy_allowed(uint32_t packed_reference, char flag);
 extern void ai_reference_spawn_starting_location_object(datum_index unit_index, uint32_t packed_reference);
@@ -297,8 +295,8 @@ void AiBehaviourCommands::allegiance_broken(int16_t function_index, uint32_t thr
         int16_t team_b = *(int16_t *)&arguments[1];
         uint8_t broken = 0;
 
-        if (team_a != -1 && team_b != -1 && team_pair_flag_test(team_a, team_b) &&
-            teams_are_enemies(team_b, team_a)) {
+        if (team_a != -1 && team_b != -1 && halo::game::team_pair_flag_test(team_a, team_b) &&
+            halo::game::teams_are_enemies(team_b, team_a)) {
             broken = 1;
         }
         hs_thread_return((int32_t)broken, thread_index);
@@ -321,7 +319,7 @@ void AiBehaviourCommands::allegiance_remove(int16_t function_index, uint32_t thr
     int16_t second_team = *(int16_t *)&arguments[1];
 
     if (first_team != -1 && second_team != -1) {
-        team_pair_override_remove(second_team, first_team);
+        halo::game::team_pair_override_remove(second_team, first_team);
     }
     hs_thread_return(0, thread_index);
     }

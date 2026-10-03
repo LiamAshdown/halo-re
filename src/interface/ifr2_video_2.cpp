@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -21,14 +22,7 @@ extern uint32_t rasterizer_device;
 extern uint32_t rasterizer_device_version;
 extern uint32_t rasterizer_capability_007c10e4;
 extern int32_t video_gamma_setting;
-extern void video_resolution_list_build(void);
-extern uint32_t video_refresh_rate_find_index(int32_t resolution_index, int32_t refresh_rate);
 extern heap *widget_memory_pool;
-extern void widget_play_sound_effect(int16_t effect_id);
-extern void widget_extended_description_sync_selection(widget_instance *screen);
-extern void video_display_modes_enumerate(uint32_t format);
-extern int video_resolution_compare(const video_resolution *a, const video_resolution *b);
-extern uint32_t video_refresh_rate_compare(const uint32_t *a, const uint32_t *b);
 }
 
 namespace halo::interface {
@@ -63,7 +57,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
     resolution_field2 = *(uint8_t **)(*(uint8_t **)(*(uint8_t **)(context + 0x34) + 0x34) + 0x2c);
     refresh_field = *(uint8_t **)(*(uint8_t **)(resolution_field + 0x34) + 0x2c);
 
-    video_resolution_list_build();
+    halo::interface::video_resolution_list_build();
 
     resolution_index = -1;
     for (i = 0; i < video_resolution_count; i++) {
@@ -92,7 +86,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
         }
     }
     if (refresh_index == 0xffffffffu) {
-        refresh_index = video_refresh_rate_find_index(resolution_index, 0x3c);
+        refresh_index = halo::interface::video_refresh_rate_find_index(resolution_index, 0x3c);
     }
 
     *(video_resolution **)(resolution_field2 + 0x44) = video_resolutions;
@@ -243,19 +237,19 @@ uint8_t VideoOptions::update(widget_instance *screen)
     if (gamma->selection_direction == -1) {
         video_gamma_setting -= 5;
         if (video_gamma_setting < 1) {
-            widget_play_sound_effect(4);
+            halo::interface::widget_play_sound_effect(4);
             video_gamma_setting = 1;
         }
     } else if (gamma->selection_direction == 1) {
         video_gamma_setting += 5;
         if (video_gamma_setting > 0xfe) {
-            widget_play_sound_effect(4);
+            halo::interface::widget_play_sound_effect(4);
             video_gamma_setting = 0xfe;
         }
     }
     halo::rasterizer::globals().gamma_exponent = video_gamma_setting;
     halo::rasterizer::chimera__gamma();
-    widget_extended_description_sync_selection(screen);
+    halo::interface::widget_extended_description_sync_selection(screen);
     return 1;
 }
 
@@ -325,19 +319,19 @@ void VideoOptions::resolution_list_build()
     video_resolution_count = 0;
     memset(video_resolutions, 0, sizeof(video_resolutions));
 
-    video_display_modes_enumerate(0x16);
+    halo::interface::video_display_modes_enumerate(0x16);
     qsort(video_resolutions, (uint32_t)video_resolution_count, sizeof(video_resolution),
-          (int (__cdecl *)(const void *, const void *))video_resolution_compare);
+          (int (__cdecl *)(const void *, const void *))halo::interface::video_resolution_compare);
 
     for (i = 0; i < video_resolution_count; i++) {
         qsort(video_resolutions[i].refresh_rates, video_resolutions[i].refresh_rate_count,
-              sizeof(int32_t), (int (__cdecl *)(const void *, const void *))video_refresh_rate_compare);
+              sizeof(int32_t), (int (__cdecl *)(const void *, const void *))halo::interface::video_refresh_rate_compare);
     }
 }
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 void video_options_menu_populate(uint8_t *context, uint8_t *settings)
 {

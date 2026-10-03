@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -36,7 +37,6 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
                                        datum_index object_a, int32_t param_d,
                                        datum_index object_b, datum_index object_c,
                                        uint32_t *param_g);
-extern int8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 static const uint8_t k_relationship_recheck_case[4][4] = {
     { 0, 0, 1, 3 },
     { 0, 1, 2, 3 },
@@ -453,7 +453,7 @@ tail:
             float dist_threshold;
             payload.object_type = target->team;
             payload.team = self->team;
-            payload.is_enemy = (char)teams_are_enemies(target->team, self->team);
+            payload.is_enemy = (char)halo::game::teams_are_enemies(target->team, self->team);
             if (payload.is_enemy == 0) {
                 dist_threshold = (target->aiming_at_actor_class < 3) ? 10.0f : 3.0f;
             } else {

@@ -18,15 +18,12 @@
 #include "halo/interface/uis_game_setup.hpp"
 #include "halo/input/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
-extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item);
-extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index, void *list_items);
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
-extern void multiplayer_settings_select_list_update_item(widget_instance *description_widget, const uint16_t *variant_description);
 extern int16_t local_player_count;
 extern char known_campaign_levels_00692acc[];
 extern uint8_t pending_difficulty;
@@ -39,7 +36,6 @@ extern int16_t profile_slot_id[];
 extern int16_t game_variant_saved_default;
 extern int32_t cached_profile_slot;
 extern char last_profile_name[];
-extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error);
 }
 
 namespace halo::ui {
@@ -56,10 +52,10 @@ void UiGameSetup::game_variant_list_widget_build(widget_instance *widget)
     int16_t combo_index;
     const uint16_t *variant_description = 0;
 
-    ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)ui_list_default_item_format));
+    halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 
     memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
+    halo::interface::set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
 
     combo_index = *(int16_t *)&((struct widget_instance *)widget)->text;
     if (combo_index > -1 && combo_index < ui_lists[ui_list_current].count) {
@@ -67,7 +63,7 @@ void UiGameSetup::game_variant_list_widget_build(widget_instance *widget)
         variant_description = (const uint16_t *)entry->data;
     }
 
-    multiplayer_settings_select_list_update_item(
+    halo::interface::multiplayer_settings_select_list_update_item(
         widget->extended_description->first_child->next_sibling, variant_description);
 }
 
@@ -123,7 +119,7 @@ uint32_t UiGameSetup::start_campaign_from_level_one(void *widget, int16_t *event
 
 report_error:
     local_player_count = 1;
-    display_error(0x13, -1, 1, 0);
+    halo::interface::display_error(0x13, -1, 1, 0);
     return 0;
 }
 

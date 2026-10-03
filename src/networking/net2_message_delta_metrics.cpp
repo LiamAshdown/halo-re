@@ -8,11 +8,11 @@
 #include "game.h"
 #include "networking.h"
 #include "halo/networking/net2_message_delta_metrics.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern char message_delta_metrics_filename_suffix[];
 extern int32_t snprintf(char *dest, uint32_t count, const char *format, ...);
-extern void console_printf_verbose(const char *format, ...);
 void message_delta_metrics_dump(char *suffix);
 void message_delta_sample_record_and_append(int32_t a, int32_t c, int32_t b,
                                              message_delta_sample_ring_buffer *ring);
@@ -34,7 +34,7 @@ void DeltaMetrics::metrics_dump(char *suffix)
         (void)len;
     }
     snprintf(path, 0x104, "%s\\%s %s", "message metrics", message_delta_metrics_filename_suffix, suffix);
-    console_printf_verbose("Wrote network message metrics to %s", path);
+    halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Wrote network message metrics to %s"), path);
 }
 
 void DeltaMetrics::sample_record_and_append(int32_t a, int32_t c, int32_t b,

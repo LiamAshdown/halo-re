@@ -27,6 +27,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 
 namespace halo::main {
@@ -248,7 +249,6 @@ extern "C" { extern input_abstraction_globals input_globals; }
 extern "C" { extern void *keyboard_device; }
 extern "C" { extern uint8_t key_frames[0x6d]; }
 extern "C" { extern uint8_t key_release_pending[0x6d]; }
-extern "C" { extern void console_close(terminal_console *console); }
 namespace halo::main {
 
 /**
@@ -263,7 +263,7 @@ void Console::deactivate(void)
     uint32_t flush_all;
 
     if (console_globals_data.active != 0 && console_globals_data.enabled != 0) {
-        console_close(&console_globals_data.terminal);
+        halo::interface::console_close(&console_globals_data.terminal);
         input_globals.mode_flags = input_globals.mode_flags & (uint8_t)~_input_mode_keyboard_capture_bit;
         console_globals_data.active = 0;
         if (keyboard_device != 0) {
@@ -347,8 +347,6 @@ extern "C" { extern data_array *terminal_messages; }
 extern "C" { extern datum_index console_message_head; }
 extern "C" { extern datum_index console_message_tail; }
 extern "C" { extern uint8_t error_file_logging_enabled; }
-extern "C" { extern void console_clear_screen(void); }
-extern "C" { extern void chimera__console_out(ColorARGB *color, char *format, ...); }
 /**
  * While the console is active: optionally clears the terminal's message history first (when
  * clear_first is set and the terminal has been initialized), then formats a printf-style message
@@ -370,14 +368,14 @@ void halo::main::console_out_printf(uint8_t clear_first, const char *format, ...
         console_message_head = k_datum_index_none;
         console_message_tail = k_datum_index_none;
         halo::memory::data_delete_all(terminal_messages);
-        console_clear_screen();
+        halo::interface::console_clear_screen();
     }
 
     va_start(args, format);
     vsprintf(formatted, format, args);
     va_end(args);
 
-    chimera__console_out(0, (char *)"%s", formatted);
+    halo::interface::chimera__console_out(0, (char *)"%s", formatted);
     if (error_file_logging_enabled != 0) {
         strncat(formatted, "\r\n", 0x400);
         halo::cseries::write_to_error_file(formatted, 1);
@@ -385,7 +383,6 @@ void halo::main::console_out_printf(uint8_t clear_first, const char *format, ...
 }
 
 extern "C" { extern terminal_console *console_active; }
-extern "C" { extern void widget_text_edit_insert_string(text_edit_state *state, char *insert_str); }
 namespace halo::main {
 
 /**
@@ -402,14 +399,13 @@ uint32_t Console::paste_clipboard_text(void)
 
     have_text = halo::shell::clipboard_get_text(clipboard_text, 0xff);
     if (have_text != 0 && console_active == &console_globals_data.terminal) {
-        widget_text_edit_insert_string(&console_active->edit, clipboard_text);
+        halo::interface::widget_text_edit_insert_string(&console_active->edit, clipboard_text);
     }
     return have_text;
 }
 
 }
 
-extern "C" { extern void console_printf_verbose(ColorARGB *color, char *format, ...); }
 /**
  * Optionally clears the terminal's message history first (when clear_first is set and the
  * terminal has been initialized), then formats a printf-style message and prints it via
@@ -429,14 +425,14 @@ void halo::main::console_print_error_va(uint8_t clear_first, const char *format,
         console_message_head = k_datum_index_none;
         console_message_tail = k_datum_index_none;
         halo::memory::data_delete_all(terminal_messages);
-        console_clear_screen();
+        halo::interface::console_clear_screen();
     }
 
     va_start(args, format);
     vsprintf(formatted, format, args);
     va_end(args);
 
-    console_printf_verbose(0, (char *)"%s", formatted);
+    halo::interface::console_printf_verbose(0, (char *)"%s", formatted);
     if (error_file_logging_enabled != 0) {
         strncat(formatted, "\r\n", 0x400);
         halo::cseries::write_to_error_file(formatted, 1);
@@ -460,7 +456,7 @@ void halo::main::console_print_va(const char *format, ...)
     vsprintf(formatted, format, args);
     va_end(args);
 
-    console_printf_verbose(console_message_default_color, (char *)"%s", formatted);
+    halo::interface::console_printf_verbose(console_message_default_color, (char *)"%s", formatted);
     if (error_file_logging_enabled != 0) {
         strncat(formatted, "\r\n", 0x400);
         halo::cseries::write_to_error_file(formatted, 1);
@@ -533,7 +529,6 @@ char Console::process_command(char *command_line, uint32_t context_flags)
 }
 
 extern "C" { extern uint8_t chat_dialog_open; }
-extern "C" { extern void widget_text_edit_reset_length(text_edit_state *state); }
 namespace halo::main {
 
 /**
@@ -598,7 +593,7 @@ uint8_t Console::process_key_events(void)
                     if (browse_index != -1) {
                         history_index = (int16_t)((console_globals_data.history_newest_index - browse_index + 8) & 7);
                         strcpy(console_globals_data.terminal.input, console_globals_data.history[history_index]);
-                        widget_text_edit_reset_length(&console_globals_data.terminal.edit);
+                        halo::interface::widget_text_edit_reset_length(&console_globals_data.terminal.edit);
                     }
                     break;
                 }
@@ -629,7 +624,6 @@ void Console::process_rcon_command(int32_t rcon_handle, char *command_line)
 }
 
 extern "C" { extern uint8_t virtual_keyboard; }
-extern "C" { extern uint8_t console_open(terminal_console *console); }
 namespace halo::main {
 
 /**
@@ -647,7 +641,7 @@ void Console::toggle(void)
     }
     if (console_globals_data.enabled != 0 && virtual_keyboard == 0) {
         console_globals_data.terminal.input[0] = 0;
-        console_globals_data.active = console_open(&console_globals_data.terminal);
+        console_globals_data.active = halo::interface::console_open(&console_globals_data.terminal);
         halo::input::input_keyboard_set_capture_mode(1);
     }
 }

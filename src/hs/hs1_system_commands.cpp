@@ -4,15 +4,15 @@
 #include "halo/camera/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern void game_engine_send_team_allegiance_message(char broadcast);
 extern int32_t console_message_head;
 extern int32_t console_message_tail;
-extern void console_clear_screen(void);
 extern uint8_t main_globals_byte_00719752;
 extern uint8_t main_globals_byte_00719753;
 extern uint8_t main_globals_byte_00719751;
@@ -32,7 +32,7 @@ void SystemCommands::change_team(int16_t function_index, uint32_t thread_index, 
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        game_engine_send_team_allegiance_message((char)(uint8_t)arguments[0]);
+        halo::game::game_engine_send_team_allegiance_message((char)(uint8_t)arguments[0]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -78,7 +78,7 @@ void SystemCommands::cls(int16_t function_index, uint32_t thread_index, char fir
         console_message_head = -1;
         console_message_tail = -1;
         halo::memory::data_delete_all(halo::main::globals().terminal_messages);
-        console_clear_screen();
+        halo::interface::console_clear_screen();
     }
     hs_thread_return(0, thread_index);
 }

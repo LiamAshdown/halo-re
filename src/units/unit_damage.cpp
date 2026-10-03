@@ -18,6 +18,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -34,7 +35,6 @@ extern void actor_react_to_threat_event(datum_index self_object_index, datum_ind
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern void player_update_history_free_all(void *history);
 extern uint8_t unit_updates_suppressed;
-extern int32_t player_index_from_unit_index(uint32_t unit_index);
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
 extern real_vector3d *global_origin3d_pointer;
@@ -464,7 +464,7 @@ void UnitView::apply_fall_damage(float fall_speed)
                     halo::objects::object_apply_damage(&dd, object_index, -1, -1, -1, 0);
                 }
                 if (current_game_engine == 0 && test_flag(obj->flags, objects::object_flag::outside_map)) {
-                    if (player_index_from_unit_index(object_index) == -1) {
+                    if (halo::game::player_index_from_unit_index(object_index) == -1) {
                         halo::objects::object_delete(object_index);
                     }
                 }

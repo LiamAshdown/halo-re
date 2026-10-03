@@ -5,10 +5,10 @@
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern char *weapon_blur_permutation_names[2];
-extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code);
 extern game_time_globals *game_time;
 int32_t halo::items::weapon_update(datum_index item_index);
 void halo::items::weapon_update_function_values(uint32_t object_index);
@@ -103,7 +103,7 @@ int32_t weapon_ref::update()
                 wd->flags = (wd->flags & ~(uint32_t)4) | 1;
                 action = 0x10;
             }
-            weapon_action_notify_for_weapon(item_index, action);
+            halo::interface::weapon_action_notify_for_weapon(item_index, action);
             wd->overheat_effect_handle = halo::items::weapon_stop_object_effect(item_index, *(datum_index *)&weapon_tag->overheated.tag_id);
         }
 

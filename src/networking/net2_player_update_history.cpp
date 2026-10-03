@@ -20,11 +20,11 @@
 #include "halo/memory/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array * player_data;
 extern game_time_globals * game_time;
-extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern uint16_t local_player_name_filter[0x400];
 extern uint32_t player_update_log_categories_default;
 extern uint32_t player_update_log_categories_filtered;
@@ -32,9 +32,7 @@ extern uint8_t player_update_log_flags;
 extern char * player_update_history_log_path;
 extern char player_update_log_file_mode_string[];
 extern double sqrt(double x);
-extern void player_compute_view_forward_vector(void);
 extern network_client_globals * network_client;
-extern void players_find_local_owned_unclear(void);
 extern network_id_table * machine_table;
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state,
@@ -166,7 +164,7 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
     node->unit_state[0xca] = biped_ext->movement_state;
     *(datum_index *)(node->unit_state + 0xcc) = biped_ext->ground_surface_index;
 
-    if (player_unit_has_parent(unit_ext->controlling_player)) {
+    if (halo::game::player_unit_has_parent(unit_ext->controlling_player)) {
         vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_obj->parent_object & 0xffff].data;
         node->has_vehicle = 1;
         *(real_point3d *)(node->vehicle_state + 0x00) = vehicle_obj->position;
@@ -434,7 +432,8 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
         }
 
         do {
-            player_compute_view_forward_vector();
+            real_vector3d view_forward;
+            halo::game::player_compute_view_forward_vector(*(datum_index *)((uint8_t *)unit_obj + 0x218), (real *)(node->control + 1), &view_forward);
             halo::units::unit_apply_control_block(unit_index, (const unit_control_data *)node->control, -1);
             remaining_ticks = node->tick_count;
             updates_this_call = updates_this_call + 1;
@@ -602,7 +601,7 @@ void PlayerUpdateHistory::flush_by_name(char *name)
                  index = (index + 1) % 0x78) {
 
             }
-            players_find_local_owned_unclear();
+            halo::game::players_find_local_owned_unclear();
         }
         candidate = (player *)halo::memory::data_iterator_next(&iter);
     }

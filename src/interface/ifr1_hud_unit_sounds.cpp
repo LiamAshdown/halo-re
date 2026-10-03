@@ -4,6 +4,8 @@
 #include "halo/sound/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern data_array *game_looping_sound_data;
@@ -12,10 +14,6 @@ extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t u
                             void *callback_data, int32_t unknown_3, int32_t unknown_4);
 extern player_globals *local_player_globals;
 extern hud_unit_meter_globals *hud_unit_meters;
-extern datum_index local_player_to_player_index(int16_t local_player_index);
-extern uint8_t game_engine_object_flag_bit3_clear(datum_index player_index);
-extern void hud_unit_sounds_play(uint32_t active_mask, const TagReflexive *sounds, int32_t *handles,
-                                 uint16_t *playing);
 }
 
 namespace halo::interface {
@@ -127,7 +125,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
         float shield = ((unit_object *)unit)->base.shield_vitality;
         float health = ((unit_object *)unit)->base.body_vitality;
 
-        if (state->displayed_shield != -1.0f && game_engine_object_flag_bit3_clear(local_player_to_player_index(p->local_player_index)) != 0 &&
+        if (state->displayed_shield != -1.0f && halo::game::game_engine_object_flag_bit3_clear(halo::game::local_player_to_player_index(p->local_player_index)) != 0 &&
             (hud_unit_meters->flags & 4) == 0) {
             mask = (((unit_object *)unit)->base.vitality_flags >> 12) & 1;
             if (state->displayed_shield > shield) {
@@ -155,7 +153,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
             }
         }
     }
-    hud_unit_sounds_play(mask, &hud->sounds, state->sound_handles, &state->sounds_playing);
+    halo::interface::hud_unit_sounds_play(mask, &hud->sounds, state->sound_handles, &state->sounds_playing);
 }
 
 }

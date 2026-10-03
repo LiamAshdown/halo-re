@@ -13,12 +13,11 @@
 #include "halo/render/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 
-extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);
-extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern uint32_t __stdcall D3DXGetFVFVertexSize(uint32_t fvf);
 extern void bitmap_data_free(BitmapData *bitmap_data);
 
@@ -51,7 +50,6 @@ void chimera__rasterizer_set_framebuffer_blend_function(int16_t mode)
 }
 
 namespace chimera__rasterizer_set_frustum_z_func_impl {
-
 
 
 #undef RW
@@ -184,7 +182,7 @@ void rasterizer_begin_frame(rasterizer_window_parameters *source)
     rasterizer_set_fog_constants(&source->fog);
 
     {
-        uint32_t clear_color = (halo::rasterizer::fields::rasterizer_debug_mode == 1) ? 0 : color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color);
+        uint32_t clear_color = (halo::rasterizer::fields::rasterizer_debug_mode == 1) ? 0 : halo::interface::color_rgb_float_to_int((const float *)(&rasterizer_window.fog.atmospheric_color));
         if (rasterizer_window.type == 1 || rasterizer_window.type == 2) {
             rasterizer_render_target_set_active(rasterizer_window.type, clear_color, source->clear_target == 0);
         }
@@ -253,11 +251,6 @@ void rasterizer_build_present_parameters(d3d_present_parameters *dest, rasterize
 }
 
 namespace rasterizer_capture_and_present_impl {
-
-
-
-
-
 
 
 static void **vtable_of(void *object) { return *(void ***)object; }
@@ -423,11 +416,6 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
 namespace rasterizer_device_reset_impl {
 
 
-
-
-
-
-
 typedef struct d3d_viewport9 {
     uint32_t x, y, width, height;
     float min_z, max_z;
@@ -566,18 +554,6 @@ uint8_t rasterizer_display_mode_differs(rasterizer_display_mode *requested)
 namespace rasterizer_end_frame_impl {
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 static void rasterizer_set_render_state(uint32_t state, uint32_t value)
 {
     render_device().set_render_state(state, value);
@@ -701,7 +677,7 @@ void rasterizer_end_frame(void)
         chat_bar.left = 0;
         chat_bar.bottom = 0x1e0;
         chat_bar.right = 0x280;
-        ui_draw_filled_rectangle(0xb0202020, &chat_bar);
+        halo::interface::ui_draw_filled_rectangle(0xb0202020, &chat_bar);
     }
 
     if (render_device().set_software_vertex_processing(rasterizer_software_vertex_processing) < 0) {
@@ -749,11 +725,6 @@ int32_t rasterizer_get_refresh_rate(int32_t requested_rate)
 }
 
 namespace rasterizer_initialize_direct3d_impl {
-
-
-
-
-
 
 
 typedef int32_t (__cdecl *nvcpl_get_data_int_fn)(int32_t data_type, int32_t *value);
@@ -1351,7 +1322,6 @@ set_vertex_buffer_slot:
 namespace rasterizer_service_deferred_windowed_ops_impl {
 
 
-
 /**
  * While windowed and the device exists: performs a deferred present/update (+0xa8) if flagged, and a deferred
  * clear (+0x44, all zero args) if flagged, clearing each flag afterward.
@@ -1377,7 +1347,6 @@ void rasterizer_service_deferred_windowed_ops(void)
 }  // namespace rasterizer_service_deferred_windowed_ops_impl
 
 namespace rasterizer_set_default_render_states_impl {
-
 
 
 static void set_render_state(uint32_t state, uint32_t value)

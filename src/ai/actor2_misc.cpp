@@ -9,6 +9,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -1403,7 +1404,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
-extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b);
 }
 }
 
@@ -1455,7 +1455,7 @@ int32_t ActorView::report_command_status()
             if (p->enemy == 0) {
                 target_state = 2;
             } else {
-                target_state = (team_pair_flag_test(((actor *)a)->team, ((struct prop *)p)->team) != 0) + 3;
+                target_state = (halo::game::team_pair_flag_test(((actor *)a)->team, ((struct prop *)p)->team) != 0) + 3;
             }
         }
         ai_communication_broadcast(event_code, a->unit_index, target_object, target_state, halo::k_dword_none, halo::k_dword_none, 0);
@@ -1544,7 +1544,6 @@ extern "C" {
 extern data_array *actor_data;
 extern void * actor_get_actor_definition(datum_index actor_index);
 extern void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uint8_t **out_a, uint8_t **out_b);
-extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 }
 }
 
@@ -1570,7 +1569,7 @@ void ActorView::reseed_movement_pause_timer()
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     fraction = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
     pause = fraction * (upper - lower) + lower;
-    pause = weapon_get_zoom_fov_resolved(0xe, ((struct actor *)self)->team) * pause;
+    pause = halo::game::weapon_get_zoom_fov_resolved(0xe, ((struct actor *)self)->team) * pause;
     if (entry_b != 0 && *(float *)(entry_b + 4) != 0.0f) {
         pause = pause * *(float *)(entry_b + 4);
     }

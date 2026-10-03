@@ -1,6 +1,8 @@
 #include "halo/networking/net1_client.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern data_packet_group network_game_messages_group;
@@ -16,9 +18,6 @@ extern char network_player_entry_validate(void);
 extern uint16_t network_challenge_packet_block;
 extern uint32_t network_broadcast_body[];
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern void widget_close_all(void);
-extern void game_engine_init_tick_record_for_mode(void);
-extern void game_engine_reset_all_players(void);
 extern network_server_globals *network_server;
 extern void network_host_full_state_broadcast(network_server_globals *server);
 extern int32_t join_ui_state;
@@ -171,9 +170,9 @@ after_search:
         connection[0x768] = 0;
         connection[0x769] = 0;
         *((uint8_t *)connection + 0xee1) = 0;
-        widget_close_all();
-        game_engine_init_tick_record_for_mode();
-        game_engine_reset_all_players();
+        halo::interface::widget_close_all();
+        halo::game::game_engine_init_tick_record_for_mode();
+        halo::game::game_engine_reset_all_players();
         if (network_game_mode == 2 && ((*(uint8_t *)((uint8_t *)network_server + 6) >> 2 & 1) == 0)) {
             network_host_full_state_broadcast(network_server);
         }

@@ -4,6 +4,8 @@
 #include <string.h>
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int32_t network_buffer_pair_pool;
@@ -56,7 +58,6 @@ extern char *network_address_to_string(s_network_address *addr);
 extern void network_connection_stats_record_packet(void *gamespy_connection, int32_t payload_length, uint8_t is_sent, uint8_t is_reliable, uint8_t is_resend);
 extern int16_t network_join_error_code;
 extern uint8_t network_host_handoff_requested;
-extern void chat_close(void);
 extern void gt2CloseAllConnections(void *socket);
 extern uint8_t network_game_receive_buffer[0x2000];
 extern const uint8_t natneg_magic[6];
@@ -101,8 +102,6 @@ extern char network_channel_listen_service(network_channel *channel, network_cha
 extern network_server_globals *network_server;
 extern uint8_t network_disconnect_timeout_flag;
 extern uint8_t network_channel_key_resolve_target(network_player_entry *entry);
-extern datum_index player_new_local(datum_index requested_handle, uint32_t machine_index, int16_t local_player_index, uint16_t *identifier_record);
-extern int32_t player_new_network(int32_t machine_index, int16_t machine_player_index);
 extern void network_index_cache_find_or_allocate_slot(int32_t index);
 extern network_client_globals *network_client;
 extern char network_player_entry_validate(network_player_entry *entry);
@@ -698,7 +697,7 @@ void ChannelCallbacks::on_socket_error(void *socket)
         network_join_error_code = 6;
     }
     network_host_handoff_requested = 1;
-    chat_close();
+    halo::interface::chat_close();
     gt2CloseAllConnections(socket);
     if ((int32_t)socket == network_game_socket) {
         network_game_socket = 0;
@@ -1730,7 +1729,7 @@ int32_t ChannelKeys::close(network_player_entry *entry, datum_index requested_ha
     } else {
         key = entry->machine_player_index;
     }
-    player_new_local(requested_handle, entry->machine_index, key, (uint16_t *)entry);
+    halo::game::player_new_local(requested_handle, entry->machine_index, key, (uint16_t *)entry);
     if (requested_handle != (datum_index)-1) {
         entry->slot_index = (int8_t)requested_handle;
         return 1;
@@ -1756,7 +1755,7 @@ int32_t ChannelKeys::open(network_player_entry *entry)
     } else {
         key = entry->machine_player_index;
     }
-    index = player_new_network(entry->machine_index, key);
+    index = halo::game::player_new_network((datum_index)(int32_t)entry->slot_index, (uint32_t)(int32_t)entry->machine_index, key, (uint16_t *)entry);
     if (index != -1) {
         entry->slot_index = (int8_t)index;
         network_index_cache_find_or_allocate_slot(index);

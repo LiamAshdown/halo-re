@@ -28,6 +28,8 @@
 #include "halo/main/layout.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 
 extern "C" { extern main_globals main_globals_data; }
@@ -116,9 +118,6 @@ extern "C" { extern uint8_t player_profile_cache[0xc0 * 4]; }
 extern "C" { extern uint8_t game_engine_active_variant[0x26 * 4]; }
 extern "C" { extern uint8_t ui_split_screen; }
 extern "C" { extern uint8_t *main_game_globals; }
-extern "C" { extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); }
-extern "C" { extern void game_stop_current_map(void); }
-extern "C" { extern void game_unload_map(void); }
 namespace halo::main {
 
 /**
@@ -133,7 +132,7 @@ void LevelControl::chimera__load_ui_map(char play_title_music)
 {
     network_scenario_load_request request;
 
-    cache_file_switch_map_by_path((char *)k_ui_scenario_path, 1);
+    halo::game::cache_file_switch_map_by_path((char *)k_ui_scenario_path, 1);
 
     memset(&request, 0, sizeof(request));
     request.difficulty = 1;
@@ -141,9 +140,9 @@ void LevelControl::chimera__load_ui_map(char play_title_music)
     strncpy(request.map_name, k_ui_scenario_path, k_main_path_length - 1);
     request.map_name[k_main_path_length - 1] = 0;
 
-    cache_file_switch_map_by_path(request.map_name, 1);
-    game_stop_current_map();
-    game_unload_map();
+    halo::game::cache_file_switch_map_by_path(request.map_name, 1);
+    halo::game::game_stop_current_map();
+    halo::game::game_unload_map();
 
     if (current_game_engine != 0) {
         if (current_game_engine->dispose != 0) {
@@ -180,7 +179,6 @@ void LevelControl::chimera__load_ui_map(char play_title_music)
 
 extern "C" { extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; }
 extern "C" { extern int32_t hud_text_message_cycle_state_00719230; }
-extern "C" { extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection); }
 namespace halo::main {
 
 /**
@@ -201,7 +199,7 @@ void LevelControl::credits_load_directly_for_endgame(void)
     }
     halo::main::main_menu_return_and_reset();
     main_menu_tag = halo::cache::tag_lookup(k_ui_widget_definition_group, (char *)"ui\\shell\\main_menu\\main_menu");
-    chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\credits_screen", k_datum_index_none,
+    halo::interface::chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\credits_screen", k_datum_index_none,
                              (widget_instance *)0, (uint16_t)-1, main_menu_tag, k_datum_index_none,
                              -1);
     hud_text_message_cycle_state_00719230 = 1;
@@ -215,9 +213,6 @@ extern "C" { extern int32_t ui_pause_pending_count_00718fa0; }
 extern "C" { extern int32_t join_ui_state; }
 extern "C" { extern int32_t interface_loading_screen_address_a; }
 extern "C" { extern int32_t interface_loading_screen_address_b; }
-extern "C" { extern void game_start_new_map(void); }
-extern "C" { extern void game_engine_reset_all_players(void); }
-extern "C" { extern void game_engine_init_tick_record_for_mode(void); }
 extern "C" { extern void main_ensure_local_players(void); }
 extern "C" { extern void game_state_load_checkpoint(void); }
 namespace halo::main {
@@ -240,7 +235,7 @@ void LevelControl::scenario_session_begin(network_scenario_load_request *request
 
     halo::input::input_reset_state_and_axis_configs();
     halo::input::input_bind_capture_reset();
-    cache_file_switch_map_by_path(request->map_name, 1);
+    halo::game::cache_file_switch_map_by_path(request->map_name, 1);
 
     memcpy(main_game_globals + 8, request, sizeof(network_scenario_load_request));
 
@@ -251,7 +246,7 @@ void LevelControl::scenario_session_begin(network_scenario_load_request *request
     } else {
         *main_game_globals = 1;
     }
-    game_start_new_map();
+    halo::game::game_start_new_map();
 
 after_load:
     already_initialized = console_debug_flag_0 != 0;
@@ -259,9 +254,9 @@ after_load:
     console_debug_word_8 = 0;
     if (!already_initialized) {
         halo::main::main_ensure_local_players();
-        game_engine_init_tick_record_for_mode();
+        halo::game::game_engine_init_tick_record_for_mode();
     }
-    game_engine_reset_all_players();
+    halo::game::game_engine_reset_all_players();
 
     main_globals_data.switch_structure_bsp_index = -1;
     main_globals_data.reset_map = 0;
@@ -337,8 +332,8 @@ void LevelControl::start_new_single_player_map(void)
     request.map_name[k_main_path_length - 1] = 0;
     request.difficulty = pending_difficulty;
 
-    cache_file_switch_map_by_path(request.map_name, 1);
-    game_stop_current_map();
+    halo::game::cache_file_switch_map_by_path(request.map_name, 1);
+    halo::game::game_stop_current_map();
     halo::main::game_scenario_session_begin(&request);
 }
 
@@ -354,7 +349,6 @@ extern "C" { extern uint16_t progress_screen_subtext[0x20]; }
 extern "C" { extern int32_t interface_loading_screen_request_id; }
 extern "C" { extern game_time_globals *game_time; }
 extern "C" { extern int32_t _access(const char *path, int32_t mode); }
-extern "C" { extern void main_menu_on_shown(int32_t fade_milliseconds); }
 namespace halo::main {
 
 /**
@@ -403,7 +397,7 @@ void LevelControl::level_transition_update(void)
                 goto after_fade;
             }
             main_globals_data.level_transition_fade_end_ms = main_globals_data.frame_time_ms + 1000;
-            main_menu_on_shown(1000);
+            halo::interface::main_menu_on_shown(1000);
             ui_input_batch_mode = 1;
             ui_unknown_718fa8 = 0.0f;
         } else {
@@ -440,9 +434,9 @@ after_fade:
             request.map_name[k_main_path_length - 1] = 0;
             request.difficulty = pending_difficulty;
 
-            game_stop_current_map();
-            cache_file_switch_map_by_path(request.map_name, 1);
-            game_unload_map();
+            halo::game::game_stop_current_map();
+            halo::game::cache_file_switch_map_by_path(request.map_name, 1);
+            halo::game::game_unload_map();
             halo::main::game_scenario_session_begin(&request);
 
             for (i = 0; i < local_player_count; i++) {
@@ -509,7 +503,6 @@ void LevelControl::queue_map_change(char *map_name)
 
 }
 
-extern "C" { extern void map_list_get_friendly_level_name(wchar_t *destination, char *map_path, int32_t destination_capacity); }
 namespace halo::main {
 
 /**
@@ -532,7 +525,7 @@ uint8_t LevelControl::queue_map_change_by_name_or_clear(char *name)
     if (name == 0) {
         progress_screen_subtext[0] = 0;
     } else {
-        map_list_get_friendly_level_name((wchar_t *)progress_screen_subtext, name, 0x40);
+        halo::interface::map_list_get_friendly_level_name((wchar_t *)progress_screen_subtext, name, 0x40);
     }
     return halo::cache::cache_file_request_map(main_globals_data.multiplayer_map_name, 0);
 }
@@ -540,8 +533,6 @@ uint8_t LevelControl::queue_map_change_by_name_or_clear(char *name)
 }
 
 extern "C" { extern int32_t game_time_force_single_tick; }
-extern "C" { extern char game_safe_to_save(void); }
-extern "C" { extern void hud_display_checkpoint_message(uint8_t is_begin); }
 namespace halo::main {
 
 /**
@@ -594,7 +585,7 @@ void LevelControl::save_map_private(void)
             main_globals_data.save_map_retry_countdown - 1;
         main_globals_data.save_map_attempt_count = next_attempt_count;
 
-        if (game_safe_to_save() == 0) {
+        if (halo::game::game_safe_to_save() == 0) {
             main_globals_data.save_map_safe_streak = 0;
         } else {
             int16_t new_streak = main_globals_data.save_map_safe_streak + 1;
@@ -613,7 +604,7 @@ void LevelControl::save_map_private(void)
     }
 
     if (game_time_force_single_tick == 0) {
-        hud_display_checkpoint_message(1);
+        halo::interface::hud_display_checkpoint_message(1);
         main_globals_data.save_map_write_pending = 1;
     }
     main_globals_data.save_map = 0;
@@ -624,8 +615,6 @@ void LevelControl::save_map_private(void)
 extern "C" { extern HUDGlobals *hud_globals_tag_data; }
 extern "C" { extern uint8_t *hud_messaging; }
 extern "C" { extern player_globals *local_player_globals; }
-extern "C" { extern uint16_t *hud_get_message_string(int32_t message_index); }
-extern "C" { extern void chimera__hud_message(int16_t local_player_index, const wchar_t *text); }
 namespace halo::main {
 
 /**
@@ -659,8 +648,8 @@ void LevelControl::switch_structure_bsp_and_notify(void)
         if (local_player_globals->local_players[0] != k_datum_index_none) {
             local_player_index = 0;
         }
-        text = hud_get_message_string(message_id);
-        chimera__hud_message(local_player_index, (const wchar_t *)text);
+        text = halo::interface::hud_get_message_string(message_id);
+        halo::interface::chimera__hud_message(local_player_index, (const wchar_t *)text);
     }
 }
 

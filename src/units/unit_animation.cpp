@@ -20,6 +20,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern halo::units::ai_update_stagger_state *ai_update_stagger;
@@ -32,7 +33,6 @@ extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t
 extern game_time_globals *game_time;
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern real_vector3d *global_down3d_pointer;
-extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
 extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
 extern void console_print_va(const char *format, ...);
 extern int16_t network_game_mode;
@@ -536,7 +536,7 @@ void UnitView::fire_animation_sound_trigger(uint32_t trigger_kind, int16_t conta
         *(datum_index *)(biped_tag + 0x398) == k_datum_index_none) {
         return;
     }
-    if (!any_local_player_within_10_units((real_point3d *)&((struct object *)unit)->bounding_center)) {
+    if (!halo::game::any_local_player_within_10_units((real_point3d *)&((struct object *)unit)->bounding_center)) {
         return;
     }
     if ((int16_t)halo::objects::object_get_node_local_transform(unit_index,

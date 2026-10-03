@@ -19,27 +19,18 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern network_id_table *machine_table;
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values);
 extern void message_delta_decode_compound_field_staged(void *event);
-extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle);
 extern uint8_t game_engine_attribute_enabled;
 extern game_time_globals *game_time;
 extern data_array *player_data;
 extern game_engine_definition *current_game_engine;
 extern team_pair_globals *team_pair_data;
-extern datum_index player_index_from_unit_index(datum_index unit);
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern void game_engine_on_player_death(datum_index killer, datum_index death_object,
-    datum_index victim, char is_suicide);
-extern void player_advance_multikill_medal(datum_index player_handle);
-extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
-    datum_index subject, char broadcast);
 extern wchar_t empty_string;
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
-extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
 extern player_globals *local_player_globals;
 }
 
@@ -69,7 +60,7 @@ uint8_t KillFeed::apply_kill_streak_message(int32_t **envelope)
         if (decoded.machine_id != 0) {
             player_handle = *(uint32_t *)(*(uint8_t **)&machine_table->handles + decoded.machine_id * 4);
         }
-        player_add_kill_streak(decoded.slot, decoded.amount, player_handle);
+        halo::game::player_add_kill_streak(decoded.slot, decoded.amount, player_handle);
     }
     return 0;
 }
@@ -105,7 +96,7 @@ void KillFeed::attribute_player_death(datum_index victim_unit, datum_index kille
     if (!game_engine_attribute_enabled) {
         return;
     }
-    victim = player_index_from_unit_index(victim_unit);
+    victim = halo::game::player_index_from_unit_index(victim_unit);
     if (victim == k_datum_index_none) {
         return;
     }
@@ -122,7 +113,7 @@ void KillFeed::attribute_player_death(datum_index victim_unit, datum_index kille
     if (killer == k_datum_index_none) {
         friendly_or_no_killer = 1;
     } else {
-        friendly_or_no_killer = !teams_are_enemies((int16_t)killer_team, (int16_t)victim_team);
+        friendly_or_no_killer = !halo::game::teams_are_enemies((int16_t)killer_team, (int16_t)victim_team);
     }
 
     current_tick = game_time->game_time;
@@ -244,7 +235,7 @@ void KillFeed::attribute_player_death(datum_index victim_unit, datum_index kille
             death_flags = ((uint32_t)assist_window_start & 0xffffff00u) | 1u;
             if (killer != victim) {
                 killer_player->betrayal_penalty_count = killer_player->betrayal_penalty_count + 1;
-                player_advance_multikill_medal(killer);
+                halo::game::player_advance_multikill_medal(killer);
             }
         } else {
             killer_player->kills = killer_player->kills + 1;
@@ -288,7 +279,7 @@ void KillFeed::attribute_player_death(datum_index victim_unit, datum_index kille
         }
     }
 
-    game_engine_on_player_death(killer, death_object, victim, (char)(death_flags & 0xff));
+    halo::game::game_engine_on_player_death(killer, death_object, victim, (char)(death_flags & 0xff));
 }
 
 /**
@@ -337,7 +328,7 @@ void KillFeed::broadcast_kill_feed_by_relationship(uint32_t source_player, int32
         }
 
         if (message != -1) {
-            chimera__kill_feed(iter.index, (int32_t)iter.index, (uint32_t)message, subject, (char)broadcast);
+            halo::game::chimera__kill_feed(iter.index, (int32_t)iter.index, (uint32_t)message, subject, (char)broadcast);
         }
         element = halo::memory::data_iterator_next(&iter);
     }
@@ -365,7 +356,7 @@ void KillFeed::broadcast_kill_feed_gated(int32_t broadcast_enabled, int32_t excl
         if ((int32_t)iter.index != exclude_index) {
             int32_t forwarded_param_1 = (alternate_recipient == -1) ? (int32_t)iter.index : alternate_recipient;
             if (broadcast_enabled != -1) {
-                chimera__kill_feed(iter.index, forwarded_param_1, broadcast_enabled, subject, broadcast);
+                halo::game::chimera__kill_feed(iter.index, forwarded_param_1, broadcast_enabled, subject, broadcast);
             }
         }
         element = halo::memory::data_iterator_next(&iter);
@@ -396,13 +387,13 @@ void KillFeed::broadcast_kill_feed_or_direct(datum_index recipient_or_all, int32
         element = halo::memory::data_iterator_next(&iter);
         while (element != 0) {
             if (broadcast_enabled != -1) {
-                chimera__kill_feed(iter.index, forwarded_param_1, broadcast_enabled, subject,
+                halo::game::chimera__kill_feed(iter.index, forwarded_param_1, broadcast_enabled, subject,
                     broadcast);
             }
             element = halo::memory::data_iterator_next(&iter);
         }
     } else if (broadcast_enabled != -1) {
-        chimera__kill_feed(recipient_or_all, hash_key, broadcast_enabled, subject, broadcast);
+        halo::game::chimera__kill_feed(recipient_or_all, hash_key, broadcast_enabled, subject, broadcast);
     }
 }
 
@@ -429,7 +420,7 @@ void KillFeed::broadcast_kill_feed_to_team(int32_t message_type, int32_t team, u
         player *p = (player *)element;
 
         if (p->team == team && message_type != -1) {
-            chimera__kill_feed(iter.index, (int32_t)iter.index, (uint32_t)message_type, 0xffffffff, (char)broadcast);
+            halo::game::chimera__kill_feed(iter.index, (int32_t)iter.index, (uint32_t)message_type, 0xffffffff, (char)broadcast);
         }
         element = halo::memory::data_iterator_next(&iter);
     }
@@ -536,7 +527,7 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
             {
                 static const uint8_t arm_sound[5] = { 0x10, 0x0f, 0x0e, 0x11, 0x12 };
 
-                game_engine_queue_multiplayer_sound(arm_sound[adjusted_type - 0x0e], 0xffffffff, 0);
+                halo::game::game_engine_queue_multiplayer_sound(arm_sound[adjusted_type - 0x0e], 0xffffffff, 0);
             }
             break;
         }
@@ -600,7 +591,7 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
                 : reinterpret_cast<wchar_t *>(halo::text::text_string_list_get_string(tag_id, (int16_t)adjusted_type));
             int32_t formatted_len;
 
-            game_time_format_minutes_seconds((uint32_t)subject, buffer_size, out);
+            halo::game::game_time_format_minutes_seconds((uint32_t)subject, buffer_size, out);
             formatted_len = (int32_t)wcslen(out);
             wcsncat(out, prefix, buffer_size - formatted_len);
             break;
@@ -646,7 +637,7 @@ void KillFeed::handle_kill_feed_network_event(int32_t **message)
             if (decoded[0] != 0) {
                 killer = *(datum_index *)(*(uint8_t **)&machine_table->handles + decoded[0] * 4);
             }
-            chimera__kill_feed(local_player_globals->local_players[0], (int32_t)killer,
+            halo::game::chimera__kill_feed(local_player_globals->local_players[0], (int32_t)killer,
                                 (uint32_t)decoded[1], (datum_index)decoded[2], 0);
             return;
         }

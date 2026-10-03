@@ -8,6 +8,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 extern "C" { extern uint32_t config_disable_specular; }
 
 #ifdef interface
@@ -121,7 +122,7 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
 
 } // namespace halo::interface
 
-extern "C" {
+namespace halo::interface {
 
 uint8_t player_profile_apply_video_options(uint8_t *settings)
 {

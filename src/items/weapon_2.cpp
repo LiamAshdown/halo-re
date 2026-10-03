@@ -2,11 +2,9 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
-extern uint32_t local_player_index_for_weapon(datum_index item_index);
-extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
-extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
 int32_t halo::items::weapon_put_away(datum_index item_index, int8_t force);
 }
 
@@ -44,10 +42,10 @@ int32_t weapon_ref::put_away(int8_t force)
         wd->overheat_effect_handle = (datum_index)0xffffffff;
     }
 
-    action_handle = local_player_index_for_weapon(item_index);
-    first_person_weapon_process_action(action_handle, 0x0b);
+    action_handle = halo::interface::local_player_index_for_weapon(item_index);
+    halo::interface::first_person_weapon_process_action(action_handle, 0x0b);
     if ((int16_t)action_handle == -1) {
-        hud_play_pickup_notification(item_index, 0xb);
+        halo::interface::hud_play_pickup_notification(item_index, 0xb);
     }
 
     return 1;

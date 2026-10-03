@@ -6,11 +6,11 @@
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *recorded_animations;
 extern recorded_animation_codec *recorded_animation_codecs_by_version[4];
-extern int32_t player_index_from_unit_index(uint32_t unit_index);
 extern char hs_object_hierarchy_test(datum_index object_index);
 }
 
@@ -47,7 +47,7 @@ uint8_t RecordedAnimationPlayer::start(int16_t scenario_animation_index, uint16_
         return 0;
     }
 
-    player_index_from_unit_index((uint32_t)unit_index);
+    halo::game::player_index_from_unit_index((uint32_t)unit_index);
     record = halo::cutscene::recorded_animation_find_by_object(unit_index, &existing_index);
     def = (ScenarioRecordedAnimation *)halo::scenario::globals().scenario->recorded_animations.pointer + scenario_animation_index;
 

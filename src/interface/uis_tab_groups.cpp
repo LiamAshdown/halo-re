@@ -11,12 +11,12 @@
 #include <string.h>
 
 #include "halo/interface/uis_tab_groups.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t ui_split_screen;
 extern int32_t input_device_count;
 extern uint8_t profile_globals_block[0x60a4];
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
 }
 
 namespace halo::ui {
@@ -197,7 +197,7 @@ sync_visibility:
         uint8_t profile_copy[0x2000];
 
         memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
+        halo::interface::set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
     }
 }
 

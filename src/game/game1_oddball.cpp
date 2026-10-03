@@ -14,16 +14,14 @@
 #include "halo/game/game1_oddball.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern int32_t king_alt_team_score[16];
 extern wchar_t empty_string;
-extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
-extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern game_variant game_engine_variant;
 extern int32_t king_alt_player_score[];
-extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
 }
 
 namespace halo::game::engine1 {
@@ -43,7 +41,7 @@ const uint16_t *Oddball::game_text(int16_t index)
  */
 const uint16_t *Oddball::place_text(datum_index recipient)
 {
-    return (const uint16_t *)game_engine_get_multiplayer_text_list(game_engine_compare_score_to_others(recipient, 1));
+    return (const uint16_t *)halo::game::game_engine_get_multiplayer_text_list(halo::game::game_engine_compare_score_to_others(recipient, 1));
 }
 
 /**
@@ -106,7 +104,7 @@ wchar_t *Oddball::build_player_text(datum_index player, wchar_t *buffer)
     if (game_engine_variant.engine.oddball.ball_type == 2) {
         halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", score);
     } else {
-        game_time_format_minutes_seconds((uint32_t)score, 0x100, buffer);
+        halo::game::game_time_format_minutes_seconds((uint32_t)score, 0x100, buffer);
     }
     return buffer;
 }

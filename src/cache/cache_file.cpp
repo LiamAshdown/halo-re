@@ -11,10 +11,10 @@
 #include "halo/memory/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern char map_path_prefix[];
-extern void interface_handle_quit_request(void);
 extern int32_t os_platform;
 extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
@@ -415,7 +415,7 @@ uint8_t cache_files::open_by_name(char *name, uint8_t report_fatal_error)
         if (report_fatal_error != 0) {
             halo::rasterizer::globals().shader_file_name = name;
             halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
-            interface_handle_quit_request();
+            halo::interface::interface_handle_quit_request();
         }
         return 0;
     }
@@ -502,7 +502,7 @@ resolved:
         }
         return 0;
     }
-    interface_handle_quit_request();
+    halo::interface::interface_handle_quit_request();
     return 0;
 }
 

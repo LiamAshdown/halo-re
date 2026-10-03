@@ -1,4 +1,7 @@
 #include "halo/interface/ifr1_hud_timer.hpp"
+#include "halo/interface/api.hpp"
+
+namespace halo::interface {
 
 /**
  * C ABI entry point; forwards to halo::interface::HudTimer::pause.
@@ -6,7 +9,7 @@
  *
  * @address 0x4adc60
  */
-extern "C" void hud_pause_timer(uint8_t paused)
+void hud_pause_timer(uint8_t paused)
 {
     halo::interface::HudTimer().pause(paused);
 }
@@ -17,7 +20,7 @@ extern "C" void hud_pause_timer(uint8_t paused)
  *
  * @address 0x4adbf0
  */
-extern "C" void hud_set_timer_time(int32_t minutes, int32_t seconds)
+void hud_set_timer_time(int32_t minutes, int32_t seconds)
 {
     halo::interface::HudTimer().set_time(minutes, seconds);
 }
@@ -27,7 +30,7 @@ extern "C" void hud_set_timer_time(int32_t minutes, int32_t seconds)
  *
  * @address 0x4add10
  */
-extern "C" void hud_timer_draw(void)
+void hud_timer_draw(void)
 {
     halo::interface::HudTimer().draw();
 }
@@ -37,7 +40,6 @@ extern "C" void hud_timer_draw(void)
  *
  * @address 0x4adcc0
  */
-extern "C" uint32_t hud_timer_get_ticks(void)
-{
-    return halo::interface::HudTimer().ticks();
+
+
 }

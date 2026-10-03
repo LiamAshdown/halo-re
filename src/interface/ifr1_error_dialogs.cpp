@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_error_dialogs.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern ui_pending_error ui_pending_errors[4];
@@ -11,10 +12,6 @@ extern widget_instance *ui_root_widget[1];
 extern int16_t network_game_mode;
 extern int16_t ui_pause_depth;
 extern game_time_globals *game_time;
-extern void chimera__load_main_menu(void);
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection);
 }
 
 namespace halo::interface {
@@ -112,7 +109,7 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
 
     if (ui_split_screen != 0 && (state::screen_fade_progress < 1.0f) != (state::screen_fade_progress == 1.0f) &&
         0.0f <= state::screen_fade_progress) {
-        chimera__load_main_menu();
+        halo::interface::chimera__load_main_menu();
         network_wait_flag_00719739 = 0;
         state::screen_fade_progress = -1.0f;
     }
@@ -128,7 +125,7 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
         }
     }
 
-    dialog = chimera__load_ui_widget(tag_path, (datum_index)-1, (widget_instance *)0,
+    dialog = halo::interface::chimera__load_ui_widget(tag_path, (datum_index)-1, (widget_instance *)0,
                                      (uint16_t)player_index, history_source, (datum_index)-1, -1);
     if (dialog != (widget_instance *)0) {
         int16_t clamped;

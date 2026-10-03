@@ -9,6 +9,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern float camera_forward_x;
@@ -16,7 +17,6 @@ extern float camera_forward_y;
 extern float camera_forward_z;
 extern float camera_position_y;
 extern float camera_position_z;
-extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern float curve_apply_exponent(float value, float exponent);
 extern real_vector3d *global_white_color;
 extern data_array *light_volume_instances;
@@ -285,7 +285,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
                 (color_interpolation_flags)(tag[0x22] & 3), color_t);
             color.alpha = ((1.0f - alpha_t) * *(float *)(frame + 0x68) + alpha_t * *(float *)(frame + 0x78)) *
                 brightness;
-            halo::rasterizer::rasterizer_lens_flare_quad_add(0, color_pack_argb_from_real(&color), &point, radius, 0.0f);
+            halo::rasterizer::rasterizer_lens_flare_quad_add(0, halo::interface::color_pack_argb_from_real(&color), &point, radius, 0.0f);
         }
     }
     halo::render::rasterizer_effect_slot_release_active();
@@ -365,7 +365,7 @@ void halo::objects::LightningSystem::destroy(datum_index lightning_index)
 
 namespace {
 static uint8_t * &lightning_instances__as_lightning_render = reinterpret_cast<uint8_t * &>(lightning_instances);
-static uint32_t (*const color_pack_argb_from_real__as_lightning_render)(float *argb) = reinterpret_cast<uint32_t (*)(float *argb)>(&color_pack_argb_from_real);
+static uint32_t (*const color_pack_argb_from_real__as_lightning_render)(float *argb) = reinterpret_cast<uint32_t (*)(float *argb)>(&halo::interface::color_pack_argb_from_real);
 static float glow_random_unit_for_lightning(void)
 {
     halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);

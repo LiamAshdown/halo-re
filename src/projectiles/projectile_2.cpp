@@ -9,6 +9,7 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -17,7 +18,6 @@ extern data_array *player_data;
 extern real_vector3d *global_origin3d_pointer;
 extern game_main_globals *main_game_globals;
 extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind, int16_t noise, int32_t unused);
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);
@@ -148,7 +148,7 @@ int ProjectileHandle::update()
             real angle_b;
 
             if (((1u << (tracked_object->type & 0x1f)) & 3) && ((unit_data *)((uint8_t *)tracked_object + k_unit_data_offset))->controlling_player != k_datum_index_none) {
-                turn *= weapon_get_zoom_fov(k_guided_zoom_table_index, halo::main::globals().game_globals->difficulty);
+                turn *= halo::game::weapon_get_zoom_fov(k_guided_zoom_table_index, halo::main::globals().game_globals->difficulty);
             }
             {
                 real dx = self->base.bounding_center.x - tracked_object->bounding_center.x;

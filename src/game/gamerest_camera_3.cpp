@@ -6,12 +6,11 @@
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern game_time_globals *game_time;
-extern char camera_observer_find_best_target(real_point3d *observer_position, observer_target_cone *cone, real_vector3d *facing, datum_index exclude_object, int16_t team, void *out);
-extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, void *result);
 extern double sqrt(double x);
 extern double sin(double x);
@@ -41,7 +40,7 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
     uint8_t *aim_unit_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[aim_unit & 0xffff].data;
     real cone[5];
 
-    if (unit_get_current_weapon_autoaim_cone(aim_unit, (int16_t)(int8_t)aim_unit_obj[0x320], cone)) {
+    if (halo::game::unit_get_current_weapon_autoaim_cone(aim_unit, (int16_t)(int8_t)aim_unit_obj[0x320], cone)) {
         int16_t seat_state = 0;
         real_point3d camera_position;
         real_vector3d camera_direction;
@@ -66,8 +65,8 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
 
         target_direction = *fallback_facing;
         memset(record, 0, sizeof(record));
-        if (camera_observer_find_best_target(&camera_position, (observer_target_cone *)cone, &camera_direction,
-                ((struct player *)player)->unit, (int16_t)*(uint16_t *)&((struct player *)player)->team, record)) {
+        if (halo::game::camera_observer_find_best_target(&camera_position, (observer_target_cone *)cone, &camera_direction,
+                ((struct player *)player)->unit, (int16_t)*(uint16_t *)&((struct player *)player)->team, (observer_target_candidate *)record)) {
             target_direction.i = *(real *)(record + 0x04) - observer_position->x;
             target_direction.j = *(real *)(record + 0x08) - observer_position->y;
             target_direction.k = *(real *)(record + 0x0c) - observer_position->z;
@@ -114,7 +113,7 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::CameraObserver::update; forwards to the C++ implementation.

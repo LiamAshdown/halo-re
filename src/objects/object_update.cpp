@@ -11,9 +11,9 @@
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern float angle_delta_wrapped(float from, float to);
 extern double atan2(double y, double x);
 extern double fabs(double x);
 extern float fabsf(float x);
@@ -222,7 +222,7 @@ void halo::objects::ObjectUpdater::update_export_functions()
                 value = *output;
             } else {
                 float yaw = (float)fpatan(forward[0], forward[1]);
-                value = angle_delta_wrapped(halo::scenario::globals().scenario->local_north, yaw) * 0.15915494f + 0.5f;
+                value = halo::game::angle_delta_wrapped(halo::scenario::globals().scenario->local_north, yaw) * 0.15915494f + 0.5f;
                 value = value >= 0.0f ? clamp_to_one(value) : 0.0f;
             }
             break;
@@ -251,7 +251,7 @@ void halo::objects::ObjectUpdater::function_evaluate_input(float initial_angle_i
     float value;
     int16_t selector;
 
-    value = angle_delta_wrapped(initial_angle_input, initial_st0);
+    value = halo::game::angle_delta_wrapped(initial_angle_input, initial_st0);
     value = value * 0.15915494f + 0.5f;
     if (value < 0.0f) {
         value = 0.0f;
@@ -312,7 +312,7 @@ store_and_advance:
             }
             initial_st0 = (float)atan2((double)node->forward.j, (double)node->forward.k);
             initial_angle_input = *(float *)(global_scenario__as_object_function_evaluate_input + 0x4c);
-            value = angle_delta_wrapped(initial_angle_input, initial_st0);
+            value = halo::game::angle_delta_wrapped(initial_angle_input, initial_st0);
             value = value * 0.15915494f + 0.5f;
             if (value >= 0.0f) {
                 goto clamp_to_one;

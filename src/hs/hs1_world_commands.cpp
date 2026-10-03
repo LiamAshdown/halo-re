@@ -4,27 +4,18 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern datum_index player_index_from_unit_index(datum_index unit_index);
-extern void hud_waypoint_activate_for_player(datum_index player_index, datum_index target, int16_t kind, int16_t arrow_index, float vertical_offset);
-extern void hud_waypoint_activate_for_team(datum_index target, int16_t arrow_index, int16_t team, int16_t kind, float vertical_offset);
 extern uint8_t *breakable_surface_state;
-extern void cheat_make_selected_object_invincible(void);
-extern void cheat_make_player_invincible(int16_t local_player_slot);
 extern Globals *global_globals;
-extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t count);
-extern void cheat_all_weapons(void);
-extern void cheat_spawn_warthog(void);
-extern void cheat_teleport_to_camera(void);
 extern uint8_t ai_object_list_start_user_animation_until_failure(datum_index object_list_header_handle, datum_index graph_tag_id, const char *animation_name, uint8_t interpolate);
 extern void hs_damage_apply_at_location(int16_t location_index, uint32_t damage_effect);
 extern void hs_damage_apply_with_sound(datum_index object_index, uint32_t damage_effect);
-extern void hud_waypoint_deactivate_for_player(datum_index player_index, datum_index target, int16_t kind);
-extern void hud_waypoint_deactivate_for_team(int16_t kind, int16_t team, datum_index target);
 }
 
 namespace halo::hs {
@@ -41,10 +32,10 @@ void NavPointCommands::activate_nav_point_flag(int16_t function_index, uint32_t 
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        datum_index player = player_index_from_unit_index((datum_index)arguments[1]);
+        datum_index player = halo::game::player_index_from_unit_index((datum_index)arguments[1]);
 
         if (player != k_datum_index_none) {
-            hud_waypoint_activate_for_player(player, (datum_index)(int32_t)*(int16_t *)&arguments[2], 0,
+            halo::interface::hud_waypoint_activate_for_player(player, (datum_index)(int32_t)*(int16_t *)&arguments[2], 0,
                 *(int16_t *)&arguments[0], *(float *)&arguments[3]);
         }
         hs_thread_return(0, thread_index);
@@ -63,10 +54,10 @@ void NavPointCommands::activate_nav_point_object(int16_t function_index, uint32_
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    datum_index player = player_index_from_unit_index((datum_index)arguments[1]);
+    datum_index player = halo::game::player_index_from_unit_index((datum_index)arguments[1]);
 
     if (player != k_datum_index_none) {
-        hud_waypoint_activate_for_player(player, (datum_index)arguments[2], 1, *(int16_t *)&arguments[0],
+        halo::interface::hud_waypoint_activate_for_player(player, (datum_index)arguments[2], 1, *(int16_t *)&arguments[0],
             *(float *)&arguments[3]);
     }
     hs_thread_return(0, thread_index);
@@ -86,7 +77,7 @@ void NavPointCommands::activate_team_nav_point_flag(int16_t function_index, uint
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hud_waypoint_activate_for_team((datum_index)(int32_t)*(int16_t *)&arguments[2], *(int16_t *)&arguments[0],
+    halo::interface::hud_waypoint_activate_for_team((datum_index)(int32_t)*(int16_t *)&arguments[2], *(int16_t *)&arguments[0],
         *(int16_t *)&arguments[1], 0, *(float *)&arguments[3]);
     hs_thread_return(0, thread_index);
     }
@@ -104,7 +95,7 @@ void NavPointCommands::activate_team_nav_point_object(int16_t function_index, ui
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hud_waypoint_activate_for_team((datum_index)arguments[2], *(int16_t *)&arguments[0], *(int16_t *)&arguments[1], 1,
+    halo::interface::hud_waypoint_activate_for_team((datum_index)arguments[2], *(int16_t *)&arguments[0], *(int16_t *)&arguments[1], 1,
         *(float *)&arguments[3]);
     hs_thread_return(0, thread_index);
     }
@@ -122,10 +113,10 @@ void NavPointCommands::deactivate_nav_point_flag(int16_t function_index, uint32_
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        datum_index player = player_index_from_unit_index((datum_index)arguments[0]);
+        datum_index player = halo::game::player_index_from_unit_index((datum_index)arguments[0]);
 
         if (player != k_datum_index_none) {
-            hud_waypoint_deactivate_for_player(player, (datum_index)(int32_t)*(int16_t *)&arguments[1], 0);
+            halo::interface::hud_waypoint_deactivate_for_player(player, (datum_index)(int32_t)*(int16_t *)&arguments[1], 0);
         }
         hs_thread_return(0, thread_index);
     }
@@ -143,10 +134,10 @@ void NavPointCommands::deactivate_nav_point_object(int16_t function_index, uint3
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        datum_index player = player_index_from_unit_index((datum_index)arguments[0]);
+        datum_index player = halo::game::player_index_from_unit_index((datum_index)arguments[0]);
 
         if (player != k_datum_index_none) {
-            hud_waypoint_deactivate_for_player(player, (datum_index)arguments[1], 1);
+            halo::interface::hud_waypoint_deactivate_for_player(player, (datum_index)arguments[1], 1);
         }
         hs_thread_return(0, thread_index);
     }
@@ -164,7 +155,7 @@ void NavPointCommands::deactivate_team_nav_point_flag(int16_t function_index, ui
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hud_waypoint_deactivate_for_team(0, *(int16_t *)&arguments[0], (datum_index)(int32_t)*(int16_t *)&arguments[1]);
+    halo::interface::hud_waypoint_deactivate_for_team(0, *(int16_t *)&arguments[0], (datum_index)(int32_t)*(int16_t *)&arguments[1]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -181,7 +172,7 @@ void NavPointCommands::deactivate_team_nav_point_object(int16_t function_index, 
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hud_waypoint_deactivate_for_team(1, *(int16_t *)&arguments[0], (datum_index)arguments[1]);
+    halo::interface::hud_waypoint_deactivate_for_team(1, *(int16_t *)&arguments[0], (datum_index)arguments[1]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -298,7 +289,7 @@ const ScriptCommandGroup &WorldStateCommands::commands()
  */
 void CheatCommands::cheat_active_camouflage(int16_t function_index, uint32_t thread_index, char first)
 {
-    cheat_make_selected_object_invincible();
+    halo::game::cheat_make_selected_object_invincible();
     hs_thread_return(0, thread_index);
 }
 
@@ -314,7 +305,7 @@ void CheatCommands::cheat_active_camouflage_local_player(int16_t function_index,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        cheat_make_player_invincible(*(int16_t *)arguments);
+        halo::game::cheat_make_player_invincible(*(int16_t *)arguments);
         hs_thread_return(0, thread_index);
     }
 }
@@ -328,7 +319,7 @@ void CheatCommands::cheat_all_powerups(int16_t function_index, uint32_t thread_i
 {
     TagDependency *list = *(int32_t *)&global_globals->cheat_powerups.count != 0 ? (TagDependency *)global_globals->cheat_powerups.pointer : 0;
 
-    cheat_spawn_objects_near_camera(list, *(int16_t *)&global_globals->cheat_powerups.count);
+    halo::game::cheat_spawn_objects_near_camera(list, *(int16_t *)&global_globals->cheat_powerups.count);
     hs_thread_return(0, thread_index);
 }
 
@@ -342,7 +333,7 @@ void CheatCommands::cheat_all_vehicles(int16_t function_index, uint32_t thread_i
     if (*(int32_t *)&global_globals->multiplayer_information.count != 0) {
         uint8_t *element = (uint8_t *)global_globals->multiplayer_information.pointer;
 
-        cheat_spawn_objects_near_camera(*(TagDependency **)(element + 0x24), (int16_t)*(uint16_t *)(element + 0x20));
+        halo::game::cheat_spawn_objects_near_camera(*(TagDependency **)(element + 0x24), (int16_t)*(uint16_t *)(element + 0x20));
     }
     hs_thread_return(0, thread_index);
 }
@@ -354,7 +345,7 @@ void CheatCommands::cheat_all_vehicles(int16_t function_index, uint32_t thread_i
  */
 void CheatCommands::run_cheat_all_weapons(int16_t function_index, uint32_t thread_index, char first)
 {
-    cheat_all_weapons();
+    halo::game::cheat_all_weapons();
     hs_thread_return(0, thread_index);
 }
 
@@ -365,7 +356,7 @@ void CheatCommands::run_cheat_all_weapons(int16_t function_index, uint32_t threa
  */
 void CheatCommands::run_cheat_spawn_warthog(int16_t function_index, uint32_t thread_index, char first)
 {
-    cheat_spawn_warthog();
+    halo::game::cheat_spawn_warthog();
     hs_thread_return(0, thread_index);
 }
 
@@ -376,7 +367,7 @@ void CheatCommands::run_cheat_spawn_warthog(int16_t function_index, uint32_t thr
  */
 void CheatCommands::run_cheat_teleport_to_camera(int16_t function_index, uint32_t thread_index, char first)
 {
-    cheat_teleport_to_camera();
+    halo::game::cheat_teleport_to_camera();
     hs_thread_return(0, thread_index);
 }
 

@@ -1,11 +1,14 @@
 #include "halo/interface/ifr1_hud_chat_listbox.hpp"
+#include "halo/interface/api.hpp"
+
+namespace halo::interface {
 
 /**
  * C ABI entry point; forwards to halo::interface::HudChatListbox::clear.
  *
  * @address 0x4ab400
  */
-extern "C" void hud_chat_listbox_clear(void)
+void hud_chat_listbox_clear(void)
 {
     halo::interface::HudChatListbox::clear();
 }
@@ -15,7 +18,7 @@ extern "C" void hud_chat_listbox_clear(void)
  *
  * @address 0x4ab240
  */
-extern "C" uint32_t hud_chat_listbox_remove_oldest(void)
+uint32_t hud_chat_listbox_remove_oldest(void)
 {
     return halo::interface::HudChatListbox::remove_oldest();
 }
@@ -25,7 +28,9 @@ extern "C" uint32_t hud_chat_listbox_remove_oldest(void)
  *
  * @address 0x4ab300
  */
-extern "C" void hud_chat_listbox_update(void)
+void hud_chat_listbox_update(void)
 {
     halo::interface::HudChatListbox::update();
+}
+
 }

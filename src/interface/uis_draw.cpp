@@ -20,20 +20,15 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
-extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
-                                           void **out_data, int32_t *out_offset);
 extern uint16_t *ui_button_caption[0x28];
 extern double fsin(double x);
 extern double fcos(double x);
 extern int32_t ui_network_wait_start_time;
 extern datum_index trouble_brewing_bitmap_tag;
-extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
-extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
-                                int16_t *clip_rect, uint32_t vertex_color);
-extern int16_t ui_button_prompt_index_from_string(uint16_t *text);
 extern uint16_t formatted_prompt_scratch[0x100];
 extern uint16_t prompt_percent_text[];
 extern uint16_t hud_text_quote[];
@@ -48,8 +43,6 @@ extern HUDGlobals *hud_globals_tag_data;
 extern int32_t __ftol(double x);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);
-extern void ui_widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor, Rectangle2D *origin);
-extern void ui_button_prompt_draw_icon(HUDGlobalsButtonIcon *icon);
 }
 
 namespace halo::ui {
@@ -100,7 +93,7 @@ void UiDraw::button_prompt_draw_icon(HUDGlobalsButtonIcon *icon)
         milliseconds = (uint32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
         frame = (int32_t)((milliseconds * 30u / 1000u) / (uint32_t)(int32_t)icon->frame_rate);
     }
-    hud_meter_resolve_bitmap_frame(bitmap_tag, (int16_t)icon->sequence_index, (uint16_t)frame, (void **)&zero,
+    halo::interface::hud_meter_resolve_bitmap_frame(bitmap_tag, (int16_t)icon->sequence_index, (uint16_t)frame, (void **)&zero,
                                    (int32_t *)&counter);
 }
 
@@ -390,11 +383,11 @@ void UiDraw::draw_trouble_brewing_indicator(void)
             BitmapData *bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(trouble_brewing_bitmap_tag, 0, 0);
 
             if (bitmap_data != 0) {
-                ui_draw_screen_quad(0, (int16_t *)&rect, (int32_t)bitmap_data, 0, 0xffffffff);
+                halo::interface::ui_draw_screen_quad(0, (int16_t *)&rect, (int32_t)bitmap_data, 0, 0xffffffff);
                 return;
             }
         }
-        ui_draw_filled_rectangle(0x80ff0000, &rect);
+        halo::interface::ui_draw_filled_rectangle(0x80ff0000, &rect);
     }
 }
 
@@ -412,7 +405,7 @@ uint8_t UiDraw::string_has_button_prompt_token(uint16_t *text)
 
     while (text != (uint16_t *)0 && (percent = (uint16_t *)wcschr((const wchar_t *)text, L'%')) != (uint16_t *)0) {
         text = percent + 1;
-        if (ui_button_prompt_index_from_string(text) != 0xffff) {
+        if (halo::interface::ui_button_prompt_index_from_string(text) != 0xffff) {
             return 1;
         }
     }
@@ -440,7 +433,7 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
 
         if (percent == (uint16_t *)0) {
             if (cursor != (uint16_t *)0) {
-                ui_widget_draw_prompt_span(cursor, &cursor_rect, bounds);
+                halo::interface::ui_widget_draw_prompt_span(cursor, &cursor_rect, bounds);
             }
             halo::text::globals().ui_prompt_clip_x = 0;
             halo::text::globals().ui_prompt_clip_y = 0;
@@ -451,7 +444,7 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
         draw_span_inline(bounds, &cursor_rect, cursor);
         cursor = next;
 
-        token = ui_button_prompt_index_from_string(next);
+        token = halo::interface::ui_button_prompt_index_from_string(next);
         if (token == -1) {
             draw_span_inline(bounds, &cursor_rect, prompt_percent_text);
         } else {
@@ -466,11 +459,11 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
 
                     if (halo::input::input_get_last_used_binding((int16_t)prompt_key_token_table[token], (control_binding_descriptor *)binding) != 0) {
                         halo::input::input_get_binding_display_name((control_binding_descriptor *)binding, key_name);
-                        ui_widget_draw_prompt_span(hud_text_quote, &cursor_rect, bounds);
-                        ui_widget_draw_prompt_span(key_name, &cursor_rect, bounds);
-                        ui_widget_draw_prompt_span(hud_text_quote, &cursor_rect, bounds);
+                        halo::interface::ui_widget_draw_prompt_span(hud_text_quote, &cursor_rect, bounds);
+                        halo::interface::ui_widget_draw_prompt_span(key_name, &cursor_rect, bounds);
+                        halo::interface::ui_widget_draw_prompt_span(hud_text_quote, &cursor_rect, bounds);
                     } else {
-                        ui_widget_draw_prompt_span(hud_text_unbound, &cursor_rect, bounds);
+                        halo::interface::ui_widget_draw_prompt_span(hud_text_unbound, &cursor_rect, bounds);
                     }
                     goto next_span;
                 }
@@ -511,7 +504,7 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
                                ((uint32_t)(int32_t)(icon_color.red * 255.0f) << 16) |
                                ((uint32_t)(int32_t)(icon_color.alpha * 255.0f) << 24);
                 (void)packed_color;
-                ui_button_prompt_draw_icon(icon);
+                halo::interface::ui_button_prompt_draw_icon(icon);
                 bounds->left = (int16_t)(bounds->left + 1);
                 icon->flags = saved_flags;
                 icon->width_offset = saved_width;

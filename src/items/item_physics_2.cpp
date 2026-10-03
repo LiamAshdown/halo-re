@@ -7,6 +7,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -17,7 +18,6 @@ extern real_vector3d *global_origin3d_pointer;
 extern real_vector3d *global_down3d_pointer;
 extern char s_ground_point_marker[];
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
-extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
 extern void item_compute_rotation(uint32_t object_index);
 extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index);
 extern double fabs(double x);
@@ -92,7 +92,7 @@ uint8_t item_ref::update()
                 } else if (!(speed_factor <= 1.0f)) {
                     speed_factor = 1.0f;
                 }
-                if (*(datum_index *)&((Item *)tag)->material_effects.tag_id != k_datum_index_none && any_local_player_within_10_units(&hit.point)) {
+                if (*(datum_index *)&((Item *)tag)->material_effects.tag_id != k_datum_index_none && halo::game::any_local_player_within_10_units(&hit.point)) {
                     halo::effects::material_effects_play_at_marker(*(datum_index *)&((Item *)tag)->material_effects.tag_id, 8, *(int16_t *)&hit.material_type,
                                                     (uint32_t *)&hit.leaf, *(uint32_t *)&speed_factor, &hit.point,
                                                     &hit.plane.normal);

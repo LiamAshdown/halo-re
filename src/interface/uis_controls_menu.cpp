@@ -15,21 +15,17 @@
 #include "halo/interface/uis_controls_menu.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t profile_globals_block[0x60a4];
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
 extern heap *widget_memory_pool;
-extern void ui_list_free_all(void);
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern int32_t profile_slot_lookup_cache_00692ac8;
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
-extern uint64_t game_variant_option_default_by_index(void);
 extern uint8_t directsound_initialized;
 extern uint8_t directsound_eax_available;
-extern void ui_controls_populate_sensitivity_row(widget_instance *widget, const uint8_t *profile_record);
-extern void widget_play_sound_effect(int16_t effect_id);
 }
 
 namespace halo::ui {
@@ -82,7 +78,7 @@ void UiControlsMenu::controls_4wide_selector_refresh(widget_instance *widget)
         uint8_t profile_copy[0x2000];
 
         memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
+        halo::interface::set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
     }
 
     cursor = widget->first_child;
@@ -109,7 +105,7 @@ uint32_t UiControlsMenu::controls_options_free_list(widget_instance *widget)
         widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
         widget->list_items = (void *)0;
     }
-    ui_list_free_all();
+    halo::interface::ui_list_free_all();
     return 1;
 }
 
@@ -184,7 +180,7 @@ uint8_t UiControlsMenu::controls_options_reload_profile(void)
             uint8_t profile_copy[0x1ffc];
 
             memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-            player_profile_load(0, profile_copy, halo::saved_games::globals().player_profile_slots_handle);
+            halo::interface::player_profile_load(0, profile_copy, halo::saved_games::globals().player_profile_slots_handle);
         }
         selected_saved_item = -1;
     }
@@ -206,12 +202,7 @@ void UiControlsMenu::controls_populate_bind_rows(widget_instance *widget, uint32
     int shift;
 
     if (!disabled) {
-        uint64_t result = game_variant_option_default_by_index();
-
-        stop = (widget_instance *)(int32_t)(uint32_t)(result >> 32);
-        packed = (uint32_t)result;
-        fallback = (uint16_t)(int32_t)stop;
-        enable_state = (uint8_t)(int32_t)stop;
+        packed = halo::game::game_variant_option_default_by_index(packed & 0xf);
     }
 
     for (shift = 4; shift <= 19; shift += 3) {
@@ -329,8 +320,8 @@ void UiControlsMenu::controls_populate_sensitivity_row(widget_instance *widget, 
  */
 uint32_t UiControlsMenu::controls_sensitivity_row_refresh(widget_instance *widget, const uint8_t *profile_record)
 {
-    ui_controls_populate_sensitivity_row(widget, profile_record);
-    widget_play_sound_effect(0);
+    halo::interface::ui_controls_populate_sensitivity_row(widget, profile_record);
+    halo::interface::widget_play_sound_effect(0);
     return 1;
 }
 

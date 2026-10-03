@@ -8,6 +8,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_attempt_grenade_throw {
 extern "C" {
@@ -131,7 +132,6 @@ extern data_array *actor_data;
 extern data_array *encounter_data;
 extern game_time_globals *game_time;
 
-extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 
 extern uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *out_point, datum_index *out_target_handle, int32_t *out_relationship);
 extern uint8_t actor_score_blast_area_clear(datum_index actor_index, float blast_radius, float safety_radius, real_point3d *point, int16_t *out_count);
@@ -175,7 +175,7 @@ uint8_t halo::ai::grenade_ops::can_throw_grenade_at_target()
         int32_t squad_deadline = enc->last_grenade_time;
 
         random_wait = ((ActorVariant *)variant)->encounter_grenade_timeout *
-                      weapon_get_zoom_fov_resolved(0x18, ((struct encounter *)enc)->team);
+                      halo::game::weapon_get_zoom_fov_resolved(0x18, ((struct encounter *)enc)->team);
         if (self->playfight != 0) {
             random_wait = random_wait + random_wait;
         }
@@ -416,7 +416,6 @@ extern data_array *actor_data;
 extern ai_globals *ai_globals_ptr;
 extern game_time_globals *game_time;
 
-extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index);
 extern uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit);
 }
@@ -458,7 +457,7 @@ uint8_t halo::ai::grenade_ops::consider_grenade_throw()
 
     {
 
-        float scaled = variant->grenade_chance * weapon_get_zoom_fov_resolved(0x17, ((struct actor *)self)->team);
+        float scaled = variant->grenade_chance * halo::game::weapon_get_zoom_fov_resolved(0x17, ((struct actor *)self)->team);
         float roll;
 
         self->last_grenade_check_time = now;

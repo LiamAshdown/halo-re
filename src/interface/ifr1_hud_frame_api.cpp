@@ -1,4 +1,7 @@
 #include "halo/interface/ifr1_hud_frame.hpp"
+#include "halo/interface/api.hpp"
+
+namespace halo::interface {
 
 /**
  * C ABI entry point; forwards to halo::interface::HudFrame::draw_damage_indicators.
@@ -6,7 +9,7 @@
  *
  * @address 0x4b14c0
  */
-extern "C" void hud_draw_damage_indicators(int16_t local_player_index)
+void hud_draw_damage_indicators(int16_t local_player_index)
 {
     halo::interface::HudFrame::draw_damage_indicators(local_player_index);
 }
@@ -16,7 +19,7 @@ extern "C" void hud_draw_damage_indicators(int16_t local_player_index)
  *
  * @address 0x4b2ac0
  */
-extern "C" void hud_draw_grenade_interface(int16_t local_player_index, datum_index unit_index)
+void hud_draw_grenade_interface(int16_t local_player_index, datum_index unit_index)
 {
     halo::interface::HudFrame::draw_grenade_interface(local_player_index, unit_index);
 }
@@ -26,7 +29,7 @@ extern "C" void hud_draw_grenade_interface(int16_t local_player_index, datum_ind
  *
  * @address 0x4b1e20
  */
-extern "C" void hud_draw_weapon_interface(player *p)
+void hud_draw_weapon_interface(player *p)
 {
     halo::interface::HudFrame::draw_weapon_interface(p);
 }
@@ -37,7 +40,7 @@ extern "C" void hud_draw_weapon_interface(player *p)
  *
  * @address 0x4acef0
  */
-extern "C" uint8_t hud_player_weapon_ammo_state(const player *p, weapon_hud_ammo_state *out)
+uint8_t hud_player_weapon_ammo_state(const player *p, weapon_hud_ammo_state *out)
 {
     return halo::interface::HudFrame::player_weapon_ammo_state(p, out);
 }
@@ -47,7 +50,7 @@ extern "C" uint8_t hud_player_weapon_ammo_state(const player *p, weapon_hud_ammo
  *
  * @address 0x4b0320
  */
-extern "C" void hud_render_unit_interface(player *p)
+void hud_render_unit_interface(player *p)
 {
     halo::interface::HudFrame::render_unit_interface(p);
 }
@@ -57,7 +60,7 @@ extern "C" void hud_render_unit_interface(player *p)
  *
  * @address 0x4a9780
  */
-extern "C" void hud_state_allocate(void)
+void hud_state_allocate(void)
 {
     halo::interface::HudFrame::state_allocate();
 }
@@ -67,7 +70,7 @@ extern "C" void hud_state_allocate(void)
  *
  * @address 0x4a98d0
  */
-extern "C" void hud_state_reset(void)
+void hud_state_reset(void)
 {
     halo::interface::HudFrame::state_reset();
 }
@@ -77,7 +80,7 @@ extern "C" void hud_state_reset(void)
  *
  * @address 0x4a9990
  */
-extern "C" void hud_update_dispatch(void)
+void hud_update_dispatch(void)
 {
     halo::interface::HudFrame::update_dispatch();
 }
@@ -88,7 +91,7 @@ extern "C" void hud_update_dispatch(void)
  *
  * @address 0x4a9b80
  */
-extern "C" void hud_update_interaction_prompt(datum_index player_index)
+void hud_update_interaction_prompt(datum_index player_index)
 {
     halo::interface::HudFrame::update_interaction_prompt(player_index);
 }
@@ -98,7 +101,9 @@ extern "C" void hud_update_interaction_prompt(datum_index player_index)
  *
  * @address 0x4a99f0
  */
-extern "C" void hud_update_player(void)
+void hud_update_player(void)
 {
     halo::interface::HudFrame::update_player();
+}
+
 }

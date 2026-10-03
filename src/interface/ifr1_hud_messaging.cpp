@@ -9,12 +9,11 @@
 #include "halo/cseries/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
 extern game_time_globals *game_time;
-extern hud_message_slot *hud_message_find_slot(int32_t source, hud_player_messaging_state *record,
-                                               uint8_t source_kind);
 extern int32_t hud_chat_message_count;
 extern int32_t hud_chat_message_expiry[8];
 extern void *chat_gui_root_handle;
@@ -24,21 +23,14 @@ extern chat_gui_find_child_fn chat_gui_find_child;
 extern chat_gui_set_property_int_fn chat_gui_set_property_int;
 extern chat_gui_finalize_fn chat_gui_finalize;
 extern chat_gui_release_fn chat_gui_release;
-extern uint32_t hud_chat_listbox_remove_oldest(void);
 extern HUDGlobals *hud_globals_tag_data;
 extern player_globals *local_player_globals;
 extern uint16_t *empty_wide_string_pointer;
-extern void chimera__hud_message(int16_t local_player_index, const uint16_t *text);
-extern uint16_t *hud_get_message_string(int32_t message_index);
 extern data_array *player_data;
 extern void *global_zero_vector3d_pointer;
-extern int16_t item_type_to_message_stage(int16_t item_type_code);
-extern int16_t item_type_to_animation_stage(int16_t message_stage);
 extern int16_t network_game_mode;
 extern network_server_globals *network_server;
 extern uint8_t network_message_scratch[0x7ff8];
-extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
-                                 int16_t count);
 extern int32_t message_delta_encode_message(void *buffer, int32_t buffer_size, int32_t flag, int32_t message_type,
                                             int32_t changed_offset, void **items, int32_t type_offset,
                                             int32_t count, char force_changed);
@@ -63,7 +55,7 @@ void HudMessaging::hud_message(int16_t local_player_index, const wchar_t *text)
     if (local_player_index != -1) {
         hud_player_messaging_state *player_record =
             (hud_player_messaging_state *)((uint8_t *)hud_messaging + local_player_index * 0x460);
-        hud_message_slot *slot = hud_message_find_slot(-1, player_record, 0);
+        hud_message_slot *slot = halo::interface::hud_message_find_slot(-1, player_record, 0);
 
         wcsncpy((wchar_t *)slot->text, text, 0x3f);
         slot->source = -1;
@@ -88,7 +80,7 @@ void HudMessaging::multiplayer_message(const wchar_t *text)
     int64_t now_ms;
 
     if (hud_chat_message_count > 7) {
-        hud_chat_listbox_remove_oldest();
+        halo::interface::hud_chat_listbox_remove_oldest();
     }
 
     if (chat_gui_find_object != 0) {
@@ -126,7 +118,7 @@ void HudMessaging::add_item_message(int16_t local_player_index, int32_t source, 
         return;
     }
     record = &hud_messaging->players[local_player_index];
-    slot = hud_message_find_slot(source, record, source_kind);
+    slot = halo::interface::hud_message_find_slot(source, record, source_kind);
     if (slot->active == 0) {
         slot->count = 0;
     }
@@ -179,7 +171,7 @@ void HudMessaging::display_checkpoint_message(uint8_t is_begin)
                 text = halo::text::text_string_list_get_string((datum_index)string_list_tag_id, message_index);
             }
         }
-        chimera__hud_message(0, text);
+        halo::interface::chimera__hud_message(0, (const wchar_t *)text);
     }
 }
 
@@ -201,8 +193,8 @@ void HudMessaging::display_loading_message(uint8_t is_begin)
     }
 
     if (message_index != -1) {
-        chimera__hud_message(local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1,
-                             hud_get_message_string(message_index));
+        halo::interface::chimera__hud_message(local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1,
+                             (const wchar_t *)(halo::interface::hud_get_message_string(message_index)));
     }
 }
 
@@ -245,7 +237,7 @@ void HudMessaging::message_broadcast_to_local_players(const uint16_t *text)
     record = (player *)halo::memory::data_iterator_next(&iterator);
     while (record != (player *)0) {
         if (record->local_player_index != -1) {
-            chimera__hud_message(record->local_player_index, text);
+            halo::interface::chimera__hud_message(record->local_player_index, (const wchar_t *)text);
         }
         record = (player *)halo::memory::data_iterator_next(&iterator);
     }
@@ -356,11 +348,11 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
         return;
     }
 
-    message_stage = item_type_to_message_stage(item_type_code);
+    message_stage = halo::interface::item_type_to_message_stage(item_type_code);
     if (message_stage == -1) {
         return;
     }
-    animation_stage = item_type_to_animation_stage(message_stage);
+    animation_stage = halo::interface::item_type_to_animation_stage(message_stage);
     if (animation_stage == -1) {
         return;
     }
@@ -421,7 +413,7 @@ void HudMessaging::post_item_message(int16_t count, int32_t source, uint8_t kind
     network_machine *machine;
 
     if (network_game_mode == 0) {
-        hud_add_item_message(local_player_index, source, kind, count);
+        halo::interface::hud_add_item_message(local_player_index, source, kind, count);
         return;
     }
     payload.item_definition = source;

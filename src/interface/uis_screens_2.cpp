@@ -15,6 +15,7 @@
 
 #include "halo/interface/uis_screens.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern network_client_globals *network_client;
@@ -30,9 +31,6 @@ extern game_engine_state game_engine_state_value;
 extern widget_instance *ui_root_widget[1];
 extern uint8_t widget_memory_pool_valid;
 extern widget_history_node *ui_widget_history[3];
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection);
 }
 
 namespace halo::ui {
@@ -127,7 +125,7 @@ uint32_t UiScreens::check_for_pause_game(void)
         }
     }
 
-    chimera__load_ui_widget(tag_path, (datum_index)-1, (widget_instance *)0, 0,
+    halo::interface::chimera__load_ui_widget(tag_path, (datum_index)-1, (widget_instance *)0, 0,
                              (datum_index)-1, (datum_index)-1, -1);
     handled = 1;
 

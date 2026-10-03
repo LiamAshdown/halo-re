@@ -5,6 +5,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -15,7 +16,6 @@ extern int32_t hs_compile_error_offset;
 extern char hs_compile_error_buffer[k_hs_error_buffer_size];
 extern int16_t hs_find_function_by_name(char *name);
 extern void hs_format_function_signature(int16_t function_index, char *out);
-extern void chimera__console_out(char *text);
 }
 
 namespace halo::hs::part3 {
@@ -118,21 +118,21 @@ void FunctionTable::help_print_function(char *name) const
     function_index = hs_find_function_by_name(name);
     if (function_index != -1) {
         hs_format_function_signature(function_index, buffer);
-        chimera__console_out(buffer);
+        halo::interface::chimera__console_out((ColorARGB *)0, buffer);
         strcpy(buffer, hs_function_definitions[function_index]->info);
         newline = strchr(buffer, '\n');
         if (newline == 0) {
-            chimera__console_out(buffer);
+            halo::interface::chimera__console_out((ColorARGB *)0, buffer);
             return;
         }
         line = buffer;
         while (line != 0) {
             if (newline == 0) {
-                chimera__console_out(line);
+                halo::interface::chimera__console_out((ColorARGB *)0, line);
                 return;
             }
             *newline = '\0';
-            chimera__console_out(line);
+            halo::interface::chimera__console_out((ColorARGB *)0, line);
             line = newline + 1;
             newline = strchr(line, '\n');
         }

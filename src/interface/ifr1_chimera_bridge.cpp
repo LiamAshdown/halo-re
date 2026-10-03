@@ -9,6 +9,7 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -29,12 +30,8 @@ extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t network_join_error_reason;
 extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence,
                                                      int16_t frame);
-extern uint32_t color_argb_scale_alpha(uint32_t packed_color, float scale);
-extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
-                                int16_t *clip_rect, uint32_t vertex_color);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);
-extern void chat_close(void);
 extern void NNCancel(datum_index tag);
 extern uint8_t main_menu_reload_pending;
 extern uint8_t ui_input_batch_mode;
@@ -42,23 +39,11 @@ extern uint8_t loading_thread_result;
 extern loading_thread_record *loading_thread;
 extern int16_t network_join_error_code;
 extern datum_index cached_saved_game_something;
-extern void player_profile_check_storage_and_defaults(void);
-extern void widget_close_all(void);
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection);
-extern void display_error(int16_t error_string_index, int32_t unknown, uint8_t modal, uint8_t is_error);
-extern void main_menu_play_title_music(void);
-extern void virtual_keyboard_initialize(void);
 extern datum_index ui_cursor_bitmap;
 extern uint8_t ui_widget_opened;
 extern heap *widget_memory_pool;
 extern widget_instance *ui_root_widget[1];
 extern widget_history_node *ui_widget_history[3];
-extern void widget_close(widget_instance *widget);
-extern void list_node_prepend(widget_history_node *template_record, widget_history_node **head);
-extern void widget_initialize_from_tag(widget_instance *widget, datum_index tag_index, widget_instance *parent,
-                                       uint16_t controller_index, UIWidgetDefinition *tag);
 extern void sound_looping_stop(datum_index sound_tag);
 extern void sound_stop_all(void);
 }
@@ -113,7 +98,7 @@ void ChimeraBridge::do_show_loading_screen(void)
             chat_state_00719a9a = 0;
             chat_state_00719a79 = 0;
             network_host_handoff_requested = 1;
-            chat_close();
+            halo::interface::chat_close();
             return;
         case 3:
             split_screen_quit_prompt_string = 0xffff;
@@ -145,7 +130,7 @@ void ChimeraBridge::do_show_loading_screen(void)
     }
 
     bitmap_data = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(background, 0, 0));
-    packed_color = color_argb_scale_alpha(0xffffffff, alpha);
+    packed_color = halo::interface::color_argb_scale_alpha(0xffffffff, alpha);
     text_color.alpha = alpha;
     text_color.red = 1.0f;
     text_color.green = 1.0f;
@@ -155,7 +140,7 @@ void ChimeraBridge::do_show_loading_screen(void)
     bounds.bottom = 0x1e0;
     bounds.right = 0x280;
     if (bitmap_data != 0) {
-        ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, (int16_t *)0,
+        halo::interface::ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, (int16_t *)0,
                             packed_color);
     }
     halo::text::text_set_render_context(font, &text_color, -1, 2, 0);
@@ -235,23 +220,23 @@ void ChimeraBridge::load_main_menu(void)
         ui_input_batch_mode = 1;
         loading_thread_result = 0;
         loading_thread = (loading_thread_record *)0;
-        player_profile_check_storage_and_defaults();
+        halo::interface::player_profile_check_storage_and_defaults();
         ui_input_batch_mode = 0;
         halo::input::input_time_base_resync();
     }
     halo::input::input_queue_sample_time_update();
-    widget_close_all();
-    chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, 0xffff,
+    halo::interface::widget_close_all();
+    halo::interface::chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, 0xffff,
                             (datum_index)-1, (datum_index)-1, -1);
     if (network_join_error_code != -1) {
-        display_error(network_join_error_code, -1, 1, 0);
+        halo::interface::display_error(network_join_error_code, -1, 1, 0);
         network_join_error_code = -1;
     }
     if (halo::main::globals().menu_music_pending == 0) {
-        main_menu_play_title_music();
+        halo::interface::main_menu_play_title_music();
     }
     cached_saved_game_something = (datum_index)-1;
-    virtual_keyboard_initialize();
+    halo::interface::virtual_keyboard_initialize();
     main_menu_reload_pending = 0;
 }
 
@@ -294,7 +279,7 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
 
         if (previous_root != (widget_instance *)0) {
             previous_controller = previous_root->controller_index;
-            widget_close(previous_root);
+            halo::interface::widget_close(previous_root);
         }
         ui_root_widget[slot] = widget;
 
@@ -308,7 +293,7 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
                 history_template.list_definition = history_list_definition;
                 history_template.selection = history_selection;
                 history_template.controller_index = previous_controller;
-                list_node_prepend(&history_template, &ui_widget_history[slot]);
+                halo::interface::list_node_prepend(&history_template, &ui_widget_history[slot]);
             }
         }
     }
@@ -323,7 +308,7 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
         default: break;
         }
     }
-    widget_initialize_from_tag(widget, tag_index, parent, controller_index, tag);
+    halo::interface::widget_initialize_from_tag(widget, tag_index, parent, controller_index, tag);
     return widget;
 }
 
@@ -352,7 +337,7 @@ void ChimeraBridge::main_menu_music(uint8_t finalize_render_frame)
         halo::rasterizer::rasterizer_reset_device_if_needed();
     }
     if (halo::main::globals().menu_music_pending == 0) {
-        main_menu_play_title_music();
+        halo::interface::main_menu_play_title_music();
     }
 }
 

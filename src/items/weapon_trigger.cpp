@@ -5,12 +5,13 @@
 #include "halo/items/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
 extern char s_primary_trigger_marker[];
 extern char s_secondary_trigger_marker[];
-extern uint32_t camera_observer_update(datum_index player_index, real_point3d *observer_position, real_vector3d *fallback_facing);
 extern uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point3d *target_point, real_vector3d *out_direction, float *out_698);
 extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index, int16_t distribution_function, real distribution_angle, uint32_t flags);
 extern double fabs(double x);
@@ -18,11 +19,7 @@ extern double sqrt(double x);
 extern double cos(double x);
 extern double sin(double x);
 extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force);
-extern uint32_t local_player_index_for_weapon(datum_index item_index);
-extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
-extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
 extern int16_t network_game_mode;
-extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code);
 extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag, real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override, uint8_t use_high_arc, real_vector3d *out_direction, real *out_speed, real *out_time_or_fraction, real *out_range_or_length, uint8_t *out_used_straight_line);
 void halo::items::trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint32_t role);
 void halo::items::weapon_trigger_become_charged(datum_index item_index, int16_t trigger_index);
@@ -149,7 +146,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
                 origin.x = origin.x + forward.i * x + left.i * y + up.i * z;
                 origin.y = origin.y + forward.j * x + left.j * y + up.j * z;
                 origin.z = origin.z + forward.k * x + left.k * y + up.k * z;
-                target = camera_observer_update(player, &origin, &forward);
+                target = halo::game::camera_observer_update(player, &origin, &forward);
             } else if (actor != k_datum_index_none) {
                 target = actor_compute_grenade_aim_direction(actor, &origin, &forward, &error);
             }
@@ -349,10 +346,10 @@ void weapon_trigger_ref::become_charged(int16_t trigger_index)
     wd->triggers[trigger_index].effect_state = _weapon_trigger_effect_charged;
 
     halo::items::weapon_set_state(item_index, trigger_index + 7, 1);
-    action_handle = local_player_index_for_weapon(item_index);
-    first_person_weapon_process_action(action_handle, 0x0e);
+    action_handle = halo::interface::local_player_index_for_weapon(item_index);
+    halo::interface::first_person_weapon_process_action(action_handle, 0x0e);
     if ((int16_t)action_handle == -1) {
-        hud_play_pickup_notification(item_index, 0xe);
+        halo::interface::hud_play_pickup_notification(item_index, 0xe);
     }
 }
 
@@ -403,7 +400,7 @@ void weapon_trigger_ref::begin_reload(int16_t magazine_index, int8_t is_client_p
             halo::items::weapon_set_state(item_index, magazine_index + 5, 0);
             halo::items::weapon_play_trigger_tag_effect(item_index, *(datum_index *)&magazine_tag->reloading_effect.tag_id,
                 0.0f, 0.0f);
-            weapon_action_notify_for_weapon(item_index, magazine->rounds_loaded != 0 ? 10 : 9);
+            halo::interface::weapon_action_notify_for_weapon(item_index, magazine->rounds_loaded != 0 ? 10 : 9);
 
             if (weapon_tag->weapon_type == 1) {
                 int16_t remaining = magazine_tag->rounds_loaded_maximum - magazine->rounds_loaded;

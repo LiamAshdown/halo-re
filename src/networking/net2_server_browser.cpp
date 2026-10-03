@@ -28,16 +28,16 @@
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t playlist_profiles_need_defaults;
 extern void playlist_profile_create_default_profiles_on_disk(void);
 extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_ids, int32_t flag);
 extern uint8_t saved_game_get_variant(int32_t saved_game_id, uint16_t *out_name);
-extern void game_engine_apply_current_custom_variant(void);
 extern void * console_color_00685214;
 extern void * actor_mode_default_look_weights;
-extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern void * server_browser_join_target;
 extern uint8_t server_browser_join_target_has_password;
 extern uint16_t network_join_target_address[128];
@@ -64,9 +64,7 @@ extern heap * widget_memory_pool;
 extern char k_empty_string[];
 extern wchar_t empty_string[];
 extern int32_t network_join_request_resolve_host(void);
-extern void widget_close_all(void);
 extern uint8_t input_get_key_state(int16_t key_index);
-extern void widget_play_sound_effect(int16_t effect_id);
 extern void master_server_process_pending_requests(void);
 extern int32_t SBServerHasFullKeys(void *entry);
 extern int32_t ServerBrowserState(void *engine);
@@ -97,11 +95,9 @@ extern int32_t server_browser_query_elapsed_ms;
 extern server_list_globals server_list;
 extern int32_t network_host_edit_field_00719410;
 extern int32_t SBServerGetBoolValue(void *entry, const char *key, int32_t default_value);
-extern void virtual_keyboard_open(int32_t screen_id, int32_t field_id);
 extern char * SBServerGetStringValue(void *entry, const char *key, const char *default_value);
 extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value);
 extern int32_t SBServerGetPing(void *entry);
-extern void map_list_get_friendly_level_name(const char *map_name, wchar_t out_buffer[0x20]);
 extern const wchar_t PTR_s_parameter_handles_0063fff0_0x35_006607a0[];
 extern uint8_t server_browser_initialized;
 extern uint8_t network_session_start_host_name[];
@@ -122,12 +118,9 @@ extern int32_t ServerBrowserGetServer(void *query_engine, int32_t index);
 extern int32_t ServerBrowserCount(void *engine);
 extern int32_t SBServerHasBasicKeys(int32_t record);
 extern uint8_t server_browser_skip_reselect;
-extern void multiplayer_game_variant_description_generate(char *variant_name, ticker_text_buffer *ticker,
-    int32_t fraglimit, wchar_t *game_flags_wide, wchar_t *player_flags_wide);
 extern int32_t server_browser_ping_limits[];
 extern uint32_t gamespy_array_length(int32_t object);
 extern uint8_t autopatch_version_string_is_outdated(const char *gamever);
-extern int32_t map_list_find_known_map_index(const char *mapname);
 
 void game_variant_list_matching_substring(uint32_t argument_count, char **arguments);
 int32_t join_game_server_browser_tick(network_ui_widget *browser_widget);
@@ -218,7 +211,7 @@ void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments
             *p = towlower(*p);
         }
     }
-    chimera__console_out((ColorARGB *)console_color_00685214, (char *)"Game types matching substring \"%ls\" :", filter);
+    halo::interface::chimera__console_out((ColorARGB *)console_color_00685214, (char *)"Game types matching substring \"%ls\" :", filter);
     if (playlist_profiles_need_defaults == 1) {
         halo::saved_games::playlist_profile_create_default_profiles_on_disk();
         playlist_profiles_need_defaults = 0;
@@ -235,7 +228,7 @@ void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments
         line[0] = 0;
         while (i <= 99 && on_line < 2) {
             if (saved_game_ids[i] == -1) {
-                game_engine_apply_current_custom_variant();
+                halo::game::game_engine_apply_current_custom_variant();
             } else {
                 uint16_t variant_name[64];
                 if (halo::saved_games::saved_game_get_variant(saved_game_ids[i], (game_variant *)variant_name) != 0) {
@@ -256,7 +249,7 @@ void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments
             i = i + 1;
         }
         if (line[0] != 0) {
-            chimera__console_out((ColorARGB *)actor_mode_default_look_weights, line);
+            halo::interface::chimera__console_out((ColorARGB *)actor_mode_default_look_weights, line);
         }
         if (99 < i) {
             return;
@@ -310,7 +303,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
         if (server_browser_join_target_has_password == 0 || network_join_target_address[0] != 0) {
             clicked = (uint8_t)network_join_request_resolve_host();
             if (clicked != 0) {
-                widget_close_all();
+                halo::interface::widget_close_all();
                 return 1;
             }
         } else if (virtual_keyboard.committed != 0) {
@@ -335,19 +328,19 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
 
     if (halo::input::input_get_key_state(0x53) == 1) {
         server_list_scroll_page_up(0);
-        widget_play_sound_effect(2);
+        halo::interface::widget_play_sound_effect(2);
     }
     if (halo::input::input_get_key_state(0x52) == 1) {
         server_list_scroll_page_up(1);
-        widget_play_sound_effect(2);
+        halo::interface::widget_play_sound_effect(2);
     }
     if (halo::input::input_get_key_state(0x56) == 1) {
         server_list_scroll_page_down(0);
-        widget_play_sound_effect(2);
+        halo::interface::widget_play_sound_effect(2);
     }
     if (halo::input::input_get_key_state(0x55) == 1) {
         server_list_scroll_page_down(1);
-        widget_play_sound_effect(2);
+        halo::interface::widget_play_sound_effect(2);
     }
     if (scroll_target != 0) {
         if (scroll_target[2] < 0) {
@@ -682,7 +675,7 @@ void ServerBrowser::map_list_matching_substring(uint32_t argument_count, char **
             *p = (char)tolower((uint8_t)*p);
         }
     }
-    chimera__console_out((ColorARGB *)console_color_00685214, (char *)"Maps matching substring \"%s\" :", filter);
+    halo::interface::chimera__console_out((ColorARGB *)console_color_00685214, (char *)"Maps matching substring \"%s\" :", filter);
     i = 0;
     while (i < map_list_count) {
         char line[256];
@@ -701,7 +694,7 @@ void ServerBrowser::map_list_matching_substring(uint32_t argument_count, char **
             i = i + 1;
         }
         if (line[0] != 0) {
-            chimera__console_out((ColorARGB *)actor_mode_default_look_weights, line);
+            halo::interface::chimera__console_out((ColorARGB *)actor_mode_default_look_weights, line);
         }
     }
 }
@@ -1132,7 +1125,6 @@ void ServerBrowser::filter_panel_set_mode(network_ui_widget *panel, uint8_t inte
 
 int32_t ServerBrowser::filter_widget_clicked(network_ui_widget *clicked)
 {
-    void (*const widget_play_sound_effect)(void) = reinterpret_cast<void (*)(void)>(&::widget_play_sound_effect);
     network_ui_widget *w1;
     network_ui_widget *w2;
     network_ui_widget *w3;
@@ -1201,11 +1193,11 @@ int32_t ServerBrowser::filter_widget_clicked(network_ui_widget *clicked)
     server_browser_sort_column = new_sort_column;
     server_browser_sort_ascending = 1;
 play_and_reset_query_timer:
-    widget_play_sound_effect();
+    halo::interface::widget_play_sound_effect(2);
     server_browser_query_elapsed_ms = 9999;
     return 1;
 play_and_set_query_mode:
-    widget_play_sound_effect();
+    halo::interface::widget_play_sound_effect(2);
     server_browser_query_pending = 1;
     return 1;
 }
@@ -1315,7 +1307,7 @@ void ServerBrowser::latch_join_target(void)
         server_browser_join_target_has_password =
             SBServerGetBoolValue(server_browser_join_target, "password", 0);
         if (server_browser_join_target_has_password != 0) {
-            virtual_keyboard_open(0x12, 0xc);
+            halo::interface::virtual_keyboard_open(network_join_target_address, 0x12, 0xc);
             network_host_edit_field_00719410 = 0;
         }
         master_server_request_flags = master_server_request_flags | 4;
@@ -1386,7 +1378,7 @@ void ServerBrowser::list_row_gather(network_ui_widget *row, uint8_t flag, void *
             }
         }
 
-        map_list_get_friendly_level_name(mapname, friendly_map);
+        halo::interface::map_list_get_friendly_level_name(friendly_map, (char *)mapname, 0x20);
         server_browser_list_row_populate(row, (uint8_t)is_password, (uint8_t)is_dedicated,
                                           hostname, friendly_map, gametype,
                                           (uint8_t)(is_classic == 1), count_a, count_b, ping);
@@ -1731,7 +1723,7 @@ int32_t ServerBrowser::selected_variant_description_build(void *entry)
         if (player_flags != 0 && game_flags != 0) {
             halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(gamevariant_wide), 0x800, gamevariant);
             halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(fraglimit_wide), 0x800, fraglimit);
-            multiplayer_game_variant_description_generate(player_flags, &server_browser_variant_ticker,
+            halo::game::multiplayer_game_variant_description_generate(player_flags, &server_browser_variant_ticker,
                 game_flags, gamevariant_wide, fraglimit_wide);
         }
     }
@@ -1869,7 +1861,7 @@ skip_gametype_check:
     }
     if (!teamplay_mismatch &&
         (server_browser_filter_allow_unknown_map != 0 ||
-         (probe = map_list_find_known_map_index(mapname), probe != -1))) {
+         (probe = halo::interface::map_list_find_known_map_index(mapname), probe != -1))) {
         return 1;
     }
     return 0;
@@ -1962,8 +1954,8 @@ int32_t ServerBrowser::compare_by_mapname(void **a, void **b)
     memset(friendly_a, 0, sizeof(friendly_a));
     map_name_a = SBServerGetStringValue(entry_a, "mapname", "");
     map_name_b = SBServerGetStringValue(entry_b, "mapname", "");
-    map_list_get_friendly_level_name(map_name_a, friendly_a);
-    map_list_get_friendly_level_name(map_name_b, friendly_b);
+    halo::interface::map_list_get_friendly_level_name(friendly_a, (char *)map_name_a, 0x20);
+    halo::interface::map_list_get_friendly_level_name(friendly_b, (char *)map_name_b, 0x20);
     result = wcscmp(friendly_a, friendly_b);
     if (server_browser_sort_ascending == 0) {
         result = -result;

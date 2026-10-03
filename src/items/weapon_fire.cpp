@@ -3,6 +3,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t weapon_infinite_ammo;
@@ -11,11 +13,6 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t weapon_bottomless_clip;
 extern uint8_t weapon_client_side_projectiles;
 extern game_time_globals *game_time;
-extern datum_index player_index_from_unit_index(datum_index unit_index);
-extern void unit_update_active_camouflage_depower(datum_index player_handle);
-extern uint32_t local_player_index_for_weapon(datum_index item_index);
-extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
-extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
 extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority, int16_t stimulus_value);
 uint32_t halo::items::weapon_fire_trigger(datum_index item_index, int16_t trigger_index);
 }
@@ -192,10 +189,10 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
     }
 
     if ((id->flags & _item_held_by_player_bit) != 0 && current_game_engine != 0) {
-        datum_index player = player_index_from_unit_index(holder_index);
+        datum_index player = halo::game::player_index_from_unit_index(holder_index);
 
         if (player != (datum_index)0xffffffff) {
-            unit_update_active_camouflage_depower(player);
+            halo::game::unit_update_active_camouflage_depower(player);
         }
     }
 
@@ -203,10 +200,10 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
 
     {
         int8_t action = is_misfire ? (int8_t)((trigger_index != 0) + 2) : (int8_t)(trigger_index != 0);
-        uint32_t action_handle = local_player_index_for_weapon(item_index);
-        first_person_weapon_process_action(action_handle, action);
+        uint32_t action_handle = halo::interface::local_player_index_for_weapon(item_index);
+        halo::interface::first_person_weapon_process_action(action_handle, action);
         if ((int16_t)action_handle == -1) {
-            hud_play_pickup_notification(item_index, (int16_t)action);
+            halo::interface::hud_play_pickup_notification(item_index, (int16_t)action);
         }
     }
 

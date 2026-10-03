@@ -6,6 +6,11 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
+
+#ifdef interface
+#undef interface
+#endif
 
 extern "C" {
 extern const real_vector3d *global_down3d_pointer;
@@ -15,7 +20,6 @@ extern player_globals *local_player_globals;
 extern uint8_t *effect_marker_callback_context;
 extern data_array *effect_data;
 extern void effect_rebuild_markers(effect *self, int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t));
-extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
 extern uint8_t *first_person_weapon_interfaces;
 }
 
@@ -194,7 +198,7 @@ void effect_view::reattach_markers_for_object(int16_t first_person_weapon_index,
 
         if (self->object_index == object_index) {
             self->first_person_weapon_index = first_person_weapon_index;
-            halo::effects::effect_rebuild_markers(self, first_person_weapon_get_marker_data);
+            halo::effects::effect_rebuild_markers(self, (effect_marker_resolver)halo::interface::first_person_weapon_get_marker_data);
         }
 
         effect_index = halo::memory::datum_next((int16_t)effect_index, effect_data);

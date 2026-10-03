@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload);
@@ -74,10 +76,6 @@ extern void message_delta_parameters_protocol_dump_to_config_file(void);
 extern void network_stats_summary_log_write(void);
 extern void message_delta_protocol_initialize(void);
 extern void network_stats_summary_log_open(void);
-extern void game_engine_apply_current_custom_variant(void);
-extern void game_engine_sync_variant_defaults(void);
-extern void widget_close(int32_t widget);
-extern void widget_pool_list_free_all(void);
 extern char network_game_server_load_scenario(void);
 extern void network_host_full_state_broadcast(network_server_globals *host);
 extern void network_client_timer_schedule(int32_t a, int32_t b);
@@ -731,8 +729,8 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
     host->update_tick = 0;
     host->state = 0;
 
-    game_engine_apply_current_custom_variant();
-    game_engine_sync_variant_defaults();
+    halo::game::game_engine_apply_current_custom_variant();
+    halo::game::game_engine_sync_variant_defaults();
     if (!is_host) {
         join_ui_state = 2;
     }
@@ -746,10 +744,10 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
     host->listen_channel->listening = 1;
 
     if (ui_root_widget != 0) {
-        widget_close(ui_root_widget);
+        halo::interface::widget_close((widget_instance *)ui_root_widget);
     }
     if (ui_widget_history != 0) {
-        widget_pool_list_free_all();
+        halo::interface::widget_pool_list_free_all((widget_history_node **)&ui_widget_history);
     }
     ui_pause_depth = 0;
     if (controls_capture_row != -1) {

@@ -6,6 +6,8 @@
 #include "halo/items/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef __cplusplus
 #define CTF_CUSTOM_WAYPOINT_ZERO custom_waypoint{}
@@ -28,15 +30,6 @@ extern uint8_t ctf_team_return_credit_active[2];
 extern int32_t ctf_team_return_credit_ticks[2];
 extern datum_index ctf_team_flag_object[2];
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
-extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type, datum_index subject, char broadcast);
-extern void game_engine_ctf_respawn_team_flag(int32_t team, real_point3d *forwarded_position, uint16_t forwarded_name_index);
-extern void game_engine_ctf_notify_both_teams(int32_t team);
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
-extern void game_engine_broadcast_kill_feed_to_team(int32_t message_type, int32_t team, uint8_t broadcast);
-extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index);
-extern datum_index game_engine_find_player_holding_object(datum_index target_object);
-extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position, float height_offset, datum_index player_filter, int16_t team_filter);
-extern int16_t hud_waypoint_arrow_find(void);
 extern game_engine_definition *current_game_engine;
 extern uint8_t network_message_scratch[0x7ff8];
 extern network_server_globals *network_server;
@@ -107,7 +100,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
                     element = halo::memory::data_iterator_next(&iter);
                     while (element != 0) {
-                        chimera__kill_feed((datum_index)0xffffffff, 0x2d, (uint32_t)0xffffffff, 1, 0);
+                        halo::game::chimera__kill_feed((datum_index)0xffffffff, 0x2d, (uint32_t)0xffffffff, 1, 0);
                         element = halo::memory::data_iterator_next(&iter);
                     }
                 }
@@ -126,17 +119,17 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                         toggled = (toggled - 1 | 0xfffffffe) + 1;
                     }
                     halo::objects::object_delete((datum_index)flag_handle);
-                    game_engine_ctf_respawn_team_flag((int32_t)toggled, (real_point3d *)0, 0);
+                    halo::game::game_engine_ctf_respawn_team_flag((int32_t)toggled, (real_point3d *)0, 0);
                     ctf_active_team = (uint8_t)toggled;
                     flag_handle = *(uint32_t *)((uint8_t *)&ctf_team_flag_object[0] + (int16_t)toggled * 4);
                     flag_obj = ((object_header *)halo::objects::globals().object_data->data)[flag_handle & 0xffff].data;
                     item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
-                    game_engine_queue_multiplayer_sound(0x25 + (((struct object *)flag_obj)->owner_team != 0), 0xffffffff, 1);
-                    game_engine_ctf_reset_team_return_credit(flag_handle);
+                    halo::game::game_engine_queue_multiplayer_sound(0x25 + (((struct object *)flag_obj)->owner_team != 0), 0xffffffff, 1);
+                    halo::game::game_engine_ctf_reset_team_return_credit(flag_handle);
                     custom_waypoints[2] = CTF_CUSTOM_WAYPOINT_ZERO;
                     custom_waypoints[3] = CTF_CUSTOM_WAYPOINT_ZERO;
                     ctf_flag_auto_return_ticks = game_engine_variant.engine.ctf.single_flag_time;
-                    game_engine_ctf_notify_both_teams((int32_t)toggled);
+                    halo::game::game_engine_ctf_notify_both_teams((int32_t)toggled);
                 }
             }
 notify_teams:
@@ -187,18 +180,18 @@ notify_teams:
     }
     if ((*(uint8_t *)((uint8_t *)flag_obj + 0x22c) & 0x40) != 0) {
 
-        game_engine_queue_multiplayer_sound(team != 0 ? 9 : 0xc, 0xffffffff, 1);
+        halo::game::game_engine_queue_multiplayer_sound(team != 0 ? 9 : 0xc, 0xffffffff, 1);
         ctf_team_return_credit_active[team] = 0;
         ctf_team_return_credit_ticks[team] = 0;
 
-        game_engine_broadcast_kill_feed_to_team(0x2b, team, 1);
-        game_engine_broadcast_kill_feed_to_team(0x2c, other_team, 1);
+        halo::game::game_engine_broadcast_kill_feed_to_team(0x2b, team, 1);
+        halo::game::game_engine_broadcast_kill_feed_to_team(0x2c, other_team, 1);
 
-        game_engine_ctf_reset_team_return_credit(flag_handle);
+        halo::game::game_engine_ctf_reset_team_return_credit(flag_handle);
     }
 
 weapon_coordination:
-    holder_player_index = game_engine_find_player_holding_object((datum_index)flag_handle);
+    holder_player_index = halo::game::game_engine_find_player_holding_object((datum_index)flag_handle);
     team = ((struct object *)flag_obj)->owner_team;
     {
         uint32_t toggled = (uint32_t)(team + 1) & 0x80000001;
@@ -212,14 +205,14 @@ weapon_coordination:
     if ((game_engine_variant.engine.ctf.single_flag_time < 1 || ctf_active_team == team) && position_valid == 1) {
         int16_t icon;
 
-        custom_waypoint_register(holder_player_index, (int16_t)team, &item_position, 0.0f,
+        halo::game::custom_waypoint_register(holder_player_index, (int16_t)team, &item_position, "flag_blue", 0.0f,
             (datum_index)0xffffffff, (int16_t)other_team);
-        icon = hud_waypoint_arrow_find();
+        icon = halo::interface::hud_waypoint_arrow_find("flag_blue");
 
         if (icon != -1) {
             real_point3d other_stand = *ctf_team_flag_stand_position[other_team];
-            custom_waypoint_register((datum_index)0xffffffff, (int16_t)(team + 2), &other_stand,
-                0.3f, (datum_index)(uint16_t)icon, (int16_t)0xffffffff);
+            halo::game::custom_waypoint_register((datum_index)0xffffffff, (int16_t)(team + 2), &other_stand,
+                "flag_blue", 0.3f, (datum_index)(uint16_t)icon, (int16_t)0xffffffff);
         } else {
             custom_waypoints[team + 2] = CTF_CUSTOM_WAYPOINT_ZERO;
         }
@@ -345,7 +338,7 @@ void NetgameRules::broadcast_object_type_changes()
 
 }  // namespace halo::game
 
-extern "C" {
+namespace halo::game {
 
 /**
  * C entry point for halo::game::CtfEngine::flag_tick; forwards to the C++ implementation.

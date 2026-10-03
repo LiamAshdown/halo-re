@@ -1,4 +1,7 @@
 #include "halo/interface/ifr1_color_math.hpp"
+#include "halo/interface/api.hpp"
+
+namespace halo::interface {
 
 /**
  * C ABI entry point; forwards to halo::interface::ColorMath::argb_scale_alpha.
@@ -6,7 +9,7 @@
  *
  * @address 0x497970
  */
-extern "C" uint32_t color_argb_scale_alpha(uint32_t packed_color, float scale)
+uint32_t color_argb_scale_alpha(uint32_t packed_color, float scale)
 {
     return halo::interface::ColorMath::argb_scale_alpha(packed_color, scale);
 }
@@ -16,7 +19,7 @@ extern "C" uint32_t color_argb_scale_alpha(uint32_t packed_color, float scale)
  *
  * @address 0x497900
  */
-extern "C" uint32_t color_pack_argb_from_real(ColorARGB *color)
+uint32_t color_pack_argb_from_real(ColorARGB *color)
 {
     return halo::interface::ColorMath::pack_argb_from_real(color);
 }
@@ -26,7 +29,7 @@ extern "C" uint32_t color_pack_argb_from_real(ColorARGB *color)
  *
  * @address 0x4ab5d0
  */
-extern "C" uint32_t color_rgb_float_to_int(const float *rgb)
+uint32_t color_rgb_float_to_int(const float *rgb)
 {
     return halo::interface::ColorMath::rgb_float_to_int(rgb);
 }
@@ -37,7 +40,9 @@ extern "C" uint32_t color_rgb_float_to_int(const float *rgb)
  *
  * @address 0x494430
  */
-extern "C" void globals_color_table_get_cyclic_color(int16_t table_index, int16_t color_index, ColorARGB *out)
+void globals_color_table_get_cyclic_color(int16_t table_index, int16_t color_index, ColorARGB *out)
 {
     halo::interface::ColorMath::cyclic_color(table_index, color_index, out);
+}
+
 }

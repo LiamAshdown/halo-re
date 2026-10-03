@@ -16,13 +16,11 @@
 
 #include "halo/interface/uis_network_menu.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 extern map_list_entry *map_list;
-extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item);
-extern uint8_t ui_list_item_format_name_and_cache_flag(uint16_t *out_name, int32_t item_index);
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
 extern uint8_t save_in_progress_00719010;
 extern int32_t quality_selection_00692b04;
 extern int32_t resolution_selection_00719204;
@@ -50,10 +48,10 @@ void UiNetworkMenu::network_adapter_list_widget_build(widget_instance *widget)
     widget_instance *target3;
     int16_t map_id;
 
-    ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)ui_list_item_format_name_and_cache_flag));
+    halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_item_format_name_and_cache_flag));
 
     memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
+    halo::interface::set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
 
     target1 = widget->extended_description->first_child->next_sibling->first_child;
     target2 = target1->next_sibling;

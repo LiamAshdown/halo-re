@@ -7,15 +7,15 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
-extern void game_engine_cleanup_stray_projectiles(void);
 extern float cinematic_saved_music_gain;
 extern cinematic_globals *cinematic_globals_ptr;
 extern player_globals *local_player_globals;
 extern ai_globals *ai_globals_ptr;
 extern game_time_globals *game_time;
-extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error);
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state;
 extern ColorARGB *rasterizer_model_ambient_reflection_tint;
 extern ui_pending_error ui_pending_errors[4];
@@ -26,7 +26,6 @@ extern uint8_t widget_memory_pool_valid;
 extern widget_instance *ui_root_widget[1];
 extern Rectangle2D render_viewport_top;
 extern uint32_t text_shadow_color_argb;
-extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 }
 
@@ -63,7 +62,7 @@ void CutsceneDirector::start()
     cinematic_globals_ptr->letterbox_last_tick = game_time->game_time;
     cinematic_globals_ptr->in_progress = 1;
 
-    game_engine_cleanup_stray_projectiles();
+    halo::game::game_engine_cleanup_stray_projectiles();
 }
 
 /**
@@ -118,7 +117,7 @@ void CutsceneDirector::stop()
     }
 
     if (-1 < ui_pending_errors[0].error_string_index && ui_pending_errors[0].error_string_index < 0x3c) {
-        display_error(ui_pending_errors[0].error_string_index, 0,
+        halo::interface::display_error(ui_pending_errors[0].error_string_index, 0,
             ui_pending_errors[0].modal, ui_pending_errors[0].is_error);
     }
     ui_pending_errors[0].error_string_index = (int16_t)halo::k_word_none;
@@ -199,13 +198,13 @@ void CutsceneDirector::letterbox()
                 bar.right = (int16_t)ROUND((float)k_cinematic_letterbox_screen_width);
                 bar.top = (int16_t)ROUND((float)render_viewport_top.top);
                 bar.bottom = (int16_t)ROUND((float)render_viewport_top.top + bar_height);
-                ui_draw_filled_rectangle((uint32_t)k_cinematic_letterbox_color, &bar);
+                halo::interface::ui_draw_filled_rectangle((uint32_t)k_cinematic_letterbox_color, &bar);
 
                 bar.left = (int16_t)ROUND((float)render_viewport_top.left);
                 bar.right = (int16_t)ROUND((float)k_cinematic_letterbox_screen_width);
                 bar.top = (int16_t)ROUND((float)k_cinematic_letterbox_screen_height - bar_height);
                 bar.bottom = (int16_t)k_cinematic_letterbox_bottom_edge;
-                ui_draw_filled_rectangle((uint32_t)k_cinematic_letterbox_color, &bar);
+                halo::interface::ui_draw_filled_rectangle((uint32_t)k_cinematic_letterbox_color, &bar);
             }
         }
     }

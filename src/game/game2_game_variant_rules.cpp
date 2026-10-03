@@ -1,15 +1,14 @@
 #include "halo/game/game2_variants.hpp"
 #include "halo/text/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern game_variant game_engine_active_variant;
 extern uint8_t *network_server;
-extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
 extern void network_game_broadcast_player_set_changed(void *session);
 extern game_variant_history_entry *game_variant_history;
 extern uint32_t game_variant_history_count;
 extern uint32_t game_variant_history_capacity;
-extern uint32_t game_engine_is_map_and_variant_valid(const char *map_path, const char *variant_name);
 }
 
 namespace halo::game {
@@ -24,7 +23,7 @@ void GameVariantRules::set_variant_by_name(const char *name)
 {
     game_variant looked_up;
 
-    if (game_engine_get_variant_by_name(name, &looked_up) != 0) {
+    if (halo::game::game_engine_get_variant_by_name(name, &looked_up) != 0) {
         game_engine_active_variant = looked_up;
         if (network_server != (void *)0 &&
             *(int32_t *)((uint8_t *)network_server + 0x13c) != looked_up.game_engine_index) {
@@ -51,7 +50,7 @@ uint32_t GameVariantRules::variant_add_to_history(char *name, game_variant *opti
     game_variant temp;
     void *name_copy;
 
-    if (game_engine_is_map_and_variant_valid(0, 0) == 0) {
+    if (halo::game::game_engine_is_map_and_variant_valid(0, 0) == 0) {
         return 0;
     }
 
@@ -67,7 +66,7 @@ uint32_t GameVariantRules::variant_add_to_history(char *name, game_variant *opti
     }
 
     if (options == 0) {
-        if (game_engine_get_variant_by_name(name, &temp) == 0) {
+        if (halo::game::game_engine_get_variant_by_name(name, &temp) == 0) {
             GlobalFree(name_copy);
             return 0;
         }

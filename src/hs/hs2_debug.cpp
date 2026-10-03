@@ -6,6 +6,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/interface/api.hpp"
 
 
 #ifdef __cplusplus
@@ -17,7 +18,6 @@ extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t param
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern void hs_help_print_function(char *name);
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
-extern void chimera__console_out(void *color, const char *format, ...);
 extern data_array *hs_thread_data;
 extern data_array *hs_syntax_data;
 extern void (*hs_type_inspectors[])(int16_t type, int32_t value, char *buffer);
@@ -28,7 +28,6 @@ extern uint8_t network_bandwidth_graph_globals[];
 extern void network_bandwidth_graph_instance_history_reset(void *graph);
 extern uint32_t network_bandwidth_graph_set_units_command(const char *units_name, const char *direction_name);
 extern void *actor_mode_default_look_weights;
-extern void console_printf_verbose(ColorARGB *color, char *format, ...);
 extern uint32_t renderer_unknown_69c684;
 extern uint32_t lens_flare_object_visibility_table[0x8c0];
 extern uint32_t lens_flare_marker_visibility[0x4002];
@@ -92,7 +91,7 @@ void DebugCommands::evaluate_inspect(int16_t function_index, uint32_t thread_ind
         if (hs_type_inspectors[type] != 0) {
             hs_type_inspectors[type](type, *result, buffer);
             if (hs_preserve_token_case != 0 || halo::cseries::globals().debug_log_level >= 4) {
-                chimera__console_out(0, buffer);
+                halo::interface::chimera__console_out(0, buffer);
             }
         }
     }
@@ -199,7 +198,7 @@ void DebugCommands::evaluate_print(int16_t function_index, uint32_t thread_index
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    console_printf_verbose((ColorARGB *)actor_mode_default_look_weights, (char *)arguments[0]);
+    halo::interface::console_printf_verbose((ColorARGB *)actor_mode_default_look_weights, (char *)arguments[0]);
     hs_thread_return(0, thread_index);
     }
 }

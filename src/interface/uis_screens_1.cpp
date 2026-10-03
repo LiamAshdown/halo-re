@@ -19,9 +19,9 @@
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
-extern void widget_extended_description_sync_selection(widget_instance *widget);
 extern int32_t chat_window_default_x;
 extern int32_t chat_window_default_y;
 extern int32_t chat_window_default_width;
@@ -32,7 +32,6 @@ extern int32_t chat_listbox_width;
 extern int32_t chat_listbox_height;
 extern int32_t chat_dialog_open;
 extern int32_t chat_scope_active;
-extern void hud_chat_listbox_clear(void);
 extern uint8_t ui_use_os_cursor;
 extern int32_t previous_mouse_x;
 extern int32_t previous_mouse_y;
@@ -45,14 +44,12 @@ extern float cursor_sensitivity_x;
 extern float cursor_sensitivity_y;
 extern double cursor_sensitivity_curve_scale;
 extern double cursor_sensitivity_curve_bias;
-extern void interface_update_for_resolution_change(int32_t new_cursor_x, int32_t new_cursor_y);
 extern int32_t __ftol(double x);
 extern game_engine_definition *current_game_engine;
 extern game_engine_state game_engine_state_value;
 extern uint8_t widget_memory_pool_valid;
 extern widget_instance *ui_root_widget[1];
 extern player_globals *local_player_globals;
-extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern float ui_saved_color[3];
 extern const ColorARGB *global_white_argb;
 extern int32_t network_disabled_flag;
@@ -116,7 +113,7 @@ void UiScreens::audio_options_apply_volume_sliders(widget_instance *widget)
         target->hidden = 0;
         target->scale = 1.0f;
     }
-    widget_extended_description_sync_selection(widget);
+    halo::interface::widget_extended_description_sync_selection(widget);
 }
 
 /**
@@ -134,7 +131,7 @@ void UiScreens::chat_window_reset_position(void)
     chat_listbox_height = chat_window_default_height;
     halo::interface::state::chat_window_unused_6b38f4 = 0;
     chat_scope_active = -1;
-    hud_chat_listbox_clear();
+    halo::interface::hud_chat_listbox_clear();
 }
 
 /**
@@ -179,7 +176,7 @@ void UiScreens::cursor_update(void)
             cursor_sensitivity_curve_bias;
         delta_y = __ftol(scaled_y * raw_y);
     }
-    interface_update_for_resolution_change(ui_cursor_x + delta_x, ui_cursor_y - delta_y);
+    halo::interface::interface_update_for_resolution_change(ui_cursor_x + delta_x, ui_cursor_y - delta_y);
 }
 
 /**
@@ -209,13 +206,13 @@ void UiScreens::error_modal_update(void)
             bar.left = 0;
             bar.bottom = 0xf1;
             bar.right = 0x280;
-            ui_draw_filled_rectangle(0xff000000, &bar);
+            halo::interface::ui_draw_filled_rectangle(0xff000000, &bar);
             if (player_count_field > 2) {
                 bar.top = (player_count_field == 3) ? 0xf0 : 0;
                 bar.left = 0x13f;
                 bar.bottom = 0x1e0;
                 bar.right = 0x141;
-                ui_draw_filled_rectangle(0xff000000, &bar);
+                halo::interface::ui_draw_filled_rectangle(0xff000000, &bar);
             }
         }
     }

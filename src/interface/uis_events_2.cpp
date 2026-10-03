@@ -20,6 +20,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern network_server_globals *network_server;
@@ -31,23 +32,15 @@ extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern widget_history_node *ui_widget_history[3];
 extern heap *widget_memory_pool;
-extern uint8_t saved_item_has_unsaved_changes(void);
-extern int32_t saved_item_name_changed(void);
-extern uint8_t saved_item_name_edit_begin(void);
-extern uint8_t player_profile_save(void);
-extern void widget_close(widget_instance *widget);
 extern growable_array ui_lists[3];
 extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
 extern uint16_t missing_string_text[];
 extern int32_t profile_slot_lookup_cache_00692ac8;
-extern void saved_item_select(int32_t item);
 extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
-extern void widget_play_sound_effect(int16_t effect_id);
-extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind);
 }
 
 namespace halo::ui {
@@ -788,21 +781,21 @@ uint8_t UiEventHandlers::event_4a07e0(widget_instance *widget, int16_t *event, u
 {
     widget_instance *root;
 
-    if (saved_item_has_unsaved_changes() != 0) {
+    if (halo::interface::saved_item_has_unsaved_changes() != 0) {
         int32_t item = selected_saved_item;
 
-        if (item != -1 && (item & 0xf) <= 1 && ((item >> 30) & 1) != 0 && (uint8_t)saved_item_name_changed() == 0) {
-            saved_item_name_edit_begin();
+        if (item != -1 && (item & 0xf) <= 1 && ((item >> 30) & 1) != 0 && (uint8_t)halo::interface::saved_item_name_changed() == 0) {
+            halo::interface::saved_item_name_edit_begin();
             return 0;
         }
-        return player_profile_save();
+        return halo::interface::player_profile_save();
     }
     selected_saved_item = -1;
     root = widget;
     while (root->parent != 0) {
         root = root->parent;
     }
-    widget_close(root);
+    halo::interface::widget_close(root);
     *out_handled = 1;
     return 0;
 }
@@ -911,7 +904,7 @@ uint8_t UiEventHandlers::event_4a0ae0(widget_instance *widget, int16_t *event, u
     profile_slot_lookup_cache_00692ac8 = -1;
     if (item != -1) {
         if (item < 0) {
-            saved_item_select(item);
+            halo::interface::saved_item_select(item);
             return 1;
         }
         if (quit_confirm_error_string_index == -1) {
@@ -921,7 +914,7 @@ uint8_t UiEventHandlers::event_4a0ae0(widget_instance *widget, int16_t *event, u
             quit_confirm_error_is_error = 0;
         }
     }
-    widget_play_sound_effect(4);
+    halo::interface::widget_play_sound_effect(4);
     return 0;
 }
 
@@ -934,7 +927,7 @@ uint8_t UiEventHandlers::event_4a0bc0(widget_instance *widget, int16_t *event, u
 {
     const uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
 
-    if (profile == 0 || virtual_keyboard_open((uint16_t *)(profile + 2), 0x18, 8) == 0) {
+    if (profile == 0 || halo::interface::virtual_keyboard_open((uint16_t *)(profile + 2), 0x18, 8) == 0) {
         return 0;
     }
     return 1;
@@ -949,9 +942,9 @@ uint8_t UiEventHandlers::event_4a0c00(widget_instance *widget, int16_t *event, u
 {
     widget_instance *root;
 
-    widget_play_sound_effect(2);
-    if (saved_item_has_unsaved_changes() != 0) {
-        uint8_t saved = player_profile_save();
+    halo::interface::widget_play_sound_effect(2);
+    if (halo::interface::saved_item_has_unsaved_changes() != 0) {
+        uint8_t saved = halo::interface::player_profile_save();
 
         if (saved != 0) {
             return saved;
@@ -962,7 +955,7 @@ uint8_t UiEventHandlers::event_4a0c00(widget_instance *widget, int16_t *event, u
     while (root->parent != 0) {
         root = root->parent;
     }
-    widget_close(root);
+    halo::interface::widget_close(root);
     *out_handled = 1;
     return 0;
 }
