@@ -44,7 +44,7 @@ void ProjectileNetwork::apply_update(uint32_t *update_record)
         halo::networking::message_delta_decode_compound_field_staged((void **)update_record);
         return;
     }
-    proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+    proj = &reinterpret_cast<projectile_object *>(obj)->projectile;
     header = (projectile_network_update_header *)update_record[k_projectile_update_header_slot];
 
     if ((obj->flags & _object_took_network_update_bit) != 0 && *(int32_t *)update_record[0] == 1 &&
@@ -121,7 +121,7 @@ int32_t ProjectileNetwork::build_update(uint32_t unused_arg2, uint32_t unused_ar
             uint8_t sequence;         
             uint8_t is_first_update;  
         } header;
-        projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+        projectile_data *proj = &reinterpret_cast<projectile_object *>(obj)->projectile;
         int32_t message_type = object_type_definitions[obj->type]->network_delta_message_type; 
         void *header_ptr = &header;
         int32_t is_full_snapshot = (update_type == 1);
@@ -166,7 +166,7 @@ int32_t ProjectileNetwork::build_update(uint32_t unused_arg2, uint32_t unused_ar
     }
 
     if (0 < result) {
-        projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+        projectile_data *proj = &reinterpret_cast<projectile_object *>(obj)->projectile;
         uint8_t sequence = proj->network_sequence + 1;
         proj->network_sequence = sequence;
         if ((int8_t)sequence == -1) {
@@ -192,7 +192,7 @@ void ProjectileNetwork::baseline_take()
     object *obj = halo::objects::object_try_and_get(object_index, _object_mask_projectile);
 
     if (obj != 0) {
-        projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+        projectile_data *proj = &reinterpret_cast<projectile_object *>(obj)->projectile;
 
         proj->network_baseline_index++;
         proj->network_state.position = obj->position;
@@ -217,7 +217,7 @@ void ProjectileNetwork::request_state(int16_t requested_state)
     datum_index projectile_index = (datum_index)handle;
 
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(projectile_index)].data;
-    projectile_data *pd = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+    projectile_data *pd = &reinterpret_cast<projectile_object *>(obj)->projectile;
 
     if (pd->state < requested_state) {
         pd->state = requested_state;
@@ -323,7 +323,7 @@ void ProjectileNetwork::attach_apply(void *incoming_record)
 
     {
         Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[halo::datum_slot(self->definition_tag)].data;
-        projectile_data *self_pd = (projectile_data *)((uint8_t *)self + k_projectile_data_offset);
+        projectile_data *self_pd = &reinterpret_cast<projectile_object *>(self)->projectile;
 
         if ((tag->projectile_flags & _projectile_definition_has_super_combining_explosion_bit) != 0) {
             parent = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(parent_handle)].data;
@@ -331,7 +331,7 @@ void ProjectileNetwork::attach_apply(void *incoming_record)
             int16_t sibling_count = 0;
             while (sibling_index != (datum_index)k_datum_index_none) {
                 object *sibling = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(sibling_index)].data;
-                projectile_data *sibling_pd = (projectile_data *)((uint8_t *)sibling + k_projectile_data_offset);
+                projectile_data *sibling_pd = &reinterpret_cast<projectile_object *>(sibling)->projectile;
                 if (sibling->definition_tag == self->definition_tag &&
                     (sibling_pd->flags & _projectile_super_detonation_counted_bit) == 0) {
                     sibling_pd->arming_timer = 0.0f;
@@ -441,7 +441,7 @@ void ProjectileNetwork::create_from_network(void *incoming_record)
     halo::networking::network_index_cache_insert_if_free((uint8_t *)&network_object_index_cache, decoded.object_hash, new_object_index);
 
     obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(new_object_index)].data;
-    proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+    proj = &reinterpret_cast<projectile_object *>(obj)->projectile;
 
     proj->network_state.position = decoded.position;
     proj->network_state.velocity = decoded.velocity;
