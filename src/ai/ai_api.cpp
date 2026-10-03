@@ -667,9 +667,9 @@ void actor_queue_search_position(datum_index actor_index, real_point3d *position
  *
  * @address 0x417a60
  */
-uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2])
+uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, const real_vector2d *direction)
 {
-    return halo::ai::ActorView(actor_index).queue_secondary_action(action, payload);
+    return halo::ai::ActorView(actor_index).queue_secondary_action(action, direction);
 }
 
 /**

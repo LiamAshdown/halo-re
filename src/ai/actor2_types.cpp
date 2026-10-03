@@ -53,7 +53,7 @@ void ActorView::type_crew_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
-        if (actor->mode_data.flee.unknown_0e != 0) {
+        if (actor->mode_data.flee.engage != 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
@@ -80,7 +80,7 @@ void ActorView::type_crew_update()
         halo::ai::actor_update_combat_behavior(actor_index, actor->mode_data.obey.unknown_02, actor->mode_data.obey.finished);
         return;
     case 12: {
-        uint8_t forced = (actor->mode_data.converse.finished != 0 || *(uint32_t *)&actor->conversation_index == halo::k_dword_none) ? 1 : 0;
+        uint8_t forced = (actor->mode_data.converse.finished != 0 || actor->conversation_index == halo::k_dword_none) ? 1 : 0;
 
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index), forced);
         return;
@@ -156,7 +156,7 @@ void ActorView::type_elite_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
-        if (act->mode_data.flee.unknown_0e) {
+        if (act->mode_data.flee.engage) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
@@ -233,7 +233,7 @@ void ActorView::type_engineer_update()
         halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         break;
     case 4:
-        if (act->mode_data.flee.unknown_0e == 0) {
+        if (act->mode_data.flee.engage == 0) {
             halo::ai::actor_flee_look_away(actor_index);
         } else {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
@@ -307,7 +307,7 @@ void ActorView::type_flood_carrier_update()
         halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         break;
     case 4:
-        if (act->mode_data.flee.unknown_0e != 0) {
+        if (act->mode_data.flee.engage != 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         } else {
             halo::ai::actor_flee_look_away(actor_index);
@@ -366,7 +366,7 @@ void ActorView::type_flood_update()
         halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         break;
     case 4:
-        if (act->mode_data.flee.unknown_0e == 0) {
+        if (act->mode_data.flee.engage == 0) {
             halo::ai::actor_flee_look_away(actor_index);
         } else {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
@@ -443,9 +443,9 @@ void ActorView::type_grunt_update()
         return;
     case 4:
         if (panics && act->mode_data.flee.panic > 0 && !halo::ai::actor_order_code_is_grenade_throw(act->mode_data.flee.panic)) {
-            act->mode_data.flee.unknown_0f[0] = 1;
+            act->mode_data.flee.finished = 1;
         }
-        if (act->mode_data.flee.unknown_0e) {
+        if (act->mode_data.flee.engage) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
@@ -1069,7 +1069,7 @@ void ActorView::type_infection_update()
         }
         break;
     case 4:
-        if (act->mode_data.flee.unknown_0e != 0) {
+        if (act->mode_data.flee.engage != 0) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         } else {
             halo::ai::actor_flee_look_away(actor_index);
@@ -1150,7 +1150,7 @@ void ActorView::type_jackal_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
-        if (act->mode_data.flee.unknown_0e) {
+        if (act->mode_data.flee.engage) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
@@ -1229,7 +1229,7 @@ void ActorView::type_marine_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
-        if (act->mode_data.flee.unknown_0e) {
+        if (act->mode_data.flee.engage) {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
@@ -1346,7 +1346,7 @@ void ActorView::type_sentinel_update()
         halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         break;
     case 4:
-        if (act->mode_data.flee.unknown_0e == 0) {
+        if (act->mode_data.flee.engage == 0) {
             halo::ai::actor_flee_look_away(actor_index);
         } else {
             halo::ai::actor_update_combat_behavior(actor_index, 1, 1);

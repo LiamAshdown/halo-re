@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_movement.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -864,8 +865,8 @@ void halo::ai::movement_ops::fill_unit_position_context(datum_index unit_index, 
         } while (cursor != k_datum_index_none);
     }
     root_object = object_get(root);
-    *(uint32_t *)&((struct actor_unit_position_context *)context)->root_position_x = *(uint32_t *)(root_object + 0x98);
-    *(uint32_t *)&((struct actor_unit_position_context *)context)->root_position_y = *(uint32_t *)(root_object + 0x9c);
+    ((struct actor_unit_position_context *)context)->root_position_x = halo::bit_cast<float>(static_cast<uint32_t>(*(uint32_t *)(root_object + 0x98)));
+    ((struct actor_unit_position_context *)context)->root_position_y = halo::bit_cast<float>(static_cast<uint32_t>(*(uint32_t *)(root_object + 0x9c)));
 }
 
 namespace halo::ai {
@@ -1018,7 +1019,7 @@ uint8_t halo::ai::movement_ops::get_cached_wander_position(real_vector3d *out_po
             return 1;
         }
         if (self->firing_target_type > 0) {
-            *out_position = *(real_vector3d *)&self->target_aim_vector[0];
+            *out_position = self->target_aim_vector;
             return 1;
         }
     }
@@ -1060,18 +1061,18 @@ uint8_t halo::ai::movement_ops::get_requested_velocity(uint8_t skip_clamp, datum
         if (self->swarm != 0) {
 
             halo::ai::actor_dispatch_type_vtable_0x1c(actor_index, object_index, *(uint32_t *)&speed_limit, (uint32_t)out_velocity);
-            self->jump_velocity_request[0] = 0;
+            self->jump_velocity_request.valid = 0;
             return 1;
         }
-        if (self->jump_velocity_request[0] != 0) {
+        if (self->jump_velocity_request.valid != 0) {
             if (self->mode == 10 && *(int16_t *)&self->mode_data.raw[4] == 3) {
                 skip_clamp = 1;
             }
-            out_velocity->j = *(float *)&self->jump_velocity_request[8] *
-                              *(float *)&self->jump_velocity_request[12];
-            out_velocity->k = *(float *)&self->jump_velocity_request[16];
-            out_velocity->i = *(float *)&self->jump_velocity_request[4] *
-                              *(float *)&self->jump_velocity_request[12];
+            out_velocity->j = self->jump_velocity_request.direction.j *
+                              self->jump_velocity_request.horizontal_speed;
+            out_velocity->k = self->jump_velocity_request.vertical_speed;
+            out_velocity->i = self->jump_velocity_request.direction.i *
+                              self->jump_velocity_request.horizontal_speed;
             length = (float)sqrt((double)(out_velocity->i * out_velocity->i +
                                           out_velocity->j * out_velocity->j +
                                           out_velocity->k * out_velocity->k));
@@ -1084,7 +1085,7 @@ uint8_t halo::ai::movement_ops::get_requested_velocity(uint8_t skip_clamp, datum
         }
     }
 
-    self->jump_velocity_request[0] = 0;
+    self->jump_velocity_request.valid = 0;
     return 1;
 }
 

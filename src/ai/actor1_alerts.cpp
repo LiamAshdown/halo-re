@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_alerts.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -44,7 +45,7 @@ uint8_t halo::ai::alert_ops::alert_from_damage()
     }
     if (actor->unit_index != halo::k_dword_none) {
         uint8_t *unit = (uint8_t *)halo::ai::object_at(actor->unit_index);
-        datum_index attacker = *(datum_index *)&((struct unit_object *)unit)->unit.flaming_responsible_object;
+        datum_index attacker = static_cast<datum_index>(((struct unit_object *)unit)->unit.flaming_responsible_object);
 
         if (attacker != k_datum_index_none) {
             uint8_t *attacker_unit = (uint8_t *)halo::objects::object_try_and_get(attacker, 3);
@@ -682,7 +683,7 @@ uint8_t halo::ai::alert_ops::escalate_check_weapon_range()
     uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
     ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
 
-    if (*(datum_index *)&act->stuck_projectile_index == k_datum_index_none || act->combat_status < 5) {
+    if (static_cast<datum_index>(act->stuck_projectile_index) == k_datum_index_none || act->combat_status < 5) {
         return 0;
     }
     if (!(((struct prop *)PROP(act->target_unit_index))->distance < definition->berserk_firing_ranges[1])) {
@@ -822,7 +823,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
             base_delay = a->berserking ? 0.0f : ((Actor *)actor_tag)->melee_attack_delay;
             delay = halo::game::weapon_get_zoom_fov(0x14, difficulty) + halo::game::weapon_get_zoom_fov(0x15, difficulty) * base_delay;
             range = wide ? ((ActorVariant *)variant)->berserk_melee_range : ((ActorVariant *)variant)->melee_range;
-            if (!(*(int32_t *)&a->search_wait_time != -1 && *(int32_t *)&a->search_wait_time + 0xa >= now) &&
+            if (!(a->search_wait_time != -1 && a->search_wait_time + 0xa >= now) &&
                 distance <= range) {
                 uint8_t near_enough = 1;
 
@@ -835,9 +836,9 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                     near_enough = distance <= 0.8f + extra;
                 }
                 if (near_enough &&
-                    (*(int32_t *)&a->last_melee_time == -1 || (float)now > delay * 30.0f + (float)*(int32_t *)&a->last_melee_time)) {
+                    (a->last_melee_time == -1 || (float)now > delay * 30.0f + (float)a->last_melee_time)) {
                     halo::ai::actor_has_unshielded_threat_weapon(actor_index);
-                    *(int32_t *)&a->search_wait_time = now;
+                    a->search_wait_time = now;
                     if (halo::ai::actor_consider_combat_mode(actor_index, 2, &consideration)) {
                         halo::ai::actor_set_mode(actor_index, 0xa, &consideration);
                         changed = 1;
@@ -855,11 +856,11 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
             if (seat_kind > 0) {
                 uint8_t ready = 1;
 
-                if (*(int32_t *)&a->last_vehicle_charge_time != -1) {
+                if (a->last_vehicle_charge_time != -1) {
                     uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(a->active_unit_index));
 
                     ready = (float)game_time->game_time >
-                        *(float *)(vehicle_tag + 0x390) * 30.0f + (float)*(int32_t *)&a->last_vehicle_charge_time;
+                        *(float *)(vehicle_tag + 0x390) * 30.0f + (float)a->last_vehicle_charge_time;
                 }
                 if (ready && seat_kind == 4 && distance > definition->melee_range &&
                     p->obstruction == 0 &&
@@ -907,7 +908,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 float vehicle_range = *(float *)(vehicle_tag + 0x394);
 
                 if (a->movement_completed && a->active_movement.type == 5 &&
-                    *(datum_index *)&a->active_movement.destination.x == a->target_unit_index) {
+                    halo::bit_cast<datum_index>(a->active_movement.destination.x) == a->target_unit_index) {
                     goto guard;
                 }
                 if (distance < vehicle_range) {

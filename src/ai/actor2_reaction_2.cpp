@@ -49,7 +49,7 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
         direction.j = actor->facing.j;
         halo::math::vector2d_normalize_with_length(direction);
     }
-    halo::ai::actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
+    halo::ai::actor_queue_secondary_action(actor_index, action, &direction);
     if (actor->look_at_reference != halo::k_dword_none) {
         struct prop *prop = halo::ai::prop_at(actor->look_at_reference);
 

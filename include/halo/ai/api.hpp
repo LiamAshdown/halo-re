@@ -8,6 +8,8 @@
 #include <stdint.h>
 
 struct Actor;
+struct actor_mode_flee_data;
+struct real_vector2d;
 struct ActorVariant;
 struct ai_globals;
 struct data_array;
@@ -131,12 +133,12 @@ void actor_build_path_find_request(datum_index actor_index, path_find_request *r
 uint8_t actor_can_throw_grenade_at_target(datum_index actor_index);
 uint8_t actor_check_burst_length_exceeded(datum_index actor_index);
 uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit);
-void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order);
+void actor_check_melee_target_reachable(uint32_t actor_index, actor_mode_flee_data *record);
 uint8_t actor_check_pain_reaction(uint32_t resolved_target, uint8_t use_alt_base, uint16_t order_code, datum_index actor_index);
 uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *direction, float step_distance, float step_up, uint8_t *out_flag, void *extra_param);
 uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index);
 uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index, uint8_t flag_pursue);
-uint8_t actor_check_weapon_pickup_reachable(uint32_t actor_index, uint8_t *record);
+uint8_t actor_check_weapon_pickup_reachable(uint32_t actor_index, actor_mode_flee_data *record);
 void actor_choose_best_target(datum_index actor_index);
 void actor_choose_random_point_near(real_point3d *inout_point, float radius);
 int16_t actor_claim_firing_position(datum_index actor_index, datum_index previous_owner, path_find_context *path_context, int16_t firing_position_index, uint8_t path_ok);
@@ -349,7 +351,7 @@ void actor_queue_point_reaction_dialogue(const real_point3d *point, datum_index 
 void actor_queue_recognized_target_dialogue(datum_index actor_index, datum_index target_prop_index);
 void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index);
 void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority, real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra, uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value, uint8_t prop_flag);
-uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2]);
+uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, const real_vector2d *direction);
 void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index target_prop_index, uint8_t already_noticed);
 void actor_queue_velocity_search_from_prop(datum_index prop_index, datum_index actor_index);
 void actor_raise_timer_5f6(datum_index actor_index, int32_t ticks);

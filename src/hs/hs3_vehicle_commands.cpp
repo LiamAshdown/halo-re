@@ -26,7 +26,7 @@ void VehicleCommands::evaluate_vehicle_driver(int16_t function_index, uint32_t t
     if (arguments != 0) {
         uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 3);
 
-        halo::hs::hs_thread_return(unit != 0 ? *(int32_t *)&((unit_object *)unit)->unit.driver_unit_index : -1, thread_index);
+        halo::hs::hs_thread_return(unit != 0 ? static_cast<int32_t>(((struct unit_object *)unit)->unit.driver_unit_index) : -1, thread_index);
     }
 }
 

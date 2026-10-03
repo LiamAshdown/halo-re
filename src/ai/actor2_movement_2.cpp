@@ -517,7 +517,7 @@ void ActorView::movement_update()
     cached_axis = a->strafe_axis_override;
 
     if (a->movement_action_complete != 0 &&
-        actor_def->stationary_movement_dist <= *(float *)&a->movement_timer) {
+        actor_def->stationary_movement_dist <= a->movement_timer) {
         movement_mode = actor_base[0x427];
     } else {
         movement_mode = actor_base[0x426];
@@ -727,7 +727,7 @@ void ActorView::movement_update()
                 facing.j = a->facing.j;
             }
         }
-        halo::ai::actor_queue_secondary_action(actor_index, 0, (uint32_t *)&facing);
+        halo::ai::actor_queue_secondary_action(actor_index, 0, &facing);
         halo::ai::ai_communication_broadcast(0x2a, a->unit_index, target_object, 3,
                                    (datum_index)k_datum_index_none,
                                    (datum_index)k_datum_index_none, 0);
@@ -737,7 +737,7 @@ void ActorView::movement_update()
     if (vehicle_stuck) {
         a->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::jump);
     } else if (a->airborne != 0 || a->active_unit_index != (datum_index)k_datum_index_none) {
-        a->jump_velocity_request[0] = 0;
+        a->jump_velocity_request.valid = 0;
     } else if (halo::ai::actor_action_has_queued_secondary(actor_index) == 0 && a->jump_requested != 0) {
         uint8_t handled = 0;
         if (a->jump_is_leap != 0) {
@@ -763,11 +763,11 @@ void ActorView::movement_update()
             halo::ai::actor_set_flag_bit1(actor_index);
         }
         if (a->jump_parameters_valid != 0) {
-            *(float *)&a->jump_velocity_request[4]  = a->jump_facing.i;
-            a->jump_velocity_request[0] = 1;
-            *(float *)&a->jump_velocity_request[8]  = a->jump_facing.j;
-            *(float *)&a->jump_velocity_request[12] = a->jump_horizontal_velocity;
-            *(float *)&a->jump_velocity_request[16] = a->jump_vertical_velocity;
+            a->jump_velocity_request.direction.i = a->jump_facing.i;
+            a->jump_velocity_request.valid = 1;
+            a->jump_velocity_request.direction.j = a->jump_facing.j;
+            a->jump_velocity_request.horizontal_speed = a->jump_horizontal_velocity;
+            a->jump_velocity_request.vertical_speed = a->jump_vertical_velocity;
         }
     }
 

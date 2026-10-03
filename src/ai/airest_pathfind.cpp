@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/airest_pathfind.hpp"
 
 #include <stdint.h>
@@ -139,7 +140,7 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
         } else {
             ai_search_node *best = &search->nodes[search->result_node];
 
-            previous_surface = *(int32_t *)&best->z;
+            previous_surface = halo::bit_cast<int32_t>(best->z);
             halo::math::decal_plane_solve_third_axis(&previous, 1, 2, ai_navigate_surface_plane(collision_bsp, previous_surface),
                 best->position);
         }
@@ -147,10 +148,10 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
         index = search->result_node;
         while (index != 0) {
             ai_search_node *node = &search->nodes[index];
-            real_plane3d *plane = ai_navigate_surface_plane(collision_bsp, *(int32_t *)&node->z);
+            real_plane3d *plane = ai_navigate_surface_plane(collision_bsp, halo::bit_cast<int32_t>(node->z));
             path_find_waypoint *point = &path[length++];
 
-            point->surface_index = *(int32_t *)&node->z;
+            point->surface_index = halo::bit_cast<int32_t>(node->z);
             point->position.x = node->position.x;
             point->position.y = node->position.y;
             if ((float)fabs(plane->normal.k) < 0.0001f) {

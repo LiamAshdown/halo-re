@@ -602,7 +602,7 @@ namespace actor_queue_secondary_action_local {
  *
  * @address 0x417a60
  */
-uint8_t ActorView::queue_secondary_action(int16_t action, uint32_t payload[2])
+uint8_t ActorView::queue_secondary_action(int16_t action, const real_vector2d *direction)
 {
     using namespace actor_queue_secondary_action_local;
     actor *self;
@@ -618,8 +618,7 @@ uint8_t ActorView::queue_secondary_action(int16_t action, uint32_t payload[2])
     }
 
     self->secondary_action = action;
-    *(uint32_t *)&self->unknown_41a[2] = payload[0];
-    *(uint32_t *)&self->unknown_41a[6] = payload[1];
+    self->secondary_action_direction = *direction;
     return 1;
 }
 
@@ -941,7 +940,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
 
         if (unit->controlling_player != (datum_index)k_datum_index_none) {
             uint8_t *player = (uint8_t *)halo::game::globals().player_data->data + (unit->controlling_player & halo::k_slot_mask) * 0x200;
-            int32_t unknown_40 = *(int32_t *)&((struct player *)player)->observer_target;
+            int32_t unknown_40 = static_cast<int32_t>(((struct player *)player)->observer_target);
             int32_t unknown_44 = ((struct player *)player)->observer_state;
 
             if (unknown_40 != -1 && (int32_t)halo::game::globals().game_time->game_time <= unknown_44 + 0x5a) {

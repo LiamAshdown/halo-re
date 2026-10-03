@@ -291,7 +291,7 @@ uint32_t halo::ai::grenade_ops::commit_grenade_toss(real_point3d *point, uint32_
     float flight_time;
     float gravity;
 
-    if (!halo::ai::actor_get_grenade_launch_velocity(*(int16_t *)&((ActorVariant *)variant)->grenade_type, &direction, &origin,
+    if (!halo::ai::actor_get_grenade_launch_velocity(((struct ActorVariant *)variant)->grenade_type, &direction, &origin,
                                            ((ActorVariant *)variant)->grenade_velocity, point, 0, &speed, &flight_time,
                                            &velocity, &gravity)) {
         return 0;
@@ -516,7 +516,7 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
         }
         action = (int16_t)side == 1 ? 7 : 6;
         if (halo::units::unit_scripted_action_animation_exists(a->unit_index, action)) {
-            queued = halo::ai::actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
+            queued = halo::ai::actor_queue_secondary_action(actor_index, action, &direction);
         }
     }
     return queued;
@@ -631,7 +631,7 @@ int32_t halo::ai::grenade_ops::find_nearest_grenade_ally(uint8_t widen_search)
         datum_index cursor[3];
         datum_index candidate;
 
-        halo::ai::ai_reference_actor_iterator_init_cursor(*(int32_t *)&self->encounter_index, cursor);
+        halo::ai::ai_reference_actor_iterator_init_cursor(static_cast<int32_t>(self->encounter_index), cursor);
         candidate = cursor[2];
         while (halo::ai::globals().state->actors_valid && candidate != k_datum_index_none) {
             actor *other = halo::ai::actor_at(candidate);
@@ -998,7 +998,7 @@ int32_t halo::ai::grenade_ops::trace_from_source(real_point3d *target_point)
         if (a->movement_action_complete == 0) {
             return 0;
         }
-        halo::units::unit_add_marker_relative_offset(a->unit_index, 1, (float *)((uint8_t *)a + 0x4ac), 0, 0, &source);
+        halo::units::unit_add_marker_relative_offset(a->unit_index, 1, &a->path_end_point.x, 0, 0, &source);
     } else {
         source.x = a->aim_origin.x;
         source.y = a->aim_origin.y;

@@ -67,7 +67,7 @@ void ActorView::update_firing_state()
         uint8_t changed;
 
         if (a->wants_to_fire) {
-            if (a->unknown_45d[0]) {
+            if (a->forced_aim_valid) {
                 kind = 2;
             } else if (a->target_unit_index != k_datum_index_none) {
                 kind = 1;

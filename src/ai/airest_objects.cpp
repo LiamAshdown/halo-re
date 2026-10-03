@@ -377,8 +377,7 @@ void ObjectListView::detach_actors_from_encounters()
                     a->next_in_encounter = halo::ai::globals().state->first_encounterless_actor;
                     halo::ai::globals().state->first_encounterless_actor = actor_index;
                     a->encounterless = 1;
-                    *(uint16_t *)&a->activation_delay[0] =
-                        (uint16_t)(-(uint16_t)(a->active != 0) & 0x5a);
+                    a->activation_delay = static_cast<int16_t>((uint16_t)(-(uint16_t)(a->active != 0) & 0x5a));
                     halo::ai::actor_movement_action_cancel(actor_index);
                 }
                 detached = detached + 1;
@@ -1081,7 +1080,7 @@ uint8_t AiObjects::pursuit_check_object(datum_index object_index, datum_index en
     if (handle != (datum_index)k_datum_index_none) {
         ai_pursuit *pursuit = &((ai_pursuit *)halo::ai::globals().pursuit_data->data)[handle & halo::k_slot_mask];
         count = pursuit->count;
-        last_tick = *(uint32_t *)&pursuit->last_tick;
+        last_tick = static_cast<uint32_t>(pursuit->last_tick);
 
         if (count < 7) {
             int16_t i;

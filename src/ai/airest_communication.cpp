@@ -201,7 +201,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
 
     if (unit_index != k_datum_index_none) {
         unit = (unit_object *)OBJECT_DATA(unit_index);
-        unit_team = (unit_team & 0xffff0000u) | *(uint16_t *)&unit->base.owner_team;
+        unit_team = (unit_team & 0xffff0000u) | static_cast<uint16_t>(unit->base.owner_team);
         unit_actor_index = unit->unit.actor_index;
         unit_class = broadcast_team_class((int16_t)unit_team);
         if (unit_actor_index != k_datum_index_none) {
@@ -226,7 +226,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
     if (object_a != k_datum_index_none) {
         other = (unit_object *)OBJECT_DATA(object_a);
         other_actor_index = other->unit.actor_index;
-        other_team_or_class = *(uint16_t *)&other->base.owner_team;
+        other_team_or_class = static_cast<uint16_t>(other->base.owner_team);
         other_class = broadcast_team_class((int16_t)other_team_or_class);
         if (other_actor_index != k_datum_index_none) {
             other_actor = (actor *)ACTOR_DATA(other_actor_index);
@@ -540,7 +540,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             if (speaker->awareness_level == 0) {
                 continue;
             }
-            if (speaker->mode == 0xb && speaker->mode_data.flee.unknown_04[0] == 0) {
+            if (speaker->mode == 0xb && speaker->mode_data.flee.use_last_seen_position == 0) {
                 continue;
             }
         }
@@ -1369,10 +1369,10 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
                                 goto check_b;
                             }
                             if (allow_unreachable == 0 &&
-                                *(int16_t *)&p->auditory_perception < 2 &&
-                                *(int16_t *)((uint8_t *)p + 0x36) < 2) {
+                                p->auditory_perception < 2 &&
+                                p->ambient_perception < 2) {
                                 if (p->flashlight_on == 0) {
-                                    reach_mode = (int32_t)*(int8_t *)&p->perception_range_class;
+                                    reach_mode = (int32_t)static_cast<int8_t>(p->perception_range_class);
                                 }
                                 reach = halo::ai::actor_dispatch_look_handler_by_posture(p->obstruction,
                                                      actor_index, &a->aim_origin, (uint8_t *)p + 0x104,
@@ -1978,7 +1978,7 @@ void AiCommunication::dispatch_queued_order(ai_queued_order *order, datum_index 
     uint8_t *o = (uint8_t *)order;
     int16_t count = ((struct ai_queued_order *)o)->target_count;
     datum_index target = ((struct ai_queued_order *)o)->object_a;
-    int16_t variant = (int16_t)*(uint16_t *)&((struct ai_queued_order *)o)->single_target;
+    int16_t variant = (int16_t)static_cast<uint16_t>(((struct ai_queued_order *)o)->single_target);
     int16_t line = 9;
 
     if (count <= 0) {
@@ -2086,7 +2086,7 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
             uint32_t firing[0x18];
 
             halo::ai::actor_get_firing_positions(actor_index, firing, &position);
-            if ((int16_t)halo::ai::actor_target_hearing_check(location, (int16_t)*(uint16_t *)&p->obstruction, actor_index,
+            if ((int16_t)halo::ai::actor_target_hearing_check(location, (int16_t)static_cast<uint16_t>(p->obstruction), actor_index,
                                            firing, gate, &position) >= 2) {
                 halo::ai::actor_dispatch_squad_order(prop_index, (const actor_squad_order_header *)order, actor_index);
                 halo::ai::ai_dispatch_queued_order((ai_queued_order *)order, prop_index, actor_index);

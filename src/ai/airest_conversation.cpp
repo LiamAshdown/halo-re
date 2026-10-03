@@ -638,7 +638,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
     }
 
     if ((int16_t)participant->use_this_object == -1) {
-        if (*(int32_t *)&participant->encounter_index == -1) {
+        if (static_cast<int32_t>(participant->encounter_index) == -1) {
             if (halo::ai::globals().state->actors_valid) {
                 actor_iterator.filter_array = halo::ai::globals().encounter_data;
                 actor_iterator.next_index = 0;

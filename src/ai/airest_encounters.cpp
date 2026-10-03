@@ -523,7 +523,7 @@ void Encounters::merge(uint32_t source_reference, uint32_t target_encounter_inde
         int16_t remapped;
 
         actor_index = ((struct actor *)raw)->next_in_encounter;
-        if ((*(uint32_t *)&((struct actor *)raw)->original_encounter_index & halo::k_slot_mask) != source_index) {
+        if ((((struct actor *)raw)->original_encounter_index & halo::k_slot_mask) != source_index) {
             continue;
         }
         squad_index = ((struct actor *)raw)->original_squad_index;
@@ -531,9 +531,9 @@ void Encounters::merge(uint32_t source_reference, uint32_t target_encounter_inde
         if (remapped == -1 || (merging_into_self && remapped == squad_index)) {
             continue;
         }
-        *(uint32_t *)&((struct actor *)raw)->original_encounter_index = target_index;
+        ((struct actor *)raw)->original_encounter_index = target_index;
         ((struct actor *)raw)->original_squad_index = remapped;
-        if (merging_into_self || *(int16_t *)&target_definition->precomputed_bsp_index != halo::scenario::globals().structure_bsp_index) {
+        if (merging_into_self || static_cast<int16_t>(target_definition->precomputed_bsp_index) != halo::scenario::globals().structure_bsp_index) {
             continue;
         }
         halo::ai::ai_actor_unlink_from_unassigned_list(current);
@@ -558,7 +558,7 @@ void EncounterView::starting_location_derive_placement_flags(int16_t starting_lo
     ScenarioEncounter *encounter_definition =
         &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[encounter_index & halo::k_slot_mask];
     ScenarioSquad *squads = (ScenarioSquad *)encounter_definition->squads.pointer;
-    int16_t category = *(int16_t *)&encounter_definition->search_behavior;
+    int16_t category = encounter_definition->search_behavior;
 
     if ((*((uint8_t *)squads + starting_location_index * 0xe8 + 0x28) & 2) != 0) {
         category = 1;
@@ -1356,12 +1356,12 @@ uint8_t EncounterView::evaluate_platoon_condition(const ai_platoon_condition *co
     if ((platoon_index < 0) || (self->platoon_count <= platoon_index)) {
         count_b = self->member_count;
         count_a = self->living_count;
-        threshold = *(float *)&self->average_vitality;
+        threshold = self->average_vitality;
     } else {
         platoon_state = &halo::ai::globals().platoon_states[(int16_t)(self->first_platoon + platoon_index)];
         count_b = platoon_state->member_count;
         count_a = platoon_state->living_count;
-        threshold = *(float *)&platoon_state->average_vitality;
+        threshold = platoon_state->average_vitality;
     }
 
     if (count_b <= 0) {
@@ -1559,7 +1559,7 @@ void EncounterView::gather_occupied_clusters(uint32_t *out_clusters, uint8_t rec
                             squad = &((ScenarioSquad *)
                                 ((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                     [a->encounter_index & halo::k_slot_mask].squads.pointer)[a->squad_index];
-                            extra = *(uint32_t *)&squad->pursuing;
+                            extra = squad->pursuing;
                         }
                         zone_mask = zone_mask | extra;
                     }
@@ -1913,8 +1913,8 @@ void EncounterView::propagate_platoon_state_to_actors()
             if ((-1 < maneuver_to_squad) && (maneuver_to_squad < (int32_t)encounter_definition->squads.count)) {
                 halo::ai::actor_reset_squad_link_for_type_change(current, encounter_index, maneuver_to_squad);
                 platoon_definition = &((ScenarioPlatoon *)encounter_definition->platoons.pointer)[platoon_index];
-                halo::ai::actor_notify_squad_and_flag_danger(current, (uint8_t)((*(uint32_t *)&platoon_definition->flags >> 1) & 1),
-                    (uint8_t)(*(uint32_t *)&platoon_definition->flags & 1));
+                halo::ai::actor_notify_squad_and_flag_danger(current, (uint8_t)((platoon_definition->flags >> 1) & 1),
+                    (uint8_t)(platoon_definition->flags & 1));
             }
         }
     }
@@ -3344,7 +3344,7 @@ void Encounters::update_activation()
         }
 
         if (a->can_go_dormant == 0 || a->force_active != 0) {
-            *(int16_t *)&a->activation_delay[0] = 0x5a;
+            a->activation_delay = 0x5a;
             if (a->active != 1) {
                 if (a->swarm == 0 || (halo::ai::actor_create_swarm(current),
                                       a->swarm_index != (datum_index)k_datum_index_none)) {
@@ -3356,8 +3356,8 @@ void Encounters::update_activation()
                     a->swarm_pending = 1;
                 }
             }
-        } else if (*(int16_t *)&a->activation_delay[0] < 0x1f) {
-            *(int16_t *)&a->activation_delay[0] = 0;
+        } else if (a->activation_delay < 0x1f) {
+            a->activation_delay = 0;
             if (a->active != 0) {
                 halo::ai::actor_clear_perceived_props(current);
                 halo::ai::actor_delete_swarm(current);
@@ -3366,7 +3366,7 @@ void Encounters::update_activation()
                 a->deactivation_time = (datum_index)halo::game::globals().game_time->game_time;
             }
         } else {
-            *(int16_t *)&a->activation_delay[0] = (int16_t)(*(int16_t *)&a->activation_delay[0] - 0x1e);
+            a->activation_delay = (int16_t)(a->activation_delay - 0x1e);
         }
         actor_index = a->next_in_encounter;
     }

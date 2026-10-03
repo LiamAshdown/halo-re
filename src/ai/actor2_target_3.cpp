@@ -264,7 +264,7 @@ restart:
                                self->vocalization_source.payload.handle == target_prop_index) ||
                               (self->idle_major_active != 0 && self->idle_major_direction_type == 1 &&
                                self->idle_major_prop_index == target_prop_index) ||
-                              (self->idle_look_state[1] != 0 && self->idle_look_direction_type == 1 &&
+                              (self->idle_minor_active != 0 && self->idle_look_direction_type == 1 &&
                                self->idle_look_prop_index == target_prop_index));
                 target->in_use = important;
                 if (target->state > 3 && target->state < 6) {
@@ -291,7 +291,7 @@ restart:
     case 0:
         if (target->perception_level > 0) {
             new_kind = 1;
-            *(float *)&target->acknowledge_progress = 0.0f;
+            target->acknowledge_progress = 0.0f;
             goto case1_dispatch;
         }
         break;
@@ -312,7 +312,7 @@ restart:
             }
 
             *(float *)&target->acknowledge_progress += rate;
-            if (*(float *)&target->acknowledge_progress >= 1.0f) {
+            if (target->acknowledge_progress >= 1.0f) {
                 new_kind = 3;
             }
             if (new_kind == -1) {
@@ -320,7 +320,7 @@ restart:
             }
             goto apply_new_kind;
         }
-        *(float *)&target->acknowledge_progress = 0.0f;
+        target->acknowledge_progress = 0.0f;
         new_kind = 0;
         goto apply_new_kind;
 

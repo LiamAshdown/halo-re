@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/airest_search.hpp"
 
 #include <stdint.h>
@@ -83,7 +84,7 @@ int16_t AiSearch::add_node(int16_t parent, real_point2d *position, int32_t surfa
     index = context->node_count++;
     node = &context->nodes[index];
     node->position = *position;
-    *(int32_t *)&node->z = surface_index;
+    node->z = halo::bit_cast<float>(static_cast<int32_t>(surface_index));
     node->direction.i = dx;
     node->direction.j = dy;
     node->length = halo::math::vector2d_normalize_with_length(node->direction);
@@ -323,7 +324,7 @@ void AiSearch::expand_point_neighbors(int16_t node_index, int16_t start_point_id
     ai_search_context * context = ptr;
     ai_search_obstacle_list *list = (ai_search_obstacle_list *)(uintptr_t)context->obstacles;
     void *map = (void *)(uintptr_t)context->structure_bsp;
-    float radius = *(float *)&context->search_radius;
+    float radius = halo::bit_cast<float>(context->search_radius);
     ai_search_node *node = &context->nodes[node_index];
     uint32_t visited[8];
     int16_t worklist[0x78];
@@ -348,7 +349,7 @@ void AiSearch::expand_point_neighbors(int16_t node_index, int16_t start_point_id
             ai_search_edge_result edge;
 
             halo::ai::ai_search_evaluate_edge_cost(map, context->ignores_glass, list, point, &node->position,
-                *(int32_t *)&node->z, radius, radius + radius + tangent_distance, 0, 0, context->ignore_flagged_obstacles, &edge,
+                halo::bit_cast<int32_t>(node->z), radius, radius + radius + tangent_distance, 0, 0, context->ignore_flagged_obstacles, &edge,
                 &directions[side]);
             if (edge.point_id != -1 && (visited[edge.point_id >> 5] & (1u << (edge.point_id & 0x1f))) == 0) {
                 visited[edge.point_id >> 5] |= 1u << (edge.point_id & 0x1f);
@@ -360,7 +361,7 @@ void AiSearch::expand_point_neighbors(int16_t node_index, int16_t start_point_id
                 real_point2d position;
 
                 halo::ai::path_find_trace_cluster_boundary_from_vertex(map, context->ignores_glass, &node->position,
-                    *(int32_t *)&node->z, &directions[side], half, &trace);
+                    halo::bit_cast<int32_t>(node->z), &directions[side], half, &trace);
                 position.x = half * directions[side].i + node->position.x;
                 position.y = half * directions[side].j + node->position.y;
                 halo::ai::ai_search_add_node(context, node_index, &position, trace.surface_index, link, (uint8_t)side,
@@ -794,8 +795,8 @@ uint8_t AiSearch::step()
             ai_search_edge_result edge;
 
             halo::ai::ai_search_evaluate_edge_cost((void *)(uintptr_t)context->structure_bsp, context->ignores_glass,
-                (ai_search_obstacle_list *)(uintptr_t)context->obstacles, -1, &node->position, *(int32_t *)&node->z,
-                *(float *)&context->search_radius, node->length, (uint8_t)(node->parent == -1), 1, context->ignore_flagged_obstacles,
+                (ai_search_obstacle_list *)(uintptr_t)context->obstacles, -1, &node->position, halo::bit_cast<int32_t>(node->z),
+                halo::bit_cast<float>(context->search_radius), node->length, (uint8_t)(node->parent == -1), 1, context->ignore_flagged_obstacles,
                 &edge, &node->direction);
             if (edge.edge_index == -1) {
                 if (edge.point_id == -1) {

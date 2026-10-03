@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_looks.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -32,7 +33,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     using namespace c_actor_apply_queued_look_to_unit;
     datum_index actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
-    uint32_t unit_index = *(uint32_t *)&actor->unit_index;
+    uint32_t unit_index = actor->unit_index;
     uint8_t *unit = (uint8_t *)halo::ai::object_at(unit_index);
     unit_control_data control;
 
@@ -44,25 +45,25 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     control.zoom_level = -1;
     control.unknown_0a = 0;
     control.throttle = *(real_vector3d *)&actor->throttle.i;
-    control.primary_trigger = *(float *)&actor->override_target;
+    control.primary_trigger = halo::bit_cast<float>(actor->override_target);
     control.facing_vector = *(real_vector3d *)&actor->snapshot_facing.i;
     control.aiming_vector = *(real_vector3d *)&actor->aiming_vector_snapshot.i;
     control.looking_vector = *(real_vector3d *)&actor->looking_vector_snapshot.i;
 
-    if (*(uint32_t *)&((unit_object *)unit)->unit.controlling_player != halo::k_dword_none && halo::game::globals().local_player_globals->input_disabled == 0) {
+    if (((struct unit_object *)unit)->unit.controlling_player != halo::k_dword_none && halo::game::globals().local_player_globals->input_disabled == 0) {
         return;
     }
     if (actor->unit_control_pending != 0) {
         halo::units::unit_refresh_targeting_flag_and_weapons(unit_index, 1);
         actor->unit_control_pending = 0;
     }
-    halo::units::unit_apply_control_block(*(uint32_t *)&actor->unit_index, &control, -1);
+    halo::units::unit_apply_control_block(actor->unit_index, &control, -1);
     if (actor->control_animation_impulse != -1) {
-        halo::units::unit_try_start_scripted_action_animation(*(uint32_t *)&actor->unit_index, actor->control_animation_impulse,
+        halo::units::unit_try_start_scripted_action_animation(actor->unit_index, actor->control_animation_impulse,
             (const real_vector2d *)((uint8_t *)actor + 0x6f0));
     }
     if (actor->persistent_control_ticks > 0) {
-        uint8_t *object = (uint8_t *)halo::ai::object_at(*(uint32_t *)&actor->unit_index);
+        uint8_t *object = (uint8_t *)halo::ai::object_at(actor->unit_index);
 
         *(int32_t *)(object + 0x210) = actor->persistent_control_ticks;
         *(uint32_t *)(object + 0x214) = actor->persistent_control_flags;
@@ -643,7 +644,7 @@ void halo::ai::look_ops::look_randomize_direction(float *deviation_table, real_v
     self = halo::ai::actor_at(actor_index);
     definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     out_in_front = 0;
-    self->idle_look_state[1] = 0;
+    self->idle_minor_active = 0;
 
     if (!halo::ai::actor_select_facing_target_prop(actor_index, 0, 0, (actor_recognition_scan_result *)((uint8_t *)self + 0x57c),
             (uint8_t *)&out_in_front)) {
@@ -682,7 +683,7 @@ void halo::ai::look_ops::look_randomize_direction(float *deviation_table, real_v
     wait_ticks = halo::ai::actor_look_get_wait_ticks(actor_index, 2, out_in_front, deviation_table);
     *(int32_t *)self->idle_minor_timer = wait_ticks;
     if (wait_ticks != 0) {
-        self->idle_look_state[1] = 1;
+        self->idle_minor_active = 1;
     }
 }
 

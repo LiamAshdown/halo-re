@@ -668,7 +668,7 @@ void AiTargetingCommands::follow_target_ai(int16_t function_index, uint32_t thre
                 ((struct encounter *)encounter)->follow_target_type = 0;
             } else {
                 ((struct encounter *)encounter)->follow_target_type = 3;
-                *(uint32_t *)&((struct encounter *)encounter)->follow_target = (uint32_t)arguments[1];
+                ((struct encounter *)encounter)->follow_target = static_cast<int32_t>((uint32_t)arguments[1]);
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
@@ -1485,10 +1485,10 @@ void AiCommandListCommands::command_list_advance_by_unit(int16_t function_index,
             uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 3);
 
             if (unit != 0) {
-                if (*(int32_t *)&((unit_object *)unit)->unit.actor_index != -1) {
-                    halo::ai::actor_swarm_for_each_component_thunk(*(uint32_t *)&((unit_object *)unit)->unit.actor_index);
-                } else if (*(int32_t *)&((unit_object *)unit)->unit.swarm_actor_index != -1) {
-                    halo::ai::actor_swarm_for_each_component_thunk(*(uint32_t *)&((unit_object *)unit)->unit.swarm_actor_index);
+                if (static_cast<int32_t>(((struct unit_object *)unit)->unit.actor_index) != -1) {
+                    halo::ai::actor_swarm_for_each_component_thunk(((struct unit_object *)unit)->unit.actor_index);
+                } else if (static_cast<int32_t>(((struct unit_object *)unit)->unit.swarm_actor_index) != -1) {
+                    halo::ai::actor_swarm_for_each_component_thunk(((struct unit_object *)unit)->unit.swarm_actor_index);
                 }
             }
         }

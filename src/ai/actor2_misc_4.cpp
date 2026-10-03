@@ -40,10 +40,10 @@ uint8_t ActorView::seek_vehicle_to_board()
     if ((mode == 4 && act->mode_data.flee.panic > 0) || mode == 11) {
         return 0;
     }
-    if (*(int32_t *)&act->last_vehicle_search_time != -1 && *(int32_t *)&act->last_vehicle_search_time + 45 >= now) {
+    if (static_cast<int32_t>(act->last_vehicle_search_time) != -1 && *(int32_t *)&act->last_vehicle_search_time + 45 >= now) {
         return 0;
     }
-    *(int32_t *)&act->last_vehicle_search_time = now;
+    act->last_vehicle_search_time = static_cast<uint32_t>(now);
     if (*(uint32_t *)actor_tag & 0x1000) {
         datum_index prop_index = act->first_prop;
 
@@ -127,7 +127,7 @@ uint8_t ActorView::seek_vehicle_to_board()
                     if (filter == halo::k_dword_none) {
                         continue;
                     }
-                    match = (uint8_t)(((*(uint32_t *)&act->encounter_index ^ filter) & halo::k_slot_mask) == 0);
+                    match = (uint8_t)(((act->encounter_index ^ filter) & halo::k_slot_mask) == 0);
                     if (!match) {
                         continue;
                     }

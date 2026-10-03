@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/models/api.hpp"
 #include "halo/math/api.hpp"
@@ -106,11 +107,11 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
     memset(&self->threat_level, 0, 0x1a * sizeof(uint32_t));
 
     self->last_cover_attempt_time = (datum_index)k_datum_index_none;
-    *(uint32_t *)&self->search_wait_time = halo::k_dword_none;
-    *(uint32_t *)&self->last_melee_time = halo::k_dword_none;
+    self->search_wait_time = static_cast<int32_t>(halo::k_dword_none);
+    self->last_melee_time = static_cast<int32_t>(halo::k_dword_none);
     self->last_evasion_time = (datum_index)k_datum_index_none;
     self->last_vehicle_search_time = halo::k_dword_none;
-    *(uint32_t *)&self->last_vehicle_charge_time = halo::k_dword_none;
+    self->last_vehicle_charge_time = static_cast<int32_t>(halo::k_dword_none);
     self->last_flee_abort_time = (datum_index)k_datum_index_none;
     self->found_body_time = (datum_index)k_datum_index_none;
     self->retreat_end_time = (datum_index)k_datum_index_none;
@@ -340,14 +341,14 @@ datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, d
         start_active = (char)((*(uint32_t *)(encounter + 0x20) >> 4) & 1);
     }
     if (((struct actor_placement_request *)request)->initial_state_override > 0) {
-        initial_state = *(uint16_t *)&((struct actor_placement_request *)request)->initial_state_override;
+        initial_state = static_cast<uint16_t>(((struct actor_placement_request *)request)->initial_state_override);
     }
     if (*(const int16_t *)(request + 0x14) > 0) {
         return_state = *(const uint16_t *)(request + 0x14);
     }
     result = halo::ai::actor_new_and_attach_to_unit(swarm, unit_index, variant_tag, encounter_index, squad_index, 0,
         k_datum_index_none, start_active, initial_state, (int16_t)return_state, *(const uint16_t *)(request + 0x1a),
-        (uint8_t)*(int8_t *)&((struct actor_placement_request *)request)->unknown_12);
+        (uint8_t)static_cast<int8_t>(((struct actor_placement_request *)request)->unknown_12));
     if (result == k_datum_index_none) {
         int32_t kind = *(int32_t *)((uint8_t *)halo::ai::object_at(unit_index) + 0x4);
 
@@ -582,7 +583,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
             order[0x4] = 0;
             order[0x5] = 0;
             if (act->swarm == 0) {
-                halo::ai::actor_check_melee_target_reachable(actor_index, (int16_t *)order);
+                halo::ai::actor_check_melee_target_reachable(actor_index, reinterpret_cast<actor_mode_flee_data *>(order));
                 if (((struct actor_order *)order)->parameter != -1) {
                     halo::ai::actor_set_mode(actor_index, 4, order);
                     return 1;
@@ -815,7 +816,7 @@ uint8_t ActorView::process_vehicle_seat_exit()
     if (act->vehicle_eviction) {
         wanted = 1;
     }
-    if (act->order_committed && (*(datum_index *)&act->stuck_projectile_index != k_datum_index_none ||
+    if (act->order_committed && (static_cast<datum_index>(act->stuck_projectile_index) != k_datum_index_none ||
                        (act->danger_type == 2 && act->danger_is_own))) {
         forced = 1;
     } else if (!wanted) {
@@ -870,7 +871,7 @@ uint8_t ActorView::process_vehicle_seat_exit()
                         halo::units::unit_dispatch_scripted_event_9(0, (int32_t)rider_index);
                     }
                     act->exited_vehicle_index = act->active_unit_index;
-                    *(int32_t *)&act->exited_vehicle_reentry_time = game_time->game_time + 180;
+                    act->exited_vehicle_reentry_time = static_cast<datum_index>(game_time->game_time + 180);
                     result = 1;
                 }
             }
@@ -1268,7 +1269,7 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
             self->active_movement.type = 0;
             self->active_movement.extra = halo::k_dword_none;
         } else {
-            *(uint32_t *)&self->active_movement.destination.x = new_reference;
+            self->active_movement.destination.x = halo::bit_cast<float>(static_cast<uint32_t>(new_reference));
         }
     }
 
@@ -2180,7 +2181,7 @@ void TargetView::set_target_alert_stage3(datum_index actor_index)
 
     if (target_prop_index == k_datum_index_none) {
         self = halo::ai::actor_at(actor_index);
-        *(int16_t *)&self->pursuit_position_count = 0;
+        self->pursuit_position_count = 0;
         self->target_lost = 0;
         self->unknown_3bd[0] = 0;
         self->minimum_combat_status = 0;
@@ -2558,7 +2559,7 @@ uint8_t ActorOps::take_danger_escape(real_vector3d *path_delta, datum_index acto
     int16_t best_action = -1;
     int16_t best_direction = -1;
     int32_t i;
-    float payload[2];
+    real_vector2d payload;
     uint8_t queued;
 
     if (act->active_unit_index != k_datum_index_none) {
@@ -2594,13 +2595,13 @@ uint8_t ActorOps::take_danger_escape(real_vector3d *path_delta, datum_index acto
         return 0;
     }
     switch (best_direction) {
-    case 0: payload[0] = b; payload[1] = -a; break;
-    case 1: payload[0] = -b; payload[1] = a; break;
+    case 0: payload.i = b; payload.j = -a; break;
+    case 1: payload.i = -b; payload.j = a; break;
     case 2:
-    case 3: payload[0] = a; payload[1] = b; break;
-    default: payload[0] = 0.0f; payload[1] = 0.0f; break;
+    case 3: payload.i = a; payload.j = b; break;
+    default: payload.i = 0.0f; payload.j = 0.0f; break;
     }
-    queued = halo::ai::actor_queue_secondary_action(actor_index, best_action, (uint32_t *)payload);
+    queued = halo::ai::actor_queue_secondary_action(actor_index, best_action, &payload);
     if (queued) {
         halo::ai::ai_communication_broadcast(0x2c, act->unit_index, -1, -1, -1, -1, 0);
     }
@@ -2747,7 +2748,7 @@ uint8_t ActorView::vehicle_not_recently_left(datum_index vehicle_index)
     if (vehicle_index != act->exited_vehicle_index) {
         return 1;
     }
-    return (uint8_t)(game_time->game_time >= *(int32_t *)&act->exited_vehicle_reentry_time);
+    return (uint8_t)(game_time->game_time >= static_cast<int32_t>(act->exited_vehicle_reentry_time));
 }
 
 

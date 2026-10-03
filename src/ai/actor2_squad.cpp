@@ -1089,7 +1089,7 @@ void ActorView::squad_react_to_grenade(datum_index target_prop_index, int16_t gr
     switch (grenade_type) {
     case 0:
         if (target->disregarded == 0) {
-            *(int16_t *)((uint8_t *)&target->auditory_perception + 2) = 3;
+            target->ambient_perception = 3;
             target->perception_level = 3;
             target->combat_dirty = 1;
             halo::ai::actor_queue_recognized_target_dialogue(actor_index, target_prop_index);
@@ -1099,7 +1099,7 @@ void ActorView::squad_react_to_grenade(datum_index target_prop_index, int16_t gr
         if (encounter_forbids == 0 && target->disregarded == 0) {
             target->shooting = 1;
             target->combat_dirty = 1;
-            *(int16_t *)&target->auditory_perception = 3;
+            target->auditory_perception = 3;
             target->perception_level = 3;
             if (target->is_parented != 0) {
                 halo::ai::actor_set_units_active(actor_index, 0);
@@ -1110,7 +1110,7 @@ void ActorView::squad_react_to_grenade(datum_index target_prop_index, int16_t gr
     case 2:
         if (encounter_forbids == 0 && target->disregarded == 0) {
             target->dead = 1;
-            *(int16_t *)&target->auditory_perception = 3;
+            target->auditory_perception = 3;
             target->perception_level = 3;
             target->combat_dirty = 1;
             halo::ai::actor_set_units_active(actor_index, 0);
@@ -1119,7 +1119,7 @@ void ActorView::squad_react_to_grenade(datum_index target_prop_index, int16_t gr
         break;
     case 3:
         if (target->disregarded == 0) {
-            *(int16_t *)((uint8_t *)&target->auditory_perception + 2) = 3;
+            target->ambient_perception = 3;
             target->perception_level = 3;
             target->combat_dirty = 1;
             if (target->is_parented != 0) {

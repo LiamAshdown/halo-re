@@ -138,10 +138,10 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
     if (variant->body_vitality > 0.0f || variant->shield_vitality > 0.0f) {
         halo::objects::object_initialize_shield_stun_thresholds(unit_index, &variant->body_vitality, &variant->shield_vitality);
     }
-    if (*(int16_t *)&variant->forced_shader_permutation != 0) {
-        *(int16_t *)&((unit_object *)unit)->base.forced_shader_permutation = *(int16_t *)&variant->forced_shader_permutation;
+    if (static_cast<int16_t>(variant->forced_shader_permutation) != 0) {
+        ((struct unit_object *)unit)->base.forced_shader_permutation = static_cast<uint16_t>(static_cast<int16_t>(variant->forced_shader_permutation));
     }
-    for (i = 0; i < *(int32_t *)&variant->change_colors.count; i++) {
+    for (i = 0; i < static_cast<int32_t>(variant->change_colors.count); i++) {
         uint8_t *change_color = *(uint8_t **)&variant->change_colors.pointer + i * 0x20;
 
         if (i < 4) {
@@ -167,8 +167,8 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
             }
         }
     }
-    if (*(int16_t *)&variant->grenade_type != -1) {
-        int16_t type = *(int16_t *)&variant->grenade_type;
+    if (variant->grenade_type != -1) {
+        int16_t type = variant->grenade_type;
         int16_t minimum = variant->grenade_count[0];
         int32_t range = (int16_t)(variant->grenade_count[1] + 1) - minimum;
         uint8_t *object = object_get(unit_index);
@@ -707,8 +707,8 @@ static int actor_prop_still_admitted(datum_index actor_index, actor *self, prop 
             uint8_t counts = 1;
             uint8_t calm;
 
-            if (!(reference > *(int32_t *)&self->found_body_time)) {
-                reference = *(int32_t *)&self->found_body_time;
+            if (!(reference > static_cast<int32_t>(self->found_body_time))) {
+                reference = static_cast<int32_t>(self->found_body_time);
             }
             if (reference != -1) {
                 int32_t fired = ((struct unit_object *)unit)->unit.death_time;
@@ -1068,7 +1068,7 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
         p->danger_radius = *(float *)(object_type + 0x284);
         p->dead_not_feigning = (is_vault != 0) && (*(int16_t *)(object + 0x420) == 0);
         p->dead_ticks = (is_vault != 0) ? 1000 : 0;
-        p->is_parented = *(int32_t *)&((struct object *)object)->owner_linkage != -1;
+        p->is_parented = static_cast<int32_t>(((struct object *)object)->owner_linkage) != -1;
 
         if (*(int32_t *)(object + 0x1f8) == -1) {
             p->owner_actor_index = *(datum_index *)(object + 0x1f4);

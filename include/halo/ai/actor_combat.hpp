@@ -22,9 +22,9 @@ public:
     explicit combat_ops(datum_index value) : datum(value) {}
 
     uint8_t check_burst_length_exceeded();
-    void check_melee_target_reachable(int16_t *order);
+    void check_melee_target_reachable(actor_mode_flee_data *record);
     static uint8_t check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index, uint8_t flag_pursue);
-    uint8_t check_weapon_pickup_reachable(uint8_t *record);
+    uint8_t check_weapon_pickup_reachable(actor_mode_flee_data *record);
     void choose_best_target();
     static void choose_random_point_near(real_point3d *inout_point, float radius);
     void clear_target_state();

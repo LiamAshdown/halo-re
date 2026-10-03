@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -199,8 +200,8 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
         } else {
             self->destination = *(real_point3d *)&target->pathfinding_point.x;
         }
-        self->destination_surface_index = *(uint32_t *)&target->pathfinding_surface_index;
-        self->destination_radius = *(uint32_t *)&self->active_movement.destination.y;
+        self->destination_surface_index = static_cast<uint32_t>(target->pathfinding_surface_index);
+        self->destination_radius = halo::bit_cast<uint32_t>(self->active_movement.destination.y);
         break;
 
     default:
@@ -210,7 +211,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
     }
 
     if (self->flying == 0) {
-        if (*(float *)&self->destination_radius == 0.0f &&
+        if (halo::bit_cast<float>(self->destination_radius) == 0.0f &&
             self->destination_surface_index == (uint32_t)-1) {
             result = 0;
             halo::ai::actor_movement_action_complete(actor_index);
@@ -264,14 +265,14 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
 
     self->path_resolved_this_tick = 1;
     if (record_distance != 0) {
-        *(float *)&self->movement_timer = distance;
+        self->movement_timer = distance;
     }
 
     if (result != 0) {
         if (self->path_remaining_distance <= 0.0f) {
             return result;
         }
-        if (*(float *)&self->destination_radius <= distance) {
+        if (halo::bit_cast<float>(self->destination_radius) <= distance) {
             return result;
         }
         if (distance - self->path_remaining_distance >= 0.5f) {
@@ -1149,7 +1150,7 @@ uint8_t TargetView::movement_set_destination_near_target(datum_index actor_index
         }
     }
 
-    *(uint32_t *)&self->queued_movement.destination.x = (uint32_t)target_prop_index;
+    self->queued_movement.destination.x = halo::bit_cast<float>(static_cast<uint32_t>((uint32_t)target_prop_index));
     target = &((prop *)halo::ai::globals().prop_data->data)[target_prop_index & halo::k_slot_mask];
     self->queued_movement.type = 5;
     self->queued_movement.cancelled = 0;

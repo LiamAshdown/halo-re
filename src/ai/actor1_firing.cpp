@@ -168,7 +168,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
             }
             query->have_target = 1;
             query->target_position = target->last_known_position;
-            query->target_surface_index = *(uint32_t *)&target->pathfinding_surface_index;
+            query->target_surface_index = static_cast<uint32_t>(target->pathfinding_surface_index);
             query->target_surface_point = *(real_point3d *)&target->pathfinding_point.x;
             query->target_cluster_index = target->cluster_index;
             query->target_distance = target->distance;

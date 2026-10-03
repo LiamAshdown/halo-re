@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_modes.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -66,7 +67,7 @@ uint8_t halo::ai::charge_mode::process()
     Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     uint8_t *variant = TAG_DATA(act->actor_variant_tag);
     ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
-    uint8_t *md = (uint8_t *)act + 0x9c;
+    actor_mode_charge_data *md = &act->mode_data.charge;
     prop *target = 0;
     uint32_t actor_flags = *(uint32_t *)actor_tag;
     int16_t kind;
@@ -74,12 +75,12 @@ uint8_t halo::ai::charge_mode::process()
     int32_t now;
 
     if (act->target_unit_index == k_datum_index_none) {
-        md[0x28] = 0;
+        md->close_in = 0;
     } else {
         target = halo::ai::prop_at(act->target_unit_index);
-        kind = *(int16_t *)(md + 0x4);
-        if (*(datum_index *)&act->stuck_projectile_index != k_datum_index_none || kind == 5 || kind == 4) {
-            md[0x28] = 1;
+        kind = md->stage;
+        if (static_cast<datum_index>(act->stuck_projectile_index) != k_datum_index_none || kind == 5 || kind == 4) {
+            md->close_in = 1;
         } else if (kind == 2 || kind == 3) {
 
             float range = 3.4028235e38f;
@@ -89,7 +90,7 @@ uint8_t halo::ai::charge_mode::process()
             if (!halo::ai::actor_has_unshielded_threat_weapon(actor_index)) {
                 use_retreat_range = 1;
             }
-            if (md[0x6] || md[0xb] || md[0xc]) {
+            if (md->strike_started || md->jump_started || md->jump_solved) {
                 check_range = 0;
             } else if (act->berserking || !halo::ai::actor_has_unshielded_threat_weapon(actor_index)) {
                 range = use_retreat_range ? ((ActorVariant *)variant)->berserk_melee_abort_range : ((ActorVariant *)variant)->melee_abort_range;
@@ -102,49 +103,49 @@ uint8_t halo::ai::charge_mode::process()
                 }
             }
             if (check_range && range < target->distance) {
-                md[0x8] = 1;
+                md->done = 1;
             } else {
-                *(int32_t *)&act->last_melee_time = halo::game::globals().game_time->game_time;
-                md[0x28] = 1;
+                act->last_melee_time = halo::game::globals().game_time->game_time;
+                md->close_in = 1;
                 if (check_range) {
-                    if (*(int16_t *)(md + 0x4) == 2) {
+                    if (md->stage == 2) {
                         if (actor_tag->melee_leap_range[1] == 0.0f || actor_tag->melee_leap_chance == 0.0f) {
-                            md[0xa] = 0;
+                            md->leap_allowed = 0;
                         } else if (target->flying || target->engaged_ticks > 0) {
-                            md[0xa] = 1;
+                            md->leap_allowed = 1;
                         }
-                        if (md[0xa] && (target->engaged_ticks > 0 ||
+                        if (md->leap_allowed && (target->engaged_ticks > 0 ||
                                         actor_tag->melee_leap_range[0] * 1.5f < target->distance)) {
-                            *(int16_t *)(md + 0x4) = 3;
+                            md->stage = 3;
                         }
                     } else if (target->distance < actor_tag->melee_leap_range[0]) {
-                        *(int16_t *)(md + 0x4) = 2;
-                        md[0xa] = 1;
+                        md->stage = 2;
+                        md->leap_allowed = 1;
                     }
                 }
             }
         } else {
 
             kind = (int16_t)((actor_flags & 0x20000) && act->combat_status >= 5 && !act->berserking);
-            *(int16_t *)(md + 0x4) = kind;
+            md->stage = kind;
             if (kind == 1) {
                 int16_t target_kind = ((struct actor *)target)->original_squad_index;
                 uint8_t weak = (uint8_t)((target_kind == 0 || target_kind == 1) && (int8_t)(uint8_t)target->aiming_at_actor_class <= 2);
 
-                md[0x24] = weak;
-                md[0x28] = (uint8_t)!(weak && (actor_flags & 0x40000));
+                md->target_weak = weak;
+                md->close_in = (uint8_t)!(weak && (actor_flags & 0x40000));
                 if (weak) {
-                    *(int16_t *)(md + 0x26) += 1;
+                    md->weak_target_ticks += 1;
                 }
-                md[0x25] = 0;
+                md->stand = 0;
                 if (!weak && (int8_t)target->closing_speed_class <= 1) {
-                    md[0x25] = 1;
+                    md->stand = 1;
                 } else if (actor_tag->stalking_max_distance > 0.0f &&
                            !(target->distance < actor_tag->stalking_max_distance)) {
-                    md[0x25] = 1;
+                    md->stand = 1;
                 }
             } else if (!halo::ai::actor_has_unshielded_threat_weapon(actor_index) || act->in_water) {
-                md[0x28] = 1;
+                md->close_in = 1;
             } else {
                 float range_lo;
                 float range_hi;
@@ -161,26 +162,26 @@ uint8_t halo::ai::charge_mode::process()
                 if (weapon != 0 && *(float *)(weapon + 0x40c) > 0.0f && !(range_lo > *(float *)(weapon + 0x40c))) {
                     range_lo = *(float *)(weapon + 0x40c);
                 }
-                if (md[0x28]) {
+                if (md->close_in) {
                     if (range_lo > target->distance) {
-                        md[0x28] = 0;
+                        md->close_in = 0;
                     }
                 } else if (target->distance > range_hi) {
-                    md[0x28] = 1;
+                    md->close_in = 1;
                 }
                 if (target->distance > 0.7f && ((struct actor *)target)->original_squad_index != 0 &&
                     target->obstruction != 1) {
-                    md[0x28] = 1;
+                    md->close_in = 1;
                 }
             }
         }
     }
 
-    if (md[0x6]) {
+    if (md->strike_started) {
         datum_index unit_index = act->unit_index;
 
-        md[0x7] = (uint8_t)!(unit_index != k_datum_index_none && halo::units::unit_is_in_busy_animation_state(unit_index));
-    } else if (!md[0xc] && (*(int16_t *)(md + 0x4) == 2 || *(int16_t *)(md + 0x4) == 3) && target != 0) {
+        md->strike_finished = (uint8_t)!(unit_index != k_datum_index_none && halo::units::unit_is_in_busy_animation_state(unit_index));
+    } else if (!md->jump_solved && (md->stage == 2 || md->stage == 3) && target != 0) {
         real_vector3d direction;
         float along = 0.0f;
         float lead_ticks = 0.0f;
@@ -202,7 +203,7 @@ uint8_t halo::ai::charge_mode::process()
             if (speed > 0.0f) {
                 factor = ((velocity->k * facing->k + velocity->j * facing->j + velocity->i * facing->i) / speed + 1.0f) * 0.5f;
             }
-            lead_ticks = (float)*(int16_t *)(md + 0x32);
+            lead_ticks = (float)md->lead_ticks;
             halo::math::point3d_add_scaled(lead, *velocity, target->last_known_position, lead_ticks * factor);
             direction.i = lead.x - act->body_position.x;
             direction.j = lead.y - act->body_position.y;
@@ -217,10 +218,10 @@ uint8_t halo::ai::charge_mode::process()
                 }
             }
             have_along = 1;
-            if (*(int16_t *)(md + 0x4) == 3 && !md[0xb]) {
+            if (md->stage == 3 && !md->jump_started) {
                 if (along < actor_tag->melee_leap_range[0] && target->engaged_ticks == 0 && !target->flying) {
-                    md[0x8] = 1;
-                    *(int32_t *)&act->last_melee_time = -1;
+                    md->done = 1;
+                    act->last_melee_time = -1;
                 } else if (along < actor_tag->melee_leap_range[1]) {
                     real_vector3d leap;
                     real half_gravity;
@@ -235,14 +236,14 @@ uint8_t halo::ai::charge_mode::process()
                                 leap = *halo::math::globals().global_forward3d_pointer;
                             }
                         }
-                        *(float *)(md + 0x14) = leap.i;
-                        *(float *)(md + 0x18) = leap.j;
-                        md[0xc] = 1;
-                        *(float *)(md + 0x1c) = horizontal_speed;
-                        *(float *)(md + 0x20) = half_gravity;
+                        md->jump_direction.i = leap.i;
+                        md->jump_direction.j = leap.j;
+                        md->jump_solved = 1;
+                        md->jump_horizontal_speed = horizontal_speed;
+                        md->jump_vertical_speed = half_gravity;
                     }
                 }
-            } else if (md[0x30]) {
+            } else if (md->suicide_charge) {
                 if (along < actor_tag->melee_fudge_factor) {
                     strike = 1;
                 } else if (along < actor_tag->suicide_sensing_dist) {
@@ -255,26 +256,26 @@ uint8_t halo::ai::charge_mode::process()
                     }
                 }
             } else {
-                if (*(int16_t *)(md + 0x4) == 3 && md[0xb]) {
+                if (md->stage == 3 && md->jump_started) {
                     along -= (direction.j * ((unit_object *)unit)->base.velocity.j + direction.k * ((unit_object *)unit)->base.velocity.k +
                               direction.i * ((unit_object *)unit)->base.velocity.i) * lead_ticks;
                 }
-                if (along < actor_tag->melee_fudge_factor + *(float *)(md + 0x34)) {
+                if (along < actor_tag->melee_fudge_factor + md->strike_range_extra) {
                     strike = 1;
                 }
             }
         }
         (void)have_along;
 
-        if (md[0xc] || (strike && !md[0x30])) {
+        if (md->jump_solved || (strike && !md->suicide_charge)) {
             real_vector2d flat;
 
             flat.i = direction.i;
             flat.j = direction.j;
             if (halo::math::vector2d_normalize_with_length(flat) > 0.0f &&
-                flat.j * act->facing.j + flat.i * act->facing.i < (md[0xb] ? 0.0f : 0.8660254f)) {
-                md[0xc] = 0;
-                md[0x9] = 1;
+                flat.j * act->facing.j + flat.i * act->facing.i < (md->jump_started ? 0.0f : 0.8660254f)) {
+                md->jump_solved = 0;
+                md->turning_to_face = 1;
                 strike = 0;
                 goto strike_done;
             }
@@ -290,33 +291,33 @@ uint8_t halo::ai::charge_mode::process()
             }
             if (halo::units::unit_try_ready_weapon(act->unit_index, 0, &flat)) {
                 halo::ai::ai_communication_broadcast(0x2b, act->unit_index, ((struct actor *)target)->unit_index, 3, -1, -1, 0);
-                md[0x6] = 1;
+                md->strike_started = 1;
             }
         }
     strike_done:;
     }
 
     now = halo::game::globals().game_time->game_time;
-    kind = *(int16_t *)(md + 0x4);
-    if ((kind == 2 || kind == 3) && !md[0x6] && !md[0xc]) {
-        if (md[0xb]) {
-            if (*(int16_t *)(md + 0xe) > 15) {
-                md[0x8] = 1;
+    kind = md->stage;
+    if ((kind == 2 || kind == 3) && !md->strike_started && !md->jump_solved) {
+        if (md->jump_started) {
+            if (md->stage_ticks > 15) {
+                md->done = 1;
             }
         } else if (actor_tag->melee_charge_time > 0.0f &&
-                   !((float)*(int32_t *)(md + 0x0) + actor_tag->melee_charge_time * 30.0f > (float)now)) {
-            md[0x8] = 1;
+                   !((float)md->charge_start_time + actor_tag->melee_charge_time * 30.0f > (float)now)) {
+            md->done = 1;
         }
     }
     if (kind == 4 || kind == 5) {
-        *(int32_t *)&act->last_vehicle_charge_time = now;
+        act->last_vehicle_charge_time = now;
     }
-    threshold = halo::ai::actor_get_consideration_wait_threshold(actor_index, *(int16_t *)(md + 0x4), (actor_combat_consideration *)md);
-    *(float *)(md + 0x2c) = threshold;
+    threshold = halo::ai::actor_get_consideration_wait_threshold(actor_index, md->stage, (actor_combat_consideration *)md);
+    md->wait_threshold = threshold;
     if (!act->swarm && act->needs_new_path) {
-        md[0x29] = 0;
-        if (!md[0x6] && !md[0xb] && !md[0xc] && md[0x28]) {
-            float radius = *(int16_t *)(md + 0x4) == 3 ? 4.0f : 1.5f;
+        md->approach_failed = 0;
+        if (!md->strike_started && !md->jump_started && !md->jump_solved && md->close_in) {
+            float radius = md->stage == 3 ? 4.0f : 1.5f;
 
             if (!(radius > threshold)) {
                 radius = threshold;
@@ -325,20 +326,20 @@ uint8_t halo::ai::charge_mode::process()
                 halo::ai::actor_movement_actions_cancel(actor_index);
                 goto approach_done;
             }
-            md[0x29] = 1;
-            md[0x28] = 0;
+            md->approach_failed = 1;
+            md->close_in = 0;
         }
         halo::ai::actor_movement_action_stop(actor_index);
     approach_done:
         if (act->target_combat_status >= 7) {
             datum_index target_index = act->target_unit_index;
-            uint8_t far_away = (uint8_t)(((struct prop *)PROP(target_index))->distance > *(float *)(md + 0x2c));
+            uint8_t far_away = (uint8_t)(((struct prop *)PROP(target_index))->distance > md->wait_threshold);
             uint8_t engaged = 0;
-            int16_t current = *(int16_t *)(md + 0x4);
+            int16_t current = md->stage;
 
-            if (!((current == 2 || current == 3) && (md[0xb] || md[0xc] || md[0x6])) && far_away) {
-                if (md[0x29] || !halo::ai::actor_movement_action_is_complete(actor_index) ||
-                    act->path_remaining_distance > *(float *)(md + 0x2c)) {
+            if (!((current == 2 || current == 3) && (md->jump_started || md->jump_solved || md->strike_started)) && far_away) {
+                if (md->approach_failed || !halo::ai::actor_movement_action_is_complete(actor_index) ||
+                    act->path_remaining_distance > md->wait_threshold) {
                     engaged = 1;
                 }
             }
@@ -346,12 +347,12 @@ uint8_t halo::ai::charge_mode::process()
         }
     }
 
-    kind = *(int16_t *)(md + 0x4);
+    kind = md->stage;
     if (kind == 2 || kind == 3) {
-        return (uint8_t)(md[0x8] || md[0x7] || md[0x29]);
+        return (uint8_t)(md->done || md->strike_finished || md->approach_failed);
     }
     if (kind == 4 || kind == 5) {
-        return md[0x29];
+        return md->approach_failed;
     }
     return 0;
 }
@@ -382,7 +383,7 @@ void halo::ai::charge_mode::tick()
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
 
-    if (act->mode_data.charge.stage == 3 && act->mode_data.charge.jump_started && !act->mode_data.charge.jump_finished && !act->airborne) {
+    if (act->mode_data.charge.stage == 3 && act->mode_data.charge.jump_started && !act->mode_data.charge.strike_started && !act->airborne) {
         act->mode_data.charge.stage_ticks += 1;
     }
 }
@@ -421,7 +422,7 @@ void halo::ai::charge_mode::update()
 
     act->flee_source.code = 2;
     act->look_posture = 4;
-    if ((kind == 2 || kind == 3) && act->mode_data.charge.unknown_09 && !act->moving && !act->movement_action_complete) {
+    if ((kind == 2 || kind == 3) && act->mode_data.charge.turning_to_face && !act->moving && !act->movement_action_complete) {
         act->flee_reason = 4;
     } else if (act->combat_status >= 5 && kind != 1) {
         act->flee_reason = 7;
@@ -429,23 +430,23 @@ void halo::ai::charge_mode::update()
         act->flee_reason = 5;
     }
     if (act->mode_data.charge.stage == 1) {
-        act->unknown_41a[12] = (uint8_t)(act->mode_data.charge.stand == 0);
-        act->unknown_41a[13] = (uint8_t)(act->mode_data.charge.stand == 0);
-    } else if (!act->unknown_41a[14] && (actor_flags & 0x10000)) {
-        act->unknown_41a[12] = act->crouch_active;
-        act->unknown_41a[13] = act->crouch_active;
+        act->crouch_decision[0] = (uint8_t)(act->mode_data.charge.stand == 0);
+        act->crouch_decision[1] = (uint8_t)(act->mode_data.charge.stand == 0);
+    } else if (!act->crouch_hold && (actor_flags & 0x10000)) {
+        act->crouch_decision[0] = act->crouch_active;
+        act->crouch_decision[1] = act->crouch_active;
     } else {
-        act->unknown_41a[12] = 0;
-        act->unknown_41a[13] = 0;
+        act->crouch_decision[0] = 0;
+        act->crouch_decision[1] = 0;
     }
     if (act->mode_data.charge.jump_solved) {
         act->jump_requested = 1;
         act->jump_is_leap = (uint8_t)(act->mode_data.charge.jump_horizontal_speed * 0.7f > act->mode_data.charge.jump_vertical_speed);
         act->jump_parameters_valid = 1;
-        *(int32_t *)&act->jump_facing.i = *(int32_t *)((uint8_t *)act + 0xb0);
-        *(int32_t *)&act->jump_facing.j = *(int32_t *)((uint8_t *)act + 0xb4);
-        *(int32_t *)&act->jump_horizontal_velocity = *(int32_t *)((uint8_t *)act + 0xb8);
-        *(int32_t *)&act->jump_vertical_velocity = *(int32_t *)((uint8_t *)act + 0xbc);
+        act->jump_facing.i = act->mode_data.charge.jump_direction.i;
+        act->jump_facing.j = act->mode_data.charge.jump_direction.j;
+        act->jump_horizontal_velocity = act->mode_data.charge.jump_horizontal_speed;
+        act->jump_vertical_velocity = act->mode_data.charge.jump_vertical_speed;
         act->mode_data.charge.jump_started = 1;
         act->mode_data.charge.jump_solved = 0;
         act->mode_data.charge.stage_start_time = halo::game::globals().game_time->game_time;
@@ -453,11 +454,11 @@ void halo::ai::charge_mode::update()
     }
     if (actor_flags & 0x100000) {
         if (act->berserking || act->mode_data.charge.stage == 2 || act->mode_data.charge.stage == 3) {
-            act->unknown_41a[14] = (uint8_t)(act->mode_data.charge.unknown_28 && !act->unknown_41a[13]);
+            act->crouch_hold = (uint8_t)(act->mode_data.charge.close_in && !act->crouch_decision[1]);
         }
     }
-    act->unknown_41a[10] = 0;
-    act->unknown_41a[11] = 0;
+    act->unknown_424[0] = 0;
+    act->unknown_424[1] = 0;
     act->unknown_42a = 1;
     act->wants_to_fire = (uint8_t)(act->mode_data.charge.stage != 1);
 }
@@ -521,14 +522,14 @@ void halo::ai::fight_mode::update()
     uint32_t actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
 
-    actor->unknown_41a[12] = actor->crouch_active;
+    actor->crouch_decision[0] = actor->crouch_active;
     actor->flee_reason = 5;
     actor->flee_source.code = 2;
     actor->look_posture = 4;
-    actor->unknown_41a[13] = 0;
-    actor->unknown_41a[14] = 0;
-    actor->unknown_41a[10] = 0;
-    actor->unknown_41a[11] = 0;
+    actor->crouch_decision[1] = 0;
+    actor->crouch_hold = 0;
+    actor->unknown_424[0] = 0;
+    actor->unknown_424[1] = 0;
     if (actor->vehicle_driving_type != 4 && actor->combat_status >= 5) {
         actor->wants_to_fire = 1;
         actor->flee_reason = 7;
@@ -698,33 +699,33 @@ uint8_t halo::ai::flee_mode::process()
     using namespace c_actor_mode_flee_process;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *mode_data = (uint8_t *)act + 0x9c;
+    actor_mode_flee_data *mode_data = &act->mode_data.flee;
     int16_t kind;
 
     if (!act->swarm) {
-        kind = ((actor_mode_flee_data *)mode_data)->panic;
+        kind = mode_data->panic;
         if (kind >= 9 && kind <= 12) {
-            ((actor_mode_flee_data *)mode_data)->countdown_180 = 180;
+            mode_data->countdown_180 = 180;
         }
-        if (((actor_mode_flee_data *)mode_data)->countdown_02 > 0) {
-            ((actor_mode_flee_data *)mode_data)->destination = -1;
-        } else if (((actor_mode_flee_data *)mode_data)->destination == -1) {
-            ((actor_mode_flee_data *)mode_data)->movement_cancelled = 1;
+        if (mode_data->countdown_02 > 0) {
+            mode_data->destination = -1;
+        } else if (mode_data->destination == -1) {
+            mode_data->movement_cancelled = 1;
         } else if (act->firing_position_index == -1) {
-            ((actor_mode_flee_data *)mode_data)->destination = -1;
-            ((actor_mode_flee_data *)mode_data)->movement_cancelled = 1;
+            mode_data->destination = -1;
+            mode_data->movement_cancelled = 1;
         } else if (halo::ai::actor_is_target_within_engagement_range(actor_index)) {
-            if (((actor_mode_flee_data *)mode_data)->countdown_180 != 0) {
-                ((actor_mode_flee_data *)mode_data)->movement_cancelled = 1;
+            if (mode_data->countdown_180 != 0) {
+                mode_data->movement_cancelled = 1;
             } else {
-                ((actor_mode_flee_data *)mode_data)->destination = act->firing_position_index;
-                mode_data[0xa] = act->firing_position_without_path;
-                mode_data[0xf] = 1;
-                ((actor_mode_flee_data *)mode_data)->movement_cancelled = 0;
-                if (((actor_mode_flee_data *)mode_data)->reference != k_datum_index_none) {
-                    prop *source = halo::ai::prop_at(((actor_mode_flee_data *)mode_data)->reference);
-                    int16_t a = (int16_t)source->auditory_perception;
-                    int16_t b = *(int16_t *)((uint8_t *)source + 0x36);
+                mode_data->destination = act->firing_position_index;
+                mode_data->destination_without_path = act->firing_position_without_path;
+                mode_data->finished = 1;
+                mode_data->movement_cancelled = 0;
+                if (mode_data->reference != k_datum_index_none) {
+                    prop *source = halo::ai::prop_at(mode_data->reference);
+                    int16_t a = source->auditory_perception;
+                    int16_t b = source->ambient_perception;
 
                     source->visual_perception = 0;
                     source->perception_level = a > b ? a : b;
@@ -735,67 +736,67 @@ uint8_t halo::ai::flee_mode::process()
                 }
             }
         }
-        switch (((actor_mode_flee_data *)mode_data)->panic) {
+        switch (mode_data->panic) {
         case 9:
         case 10:
-            if (*(datum_index *)&act->stuck_projectile_index == k_datum_index_none) {
-                mode_data[0xf] = 1;
+            if (static_cast<datum_index>(act->stuck_projectile_index) == k_datum_index_none) {
+                mode_data->finished = 1;
             }
             break;
         case 11:
             if (!act->unknown_1b4[0]) {
-                mode_data[0xf] = 1;
+                mode_data->finished = 1;
             }
             break;
         case 12:
             if (!act->unknown_1b4[1]) {
-                mode_data[0xf] = 1;
+                mode_data->finished = 1;
             }
             break;
         default:
             break;
         }
-        if (act->needs_new_path && !mode_data[0xf]) {
-            if (((actor_mode_flee_data *)mode_data)->destination != -1 && ((actor_mode_flee_data *)mode_data)->countdown_180 == 0 &&
+        if (act->needs_new_path && !mode_data->finished) {
+            if (mode_data->destination != -1 && mode_data->countdown_180 == 0 &&
                 halo::ai::actor_check_weapon_pickup_reachable(actor_index, mode_data)) {
-                ((actor_mode_flee_data *)mode_data)->destination = -1;
-                ((actor_mode_flee_data *)mode_data)->movement_cancelled = 1;
+                mode_data->destination = -1;
+                mode_data->movement_cancelled = 1;
             }
             if (act->order_committed) {
-                ((actor_mode_flee_data *)mode_data)->movement_cancelled = 0;
-                mode_data[0xe] = 1;
-                *(int32_t *)&act->last_flee_abort_time = halo::game::globals().game_time->game_time;
-            } else if (((actor_mode_flee_data *)mode_data)->movement_cancelled) {
-                halo::ai::actor_check_melee_target_reachable(actor_index, (int16_t *)mode_data);
-                if (((actor_mode_flee_data *)mode_data)->destination == -1) {
-                    mode_data[0xe] = 1;
-                    *(int32_t *)&act->last_flee_abort_time = halo::game::globals().game_time->game_time;
+                mode_data->movement_cancelled = 0;
+                mode_data->engage = 1;
+                act->last_flee_abort_time = static_cast<datum_index>(halo::game::globals().game_time->game_time);
+            } else if (mode_data->movement_cancelled) {
+                halo::ai::actor_check_melee_target_reachable(actor_index, mode_data);
+                if (mode_data->destination == -1) {
+                    mode_data->engage = 1;
+                    act->last_flee_abort_time = static_cast<datum_index>(halo::game::globals().game_time->game_time);
                 }
             }
         }
     }
 
-    kind = ((actor_mode_flee_data *)mode_data)->panic;
+    kind = mode_data->panic;
     if (kind >= 9 && kind <= 12 && act->unit_index != k_datum_index_none) {
         uint8_t *unit = (uint8_t *)halo::ai::object_at(act->unit_index);
 
         if (((unit_object *)unit)->unit.current_speech.priority <= 0) {
-            mode_data[0x10] = 0;
+            mode_data->announced = 0;
         }
     }
-    if (kind > 0 && ((actor_mode_flee_data *)mode_data)->destination != -1) {
+    if (kind > 0 && mode_data->destination != -1) {
         datum_index unit_index;
         int32_t now;
         uint8_t announced;
 
-        if (mode_data[0xe]) {
+        if (mode_data->engage) {
             return 1;
         }
         unit_index = act->unit_index;
         if (unit_index != k_datum_index_none) {
-            announced = mode_data[0x10];
+            announced = mode_data->announced;
             now = halo::game::globals().game_time->game_time;
-            if (!announced || *(int32_t *)(mode_data + 0x14) + 60 >= now) {
+            if (!announced || mode_data->announce_time + 60 >= now) {
                 if (kind == 11 || kind == 12) {
                     halo::units::unit_dispatch_reaction_animation(unit_index, 2);
                 } else if (kind == 9 || kind == 10) {
@@ -803,21 +804,21 @@ uint8_t halo::ai::flee_mode::process()
                 } else {
                     datum_index source_object = k_datum_index_none;
 
-                    if (((actor_mode_flee_data *)mode_data)->reference != k_datum_index_none) {
-                        source_object = ((struct prop *)PROP(((actor_mode_flee_data *)mode_data)->reference))->object_index;
+                    if (mode_data->reference != k_datum_index_none) {
+                        source_object = ((struct prop *)PROP(mode_data->reference))->object_index;
                     }
                     if (!announced) {
                         halo::ai::ai_communication_broadcast(0x1f + (kind == 8), unit_index, source_object, -1, -1, 4, 0);
-                        mode_data[0x10] = 1;
+                        mode_data->announced = 1;
                     } else {
                         halo::ai::ai_communication_broadcast(0x21, unit_index, source_object, -1, -1, -1, 0);
                     }
                 }
-                *(int32_t *)(mode_data + 0x14) = now;
+                mode_data->announce_time = now;
             }
         }
     }
-    return (uint8_t)(mode_data[0xe] || mode_data[0xf]);
+    return (uint8_t)(mode_data->engage || mode_data->finished);
 }
 
 namespace halo::ai {
@@ -890,7 +891,7 @@ void halo::ai::flee_mode::tick()
         }
     }
     if (act->mode_data.flee.panic > 0) {
-        *(int32_t *)&act->panic_cooldown_time = halo::game::globals().game_time->game_time + 750;
+        act->panic_cooldown_time = static_cast<datum_index>(halo::game::globals().game_time->game_time + 750);
     }
 }
 
@@ -939,12 +940,12 @@ void halo::ai::flee_mode::update()
         act->flee_reason = 0;
     }
     act->look_posture = 4;
-    act->unknown_41a[14] = (uint8_t)(act->mode_data.flee.panic > 0);
-    act->unknown_41a[15] = (uint8_t)(act->mode_data.flee.panic >= 9 && act->mode_data.flee.panic <= 12);
-    act->unknown_41a[12] = 1;
-    act->unknown_41a[13] = 0;
-    act->unknown_41a[10] = 1;
-    act->unknown_41a[11] = 0;
+    act->crouch_hold = (uint8_t)(act->mode_data.flee.panic > 0);
+    act->cowering = (uint8_t)(act->mode_data.flee.panic >= 9 && act->mode_data.flee.panic <= 12);
+    act->crouch_decision[0] = 1;
+    act->crouch_decision[1] = 0;
+    act->unknown_424[0] = 1;
+    act->unknown_424[1] = 0;
 
     destination = act->mode_data.flee.destination;
     if (destination == -1) {
@@ -956,7 +957,7 @@ void halo::ai::flee_mode::update()
     }
     if (halo::ai::actor_movement_set_destination_firing_position(actor_index, destination, 0)) {
         act->firing_position_index = act->mode_data.flee.destination;
-        act->firing_position_without_path = act->mode_data.flee.unknown_0a;
+        act->firing_position_without_path = act->mode_data.flee.destination_without_path;
         return;
     }
     if (act->firing_position_index != -1) {
@@ -1027,7 +1028,7 @@ void halo::ai::guard_mode::exit()
 
     if (act->mode_data.guard.command_pending) {
         act->post_combat_action = 0;
-        *(int32_t *)&act->post_combat_prop_index = -1;
+        act->post_combat_prop_index = static_cast<datum_index>(-1);
     }
 }
 
@@ -1213,7 +1214,7 @@ void halo::ai::guard_mode::tick()
             if (act->mode_data.guard.command_pending) {
                 halo::ai::actor_report_command_status(actor_index);
                 act->post_combat_action = 0;
-                *(int32_t *)&act->post_combat_prop_index = -1;
+                act->post_combat_prop_index = static_cast<datum_index>(-1);
                 act->mode_data.guard.command_pending = 0;
                 act->mode_data.guard.attack_point = 0;
                 act->mode_data.guard.guard_target = -1;
@@ -1294,19 +1295,19 @@ void halo::ai::guard_mode::update()
     uint32_t actor_flags = *(uint32_t *)actor_tag;
 
     if ((actor_flags & 0x40) && act->combat_status == 0) {
-        act->unknown_41a[12] = 1;
-        act->unknown_41a[13] = 1;
+        act->crouch_decision[0] = 1;
+        act->crouch_decision[1] = 1;
     } else {
-        act->unknown_41a[13] = 0;
+        act->crouch_decision[1] = 0;
         if (act->mode_data.guard.ambush_active) {
-            act->unknown_41a[12] = act->mode_data.guard.ambush_retreat ? (uint8_t)((actor_flags >> 23) & 1) : 1;
+            act->crouch_decision[0] = act->mode_data.guard.ambush_retreat ? (uint8_t)((actor_flags >> 23) & 1) : 1;
         } else {
-            act->unknown_41a[12] = (uint8_t)((actor_flags & 0x80) && act->combat_status > 0);
+            act->crouch_decision[0] = (uint8_t)((actor_flags & 0x80) && act->combat_status > 0);
         }
     }
-    act->unknown_41a[14] = 0;
-    act->unknown_41a[10] = 0;
-    act->unknown_41a[11] = 0;
+    act->crouch_hold = 0;
+    act->unknown_424[0] = 0;
+    act->unknown_424[1] = 0;
 
     if (act->needs_new_path && !act->swarm) {
         uint8_t in_place = 0;
@@ -1343,7 +1344,7 @@ void halo::ai::guard_mode::update()
             if (!act->movement_action_complete) {
                 in_place = 1;
             } else {
-                in_place = (uint8_t)(halo::math::vector3d_distance_squared(act->body_position, *(real_point3d *)((uint8_t *)act + 0x4ac)) < 9.0f);
+                in_place = (uint8_t)(halo::math::vector3d_distance_squared(act->body_position, act->path_end_point) < 9.0f);
             }
             break;
         }
@@ -1373,7 +1374,7 @@ void halo::ai::guard_mode::update()
         act->flee_reason = 7;
         act->flee_source.code = 2;
         act->wants_to_fire = 1;
-        act->unknown_45d[0] = 1;
+        act->forced_aim_valid = 1;
         *(float *)((uint8_t *)act + 0x460) = halo::math::globals().global_up3d_pointer->i * 0.05f + *(float *)((uint8_t *)act + 0xc4);
         *(float *)((uint8_t *)act + 0x464) = halo::math::globals().global_up3d_pointer->j * 0.05f + *(float *)((uint8_t *)act + 0xc8);
         *(float *)((uint8_t *)act + 0x468) = halo::math::globals().global_up3d_pointer->k * 0.05f + *(float *)((uint8_t *)act + 0xcc);
@@ -1513,7 +1514,7 @@ void halo::ai::uncover_mode::movement_cancelled()
     actor_mode_data *mode_data = &halo::ai::actor_at(actor_index)->mode_data;
 
     if (((actor_mode_uncover_data *)mode_data)->stage == 1) {
-        *(int16_t *)((uint8_t *)mode_data + 0xa) = -1;
+        mode_data->uncover.firing_position = -1;
         mode_data->uncover.done = 1;
     }
 }

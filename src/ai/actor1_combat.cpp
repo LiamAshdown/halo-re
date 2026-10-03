@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_combat.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -52,11 +53,10 @@ namespace c_actor_check_melee_target_reachable {
  *
  * @address 0x403f00
  */
-void halo::ai::combat_ops::check_melee_target_reachable(int16_t *order)
+void halo::ai::combat_ops::check_melee_target_reachable(actor_mode_flee_data *record)
 {
     using namespace c_actor_check_melee_target_reachable;
     uint32_t actor_index = datum;
-    uint8_t *record = (uint8_t *)order;
     struct actor *actor = halo::ai::actor_at(actor_index);
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
     static actor_firing_position_query query;
@@ -69,32 +69,32 @@ void halo::ai::combat_ops::check_melee_target_reachable(int16_t *order)
 
     memset(&query, 0, sizeof(query));
     memset(&candidate, 0, sizeof(candidate));
-    query.use_last_seen_position = record[4];
-    if (*(int16_t *)(record + 0xc) > 0) {
+    query.use_last_seen_position = record->use_last_seen_position;
+    if (record->panic > 0) {
         query.goal_kind = 1;
-        if (*(int16_t *)record > 0) {
+        if (record->countdown_180 > 0) {
             query.collect_all = 1;
             query.allow_random_fallback = 1;
         }
-        *((uint8_t *)&query + 0x36) = 1;
-        *(float *)((uint8_t *)&query + 0x38) = 10.0f;
-        *(float *)((uint8_t *)&query + 0x3c) = 6.0f;
+        query.unknown_36 = 1;
+        query.avoid_weight = 10.0f;
+        query.avoid_radius = 6.0f;
     } else {
         query.goal_kind = 2;
-        *((uint8_t *)&query + 0x8) = record[5];
+        query.unknown_08[0] = record->cover_flag;
         query.search_radius = ((Actor *)actor_tag)->max_seek_cover_distance > 0.0f ? ((Actor *)actor_tag)->max_seek_cover_distance : 6.0f;
     }
     query.group_mask = halo::ai::actor_get_firing_position_group_mask(actor_index, query.goal_kind, 0);
     found = (int16_t)halo::ai::actor_find_best_firing_position(actor_index, &query, &candidate, &previous_owner, &path_context,
         &path_ok);
-    *(int16_t *)(record + 8) = found;
+    record->destination = found;
     claimed = halo::ai::actor_claim_firing_position(actor_index, previous_owner, &path_context, found, path_ok);
-    *(int16_t *)(record + 8) = claimed;
-    record[0xa] = (claimed != -1 && path_ok == 0) ? 1 : 0;
-    record[0x20] = 0;
+    record->destination = claimed;
+    record->destination_without_path = (claimed != -1 && path_ok == 0) ? 1 : 0;
+    record->target_reachable = 0;
 
-    if (claimed != -1 && *(datum_index *)(record + 0x1c) != k_datum_index_none) {
-        datum_index prop_index = *(datum_index *)(record + 0x1c);
+    if (claimed != -1 && record->reference != k_datum_index_none) {
+        datum_index prop_index = record->reference;
         prop *target = halo::ai::prop_at(prop_index);
         uint32_t ignore_object;
         uint32_t request[0x12];
@@ -104,19 +104,19 @@ void halo::ai::combat_ops::check_melee_target_reachable(int16_t *order)
         if (target->state >= 2 && target->state <= 3) {
             halo::ai::actor_target_get_relationship_object(prop_index);
         }
-        ignore_object = *(uint32_t *)&target->relationship_object_index;
+        ignore_object = static_cast<uint32_t>(target->relationship_object_index);
         if (ignore_object == halo::k_dword_none) {
-            ignore_object = *(uint32_t *)&target->object_index;
+            ignore_object = target->object_index;
         }
         actor = halo::ai::actor_at(actor_index);
         memset(request, 0, sizeof(request));
-        request[0] = *(uint32_t *)&((Actor *)actor_tag)->pathfinding_radius;
+        request[0] = halo::bit_cast<uint32_t>(((struct Actor *)actor_tag)->pathfinding_radius);
         ((uint8_t *)request)[4] = 0;
         request[2] = ignore_object;
-        request[3] = *(uint32_t *)&actor->unit_index;
+        request[3] = actor->unit_index;
         ((uint8_t *)request)[0x10] = 1;
         *(real_point3d *)&request[5] = *(real_point3d *)&target->pathfinding_point.x;
-        request[8] = *(uint32_t *)&target->pathfinding_surface_index;
+        request[8] = static_cast<uint32_t>(target->pathfinding_surface_index);
         memset(&target_context, 0, sizeof(target_context));
         target_context.structure_bsp = (uint32_t)halo::scenario::globals().structure_bsp;
         memcpy(&target_context, request, sizeof(request));
@@ -128,17 +128,17 @@ void halo::ai::combat_ops::check_melee_target_reachable(int16_t *order)
         if (halo::ai::path_find_run(&target_context)) {
             uint8_t used_start = 0;
 
-            record[0x20] = halo::ai::path_find_find_unobstructed_ancestor(&target_context, *(uint32_t *)(goal + 0x14),
-                (real_point3d *)goal, &used_start, (real_point3d *)(record + 0x24));
+            record->target_reachable = halo::ai::path_find_find_unobstructed_ancestor(&target_context, *(uint32_t *)(goal + 0x14),
+                (real_point3d *)goal, &used_start, &record->target_position);
         }
     }
-    record[6] = 0;
+    record->movement_cancelled = 0;
 }
 
 namespace halo::ai {
-void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
+void actor_check_melee_target_reachable(uint32_t actor_index, actor_mode_flee_data *record)
 {
-    halo::ai::combat_ops(actor_index).check_melee_target_reachable(order);
+    halo::ai::combat_ops(actor_index).check_melee_target_reachable(record);
 }
 }
 
@@ -198,13 +198,13 @@ namespace c_actor_check_weapon_pickup_reachable {
  *
  * @address 0x4041d0
  */
-uint8_t halo::ai::combat_ops::check_weapon_pickup_reachable(uint8_t *record)
+uint8_t halo::ai::combat_ops::check_weapon_pickup_reachable(actor_mode_flee_data *record)
 {
     using namespace c_actor_check_weapon_pickup_reachable;
     uint32_t actor_index = datum;
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    datum_index target_prop_index = *(datum_index *)(record + 0x1c);
-    int16_t firing_position_index = *(int16_t *)(record + 8);
+    datum_index target_prop_index = record->reference;
+    int16_t firing_position_index = record->destination;
     uint8_t result = 0;
 
     if (target_prop_index == (datum_index)k_datum_index_none || a->encounter_index == (datum_index)k_datum_index_none || firing_position_index == -1) {
@@ -228,15 +228,15 @@ uint8_t halo::ai::combat_ops::check_weapon_pickup_reachable(uint8_t *record)
             result = (status == 0);
         }
         if (status == 0 || status == 3) {
-            record[0x20] = 1;
-            *(real_point3d *)(record + 0x24) = p->last_known_position;
+            record->target_reachable = 1;
+            record->target_position = p->last_known_position;
         }
     }
     return result;
 }
 
 namespace halo::ai {
-uint8_t actor_check_weapon_pickup_reachable(uint32_t actor_index, uint8_t *record)
+uint8_t actor_check_weapon_pickup_reachable(uint32_t actor_index, actor_mode_flee_data *record)
 {
     return halo::ai::combat_ops(actor_index).check_weapon_pickup_reachable(record);
 }
@@ -804,9 +804,9 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     using namespace c_actor_evaluate_custom_charge_trigger;
     datum_index actor_index = datum;
     actor *self = halo::ai::actor_at(actor_index);
-    const uint8_t *variant = (const uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&self->actor_variant_tag & halo::k_slot_mask].data;
+    const uint8_t *variant = (const uint8_t *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
     const uint8_t *def = (const uint8_t *)halo::ai::actor_get_actor_definition(actor_index);
-    uint32_t unit_index = *(uint32_t *)&self->unit_index;
+    uint32_t unit_index = self->unit_index;
     const uint8_t *unit;
     prop *target = 0;
     uint8_t decision;
@@ -822,8 +822,8 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         goto return_false;
     }
     unit = (const uint8_t *)halo::ai::object_at(unit_index);
-    if (*(uint32_t *)&self->target_unit_index != halo::k_dword_none) {
-        target = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data + (*(uint32_t *)&self->target_unit_index & halo::k_slot_mask) * k_prop_size);
+    if (self->target_unit_index != halo::k_dword_none) {
+        target = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data + (self->target_unit_index & halo::k_slot_mask) * k_prop_size);
     }
     if (unit[0x2a3] == 0x17 && self->berserking == 0) {
         goto return_true;
@@ -851,7 +851,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     if (self->in_water != 0) {
         goto return_false;
     }
-    variant_mode = *(int16_t *)&((ActorVariant *)variant)->movement_type;
+    variant_mode = ((struct ActorVariant *)variant)->movement_type;
     if (variant_mode == 0) {
         goto return_false;
     }
@@ -868,7 +868,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         } else if ((variant[0] & 8) != 0 && (int8_t)self->tally.group_c_total > 0) {
 
             prop *axis_prop = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data +
-                (*(uint32_t *)&self->target_unit_index & halo::k_slot_mask) * k_prop_size);
+                (self->target_unit_index & halo::k_slot_mask) * k_prop_size);
             actor_prop_iterator iterator;
             uint32_t cursor;
             int32_t ahead = 0, level = 0, behind = 0;
@@ -929,7 +929,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         float roll;
 
         if ((int8_t)self->tally.group_a_total > 0) {
-            uint32_t cursor = *(uint32_t *)&self->first_prop;
+            uint32_t cursor = self->first_prop;
             int16_t without = 0, with = 0;
 
             while (cursor != halo::k_dword_none) {
@@ -1136,9 +1136,9 @@ void halo::ai::combat_ops::get_aim_from_position(uint32_t out_position[3])
         hdr = (object_header *)halo::objects::globals().object_data->data + (unit_index & halo::k_slot_mask);
         unit_obj = hdr->data;
         if ((*(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[unit_obj->definition_tag & halo::k_slot_mask].data + 0x2f0) & 0x100) != 0) {
-            out_position[0] = *(uint32_t *)&unit_obj->forward.i;
-            out_position[1] = *(uint32_t *)&unit_obj->forward.j;
-            out_position[2] = *(uint32_t *)&unit_obj->forward.k;
+            out_position[0] = halo::bit_cast<uint32_t>(unit_obj->forward.i);
+            out_position[1] = halo::bit_cast<uint32_t>(unit_obj->forward.j);
+            out_position[2] = halo::bit_cast<uint32_t>(unit_obj->forward.k);
             return;
         }
     }
@@ -1426,7 +1426,7 @@ void halo::ai::combat_ops::get_target_state_flags(int16_t ax_mode, int16_t cx_mo
 
                     halo::ai::actor_target_get_relationship_object(a->target_unit_index);
                 }
-                *out_f = halo::ai::actor_firing_position_near_point(actor_index, &p->pathfinding_point, *(uint32_t *)&p->pathfinding_surface_index, 1);
+                *out_f = halo::ai::actor_firing_position_near_point(actor_index, &p->pathfinding_point, static_cast<uint32_t>(p->pathfinding_surface_index), 1);
             }
         } else {
             *out_a = 0;

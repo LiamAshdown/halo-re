@@ -249,18 +249,24 @@ typedef char actor_mode_wait_data_size[sizeof(actor_mode_wait_data) == 0x18 ? 1 
 typedef struct actor_mode_flee_data {
     int16_t countdown_180;              // 0x00 counted down by the tick; process re-arms it at 180
     int16_t countdown_02;               // 0x02 counted down by the tick; enter/tick act when it reaches 0
-    uint8_t unknown_04[2];              // 0x04
+    uint8_t use_last_seen_position;     // 0x04 passed to the firing position query by the melee target reachability check
+    uint8_t cover_flag;                 // 0x05 copied to the firing position query when looking for cover
     uint8_t movement_cancelled;         // 0x06 set by actor_mode_flee_movement_cancelled and by process
     uint8_t unknown_07;                 // 0x07
     int16_t destination;                // 0x08 firing position fled to, -1 for none
-    uint8_t unknown_0a;                 // 0x0a copied to actor.firing_position_without_path by update
+    uint8_t destination_without_path;   // 0x0a copy of actor.firing_position_without_path for the destination; update copies it back
     uint8_t unknown_0b;                 // 0x0b
     int16_t panic;                      // 0x0c update's "panic"; 9..12 is the cowering band
-    uint8_t unknown_0e;                 // 0x0e the type updates fight on (engage) while it is set, else look away
-    uint8_t unknown_0f[9];              // 0x0f
+    uint8_t engage;                     // 0x0e the actor gave up fleeing; the type updates fight on (engage) while it is set, else look away
+    uint8_t finished;                   // 0x0f the panic is over or the destination was reached; with engage it makes the process report done
+    uint8_t announced;                  // 0x10 the flee line was spoken; cleared again when the unit's current speech has no priority
+    uint8_t unknown_11[3];              // 0x11
+    int32_t announce_time;              // 0x14 game_time of the last spoken flee line or reaction animation
     int32_t ticks_in_mode;              // 0x18 incremented every tick, zeroed on enter
     datum_index reference;              // 0x1c the actor/object fled from (actor_mode_flee_replace_reference)
-    uint8_t unknown_20[0x10];           // 0x20
+    uint8_t target_reachable;           // 0x20 a path to the target was found by the reachability checks
+    uint8_t unknown_21[3];              // 0x21
+    real_point3d target_position;       // 0x24 where the target can be reached from
 } actor_mode_flee_data;
 typedef char actor_mode_flee_data_reference_at_1c[offsetof(actor_mode_flee_data, reference) == 0x1c ? 1 : -1];
 typedef char actor_mode_flee_data_size[sizeof(actor_mode_flee_data) == 0x30 ? 1 : -1];
@@ -284,7 +290,7 @@ typedef struct actor_mode_uncover_data {
     uint8_t use_last_seen_position;     // 0x04 request_path_with_grenade_arc passes it as use_last_seen_position, then sets it
     uint8_t unknown_05[3];              // 0x05
     int16_t stage;                      // 0x08 update branches on 0 / 1
-    uint8_t unknown_0a[2];              // 0x0a
+    int16_t firing_position;            // 0x0a firing position reached or being moved to, -1 for none (movement_cancelled clears it in stage 1)
     int16_t target_cluster;             // 0x0c passed to the grenade path query as explicit_target_cluster_index
     uint8_t unknown_0e[2];              // 0x0e
     uint32_t target_object;             // 0x10 passed to the grenade path query as explicit_target_object
@@ -320,12 +326,13 @@ typedef char actor_mode_search_data_elapsed_at_28[offsetof(actor_mode_search_dat
 typedef char actor_mode_search_data_size[sizeof(actor_mode_search_data) == 0x2c ? 1 : -1];
 
 typedef struct actor_mode_charge_data {
-    uint8_t unknown_00[4];              // 0x00
+    int32_t charge_start_time;          // 0x00 game_time the charge began; process gives a melee charge up once Actor.melee_charge_time seconds passed
     int16_t stage;                      // 0x04 1..4
-    uint8_t jump_finished;              // 0x06 the tick (stage 3) stops counting stage_ticks while it is set
-    uint8_t unknown_07[2];              // 0x07
-    uint8_t unknown_09;                 // 0x09 update (stages 2 and 3) waits for it while the actor stands still
-    uint8_t unknown_0a;                 // 0x0a
+    uint8_t strike_started;              // 0x06 the unit started its melee strike; the tick (stage 3) stops counting stage_ticks while it is set
+    uint8_t strike_finished;            // 0x07 process sets it once the unit left its busy (melee) animation after the strike
+    uint8_t done;                       // 0x08 process sets it when the charge is over; it is part of the process result
+    uint8_t turning_to_face;            // 0x09 update (stages 2 and 3) waits for it while the actor stands still
+    uint8_t leap_allowed;               // 0x0a the target is flying or engaged, or the leap range was entered
     uint8_t jump_started;               // 0x0b update sets it when it issues the jump; the tick counts stage_ticks while it is set (stage 3)
     uint8_t jump_solved;                // 0x0c set once the leap is solved; update turns it into actor.jump_requested and clears it
     uint8_t unknown_0d;                 // 0x0d
@@ -334,11 +341,17 @@ typedef struct actor_mode_charge_data {
     real_vector2d jump_direction;       // 0x14 update copies it to actor.jump_facing
     float jump_horizontal_speed;        // 0x1c copied to actor.jump_horizontal_velocity (compared with jump_vertical_speed)
     float jump_vertical_speed;          // 0x20 copied to actor.jump_vertical_velocity
-    uint8_t unknown_24;                 // 0x24
+    uint8_t target_weak;                // 0x24 stage 1: the target is a weak actor
     uint8_t stand;                      // 0x25 stage 1: the crouch control flags follow !stand
-    uint8_t unknown_26[2];              // 0x26
-    uint8_t unknown_28;                 // 0x28 update's crouch gate
-    uint8_t unknown_29[0x0f];           // 0x29
+    int16_t weak_target_ticks;          // 0x26 stage 1: counts the passes that found a weak target
+    uint8_t close_in;                   // 0x28 process wants the actor to close in on the target; update's crouch gate
+    uint8_t approach_failed;            // 0x29 no destination near the target could be set; part of the process result
+    uint8_t unknown_2a[2];              // 0x2a
+    float wait_threshold;               // 0x2c consideration wait threshold: distance beyond which the target counts as far away
+    uint8_t suicide_charge;             // 0x30 the actor strikes on proximity or closing speed (Actor.suicide_sensing_dist)
+    uint8_t unknown_31;                 // 0x31
+    int16_t lead_ticks;                 // 0x32 ticks the target position is led by
+    float strike_range_extra;           // 0x34 added to Actor.melee_fudge_factor for the strike range
 } actor_mode_charge_data;
 typedef char actor_mode_charge_data_start_at_10[offsetof(actor_mode_charge_data, stage_start_time) == 0x10 ? 1 : -1];
 typedef char actor_mode_charge_data_size[sizeof(actor_mode_charge_data) == 0x38 ? 1 : -1];
@@ -380,15 +393,23 @@ typedef char actor_mode_guard_data_size[sizeof(actor_mode_guard_data) == 0x44 ? 
 typedef struct actor_mode_alert_data {
     int16_t position_count;             // 0x00 move positions of the squad; actor_select_move_position chooses among them
     int16_t wait_ticks;                 // 0x02 counted down by the tick once the actor stands on a position
-    uint8_t unknown_04[2];              // 0x04
+    uint8_t direction_flag;             // 0x04 out flag of actor_select_move_position (the walk direction through the positions)
+    uint8_t unknown_05;                 // 0x05
     int16_t current_position;           // 0x06 move position being held, -1 for none
     int16_t next_position;              // 0x08 move position chosen by the process, -1 for none
     uint8_t position_reached;           // 0x0a set when the process commits to next_position; the tick plays its animation once and clears it
     uint8_t unknown_0b;                 // 0x0b
-    real_point3d position;              // 0x0c destination of the held move position (first fields of the 0x50 byte record the process copies here)
-    uint8_t unknown_18[0x10];           // 0x18
+    real_point3d position;              // 0x0c destination of the held move position; the process copies the 0x50 byte ScenarioMovePosition here
+    float facing;                       // 0x18 ScenarioMovePosition.facing
+    float weight;                       // 0x1c ScenarioMovePosition.weight
+    float time[2];                      // 0x20 ScenarioMovePosition.time: wait range in seconds
     int16_t animation_index;            // 0x28 ai animation reference the tick plays on arrival, -1 for none
-    uint8_t unknown_2a[0x32];           // 0x2a rest of the copied move position record
+    int8_t sequence_id;                 // 0x2a ScenarioMovePosition.sequence_id
+    uint8_t unknown_2b;                 // 0x2b
+    uint8_t unknown_2c[8];              // 0x2c
+    int16_t cluster_index;              // 0x34 ScenarioMovePosition.cluster_index; target_cleared sets -1
+    uint8_t unknown_36[0x22];           // 0x36 rest of the copied move position record
+    int32_t surface_index;              // 0x58 ScenarioMovePosition.surface_index; target_cleared sets -1
 } actor_mode_alert_data;
 typedef char actor_mode_alert_data_size[sizeof(actor_mode_alert_data) == 0x5c ? 1 : -1];
 
@@ -430,10 +451,15 @@ typedef struct actor_mode_obey_data {
     uint8_t unknown_0e[2];              // 0x0e
     int16_t strafe_axis;                // 0x10 copied to actor.strafe_axis_override; counted down at 0xf
     uint8_t unknown_12[2];              // 0x12
-    float jump_horizontal_speed;        // 0x14 jump_facing.i / jump_horizontal_velocity of the scripted jump
-    float jump_vertical_speed;          // 0x18
-    uint8_t unknown_1c[0x10];           // 0x1c
-    uint8_t unknown_2c;                 // 0x2c copied to the crouch control flags
+    union {
+        real_vector3d move_direction;   // 0x14 copied to actor.move_direction while movement_flags bit 0 is set
+        struct {
+            float horizontal_speed;     // 0x14 actor.jump_horizontal_velocity of the scripted jump
+            float vertical_speed;       // 0x18 actor.jump_vertical_velocity
+        } jump;
+    };
+    uint8_t unknown_20[0x0c];           // 0x20
+    uint8_t crouch;                     // 0x2c copied to the crouch control flags
     uint8_t unknown_2d;                 // 0x2d
     int16_t movement_style;             // 0x2e 1 or 3 stops looking at the target; copied to actor.movement_style_override
     uint8_t unknown_30[0x14];           // 0x30
@@ -448,8 +474,8 @@ typedef struct actor_mode_obey_data {
     uint8_t has_target_point;           // 0x62 update fires at target_point while it is set
     uint8_t unknown_63;                 // 0x63
     real_point3d target_point;          // 0x64
-    uint32_t unknown_70;                // 0x70 copied to actor.burst_duration_override
-    uint8_t unknown_74;                 // 0x74 cleared by update
+    float burst_duration;               // 0x70 copied to actor.burst_duration_override
+    uint8_t throw_grenade;              // 0x74 update turns it into actor.throw_grenade and clears it
     uint8_t unknown_75[0x0f];           // 0x75
 } actor_mode_obey_data;
 typedef char actor_mode_obey_data_size[sizeof(actor_mode_obey_data) == 0x84 ? 1 : -1];
@@ -486,6 +512,16 @@ typedef struct actor_flee_source_reason {
     } payload;
 } actor_flee_source_reason; // size 0x10
 
+// The targeted jump actor_move packs for the biped jump: 0x416790 writes it, 0x417fa0 turns it into a launch velocity.
+typedef struct actor_jump_request {
+    uint8_t valid;                    // 0x00
+    uint8_t unknown_01[3];            // 0x01
+    real_vector2d direction;          // 0x04 horizontal direction of the jump
+    float horizontal_speed;           // 0x0c
+    float vertical_speed;             // 0x10
+} actor_jump_request;                 // size 0x14
+typedef char actor_jump_request_size[sizeof(actor_jump_request) == 0x14 ? 1 : -1];
+
 typedef struct actor {
     int16_t identifier;               // 0x00 datum_header
     uint8_t unknown_02[2];            // 0x02
@@ -505,7 +541,7 @@ typedef struct actor {
     datum_index deactivation_time;    // 0x0c game_time stamped when active goes 1->0 (0x437e20, encounter_deactivate,
                                       //    actor_toggle_active_state); 0x42acd0 sorts inactive actors by it. int32
                                       //    time, not datum_index
-    uint8_t activation_delay[2];      // 0x10 int16 (declared uint8_t[2]): 90 while visible/forced, -30 per 0x437e20
+    int16_t activation_delay;         // 0x10 90 while visible/forced, -30 per 0x437e20
                                       //    pass, deactivates below 31; same scheme as encounter.activation_delay.
                                       //    link_to_unassigned sets 90/0
     uint8_t can_go_dormant;           // 0x12 0x437e20/0x436190: 1 unless a unit's cluster is in the player-visible
@@ -643,11 +679,11 @@ typedef struct actor {
     uint8_t unknown_1b4[4];           // 0x1b4
     float body_vitality;              // 0x1b8 0x4297a0 copies unit body_vitality; berserk_damage_threshold test,
                                       //    crouch/vocalization code
-    uint8_t shield_vitality[4];       // 0x1bc float (declared uint8_t[4]): 0x4297a0 copies unit shield_vitality;
+    float shield_vitality;            // 0x1bc 0x4297a0 copies unit shield_vitality;
                                       //    compared to hide_shield_fraction, ==1.0f in crouch state
     float recent_body_damage;         // 0x1c0 0x4297a0 copies unit recent_body_damage; berserk_damage_amount,
                                       //    cover_damage_threshold, panic_damage_threshold tests
-    uint8_t recent_shield_damage[4];  // 0x1c4 float (declared uint8_t[4]): 0x4297a0 copies unit recent_shield_damage
+    float recent_shield_damage;       // 0x1c4 0x4297a0 copies unit recent_shield_damage
                                       //    (4th of the four unit values)
     uint8_t stood_down;               // 0x1c8 encounter_propagate_platoon_state_to_actors copies
                                       //    encounter.stood_down; 0x41abd0 resets ticks_since_engaged to -1 while set
@@ -725,7 +761,7 @@ typedef struct actor {
     real_vector3d danger_object_velocity;// 0x2a4 its velocity when it was registered
     real_point3d flee_from_point;     // 0x2b0 0x4146c0 resolves the point the actor flees away from; the
                                       //   danger scoring rule also uses it as a segment start
-    uint8_t danger_velocity[12];      // 0x2bc real_vector3d (declared uint8_t[12]): 0x41eda0 copies the danger
+    real_vector3d danger_velocity;    // 0x2bc 0x41eda0 copies the danger
                                       //    object's velocity; end point = pos + 45*vel; actor_find_danger_escape uses
                                       //    -vel as axis
     real_point3d danger_segment_end;  // 0x2c8 0x4112b0 builds the segment flee_from_point -> here
@@ -810,13 +846,13 @@ typedef struct actor {
                                       //    turn-to-target secondary action + event 0x2a once while berserking, then
                                       //    sets it
     uint8_t unknown_37a[2];           // 0x37a
-    float search_wait_time;           // 0x37c 0x4028e0 reads this and unknown_388 as reaction wait thresholds
-    float last_melee_time;            // 0x380 0x401da0 stamps game_time when the melee strike range is reached (-1 on
+    int32_t search_wait_time;         // 0x37c 0x4028e0 reads this and unknown_388 as reaction wait thresholds
+    int32_t last_melee_time;          // 0x380 0x401da0 stamps game_time when the melee strike range is reached (-1 on
                                       //    leap); 0x40c620 waits difficulty-scaled Actor.melee_attack_delay*30 since
                                       //    it
     uint32_t last_vehicle_search_time; // 0x384 actor_seek_vehicle_to_board 0x40ac70: at most every 45 ticks since
                                        //    this game_time; actor_new -1
-    float last_vehicle_charge_time;   // 0x388 0x401da0 stamps now for charge kinds 4/5; 0x40c620 gates vehicle charge
+    int32_t last_vehicle_charge_time; // 0x388 0x401da0 stamps now for charge kinds 4/5; 0x40c620 gates vehicle charge
                                       //    on now > this + Vehicle.ai_charge_repeat_timeout(+0x390)*30
     uint8_t vehicle_exit_forced;      // 0x38c 0x40b080 holds its "forced" flag here during the exit; 0x42c370
                                       //    (misnamed actor_notify_weapon_pickup_once) skips the exit event 0x25 when
@@ -861,9 +897,8 @@ typedef struct actor {
     datum_index pursuit_target_prop_index; // 0x3c0 0x40cdf0 resets pursuit_position_count when target_unit_index
                                            //    differs from it and stores the target; actor_update_combat_behavior
                                            //    compares it
-    uint8_t pursuit_position_count[2]; // 0x3c4 0x40cdf0 counts firing positions taken vs pursuit_target_prop_index
-                                       //    (event 0x10 first); limited by Actor num_positions coord/normal; int16
-                                       //    (declared uint8[2])
+    int16_t pursuit_position_count;   // 0x3c4 0x40cdf0 counts firing positions taken vs pursuit_target_prop_index
+                                       //    (event 0x10 first); limited by Actor num_positions coord/normal
     int16_t recognition_cursor;       // 0x3c6 ring cursor, advanced modulo 4 by 0x4141a0
     actor_recognition_entry recognition[4];// 0x3c8 actor_set_mode and 0x414140 reset all four firing_position_index to -1
     uint8_t recognition_valid;        // 0x3d8 0x4141a0 sets it, 0x414140 and actor_set_mode clear it
@@ -882,7 +917,12 @@ typedef struct actor {
     uint8_t unknown_3fe[2];           // 0x3fe
     actor_movement_action queued_movement;// 0x400 the action the setters at 0x417610..0x417910 write
     int16_t secondary_action;         // 0x418 0x417a60 queues it, actor_action_has_queued_secondary reads it
-    uint8_t unknown_41a[16];          // 0x41a
+    uint8_t unknown_41a[2];           // 0x41a
+    real_vector2d secondary_action_direction; // 0x41c direction the queued secondary action faces (actor_queue_secondary_action)
+    uint8_t unknown_424[2];           // 0x424 cleared together with the crouch decision by most mode updates
+    uint8_t crouch_decision[2];       // 0x426 the crouch decision of the mode update, mirrored into the crouch control flag
+    uint8_t crouch_hold;              // 0x428 charge and obey keep a crouch going while it is set
+    uint8_t cowering;                 // 0x429 flee: the panic is in the cowering band (9..12)
     uint8_t unknown_42a;              // 0x42a
     uint8_t unknown_42b;              // 0x42b
     int16_t movement_style_override;  // 0x42c control_animation_mode to use; -1 derives it from the awareness level
@@ -920,7 +960,9 @@ typedef struct actor {
                                       //    obey copies +0x10c into it (header calls that an object, conflicting)
     uint8_t throw_grenade;            // 0x45c set by 0x40db00 once facing the grenade impact point and by obey
                                       //    (+0x110); 0x40e7b0 then throws (tops up grenade, flag 0x2000, event 9)
-    uint8_t unknown_45d[15];          // 0x45d
+    uint8_t forced_aim_valid;         // 0x45d obey and guard set it to fire at forced_aim_point; the firing state then targets the point
+    uint8_t unknown_45e[2];           // 0x45e
+    real_point3d forced_aim_point;    // 0x460 the point the actor fires at while forced_aim_valid is set
     actor_movement_action active_movement;// 0x46c the six dwords the setters copy over from queued_movement
     uint8_t movement_completed;       // 0x484 actor_movement_action_complete sets it
     uint8_t unknown_485[3];           // 0x485
@@ -932,12 +974,14 @@ typedef struct actor {
     uint32_t destination_radius;      // 0x498 0x41a460: 0 or the action's radius; path_find_set_goal 3rd arg; arrival
                                       //    when path end within it; float (declared uint32)
     uint8_t unknown_49c[4];           // 0x49c
-    int32_t movement_timer;           // 0x4a0 actor_movement_action_complete zeroes it
+    float movement_timer;             // 0x4a0 actor_movement_action_complete zeroes it
     uint8_t path_resolved_this_tick;  // 0x4a4 0x41a460 sets 1 after pathing; 0x429270 clears every tick; movement
                                       //    setters only re-resolve on needs_new_path when clear
     uint8_t unknown_4a5[3];           // 0x4a5
     uint8_t movement_action_complete; // 0x4a8 actor_movement_action_is_complete returns it
-    uint8_t unknown_4a9[19];          // 0x4a9
+    uint8_t unknown_4a9[3];           // 0x4a9
+    real_point3d path_end_point;      // 0x4ac the end of the current path; the guard test for being in place and the movement towards-test measure against it
+    uint8_t unknown_4b8[4];           // 0x4b8
     float path_remaining_distance;    // 0x4bc path record +0x14 (0x43a4d0: distance from path end to goal); 0x41a460
                                       //    completes when near; 0x401da0 marks target engaged when > wait radius
     uint8_t unknown_4c0;              // 0x4c0 advance_waypoint: with waypoint_reached, completes the movement action
@@ -965,17 +1009,16 @@ typedef struct actor {
     int16_t moving_facing_direction;  // 0x50a CEA control.moving_facing_direction; 0x4180c0 *desired_facing_direction
                                       //    out (0 fwd,1 back,2/3 sides,4 free); squad_action_execute moving_forward =
                                       //    moving && ==0
-    uint8_t current_waypoint[12];     // 0x50c 0x4163e0 copies the current 16-byte path waypoint point
-                                      //    (0x4c8+cursor*0x10) here; real_point3d (declared uint8_t[12])
+    real_point3d current_waypoint;    // 0x50c 0x4163e0 copies the current 16-byte path waypoint point
+                                      //    (0x4c8+cursor*0x10) here
     real_point3d desired_movement_vector; // 0x518 0x4163e0 = current_waypoint - body_position; passed as
                                           //    desired_movement_vector (CEA actor_move_calculate_movement) to
                                           //    0x4180c0; look decode code 0 reads it
     real_vector3d forced_aim_direction; // 0x524 out of 0x4146c0 (actor_look_decode_direction) via 0x414250; passed as
                                         //    forced_aim_direction to 0x418a40 (CEA
                                         //    actor_move_calculate_controlled_by_aiming) in 0x4180c0
-    uint8_t jump_velocity_request[20]; // 0x530 0x416790 packs targeted jump {valid@0, dir2d@4, h-speed@0xc,
-                                       //    v-speed@0x10} from 0x440..0x450; 0x417fa0 turns it into launch velocity
-                                       //    for biped jump 0x55ecf0
+    actor_jump_request jump_velocity_request; // 0x530 0x416790 packs the targeted jump from 0x440..0x450; 0x417fa0 turns it into
+                                       //    launch velocity for biped jump 0x55ecf0
     int16_t vocalization_line;        // 0x544 actor_clear_vocalization zeroes 0x544, 0x546 and 0x548
     int16_t vocalization_variant;     // 0x546
     int16_t vocalization_state;       // 0x548
@@ -987,14 +1030,13 @@ typedef struct actor {
                                       //    keeps its prop
     uint8_t idle_major_is_aiming;     // 0x55d 0x414d00 stores use_aiming_deviation (CEA major_is_aiming param);
                                       //    0x415480 tests it with idle_major_active
-    uint8_t idle_look_state[6];       // 0x55e [0]=0x55e interesting-prop flag from 0x414a90 (CEA
-                                      //    interesting_direction), [1]=0x55f idle minor active (0x414f50),
-                                      //    [2..5]=0x560 int32 idle facing timer; needs split
+    uint8_t idle_interesting_direction; // 0x55e interesting-prop flag from 0x414a90 (CEA interesting_direction)
+    uint8_t idle_minor_active;        // 0x55f idle minor direction active (0x414f50)
+    int32_t idle_facing_timer;        // 0x560 idle facing timer
     int32_t idle_major_timer;         // 0x564 0x414d00 arms it from 0x415150 (actor_look_idle_timer, type
                                       //    aiming/looking); 0x415480 decrements it and re-picks at 0
-    uint8_t idle_minor_timer[4];      // 0x568 0x414f50 (CEA actor_look_idle_new_minor_direction) arms it from
-                                      //    0x415150 type 2; 0x415480 decrements, re-randomizes at 0; int32 (declared
-                                      //    uint8_t[4])
+    int32_t idle_minor_timer;         // 0x568 0x414f50 (CEA actor_look_idle_new_minor_direction) arms it from
+                                      //    0x415150 type 2; 0x415480 decrements, re-randomizes at 0
     int16_t idle_major_direction_type; // 0x56c code word of 16-byte direction_specification at 0x56c (1 prop, 4
                                        //    point) written by 0x414d00/0x415480, decoded by 0x4146c0; 0x428470
                                        //    replace_object_reference patches 0x570
@@ -1074,10 +1116,11 @@ typedef struct actor {
     int16_t firing_target_type;       // 0x60c 0x40e7b0: 0 none, 1 prop (0x610 = prop handle from target_unit_index),
                                       //    2 point (0x610 = 0x460 point); read by many grenade/aim fns
     uint8_t unknown_60e[2];           // 0x60e
-    datum_index firing_target_prop_index; // 0x610 0x40e7b0 copies target prop (type 1) or a real_point3d (type 2,
-                                          //    overlaps 0x614) here; prop users
-                                          //    0x40f700/0x4105c0/0x40fcb0/relationship_think
-    uint8_t unknown_614[8];           // 0x614
+    union {
+        datum_index firing_target_prop_index; // 0x610 0x40e7b0 copies the target prop (type 1) here; prop users
+                                              //    0x40f700/0x4105c0/0x40fcb0/relationship_think
+        real_point3d firing_target_free_point; // 0x610 the forced aim point (type 2)
+    };
     int32_t firing_target_ticks;      // 0x61c 0x40e7b0 counts ticks on the same firing target (reset on change);
                                       //    0x40fcb0 compares with new_target_firing_pattern_time; %10 reachability
                                       //    recheck
@@ -1090,13 +1133,12 @@ typedef struct actor {
                                       //    point; the aim error setup 0x40fcb0 starts from it
     float firing_target_distance;     // 0x638 distance from the aim origin to firing_target_point; bounds the error
                                       //    radius and is compared with the weapon's minimum range
-    uint8_t target_aim_vector[16];    // 0x63c 0x40e7b0 weapon_trigger_get_aiming_vector(origin 0x120 -> target 0x62c)
-                                      //    out vector at 0x63c, range out at 0x648; 0x4281f0/look decode read the
-                                      //    vector
+    real_vector3d target_aim_vector;   // 0x63c 0x40e7b0 weapon_trigger_get_aiming_vector(origin 0x120 -> target 0x62c)
+                                      //    out vector; 0x4281f0/look decode read the vector
+    float target_aim_range;           // 0x648 range out of the same call
     real_point3d aim_target_point;    // 0x64c firing_target_point after the bombardment scatter
-    uint8_t firing_aim_point[12];     // 0x658 0x40e7b0 = aim target (0x64c) plus target_tracking drift and
-                                      //    target_leading lead; + accumulated error gives 0x67c; real_point3d
-                                      //    (declared uint8_t[12])
+    real_point3d firing_aim_point;    // 0x658 0x40e7b0 = aim target (0x64c) plus target_tracking drift and
+                                      //    target_leading lead; + accumulated error gives 0x67c
     real_vector3d aim_wander_offset;  // 0x664 aim error offset the aim error setup 0x40fcb0 rolls for this burst
     real_vector3d aim_recoil_per_tick;// 0x670 per tick share of the recoil error (divided by the firing state timer)
     real_vector3d grenade_aim_direction;// 0x67c written by 0x40f7e0 and 0x40fcb0
@@ -1120,8 +1162,8 @@ typedef struct actor {
     real_point3d grenade_impact_point;// 0x6a8 0x410710 records a validated landing point
     uint32_t grenade_target_prop_index; // 0x6b4 0x411180 commits the target prop of the toss; 0x410a60 reads prop
                                         //    state/position; replace_object_reference patches it; actor_new -1
-    uint8_t grenade_exclude_object_index[4]; // 0x6b8 0x411180 stores the object excluded from the arc check; 0x410780
-                                             //    passes it to 0x42b5d0 path check; should be datum_index
+    datum_index grenade_exclude_object_index; // 0x6b8 0x411180 stores the object excluded from the arc check; 0x410780
+                                             //    passes it to 0x42b5d0 path check
     real_vector3d grenade_throw_direction;// 0x6bc direction of the planned grenade throw, written by 0x410a60 and
                                       //    the grenade arc solver
     float grenade_throw_speed;        // 0x6c8 launch speed of the planned throw
@@ -1213,14 +1255,15 @@ typedef struct prop {
                                       //    when distance_class > 2) against the actor reaction threshold, then zeroes it
     int32_t swarm_reassign_time;      // 0x28 game time of the last swarm reassignment: stamped at init for a
                                       //    swarm-owned object, 0x41c4b0 reassigns at most every 90 ticks
-    datum_index acknowledge_progress; // 0x2c a float accumulator in this slot: state 1 adds the inverse (non-combat /
+    float acknowledge_progress;       // 0x2c a float accumulator in this slot: state 1 adds the inverse (non-combat /
                                       //    guard / combat) perception time per tick, >= 1.0 acknowledges (state 3)
     int16_t perception_level;         // 0x30 max of the visual / auditory / 0x36 channels (0..3); drives states 0 ->
                                       //    1 -> 3 and 3 -> 2
     int16_t visual_perception;        // 0x32 0..3 from the perception range / field-of-view test 0x41bb30 against
                                       //    head_position; >= 2 reads as seen
-    int32_t auditory_perception;      // 0x34 low int16: actor_target_hearing_check (0x41c030) 0/2/3, or 3 for
-                                      //    stimulus types 1/2; the high int16 at 0x36 is a separate channel
+    int16_t auditory_perception;      // 0x34 actor_target_hearing_check (0x41c030) 0/2/3, or 3 for stimulus types 1/2
+    int16_t ambient_perception;       // 0x36 third perception channel: 3 while the prop has stimulus type 0, raised to 1 by a lit
+                                      //    flashlight (aiming/distance class below 3, obstruction 0/1)
     int16_t obstruction;              // 0x38 actor_evaluate_engagement_reachability (0x42b270) from the actor to
                                       //    head_position: 0 clear, 1 partly blocked, 2..4 blocked
     int16_t orphan_timer;             // 0x3a 900 when actor_copy_prop_and_reset makes the orphan copy (state 4);

@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_orders.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -145,10 +146,10 @@ uint32_t halo::ai::order_builder::face_seat_marker(int16_t firing_position_index
 
         *(int16_t *)((uint8_t *)order + 0xa) = firing_position_index;
         *(int16_t *)(order + 2) = 1;
-        order[5] = *(uint32_t *)&fp->position.x;
-        order[6] = *(uint32_t *)&fp->position.y;
-        order[7] = *(uint32_t *)&fp->position.z;
-        order[4] = *(uint32_t *)&fp->surface_index;
+        order[5] = halo::bit_cast<uint32_t>(fp->position.x);
+        order[6] = halo::bit_cast<uint32_t>(fp->position.y);
+        order[7] = halo::bit_cast<uint32_t>(fp->position.z);
+        order[4] = fp->surface_index;
         *(uint16_t *)(order + 3) = fp->cluster_index;
         *((uint8_t *)(order + 8)) = 0;
         *((uint8_t *)order + 3) = 1;
@@ -196,10 +197,10 @@ uint32_t halo::ai::order_builder::face_seat_marker_committed(int16_t firing_posi
         *((uint8_t *)order + 4) = byte_a;
         *(int16_t *)((uint8_t *)order + 0xa) = firing_position_index;
         *(int16_t *)(order + 2) = 1;
-        order[5] = *(uint32_t *)&fp->position.x;
-        order[6] = *(uint32_t *)&fp->position.y;
-        order[7] = *(uint32_t *)&fp->position.z;
-        order[4] = *(uint32_t *)&fp->surface_index;
+        order[5] = halo::bit_cast<uint32_t>(fp->position.x);
+        order[6] = halo::bit_cast<uint32_t>(fp->position.y);
+        order[7] = halo::bit_cast<uint32_t>(fp->position.z);
+        order[4] = fp->surface_index;
         *(uint16_t *)(order + 3) = fp->cluster_index;
         a->search_firing_positions = 1;
         return 1;
@@ -298,7 +299,7 @@ int32_t halo::ai::order_builder::grenade_or_melee(uint32_t resolved_target, uint
         }
     }
     if (a->swarm == 0) {
-        halo::ai::actor_check_melee_target_reachable(actor_index, (int16_t *)order);
+        halo::ai::actor_check_melee_target_reachable(actor_index, reinterpret_cast<actor_mode_flee_data *>(order));
         if (order[4] != halo::k_word_none) {
             return 1;
         }

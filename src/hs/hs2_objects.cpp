@@ -72,7 +72,7 @@ void ObjectCommands::evaluate_magic_melee_attack(int16_t function_index, uint32_
 {
     uint8_t *player = (uint8_t *)halo::game::globals().player_data->data;
 
-    halo::units::unit_try_ready_weapon(*(uint32_t *)&((struct player *)player)->unit, 0, 0);
+    halo::units::unit_try_ready_weapon(((struct player *)player)->unit, 0, 0);
     halo::hs::hs_thread_return(0, thread_index);
 }
 

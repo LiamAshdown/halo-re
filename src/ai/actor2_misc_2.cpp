@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
@@ -292,10 +293,10 @@ void ActorView::refresh_combat_context()
     halo::math::vector3d_normalize_with_length(self->looking_left_vector);
     halo::math::vector3d_cross_product(self->looking_up_vector, self->looking_left_vector,
         self->unit_looking_vector);
-    A_I32(0x1b8) = *(int32_t *)&((unit_object *)unit)->base.body_vitality;
-    A_I32(0x1bc) = *(int32_t *)&((unit_object *)unit)->base.shield_vitality;
-    A_I32(0x1c0) = *(int32_t *)&((unit_object *)unit)->base.recent_body_damage;
-    A_I32(0x1c4) = *(int32_t *)&((unit_object *)unit)->base.recent_shield_damage;
+    A_I32(0x1b8) = halo::bit_cast<int32_t>(((struct unit_object *)unit)->base.body_vitality);
+    A_I32(0x1bc) = halo::bit_cast<int32_t>(((struct unit_object *)unit)->base.shield_vitality);
+    A_I32(0x1c0) = halo::bit_cast<int32_t>(((struct unit_object *)unit)->base.recent_body_damage);
+    A_I32(0x1c4) = halo::bit_cast<int32_t>(((struct unit_object *)unit)->base.recent_shield_damage);
 }
 
 #undef A_I16

@@ -64,7 +64,7 @@ public:
     void push_recognition_entry(int16_t firing_position_index, uint8_t type);
     void queue_recognized_target_dialogue(datum_index target_prop_index);
     void queue_search_position(real_point3d *position, int16_t priority, real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra, uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value, uint8_t prop_flag);
-    uint8_t queue_secondary_action(int16_t action, uint32_t payload[2]);
+    uint8_t queue_secondary_action(int16_t action, const real_vector2d *direction);
     void queue_sighted_target_dialogue(datum_index target_prop_index, uint8_t already_noticed);
     void raise_timer_5f6(int32_t ticks);
     float rate_potential_target(datum_index target_prop_index);

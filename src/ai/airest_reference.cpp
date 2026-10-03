@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/hs/records.hpp"
 #include "halo/ai/airest_reference.hpp"
 #include "halo/models/api.hpp"
@@ -394,8 +395,7 @@ void ReferenceView::detach_actors_from_encounters()
             self->next_in_encounter = halo::ai::globals().state->first_encounterless_actor;
             halo::ai::globals().state->first_encounterless_actor = iterator.actor_index;
             self->encounterless = 1;
-            *(uint16_t *)&self->activation_delay[0] =
-                (uint16_t)(-(uint16_t)(self->active != 0) & 0x5a);
+            self->activation_delay = static_cast<int16_t>((uint16_t)(-(uint16_t)(self->active != 0) & 0x5a));
             halo::ai::actor_movement_action_cancel(iterator.actor_index);
         }
         a = halo::ai::ai_reference_actor_iterator_next(&iterator);
@@ -579,7 +579,7 @@ uint32_t ReferenceView::get_stat_pair(int16_t stat_kind, int32_t *out_member_cou
                     result = (uint32_t)(diff & ~(diff >> 31));
                 }
                 member_count = enc->member_count;
-                extra = *(uint32_t *)&enc->average_vitality;
+                extra = halo::bit_cast<uint32_t>(enc->average_vitality);
             }
         } else if (kind == 1) {
             if ((int32_t)encounter_index < halo::scenario::globals().scenario->encounters.count) {
@@ -849,8 +849,8 @@ void ReferenceView::refill_grenades()
                     *(int8_t *)(unit + 0x31e + grenade_type) =
                         (int8_t)(*(int8_t *)(unit + 0x31e + grenade_type) +
                                  ((int8_t)rolled - (int8_t)current));
-                    *(uint8_t *)&((unit_object *)unit)->unit.desired_grenade_index = (uint8_t)grenade_type;
-                    *(uint8_t *)&((unit_object *)unit)->unit.current_grenade_index = (uint8_t)grenade_type;
+                    ((struct unit_object *)unit)->unit.desired_grenade_index = static_cast<int8_t>((uint8_t)grenade_type);
+                    ((struct unit_object *)unit)->unit.current_grenade_index = static_cast<int8_t>((uint8_t)grenade_type);
                 }
             }
         }
@@ -974,7 +974,7 @@ void ReferenceView::respawn_member(datum_index unit_index)
 
             if (a->encounter_index != (datum_index)k_datum_index_none) {
                 encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[a->encounter_index & halo::k_slot_mask];
-                *(int16_t *)&enc->activation_delay = 0x96;
+                enc->activation_delay = 0x96;
                 halo::ai::encounter_activate(a->encounter_index);
             }
 

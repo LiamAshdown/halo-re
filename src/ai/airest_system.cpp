@@ -873,7 +873,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, struct actor *actor)
         actor = halo::ai::actor_at(actor_index);
         halo::ai::actor_remove_from_unit_cluster(actor_index, unit_index);
         actor = halo::ai::actor_at(actor_index);
-        if (halo::ai::actor_new_and_attach_to_unit(1, unit_index, actor->actor_variant_tag, *(uint32_t *)&actor->encounter_index,
+        if (halo::ai::actor_new_and_attach_to_unit(1, unit_index, actor->actor_variant_tag, actor->encounter_index,
                 actor->squad_index, 0, actor_index, 0, 2, 0, halo::k_word_none, 0) == k_datum_index_none) {
             int32_t kind = *(int32_t *)(OBJ(unit_index) + 4);
 
@@ -924,12 +924,12 @@ void AiSystem::reset_fire_group_assignments()
                 continue;
             }
             actor = halo::ai::actor_at(actor_index);
-            *(int32_t *)&actor->original_encounter_index = e;
+            actor->original_encounter_index = static_cast<datum_index>(e);
             actor->original_squad_index = actor->squad_index;
             actor->firing_position_index = -1;
             if (actor->active_movement.type == 3 || actor->active_movement.type == 4) {
                 actor->active_movement.type = 0;
-                *(datum_index *)&actor->active_movement.extra = k_datum_index_none;
+                actor->active_movement.extra = static_cast<uint32_t>(k_datum_index_none);
             }
             {
                 void (*carry_proc)(datum_index) =

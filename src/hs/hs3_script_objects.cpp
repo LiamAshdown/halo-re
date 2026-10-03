@@ -117,10 +117,10 @@ static void hs_unit_leave_seat(uint32_t object_index)
         if (halo::networking::globals().game_mode == 1) {
             uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)unit)->unit.controlling_player, halo::game::globals().player_data);
             if (player != 0 && ((struct player *)player)->local_player_index == -1) {
-                *(uint32_t *)&((struct player *)player)->position_updates.read_index = 0;
-                *(uint32_t *)&((struct player *)player)->position_updates.write_index = 0;
-                *(uint32_t *)&((struct player *)player)->vehicle_updates.read_index = 0;
-                *(uint32_t *)&((struct player *)player)->vehicle_updates.write_index = 0;
+                ((struct player *)player)->position_updates.read_index = static_cast<int32_t>(0);
+                ((struct player *)player)->position_updates.write_index = static_cast<int32_t>(0);
+                ((struct player *)player)->vehicle_updates.read_index = static_cast<int32_t>(0);
+                ((struct player *)player)->vehicle_updates.write_index = static_cast<int32_t>(0);
             }
         }
     }

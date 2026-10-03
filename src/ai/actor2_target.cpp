@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
@@ -180,29 +181,29 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
     transform_x = *(uint32_t *)(local_transform + 0x60);
     transform_y = *(uint32_t *)(local_transform + 0x64);
     transform_z = *(uint32_t *)(local_transform + 0x68);
-    *(uint32_t *)&target->head_position_x = transform_x;
-    *(uint32_t *)&target->head_position_y = transform_y;
-    *(uint32_t *)&target->head_position_z = transform_z;
+    target->head_position_x = transform_x;
+    target->head_position_y = transform_y;
+    target->head_position_z = transform_z;
 
     halo::objects::object_get_position(&target->last_known_position, target->object_index);
 
     halo::objects::object_get_node_local_transform(target->object_index, ai_marker_name_b, (object_marker *)local_transform, 1);
-    *(uint32_t *)&target->center_of_mass.x = *(uint32_t *)(local_transform + 0x60);
-    *(uint32_t *)&target->center_of_mass.y = *(uint32_t *)(local_transform + 0x64);
-    *(uint32_t *)&target->center_of_mass.z = *(uint32_t *)(local_transform + 0x68);
+    target->center_of_mass.x = halo::bit_cast<float>(static_cast<uint32_t>(*(uint32_t *)(local_transform + 0x60)));
+    target->center_of_mass.y = halo::bit_cast<float>(static_cast<uint32_t>(*(uint32_t *)(local_transform + 0x64)));
+    target->center_of_mass.z = halo::bit_cast<float>(static_cast<uint32_t>(*(uint32_t *)(local_transform + 0x68)));
     *(real_vector3d *)&target->velocity = unit_obj->velocity;
     target->pathfinding_surface_index = -1;
 
     reassigned = halo::objects::object_get_root_object_index(target->object_index);
     parent_obj = halo::ai::object_at(reassigned);
-    target->location_leaf_index = *(float *)&parent_obj->location_leaf_index;
+    target->location_leaf_index = halo::bit_cast<float>(parent_obj->location_leaf_index);
     *(uint32_t *)&target->cluster_index = *(uint32_t *)&parent_obj->location_cluster_index;
 
     target->in_water = halo::scenario::scenario_location_get_water_and_weather(&target->center_of_mass, (bsp_leaf_reference *)&target->location_leaf_index, 0);
     target->relationship_object_index = -1;
     target->is_vehicle_gunner = 0;
     target->is_vehicle_driver = 0;
-    *(uint32_t *)&target->parent_object_index = halo::k_dword_none;
+    target->parent_object_index = halo::bit_cast<float>(static_cast<uint32_t>(halo::k_dword_none));
 
     parent_index = unit_obj->parent_object;
     if (parent_index != k_datum_index_none) {
@@ -222,7 +223,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
                 target->is_vehicle_driver = 0;
             }
         } else if ((1 << (parent_obj->type & 0x1f) & 3) != 0) {
-            *(uint32_t *)&target->parent_object_index = parent_index;
+            target->parent_object_index = halo::bit_cast<float>(static_cast<uint32_t>(parent_index));
         }
     }
 
@@ -1433,28 +1434,28 @@ after_engage:
             }
             if (enc == (encounter *)0 || enc->deaf == 0) {
                 if (p->stimulus_type == 1 || p->stimulus_type == 2) {
-                    *(int16_t *)&p->auditory_perception = 3;
+                    p->auditory_perception = 3;
                 } else {
-                    *(int16_t *)&p->auditory_perception =
+                    p->auditory_perception =
                         halo::ai::actor_target_hearing_check((uint8_t *)p + 0xfc, p->obstruction, actor_index,
                                                     scratch,  0, &p->last_known_position);
                 }
             } else {
-                *(int16_t *)&p->auditory_perception = 0;
+                p->auditory_perception = 0;
             }
-            *(int16_t *)((uint8_t *)p + 0x36) = 0;
+            p->ambient_perception = 0;
             if (p->stimulus_type == 0) {
-                *(int16_t *)((uint8_t *)p + 0x36) = 3;
+                p->ambient_perception = 3;
             }
             if (p->flashlight_on != 0 && p->aiming_at_actor_class < 3 && p->distance_class < 3 &&
                 (p->obstruction == 0 || p->obstruction == 1)) {
-                int16_t v = *(int16_t *)((uint8_t *)p + 0x36);
+                int16_t v = p->ambient_perception;
                 if (v < 2) v = 1;
-                *(int16_t *)((uint8_t *)p + 0x36) = v;
+                p->ambient_perception = v;
             }
             {
-                int16_t a = *(int16_t *)&p->auditory_perception;
-                int16_t b = *(int16_t *)((uint8_t *)p + 0x36);
+                int16_t a = p->auditory_perception;
+                int16_t b = p->ambient_perception;
                 int16_t best = (a <= b) ? b : a;
                 int16_t chosen = p->visual_perception;
                 if (chosen <= best) {
@@ -1467,8 +1468,8 @@ after_engage:
             }
         } else {
             p->perception_level = 0;
-            *(int16_t *)((uint8_t *)p + 0x36) = 0;
-            *(int16_t *)&p->auditory_perception = 0;
+            p->ambient_perception = 0;
+            p->auditory_perception = 0;
             p->visual_perception = 0;
         }
 
@@ -1496,15 +1497,15 @@ after_engage:
             self->active_unit_index != (datum_index)k_datum_index_none);
         if (p->disregarded || team_gate) {
             p->perception_level = 0;
-            *(int16_t *)((uint8_t *)p + 0x36) = 0;
-            *(int16_t *)&p->auditory_perception = 0;
+            p->ambient_perception = 0;
+            p->auditory_perception = 0;
             p->visual_perception = 0;
         } else {
             int16_t result = halo::ai::actor_dispatch_look_handler_by_posture(p->obstruction, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
                                            p->perception_range_class, 1, 2);
             p->visual_perception = result;
-            *(int16_t *)&p->auditory_perception = 0;
-            *(int16_t *)((uint8_t *)p + 0x36) = 0;
+            p->auditory_perception = 0;
+            p->ambient_perception = 0;
             p->perception_level = result;
         }
     }

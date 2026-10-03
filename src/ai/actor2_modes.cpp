@@ -37,14 +37,14 @@ void ActorView::mode_uncover_tick()
     kind = act->mode_data.uncover.stage;
     act->mode_data.uncover.crouch = 0;
     if (kind == 0) {
-        if (*(int16_t *)&actor_tag->defensive_crouch_type == 4) {
+        if (actor_tag->defensive_crouch_type == 4) {
             act->mode_data.uncover.crouch = (uint8_t)(act->target_combat_status != 6);
         } else if ((static_cast<uint8_t>(actor_tag->flags) & 2) && act->target_combat_status == 5 &&
                    (int8_t)PROP(act->target_unit_index)[0x121] <= 2) {
             act->mode_data.uncover.crouch = 1;
         }
     } else if (kind == 1) {
-        if (*(int16_t *)&actor_tag->defensive_crouch_type == 4 ||
+        if (actor_tag->defensive_crouch_type == 4 ||
             ((static_cast<uint8_t>(actor_tag->flags) & 4) &&
              halo::math::vector3d_distance_squared(*(&act->mode_data.uncover.position), act->body_position) < 100.0f)) {
             act->mode_data.uncover.crouch = 1;
@@ -133,11 +133,11 @@ void ActorView::mode_uncover_update()
         }
     }
     act->look_posture = 3;
-    act->unknown_41a[12] = act->mode_data.uncover.crouch;
-    act->unknown_41a[13] = act->mode_data.uncover.crouch;
-    act->unknown_41a[14] = 0;
-    act->unknown_41a[10] = 0;
-    act->unknown_41a[11] = 1;
+    act->crouch_decision[0] = act->mode_data.uncover.crouch;
+    act->crouch_decision[1] = act->mode_data.uncover.crouch;
+    act->crouch_hold = 0;
+    act->unknown_424[0] = 0;
+    act->unknown_424[1] = 1;
 }
 
 #undef TAG_DATA
@@ -189,11 +189,11 @@ void ActorView::mode_vehicle_update()
     }
     act->look_posture = 4;
     act->wants_to_fire = 0;
-    act->unknown_41a[12] = 0;
-    act->unknown_41a[13] = 0;
-    act->unknown_41a[14] = 0;
-    act->unknown_41a[10] = 0;
-    act->unknown_41a[11] = 0;
+    act->crouch_decision[0] = 0;
+    act->crouch_decision[1] = 0;
+    act->crouch_hold = 0;
+    act->unknown_424[0] = 0;
+    act->unknown_424[1] = 0;
 }
 
 
@@ -325,17 +325,17 @@ void ActorView::mode_wait_update()
     } else if (!act->grenade_ally_phase_flag && *(int32_t *)&act->nearby_friend_prop_index != -1 && act->mode_data.wait.countdown_0c > 0) {
         act->flee_reason = 5;
         act->flee_source.code = 1;
-        act->flee_source.payload.handle = *(int32_t *)&act->nearby_friend_prop_index;
+        act->flee_source.payload.handle = static_cast<int32_t>(act->nearby_friend_prop_index);
     } else {
         act->flee_reason = 1;
     }
     act->look_posture = 3;
     act->wants_to_fire = 0;
-    act->unknown_41a[12] = 0;
-    act->unknown_41a[13] = 0;
-    act->unknown_41a[14] = 0;
-    act->unknown_41a[10] = 0;
-    act->unknown_41a[11] = 0;
+    act->crouch_decision[0] = 0;
+    act->crouch_decision[1] = 0;
+    act->crouch_hold = 0;
+    act->unknown_424[0] = 0;
+    act->unknown_424[1] = 0;
 }
 
 
