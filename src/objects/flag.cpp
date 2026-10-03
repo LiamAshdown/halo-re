@@ -425,7 +425,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                         if (!(row_cursor < tag->height)) break;
                     }
 
-                    vertex = &entry->vertices[tag->height * col + row_cursor].position;
+                    vertex = &entry->vertices[tag->height * col + row_cursor];
                     contributor_count = 0;
                     mode = 1;
 

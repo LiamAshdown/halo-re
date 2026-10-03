@@ -16,6 +16,7 @@
 #include "ai.h"
 #include "halo/items/tag_flags.hpp"
 #include "halo/projectiles/layout.hpp"
+#include "halo/projectiles/api.hpp"
 
 static auto &s_primary_trigger_marker = halo::link::ref<char []>(halo::items::vars().s_primary_trigger_marker);
 static auto &s_secondary_trigger_marker = halo::link::ref<char []>(halo::items::vars().s_secondary_trigger_marker);

@@ -25,6 +25,7 @@
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "saved_games.h"
 
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
