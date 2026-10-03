@@ -1,5 +1,6 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -442,8 +443,8 @@ uint8_t UnitView::dispatch_reaction_animation(int16_t reaction_code)
         index = 0xa;
         break;
     case 1:
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        index = ((float)(random_seed_global >> 16) * 1.5259022e-05f < 0.5f) ? 0x27 : 0xb;
+        random_seed_global = halo::advance_random_seed(random_seed_global);
+        index = ((float)(random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale < 0.5f) ? 0x27 : 0xb;
         break;
     case 2:
         index = 0xb;

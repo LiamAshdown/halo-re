@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -196,8 +197,8 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
     } else {
         uint8_t *unit_tag = TAG_DATA(*(datum_index *)obj);
 
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        if ((float)(int32_t)(random_seed_global >> 16) * 1.5259022e-05f < ((struct Unit *)unit_tag)->feign_repeat_chance) {
+        random_seed_global = halo::advance_random_seed(random_seed_global);
+        if ((float)(int32_t)(random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale < ((struct Unit *)unit_tag)->feign_repeat_chance) {
             set_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unknown_2000);
         } else {
             clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unknown_2000);

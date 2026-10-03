@@ -1,5 +1,6 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/core/collision_flags.hpp"
 #include "projectiles.h"
 
 extern "C" {
@@ -65,7 +66,7 @@ void UnitView::melee_attack_scan()
             delta.i = (rowf * perp.i + colf * side.i) * 0.1f + aim->i * 0.8f;
             delta.j = (rowf * perp.j + colf * side.j) * 0.1f + aim->j * 0.8f;
             delta.k = (rowf * perp.k + colf * side.k) * 0.1f + aim->k * 0.8f;
-            if (!collision_test_movement_segment(0x1000e9, &origin, &delta, unit_index, &hit)) {
+            if (!collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::unstick), &origin, &delta, unit_index, &hit)) {
                 continue;
             }
             if (*(int16_t *)&hit == 2) {

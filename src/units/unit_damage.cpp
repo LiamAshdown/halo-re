@@ -1,5 +1,7 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/core/collision_flags.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -549,7 +551,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
         delta.j = target_pos.y - origin_pos.y;
         delta.k = target_pos.z - origin_pos.z;
 
-        if (collision_test_movement_segment(0x1000e9, &origin_pos, &delta, 0xffffffff, scratch) != 0) {
+        if (collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::unstick), &origin_pos, &delta, 0xffffffff, scratch) != 0) {
             target_pos = origin_pos;
         }
     } else {
@@ -618,8 +620,8 @@ void UnitView::enter_stunned_state(uint32_t responsible_object)
     if (unit->flaming_ticks == 0) {
         int16_t duration;
 
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        duration = (int16_t)(((int32_t)(random_seed_global >> 0x10) * 0x5a) >> 0x10) + 0x3c;
+        random_seed_global = halo::advance_random_seed(random_seed_global);
+        duration = (int16_t)(((int32_t)(random_seed_global >> halo::k_random_high_shift) * 0x5a) >> 0x10) + 0x3c;
 
         if (duration == 0) {
             duration = 1;

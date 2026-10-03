@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -509,9 +510,9 @@ int32_t UnitView::pick_random_spawned_actor_count()
     if ((unit->flags & _unit_flag_permutation_chosen) == 0) {
         Unit *unit_tag = (Unit *)tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
         if (*(int32_t *)&unit_tag->spawned_actor.tag_id != -1) {
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+            random_seed_global = halo::advance_random_seed(random_seed_global);
             int32_t range = (int32_t)(int16_t)(unit_tag->spawned_actor_count[1] + 1) - (int32_t)unit_tag->spawned_actor_count[0];
-            result = (int32_t)(((uint32_t)range * (random_seed_global >> 0x10)) >> 0x10) +
+            result = (int32_t)(((uint32_t)range * (random_seed_global >> halo::k_random_high_shift)) >> 0x10) +
                      (int32_t)((((uint32_t)tag_instances >> 16) << 16) | (uint16_t)unit_tag->spawned_actor_count[0]);
             if (0 < (int16_t)result) {
                 result = actor_spawn_additional_units(*(datum_index *)&((struct Unit *)unit_tag)->spawned_actor.tag_id, (int16_t)result,

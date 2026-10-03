@@ -1,5 +1,6 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/core/collision_flags.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "projectiles.h"
@@ -782,7 +783,7 @@ void VehicleView::create_hover_thruster_effects()
         delta.i = direction.i * length;
         delta.j = direction.j * length;
         delta.k = direction.k * length;
-        if (collision_test_movement_segment(0x61, (real_point3d *)(marker + 0x60), &delta, unit_index, &result)) {
+        if (collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface), (real_point3d *)(marker + 0x60), &delta, unit_index, &result)) {
             real_point3d points[3];
             real_vector3d vectors[3];
             real twice_dot;
@@ -840,7 +841,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
 
         vector3d_randomize_direction((real_point3d *)(marker + 0x3c), &direction, &effect_random_seed, 0.0f, 15.0f);
         delta = direction;
-        if (!collision_test_movement_segment(0x61, marker_position, &delta, unit_index, &result)) {
+        if (!collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface), marker_position, &delta, unit_index, &result)) {
             continue;
         }
         v = -*(real *)(marker + 0x44) * (1.0f - result.t) * ((struct vehicle_object *)obj)->unit.driver_seat_power;

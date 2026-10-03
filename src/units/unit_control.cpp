@@ -1,4 +1,6 @@
 #include "halo/units/unit.hpp"
+#include "halo/core/collision_flags.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -355,9 +357,9 @@ void UnitView::initialize_random_turn_angle()
         half_range = 0.43633232f;
     }
 
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    unit->idle_turn_angle = (half_range - -half_range) * (float)(random_seed_global >> 0x10) *
-                            1.5259022e-05f + -half_range + unit->idle_turn_angle;
+    random_seed_global = halo::advance_random_seed(random_seed_global);
+    unit->idle_turn_angle = (half_range - -half_range) * (float)(random_seed_global >> halo::k_random_high_shift) *
+                            halo::k_unit_word_scale + -half_range + unit->idle_turn_angle;
 }
 
 /**
@@ -693,7 +695,7 @@ void UnitView::sample_camera_shake_from_velocity()
     delta.i = ((unit_object *)obj)->unit.aiming_vector.i * 25.0f;
     delta.j = ((unit_object *)obj)->unit.aiming_vector.j * 25.0f;
     delta.k = ((unit_object *)obj)->unit.aiming_vector.k * 25.0f;
-    if (collision_test_movement_segment(0x22, &camera_position, &delta, unit_index, &hit) &&
+    if (collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::back_face | halo::collision_test_flag::structure_bsp), &camera_position, &delta, unit_index, &hit) &&
         hit.plane.normal.k > 0.95f) {
         real_point3d position = hit.point;
 
@@ -946,16 +948,16 @@ void UnitView::update_random_turn_angle(real_vector3d *out_axis)
     if (pitch_high <= pitch_low) {
         if (pitch_high >= -1.0f) {
             float clamped = (pitch_high < 1.0f) ? pitch_high : 1.0f;
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+            random_seed_global = halo::advance_random_seed(random_seed_global);
             delta = (0.02094395f - clamped * -0.02094395f) *
-                    (float)(random_seed_global >> 0x10) * 1.5259022e-05f + clamped * -0.02094395f;
+                    (float)(random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale + clamped * -0.02094395f;
         } else {
             delta = 0.02094395f;
         }
     } else if (pitch_low >= -1.0f) {
         float clamped = (pitch_low < 1.0f) ? pitch_low : 1.0f;
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        delta = (float)(random_seed_global >> 0x10) * 1.5259022e-05f *
+        random_seed_global = halo::advance_random_seed(random_seed_global);
+        delta = (float)(random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale *
                 (clamped * 0.02094395f - -0.02094395f) - 0.02094395f;
     } else {
         delta = -0.02094395f;

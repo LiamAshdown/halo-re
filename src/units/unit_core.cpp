@@ -1,4 +1,6 @@
 #include "halo/units/unit.hpp"
+#include "halo/core/collision_flags.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -77,11 +79,11 @@ void UnitView::apply_impulse(real_vector3d *impulse)
         float length;
         vector3d_cross_product(&jitter_axis, impulse, global_up3d_pointer);
         length = vector3d_normalize_with_length(&jitter_axis);
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        random_seed_global = halo::advance_random_seed(random_seed_global);
         {
             float magnitude = (float)sqrt((double)(impulse->i * impulse->i + impulse->j * impulse->j +
                                                      impulse->k * impulse->k));
-            float angle = (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f * magnitude * 1.5707964f;
+            float angle = (float)(int32_t)(random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale * magnitude * 1.5707964f;
             obj->angular_velocity.i += jitter_axis.i * angle;
             obj->angular_velocity.j += jitter_axis.j * angle;
             obj->angular_velocity.k += jitter_axis.k * angle;
@@ -130,7 +132,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
             delta.j = target_direction->j * 0.8f + ((float)col * perp->j + (float)row * up->j) * 0.1f;
             delta.k = target_direction->k * 0.8f + ((float)col * perp->k + (float)row * up->k) * 0.1f;
 
-            if (collision_test_movement_segment(0x1000e9, (real_point3d *)target_direction, &delta, unit_index, scratch) == 0) {
+            if (collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::unstick), (real_point3d *)target_direction, &delta, unit_index, scratch) == 0) {
                 continue;
             }
 

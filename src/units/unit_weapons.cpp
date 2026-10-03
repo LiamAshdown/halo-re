@@ -1,5 +1,6 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -576,8 +577,8 @@ void UnitView::drop_object_from_hand(uint32_t object_index)
     *(real_vector3d *)&((struct object *)dropped)->angular_velocity.i = *global_origin3d_pointer;
 
     vector3d_randomize_direction((real_point3d *)&((struct unit_object *)unit)->unit.aiming_vector, &toss, &random_seed_global, 0.0f, 0.39269909f);
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    speed = (real)(int32_t)((uint32_t)random_seed_global >> 16) * 1.5259022e-05f * 0.013333336f + 0.026666667f;
+    random_seed_global = halo::advance_random_seed(random_seed_global);
+    speed = (real)(int32_t)((uint32_t)random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale * 0.013333336f + 0.026666667f;
     toss.i *= speed;
     toss.j *= speed;
     toss.k *= speed;

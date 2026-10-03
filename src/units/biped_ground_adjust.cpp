@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/core/collision_flags.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -200,7 +201,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                 bone.i = bone.i * 1.03f;
                 bone.j = bone.j * 1.03f;
                 bone.k = bone.k * 1.03f;
-                if (collision_test_movement_segment(0xc0a8, &segment_start, &bone, object_index, &hit)) {
+                if (collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), &segment_start, &bone, object_index, &hit)) {
                     uint8_t embedded[2];
                     float push[2];
                     real_plane3d *plane = &hit.plane;

@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/core/lcg.hpp"
 #include "game.h"
 
 extern "C" {
@@ -146,8 +147,8 @@ TagID unit_pick_random_dialogue_variant(Unit *unit_tag, int16_t variant_number)
             if (match_count == 1) {
                 chosen = matches[0];
             } else {
-                random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                chosen = matches[(int16_t)((random_seed_global >> 0x10) * (uint32_t)match_count >> 0x10)];
+                random_seed_global = halo::advance_random_seed(random_seed_global);
+                chosen = matches[(int16_t)((random_seed_global >> halo::k_random_high_shift) * (uint32_t)match_count >> 0x10)];
             }
             return variants[chosen].dialogue.tag_id;
         }

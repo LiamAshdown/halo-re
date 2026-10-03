@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/core/collision_flags.hpp"
 #include "projectiles.h"
 
 extern "C" {
@@ -123,7 +124,7 @@ uint32_t UnitView::update_marker_traction_effects()
         delta.i = normal.i * range;
         delta.j = normal.j * range;
         delta.k = normal.k * range;
-        collision_test_movement_segment(0xc0a0, &origin, &delta, object_index, &result);
+        collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::structure_bsp | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), &origin, &delta, object_index, &result);
         v = (1.0f - result.t) + (1.0f - result.t);
         if (!(v >= 0.0f)) {
             v = 0.0f;

@@ -1,5 +1,6 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -1397,9 +1398,9 @@ void UnitView::release_transient_state_and_detach(uint8_t is_light_reset)
         }
         unit->death_time = game_time->game_time;
     } else {
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        random_seed_global = halo::advance_random_seed(random_seed_global);
         Unit *unit_tag = (Unit *)tag_instances[halo::datum_slot(self_obj->definition_tag)].data;
-        if (unit_tag->feign_repeat_chance <= (float)(random_seed_global >> 16) * 1.5259022e-05f) {
+        if (unit_tag->feign_repeat_chance <= (float)(random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale) {
             clear_flag(unit->flags, units::unit_flag::unknown_2000);
         } else {
             set_flag(unit->flags, units::unit_flag::unknown_2000);

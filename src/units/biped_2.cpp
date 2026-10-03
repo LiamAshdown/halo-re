@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/core/collision_flags.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -857,7 +858,7 @@ step_crouch:
                                        ((object *)target)->bounding_radius) &&
             object_collision_context_build(target_index, &context) &&
             object_collision_context_test_segment(&context, 3, &solve.start_position, &lunge, &node_hit) &&
-            !collision_test_movement_segment(0xc2a0, &solve.start_position, &lunge, object_index, &structure_hit)) {
+            !collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::structure_bsp | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::object_vehicle | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), &solve.start_position, &lunge, object_index, &structure_hit)) {
             real_point3d contact_point;
             real_plane3d contact_plane;
             uint8_t *hit = (uint8_t *)&node_hit;
