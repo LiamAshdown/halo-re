@@ -15,21 +15,16 @@
 #include <string.h>
 
 #include "halo/physics/breakable_surface.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" { extern uint8_t breakable_surfaces_enabled; }
 extern "C" { extern ModelCollisionGeometryBSP *global_structure_collision_bsp; }
 extern "C" { extern uint8_t *global_structure_bsp; }
 extern "C" { extern Globals *global_globals; }
-extern "C" { extern tag_instance *tag_instances; }
-extern "C" { extern random_seed effect_random_seed; }
-extern "C" { extern const projection_axis_pair k_projection_axes[6]; }
-extern "C" { extern const real_vector3d *global_forward3d_pointer; }
 extern "C" { extern const real_point3d *global_origin3d_pointer; }
-extern "C" { extern real_point3d *sphere_point_table; }
-extern "C" { extern int16_t sphere_point_table_count; }
 extern "C" { extern void particle_new(particle_creation_data *creation_data); }
 extern "C" { extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, color_interpolation_flags flags, float t); }
-extern "C" { extern uint8_t polygon2d_point_inside_margin(real_point2d *vertices, int16_t count, real_point2d *point, real margin); }
 extern "C" { extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index, sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); }
 extern "C" { extern double sqrt(double x); }
 extern "C" { extern double fabs(double x); }
@@ -43,8 +38,8 @@ extern "C" { extern double pow(double base, double exponent); }
 #define k_breakable_polygon_size 64
 static uint32_t effect_random_next(void)
 {
-    effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
-    return effect_random_seed >> 16;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+    return halo::math::globals().effect_random_seed >> 16;
 }
 
 static float shatter_random_fraction(void)
@@ -158,7 +153,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                 axis = 2;
             }
         }
-        axes = &k_projection_axes[axis * 2 + (plane[axis] > 0.0f ? 1 : 0)];
+        axes = &halo::math::globals().k_projection_axes[axis * 2 + (plane[axis] > 0.0f ? 1 : 0)];
         u_axis = axes->i;
         v_axis = axes->j;
 
@@ -310,12 +305,12 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                     point.z = f_axis.k * along + point.z;
                     projected.x = ((float *)&point)[u_axis];
                     projected.y = ((float *)&point)[v_axis];
-                    if (!polygon2d_point_inside_margin(polygon, vertex_count, &projected, 0.0f)) {
+                    if (!halo::math::polygon2d_point_inside_margin(polygon, vertex_count, projected, 0.0f)) {
                         continue;
                     }
 
                     {
-                        uint8_t *damage_effect = (uint8_t *)tag_instances[*(uint32_t *)damage_raw & 0xffff].data + 0x194;
+                        uint8_t *damage_effect = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)damage_raw & 0xffff].data + 0x194;
                         real_vector3d velocity;
                         real_vector3d away;
                         float distance;
@@ -414,9 +409,9 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                                 random_direction = (uint8_t)(length == 0.0f);
                             }
                             if (random_direction) {
-                                int16_t index = (int16_t)((effect_random_next() * (uint32_t)(int32_t)sphere_point_table_count) >> 16);
+                                int16_t index = (int16_t)((effect_random_next() * (uint32_t)(int32_t)halo::math::globals().sphere_point_table_count) >> 16);
 
-                                *direction = *(real_vector3d *)&sphere_point_table[index];
+                                *direction = *(real_vector3d *)&halo::math::globals().sphere_point_table[index];
                             }
                         }
                         particle_new(&creation);
@@ -436,9 +431,9 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
         location.position.x = (bounds_max.x + bounds_min.x) * 0.5f;
         location.position.y = (bounds_max.y + bounds_min.y) * 0.5f;
         location.position.z = (bounds_max.z + bounds_min.z) * 0.5f;
-        location.forward.i = global_forward3d_pointer->i;
-        location.forward.j = global_forward3d_pointer->j;
-        location.forward.k = global_forward3d_pointer->k;
+        location.forward.i = halo::math::globals().global_forward3d_pointer->i;
+        location.forward.j = halo::math::globals().global_forward3d_pointer->j;
+        location.forward.k = halo::math::globals().global_forward3d_pointer->k;
         location.velocity.i = global_origin3d_pointer->x;
         location.velocity.j = global_origin3d_pointer->y;
         location.velocity.k = global_origin3d_pointer->z;

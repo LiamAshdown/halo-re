@@ -1,11 +1,11 @@
 #include "halo/effects/effects.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *contrail_data;
 extern data_array *contrail_point_data;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 void contrail_refresh_lightmap();
 }
@@ -20,7 +20,7 @@ namespace halo::effects {
  */
 void contrail_ref::refresh_lightmap()
 {
-    datum_index contrail_index = datum_next(-1, contrail_data);
+    datum_index contrail_index = halo::memory::datum_next(-1, contrail_data);
 
     while (contrail_index != k_datum_index_none) {
         contrail *self = &((contrail *)contrail_data->data)[(uint16_t)contrail_index];
@@ -48,7 +48,7 @@ void contrail_ref::refresh_lightmap()
             }
         }
 
-        contrail_index = datum_next((int16_t)contrail_index, contrail_data);
+        contrail_index = halo::memory::datum_next((int16_t)contrail_index, contrail_data);
     }
 }
 

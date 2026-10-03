@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include "halo/networking/net2_server_commands.hpp"
 #include "halo/networking/server_command.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
@@ -69,7 +70,6 @@ extern char network_team_color_name_blue[];
 extern uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity);
 extern void * console_color_00685214;
 extern void * console_color_00686af8;
-extern void * data_iterator_next(data_iterator *iterator);
 extern char sv_rcon_password_value[9];
 extern uint8_t network_single_flag_force_reset_value;
 extern void console_command_bool_get_set(uint32_t argument_count, uint8_t *value, char **arguments,
@@ -593,12 +593,12 @@ uint32_t ServerCommands::players_find_by_team_index_desired(int8_t team_index_de
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    p = (player *)data_iterator_next(&iterator);
+    p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != 0) {
         if (team_index_desired == p->team_index_desired) {
             return (uint32_t)(datum_index)iterator.index;
         }
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
     }
     return 0xffffffff;
 }

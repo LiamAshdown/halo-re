@@ -1,5 +1,8 @@
 #include "halo/camera/camera.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern director_globals camera_director_globals;
@@ -21,21 +24,16 @@ extern player_control_globals *player_control_globals_ptr;
 extern int16_t camera_get_seat_camera_state(datum_index unit, int16_t *out_state);
 extern void camera_third_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern data_array *player_data;
-extern void *data_iterator_next(data_iterator *iterator);
 extern Scenario *global_scenario;
 extern float observer_dt;
 extern void camera_update(float dt);
 extern void observer_set_command(int16_t local_player_index);
 extern void observer_advance(int16_t local_player_index);
 extern void observer_commit(int16_t local_player_index);
-extern void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll);
 extern void editor_camera_set_position_and_direction(editor_camera_data *out, Vector3D *direction, Point3D *position);
 extern void vector3d_compute_up_from_forward(Vector3D *forward, Vector3D *out_up);
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
 extern void editor_camera_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
-extern random_seed effect_random_seed;
 extern game_engine_definition *current_game_engine;
 void camera_initialize(void);
 void camera_control(uint8_t enable);
@@ -296,7 +294,7 @@ int16_t CameraSystem::get_seat_camera_state(datum_index unit, int16_t *out_state
     {
         object *parent_object = headers[halo::datum_slot(parent)].data;
         if ((1 << (parent_object->type & 0x1f)) & 3) {
-            Unit *parent_unit_tag = (Unit *)tag_instances[halo::datum_slot(parent_object->definition_tag)].data;
+            Unit *parent_unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(parent_object->definition_tag)].data;
             uint8_t *seats = (uint8_t *)parent_unit_tag->seats.pointer;
             int16_t seat_index = ((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->vehicle_seat_index;
             uint32_t seat_flags = *(uint32_t *)(seats + (int32_t)seat_index * sizeof(UnitSeat));
@@ -342,7 +340,7 @@ void CameraSystem::script_set_animation(datum_index animation_tag, char *name)
     if (animation_tag == k_datum_index_none) {
         return;
     }
-    tag = (ModelAnimations *)tag_instances[halo::datum_slot(animation_tag)].data;
+    tag = (ModelAnimations *)halo::cache::globals().tag_instances[halo::datum_slot(animation_tag)].data;
     if (tag->nodes.count != 1) {
         return;
     }
@@ -402,7 +400,7 @@ datum_index CameraSystem::dead_find_next_teammate(datum_index reference_player, 
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     best = k_datum_index_none;
 
-    p = (player *)data_iterator_next(&iterator);
+    p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
         if (iterator.index != reference_player && p->unit != k_datum_index_none &&
             (!require_same_team || p->team == team)) {
@@ -413,7 +411,7 @@ datum_index CameraSystem::dead_find_next_teammate(datum_index reference_player, 
                 break;
             }
         }
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
     }
 
     return (best == k_datum_index_none) ? current_target : best;
@@ -443,12 +441,12 @@ uint8_t CameraSystem::dead_player_has_teammate(datum_index reference_player)
     iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    p = (player *)data_iterator_next(&iterator);
+    p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
         if (iterator.index != reference_player && p->team == team) {
             return 1;
         }
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
     }
     return 0;
 }
@@ -480,7 +478,7 @@ void CameraSystem::debug_start(int16_t camera_point_index, int16_t ticks, datum_
     camera_script.position = point->position;
     camera_script.camera_point_index = camera_point_index;
 
-    matrix4x3_from_euler_angles(&matrix, point->orientation.yaw, point->orientation.pitch,
+    halo::math::matrix4x3_from_euler_angles(matrix, point->orientation.yaw, point->orientation.pitch,
                                  point->orientation.roll);
     camera_script.forward = *(Vector3D *)&matrix.forward;
     camera_script.up = *(Vector3D *)&matrix.up;
@@ -537,7 +535,7 @@ void CameraSystem::debug_load_from_file()
     editor_camera_set_position_and_direction(&directors[0].data.editor, &forward, &position);
     vector3d_compute_up_from_forward(&forward, &computed_up);
     directors[0].data.editor.roll =
-        vector3d_angle_between_4cd4f0((real_vector3d *)&saved_up, (real_vector3d *)&computed_up);
+        halo::math::vector3d_angle_between_4cd4f0(*((real_vector3d *)&saved_up), *((real_vector3d *)&computed_up));
 
     {
         
@@ -602,16 +600,16 @@ dead_camera_data * DeadCamera::construct(dead_camera_data *self, int16_t local_p
 
     self->field_of_view = 1.2217305f; 
 
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    self->distance = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 4.0f + 2.0f;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    self->distance = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 4.0f + 2.0f;
 
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    self->yaw = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    self->yaw = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
 
     self->transition_time = 3.0f;
 
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    self->pitch = -((real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 0.6283184f + 0.47123894f);
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    self->pitch = -((real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 0.6283184f + 0.47123894f);
 
     if (unit != k_datum_index_none) {
         self->retarget_time = 3.4028235e38f; 

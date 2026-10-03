@@ -1,6 +1,9 @@
 #include "halo/ai/airest_objects.hpp"
+#include "halo/math/api.hpp"
 
 #include <stdint.h>
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -13,8 +16,6 @@ extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
-extern void datum_delete(data_array *array, datum_index handle);
-extern void * data_iterator_next(data_iterator *iterator);
 extern void ai_conversation_clear_object_references(datum_index object_index, uint8_t force_full_scan);
 extern data_array *object_list_header_data;
 extern data_array *object_list_reference_data;
@@ -39,13 +40,11 @@ extern void unit_update_vitality_fractions(uint32_t unit_index, float body_delta
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator);
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
-extern int object_sort_by_flag_then_distance(const void *a, const void *b);
 extern int16_t unit_find_seats_matching_name_and_flags(uint32_t unit_index, char *name_filter, uint16_t flag_selector, int16_t *out_indices, int16_t max_indices);
 extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index, char *seat_name, int16_t seat_flags, int16_t count);
 extern data_array *ai_pursuit_data;
 extern datum_index squad_recent_object_get_or_create(datum_index encounter_index, int16_t type, int32_t min_last_tick, char create_if_missing);
 extern void ai_alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t stimulus, int16_t gate);
-extern tag_instance *tag_instances;
 extern uint8_t *actor_type_procs[];
 extern datum_index actor_new(datum_index actor_variant_tag);
 extern void actor_attach_to_unit(datum_index actor_index, datum_index unit_index);
@@ -187,18 +186,18 @@ void AiObjects::clear_object_references(datum_index object_index)
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    p = (prop *)data_iterator_next(&iterator);
+    p = (prop *)halo::memory::data_iterator_next(&iterator);
     while (p != 0) {
         if (p->object_index == object_index) {
             actor_replace_object_reference(p->actor_index, 0xffffffff, iterator.index);
             actor_unlink_prop(p->actor_index, iterator.index);
-            datum_delete(prop_data, iterator.index);
+            halo::memory::datum_delete(prop_data, iterator.index);
         } else if (p->relationship_object_index == (int32_t)object_index) {
             p->relationship_object_index = -1;
             p->is_vehicle_driver = 0;
             p->is_vehicle_gunner = 0;
         }
-        p = (prop *)data_iterator_next(&iterator);
+        p = (prop *)halo::memory::data_iterator_next(&iterator);
     }
 
     ai_conversation_clear_object_references(object_index, 1);
@@ -1118,7 +1117,7 @@ void AiObjects::object_process_nearby_actors(uint32_t ai_reference, datum_index 
                 a = ai_reference_actor_iterator_next(&iterator);
             }
 
-            qsort(candidates, candidate_count, sizeof(ai_nearby_actor_candidate), object_sort_by_flag_then_distance);
+            qsort(candidates, candidate_count, sizeof(ai_nearby_actor_candidate), halo::math::object_sort_by_flag_then_distance);
 
             {
                 int16_t i;
@@ -1281,12 +1280,12 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
         return;
     }
 
-    actor_definition_tag = *(datum_index *)((uint8_t *)tag_instances
+    actor_definition_tag = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances
         [actor_variant_tag & 0xffff].data + 0x10);
     if (actor_definition_tag == (datum_index)k_datum_index_none) {
         return;
     }
-    if ((**(uint32_t **)&tag_instances[actor_definition_tag & 0xffff].data & 0x4000000) != 0) {
+    if ((**(uint32_t **)&halo::cache::globals().tag_instances[actor_definition_tag & 0xffff].data & 0x4000000) != 0) {
         return; // Actor.flags bit 26, "swarm"
     }
 
@@ -1380,8 +1379,8 @@ void AiUnitView::remap_actor_to_squad(uint32_t packed_reference, char notify)
     if (actor_index != (datum_index)k_datum_index_none && packed_reference != (uint32_t)k_datum_index_none) {
         actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
         char already_in_target = (a->encounter_index & 0xffff) == (packed_reference & 0xffff);
-        uint8_t *actor_tag_data = (uint8_t *)tag_instances[a->actor_definition_tag & 0xffff].data;
-        uint8_t *actor_variant_data = (uint8_t *)tag_instances[a->actor_variant_tag & 0xffff].data;
+        uint8_t *actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_definition_tag & 0xffff].data;
+        uint8_t *actor_variant_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_variant_tag & 0xffff].data;
         int32_t best_squad = ai_squad_find_best_matching_member(packed_reference, a->squad_index, actor_tag_data,
                                                                   actor_variant_data, already_in_target);
 
@@ -1539,7 +1538,7 @@ void AiActorView::get_move_speed_for_range(float param_a, float param_b, float p
     float low_break_08;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
 
     if (definition->peripheral_vision_angle < param_dist) {
         *out_b = 0.0f;

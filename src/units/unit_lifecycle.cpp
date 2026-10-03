@@ -5,10 +5,11 @@
 #include "projectiles.h"
 #include "ai.h"
 #include "crt.h"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern void object_set_shield_depleted_flag(uint32_t object_index);
 extern void object_delete(uint32_t object_index);
@@ -17,12 +18,10 @@ extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern breakable_surface_globals *breakable_surface_state;
 extern int16_t global_structure_bsp_index;
 extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius);
-extern real_vector3d *global_up3d_pointer;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t *global_structure_bsp;
 extern real_vector3d placement_offset_table[27];
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *current_position, float sample_radius, float x_margin, float y_margin, uint32_t exclude_object_index, real_point3d *out_position);
 extern uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, float radius, real_vector3d *delta, collision_result *result);
@@ -34,8 +33,6 @@ extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
 extern ai_globals *ai_globals_ptr;
 extern char *s_stand;
-extern float random_real(void);
-extern random_seed random_seed_global;
 extern int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spawn_count, datum_index source_actor_index, float health_scale);
 extern void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index);
 extern uint8_t DAT_00689471;
@@ -65,7 +62,7 @@ void UnitView::apply_scale_change(unit_scale_request *request)
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    Object *obj_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *obj_tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if (request->scale > 0.0f) {
         obj->body_vitality = request->scale;
@@ -80,7 +77,7 @@ void UnitView::apply_scale_change(unit_scale_request *request)
                 object_delete(unit->equipment_object_index);
                 unit->equipment_object_index = (datum_index)-1;
             }
-            void *graph = tag_instances[obj_tag->animation_graph.tag_id.index].data;
+            void *graph = halo::cache::globals().tag_instances[obj_tag->animation_graph.tag_id.index].data;
             uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
             ModelAnimationsAnimation *anim =
                 (ModelAnimationsAnimation *)(animations + obj->animation_index * 0xb4);
@@ -210,7 +207,7 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
         borrowed_anchor = 1;
     }
     unit = OBJECT_DATA(anchor_object);
-    tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
+    tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data;
     flags = (*(uint32_t *)(tag + 0x2f4) & 0x20) ? 0xc2a0 : 0x20c3a0;
     if (reference_direction != 0) {
         base = *(real_point3d *)reference_direction;
@@ -232,11 +229,11 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
         side.i = u->k * f->j - f->k * u->j;
         side.j = f->k * u->i - u->k * f->i;
         side.k = u->j * f->i - u->i * f->j;
-        vector3d_normalize_with_length(&side);
+        halo::math::vector3d_normalize_with_length(side);
     }
-    vertical.i = pill_height * global_up3d_pointer->i;
-    vertical.j = pill_height * global_up3d_pointer->j;
-    vertical.k = pill_height * global_up3d_pointer->k;
+    vertical.i = pill_height * halo::math::globals().global_up3d_pointer->i;
+    vertical.j = pill_height * halo::math::globals().global_up3d_pointer->j;
+    vertical.k = pill_height * halo::math::globals().global_up3d_pointer->k;
     if (scale_radius) {
         radius = pill_radius * radius;
     }
@@ -319,7 +316,7 @@ uint8_t UnitView::new_()
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Unit *tag = (Unit *)tag_instances[obj->definition_tag & 0xffff].data;
+    Unit *tag = (Unit *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     uint32_t *field;
     int32_t i;
@@ -420,7 +417,7 @@ uint8_t UnitView::new_()
     obj->flags |= 0x6000;
 
     if (tag->feign_death_threshold > 0.0f && tag->feign_death_time > 0.0f && tag->feign_death_chance > 0.0f) {
-        float roll = random_real();
+        float roll = halo::math::random_real();
         if (roll < tag->feign_death_chance) {
             unit->flags |= 0x2000;
         } else {
@@ -475,7 +472,7 @@ uint32_t UnitView::noop_569670()
 
             if (unit->vehicle_seat_index != -1) {
                 object *parent = ((object_header *)object_data->data)[(uint16_t)obj->parent_object].data;
-                Unit *parent_tag = (Unit *)tag_instances[(uint16_t)parent->definition_tag].data;
+                Unit *parent_tag = (Unit *)halo::cache::globals().tag_instances[(uint16_t)parent->definition_tag].data;
                 UnitSeat *seat = (UnitSeat *)((uint8_t *)parent_tag->seats.pointer +
                                                (uint32_t)unit->vehicle_seat_index * 0x11c);
 
@@ -503,12 +500,12 @@ int32_t UnitView::pick_random_spawned_actor_count()
 
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     if ((unit->flags & _unit_flag_permutation_chosen) == 0) {
-        Unit *unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
+        Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
         if (*(int32_t *)&unit_tag->spawned_actor.tag_id != -1) {
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
             int32_t range = (int32_t)(int16_t)(unit_tag->spawned_actor_count[1] + 1) - (int32_t)unit_tag->spawned_actor_count[0];
-            result = (int32_t)(((uint32_t)range * (random_seed_global >> 0x10)) >> 0x10) +
-                     (int32_t)((((uint32_t)tag_instances >> 16) << 16) | (uint16_t)unit_tag->spawned_actor_count[0]);
+            result = (int32_t)(((uint32_t)range * (halo::math::globals().random_seed_global >> 0x10)) >> 0x10) +
+                     (int32_t)((((uint32_t)halo::cache::globals().tag_instances >> 16) << 16) | (uint16_t)unit_tag->spawned_actor_count[0]);
             if (0 < (int16_t)result) {
                 result = actor_spawn_additional_units(*(datum_index *)&((struct Unit *)unit_tag)->spawned_actor.tag_id, (int16_t)result,
                     unit_index, ((struct Unit *)unit_tag)->spawned_velocity * 0.033333335f);
@@ -673,7 +670,7 @@ uint32_t UnitView::snap_to_min_ground_height()
     if ((obj[0x4cc] & 1) || *(int16_t *)(obj + 0x508) == 1) {
         return 0;
     }
-    jump_speed = *(float *)((uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data + 0x3b4);
+    jump_speed = *(float *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data + 0x3b4);
     if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
         jump_speed = (1.0f - *(float *)((uint8_t *)global_globals->player_information.pointer + 0x84) * ((struct unit_object *)obj)->unit.stun) *
             jump_speed;
@@ -726,9 +723,9 @@ int32_t UnitView::test_placement_candidate(const real_vector3d *direction, real_
     real_vector3d delta;
 
     object_get_position(&origin, unit_index);
-    origin.x += global_up3d_pointer->i * 0.4f;
-    origin.y += global_up3d_pointer->j * 0.4f;
-    origin.z += global_up3d_pointer->k * 0.4f;
+    origin.x += halo::math::globals().global_up3d_pointer->i * 0.4f;
+    origin.y += halo::math::globals().global_up3d_pointer->j * 0.4f;
+    origin.z += halo::math::globals().global_up3d_pointer->k * 0.4f;
     delta.i = distance * direction->i;
     delta.j = distance * direction->j;
     delta.k = distance * direction->k;
@@ -757,7 +754,7 @@ void UnitView::update_scale_function_inputs()
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Unit *tag = (Unit *)tag_instances[obj->definition_tag & 0xffff].data;
+    Unit *tag = (Unit *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     const int16_t *selector = &tag->unit_a_in;
     float *function_in = obj->function_in_values;
@@ -791,7 +788,7 @@ void UnitView::update_scale_function_inputs()
                 break;
             case 7:
             {
-                tag_instance *graph = &tag_instances[obj->animation_graph & 0xffff];
+                tag_instance *graph = &halo::cache::globals().tag_instances[obj->animation_graph & 0xffff];
                 uint8_t *animations_pointer = *(uint8_t **)((uint8_t *)graph->data + 0x78);
                 int16_t frame_count = *(int16_t *)(animations_pointer + (int32_t)obj->animation_index * 0xb4 + 0x2e);
                 if (obj->animation_index < frame_count) {

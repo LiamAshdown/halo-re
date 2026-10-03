@@ -2,10 +2,12 @@
 #include "game.h"
 #include "physics.h"
 #include "projectiles.h"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern data_array *player_data;
 extern real_point3d *global_origin3d_pointer;
 extern Globals *global_globals;
@@ -16,32 +18,20 @@ extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);
 extern double fabs(double x);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern game_main_globals *main_game_globals;
 extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index);
-extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction, real radius);
-extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane);
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
 extern int8_t collision_test_movement_segment(int32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t ignore_object_index, void *out_record);
-extern const real_vector3d *global_forward3d_pointer;
-extern const real_vector3d *global_up3d_pointer;
 extern float k_physics_gravity;
 extern float k_default_resting_plane[4];
-extern real vector3d_length(real_vector3d *v);
 extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model);
 extern uint32_t physics_shape_test_ray(physics_model *model, real_point3d *origin, real_vector3d *delta, physics_model_contact *out_contact);
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
-extern void real_matrix4x3_rotation_from_forward(real_vector3d *forward, real_vector3d *left, real_vector3d *up);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern real vector2d_normalize_with_length(real_vector2d *v);
-extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale);
 extern int16_t physics_sweep_capsule_step(real_point3d *origin, real_vector3d *delta, real_vector3d *out_velocity, uint32_t exclude_object_index, uint32_t flags, float pill_height, float pill_radius, real_point3d *out_position, int16_t max_contacts, physics_model_contact *contacts);
-extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
 }
 
 namespace halo::units {
@@ -62,7 +52,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
     uint32_t object_index = datum_handle;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     biped_movement_solver_data solve;
     GlobalsPlayerInformation player_info_copy;
@@ -147,7 +137,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
          (tag->biped_flags & 0x00000004) == 0) &&
         (unit->animation_state_flags & _unit_animation_flag_unknown_4) == 0) {
         ModelAnimationsAnimation *animation =
-            (ModelAnimationsAnimation *)((uint8_t *)*(void **)((uint8_t *)tag_instances[obj->animation_graph & 0xffff].data + 0x78) +
+            (ModelAnimationsAnimation *)((uint8_t *)*(void **)((uint8_t *)halo::cache::globals().tag_instances[obj->animation_graph & 0xffff].data + 0x78) +
                                          obj->animation_index * 0xb4);
         float *frame_info = (float *)(uint8_t *)animation->frame_info.pointer;
 
@@ -177,7 +167,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
             float dyaw_cos = (float)cos((double)dyaw);
             float dyaw_sin = (float)sin((double)dyaw);
 
-            vector3d_rotate_about_axis(&new_forward, &obj->up, dyaw_sin, dyaw_cos);
+            halo::math::vector3d_rotate_about_axis(new_forward, obj->up, dyaw_sin, dyaw_cos);
 
             if ((unit->control_flags & _unit_control_flag_exact_facing) != 0 &&
                 (unit->animation_state == _unit_animation_state_unknown_02 ||
@@ -188,8 +178,8 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
                 real_vector3d before;
                 real_vector3d after;
 
-                vector3d_cross_product(&before, &obj->forward, &unit->desired_facing_vector);
-                vector3d_cross_product(&after, &new_forward, &unit->desired_facing_vector);
+                halo::math::vector3d_cross_product(before, obj->forward, unit->desired_facing_vector);
+                halo::math::vector3d_cross_product(after, new_forward, unit->desired_facing_vector);
                 if ((before.i * obj->up.i + before.k * obj->up.k + before.j * obj->up.j) *
                         (after.i * obj->up.i + after.k * obj->up.k + after.j * obj->up.j) <= 0.0f) {
                     new_forward = unit->desired_facing_vector;
@@ -457,7 +447,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     biped_movement_solver_data solve;
     GlobalsPlayerInformation player_info_copy;
@@ -543,7 +533,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
          (tag->biped_flags & 0x00000004) == 0) &&
         (unit->animation_state_flags & _unit_animation_flag_unknown_4) == 0) {
         ModelAnimationsAnimation *animation =
-            (ModelAnimationsAnimation *)(*(uint8_t **)((uint8_t *)tag_instances[obj->animation_graph & 0xffff].data + 0x78) +
+            (ModelAnimationsAnimation *)(*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[obj->animation_graph & 0xffff].data + 0x78) +
                                          obj->animation_index * 0xb4);
         float *frame_info = (float *)(uint8_t *)animation->frame_info.pointer;
 
@@ -573,7 +563,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
             float dyaw_cos = (float)cos((double)dyaw);
             float dyaw_sin = (float)sin((double)dyaw);
 
-            vector3d_rotate_about_axis(&new_forward, &obj->up, dyaw_sin, dyaw_cos);
+            halo::math::vector3d_rotate_about_axis(new_forward, obj->up, dyaw_sin, dyaw_cos);
 
             if ((unit->control_flags & _unit_control_flag_exact_facing) != 0 &&
                 (unit->animation_state == _unit_animation_state_unknown_02 ||
@@ -584,8 +574,8 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
                 real_vector3d before;
                 real_vector3d after;
 
-                vector3d_cross_product(&before, &obj->forward, &unit->desired_facing_vector);
-                vector3d_cross_product(&after, &new_forward, &unit->desired_facing_vector);
+                halo::math::vector3d_cross_product(before, obj->forward, unit->desired_facing_vector);
+                halo::math::vector3d_cross_product(after, new_forward, unit->desired_facing_vector);
                 if ((before.i * obj->up.i + before.k * obj->up.k + before.j * obj->up.j) *
                         (after.i * obj->up.i + after.k * obj->up.k + after.j * obj->up.j) <= 0.0f) {
                     new_forward = unit->desired_facing_vector;
@@ -849,7 +839,7 @@ step_crouch:
         lunge.i = solve.result_position.x - solve.start_position.x;
         lunge.j = solve.result_position.y - solve.start_position.y;
         lunge.k = solve.result_position.z - solve.start_position.z;
-        if (ray_intersects_sphere_test(&solve.start_position, (real_point3d *)(target + 0xa0), &lunge,
+        if (halo::math::ray_intersects_sphere_test(solve.start_position, *(real_point3d *)(target + 0xa0), lunge,
                                        ((object *)target)->bounding_radius) &&
             object_collision_context_build(target_index, &context) &&
             object_collision_context_test_segment(&context, 3, &solve.start_position, &lunge, &node_hit) &&
@@ -861,9 +851,9 @@ step_crouch:
             contact_point.x = lunge.i * node_hit.segment.t + solve.start_position.x;
             contact_point.y = lunge.j * node_hit.segment.t + solve.start_position.y;
             contact_point.z = lunge.k * node_hit.segment.t + solve.start_position.z;
-            matrix4x3_transform_plane(&contact_plane,
-                                      (real_matrix4x3 *)((uint8_t *)context.nodes + *(int16_t *)hit * 0x34),
-                                      (real_plane3d *)node_hit.segment.plane);
+            halo::math::matrix4x3_transform_plane(contact_plane,
+                                      *(real_matrix4x3 *)((uint8_t *)context.nodes + *(int16_t *)hit * 0x34),
+                                      *(real_plane3d *)node_hit.segment.plane);
             if (node_hit.segment.plane_index < 0) {
                 contact_plane.normal.i = -contact_plane.normal.i;
                 contact_plane.normal.j = -contact_plane.normal.j;
@@ -932,7 +922,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
         real_vector3d world;
         float length;
 
-        real_matrix4x3_rotation_from_forward(&solve->facing, &a, &b);
+        halo::math::real_matrix4x3_rotation_from_forward(&solve->facing, &a, &b);
         world.i = a.i * solve->movement_delta.j + solve->facing.i * solve->movement_delta.i +
                   b.i * solve->movement_delta.k;
         world.j = solve->facing.j * solve->movement_delta.i + a.j * solve->movement_delta.j +
@@ -944,7 +934,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
         a.j = one_minus_frozen * world.j - solve->velocity.j;
         a.k = one_minus_frozen * world.k - solve->velocity.k;
         b = a;
-        length = vector3d_normalize_with_length(&b);
+        length = halo::math::vector3d_normalize_with_length(b);
         if (length > solve->maximum_acceleration) {
             a.i = b.i * solve->maximum_acceleration;
             a.j = b.j * solve->maximum_acceleration;
@@ -971,7 +961,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
         dy = one_minus_frozen * rotated_y - solve->velocity.j;
         delta2.i = dx;
         delta2.j = dy;
-        length = vector2d_normalize_with_length(&delta2);
+        length = halo::math::vector2d_normalize_with_length(delta2);
         if (length > solve->airborne_acceleration) {
             dx = delta2.i * solve->airborne_acceleration;
             dy = solve->airborne_acceleration * delta2.j;
@@ -994,16 +984,16 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                                      solve->movement_delta.k * solve->movement_delta.k));
         if ((flags & 0x200) != 0) {
             b = solve->aiming;
-            vector3d_cross_product(&c, &b, ground_normal);
-            if (vector3d_normalize_with_length(&c) == 0.0f) {
-                vector3d_cross_product(&c, global_up3d_pointer, ground_normal);
-                if (vector3d_normalize_with_length(&c) == 0.0f) {
-                    vector3d_cross_product(&c, global_forward3d_pointer, ground_normal);
-                    vector3d_normalize_with_length(&c);
+            halo::math::vector3d_cross_product(c, b, *ground_normal);
+            if (halo::math::vector3d_normalize_with_length(c) == 0.0f) {
+                halo::math::vector3d_cross_product(c, *halo::math::globals().global_up3d_pointer, *ground_normal);
+                if (halo::math::vector3d_normalize_with_length(c) == 0.0f) {
+                    halo::math::vector3d_cross_product(c, *halo::math::globals().global_forward3d_pointer, *ground_normal);
+                    halo::math::vector3d_normalize_with_length(c);
                 }
             }
-            vector3d_cross_product(&b, ground_normal, &c);
-            vector3d_normalize_with_length(&b);
+            halo::math::vector3d_cross_product(b, *ground_normal, c);
+            halo::math::vector3d_normalize_with_length(b);
             direction.i = c.i * solve->movement_delta.j + b.i * solve->movement_delta.i;
             direction.j = c.j * solve->movement_delta.j + b.j * solve->movement_delta.i;
             direction.k = c.k * solve->movement_delta.j + b.k * solve->movement_delta.i + solve->movement_delta.k;
@@ -1016,11 +1006,11 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                           (lateral_y * ground_normal->j + lateral_x * ground_normal->i) / ground_normal->k;
         } else {
             c = solve->aiming;
-            vector3d_cross_product(&e, &solve->aiming, global_up3d_pointer);
-            vector3d_normalize_with_length(&e);
-            point3d_add_scaled((real_point3d *)&c, ground_normal, (real_point3d *)&c,
+            halo::math::vector3d_cross_product(e, solve->aiming, *halo::math::globals().global_up3d_pointer);
+            halo::math::vector3d_normalize_with_length(e);
+            halo::math::point3d_add_scaled(*((real_point3d *)&c), *ground_normal, *((real_point3d *)&c),
                 -(c.k * ground_normal->k + c.j * ground_normal->j + c.i * ground_normal->i));
-            point3d_add_scaled((real_point3d *)&e, ground_normal, (real_point3d *)&e,
+            halo::math::point3d_add_scaled(*((real_point3d *)&e), *ground_normal, *((real_point3d *)&e),
                 -(e.k * ground_normal->k + e.j * ground_normal->j + e.i * ground_normal->i));
             lateral_x = solve->facing.i * solve->movement_delta.i - solve->movement_delta.j * solve->facing.j;
             lateral_y = solve->movement_delta.j * solve->facing.i + solve->movement_delta.i * solve->facing.j;
@@ -1031,7 +1021,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                 direction.k = direction.k * 5.0f;
             }
         }
-        vector3d_normalize_with_length(&direction);
+        halo::math::vector3d_normalize_with_length(direction);
 
         scaled = speed;
         if ((flags & 0x200) == 0) {
@@ -1056,7 +1046,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
         delta.j = direction.j * scaled - solve->velocity.j;
         delta.k = direction.k * scaled - solve->velocity.k;
         b = delta;
-        length = vector3d_normalize_with_length(&b);
+        length = halo::math::vector3d_normalize_with_length(b);
         if (length > solve->maximum_acceleration) {
             if ((flags & 0x200) == 0) {
                 jumping = (uint8_t)((flags >> 1) & 1);
@@ -1118,7 +1108,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
             real_plane3d plane;
             float along;
 
-            structure_bsp_plane_fetch_signed(&plane, bsp, (int32_t)surfaces[surface_index].plane);
+            halo::structures::structure_bsp_plane_fetch_signed(&plane, bsp, (int32_t)surfaces[surface_index].plane);
             along = -((plane.normal.i * swept_position.x + plane.normal.k * swept_position.z +
                        plane.normal.j * swept_position.y) - plane.d);
             a.i = plane.normal.i * along + swept_position.x;
@@ -1134,7 +1124,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                     ((flags & 0x200) != 0 || (surfaces[other].flags & 4) != 0)) {
                     float dot;
 
-                    structure_bsp_plane_fetch_signed(&plane, bsp, (int32_t)surfaces[other].plane);
+                    halo::structures::structure_bsp_plane_fetch_signed(&plane, bsp, (int32_t)surfaces[other].plane);
                     dot = plane.normal.i * swept_velocity.i + plane.normal.j * swept_velocity.j +
                           plane.normal.k * swept_velocity.k;
                     if (dot > 0.0f &&
@@ -1157,7 +1147,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                         } else if (t > 1.0f) {
                             b = *(real_vector3d *)v1;
                         } else {
-                            point3d_add_scaled((real_point3d *)&b, &c, v0, t);
+                            halo::math::point3d_add_scaled(*((real_point3d *)&b), c, *v0, t);
                         }
                         dx = b.i - a.i;
                         dy = b.j - a.j;
@@ -1289,7 +1279,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                         projected.j = plane.normal.j * penetration + e.j;
                         projected.k = plane.normal.k * penetration + e.k;
                         if (r * r < projected.i * projected.i + projected.j * projected.j + projected.k * projected.k &&
-                            penetration / vector3d_length(&e) < solve->steep_landing_minimum_penetration) {
+                            penetration / halo::math::vector3d_length(e) < solve->steep_landing_minimum_penetration) {
                             landed = 0;
                         }
                     }
@@ -1372,7 +1362,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                 }
             }
             if (header != 0 && (int8_t)(1 << (header->type & 0x1f)) < 0 && header->data != 0) {
-                uint8_t *tag = (uint8_t *)tag_instances[header->data->definition_tag & 0xffff].data;
+                uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[header->data->definition_tag & 0xffff].data;
                 if ((tag[0x292] & 4) != 0 && *(int16_t *)(tag + 0x2ea) != -1) {
                     solve->result_surface_index = object_index;
                 }
@@ -1394,7 +1384,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
             unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
             if (unit->controlling_player != 0xffffffff) {
-                Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+                Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
                 if ((tag->biped_flags & 0x18) == 0) {
                     float half_height = tag->standing_collision_height * 0.5f;
                     uint32_t query_flags = (flags & 0x80) != 0 ? 0xc0a0 : 0x20c3a0;
@@ -1409,9 +1399,9 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                         real_vector3d up_ray;
                         physics_model_contact probe_contact;
 
-                        up_ray.i = reach * global_up3d_pointer->i;
-                        up_ray.j = reach * global_up3d_pointer->j;
-                        up_ray.k = reach * global_up3d_pointer->k;
+                        up_ray.i = reach * halo::math::globals().global_up3d_pointer->i;
+                        up_ray.j = reach * halo::math::globals().global_up3d_pointer->j;
+                        up_ray.k = reach * halo::math::globals().global_up3d_pointer->k;
                         if (physics_shape_test_ray(&probe_model, &solve->result_position, &up_ray, &probe_contact)) {
                             solve->result_flags |= 0x04;
                         }

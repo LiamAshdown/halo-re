@@ -5,10 +5,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "halo/cache/globals.hpp"
 
 extern "C" {
-extern void *structure_bsp_data;
-extern tag_instance *tag_instances;
 extern void *rasterizer_device;
 extern int8_t rasterizer_vertex_buffer_create(void *fields, int32_t format, int32_t vertex_count, void *rendered_data, void *lightmap_data, int32_t size);
 extern d3d_caps9 rasterizer_caps;
@@ -24,9 +23,9 @@ namespace halo::cache {
  */
 void structure_bsp_loader::dispose(ScenarioBSP *bsp)
 {
-    halo::cache::structure_bsp_loader::dispose_material_vertex_buffers((ScenarioStructureBSPCompiledHeader *)structure_bsp_data);
-    tag_instances[bsp->structure_bsp.tag_id.index].data = 0;
-    structure_bsp_data = 0;
+    halo::cache::structure_bsp_loader::dispose_material_vertex_buffers((ScenarioStructureBSPCompiledHeader *)globals().structure_bsp_data);
+    globals().tag_instances[bsp->structure_bsp.tag_id.index].data = 0;
+    globals().structure_bsp_data = 0;
 }
 
 /**
@@ -97,12 +96,12 @@ uint32_t structure_bsp_loader::load(ScenarioBSP *bsp)
 
     }
 
-    structure_bsp_data = (void *)bsp->bsp_address;
+    globals().structure_bsp_data = (void *)bsp->bsp_address;
 
-    halo::cache::structure_bsp_loader::load_material_vertex_buffers((ScenarioStructureBSPCompiledHeader *)structure_bsp_data);
+    halo::cache::structure_bsp_loader::load_material_vertex_buffers((ScenarioStructureBSPCompiledHeader *)globals().structure_bsp_data);
 
-    header = (ScenarioStructureBSPCompiledHeader *)structure_bsp_data;
-    tag_instances[bsp->structure_bsp.tag_id.index].data = (void *)header->pointer;
+    header = (ScenarioStructureBSPCompiledHeader *)globals().structure_bsp_data;
+    globals().tag_instances[bsp->structure_bsp.tag_id.index].data = (void *)header->pointer;
     return 1;
 }
 

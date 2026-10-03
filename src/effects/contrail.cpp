@@ -1,24 +1,21 @@
 #include "halo/effects/effects.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *contrail_data;
 extern int16_t contrail_points_due(datum_index contrail_handle, real elapsed_time);
 extern void contrail_generate_points(datum_index contrail_handle, int16_t point_count, uint8_t force);
 extern data_array *contrail_point_data;
-extern tag_instance *tag_instances;
-extern random_seed effect_random_seed;
-extern void datum_delete(data_array *array, datum_index handle);
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 extern data_array *object_data;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern datum_index datum_new(data_array *array);
 extern real effect_random_scaled_range(uint32_t flags, real scale, real base_min, real base_max, uint8_t bit_index);
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name, object_marker *marker, uint32_t flags);
 extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, random_seed *seed, real lo, real hi);
 extern void contrail_next_sequence(contrail *self);
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern void contrail_age_points(datum_index contrail_handle, real delta_time);
 extern void contrail_delete(datum_index contrail_index);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
@@ -65,7 +62,7 @@ void contrail_ref::age_points(real delta_time)
 {
     datum_index contrail_handle = datum;
     contrail *self = &((contrail *)contrail_data->data)[(uint16_t)contrail_handle];
-    Contrail *tag = (Contrail *)tag_instances[(uint16_t)self->definition_index].data;
+    Contrail *tag = (Contrail *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
     ContrailPointState *states = (ContrailPointState *)tag->point_states.pointer;
     int32_t state_count = (int32_t)tag->point_states.count;
     int list;
@@ -104,8 +101,8 @@ void contrail_ref::age_points(real delta_time)
                                 if ((next_state->scale_flags & 2) != 0) {
                                     span = span * point->scale;
                                 }
-                                effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                                duration = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * span + duration;
+                                halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+                                duration = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * span + duration;
                             }
                             point->inverse_duration = duration;
                             if (duration != 0.0f) {
@@ -133,8 +130,8 @@ void contrail_ref::age_points(real delta_time)
                             if ((current_state->scale_flags & 8) != 0) {
                                 span = span * point->scale;
                             }
-                            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                            duration = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * span + duration;
+                            halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+                            duration = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * span + duration;
                         }
                         point->inverse_duration = duration;
                         if (duration != 0.0f) {
@@ -155,7 +152,7 @@ render:
 
                 if (current_state->physics.tag_id.index != 0xffff || current_state->physics.tag_id.id != 0xffff) {
                     point_physics_tick(&point->velocity, 0,
-                        (PointPhysics *)tag_instances[current_state->physics.tag_id.index].data,
+                        (PointPhysics *)halo::cache::globals().tag_instances[current_state->physics.tag_id.index].data,
                         &point->location, 0xffffffff, &point->position, 0, 0, 0,
                         current_state->width * 0.5f, delta_time);
                 }
@@ -178,14 +175,14 @@ render:
 
             before_tail->next_point = k_datum_index_none;
             self->point_count[list] = self->point_count[list] - 1;
-            datum_delete(contrail_point_data, visited[visited_count - 1]);
+            halo::memory::datum_delete(contrail_point_data, visited[visited_count - 1]);
             visited_count = visited_count - 1;
         }
 
         if (self->point_count[list] == 1 &&
             (((contrail_point *)contrail_point_data->data)[(uint16_t)self->first_point[list]].flags &
                 _contrail_point_expired_bit) != 0) {
-            datum_delete(contrail_point_data, self->first_point[list]);
+            halo::memory::datum_delete(contrail_point_data, self->first_point[list]);
             self->first_point[list] = k_datum_index_none;
             self->point_count[list] = 0;
         }
@@ -210,12 +207,12 @@ void contrail_ref::destroy()
         while (point != k_datum_index_none) {
             datum_index next = ((contrail_point *)contrail_point_data->data)[(uint16_t)point].next_point;
 
-            datum_delete(contrail_point_data, point);
+            halo::memory::datum_delete(contrail_point_data, point);
             point = next;
         }
     }
 
-    datum_delete(contrail_data, contrail_index);
+    halo::memory::datum_delete(contrail_data, contrail_index);
 }
 
 /**
@@ -230,7 +227,7 @@ void contrail_ref::generate_points(int16_t point_count, uint8_t force)
 {
     datum_index contrail_handle = datum;
     contrail *self = &((contrail *)contrail_data->data)[(uint16_t)contrail_handle];
-    Contrail *tag = (Contrail *)tag_instances[(uint16_t)self->definition_index].data;
+    Contrail *tag = (Contrail *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
 
     if (point_count == 0) {
         return;
@@ -238,7 +235,7 @@ void contrail_ref::generate_points(int16_t point_count, uint8_t force)
 
     {
         object *owner = ((object_header *)object_data->data)[(uint16_t)self->object_index].data;
-        Object *owner_tag = (Object *)tag_instances[(uint16_t)owner->definition_tag].data;
+        Object *owner_tag = (Object *)halo::cache::globals().tag_instances[(uint16_t)owner->definition_tag].data;
         ObjectAttachment *attachment = (ObjectAttachment *)owner_tag->attachments.pointer +
             self->attachment_index;
         object_marker markers[4];
@@ -283,7 +280,7 @@ void contrail_ref::generate_points(int16_t point_count, uint8_t force)
                 {
                     int i;
                     for (i = 1; i <= count; i++) {
-                        datum_index new_handle = datum_new(contrail_point_data);
+                        datum_index new_handle = halo::memory::datum_new(contrail_point_data);
 
                         if (new_handle != k_datum_index_none) {
                             contrail_point *point =
@@ -296,8 +293,8 @@ void contrail_ref::generate_points(int16_t point_count, uint8_t force)
                             point->state_index = -1;
                             point->scale = self->scale;
 
-                            vector3d_randomize_direction((real_point3d *)&marker->node_transform.up,
-                                &direction, &effect_random_seed, 0.0f, cone_angle);
+                            halo::math::vector3d_randomize_direction(*((real_point3d *)&marker->node_transform.up),
+                                &direction, halo::math::globals().effect_random_seed, 0.0f, cone_angle);
 
                             point->position = marker->node_transform.position;
 
@@ -364,11 +361,11 @@ datum_index contrail_ref::create(int16_t attachment_index, datum_index object_in
     datum_index handle = k_datum_index_none;
 
     if (definition_index != k_datum_index_none) {
-        handle = datum_new(contrail_data);
+        handle = halo::memory::datum_new(contrail_data);
         if (handle != k_datum_index_none) {
             contrail *self = &((contrail *)contrail_data->data)[(uint16_t)handle];
             object *owner = ((object_header *)object_data->data)[(uint16_t)object_index].data;
-            Object *owner_tag = (Object *)tag_instances[(uint16_t)owner->definition_tag].data;
+            Object *owner_tag = (Object *)halo::cache::globals().tag_instances[(uint16_t)owner->definition_tag].data;
             ObjectAttachment *attachment = (ObjectAttachment *)owner_tag->attachments.pointer +
                 attachment_index;
 
@@ -424,8 +421,8 @@ datum_index contrail_ref::create(int16_t attachment_index, datum_index object_in
  */
 void contrail_ref::next_sequence(contrail *self)
 {
-    Contrail *tag = (Contrail *)tag_instances[(uint16_t)self->definition_index].data;
-    Bitmap *bitmap = (Bitmap *)tag_instances[tag->bitmap.tag_id.index].data;
+    Contrail *tag = (Contrail *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
+    Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[tag->bitmap.tag_id.index].data;
     BitmapGroupSequence *sequences = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer;
     int16_t sequence_index;
 
@@ -442,9 +439,9 @@ void contrail_ref::next_sequence(contrail *self)
     {
         int16_t first = tag->first_sequence_index;
 
-        effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+        halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
         self->sequence_index = (int16_t)((((uint32_t)(int32_t)(((int16_t)(tag->sequence_count + first) - first) *
-            (int32_t)(effect_random_seed >> k_random_value_shift))) >> 16) + first);
+            (int32_t)(halo::math::globals().effect_random_seed >> k_random_value_shift))) >> 16) + first);
         self->frame_index = 0;
     }
 }
@@ -460,7 +457,7 @@ int16_t contrail_ref::points_due(real elapsed_time)
 {
     datum_index contrail_handle = datum;
     contrail *self = &((contrail *)contrail_data->data)[(uint16_t)contrail_handle];
-    Contrail *tag = (Contrail *)tag_instances[(uint16_t)self->definition_index].data;
+    Contrail *tag = (Contrail *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
     real rate = tag->point_generation_rate;
     int16_t count = 0;
 
@@ -488,11 +485,11 @@ int16_t contrail_ref::points_due(real elapsed_time)
  */
 void contrail_ref::update(real delta_time)
 {
-    datum_index contrail_index = datum_next(-1, contrail_data);
+    datum_index contrail_index = halo::memory::datum_next(-1, contrail_data);
 
     while (contrail_index != k_datum_index_none) {
         contrail *self = &((contrail *)contrail_data->data)[(uint16_t)contrail_index];
-        Contrail *tag = (Contrail *)tag_instances[(uint16_t)self->definition_index].data;
+        Contrail *tag = (Contrail *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
         real remaining = delta_time - self->accumulated_delta_time;
 
         self->accumulated_delta_time = 0.0f;
@@ -571,7 +568,7 @@ void contrail_ref::update(real delta_time)
             }
         }
 
-        contrail_index = datum_next((int16_t)contrail_index, contrail_data);
+        contrail_index = halo::memory::datum_next((int16_t)contrail_index, contrail_data);
     }
 }
 

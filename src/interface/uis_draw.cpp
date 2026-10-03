@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "halo/interface/uis_draw.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -21,14 +22,12 @@ extern int64_t performance_frequency;
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset);
 extern uint16_t *ui_button_caption[0x28];
-extern tag_instance *tag_instances;
 extern int16_t rasterizer_vertex_buffer_lock_state;
 extern void rasterizer_ui_quad_draw(ui_quad_render_state *state, uint8_t *vertices);
 extern double fsin(double x);
 extern double fcos(double x);
 extern int32_t ui_network_wait_start_time;
 extern datum_index trouble_brewing_bitmap_tag;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
@@ -162,7 +161,7 @@ void UiDraw::draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect)
         ? (GlobalsRasterizerData *)0
         : (GlobalsRasterizerData *)global_globals->rasterizer_data.pointer;
     default_2d_tag = *(datum_index *)&rasterizer_data->default_2d.tag_id;
-    default_2d_bitmap = (Bitmap *)tag_instances[default_2d_tag & 0xffff].data;
+    default_2d_bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_2d_tag & 0xffff].data;
     default_2d_bitmap_data = (BitmapData *)default_2d_bitmap->bitmap_data.pointer;
 
     v[0].x = (float)(int32_t)rect->left;  v[0].y = (float)(int32_t)rect->top;
@@ -391,7 +390,7 @@ void UiDraw::draw_trouble_brewing_indicator(void)
         rect.left = 0x236;
         rect.bottom = 0x1d6;
         rect.right = 0x276;
-        trouble_brewing_bitmap_tag = tag_lookup(0x6269746d ,
+        trouble_brewing_bitmap_tag = halo::cache::tag_lookup(0x6269746d ,
                                                  (char *)"ui\\shell\\bitmaps\\trouble_brewing");
         if (trouble_brewing_bitmap_tag != (datum_index)-1) {
             BitmapData *bitmap_data = bitmap_group_sequence_get_bitmap_data(trouble_brewing_bitmap_tag, 0, 0);

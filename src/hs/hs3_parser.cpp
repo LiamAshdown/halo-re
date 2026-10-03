@@ -4,6 +4,8 @@
 #include "crt.h"
 #include <ctype.h>
 #include <stdlib.h>
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern char hs_parse_primitive(datum_index node_index);
@@ -19,9 +21,7 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern char hs_parse(datum_index node_index, hs_type_t expected_type);
 extern char hs_compile_error_buffer[0x100];
 extern datum_index hs_parse_cond_recursive(datum_index cond_node_index, datum_index pair_index);
-extern datum_index datum_new(data_array *array);
 extern char hs_compile_error_buffer[k_hs_error_buffer_size];
-extern tag_instance *tag_instances;
 extern char hs_get_parameter_indices(char *function_name, int16_t required_count, datum_index node_index,
     datum_index *out_indices);
 extern Globals *global_globals;
@@ -281,7 +281,7 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
     datum_index result_index;
 
     nodes = hs_syntax_data;
-    new_index = datum_new(nodes);
+    new_index = halo::memory::datum_new(nodes);
     cond_node = (hs_syntax_node *)((uint8_t *)nodes->data + (cond_node_index & 0xffff) * nodes->size);
     if (new_index == k_datum_index_none) {
         hs_compile_error = (char *)"i couldn't allocate a syntax node.";
@@ -312,8 +312,8 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
     condition_node = (hs_syntax_node *)((uint8_t *)nodes->data + (condition_index & 0xffff) * nodes->size);
 
     if ((uint32_t)(condition_node->next_node == 0) != (uint32_t)k_datum_index_none) {
-        new_if_index = datum_new(nodes);
-        replacement_index = datum_new(nodes);
+        new_if_index = halo::memory::datum_new(nodes);
+        replacement_index = halo::memory::datum_new(nodes);
         if ((new_if_index == k_datum_index_none) || (replacement_index == k_datum_index_none)) {
             nodes = hs_syntax_data;
             cond_node = (hs_syntax_node *)((uint8_t *)nodes->data + (cond_node_index & 0xffff) * nodes->size);
@@ -472,7 +472,7 @@ char Parser::parse_hud_message(datum_index node_index) const
         return 0;
     }
     return hs_parse_scenario_datum(node_index, 0,
-        (TagReflexive *)((uint8_t *)tag_instances[hud_messages & 0xffff].data + 0x20), 0x40);
+        (TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_messages & 0xffff].data + 0x20), 0x40);
 }
 
 /**
@@ -651,7 +651,7 @@ char Parser::parse_navpoint(datum_index node_index) const
         return 0;
     }
     return hs_parse_scenario_datum(node_index, 0,
-        (TagReflexive *)((uint8_t *)tag_instances[hud_globals & 0xffff].data + 0x160), 0x68);
+        (TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_globals & 0xffff].data + 0x160), 0x68);
 }
 
 /**

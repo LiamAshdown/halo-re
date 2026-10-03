@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -12,7 +14,6 @@ extern data_array *ai_conversation_data;
 extern data_array *actor_data;
 extern float ticks_per_second;
 extern int32_t __ftol(double x);
-extern void * data_iterator_next(data_iterator *iterator);
 extern data_array *object_data;
 extern game_time_globals *game_time;
 extern int32_t ai_communication_quiet_until_tick;
@@ -21,11 +22,8 @@ extern int32_t sound_impulse_time(datum_index sound_tag_handle);
 extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value);
 extern int32_t unit_commit_speech(uint32_t unit_index, const void *source, int16_t mode);
 extern ai_globals *ai_globals_ptr;
-extern datum_index datum_new(data_array *array);
-extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array);
 extern data_array *encounter_data;
 extern datum_index *object_name_list;
-extern uint32_t random_seed_global;
 extern double sqrt(double x);
 extern actor *actor_iterator_next(actor_iterator_state *iterator);
 extern void ai_reference_actor_iterator_new(uint32_t reference, ai_reference_actor_iterator *iterator);
@@ -39,7 +37,6 @@ extern datum_index actor_find_prop_for_object(datum_index object_index, datum_in
 extern int32_t ai_conversation_get_run_to_player_range(ai_conversation_range_lookup *out, uint32_t conversation_index);
 extern uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point);
 extern int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *out_resolved, uint8_t *out_wants_alternate, uint8_t *out_blocked_by_player, float *inout_minimum_distance, datum_index conversation_index);
-extern void datum_delete(data_array *array, datum_index handle);
 extern uint8_t ai_conversation_activate_next_participant(datum_index instance_handle);
 extern uint8_t ai_conversation_current_line_is_ready(datum_index instance_handle);
 }
@@ -169,7 +166,7 @@ void Conversations::clear_object_references(datum_index object_index, uint8_t fo
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    instance = (ai_conversation *)data_iterator_next(&iterator);
+    instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     while (instance != 0) {
         definition = &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
         referenced = 0;
@@ -212,7 +209,7 @@ void Conversations::clear_object_references(datum_index object_index, uint8_t fo
                 return;
             }
         }
-        instance = (ai_conversation *)data_iterator_next(&iterator);
+        instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     }
 }
 
@@ -234,7 +231,7 @@ void Conversations::clear_participant(datum_index actor_index)
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    instance = (ai_conversation *)data_iterator_next(&iterator);
+    instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     while (instance != 0) {
         definition = &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
         participant_count = definition->participants.count;
@@ -252,7 +249,7 @@ void Conversations::clear_participant(datum_index actor_index)
                 }
             }
         }
-        instance = (ai_conversation *)data_iterator_next(&iterator);
+        instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     }
 }
 
@@ -426,7 +423,7 @@ int32_t ConversationDefinitionView::get_status()
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    instance = (ai_conversation *)data_iterator_next(&iterator);
+    instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     while (instance != 0) {
         if (instance->definition_index == conversation_definition_index) {
             if (instance->active == 0) {
@@ -440,7 +437,7 @@ int32_t ConversationDefinitionView::get_status()
                 best = status;
             }
         }
-        instance = (ai_conversation *)data_iterator_next(&iterator);
+        instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     }
     if ((int16_t)best != 0) {
         return best;
@@ -483,12 +480,12 @@ int16_t ConversationDefinitionView::get_unknown_48()
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    instance = (ai_conversation *)data_iterator_next(&iterator);
+    instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     while (instance != 0) {
         if (instance->definition_index == conversation_definition_index) {
             return instance->line_index;
         }
-        instance = (ai_conversation *)data_iterator_next(&iterator);
+        instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     }
     return 999;
 }
@@ -509,12 +506,12 @@ void ConversationDefinitionView::mark_all()
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    instance = (ai_conversation *)data_iterator_next(&iterator);
+    instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     while (instance != 0) {
         if (instance->definition_index == conversation_definition_index) {
             instance->advance = 1;
         }
-        instance = (ai_conversation *)data_iterator_next(&iterator);
+        instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     }
 }
 
@@ -537,7 +534,7 @@ datum_index ConversationDefinitionView::create(uint8_t allow_eviction)
     datum_index best_handle;
     ai_conversation *instance;
 
-    handle = datum_new(ai_conversation_data);
+    handle = halo::memory::datum_new(ai_conversation_data);
     if (handle == (datum_index)k_datum_index_none) {
         if (allow_eviction != 0) {
             best_priority = 1;
@@ -548,19 +545,19 @@ datum_index ConversationDefinitionView::create(uint8_t allow_eviction)
             iterator.next_index = 0;
             iterator.index = (datum_index)k_datum_index_none;
             iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-            candidate = (ai_conversation *)data_iterator_next(&iterator);
+            candidate = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
             while (candidate != 0) {
                 if (candidate->priority < best_priority || candidate->start_tick < best_tick) {
                     best_tick = candidate->start_tick;
                     best_priority = candidate->priority;
                     best_handle = iterator.index;
                 }
-                candidate = (ai_conversation *)data_iterator_next(&iterator);
+                candidate = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
             }
 
             if (best_handle != (datum_index)k_datum_index_none) {
                 ai_conversation_stop(best_handle, 0, 0);
-                handle = datum_new_at_index_with_salt(best_handle, ai_conversation_data);
+                handle = halo::memory::datum_new_at_index_with_salt(best_handle, ai_conversation_data);
             }
         }
     }
@@ -845,10 +842,10 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
                 }
                 chosen_variant = variant_candidates[0];
                 if (variant_candidate_count != 1) {
-                    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+                    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
                     chosen_variant = (uint32_t)variant_candidates
                         [(int16_t)(((int32_t)variant_candidate_count *
-                                    (int32_t)(random_seed_global >> 0x10)) >> 0x10)];
+                                    (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10)];
                 }
             }
 have_variant:
@@ -1047,7 +1044,7 @@ clear_wait:
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     best_player_distance = 3.4028235e+38f;
-    player = data_iterator_next(&iterator);
+    player = halo::memory::data_iterator_next(&iterator);
     while (player != 0) {
         player_unit = ((struct player *)player)->unit;
         if (player_unit != (datum_index)k_datum_index_none) {
@@ -1069,7 +1066,7 @@ clear_wait:
                 instance->player_unit_index = (int32_t)player_unit;
             }
         }
-        player = data_iterator_next(&iterator);
+        player = halo::memory::data_iterator_next(&iterator);
     }
     if (instance->player_unit_index != -1) {
         goto check_looking;
@@ -1086,7 +1083,7 @@ check_looking:
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     found_looking = 0;
-    player = data_iterator_next(&iterator);
+    player = halo::memory::data_iterator_next(&iterator);
     while (player != 0) {
         if (found_looking != 0) {
             goto apply;
@@ -1102,7 +1099,7 @@ check_looking:
                 }
             }
         }
-        player = data_iterator_next(&iterator);
+        player = halo::memory::data_iterator_next(&iterator);
     }
     if (found_looking != 0) {
         goto apply;
@@ -1216,7 +1213,7 @@ void ConversationView::stop(uint8_t reason_a, uint8_t reason_b)
         }
     }
 
-    datum_delete(ai_conversation_data, instance_handle);
+    halo::memory::datum_delete(ai_conversation_data, instance_handle);
 }
 
 /**
@@ -1235,12 +1232,12 @@ void ConversationDefinitionView::stop_all()
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    instance = (ai_conversation *)data_iterator_next(&iterator);
+    instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     while (instance != 0) {
         if (instance->definition_index == conversation_definition_index) {
             ai_conversation_stop(iterator.index, 0, 0);
         }
-        instance = (ai_conversation *)data_iterator_next(&iterator);
+        instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     }
 }
 
@@ -1259,7 +1256,7 @@ void Conversations::update()
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    for (inst = (uint8_t *)data_iterator_next(&iterator); inst != 0; inst = (uint8_t *)data_iterator_next(&iterator)) {
+    for (inst = (uint8_t *)halo::memory::data_iterator_next(&iterator); inst != 0; inst = (uint8_t *)halo::memory::data_iterator_next(&iterator)) {
         datum_index handle = iterator.index;
         uint8_t *definition = *(uint8_t **)((uint8_t *)global_scenario + 0x46c) + *(int16_t *)(inst + 0x2) * 0x74;
         int32_t line_count = *(int32_t *)(definition + 0x5c);

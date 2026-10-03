@@ -1,11 +1,13 @@
 #include "halo/interface/ifr2_widgets.hpp"
+#include "halo/memory/api.hpp"
+#include <wchar.h>
+#include "halo/cache/api.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
 extern "C" {
-extern tag_instance *tag_instances;
 extern void widget_list_adjust_rect_for_scroll_arrows(widget_instance *widget, Rectangle2D *rect);
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
@@ -19,9 +21,6 @@ extern void widget_instance_render(widget_instance *widget, Rectangle2D *dest, i
 extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence, int16_t frame);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
 extern uint16_t *text_string_list_get_string(datum_index string_list_tag, int16_t index);
-extern uint32_t wcslen(uint16_t *s);
-extern void *heap_allocate(uint32_t size, heap *self);
-extern void heap_unlink_block(heap_block *block, heap *self);
 extern const uint16_t *ui_search_replace_function_call(int16_t function, widget_instance *widget);
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);
 extern void ui_string_replace_all(const uint16_t *search, const uint16_t *replacement, uint16_t **text);
@@ -43,7 +42,7 @@ namespace halo::interface {
  */
 widget_instance * WidgetView::find_at_point(int32_t cursor_x, int32_t cursor_y, int32_t offset_xy)
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
     widget_instance *first_child = widget->first_child;
     uint8_t eligible =
         (widget->hidden == 0 &&
@@ -94,7 +93,7 @@ widget_instance * WidgetView::find_at_point(int32_t cursor_x, int32_t cursor_y, 
  */
 uint8_t WidgetView::point_in_bounds()
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
     Rectangle2D rect = tag->bounds;
     int16_t x_sum = 0;
     int16_t y_sum = 0;
@@ -171,7 +170,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
 
         for (arrow = 0; arrow < 2; arrow++) {
             datum_index bitmap_tag = *(datum_index *)(t + (arrow == 0 ? 0x160 : 0x170));
-            uint8_t *bitmap_tag_data = (uint8_t *)tag_instances[bitmap_tag & 0xffff].data;
+            uint8_t *bitmap_tag_data = (uint8_t *)halo::cache::globals().tag_instances[bitmap_tag & 0xffff].data;
             int16_t frame = (int16_t)(arrow == 0 ? scroll_dir_up : scroll_dir_down);
             int32_t bitmap;
 
@@ -205,8 +204,8 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
         uint16_t *src =
             text_string_list_get_string(*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id,
                                         widget->selection_index);
-        uint32_t byte_len = wcslen(src) * 2;
-        uint16_t *buf = (uint16_t *)heap_allocate(byte_len + 2, widget_memory_pool);
+        uint32_t byte_len = wcslen((const wchar_t *)src) * 2;
+        uint16_t *buf = (uint16_t *)halo::memory::heap_allocate(byte_len + 2, widget_memory_pool);
         int32_t i;
 
         text = buf;
@@ -281,7 +280,7 @@ free_and_return:
         heap_block *block = (heap_block *)((uint8_t *)text - 0x10);
         uint32_t size = block->size;
 
-        heap_unlink_block(block, widget_memory_pool);
+        halo::memory::heap_unlink_block(block, widget_memory_pool);
         widget_memory_pool->bytes_allocated -= (int32_t)(size & 0x7fffffff);
         widget_memory_pool->allocation_count -= 1;
     }
@@ -302,7 +301,7 @@ void WidgetList::adjust_rect_for_scroll_arrows(Rectangle2D *rect)
     if (widget->widget_type != 2  ) {
         return;
     }
-    tag = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
+    tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
     if (tag->child_widgets.count >= 2) {
         return;
     }

@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
 
 #define k_probe_pool_capacity 77
 #define VTABLE_SLOT(object, offset) ((*(void ***)(object))[(offset) / 4])
@@ -399,12 +400,12 @@ store_counts:
 
     listener.position.x = listener.position.y = listener.position.z = 0.0f;
     listener.velocity.i = listener.velocity.j = listener.velocity.k = 0.0f;
-    listener.forward.i = global_forward3d_pointer->i;
-    listener.forward.j = global_forward3d_pointer->j;
-    listener.forward.k = global_forward3d_pointer->k;
-    listener.up.i = global_up3d_pointer->i;
-    listener.up.j = global_up3d_pointer->j;
-    listener.up.k = global_up3d_pointer->k;
+    listener.forward.i = halo::math::globals().global_forward3d_pointer->i;
+    listener.forward.j = halo::math::globals().global_forward3d_pointer->j;
+    listener.forward.k = halo::math::globals().global_forward3d_pointer->k;
+    listener.up.i = halo::math::globals().global_up3d_pointer->i;
+    listener.up.j = halo::math::globals().global_up3d_pointer->j;
+    listener.up.k = halo::math::globals().global_up3d_pointer->k;
     listener.environment = (SoundEnvironment *)&k_default_sound_environment;
     set_listener(&listener);
 
@@ -508,7 +509,7 @@ uint8_t DirectSoundDevice::create_channel(int16_t channel_index, uint16_t type_f
         } else {
             sound_channel_spatial spatial = { 0 };
 
-            spatial.forward = *(Vector3D *)global_forward3d_pointer;
+            spatial.forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
 
             if (sound_effect_object_state == 0) {
                 sound_effect_object_state = 2;

@@ -3,6 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <wchar.h>
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -21,7 +23,6 @@ extern uint32_t game_state_crc;
 extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern void terminal_initialize(void);
 extern void hud_state_allocate(void);
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern int32_t interface_loading_screen_address_b;
 extern uint32_t interface_loading_screen_address_a;
 extern progress_screen_state join_ui_state;
@@ -35,7 +36,6 @@ extern uint8_t main_menu_music_pending;
 extern widget_instance *ui_root_widget[1];
 extern int32_t ui_time_milliseconds;
 extern widget_history_node *ui_widget_history[3];
-extern datum_index tag_lookup(tag_group group, char *path);
 extern void sound_looping_stop(datum_index sound_tag);
 extern void widget_pool_list_free_all(widget_history_node **head);
 extern int32_t main_menu_music_datum;
@@ -44,10 +44,8 @@ extern map_list_entry *map_list;
 extern int32_t map_list_count;
 extern int32_t map_list_find_known_map_index(char *map_path);
 extern uint16_t *text_string_list_get_string(datum_index tag_id, int16_t index);
-extern tag_instance *tag_instances;
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern data_array *terminal_messages;
 extern uint8_t terminal_initialized;
@@ -56,8 +54,6 @@ extern datum_index console_message_head;
 extern datum_index console_message_tail;
 extern int32_t console_caret_blink_time;
 extern int32_t console_rcon_handle;
-extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count);
-extern void data_delete_all(data_array *array);
 }
 
 namespace halo::interface {
@@ -108,7 +104,7 @@ void InterfaceMain::globals_allocate()
 
     block = game_state_cursor + (int32_t)game_state_base;
     game_state_cursor = game_state_cursor + 0x1ea0;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     first_person_weapon_interfaces = (first_person_weapon_interface *)block;
 }
 
@@ -189,7 +185,7 @@ void InterfaceMain::update_for_resolution_change(int32_t new_cursor_x, int32_t n
 void InterfaceMain::on_shown(int32_t fade_milliseconds)
 {
     if (main_menu_music_pending == 1) {
-        datum_index sound_tag = tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
+        datum_index sound_tag = halo::cache::tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
 
         if (sound_tag != (datum_index)-1) {
             sound_looping_stop(sound_tag);
@@ -216,7 +212,7 @@ void InterfaceMain::play_title_music()
     datum_index sound_tag;
 
     if (main_menu_music_pending == 0 && main_menu_music_datum == 0) {
-        sound_tag = tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
+        sound_tag = halo::cache::tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             sound_looping_start(sound_tag, -1, 1.0f);
             main_menu_music_pending = 1;
@@ -268,7 +264,7 @@ void MapList::get_friendly_level_name(wchar_t *destination, char *map_path, int3
     wchar_t *source;
     char *filename;
 
-    map_list_tag = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\mp_map_list");
+    map_list_tag = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\mp_map_list");
     index = map_list_find_known_map_index(map_path);
     if (-1 < index && index < 0x13 && index != -1) {
 
@@ -296,14 +292,14 @@ void MapList::get_friendly_level_name(wchar_t *destination, char *map_path, int3
  */
 void InterfaceMain::set_profile_name(widget_instance *widget, const uint16_t *name_source)
 {
-    datum_index tag_id = tag_lookup(0x75737472  , (char *)"ui\\shell\\strings\\common_button_captions");
+    datum_index tag_id = halo::cache::tag_lookup(0x75737472  , (char *)"ui\\shell\\strings\\common_button_captions");
     uint16_t *suffix = missing_string_text;
-    void *buffer = heap_reallocate(widget->text, 0x80, widget_memory_pool);
+    void *buffer = halo::memory::heap_reallocate(widget->text, 0x80, widget_memory_pool);
 
     widget->text = buffer;
     if (buffer != (void *)0) {
         if (tag_id != (datum_index)-1) {
-            UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
+            UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
 
             if (list->strings.count > 7) {
                 UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;
@@ -354,10 +350,10 @@ void InterfaceMain::string_replace_all_in_place(char *buffer, char *search, char
  */
 void InterfaceMain::initialize_terminal()
 {
-    terminal_messages = data_new(sizeof(console_message), (char *)"terminal output", 0x20);
+    terminal_messages = halo::memory::data_new(sizeof(console_message), (char *)"terminal output", 0x20);
     terminal_initialized = 1;
     terminal_messages->valid = 1;
-    data_delete_all(terminal_messages);
+    halo::memory::data_delete_all(terminal_messages);
     console_active = (terminal_console *)0;
     console_message_head = (datum_index)0xffffffff;
     console_message_tail = (datum_index)0xffffffff;

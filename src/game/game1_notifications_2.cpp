@@ -8,6 +8,7 @@
 #include "game.h"
 
 #include "halo/game/game1_notifications.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -17,11 +18,9 @@ extern data_array *update_client_queues;
 extern uint8_t join_message_table[];
 extern void message_delta_decode_compound_field_staged(void *event);
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_message);
-extern void *datum_get(datum_index handle, data_array *array);
 extern uint8_t network_channel_key_close(void *identifier_record);
 extern void network_index_cache_insert_if_free(uint32_t hash_value, datum_index player_handle,
     void *table);
-extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array);
 extern void game_engine_player_profile_cache_add(uint32_t player_handle);
 extern void game_set_local_player(datum_index player_handle,
     int16_t local_player_index);
@@ -57,14 +56,14 @@ void Notifications::apply_player_join_message(void **envelope)
         ((network_client != 0) ? (network_client + 0xb14) : 0);
     uint8_t *identifier_record = table_base + (uint32_t)message.slot_index * 0x20 + 0x1a2;
 
-    p = (player *)datum_get((datum_index)message.join_key, player_data);
+    p = (player *)halo::memory::datum_get((datum_index)message.join_key, player_data);
     if (p == 0) {
         if (network_channel_key_close(identifier_record) != 1) {
             return;
         }
         network_index_cache_insert_if_free(message.hash_value, message.join_key, join_message_table);
-        p = (player *)datum_get((datum_index)message.join_key, player_data);
-        datum_new_at_index_with_salt((datum_index)message.join_key, update_client_queues);
+        p = (player *)halo::memory::datum_get((datum_index)message.join_key, player_data);
+        halo::memory::datum_new_at_index_with_salt((datum_index)message.join_key, update_client_queues);
         game_engine_player_profile_cache_add(message.join_key);
         if (p == 0) {
             return;

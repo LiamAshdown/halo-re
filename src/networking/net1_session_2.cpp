@@ -4,10 +4,10 @@
 #include <stdint.h>
 #include "units.h"
 #include <wchar.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_packet_group network_game_messages_group;
-extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group, void *decoded_body, const uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class);
 extern uint8_t network_disconnect_timeout_flag;
 extern uint32_t network_game_message_handle_keepalive(network_channel **channel, int32_t *record);
 extern char network_game_server_handle_join_password(network_machine *machine, network_server_globals *server, uint8_t *buffer, int32_t length);
@@ -31,7 +31,6 @@ extern void player_profile_set_default_server_options(void *dest);
 extern void network_game_start_new_server_with_name_and_password(uint32_t unused, uint16_t *name, uint16_t *password);
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern data_array *player_data;
-extern void *data_iterator_next(data_iterator *iterator);
 extern int16_t network_game_mode;
 extern network_server_globals *network_server;
 extern int32_t time_query_performance_counter_ms(void);
@@ -140,7 +139,7 @@ void PlayerReports::ping_field_update_and_report(void *decode_context)
         iter.next_index = 0;
         iter.index = k_datum_index_none;
         iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
         if (element != 0) {
             team_index = -1;
             do {
@@ -154,7 +153,7 @@ void PlayerReports::ping_field_update_and_report(void *decode_context)
                     }
                     break;
                 }
-                element = data_iterator_next(&iter);
+                element = halo::memory::data_iterator_next(&iter);
             } while (element != 0);
         }
 

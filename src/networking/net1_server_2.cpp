@@ -2,12 +2,12 @@
 #include <string.h>
 #include <wchar.h>
 #include <stdio.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload);
 extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t status_bit, void *data, uint32_t bits, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
 extern data_packet_group network_game_messages_group;
-extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group, void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class);
 extern uint32_t network_game_session_finalize_and_add_player(network_player_entry *entry, network_server_globals *server, network_machine *machine);
 extern uint32_t network_game_broadcast_player_set_changed(uint8_t *param_1);
 extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server);
@@ -29,10 +29,8 @@ extern char network_build_string[];
 extern char network_game_scenario_load_request(network_game_session *session);
 extern data_array *player_data;
 extern uint32_t player_data_iterator_advance(int16_t step_count);
-extern char data_packet_group_encode_packet(void *header, uint32_t *size_in_out, int32_t group, int32_t message_type);
 extern uint16_t *network_message_block_build(uint32_t size);
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 extern char *autopatch_temp_name_generate(void);
 typedef struct network_game_info_record {
     char short_name[7];
@@ -43,6 +41,28 @@ typedef struct network_game_info_record {
     uint8_t snapshot[0x84];
     uint8_t scratch[0x600];
 } network_game_info_record;
+
+/**
+ * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static char data_packet_group_encode_packet_unresolved(void *header, uint32_t *size_in_out, int32_t group, int32_t message_type)
+{
+    using call_t = char (*)(void *header, uint32_t *size_in_out, int32_t group, int32_t message_type);
+    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(header, size_in_out, group, message_type);
+}
+
+/**
+ * Calls halo::memory::datum_get with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static datum_index datum_get_unresolved(data_array *array, datum_index index)
+{
+    using call_t = datum_index (*)(data_array *array, datum_index index);
+    return reinterpret_cast<call_t>(&halo::memory::datum_get)(array, index);
+}
 extern int64_t performance_frequency;
 extern network_client_globals *network_client;
 extern int32_t network_console_connection_id;
@@ -75,7 +95,6 @@ extern void message_delta_parameters_protocol_dump_to_config_file(void);
 extern void network_stats_summary_log_write(void);
 extern void message_delta_protocol_initialize(void);
 extern void network_stats_summary_log_open(void);
-extern datum_index datum_get(data_array *array, datum_index index);
 extern void game_engine_apply_current_custom_variant(void);
 extern void game_engine_sync_variant_defaults(void);
 extern void widget_close(int32_t widget);
@@ -106,7 +125,7 @@ char ServerView::handle_join_confirm(network_machine *machine, uint8_t *buffer, 
         return 1;
     }
     remaining = (int16_t)(length - 2);
-    if (data_packet_group_decode_packet(&remaining, &network_game_messages_group, body, buffer + 2, &out_type, &out_version, 3) == 0) {
+    if (halo::memory::data_packet_group_decode_packet(&remaining, &network_game_messages_group, body, buffer + 2, &out_type, &out_version, 3) == 0) {
         return 1;
     }
     if (network_game_session_finalize_and_add_player((network_player_entry *)body, server, machine) == 0) {
@@ -157,7 +176,7 @@ char ServerView::handle_join_password(network_machine *machine, uint8_t *buffer,
 
         return result != 0 ? result : 1;
     }
-    if (data_packet_group_decode_packet(&remaining, &network_game_messages_group, body, buffer + 2, &out_type, &out_version,
+    if (halo::memory::data_packet_group_decode_packet(&remaining, &network_game_messages_group, body, buffer + 2, &out_type, &out_version,
                                          3) == 0) {
         return 1;
     }
@@ -257,7 +276,7 @@ char ServerView::build_full_game_info_packet(network_machine *machine)
     network_channel *channel;
 
     size = 0x600;
-    encoded = data_packet_group_encode_packet(record, &size, 7, 1);
+    encoded = data_packet_group_encode_packet_unresolved(record, &size, 7, 1);
     if (encoded == 0) {
         return 0;
     }
@@ -289,9 +308,9 @@ char ServerView::build_full_game_info_packet(network_machine *machine)
                 }
             }
             channel->send_budget = channel->send_budget + total_bits;
-            { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
+            { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
             channel->outgoing.empty = 0;
-            bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(encoded_buffer), bit_len);
+            halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(encoded_buffer), bit_len);
             channel->outgoing.empty = 0;
             ok = network_channel_stream_flush(&channel->outgoing, channel, 1);
         } else {
@@ -336,7 +355,7 @@ char ServerView::build_game_info_packet(network_machine *machine)
     record.machine_id = (int32_t)machine->machine_id;
 
     size = 0x600;
-    encoded = data_packet_group_encode_packet(&record, &size, 4, 1);
+    encoded = data_packet_group_encode_packet_unresolved(&record, &size, 4, 1);
     if (encoded != 0) {
         uint16_t *encoded_buffer;
 
@@ -364,9 +383,9 @@ char ServerView::build_game_info_packet(network_machine *machine)
                         }
                     }
                     channel->send_budget = channel->send_budget + bit_len + 1;
-                    { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
+                    { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
                     channel->outgoing.empty = 0;
-                    bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(encoded_buffer), bit_len);
+                    halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(encoded_buffer), bit_len);
                     channel->outgoing.empty = 0;
                 }
                 return result;
@@ -689,7 +708,7 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
     is_host = (host->flags >> 2) & 1;
     if (!is_host) {
         if (local_player_globals->maximum_count != (int16_t)-1) {
-            item = datum_get(local_player_globals, 0);
+            item = datum_get_unresolved(local_player_globals, 0);
             if (item != 0) {
                 network_client->team_index = *(int32_t *)((uint8_t *)(uint32_t)item + 0x20);
             }

@@ -14,6 +14,8 @@
 #include <string.h>
 
 #include "halo/game/game1_kill_feed.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern network_id_table *machine_table;
@@ -31,14 +33,11 @@ extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern void game_engine_on_player_death(datum_index killer, datum_index death_object,
     datum_index victim, char is_suicide);
 extern void player_advance_multikill_medal(datum_index player_handle);
-extern void *data_iterator_next(data_iterator *iterator);
 extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
     datum_index subject, char broadcast);
 extern wchar_t empty_string;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...);
-extern void *datum_get(datum_index handle, data_array *array);
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
 extern char input_get_last_used_binding(void *out_140_bytes);
@@ -312,7 +311,7 @@ void KillFeed::broadcast_kill_feed_by_relationship(uint32_t source_player, int32
     iter.index = (datum_index)0xffffffff;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    element = data_iterator_next(&iter);
+    element = halo::memory::data_iterator_next(&iter);
     while (element != 0) {
         player *p = (player *)element;
         int32_t message = no_source_message;
@@ -342,7 +341,7 @@ void KillFeed::broadcast_kill_feed_by_relationship(uint32_t source_player, int32
         if (message != -1) {
             chimera__kill_feed(iter.index, (int32_t)iter.index, (uint32_t)message, subject, (char)broadcast);
         }
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
     }
 }
 
@@ -363,7 +362,7 @@ void KillFeed::broadcast_kill_feed_gated(int32_t broadcast_enabled, int32_t excl
     iter.index = (datum_index)0xffffffff;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    element = data_iterator_next(&iter);
+    element = halo::memory::data_iterator_next(&iter);
     while (element != 0) {
         if ((int32_t)iter.index != exclude_index) {
             int32_t forwarded_param_1 = (alternate_recipient == -1) ? (int32_t)iter.index : alternate_recipient;
@@ -371,7 +370,7 @@ void KillFeed::broadcast_kill_feed_gated(int32_t broadcast_enabled, int32_t excl
                 chimera__kill_feed(iter.index, forwarded_param_1, broadcast_enabled, subject, broadcast);
             }
         }
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
     }
 }
 
@@ -396,13 +395,13 @@ void KillFeed::broadcast_kill_feed_or_direct(datum_index recipient_or_all, int32
         iter.index = (datum_index)0xffffffff;
         iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
         while (element != 0) {
             if (broadcast_enabled != -1) {
                 chimera__kill_feed(iter.index, forwarded_param_1, broadcast_enabled, subject,
                     broadcast);
             }
-            element = data_iterator_next(&iter);
+            element = halo::memory::data_iterator_next(&iter);
         }
     } else if (broadcast_enabled != -1) {
         chimera__kill_feed(recipient_or_all, hash_key, broadcast_enabled, subject, broadcast);
@@ -427,14 +426,14 @@ void KillFeed::broadcast_kill_feed_to_team(int32_t message_type, int32_t team, u
     iter.index = (datum_index)0xffffffff;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    element = data_iterator_next(&iter);
+    element = halo::memory::data_iterator_next(&iter);
     while (element != 0) {
         player *p = (player *)element;
 
         if (p->team == team && message_type != -1) {
             chimera__kill_feed(iter.index, (int32_t)iter.index, (uint32_t)message_type, 0xffffffff, (char)broadcast);
         }
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
     }
 }
 
@@ -467,13 +466,13 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
     if (adjusted_type < 0x20) {
         switch (adjusted_type) {
         case 0x00: case 0x01: case 0x02: case 0x03: case 0x06: case 0x0d: case 0x1c: {
-            void *element = datum_get(subject, player_data);
+            void *element = halo::memory::datum_get(subject, player_data);
             if (element == 0) {
                 ok = 0;
                 break;
             }
             {
-                datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 wchar_t *fmt = (tag_id == k_datum_index_none) ? &empty_string
                     : text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                 string_format_wide_va_bounded(out, fmt, subject);
@@ -481,14 +480,14 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
             break;
         }
         case 0x04: case 0x05: {
-            void *a = datum_get(subject, player_data);
-            void *b = datum_get(subject, player_data);
+            void *a = halo::memory::datum_get(subject, player_data);
+            void *b = halo::memory::datum_get(subject, player_data);
             if (a == 0 || b == 0) {
                 ok = 0;
                 break;
             }
             {
-                datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 wchar_t *fmt = (tag_id == k_datum_index_none) ? &empty_string
                     : text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                 string_format_wide_va_bounded(out, fmt, subject, subject);
@@ -496,7 +495,7 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
             break;
         }
         case 0x07: case 0x09: case 0x0a: case 0x0b: case 0x0c: {
-            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             wchar_t *text = (tag_id == k_datum_index_none) ? (wchar_t *)L""
                 : text_string_list_get_string(tag_id, (int16_t)adjusted_type);
             wcsncpy(out, text, buffer_size);
@@ -504,13 +503,13 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
             break;
         }
         case 0x08: {
-            void *element = datum_get(subject, player_data);
+            void *element = halo::memory::datum_get(subject, player_data);
             if (element == 0) {
                 ok = 0;
                 break;
             }
             {
-                datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 if (tag_id == k_datum_index_none) {
                     string_format_wide_va_bounded(out, L"%d", subject);
                 } else {
@@ -521,7 +520,7 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
             break;
         }
         case 0x0e: case 0x0f: case 0x10: case 0x11: case 0x12: {
-            void *element = datum_get(subject, player_data);
+            void *element = halo::memory::datum_get(subject, player_data);
             if (element == 0) {
                 ok = 0;
                 break;
@@ -530,7 +529,7 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
                 ((int32_t (*)(datum_index))current_game_engine->get_score)(subject);
             }
             {
-                datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 wchar_t *fmt = (tag_id == k_datum_index_none) ? &empty_string
                     : text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                 string_format_wide_va_bounded(out, fmt, subject);
@@ -544,8 +543,8 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
             break;
         }
         case 0x13: {
-            void *a = datum_get(subject, player_data);
-            void *b = datum_get(subject, player_data);
+            void *a = halo::memory::datum_get(subject, player_data);
+            void *b = halo::memory::datum_get(subject, player_data);
             if (a == 0 || b == 0) {
                 ok = 0;
                 break;
@@ -554,7 +553,7 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
                 ((int32_t (*)(datum_index))current_game_engine->get_score)(subject);
             }
             {
-                datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 wchar_t *fmt = (tag_id == k_datum_index_none) ? &empty_string
                     : text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                 string_format_wide_va_bounded(out, fmt, subject, subject);
@@ -562,7 +561,7 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
             break;
         }
         case 0x17: case 0x18: case 0x1a: case 0x1b: {
-            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             if (tag_id != k_datum_index_none) {
                 wchar_t *text = text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                 wcsncpy(out, text, buffer_size);
@@ -572,7 +571,7 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
             break;
         }
         case 0x19: {
-            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             if (tag_id == k_datum_index_none) {
                 string_format_wide_va_bounded(out, L"%d", subject);
             } else {
@@ -588,7 +587,7 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
             } else {
                 input_get_binding_display_name();
                 {
-                    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                     wchar_t *fmt = (tag_id == k_datum_index_none) ? &empty_string
                         : text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                     string_format_wide_va_bounded(out, fmt, subject);
@@ -597,7 +596,7 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
             break;
         }
         case 0x1e: {
-            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             wchar_t *prefix = (tag_id == k_datum_index_none) ? (wchar_t *)L""
                 : text_string_list_get_string(tag_id, (int16_t)adjusted_type);
             int32_t formatted_len;
@@ -608,7 +607,7 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
             break;
         }
         case 0x1f: {
-            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             if (tag_id != k_datum_index_none) {
                 wchar_t *text = text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                 wcsncpy(out, text, buffer_size);

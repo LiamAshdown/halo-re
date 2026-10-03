@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_hud.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -16,7 +17,6 @@ extern uint32_t text_tab_stops;
 extern uint32_t hud_text_draw_box_field_474e;
 extern uint32_t hud_text_draw_tabstop_c;
 extern Globals *global_globals;
-extern tag_instance *tag_instances;
 extern game_variant game_engine_variant;
 extern data_array *player_data;
 extern uint32_t render_viewport_top;
@@ -25,7 +25,6 @@ extern uint32_t screen_safe_area_bottom;
 extern float game_engine_post_game_fade;
 extern network_server_globals *network_server;
 extern wchar_t empty_string;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern int32_t game_engine_get_scoreboard_place(datum_index player, int32_t mode, uint8_t invert_low_stat);
@@ -101,8 +100,8 @@ void EngineHud::post_rasterize_post_game(void)
     interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
         ? (GlobalsInterfaceBitmaps *)0
         : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
-    hud_globals = (uint8_t *)tag_instances[interface_bitmaps->hud_globals.tag_id.index].data;
-    quad_tag = (uint8_t *)tag_instances[*(uint32_t *)(hud_globals + 0x3d4) & 0xffff].data;
+    hud_globals = (uint8_t *)halo::cache::globals().tag_instances[interface_bitmaps->hud_globals.tag_id.index].data;
+    quad_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(hud_globals + 0x3d4) & 0xffff].data;
     rect.top = 0;
     rect.left = 0;
     rect.bottom = 0x1e0;

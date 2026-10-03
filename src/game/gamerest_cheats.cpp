@@ -1,17 +1,17 @@
 #include "halo/game/gamerest_cheats.hpp"
 #include <stdint.h>
+#include "halo/memory/api.hpp"
+#include <string.h>
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
-extern datum_index tag_iterator_next(tag_iterator *iterator);
 extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t count);
 extern data_array *player_data;
-extern void *data_iterator_next(data_iterator *iterator);
 extern player_globals *local_player_globals;
 extern data_array *object_data;
 extern uint32_t cheat_get_target_object_index(void);
 extern int16_t network_game_mode;
-extern tag_instance *tag_instances;
 extern void *object_type_definitions[12];
 extern void object_get_position(real_point3d *out, datum_index object_index);
 extern void object_get_orientation(real_vector3d *out_forward, datum_index object_index, real_vector3d *out_up);
@@ -20,7 +20,6 @@ extern double sin(double x);
 extern double cos(double x);
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
-extern int32_t strstr(const char *a, const char *b);
 extern observer observers[1];
 extern void console_printf_verbose(const char *format, ...);
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
@@ -51,11 +50,11 @@ void Cheats::all_weapons()
         return;
     }
 
-    tag = tag_iterator_next(&iterator);
+    tag = halo::cache::tag_iterator_next(&iterator);
     while (tag != k_datum_index_none && (uint16_t)count < 0x10) {
         *(datum_index *)&slots[count].tag_id = tag;
         count = count + 1;
-        tag = tag_iterator_next(&iterator);
+        tag = halo::cache::tag_iterator_next(&iterator);
     }
     Cheats::spawn_objects_near_camera(slots, count);
 }
@@ -74,12 +73,12 @@ uint32_t Cheats::get_target_object_index()
     iterator.next_index = 0;
     iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    p = (player *)data_iterator_next(&iterator);
+    p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
         if (p->unit != k_datum_index_none) {
             return iterator.index;
         }
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
     }
     return 0xffffffff;
 }
@@ -192,7 +191,7 @@ void Cheats::spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
         placement.position.y = (float)(sin(angle) * (double)1.5f + (double)unit_position.y);
         placement.position.z = unit_position.z + 0.8f;
         if (network_game_mode == 2) {
-            int16_t object_type = *(int16_t *)tag_instances[placement.definition_tag & 0xffff].data;
+            int16_t object_type = *(int16_t *)halo::cache::globals().tag_instances[placement.definition_tag & 0xffff].data;
 
             if (*(int32_t *)((uint8_t *)object_type_definitions[object_type] + 0x10) != -1) {
                 role = 0;

@@ -1,9 +1,10 @@
 #include "halo/ai/actor_orders.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_build_guard_mode_data {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 #define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
 #define B(o) (actor[(o)])
@@ -13,7 +14,6 @@ extern tag_instance *tag_instances;
 
 extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point, int32_t start_surface_index,
     int16_t kind);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 }
 }
 
@@ -47,7 +47,7 @@ uint8_t halo::ai::order_builder::build_guard_mode_data(uint8_t *out)
         out[0x15] = 0;
         if (B(0x32c) != 0) {
             memcpy(out + 0x18, actor + 0x330, 12);
-            if (vector3d_normalize_with_length((real_vector3d *)(out + 0x18)) == 0.0f) {
+            if (halo::math::vector3d_normalize_with_length(*(real_vector3d *)(out + 0x18)) == 0.0f) {
                 out[0x14] = 0;
             }
         }
@@ -272,7 +272,6 @@ extern "C" int32_t actor_build_order_flee(uint32_t actor_index, uint8_t byte_a, 
 namespace c_actor_build_order_grenade_or_melee {
 extern "C" {
 extern data_array *actor_data;
-extern uint32_t random_seed_global;
 
 extern uint16_t actor_consider_target_candidate(datum_index actor_index,
                                                 datum_index candidate_prop_index);
@@ -317,8 +316,8 @@ int32_t halo::ai::order_builder::grenade_or_melee(uint32_t resolved_target, uint
     }
 
     if ((int16_t)order_code > 8 && (int16_t)order_code < 0xd) {
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        if ((float)(random_seed_global >> 0x10) * 1.5259022e-05f < 0.4f) {
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        if ((float)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f < 0.4f) {
             order[1] = 0x2d;
             return 1;
         }
@@ -463,10 +462,7 @@ extern "C" uint8_t actor_build_order_investigate_encounter_point(uint32_t vehicl
 namespace c_actor_build_order_look {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
-extern real random_real_range(real min, real max);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 }
 }
 
@@ -510,7 +506,7 @@ int32_t halo::ai::order_builder::look(actor_order *order, actor_look_request *re
     o[0x0a] = need_random_duration ? 0 : 1;
 
     if (need_random_duration) {
-        Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
+        Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[a->actor_definition_tag & 0xffff].data;
         float min, max;
 
         if (o[0x09] == 0) {
@@ -521,7 +517,7 @@ int32_t halo::ai::order_builder::look(actor_order *order, actor_look_request *re
             max = actor_def->cowering_time[1];
         }
 
-        *(int16_t *)(o + 0x0c) = (int16_t)(int32_t)(random_real_range(min, max) * 30.0f);
+        *(int16_t *)(o + 0x0c) = (int16_t)(int32_t)(halo::math::random_real_range(min, max) * 30.0f);
     }
 
     if (request->explicit_direction == -1) {
@@ -542,7 +538,7 @@ int32_t halo::ai::order_builder::look(actor_order *order, actor_look_request *re
         direction->j = request->target_point.y - a->body_position.y;
         direction->k = request->target_point.z - a->body_position.z;
 
-        if (vector3d_normalize_with_length(direction) == 0.0f) {
+        if (halo::math::vector3d_normalize_with_length(*direction) == 0.0f) {
             o[0x14] = 0;
             *(int32_t *)(o + 0x3c) = -1;
             return 1;
@@ -601,7 +597,6 @@ namespace c_actor_build_order_random_wait {
 extern "C" {
 extern data_array *actor_data;
 extern game_time_globals *game_time;
-extern uint32_t random_seed_global;
 }
 }
 
@@ -632,8 +627,8 @@ int32_t halo::ai::order_builder::random_wait(uint8_t byte_a, uint32_t *order)
         *(int16_t *)((uint8_t *)order + 0xe) = 0;
         *(int16_t *)((uint8_t *)order + 0xc) = 0x78;
         *((uint8_t *)order + 3) = 1;
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        *(int16_t *)(order + 4) = (int16_t)(((random_seed_global >> 0x10) * 300) >> 0x10) + 300;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        *(int16_t *)(order + 4) = (int16_t)(((halo::math::globals().random_seed_global >> 0x10) * 300) >> 0x10) + 300;
         return 1;
     }
     return 0;
@@ -871,7 +866,6 @@ namespace c_actor_build_path_find_request {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 
 extern void actor_update_target_lead_position(datum_index actor_index);
 }
@@ -901,13 +895,13 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     unit_index = self->unit_index;
-    actor_definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
     radius = actor_definition->pathfinding_radius;
 
     if (self->vehicle_driving_type > 0) {
         unit_index = self->active_unit_index;
         unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-        vehicle_definition = (Vehicle *)tag_instances[unit_object->definition_tag & 0xffff].data;
+        vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
         if (vehicle_definition->ai_pathfinding_radius > 0.0f) {
             radius = vehicle_definition->ai_pathfinding_radius;
         }

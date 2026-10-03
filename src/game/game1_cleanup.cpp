@@ -12,13 +12,13 @@
 #include <stdint.h>
 
 #include "halo/game/game1_cleanup.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern object *object_iterator_next(object_iterator *iterator);
-extern void *datum_get(datum_index handle, data_array *array);
 extern void object_delete(datum_index object_index);
 extern void object_delete_unparented(datum_index object_index);
 extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings);
@@ -26,7 +26,6 @@ extern int16_t network_game_mode;
 extern game_variant game_engine_variant;
 extern game_engine_definition *current_game_engine;
 extern data_array *player_data;
-extern void *data_iterator_next(data_iterator *iterator);
 extern void player_remove(datum_index player_index);
 }
 
@@ -55,11 +54,11 @@ void ObjectCleanup::cleanup_dropped_objects(void)
 
         if ((int32_t)item->held_game_time < now - 900 &&
             (item->flags & _item_in_inventory_bit) == 0) {
-            object_header *hdr = (object_header *)datum_get(iterator.handle, object_data);
+            object_header *hdr = (object_header *)halo::memory::datum_get(iterator.handle, object_data);
             uint8_t wake_flag = 0;
 
             if (hdr != 0) {
-                tag_instance *ti = &tag_instances[obj->definition_tag & 0xffff];
+                tag_instance *ti = &halo::cache::globals().tag_instances[obj->definition_tag & 0xffff];
                 wake_flag = (uint8_t)((*(uint32_t *)((uint8_t *)ti->data + 0x308) >> 3) & 1);
             }
 
@@ -123,7 +122,7 @@ void ObjectCleanup::cleanup_stray_items(void)
                     (salt == 0 || hdr->identifier == salt) &&
                     ((1 << (hdr->type & 0x1f)) & _object_mask_weapon) != 0) {
                     if (hdr->data != (object *)0) {
-                        uint32_t *tag_data = (uint32_t *)tag_instances[obj->definition_tag & 0xffff].data;
+                        uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
                         if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0 &&
                             game_engine_variant.game_engine_index != _game_engine_oddball) {
@@ -225,7 +224,7 @@ void ObjectCleanup::flag_local_player_units(void)
         iterator.next_index = 0;
         iterator.index = k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
         while (p != (player *)0) {
             if (p->quit_tick != k_datum_index_none && p->marked_for_deletion == 0 &&
                 (network_game_mode == 1 || current_tick == (int32_t)p->quit_tick)) {
@@ -241,7 +240,7 @@ void ObjectCleanup::flag_local_player_units(void)
                     *((uint8_t *)unit_obj + 0x107) |= 0x20;
                 }
             }
-            p = (player *)data_iterator_next(&iterator);
+            p = (player *)halo::memory::data_iterator_next(&iterator);
         }
     }
 }

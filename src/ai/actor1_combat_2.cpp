@@ -1,16 +1,15 @@
 #include "halo/ai/actor_combat.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_evaluate_engagement_reachability {
 extern "C" {
 extern double sqrt(double x);
 
-extern const real_vector3d *global_forward3d_pointer;
 
 extern const real_vector3d *global_down3d_pointer;
 
 extern uint8_t scenario_cluster_visibility_test(int16_t row_cluster, int16_t column_cluster);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object, void *result);
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target,
@@ -59,8 +58,8 @@ int32_t halo::ai::combat_ops::evaluate_engagement_reachability(int16_t self_clus
         side.i = self_position->y - target_position->y;
         side.j = target_position->x - self_position->x;
         side.k = 0.0f;
-        if (vector3d_normalize_with_length(&side) == 0.0f) {
-            side = *global_forward3d_pointer;
+        if (halo::math::vector3d_normalize_with_length(side) == 0.0f) {
+            side = *halo::math::globals().global_forward3d_pointer;
         }
         if (movement_mode == 1) {
             real_vector3d offset;
@@ -98,7 +97,7 @@ int32_t halo::ai::combat_ops::evaluate_engagement_reachability(int16_t self_clus
             b.x = target_position->x - offset.i;
             b.y = target_position->y - offset.j;
             b.z = target_position->z - offset.k;
-            point3d_add_scaled(&raised, (real_vector3d *)global_down3d_pointer, target_position, 0.1f);
+            halo::math::point3d_add_scaled(raised, *(real_vector3d *)global_down3d_pointer, *target_position, 0.1f);
             if (collision_test_movement_segment_between_points(&a, self_position, mask, exclude_object_index, result) ||
                 collision_test_movement_segment_between_points(&b, self_position, mask, exclude_object_index, result) ||
                 collision_test_movement_segment_between_points(&raised, self_position, mask, exclude_object_index, result)) {
@@ -138,7 +137,6 @@ namespace c_actor_get_threat_weapon_object_index {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
 }
@@ -173,7 +171,7 @@ datum_index halo::ai::combat_ops::get_threat_weapon_object_index()
     }
 
     if (self->unit_index != (datum_index)k_datum_index_none) {
-        uint8_t *variant_tag = (uint8_t *)tag_instances[self->actor_variant_tag & 0xffff].data;
+        uint8_t *variant_tag = (uint8_t *)halo::cache::globals().tag_instances[self->actor_variant_tag & 0xffff].data;
         if ((*variant_tag & 0x40) == 0) {
 
             object *own_unit = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;

@@ -1,5 +1,7 @@
 #include "halo/camera/observer.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern observer observers[1];
@@ -15,15 +17,12 @@ extern double sqrt(double x);
 extern double fabs(double x);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point);
-extern void predicted_resource_list_touch(TagReflexive *resources);
 extern void observer_avoid_collision(real_vector3d *forward, real_point3d *position, real_vector3d *up, float *distance, float radius_scale);
 extern int16_t observer_derivative_float_counts[5];
 extern float observer_channel_acceleration_limit[5];
 extern int16_t observer_parameter_float_counts[5];
 extern void vector3d_rotate_basis_by_axis_angle(Vector3D *axis_angle, Vector3D *forward, Vector3D *up);
 extern void observer_new(observer *self);
-extern const real_vector3d *global_forward3d_pointer;
-extern const real_vector3d *global_up3d_pointer;
 extern const real_point3d *global_origin3d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
 extern player_globals *local_player_globals;
@@ -40,10 +39,7 @@ extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern uint8_t observer_collision_test_ray(real_point3d *origin, uint8_t use_alternate_mask, real_point3d *target, float *out_fraction);
 extern double atan2(double y, double x);
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in);
 extern void (*matrix4x3_multiply_ptr)(void *a, void *b, void *out);
-extern void quaternion_from_matrix4x3(real_matrix4x3 *m, real_quaternion *out);
 observer_camera *observer_get_camera(int16_t player_index);
 void observer_initialize(void);
 void observer_update(float dt, uint8_t add_bob);
@@ -168,7 +164,7 @@ void ObserverHandle::commit()
 
         if (new_cluster != -1) {
             if (new_cluster != camera->cluster_index) {
-                predicted_resource_list_touch(
+                halo::cache::predicted_resource_list_touch(
                     &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[new_cluster]
                         .predicted_resources);
             }
@@ -599,16 +595,16 @@ void ObserverSystem::initialize()
  */
 void ObserverSystem::construct(observer *self)
 {
-    self->parameters.forward = *(const Vector3D *)global_forward3d_pointer;
-    self->parameters.up = *(const Vector3D *)global_up3d_pointer;
+    self->parameters.forward = *(const Vector3D *)halo::math::globals().global_forward3d_pointer;
+    self->parameters.up = *(const Vector3D *)halo::math::globals().global_up3d_pointer;
     self->parameters.field_of_view = 0.8726646f; 
 
     self->camera.position = *(const Point3D *)global_zero_vector3d_pointer;
     self->camera.leaf_index = -1;
     self->camera.cluster_index = -1;
     self->camera.velocity = *(const Vector3D *)global_origin3d_pointer;
-    self->camera.forward = *(const Vector3D *)global_forward3d_pointer;
-    self->camera.up = *(const Vector3D *)global_up3d_pointer;
+    self->camera.forward = *(const Vector3D *)halo::math::globals().global_forward3d_pointer;
+    self->camera.up = *(const Vector3D *)halo::math::globals().global_up3d_pointer;
     self->camera.field_of_view = 0.8726646f; 
 
     memset(&self->current_command, 0, sizeof(self->current_command));
@@ -914,13 +910,13 @@ void ObserverSystem::compute_remaining_offset(float *target, float *current, flo
     target += 8;   
     current += 8;  
 
-    matrix4x3_from_forward_up((real_vector3d *)(current + 3), (real_vector3d *)current,
-        &current_matrix);
-    matrix4x3_from_forward_up((real_vector3d *)(target + 3), (real_vector3d *)target,
-        &target_matrix);
-    matrix4x3_inverse(&target_matrix_inverse, &target_matrix);
+    halo::math::matrix4x3_from_forward_up(*(real_vector3d *)(current + 3), *(real_vector3d *)current,
+        current_matrix);
+    halo::math::matrix4x3_from_forward_up(*(real_vector3d *)(target + 3), *(real_vector3d *)target,
+        target_matrix);
+    halo::math::matrix4x3_inverse(&target_matrix_inverse, target_matrix);
     matrix4x3_multiply_ptr(&current_matrix, &target_matrix_inverse, &relative_matrix);
-    quaternion_from_matrix4x3(&relative_matrix, &relative_rotation);
+    halo::math::quaternion_from_matrix4x3(&relative_matrix, relative_rotation);
 
     axis.i = relative_rotation.i;
     axis.j = relative_rotation.j;

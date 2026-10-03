@@ -9,11 +9,12 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "halo/saved_games/saved_games.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
 extern int32_t game_state_revert_time;
-extern void *map_memory;
 extern uint8_t *game_state_snapshot_source;
 extern uint8_t game_state_write_buffer_allocated;
 extern uint32_t game_state_size;
@@ -27,7 +28,6 @@ extern game_state_header *game_state_header_ptr;
 extern uint8_t game_state_header_valid;
 extern uint8_t game_state_revert_available;
 extern datum_index global_scenario_index;
-extern tag_instance *tag_instances;
 extern int16_t local_player_count;
 extern game_main_globals *main_game_globals;
 extern uint32_t cache_file_current_header_crc32;
@@ -42,7 +42,6 @@ extern uint8_t *game_state_base;
 extern game_state_proc game_state_revert_proc;
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern int32_t game_state_cursor;
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern int32_t saved_player_profile_slots_handle;
 extern char *strcpy(char *dest, const char *source);
 extern uint32_t strlen(const char *str);
@@ -89,8 +88,8 @@ void *allocate_buffer(int32_t cpu_size, int32_t extra_size)
 {
     void *base;
 
-    base = map_memory;
-    game_state_snapshot_source = (uint8_t *)map_memory;
+    base = halo::cache::globals().map_memory;
+    game_state_snapshot_source = (uint8_t *)halo::cache::globals().map_memory;
     game_state_size = cpu_size + extra_size;
     game_state_write_buffer_allocated = 1;
     game_state_write_buffer = (uint8_t *)GlobalAlloc(0, game_state_size);
@@ -127,7 +126,7 @@ void build_header(void)
         zero = zero + 1;
     }
 
-    src = tag_instances[(int16_t)global_scenario_index].path;
+    src = halo::cache::globals().tag_instances[(int16_t)global_scenario_index].path;
     dst = header->scenario_name;
     do {
         *dst = *src;
@@ -258,7 +257,7 @@ data_array *make(char *name, int16_t maximum_count, int16_t element_size)
     block_size = (int32_t)maximum_count * (int32_t)element_size + 0x38;
     array = (data_array *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + block_size;
-    crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
 
     zero = (uint8_t *)array;
     for (i = 0xe; i != 0; i = i - 1) {
@@ -293,7 +292,7 @@ memory_pool *new_pool(char *name, int32_t pool_size)
     block_size = pool_size + 0x38;
     pool = (memory_pool *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + block_size;
-    crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
 
     zero = (uint32_t *)pool;
     for (i = 0xe; i != 0; i = i - 1) {
@@ -618,7 +617,7 @@ void startup(void)
     header_base = game_state_cursor + game_state_base;
     game_state_cursor = game_state_cursor + k_game_state_header_size;
     header_size = k_game_state_header_size;
-    crc32_update(&game_state_crc, (uint8_t *)&header_size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&header_size, 4);
     game_state_header_ptr = (game_state_header *)header_base;
 }
 
@@ -648,7 +647,7 @@ void write_persistent_storage(uint32_t *crc_slot, uint8_t *buffer, int32_t heade
 
     *crc_slot = 0;
     running_crc = 0xffffffff;
-    crc32_update(&running_crc, buffer, total_size);
+    halo::memory::crc32_update(&running_crc, buffer, total_size);
     *crc_slot = running_crc;
 
     memcpy(header_backup, buffer, header_size);

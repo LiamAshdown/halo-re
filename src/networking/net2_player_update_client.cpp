@@ -12,23 +12,21 @@
 #include "objects.h"
 #include "units.h"
 #include "halo/networking/net2_player_update_client.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array * player_data;
 extern game_time_globals * game_time;
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern void message_delta_decode_compound_field_staged(void *decode_context);
-extern void * data_iterator_next(data_iterator *iterator);
 extern uint8_t is_local_player_update_in_order(int32_t current_update_id, int32_t new_update_id);
 extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask,
     const char *format, ...);
 extern void player_update_history_play_for_update_index(void *update_history, int32_t update_id);
 extern void * object_network_id_table;
 extern network_client_globals * network_client;
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *a, real_vector3d *b);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern datum_index players_find_local_owned_unclear(void);
-extern void * datum_get(datum_index handle, data_array *array);
 extern void player_update_history_play(uint8_t flag, uint32_t control_ec, void *update_history,
     datum_index unit, float x, float y, float z, void *control_ptr);
 extern network_id_table * machine_table;
@@ -44,7 +42,6 @@ extern uint8_t position_update_queue_push(circular_queue *queue, real x, real y,
     int32_t tick, int32_t sequence);
 extern int32_t circular_queue_count(circular_queue *queue);
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern real vector3d_distance(const real_point3d *a, const real_point3d *b);
 extern void unit_snap_position_if_far(real_point3d *new_position, object *obj,
     datum_index unit_index);
 extern void player_update_history_log_printf_filtered(player *target_player, int32_t category,
@@ -88,12 +85,12 @@ void PlayerUpdateClient::local_player_update_from_network(int32_t *decode_contex
     iter.next_index = 0;
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-    candidate = (player *)data_iterator_next(&iter);
+    candidate = (player *)halo::memory::data_iterator_next(&iter);
     if (candidate == 0) {
         return;
     }
     while (candidate->local_player_index == -1) {
-        candidate = (player *)data_iterator_next(&iter);
+        candidate = (player *)halo::memory::data_iterator_next(&iter);
         if (candidate == 0) {
             return;
         }
@@ -136,13 +133,13 @@ void PlayerUpdateClient::local_player_vehicle_update_from_network(int32_t *decod
         ack.vehicle.parent_or_tag = -1;
     }
 
-    vector3d_cross_product(&temp, &ack.vehicle.up, &ack.vehicle.forward);
-    vector3d_cross_product(&ack.vehicle.up, &ack.vehicle.forward, &temp);
-    vector3d_normalize_with_length(&ack.vehicle.forward);
-    vector3d_normalize_with_length(&ack.vehicle.up);
+    halo::math::vector3d_cross_product(temp, ack.vehicle.up, ack.vehicle.forward);
+    halo::math::vector3d_cross_product(ack.vehicle.up, ack.vehicle.forward, temp);
+    halo::math::vector3d_normalize_with_length(ack.vehicle.forward);
+    halo::math::vector3d_normalize_with_length(ack.vehicle.up);
 
     vehicle_handle = players_find_local_owned_unclear();
-    candidate = (player *)datum_get(vehicle_handle, player_data);
+    candidate = (player *)halo::memory::datum_get(vehicle_handle, player_data);
     if (candidate == 0) {
         return;
     }
@@ -379,7 +376,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
                         new_position.x = x;
                         new_position.y = y;
                         new_position.z = z;
-                        snap_distance = vector3d_distance(&new_position, &unit->position);
+                        snap_distance = halo::math::vector3d_distance(new_position, unit->position);
                         if (snap_distance <= 1.0f) {
                             player_update_history_log_printf_filtered(target, 1,
                                 "Apply immediately saved by tolerance [%f] (%f)",
@@ -478,9 +475,6 @@ void PlayerUpdateClient::remote_player_total_biped_update_from_network(int32_t *
 
 void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(int32_t **decode_context)
 {
-    void (*const vector3d_cross_product)(real_vector3d *out, const real_vector3d *a,
-    const real_vector3d *b) = reinterpret_cast<void (*)(real_vector3d *out, const real_vector3d *a,
-    const real_vector3d *b)>(&::vector3d_cross_product);
     remote_player_update_header *header;
     message_delta_decode_state *state;
     int32_t remapped_index;
@@ -527,10 +521,10 @@ void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(int32_t
         if (decoded_ok == 1) {
             real_vector3d temp;
 
-            vector3d_cross_product(&temp, &decoded.vehicle.up, &decoded.vehicle.forward);
-            vector3d_cross_product(&decoded.vehicle.up, &decoded.vehicle.forward, &temp);
-            vector3d_normalize_with_length(&decoded.vehicle.forward);
-            vector3d_normalize_with_length(&decoded.vehicle.up);
+            halo::math::vector3d_cross_product(temp, decoded.vehicle.up, decoded.vehicle.forward);
+            halo::math::vector3d_cross_product(decoded.vehicle.up, decoded.vehicle.forward, temp);
+            halo::math::vector3d_normalize_with_length(decoded.vehicle.forward);
+            halo::math::vector3d_normalize_with_length(decoded.vehicle.up);
             memcpy(&candidate->vehicle_baseline, &decoded.vehicle, sizeof(decoded.vehicle));
         }
         is_baseline = 1;
@@ -558,9 +552,6 @@ void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(int32_t
 
 void PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(int32_t **decode_context)
 {
-    void (*const vector3d_cross_product)(real_vector3d *out, const real_vector3d *a,
-    const real_vector3d *b) = reinterpret_cast<void (*)(real_vector3d *out, const real_vector3d *a,
-    const real_vector3d *b)>(&::vector3d_cross_product);
     remote_player_update_header *header;
     message_delta_decode_state *state;
     int32_t remapped_index;
@@ -601,10 +592,10 @@ void PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(int32
         if (message_delta_decode_compound_field(decode_context, &decoded) != 1) {
             return;
         }
-        vector3d_cross_product(&temp, &decoded.up, &decoded.forward);
-        vector3d_cross_product(&decoded.up, &decoded.forward, &temp);
-        vector3d_normalize_with_length(&decoded.forward);
-        vector3d_normalize_with_length(&decoded.up);
+        halo::math::vector3d_cross_product(temp, decoded.up, decoded.forward);
+        halo::math::vector3d_cross_product(decoded.up, decoded.forward, temp);
+        halo::math::vector3d_normalize_with_length(decoded.forward);
+        halo::math::vector3d_normalize_with_length(decoded.up);
         memcpy(&candidate->vehicle_baseline, &decoded, sizeof(decoded));
     } else {
         memcpy(&decoded, &candidate->vehicle_baseline, sizeof(decoded));
@@ -620,9 +611,6 @@ void PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(int32
 void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index player_index,
     int32_t update_id, int32_t control_sequence, vehicle_update_body vehicle)
 {
-    void (*const vector3d_cross_product)(real_vector3d *out, const real_vector3d *a,
-    const real_vector3d *b) = reinterpret_cast<void (*)(real_vector3d *out, const real_vector3d *a,
-    const real_vector3d *b)>(&::vector3d_cross_product);
     int16_t index;
     int16_t salt;
     player *target;
@@ -657,8 +645,8 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
     vehicle.up.i = temp.j * vehicle.forward.k - temp.k * vehicle.forward.j;
     vehicle.up.j = temp.k * vehicle.forward.i - vehicle.forward.k * temp.i;
     vehicle.up.k = vehicle.forward.j * temp.i - temp.j * vehicle.forward.i;
-    vector3d_normalize_with_length(&vehicle.forward);
-    vector3d_normalize_with_length(&vehicle.up);
+    halo::math::vector3d_normalize_with_length(vehicle.forward);
+    halo::math::vector3d_normalize_with_length(vehicle.up);
 
     if (is_remote_player_update_in_order(target, (uint8_t)control_sequence, update_id) != 1) {
         return;

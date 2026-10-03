@@ -1,10 +1,9 @@
 #include "halo/interface/ifr1_checkpoint_list_rows.hpp"
 #include <string.h>
 #include <wchar.h>
+#include "halo/cache/api.hpp"
 
 extern "C" {
-extern datum_index tag_lookup(tag_group group, char *path);
-extern tag_instance *tag_instances;
 extern uint16_t missing_string_text[];
 extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 extern void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, const void *data_blob, uint32_t data_size, uint8_t is_default);
@@ -33,7 +32,7 @@ namespace halo::interface {
  */
 uint8_t CheckpointListRows::add_row(int32_t index, const char *name, int32_t level_index, int32_t difficulty, int32_t game_time, const void *time, void *user_data)
 {
-    datum_index strings = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\map_list_short");
+    datum_index strings = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\map_list_short");
     uint8_t record[0x68];
     char text[0x10];
     uint16_t wide[0x100];
@@ -64,7 +63,7 @@ uint8_t CheckpointListRows::add_row(int32_t index, const char *name, int32_t lev
     seconds = game_time / 30;
 
     if (strings != 0xffffffff) {
-        uint8_t *list = (uint8_t *)tag_instances[strings & 0xffff].data;
+        uint8_t *list = (uint8_t *)halo::cache::globals().tag_instances[strings & 0xffff].data;
         int16_t level = (int16_t)level_index;
 
         if (level >= 0 && level < *(int32_t *)list) {

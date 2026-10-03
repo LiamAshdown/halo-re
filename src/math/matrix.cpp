@@ -6,7 +6,7 @@
 
 #include "halo/math/math.hpp"
 #include "halo/math/glm_interop.hpp"
-#include "halo/math/math_globals.h"
+#include "halo/math/globals.hpp"
 
 #include "tags.h"
 #include "memory.h"
@@ -321,35 +321,35 @@ uint8_t real_matrix4x3_rotation_is_orthonormal(real_vector3d *forward, real_vect
 void real_matrix4x3_rotation_rebuild_orthonormal(real_vector3d *forward, real_vector3d *left, real_vector3d *up)
 {
     if (vector3d_normalize_with_length(*forward) == 0.0f) {
-        *forward = *global_forward3d_pointer;
+        *forward = *globals().global_forward3d_pointer;
     }
     if (vector3d_normalize_with_length(*up) == 0.0f) {
-        *up = *global_up3d_pointer;
+        *up = *globals().global_up3d_pointer;
     }
 
     *left = vector_from_glm(glm::cross(to_glm(*up), to_glm(*forward)));
     if (vector3d_normalize_with_length(*left) == 0.0f) {
-        *left = *global_left3d_pointer;
+        *left = *globals().global_left3d_pointer;
     }
 
     *up = vector_from_glm(glm::cross(to_glm(*forward), to_glm(*left)));
     if (vector3d_normalize_with_length(*up) == 0.0f) {
-        *up = *global_up3d_pointer;
+        *up = *globals().global_up3d_pointer;
     }
 
     *left = vector_from_glm(glm::cross(to_glm(*up), to_glm(*forward)));
     if (vector3d_normalize_with_length(*left) == 0.0f) {
-        *left = *global_forward3d_pointer;
+        *left = *globals().global_forward3d_pointer;
     }
 }
 
-void real_matrix4x3_rotation_from_forward(real_vector3d *forward, real_vector3d *left, real_vector3d *up)
+void real_matrix4x3_rotation_from_forward(const real_vector3d *forward, real_vector3d *left, real_vector3d *up)
 {
-    *up = *global_up3d_pointer;
+    *up = *globals().global_up3d_pointer;
 
     *left = vector_from_glm(glm::cross(to_glm(*up), to_glm(*forward)));
     if (vector3d_normalize_with_length(*left) == 0.0f) {
-        *up = *global_forward3d_pointer;
+        *up = *globals().global_forward3d_pointer;
         vector3d_cross_product(*left, *forward, *up);
         vector3d_normalize_with_length(*left);
     }

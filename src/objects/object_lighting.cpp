@@ -2,11 +2,12 @@
 #include "structures.h"
 #include "rasterizer.h"
 #include <stdint.h>
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern BitmapData *bitmap_group_get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index);
-extern void bsp_lightmap_sample_vertex_color(BitmapData *bitmap, float weight_1, float weight_2, ColorRGB *out, ScenarioStructureBSPMaterial *material, uint16_t *triangle_vertex_indices);
-extern void bsp_material_sample_base_map_color(BitmapData *bitmap, float weight_1, float weight_2, ColorRGB *out, ScenarioStructureBSPMaterial *material, uint16_t *triangle_vertex_indices);
 extern real_vector3d *default_axis_b;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern data_array *light_data;
@@ -21,16 +22,11 @@ extern void object_light_recompute_transform(uint32_t light_index);
 extern float object_lighting_ambient_bias;
 extern float object_lighting_ambient_scale;
 extern float object_lighting_base_light_scale;
-extern uint8_t object_lighting_sample_point(uint8_t flags, real_point3d *point, render_lighting *lighting);
 extern real_vector3d object_lightmap_probe_direction;
 extern void object_lights_gather_nearest(int16_t cluster_index, uint32_t self_object_index, real_point3d *probe_point, float search_margin, uint32_t *out_indices, float *out_intensities, uint32_t out_falloffs, int16_t *count, int16_t max_count);
 extern real object_sum_attached_light_luminance(uint32_t object_index);
 extern double pow(double x, double y);
 extern double sqrt(double x);
-extern uint8_t structure_bsp_resolve_position_to_surface(real_point3d *start_position, real_point3d *position, int16_t *out_lightmap_index, void *out_barycentric_v, real_vector3d *direction, int16_t *out_material_index, int32_t *out_surface, void *out_barycentric_u);
-extern tag_instance *tag_instances;
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 }
 
 /**
@@ -45,7 +41,7 @@ real halo::objects::ObjectLighting::sum_attached_light_luminance()
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
     object *obj = headers[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     int32_t attachment_count = definition->attachments.count;
     real total = 0.0f;
     int32_t i;
@@ -93,7 +89,7 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
 
     *color = *default_axis_b;
 
-    if (structure_bsp_resolve_position_to_surface(point, &contact, &lightmap_index, &weight_2,
+    if (halo::structures::structure_bsp_resolve_position_to_surface(point, &contact, &lightmap_index, &weight_2,
             &object_lightmap_probe_direction, &material_index, &surface_index, &weight_1)) {
         bsp = global_structure_bsp;
         lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
@@ -105,8 +101,8 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
             uint16_t *triangle =
                 (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
 
-            if (texture_cache_get(bitmap, 0, 0) != 0) {
-                bsp_lightmap_sample_vertex_color(bitmap, weight_1, weight_2, (ColorRGB *)color, material, triangle);
+            if (halo::cache::texture_cache_get(bitmap, 0, 0) != 0) {
+                halo::structures::bsp_lightmap_sample_vertex_color(bitmap, weight_1, weight_2, (ColorRGB *)color, material, triangle);
             }
         }
     }
@@ -158,10 +154,10 @@ static void *object_lightmap_texture_ready(BitmapData *bitmap, uint8_t wait_for_
     void *texture = 0;
 
     if (wait_for_textures) {
-        texture = texture_cache_get(bitmap, 1, 1);
+        texture = halo::cache::texture_cache_get(bitmap, 1, 1);
     }
     if (texture == 0) {
-        texture = texture_cache_get(bitmap, 0, 0);
+        texture = halo::cache::texture_cache_get(bitmap, 0, 0);
     }
     return texture;
 }
@@ -197,7 +193,7 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
     *lightmap_color = *object_ambient_lightmap_default;
     *base_map_color = *object_ambient_lightmap_default;
 
-    if (!structure_bsp_resolve_position_to_surface(point, &contact, &lightmap_index, &weight_2,
+    if (!halo::structures::structure_bsp_resolve_position_to_surface(point, &contact, &lightmap_index, &weight_2,
             &object_lightmap_probe_direction, &material_index, &surface_index, &weight_1)) {
         return;
     }
@@ -205,7 +201,7 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
     bsp = global_structure_bsp;
     lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
     material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
-    shader = (uint8_t *)tag_instances[*(uint32_t *)&material->shader.tag_id & 0xffff].data;
+    shader = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&material->shader.tag_id & 0xffff].data;
 
     if (*(int16_t *)&((struct Shader *)shader)->shader_type != 3 ||
         *(int32_t *)&bsp->lightmaps_bitmap.tag_id == -1 ||
@@ -217,13 +213,13 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
     lightmap_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
         (int16_t)lightmap->bitmap);
     base_map = *(datum_index *)(shader + 0x94);
-    base_map_tag = (uint8_t *)tag_instances[base_map & 0xffff].data;
+    base_map_tag = (uint8_t *)halo::cache::globals().tag_instances[base_map & 0xffff].data;
     base_map_bitmap = bitmap_group_get_bitmap_data(base_map,
         (int16_t)((int32_t)(int16_t)material->shader_permutation % *(int32_t *)(base_map_tag + 0x60)));
 
     if (lightmap_bitmap != 0 && object_lightmap_texture_ready(lightmap_bitmap, wait_for_textures) != 0) {
         triangle = (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
-        bsp_lightmap_sample_vertex_color(lightmap_bitmap, weight_1, weight_2, (ColorRGB *)lightmap_color,
+        halo::structures::bsp_lightmap_sample_vertex_color(lightmap_bitmap, weight_1, weight_2, (ColorRGB *)lightmap_color,
             material, triangle);
         lightmap_color->i += 0.1f;
         if (!(lightmap_color->i <= 1.0f)) {
@@ -243,7 +239,7 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
         if (triangle == 0) {
             triangle = (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
         }
-        bsp_material_sample_base_map_color(base_map_bitmap, weight_1, weight_2, (ColorRGB *)base_map_color,
+        halo::structures::bsp_material_sample_base_map_color(base_map_bitmap, weight_1, weight_2, (ColorRGB *)base_map_color,
             material, triangle);
     }
 }
@@ -266,7 +262,7 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *object_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *object_tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     uint8_t flags = (int8_t)(obj->flags >> 8) < 0 ? 1 : 0;
     char center_ok;
     int16_t successes;
@@ -277,7 +273,7 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
         flags |= 4;
     }
 
-    center_ok = object_lighting_sample_point(flags, &obj->bounding_center, (render_lighting *)sample);
+    center_ok = halo::structures::object_lighting_sample_point(flags, &obj->bounding_center, (render_lighting *)sample);
 
     if ((obj->flags & 0x4000) == 0) {
         float probe[29];
@@ -302,7 +298,7 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
             corner.y = ((offset_index & 2) == 0 ? -0.70710677f : 0.70710677f) * obj->bounding_radius +
                        obj->bounding_center.y;
 
-            ok = object_lighting_sample_point(flags, &corner, (render_lighting *)probe);
+            ok = halo::structures::object_lighting_sample_point(flags, &corner, (render_lighting *)probe);
             if (ok != 0) {
                 successes = successes + 1;
                 for (i = 0; i < 29; i++) {
@@ -319,14 +315,14 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
             sample[0] *= scale; sample[1] *= scale; sample[2] *= scale;
             for (i = 0x13; i <= 0x16; i++) sample[i] *= scale;
             for (i = 4; i <= 9; i++) sample[i] *= scale;
-            vector3d_normalize_with_length((real_vector3d *)(sample + 7));
+            halo::math::vector3d_normalize_with_length(*(real_vector3d *)(sample + 7));
 
             for (i = 0x0a; i <= 0x0f; i++) sample[i] *= scale;
-            vector3d_normalize_with_length((real_vector3d *)(sample + 0x0d));
+            halo::math::vector3d_normalize_with_length(*(real_vector3d *)(sample + 0x0d));
 
             for (i = 0x1a; i <= 0x1c; i++) sample[i] *= scale;
             for (i = 0x17; i <= 0x19; i++) sample[i] *= scale;
-            vector3d_normalize_with_length((real_vector3d *)(sample + 0x17));
+            halo::math::vector3d_normalize_with_length(*(real_vector3d *)(sample + 0x17));
             return;
         }
 
@@ -513,7 +509,7 @@ void halo::objects::ObjectLighting::for_each_light_attachment(int32_t register_i
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
     if ((obj->flags & 0x100) != 0) {
-        Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+        Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
         int16_t i;
 
         for (i = 0; i < (int16_t)definition->attachments.count; i++) {

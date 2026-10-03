@@ -5,8 +5,7 @@
  */
 
 #include "halo/math/math.hpp"
-#include "halo/math/math_globals.h"
-#include "halo/math/math_c_api.h"
+#include "halo/math/globals.hpp"
 
 #include "crt.h"
 #include "tags.h"
@@ -27,7 +26,7 @@ void math_initialize()
     sphere_point_table_init();
     periodic_function_tables_init();
 
-    matrix4x3_multiply_procedure = ::matrix4x3_multiply;
+    globals().matrix4x3_multiply_procedure = matrix4x3_multiply;
 
     for (i = 0; i < shell_argc; i++) {
         char *arg = shell_argv[i];
@@ -38,11 +37,11 @@ void math_initialize()
 
     if (safe_mode == 0) {
         if (cpu_get_type(0x1d) != 0) {
-            matrix4x3_multiply_procedure = ::matrix4x3_multiply_sse;
+            globals().matrix4x3_multiply_procedure = matrix4x3_multiply_sse;
             return;
         }
         if (cpu_get_type(0x1a) != 0) {
-            matrix4x3_multiply_procedure = ::matrix4x3_multiply_3dnow;
+            globals().matrix4x3_multiply_procedure = matrix4x3_multiply_3dnow;
         }
     }
 }

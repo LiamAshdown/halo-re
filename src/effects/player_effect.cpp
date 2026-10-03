@@ -1,4 +1,7 @@
 #include "halo/effects/effects.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -6,21 +9,16 @@ extern player_globals *local_player_globals;
 extern double sqrt(double x);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void player_effect_apply_continuous_damage(uint32_t tag_reference, int16_t local_player_index, float distance);
-extern tag_instance *tag_instances;
 extern player_effect_globals *player_effect_globals_pointer;
 extern game_time_globals *game_time;
-extern real periodic_function_evaluate(periodic_function_t type, double time);
 extern const ColorARGB *global_white_argb;
 extern void player_effect_set_screen_flash(player_effect *self, player_screen_flash *descriptor, float intensity_falloff, float duration_scale);
 extern void player_effect_set_camera_shake(player_effect *self, player_camera_shake *descriptor, float intensity_falloff, float duration_scale);
 extern console_globals console_globals_data;
 extern int16_t screen_flash_pass[8];
-extern real transition_function_evaluate(int16_t type, real phase);
 extern int32_t player_effect_reentry_count;
 extern double atan2(double y, double x);
 extern double fabs(double x);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index local_player_to_player_index(int16_t local_player_index);
 extern observer_camera *observer_get_camera(int16_t player_index);
@@ -30,14 +28,9 @@ extern void player_effect_set_camera_impulse(player_effect *self, int16_t local_
 extern network_id_table *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void **context);
-extern void *data_iterator_next(data_iterator *iterator);
 extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd, const real_vector3d *direction, float random_blend, float damage_amount);
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
-extern random_seed effect_random_seed;
 extern double cos(double x);
 extern double sin(double x);
-extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle, real cos_angle);
 extern uint8_t network_message_scratch[0x7ff8];
 extern network_server_globals *network_server;
 extern int32_t hash_table_get(hash_table *table, int32_t key);
@@ -92,7 +85,7 @@ void player_effect_ref::apply_at_object(uint32_t tag_reference, int16_t local_pl
 void player_effect_ref::apply_continuous_damage(uint32_t tag_reference, int16_t local_player_index, float distance)
 {
     ContinuousDamageEffect *effect =
-        (ContinuousDamageEffect *)tag_instances[tag_reference & 0xffff].data;
+        (ContinuousDamageEffect *)halo::cache::globals().tag_instances[tag_reference & 0xffff].data;
 
     if (distance < effect->radius[1]) {
         player_effect *self = &player_effect_globals_pointer->players[local_player_index];
@@ -102,7 +95,7 @@ void player_effect_ref::apply_continuous_damage(uint32_t tag_reference, int16_t 
 
         fraction = (fraction < 0.0f) ? 0.0f : (1.0f < fraction ? 1.0f : fraction);
 
-        wobble = (float)periodic_function_evaluate(_periodic_function_cosine,
+        wobble = (float)halo::math::periodic_function_evaluate(_periodic_function_cosine,
             (double)((float)game_time->game_time / effect->camera_shaking_wobble_period));
         weighted = ((1.0f - effect->camera_shaking_wobble_weight) +
                     wobble * effect->camera_shaking_wobble_weight) * fraction;
@@ -198,7 +191,7 @@ void player_effect_ref::build_screen_flash(uint32_t *out, int16_t local_player_i
             } else if (!(t <= 1.0f)) {
                 t = 1.0f;
             }
-            fraction = transition_function_evaluate(5, t);
+            fraction = halo::math::transition_function_evaluate(5, t);
         }
         *(float *)&out[1] = fraction;
         if (globals->scripted_flash_fade_in == 0) {
@@ -223,7 +216,7 @@ void player_effect_ref::build_screen_flash(uint32_t *out, int16_t local_player_i
             if (self->flash.duration > 0.0f) {
                 float fraction = ((float)(int32_t)self->flash_ticks / self->flash.duration) * self->flash.intensity;
 
-                *(float *)&out[1] = transition_function_evaluate(*(int16_t *)&self->flash.fade_function, fraction);
+                *(float *)&out[1] = halo::math::transition_function_evaluate(*(int16_t *)&self->flash.fade_function, fraction);
             } else {
                 *(float *)&out[1] = self->flash.intensity;
             }
@@ -302,7 +295,7 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
         return;
     }
     self = (player_effect *)((uint8_t *)player_effect_globals_pointer + local_player_index * 0xec);
-    tag = (uint8_t *)tag_instances[dd->damage_effect_tag & 0xffff].data;
+    tag = (uint8_t *)halo::cache::globals().tag_instances[dd->damage_effect_tag & 0xffff].data;
     player_effect_set_screen_flash(self, (player_screen_flash *)(tag + 0x24), random_blend, 1.0f);
     player_effect_set_camera_impulse(self, local_player_index, (real *)(tag + 0x98), (real *)direction,
         random_blend, 1.0f);
@@ -350,11 +343,11 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
         delta.i = source.x - eye.x;
         delta.j = source.y - eye.y;
         delta.k = source.z - eye.z;
-        vector3d_cross_product(&side, (const real_vector3d *)&camera->up, (const real_vector3d *)&camera->forward);
+        halo::math::vector3d_cross_product(side, *((const real_vector3d *)&camera->up), *((const real_vector3d *)&camera->forward));
         projected.i = side.k * delta.k + side.j * delta.j + side.i * delta.i;
         projected.j = delta.k * camera->forward.k + delta.j * camera->forward.j + delta.i * camera->forward.i;
         projected.k = delta.k * camera->up.k + delta.j * camera->up.j + delta.i * camera->up.i;
-        if (vector3d_normalize_with_length(&projected) == 0.0f) {
+        if (halo::math::vector3d_normalize_with_length(projected) == 0.0f) {
             player_effect_reentry_count--;
             return;
         }
@@ -402,8 +395,8 @@ void player_effect_ref::mark_damage_direction_dispatch(void **context)
     iterator.next_index = 0;
     iterator.index = (datum_index)0xffffffff;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    for (record = (player *)data_iterator_next(&iterator); record != 0;
-         record = (player *)data_iterator_next(&iterator)) {
+    for (record = (player *)halo::memory::data_iterator_next(&iterator); record != 0;
+         record = (player *)halo::memory::data_iterator_next(&iterator)) {
         if (record->local_player_index != -1) {
             dd.damage_effect_tag = fields[0];
             dd.responsible_object = (fields[1] != 0) ?
@@ -430,27 +423,27 @@ void player_effect_ref::random_shake_offset(real_matrix4x3 *out, real magnitude,
         real_vector3d axis;
         int16_t axis_index;
 
-        effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        axis_index = (int16_t)(((effect_random_seed >> k_random_value_shift) *
-            (uint32_t)(int32_t)sphere_point_table_count) >> 16);
-        axis = *(real_vector3d *)&sphere_point_table[axis_index];
+        halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+        axis_index = (int16_t)(((halo::math::globals().effect_random_seed >> k_random_value_shift) *
+            (uint32_t)(int32_t)halo::math::globals().sphere_point_table_count) >> 16);
+        axis = *(real_vector3d *)&halo::math::globals().sphere_point_table[axis_index];
 
         {
             real sin_angle = (real)sin((double)angle);
-            matrix4x3_from_axis_angle(out, &axis, sin_angle, cos_angle);
+            halo::math::matrix4x3_from_axis_angle(*out, axis, sin_angle, cos_angle);
         }
     }
 
     if (magnitude != 0.0f) {
         int16_t index;
 
-        effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        index = (int16_t)(((effect_random_seed >> k_random_value_shift) *
-            (uint32_t)(int32_t)sphere_point_table_count) >> 16);
+        halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+        index = (int16_t)(((halo::math::globals().effect_random_seed >> k_random_value_shift) *
+            (uint32_t)(int32_t)halo::math::globals().sphere_point_table_count) >> 16);
 
-        out->position.x = sphere_point_table[index].x * magnitude;
-        out->position.y = sphere_point_table[index].y * magnitude;
-        out->position.z = sphere_point_table[index].z * magnitude;
+        out->position.x = halo::math::globals().sphere_point_table[index].x * magnitude;
+        out->position.y = halo::math::globals().sphere_point_table[index].y * magnitude;
+        out->position.z = halo::math::globals().sphere_point_table[index].z * magnitude;
     }
 }
 
@@ -605,7 +598,7 @@ int32_t player_effect_ref::locality_for_object(datum_index weapon_object_index)
     iterator.index = (datum_index)0xffffffff;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    record = (player *)data_iterator_next(&iterator);
+    record = (player *)halo::memory::data_iterator_next(&iterator);
     while (record != (player *)0) {
         datum_index unit_index = record->unit;
 
@@ -638,7 +631,7 @@ int32_t player_effect_ref::locality_for_object(datum_index weapon_object_index)
             }
         }
 
-        record = (player *)data_iterator_next(&iterator);
+        record = (player *)halo::memory::data_iterator_next(&iterator);
     }
     return 0;
 }

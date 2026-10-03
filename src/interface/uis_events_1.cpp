@@ -19,6 +19,7 @@
 #include <wchar.h>
 
 #include "halo/interface/uis_event_handlers.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint8_t level_select_entries[0x50];
@@ -61,11 +62,9 @@ extern growable_array ui_lists[3];
 extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
 extern void map_list_get_friendly_level_name(wchar_t *destination, char *map_path, int32_t destination_capacity);
-extern uint32_t growable_array_add_element(growable_array *array);
 extern int32_t profile_slot_lookup_cache_00692ac8;
 extern uint8_t variant_carousel_slots[0x1d4];
 extern heap *widget_memory_pool;
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern uint8_t playlist_profiles_need_defaults;
 extern void playlist_profile_create_default_profiles_on_disk(void);
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only, uint16_t *capacity_and_count);
@@ -88,7 +87,6 @@ extern uint8_t saved_item_working_copy[0x1ffc];
 extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind);
 extern int32_t network_host_edit_field_00719410;
 extern widget_history_node *ui_widget_history[3];
-extern void heap_unlink_block(heap_block *block, heap *self);
 }
 
 #ifdef interface
@@ -133,7 +131,7 @@ static void widget_history_pop(int16_t controller)
         uint32_t size = block->size & 0x7fffffff;
 
         ui_widget_history[controller] = node->next;
-        heap_unlink_block(block, widget_memory_pool);
+        halo::memory::heap_unlink_block(block, widget_memory_pool);
         widget_memory_pool->bytes_allocated -= (int32_t)size;
         widget_memory_pool->allocation_count -= 1;
     }
@@ -459,7 +457,7 @@ uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, u
 
         map_list_get_friendly_level_name((wchar_t *)name, *(char **)(map_list + i * 0xc), 0x100);
         is_default = (uint8_t)(i == widget->selection_index);
-        index = growable_array_add_element(&ui_lists[0]);
+        index = halo::memory::growable_array_add_element(&ui_lists[0]);
         if (index != 0xffffffff) {
             ui_list_item *item = (ui_list_item *)ui_lists[0].data + index;
             uint16_t *copy;
@@ -509,7 +507,7 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
 
     profile_slot_lookup_cache_00692ac8 = -1;
     memset(variant_carousel_slots, 0xff, sizeof(variant_carousel_slots));
-    handles = (int32_t *)heap_reallocate(widget->list_items, 0x190, widget_memory_pool);
+    handles = (int32_t *)halo::memory::heap_reallocate(widget->list_items, 0x190, widget_memory_pool);
     widget->list_items = handles;
     if (handles != 0) {
         if (playlist_profiles_need_defaults == 1) {

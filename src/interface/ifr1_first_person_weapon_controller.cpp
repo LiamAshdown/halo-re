@@ -1,13 +1,13 @@
 #include "halo/interface/ifr1_first_person_weapon_controller.hpp"
 #include <stdint.h>
 #include <string.h>
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern int32_t local_player_index_for_unit(datum_index unit_index);
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name,
                                                       object_marker *out, uint32_t name_arg);
-extern tag_instance *tag_instances;
 extern void *object_try_and_get(datum_index object_index, uint32_t mask);
 extern int16_t camera_get_type_for_player(int16_t player_index);
 extern int32_t local_player_index_for_weapon(datum_index weapon_index);
@@ -27,7 +27,6 @@ extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern void first_person_weapon_interface_initialize(int16_t local_player_index);
 extern void first_person_weapon_update(int32_t local_player_index);
-extern void predicted_resource_list_touch(TagReflexive *resources);
 extern void unit_invalidate_local_player_zoom_level(datum_index unit);
 extern int16_t item_type_to_message_stage(int16_t item_type_code);
 extern int16_t item_type_to_animation_stage(int16_t message_stage);
@@ -163,7 +162,7 @@ uint32_t FirstPersonWeaponController::get_marker_data(datum_index weapon_index, 
     }
 
     fp = &first_person_weapon_interfaces[local_player];
-    item_tag_data = *(uint8_t **)((uint8_t *)tag_instances +
+    item_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
                                    (obj->definition_tag & 0xffff) * 0x20 + 0x14);
 
     if (fp->weapon_hud_valid != 0 && *(int32_t *)(item_tag_data + 0x468) != -1 &&
@@ -231,14 +230,14 @@ void FirstPersonWeaponController::interface_initialize()
     weapon_object = *(struct object **)((char *)object_data->data + 8 +
                                          (uint16_t)weapon_index * 0xc);
     weapon_tag_ref = *(uint32_t *)weapon_object;
-    weapon_tag_data = (char *)tag_instances[(uint16_t)weapon_tag_ref].data;
+    weapon_tag_data = (char *)halo::cache::globals().tag_instances[(uint16_t)weapon_tag_ref].data;
     if (*(int32_t *)(weapon_tag_data + 0x468) == -1) {
         first_person_weapon_interface_tick_reset(local_player_index);
         return;
     }
 
     hud_interface_tag_ref = *(uint32_t *)(weapon_tag_data + 0x478);
-    hud_interface_tag_data = (char *)tag_instances[(uint16_t)hud_interface_tag_ref].data;
+    hud_interface_tag_data = (char *)halo::cache::globals().tag_instances[(uint16_t)hud_interface_tag_ref].data;
     if (*(int32_t *)(hud_interface_tag_data + 0x48) == 0) {
         first_person_weapon_interface_tick_reset(local_player_index);
         return;
@@ -340,8 +339,8 @@ void FirstPersonWeaponController::interface_tick_reset()
         struct object *weapon_object = *(struct object **)((char *)object_data->data + 8 +
                                                              (uint16_t)fp->weapon_index * 0xc);
         char *weapon_tag_data =
-            (char *)tag_instances[(uint16_t)(*(uint32_t *)weapon_object)].data;
-        predicted_resource_list_touch(&((Weapon *)weapon_tag_data)->more_predicted_resources);
+            (char *)halo::cache::globals().tag_instances[(uint16_t)(*(uint32_t *)weapon_object)].data;
+        halo::cache::predicted_resource_list_touch(&((Weapon *)weapon_tag_data)->more_predicted_resources);
     }
     fp->shutdown_countdown = 0x1e;
 }
@@ -396,7 +395,7 @@ void FirstPersonWeaponController::process_action(int16_t action_code)
         datum_index definition = *(datum_index *)weapon_obj;
 
         if (definition != (datum_index)0xffffffff) {
-            uint8_t *weapon_tag_data = (uint8_t *)tag_instances[(uint16_t)definition].data;
+            uint8_t *weapon_tag_data = (uint8_t *)halo::cache::globals().tag_instances[(uint16_t)definition].data;
 
             if (*(int16_t *)(weapon_tag_data + 0x4e2) == 1 && (action_code == 9 || action_code == 10)) {
                 uint8_t *magazine_def = *(uint8_t **)(weapon_tag_data + 0x4f4);
@@ -537,7 +536,7 @@ void FirstPersonWeaponController::set_state(uint8_t force_pose_snapshot, int16_t
     }
 
     weapon_obj = (uint8_t *)((object_header *)object_data->data)[fp->weapon_index & 0xffff].data;
-    item_tag_data = *(uint8_t **)((uint8_t *)tag_instances +
+    item_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
                                    (*(uint32_t *)weapon_obj & 0xffff) * 0x20 + 0x14);
     if (*(int16_t *)(item_tag_data + 0x4e2) == 3 && new_state == 3 &&
         (*(uint32_t *)(weapon_obj + 0x22c) & 1) == 0) {
@@ -566,7 +565,7 @@ void FirstPersonWeaponController::set_state(uint8_t force_pose_snapshot, int16_t
         return;
     }
 
-    hud_tag_data = *(uint8_t **)((uint8_t *)tag_instances +
+    hud_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
                                   ((*(uint32_t *)(item_tag_data + 0x478)) & 0xffff) * 0x20 + 0x14);
     block_a_count = *(int32_t *)(hud_tag_data + 0x48);
     if (block_a_count == 0) {
@@ -617,9 +616,9 @@ void FirstPersonWeaponController::snapshot_pose(int16_t blend_gap)
     fp = &first_person_weapon_interfaces[local_player_index];
 
     weapon_obj = (uint8_t *)((object_header *)object_data->data)[fp->weapon_index & 0xffff].data;
-    item_tag_data = *(uint8_t **)((uint8_t *)tag_instances +
+    item_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
                                    (*(uint32_t *)weapon_obj & 0xffff) * 0x20 + 0x14);
-    graph = (ModelAnimations *)*(uint8_t **)((uint8_t *)tag_instances +
+    graph = (ModelAnimations *)*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
                                   (*(uint32_t *)(item_tag_data + 0x478) & 0xffff) * 0x20 + 0x14);
     dword_count = (int32_t)(((uint32_t)graph->nodes.count << 5) >> 2);
 
@@ -739,7 +738,7 @@ void FirstPersonWeaponController::update_lighting(void)
 
     unit_obj = *(object **)((char *)object_data->data + 8 + (uint16_t)unit_handle * 0xc);
     weapon_obj = *(object **)((char *)object_data->data + 8 + (uint16_t)fp->weapon_index * 0xc);
-    weapon_tag_data = (char *)tag_instances[(uint16_t)weapon_obj->definition_tag].data;
+    weapon_tag_data = (char *)halo::cache::globals().tag_instances[(uint16_t)weapon_obj->definition_tag].data;
     if (*(int32_t *)(weapon_tag_data + 0x478) == -1) {
         return;
     }
@@ -804,7 +803,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
 
     hud_interface = local_player_get_weapon_hud_interface(&intensity);
     if (hud_interface == -1 ||
-        (int32_t)((WeaponHUDInterface *)tag_instances[hud_interface & 0xffff].data)->screen_effect.count < 1) {
+        (int32_t)((WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_interface & 0xffff].data)->screen_effect.count < 1) {
         if (rasterizer_device_version >= 0xffff0101u && rasterizer_caps_flag_68a == 0) {
             rasterizer_screen_effect_render((weapon_screen_effect_parameters *)0);
         } else {
@@ -814,7 +813,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
     }
 
     effect = (WeaponHUDInterfaceScreenEffect *)
-        ((WeaponHUDInterface *)tag_instances[hud_interface & 0xffff].data)->screen_effect.pointer;
+        ((WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_interface & 0xffff].data)->screen_effect.pointer;
     desired_zoom_level = -1;
     if (current_local_player_index != -1) {
         desired_zoom_level =
@@ -828,7 +827,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
                                                 : *(datum_index *)&effect->mask_fullscreen.tag_id;
         if (mask != (datum_index)-1) {
             parameters.mask_bitmap_data =
-                *(uint32_t *)((uint8_t *)tag_instances[mask & 0xffff].data + 0x64);
+                *(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[mask & 0xffff].data + 0x64);
             parameters.night_vision_masked = (uint8_t)((effect->even_more_flags >> 2) & 1);
             parameters.desaturation_masked = (uint8_t)((effect->desaturation_flags >> 3) & 1);
         }
@@ -927,7 +926,7 @@ void FirstPersonWeaponController::update_state()
         return;
     case 0xd: case 0xe:
         weapon_obj = (uint8_t *)((object_header *)object_data->data)[fp->weapon_index & 0xffff].data;
-        item_tag_data = *(uint8_t **)((uint8_t *)tag_instances +
+        item_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
                                        (*(uint32_t *)weapon_obj & 0xffff) * 0x20 + 0x14);
         device_entry = *(int16_t *)(fpb + 0x1e94);
         if (*(int16_t *)(item_tag_data + 0x4e2) != 1 || device_entry == 0 || device_entry == -1) {
@@ -937,7 +936,7 @@ void FirstPersonWeaponController::update_state()
         break;
     case 0xf:
         weapon_obj = (uint8_t *)((object_header *)object_data->data)[fp->weapon_index & 0xffff].data;
-        item_tag_data = *(uint8_t **)((uint8_t *)tag_instances +
+        item_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
                                        (*(uint32_t *)weapon_obj & 0xffff) * 0x20 + 0x14);
         if (*(int16_t *)(item_tag_data + 0x4e2) != 1 || *(int16_t *)(fpb + 0x1e94) != 2) {
             first_person_weapon_set_state(local_player_index, 0, 0);

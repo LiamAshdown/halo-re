@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include "bitmaps.h"
 #include "halo/rasterizer/render_device.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 
@@ -36,7 +38,6 @@ extern rasterizer_frame_time rasterizer_time;
 extern d3d_caps9 rasterizer_caps;
 extern uint8_t unknown_0071d275;
 extern uint8_t unknown_0071d276;
-extern uint8_t *texture_cache;
 extern uint8_t decals_for_all_responses;
 extern uint8_t *rasterizer_decal_vertex_cache_handle;
 extern uint8_t text_rendering_enabled;
@@ -105,7 +106,6 @@ extern float g_007c13e4;
 extern float g_007c13f0;
 extern int16_t rasterizer_maximum_skinning_nodes;
 extern rasterizer_skinning_matrix rasterizer_skinning_palette[63];
-extern tag_instance *tag_instances;
 extern GlobalsRasterizerData *rasterizer_globals_data;
 extern uint8_t console_debug_toggle_689409;
 extern int16_t rasterizer_bound_bitmap_size_a[2];
@@ -283,8 +283,6 @@ extern uint32_t graphics_device_id;
 extern uint32_t graphics_vendor_id;
 extern uint32_t video_memory;
 extern uint32_t required_video_memory;
-extern uint8_t crc32_lookup_table_initialized;
-extern crc32_table crc32_lookup_table;
 extern void (*unknown_00721eac)(void *engine);
 extern lens_flare_batch_key lens_flare_applied_key;
 extern lens_flare_batch lens_flare_batches[k_lens_flare_batch_slots];

@@ -4,21 +4,12 @@
 
 #include "win32.h"
 #include "memory.h"
+#include "halo/cache/globals.hpp"
 
 extern "C" {
 typedef int32_t (*read_file_ex_procedure)(void *file, void *buffer, uint32_t bytes_to_read, cache_io_request *overlapped, void *completion_routine);
-extern cache_io_request *cache_io_requests;
-extern void *cache_io_event;
-extern int16_t cache_file_index;
-extern cache_file_slot cache_file_slots[k_cache_file_slot_count];
-extern data_file sounds_data_file;
-extern data_file bitmaps_data_file;
-extern void __stdcall cache_io_request_completion_routine(uint32_t error_code, uint32_t bytes_transferred, cache_io_request *overlapped);
-extern void *cache_io_thread;
 extern int32_t os_platform;
 extern void os_platform_identify(void);
-extern uint32_t cache_io_thread_proc_sync(void *unused);
-extern uint32_t cache_io_thread_proc_async(void *unused);
 }
 
 namespace halo::cache {
@@ -39,6 +30,16 @@ void cache_io::completion_routine(uint32_t error_code, uint32_t bytes_transferre
     }
     *overlapped->completion.flag = 1;
     return;
+}
+
+/**
+ * The Win32 completion routine for the first header read of a cache file: Windows calls it with three stack
+ * arguments and the routine pops them (the original at 0x443b00 ends ret 12), so this adapter is stdcall and
+ * forwards to completion_routine.
+ */
+void __stdcall cache_io::completion_routine_stdcall(uint32_t error_code, uint32_t bytes_transferred, cache_io_request *overlapped)
+{
+    completion_routine(error_code, bytes_transferred, overlapped);
 }
 
 /**
@@ -89,6 +90,15 @@ void cache_io::request_completion_routine(uint32_t error_code, uint32_t bytes_tr
 }
 
 /**
+ * The Win32 completion routine passed to ReadFileEx for queued requests; stdcall adapter for
+ * request_completion_routine.
+ */
+void __stdcall cache_io::request_completion_routine_stdcall(uint32_t error_code, uint32_t bytes_transferred, cache_io_request *overlapped)
+{
+    request_completion_routine(error_code, bytes_transferred, overlapped);
+}
+
+/**
  * Returns the index of the first request queue slot whose pending flag is clear, re-scanning until one
  * frees up.
  *
@@ -102,7 +112,7 @@ int16_t cache_io::request_find_free_slot()
     retried = 0;
     for (;;) {
         for (slot_index = 0; slot_index < (short)k_cache_io_request_count; slot_index++) {
-            if (cache_io_requests[slot_index].pending == 0) {
+            if (globals().cache_io_requests[slot_index].pending == 0) {
                 return slot_index;
             }
         }
@@ -125,7 +135,7 @@ int16_t cache_io::request_new(cache_io_completion *completion, int32_t offset, u
     cache_io_request *request;
 
     slot_index = halo::cache::cache_io::request_find_free_slot();
-    request = &cache_io_requests[slot_index];
+    request = &globals().cache_io_requests[slot_index];
 
     *completion->flag = 0;
     request->internal = 0;
@@ -144,7 +154,7 @@ int16_t cache_io::request_new(cache_io_completion *completion, int32_t offset, u
     request->data_file_index = data_file_index;
     request->completion = *completion;
 
-    SetEvent(cache_io_event);
+    SetEvent(globals().cache_io_event);
     return slot_index;
 }
 
@@ -181,13 +191,13 @@ uint32_t cache_io::thread_proc_async(void *parameter)
     read_function = (void *)ReadFileEx;
     for (;;) {
         do {
-            wait_result = WaitForSingleObjectEx(cache_io_event, 0xffffffff, 1);
+            wait_result = WaitForSingleObjectEx(globals().cache_io_event, 0xffffffff, 1);
         } while (wait_result == 0xc0);
 
         for (;;) {
             best = (cache_io_request *)0;
             for (i = 0; i < k_cache_io_request_count; i++) {
-                candidate = &cache_io_requests[i];
+                candidate = &globals().cache_io_requests[i];
                 if (candidate->pending != 0 && candidate->started == 0) {
                     if (best == (cache_io_request *)0 ||
                         (candidate->priority < best->priority && candidate->offset < best->offset)) {
@@ -200,19 +210,19 @@ uint32_t cache_io::thread_proc_async(void *parameter)
                 break;
             }
 
-            file_handle = cache_file_slots[cache_file_index].file;
+            file_handle = globals().cache_file_slots[globals().cache_file_index].file;
             if (best->data_file_index != 0) {
                 source = (data_file *)0;
                 if (best->data_file_index == 1) {
-                    source = &bitmaps_data_file;
+                    source = &globals().bitmaps_data_file;
                 } else if (best->data_file_index == 2) {
-                    source = &sounds_data_file;
+                    source = &globals().sounds_data_file;
                 }
                 file_handle = source->file;
             }
 
             best->started = 1;
-            halo::cache::cache_io::read_file_ex_retry(read_function, file_handle, best->destination, best, best->size, best->offset, (void *)cache_io_request_completion_routine);
+            halo::cache::cache_io::read_file_ex_retry(read_function, file_handle, best->destination, best, best->size, best->offset, (void *)&cache_io::request_completion_routine_stdcall);
         }
     }
 }
@@ -234,12 +244,12 @@ uint32_t cache_io::thread_proc_sync(void *parameter)
     uint32_t bytes_read;
 
     for (;;) {
-        WaitForSingleObject(cache_io_event, 0xffffffff);
+        WaitForSingleObject(globals().cache_io_event, 0xffffffff);
 
         for (;;) {
             best = (cache_io_request *)0;
             for (i = 0; i < k_cache_io_request_count; i++) {
-                candidate = &cache_io_requests[i];
+                candidate = &globals().cache_io_requests[i];
                 if (candidate->pending != 0 && candidate->started == 0) {
                     if (best == (cache_io_request *)0 ||
                         (candidate->priority < best->priority && candidate->offset < best->offset)) {
@@ -252,13 +262,13 @@ uint32_t cache_io::thread_proc_sync(void *parameter)
                 break;
             }
 
-            file_handle = cache_file_slots[cache_file_index].file;
+            file_handle = globals().cache_file_slots[globals().cache_file_index].file;
             if (best->data_file_index != 0) {
                 source = (data_file *)0;
                 if (best->data_file_index == 1) {
-                    source = &bitmaps_data_file;
+                    source = &globals().bitmaps_data_file;
                 } else if (best->data_file_index == 2) {
-                    source = &sounds_data_file;
+                    source = &globals().sounds_data_file;
                 }
                 file_handle = source->file;
             }
@@ -284,18 +294,18 @@ void cache_io::thread_start()
 {
     uint32_t thread_id;
 
-    cache_io_event = CreateEventA((LPSECURITY_ATTRIBUTES)((void *)0), 0, 0, (char *)0);
+    globals().cache_io_event = CreateEventA((LPSECURITY_ATTRIBUTES)((void *)0), 0, 0, (char *)0);
 
     if (os_platform == 0) {
         os_platform_identify();
     }
 
     if (os_platform < 3) {
-        cache_io_thread = CreateThread((LPSECURITY_ATTRIBUTES)((void *)0), 0x4000, (LPTHREAD_START_ROUTINE)((void *)cache_io_thread_proc_sync), (void *)0, 0, (LPDWORD)(&thread_id));
+        globals().cache_io_thread = CreateThread((LPSECURITY_ATTRIBUTES)((void *)0), 0x4000, (LPTHREAD_START_ROUTINE)((void *)&cache_io::thread_proc_sync), (void *)0, 0, (LPDWORD)(&thread_id));
         return;
     }
 
-    cache_io_thread = CreateThread((LPSECURITY_ATTRIBUTES)((void *)0), 0x4000, (LPTHREAD_START_ROUTINE)((void *)cache_io_thread_proc_async), (void *)0, 0, (LPDWORD)((uint32_t *)0));
+    globals().cache_io_thread = CreateThread((LPSECURITY_ATTRIBUTES)((void *)0), 0x4000, (LPTHREAD_START_ROUTINE)((void *)&cache_io::thread_proc_async), (void *)0, 0, (LPDWORD)((uint32_t *)0));
     return;
 }
 
@@ -309,7 +319,7 @@ void cache_io::wait_all_requests()
     int32_t slot_index;
 
     for (slot_index = 0; slot_index < (int32_t)k_cache_io_request_count; slot_index++) {
-        while (cache_io_requests[slot_index].pending != 0) {
+        while (globals().cache_io_requests[slot_index].pending != 0) {
             Sleep(0);
         }
     }

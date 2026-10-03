@@ -3,10 +3,10 @@
 #include "halo/networking/net1_decode.hpp"
 #include "halo/networking/net1_server.hpp"
 #include "halo/networking/net1_session.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_packet_group network_game_messages_group;
-extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group, void *decoded_body, const uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class);
 extern uint8_t network_disconnect_timeout_flag;
 }
 
@@ -237,7 +237,7 @@ public:
             int16_t out_type;
             uint16_t version_used;
 
-            if (data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body,
+            if (halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body,
                                                 bytes + 2, &out_type, &version_used, 0) != 0) {
                 ServerMessageHandlers::keepalive((network_channel **)machine, body);
             }
@@ -255,7 +255,7 @@ public:
             int16_t out_type;
             uint16_t version_used;
 
-            if (data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body,
+            if (halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body,
                                                 bytes + 2, &out_type, &version_used, 5) != 0) {
                 GameRuntime::client_apply_position_update((uint8_t *)machine, body, (void *)-1, 0);
             }

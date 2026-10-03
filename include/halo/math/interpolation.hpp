@@ -1,7 +1,7 @@
 /**
  * @file include/halo/math/interpolation.hpp
  * Interpolation, lerps, cubic curves and the bounded acceleration ramp profile.
- * The C symbols other modules link against are the wrappers in src/math/math_c_api.cpp.
+ * Declared for other modules through halo/math/api.hpp.
  */
 #pragma once
 

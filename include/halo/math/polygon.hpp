@@ -1,7 +1,7 @@
 /**
  * @file include/halo/math/polygon.hpp
  * 2d/3d polygons: sutherland-hodgman clipping, convex hull, containment.
- * The C symbols other modules link against are the wrappers in src/math/math_c_api.cpp.
+ * Declared for other modules through halo/math/api.hpp.
  */
 #pragma once
 

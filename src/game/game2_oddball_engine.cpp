@@ -1,4 +1,5 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern game_variant game_engine_variant;
@@ -19,7 +20,6 @@ extern void game_engine_koth_alt_scorer_tick(uint32_t player_index);
 extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player, int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast);
 extern game_engine_definition *current_game_engine;
 extern uint8_t game_engine_teams_enabled_flag;
-extern void *datum_get(datum_index handle, data_array *array);
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, uint8_t *changed_flags, int32_t changed_offset, int32_t destination_offset);
 extern int32_t king_alt_team_scores_network2[16];
@@ -235,7 +235,7 @@ void OddballEngine::player_new_life(datum_index player_index)
  */
 void OddballEngine::player_round_reset(datum_index player_index)
 {
-    uint8_t *player = (uint8_t *)datum_get(player_index, player_data);
+    uint8_t *player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
 
     if (player != 0) {
         king_alt_player_score[player_index & 0xffff] = 0;
@@ -325,7 +325,7 @@ void OddballEngine::profile_post_update(void **context)
 uint8_t OddballEngine::query_player_score(int32_t key, int32_t index, void *buffer)
 {
     uint32_t handle = players_get_active_by_index(index);
-    uint8_t *player = (uint8_t *)datum_get(handle, player_data);
+    uint8_t *player = (uint8_t *)halo::memory::datum_get(handle, player_data);
     char text[0x100];
 
     if (player == 0 || key != 0x16) {

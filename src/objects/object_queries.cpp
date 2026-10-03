@@ -1,10 +1,8 @@
 #include "halo/objects/object_queries.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern int16_t cluster_flood_fill_within_radius(int16_t start_cluster, real_point3d *center, float radius, int16_t max_clusters, int16_t *out_clusters);
-extern uint8_t cluster_flood_in_progress;
-extern int32_t cluster_flood_stamp;
 extern datum_index *collideable_cluster_first;
 extern data_array *collideable_object_references;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
@@ -179,10 +177,10 @@ int16_t halo::objects::ObjectQueries::find_in_sphere(uint32_t search_mask, uint3
             cluster_count = 1;
             clusters[0] = start_cluster;
         } else {
-            cluster_flood_stamp++;
-            cluster_flood_in_progress = 1;
-            cluster_count = cluster_flood_fill_within_radius(start_cluster, center, radius, 0x200, clusters);
-            cluster_flood_in_progress = 0;
+            halo::structures::globals().cluster_flood_stamp++;
+            halo::structures::globals().cluster_flood_in_progress = 1;
+            cluster_count = halo::structures::cluster_flood_fill_within_radius(start_cluster, center, radius, 0x200, clusters);
+            halo::structures::globals().cluster_flood_in_progress = 0;
         }
     }
 

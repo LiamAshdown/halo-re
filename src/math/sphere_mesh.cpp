@@ -5,7 +5,7 @@
  */
 
 #include "halo/math/math.hpp"
-#include "halo/math/math_globals.h"
+#include "halo/math/globals.hpp"
 
 #include "win32.h"
 #include "tags.h"
@@ -49,15 +49,15 @@ sphere_mesh * sphere_mesh_generate(int16_t subdivisions)
             }
 
             for (i = 0; i < 6; i++) {
-                mesh->points[i] = k_octahedron_vertices[i];
+                mesh->points[i] = globals().k_octahedron_vertices[i];
             }
 
             strip_cursor = 0;
             next_point_index = 6;
             for (i = 0; i < 8; i++) {
                 sphere_mesh_build_face(&next_point_index, mesh,
-                                        k_octahedron_faces[i][0], k_octahedron_faces[i][1],
-                                        k_octahedron_faces[i][2], strip_cursor, edge_cache);
+                                        globals().k_octahedron_faces[i][0], globals().k_octahedron_faces[i][1],
+                                        globals().k_octahedron_faces[i][2], strip_cursor, edge_cache);
             }
             GlobalFree(edge_cache);
             return mesh;
@@ -224,14 +224,14 @@ void sphere_point_table_init()
     real_point3d *points;
     int16_t i;
 
-    effect_random_seed = random_seed_generate();
+    globals().effect_random_seed = random_seed_generate();
     mesh = sphere_mesh_generate(k_sphere_point_table_subdivisions);
 
     points = (real_point3d *)GlobalAlloc(0, (uint32_t)mesh->point_count * sizeof(real_point3d));
-    sphere_point_table_count = mesh->point_count;
-    sphere_point_table = points;
+    globals().sphere_point_table_count = mesh->point_count;
+    globals().sphere_point_table = points;
 
-    for (i = 0; i < sphere_point_table_count; i++) {
+    for (i = 0; i < globals().sphere_point_table_count; i++) {
         points[i] = mesh->points[i];
     }
 

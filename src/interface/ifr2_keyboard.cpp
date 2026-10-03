@@ -2,6 +2,7 @@
 #include "crt.h"
 #include <string.h>
 #include <wchar.h>
+#include "halo/cache/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -15,7 +16,6 @@ extern uint8_t controls_input_capture_flags;
 extern void **keyboard_device;
 extern uint8_t key_frames[0x6d];
 extern uint8_t key_release_pending[0x6d];
-extern tag_instance *tag_instances;
 extern int32_t hud_text_draw_font_tag_id;
 extern uint32_t hud_text_draw_unknown_4730;
 extern uint16_t hud_text_draw_color_or_flags;
@@ -30,7 +30,6 @@ extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1, const uint16_t *text);
 extern uint32_t time_query_performance_counter_ms(void);
 extern const int16_t *text_get_character_metrics(uint16_t character, const void *font_data);
-extern datum_index tag_lookup(tag_group group, char *path);
 extern int16_t key_event_read_index;
 extern int16_t key_event_count;
 extern ui_key_event key_events[];
@@ -177,7 +176,7 @@ uint8_t VirtualKeyboard::close()
  */
 void VirtualKeyboard::draw_text(Rectangle2D *bounds)
 {
-    const uint8_t *font_data = (const uint8_t *)tag_instances[virtual_keyboard.small_ui_tag & 0xffff].data;
+    const uint8_t *font_data = (const uint8_t *)halo::cache::globals().tag_instances[virtual_keyboard.small_ui_tag & 0xffff].data;
 
     hud_text_draw_font_tag_id = virtual_keyboard.small_ui_tag;
     hud_text_draw_color_a = 1.0f;
@@ -253,9 +252,9 @@ int32_t VirtualKeyboard::initialize()
     virtual_keyboard.unknown_02 = 0;
     virtual_keyboard.unknown_03 = 0;
 
-    strings_tag = tag_lookup(0x76636b79  , (char *)"ui\\english");
+    strings_tag = halo::cache::tag_lookup(0x76636b79  , (char *)"ui\\english");
     if (strings_tag != 0xffffffff) {
-        virtual_keyboard.strings_tag_data = tag_instances[strings_tag & 0xffff].data;
+        virtual_keyboard.strings_tag_data = halo::cache::globals().tag_instances[strings_tag & 0xffff].data;
         virtual_keyboard.caret = 0;
         virtual_keyboard.unknown_0a = 0;
         virtual_keyboard.maximum_length = 0;
@@ -267,7 +266,7 @@ int32_t VirtualKeyboard::initialize()
         virtual_keyboard.open_time = 0;
     }
 
-    virtual_keyboard.white_bitmap = tag_lookup(0x6269746d  , (char *)"ui\\shell\\bitmaps\\white");
+    virtual_keyboard.white_bitmap = halo::cache::tag_lookup(0x6269746d  , (char *)"ui\\shell\\bitmaps\\white");
     return virtual_keyboard.strings_tag_data != 0;
 }
 
@@ -416,7 +415,7 @@ finish:
             if (ch < 0x20 || ch == 0xff) {
                 continue;
             }
-            font = (uint8_t *)tag_instances[virtual_keyboard.small_ui_tag & 0xffff].data;
+            font = (uint8_t *)halo::cache::globals().tag_instances[virtual_keyboard.small_ui_tag & 0xffff].data;
             character_map = *(int32_t **)(font + 0x34) + (ch >> 8) * 3;
             if (character_map[0] <= 0) {
                 goto rejected;
@@ -513,7 +512,7 @@ void VirtualKeyboard::render()
 
     string_list = *(const datum_index *)((const uint8_t *)virtual_keyboard.strings_tag_data + 0x2c);
     if (string_list != (datum_index)-1) {
-        UnicodeStringList *list = (UnicodeStringList *)tag_instances[string_list & 0xffff].data;
+        UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[string_list & 0xffff].data;
 
         if (list->strings.count > 0xe) {
             UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer + 0xe;

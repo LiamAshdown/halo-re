@@ -1,13 +1,10 @@
+#include "halo/memory/globals.hpp"
 #include "halo/memory/memory.hpp"
 
 #include "tags.h"
 
 #define CRC32_POLYNOMIAL 0xedb88320u
 
-extern "C" {
-extern crc32_table crc32_lookup_table;
-extern uint8_t crc32_lookup_table_initialized;
-}
 
 namespace halo::memory {
 
@@ -48,18 +45,19 @@ void crc32_table_view::build()
  *
  * @address 0x4d02d0
  */
-void crc32_update(uint32_t *crc, uint8_t *data, int32_t length)
+void crc32_update(uint32_t *crc, const void *bytes, int32_t length)
 {
+    const uint8_t *data = static_cast<const uint8_t *>(bytes);
     uint32_t value;
 
-    if (crc32_lookup_table_initialized == 0) {
-        halo::memory::view(&crc32_lookup_table)->build();
-        crc32_lookup_table_initialized = 1;
+    if (globals().crc32_lookup_table_initialized == 0) {
+        halo::memory::view(&globals().crc32_lookup_table)->build();
+        globals().crc32_lookup_table_initialized = 1;
     }
     value = *crc;
     if (0 < length) {
         do {
-            value = (value >> 8) ^ crc32_lookup_table.entries[(*data ^ value) & 0xff];
+            value = (value >> 8) ^ globals().crc32_lookup_table.entries[(*data ^ value) & 0xff];
             data = data + 1;
             length = length - 1;
         } while (length != 0);

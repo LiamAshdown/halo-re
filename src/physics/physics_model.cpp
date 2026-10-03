@@ -9,6 +9,8 @@
 #include "physics.h"
 
 #include "halo/physics/physics_model.hpp"
+#include "halo/math/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" { uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 extern "C" { int16_t physics_model_slide_along_contacts(real_point3d *start_position, real_vector3d *delta, physics_model *model, real_point3d *out_position, real_vector3d *out_velocity, int16_t max_contacts, physics_model_contact *contacts); }
@@ -39,9 +41,6 @@ extern "C" { extern object_globals *object_globals_pointer; }
 extern "C" { extern int32_t object_cluster_stamp; }
 extern "C" { extern datum_index *collideable_cluster_first; }
 extern "C" { extern data_array *collideable_object_references; }
-extern "C" { extern uint8_t cluster_flood_in_progress; }
-extern "C" { extern int32_t cluster_flood_stamp; }
-extern "C" { extern int32_t cluster_visit_stamp[]; }
 extern "C" { extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius); }
 extern "C" { extern void collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index, real_point3d *origin, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 namespace halo::physics {
@@ -83,20 +82,20 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
             if ((flags & 0xfff00) == 0) {
                 flags |= 0xfff00;
             }
-            cluster_flood_stamp++;
+            halo::structures::globals().cluster_flood_stamp++;
             object_globals_pointer->collecting_in_clusters = 1;
             stamp = object_cluster_stamp + 1;
-            cluster_flood_in_progress = 1;
+            halo::structures::globals().cluster_flood_in_progress = 1;
             object_cluster_stamp = stamp;
 
             for (i = 0; i < sphere_result.leaf_count; i++) {
                 int16_t cluster_index = ((ScenarioStructureBSPLeaf *)
                     global_structure_bsp->leaves.pointer)[sphere_result.leaves[i] & 0x7fffffff].cluster;
 
-                if (cluster_visit_stamp[cluster_index] != cluster_flood_stamp) {
+                if (halo::structures::globals().cluster_visit_stamp[cluster_index] != halo::structures::globals().cluster_flood_stamp) {
                     datum_index ref;
 
-                    cluster_visit_stamp[cluster_index] = cluster_flood_stamp;
+                    halo::structures::globals().cluster_visit_stamp[cluster_index] = halo::structures::globals().cluster_flood_stamp;
                     ref = collideable_cluster_first[cluster_index];
                     while (ref != k_datum_index_none) {
                         object_cluster_reference *node = (object_cluster_reference *)
@@ -120,7 +119,7 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
             }
 
             object_globals_pointer->collecting_in_clusters = 0;
-            cluster_flood_in_progress = 0;
+            halo::structures::globals().cluster_flood_in_progress = 0;
         }
     }
 
@@ -130,13 +129,7 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
 }
 
 extern "C" { extern double fabs(double x); }
-extern "C" { extern const real_vector3d *global_up3d_pointer; }
-extern "C" { extern uint8_t plane3d_intersect_pair_to_line(real_vector3d *direction_out, real_plane3d *p2, real_plane3d *p1, real_point3d *point_out); }
-extern "C" { extern uint8_t plane3d_intersect_three(real_plane3d *p1, real_plane3d *p2, real_plane3d *p3, real_point3d *out); }
-extern "C" { extern void point3d_project_onto_line(real_point3d *point, real_vector3d *direction, real_point3d *line_origin, real_point3d *out_result); }
 extern "C" { extern void vector3d_project_onto_direction(real_vector3d *out, const real_vector3d *axis, const real_vector3d *v); }
-extern "C" { extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); }
-extern "C" { extern real vector3d_normalize_with_length(real_vector3d *v); }
 #define CONTACT_PLANE(c) ((real_plane3d *)&(c)->plane_i)
 static float dot3(const real_vector3d *a, const real_vector3d *b)
 {
@@ -216,7 +209,7 @@ int16_t PhysicsModelOps::model_slide_along_contacts(real_point3d *start_position
             uint8_t creased = 0;
 
             if (dot3(&step, &plane0->normal) < -0.0001f &&
-                plane3d_intersect_pair_to_line(&line_direction, plane0, new_plane, &line_point)) {
+                halo::math::plane3d_intersect_pair_to_line(line_direction, *plane0, *new_plane, line_point)) {
                 creased = 1;
                 new_planes[1] = planes[0];
                 new_count = 2;
@@ -224,11 +217,11 @@ int16_t PhysicsModelOps::model_slide_along_contacts(real_point3d *start_position
                 step.i = line_direction.i * along;
                 step.j = line_direction.j * along;
                 step.k = line_direction.k * along;
-                point3d_project_onto_line(&hit_point, &line_direction, &line_point, &position);
+                halo::math::point3d_project_onto_line(hit_point, line_direction, line_point, position);
                 if (plane_count > 1) {
                     real_plane3d *plane1 = CONTACT_PLANE(&contacts[planes[1]]);
                     if (dot3(&step, &plane1->normal) < -0.0001f &&
-                        plane3d_intersect_three(new_plane, plane0, plane1, &corner)) {
+                        halo::math::plane3d_intersect_three(*new_plane, *plane0, *plane1, corner)) {
                         new_planes[2] = planes[1];
                         new_count = 3;
                         step.i = 0.0f;
@@ -241,14 +234,14 @@ int16_t PhysicsModelOps::model_slide_along_contacts(real_point3d *start_position
             if (!creased && plane_count > 1) {
                 real_plane3d *plane1 = CONTACT_PLANE(&contacts[planes[1]]);
                 if (dot3(&step, &plane1->normal) < -0.0001f &&
-                    plane3d_intersect_pair_to_line(&line_direction, plane1, new_plane, &line_point)) {
+                    halo::math::plane3d_intersect_pair_to_line(line_direction, *plane1, *new_plane, line_point)) {
                     new_planes[1] = planes[1];
                     new_count = 2;
                     along = dot3(&line_direction, &remaining) / dot3(&line_direction, &line_direction);
                     step.i = line_direction.i * along;
                     step.j = line_direction.j * along;
                     step.k = line_direction.k * along;
-                    point3d_project_onto_line(&hit_point, &line_direction, &line_point, &position);
+                    halo::math::point3d_project_onto_line(hit_point, line_direction, line_point, position);
                 }
             }
         }
@@ -315,28 +308,28 @@ int16_t PhysicsModelOps::model_slide_along_contacts(real_point3d *start_position
             if (lowest == -1) {
                 float along = -(line_direction.k / (line_direction.j * line_direction.j +
                     line_direction.i * line_direction.i + line_direction.k * line_direction.k));
-                normal->i = line_direction.i * along + global_up3d_pointer->i;
-                normal->j = line_direction.j * along + global_up3d_pointer->j;
-                normal->k = line_direction.k * along + global_up3d_pointer->k;
+                normal->i = line_direction.i * along + halo::math::globals().global_up3d_pointer->i;
+                normal->j = line_direction.j * along + halo::math::globals().global_up3d_pointer->j;
+                normal->k = line_direction.k * along + halo::math::globals().global_up3d_pointer->k;
             } else if (lowest == 0) {
-                vector3d_cross_product(normal, &CONTACT_PLANE(&contacts[planes[0]])->normal, &line_direction);
+                halo::math::vector3d_cross_product(*normal, CONTACT_PLANE(&contacts[planes[0]])->normal, line_direction);
             } else {
-                vector3d_cross_product(normal, &line_direction, &CONTACT_PLANE(&contacts[planes[lowest]])->normal);
+                halo::math::vector3d_cross_product(*normal, line_direction, CONTACT_PLANE(&contacts[planes[lowest]])->normal);
             }
-            if (vector3d_normalize_with_length(normal) == 0.0f) {
+            if (halo::math::vector3d_normalize_with_length(*normal) == 0.0f) {
                 return (int16_t)(contact_count - 1);
             }
             floor->plane_d = line_point.y * normal->j + line_point.z * normal->k + line_point.x * normal->i;
         } else {
             if (lowest == -1) {
-                *normal = *global_up3d_pointer;
+                *normal = *halo::math::globals().global_up3d_pointer;
             } else {
                 real_plane3d *low = CONTACT_PLANE(&contacts[planes[lowest]]);
                 float along = -low->normal.k;
-                normal->i = along * low->normal.i + global_up3d_pointer->i;
-                normal->j = along * low->normal.j + global_up3d_pointer->j;
-                normal->k = along * low->normal.k + global_up3d_pointer->k;
-                if (vector3d_normalize_with_length(normal) == 0.0f) {
+                normal->i = along * low->normal.i + halo::math::globals().global_up3d_pointer->i;
+                normal->j = along * low->normal.j + halo::math::globals().global_up3d_pointer->j;
+                normal->k = along * low->normal.k + halo::math::globals().global_up3d_pointer->k;
+                if (halo::math::vector3d_normalize_with_length(*normal) == 0.0f) {
                     return (int16_t)(contact_count - 1);
                 }
             }
@@ -505,9 +498,6 @@ void PhysicsModelOps::point_walk_toward_target(physics_point_walk_state *state, 
 
 }
 
-extern "C" { extern float vector3d_scalar_triple_product(const real_vector3d *a, const real_vector3d *b, const real_vector3d *c); }
-extern "C" { extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); }
-extern "C" { extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); }
 namespace halo::physics {
 
 /**
@@ -552,7 +542,7 @@ void PhysicsModelOps::shape_add_edge_proxy(int32_t edge_index, ModelCollisionGeo
         uint8_t *planes = (uint8_t *)bsp->planes.pointer;
         real_vector3d *left_normal = (real_vector3d *)(planes + (left_plane & 0x7fffffffu) * 0x10);
         real_vector3d *right_normal = (real_vector3d *)(planes + (right_plane & 0x7fffffffu) * 0x10);
-        real triple = vector3d_scalar_triple_product(left_normal, right_normal, &direction);
+        real triple = halo::math::vector3d_scalar_triple_product(*left_normal, *right_normal, direction);
         if (((left_plane & 0x80000000u) != 0) == ((right_plane & 0x80000000u) != 0)) {
             if (triple <= -0.0001f) {
                 return;
@@ -569,8 +559,8 @@ void PhysicsModelOps::shape_add_edge_proxy(int32_t edge_index, ModelCollisionGeo
 
     near_vertex = start;
     if (matrix != 0) {
-        matrix4x3_transform_vector(&direction, &direction, matrix);
-        matrix4x3_transform_point(&transformed_start, start, matrix);
+        halo::math::matrix4x3_transform_vector(direction, direction, *matrix);
+        halo::math::matrix4x3_transform_point(transformed_start, *start, *matrix);
         near_vertex = &transformed_start;
     }
 
@@ -584,7 +574,6 @@ void PhysicsModelOps::shape_add_edge_proxy(int32_t edge_index, ModelCollisionGeo
 }
 
 extern "C" { extern int16_t collision_bsp_surface_get_vertices(ModelCollisionGeometryBSP *bsp, int32_t surface_index, real_point3d *out_vertices); }
-extern "C" { extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index); }
 namespace halo::physics {
 
 /**
@@ -603,12 +592,12 @@ void PhysicsModelOps::shape_add_surface_proxy(ModelCollisionGeometryBSP *bsp, fl
     real_plane3d plane;
     int16_t vertex_count = collision_bsp_surface_get_vertices(bsp, surface_index, vertices);
 
-    structure_bsp_plane_fetch_signed(&plane, bsp, (int32_t)surface->plane);
+    halo::structures::structure_bsp_plane_fetch_signed(&plane, bsp, (int32_t)surface->plane);
 
     if (moving_frame != 0) {
         int16_t i;
         for (i = 0; i < vertex_count; i++) {
-            matrix4x3_transform_point(&vertices[i], &vertices[i], (real_matrix4x3 *)moving_frame);
+            halo::math::matrix4x3_transform_point(vertices[i], vertices[i], *(real_matrix4x3 *)moving_frame);
         }
         {
             float new_i = plane.normal.j * moving_frame[4] + plane.normal.k * moving_frame[7] +
@@ -659,7 +648,7 @@ void PhysicsModelOps::shape_add_vertex_proxy(ModelCollisionGeometryBSP *bsp, uin
     real_point3d *vertex_point;
 
     if (matrix != 0) {
-        matrix4x3_transform_point(&transformed, (real_point3d *)&vertex_rec->point, matrix);
+        halo::math::matrix4x3_transform_point(transformed, *((real_point3d *)&vertex_rec->point), *matrix);
         vertex_point = &transformed;
     } else {
         vertex_point = (real_point3d *)&vertex_rec->point;
@@ -701,9 +690,7 @@ void PhysicsModelOps::shape_build_proxies_from_query(collision_bsp_sphere_result
 
 }
 
-extern "C" { extern const projection_axis_pair k_projection_axes[6]; }
 extern "C" { extern double sqrt(double x); }
-extern "C" { extern int16_t vector3d_major_axis_index(real_vector3d *v); }
 static void append_quad_vertices(physics_model_shape *shape, float quad[4][3],
                                   projection_axis_pair proj)
 {
@@ -800,13 +787,13 @@ void PhysicsModelOps::shape_edge_to_pill_and_quad(physics_model *model, real_poi
                         shape->plane_k = 0.0f;
                         shape->plane_d = plane_d;
                         shape->thickness = thickness;
-                        shape->projection_axis = vector3d_major_axis_index(
-                            (real_vector3d *)&shape->plane_i);
+                        shape->projection_axis = halo::math::vector3d_major_axis_index(
+                            *((real_vector3d *)&shape->plane_i));
                         shape->projection_sign =
                             0.0f < ((float *)&shape->plane_i)[shape->projection_axis];
                         shape->vertex_count = 4;
                         {
-                            projection_axis_pair proj = k_projection_axes[shape->projection_axis * 2 +
+                            projection_axis_pair proj = halo::math::globals().k_projection_axes[shape->projection_axis * 2 +
                                                                            shape->projection_sign];
                             append_quad_vertices(shape, quad, proj);
                         }
@@ -840,14 +827,14 @@ void PhysicsModelOps::shape_edge_to_pill_and_quad(physics_model *model, real_poi
                             shape->plane_k = 0.0f;
                             shape->plane_d = -plane_d;
                             shape->thickness = thickness;
-                            shape->projection_axis = vector3d_major_axis_index(
-                                (real_vector3d *)&shape->plane_i);
+                            shape->projection_axis = halo::math::vector3d_major_axis_index(
+                                *((real_vector3d *)&shape->plane_i));
                             shape->projection_sign =
                                 0.0f < ((float *)&shape->plane_i)[shape->projection_axis];
                             shape->vertex_count = 4;
                             {
                                 projection_axis_pair proj =
-                                    k_projection_axes[shape->projection_axis * 2 +
+                                    halo::math::globals().k_projection_axes[shape->projection_axis * 2 +
                                                        shape->projection_sign];
                                 append_quad_vertices(shape, new_quad, proj);
                             }
@@ -975,7 +962,7 @@ uint8_t PhysicsModelOps::shape_pill_test_point(real_point3d *point, physics_mode
                     out_normal->normal.j = rel_y - t * pill->extent_j;
                     out_normal->normal.k = rel_z - t * pill->extent_k;
                 }
-                vector_len = vector3d_normalize_with_length((real_vector3d *)&out_normal->normal);
+                vector_len = halo::math::vector3d_normalize_with_length(*((real_vector3d *)&out_normal->normal));
                 if (vector_len == 0.0f) {
                     out_normal->normal.i = 0.0f;
                     out_normal->normal.j = 0.0f;
@@ -994,7 +981,6 @@ uint8_t PhysicsModelOps::shape_pill_test_point(real_point3d *point, physics_mode
 
 }
 
-extern "C" { extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, float scale); }
 namespace halo::physics {
 
 /**
@@ -1080,7 +1066,7 @@ uint8_t PhysicsModelOps::shape_pill_test_ray(real_vector3d *delta, real_point3d 
                     real length;
 
                     *out_t = t0;
-                    point3d_add_scaled(&hit_relative, delta, &rel, t0);
+                    halo::math::point3d_add_scaled(hit_relative, *delta, rel, t0);
 
                     proj_hit_extent = hit_relative.x * pill->extent_i +
                                       hit_relative.y * pill->extent_j +
@@ -1089,7 +1075,7 @@ uint8_t PhysicsModelOps::shape_pill_test_ray(real_vector3d *delta, real_point3d 
                     out_plane->normal.j = hit_relative.y - (proj_hit_extent / extent_len_sq) * pill->extent_j;
                     out_plane->normal.k = hit_relative.z - (proj_hit_extent / extent_len_sq) * pill->extent_k;
 
-                    length = vector3d_normalize_with_length(&out_plane->normal);
+                    length = halo::math::vector3d_normalize_with_length(out_plane->normal);
                     if (length == 0.0f) {
                         out_plane->normal.i = 1.0f;
                         out_plane->normal.j = 0.0f;
@@ -1132,7 +1118,7 @@ uint8_t PhysicsModelOps::shape_polygon_test_point(physics_model_shape *shape, re
         proj.x = t * shape->plane_i + point->x;
         proj.y = t * shape->plane_j + point->y;
         proj.z = t * shape->plane_k + point->z;
-        proj_axes = k_projection_axes[shape->projection_axis * 2 + shape->projection_sign];
+        proj_axes = halo::math::globals().k_projection_axes[shape->projection_axis * 2 + shape->projection_sign];
         proj2d[0] = ((float *)&proj)[proj_axes.i];
         proj2d[1] = ((float *)&proj)[proj_axes.j];
 
@@ -1226,7 +1212,7 @@ uint8_t PhysicsModelOps::shape_polygon_test_ray(real_point3d *origin, physics_mo
     delta_on_plane.j = dot_delta_normal * shape->plane_j + delta->j;
     delta_on_plane.k = dot_delta_normal * shape->plane_k + delta->k;
 
-    proj_axes = k_projection_axes[shape->projection_axis * 2 + shape->projection_sign];
+    proj_axes = halo::math::globals().k_projection_axes[shape->projection_axis * 2 + shape->projection_sign];
     point_proj[0] = ((float *)&point_on_plane)[proj_axes.i];
     point_proj[1] = ((float *)&point_on_plane)[proj_axes.j];
     delta_proj[0] = ((float *)&delta_on_plane)[proj_axes.i];
@@ -1405,7 +1391,7 @@ uint8_t PhysicsModelOps::shape_sphere_test_ray(real_point3d *origin, real_vector
     out_plane->normal.i = t * delta->i - dx;
     out_plane->normal.j = t * delta->j - dy;
     out_plane->normal.k = t * delta->k - dz;
-    length = vector3d_normalize_with_length(&out_plane->normal);
+    length = halo::math::vector3d_normalize_with_length(out_plane->normal);
     if (length == 0.0f) {
         out_plane->normal.i = 0.0f;
         out_plane->normal.j = 0.0f;
@@ -1457,7 +1443,7 @@ void PhysicsModelOps::shape_surface_to_polygon(int16_t vertex_count, real_point3
         shape->vertex_count = vertex_count;
         if (0 < vertex_count) {
             projection_axis_pair proj =
-                k_projection_axes[shape->projection_axis * 2 + shape->projection_sign];
+                halo::math::globals().k_projection_axes[shape->projection_axis * 2 + shape->projection_sign];
             int16_t i;
             for (i = 0; i < shape->vertex_count; i++) {
                 shape->vertices[i][0] = ((float *)&vertices[i])[proj.i];
@@ -1469,7 +1455,7 @@ void PhysicsModelOps::shape_surface_to_polygon(int16_t vertex_count, real_point3
             shape->plane_d = shape->plane_d - margin * shape->plane_k;
             if (shape->projection_axis != 2) {
                 projection_axis_pair proj =
-                    k_projection_axes[shape->projection_axis * 2 + shape->projection_sign];
+                    halo::math::globals().k_projection_axes[shape->projection_axis * 2 + shape->projection_sign];
                 int16_t component = (proj.j == 2) ? 1 : 0;
                 int16_t i;
                 for (i = 0; i < shape->vertex_count; i++) {

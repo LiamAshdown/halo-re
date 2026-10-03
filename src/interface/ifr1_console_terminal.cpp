@@ -2,6 +2,8 @@
 #include "halo/interface/engine_state.hpp"
 #include <stdarg.h>
 #include <string.h>
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t terminal_initialized;
@@ -21,7 +23,6 @@ extern terminal_console *console_active;
 extern char console_window_title[0x20];
 extern void console_position_cursor(void);
 extern Globals *global_globals;
-extern tag_instance *tag_instances;
 extern uint8_t console_caret_visible;
 extern uint8_t console_show_messages;
 extern datum_index console_message_head;
@@ -40,9 +41,7 @@ extern void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *d
     uint32_t position_or_color1, uint32_t position_or_color2, const char *text);
 extern int16_t render_viewport_top[6];
 extern datum_index console_message_tail;
-extern void datum_delete(data_array *array, datum_index handle);
 extern void console_message_delete(datum_index message);
-extern datum_index datum_new(data_array *array);
 extern void widget_text_edit_clamp_selection(text_edit_state *state);
 extern void console_restore_cursor(void);
 extern uint32_t strlen(const char *s);
@@ -266,7 +265,7 @@ void ConsoleTerminal::draw_overlay(void)
         return;
     }
 
-    font = (Font *)tag_instances[(uint16_t)font_terminal_id].data;
+    font = (Font *)halo::cache::globals().tag_instances[(uint16_t)font_terminal_id].data;
     line_height = font->ascending_height + font->descending_height + font->leading_height;
 
     if (console_active != (terminal_console *)0) {
@@ -369,11 +368,11 @@ void ConsoleTerminal::message_delete(datum_index message)
     if (previous != (datum_index)0xffffffff) {
         ((console_message *)((char *)terminal_messages->data +
                               (uint16_t)previous * sizeof(console_message)))->next = next;
-        datum_delete(terminal_messages, message);
+        halo::memory::datum_delete(terminal_messages, message);
         return;
     }
     console_message_head = next;
-    datum_delete(terminal_messages, message);
+    halo::memory::datum_delete(terminal_messages, message);
 }
 
 /**
@@ -416,7 +415,7 @@ datum_index ConsoleTerminal::message_new(void)
     if (terminal_messages->last_index == 0x20) {
         console_message_delete(console_message_tail);
     }
-    new_message = datum_new(terminal_messages);
+    new_message = halo::memory::datum_new(terminal_messages);
     old_head = console_message_head;
     record = (console_message *)((char *)terminal_messages->data +
                                   (uint16_t)new_message * sizeof(console_message));

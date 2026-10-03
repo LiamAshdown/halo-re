@@ -1,7 +1,7 @@
 /**
  * @file include/halo/math/real_vector.hpp
  * Real vectors and points: length, normalize, cross/dot products, projections, angles.
- * The C symbols other modules link against are the wrappers in src/math/math_c_api.cpp.
+ * Declared for other modules through halo/math/api.hpp.
  */
 #pragma once
 

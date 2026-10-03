@@ -6,7 +6,7 @@
 
 #include "halo/math/math.hpp"
 #include "halo/math/glm_interop.hpp"
-#include "halo/math/math_globals.h"
+#include "halo/math/globals.hpp"
 
 #include "tags.h"
 
@@ -134,7 +134,7 @@ void vector2d_tangent_edge_directions(const real_vector2d &direction, real_vecto
 real_point3d * decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis, const real_plane3d *plane, const real_point2d &known)
 {
     int32_t axis = (int16_t)dominant_axis;
-    const projection_axis_pair *axes = &k_projection_axes[axis * 2 + (component_sign & 0xff)];
+    const projection_axis_pair *axes = &globals().k_projection_axes[axis * 2 + (component_sign & 0xff)];
     float *out_f = (float *)out;
     const float *plane_f = (const float *)plane;
 
@@ -514,8 +514,8 @@ uint8_t triangle_point_barycentric_2d(const real_point3d &a, const real_point3d 
     }
 
     axis_index = (0.0f < n[dominant_axis] ? 1 : 0) + dominant_axis * 2;
-    i = k_projection_axes[axis_index].i;
-    j = k_projection_axes[axis_index].j;
+    i = globals().k_projection_axes[axis_index].i;
+    j = globals().k_projection_axes[axis_index].j;
 
     e1_i = e1[i];
     e1_j = e1[j];

@@ -1,10 +1,12 @@
 #include "halo/interface/ifr1_hud_waypoints.hpp"
 #include <string.h>
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern hud_waypoint_state *hud_waypoints;
-extern void *data_iterator_next(data_iterator *iterator);
 extern HUDGlobals *hud_globals_tag_data;
 extern player_globals *local_player_globals;
 extern real_matrix4x3 render_camera_world_to_view;
@@ -21,14 +23,12 @@ extern long lrint(double x);
 extern int32_t __ftol(double x);
 extern int32_t ui_real_to_int_truncate(float value);
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *point, void *frustum,
                                                     void *camera);
 extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed);
 extern uint32_t color_rgb_float_to_int(const float *rgb);
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset);
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern void hud_draw_bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, int16_t anchor,
                                const Point2DInt *screen_position, float scale, float rotation, uint32_t color);
 extern void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_placement *placement, int16_t value,
@@ -59,8 +59,8 @@ void LocalPlayerVisitor::for_each_on_team(int16_t team, LocalPlayerVisitor &visi
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    for (p = (player *)data_iterator_next(&iterator); p != 0;
-         p = (player *)data_iterator_next(&iterator)) {
+    for (p = (player *)halo::memory::data_iterator_next(&iterator); p != 0;
+         p = (player *)halo::memory::data_iterator_next(&iterator)) {
         if (p->local_player_index != -1 && (int32_t)team == p->team) {
             visitor.visit(iterator.index);
         }
@@ -293,7 +293,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
         scale = (float)(pow((double)(1.0f - distance * 0.06666667014360428f), 0.7) + 0.5);
     }
 
-    matrix4x3_transform_point(&point, &point, &render_camera_world_to_view);
+    halo::math::matrix4x3_transform_point(point, point, render_camera_world_to_view);
     if (visibility != 1 && render_project_world_point_to_screen(&screen, &point, render_frustum_global, render_camera_global) != 0) {
         x = screen.x - (float)(render_viewport_left + 0x140);
         y = screen.y - (float)(render_viewport_top + 0xf0);
@@ -329,7 +329,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
     hud_meter_resolve_bitmap_frame(*(datum_index *)&globals->arrow_bitmap.tag_id,
                                    (int16_t)(&arrow->on_screen_sequence_index)[visibility], 0, (void **)&bitmap,
                                    &uv_offset);
-    if (bitmap == 0 || texture_cache_get(bitmap, 0, 1) == 0) {
+    if (bitmap == 0 || halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         return;
     }
     uv = (const float *)uv_offset;
@@ -418,8 +418,8 @@ void HudWaypoints::draw_all_for_player(void)
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    for (entry = (player *)data_iterator_next(&iterator); entry != 0;
-         entry = (player *)data_iterator_next(&iterator)) {
+    for (entry = (player *)halo::memory::data_iterator_next(&iterator); entry != 0;
+         entry = (player *)halo::memory::data_iterator_next(&iterator)) {
         if (local_player != iterator.index && entry->team == team && entry->unit != (datum_index)-1) {
             teammates[count] = iterator.index;
             count++;

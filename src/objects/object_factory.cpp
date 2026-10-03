@@ -4,11 +4,13 @@
 #include "effects.h"
 #include "networking.h"
 #include "cutscene.h"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern int32_t animation_state_advance(uint32_t animation_graph_tag_index, void *state, int32_t *sound_tag_id, int32_t random_stream);
-extern void block_list_compact(memory_pool *arena);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern cinematic_globals *cinematic_globals_ptr;
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
@@ -19,18 +21,13 @@ extern void control_binding_table_update_a(void);
 extern void control_binding_table_update_b(void);
 extern game_engine_definition *current_game_engine;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern void euler_angles_to_basis_vectors(real_euler_angles3d *angles, real_vector3d *up_out, real_vector3d *forward_out);
 extern uint8_t g_control_binding_secondary_active;
 extern uint8_t g_control_binding_state;
 extern uint32_t game_engine_remap_placement_by_type(uint32_t handle);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern real_vector3d *global_forward3d_pointer;
 extern uint8_t *global_scenario;
 extern int16_t global_structure_bsp_index;
-extern real_vector3d *global_up3d_pointer;
 extern const real_vector3d *global_white_color;
-extern void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern uint8_t network_action_apply_active;
 extern int32_t network_client;
 extern int16_t network_game_mode;
@@ -73,9 +70,7 @@ extern void object_update_change_colors(uint32_t object_index);
 extern void object_update_functions(uint32_t object_index);
 extern uint16_t object_visibility_computed_mask;
 extern void objects_garbage_collection(void);
-extern void predicted_resource_list_touch(uint8_t *predicted_resources_field);
 extern void scenario_objects_place_for_structure_bsp(uint8_t place);
-extern tag_instance *tag_instances;
 extern void widget_new(uint32_t object_index);
 }
 
@@ -234,11 +229,11 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
                 if (kind == -1) {
                     continue;
                 }
-                matrix4x3_from_euler_angles(&basis, *(float *)(placement + 0x14), *(float *)(placement + 0x18),
+                halo::math::matrix4x3_from_euler_angles(basis, *(float *)(placement + 0x14), *(float *)(placement + 0x18),
                                             *(float *)(placement + 0x1c));
                 tag = *(datum_index *)((uint8_t *)palette->pointer + kind * 0x30 + 0xc);
-                definition_data = (uint8_t *)tag_instances[tag & 0xffff].data;
-                matrix4x3_transform_point(&origin, (real_point3d *)(definition_data + 8), &basis);
+                definition_data = (uint8_t *)halo::cache::globals().tag_instances[tag & 0xffff].data;
+                halo::math::matrix4x3_transform_point(origin, *(real_point3d *)(definition_data + 8), basis);
                 if (bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(placement + 8)) == 0xffffffff &&
                     bsp3d_node_find_leaf(0, global_collision_bsp, &origin) == 0xffffffff) {
                     *(uint16_t *)(placement + 0x20) &= (uint16_t)~bsp_bit;
@@ -249,7 +244,7 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
         }
         if (place) {
             objects_garbage_collection();
-            block_list_compact(object_memory_pool);
+            halo::memory::block_list_compact(object_memory_pool);
             for (i = 0; i < (int32_t)placements->count; i++) {
                 uint8_t *placement = (uint8_t *)placements->pointer + i * size;
                 int16_t name = *(int16_t *)(placement + 2);
@@ -286,8 +281,8 @@ void halo::objects::ObjectPlacementDataView::initialize(datum_index definition_t
 
     placement->definition_tag = definition_tag;
     placement->flags = 0;
-    placement->forward = *global_forward3d_pointer;
-    placement->up = *global_up3d_pointer;
+    placement->forward = *halo::math::globals().global_forward3d_pointer;
+    placement->up = *halo::math::globals().global_up3d_pointer;
     placement->permutation_group = 0;
 
     current = object_try_and_get(role, _object_mask_all);
@@ -316,7 +311,7 @@ datum_index halo::objects::ObjectFactory::create(object_placement_data *placemen
     uint32_t role = 3;
 
     if (network_game_mode == 2) {
-        Object *definition = (Object *)tag_instances[(uint16_t)placement->definition_tag].data;
+        Object *definition = (Object *)halo::cache::globals().tag_instances[(uint16_t)placement->definition_tag].data;
         if (object_type_definitions[definition->object_type]->network_delta_message_type != -1) {
             role = 0;
         }
@@ -366,7 +361,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
         return k_datum_index_none;
     }
 
-    tag_inst = &tag_instances[definition_tag & 0xffff];
+    tag_inst = &halo::cache::globals().tag_instances[definition_tag & 0xffff];
     object_tag = (Object *)tag_inst->data;
 
     new_index = object_block_data_new(-1, object_data,
@@ -441,7 +436,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     if (TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) == k_datum_index_none) {
         node_count = 1;
     } else {
-        GBXModel *model = (GBXModel *)tag_instances[
+        GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[
             TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) & 0xffff].data;
         node_count = model->nodes.count;
     }
@@ -511,7 +506,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
         object_block_data_free(object_data, new_index);
         new_index = k_datum_index_none;
 out_of_objects:
-        tag_path = tag_instances[(uint16_t)(uint32_t)definition_tag].path;
+        tag_path = halo::cache::globals().tag_instances[(uint16_t)(uint32_t)definition_tag].path;
         last_slash = strrchr(tag_path, '\\');
         if (last_slash != 0) {
             tag_path = last_slash + 1;
@@ -574,8 +569,8 @@ datum_index halo::objects::ObjectFactory::lookup_by_name(int16_t name_index)
 void halo::objects::ObjectFactory::notify_predicted_resources_if_valid(datum_index definition_tag)
 {
     if (definition_tag != k_datum_index_none) {
-        uint8_t *tag_data = (uint8_t *)tag_instances[definition_tag & 0xffff].data;
-        predicted_resource_list_touch(tag_data + 0x170);
+        uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[definition_tag & 0xffff].data;
+        halo::cache::predicted_resource_list_touch((TagReflexive *)(tag_data + 0x170));
     }
 }
 
@@ -609,7 +604,7 @@ datum_index halo::objects::ObjectFactory::create_from_scenario_placement(uint8_t
     }
     object_placement_data_initialize(&data, tag, k_datum_index_none);
     data.position = *(real_point3d *)&((struct object_placement_data *)placement)->owner_linkage;
-    euler_angles_to_basis_vectors((real_euler_angles3d *)(placement + 0x14), &data.up, &data.forward);
+    halo::math::euler_angles_to_basis_vectors(*(real_euler_angles3d *)(placement + 0x14), data.up, data.forward);
     data.permutation_group = *(int16_t *)(placement + 0x06);
     object = object_new(&data);
     if (object != k_datum_index_none) {
@@ -632,10 +627,10 @@ uint8_t halo::objects::SceneryObject::initialize()
 {
     datum_index object_index = handle;
     uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
-    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & 0xffff].data;
     datum_index graph = *(datum_index *)&((struct Object *)definition)->animation_graph.tag_id;
 
-    if (graph != k_datum_index_none && *(int32_t *)((uint8_t *)tag_instances[graph & 0xffff].data + 0x74) > 0) {
+    if (graph != k_datum_index_none && *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[graph & 0xffff].data + 0x74) > 0) {
         int16_t animation = animation_choose_random_permutation(graph, 0, 1);
         if (animation != -1) {
             *(int16_t *)(object + 0xd0) = animation;

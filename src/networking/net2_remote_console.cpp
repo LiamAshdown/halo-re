@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "halo/networking/net2_remote_console.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int64_t performance_frequency;
@@ -34,7 +35,6 @@ extern int16_t network_game_mode;
 extern void * global_white_argb;
 extern network_client_globals * network_client;
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 extern char registry_halo_version_buffer[0x40];
 extern double sin(double x);
 extern double cos(double x);
@@ -55,7 +55,6 @@ extern void update_server_dispose(void);
 extern void update_client_stage_entry(void);
 extern void ui_network_wait_timeout_check(void);
 extern void ui_network_wait_timeout_start(void);
-extern void * data_iterator_next(data_iterator *iterator);
 extern void network_game_client_apply_position_update(void *record, uint8_t history_byte, uint32_t *values, network_client_globals *client);
 extern network_machine * network_machine_find_by_id(network_server_globals *server, int32_t machine_id);
 extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask,
@@ -284,9 +283,9 @@ void RemoteConsole::run_rcon_send_request(char *command, char *password)
             uint32_t item_flag = 1;
 
             channel->send_budget = channel->send_budget + encoded_bits + 1;
-            bit_stream_write_bits_chunked(stream, &item_flag, 1);
+            halo::memory::bit_stream_write_bits_chunked(stream, &item_flag, 1);
             channel->outgoing.empty = 0;
-            bit_stream_write_bits_chunked(stream, (const uint32_t *)network_message_scratch, encoded_bits);
+            halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)network_message_scratch, encoded_bits);
             channel->outgoing.empty = 0;
         }
     }
@@ -374,7 +373,7 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
             (void)checksum;
             iterator.data = 0; iterator.next_index = 0; iterator.index = 0;
             iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-            it = data_iterator_next(&iterator);
+            it = halo::memory::data_iterator_next(&iterator);
             while (it != 0) {
 
                 break;
@@ -419,9 +418,9 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
                 {
                     uint32_t item_flag = 1;
 
-                    bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
+                    halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
                     channel->outgoing.empty = 0;
-                    bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)network_message_scratch,
+                    halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)network_message_scratch,
                                                   (int32_t)(uintptr_t)encoded);
                     channel->outgoing.empty = 0;
                 }

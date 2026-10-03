@@ -1,4 +1,6 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
@@ -141,7 +143,6 @@ extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-extern tag_instance *tag_instances;
 }
 }
 
@@ -154,7 +155,7 @@ void ActorView::type_elite_update()
 {
     using namespace actor_type_elite_update_local;
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = (uint8_t *)tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
         actor_process_order_request(actor_index, 0xffff);
@@ -722,16 +723,10 @@ extern data_array *prop_data;
 extern data_array *object_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
-extern tag_instance *tag_instances;
-extern uint32_t random_seed_global;
 extern game_time_globals *game_time;
 extern const real_point3d *global_origin3d_pointer;
-extern real random_real_range(real min, real max);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern int32_t actor_pick_dialogue_variant_a(int16_t category);
 extern int32_t actor_pick_dialogue_variant_b(int16_t category);
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
 extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id);
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern void unit_detach_reposition_and_nudge(uint32_t unit_index);
@@ -750,8 +745,8 @@ extern double fabs(double x);
 #define U32(p, o) (*(uint32_t *)((uint8_t *)(p) + (o)))
 static uint32_t swarm_random_next(void)
 {
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    return random_seed_global >> 16;
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    return halo::math::globals().random_seed_global >> 16;
 }
 static void copy3(real_vector3d *out, const void *in)
 {
@@ -771,7 +766,7 @@ void ActorView::type_infection_swarm_update()
 {
     using namespace actor_type_infection_swarm_update_local;
     uint8_t *actor = ACTOR(actor_index);
-    uint8_t *definition = (uint8_t *)tag_instances[U32(actor, 0x5c) & 0xffff].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[U32(actor, 0x5c) & 0xffff].data;
     uint8_t *swarm = SWARM(U32(actor, 0x28));
     int32_t picked = -1;
     int16_t member;
@@ -928,7 +923,7 @@ void ActorView::type_infection_swarm_update()
                     detach = 1;
                 }
             } else {
-                uint8_t *parent_tag = (uint8_t *)tag_instances[U32(parent, 0x0) & 0xffff].data;
+                uint8_t *parent_tag = (uint8_t *)halo::cache::globals().tag_instances[U32(parent, 0x0) & 0xffff].data;
 
                 if ((I16(parent, 0xb4) != 0 || (int8_t)parent_tag[0x17d] < 0) && component[0x18] > 0x2d) {
                     component[0x1a] = 0x2d;
@@ -976,10 +971,10 @@ void ActorView::type_infection_swarm_update()
                     component[0x1c] = (uint8_t)actor_pick_dialogue_variant_a(behaviour);
                 } else {
                     float damping = F(component, 0x2c) * -0.06666667f;
-                    float angle = random_real_range(-0.020943951f, 0.020943951f) + F(component, 0x2c) + damping;
+                    float angle = halo::math::random_real_range(-0.020943951f, 0.020943951f) + F(component, 0x2c) + damping;
 
                     F(component, 0x2c) = angle;
-                    vector3d_rotate_about_axis((real_vector3d *)(component + 0x20), &up, (float)sin((double)angle),
+                    halo::math::vector3d_rotate_about_axis(*(real_vector3d *)(component + 0x20), up, (float)sin((double)angle),
                         (float)cos((double)angle));
                 }
             } else {
@@ -999,13 +994,13 @@ void ActorView::type_infection_swarm_update()
                     if (!(distance_squared < 0.25f)) {
                         float spread = 0.5f / (float)sqrt((double)distance_squared) * 3.1415927f;
 
-                        angle = random_real_range(-spread, spread);
+                        angle = halo::math::random_real_range(-spread, spread);
                         *(real_vector3d *)(component + 0x20) = to_goal;
                     } else {
-                        angle = random_real_range(-3.1415927f, 3.1415927f);
+                        angle = halo::math::random_real_range(-3.1415927f, 3.1415927f);
                         copy3((real_vector3d *)(component + 0x20), object + 0x74);
                     }
-                    vector3d_rotate_about_axis((real_vector3d *)(component + 0x20), &up, (float)sin((double)angle),
+                    halo::math::vector3d_rotate_about_axis(*(real_vector3d *)(component + 0x20), up, (float)sin((double)angle),
                         (float)cos((double)angle));
                     F(component, 0x2c) = 0.0f;
                 }
@@ -1040,7 +1035,7 @@ void ActorView::type_infection_swarm_update()
 
                 moving = 1;
                 if (kind >= 2 && kind <= 3) {
-                    vector3d_cross_product(&desired, (real_vector3d *)(component + 0x28), &up);
+                    halo::math::vector3d_cross_product(desired, *(real_vector3d *)(component + 0x28), up);
                     negate = (uint8_t)(kind == 3);
                 } else {
                     copy3(&desired, component + 0x28);
@@ -1094,7 +1089,7 @@ void ActorView::type_infection_swarm_update()
                 desired.i = side.j * up.k - side.k * up.j;
                 desired.j = side.k * up.i - up.k * side.i;
                 desired.k = up.j * side.i - side.j * up.i;
-                if (vector3d_normalize_with_length(&desired) == 0.0f) {
+                if (halo::math::vector3d_normalize_with_length(desired) == 0.0f) {
                     copy3(&desired, object + 0x74);
                 }
             }
@@ -1146,7 +1141,7 @@ void ActorView::type_infection_swarm_update()
                     } else {
                         turn = turn * 1.5707964f;
                     }
-                    vector3d_rotate_about_axis(&desired, &up, (float)sin((double)turn), (float)cos((double)turn));
+                    halo::math::vector3d_rotate_about_axis(desired, up, (float)sin((double)turn), (float)cos((double)turn));
                 }
             }
         }
@@ -1336,7 +1331,6 @@ extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-extern tag_instance *tag_instances;
 }
 }
 
@@ -1349,7 +1343,7 @@ void ActorView::type_jackal_update()
 {
     using namespace actor_type_jackal_update_local;
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = (uint8_t *)tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
         actor_process_order_request(actor_index, 0xffff);

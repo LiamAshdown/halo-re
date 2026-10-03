@@ -12,19 +12,18 @@
 #include "networking.h"
 
 #include "halo/game/game1_king.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern int32_t king_bucket_credit_ticks[16];
 extern wchar_t empty_string;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
-extern void *datum_get(datum_index handle, data_array *array);
 extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
 extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
-extern tag_instance *tag_instances;
 extern uint16_t missing_string_text[];
 extern Scenario *global_scenario;
 extern int32_t king_team_hill_seconds_network[16];
@@ -69,7 +68,7 @@ namespace halo::game::engine1 {
  */
 const uint16_t *King::game_text(int16_t index)
 {
-    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : text_string_list_get_string(tag_id, index);
 }
@@ -89,12 +88,12 @@ const uint16_t *King::place_text(datum_index recipient)
  */
 uint8_t King::build_message_text(datum_index recipient, int32_t message_type, datum_index subject, wchar_t *text, uint32_t count)
 {
-    uint8_t *player = (uint8_t *)datum_get(subject, player_data);
+    uint8_t *player = (uint8_t *)halo::memory::datum_get(subject, player_data);
     int32_t seconds;
 
     switch (message_type) {
     case 0x22:
-        if (datum_get(recipient, player_data) == 0 || player == 0) {
+        if (halo::memory::datum_get(recipient, player_data) == 0 || player == 0) {
             return 0;
         }
         {
@@ -133,13 +132,13 @@ wchar_t *King::build_player_text(datum_index player, wchar_t *buffer)
  */
 uint16_t *King::multiplayer_text(int16_t index)
 {
-    datum_index list = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index list = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     if (list == 0xffffffff) {
         return (uint16_t *)L"";
     }
     {
-        uint8_t *strings = (uint8_t *)tag_instances[list & 0xffff].data;
+        uint8_t *strings = (uint8_t *)halo::cache::globals().tag_instances[list & 0xffff].data;
 
         if (*(int32_t *)strings > index) {
             uint8_t *element = *(uint8_t **)(strings + 4) + index * 0x14;
@@ -267,7 +266,7 @@ void King::player_new_life(datum_index player_index)
  */
 void King::player_round_reset(datum_index player_index)
 {
-    uint8_t *player = (uint8_t *)datum_get(player_index, player_data);
+    uint8_t *player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
 
     if (player != 0) {
         *(int16_t *)&((struct player *)player)->objective_time = 0;
@@ -354,7 +353,7 @@ void King::profile_post_update(void **context)
 uint8_t King::query_player_score(int32_t key, int32_t index, void *buffer)
 {
     uint32_t handle = players_get_active_by_index(index);
-    uint8_t *player = (uint8_t *)datum_get(handle, player_data);
+    uint8_t *player = (uint8_t *)halo::memory::datum_get(handle, player_data);
     char text[0x100];
 
     if (player == 0 || key != 0x16) {

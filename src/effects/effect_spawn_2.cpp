@@ -1,13 +1,11 @@
 #include "halo/effects/effects.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t particle_spawn_debug_mode;
-extern tag_instance *tag_instances;
 extern data_array *object_data;
-extern random_seed effect_random_seed;
 extern uint8_t *first_person_weapon_interfaces;
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
 extern const real_point3d *global_origin3d_pointer;
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern real effect_distribution_function_evaluate(EffectDistributionFunction_t type, real fraction);
@@ -94,7 +92,7 @@ void effect_view::spawn_particles()
     if (particle_spawn_debug_mode == 0) {
         return;
     }
-    tag = (Effect *)tag_instances[(uint16_t)self->definition_index].data;
+    tag = (Effect *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
     event = &((EffectEvent *)tag->events.pointer)[self->event_index];
     previous_fraction = self->previous_event_fraction;
     current_fraction = (self->event_duration > 0.0f) ? self->event_time / self->event_duration : 1.0f;
@@ -170,11 +168,11 @@ void effect_view::spawn_particles()
                 if ((b_bits & 0x100) != 0) {
                     radius_span *= self->b_scale;
                 }
-                effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                radius_word = effect_random_seed;
-                effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                sample_index = (int16_t)(((effect_random_seed >> 16) * (uint32_t)(int32_t)sphere_point_table_count) >> 16);
-                sample = sphere_point_table[sample_index];
+                halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+                radius_word = halo::math::globals().effect_random_seed;
+                halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+                sample_index = (int16_t)(((halo::math::globals().effect_random_seed >> 16) * (uint32_t)(int32_t)halo::math::globals().sphere_point_table_count) >> 16);
+                sample = halo::math::globals().sphere_point_table[sample_index];
                 radius = (real)(int32_t)(radius_word >> 16) * 1.5259022e-05f * radius_span + base_radius;
 
                 effect_spawn_particles_transform_point(&record.position, *(real *)(pt + 0x14),
@@ -185,7 +183,7 @@ void effect_view::spawn_particles()
                 {
                     real_vector3d raw_direction, raw_velocity;
 
-                    effect_random_velocity_vector(self, &effect_random_seed, (real_vector3d *)(pt + 0x20),
+                    effect_random_velocity_vector(self, &halo::math::globals().effect_random_seed, (real_vector3d *)(pt + 0x20),
                         &raw_direction, &raw_velocity, *(real *)(pt + 0x84), *(real *)(pt + 0x88),
                         *(real *)(pt + 0x8c), a_bits, (uint8_t)b_bits);
                     effect_spawn_particles_rotate_unscaled((real_vector3d *)&record.direction, raw_direction.i, raw_direction.j,
@@ -258,19 +256,19 @@ void effect_view::spawn_particles()
                     record.velocity.j = self->velocity.j * 30.0f + velocity.j;
                     record.velocity.k = self->velocity.k * 30.0f + velocity.k;
                 }
-                record.scale = effect_property_random_value(9, self, a_bits, b_bits, &effect_random_seed,
+                record.scale = effect_property_random_value(9, self, a_bits, b_bits, &halo::math::globals().effect_random_seed,
                     *(real *)(pt + 0xa0), *(real *)(pt + 0xa4));
                 record.angular_velocity = effect_property_random_value(3, self, *(uint32_t *)(pt + 0xe0),
-                    *(uint32_t *)(pt + 0xe4), &effect_random_seed, *(real *)(pt + 0x90), *(real *)(pt + 0x94));
+                    *(uint32_t *)(pt + 0xe4), &halo::math::globals().effect_random_seed, *(real *)(pt + 0x90), *(real *)(pt + 0x94));
                 if ((pt[0x64] & 2) != 0) {
-                    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                    record.rotation = (real)(int32_t)(effect_random_seed >> 16) * 1.5259022e-05f * 6.2831855f;
+                    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+                    record.rotation = (real)(int32_t)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f * 6.2831855f;
                 } else {
                     record.rotation = 0.0f;
                 }
                 if ((*(uint32_t *)(pt + 0xe0) & 0x800) == 0 && (*(uint32_t *)(pt + 0xe4) & 0x800) == 0) {
-                    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                    frac = (real)(int32_t)(effect_random_seed >> 16) * 1.5259022e-05f;
+                    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+                    frac = (real)(int32_t)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f;
                 } else {
                     frac = ((*(uint32_t *)(pt + 0xe0) & 0x800) != 0) ? self->a_scale : 1.0f;
                     if ((*(uint32_t *)(pt + 0xe4) & 0x800) != 0) {

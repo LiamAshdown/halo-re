@@ -2,6 +2,8 @@
 #include "halo/interface/ifr2_network.hpp"
 #include "crt.h"
 #include <wchar.h>
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -13,11 +15,8 @@ extern network_client_globals *network_client;
 extern int64_t performance_frequency;
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
-extern tag_instance *tag_instances;
 extern uint16_t chat_local_prompt_string[];
 extern uint8_t network_game_search_entry_is_fresh(const uint8_t *entry);
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
-extern datum_index tag_lookup(tag_group group, char *path);
 extern void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...);
 }
 
@@ -89,7 +88,7 @@ void MenuListView::update()
 
     row = widget->first_child;
     for (i = 0; row != (widget_instance *)0 && i < count; i++) {
-        uint16_t *buf = (uint16_t *)heap_reallocate(row->text, 0x20, widget_memory_pool);
+        uint16_t *buf = (uint16_t *)halo::memory::heap_reallocate(row->text, 0x20, widget_memory_pool);
         uint8_t *entry = (uint8_t *)server_list_entries_006b380c[i];
 
         row->text = buf;
@@ -98,11 +97,11 @@ void MenuListView::update()
                 wcsncpy((wchar_t *)buf, (const wchar_t *)((const uint16_t *)(entry + 0x1c)), 0xf);
                 ((uint16_t *)row->text)[0xf] = 0;
             } else {
-                datum_index tag = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                datum_index tag = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 uint16_t *source = missing_string_text;
 
                 if (tag != (datum_index)-1) {
-                    UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag & 0xffff].data;
+                    UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag & 0xffff].data;
 
                     if (list->strings.count > 0x13) {
                         UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;
@@ -150,13 +149,13 @@ void MenuListView::update()
             r6->selection_index = 1;
             r7->selection_index = 1;
             {
-                uint16_t *b = (uint16_t *)heap_reallocate(r8->text, 8, widget_memory_pool);
+                uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r8->text, 8, widget_memory_pool);
 
                 r8->text = b;
                 if (b != (uint16_t *)0) b[0] = 0;
             }
             {
-                uint16_t *b = (uint16_t *)heap_reallocate(r9->text, 8, widget_memory_pool);
+                uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r9->text, 8, widget_memory_pool);
 
                 r9->text = b;
                 if (b != (uint16_t *)0) b[0] = 0;
@@ -209,7 +208,7 @@ void MenuListView::update()
             r7->selection_index = (sel[0x12e] != 1) + 0xc;
 
             {
-                uint16_t *b = (uint16_t *)heap_reallocate(r8->text, 8, widget_memory_pool);
+                uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r8->text, 8, widget_memory_pool);
 
                 r8->text = b;
                 if (b != (uint16_t *)0) {
@@ -219,7 +218,7 @@ void MenuListView::update()
                 }
             }
             {
-                uint16_t *b = (uint16_t *)heap_reallocate(r9->text, 8, widget_memory_pool);
+                uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r9->text, 8, widget_memory_pool);
 
                 r9->text = b;
                 if (b != (uint16_t *)0) {

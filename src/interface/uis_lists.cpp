@@ -18,20 +18,19 @@
 #include <string.h>
 
 #include "halo/interface/uis_lists.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t ui_list_has_default;
 extern growable_array ui_lists[3];
-extern uint32_t growable_array_add_element(growable_array *array);
 extern int32_t ui_list_current;
 extern map_list_entry *map_list;
 extern int32_t map_list_count;
-extern tag_instance *tag_instances;
 extern uint8_t ui_widget_opened;
 extern int32_t ui_list_find_default(int32_t group_index);
 extern int32_t ui_list_widget_compute_scroll_start(widget_instance *widget);
 extern heap *widget_memory_pool;
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern ColorARGB *ui_get_saved_pulse_color(ColorARGB *out);
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item);
@@ -69,7 +68,7 @@ namespace halo::ui {
 void UiLists::list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, const void *data_blob,
                         uint32_t data_size, uint8_t is_default)
 {
-    int32_t index = growable_array_add_element(&ui_lists[group_index]);
+    int32_t index = halo::memory::growable_array_add_element(&ui_lists[group_index]);
     ui_list_item *entry;
     int32_t length;
 
@@ -274,7 +273,7 @@ int32_t UiLists::list_widget_compute_scroll_start(widget_instance *widget)
     int32_t item_count;
     uint8_t needs_paging;
 
-    tag_data = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
+    tag_data = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
     visible_rows = (int32_t)tag_data->child_widgets.count;
     scroll_start_value = *scroll_start;
 
@@ -320,7 +319,7 @@ int32_t UiLists::list_widget_compute_scroll_start(widget_instance *widget)
  */
 void UiLists::list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item)
 {
-    UIWidgetDefinition *tag_data = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag_data = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
     int32_t visible_rows = (int32_t)tag_data->child_widgets.count;
     widget_instance *first_row = widget->first_child;
     int16_t *scroll_start_field = (int16_t *)((uint8_t *)widget + 0x3e);
@@ -480,7 +479,7 @@ render_row:
                     }
                     value->state = 0;
 
-                    item_buffer = heap_reallocate(label->text, 0x80, widget_memory_pool);
+                    item_buffer = halo::memory::heap_reallocate(label->text, 0x80, widget_memory_pool);
                     label->text = item_buffer;
                     if (item_buffer == 0 || !format_item(item_buffer, item_index, widget->list_items)) {
                         row->scale = 0.333f ;

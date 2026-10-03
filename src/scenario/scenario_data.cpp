@@ -7,11 +7,9 @@
 #include "halo/scenario/scenario.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
-extern datum_index cache_file_load(char *path);
-extern datum_index tag_lookup(tag_group group, char *path);
-extern tag_instance *tag_instances;
 extern datum_index global_scenario_index;
 extern Scenario *global_scenario;
 extern Globals *global_globals;
@@ -29,7 +27,7 @@ uint8_t scenario_loader::load(char *path)
     int32_t i;
     uint8_t result;
 
-    global_scenario_index = cache_file_load(path);
+    global_scenario_index = halo::cache::cache_file_load(path);
     if (global_scenario_index == (datum_index)k_datum_index_none) {
         result = 0;
         scan = k_empty_string;
@@ -46,13 +44,13 @@ uint8_t scenario_loader::load(char *path)
         return result;
     }
 
-    global_scenario = (Scenario *)tag_instances[halo::datum_slot(global_scenario_index)].data;
+    global_scenario = (Scenario *)halo::cache::globals().tag_instances[halo::datum_slot(global_scenario_index)].data;
     if ((int32_t)global_scenario->structure_bsps.count <= 0) {
         return 0;
     }
 
-    global_globals = (Globals *)tag_instances[
-        halo::datum_slot(tag_lookup(halo::groups::globals, (char *)"globals\\globals"))].data;
+    global_globals = (Globals *)halo::cache::globals().tag_instances[
+        halo::datum_slot(halo::cache::tag_lookup(halo::groups::globals, (char *)"globals\\globals"))].data;
 
     if (structure_bsp_switcher::switch_to(0) == 0) {
         return 0;

@@ -7,6 +7,7 @@ extern "C" input_event_queue input_event_queue_active;
 #include "crt.h"
 #include <wchar.h>
 #include <string.h>
+#include "halo/cache/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -15,7 +16,6 @@ extern "C" input_event_queue input_event_queue_active;
 extern "C" {
 extern virtual_keyboard_globals virtual_keyboard;
 extern uint8_t controls_input_capture_flags;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern int32_t time_query_performance_counter_ms(void);
 extern void widget_play_sound_effect(int16_t effect_id);
 extern void **keyboard_device;
@@ -58,8 +58,8 @@ uint8_t VirtualKeyboard::open(uint16_t *destination, uint16_t maximum_length, in
     wcsncpy((wchar_t *)virtual_keyboard.text, (const wchar_t *)destination, 0x20);
     virtual_keyboard.text[31] = 0;
     virtual_keyboard.committed = 0;
-    virtual_keyboard.large_ui_tag = tag_lookup(0x666f6e74  , (char *)"ui\\large_ui");
-    virtual_keyboard.small_ui_tag = tag_lookup(0x666f6e74  , (char *)((maximum_length < 0x33) ? "ui\\large_ui" : "ui\\small_ui"));
+    virtual_keyboard.large_ui_tag = halo::cache::tag_lookup(0x666f6e74  , (char *)"ui\\large_ui");
+    virtual_keyboard.small_ui_tag = halo::cache::tag_lookup(0x666f6e74  , (char *)((maximum_length < 0x33) ? "ui\\large_ui" : "ui\\small_ui"));
     widget_play_sound_effect(2);
 
     controls_input_capture_flags |= 4;

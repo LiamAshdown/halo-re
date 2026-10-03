@@ -14,6 +14,7 @@
 #include <wchar.h>
 
 #include "halo/interface/uis_strings.hpp"
+#include "halo/memory/api.hpp"
 
 #define WCTYPE_SPACE 0x0008
 
@@ -30,7 +31,6 @@ extern char ui_version_string[];
 extern void *ui_replace_function_table[4];
 extern uint16_t ui_invalid_replacement_text[];
 extern heap *widget_memory_pool;
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 }
 
 namespace halo::ui {
@@ -165,7 +165,7 @@ int32_t UiStrings::string_replace_all(wchar_t *search, uint16_t *replacement, wc
             match = wcsstr(match + search_length, search);
         } while (match != (wchar_t *)0);
 
-        base = (wchar_t *)heap_reallocate(original,
+        base = (wchar_t *)halo::memory::heap_reallocate(original,
                                           ((replacement_length - search_length) * count + total_length) * 2,
                                           widget_memory_pool);
         if (base == (wchar_t *)0) {

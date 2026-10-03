@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "halo/interface/uis_game_data_inputs.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint8_t ui_split_screen;
@@ -27,7 +28,6 @@ extern uint32_t network_game_socket_port;
 extern uint32_t network_game_option_a_00719210;
 extern uint32_t network_game_option_b_00719214;
 extern heap *widget_memory_pool;
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 extern void widget_extended_description_sync_selection(widget_instance *widget);
 extern network_server_globals *network_server;
@@ -55,7 +55,7 @@ static void set_option_text(widget_instance *row, uint32_t value, uint8_t hidden
     widget_instance *label = row->first_child->next_sibling;
     uint16_t *text;
 
-    text = (uint16_t *)heap_reallocate(label->text, 0x10, widget_memory_pool);
+    text = (uint16_t *)halo::memory::heap_reallocate(label->text, 0x10, widget_memory_pool);
     label->text = text;
     if (text != 0) {
         string_format_wide_va(text, (const uint16_t *)L"%d", value);
@@ -76,7 +76,7 @@ static void set_text(widget_instance *label, const uint16_t *source)
     int32_t length = (int32_t)wcslen((const wchar_t *)source);
     uint16_t *text;
 
-    text = (uint16_t *)heap_reallocate(label->text, (uint16_t)(length * 2 + 2), widget_memory_pool);
+    text = (uint16_t *)halo::memory::heap_reallocate(label->text, (uint16_t)(length * 2 + 2), widget_memory_pool);
     label->text = text;
     if (text != 0) {
         wcsncpy((wchar_t *)text, (const wchar_t *)source, length);
@@ -186,7 +186,7 @@ void UiGameDataInputs::input_4a5740(widget_instance *widget)
     first = widget->first_child;
     second = first->next_sibling;
     countdown = second->next_sibling;
-    text = (uint16_t *)heap_reallocate(countdown->text, 0x20, widget_memory_pool);
+    text = (uint16_t *)halo::memory::heap_reallocate(countdown->text, 0x20, widget_memory_pool);
     countdown->text = text;
     if (text != 0) {
         int16_t seconds = *(int16_t *)(network_client + 0xed8);
@@ -243,7 +243,7 @@ void UiGameDataInputs::input_4a5740(widget_instance *widget)
     }
     if (found == -1) {
         frame->background_bitmap_frame = 0;
-        text = (uint16_t *)heap_reallocate(frame->next_sibling->text, 2, widget_memory_pool);
+        text = (uint16_t *)halo::memory::heap_reallocate(frame->next_sibling->text, 2, widget_memory_pool);
         frame->next_sibling->text = text;
         if (text != 0) {
             text[0] = 0;
@@ -312,7 +312,7 @@ void UiGameDataInputs::input_4a6a60(widget_instance *widget)
     if ((selected_saved_item & 0xf) != 0) {
         return;
     }
-    text = (uint16_t *)heap_reallocate(widget->text, 0x18, widget_memory_pool);
+    text = (uint16_t *)halo::memory::heap_reallocate(widget->text, 0x18, widget_memory_pool);
     widget->text = text;
     if (text != 0) {
         wcsncpy((wchar_t *)text, (const wchar_t *)(saved_item_working_copy + 2), 0xb);
@@ -332,7 +332,7 @@ void UiGameDataInputs::input_4a6ab0(widget_instance *widget)
     if ((selected_saved_item & 0xf) != 1) {
         return;
     }
-    text = (uint16_t *)heap_reallocate(widget->text, 0x30, widget_memory_pool);
+    text = (uint16_t *)halo::memory::heap_reallocate(widget->text, 0x30, widget_memory_pool);
     widget->text = text;
     if (text != 0) {
         wcsncpy((wchar_t *)text, (const wchar_t *)saved_item_working_copy, 0x17);
@@ -446,7 +446,7 @@ void UiGameDataInputs::input_4a6e90(widget_instance *widget)
     if (game == 0) {
         return;
     }
-    text = (uint16_t *)heap_reallocate(widget->text, 0x10, widget_memory_pool);
+    text = (uint16_t *)halo::memory::heap_reallocate(widget->text, 0x10, widget_memory_pool);
     widget->text = text;
     if (text != 0) {
         string_format_wide_va_bounded(7, text, (const uint16_t *)L"%d", *(int32_t *)(game + 0x15c));
@@ -563,7 +563,7 @@ void UiGameDataInputs::input_4a7210(widget_instance *widget)
     if (game == 0) {
         return;
     }
-    text = (uint16_t *)heap_reallocate(widget->text, 8, widget_memory_pool);
+    text = (uint16_t *)halo::memory::heap_reallocate(widget->text, 8, widget_memory_pool);
     widget->text = text;
     if (text != 0) {
         string_format_wide_va_bounded(3, text, (const uint16_t *)L"%d", (int32_t)*(int16_t *)(game + 0x1a0));

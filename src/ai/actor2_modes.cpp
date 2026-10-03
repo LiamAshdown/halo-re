@@ -1,16 +1,16 @@
 #include "halo/ai/actor_behavior.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_mode_uncover_tick_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern data_array *prop_data;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
 extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type);
 }
 }
@@ -46,7 +46,7 @@ void ActorView::mode_uncover_tick()
     } else if (kind == 1) {
         if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4 ||
             ((actor_tag[0] & 4) &&
-             vector3d_distance_squared(&((struct actor *)act)->mode_data.uncover.position, (real_point3d *)(act + 0x12c)) < 100.0f)) {
+             halo::math::vector3d_distance_squared(*(&((struct actor *)act)->mode_data.uncover.position), *(real_point3d *)(act + 0x12c)) < 100.0f)) {
             act[0x9c] = 1;
         }
     }
@@ -90,10 +90,9 @@ void ActorView::mode_uncover_tick()
 namespace actor_mode_uncover_update_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern data_array *prop_data;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 }
 }
@@ -218,9 +217,8 @@ void ActorView::mode_vehicle_update()
 namespace actor_mode_wait_process_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 extern int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_search);
@@ -302,7 +300,6 @@ extern data_array *actor_data;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
-extern uint32_t random_seed_global;
 }
 }
 
@@ -323,8 +320,8 @@ void ActorView::mode_wait_tick()
             if (unit_index != k_datum_index_none) {
                 ai_communication_broadcast(0x11, unit_index, -1, -1, -1, -1, 0);
             }
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            ((struct actor *)act)->mode_data.wait.random_countdown = (int16_t)((((random_seed_global >> 16) * 300) >> 16) + 300);
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            ((struct actor *)act)->mode_data.wait.random_countdown = (int16_t)((((halo::math::globals().random_seed_global >> 16) * 300) >> 16) + 300);
         }
     }
     if (((struct actor *)act)->mode_data.wait.countdown_150 > 0) {

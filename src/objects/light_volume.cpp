@@ -1,5 +1,8 @@
 #include "halo/objects/light_volume.hpp"
 #include "bitmaps.h"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern void antenna_tip_jitter(real_vector3d *amplitude, real_point3d *position, real_matrix4x3 *m);
@@ -11,10 +14,6 @@ extern float camera_position_z;
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, color_interpolation_flags flags, float t);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern float curve_apply_exponent(float value, float exponent);
-extern void data_delete_all(data_array *array);
-extern void datum_delete(data_array *array, datum_index index);
-extern datum_index datum_new(data_array *array);
-extern uint32_t effect_random_seed;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern real_vector3d *global_white_color;
 extern data_array *light_volume_instances;
@@ -34,11 +33,17 @@ extern void rasterizer_transparent_object_append(uint32_t a, int32_t b, int32_t 
 extern int16_t rasterizer_vertex_buffer_lock_state;
 extern float render_camera_global;
 extern real_vector3d *shared_constant_vector_696704;
-extern tag_instance *tag_instances;
-extern int32_t texture_cache_get(uint32_t a, uint32_t b);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern void vector3d_normalize(real_vector3d *v);
-extern real vector3d_normalize_with_length(real_vector3d *v);
+}
+
+/**
+ * Calls halo::cache::texture_cache_get with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static int32_t texture_cache_get_unresolved(uint32_t a, uint32_t b)
+{
+    using call_t = int32_t (*)(uint32_t a, uint32_t b);
+    return reinterpret_cast<call_t>(&halo::cache::texture_cache_get)(a, b);
 }
 
 /**
@@ -64,7 +69,7 @@ void halo::objects::LightVolumeSystem::dispose()
 {
     if (light_volume_instances != 0) {
         light_volume_instances->valid = 1;
-        data_delete_all(light_volume_instances);
+        halo::memory::data_delete_all(light_volume_instances);
     }
 }
 
@@ -108,7 +113,7 @@ static void *datum_try_get(data_array *array, datum_index index)
  */
 datum_index halo::objects::LightVolumeSystem::create(datum_index definition_tag)
 {
-    datum_index index = datum_new(light_volume_instances);
+    datum_index index = halo::memory::datum_new(light_volume_instances);
 
     if (index != k_datum_index_none) {
         *(datum_index *)((uint8_t *)datum_try_get(light_volume_instances, index) + 4) = definition_tag;
@@ -126,7 +131,7 @@ datum_index halo::objects::LightVolumeSystem::create(datum_index definition_tag)
 void halo::objects::LightVolumeSystem::destroy(datum_index light_volume_index)
 {
     if (light_volume_index != k_datum_index_none) {
-        datum_delete(light_volume_instances, light_volume_index);
+        halo::memory::datum_delete(light_volume_instances, light_volume_index);
     }
 }
 
@@ -168,7 +173,7 @@ void halo::objects::LightVolumeSystem::render(uint32_t object_index, datum_index
     }
 
     {
-        uint8_t *tag = (uint8_t *)tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
+        uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
 
         if (*(int16_t *)(tag + 0x6e) > 0 && *(int32_t *)(tag + 0x120) > 0 &&
             (*(int16_t *)(tag + 0x44) == 0 || function_context == 0 ||
@@ -240,7 +245,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
             }
         }
     }
-    tag = (uint8_t *)tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
+    tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
     if (*(int16_t *)(tag + 0x6e) <= 0 || *(int32_t *)(tag + 0x120) <= 0) {
         return;
     }
@@ -327,7 +332,7 @@ void halo::objects::LightningSystem::dispose()
 {
     if (lightning_instances != 0) {
         lightning_instances->valid = 1;
-        data_delete_all(lightning_instances);
+        halo::memory::data_delete_all(lightning_instances);
     }
 }
 
@@ -354,7 +359,7 @@ void halo::objects::LightningSystem::clear_disposing_flag()
  */
 datum_index halo::objects::LightningSystem::create(datum_index definition_tag)
 {
-    datum_index index = datum_new(lightning_instances);
+    datum_index index = halo::memory::datum_new(lightning_instances);
 
     if (index != k_datum_index_none) {
         *(datum_index *)((uint8_t *)datum_try_get(lightning_instances, index) + 4) = definition_tag;
@@ -372,7 +377,7 @@ datum_index halo::objects::LightningSystem::create(datum_index definition_tag)
 void halo::objects::LightningSystem::destroy(datum_index lightning_index)
 {
     if (lightning_index != k_datum_index_none) {
-        datum_delete(lightning_instances, lightning_index);
+        halo::memory::datum_delete(lightning_instances, lightning_index);
     }
 }
 
@@ -381,8 +386,8 @@ static uint8_t * &lightning_instances__as_lightning_render = reinterpret_cast<ui
 static uint32_t (*const color_pack_argb_from_real__as_lightning_render)(float *argb) = reinterpret_cast<uint32_t (*)(float *argb)>(&color_pack_argb_from_real);
 static float glow_random_unit_for_lightning(void)
 {
-    effect_random_seed = effect_random_seed * 0x19660dU + 0x3c6ef35fU;
-    return (float)(effect_random_seed >> 16) * 1.5259022e-05f;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660dU + 0x3c6ef35fU;
+    return (float)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f;
 }
 }
 
@@ -417,7 +422,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                 instance = (uint8_t *)off;
             }
         }
-        tag = (uint8_t *)tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
+        tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(instance + 4) & 0xffff].data;
     }
 
     if (*(int32_t *)(tag + 0x98) <= 0) {
@@ -435,8 +440,8 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
 
     {
         uint32_t shader_something = *(uint32_t *)(
-            (uint8_t *)tag_instances[*(uint32_t *)(tag + 0x40) & 0xffff].data + 100);
-        int32_t device = texture_cache_get(0, 1);
+            (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(tag + 0x40) & 0xffff].data + 100);
+        int32_t device = texture_cache_get_unresolved(0, 1);
 
         int16_t shard;
         if (device == 0) {
@@ -501,8 +506,8 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                         axis.j = verts[end * 8 + 1] - verts[base * 8 + 1];
                         axis.k = verts[end * 8 + 2] - verts[base * 8 + 2];
 
-                        vector3d_cross_product(&axis, (const real_vector3d *)&camera_forward_x, &axis);
-                        if (vector3d_normalize_with_length(&axis) == 0.0f) {
+                        halo::math::vector3d_cross_product(axis, *((const real_vector3d *)&camera_forward_x), axis);
+                        if (halo::math::vector3d_normalize_with_length(axis) == 0.0f) {
                             axis = *shared_constant_vector_696704;
                         }
 
@@ -548,7 +553,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                                 normal.i = (next[1] - prev[1]) * camera_forward_z - (next[2] - prev[2]) * camera_forward_y;
                                 normal.j = (next[2] - prev[2]) * camera_forward_x - (next[0] - prev[0]) * camera_forward_z;
                                 normal.k = (next[0] - prev[0]) * camera_forward_y - (next[1] - prev[1]) * camera_forward_x;
-                                vector3d_normalize(&normal);
+                                halo::math::vector3d_normalize(normal);
 
                                 argb[0] = color_scale_extra * v[4];
                                 argb[1] = v[5] * color_scale->i;

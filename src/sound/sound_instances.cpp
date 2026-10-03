@@ -5,6 +5,9 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::sound {
 
@@ -28,17 +31,17 @@ void sound_release_unused_pages(TagID tag_id)
     SoundPermutation *permutation;
     sound_cache_entry *entry;
 
-    definition = (Sound *)tag_instances[tag_id.index].data;
+    definition = (Sound *)halo::cache::globals().tag_instances[tag_id.index].data;
     for (range_index = 0; range_index < definition->pitch_ranges.count; range_index++) {
         pitch_range = (SoundPitchRange *)definition->pitch_ranges.pointer + range_index;
         for (permutation_index = 0; permutation_index < (int32_t)pitch_range->permutations.count;
              permutation_index++) {
             permutation = (SoundPermutation *)pitch_range->permutations.pointer + permutation_index;
             if (permutation->samples_pointer != 0xffffffff) {
-                entry = (sound_cache_entry *)((uint8_t *)sound_cache_entries->data +
+                entry = (sound_cache_entry *)((uint8_t *)halo::cache::globals().sound_cache_entries->data +
                     (permutation->samples_pointer & 0xffff) * sizeof(sound_cache_entry));
                 if (entry->lock_count == 0) {
-                    cache_evict_entry((datum_index)permutation->samples_pointer, sound_cache);
+                    halo::memory::cache_evict_entry((datum_index)permutation->samples_pointer, halo::cache::globals().sound_cache);
                     permutation->samples_pointer = 0xffffffff;
                     permutation->cache_page = 0;
                 }
@@ -117,7 +120,7 @@ void impulse_start(datum_index object_index, datum_index definition_index, float
         return;
     }
 
-    tag = (Sound *)tag_instances[definition_index & 0xffff].data;
+    tag = (Sound *)halo::cache::globals().tag_instances[definition_index & 0xffff].data;
     instances::impulse_fade_out(*(datum_index *)&tag->scripting_sound);
     tag->scripting_time = ((int32_t)tag->longest_permutation_length * 30) / 1000 + game_time->game_time;
 
@@ -147,7 +150,7 @@ void impulse_start(datum_index object_index, datum_index definition_index, float
             node_index = marker.node_index;
         } else {
             position = *(Point3D *)global_origin3d_pointer;
-            forward = *(Vector3D *)global_forward3d_pointer;
+            forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
             node_index = 0;
         }
 
@@ -166,7 +169,7 @@ int32_t impulse_time(datum_index sound_tag_handle)
     int32_t remaining = 0;
 
     if (sound_tag_handle != k_datum_index_none) {
-        Sound *tag = (Sound *)tag_instances[sound_tag_handle & 0xffff].data;
+        Sound *tag = (Sound *)halo::cache::globals().tag_instances[sound_tag_handle & 0xffff].data;
 
         if ((int32_t)tag->scripting_time != -1) {
             remaining = (int32_t)tag->scripting_time - game_time->game_time;
@@ -202,8 +205,8 @@ uint8_t object_marker_location_proc(datum_index owner, void *callback_data, soun
 
     location->leaf_index = root_location[0];
     *(int32_t *)&location->cluster_index = root_location[1];
-    matrix4x3_transform_point((real_point3d *)&location->position, (real_point3d *)&marker->position, node_matrix);
-    matrix4x3_transform_normal((real_vector3d *)&location->forward, (real_vector3d *)&marker->forward, node_matrix);
+    halo::math::matrix4x3_transform_point(*((real_point3d *)&location->position), *((real_point3d *)&marker->position), *node_matrix);
+    halo::math::matrix4x3_transform_normal(*((real_vector3d *)&location->forward), *((real_vector3d *)&marker->forward), *node_matrix);
     object_get_root_object_velocities(owner, (real_vector3d *)&location->velocity, (real_vector3d *)0);
     return 1;
 }
@@ -219,11 +222,11 @@ void fade_out_and_stop_all(void)
         }
 
         deadline = (float)time_query_performance_counter_ms();
-        index = datum_next(-1, sound_data);
+        index = halo::memory::datum_next(-1, sound_data);
         if (index != k_datum_index_none) {
             do {
                 instances::schedule_gain_fade(k_datum_index_none, _sound_fade_linear, 0.3f, index);
-                index = datum_next((int16_t)index, sound_data);
+                index = halo::memory::datum_next((int16_t)index, sound_data);
             } while (index != k_datum_index_none);
 
             deadline += 300.0f;
@@ -255,13 +258,13 @@ void fade_out_and_stop_all(void)
 stop:
     instances::stop_all();
     if (looping_sound_data != 0 && looping_sound_data->valid != 0) {
-        data_delete_all(looping_sound_data);
+        halo::memory::data_delete_all(looping_sound_data);
     }
 }
 
 datum_index play_new(datum_index definition_index, sound_location *location, datum_index owner_index, sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint)
 {
-    Sound *tag = (Sound *)tag_instances[definition_index & 0xffff].data;
+    Sound *tag = (Sound *)halo::cache::globals().tag_instances[definition_index & 0xffff].data;
     datum_index handle = k_datum_index_none;
 
     if (tag->sound_class == soundclass_scripted_dialog_player ||
@@ -287,10 +290,10 @@ datum_index play_new(datum_index definition_index, sound_location *location, dat
         }
 
         if ((location->scale != 0.0f || tag->zero_gain_modifier != 0.0f)) {
-            effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
             if (((tag->one_skip_fraction_modifier - tag->zero_skip_fraction_modifier) * location->scale +
                  tag->zero_skip_fraction_modifier) * tag->skip_fraction <
-                (float)(effect_random_seed >> 16) * 1.5259022e-05f) {
+                (float)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f) {
                 float maximum_distance = definitions::maximum_distance(definition_index);
 
                 if (definitions::has_audible_permutations(*(TagID *)&definition_index) != 0) {
@@ -307,7 +310,7 @@ datum_index play_new(datum_index definition_index, sound_location *location, dat
                                 owner_index, location_proc, callback_data, callback_data_size, first_person_hint);
                         }
 
-                        handle = datum_new(sound_data);
+                        handle = halo::memory::datum_new(sound_data);
                         if (handle != k_datum_index_none) {
                             sound *self = &((sound *)sound_data->data)[(uint16_t)handle];
                             int32_t delay = (int32_t)(spatial::location_distance(bucket, location) * sound_delay_per_world_unit);
@@ -358,7 +361,7 @@ datum_index play_new(datum_index definition_index, sound_location *location, dat
 
                             {
                                 SoundPitchRange *range = (SoundPitchRange *)tag->pitch_ranges.pointer + self->pitch_range_index;
-                                sound_cache_touch(1, 0, 0, (SoundPermutation *)range->permutations.pointer + self->permutation_index);
+                                halo::cache::sound_cache_touch(1, 0, 0, (SoundPermutation *)range->permutations.pointer + self->permutation_index);
                             }
 
                             if (delay <= 250) {
@@ -404,12 +407,12 @@ void stop_all(void)
 
     if (sound_initialized) {
         sound_stopping_all = 1;
-        sound_handle = datum_next(-1, sound_data);
+        sound_handle = halo::memory::datum_next(-1, sound_data);
         while (sound_handle != k_datum_index_none) {
             instances::stop(sound_handle);
-            sound_handle = datum_next((int16_t)sound_handle, sound_data);
+            sound_handle = halo::memory::datum_next((int16_t)sound_handle, sound_data);
         }
-        data_delete_all(looping_sound_data);
+        halo::memory::data_delete_all(looping_sound_data);
         audio_device().stop_all();
     }
     ai_communication_quiet_until_tick = 0;
@@ -464,7 +467,7 @@ void stop(datum_index sound_handle)
 
     instance = (sound *)((uint8_t *)sound_data->data + (sound_handle & 0xffff) * sizeof(sound));
     channel_index = instance->channel_index;
-    definition = (Sound *)tag_instances[instance->definition_index & 0xffff].data;
+    definition = (Sound *)halo::cache::globals().tag_instances[instance->definition_index & 0xffff].data;
 
     if (channel_index == -1) {
         if (instance->flags & _sound_channel_requested_bit) {
@@ -472,7 +475,7 @@ void stop(datum_index sound_handle)
             permutation = (SoundPermutation *)pitch_range->permutations.pointer + instance->permutation_index;
 
             if (permutation->samples_pointer != 0xffffffff) {
-                entry = (sound_cache_entry *)((uint8_t *)sound_cache_entries->data +
+                entry = (sound_cache_entry *)((uint8_t *)halo::cache::globals().sound_cache_entries->data +
                     (permutation->samples_pointer & 0xffff) * sizeof(sound_cache_entry));
                 entry->lock_count -= 1;
             }
@@ -483,13 +486,13 @@ void stop(datum_index sound_handle)
                 definition->sound_class == soundclass_scripted_dialog_force_unspatialized;
             if (is_scripted_dialog_class) {
                 if (permutation->samples_pointer != 0xffffffff) {
-                    entry = (sound_cache_entry *)((uint8_t *)sound_cache_entries->data +
+                    entry = (sound_cache_entry *)((uint8_t *)halo::cache::globals().sound_cache_entries->data +
                         (permutation->samples_pointer & 0xffff) * sizeof(sound_cache_entry));
                     if (entry->lock_count == 0) {
-                        sound_permutation_release_page(permutation);
+                        halo::cache::sound_permutation_release_page(permutation);
                     }
                 } else {
-                    sound_permutation_release_page(permutation);
+                    halo::cache::sound_permutation_release_page(permutation);
                 }
             }
         }
@@ -508,7 +511,7 @@ void stop(datum_index sound_handle)
                     (instance->owner_index & 0xffff) * sizeof(looping_sound));
                 {
                     SoundLooping *looping_definition =
-                        (SoundLooping *)tag_instances[owner->definition_index & 0xffff].data;
+                        (SoundLooping *)halo::cache::globals().tag_instances[owner->definition_index & 0xffff].data;
                     int32_t track_index;
                     SoundLoopingTrack *track;
 
@@ -536,19 +539,19 @@ void stop(datum_index sound_handle)
             pitch_range = (SoundPitchRange *)definition->pitch_ranges.pointer + instance->pitch_range_index;
             permutation = (SoundPermutation *)pitch_range->permutations.pointer + instance->permutation_index;
             if (permutation->samples_pointer != 0xffffffff) {
-                entry = (sound_cache_entry *)((uint8_t *)sound_cache_entries->data +
+                entry = (sound_cache_entry *)((uint8_t *)halo::cache::globals().sound_cache_entries->data +
                     (permutation->samples_pointer & 0xffff) * sizeof(sound_cache_entry));
                 if (entry->lock_count != 0) {
                     goto skip_release;
                 }
             }
-            sound_permutation_release_page(permutation);
+            halo::cache::sound_permutation_release_page(permutation);
         }
     }
 skip_release:
 
     if (instance->play_state != 0 && instance->owner_index != 0xffffffff) {
-        owner = (looping_sound *)datum_get(instance->owner_index, looping_sound_data);
+        owner = (looping_sound *)halo::memory::datum_get(instance->owner_index, looping_sound_data);
         if (owner != 0) {
             owner->active_sound_count -= 1;
             if (owner->track_sounds[instance->track_index] == sound_handle) {
@@ -567,19 +570,19 @@ skip_release:
             pitch_range = (SoundPitchRange *)definition->pitch_ranges.pointer + instance->pitch_range_index;
             permutation = (SoundPermutation *)pitch_range->permutations.pointer + instance->permutation_index;
             if (permutation->samples_pointer != 0xffffffff) {
-                entry = (sound_cache_entry *)((uint8_t *)sound_cache_entries->data +
+                entry = (sound_cache_entry *)((uint8_t *)halo::cache::globals().sound_cache_entries->data +
                     (permutation->samples_pointer & 0xffff) * sizeof(sound_cache_entry));
                 if (entry->lock_count != 0) {
                     goto delete_datum;
                 }
-                cache_evict_entry((datum_index)permutation->samples_pointer, sound_cache);
+                halo::memory::cache_evict_entry((datum_index)permutation->samples_pointer, halo::cache::globals().sound_cache);
             }
             permutation->samples_pointer = 0xffffffff;
             permutation->cache_page = 0;
         }
     }
 delete_datum:
-    datum_delete(sound_data, sound_handle);
+    halo::memory::datum_delete(sound_data, sound_handle);
 }
 
 uint32_t invoke_location_proc(datum_index sound_handle)
@@ -595,7 +598,7 @@ uint32_t invoke_location_proc(datum_index sound_handle)
         location_proc_result = instance->location_proc(instance->owner_index, instance->callback_data,
             &instance->location);
         if (location_proc_result == 0) {
-            definition = (Sound *)tag_instances[instance->definition_index & 0xffff].data;
+            definition = (Sound *)halo::cache::globals().tag_instances[instance->definition_index & 0xffff].data;
             if (instance->play_state != 0 || sound_class_definitions[definition->sound_class].dialog != 0) {
                 return 0;
             }
@@ -614,7 +617,7 @@ void update_gain(int16_t channel_index, float external_gain_multiplier)
 
     sound_handle = sound_channels[channel_index].sound_index;
     instance = (sound *)((uint8_t *)sound_data->data + (sound_handle & 0xffff) * sizeof(sound));
-    definition = (Sound *)tag_instances[instance->definition_index & 0xffff].data;
+    definition = (Sound *)halo::cache::globals().tag_instances[instance->definition_index & 0xffff].data;
 
     zero_gain = definition->zero_gain_modifier;
     class_gain = classes::compute_gain(definition->sound_class);
@@ -674,7 +677,7 @@ void update_active(void)
         }
 
         instance = (sound *)((uint8_t *)sound_data->data + (sound_handle & 0xffff) * sizeof(sound));
-        definition = (Sound *)tag_instances[instance->definition_index & 0xffff].data;
+        definition = (Sound *)halo::cache::globals().tag_instances[instance->definition_index & 0xffff].data;
 
         {
             float gain = instances::evaluate_fade_gain(sound_handle);
@@ -692,8 +695,8 @@ void update_active(void)
                     float min_distance, max_distance, distance, attenuation;
 
                     if (instance->location.type == _sound_location_absolute) {
-                        matrix4x3_inverse_transform_point((real_matrix4x3 *)&sound_listeners[instance->listener_index].scale,
-                            &transformed, (real_point3d *)&instance->location.position);
+                        halo::math::matrix4x3_inverse_transform_point(*((real_matrix4x3 *)&sound_listeners[instance->listener_index].scale),
+                            transformed, *((real_point3d *)&instance->location.position));
                     }
 
                     distance = (float)sqrt((double)(transformed.x * transformed.x + transformed.y * transformed.y +
@@ -722,12 +725,12 @@ void update_active(void)
                     real_vector3d transformed_velocity;
                     sound_channel_spatial spatial;
 
-                    matrix4x3_inverse_transform_point(listener_matrix, &transformed_position,
-                        (real_point3d *)&instance->location.position);
-                    matrix4x3_inverse_transform_normal(&transformed_forward, (real_vector3d *)&instance->location.forward,
-                        listener_matrix);
-                    matrix4x3_inverse_transform_vector(&transformed_velocity, (real_vector3d *)&instance->location.velocity,
-                        listener_matrix);
+                    halo::math::matrix4x3_inverse_transform_point(*listener_matrix, transformed_position,
+                        *((real_point3d *)&instance->location.position));
+                    halo::math::matrix4x3_inverse_transform_normal(transformed_forward, *((real_vector3d *)&instance->location.forward),
+                        *listener_matrix);
+                    halo::math::matrix4x3_inverse_transform_vector(transformed_velocity, *((real_vector3d *)&instance->location.velocity),
+                        *listener_matrix);
                     spatial.position = *(Point3D *)&transformed_position;
                     spatial.forward = *(Vector3D *)&transformed_forward;
                     spatial.velocity.i = transformed_velocity.i * 30.0f - sound_listeners[instance->listener_index].velocity.i;
@@ -740,7 +743,7 @@ void update_active(void)
                 } else {
                     sound_channel_spatial default_spatial;
                     default_spatial.position = *(Point3D *)global_zero_vector3d_pointer;
-                    default_spatial.forward = *(Vector3D *)global_forward3d_pointer;
+                    default_spatial.forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
                     default_spatial.velocity = *(Vector3D *)global_origin3d_pointer;
                     audio_device().channel_set_spatial(channel_index, 0, &default_spatial, 0.0f, 0.0f,
                         sound_listeners[instance->listener_index].underwater, definition->sound_class);
@@ -809,7 +812,7 @@ void apply_pending_definition_switch(datum_index sound_handle)
     int16_t channel_index;
 
     instance = (sound *)((uint8_t *)sound_data->data + (sound_handle & 0xffff) * sizeof(sound));
-    definition = (Sound *)tag_instances[instance->pending_definition_index & 0xffff].data;
+    definition = (Sound *)halo::cache::globals().tag_instances[instance->pending_definition_index & 0xffff].data;
 
     instance->flags |= _sound_permutation_pending_bit;
     instance->definition_index = instance->pending_definition_index;
@@ -882,7 +885,7 @@ void render_debug(datum_index sound_handle)
 
     if (debug_sound) {
         instance = (sound *)((uint8_t *)sound_data->data + (sound_handle & 0xffff) * sizeof(sound));
-        sprintf(buffer, "%s|n%f %f", tag_instances[instance->definition_index & 0xffff].path,
+        sprintf(buffer, "%s|n%f %f", halo::cache::globals().tag_instances[instance->definition_index & 0xffff].path,
             (double)instance->location.obstruction, (double)instance->location.occlusion);
     }
 }

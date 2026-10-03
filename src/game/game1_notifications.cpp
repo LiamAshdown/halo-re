@@ -14,6 +14,8 @@
 #include "items.h"
 
 #include "halo/game/game1_notifications.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -32,7 +34,6 @@ extern void game_engine_spawn_player_starting_loadout(uint32_t starting_equipmen
 extern uint32_t game_engine_pack_object_flags_or_passthrough(uint32_t input);
 extern network_id_table *machine_table;
 extern network_id_table *object_network_id_table;
-extern void *datum_get(datum_index handle, data_array *array);
 extern uint8_t player_execute_pending_interaction(uint32_t handle);
 extern uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon);
 extern Scenario *global_scenario;
@@ -62,7 +63,6 @@ extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
-extern tag_instance *tag_instances;
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 extern int32_t multiplayer_sound_queue_count;
 extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds];
@@ -238,7 +238,7 @@ uint8_t Notifications::apply_player_interaction_message(void **envelope)
         }
 
         {
-            player *p = (player *)datum_get((datum_index)primary_handle, player_data);
+            player *p = (player *)halo::memory::datum_get((datum_index)primary_handle, player_data);
             if (p == 0) {
                 return 0;
             }
@@ -311,7 +311,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
         player_handle = (uint32_t)owner_handle;
 
         {
-            player *p = (player *)datum_get(player_handle, player_data);
+            player *p = (player *)halo::memory::datum_get(player_handle, player_data);
             if (p != 0 && message.unit_pooled_id != 0) {
                 datum_index new_unit = (datum_index)((int32_t *)object_network_id_table->handles)[
                     message.unit_pooled_id];
@@ -493,7 +493,7 @@ int32_t Notifications::get_multiplayer_sound_duration_ticks(int32_t sound_index)
     if (tag_id == 0xffffffff) {
         return 0;
     }
-    return (*(int32_t *)((uint8_t *)tag_instances[tag_id & 0xffff].data + 0x84) * 30) / 1000;
+    return (*(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data + 0x84) * 30) / 1000;
 }
 
 /**
@@ -591,7 +591,7 @@ uint8_t Notifications::notify_weapon_ready_state_change(datum_index unit_index, 
     if (weapon == 0) {
         return 1;
     }
-    weapon_definition = (Object *)tag_instances[
+    weapon_definition = (Object *)halo::cache::globals().tag_instances[
         (((object_header *)object_data->data)[weapon_index & 0xffff].data->definition_tag) & 0xffff
     ].data;
     if (((*(uint32_t *)((uint8_t *)weapon_definition + 0x308) >> 3) & 1) == 0) {

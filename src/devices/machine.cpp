@@ -1,9 +1,9 @@
 #include "halo/devices/machine.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern void device_new(uint32_t object_index, void *placement);
 extern void device_group_set_value_immediate(uint16_t group_index, float value);
 extern data_array *device_groups;
@@ -34,7 +34,7 @@ static uint8_t *object_get(datum_index object_index)
 
 static uint8_t *object_definition(uint8_t *object)
 {
-    return (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)object)].data;
+    return (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)object)].data;
 }
 
 }
@@ -119,7 +119,7 @@ uint32_t MachineHandle::update()
 
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     device_machine_data *dev = (device_machine_data *)((uint8_t *)obj + sizeof(object));
-    DeviceMachine *tag = (DeviceMachine *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    DeviceMachine *tag = (DeviceMachine *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     
     
@@ -161,7 +161,7 @@ uint32_t MachineHandle::update()
                 int passes_side_test = 1;
 
                 if (((candidate->vitality_flags & _object_health_frozen_bit) != 0) ||
-                    ((((Unit *)tag_instances[halo::datum_slot(candidate->definition_tag)].data)->unit_flags
+                    ((((Unit *)halo::cache::globals().tag_instances[halo::datum_slot(candidate->definition_tag)].data)->unit_flags
                         & to_bits(unit_tag_flags::cannot_open_doors_automatically)) != 0)) { 
                     counts = 0;
                 }
@@ -303,7 +303,7 @@ void ControlHandle::activate()
     uint32_t object_id = (uint32_t)handle;
 
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_id)].data;
-    DeviceControl *tag = (DeviceControl *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    DeviceControl *tag = (DeviceControl *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if (tag->triggers_when == devicetriggerswhen_touched_by_player) {
         device_change_power_state(0.0f, object_id); 

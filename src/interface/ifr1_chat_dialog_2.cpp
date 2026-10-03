@@ -1,6 +1,8 @@
 #include "halo/interface/ifr1_chat_dialog.hpp"
 #include <stdint.h>
 #include <wchar.h>
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t network_message_scratch[0x7ff8];
@@ -10,9 +12,7 @@ extern const uint16_t chat_local_prompt_string[];
 extern void string_format_wide_va(const uint16_t *format, ...);
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern void *data_iterator_next(data_iterator *iterator);
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern int32_t network_object_owner_team_index_desired(void *obj);
@@ -20,7 +20,6 @@ extern uint8_t network_session_send_to_machine(int32_t machine_id, network_serve
     void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server, int32_t status_bit,
     void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
-extern void *datum_get(datum_index handle, data_array *array);
 extern datum_index player_get_vehicle(datum_index player_index);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t chat_dialog_open;
@@ -37,7 +36,6 @@ extern chat_gui_set_property_int_fn chat_gui_set_property_int;
 extern chat_gui_set_state_fn chat_gui_set_state;
 extern chat_gui_release_fn chat_gui_release;
 extern uint8_t chat_gui_active;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern uint16_t *text_string_list_get_string(void);
 extern uint8_t game_engine_get_teams_enabled(void);
 extern void input_keyboard_set_capture_mode(void);
@@ -92,7 +90,7 @@ void ChatDialog::queue_team_message(int32_t team_index)
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    entry = (player *)data_iterator_next(&iterator);
+    entry = (player *)halo::memory::data_iterator_next(&iterator);
 
     while (entry != 0) {
         if (team_index == -1 || entry->team_index_desired == team_index) {
@@ -110,9 +108,9 @@ void ChatDialog::queue_team_message(int32_t team_index)
                                                       *(int32_t *)(session + 0x20) + 1 ||
                              network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
                             *(int32_t *)(session + 0xa80) = *(int32_t *)(session + 0xa80) + encoded_bits + 1;
-                            { uint32_t item_flag = 1; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }
+                            { uint32_t item_flag = 1; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }
                             session[0x2c] = 0;
-                            bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), (const uint32_t *)(network_message_scratch), encoded_bits);
+                            halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), (const uint32_t *)(network_message_scratch), encoded_bits);
                             session[0x2c] = 0;
                         }
                         break;
@@ -123,7 +121,7 @@ void ChatDialog::queue_team_message(int32_t team_index)
                 return;
             }
         }
-        entry = (player *)data_iterator_next(&iterator);
+        entry = (player *)halo::memory::data_iterator_next(&iterator);
     }
 }
 
@@ -166,13 +164,13 @@ void ChatDialog::server_relay_incoming_message(void **context, void *machine)
     if (message.scope == 0) {
         network_session_broadcast_to_flagged(bits, network_server, 1, network_message_scratch, 1, 0, 1, 3);
     } else if (message.scope == 1) {
-        uint8_t *sender_player = (uint8_t *)datum_get((datum_index)message.sender, player_data);
+        uint8_t *sender_player = (uint8_t *)halo::memory::datum_get((datum_index)message.sender, player_data);
 
         if (sender_player == 0) {
             return;
         }
         chat_relay_iterator_begin(&iterator);
-        while ((entry = (uint8_t *)data_iterator_next(&iterator)) != 0) {
+        while ((entry = (uint8_t *)halo::memory::data_iterator_next(&iterator)) != 0) {
             if (*(int32_t *)(entry + 0x20) == ((struct player *)sender_player)->team && *(int8_t *)(entry + 0x64) != -1) {
                 network_session_send_to_machine(*(int8_t *)(entry + 0x64), network_server, 1, network_message_scratch,
                                                 (uint32_t)bits, 1, 0, 1, 3);
@@ -185,7 +183,7 @@ void ChatDialog::server_relay_incoming_message(void **context, void *machine)
             return;
         }
         chat_relay_iterator_begin(&iterator);
-        while ((entry = (uint8_t *)data_iterator_next(&iterator)) != 0) {
+        while ((entry = (uint8_t *)halo::memory::data_iterator_next(&iterator)) != 0) {
             uint8_t *unit = (uint8_t *)object_try_and_get(*(datum_index *)(entry + 0x34), 3);
 
             if (unit != 0 && ((unit_object *)unit)->base.parent_object == vehicle && *(int8_t *)(entry + 0x64) != -1) {
@@ -218,7 +216,7 @@ void ChatDialog::open(int32_t chat_scope)
     if (chat_scope == 0) {
 all_scope:
         {
-            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                        : (const void *)text_string_list_get_string();
             chat_scope_active = 0;
@@ -236,7 +234,7 @@ all_scope:
             int32_t unit_index = chat_default_team_channel();
             int32_t player_index = player_get_vehicle((datum_index)unit_index);
             if (player_index != -1) {
-                datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                            : (const void *)text_string_list_get_string();
                 chat_scope_active = 2;
@@ -247,7 +245,7 @@ team_scope:
         {
             datum_index tag_id;
             chat_scope_active = 1;
-            tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                        : (const void *)text_string_list_get_string();
             if (chat_scope_active == -1) {

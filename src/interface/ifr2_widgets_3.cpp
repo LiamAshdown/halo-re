@@ -1,4 +1,6 @@
 #include "halo/interface/ifr2_widgets.hpp"
+#include "halo/memory/api.hpp"
+#include <wchar.h>
 
 #ifdef interface
 #undef interface
@@ -12,8 +14,6 @@ extern void *ui_replace_function_table[4];
 extern uint16_t ui_invalid_replacement_text[];
 extern uint16_t ui_out_of_memory_text[];
 extern uint16_t *text_string_list_get_string(datum_index string_list_tag, int16_t index);
-extern uint32_t wcslen(const uint16_t *s);
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);
 extern void ui_string_replace_all(const uint16_t *search, const uint16_t *replacement, uint16_t **text);
 extern float widget_instance_get_cumulative_scale(widget_instance *widget);
@@ -49,8 +49,8 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
             index = *(int16_t *)&((struct UIWidgetDefinition *)t)->string_list_index;
         }
         src = text_string_list_get_string(*(datum_index *)&tag->text_label_unicode_strings_list.tag_id, index);
-        byte_len = wcslen(src) * 2;
-        buf = (uint16_t *)heap_reallocate(widget->text, byte_len + 2, widget_memory_pool);
+        byte_len = wcslen((const wchar_t *)src) * 2;
+        buf = (uint16_t *)halo::memory::heap_reallocate(widget->text, byte_len + 2, widget_memory_pool);
         widget->text = buf;
         if (buf == (uint16_t *)0) {
             widget->text = ui_out_of_memory_text;

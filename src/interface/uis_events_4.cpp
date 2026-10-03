@@ -17,6 +17,7 @@
 #include "game.h"
 
 #include "halo/interface/uis_event_handlers.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t *network_client;
@@ -24,7 +25,6 @@ extern uint32_t time_query_performance_counter_ms(void);
 extern uint8_t multiplayer_host_session_start(void);
 extern uint8_t input_event_queue_active;
 extern void input_queue_push_event(int16_t queue_index, ui_input_event *record);
-extern tag_instance *tag_instances;
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
 extern void widget_play_sound_effect(int16_t effect_id);
@@ -214,7 +214,7 @@ uint8_t UiEventHandlers::event_4a1d90(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *definition = (uint8_t *)tag_instances[widget->definition & 0xffff].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
     int32_t x = ui_cursor_x;
     int32_t y = ui_cursor_y;
     int16_t origin_x;
@@ -253,7 +253,7 @@ uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, u
         return 1;
     }
     for (child = widget->first_child; child != 0; child = child->next_sibling) {
-        uint8_t *bounds = (uint8_t *)tag_instances[child->definition & 0xffff].data;
+        uint8_t *bounds = (uint8_t *)halo::cache::globals().tag_instances[child->definition & 0xffff].data;
         int16_t cx;
         int16_t cy;
 
@@ -613,7 +613,7 @@ uint8_t UiEventHandlers::event_4a3510(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     widget_instance *list = widget->parent;
-    uint8_t *definition = (uint8_t *)tag_instances[list->definition & 0xffff].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[list->definition & 0xffff].data;
     int32_t rows = *(int32_t *)(definition + 0x3e0);
     int32_t first_visible = *(int16_t *)((uint8_t *)list + 0x3e);
     int32_t committed = *(int16_t *)&((struct widget_instance *)list)->text;

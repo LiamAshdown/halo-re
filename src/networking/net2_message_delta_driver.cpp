@@ -9,17 +9,14 @@
 #include "networking.h"
 #include "halo/networking/net2_message_delta_driver.hpp"
 #include "halo/networking/field_codec.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern message_delta_definition * message_delta_definitions[56];
 extern uint8_t message_delta_field_changed_flags[0x40];
-extern uint32_t bit_stream_read_bit(uint8_t *out_bit, bit_stream *stream);
 extern uint8_t message_delta_item_count_bits[];
 extern uint8_t message_delta_parameters_enabled;
 extern int32_t message_delta_parameters_protocol_sequence;
-extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer, bit_stream *stream);
-extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 extern uint8_t message_delta_parameters_sending;
 extern message_delta_field_type_vtable message_delta_field_type_table[];
 extern uint8_t message_delta_unknown_table_0069a304[28][0x18];
@@ -113,7 +110,7 @@ int32_t DeltaMessageDriver::decode_field_changed_flags(void **context)
         ok = (uint8_t)!(last < stream->first_bit || stream->last_bit < last);
         if (ok) {
             for (i = 0; i < field_count; i++) {
-                if (bit_stream_read_bit(&changed_flags[i], stream) != 1) {
+                if (halo::memory::bit_stream_read_bit(&changed_flags[i], stream) != 1) {
                     ok = 0;
                     break;
                 }
@@ -170,11 +167,11 @@ int32_t DeltaMessageDriver::decode_message_header(bit_stream *stream, message_de
     sequence_bit = 0;
     sequence_value = 0;
 
-    incremental_read_ok = (uint8_t)bit_stream_read_bit((uint8_t *)state, stream);
+    incremental_read_ok = (uint8_t)halo::memory::bit_stream_read_bit((uint8_t *)state, stream);
     *(int32_t *)(raw_state + 0x2c) = 1;
     message_type_read_ok = incremental_read_ok != 0 && state->incremental >= 0 && state->incremental < 2;
 
-    message_type_read_ok = (uint8_t)(bit_stream_read_bits_chunked(6, (uint32_t *)&state->message_type, stream) != 0) && message_type_read_ok;
+    message_type_read_ok = (uint8_t)(halo::memory::bit_stream_read_bits_chunked(6, (uint32_t *)&state->message_type, stream) != 0) && message_type_read_ok;
     header_bits = 7;
     *(int32_t *)(raw_state + 0x28) = 6;
 
@@ -182,9 +179,9 @@ int32_t DeltaMessageDriver::decode_message_header(bit_stream *stream, message_de
         uint8_t range_ok = state->message_type >= 0 && state->message_type <= 0x37 && message_type_read_ok;
 
         if (message_delta_parameters_enabled == 1) {
-            incremental_read_ok = (uint8_t)bit_stream_read_bit(&sequence_bit, stream);
+            incremental_read_ok = (uint8_t)halo::memory::bit_stream_read_bit(&sequence_bit, stream);
             message_type_read_ok = incremental_read_ok != 0 && range_ok;
-            incremental_read_ok = (uint8_t)(bit_stream_read_bits_chunked(2, (uint32_t *)&sequence_value, stream) != 0);
+            incremental_read_ok = (uint8_t)(halo::memory::bit_stream_read_bits_chunked(2, (uint32_t *)&sequence_value, stream) != 0);
             range_ok = incremental_read_ok != 0 && message_type_read_ok;
             header_bits = 10;
             *(int32_t *)(raw_state + 0x24) = 3;
@@ -200,7 +197,7 @@ int32_t DeltaMessageDriver::decode_message_header(bit_stream *stream, message_de
                 *(int32_t *)(raw_state + 0x20) = 0;
             } else {
                 int32_t item_bits = message_delta_item_count_bits[maximum_items];
-                item_count_ok = (uint8_t)(bit_stream_read_bits_chunked(item_bits, (uint32_t *)&state->item_count, stream) != 0);
+                item_count_ok = (uint8_t)(halo::memory::bit_stream_read_bits_chunked(item_bits, (uint32_t *)&state->item_count, stream) != 0);
                 header_bits += item_bits;
                 state->item_count += 1;
                 *(int32_t *)(raw_state + 0x20) = item_bits;
@@ -336,7 +333,7 @@ uint8_t DeltaMessageDriver::encode_field(int32_t changed_offset, uint8_t *ctx, i
 
     changed = 0;
     if (CTXD(8) == 1) {
-        if (bit_stream_write_bit(field_bits != 0, 0) != 0) {
+        if (halo::memory::bit_stream_write_bit(field_bits != 0, 0) != 0) {
             changed = 1;
         }
     } else if (0 < field_bits) {
@@ -412,7 +409,7 @@ int32_t DeltaMessageDriver::encode_message(int32_t extra_eax, int32_t extra_edx,
     if (1 < definition->maximum_items) {
         int32_t count_bits = message_delta_item_count_bits[definition->maximum_items];
         uint32_t value = (uint32_t)(CTXD(0x38) - 1);
-        bit_stream_write_bits_chunked((bit_stream *)(ctx + 0x1c), &value, count_bits);
+        halo::memory::bit_stream_write_bits_chunked((bit_stream *)(ctx + 0x1c), &value, count_bits);
         CTXD(0x88) = count_bits;
     }
     return definition->header_bits + CTXD(0x14);
@@ -421,24 +418,23 @@ int32_t DeltaMessageDriver::encode_message(int32_t extra_eax, int32_t extra_edx,
 
 uint8_t DeltaMessageDriver::encode_message_header(uint8_t *ctx)
 {
-    uint8_t (*const bit_stream_write_bit)(uint8_t bit, bit_stream *stream) = reinterpret_cast<uint8_t (*)(uint8_t bit, bit_stream *stream)>(&::bit_stream_write_bit);
     #define CTXD(off) (*(int32_t *)(ctx + (off)))
     bit_stream *stream = (bit_stream *)(ctx + 0x1c);
     uint32_t parameters = (uint32_t)message_delta_parameters_protocol_sequence;
     uint8_t ok;
     int32_t written;
 
-    ok = bit_stream_write_bit((uint8_t)CTXD(8), stream) != 0;
+    ok = halo::memory::bit_stream_write_bit((uint8_t)CTXD(8), stream) != 0;
     CTXD(0x80) = 1;
     CTXD(0x84) = CTXD(0x84) + 6;
-    written = bit_stream_write_bits_chunked(stream, (const uint32_t *)(ctx + 4), CTXD(0x84));
+    written = halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)(ctx + 4), CTXD(0x84));
     ok = (written != 0 && ok) ? 1 : 0;
     if (message_delta_parameters_enabled != 1) {
         return ok;
     }
     CTXD(0x88) = 2;
-    ok = (bit_stream_write_bit(message_delta_parameters_sending, stream) != 0 && ok) ? 1 : 0;
-    written = bit_stream_write_bits_chunked(stream, &parameters, CTXD(0x88));
+    ok = (halo::memory::bit_stream_write_bit(message_delta_parameters_sending, stream) != 0 && ok) ? 1 : 0;
+    written = halo::memory::bit_stream_write_bits_chunked(stream, &parameters, CTXD(0x88));
     CTXD(0x88) = CTXD(0x88) + 1;
     return (written != 0 && ok) ? 1 : 0;
     #undef CTXD

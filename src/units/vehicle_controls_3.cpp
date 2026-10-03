@@ -1,22 +1,38 @@
 #include "halo/units/unit.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
-extern real_vector3d *global_up3d_pointer;
 extern real_point3d *global_origin3d_pointer;
 extern real_vector3d *g_006966e4;
 extern float scenario_location_water_surface_distance(void);
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
-extern void matrix4x3_inverse_transform_vector(real_matrix4x3 *m);
-extern void matrix4x3_transform_vector(real_matrix4x3 *m);
 extern void vector3d_clamp_length(float max_length);
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void object_physics_tick(uint32_t unit_index, void *node_output, void *contact_points, void *extra_force, void *extra_torque);
 extern double sqrt(double x);
 extern double fabs(double x);
 extern float fabsf(float x);
+}
+
+/**
+ * Calls halo::math::matrix4x3_inverse_transform_vector with the single matrix argument the vehicle code was reversed
+ * with; the function also takes the output and input vectors, which the original passed in EAX and EDX and the
+ * reversal has not identified yet.
+ */
+static void matrix4x3_inverse_transform_vector_unresolved(real_matrix4x3 *m)
+{
+    using call_t = void (*)(real_matrix4x3 *);
+    reinterpret_cast<call_t>(&halo::math::matrix4x3_inverse_transform_vector)(m);
+}
+
+/**
+ * Calls halo::math::matrix4x3_transform_vector with the single matrix argument the vehicle code was reversed with;
+ * the output and input vectors (EAX and EDX in the original) have not been identified yet.
+ */
+static void matrix4x3_transform_vector_unresolved(real_matrix4x3 *m)
+{
+    using call_t = void (*)(real_matrix4x3 *);
+    reinterpret_cast<call_t>(&halo::math::matrix4x3_transform_vector)(m);
 }
 
 namespace halo::units {
@@ -32,10 +48,10 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
+    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    uint8_t *physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     int32_t node_count = *(int32_t *)(physics_tag + 0x68);
     float bank_lookup = scenario_location_water_surface_distance();
     real_vector3d push = *(real_vector3d *)global_origin3d_pointer;
@@ -59,9 +75,9 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
     {
         real_matrix4x3 basis;
 
-        matrix4x3_from_forward_up(&obj->up, &obj->forward, &basis);
+        halo::math::matrix4x3_from_forward_up(obj->up, obj->forward, basis);
         basis.position = obj->position;
-        matrix4x3_inverse_transform_vector(&basis);
+        matrix4x3_inverse_transform_vector_unresolved(&basis);
 
         if (vehicle->ground_lean > 0.0f) {
             float accel = tag->maximum_forward_speed;
@@ -83,7 +99,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
             }
 
             vector3d_clamp_length(accel);
-            matrix4x3_transform_vector(&basis);
+            matrix4x3_transform_vector_unresolved(&basis);
 
             {
                 float scale = *(float *)(physics_tag + 8) * vehicle->ground_lean;
@@ -184,16 +200,16 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
                 push.i += cross.i * f1;
                 push.j += cross.j * f1;
                 push.k += cross.k * f1;
-                angular.i += f2 * global_up3d_pointer->i;
-                angular.j += f2 * global_up3d_pointer->j;
-                angular.k += f2 * global_up3d_pointer->k;
+                angular.i += f2 * halo::math::globals().global_up3d_pointer->i;
+                angular.j += f2 * halo::math::globals().global_up3d_pointer->j;
+                angular.k += f2 * halo::math::globals().global_up3d_pointer->k;
             }
 
             if (vehicle->airborne_ticks != 0) {
                 real_vector3d axis = cross;
                 real length;
-                vector3d_cross_product(&axis, global_up3d_pointer, &cross);
-                length = vector3d_normalize_with_length(&axis);
+                halo::math::vector3d_cross_product(axis, *halo::math::globals().global_up3d_pointer, cross);
+                length = halo::math::vector3d_normalize_with_length(axis);
                 if (length > 0.0f) {
                     float t = 1.0f - (float)vehicle->airborne_ticks * 0.033333335f;
                     float scale, s1, s2;
@@ -201,9 +217,9 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
                     scale = (1.0f - vehicle->ground_lean) * *(float *)(physics_tag + 8) * t;
                     s1 = scale * 0.002f;
                     s2 = scale * 0.001f;
-                    push.i += s2 * global_up3d_pointer->i + cross.i * s1;
-                    push.j += s2 * global_up3d_pointer->j + cross.j * s1;
-                    push.k += s2 * global_up3d_pointer->k + s1 * cross.k;
+                    push.i += s2 * halo::math::globals().global_up3d_pointer->i + cross.i * s1;
+                    push.j += s2 * halo::math::globals().global_up3d_pointer->j + cross.j * s1;
+                    push.k += s2 * halo::math::globals().global_up3d_pointer->k + s1 * cross.k;
                 }
             }
         }

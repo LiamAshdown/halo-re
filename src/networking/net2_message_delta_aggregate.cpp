@@ -6,16 +6,11 @@
 #include <stdint.h>
 #include "halo/networking/net2_message_delta_aggregate.hpp"
 #include "halo/networking/field_codec.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
-extern uint32_t bit_stream_read_bit(uint8_t *out_bit, bit_stream *stream);
-extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream);
 extern message_delta_definition * message_delta_definitions[56];
 extern int32_t message_delta_decode_field_changed_flags(void **context);
-extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer,
-    bit_stream *stream);
-extern uint8_t bit_stream_write_bits(uint32_t bit_count, uint32_t value, bit_stream *stream);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 int32_t message_delta_array_field_decode(message_delta_field_type *field_type, uint8_t *previous,
     uint8_t *destination, bit_stream *stream);
 int32_t message_delta_array_field_encode(message_delta_field_type *field_type, uint8_t *previous,
@@ -112,7 +107,7 @@ int32_t AggregateFieldCodec::array_field_decode(message_delta_field_type *field_
             stream->byte_cursor = target_bit >> 3;
         }
 
-        bit_stream_read_bit(&changed_bit, stream);
+        halo::memory::bit_stream_read_bit(&changed_bit, stream);
 
         first_bit = stream->first_bit;
         target_bit = first_bit + (uint32_t)data_position;
@@ -211,7 +206,7 @@ int32_t AggregateFieldCodec::array_field_encode(message_delta_field_type *field_
                 stream->byte_cursor = target_bit >> 3;
             }
 
-            bit_stream_write_bit(0 < element_bits, stream);
+            halo::memory::bit_stream_write_bit(0 < element_bits, stream);
 
             first_bit = stream->first_bit;
             target_bit = first_bit + (uint32_t)data_position;
@@ -280,7 +275,7 @@ int32_t AggregateFieldCodec::compound_decode(message_delta_field_type *field_typ
         uint8_t changed = 0;
 
         message_delta_stream_seek(stream, stream->first_bit, flag);
-        bit_stream_read_bit(&changed, stream);
+        halo::memory::bit_stream_read_bit(&changed, stream);
         message_delta_stream_seek(stream, stream->first_bit, data);
         if (changed) {
             total += FieldCodecRegistry::get(binding->field_type).decode((uint8_t *)previous + binding->source_offset, (uint8_t *)current + binding->destination_offset, stream);
@@ -454,7 +449,7 @@ int32_t AggregateFieldCodec::dword_array_decode(message_delta_field_type *field_
     if (previous == 0) {
         if (0 < descriptor->count) {
             for (index = 0; index < descriptor->count; index = index + 1) {
-                decoded_bits = bit_stream_read_bits_chunked(0x20, &destination[index], stream);
+                decoded_bits = halo::memory::bit_stream_read_bits_chunked(0x20, &destination[index], stream);
                 total_bits = total_bits + decoded_bits;
             }
         }
@@ -491,7 +486,7 @@ int32_t AggregateFieldCodec::dword_array_decode(message_delta_field_type *field_
             stream->byte_cursor = target_bit >> 3;
         }
 
-        bit_stream_read_bit(&changed_bit, stream);
+        halo::memory::bit_stream_read_bit(&changed_bit, stream);
 
         first_bit = stream->first_bit;
         target_bit = first_bit + (uint32_t)data_position;
@@ -506,7 +501,7 @@ int32_t AggregateFieldCodec::dword_array_decode(message_delta_field_type *field_
         if (changed_bit == 0) {
             *cursor = *(uint32_t *)((uint8_t *)cursor + previous_offset);
         } else {
-            decoded_bits = bit_stream_read_bits_chunked(0x20, cursor, stream);
+            decoded_bits = halo::memory::bit_stream_read_bits_chunked(0x20, cursor, stream);
             total_bits = total_bits + decoded_bits;
         }
 
@@ -548,7 +543,7 @@ int32_t AggregateFieldCodec::float_array_encode(message_delta_field_type *field_
             for (index = 0; index < descriptor->count; index = index + 1) {
                 remaining_width = 0x20;
                 while (0x1f < remaining_width) {
-                    if (bit_stream_write_bits(0x20, *(uint32_t *)&cursor[index], stream) == 0) {
+                    if (halo::memory::bit_stream_write_bits(0x20, *(uint32_t *)&cursor[index], stream) == 0) {
                         goto accumulate;
                     }
                     remaining_width = remaining_width - 0x20;
@@ -556,7 +551,7 @@ int32_t AggregateFieldCodec::float_array_encode(message_delta_field_type *field_
                         goto accumulate;
                     }
                 }
-                if (bit_stream_write_bits(remaining_width, *(uint32_t *)&cursor[index], stream) != 0) {
+                if (halo::memory::bit_stream_write_bits(remaining_width, *(uint32_t *)&cursor[index], stream) != 0) {
                     remaining_width = 0;
                 }
             accumulate:
@@ -585,7 +580,7 @@ int32_t AggregateFieldCodec::float_array_encode(message_delta_field_type *field_
             delta = *(float *)((uint8_t *)cursor + previous_offset) - *cursor;
             if (delta < -0.0001f || 0.0001f < delta) {
                 changed_bit = 1;
-                written_bits = bit_stream_write_bits_chunked(stream, (const uint32_t *)cursor, 0x20);
+                written_bits = halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)cursor, 0x20);
                 total_bits = total_bits + written_bits;
             } else {
                 changed_bit = 0;
@@ -602,7 +597,7 @@ int32_t AggregateFieldCodec::float_array_encode(message_delta_field_type *field_
                 stream->byte_cursor = target_bit >> 3;
             }
 
-            bit_stream_write_bit((int32_t)changed_bit, stream);
+            halo::memory::bit_stream_write_bit((int32_t)changed_bit, stream);
 
             first_bit = stream->first_bit;
             target_bit = first_bit + (uint32_t)data_position;
@@ -712,7 +707,7 @@ int32_t AggregateFieldCodec::structure_array_encode(message_delta_field_type *fi
         total += bits;
         data = (int32_t)(message_delta_stream_position(stream) - stream->first_bit);
         message_delta_stream_seek(stream, stream->first_bit, flag);
-        bit_stream_write_bit(bits > 0, stream);
+        halo::memory::bit_stream_write_bit(bits > 0, stream);
         message_delta_stream_seek(stream, stream->first_bit, data);
         flag++;
     }

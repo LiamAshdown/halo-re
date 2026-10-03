@@ -5,9 +5,9 @@
  */
 
 #include "halo/bitmaps/bitmaps.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
-extern tag_instance *tag_instances;
 extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count];
 extern uint8_t bitmap_group_debug_dump;
 extern uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap);
@@ -20,7 +20,7 @@ namespace halo::bitmaps {
 
 BitmapData * bitmap_group::get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index)
 {
-    Bitmap *bitmap = (Bitmap *)tag_instances[(uint16_t)bitmap_tag_index].data;
+    Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[(uint16_t)bitmap_tag_index].data;
 
     if (bitmap != 0 && bitmap_data_index >= 0) {
         if (bitmap_data_index < (int32_t)bitmap->bitmap_data.count) {
@@ -38,7 +38,7 @@ BitmapData * bitmap_group::sequence_get_bitmap_data(datum_index bitmap_tag_index
     if (bitmap_tag_index == (datum_index)k_datum_index_none) {
         return 0;
     }
-    bitmap = (Bitmap *)tag_instances[(uint16_t)bitmap_tag_index].data;
+    bitmap = (Bitmap *)halo::cache::globals().tag_instances[(uint16_t)bitmap_tag_index].data;
     if (bitmap == 0) {
         return 0;
     }
@@ -71,7 +71,7 @@ BitmapData * bitmap_group::sequence_get_bitmap_data(datum_index bitmap_tag_index
 
 uint8_t bitmap_group::postprocess(datum_index tag_id, uint8_t skip_hardware_textures)
 {
-    Bitmap *bitmap = (Bitmap *)tag_instances[(uint16_t)tag_id].data;
+    Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
     BitmapData *bitmap_data_array = (BitmapData *)bitmap->bitmap_data.pointer;
     int32_t bitmap_data_count = (int32_t)bitmap->bitmap_data.count;
     BitmapGroupSequence *sequences = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer;

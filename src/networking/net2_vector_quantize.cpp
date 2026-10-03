@@ -4,6 +4,7 @@
  */
 #include "message_delta_codec.h"
 #include "halo/networking/net2_vector_quantize.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern double sqrt(double x);
@@ -11,7 +12,6 @@ extern double sin(double x);
 extern double cos(double x);
 extern uint8_t message_delta_vector3d_mode;
 extern uint32_t message_delta_quantize_float_to_int(uint32_t max_level, real value, real minimum, real maximum);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern double acos(double x);
 extern double atan(double x);
 extern int _isnan(double x);
@@ -140,7 +140,7 @@ void VectorQuantizer::quantize(int32_t *out_indices, int32_t *descriptor, real *
 
 void VectorQuantizer::to_angles(real *out, real_vector3d vector)
 {
-    vector3d_normalize_with_length(&vector);
+    halo::math::vector3d_normalize_with_length(vector);
     if (!(vector.i > 0.0001f) && !(vector.i != vector.i) && !(vector.i < -0.0001f)) {
         out[1] = vector.j > 0.0f ? 1.5707964f : -1.5707964f;
         out[0] = (real)acos(vector.k);

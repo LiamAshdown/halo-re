@@ -1,5 +1,6 @@
 #include "halo/hs/hs3_commands.hpp"
 #include <stdio.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
@@ -26,7 +27,6 @@ extern void message_delta_parameters_protocol_send_update(void);
 extern void sv_players(void);
 extern void sv_status(void);
 extern growable_array ban_list;
-extern void growable_array_remove_element(growable_array *array, uint32_t index);
 extern void network_banlist_save(void);
 extern void map_list_matching_substring(uint32_t argument_count, int32_t *arguments);
 extern void sv_ban_penalty(uint32_t argument_count, int32_t *arguments);
@@ -305,7 +305,7 @@ void ServerCommands::evaluate_sv_unban(int16_t function_index, uint32_t thread_i
 
         if (index >= 0 && index < ban_list.count) {
             chimera__console_out(0, (char *)"Unbanning %s.", (uint8_t *)ban_list.data + index * 0x38);
-            growable_array_remove_element(&ban_list, (uint32_t)index);
+            halo::memory::growable_array_remove_element(&ban_list, (uint32_t)index);
             network_banlist_save();
         }
         hs_thread_return(0, thread_index);

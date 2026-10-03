@@ -17,6 +17,8 @@
 #include <wchar.h>
 
 #include "halo/interface/uis_event_handlers.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern network_server_globals *network_server;
@@ -29,8 +31,6 @@ extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern widget_history_node *ui_widget_history[3];
 extern heap *widget_memory_pool;
-extern void heap_unlink_block(heap_block *block, heap *self);
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern uint8_t saved_item_has_unsaved_changes(void);
 extern int32_t saved_item_name_changed(void);
 extern uint8_t saved_item_name_edit_begin(void);
@@ -39,10 +39,7 @@ extern void widget_close(widget_instance *widget);
 extern growable_array ui_lists[3];
 extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
-extern datum_index tag_lookup(tag_group group, char *path);
-extern tag_instance *tag_instances;
 extern uint16_t missing_string_text[];
-extern uint32_t growable_array_add_element(growable_array *array);
 extern int32_t profile_slot_lookup_cache_00692ac8;
 extern void saved_item_select(int32_t item);
 extern int16_t quit_confirm_error_string_index;
@@ -82,7 +79,7 @@ static void widget_history_pop(int16_t controller)
         uint32_t size = block->size & 0x7fffffff;
 
         ui_widget_history[controller] = node->next;
-        heap_unlink_block(block, widget_memory_pool);
+        halo::memory::heap_unlink_block(block, widget_memory_pool);
         widget_memory_pool->bytes_allocated -= (int32_t)size;
         widget_memory_pool->allocation_count -= 1;
     }
@@ -540,7 +537,7 @@ uint8_t UiEventHandlers::event_49f610(widget_instance *widget, int16_t *event, u
     if (variant == 0) {
         return 0;
     }
-    text = (uint16_t *)heap_reallocate(widget->text, 0x100, widget_memory_pool);
+    text = (uint16_t *)halo::memory::heap_reallocate(widget->text, 0x100, widget_memory_pool);
     widget->text = text;
     if (text != 0) {
         wcsncpy((wchar_t *)text, (const wchar_t *)variant, 0x7f);
@@ -838,12 +835,12 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
         *(int16_t *)&((struct widget_instance *)widget)->text = *(int16_t *)(profile + 0x11a);
         *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
     }
-    indices = (uint8_t *)heap_reallocate(widget->list_items, 0x12, widget_memory_pool);
+    indices = (uint8_t *)halo::memory::heap_reallocate(widget->list_items, 0x12, widget_memory_pool);
     widget->list_items = indices;
     if (indices == 0) {
         return 1;
     }
-    strings = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\color_edit\\colors_list");
+    strings = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\color_edit\\colors_list");
     for (i = 0; i < 0x12; i++) {
         uint16_t *text = missing_string_text;
         uint8_t is_default;
@@ -851,7 +848,7 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
 
         ((uint8_t *)widget->list_items)[i] = (uint8_t)i;
         if (strings != 0xffffffff) {
-            uint8_t *list = (uint8_t *)tag_instances[strings & 0xffff].data;
+            uint8_t *list = (uint8_t *)halo::cache::globals().tag_instances[strings & 0xffff].data;
 
             if (i < *(int32_t *)list) {
                 uint8_t *element = *(uint8_t **)(list + 4) + i * 0x14;
@@ -864,7 +861,7 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
             }
         }
         is_default = (uint8_t)(i == widget->selection_index);
-        index = growable_array_add_element(&ui_lists[0]);
+        index = halo::memory::growable_array_add_element(&ui_lists[0]);
         if (index != 0xffffffff) {
             ui_list_item *item = (ui_list_item *)ui_lists[0].data + index;
             uint16_t *copy;

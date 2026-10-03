@@ -1,5 +1,7 @@
 #include "halo/interface/ifr1_hud_frame.hpp"
 #include <string.h>
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -14,11 +16,9 @@ extern void player_effect_fade_damage_indicators(int16_t local_player_index,
                                                   uint32_t *out_previous_indicators);
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset);
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern void hud_draw_bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, int16_t anchor,
                                const Point2DInt *screen_position, float scale, float rotation, uint32_t color);
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern Globals *global_globals;
 extern game_time_globals *game_time;
 extern hud_weapon_interface_state *hud_weapon_state;
@@ -54,7 +54,6 @@ extern uint8_t game_engine_scores_tracked_individually(void);
 extern float *game_engine_get_player_color(uint32_t player_index, float *out_rgb);
 extern TagID unit_get_hud_interface_tag_id(Unit *unit_tag, uint8_t use_second);
 extern TagID unit_get_seat_hud_interface_tag_id(Unit *unit_tag, int16_t seat_index, uint8_t use_second);
-extern datum_index tag_lookup(tag_group group, char *path);
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern uint32_t color_rgb_float_to_int(const float *rgb);
 extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
@@ -74,7 +73,6 @@ extern hud_globals_flags *hud_flags;
 extern hud_messaging_globals *hud_messaging;
 extern hud_waypoint_state *hud_waypoints;
 extern motion_sensor_globals *motion_sensor;
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern HUDGlobals *hud_messaging_parameters;
 extern void motion_sensor_reset(void);
 extern void hud_weapon_interface_state_update(void);
@@ -211,7 +209,7 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
             if (bitmap_data == 0) {
                 continue;
             }
-            if (texture_cache_get((BitmapData *)bitmap_data, 0, 1) == 0) {
+            if (halo::cache::texture_cache_get((BitmapData *)bitmap_data, 0, 1) == 0) {
                 continue;
             }
             position.x = (int16_t)(int32_t)x;
@@ -253,7 +251,7 @@ void HudFrame::draw_grenade_interface(int16_t local_player_index, datum_index un
     if (hud_tag == (datum_index)-1) {
         return;
     }
-    hud = (GrenadeHUDInterface *)tag_instances[hud_tag & 0xffff].data;
+    hud = (GrenadeHUDInterface *)halo::cache::globals().tag_instances[hud_tag & 0xffff].data;
 
     count = *(int8_t *)(unit + 0x31e + grenade);
     flags = (count <= hud->flash_cutoff ? 1 : 0) | (count == 0 ? 2 : 0) | (local_player_globals->local_player_count > 1 ? 4 : 0);
@@ -318,7 +316,7 @@ void HudFrame::draw_weapon_interface(player *p)
             no_weapon = 1;
         } else {
             uint8_t *parent_object = (uint8_t *)((object_header *)object_data->data)[parent & 0xffff].data;
-            uint8_t *seats = *(uint8_t **)((uint8_t *)tag_instances[*(datum_index *)parent_object & 0xffff].data + 0x2e8);
+            uint8_t *seats = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)parent_object & 0xffff].data + 0x2e8);
 
             if ((seats[seat * 0x11c] & 8) != 0) {
                 weapon = unit_get_weapon_object_index(parent, *(int16_t *)(parent_object + 0x2f2));
@@ -331,7 +329,7 @@ void HudFrame::draw_weapon_interface(player *p)
 
     if (weapon != (datum_index)-1) {
         uint8_t *weapon_object = (uint8_t *)((object_header *)object_data->data)[weapon & 0xffff].data;
-        Weapon *weapon_tag = (Weapon *)tag_instances[*(datum_index *)weapon_object & 0xffff].data;
+        Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[*(datum_index *)weapon_object & 0xffff].data;
         datum_index hud_tag;
 
         weapon_build_hud_ammo_state(weapon, &ammo);
@@ -386,7 +384,7 @@ uint8_t HudFrame::player_weapon_ammo_state(const player *p, weapon_hud_ammo_stat
             return 0;
         }
         parent_object = (uint8_t *)((object_header *)object_data->data)[parent & 0xffff].data;
-        seats = *(uint8_t **)((uint8_t *)tag_instances[*(datum_index *)parent_object & 0xffff].data + 0x2e8);
+        seats = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)parent_object & 0xffff].data + 0x2e8);
         if ((seats[seat * 0x11c] & 8) == 0) {
             return 0;
         }
@@ -429,7 +427,7 @@ void HudFrame::render_unit_interface(player *p)
         return;
     }
     unit_object = (uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data;
-    unit_tag = (Unit *)tag_instances[*(datum_index *)unit_object & 0xffff].data;
+    unit_tag = (Unit *)halo::cache::globals().tag_instances[*(datum_index *)unit_object & 0xffff].data;
     player_index = (local_player_index != -1 && local_player_index < 1)
                        ? local_player_globals->local_players[local_player_index] : (datum_index)-1;
     state = &hud_unit_meters->players[local_player_index];
@@ -470,7 +468,7 @@ void HudFrame::render_unit_interface(player *p)
         parent = *(datum_index *)(unit_object + 0x11c);
         if (parent != (datum_index)-1 && *(int16_t *)(unit_object + 0x2f0) != -1) {
             uint8_t *parent_object = (uint8_t *)((object_header *)object_data->data)[parent & 0xffff].data;
-            Unit *parent_tag = (Unit *)tag_instances[*(datum_index *)parent_object & 0xffff].data;
+            Unit *parent_tag = (Unit *)halo::cache::globals().tag_instances[*(datum_index *)parent_object & 0xffff].data;
             uint8_t split = local_player_globals->local_player_count > 1;
             TagID parent_hud = unit_get_hud_interface_tag_id(parent_tag, split);
             uint8_t *seats = *(uint8_t **)&((struct Unit *)parent_tag)->seats.pointer;
@@ -526,7 +524,7 @@ void HudFrame::render_unit_interface(player *p)
         if (hud_tag == (datum_index)-1) {
             continue;
         }
-        hud = (UnitHUDInterface *)tag_instances[hud_tag & 0xffff].data;
+        hud = (UnitHUDInterface *)halo::cache::globals().tag_instances[hud_tag & 0xffff].data;
 
         if (*(datum_index *)&hud->hud_background_interface_bitmap.tag_id != (datum_index)-1) {
             flags = (uint32_t)((*(uint8_t *)(object + 0x106) >> 1) & 2);
@@ -794,14 +792,14 @@ void HudFrame::render_unit_interface(player *p)
             }
             if ((uint32_t)(game_engine_variant.game_engine_index - 1) <= 4) {
                 int32_t engine = game_engine_variant.game_engine_index - 1;
-                hud_team_icon_bitmap = tag_lookup(0x6269746d, icon_paths[engine]);
+                hud_team_icon_bitmap = halo::cache::tag_lookup(0x6269746d, icon_paths[engine]);
                 icon_position.x = icon_x[engine];
                 icon_position.y = icon_y[engine];
                 icon_scales[0] = icon_scale[engine];
                 icon_scales[1] = icon_scale[engine];
             }
             icon = bitmap_group_sequence_get_bitmap_data(hud_team_icon_bitmap, 0, 0);
-            hud_team_background_bitmap = tag_lookup(0x6269746d, (char *)"ui\\shell\\bitmaps\\team_background");
+            hud_team_background_bitmap = halo::cache::tag_lookup(0x6269746d, (char *)"ui\\shell\\bitmaps\\team_background");
             background = bitmap_group_sequence_get_bitmap_data(hud_team_background_bitmap, 0, 0);
             if (icon != 0 && background != 0) {
                 background_position.x = 0x1bd;
@@ -839,32 +837,32 @@ void HudFrame::state_allocate(void)
     size = sizeof(hud_globals_flags);
     hud_flags = (hud_globals_flags *)(game_state_cursor + (int32_t)game_state_base);
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     size = sizeof(hud_messaging_globals);
     hud_messaging = (hud_messaging_globals *)(game_state_cursor + (int32_t)game_state_base);
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     size = sizeof(hud_unit_meter_globals);
     hud_unit_meters = (hud_unit_meter_globals *)(game_state_cursor + (int32_t)game_state_base);
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     size = sizeof(hud_weapon_interface_state);
     hud_weapon_state = (hud_weapon_interface_state *)(game_state_cursor + (int32_t)game_state_base);
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     size = sizeof(hud_waypoint_state);
     hud_waypoints = (hud_waypoint_state *)(game_state_cursor + (int32_t)game_state_base);
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     size = sizeof(motion_sensor_globals);
     motion_sensor = (motion_sensor_globals *)(game_state_cursor + (int32_t)game_state_base);
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 }
 
 /**
@@ -888,7 +886,7 @@ void HudFrame::state_reset(void)
     interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
                              ? (GlobalsInterfaceBitmaps *)0
                              : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
-    hud_globals_tag_data = (HUDGlobals *)(tag_instances[(*(int32_t *)&interface_bitmaps->hud_globals.tag_id) & 0xffff].data);
+    hud_globals_tag_data = (HUDGlobals *)(halo::cache::globals().tag_instances[(*(int32_t *)&interface_bitmaps->hud_globals.tag_id) & 0xffff].data);
     hud_messaging_parameters = hud_globals_tag_data;
 
     memset(hud_messaging, 0, sizeof(*hud_messaging));

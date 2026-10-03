@@ -5,7 +5,7 @@
  */
 
 #include "halo/math/math.hpp"
-#include "halo/math/math_globals.h"
+#include "halo/math/globals.hpp"
 
 #include "win32.h"
 #include "tags.h"
@@ -82,7 +82,7 @@ public:
     real sample(const wave_phase &, random_seed &seed) const override
     {
         const real value = random_stream(seed).next_real();
-        random_seed_global = seed;
+        globals().random_seed_global = seed;
         return value;
     }
 };
@@ -185,14 +185,14 @@ void periodic_function_tables_init()
     int16_t i;
     uint8_t *table;
 
-    periodic_functions_initialized = 1;
-    random_seed_global = 0x20f3f660;
+    globals().periodic_functions_initialized = 1;
+    globals().random_seed_global = 0x20f3f660;
 
     for (i = 0; i < k_periodic_function_count; i++) {
         table = (uint8_t *)GlobalAlloc(0, k_periodic_function_table_size);
-        periodic_function_tables[i] = (periodic_function_table *)table;
+        globals().periodic_function_tables[i] = (periodic_function_table *)table;
         if (table == 0) {
-            periodic_functions_initialized = 0;
+            globals().periodic_functions_initialized = 0;
         } else {
             periodic_function_build_table(static_cast<periodic_function_type>(i), table);
         }
@@ -200,9 +200,9 @@ void periodic_function_tables_init()
 
     for (i = 0; i < k_transition_function_count; i++) {
         table = (uint8_t *)GlobalAlloc(0, k_periodic_function_table_size);
-        transition_function_tables[i] = (periodic_function_table *)table;
+        globals().transition_function_tables[i] = (periodic_function_table *)table;
         if (table == 0) {
-            periodic_functions_initialized = 0;
+            globals().periodic_functions_initialized = 0;
         } else {
             periodic_function_build_transition_table(static_cast<transition_function_type>(i), table);
         }
@@ -213,14 +213,14 @@ void periodic_function_tables_free()
 {
     int16_t i;
 
-    if (periodic_functions_initialized != 0) {
+    if (globals().periodic_functions_initialized != 0) {
         for (i = 0; i < 12; i++) {
-            GlobalFree(periodic_function_tables[i]);
+            GlobalFree(globals().periodic_function_tables[i]);
         }
         for (i = 0; i < 6; i++) {
-            GlobalFree(transition_function_tables[i]);
+            GlobalFree(globals().transition_function_tables[i]);
         }
-        periodic_functions_initialized = 0;
+        globals().periodic_functions_initialized = 0;
     }
 }
 
@@ -236,14 +236,14 @@ real periodic_function_evaluate(periodic_function_type type, double time)
     if (selector == 0) {
         return 1.0f;
     }
-    if (periodic_functions_initialized == 0) {
+    if (globals().periodic_functions_initialized == 0) {
         return 0.0f;
     }
 
     scaled_time = time * 25.600000381469727;
     frac_part = (real)fmod(scaled_time, 1.0);
     index = (uint32_t)(int32_t)lrint(scaled_time - (double)frac_part) & k_periodic_function_table_mask;
-    table = periodic_function_tables[selector];
+    table = globals().periodic_function_tables[selector];
     sample_a = (real)table->samples[index] * 0.003921569f;
     sample_b = (real)table->samples[(index + 1) & k_periodic_function_table_mask] * 0.003921569f;
 
@@ -281,11 +281,11 @@ real transition_function_evaluate(transition_function_type type, real phase)
     if (selector == 0) {
         return clamped;
     }
-    if (periodic_functions_initialized == 0) {
+    if (globals().periodic_functions_initialized == 0) {
         return 0.0f;
     }
 
-    table = transition_function_tables[selector];
+    table = globals().transition_function_tables[selector];
     x = (double)(clamped * 1023.0f);
     frac_part = (real)fmod(x, 1.0);
     index = (int16_t)(int32_t)lrint(x - 0.5);
@@ -363,7 +363,7 @@ void periodic_function_build_table(periodic_function_type type, uint8_t *out)
     periodic_function_build_noise_table(noise);
 
     value = -3.4028235e+38f;
-    seed = random_seed_global;
+    seed = globals().random_seed_global;
 
     for (i = 0; i < 1024; i++) {
         const wave_phase phase = {(real)i * 0.027343748f, noise[i] * 28.0f};

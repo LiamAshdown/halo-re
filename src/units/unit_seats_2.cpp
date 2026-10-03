@@ -4,26 +4,24 @@
 #include "hs.h"
 #include "networking.h"
 #include "crt.h"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern data_array *player_data;
 extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern network_client_globals *network_client;
 extern uint8_t biped_detach_from_flipped_vehicle;
 extern uint8_t unit_updates_suppressed;
-extern real_vector3d *global_forward3d_pointer;
 extern real_point3d *global_origin3d_pointer;
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
 extern uint32_t weapon_prevents_melee_attack(datum_index item_index);
 extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category, int16_t mode);
 extern void weapon_reset_triggers(datum_index item_index);
-extern void *datum_get(datum_index handle, data_array *array);
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern void player_update_history_free_all(void *history);
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
@@ -39,7 +37,7 @@ namespace halo::units {
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 namespace unit_detach_child_at_named_seat_local {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
@@ -81,7 +79,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     {
         uint8_t *reloaded = OBJECT_DATA(object_index);
 
-        matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
+        halo::math::matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
     *(real_vector3d *)&((unit_object *)self)->base.forward.i = basis.forward;
@@ -126,7 +124,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     if (network_game_mode == 1) {
-        uint8_t *player = (uint8_t *)datum_get(((unit_object *)self)->unit.controlling_player, player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;

@@ -6,10 +6,10 @@
 
 #include "halo/models/models.hpp"
 #include "halo/models/flags.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
-extern tag_instance *tag_instances;
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern void chimera__rasterizer_set_up_node_parts(int32_t node_part_count, uint8_t *node_part_indices);
 extern void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, uint8_t *shader, int16_t frame,
                                                           rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot,
@@ -29,7 +29,6 @@ extern ColorRGB model_render_default_change_colors[4];
 extern float model_render_default_function_values[4];
 extern int16_t console_model_lod_override;
 extern real_matrix4x3 render_camera_world_to_view;
-extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern uint8_t rasterizer_caps_flag_689;
 extern uint8_t console_debug_toggle_6893f2;
 extern rasterizer_window_parameters rasterizer_window;
@@ -98,7 +97,7 @@ void model_view::render_parts(uint8_t *region_permutations, rasterizer_node_matr
             for (part = 0; (int32_t)part < geometry->parts.count; part++) {
                 GBXModelGeometryPart *p = &((GBXModelGeometryPart *)geometry->parts.pointer)[part];
                 ModelShaderReference *shader_ref = &((ModelShaderReference *)self->shaders.pointer)[(int16_t)p->base.shader_index];
-                Shader *shader = (Shader *)tag_instances[shader_ref->shader.tag_id.index].data;
+                Shader *shader = (Shader *)halo::cache::globals().tag_instances[shader_ref->shader.tag_id.index].data;
                 int16_t shader_type;
                 int16_t permutation;
 
@@ -120,7 +119,7 @@ void model_view::render_parts(uint8_t *region_permutations, rasterizer_node_matr
                         real_matrix4x3 *centroid_node_matrix =
                             (real_matrix4x3 *)node_matrices->matrices + (int16_t)p->base.centroid_primary_node;
 
-                        matrix4x3_transform_point(&transformed_centroid, (real_point3d *)&p->base.centroid, centroid_node_matrix);
+                        halo::math::matrix4x3_transform_point(transformed_centroid, *((real_point3d *)&p->base.centroid), *centroid_node_matrix);
 
                         rasterizer_transparent_geometry_group_build(
                             (transparent_geometry_group_link *)&links[link_count], (uint8_t *)shader, permutation,
@@ -180,7 +179,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
     model_level_of_detail lod;
     int16_t node;
 
-    model = (GBXModel *)tag_instances[model_tag_id.index].data;
+    model = (GBXModel *)halo::cache::globals().tag_instances[model_tag_id.index].data;
 
     if ((model->node_list_checksum == (int32_t)k_model_first_person_node_list_checksum) &&
         ((global_scenario->flags & 1) != 0)) {
@@ -223,7 +222,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
         for (node = 0; (int32_t)node < model->nodes.count; node++) {
             real_matrix4x3 *given = (real_matrix4x3 *)node_matrices + node;
             real_matrix4x3 *inverse_bind = (real_matrix4x3 *)&((ModelNode *)model->nodes.pointer)[node].scale;
-            matrix4x3_multiply_procedure(given, inverse_bind, &node_matrix_array[node]);
+            halo::math::globals().matrix4x3_multiply_procedure(given, inverse_bind, &node_matrix_array[node]);
         }
     }
 

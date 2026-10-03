@@ -1,11 +1,13 @@
 #include "halo/game/game2_engine_hud.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
 extern game_variant game_engine_variant;
 extern data_array *player_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern network_server_globals *network_server;
 extern network_client_globals *network_client;
 extern player_globals *local_player_globals;
@@ -22,11 +24,9 @@ extern uint16_t hud_text_draw_color_or_flags;
 extern int16_t hud_text_draw_column;
 extern uint32_t hud_text_draw_unknown_4730;
 extern int32_t hud_text_draw_font_tag_id;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
-extern uint32_t color_real_to_argb_pack(float alpha, float *rgb);
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern int32_t select_players_to_display(int32_t mode, int32_t max_count, scoreboard_entry *out);
 extern void game_engine_build_end_game_result_text(datum_index player, wchar_t *out);
@@ -45,7 +45,6 @@ extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, w
 extern Globals *global_globals;
 extern int16_t network_game_mode;
 extern void game_engine_queue_status_sound_message(int32_t sound_index, datum_index recipient_player);
-extern void *datum_get(datum_index handle, data_array *array);
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 extern uint8_t multiplayer_sound_enabled[];
 extern int32_t multiplayer_sound_queue_count;
@@ -71,7 +70,7 @@ namespace halo::game {
  */
 wchar_t * EngineHud::multiplayer_game_text_string(int16_t index)
 {
-    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     if (tag_id == k_datum_index_none) {
         return &empty_string;
@@ -154,7 +153,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
     bg_rect.left = 0xa;
     bg_rect.bottom = 0x186;
     bg_rect.right = 0x276;
-    ui_draw_filled_rectangle(color_real_to_argb_pack(opacity * 0.69f, &bg_color.i), &bg_rect);
+    ui_draw_filled_rectangle(halo::math::color_real_to_argb_pack(opacity * 0.69f, &bg_color.i), &bg_rect);
 
     params_result.alpha = opacity;
     params_result.red = 0.7f;
@@ -464,7 +463,7 @@ void EngineHud::play_multiplayer_sound(int32_t sound_index, datum_index recipien
     if (recipient_player == (datum_index)0xffffffff || network_game_mode != 2) {
         sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
     } else {
-        player *p = (player *)datum_get(recipient_player, player_data);
+        player *p = (player *)halo::memory::datum_get(recipient_player, player_data);
         if (p != (player *)0 && p->local_player_index != -1) {
             sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
         }

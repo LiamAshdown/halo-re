@@ -5,14 +5,11 @@
 #include "memory.h"
 #include "math.h"
 #include "win32.h"
+#include "halo/cache/globals.hpp"
 
 extern "C" {
-extern data_array *texture_cache_entries;
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);
-extern struct cache *texture_cache;
 extern uint8_t debug_texture_cache_prints;
-extern tag_instance *tag_instances;
-extern cache_io_request *cache_io_requests;
 extern int64_t performance_frequency;
 extern int32_t sound_time;
 extern void console_print_va(const char *format, ...);
@@ -23,9 +20,6 @@ extern void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
 extern void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap);
 extern void *rasterizer_get_capture_surface(uint8_t *object, void *fallback);
 extern void *texture_cache_base;
-extern void *texture_cache_memory;
-extern void texture_cache_entry_release(void);
-extern void texture_cache_entry_in_use(void);
 extern uint32_t bitmap_compute_texture_data_size(BitmapData *bitmap);
 }
 
@@ -38,7 +32,7 @@ namespace halo::cache {
  */
 uint8_t texture_cache_manager::entry_in_use(datum_index handle)
 {
-    uint8_t *entry = (uint8_t *)texture_cache_entries->data + (handle & 0xffff) * 0x10;
+    uint8_t *entry = (uint8_t *)globals().texture_cache_entries->data + (handle & 0xffff) * 0x10;
     return entry[4] == 0;
 }
 
@@ -50,11 +44,11 @@ uint8_t texture_cache_manager::entry_in_use(datum_index handle)
  */
 void texture_cache_manager::entry_release(datum_index handle)
 {
-    texture_cache_entry *entry = (texture_cache_entry *)texture_cache_entries->data + (handle & 0xffff);
+    texture_cache_entry *entry = (texture_cache_entry *)globals().texture_cache_entries->data + (handle & 0xffff);
     BitmapData *bitmap;
     void *texture;
 
-    while (((texture_cache_entry *)texture_cache_entries->data + (handle & 0xffff))->loaded == 0) {
+    while (((texture_cache_entry *)globals().texture_cache_entries->data + (handle & 0xffff))->loaded == 0) {
         Sleep(0);
     }
     bitmap = entry->bitmap;
@@ -66,7 +60,7 @@ void texture_cache_manager::entry_release(datum_index handle)
     bitmap = entry->bitmap;
     if ((*(uint8_t *)&bitmap->flags & 0x80) != 0) {
         if ((int32_t)bitmap->pointer != -1) {
-            halo::memory::view(texture_cache)->evict_entry((datum_index)bitmap->pointer);
+            halo::memory::view(globals().texture_cache)->evict_entry((datum_index)bitmap->pointer);
         }
         bitmap->pointer = (uint32_t)-1;
         bitmap->pixel_base = 0;
@@ -76,7 +70,7 @@ void texture_cache_manager::entry_release(datum_index handle)
         ((d3d_release_fn)(*(void ***)texture)[2])(texture);
         bitmap->hardware_texture = 0;
     }
-    halo::memory::view(texture_cache_entries)->delete_datum(handle);
+    halo::memory::view(globals().texture_cache_entries)->delete_datum(handle);
 }
 
 /**
@@ -102,19 +96,19 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
         }
 
         if (bitmap->pointer != 0xffffffff) {
-            entry = (texture_cache_entry *)((uint8_t *)texture_cache_entries->data +
+            entry = (texture_cache_entry *)((uint8_t *)globals().texture_cache_entries->data +
                 (bitmap->pointer & 0xffff) * sizeof(texture_cache_entry));
 
-            ((cache_entry *)((uint8_t *)texture_cache->entries->data +
-                (bitmap->pointer & 0xffff) * sizeof(cache_entry)))->age = texture_cache->age;
+            ((cache_entry *)((uint8_t *)globals().texture_cache->entries->data +
+                (bitmap->pointer & 0xffff) * sizeof(cache_entry)))->age = globals().texture_cache->age;
 
             if (wait != 0 && entry->loaded == 0) {
                 if (debug_texture_cache_prints != 0) {
 
                     console_print_va("%s",
-                        tag_instances[(int16_t)bitmap->bitmap_tag_id.index].path);
+                        globals().tag_instances[(int16_t)bitmap->bitmap_tag_id.index].path);
                 }
-                cache_io_requests[entry->io_request_index].priority = 1;
+                globals().cache_io_requests[entry->io_request_index].priority = 1;
             }
 
             for (;;) {
@@ -175,14 +169,14 @@ void texture_cache_manager::initialize()
 {
     void *cache_memory;
 
-    texture_cache_entries = halo::memory::data_array_view::create(sizeof(texture_cache_entry), (char *)"pc texture", k_texture_cache_maximum_entries);
+    globals().texture_cache_entries = halo::memory::data_array_view::create(sizeof(texture_cache_entry), (char *)"pc texture", k_texture_cache_maximum_entries);
 
     cache_memory = GlobalAlloc(0, 0x1c07c);
     if (cache_memory != (void *)0) {
-        halo::memory::view((struct cache *)cache_memory)->initialize((char *)"pc texture cache", k_texture_cache_maximum_entries, k_texture_cache_block_shift, k_texture_cache_maximum_entries, (void *)texture_cache_entry_release, (void *)texture_cache_entry_in_use);
+        halo::memory::view((struct cache *)cache_memory)->initialize((char *)"pc texture cache", k_texture_cache_maximum_entries, k_texture_cache_block_shift, k_texture_cache_maximum_entries, (void *)&texture_cache_manager::entry_release, (void *)&texture_cache_manager::entry_in_use);
     }
-    texture_cache = (struct cache *)cache_memory;
-    texture_cache_base = texture_cache_memory;
+    globals().texture_cache = (struct cache *)cache_memory;
+    texture_cache_base = globals().texture_cache_memory;
     return;
 }
 
@@ -204,7 +198,7 @@ uint32_t texture_cache_manager::page_allocate(BitmapData *bitmap, uint8_t priori
     cache_io_completion completion;
 
     computed_size = bitmap_compute_texture_data_size(bitmap);
-    cache_slot = halo::memory::view(texture_cache)->allocate_block(4);
+    cache_slot = halo::memory::view(globals().texture_cache)->allocate_block(4);
     if (cache_slot == (datum_index)0xffffffff) {
         return 0;
     }
@@ -215,8 +209,8 @@ uint32_t texture_cache_manager::page_allocate(BitmapData *bitmap, uint8_t priori
     }
     staging_buffer = GlobalAlloc(0, alloc_size);
 
-    halo::memory::view(texture_cache_entries)->new_at_index_with_salt(cache_slot);
-    entry = (texture_cache_entry *)((uint8_t *)texture_cache_entries->data +
+    halo::memory::view(globals().texture_cache_entries)->new_at_index_with_salt(cache_slot);
+    entry = (texture_cache_entry *)((uint8_t *)globals().texture_cache_entries->data +
         (cache_slot & 0xffff) * sizeof(texture_cache_entry));
 
     bitmap->pointer = cache_slot;

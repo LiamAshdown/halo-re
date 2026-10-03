@@ -1,8 +1,8 @@
 #include "halo/units/unit.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern double fmod(double x, double y);
 extern void object_physics_tick(uint32_t unit_index, uint32_t powered_states, void *transform, uint32_t extra_force, uint32_t extra_torque);
 extern double cos(double x);
@@ -24,9 +24,9 @@ void VehicleView::calculate_steering_wheel_controls(void *mass_points, float *po
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
+    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
-    uint8_t *physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     float *out_transform = powered_states;
     float wrapped;
 
@@ -74,12 +74,12 @@ void VehicleView::calculate_turret_controls(void *mass_points, float *powered_st
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
+    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
     float *out_transform = powered_states;
     float forward = vehicle->forward_velocity;
     float turning = vehicle->turning_velocity;
-    uint8_t *physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     float wrapped;
 
     vehicle->left_wheel_rotation = (forward - turning) + vehicle->left_wheel_rotation;

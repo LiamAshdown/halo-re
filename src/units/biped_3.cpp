@@ -1,16 +1,11 @@
 #include "halo/units/unit.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
-extern real_vector3d *global_up3d_pointer;
 extern double cos(double x);
 extern double sin(double x);
-extern real vector2d_normalize_with_length(real_vector2d *v);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
-extern void vector3d_rotate_toward_bounded(real_vector3d *current, real_vector3d *velocity, float *bounds, float max_velocity, float max_acceleration, real_vector3d *target, real_matrix4x3 *transform);
 }
 
 namespace halo::units {
@@ -32,7 +27,7 @@ void BipedView::update_facing(int8_t *out_animation_state)
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     real_vector3d target;
     real_vector3d scratch;
@@ -55,18 +50,18 @@ void BipedView::update_facing(int8_t *out_animation_state)
             target.i = unit->desired_facing_vector.i;
             target.j = unit->desired_facing_vector.j;
             target.k = 0.0f;
-            if (vector2d_normalize_with_length((real_vector2d *)&target) == 0.0f) {
+            if (halo::math::vector2d_normalize_with_length(*((real_vector2d *)&target)) == 0.0f) {
                 target = obj->forward;
             }
             turn_cross = target.i * obj->forward.j - target.j * obj->forward.i;
             facing_dot = target.j * obj->forward.j;
         } else {
-            vector3d_cross_product(&scratch, &unit->desired_facing_vector, &obj->up);
-            vector3d_cross_product(&target, &obj->up, &scratch);
-            if (vector3d_normalize_with_length(&target) == 0.0f) {
+            halo::math::vector3d_cross_product(scratch, unit->desired_facing_vector, obj->up);
+            halo::math::vector3d_cross_product(target, obj->up, scratch);
+            if (halo::math::vector3d_normalize_with_length(target) == 0.0f) {
                 target = obj->forward;
             }
-            vector3d_cross_product(&scratch, &obj->forward, &target);
+            halo::math::vector3d_cross_product(scratch, obj->forward, target);
             turn_cross = scratch.i * obj->up.i + scratch.k * obj->up.k + scratch.j * obj->up.j;
             facing_dot = target.k * obj->forward.k + target.j * obj->forward.j;
         }
@@ -104,8 +99,8 @@ void BipedView::update_facing(int8_t *out_animation_state)
                 obj->forward.j = turn_cos * obj->forward.j + turn_sin * forward_i;
                 turn_cross = target.i * obj->forward.j - target.j * obj->forward.i;
             } else {
-                vector3d_rotate_about_axis(&obj->forward, &obj->up, turn_sin, turn_cos);
-                vector3d_cross_product(&scratch, &obj->forward, &target);
+                halo::math::vector3d_rotate_about_axis(obj->forward, obj->up, turn_sin, turn_cos);
+                halo::math::vector3d_cross_product(scratch, obj->forward, target);
                 turn_cross = scratch.i * obj->up.i + scratch.k * obj->up.k + scratch.j * obj->up.j;
             }
 
@@ -121,16 +116,16 @@ void BipedView::update_facing(int8_t *out_animation_state)
                 obj->forward.i = target.i;
                 obj->forward.j = target.j;
                 obj->forward.k = 0.0f;
-                obj->up = *global_up3d_pointer;
+                obj->up = *halo::math::globals().global_up3d_pointer;
             } else {
-                vector3d_cross_product(&scratch, &target, &obj->up);
-                if (0.0f < vector3d_normalize_with_length(&scratch)) {
-                    vector3d_cross_product(&obj->forward, &obj->up, &scratch);
-                    vector3d_normalize_with_length(&obj->forward);
+                halo::math::vector3d_cross_product(scratch, target, obj->up);
+                if (0.0f < halo::math::vector3d_normalize_with_length(scratch)) {
+                    halo::math::vector3d_cross_product(obj->forward, obj->up, scratch);
+                    halo::math::vector3d_normalize_with_length(obj->forward);
                     return;
                 }
             }
-            vector3d_normalize_with_length(&obj->forward);
+            halo::math::vector3d_normalize_with_length(obj->forward);
             return;
         }
 
@@ -179,13 +174,13 @@ void BipedView::update_facing(int8_t *out_animation_state)
         target = unit->desired_facing_vector;
         if (pitch != 0.0f) {
             target.k = target.k + pitch;
-            if (vector3d_normalize_with_length(&target) == 0.0f) {
+            if (halo::math::vector3d_normalize_with_length(target) == 0.0f) {
                 target = unit->desired_facing_vector;
             }
         }
 
     apply_turn:
-        vector3d_cross_product(&scratch, &obj->up, &obj->forward);
+        halo::math::vector3d_cross_product(scratch, obj->up, obj->forward);
         bank_target = (scratch.i * unit->desired_facing_vector.i +
                        scratch.k * unit->desired_facing_vector.k +
                        scratch.j * unit->desired_facing_vector.j) *
@@ -219,8 +214,8 @@ void BipedView::update_facing(int8_t *out_animation_state)
 
         servo_acceleration = tag->angular_acceleration_maximum * 0.0011111111f;
         if (servo_acceleration != 0.0f) {
-            vector3d_rotate_toward_bounded(&obj->forward, &obj->angular_velocity, bounds,
-                         tag->angular_velocity_maximum * 0.033333335f, servo_acceleration, &target, 0);
+            halo::math::vector3d_rotate_toward_bounded(&obj->forward, &obj->angular_velocity, bounds,
+                         tag->angular_velocity_maximum * 0.033333335f, servo_acceleration, target, 0);
         } else {
             obj->forward = target;
         }

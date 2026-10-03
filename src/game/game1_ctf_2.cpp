@@ -15,11 +15,11 @@
 #include "items.h"
 
 #include "halo/game/game1_ctf.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern ctf_globals ctf_globals_live;
 extern Scenario *global_scenario;
-extern random_seed random_seed_global;
 extern game_variant game_engine_variant;
 extern int32_t ctf_team_flag_touch_count[2];
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
@@ -95,8 +95,8 @@ int32_t Ctf::pick_random_flag(int32_t exclude_flag_index)
         active_count--;
     }
 
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    pick = (int16_t)(((random_seed_global >> 0x10) *
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    pick = (int16_t)(((halo::math::globals().random_seed_global >> 0x10) *
                       (uint32_t)(int32_t)(int16_t)active_count) >> 0x10);
 
     flag_count = (int32_t)global_scenario->netgame_flags.count;

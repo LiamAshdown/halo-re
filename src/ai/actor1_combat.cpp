@@ -1,4 +1,6 @@
 #include "halo/ai/actor_combat.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_check_burst_length_exceeded {
 extern "C" {
@@ -36,7 +38,6 @@ namespace c_actor_check_melee_target_reachable {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern ScenarioStructureBSP *global_structure_bsp;
 
 extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override);
@@ -66,7 +67,7 @@ void halo::ai::combat_ops::check_melee_target_reachable(int16_t *order)
     uint32_t actor_index = datum;
     uint8_t *record = (uint8_t *)order;
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
     static actor_firing_position_query query;
     static path_find_context path_context;
     actor_firing_position_candidate candidate;
@@ -508,8 +509,6 @@ extern "C" void actor_choose_best_target(datum_index actor_index)
 
 namespace c_actor_choose_random_point_near {
 extern "C" {
-extern const real_vector3d *global_up3d_pointer;
-extern uint32_t random_seed_global;
 extern double fcos(double x);
 extern double fsin(double x);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
@@ -535,13 +534,13 @@ void halo::ai::combat_ops::choose_random_point_near(real_point3d *inout_point, f
     collision_result line_result;
     float clear_fraction;
 
-    base.x = global_up3d_pointer->i * 1.5f + inout_point->x;
-    base.y = global_up3d_pointer->j * 1.5f + inout_point->y;
-    base.z = global_up3d_pointer->k * 1.5f + inout_point->z;
+    base.x = halo::math::globals().global_up3d_pointer->i * 1.5f + inout_point->x;
+    base.y = halo::math::globals().global_up3d_pointer->j * 1.5f + inout_point->y;
+    base.z = halo::math::globals().global_up3d_pointer->k * 1.5f + inout_point->z;
 
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
     {
-        uint32_t roll = random_seed_global >> 0x10;
+        uint32_t roll = halo::math::globals().random_seed_global >> 0x10;
         double angle = (double)roll * 1.5259022e-05 * 6.2831855 - 3.1415927;
         cos_angle = (float)fcos(angle);
         sin_angle = (float)fsin(angle);
@@ -645,7 +644,6 @@ namespace c_actor_compute_accuracy_scale {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 }
 }
 
@@ -666,7 +664,7 @@ float halo::ai::combat_ops::compute_accuracy_scale()
 
     if (self->active_unit_index != (datum_index)k_datum_index_none) {
         object *unit_object = ((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
-        void *tag_data = tag_instances[unit_object->definition_tag & 0xffff].data;
+        void *tag_data = halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
         scale = *(float *)((uint8_t *)tag_data + 0x384);
     }
 
@@ -839,10 +837,7 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
-extern uint32_t random_seed_global;
 
-extern real random_real_range(real min, real max);
 extern void * actor_get_actor_definition(datum_index actor_index);
 extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
@@ -863,7 +858,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     using namespace c_actor_evaluate_custom_charge_trigger;
     datum_index actor_index = datum;
     uint8_t *self = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    const uint8_t *variant = (const uint8_t *)tag_instances[*(uint32_t *)&((actor *)self)->actor_variant_tag & 0xffff].data;
+    const uint8_t *variant = (const uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((actor *)self)->actor_variant_tag & 0xffff].data;
     const uint8_t *def = (const uint8_t *)actor_get_actor_definition(actor_index);
     uint32_t unit_index = *(uint32_t *)&((actor *)self)->unit_index;
     const uint8_t *unit;
@@ -1020,9 +1015,9 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                                (-chance) * (float)(int32_t)without) * 0.5f;
         }
 
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
         self[0x362] = 1;
-        roll = (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f;
+        roll = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
         decision = (roll >= chance) ? 0 : 1;
     }
 
@@ -1032,9 +1027,9 @@ apply_decision:
 
         self[0x363] = decision;
         if (decision != 0) {
-            ticks = random_real_range(*(const float *)(variant + 0x54), *(const float *)(variant + 0x58));
+            ticks = halo::math::random_real_range(*(const float *)(variant + 0x54), *(const float *)(variant + 0x58));
         } else {
-            ticks = random_real_range(*(const float *)(variant + 0x5c), *(const float *)(variant + 0x60));
+            ticks = halo::math::random_real_range(*(const float *)(variant + 0x5c), *(const float *)(variant + 0x60));
         }
         ticks = ticks * 30.0f;
         if (!(ticks > 31.0f)) {
@@ -1175,7 +1170,6 @@ namespace c_actor_get_aim_from_position {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vector3d *world_direction,
                                                           uint8_t use_aiming_bounds);
 }
@@ -1205,7 +1199,7 @@ void halo::ai::combat_ops::get_aim_from_position(uint32_t out_position[3])
         unit_index = self->active_unit_index;
         hdr = (object_header *)object_data->data + (unit_index & 0xffff);
         unit_obj = hdr->data;
-        if ((*(uint32_t *)((uint8_t *)tag_instances[unit_obj->definition_tag & 0xffff].data + 0x2f0) & 0x100) != 0) {
+        if ((*(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data + 0x2f0) & 0x100) != 0) {
             out_position[0] = *(uint32_t *)&unit_obj->forward.i;
             out_position[1] = *(uint32_t *)&unit_obj->forward.j;
             out_position[2] = *(uint32_t *)&unit_obj->forward.k;
@@ -1230,7 +1224,6 @@ extern "C" void actor_get_aim_from_position(datum_index actor_index, uint32_t ou
 namespace c_actor_get_consideration_wait_threshold {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);
 }
@@ -1252,7 +1245,7 @@ float halo::ai::combat_ops::get_consideration_wait_threshold(int16_t mode, actor
     float result = 0.0f;
 
     if (mode == 2 || mode == 3) {
-        Actor *actor_def = (Actor *)tag_instances[a->actor_definition_tag & 0xffff].data;
+        Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[a->actor_definition_tag & 0xffff].data;
 
         if (mode == 3 && actor_def->melee_leap_range[1] >= 0.0f) {
             result = actor_def->melee_leap_range[1];
@@ -1548,7 +1541,6 @@ extern "C" void actor_get_target_state_flags(int16_t ax_mode, int16_t cx_mode, u
 namespace c_actor_get_threat_weapon_definition {
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern datum_index actor_get_threat_weapon_object_index(int32_t actor_index);
 }
 }
@@ -1571,7 +1563,7 @@ void * halo::ai::combat_ops::get_threat_weapon_definition()
     if (weapon_object != (datum_index)k_datum_index_none) {
         object_header *hdr = (object_header *)object_data->data + (weapon_object & 0xffff);
         object *obj = hdr->data;
-        return tag_instances[obj->definition_tag & 0xffff].data;
+        return halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     }
     return (void *)0;
 }

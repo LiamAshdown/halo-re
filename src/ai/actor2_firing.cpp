@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
 
 namespace halo::ai {
 
@@ -268,7 +269,6 @@ uint8_t ActorView::reject_firing_position_unreachable(actor_firing_position_quer
 namespace actor_report_firing_position_request_local {
 extern "C" {
 extern data_array *actor_data;
-extern real vector2d_normalize_with_length(real_vector2d *v);
 extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
     uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator);
 extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
@@ -323,7 +323,7 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
         facing.i = query->target_aim_position.x - point->x;
         facing.j = query->target_aim_position.y - point->y;
         facing.k = query->target_aim_position.z - point->z;
-        if (vector2d_normalize_with_length((real_vector2d *)&facing) <= 0.0f) {
+        if (halo::math::vector2d_normalize_with_length(*((real_vector2d *)&facing)) <= 0.0f) {
             direction = (real_vector3d *)&self->facing;
         } else {
             facing.k = 0.0f;
@@ -646,10 +646,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 extern double sqrt(double x);
-extern float point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction,
-    real_point3d *point);
-extern float segment3d_distance_squared_to_segment(real_point3d *b_start, real_point3d *a_start,
-    real_vector3d *a_direction, real_vector3d *b_direction);
 extern void object_get_position(real_point3d *out_position, datum_index object_index);
 }
 }
@@ -713,7 +709,7 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
             dz = p->z - self->danger_center.z;
             radius = self->danger_radius + 2.5f;
             if (dx * dx + dy * dy + dz * dz < radius * radius) {
-                distance_squared = point3d_distance_squared_to_segment(&self->flee_from_point, &segment, p);
+                distance_squared = halo::math::point3d_distance_squared_to_segment(self->flee_from_point, segment, *p);
                 bonus = 0.0f;
                 if (self->danger_unknown_294 * self->danger_unknown_294 <= distance_squared) {
                     radius = self->danger_unknown_294 + 2.5f;
@@ -744,11 +740,11 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
             if (dx * dx + dy * dy + dz * dz < radius * radius &&
                 self->danger_unknown_294 < self->danger_unknown_2d4 &&
                 self->danger_unknown_294 * self->danger_unknown_294 <
-                    point3d_distance_squared_to_segment(&self->flee_from_point, &segment, &self->body_position) &&
+                    halo::math::point3d_distance_squared_to_segment(self->flee_from_point, segment, self->body_position) &&
                 0.0001f < (c->direction_from_actor.i * 3.0f) * (c->direction_from_actor.i * 3.0f) +
                           (c->direction_from_actor.j * 3.0f) * (c->direction_from_actor.j * 3.0f) +
                           (c->direction_from_actor.k * 3.0f) * (c->direction_from_actor.k * 3.0f) &&
-                segment3d_distance_squared_to_segment(&self->flee_from_point, &self->body_position, &scaled_direction,
+                halo::math::segment3d_distance_squared_to_segment(&self->flee_from_point, &self->body_position, &scaled_direction,
                     &segment) <
                     self->danger_unknown_294 * self->danger_unknown_294) {
                 c->rejected = 1;
@@ -920,7 +916,6 @@ extern "C" {
 extern data_array *actor_data;
 extern Scenario *global_scenario;
 extern const real_vector3d *global_origin3d_pointer;
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
 extern uint8_t actor_firing_position_evaluate(actor_firing_position_candidate *candidate, actor_firing_position_query *query, datum_index actor_index);
 extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override);
 extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query, actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context, uint8_t *out_path_ok);
@@ -997,8 +992,8 @@ int16_t ActorView::select_firing_position(actor_firing_position_query *query, ac
         if (query->have_target == 0) {
             out_candidate->distance_squared_to_target = 0.0f;
         } else {
-            out_candidate->distance_squared_to_target = vector3d_distance_squared(
-                (real_point3d *)&firing_positions[held], &query->target_position);
+            out_candidate->distance_squared_to_target = halo::math::vector3d_distance_squared(
+                *((real_point3d *)&firing_positions[held]), query->target_position);
         }
 
         if (actor_firing_position_evaluate(out_candidate, query, actor_index) == 0) {

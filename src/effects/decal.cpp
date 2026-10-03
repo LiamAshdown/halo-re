@@ -1,31 +1,22 @@
 #include "halo/effects/effects.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
-extern const projection_axis_pair k_projection_axes[6];
 extern data_array *decal_data;
 extern decal_grid *decal_grid_block;
-extern void *data_iterator_next(data_iterator *iterator);
-extern void datum_delete(data_array *array, datum_index handle);
 extern cache *rasterizer_decal_vertex_cache_handle;
-extern void cache_evict_entry(datum_index handle, cache *self);
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern real_point2d decal_clip_buffers[2][12];
-extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
-extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis, const real_plane3d *plane, const real_point2d *known);
-extern real vector3d_angle_between_4cd5e0(const real_vector3d *a, const real_vector3d *b);
-extern real_plane2d *plane2d_from_points(real_plane2d *out_plane, const real_point2d *a, const real_point2d *b);
-extern int16_t polygon2d_clip_to_plane(real_point2d *out, int16_t count, real_point2d *in, real_plane2d *plane, int16_t maximum_count, uint32_t *edge_bitmask, uint8_t *clipped_flag, real epsilon);
-extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction, real radius);
 extern const decal_type_parameters k_decal_type_parameters[4];
-extern random_seed effect_random_seed;
-extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array);
 extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint8_t decals_enabled;
 extern uint8_t decals_for_all_responses;
-extern tag_instance *tag_instances;
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t sequence_index);
 extern game_time_globals *game_time;
@@ -34,7 +25,6 @@ extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern void rasterizer_decals_initialize(void);
 extern void decal_update_fade(datum_index decal_index);
 void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
@@ -99,7 +89,7 @@ void decal_ref::build_projection(real_matrix4x3 *placement, real *box, decal_pro
     }
     out->normal_positive = normal_positive;
 
-    axes = &k_projection_axes[major_axis * 2 + normal_positive];
+    axes = &halo::math::globals().k_projection_axes[major_axis * 2 + normal_positive];
 
     corner[0] = box[0] * placement->forward.i + box[2] * placement->left.i + placement->position.x;
     corner[1] = box[0] * placement->forward.j + box[2] * placement->left.j + placement->position.y;
@@ -148,7 +138,7 @@ void decal_ref::clear_flags(uint8_t clear_object_attached)
         iterator.next_index = 0;
         iterator.index = k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-        self = (decal *)data_iterator_next(&iterator);
+        self = (decal *)halo::memory::data_iterator_next(&iterator);
 
         while (self != 0) {
             if ((self->flags & _decal_temporary_bit) != 0) {
@@ -159,7 +149,7 @@ void decal_ref::clear_flags(uint8_t clear_object_attached)
                 self->flags = self->flags & ~_decal_object_attached_bit;
                 decal_grid_block->object_count = decal_grid_block->object_count - 1;
             }
-            self = (decal *)data_iterator_next(&iterator);
+            self = (decal *)halo::memory::data_iterator_next(&iterator);
         }
     }
 }
@@ -188,7 +178,7 @@ void decal_ref::destroy()
         decal_grid_block->cluster_first[self->layer][self->cluster_index] = next;
     }
 
-    datum_delete(decal_data, decal_index);
+    halo::memory::datum_delete(decal_data, decal_index);
 }
 
 /**
@@ -222,7 +212,7 @@ void decal_ref::evict_object_decals(int16_t cluster_index)
                 if ((self->flags & _decal_object_attached_bit) != 0) {
                     self->flags = self->flags & ~_decal_object_attached_bit;
                     decal_grid_block->object_count = decal_grid_block->object_count - 1;
-                    cache_evict_entry(current, rasterizer_decal_vertex_cache_handle);
+                    halo::memory::cache_evict_entry(current, rasterizer_decal_vertex_cache_handle);
                 }
 
                 current = next;
@@ -269,10 +259,10 @@ void decal_ref::flood_surfaces(decal_projection *projection, decal_flood_accumul
         fallback_count = (int16_t)*fallback_queue_count;
     }
 
-    structure_bsp_plane_fetch_signed(&surface_plane, global_structure_collision_bsp, (int32_t)surface->plane);
-    angle = vector3d_angle_between_4cd5e0((const real_vector3d *)&projection->transformed_i, &surface_plane.normal);
+    halo::structures::structure_bsp_plane_fetch_signed(&surface_plane, global_structure_collision_bsp, (int32_t)surface->plane);
+    angle = halo::math::vector3d_angle_between_4cd5e0(*((const real_vector3d *)&projection->transformed_i), surface_plane.normal);
 
-    axes = &k_projection_axes[projection->major_axis * 2 + projection->normal_positive];
+    axes = &halo::math::globals().k_projection_axes[projection->major_axis * 2 + projection->normal_positive];
 
     if (is_first_surface == 0 ||
         angle <= k_decal_type_parameters[decal_type].maximum_edge_angle * 0.017453292f) {
@@ -309,11 +299,11 @@ void decal_ref::flood_surfaces(decal_projection *projection, decal_flood_accumul
             current.x = (&point->x)[axes->i];
             current.y = (&point->x)[axes->j];
 
-            if (plane2d_from_points(&edge_plane, &previous, &current) == 0) {
+            if (halo::math::plane2d_from_points(&edge_plane, previous, current) == 0) {
                 vertex_count = 0;
             } else {
-                vertex_count = polygon2d_clip_to_plane(clip_out, vertex_count, polygon,
-                    &edge_plane, 12, &edge_bitmask, &clipped_flag, 0.0f);
+                vertex_count = halo::math::polygon2d_clip_to_plane(clip_out, vertex_count, polygon,
+                    edge_plane, 12, &edge_bitmask, &clipped_flag, 0.0f);
 
                 if (is_first_surface != 0 && clipped_flag != 0 && queued_count < 0x400) {
                     const real_point3d *other =
@@ -323,8 +313,8 @@ void decal_ref::flood_surfaces(decal_projection *projection, decal_flood_accumul
                     along_edge.j = other->y - point->y;
                     along_edge.k = other->z - point->z;
 
-                    if (ray_intersects_sphere_test(&projection->placement.position,
-                            (real_point3d *)point, &along_edge,
+                    if (halo::math::ray_intersects_sphere_test(projection->placement.position,
+                            *(real_point3d *)point, along_edge,
                             radius * k_decal_type_parameters[decal_type].radius_scale) != 0) {
                         int32_t neighbour = (int32_t)(&edge->left_surface)[far_slot];
                         int16_t i = 0;
@@ -370,8 +360,8 @@ void decal_ref::flood_surfaces(decal_projection *projection, decal_flood_accumul
                 out_vertex->v = -((du * projection->dv_edge0 - dv * projection->du_edge0) *
                     projection->inverse_determinant);
 
-                decal_plane_solve_third_axis((real_point3d *)out_vertex, projection->normal_positive,
-                    projection->major_axis, &surface_plane, clipped);
+                halo::math::decal_plane_solve_third_axis((real_point3d *)out_vertex, projection->normal_positive,
+                    projection->major_axis, &surface_plane, *clipped);
 
                 if ((edge_bitmask & (1u << (i & 0x1f))) == 0) {
                     out_vertex->position.x += surface_plane.normal.i * 0.00390625f;
@@ -399,8 +389,8 @@ void decal_ref::flood_surfaces(decal_projection *projection, decal_flood_accumul
                 along_edge.j = other->y - point->y;
                 along_edge.k = other->z - point->z;
 
-                if (ray_intersects_sphere_test(&projection->placement.position,
-                        (real_point3d *)point, &along_edge,
+                if (halo::math::ray_intersects_sphere_test(projection->placement.position,
+                        *(real_point3d *)point, along_edge,
                         radius * k_decal_type_parameters[decal_type].radius_scale) != 0) {
                     int32_t neighbour =
                         (int32_t)(&edge->left_surface)[(uint32_t)!surface_is_right];
@@ -471,7 +461,7 @@ void decal_ref::link(int16_t cluster_index, int16_t layer)
  */
 datum_index decal_ref::create(datum_index requested_handle, int16_t cluster_index, int16_t layer, datum_index insert_before, uint8_t object_attached)
 {
-    datum_index handle = datum_new_at_index_with_salt(requested_handle, decal_data);
+    datum_index handle = halo::memory::datum_new_at_index_with_salt(requested_handle, decal_data);
     decal *self;
 
     if (handle == k_datum_index_none) {
@@ -483,8 +473,8 @@ datum_index decal_ref::create(datum_index requested_handle, int16_t cluster_inde
         self->flags = _decal_object_attached_bit;
         decal_grid_block->object_count = decal_grid_block->object_count + 1;
     } else {
-        effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        if ((int32_t)((effect_random_seed >> k_random_value_shift) * 100) < k_decal_permanent_percent) {
+        halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+        if ((int32_t)((halo::math::globals().effect_random_seed >> k_random_value_shift) * 100) < k_decal_permanent_percent) {
             self->flags = _decal_temporary_bit;
             decal_grid_block->temporary_count = decal_grid_block->temporary_count + 1;
 
@@ -498,7 +488,7 @@ datum_index decal_ref::create(datum_index requested_handle, int16_t cluster_inde
                 iterator.signature = (uint32_t)(uintptr_t)decal_data ^ k_data_iterator_signature;
 
                 while (decal_grid_block->temporary_count > k_temporary_decal_eviction_target) {
-                    decal *candidate = (decal *)data_iterator_next(&iterator);
+                    decal *candidate = (decal *)halo::memory::data_iterator_next(&iterator);
 
                     if (candidate == 0) {
                         restarts = (int16_t)(restarts + 1);
@@ -510,8 +500,8 @@ datum_index decal_ref::create(datum_index requested_handle, int16_t cluster_inde
                             return k_datum_index_none;
                         }
                     } else if ((candidate->flags & _decal_temporary_bit) != 0) {
-                        effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                        if ((int32_t)((effect_random_seed >> k_random_value_shift) * 100) < k_decal_evict_percent ||
+                        halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+                        if ((int32_t)((halo::math::globals().effect_random_seed >> k_random_value_shift) * 100) < k_decal_evict_percent ||
                             candidate->cluster_index == -1) {
                             candidate->flags = candidate->flags & ~_decal_temporary_bit;
                             decal_grid_block->temporary_count = decal_grid_block->temporary_count - 1;
@@ -598,7 +588,7 @@ void decal_ref::spawn_for_response(datum_index response_tag_index, uint8_t deter
 
     if (decals_for_all_responses == 0 &&
         (deterministic != 1 ||
-            *(int16_t *)((uint8_t *)tag_instances[response_tag_index & 0xffff].data + 4) != 3)) {
+            *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[response_tag_index & 0xffff].data + 4) != 3)) {
         allowed = 0;
     }
     if (decals_enabled == 0 || !allowed) {
@@ -607,16 +597,16 @@ void decal_ref::spawn_for_response(datum_index response_tag_index, uint8_t deter
     if (deterministic != 0) {
         uint32_t *words = (uint32_t *)origin;
 
-        saved_seed = effect_random_seed;
-        effect_random_seed = words[2] ^ words[1] ^ words[0] ^ 0xdeadc0de;
+        saved_seed = halo::math::globals().effect_random_seed;
+        halo::math::globals().effect_random_seed = words[2] ^ words[1] ^ words[0] ^ 0xdeadc0de;
     }
     if (collision_test_movement_segment(0x100061, origin, direction, 0xffffffff, &result) &&
         result.type == 2 &&
-        (*(uint8_t *)tag_instances[response_tag_index & 0xffff].data & 0x10) == 0) {
+        (*(uint8_t *)halo::cache::globals().tag_instances[response_tag_index & 0xffff].data & 0x10) == 0) {
         decal_place(response_tag_index, &result, direction, radius, deterministic, (int16_t)marker_index);
     }
     if (deterministic != 0) {
-        effect_random_seed = saved_seed;
+        halo::math::globals().effect_random_seed = saved_seed;
     }
 }
 
@@ -641,7 +631,7 @@ void decal_ref::update_fade()
                 self->flags = self->flags & ~_decal_temporary_bit;
                 decal_grid_block->temporary_count = decal_grid_block->temporary_count - 1;
             }
-            cache_evict_entry(decal_index, rasterizer_decal_vertex_cache_handle);
+            halo::memory::cache_evict_entry(decal_index, rasterizer_decal_vertex_cache_handle);
             return;
         }
 
@@ -713,7 +703,7 @@ void decal_ref::initialize()
 
     decal_grid_block = (decal_grid *)(game_state_base + game_state_cursor);
     game_state_cursor = game_state_cursor + sizeof(decal_grid);
-    crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
 
     rasterizer_decals_initialize();
 }
@@ -733,7 +723,7 @@ void decal_ref::update_fade_all()
         iterator.index = k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-        while (data_iterator_next(&iterator) != 0) {
+        while (halo::memory::data_iterator_next(&iterator) != 0) {
             decal_update_fade(iterator.index);
         }
     }

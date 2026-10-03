@@ -11,11 +11,11 @@
 #include "crt.h"
 #include <string.h>
 #include "halo/networking/net2_ban_list.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern growable_array ban_list;
-extern uint32_t growable_array_add_element(growable_array *array);
 uint8_t ban_list_check_and_reject_player(char *key);
 ban_list_entry * ban_list_find_by_name(char *key);
 ban_list_entry * ban_list_get_or_add_entry(char *name, char *cd_key_hash);
@@ -71,7 +71,7 @@ ban_list_entry * BanList::get_or_add_entry(char *name, char *cd_key_hash)
     if (entry != 0) {
         return entry;
     }
-    index = growable_array_add_element(&ban_list);
+    index = halo::memory::growable_array_add_element(&ban_list);
     if (index != -1) {
         entry = &((ban_list_entry *)ban_list.data)[index];
         strncpy(entry->name, name, 0xc);

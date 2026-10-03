@@ -1,5 +1,7 @@
 #include "halo/interface/ifr1_hud_waypoints.hpp"
 #include <string.h>
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -14,11 +16,9 @@ extern float waypoint_fade_near;
 extern float waypoint_fade_far;
 extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *view_point,
                                               const void *frustum, const void *camera);
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern void ui_draw_rotated_screen_quad(int16_t *origin, int32_t source_record, float *corner_uvs,
                                         float scale, float rotation_radians, float alpha_fraction);
 }
@@ -47,7 +47,7 @@ void HudWaypoints::draw_one(datum_index player_index)
     object_get_node_local_transform(p->unit, ai_marker_name_a, &marker, 1);
     world_point = *(real_point3d *)((uint8_t *)&marker + 0x60);
     world_point.z = world_point.z + 0.3f;
-    matrix4x3_transform_point(&view_point, &world_point, &render_camera_world_to_view);
+    halo::math::matrix4x3_transform_point(view_point, world_point, render_camera_world_to_view);
     if (!render_project_world_point_to_screen(&screen_point, &view_point, render_frustum_global, render_camera_global)) {
         return;
     }
@@ -57,7 +57,7 @@ void HudWaypoints::draw_one(datum_index player_index)
         : (GlobalsInterfaceBitmaps *)0;
     bitmap = bitmap_group_sequence_get_bitmap_data(
         *(datum_index *)&interface_bitmaps->multiplayer_hud_bitmap.tag_id, 0, 0);
-    if (texture_cache_get(bitmap, 0, 1) == 0) {
+    if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         return;
     }
 

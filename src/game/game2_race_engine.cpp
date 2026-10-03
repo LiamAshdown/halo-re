@@ -1,4 +1,6 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -16,10 +18,8 @@ extern datum_index object_new(object_placement_data *placement);
 extern double cos(double x);
 extern double sin(double x);
 extern wchar_t empty_string;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
-extern void *datum_get(datum_index handle, data_array *array);
 extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
 extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
@@ -178,7 +178,7 @@ uint8_t RaceEngine::allow_grenade_counts(datum_index player_index)
  */
 const uint16_t * RaceEngine::game_text(int16_t index)
 {
-    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : text_string_list_get_string(tag_id, index);
 }
@@ -210,7 +210,7 @@ uint8_t RaceEngine::build_message_text(datum_index recipient, int32_t message_ty
     if (message_type < 0x16 || message_type > 0x26 || (message_type > 0x16 && message_type < 0x20)) {
         return 0;
     }
-    player = (uint8_t *)datum_get(subject, player_data);
+    player = (uint8_t *)halo::memory::datum_get(subject, player_data);
     if (player == 0) {
         return 0;
     }
@@ -233,7 +233,7 @@ uint8_t RaceEngine::build_message_text(datum_index recipient, int32_t message_ty
             (double)((float)((struct player *)player)->objective_score * 0.033333335f));
         return 1;
     default:
-        if (datum_get(recipient, player_data) == 0) {
+        if (halo::memory::datum_get(recipient, player_data) == 0) {
             return 0;
         }
         if (game_engine_variant.engine.race.race_type == 2) {
@@ -279,7 +279,7 @@ wchar_t * RaceEngine::build_player_text(datum_index player, wchar_t *buffer)
  */
 uint16_t * RaceEngine::multiplayer_text(int16_t index)
 {
-    datum_index list = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index list = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     return list == 0xffffffff ? (uint16_t *)L"" : text_string_list_get_string(list, index);
 }
@@ -380,7 +380,7 @@ void RaceEngine::player_changed_object(datum_index player_index)
     if (network_game_mode != 2) {
         return;
     }
-    player = (uint8_t *)datum_get(player_index, player_data);
+    player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
     if (player != 0 && game_engine_variant.engine.race.team_scoring == 2) {
         game_engine_bucket_scores_extra[((struct player *)player)->team] += *(int16_t *)(player + 0xc6);
     }
@@ -517,7 +517,7 @@ void RaceEngine::profile_post_update(void **context)
  */
 uint8_t RaceEngine::query_player_score(int32_t key, int32_t index, void *buffer)
 {
-    uint8_t *player = (uint8_t *)datum_get(players_get_active_by_index(index), player_data);
+    uint8_t *player = (uint8_t *)halo::memory::datum_get(players_get_active_by_index(index), player_data);
 
     if (player == 0 || key != 0x16) {
         return 0;

@@ -1,17 +1,15 @@
 #include "halo/hs/hs1_runtime.hpp"
 #include <stdio.h>
 #include <string.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
-extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count);
-extern void data_delete_all(data_array *array);
 extern Scenario *global_scenario;
 extern datum_index global_scenario_index;
 extern data_array *hs_syntax_data;
 extern uint8_t hs_syntax_data_is_local;
 extern datum_index hs_thread_find_by_script_name(char *name);
 extern void hs_thread_restart(uint32_t thread_index);
-extern void datum_delete(data_array *array, datum_index handle);
 extern data_array *hs_thread_data;
 extern data_array *hs_globals_data;
 extern uint8_t hs_runtime_active;
@@ -36,10 +34,10 @@ void ScriptRuntime::allocate_script_node_table(void)
 
     scenario = (global_scenario_index != k_datum_index_none) ? global_scenario : 0;
     if ((scenario == 0) || (scenario->script_syntax_data.size != k_hs_syntax_node_table_size)) {
-        hs_syntax_data = data_new(sizeof(hs_syntax_node), (char *)"script node", k_hs_syntax_node_maximum_count);
+        hs_syntax_data = halo::memory::data_new(sizeof(hs_syntax_node), (char *)"script node", k_hs_syntax_node_maximum_count);
         if (hs_syntax_data != 0) {
             hs_syntax_data->valid = 1;
-            data_delete_all(hs_syntax_data);
+            halo::memory::data_delete_all(hs_syntax_data);
             if (scenario != 0) {
                 GlobalFree((void *)scenario->script_syntax_data.pointer);
                 scenario->script_syntax_data.pointer = (uint32_t)hs_syntax_data;
@@ -87,7 +85,7 @@ void ScriptRuntime::dispose_dynamic_globals(void)
                 hs_global *element = (hs_global *)((uint8_t *)hs_globals_data->data +
                     hs_globals_data->size * slot);
                 if (element->identifier != 0 && (-1 < slot || element->identifier == (slot >> 0xf))) {
-                    datum_delete(hs_globals_data, (datum_index)slot);
+                    halo::memory::datum_delete(hs_globals_data, (datum_index)slot);
                 }
             }
         }

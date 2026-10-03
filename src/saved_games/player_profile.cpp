@@ -11,6 +11,8 @@
 #include "saved_games.h"
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern network_thread_record *variant_write_thread;
@@ -18,7 +20,6 @@ extern variant_write_request variant_write_request_state;
 extern int32_t network_thread_create(uint8_t flags, void *start_address, void *parameter,
     network_thread_record **out_handle);
 extern network_mutex_record *saved_game_files_mutex;
-extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size);
 extern uint32_t player_color_table[k_player_color_count];
 extern network_thread_record *player_profile_thread;
 extern saved_player_profile default_profile_data;
@@ -27,7 +28,6 @@ extern uint32_t cpu_speed;
 extern uint32_t physical_memory;
 extern int32_t saved_player_profile_slots_handle;
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
-extern int16_t cache_file_index;
 extern void *memset(void *dest, int32_t value, uint32_t count);
 extern void *memcpy(void *dest, const void *src, uint32_t count);
 extern char unknown_00719779[];
@@ -55,10 +55,8 @@ extern char default_player_profiles_directory[0x100];
 extern int16_t default_game_variant_count;
 extern uint8_t savegame_index_dirty;
 extern char default_playlists_directory[0x100];
-extern tag_instance *tag_instances;
 extern uint16_t missing_string_text[];
 extern game_variant_defaults_proc default_game_variant_procs[k_default_game_variant_count];
-extern datum_index tag_lookup(tag_group group, char *path);
 }
 
 /**
@@ -103,7 +101,7 @@ uint32_t halo::saved_games::VariantWriteRequest::thread_proc()
     if (opened != 0) {
         file.variant = request->variant;
         file.checksum = 0xffffffff;
-        crc32_update(&file.checksum, &file.variant, sizeof(file.variant));
+        halo::memory::crc32_update(&file.checksum, &file.variant, sizeof(file.variant));
         seeked = file_reference_seek(0, &ref);
         if (seeked == 0) {
             write_failed = 1;
@@ -167,7 +165,7 @@ uint8_t halo::saved_games::PlayerProfile::get(int32_t index)
         if (saved_game_open_file_by_handle(index, &ref) != 0) {
             if (file_reference_read(&ref, &file, sizeof(file)) != 0) {
                 running_crc = 0xffffffff;
-                ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&running_crc, (uint8_t *)&file.profile, k_saved_player_profile_size);
+                halo::memory::crc32_update(&running_crc, (uint8_t *)&file.profile, k_saved_player_profile_size);
                 if (running_crc == file.checksum && file.profile.version == k_saved_player_profile_version) {
                     *out_buffer = file.profile;
                 } else {
@@ -349,7 +347,7 @@ void halo::saved_games::PlayerProfile::initialize(int32_t local_player_index, ui
         }
     }
 
-    if (cache_file_index != -1) {
+    if (halo::cache::globals().cache_file_index != -1) {
         control_profile_fill_default_gamepad_slots(profile);
     }
 }
@@ -562,7 +560,7 @@ void halo::saved_games::PlayerProfile::write_data(int32_t handle)
 
     file.profile = *profile;
     file.checksum = 0xffffffff;
-    ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
+    halo::memory::crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
 
     if (file_reference_seek(0, &ref) == 0 || file_reference_write(&ref, &file, sizeof(file)) == 0) {
         write_failed = 1;
@@ -958,7 +956,7 @@ void write_default_files(void)
         ref.flags |= 1;
 
         file.checksum = 0xffffffff;
-        ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
+        halo::memory::crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
 
         if (file_reference_create(&ref) != 0 && file_reference_open(&ref, 2) != 0 &&
             file_reference_seek(0, &ref) != 0) {
@@ -1000,7 +998,7 @@ void create_default_profiles_on_disk(void)
     char *end;
     uint8_t written;
 
-    tag_id = tag_lookup(0x75737472, (char *)"ui\\default_multiplayer_game_setting_names");
+    tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\default_multiplayer_game_setting_names");
     if (tag_id == k_datum_index_none) {
         return;
     }
@@ -1015,7 +1013,7 @@ void create_default_profiles_on_disk(void)
         strncat(path, "\\blam.lst", 0xff);
 
         source_name = missing_string_text;
-        name_list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
+        name_list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
         if (0 <= i && i < (int32_t)name_list->strings.count) {
             entry = (UnicodeStringListString *)name_list->strings.pointer + i;
             source_size = entry->string.size;
@@ -1031,7 +1029,7 @@ void create_default_profiles_on_disk(void)
             (int16_t)((uint16_t)variant_file.variant.variant_flags | ((uint16_t)(uint8_t)i << 8));
 
         variant_file.checksum = 0xffffffff;
-        crc32_update(&variant_file.checksum, &variant_file.variant, sizeof(variant_file.variant));
+        halo::memory::crc32_update(&variant_file.checksum, &variant_file.variant, sizeof(variant_file.variant));
 
         memset(&ref, 0, sizeof(ref));
         ref.signature = k_file_reference_signature;

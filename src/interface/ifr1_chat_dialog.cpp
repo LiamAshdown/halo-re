@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdint.h>
 #include <wchar.h>
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t chat_dialog_open;
@@ -18,13 +20,10 @@ extern chat_gui_set_state_fn chat_gui_set_state;
 extern chat_gui_release_fn chat_gui_release;
 extern uint8_t chat_gui_active;
 extern data_array *player_data;
-extern void *data_iterator_next(data_iterator *iterator);
 extern void *shell_module_handle;
 extern wchar_t empty_string;
 extern uint8_t message_delta_decode_compound_field(void *event, chat_incoming_record *out_record);
 extern void message_delta_decode_compound_field_staged(void *event);
-extern void *datum_get(datum_index handle, data_array *array);
-extern datum_index tag_lookup(tag_group group, char *path);
 extern wchar_t *text_string_list_get_string(datum_index tag, int16_t index);
 extern wchar_t *string_format_wide_va(wchar_t *dest, const wchar_t *format, ...);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
@@ -46,12 +45,11 @@ extern network_client_globals *network_client;
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 }
 
 static const wchar_t *chat_prefix_format(int16_t string_index)
 {
-    datum_index tag = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
     if (tag == (datum_index)-1) {
         return &empty_string;
     }
@@ -111,12 +109,12 @@ int32_t ChatDialog::default_team_channel(void)
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    entry = (player *)data_iterator_next(&iterator);
+    entry = (player *)halo::memory::data_iterator_next(&iterator);
     while (entry != 0) {
         if (entry->local_player_index != -1) {
             return entry->team_index_desired;
         }
-        entry = (player *)data_iterator_next(&iterator);
+        entry = (player *)halo::memory::data_iterator_next(&iterator);
     }
     return -1;
 }
@@ -149,7 +147,7 @@ bool PlayerChatSource::accepts(const chat_incoming_record &record) const
 void PlayerChatSource::deliver(const chat_incoming_record &record, wchar_t *text) const
 {
     wchar_t line[0x200];
-    player *sender = (player *)datum_get((datum_index)record.player_index, player_data);
+    player *sender = (player *)halo::memory::datum_get((datum_index)record.player_index, player_data);
 
     if (sender == 0) {
         return;
@@ -327,9 +325,9 @@ void ChatDialog::out(uint8_t channel)
                                       *(int32_t *)(session + 0x20) + 1 ||
              network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
             *(int32_t *)(session + 0xa80) = *(int32_t *)(session + 0xa80) + encoded_bits + 1;
-            { uint32_t item_flag = 1; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }
+            { uint32_t item_flag = 1; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }
             session[0x2c] = 0;
-            bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), (const uint32_t *)(network_message_scratch), encoded_bits);
+            halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), (const uint32_t *)(network_message_scratch), encoded_bits);
             session[0x2c] = 0;
         }
     }

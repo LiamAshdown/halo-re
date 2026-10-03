@@ -12,6 +12,9 @@
 #include "cache.h"
 
 #include "halo/physics/collision_world.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" { void collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index, real_point3d *origin, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 extern "C" { uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
@@ -201,15 +204,10 @@ extern "C" { extern object_globals *object_globals_pointer; }
 extern "C" { extern int32_t object_cluster_stamp; }
 extern "C" { extern datum_index *collideable_cluster_first; }
 extern "C" { extern data_array *collideable_object_references; }
-extern "C" { extern uint8_t cluster_flood_in_progress; }
-extern "C" { extern int32_t cluster_flood_stamp; }
-extern "C" { extern int32_t cluster_visit_stamp[]; }
 extern "C" { extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result, ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin, real_vector3d *delta, float max_fraction); }
 extern "C" { extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point); }
-extern "C" { extern void plane3d_negate(real_plane3d *out, real_plane3d *in); }
 extern "C" { extern breakable_surface_globals *breakable_surface_state; }
 extern "C" { extern int16_t global_structure_bsp_index; }
-extern "C" { extern tag_instance *tag_instances; }
 extern "C" { extern double fabs(double x); }
 namespace halo::physics {
 
@@ -337,7 +335,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                     ScenarioStructureBSPFogPalette *palette = &((ScenarioStructureBSPFogPalette *)
                         global_structure_bsp->fog_palette.pointer)[fog_palette_index];
                     uint32_t fog_tag_index = palette->fog.tag_id.index;
-                    float world_offset = *(float *)((uint8_t *)tag_instances[fog_tag_index].data + 0x74);
+                    float world_offset = *(float *)((uint8_t *)halo::cache::globals().tag_instances[fog_tag_index].data + 0x74);
                     float d = fog_plane->plane.w - world_offset;
                     float side_a = (ni * origin->x + nk * origin->z + nj * origin->y) - d;
                     float side_b = ni * delta->i + nk * delta->k + nj * delta->j;
@@ -356,7 +354,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                             hit = 1;
                         } else {
                             real_plane3d negated;
-                            plane3d_negate(&negated, (real_plane3d *)&result->plane.normal);
+                            halo::math::plane3d_negate(negated, *((real_plane3d *)&result->plane.normal));
                             result->plane.normal.i = negated.normal.i;
                             result->plane.normal.j = negated.normal.j;
                             result->plane.normal.k = negated.normal.k;
@@ -376,10 +374,10 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
             if ((flags & _collision_test_object_type_mask_default) == 0) {
                 flags |= _collision_test_object_type_mask_default;
             }
-            cluster_flood_stamp++;
+            halo::structures::globals().cluster_flood_stamp++;
             object_globals_pointer->collecting_in_clusters = 1;
             stamp = object_cluster_stamp + 1;
-            cluster_flood_in_progress = 1;
+            halo::structures::globals().cluster_flood_in_progress = 1;
             object_cluster_stamp = stamp;
 
             for (i = 0; i < seg_result.leaf_count; i++) {
@@ -387,10 +385,10 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                 int16_t cluster_index = (leaf == -1) ? -1 :
                     ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf & 0x7fffffff].cluster;
 
-                if (cluster_visit_stamp[cluster_index] != cluster_flood_stamp) {
+                if (halo::structures::globals().cluster_visit_stamp[cluster_index] != halo::structures::globals().cluster_flood_stamp) {
                     datum_index ref;
 
-                    cluster_visit_stamp[cluster_index] = cluster_flood_stamp;
+                    halo::structures::globals().cluster_visit_stamp[cluster_index] = halo::structures::globals().cluster_flood_stamp;
                     ref = collideable_cluster_first[cluster_index];
                     while (ref != k_datum_index_none) {
                         object_cluster_reference *node = (object_cluster_reference *)
@@ -411,7 +409,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
             }
 
             object_globals_pointer->collecting_in_clusters = 0;
-            cluster_flood_in_progress = 0;
+            halo::structures::globals().cluster_flood_in_progress = 0;
         }
 
         if (hit == 0) {
@@ -505,13 +503,13 @@ namespace halo::physics {
 uint8_t CollisionWorld::context_build(uint32_t object_index, object_collision_context *out_context)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *object_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *object_tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if (object_tag->collision_model.tag_id.index != 0xffff ||
         object_tag->collision_model.tag_id.id != 0xffff) {
         out_context->object_index = object_index;
         out_context->definition =
-            tag_instances[object_tag->collision_model.tag_id.index & 0xffff].data;
+            halo::cache::globals().tag_instances[object_tag->collision_model.tag_id.index & 0xffff].data;
         out_context->region_permutations = (uint8_t *)obj + 0x180;
         out_context->nodes = (uint8_t *)obj + ((object *)obj)->nodes.offset;
         return 1;
@@ -521,8 +519,6 @@ uint8_t CollisionWorld::context_build(uint32_t object_index, object_collision_co
 
 }
 
-extern "C" { extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); }
-extern "C" { extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); }
 extern "C" { extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius); }
 extern "C" { extern void physics_shape_build_proxies_from_query(collision_bsp_sphere_result *result, real_matrix4x3 *matrix, ModelCollisionGeometryBSP *bsp, float margin, float thickness, int32_t object_index, physics_model *model); }
 namespace halo::physics {
@@ -566,8 +562,8 @@ uint8_t CollisionWorld::context_gather_sphere_shapes(object_collision_context *c
                     real_point3d local_center;
                     collision_bsp_sphere_result sphere_result;
 
-                    matrix4x3_inverse(&inverse_matrix, &((real_matrix4x3 *)context->nodes)[node_index]);
-                    matrix4x3_transform_point(&local_center, origin, &inverse_matrix);
+                    halo::math::matrix4x3_inverse(&inverse_matrix, *(&((real_matrix4x3 *)context->nodes)[node_index]));
+                    halo::math::matrix4x3_transform_point(local_center, *origin, inverse_matrix);
 
                     if (collision_bsp_query_sphere_init(bsp, 0, &sphere_result, 0, &local_center,
                                                          inverse_matrix.scale * radius_scale)) {
@@ -585,7 +581,6 @@ uint8_t CollisionWorld::context_gather_sphere_shapes(object_collision_context *c
 
 }
 
-extern "C" { extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); }
 namespace halo::physics {
 
 /**
@@ -630,9 +625,9 @@ uint8_t CollisionWorld::context_test_pill(object_collision_context *context, rea
                     real_vector3d local_delta;
                     collision_bsp_pill_result pill_result;
 
-                    matrix4x3_inverse(&inverse_matrix, &((real_matrix4x3 *)context->nodes)[node_index]);
-                    matrix4x3_transform_point(&local_origin, origin, &inverse_matrix);
-                    matrix4x3_transform_vector(&local_delta, delta, &inverse_matrix);
+                    halo::math::matrix4x3_inverse(&inverse_matrix, *(&((real_matrix4x3 *)context->nodes)[node_index]));
+                    halo::math::matrix4x3_transform_point(local_origin, *origin, inverse_matrix);
+                    halo::math::matrix4x3_transform_vector(local_delta, *delta, inverse_matrix);
 
                     if (collision_bsp_query_pill_init(bsp, &pill_result, &local_origin, &local_delta,
                                                        inverse_matrix.scale * radius_scale,
@@ -652,7 +647,6 @@ uint8_t CollisionWorld::context_test_pill(object_collision_context *context, rea
 
 }
 
-extern "C" { extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point); }
 namespace halo::physics {
 
 /**
@@ -691,8 +685,8 @@ uint32_t CollisionWorld::context_test_point(object_collision_context *context, r
                 if ((int32_t)bsp->bsp3d_nodes.count > 0) {
                     real_point3d local_point;
 
-                    matrix4x3_inverse_transform_point(&((real_matrix4x3 *)context->nodes)[node_index],
-                                                       &local_point, point);
+                    halo::math::matrix4x3_inverse_transform_point(*(&((real_matrix4x3 *)context->nodes)[node_index]),
+                                                       local_point, *point);
                     if (bsp3d_node_find_leaf(0, bsp, &local_point) == 0xffffffff) {
                         return 1;
                     }
@@ -751,9 +745,9 @@ uint8_t CollisionWorld::context_test_segment(object_collision_context *context, 
                     real_point3d local_origin;
                     real_vector3d local_delta;
 
-                    matrix4x3_inverse(&inverse_matrix, &((real_matrix4x3 *)context->nodes)[node_index]);
-                    matrix4x3_transform_point(&local_origin, origin, &inverse_matrix);
-                    matrix4x3_transform_vector(&local_delta, delta, &inverse_matrix);
+                    halo::math::matrix4x3_inverse(&inverse_matrix, *(&((real_matrix4x3 *)context->nodes)[node_index]));
+                    halo::math::matrix4x3_transform_point(local_origin, *origin, inverse_matrix);
+                    halo::math::matrix4x3_transform_vector(local_delta, *delta, inverse_matrix);
 
                     if (collision_bsp_query_segment_init(flags, &out_result->segment, bsp, 0, 0,
                                                           &local_origin, &local_delta,
@@ -890,10 +884,8 @@ uint8_t CollisionWorld::test_nearby_chain(uint32_t start_object_index, uint32_t 
 
 }
 
-extern "C" { extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); }
 extern "C" { extern int16_t model_collision_geometry_resolve_material_type(int16_t material_index, ModelCollisionGeometry *definition); }
 extern "C" { extern uint8_t object_physics_test_ray_against_mass_points(real_point3d *world_origin, real_vector3d *world_direction, object_physics_ray_result *out_result, object_physics_context *context); }
-extern "C" { extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction, real radius); }
 namespace halo::physics {
 
 /**
@@ -923,7 +915,7 @@ uint8_t CollisionWorld::test_ray_nearby_chain(uint32_t start_object_index, uint3
 
             if ((type_mask & (1u << ((type + 8) & 0x1f))) != 0 &&
 
-                ray_intersects_sphere_test(&obj->bounding_center, origin, delta,
+                halo::math::ray_intersects_sphere_test(obj->bounding_center, *origin, *delta,
                                             obj->bounding_radius)) {
                 if (((1 << (type & 0x1f)) & 2) == 0 || (type_mask & 0x400000) == 0) {
                     object_collision_context node_ctx;
@@ -939,12 +931,12 @@ uint8_t CollisionWorld::test_ray_nearby_chain(uint32_t start_object_index, uint3
 
                             out_result->t = node_result.segment.t;
                             out_result->type = 3;
-                            matrix4x3_transform_plane((real_plane3d *)&out_result->plane.normal,
-                                                       node_matrix,
-                                                       (real_plane3d *)node_result.segment.plane);
+                            halo::math::matrix4x3_transform_plane(*((real_plane3d *)&out_result->plane.normal),
+                                                       *node_matrix,
+                                                       *(real_plane3d *)node_result.segment.plane);
                             if (node_result.segment.plane_index < 0) {
-                                plane3d_negate((real_plane3d *)&out_result->plane.normal,
-                                               (real_plane3d *)&out_result->plane.normal);
+                                halo::math::plane3d_negate(*((real_plane3d *)&out_result->plane.normal),
+                                               *((real_plane3d *)&out_result->plane.normal));
                             }
                             out_result->material_type = model_collision_geometry_resolve_material_type(
                                 node_result.segment.material_index,

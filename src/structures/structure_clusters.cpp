@@ -5,30 +5,12 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
-extern int32_t render_cluster_index;
-extern uint32_t *flood_recursion_bits;
-extern uint32_t cluster_visible_bits[0x10];
-extern int16_t visible_cluster_count;
-extern int16_t cluster_visible_index[0x200];
-extern real_bounds *k_default_screen_bounds;
-extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters];
-extern uint8_t render_cluster_has_sky;
 extern float portal_visibility_tolerance;
-extern int16_t polygon2d_clip_to_planes(int16_t vertex_count, real_point2d *vertices,
-                                         int16_t clip_point_count, real_point2d *clip_points,
-                                         int16_t maximum_count, real_point2d *out,
-                                         real epsilon);
-extern int32_t cluster_flood_stamp;
-extern uint8_t cluster_flood_in_progress;
-extern int32_t cluster_visit_stamp[0x200];
-extern uint8_t vector3d_projection_band_test(real_vector3d *axis, real_point3d *point_a, real_point3d *point_b,
-    real radius, real max_distance, real sin_angle, real cos_angle);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
-                                       real_matrix4x3 *m);
-extern int16_t polygon3d_clip_to_plane(int16_t count, real_point3d *in, real_plane3d *plane, int16_t max_count, real_point3d *out, uint8_t *clipped_flag, real epsilon, char keep_coplanar);
 extern real_plane3d near_clip_plane;
 extern double k_plane_side_epsilon;
 extern float k_projection_numerator;
@@ -37,10 +19,7 @@ extern uint8_t render_frustum_global;
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern datum_index datum_new(data_array *array);
-extern void datum_delete(data_array *array, datum_index handle);
 }
 
 namespace halo::structures {
@@ -52,20 +31,20 @@ void cluster_flood::camera_portal_flood_recursive(int16_t cluster_index, polygon
 
     uint32_t bit = 1u << (cluster_index & 0x1f);
     int32_t word = cluster_index >> 5;
-    flood_recursion_bits[word] |= bit;
+    globals().flood_recursion_bits[word] |= bit;
 
-    if ((cluster_visible_bits[word] & bit) == 0) {
-        int16_t visible_index = visible_cluster_count;
-        cluster_visible_index[cluster_index] = visible_index;
-        visible_cluster_count++;
-        visible_clusters[visible_index].cluster_index = cluster_index;
-        visible_clusters[visible_index].screen_bounds_x = k_default_screen_bounds[0];
-        visible_clusters[visible_index].screen_bounds_y = k_default_screen_bounds[1];
+    if ((globals().cluster_visible_bits[word] & bit) == 0) {
+        int16_t visible_index = globals().visible_cluster_count;
+        globals().cluster_visible_index[cluster_index] = visible_index;
+        globals().visible_cluster_count++;
+        globals().visible_clusters[visible_index].cluster_index = cluster_index;
+        globals().visible_clusters[visible_index].screen_bounds_x = globals().k_default_screen_bounds[0];
+        globals().visible_clusters[visible_index].screen_bounds_y = globals().k_default_screen_bounds[1];
     }
-    cluster_visible_bits[word] |= bit;
+    globals().cluster_visible_bits[word] |= bit;
 
-    int16_t visible_index = cluster_visible_index[cluster_index];
-    bsp_bounds::polygon2d_bounds_expand((real_bounds *)&visible_clusters[visible_index].screen_bounds_x, view_polygon);
+    int16_t visible_index = globals().cluster_visible_index[cluster_index];
+    bsp_bounds::polygon2d_bounds_expand((real_bounds *)&globals().visible_clusters[visible_index].screen_bounds_x, view_polygon);
 
     ScenarioStructureBSPClusterPortalIndex *portal_refs =
         (ScenarioStructureBSPClusterPortalIndex *)cluster->portals.pointer;
@@ -82,13 +61,13 @@ void cluster_flood::camera_portal_flood_recursive(int16_t cluster_index, polygon
         }
         uint32_t neighbor_bit = 1u << (neighbor & 0x1f);
         int32_t neighbor_word = neighbor >> 5;
-        if ((flood_recursion_bits[neighbor_word] & neighbor_bit) != 0) {
+        if ((globals().flood_recursion_bits[neighbor_word] & neighbor_bit) != 0) {
             continue;
         }
 
         int32_t row_dwords = (global_structure_bsp->clusters.count + 0x1f) >> 5;
         uint32_t *pvs_row = (uint32_t *)((uint8_t *)global_structure_bsp->cluster_data.pointer +
-                                          render_cluster_index * row_dwords * 4);
+                                          globals().render_cluster_index * row_dwords * 4);
         if ((pvs_row[neighbor_word] & neighbor_bit) == 0) {
             continue;
         }
@@ -100,13 +79,13 @@ void cluster_flood::camera_portal_flood_recursive(int16_t cluster_index, polygon
         polygon2d *next_polygon = view_polygon;
         if (project_result != 2) {
             if (project_result != 0 ||
-                (render_cluster_has_sky == 0 &&
+                (globals().render_cluster_has_sky == 0 &&
 
                  structure_bsp_query::points_within_band((real_point3d *)portal->vertices.pointer, (int16_t)portal->vertices.count, portal_visibility_tolerance) == 0)) {
                 continue;
             }
 
-            int16_t clipped_count = polygon2d_clip_to_planes(
+            int16_t clipped_count = halo::math::polygon2d_clip_to_planes(
                 portal_polygon.point_count, &portal_polygon.points[0],
                 view_polygon->point_count, &view_polygon->points[0], 0x100,
                 &clipped_polygon.points[0], 9.99999975e-05f);
@@ -122,7 +101,7 @@ void cluster_flood::camera_portal_flood_recursive(int16_t cluster_index, polygon
         cluster_flood::camera_portal_flood_recursive(neighbor, next_polygon);
     }
 
-    flood_recursion_bits[word] &= ~bit;
+    globals().flood_recursion_bits[word] &= ~bit;
 }
 
 int16_t cluster_flood::fill_with_predicate(real_point3d *position, real_vector3d *facing, real max_distance, real sin_angle, real cos_angle, int16_t max_count, int16_t *output, int16_t start_cluster)
@@ -131,9 +110,9 @@ int16_t cluster_flood::fill_with_predicate(real_point3d *position, real_vector3d
     int16_t stack_top = 1;
     int16_t written = 0;
 
-    cluster_flood_stamp++;
-    cluster_flood_in_progress = 1;
-    cluster_visit_stamp[start_cluster] = cluster_flood_stamp;
+    globals().cluster_flood_stamp++;
+    globals().cluster_flood_in_progress = 1;
+    globals().cluster_visit_stamp[start_cluster] = globals().cluster_flood_stamp;
     stack[0] = start_cluster;
 
     do {
@@ -157,19 +136,19 @@ int16_t cluster_flood::fill_with_predicate(real_point3d *position, real_vector3d
                               (int32_t)portal_indices[i] * 0x40;
             int16_t neighbor = (*(int16_t *)portal == cluster_index) ? *(int16_t *)(portal + 2) : *(int16_t *)portal;
 
-            if (cluster_visit_stamp[neighbor] == cluster_flood_stamp) {
+            if (globals().cluster_visit_stamp[neighbor] == globals().cluster_flood_stamp) {
                 continue;
             }
-            if (!vector3d_projection_band_test(facing, position, (real_point3d *)(portal + 8),
+            if (!halo::math::vector3d_projection_band_test(*facing, *position, *(real_point3d *)(portal + 8),
                     *(real *)(portal + 0x14), max_distance, sin_angle, cos_angle)) {
                 continue;
             }
-            cluster_visit_stamp[neighbor] = cluster_flood_stamp;
+            globals().cluster_visit_stamp[neighbor] = globals().cluster_flood_stamp;
             stack[stack_top++] = neighbor;
         }
     } while (stack_top > 0);
 
-    cluster_flood_in_progress = 0;
+    globals().cluster_flood_in_progress = 0;
     return written;
 }
 
@@ -181,8 +160,8 @@ int32_t cluster_flood::fill_within_radius(int16_t cluster_index, real_point3d *p
     if (remaining_budget > 0) {
         *output++ = cluster_index;
     }
-    if (cluster_visit_stamp[cluster_index] != cluster_flood_stamp) {
-        cluster_visit_stamp[cluster_index] = cluster_flood_stamp;
+    if (globals().cluster_visit_stamp[cluster_index] != globals().cluster_flood_stamp) {
+        globals().cluster_visit_stamp[cluster_index] = globals().cluster_flood_stamp;
     }
 
     int32_t written = 1;
@@ -197,7 +176,7 @@ int32_t cluster_flood::fill_within_radius(int16_t cluster_index, real_point3d *p
         int16_t neighbor = (portal->front_cluster == (uint16_t)cluster_index)
                                 ? (int16_t)portal->back_cluster
                                 : (int16_t)portal->front_cluster;
-        if (cluster_visit_stamp[neighbor] == cluster_flood_stamp) {
+        if (globals().cluster_visit_stamp[neighbor] == globals().cluster_flood_stamp) {
             continue;
         }
         if (!structure_bsp_view(global_structure_bsp).portal_sphere_test(point, portal_refs[i].portal, tolerance)) {
@@ -218,10 +197,10 @@ int32_t cluster_flood::seed(real_point3d *point, float radius, int16_t start_clu
         return 0;
     }
     if (radius > 0.0f) {
-        cluster_flood_stamp++;
-        cluster_flood_in_progress = 1;
+        globals().cluster_flood_stamp++;
+        globals().cluster_flood_in_progress = 1;
         int32_t count = cluster_flood::fill_within_radius(start_cluster, point, radius, max_count, output);
-        cluster_flood_in_progress = 0;
+        globals().cluster_flood_in_progress = 0;
         return count;
     }
     if (max_count > 0) {
@@ -256,11 +235,11 @@ uint8_t cluster_flood::portal_project(real_plane3d *plane, void *camera_ref, rea
     }
 
     for (n = 0; (int16_t)vertex_count > 0 && n < (vertex_count & 0xffff); n = n + 1) {
-        matrix4x3_transform_point(&clipped[n], &vertices[n],
-                                  (real_matrix4x3 *)((uint8_t *)camera + 0x10));
+        halo::math::matrix4x3_transform_point(clipped[n], vertices[n],
+                                  *(real_matrix4x3 *)((uint8_t *)camera + 0x10));
     }
 
-    clipped_count = polygon3d_clip_to_plane(vertex_count, clipped, &near_clip_plane, 0x100,
+    clipped_count = halo::math::polygon3d_clip_to_plane(vertex_count, clipped, near_clip_plane, 0x100,
                                             clipped, 0, 9.99999975e-05f, 1);
     out->point_count = clipped_count;
 
@@ -324,7 +303,7 @@ void cluster_references::partition_new(cluster_reference_group *out, char *name)
     region = game_state_base + game_state_cursor;
     game_state_cursor = game_state_cursor + 0x800;
     size = 0x800;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     out->cluster_first = (datum_index *)region;
 
     sprintf(format_buffer, "cluster %s", name);
@@ -348,10 +327,10 @@ void cluster_references::add_within_radius(uint32_t light_or_object_handle, datu
             cluster_count = 1;
             clusters[0] = leaf_and_cluster->cluster_index;
         } else {
-            cluster_flood_stamp = cluster_flood_stamp + 1;
-            cluster_flood_in_progress = 1;
+            globals().cluster_flood_stamp = globals().cluster_flood_stamp + 1;
+            globals().cluster_flood_in_progress = 1;
             cluster_count = cluster_flood::fill_within_radius(leaf_and_cluster->cluster_index, position, radius, 0x40, clusters);
-            cluster_flood_in_progress = 0;
+            globals().cluster_flood_in_progress = 0;
         }
     }
 
@@ -363,7 +342,7 @@ void cluster_references::add_within_radius(uint32_t light_or_object_handle, datu
         int16_t cluster = clusters[i];
         datum_index handle;
 
-        handle = datum_new(cluster_list->object_cluster_references);
+        handle = halo::memory::datum_new(cluster_list->object_cluster_references);
         if (handle != k_datum_index_none) {
             object_cluster_reference *ref = (object_cluster_reference *)
                 cluster_list->object_cluster_references->data + (handle & 0xffff);
@@ -374,7 +353,7 @@ void cluster_references::add_within_radius(uint32_t light_or_object_handle, datu
 
         {
             datum_index *cluster_head = &cluster_list->cluster_first[cluster];
-            handle = datum_new(cluster_list->cluster_object_references);
+            handle = halo::memory::datum_new(cluster_list->cluster_object_references);
             if (handle != k_datum_index_none) {
                 object_cluster_reference *ref = (object_cluster_reference *)
                     cluster_list->cluster_object_references->data + (handle & 0xffff);
@@ -396,7 +375,7 @@ void cluster_references::remove_all(uint32_t handle, datum_index *link, cluster_
         int16_t cluster = (int16_t)own_ref->object_index;
         datum_index next_entry;
 
-        datum_delete(cluster_list->object_cluster_references, entry);
+        halo::memory::datum_delete(cluster_list->object_cluster_references, entry);
 
         {
             datum_index *scan = &cluster_list->cluster_first[cluster];
@@ -405,7 +384,7 @@ void cluster_references::remove_all(uint32_t handle, datum_index *link, cluster_
                     object_cluster_reference *cluster_ref = (object_cluster_reference *)
                         cluster_list->cluster_object_references->data + (*scan & 0xffff);
                     if (cluster_ref->object_index == handle) {
-                        datum_delete(cluster_list->cluster_object_references, *scan);
+                        halo::memory::datum_delete(cluster_list->cluster_object_references, *scan);
                         *scan = cluster_ref->next_reference;
                         break;
                     }

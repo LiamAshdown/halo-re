@@ -14,16 +14,16 @@
 #include "cache.h"
 
 #include "halo/interface/uis_widgets.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern int16_t profile_slot_id[];
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 extern uint16_t global_text_field_00719278[0x40];
 extern heap *widget_memory_pool;
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern hud_messaging_globals *hud_messaging;
 extern Scenario *global_scenario;
-extern tag_instance *tag_instances;
 }
 
 namespace halo::ui {
@@ -66,7 +66,7 @@ void UiWidgets::widget_sync_profile_status_flag(widget_instance *widget)
 void UiWidgets::widget_text_ensure_and_refresh(widget_instance *widget)
 {
     if (widget->text == (void *)0) {
-        uint32_t *block = (uint32_t *)heap_reallocate(widget->text, 0x80, widget_memory_pool);
+        uint32_t *block = (uint32_t *)halo::memory::heap_reallocate(widget->text, 0x80, widget_memory_pool);
 
         widget->text = block;
         if (block != (uint32_t *)0) {
@@ -100,7 +100,7 @@ void UiWidgets::widget_text_from_hud_objective(widget_instance *widget)
     if (entry == 0) {
         return;
     }
-    text_tag = (uint8_t *)tag_instances[*(uint32_t *)((uint8_t *)global_scenario + 0x5a0) & 0xffff].data;
+    text_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)((uint8_t *)global_scenario + 0x5a0) & 0xffff].data;
     text = (uint16_t *)(*(uint8_t **)(text_tag + 0xc) + (uint32_t)*(uint16_t *)(entry + 0x20) * 2);
     if (text == 0 || *text == 0) {
         return;
@@ -109,7 +109,7 @@ void UiWidgets::widget_text_from_hud_objective(widget_instance *widget)
     if (length <= 0) {
         return;
     }
-    buffer = (uint16_t *)heap_reallocate(widget->text, (uint16_t)(length * 2 + 2), widget_memory_pool);
+    buffer = (uint16_t *)halo::memory::heap_reallocate(widget->text, (uint16_t)(length * 2 + 2), widget_memory_pool);
     widget->text = buffer;
     if (buffer == 0) {
         return;

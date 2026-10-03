@@ -2,14 +2,13 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
-extern real vector2d_normalize_with_length(real_vector2d *v);
 extern void ai_search_heap_sift_up(ai_search_context *context, int16_t index);
 extern double sqrt(double x);
 extern double fabs(double x);
-extern real vector2d_angle_between(real_vector2d *a, real_vector2d *b);
-extern void vector2d_tangent_edge_directions(const real_vector2d *direction, real_vector2d *edge_pos, real_vector2d *edge_neg, real distance, real extent, real *adjacent_out);
 extern int16_t ai_search_find_covering_point(ai_search_obstacle_list *list, real_point2d *position, int16_t exclude_index, float extra_radius);
 extern int16_t ai_search_add_node(ai_search_context *context, int16_t chain_head, real_point2d *position, int32_t surface_index, int16_t point_id, uint8_t side, float extra_cost);
 extern uint8_t ai_search_find_nearest_visible_point(ai_search_obstacle_list *list, int16_t exclude_index, real_point2d *origin, real_vector2d *direction, float radius, float max_distance, uint8_t require_unflagged, ai_search_nearest_point_result *out_result);
@@ -17,13 +16,9 @@ extern uint8_t path_find_trace_cluster_boundary_from_vertex(void *context, uint8
 extern void ai_search_compute_point_tangents(ai_search_obstacle_list *list, int16_t point_index, real_point2d *position, real_vector2d *edge_neg, float radius, real_vector2d *out_a, real *out_b);
 extern uint8_t ai_search_evaluate_edge_cost(void *context, uint8_t ignore_permission, ai_search_obstacle_list *obstacle_list, int16_t exclude_index, real_point2d *point, int32_t start_surface_index, float distance, float base_cost, uint8_t skip_direct, uint8_t apply_offset, uint8_t require_unflagged, ai_search_edge_result *out_result, real_vector2d *direction);
 extern real_point2d *ai_default_2d_direction;
-extern uint8_t ray2d_intersect_circle_distance(const real_vector2d *direction, const real_point2d *origin, const real_point2d *center, real *out_distance, real radius);
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location, real_point3d *center, float radius, datum_index *out_objects, int16_t max_output);
-extern int point3d_within_radius(const real_point3d *a, const real_point3d *b, real radius);
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern uint8_t ai_search_append_obstacle(ai_search_obstacle_list *list, uint16_t flags, uint32_t object_index, real_point2d *position, float radius);
 extern void ai_search_flood_fill_group(ai_search_obstacle_list *list, float radius, uint32_t *out_bitmask, int16_t start_index);
 extern void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c, real_point2d *position, int32_t surface_index, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a);
@@ -103,7 +98,7 @@ int16_t AiSearch::add_node(int16_t parent, real_point2d *position, int32_t surfa
     *(int32_t *)&node->z = surface_index;
     node->direction.i = dx;
     node->direction.j = dy;
-    node->length = vector2d_normalize_with_length(&node->direction);
+    node->length = halo::math::vector2d_normalize_with_length(node->direction);
     node->cost = node->length + base_cost;
     node->point_id = point_id;
     node->side = side;
@@ -192,10 +187,10 @@ uint8_t AiSearchGeometry::choose_shorter_corner(real_point2d *p, real_point2d *c
     ai_search_corner_direction(p, corner_b, &b_p);
     ai_search_corner_direction(q, corner_b, &b_q);
     ai_search_corner_direction(r, corner_b, &b_r);
-    turn_a = vector2d_angle_between(&a_r, &a_q);
-    turn_a = vector2d_angle_between(&a_q, &a_p) + turn_a;
-    turn_b = vector2d_angle_between(&b_r, &b_q);
-    turn_b = vector2d_angle_between(&b_q, &b_p) + turn_b;
+    turn_a = halo::math::vector2d_angle_between(a_r, a_q);
+    turn_a = halo::math::vector2d_angle_between(a_q, a_p) + turn_a;
+    turn_b = halo::math::vector2d_angle_between(b_r, b_q);
+    turn_b = halo::math::vector2d_angle_between(b_q, b_p) + turn_b;
     if (-turn_b < turn_a) {
         *out_point = *corner_a;
         return 1;
@@ -228,7 +223,7 @@ void ObstacleList::compute_point_tangents(int16_t point_index, real_point2d *pos
     direction.i = dx;
     direction.j = dy;
 
-    vector2d_tangent_edge_directions(&direction, out_a, edge_neg, distance, radius + point->radius + 0.00390625f, out_b);
+    halo::math::vector2d_tangent_edge_directions(direction, *out_a, *edge_neg, distance, radius + point->radius + 0.00390625f, *out_b);
 }
 
 /**
@@ -517,7 +512,7 @@ uint8_t ObstacleList::find_nearest_visible_point(int16_t exclude_index, real_poi
         if (i == exclude_index || (require_unflagged && (obstacle->flags & 1) != 0)) {
             continue;
         }
-        if (ray2d_intersect_circle_distance(direction, origin, &obstacle->position, &distance,
+        if (halo::math::ray2d_intersect_circle_distance(*direction, *origin, obstacle->position, distance,
                 radius + obstacle->radius) != 0 &&
             out_result->distance > distance) {
             out_result->distance = distance;
@@ -575,7 +570,7 @@ void ObstacleList::flood_fill_group(float radius, uint32_t *out_bitmask, int16_t
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 /**
  * Behaviour of ai search gather obstacles, moved unchanged from the original free function.
  *
@@ -613,7 +608,7 @@ void ObstacleList::gather_obstacles(real_point3d *center, float radius, real_vec
                 continue;
             }
         }
-        if (!point3d_within_radius((real_point3d *)(object + 0xa0), center, radius + ((struct object *)object)->bounding_radius)) {
+        if (!halo::math::point3d_within_radius(*(real_point3d *)(object + 0xa0), *center, radius + ((struct object *)object)->bounding_radius)) {
             continue;
         }
         object_tag = TAG_DATA(*(datum_index *)object);
@@ -637,10 +632,10 @@ void ObstacleList::gather_obstacles(real_point3d *center, float radius, real_vec
             if (node != -1) {
                 real_matrix4x3 *matrix = (real_matrix4x3 *)(object + ((struct object *)object)->nodes.offset + node * 0x34);
 
-                matrix4x3_transform_point(&point, (real_point3d *)(sphere + 0x10), matrix);
+                halo::math::matrix4x3_transform_point(point, *(real_point3d *)(sphere + 0x10), *matrix);
                 sphere_radius = *(float *)(sphere + 0x1c) * matrix->scale;
             } else {
-                matrix4x3_transform_point(&point, (real_point3d *)(sphere + 0x10), &world);
+                halo::math::matrix4x3_transform_point(point, *(real_point3d *)(sphere + 0x10), world);
                 sphere_radius = world.scale * *(float *)(sphere + 0x1c);
             }
             if (!(point.z + sphere_radius + 0.5f >= center->z) && direction->k > -0.2f) {

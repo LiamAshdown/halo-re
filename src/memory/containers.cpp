@@ -90,12 +90,11 @@ void growable_array_view::remove_element(uint32_t index)
 
 /**
  * Allocates a circular_buffer with room for requested_size bytes (one slot is always kept empty) and
- * initialises it. name is stored as given, not copied. The allocation result is not returned to the
- * caller.
+ * initialises it. name is stored as given, not copied. Returns the buffer, or 0 when the allocation fails.
  *
  * @address 0x4d0170
  */
-void circular_buffer_view::create(char *name, int32_t requested_size)
+circular_buffer *circular_buffer_view::create(char *name, int32_t requested_size)
 {
     circular_buffer *buf;
 
@@ -112,6 +111,7 @@ void circular_buffer_view::create(char *name, int32_t requested_size)
         buf->capacity = requested_size + 1;
         buf->data = (uint8_t *)buf + 0x18;
     }
+    return buf;
 }
 
 /**

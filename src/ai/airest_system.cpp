@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -11,7 +14,6 @@ extern data_array *swarm_component_data;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern ai_globals *ai_globals_ptr;
 extern int32_t game_engine_get_current_tick(void);
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
 extern void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t source_object, int16_t event_type, int16_t unused);
 extern data_array *object_data;
 extern data_array *prop_data;
@@ -25,7 +27,6 @@ extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_i
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index, char create_if_missing, uint32_t flag);
 extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index, int16_t grenade_type);
 extern int ai_squad_priority_compare(const ai_priority_target_record *record_a, const ai_priority_target_record *record_b);
-extern void * data_iterator_next(data_iterator *iterator);
 extern game_main_globals *main_game_globals;
 extern void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b, uint8_t unknown_09, int16_t threshold, int16_t timer_reset, uint8_t unknown_0c);
 extern void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only);
@@ -33,7 +34,6 @@ extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification)
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern void actors_initialize(void);
 extern void encounters_initialize(void);
 extern void ai_communication_initialize(void);
@@ -43,10 +43,7 @@ extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_in
 extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index);
 extern void team_pair_override_clear_flag(int16_t index_b, int16_t index_a);
 extern float k_random_scale_65536;
-extern uint32_t random_seed_global;
-extern tag_instance *tag_instances;
 extern datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum_index encounter_index, int16_t squad_index, uint8_t use_palette_entry, uint16_t unit_type_index, const actor_placement_request *placement_request);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index);
 extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
@@ -62,7 +59,6 @@ extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counter
 extern void actor_movement_action_cancel(datum_index actor_index);
 extern void actor_clear_target_state(datum_index actor_index);
 extern void encounter_deactivate(datum_index encounter_index);
-extern void data_delete_all(data_array *array);
 extern void encounters_reset(void);
 extern void ai_communication_reset(void);
 extern game_time_globals *game_time;
@@ -77,8 +73,6 @@ extern void encounter_add_actor(int16_t squad_index, datum_index actor_index, da
 extern uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d *origin, real speed_limit, real gravity_scale, real *max_time, uint8_t use_high_arc, real_vector3d *out_direction, real *max_speed_override, real *out_speed, real *out_time_of_flight, real *out_range, real *out_half_gravity_term, real *out_horizontal_speed);
 extern uint8_t projectile_solve_straight_line(real_point3d *target, real_point3d *origin, real speed, real *out_time_of_flight, real_vector3d *out_direction, real *out_speed_echo, real *out_length);
 extern float k_physics_gravity;
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern const real_vector3d *global_up3d_pointer;
 extern double sqrt(double x);
 }
 
@@ -126,7 +120,7 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
          cursor = (cursor + 1) & 0x1f) {
         uint8_t matches_id = 0;
         if (records[cursor].event_id == event_id &&
-            vector3d_distance_squared(position, &records[cursor].position) < 1.0f) {
+            halo::math::vector3d_distance_squared(*position, records[cursor].position) < 1.0f) {
             matches_id = 1;
         }
         if (current_tick - 0x78 < records[cursor].last_tick) {
@@ -316,7 +310,7 @@ void AiSystem::build_priority_target_list(ai_priority_target_list *out_list)
             encounter *enc;
 
             do {
-                enc = (encounter *)data_iterator_next(&iterator);
+                enc = (encounter *)halo::memory::data_iterator_next(&iterator);
                 if (enc == 0 || scan_more == 0) {
                     break;
                 }
@@ -481,7 +475,7 @@ void AiSystem::initialize_for_new_map()
     int32_t size = k_ai_globals_size;
 
     game_state_cursor = game_state_cursor + k_ai_globals_size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     ai_globals_ptr = globals;
     memset(globals, 0, k_ai_globals_size);
@@ -663,7 +657,7 @@ int16_t AiSystem::pick_weighted_candidate(ai_scored_candidate *table, ai_scored_
 
     chosen = last_valid;
     if (1 < valid_count) {
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
         running = 0.0f;
         for (i = 0; i < 4; i = i + 1) {
             entry = &table[i * 2];
@@ -671,7 +665,7 @@ int16_t AiSystem::pick_weighted_candidate(ai_scored_candidate *table, ai_scored_
             if (0.0f < entry->score && entry->handle != (datum_index)k_datum_index_none) {
                 running = running + entry->score;
                 chosen = i;
-                if ((float)(random_seed_global >> 0x10) * k_random_scale_65536 * total_weight <
+                if ((float)(halo::math::globals().random_seed_global >> 0x10) * k_random_scale_65536 * total_weight <
                     running) {
                     break;
                 }
@@ -701,7 +695,7 @@ void AiSystem::process_vehicle_entry_queue()
 
     for (queue_index = 0; queue_index < ai_globals_ptr->vehicle_entry_count; queue_index++) {
         datum_index vehicle_index = ai_globals_ptr->vehicle_entry_queue[queue_index];
-        uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)OBJECT_DATA(vehicle_index) & 0xffff].data;
+        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)OBJECT_DATA(vehicle_index) & 0xffff].data;
         int16_t seat_index;
 
         for (seat_index = 0; seat_index < *(int32_t *)(vehicle_tag + 0x2e4); seat_index++) {
@@ -721,8 +715,8 @@ void AiSystem::process_vehicle_entry_queue()
             } else {
                 uint8_t *parent = OBJECT_DATA(((vehicle_object *)vehicle)->base.parent_object);
 
-                matrix4x3_transform_point(&request.position, (real_point3d *)(vehicle + 0x5c),
-                    (real_matrix4x3 *)(parent + ((struct object *)parent)->nodes.offset + (int8_t)vehicle[0x120] * 0x34));
+                halo::math::matrix4x3_transform_point(request.position, *(real_point3d *)(vehicle + 0x5c),
+                    *(real_matrix4x3 *)(parent + ((struct object *)parent)->nodes.offset + (int8_t)vehicle[0x120] * 0x34));
             }
             actor_index = actor_place_new_unit(gunner_tag, k_datum_index_none, -1, 0, 0, &request);
             if (actor_index != k_datum_index_none) {
@@ -1048,13 +1042,13 @@ void AiSystem::reset_for_new_map()
     }
 
     actor_data->valid = 1;
-    data_delete_all(actor_data);
+    halo::memory::data_delete_all(actor_data);
     swarm_data->valid = 1;
-    data_delete_all(swarm_data);
+    halo::memory::data_delete_all(swarm_data);
     swarm_component_data->valid = 1;
-    data_delete_all(swarm_component_data);
+    halo::memory::data_delete_all(swarm_component_data);
     prop_data->valid = 1;
-    data_delete_all(prop_data);
+    halo::memory::data_delete_all(prop_data);
 
     encounters_reset();
     ai_communication_reset();
@@ -1092,7 +1086,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    p = (prop *)data_iterator_next(&iterator);
+    p = (prop *)halo::memory::data_iterator_next(&iterator);
 
     while (p != 0) {
         if (p->is_parented && p->enemy) {
@@ -1103,7 +1097,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
                 linked_unit_index = a->swarm ? a->cluster_unit_index : a->unit_index;
 
                 linked_object = ((object_header *)object_data->data)[linked_unit_index & 0xffff].data;
-                linked_unit_tag = (Unit *)tag_instances[linked_object->definition_tag & 0xffff].data;
+                linked_unit_tag = (Unit *)halo::cache::globals().tag_instances[linked_object->definition_tag & 0xffff].data;
 
                 skip_close_check = 0;
                 if ((linked_unit_tag->unit_flags & 0x80000) != 0) { // "inconsequential"
@@ -1137,7 +1131,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
                             }
                             if (kind == 4 && p->distance < 12.0f) {
                                 prop *pair = &((prop *)prop_data->data)[p->pair_index & 0xffff];
-                                if (vector3d_distance_squared(&p->last_known_position, &pair->last_known_position) < 16.0f) {
+                                if (halo::math::vector3d_distance_squared(p->last_known_position, pair->last_known_position) < 16.0f) {
                                     return 1;
                                 }
                             }
@@ -1147,7 +1141,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
             }
         }
 next_prop:
-        p = (prop *)data_iterator_next(&iterator);
+        p = (prop *)halo::memory::data_iterator_next(&iterator);
     }
     return 0;
 }
@@ -1248,8 +1242,8 @@ int32_t AiSystem::weighted_random_index(int16_t weight_offset, void *base, int16
         int16_t chosen = 0;
 
         cursor = (uint8_t *)base + weight_offset;
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        roll = (float)(random_seed_global >> 0x10) * 1.5259022e-05f * total;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        roll = (float)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f * total;
 
         while ((exclude_mask[chosen >> 5] & (1u << (chosen & 0x1f))) != 0 ||
                (running = running + *(float *)cursor, (roll < running) == (roll == running))) {
@@ -1417,15 +1411,15 @@ have_root:
     vertical_velocity = (real)vertical_velocity_ext;
     horizontal_speed = (real)sqrt((double)dir.j * dir.j + (double)dir.i * dir.i);
 
-    length = vector3d_normalize_with_length(&dir);
+    length = halo::math::vector3d_normalize_with_length(dir);
     if (length == 0.0f) {
         used_root = 0;
         dir.i = dx;
         dir.j = dy;
         dir.k = dz;
-        length = vector3d_normalize_with_length(&dir);
+        length = halo::math::vector3d_normalize_with_length(dir);
         if (length == 0.0f) {
-            dir = *global_up3d_pointer;
+            dir = *halo::math::globals().global_up3d_pointer;
             used_root = 0;
         }
     }
@@ -1467,7 +1461,7 @@ uint8_t ProjectileAim::solve_straight_line(real_point3d *target, real_point3d *o
     scratch.i = target->x - origin->x;
     scratch.j = target->y - origin->y;
     scratch.k = target->z - origin->z;
-    length = vector3d_normalize_with_length(&scratch);
+    length = halo::math::vector3d_normalize_with_length(scratch);
 
     if (!(speed > 0.0f)) {
         time_fraction = 0.0f;

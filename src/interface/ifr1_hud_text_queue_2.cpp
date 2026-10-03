@@ -1,8 +1,9 @@
 #include "halo/interface/ifr1_hud_text_queue.hpp"
 #include <wchar.h>
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
-extern tag_instance *tag_instances;
 extern int64_t performance_frequency;
 extern int32_t hud_text_message_time_base;
 extern growable_array hud_text_message_queue;
@@ -16,7 +17,6 @@ extern int32_t hud_text_draw_unknown_4730;
 extern uint16_t missing_string_text[];
 extern void widget_instance_close_and_restore_previous(widget_instance *widget);
 extern int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t tag);
-extern void growable_array_remove_element(growable_array *array, uint32_t index);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
     uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 }
@@ -31,9 +31,9 @@ namespace halo::interface {
  */
 uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
     UnicodeStringList *strings =
-        (UnicodeStringList *)tag_instances[tag->text_label_unicode_strings_list.tag_id.index].data;
+        (UnicodeStringList *)halo::cache::globals().tag_instances[tag->text_label_unicode_strings_list.tag_id.index].data;
     int32_t string_count = strings->strings.count;
     int32_t bottom = 0x1ae;
     int32_t message_index = -1;
@@ -59,7 +59,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
                 entry->end_time = entry->end_time - elapsed;
                 bottom = entry->end_time;
                 if (bottom < 0x32) {
-                    growable_array_remove_element(&hud_text_message_queue, (uint32_t)i);
+                    halo::memory::growable_array_remove_element(&hud_text_message_queue, (uint32_t)i);
                     i--;
                 }
             }
@@ -86,7 +86,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
 
             if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != 0xffffffff) {
                 UnicodeStringList *list =
-                    (UnicodeStringList *)tag_instances[tag->text_label_unicode_strings_list.tag_id.index].data;
+                    (UnicodeStringList *)halo::cache::globals().tag_instances[tag->text_label_unicode_strings_list.tag_id.index].data;
 
                 if ((int16_t)message_index >= 0 && (int16_t)message_index < (int32_t)list->strings.count) {
                     UnicodeStringListString *string =

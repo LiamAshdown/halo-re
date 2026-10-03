@@ -1,11 +1,11 @@
 #include "halo/hs/hs3_machine.hpp"
 #include "game.h"
 #include "crt.h"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern void datum_delete(data_array *array, datum_index handle);
 extern data_array *hs_thread_data;
 extern data_array *hs_syntax_data;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -13,8 +13,6 @@ extern Scenario *global_scenario;
 extern int16_t hs_current_thread_index;
 extern uint8_t hs_runtime_active;
 extern game_time_globals *game_time;
-extern datum_index datum_next(int16_t after_index, data_array *array);
-extern datum_index datum_new(data_array *array);
 extern int32_t hs_global_get_value(hs_global_reference reference);
 extern int32_t hs_coerce_value(int32_t value, hs_type_t dest_type, hs_type_t source_type);
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
@@ -109,7 +107,7 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
                 return;
             }
         } else if (thread->type == _hs_thread_command) {
-            datum_delete(hs_thread_data, thread_index);
+            halo::memory::datum_delete(hs_thread_data, thread_index);
         }
     }
 }
@@ -124,13 +122,13 @@ datum_index ThreadMachine::find_by_script_index(int16_t script_index) const
     datum_index thread_handle;
     hs_thread *thread;
 
-    thread_handle = datum_next(-1, hs_thread_data);
+    thread_handle = halo::memory::datum_next(-1, hs_thread_data);
     while (thread_handle != k_datum_index_none) {
         thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & 0xffff) * 0x218);
         if (thread->script_index == script_index) {
             return thread_handle;
         }
-        thread_handle = datum_next((int16_t)thread_handle, hs_thread_data);
+        thread_handle = halo::memory::datum_next((int16_t)thread_handle, hs_thread_data);
     }
     return k_datum_index_none;
 }
@@ -148,14 +146,14 @@ datum_index ThreadMachine::find_by_script_name(char *name) const
     ScenarioScript *scripts;
 
     scripts = (ScenarioScript *)global_scenario->scripts.pointer;
-    thread_handle = datum_next(-1, hs_thread_data);
+    thread_handle = halo::memory::datum_next(-1, hs_thread_data);
     while (thread_handle != k_datum_index_none) {
         thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & 0xffff) * 0x218);
         if (thread->script_index != -1 &&
             _stricmp(scripts[thread->script_index].name.string, name) == 0) {
             return thread_handle;
         }
-        thread_handle = datum_next((int16_t)thread_handle, hs_thread_data);
+        thread_handle = halo::memory::datum_next((int16_t)thread_handle, hs_thread_data);
     }
     return k_datum_index_none;
 }
@@ -173,7 +171,7 @@ datum_index ThreadMachine::create(int32_t script_index, uint8_t type) const
     hs_thread *thread;
     ScenarioScript *scripts;
 
-    handle = datum_new(hs_thread_data);
+    handle = halo::memory::datum_new(hs_thread_data);
     if (handle != k_datum_index_none) {
         thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (handle & 0xffff) * 0x218);
         thread->stack = (hs_stack_frame *)&thread->stack_data;

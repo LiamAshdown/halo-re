@@ -6,6 +6,7 @@
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
 #include "code_refs.hpp"
+#include "halo/math/api.hpp"
 #include <stdint.h>
 
 extern "C" {
@@ -433,7 +434,7 @@ int16_t screenshot_scale = 1; /* 0x00696568, 2 bytes */
 uint8_t main_unknown_696570 = 1; /* 0x00696570, 1 bytes */
 void * campaign_level_paths[10] = {(void *)"levels\\a10\\a10", (void *)"levels\\a30\\a30", (void *)"levels\\a50\\a50", (void *)"levels\\b30\\b30", (void *)"levels\\b40\\b40", (void *)"levels\\c10\\c10", (void *)"levels\\c20\\c20", (void *)"levels\\c40\\c40", (void *)"levels\\d20\\d20", (void *)"levels\\d40\\d40"}; /* 0x00696574, 40 bytes */
 int16_t k_quaternion_next_index_matrix4x3[3] = {1, 2, 0}; /* 0x0069665c, 6 bytes */
-void * matrix4x3_multiply_ptr = (void *)matrix4x3_multiply; /* 0x00696664, 4 bytes */
+void * matrix4x3_multiply_ptr = (void *)&halo::math::matrix4x3_multiply; /* 0x00696664, 4 bytes */
 int16_t k_quaternion_next_index_matrix3x3[3] = {1, 2, 0}; /* 0x00696668, 6 bytes */
 void * g_006966e4 = (void *)&slice03_data_0065c224; /* 0x006966e4, 4 bytes */
 void * global_forward2d_pointer = (void *)&slice03_data_0065c20c; /* 0x006966e8, 4 bytes */

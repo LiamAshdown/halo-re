@@ -1,13 +1,13 @@
 #include "halo/units/unit.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern Globals *global_globals;
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 extern const real_point3d *global_zero_vector3d_pointer;
-extern const real_vector3d *global_forward3d_pointer;
 extern double sqrt(double x);
 }
 
@@ -23,7 +23,7 @@ void UnitView::update_steering_deviation_effects(real_vector3d *reference_direct
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
+    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     uint8_t *fall_table = (uint8_t *)global_globals->falling_damage.pointer;
     int32_t impact_effect_tag = *(int32_t *)(fall_table + 0x48);
 
@@ -42,7 +42,7 @@ void UnitView::update_steering_deviation_effects(real_vector3d *reference_direct
                                 deviation.k * deviation.k));
 
         if (length > 0.02) {
-            uint8_t *physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+            uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
             int32_t count = *(int32_t *)(physics_tag + 0x74);
             int32_t i = 0;
 
@@ -73,7 +73,7 @@ void UnitView::update_steering_deviation_effects(real_vector3d *reference_direct
                 }
 
                 if (*(int32_t *)&((struct Vehicle *)tag)->crash_sound.tag_id != -1) {
-                    sound_start_at_object_marker(unit_index, (Point3D *)global_zero_vector3d_pointer, (Vector3D *)global_forward3d_pointer,
+                    sound_start_at_object_marker(unit_index, (Point3D *)global_zero_vector3d_pointer, (Vector3D *)halo::math::globals().global_forward3d_pointer,
                     *(int32_t *)&((struct Vehicle *)tag)->crash_sound.tag_id, -1, clamped, 0);
                 }
             }

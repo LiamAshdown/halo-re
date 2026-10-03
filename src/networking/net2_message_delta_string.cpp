@@ -5,6 +5,7 @@
 #include "message_delta_codec.h"
 #include <wchar.h>
 #include "halo/networking/net2_message_delta_string.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint8_t message_delta_item_count_bits[];
@@ -37,7 +38,7 @@ int32_t StringFieldCodec::string_decode(message_delta_field_type *field_type, vo
     int32_t *descriptor = (int32_t *)field_type->array_descriptor;
     char *string = (char *)current;
     int32_t length = 0;
-    int32_t bits = bit_stream_read_bits_chunked(field_type->reserved_bits, (uint32_t *)&length, stream);
+    int32_t bits = halo::memory::bit_stream_read_bits_chunked(field_type->reserved_bits, (uint32_t *)&length, stream);
     int32_t i;
 
     (void)previous;
@@ -45,7 +46,7 @@ int32_t StringFieldCodec::string_decode(message_delta_field_type *field_type, vo
         return bits;
     }
     for (i = 0; i < length; i++) {
-        bits += bit_stream_read_bits_chunked(8, (uint32_t *)(string + i), stream);
+        bits += halo::memory::bit_stream_read_bits_chunked(8, (uint32_t *)(string + i), stream);
     }
     string[length] = 0;
     return bits;
@@ -61,9 +62,9 @@ int32_t StringFieldCodec::string_encode(message_delta_field_type *field_type, vo
     if (previous != 0 && strcmp((const char *)previous, string) == 0) {
         return 0;
     }
-    bits = bit_stream_write_bits_chunked(stream, (const uint32_t *)&length, field_type->reserved_bits);
+    bits = halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)&length, field_type->reserved_bits);
     for (i = 0; i < length; i++) {
-        bits += bit_stream_write_bits_chunked(stream, (const uint32_t *)(string + i), 8);
+        bits += halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)(string + i), 8);
     }
     return bits;
 }
@@ -81,7 +82,7 @@ int32_t StringFieldCodec::wide_string_decode(message_delta_field_type *field_typ
     int32_t *descriptor = (int32_t *)field_type->array_descriptor;
     uint16_t *string = (uint16_t *)current;
     int32_t length = 0;
-    int32_t bits = bit_stream_read_bits_chunked(field_type->reserved_bits, (uint32_t *)&length, stream);
+    int32_t bits = halo::memory::bit_stream_read_bits_chunked(field_type->reserved_bits, (uint32_t *)&length, stream);
     int32_t i;
 
     (void)previous;
@@ -89,7 +90,7 @@ int32_t StringFieldCodec::wide_string_decode(message_delta_field_type *field_typ
         return bits;
     }
     for (i = 0; i < length; i++) {
-        bits += bit_stream_read_bits_chunked(0x10, (uint32_t *)(string + i), stream);
+        bits += halo::memory::bit_stream_read_bits_chunked(0x10, (uint32_t *)(string + i), stream);
     }
     string[length] = 0;
     return bits;
@@ -105,9 +106,9 @@ int32_t StringFieldCodec::wide_string_encode(message_delta_field_type *field_typ
     if (previous != 0 && wcscmp((const wchar_t *)previous, string) == 0) {
         return 0;
     }
-    bits = bit_stream_write_bits_chunked(stream, (const uint32_t *)&length, field_type->reserved_bits);
+    bits = halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)&length, field_type->reserved_bits);
     for (i = 0; i < length; i++) {
-        bits += bit_stream_write_bits_chunked(stream, (const uint32_t *)(string + i), 0x10);
+        bits += halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)(string + i), 0x10);
     }
     return bits;
 }

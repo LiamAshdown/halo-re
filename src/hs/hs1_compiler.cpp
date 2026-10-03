@@ -2,6 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int16_t string_table_index_of(const char *search, int16_t count, const char **table);
@@ -15,7 +16,6 @@ extern uint8_t hs_set_forbidden;
 extern char *hs_compile_error;
 extern int32_t hs_compile_error_offset;
 extern int16_t hs_script_find_by_name(char *name);
-extern datum_index datum_new(data_array *array);
 extern char *hs_script_type_names[k_hs_script_type_count];
 extern Scenario *global_scenario;
 extern char *hs_source_buffer_append(char *text, uint32_t length);
@@ -27,7 +27,6 @@ extern uint8_t hs_syntax_data_dirty;
 extern int32_t hs_compiled_source_length;
 extern datum_index hs_compile_expression(char *text, uint32_t length, char **error_message, char **error_offset);
 extern void hs_evaluate_expression(datum_index node_index);
-extern void data_delete_all(data_array *array);
 extern char hs_rebuild_source(void);
 extern char hs_compile_source(void);
 extern void hs_scripts_free(void);
@@ -37,7 +36,6 @@ extern uint8_t hs_compile_release_source;
 extern uint8_t hs_compiled_source_owned;
 extern uint8_t hs_reload_pending;
 extern datum_index global_scenario_index;
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern char hs_verify_source_offset(int32_t offset);
 extern int16_t hs_find_function_by_name(char *name);
 extern hs_type_t hs_global_get_type(hs_global_reference global);
@@ -212,8 +210,8 @@ char ScriptCompiler::add_script(datum_index node_index)
                 if ((existing_script->script_type == _hs_script_stub) &&
                     (existing_script->return_type == return_type) &&
                     (script_type == _hs_script_static)) {
-                    new_root = datum_new(nodes);
-                    new_body_holder = datum_new(nodes);
+                    new_root = halo::memory::datum_new(nodes);
+                    new_body_holder = halo::memory::datum_new(nodes);
                     if ((new_root == k_datum_index_none) || (new_body_holder == k_datum_index_none)) {
                         hs_compile_error = (char *)"i couldn't allocate a syntax node.";
                         return 0;
@@ -412,7 +410,7 @@ char ScriptCompiler::compile_and_evaluate(char *command)
         }
         if (hs_compile_release_source != 0) {
             if (hs_syntax_data_dirty != 0) {
-                data_delete_all(hs_syntax_data);
+                halo::memory::data_delete_all(hs_syntax_data);
             }
             if (hs_compiled_source != 0) {
                 GlobalFree(hs_compiled_source);
@@ -492,8 +490,8 @@ datum_index ScriptCompiler::compile_expression(char *text, uint32_t length, char
         if (*cursor != '\0') {
             expr_index = hs_tokenize(&cursor);
             if (hs_compile_error == 0) {
-                wrap_index = datum_new(hs_syntax_data);
-                inspect_index = datum_new(hs_syntax_data);
+                wrap_index = halo::memory::datum_new(hs_syntax_data);
+                inspect_index = halo::memory::datum_new(hs_syntax_data);
                 if ((wrap_index != k_datum_index_none) && (inspect_index != k_datum_index_none)) {
                     nodes = hs_syntax_data;
                     expr_node = (hs_syntax_node *)((uint8_t *)nodes->data + (expr_index & 0xffff) * nodes->size);
@@ -557,7 +555,7 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
     hs_postprocessing = 1;
     *error_message = 0;
     *error_offset = 0;
-    current = datum_next(-1, nodes);
+    current = halo::memory::datum_next(-1, nodes);
 
     do {
         if (current == k_datum_index_none) {
@@ -714,7 +712,7 @@ char ScriptCompiler::compile_source(void)
     hs_compile_release_source = 1;
     hs_syntax_data_dirty = 0;
     hs_compile_error = 0;
-    data_delete_all(hs_syntax_data);
+    halo::memory::data_delete_all(hs_syntax_data);
     i = 0;
     count = (int32_t)scenario->source_files.count;
     if (0 < count) {
@@ -741,7 +739,7 @@ char ScriptCompiler::compile_source(void)
 cleanup:
     if (hs_compile_release_source != 0) {
         if (hs_syntax_data_dirty != 0) {
-            data_delete_all(hs_syntax_data);
+            halo::memory::data_delete_all(hs_syntax_data);
         }
         if (hs_compiled_source != 0) {
             GlobalFree(hs_compiled_source);

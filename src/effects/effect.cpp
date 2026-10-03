@@ -1,22 +1,17 @@
 #include "halo/effects/effects.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
 extern data_array *effect_location_data;
 extern data_array *object_data;
 extern data_array *player_data;
-extern tag_instance *tag_instances;
 extern uint8_t *first_person_weapon_interfaces;
-extern datum_index datum_next(int16_t after_index, data_array *array);
-extern void *data_iterator_next(data_iterator *iterator);
 extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
-extern void *datum_get(datum_index handle, data_array *array);
-extern void datum_delete(data_array *array, datum_index handle);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern game_time_globals *game_time;
-extern random_seed random_seed_global;
-extern random_seed effect_random_seed;
-extern real random_real_range_seeded(random_seed *seed, real min, real max);
 extern void effect_delete(datum_index effect_handle);
 extern void effect_start_event(datum_index effect_handle, int16_t event_index);
 extern player_globals *local_player_globals;
@@ -53,16 +48,16 @@ uint32_t effect_ref::check_object_collisions()
 {
     datum_index effect_handle;
 
-    for (effect_handle = datum_next((int16_t)k_datum_index_none, effect_data);
+    for (effect_handle = halo::memory::datum_next((int16_t)k_datum_index_none, effect_data);
          effect_handle != k_datum_index_none;
-         effect_handle = datum_next((int16_t)effect_handle, effect_data)) {
+         effect_handle = halo::memory::datum_next((int16_t)effect_handle, effect_data)) {
         effect *self = &((effect *)effect_data->data)[(uint16_t)effect_handle];
 
         if ((self->flags & _effect_finished_bit) != 0) {
             continue;
         }
 
-        Effect *definition = (Effect *)tag_instances[(uint16_t)self->definition_index].data;
+        Effect *definition = (Effect *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
         float damage_radius = definition->maximum_damage_radius;
         if (damage_radius == 0.0f) {
             continue;
@@ -77,8 +72,8 @@ uint32_t effect_ref::check_object_collisions()
             player_iterator.index = k_datum_index_none;
             player_iterator.signature = (uint32_t)(uintptr_t)player_iterator.data ^ k_data_iterator_signature;
 
-            for (p = (player *)data_iterator_next(&player_iterator); p != (player *)0;
-                 p = (player *)data_iterator_next(&player_iterator)) {
+            for (p = (player *)halo::memory::data_iterator_next(&player_iterator); p != (player *)0;
+                 p = (player *)halo::memory::data_iterator_next(&player_iterator)) {
                 if (p->unit == k_datum_index_none) {
                     continue;
                 }
@@ -157,10 +152,10 @@ uint32_t effect_ref::check_object_collisions()
 void effect_ref::destroy()
 {
     datum_index effect_index = datum;
-    effect *self = (effect *)datum_get(effect_index, effect_data);
+    effect *self = (effect *)halo::memory::datum_get(effect_index, effect_data);
 
     if (self != 0) {
-        Effect *tag = (Effect *)tag_instances[(uint16_t)self->definition_index].data;
+        Effect *tag = (Effect *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
         int32_t location_index;
 
         for (location_index = 0; location_index < (int32_t)tag->locations.count; location_index++) {
@@ -170,12 +165,12 @@ void effect_ref::destroy()
                 datum_index next =
                     ((effect_location_marker *)effect_location_data->data)[(uint16_t)marker_index].next_marker;
 
-                datum_delete(effect_location_data, marker_index);
+                halo::memory::datum_delete(effect_location_data, marker_index);
                 marker_index = next;
             }
         }
 
-        datum_delete(effect_data, effect_index);
+        halo::memory::datum_delete(effect_data, effect_index);
     }
 }
 
@@ -217,10 +212,10 @@ uint8_t effect_ref::first_person_screen_timer_active(datum_index object_index)
 void effect_ref::start_event(int16_t event_index)
 {
     datum_index effect_handle = datum;
-    effect *self = (effect *)datum_get(effect_handle, effect_data);
+    effect *self = (effect *)halo::memory::datum_get(effect_handle, effect_data);
 
     if (self != 0) {
-        Effect *tag = (Effect *)tag_instances[(uint16_t)self->definition_index].data;
+        Effect *tag = (Effect *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
 
         if (event_index >= 0 && (uint32_t)event_index < tag->events.count) {
             EffectEvent *event = &((EffectEvent *)tag->events.pointer)[event_index];
@@ -228,8 +223,8 @@ void effect_ref::start_event(int16_t event_index)
             self->flags = self->flags & ~_effect_event_started_bit;
             self->event_index = event_index;
             self->event_time = 0.0f;
-            self->event_duration = random_real_range_seeded((tag->flags & 4) != 0 ? &random_seed_global
-                : &effect_random_seed, event->delay_bounds[0], event->delay_bounds[1]);
+            self->event_duration = halo::math::random_real_range_seeded(*((tag->flags & 4) != 0 ? &halo::math::globals().random_seed_global
+                : &halo::math::globals().effect_random_seed), event->delay_bounds[0], event->delay_bounds[1]);
         }
     }
 }
@@ -244,10 +239,10 @@ void effect_ref::start_event(int16_t event_index)
 void effect_ref::stop(uint8_t stop_immediately)
 {
     datum_index effect_handle = datum;
-    effect *self = (effect *)datum_get(effect_handle, effect_data);
+    effect *self = (effect *)halo::memory::datum_get(effect_handle, effect_data);
 
     if (self != 0) {
-        Effect *tag = (Effect *)tag_instances[(uint16_t)self->definition_index].data;
+        Effect *tag = (Effect *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
 
         if ((self->flags & _effect_looping_bit) == 0) {
             effect_delete(effect_handle);
@@ -278,7 +273,7 @@ void effect_ref::stop(uint8_t stop_immediately)
 effect * effect_ref::try_and_get()
 {
     datum_index effect_index = datum;
-    return (effect *)datum_get(effect_index, effect_data);
+    return (effect *)halo::memory::datum_get(effect_index, effect_data);
 }
 
 /**
@@ -286,7 +281,7 @@ effect * effect_ref::try_and_get()
  */
 static real effect_update_roll_fraction(uint8_t *tag)
 {
-    random_seed *seed = (tag[0] & 4) ? &random_seed_global : &effect_random_seed;
+    random_seed *seed = (tag[0] & 4) ? &halo::math::globals().random_seed_global : &halo::math::globals().effect_random_seed;
 
     *seed = *seed * k_random_multiplier + k_random_increment;
     return (real)(*seed >> k_random_value_shift) * 1.5259022e-05f;
@@ -301,7 +296,7 @@ void effect_ref::update(real dt)
 {
     datum_index effect_index = datum;
     effect *self = (effect *)((uint8_t *)effect_data->data + (effect_index & 0xffff) * 0xfc);
-    uint8_t *tag = (uint8_t *)tag_instances[self->definition_index & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[self->definition_index & 0xffff].data;
     uint8_t *events = *(uint8_t **)(tag + 0x38);
     int32_t event_count = *(int32_t *)(tag + 0x34);
     datum_index object_index = self->object_index;
@@ -335,7 +330,7 @@ void effect_ref::update(real dt)
                     }
                 }
             } else if (tag[0] & 1) {
-                uint8_t *obj_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+                uint8_t *obj_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
                 int16_t i;
 
                 for (i = 0; i < *(int32_t *)&((struct Object *)obj_tag)->attachments.count; i++) {
@@ -413,7 +408,7 @@ void effect_ref::update(real dt)
                     next = (int16_t)(self->event_index + 1);
                 }
                 while (next < event_count &&
-                    effect_update_roll_fraction((uint8_t *)tag_instances[self->definition_index & 0xffff].data) <
+                    effect_update_roll_fraction((uint8_t *)halo::cache::globals().tag_instances[self->definition_index & 0xffff].data) <
                         *(float *)(events + next * 0x44 + 4)) {
                     next++;
                 }
@@ -435,7 +430,7 @@ void effect_ref::update(real dt)
             self->event_time = 0.0f;
             self->previous_event_fraction = -1.0f;
             {
-                real fraction = effect_update_roll_fraction((uint8_t *)tag_instances[self->definition_index & 0xffff].data);
+                real fraction = effect_update_roll_fraction((uint8_t *)halo::cache::globals().tag_instances[self->definition_index & 0xffff].data);
 
                 self->event_duration = (*(float *)(event + 0x14) - *(float *)(event + 0x10)) * fraction +
                     *(float *)(event + 0x10);
@@ -443,7 +438,7 @@ void effect_ref::update(real dt)
             for (particle = 0; particle < *(int32_t *)(event + 0x38); particle = (int16_t)(particle + 1)) {
                 uint8_t *part = *(uint8_t **)(event + 0x3c) + particle * 0xe8;
                 uint8_t count = (uint8_t)(int32_t)effect_property_random_value(5, self, *(uint32_t *)(part + 0xe0),
-                    *(uint32_t *)(part + 0xe4), &effect_random_seed, (real)*(int16_t *)(part + 0x6c),
+                    *(uint32_t *)(part + 0xe4), &halo::math::globals().effect_random_seed, (real)*(int16_t *)(part + 0x6c),
                     (real)*(int16_t *)(part + 0x6e));
 
                 self->particle_counts[particle] = count;
@@ -471,8 +466,8 @@ void effect_ref::refresh_structure_locations()
 {
     datum_index handle;
 
-    for (handle = datum_next(-1, effect_data); handle != k_datum_index_none;
-         handle = datum_next((int16_t)handle, effect_data)) {
+    for (handle = halo::memory::datum_next(-1, effect_data); handle != k_datum_index_none;
+         handle = halo::memory::datum_next((int16_t)handle, effect_data)) {
         effect *entry = (effect *)((uint8_t *)effect_data->data + (handle & 0xffff) * 0xfc);
         datum_index marker;
         effect_location_marker *location;
@@ -505,11 +500,11 @@ void effect_ref::refresh_structure_locations()
  */
 void effect_ref::update_all(real delta_time)
 {
-    datum_index effect_index = datum_next(-1, effect_data);
+    datum_index effect_index = halo::memory::datum_next(-1, effect_data);
 
     while (effect_index != k_datum_index_none) {
         effect_update(effect_index, delta_time);
-        effect_index = datum_next((int16_t)effect_index, effect_data);
+        effect_index = halo::memory::datum_next((int16_t)effect_index, effect_data);
     }
 }
 

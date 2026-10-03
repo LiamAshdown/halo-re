@@ -10,12 +10,12 @@
 #include "saved_games.h"
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
 extern uint16_t missing_string_text[];
-extern tag_instance *tag_instances;
-extern datum_index tag_lookup(tag_group group, char *path);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,
     uint32_t out_path_size);
@@ -24,7 +24,6 @@ extern uint8_t savegame_find_next(void *out_find_data, int32_t handle);
 extern uint8_t user_save_path_remove(int32_t handle);
 extern game_variant *game_engine_variant_defaults_classic_slayer(game_variant *out);
 extern void game_variant_sanitize_options(game_variant *variant);
-extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size);
 extern uint8_t savegame_index_dirty;
 extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
@@ -100,12 +99,12 @@ void allocate_new_slot(uint16_t *out_name)
     char scratch_path[0x100];
 
     out_name[0] = 0;
-    tag_index = tag_lookup('ustr', (char *)"ui\\saved_game_file_strings");
+    tag_index = halo::cache::tag_lookup('ustr', (char *)"ui\\saved_game_file_strings");
     if (tag_index != -1) {
         memset(scratch_path, 0, sizeof(scratch_path));
         number = 0;
         do {
-            string_list = (UnicodeStringList *)tag_instances[tag_index & 0xffff].data;
+            string_list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_index & 0xffff].data;
             format_string = missing_string_text;
             if (2 < (int32_t)string_list->strings.count) {
                 string_entry = (UnicodeStringListString *)string_list->strings.pointer + 2;
@@ -249,7 +248,7 @@ uint32_t create_custom_variant(uint32_t unused, uint16_t *name)
         wcsncpy((wchar_t *)file.variant.name, (const wchar_t *)name, 0x17);
         file.variant.name[0x17] = 0;
         file.checksum = 0xffffffff;
-        crc32_update(&file.checksum, &file.variant, sizeof(file.variant));
+        halo::memory::crc32_update(&file.checksum, &file.variant, sizeof(file.variant));
 
         seeked = file_reference_seek(0, &ref);
         if (seeked == 0 || (written = file_reference_write(&ref, &file, sizeof(file)), written == 0)) {
@@ -291,7 +290,7 @@ uint32_t create_default_profile(uint16_t *name)
     wcsncpy((wchar_t *)file.profile.name, (const wchar_t *)name, 0xb);
 
     file.checksum = 0xffffffff;
-    ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
+    halo::memory::crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
 
     if (file_reference_seek(0, &ref) == 0 || file_reference_write(&ref, &file, sizeof(file)) == 0) {
         saved_game_delete_by_handle(handle);
@@ -404,7 +403,7 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
             if (ok) {
                 memset(body, 0, sizeof(body));
                 *(uint32_t *)(body + body_size) = 0xffffffff;
-                crc32_update((uint32_t *)(body + body_size), body, body_size);
+                halo::memory::crc32_update((uint32_t *)(body + body_size), body, body_size);
                 ok = file_reference_write(&ref, body, sizeof(body));
                 if (ok) {
                     entry.checksum_valid = 1;
@@ -922,7 +921,7 @@ uint8_t get_variant(int32_t handle, game_variant *out)
             read_ok = file_reference_read(&ref, &file, sizeof(file));
             if (read_ok != 0) {
                 checksum = 0xffffffff;
-                crc32_update(&checksum, &file.variant, sizeof(file.variant));
+                halo::memory::crc32_update(&checksum, &file.variant, sizeof(file.variant));
                 if (checksum == file.checksum) {
                     memcpy(out, &file.variant, sizeof(*out));
                 } else {
@@ -1012,11 +1011,11 @@ int16_t index_register_default_playlists(void)
     uint8_t written;
 
     count = default_game_variant_count;
-    tag_id = tag_lookup(0x75737472, (char *)"ui\\default_multiplayer_game_setting_names");
+    tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\default_multiplayer_game_setting_names");
     i = 0;
     last = 0;
     if (tag_id != k_datum_index_none && 0 < count) {
-        name_list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
+        name_list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
         do {
             source_name = missing_string_text;
             if (0 <= i && i < (int32_t)name_list->strings.count) {
@@ -1061,7 +1060,7 @@ int16_t index_register_default_playlists(void)
                     read_ok = file_reference_read(&ref, body, sizeof(body));
                     if (read_ok != 0) {
                         checksum = 0xffffffff;
-                        crc32_update(&checksum, body, sizeof(game_variant));
+                        halo::memory::crc32_update(&checksum, body, sizeof(game_variant));
                         if (checksum == *(uint32_t *)(body + sizeof(game_variant))) {
                             entry.checksum_valid = 1;
                         }
@@ -1117,11 +1116,11 @@ int16_t index_register_default_profiles(void)
     saved_player_profile_file file;
     uint8_t written;
 
-    tag_id = tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\default_player_profile_names");
+    tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\default_player_profile_names");
     i = 0;
     last = 0;
     if (tag_id != k_datum_index_none) {
-        name_list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
+        name_list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
         do {
             source_name = missing_string_text;
             if (0 <= i && i < (int32_t)name_list->strings.count) {
@@ -1166,7 +1165,7 @@ int16_t index_register_default_profiles(void)
                     read_ok = file_reference_read(&ref, &file, sizeof(file));
                     if (read_ok != 0) {
                         checksum = 0xffffffff;
-                        crc32_update(&checksum, &file.profile, sizeof(file.profile));
+                        halo::memory::crc32_update(&checksum, &file.profile, sizeof(file.profile));
                         if (checksum == file.checksum) {
                             entry.checksum_valid = 1;
                         }
@@ -1436,7 +1435,7 @@ void list_rebuild_index(void)
                         read_ok = file_reference_read(&ref, body, sizeof(body));
                         if (read_ok != 0) {
                             checksum = 0xffffffff;
-                            crc32_update(&checksum, body, body_size);
+                            halo::memory::crc32_update(&checksum, body, body_size);
                             if (checksum == *(uint32_t *)(body + body_size)) {
                                 entry.checksum_valid = 1;
                             }
@@ -1570,7 +1569,7 @@ uint8_t validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_bu
         previous_crc = *expected_crc;
         running_crc = 0xffffffff;
         *expected_crc = 0;
-        ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&running_crc, header_buffer, header_size);
+        halo::memory::crc32_update(&running_crc, header_buffer, header_size);
 
         remaining = total_size - header_size;
         while (0 < remaining) {
@@ -1581,7 +1580,7 @@ uint8_t validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_bu
                 chunk = 0x20000;
             }
             if (ReadFile(file, chunk_buffer, chunk, (LPDWORD)&bytes_read, 0) != 0 && bytes_read == (uint32_t)chunk) {
-                ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&running_crc, chunk_buffer, chunk);
+                halo::memory::crc32_update(&running_crc, chunk_buffer, chunk);
             }
             sound_idle_update();
             remaining = remaining - chunk;
@@ -1639,7 +1638,7 @@ uint8_t verify_version_and_checksum(game_state_header *header, uint8_t report_er
         return 0;
     }
 
-    tag_path = tag_instances[(int16_t)global_scenario_index].path;
+    tag_path = halo::cache::globals().tag_instances[(int16_t)global_scenario_index].path;
     if (strcmp(header->scenario_name, tag_path) == 0 &&
         header->allocation_checksum == game_state_crc &&
         header->local_player_count == local_player_count &&

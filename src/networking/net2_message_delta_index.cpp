@@ -6,6 +6,7 @@
 #include "win32.h"
 #include "halo/networking/net2_message_delta_index.hpp"
 #include "halo/networking/field_codec.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint8_t message_delta_item_count_bits[];
@@ -72,7 +73,7 @@ int32_t IndexFieldCodec::first_dword_compute_size(message_delta_field_type *fiel
 int32_t IndexFieldCodec::grenade_counts_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
     uint32_t packed = 0;
-    int32_t bits = bit_stream_read_bits_chunked(6, &packed, stream);
+    int32_t bits = halo::memory::bit_stream_read_bits_chunked(6, &packed, stream);
 
     (void)field_type;
     (void)previous;
@@ -90,13 +91,13 @@ int32_t IndexFieldCodec::grenade_counts_encode(message_delta_field_type *field_t
     if (previous != 0 && packed == ((((int32_t)((int8_t *)previous)[0]) << 3) | (int32_t)((int8_t *)previous)[1])) {
         return 0;
     }
-    return bit_stream_write_bits_chunked(stream, (const uint32_t *)&packed, 6);
+    return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)&packed, 6);
 }
 
 int32_t IndexFieldCodec::grenade_index_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
     uint32_t code = 0;
-    int32_t bits = bit_stream_read_bits_chunked(2, &code, stream);
+    int32_t bits = halo::memory::bit_stream_read_bits_chunked(2, &code, stream);
 
     (void)field_type;
     (void)previous;
@@ -121,7 +122,7 @@ int32_t IndexFieldCodec::grenade_index_encode(message_delta_field_type *field_ty
             return 0;
         }
     }
-    return bit_stream_write_bits_chunked(stream, (const uint32_t *)&code, 2);
+    return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)&code, 2);
 }
 
 int32_t IndexFieldCodec::index_compute_size(message_delta_field_type *field_type)
@@ -136,7 +137,7 @@ int32_t IndexFieldCodec::index_decode(message_delta_field_type *field_type, void
 {
     int32_t *descriptor = (int32_t *)field_type->array_descriptor;
     uint32_t value = 0;
-    int32_t bits = bit_stream_read_bits_chunked(descriptor[2], &value, stream);
+    int32_t bits = halo::memory::bit_stream_read_bits_chunked(descriptor[2], &value, stream);
 
     (void)previous;
     *(uint32_t *)current = value;
@@ -150,7 +151,7 @@ int32_t IndexFieldCodec::index_encode(message_delta_field_type *field_type, void
     if (previous != 0 && *(uint32_t *)current == *(uint32_t *)previous) {
         return 0;
     }
-    return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, descriptor[2]);
+    return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, descriptor[2]);
 }
 
 uint8_t IndexFieldCodec::index_initialize(message_delta_field_type *field_type)
@@ -197,13 +198,13 @@ int32_t IndexFieldCodec::item_placement_decode(message_delta_field_type *field_t
     (void)field_type;
     (void)previous;
     value = 0;
-    total += bit_stream_read_bits_chunked((int32_t)item_placement_bits_x, &value, stream);
+    total += halo::memory::bit_stream_read_bits_chunked((int32_t)item_placement_bits_x, &value, stream);
     position[0] = (real)((double)value / (double)(uint32_t)((1 << item_placement_bits_x) - 1)) * 10000.0f - 5000.0f;
     value = 0;
-    total += bit_stream_read_bits_chunked((int32_t)item_placement_bits_y, &value, stream);
+    total += halo::memory::bit_stream_read_bits_chunked((int32_t)item_placement_bits_y, &value, stream);
     position[1] = (real)((double)value / (double)(uint32_t)((1 << item_placement_bits_y) - 1)) * 10000.0f - 5000.0f;
     value = 0;
-    total += bit_stream_read_bits_chunked((int32_t)item_placement_bits_z, &value, stream);
+    total += halo::memory::bit_stream_read_bits_chunked((int32_t)item_placement_bits_z, &value, stream);
     position[2] = (real)((double)value / (double)(uint32_t)((1 << item_placement_bits_z) - 1)) * 10000.0f - 5000.0f;
     return total;
 }
@@ -222,7 +223,7 @@ int32_t IndexFieldCodec::item_placement_encode(message_delta_field_type *field_t
         if (level > levels) {
             level = levels;
         }
-        total += bit_stream_write_bits_chunked(stream, &level, (int32_t)item_placement_bits_x);
+        total += halo::memory::bit_stream_write_bits_chunked(stream, &level, (int32_t)item_placement_bits_x);
     }
     {
         uint32_t levels = (uint32_t)((1 << item_placement_bits_y) - 1);
@@ -231,7 +232,7 @@ int32_t IndexFieldCodec::item_placement_encode(message_delta_field_type *field_t
         if (level > levels) {
             level = levels;
         }
-        total += bit_stream_write_bits_chunked(stream, &level, (int32_t)item_placement_bits_y);
+        total += halo::memory::bit_stream_write_bits_chunked(stream, &level, (int32_t)item_placement_bits_y);
     }
     {
         uint32_t levels = (uint32_t)((1 << item_placement_bits_z) - 1);
@@ -240,7 +241,7 @@ int32_t IndexFieldCodec::item_placement_encode(message_delta_field_type *field_t
         if (level > levels) {
             level = levels;
         }
-        total += bit_stream_write_bits_chunked(stream, &level, (int32_t)item_placement_bits_z);
+        total += halo::memory::bit_stream_write_bits_chunked(stream, &level, (int32_t)item_placement_bits_z);
     }
     return total;
 }
@@ -308,7 +309,7 @@ uint8_t IndexFieldCodec::range_initialize(message_delta_field_type *field_type)
 int32_t IndexFieldCodec::weapon_index_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
     uint32_t code = 0;
-    int32_t bits = bit_stream_read_bits_chunked(3, &code, stream);
+    int32_t bits = halo::memory::bit_stream_read_bits_chunked(3, &code, stream);
 
     (void)field_type;
     (void)previous;
@@ -333,7 +334,7 @@ int32_t IndexFieldCodec::weapon_index_encode(message_delta_field_type *field_typ
             return 0;
         }
     }
-    return bit_stream_write_bits_chunked(stream, (const uint32_t *)&code, 3);
+    return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)&code, 3);
 }
 
 }  // namespace halo::networking

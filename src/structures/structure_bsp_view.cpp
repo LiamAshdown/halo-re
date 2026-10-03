@@ -5,22 +5,13 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
-extern int32_t render_cluster_index;
 extern uint8_t render_frustum_global[];
-extern uint8_t debug_render_cluster_pvs;
-extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters];
-extern int16_t visible_cluster_count;
-extern uint32_t surface_visible_bits[k_maximum_visible_surface_bits];
-extern int16_t visible_surface_count;
 extern uint16_t render_frustum_classify_point_side_planes(void *frustum_or_camera, void *vertex);
 extern int16_t render_frustum_test_bounding_box(void *frustum_or_camera, void *box, int32_t flags);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern int16_t vector3d_major_axis_index(real_vector3d *v);
-extern const projection_axis_pair k_projection_axes[6];
-extern uint8_t polygon2d_point_inside_tolerance(real_point2d *vertices, int16_t count,
-                                                 real_point2d *point, real tolerance);
 extern double sqrt(double x);
 }
 
@@ -32,13 +23,13 @@ void structure_bsp_view::expand_visible_clusters_by_plane()
     ScenarioStructureBSPLightmap *lightmaps = (ScenarioStructureBSPLightmap *)self->lightmaps.pointer;
     ScenarioStructureBSPSurface *surfaces = (ScenarioStructureBSPSurface *)self->surfaces.pointer;
 
-    for (int16_t i = 0; i < visible_cluster_count; i++) {
-        ScenarioStructureBSPCluster *cluster = &clusters[visible_clusters[i].cluster_index];
+    for (int16_t i = 0; i < globals().visible_cluster_count; i++) {
+        ScenarioStructureBSPCluster *cluster = &clusters[globals().visible_clusters[i].cluster_index];
         void *frustum_or_camera;
-        if (debug_render_cluster_pvs != 0 || render_cluster_index == -1) {
+        if (globals().debug_render_cluster_pvs != 0 || globals().render_cluster_index == -1) {
             frustum_or_camera = (void *)render_frustum_global;
         } else {
-            frustum_or_camera = &visible_clusters[i].frustum;
+            frustum_or_camera = &globals().visible_clusters[i].frustum;
         }
 
         int32_t *cursor = (int32_t *)cluster->surface_indices.pointer;
@@ -58,12 +49,12 @@ void structure_bsp_view::expand_visible_clusters_by_plane()
                     material->compressed_vertices.pointer;
 
             int32_t run_end = consumed + surface_count;
-            while (consumed < run_end && visible_surface_count < 0x4000) {
+            while (consumed < run_end && globals().visible_surface_count < 0x4000) {
                 int32_t surface_index = *cursor;
                 int32_t word = surface_index >> 5;
                 uint32_t mask = 1u << (surface_index & 0x1f);
                 cursor++;
-                if ((surface_visible_bits[word] & mask) == 0) {
+                if ((globals().surface_visible_bits[word] & mask) == 0) {
                     ScenarioStructureBSPSurface *surface = &surfaces[surface_index];
                     uint16_t outside0 = render_frustum_classify_point_side_planes(
                         frustum_or_camera, &vertices[surface->vertex0_index]);
@@ -80,8 +71,8 @@ void structure_bsp_view::expand_visible_clusters_by_plane()
                         }
                     }
                     if (!rejected) {
-                        surface_visible_bits[word] |= mask;
-                        visible_surface_count++;
+                        globals().surface_visible_bits[word] |= mask;
+                        globals().visible_surface_count++;
                     }
                 }
                 consumed++;
@@ -94,20 +85,20 @@ void structure_bsp_view::expand_visible_clusters_by_subcluster()
 {
     ScenarioStructureBSPCluster *clusters = (ScenarioStructureBSPCluster *)self->clusters.pointer;
 
-    for (int16_t i = 0; i < visible_cluster_count; i++) {
-        if (visible_surface_count > 0x3fff) {
+    for (int16_t i = 0; i < globals().visible_cluster_count; i++) {
+        if (globals().visible_surface_count > 0x3fff) {
             return;
         }
-        ScenarioStructureBSPCluster *cluster = &clusters[visible_clusters[i].cluster_index];
+        ScenarioStructureBSPCluster *cluster = &clusters[globals().visible_clusters[i].cluster_index];
         void *frustum_or_camera;
-        if (debug_render_cluster_pvs != 0 || render_cluster_index == -1) {
+        if (globals().debug_render_cluster_pvs != 0 || globals().render_cluster_index == -1) {
             frustum_or_camera = (void *)render_frustum_global;
         } else {
-            frustum_or_camera = &visible_clusters[i].frustum;
+            frustum_or_camera = &globals().visible_clusters[i].frustum;
         }
 
         for (int32_t j = 0; j < (int32_t)cluster->subclusters.count; j++) {
-            if (visible_surface_count > 0x3fff) {
+            if (globals().visible_surface_count > 0x3fff) {
                 break;
             }
             ScenarioStructureBSPSubcluster *subcluster =
@@ -120,14 +111,14 @@ void structure_bsp_view::expand_visible_clusters_by_subcluster()
                 int32_t surface = indices[k];
                 int32_t word = surface >> 5;
                 uint32_t mask = 1u << (surface & 0x1f);
-                if ((surface_visible_bits[word] & mask) != 0) {
+                if ((globals().surface_visible_bits[word] & mask) != 0) {
                     continue;
                 }
-                if (visible_surface_count > 0x3fff) {
+                if (globals().visible_surface_count > 0x3fff) {
                     break;
                 }
-                surface_visible_bits[word] |= mask;
-                visible_surface_count++;
+                globals().surface_visible_bits[word] |= mask;
+                globals().visible_surface_count++;
             }
         }
     }
@@ -160,10 +151,10 @@ uint8_t structure_bsp_view::portal_sphere_test(real_point3d *point, int16_t port
                                   .pointer)[portal->plane_index]
                                  .plane.vector;
     real_vector3d *normal = (real_vector3d *)normal_raw;
-    int16_t axis = vector3d_major_axis_index(normal);
+    int16_t axis = halo::math::vector3d_major_axis_index(*normal);
     int32_t table_index = ((0.0f < ((float *)normal)[axis]) ? 1 : 0) + axis * 2;
-    int16_t axis_i = k_projection_axes[table_index].i;
-    int16_t axis_j = k_projection_axes[table_index].j;
+    int16_t axis_i = halo::math::globals().k_projection_axes[table_index].i;
+    int16_t axis_j = halo::math::globals().k_projection_axes[table_index].j;
 
     real_point3d projected;
     float neg_distance = -distance;
@@ -184,7 +175,7 @@ uint8_t structure_bsp_view::portal_sphere_test(real_point3d *point, int16_t port
 
     float remaining = tolerance * tolerance - distance * projected.x;
     float radius_2d = (real)sqrt((double)remaining);
-    return polygon2d_point_inside_tolerance(polygon_2d, (int16_t)portal->vertices.count, &point_2d,
+    return halo::math::polygon2d_point_inside_tolerance(polygon_2d, (int16_t)portal->vertices.count, point_2d,
                                              radius_2d);
 }
 

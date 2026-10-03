@@ -5,26 +5,22 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern double atan2(double y, double x);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern double fpatan(double y, double x);
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
-extern real periodic_function_evaluate(periodic_function_t type, double time);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern uint8_t rasterizer_lens_flare_set_current_key(int32_t second_bitmap_tag_index, int16_t bitmap_tag_index, int16_t bitmap_index);
 extern void rasterizer_lens_flare_set_vertex_specular(float intensity);
-extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale);
 extern int32_t render_rasterizer_dispatch_537800(int32_t slot_index, real_point3d *point, float radius);
 extern void rasterizer_effect_slot_release_active(void);
 extern double floor(double x);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern double fcos(double x);
 extern double fsin(double x);
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
 
 }  // extern "C"
 
@@ -125,8 +121,8 @@ float lens_flare_compute_rotation(lens_flare_instance *flare, int16_t mode)
     switch (mode) {
     case 1:
     case 3:
-        vector3d_cross_product(&basis, forward, &direction);
-        vector3d_cross_product(&basis, &direction, &basis);
+        halo::math::vector3d_cross_product(basis, *forward, direction);
+        halo::math::vector3d_cross_product(basis, direction, basis);
         if (mode == 1) {
             reference = rasterizer_window.camera.forward;
         } else {
@@ -284,7 +280,7 @@ void lens_flare_render_all(void)
         span = *(float *)(definition + 0x08) - *(float *)(definition + 0x0c);
         inv = (span != 0.0f) ? 1.0f / span : 0.0f;
         bias = -(inv * *(float *)(definition + 0x0c));
-        vector3d_normalize_with_length(&d);
+        halo::math::vector3d_normalize_with_length(d);
         falloff[0] = 1.0f;
         falloff[1] = lens_flare_clamp01(bias - (forward[2] * normal.k + forward[1] * normal.j + normal.i * forward[0]) * inv);
         falloff[2] = lens_flare_clamp01(bias - (normal.k * d.k + normal.j * d.j + normal.i * d.i) * inv);
@@ -328,7 +324,7 @@ void lens_flare_render_all(void)
                 tint.blue = *(float *)(reflection + 0x4c);
                 if (*(int16_t *)(reflection + 0x72) > 1) {
                     ColorRGB animated;
-                    float t = (float)periodic_function_evaluate(
+                    float t = (float)halo::math::periodic_function_evaluate(
                         (periodic_function_t)*(int16_t *)(reflection + 0x72),
                         ((double)*(float *)(reflection + 0x78) + *(double *)&rasterizer_time) /
                             (double)*(float *)(reflection + 0x74));
@@ -446,11 +442,11 @@ void lens_flare_update_samples(void)
         radius = definition->occlusion_radius;
         switch (definition->occlusion_offset_direction) {
         case 0:
-            point3d_add_scaled(&sample_point, (real_vector3d *)&rasterizer_window.camera.forward, &instance->position,
+            halo::math::point3d_add_scaled(sample_point, *((real_vector3d *)&rasterizer_window.camera.forward), instance->position,
                                -radius);
             break;
         case 1:
-            point3d_add_scaled(&sample_point, &normal, &instance->position, radius * 1.4142135f);
+            halo::math::point3d_add_scaled(sample_point, normal, instance->position, radius * 1.4142135f);
             break;
         case 2:
             sample_point = instance->position;
@@ -997,7 +993,7 @@ uint8_t rasterizer_lens_flare_project_to_screen(const real_point3d *position, fl
     width = (int16_t)(rasterizer_window.camera.viewport_bounds.right - rasterizer_window.camera.viewport_bounds.left);
     height = (int16_t)(rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top);
 
-    matrix4x3_transform_point(&view_point, (real_point3d *)position, &rasterizer_window.frustum.world_to_view);
+    halo::math::matrix4x3_transform_point(view_point, *(real_point3d *)position, rasterizer_window.frustum.world_to_view);
 
     projected_x = proj[0][1] * view_point.x + proj[1][1] * view_point.y + proj[2][1] * view_point.z + proj[3][1];
     clip_w = proj[0][2] * view_point.x + proj[1][2] * view_point.y + proj[2][2] * view_point.z + proj[3][2];
@@ -1140,13 +1136,13 @@ void structure_cluster_add_lens_flares(int16_t cluster_index)
         direction.i = (float)marker->direction_i_component * (1.0f / 127.0f);
         direction.j = (float)marker->direction_j_component * (1.0f / 127.0f);
         direction.k = (float)marker->direction_k_component * (1.0f / 127.0f);
-        vector3d_build_perpendicular(&up, &direction);
-        vector3d_normalize_with_length(&direction);
-        vector3d_normalize_with_length(&up);
+        halo::math::vector3d_build_perpendicular(up, direction);
+        halo::math::vector3d_normalize_with_length(direction);
+        halo::math::vector3d_normalize_with_length(up);
 
         candidate.packed_direction = vector3d_pack_normal_11_11_10(&direction);
         candidate.packed_up = vector3d_pack_normal_11_11_10(&up);
-        candidate.definition = (uint32_t)tag_instances[*(const uint32_t *)(palette + 0xc) & 0xffff].data;
+        candidate.definition = (uint32_t)halo::cache::globals().tag_instances[*(const uint32_t *)(palette + 0xc) & 0xffff].data;
         candidate.position.x = marker->position.x;
         candidate.position.y = marker->position.y;
         candidate.position.z = marker->position.z;

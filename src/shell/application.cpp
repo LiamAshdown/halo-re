@@ -5,6 +5,8 @@
 #include "halo/shell/system.hpp"
 #include "halo/shell/window.hpp"
 #include <excpt.h>
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -66,7 +68,6 @@ extern uint32_t connect_address;
 
 extern void *memory_global_alloc(uint32_t size);
 extern void memory_global_free(void *block);
-extern void cache_reserve_map_memory(void);
 extern void main_loop(void);
 extern void network_session_host_start_info_set(char *game_name, char *secret_key, char *ip_address, int32_t port);
 
@@ -88,25 +89,19 @@ extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t global_structure_collision_bsp;
 extern uint32_t global_collision_bsp;
 extern uint32_t global_globals;
-extern void *sphere_point_table;
 extern uint32_t external_00686b4c;
 extern uint8_t external_00686b50;
 extern void *external_00686b58;
 extern void *external_00686b5c;
 extern uint32_t external_00686b54;
 
-extern uint8_t data_file_open(void);
 extern void directory_create_recursive(char *path);
 extern void profile_path_initialize(void);
 extern void input_directinput_initialize(void);
-extern void math_initialize(void);
 extern uint32_t render_initialize(void);
 extern void game_state_startup(void);
 extern uint32_t sound_initialize(void);
-extern void cache_file_unload(void);
-extern void data_file_close(void);
 extern void input_directinput_release_devices(void);
-extern void periodic_function_tables_free(void);
 extern void rasterizer_shutdown(void);
 extern void sound_dispose(void);
 }
@@ -165,8 +160,8 @@ uint8_t EngineLifecycle::initialize()
     console_debug_flag_0 = 0;
     console_debug_word_8 = 0;
 
-    data_file_open();
-    math_initialize();
+    halo::cache::data_file_open();
+    halo::math::math_initialize();
     game_state_startup();
 
     startup_ok = render_initialize();
@@ -187,7 +182,7 @@ uint8_t EngineLifecycle::initialize()
  */
 void EngineLifecycle::shutdown()
 {
-    cache_file_unload();
+    halo::cache::cache_file_unload();
     global_scenario_index = 0xffffffff;
     global_structure_bsp_index = 0xffff;
     *global_scenario_game_globals = 0xffff;
@@ -199,9 +194,9 @@ void EngineLifecycle::shutdown()
 
     input_directinput_release_devices();
     rasterizer_shutdown();
-    GlobalFree(sphere_point_table);
-    periodic_function_tables_free();
-    data_file_close();
+    GlobalFree(halo::math::globals().sphere_point_table);
+    halo::math::periodic_function_tables_free();
+    halo::cache::data_file_close();
     sound_dispose();
 
     external_00686b4c = 0xffffffff;
@@ -354,7 +349,7 @@ void Application::load_direct3d_and_config()
     char *config_error;
     void (*disable_d3dspy)(void);
 
-    cache_reserve_map_memory();
+    halo::cache::cache_reserve_map_memory();
     d3d9_module = LoadLibraryA("d3d9.dll");
     direct3d_create9 = GetProcAddress((HMODULE)d3d9_module, "Direct3DCreate9");
     if (d3d9_module == 0 || direct3d_create9 == 0) {

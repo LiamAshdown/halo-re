@@ -4,6 +4,7 @@
  */
 #include "message_delta_codec.h"
 #include "halo/networking/net2_message_delta_scalar.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 int32_t message_delta_boolean_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
@@ -37,7 +38,7 @@ int32_t ScalarFieldCodec::boolean_decode(message_delta_field_type *field_type, v
     (void)field_type;
     (void)previous;
     *(uint8_t *)current = 0;
-    return (int32_t)bit_stream_read_bit((uint8_t *)current, stream);
+    return (int32_t)halo::memory::bit_stream_read_bit((uint8_t *)current, stream);
 }
 
 int32_t ScalarFieldCodec::boolean_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
@@ -48,14 +49,14 @@ int32_t ScalarFieldCodec::boolean_encode(message_delta_field_type *field_type, v
     if (previous != 0 && *(uint8_t *)previous == value) {
         return 0;
     }
-    return bit_stream_write_bit(value, stream) ? 1 : 0;
+    return halo::memory::bit_stream_write_bit(value, stream) ? 1 : 0;
 }
 
 int32_t ScalarFieldCodec::byte_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
     (void)field_type;
     (void)previous;
-    return bit_stream_read_bits_chunked(8, (uint32_t *)current, stream);
+    return halo::memory::bit_stream_read_bits_chunked(8, (uint32_t *)current, stream);
 }
 
 int32_t ScalarFieldCodec::byte_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
@@ -64,7 +65,7 @@ int32_t ScalarFieldCodec::byte_encode(message_delta_field_type *field_type, void
     if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
         return 0;
     }
-    return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 8);
+    return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 8);
 }
 
 int32_t ScalarFieldCodec::compute_size_1(message_delta_field_type *field_type)
@@ -128,7 +129,7 @@ int32_t ScalarFieldCodec::flags_decode(message_delta_field_type *field_type, voi
         if (mask[i] == 1) {
             uint8_t bit = 0;
 
-            total += (int32_t)bit_stream_read_bit(&bit, stream);
+            total += (int32_t)halo::memory::bit_stream_read_bit(&bit, stream);
             if (bit) {
                 value |= 1u << i;
             } else {
@@ -158,7 +159,7 @@ int32_t ScalarFieldCodec::flags_encode(message_delta_field_type *field_type, voi
             ((*(uint32_t *)previous & (1u << i)) != 0) != ((value & (1u << i)) != 0)) {
             changed = 1;
         }
-        total += bit_stream_write_bit((value & (1u << i)) != 0, stream) ? 1 : 0;
+        total += halo::memory::bit_stream_write_bit((value & (1u << i)) != 0, stream) ? 1 : 0;
     }
     if (changed) {
         return total;
@@ -209,23 +210,23 @@ int32_t ScalarFieldCodec::integer_decode(message_delta_field_type *field_type, v
     (void)previous;
     switch (*(int32_t *)field_type->array_descriptor) {
     case 0:
-        return bit_stream_read_bits_chunked(8, (uint32_t *)current, stream);
+        return halo::memory::bit_stream_read_bits_chunked(8, (uint32_t *)current, stream);
     case 1:
-        return bit_stream_read_bits_chunked(16, (uint32_t *)current, stream);
+        return halo::memory::bit_stream_read_bits_chunked(16, (uint32_t *)current, stream);
     case 2:
-        return bit_stream_read_bits_chunked(32, (uint32_t *)current, stream);
+        return halo::memory::bit_stream_read_bits_chunked(32, (uint32_t *)current, stream);
     case 3:
         *(uint8_t *)current = 0;
-        return bit_stream_read_bits_chunked(1, (uint32_t *)current, stream);
+        return halo::memory::bit_stream_read_bits_chunked(1, (uint32_t *)current, stream);
     case 4:
         *(uint8_t *)current = 0;
-        return bit_stream_read_bits_chunked(3, (uint32_t *)current, stream);
+        return halo::memory::bit_stream_read_bits_chunked(3, (uint32_t *)current, stream);
     case 5:
         *(uint8_t *)current = 0;
-        return bit_stream_read_bits_chunked(5, (uint32_t *)current, stream);
+        return halo::memory::bit_stream_read_bits_chunked(5, (uint32_t *)current, stream);
     case 6:
         *(uint8_t *)current = 0;
-        return bit_stream_read_bits_chunked(6, (uint32_t *)current, stream);
+        return halo::memory::bit_stream_read_bits_chunked(6, (uint32_t *)current, stream);
     }
     return 0;
 }
@@ -237,37 +238,37 @@ int32_t ScalarFieldCodec::integer_encode(message_delta_field_type *field_type, v
         if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
             return 0;
         }
-        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 8);
+        return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 8);
     case 1:
         if (previous != 0 && *(uint16_t *)previous == *(uint16_t *)current) {
             return 0;
         }
-        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 16);
+        return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 16);
     case 2:
         if (previous != 0 && *(uint32_t *)previous == *(uint32_t *)current) {
             return 0;
         }
-        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 32);
+        return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 32);
     case 3:
         if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
             return 0;
         }
-        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 1);
+        return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 1);
     case 4:
         if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
             return 0;
         }
-        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 3);
+        return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 3);
     case 5:
         if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
             return 0;
         }
-        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 5);
+        return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 5);
     case 6:
         if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
             return 0;
         }
-        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 6);
+        return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 6);
     }
     return 0;
 }
@@ -283,7 +284,7 @@ int32_t ScalarFieldCodec::long_decode(message_delta_field_type *field_type, void
 {
     (void)field_type;
     (void)previous;
-    return bit_stream_read_bits_chunked(0x20, (uint32_t *)current, stream);
+    return halo::memory::bit_stream_read_bits_chunked(0x20, (uint32_t *)current, stream);
 }
 
 int32_t ScalarFieldCodec::long_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
@@ -292,7 +293,7 @@ int32_t ScalarFieldCodec::long_encode(message_delta_field_type *field_type, void
     if (previous != 0 && *(uint32_t *)previous == *(uint32_t *)current) {
         return 0;
     }
-    return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 0x20);
+    return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 0x20);
 }
 
 }  // namespace halo::networking

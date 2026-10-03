@@ -1,9 +1,9 @@
 #include "halo/units/unit.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern data_array *player_data;
-extern tag_instance *tag_instances;
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 extern void unit_invalidate_local_player_zoom_level(datum_index unit);
@@ -32,7 +32,7 @@ void UnitView::validate_and_clear_weapon_switch()
             if (slot != -1 && *(datum_index *)(unit + 0x2f8 + slot * 4) != k_datum_index_none) {
                 uint8_t *weapon = (uint8_t *)((object_header *)object_data->data)
                     [*(datum_index *)(unit + 0x2f8 + slot * 4) & 0xffff].data;
-                datum_index zoom_sound = *(datum_index *)((uint8_t *)tag_instances[*(datum_index *)weapon & 0xffff].data + 0x4bc);
+                datum_index zoom_sound = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)weapon & 0xffff].data + 0x4bc);
 
                 if (zoom_sound != k_datum_index_none) {
                     sound_start_unspatialized(zoom_sound, 1.0f);

@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
 #include <string.h>
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern cinematic_globals *cinematic_globals_ptr;
@@ -8,7 +9,6 @@ extern HUDGlobals *hud_messaging_parameters;
 extern HUDGlobals *hud_globals_tag_data;
 extern hud_messaging_globals *hud_messaging;
 extern hud_globals_flags *hud_flags;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern Scenario *global_scenario;
 extern int16_t current_local_player_index;
@@ -135,7 +135,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
     }
     hud_anchor_offset_to_screen_position((uint16_t *)&parameters->anchor, split_screen, 0.0f,
                                          &parameters->anchor_offset.x, &origin.x, 0);
-    font_tag = (Font *)tag_instances[font & 0xffff].data;
+    font_tag = (Font *)halo::cache::globals().tag_instances[font & 0xffff].data;
     y = origin.y;
     if (split_screen) {
         line_height = (uint16_t)(font_tag->leading_height + font_tag->ascending_height);
@@ -196,14 +196,14 @@ void HudMessaging::messaging_update(int16_t local_player_index)
 
         if (objective_shown) {
             int32_t remaining = hud_messaging->objective_text_ticks - game_time->ticks_this_frame;
-            messages_tag = (HUDMessageText *)tag_instances[*(datum_index *)&global_scenario->hud_messages.tag_id & 0xffff].data;
+            messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&global_scenario->hud_messages.tag_id & 0xffff].data;
             message = hud_messaging->objective_text;
             hud_messaging->objective_text_ticks = (int16_t)(remaining > 0 ? remaining : 0);
         } else if (help_shown) {
-            messages_tag = (HUDMessageText *)tag_instances[*(datum_index *)&global_scenario->hud_messages.tag_id & 0xffff].data;
+            messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&global_scenario->hud_messages.tag_id & 0xffff].data;
             message = hud_messaging->help_text;
         } else if (record->message != 0) {
-            messages_tag = (HUDMessageText *)tag_instances[*(datum_index *)&hud_globals_tag_data->hud_messages.tag_id & 0xffff].data;
+            messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&hud_globals_tag_data->hud_messages.tag_id & 0xffff].data;
             message = record->message;
         } else if (record->action_text[0] != 0) {
             hud_draw_message_text_span(&cursor, &line, record->action_text, 1);
@@ -322,11 +322,11 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             } else {
                 plural = slot->source_kind;
             }
-            item = (Item *)tag_instances[slot->source & 0xffff].data;
+            item = (Item *)halo::cache::globals().tag_instances[slot->source & 0xffff].data;
             string_index = (int16_t)((int8_t)plural + item->pickup_text_index);
             text = empty_wide_string_pointer;
             if (strings != (datum_index)-1) {
-                int32_t *string_list = (int32_t *)tag_instances[strings & 0xffff].data;
+                int32_t *string_list = (int32_t *)halo::cache::globals().tag_instances[strings & 0xffff].data;
                 if (string_list != 0 && string_index >= 0 && string_index < string_list[0]) {
                     text = text_string_list_get_string(strings, (int16_t)string_index);
                 }

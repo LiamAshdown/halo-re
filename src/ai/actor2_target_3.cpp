@@ -1,4 +1,7 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
@@ -7,9 +10,7 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *encounter_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
-extern real random_real(void);
 extern void actor_target_scan_potential_targets(datum_index actor_index);
 extern void actor_danger_update_reaction(datum_index actor_index);
 extern uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index target_prop_index);
@@ -29,7 +30,6 @@ extern void actor_target_get_relationship_object(datum_index target_prop_index);
 extern datum_index actor_allocate_paired_prop(uint32_t actor_index, datum_index prop_index);
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
-extern void datum_delete(data_array *array, datum_index handle);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
                                        datum_index object_a, int32_t param_d,
                                        datum_index object_b, datum_index object_c,
@@ -77,7 +77,7 @@ void ActorView::target_relationship_think()
     struct { int16_t team; int16_t object_type; char is_enemy; } payload;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
 
     reaction_ticks = 1;
     danger_reacted = 0;
@@ -124,7 +124,7 @@ void ActorView::target_relationship_think()
                 } else if (danger_type == 3) {
                     threshold = definition->notice_vehicle_chance;
                 }
-                if (threshold > 0.0f && random_real() < threshold) {
+                if (threshold > 0.0f && halo::math::random_real() < threshold) {
                     self->danger_reacting = 1;
                 }
             }
@@ -132,7 +132,7 @@ void ActorView::target_relationship_think()
             if (self->danger_reacting != 0) {
                 if (self->danger_is_own == 0) {
                     if (self->danger_unknown_282 == 0 && danger_type != 3 && danger_type != 1) {
-                        self->danger_dive = (uint8_t)(random_real() < definition->dive_from_grenade_chance);
+                        self->danger_dive = (uint8_t)(halo::math::random_real() < definition->dive_from_grenade_chance);
                     } else {
                         self->danger_dive = 1;
                     }
@@ -547,7 +547,7 @@ check_cooldown:
     }
     actor_replace_object_reference(actor_index, 0xffffffff, target_prop_index);
     actor_unlink_prop(actor_index, target_prop_index);
-    datum_delete(prop_data, target_prop_index);
+    halo::memory::datum_delete(prop_data, target_prop_index);
     goto restart;
 }
 

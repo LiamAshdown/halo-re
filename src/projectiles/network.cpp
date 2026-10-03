@@ -1,11 +1,12 @@
 #include "halo/projectiles/network.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern real projectile_network_update_position_tolerance;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern real vector3d_distance(real_point3d *a, real_point3d *b);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t changed_offset, uint8_t force);
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
@@ -16,12 +17,8 @@ extern int message_delta_encode_message(int flag, int message_type, int changed_
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern network_id_table *machine_table;
 extern int32_t network_index_cache_find_or_allocate_slot(uint32_t key);
-extern tag_instance *tag_instances;
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index);
-extern real random_real_range(real min, real max);
 extern void *network_object_index_cache;
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand);
 extern void network_index_cache_insert_if_free(void *pooled_node_globals, datum_index object_index, int32_t object_hash);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern void network_index_cache_remove(void *globals, uint32_t object_index);
@@ -97,7 +94,7 @@ void ProjectileNetwork::apply_update(uint32_t *update_record)
             obj->network_velocity_valid = 1;
 
             if ((*(int32_t *)update_record[0] != 1 ||
-                 projectile_network_update_position_tolerance < vector3d_distance(&obj->position, &decoded.position)) &&
+                 projectile_network_update_position_tolerance < halo::math::vector3d_distance(obj->position, decoded.position)) &&
                 (obj->flags & _object_needs_cluster_update_bit) != 0) {
                 object_set_position_and_recalculate(&decoded.position, projectile_index);
             }
@@ -340,7 +337,7 @@ void ProjectileNetwork::attach_apply(void *incoming_record)
     }
 
     {
-        Projectile *tag = (Projectile *)tag_instances[halo::datum_slot(self->definition_tag)].data;
+        Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[halo::datum_slot(self->definition_tag)].data;
         projectile_data *self_pd = (projectile_data *)((uint8_t *)self + k_projectile_data_offset);
 
         if ((tag->projectile_flags & _projectile_definition_has_super_combining_explosion_bit) != 0) {
@@ -381,7 +378,7 @@ void ProjectileNetwork::attach_apply(void *incoming_record)
                 self_pd->detonation_timer_rate = 1.0f / (t * 30.0f);
             }
         } else if ((tag->projectile_flags & _projectile_definition_random_attached_detonation_time_bit) != 0) {
-            real t = random_real_range(tag->timer[0], tag->timer[1]);
+            real t = halo::math::random_real_range(tag->timer[0], tag->timer[1]);
             if (1.0f <= t * 30.0f) {
                 self_pd->detonation_timer_rate = 1.0f / (t * 30.0f);
             }
@@ -423,10 +420,10 @@ void ProjectileNetwork::create_from_network(void *incoming_record)
 
     forward = decoded.forward;
     up = decoded.up;
-    vector3d_cross_product(&cross, &up, &forward); 
-    vector3d_cross_product(&up, &forward, &cross); 
-    vector3d_normalize_with_length(&forward);
-    vector3d_normalize_with_length(&up);
+    halo::math::vector3d_cross_product(cross, up, forward); 
+    halo::math::vector3d_cross_product(up, forward, cross); 
+    halo::math::vector3d_normalize_with_length(forward);
+    halo::math::vector3d_normalize_with_length(up);
 
     role_material = halo::k_dword_none;
     if (decoded.creating_object_hash != 0) {

@@ -1,4 +1,6 @@
 #include "halo/interface/ifr1_chimera_bridge.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -18,7 +20,6 @@ extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t network_join_error_reason;
 extern uint32_t time_query_performance_counter_ms(void);
-extern datum_index tag_lookup(tag_group group, char *path);
 extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence,
                                                      int16_t frame);
 extern uint32_t color_argb_scale_alpha(uint32_t packed_color, float scale);
@@ -52,7 +53,6 @@ extern void main_menu_play_title_music(void);
 extern void virtual_keyboard_initialize(void);
 extern datum_index ui_cursor_bitmap;
 extern uint8_t ui_widget_opened;
-extern tag_instance *tag_instances;
 extern heap *widget_memory_pool;
 extern widget_instance *ui_root_widget[1];
 extern widget_history_node *ui_widget_history[3];
@@ -60,7 +60,6 @@ extern void widget_close(widget_instance *widget);
 extern void list_node_prepend(widget_history_node *template_record, widget_history_node **head);
 extern void widget_initialize_from_tag(widget_instance *widget, datum_index tag_index, widget_instance *parent,
                                        uint16_t controller_index, UIWidgetDefinition *tag);
-extern void *heap_allocate(uint32_t size, heap *self);
 extern void sound_looping_stop(datum_index sound_tag);
 extern void sound_stop_all(void);
 extern void rasterizer_end_frame(void);
@@ -142,9 +141,9 @@ void ChimeraBridge::do_show_loading_screen(void)
         }
     }
 
-    font = tag_lookup(0x666f6e74, (char *)"ui\\large_ui");
-    background = tag_lookup(0x6269746d, (char *)"ui\\shell\\bitmaps\\background");
-    strings = tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\loading");
+    font = halo::cache::tag_lookup(0x666f6e74, (char *)"ui\\large_ui");
+    background = halo::cache::tag_lookup(0x6269746d, (char *)"ui\\shell\\bitmaps\\background");
+    strings = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\loading");
     if (font == (datum_index)-1 || background == (datum_index)-1 || strings == (datum_index)-1) {
         return;
     }
@@ -278,17 +277,17 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
     int16_t slot = (controller_index == 0xffff) ? 0 : (int16_t)controller_index;
     UIWidgetDefinition *tag;
 
-    ui_cursor_bitmap = tag_lookup(0x6269746d, (char *)"ui\\shell\\bitmaps\\cursor");
+    ui_cursor_bitmap = halo::cache::tag_lookup(0x6269746d, (char *)"ui\\shell\\bitmaps\\cursor");
     ui_widget_opened = 1;
 
     if (tag_index == (datum_index)-1) {
-        tag_index = tag_lookup(0x44654c61, tag_path);
+        tag_index = halo::cache::tag_lookup(0x44654c61, tag_path);
         if (tag_index == (datum_index)-1) {
             return (widget_instance *)0;
         }
     }
-    tag = (UIWidgetDefinition *)tag_instances[tag_index & 0xffff].data;
-    widget = (widget_instance *)heap_allocate(sizeof(widget_instance), widget_memory_pool);
+    tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[tag_index & 0xffff].data;
+    widget = (widget_instance *)halo::memory::heap_allocate(sizeof(widget_instance), widget_memory_pool);
     if (widget == (widget_instance *)0) {
         return (widget_instance *)0;
     }
@@ -304,7 +303,7 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
         ui_root_widget[slot] = widget;
 
         if (history_definition != (datum_index)-1) {
-            uint8_t *history_tag_data = (uint8_t *)tag_instances[history_definition & 0xffff].data;
+            uint8_t *history_tag_data = (uint8_t *)halo::cache::globals().tag_instances[history_definition & 0xffff].data;
 
             if ((*(uint32_t *)(history_tag_data + 0x2c) & 0x4000) == 0) {
                 widget_history_node history_template;
@@ -342,7 +341,7 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
 void ChimeraBridge::main_menu_music(uint8_t finalize_render_frame)
 {
     if (main_menu_music_pending == 1) {
-        datum_index sound_tag = tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1");
+        datum_index sound_tag = halo::cache::tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             sound_looping_stop(sound_tag);
         }

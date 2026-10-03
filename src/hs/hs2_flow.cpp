@@ -1,6 +1,7 @@
 #include "halo/hs/hs2_commands.hpp"
 
 #include "game.h"
+#include "halo/math/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,7 +17,6 @@ extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result
 extern void hs_thread_evaluate_step(datum_index thread_handle);
 extern uint8_t hs_runtime_active;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern random_seed random_seed_global;
 extern int32_t hs_global_get_value(hs_global_reference reference);
 extern void hs_global_write_value(hs_global_reference reference);
 extern data_array *hs_globals_data;
@@ -261,13 +261,13 @@ void FlowCommands::evaluate_random(hs_thread *thread, uint32_t thread_index, cha
         }
     }
 
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
     scan = 0;
     child_count = state->child_count;
     chosen_index = child_count;
     if (0 < child_count) {
         do {
-            candidate = (uint32_t)(scan + (int16_t)(((random_seed_global >> 0x10) *
+            candidate = (uint32_t)(scan + (int16_t)(((halo::math::globals().random_seed_global >> 0x10) *
                 (uint32_t)child_count) >> 0x10)) % (uint32_t)child_count;
             chosen_index = (int16_t)candidate;
             if ((chosen_words[(int16_t)candidate >> 5] & (1 << (candidate & 0x1f))) == 0) {

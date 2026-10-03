@@ -23,6 +23,8 @@
 #include "cache.h"
 
 #include "halo/main/main_loop.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" { void game_engine_flush_pending_simulation_ticks(void); }
 extern "C" { uint32_t game_frame_rate_average_update(void); }
@@ -62,6 +64,17 @@ void MainLoop::engine_flush_pending_simulation_ticks(void)
     }
     main_globals_data.skip_tick_count = 0;
     main_globals_data.skip_ticks = 0;
+}
+
+/**
+ * Calls halo::cache::cache_file_download_status_get with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static int16_t cache_file_download_status_get_unresolved(float *progress_out)
+{
+    using call_t = int16_t (*)(float *progress_out);
+    return reinterpret_cast<call_t>(&halo::cache::cache_file_download_status_get)(progress_out);
 }
 
 }
@@ -222,7 +235,6 @@ extern "C" { extern uint8_t game_state_revert_available; }
 extern "C" { extern uint8_t game_state_write_in_progress; }
 extern "C" { extern uint8_t *game_state_base; }
 extern "C" { extern int32_t ui_pause_pending_count_00718fa0; }
-extern "C" { extern uint8_t map_download_in_progress; }
 extern "C" { extern int32_t network_console_connection_id; }
 extern "C" { extern network_bandwidth_graph network_bandwidth_graph_globals; }
 extern "C" { extern uint32_t network_bandwidth_graph_default_interval_ms; }
@@ -268,9 +280,6 @@ extern "C" { extern void game_engine_reset_all_players(void); }
 extern "C" { extern uint8_t game_state_write_profile_file(int32_t size, char *name, const void *buffer); }
 extern "C" { extern void console_print_error_va(uint8_t clear_first, const char *format, ...); }
 extern "C" { extern void game_state_load_core(char *name); }
-extern "C" { extern int16_t cache_file_download_status_get(float *progress_out); }
-extern "C" { extern void cache_file_download_finish(void); }
-extern "C" { extern uint8_t cache_file_open_by_name(char *name, uint8_t report_fatal_error); }
 extern "C" { extern void network_game_client_connect_to_resolved_address(void); }
 extern "C" { extern void input_directinput_poll_devices(void); }
 extern "C" { extern void input_update_tick(void); }
@@ -297,7 +306,6 @@ extern "C" { extern int32_t game_engine_accumulate_simulation_ticks(float elapse
 extern "C" { extern void game_engine_update_local_player_control(int16_t local_player_index, float delta_time, int32_t ticks_this_frame); }
 extern "C" { extern uint8_t chat_poll_hotkeys(void); }
 extern "C" { extern char update_server_send_update(int32_t ticks, uint8_t frame_time_overflow); }
-extern "C" { extern void *data_iterator_next(data_iterator *iterator); }
 extern "C" { extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask, const char *format, ...); }
 extern "C" { extern void camera_update(float dt); }
 extern "C" { extern uint8_t camera_is_local_player_default_first_person(void); }
@@ -490,15 +498,15 @@ void MainLoop::loop(void)
             game_engine_flush_pending_simulation_ticks();
         }
         if (main_globals_data.cache_file_open_pending != 0) {
-            if (map_download_in_progress != 0) {
-                if (cache_file_download_status_get(&progress) == 1) {
-                    cache_file_download_finish();
+            if (halo::cache::globals().map_download_in_progress != 0) {
+                if (cache_file_download_status_get_unresolved(&progress) == 1) {
+                    halo::cache::cache_file_download_finish();
                 }
-                if (map_download_in_progress != 0) {
+                if (halo::cache::globals().map_download_in_progress != 0) {
                     goto cache_file_open_done;
                 }
             }
-            cache_file_open_by_name(main_globals_data.pending_cache_file_name, 0);
+            halo::cache::cache_file_open_by_name(main_globals_data.pending_cache_file_name, 0);
             main_globals_data.cache_file_open_pending = 0;
         }
     cache_file_open_done:
@@ -658,7 +666,7 @@ void MainLoop::loop(void)
                 iterator.next_index = 0;
                 iterator.index = (datum_index)-1;
                 iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-                while ((local_player = (player *)data_iterator_next(&iterator)) != 0) {
+                while ((local_player = (player *)halo::memory::data_iterator_next(&iterator)) != 0) {
                     if (local_player->local_player_index == -1) {
                         continue;
                     }
@@ -931,7 +939,6 @@ void MainLoop::loop_shutdown_cleanup(void)
 }
 
 extern "C" { extern uint8_t main_menu_music_pending; }
-extern "C" { extern datum_index tag_lookup(tag_group group, char *path); }
 extern "C" { extern void sound_looping_stop(datum_index sound_tag); }
 namespace halo::main {
 
@@ -945,7 +952,7 @@ namespace halo::main {
 void MainLoop::menu_music_stop(void)
 {
     if (main_menu_music_pending == 1) {
-        datum_index sound_tag = tag_lookup(0x6c736e64 , (char *)"sound\\music\\title1\\title1");
+        datum_index sound_tag = halo::cache::tag_lookup(0x6c736e64 , (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             sound_looping_stop(sound_tag);
         }
@@ -971,7 +978,6 @@ extern "C" { extern uint8_t ui_network_wait_active; }
 extern "C" { extern int32_t ui_network_wait_start_time; }
 extern "C" { extern void chimera__load_ui_map(char play_title_music); }
 extern "C" { extern void chimera__load_main_menu(void); }
-extern "C" { extern void predicted_resource_list_touch(TagReflexive *resources); }
 extern "C" { extern void hud_chat_listbox_clear(void); }
 extern "C" { extern void update_queues_dispose(void); }
 extern "C" { extern void update_server_new(void); }
@@ -998,7 +1004,7 @@ void MainLoop::menu_return_and_reset(void)
     }
     chimera__load_main_menu();
     if (global_scenario != 0) {
-        predicted_resource_list_touch(&global_scenario->predicted_resources);
+        halo::cache::predicted_resource_list_touch(&global_scenario->predicted_resources);
     }
 
     interface_loading_screen_address_a = -1;

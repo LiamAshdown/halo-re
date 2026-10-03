@@ -1,11 +1,10 @@
 #include "halo/camera/camera_math.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern double scalar_catmull_rom_interpolate(float value0, float value1, float value2, float value3, float time0, float dt, float time);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern double fsin(double angle);
 extern double fcos(double angle);
-extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle, real cos_angle);
 uint8_t real_approximately_equal(float a, float b);
 uint8_t real_is_valid(float value);
 void vector3d_catmull_rom_interpolate(Vector3D *source1, Vector3D *source3, Vector3D *source2, Vector3D *out, Vector3D *source0, float time0, float dt, float time);
@@ -118,7 +117,7 @@ void CameraMath::compute_up_from_forward(Vector3D *forward, Vector3D *up)
     horizontal_perp.j = -forward->i;
     horizontal_perp.k = 0.0f;
 
-    length = vector3d_normalize_with_length(&horizontal_perp);
+    length = halo::math::vector3d_normalize_with_length(horizontal_perp);
     if (length == 0.0f) {
         
         
@@ -172,12 +171,12 @@ void CameraMath::rotate_basis_by_axis_angle(Vector3D *axis_angle, Vector3D *forw
     real angle;
     real sin_angle, cos_angle;
 
-    angle = vector3d_normalize_with_length(&axis);
+    angle = halo::math::vector3d_normalize_with_length(axis);
     if (angle != 0.0f) {
         sin_angle = (real)fsin((double)angle);
         cos_angle = (real)fcos((double)angle);
-        vector3d_rotate_about_axis((real_vector3d *)forward, &axis, sin_angle, cos_angle);
-        vector3d_rotate_about_axis((real_vector3d *)up, &axis, sin_angle, cos_angle);
+        halo::math::vector3d_rotate_about_axis(*(real_vector3d *)forward, axis, sin_angle, cos_angle);
+        halo::math::vector3d_rotate_about_axis(*(real_vector3d *)up, axis, sin_angle, cos_angle);
     }
 }
 

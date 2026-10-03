@@ -1,9 +1,11 @@
 #include "halo/ai/actor_props.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_allocate_paired_prop {
 extern "C" {
 extern data_array *prop_data;
-extern datum_index datum_new(data_array *array);
 extern void actor_init_prop_from_object(datum_index object_index, datum_index actor_index,
                                         datum_index prop_index);
 extern void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop);
@@ -22,7 +24,7 @@ datum_index halo::ai::prop_ops::allocate_paired_prop(datum_index existing_prop)
 {
     using namespace c_actor_allocate_paired_prop;
     datum_index actor_index = datum;
-    datum_index new_prop = datum_new(prop_data);
+    datum_index new_prop = halo::memory::datum_new(prop_data);
 
     actor_init_prop_from_object(k_datum_index_none, actor_index, new_prop);
     if (new_prop != k_datum_index_none) {
@@ -44,7 +46,6 @@ extern "C" datum_index actor_allocate_paired_prop(datum_index actor_index, datum
 namespace c_actor_allocate_paired_prop_with_kind {
 extern "C" {
 extern data_array *prop_data;
-extern datum_index datum_new(data_array *array);
 extern void actor_init_prop_from_object(datum_index object_index, datum_index actor_index,
                                         datum_index prop_index);
 extern void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop);
@@ -63,7 +64,7 @@ datum_index halo::ai::prop_ops::allocate_paired_prop_with_kind(datum_index exist
 {
     using namespace c_actor_allocate_paired_prop_with_kind;
     datum_index actor_index = datum;
-    datum_index new_prop = datum_new(prop_data);
+    datum_index new_prop = halo::memory::datum_new(prop_data);
 
     actor_init_prop_from_object(k_datum_index_none, actor_index, new_prop);
     if (new_prop == k_datum_index_none) {
@@ -94,8 +95,6 @@ extern "C" datum_index actor_allocate_paired_prop_with_kind(datum_index actor_in
 namespace c_actor_apply_unit_definition_properties {
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
-extern uint32_t random_seed_global;
 extern int16_t network_game_mode;
 extern object_type_definition *object_type_definitions[12];
 
@@ -126,7 +125,7 @@ static datum_index actor_create_unit_item(datum_index definition_tag, datum_inde
 
     object_placement_data_initialize(&placement, definition_tag, unit_index);
     if (network_game_mode == 2) {
-        int16_t type = *(int16_t *)tag_instances[placement.definition_tag & 0xffff].data;
+        int16_t type = *(int16_t *)halo::cache::globals().tag_instances[placement.definition_tag & 0xffff].data;
 
         if (object_type_definitions[type]->network_delta_message_type != -1) {
             role = 0;
@@ -148,9 +147,9 @@ extern "C" void actor_apply_unit_definition_properties(datum_index actor_variant
 void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_variant_tag, datum_index unit_index)
 {
     using namespace c_actor_apply_unit_definition_properties;
-    uint8_t *variant = (uint8_t *)tag_instances[actor_variant_tag & 0xffff].data;
+    uint8_t *variant = (uint8_t *)halo::cache::globals().tag_instances[actor_variant_tag & 0xffff].data;
     uint8_t *unit = object_get(unit_index);
-    uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)&((ActorVariant *)variant)->actor_definition.tag_id & 0xffff].data;
+    uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((ActorVariant *)variant)->actor_definition.tag_id & 0xffff].data;
     int16_t i;
 
     if (((ActorVariant *)variant)->body_vitality > 0.0f || ((ActorVariant *)variant)->shield_vitality > 0.0f) {
@@ -165,9 +164,9 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         if (i < 4) {
             ColorRGB *working = (ColorRGB *)(unit + 0x188 + i * 0xc);
 
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
             color_interpolate((ColorRGB *)(change_color + 0xc), (ColorRGB *)change_color, working, 1,
-                (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f);
+                (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f);
             *(ColorRGB *)(unit + 0x1b8 + i * 0xc) = *working;
         }
     }
@@ -191,14 +190,14 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         int32_t range = (int16_t)(*(int16_t *)(variant + 0x1d2) + 1) - minimum;
         uint8_t *object = object_get(unit_index);
 
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
         object[0x31e + type] = (uint8_t)(object[0x31e + type] +
-            (uint8_t)(((uint32_t)range * (random_seed_global >> 0x10)) >> 0x10) + (uint8_t)minimum);
+            (uint8_t)(((uint32_t)range * (halo::math::globals().random_seed_global >> 0x10)) >> 0x10) + (uint8_t)minimum);
         object[0x31d] = (uint8_t)type;
         object[0x31c] = (uint8_t)type;
     }
     if (*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id != k_datum_index_none) {
-        int16_t equipment_kind = *(int16_t *)((uint8_t *)tag_instances[*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id & 0xffff].data
+        int16_t equipment_kind = *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id & 0xffff].data
             + 0x308);
 
         if (equipment_kind != 0 && equipment_kind != 6) {
@@ -231,7 +230,6 @@ extern data_array *prop_data;
 
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
-extern void datum_delete(data_array *array, datum_index handle);
 }
 }
 
@@ -256,7 +254,7 @@ void halo::ai::prop_ops::clear_perceived_props()
         (void)p;
         actor_replace_object_reference(actor_index, 0xffffffff, prop_index);
         actor_unlink_prop(actor_index, prop_index);
-        datum_delete(prop_data, prop_index);
+        halo::memory::datum_delete(prop_data, prop_index);
     }
 }
 
@@ -443,7 +441,6 @@ static float sqrt_f(float x) { return (float)sqrt((double)x); }
 
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 
 extern void object_get_position(real_point3d *out_position, datum_index object_index);
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
@@ -485,7 +482,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
     }
 
     obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    tag_data = (uint8_t *)tag_instances[obj->definition_tag & 0xffff].data;
+    tag_data = (uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if ((int8_t)tag_data[0x2f0] < 0) {
         velocity_sq = obj->velocity.k * obj->velocity.k + obj->velocity.j * obj->velocity.j +
@@ -564,20 +561,16 @@ namespace c_actor_find_danger_escape {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern const real_vector2d *global_forward2d_pointer;
 
 extern double sqrt(double x);
 extern double fabs(double x);
-extern real vector2d_normalize_with_length(real_vector2d *v);
 extern uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *direction, float step_distance,
                                             float step_up, uint8_t *out_flag, void *extra_param);
-extern real point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction,
-                                                real_point3d *point);
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 }
 
@@ -636,10 +629,10 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
         if (!have_axis) {
             axis.i = ((actor *)act)->flee_from_point.x - ((actor *)act)->body_position.x;
             axis.j = ((actor *)act)->flee_from_point.y - ((actor *)act)->body_position.y;
-            if (vector2d_normalize_with_length(&axis) == 0.0f) {
+            if (halo::math::vector2d_normalize_with_length(axis) == 0.0f) {
                 axis.i = ((actor *)act)->facing.i;
                 axis.j = ((actor *)act)->facing.j;
-                if (vector2d_normalize_with_length(&axis) == 0.0f) {
+                if (halo::math::vector2d_normalize_with_length(axis) == 0.0f) {
                     axis = *global_forward2d_pointer;
                 }
             }
@@ -661,10 +654,10 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
         right_point.z = step * 0.0f + ((actor *)act)->body_position.z;
 
         left_hit = actor_check_step_obstruction(actor_index, (real_vector2d *)&left, step, sideways, &left_blocked, extra);
-        left_distance = (float)sqrt(point3d_distance_squared_to_segment((real_point3d *)(act + 0x2b0), &path, &left_point));
+        left_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(*(real_point3d *)(act + 0x2b0), path, left_point));
         left_out = (uint8_t)(left_hit && left_distance > ((actor *)act)->danger_unknown_294);
         right_hit = actor_check_step_obstruction(actor_index, (real_vector2d *)&right, step, sideways, &right_blocked, extra);
-        right_distance = (float)sqrt(point3d_distance_squared_to_segment((real_point3d *)(act + 0x2b0), &path, &right_point));
+        right_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(*(real_point3d *)(act + 0x2b0), path, right_point));
         right_out = (uint8_t)(right_hit && right_distance > ((actor *)act)->danger_unknown_294);
 
         if (left_hit) {
@@ -722,7 +715,6 @@ extern data_array *encounter_data;
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
 extern void actor_init_prop_from_object(datum_index object_index, datum_index actor_index, datum_index prop_index);
-extern datum_index datum_new(data_array *array);
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
 
 enum {
@@ -876,7 +868,7 @@ datum_index halo::ai::prop_ops::find_or_allocate_prop(uint32_t object_index, cha
         }
     }
     if (result == k_datum_index_none) {
-        result = datum_new(prop_data);
+        result = halo::memory::datum_new(prop_data);
     } else {
         uint8_t *p = (uint8_t *)prop_data->data + (result & 0xffff) * 0x138;
         int16_t salt = *(int16_t *)p;
@@ -1087,7 +1079,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
@@ -1136,7 +1127,7 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
 
     if (object_index != (datum_index)0xffffffff) {
         uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + 8 + (object_index & 0xffff) * 0xc);
-        uint8_t *object_type = (uint8_t *)tag_instances[*(uint16_t *)object & 0xffff].data;
+        uint8_t *object_type = (uint8_t *)halo::cache::globals().tag_instances[*(uint16_t *)object & 0xffff].data;
         uint8_t is_vault;
 
         p->team = ((struct object *)object)->owner_team;

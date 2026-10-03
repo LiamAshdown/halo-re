@@ -2,6 +2,8 @@
 #include "crt.h"
 #include <string.h>
 #include <wchar.h>
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -26,7 +28,6 @@ extern data_array *player_data;
 extern data_array *object_data;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index global_scenario_index;
-extern tag_instance *tag_instances;
 extern int16_t profile_slot_id[];
 extern char player_help_name_a10[];
 extern char player_help_name_a30[];
@@ -44,8 +45,6 @@ extern char joystick_set_separator_0065f010[];
 extern uint16_t empty_string[];
 extern heap *widget_memory_pool;
 extern void ui_profile_carousel_slot_cache_populate(int32_t count, const int32_t *candidate_ids);
-extern datum_index tag_lookup(tag_group group, char *path);
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern uint16_t *text_string_list_get_string(datum_index tag, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...);
 extern int32_t ui_carousel_slot_compare_valid_first(const void *a, const void *b);
@@ -286,7 +285,7 @@ void LocalPlayers::help_screen_select_by_name(int16_t value)
     if (global_scenario_index == (datum_index)-1) {
         return;
     }
-    strncpy(name, tag_instances[(int16_t)global_scenario_index].path, 0xff);
+    strncpy(name, halo::cache::globals().tag_instances[(int16_t)global_scenario_index].path, 0xff);
 
     for (p = name; *p != 0; p++) {
         *p = (char)tolower((uint8_t)*p);
@@ -351,14 +350,14 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                 const uint8_t *profile = profile_carousel_slots[slot].profile;
                 uint16_t flags = *(const uint16_t *)(profile + 0x11c);
                 int16_t color = *(const int16_t *)(profile + 0x11a);
-                uint16_t *name = (uint16_t *)heap_reallocate(widget->list_render_data, 0x18, widget_memory_pool);
+                uint16_t *name = (uint16_t *)halo::memory::heap_reallocate(widget->list_render_data, 0x18, widget_memory_pool);
 
                 widget->list_render_data = name;
                 if (name == 0) {
                     return;
                 }
                 if (flags & 1) {
-                    datum_index names = tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\default_player_profile_names");
+                    datum_index names = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\default_player_profile_names");
                     const uint16_t *source = empty_string;
                     if (names != (datum_index)-1) {
                         source = text_string_list_get_string(names, (int16_t)(flags >> 8));
@@ -371,7 +370,7 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
 
                 name_row->background_bitmap_frame = (color < 0) ? 0 : (color > 0x11) ? 0x11 : color;
 
-                description_row->text = heap_reallocate(description_row->text, 0x200, widget_memory_pool);
+                description_row->text = halo::memory::heap_reallocate(description_row->text, 0x200, widget_memory_pool);
                 if (description_row->text == 0) {
                     return;
                 }
@@ -379,16 +378,16 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                     datum_index joysticks;
                     datum_index buttons;
                     if (*(const uint8_t *)(profile + 0x11c) & 1) {
-                        joysticks = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_defaults_descriptions");
-                        buttons = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_long_descriptions");
+                        joysticks = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_defaults_descriptions");
+                        buttons = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_long_descriptions");
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
                             ((uint16_t *)description_row->text)[0] = 0;
                             ((uint16_t *)description_row->text)[0xff] = 0;
                             return;
                         }
                     } else {
-                        joysticks = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_short_descriptions");
-                        buttons = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_short_descriptions");
+                        joysticks = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_short_descriptions");
+                        buttons = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_short_descriptions");
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
                             ((uint16_t *)description_row->text)[0xff] = 0;
                             return;
@@ -407,13 +406,13 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
         }
 
         if (widget->item_count == 0) {
-            uint16_t *text = (uint16_t *)heap_reallocate(widget->list_render_data, 4, widget_memory_pool);
+            uint16_t *text = (uint16_t *)halo::memory::heap_reallocate(widget->list_render_data, 4, widget_memory_pool);
             widget->list_render_data = text;
             if (text != 0) {
                 text[0] = 0;
             }
             name_row->background_bitmap_frame = 0;
-            text = (uint16_t *)heap_reallocate(description_row->text, 4, widget_memory_pool);
+            text = (uint16_t *)halo::memory::heap_reallocate(description_row->text, 4, widget_memory_pool);
             description_row->text = text;
             if (text != 0) {
                 text[0] = 0;
@@ -602,13 +601,13 @@ void PlayerProfiles::details_widget_refresh(widget_instance *widget, const uint8
     i->state = 1;
     j->state = 1;
 
-    a->text = heap_reallocate(a->text, 0x18, widget_memory_pool);
+    a->text = halo::memory::heap_reallocate(a->text, 0x18, widget_memory_pool);
     if (a->text != 0) {
         uint16_t flags = *(const uint16_t *)(profile_record + 0x11c);
 
         if ((flags & 1) != 0) {
             datum_index names_tag =
-                tag_lookup(0x75737472  , (char *)"ui\\shell\\strings\\default_player_profile_names");
+                halo::cache::tag_lookup(0x75737472  , (char *)"ui\\shell\\strings\\default_player_profile_names");
             const uint16_t *source = names_tag != (datum_index)-1
                 ? text_string_list_get_string(names_tag, (int16_t)(flags >> 8))
                 : hud_text_unknown;

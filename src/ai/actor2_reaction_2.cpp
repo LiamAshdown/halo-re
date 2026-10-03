@@ -1,18 +1,18 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_react_to_disturbance_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 #define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
 extern data_array *prop_data;
-extern real vector2d_normalize_with_length(real_vector2d *v);
 extern uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2]);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
@@ -31,7 +31,7 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
 {
     using namespace actor_react_to_disturbance_local;
     uint8_t *actor = ACTOR(actor_index);
-    uint8_t *definition = (uint8_t *)tag_instances[D(0x5c) & 0xffff].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[D(0x5c) & 0xffff].data;
     real_vector2d direction;
     int16_t action = 4;
     datum_index object = k_datum_index_none;
@@ -44,7 +44,7 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
     if (B(0x2f8) != 0) {
         direction.i = F(0x2fc);
         direction.j = F(0x300);
-        vector2d_normalize_with_length(&direction);
+        halo::math::vector2d_normalize_with_length(direction);
         if (direction.j * F(0x5a8) + direction.i * F(0x5a4) < 0.0f) {
             direction.i = -direction.i;
             direction.j = -direction.j;
@@ -53,7 +53,7 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
     } else {
         direction.i = F(0x174);
         direction.j = F(0x178);
-        vector2d_normalize_with_length(&direction);
+        halo::math::vector2d_normalize_with_length(direction);
     }
     actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
     if (D(0x2f4) != 0xffffffff) {

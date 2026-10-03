@@ -1,4 +1,6 @@
 #include "halo/ai/actor_modes.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_mode_alert_movement_cancelled {
 extern "C" {
@@ -37,7 +39,6 @@ namespace c_actor_mode_alert_process {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 
 #define B(o) (actor[(o)])
@@ -45,11 +46,9 @@ extern Scenario *global_scenario;
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
 
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
 extern float actor_compute_accuracy_scale(datum_index actor_index);
 extern int32_t actor_select_move_position(uint32_t actor_index, int16_t select_mode, int32_t position_index,
     uint8_t *direction_flag);
-extern real random_real_range(real min, real max);
 extern uint8_t actor_movement_set_destination_move_position(datum_index actor_index, int16_t move_position_index);
 }
 }
@@ -74,7 +73,7 @@ uint8_t halo::ai::alert_mode::process()
         int ready = 1;
 
         if (current != -1 && B(0x4a8) != 0) {
-            float distance_squared = vector3d_distance_squared((real_point3d *)(actor + 0xa8), (real_point3d *)(actor + 0x12c));
+            float distance_squared = halo::math::vector3d_distance_squared(*(real_point3d *)(actor + 0xa8), *(real_point3d *)(actor + 0x12c));
             float radius = actor_compute_accuracy_scale(actor_index);
 
             if (!(radius > 0.5f)) {
@@ -103,7 +102,7 @@ uint8_t halo::ai::alert_mode::process()
 
         if (next >= 0 && next < *(int32_t *)(squad + 0xc4)) {
             uint8_t *position = *(uint8_t **)(squad + 0xc8) + next * 0x50;
-            float wait = random_real_range(*(float *)(position + 0x14), *(float *)(position + 0x18)) * 30.0f;
+            float wait = halo::math::random_real_range(*(float *)(position + 0x14), *(float *)(position + 0x18)) * 30.0f;
 
             W(0xa2) = W(0xa4);
             W(0xa4) = -1;
@@ -169,7 +168,6 @@ namespace c_actor_mode_alert_tick {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 
 #define B(o) (actor[(o)])
@@ -221,7 +219,7 @@ void halo::ai::alert_mode::tick()
         if (graph == k_datum_index_none) {
             uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[D(0x18) & 0xffff].data;
 
-            graph = *(datum_index *)((uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data + 0x44);
+            graph = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data + 0x44);
         }
         unit_start_user_animation(D(0x18), graph, (const char *)animation, 1);
     }
@@ -242,7 +240,6 @@ namespace c_actor_mode_alert_update {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 
 #define B(o) (actor[(o)])
@@ -267,7 +264,7 @@ void halo::ai::alert_mode::update()
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
 
     W(0x3fc) = 1;
-    if (*(uint8_t *)tag_instances[D(0x58) & 0xffff].data & 0x40) {
+    if (*(uint8_t *)halo::cache::globals().tag_instances[D(0x58) & 0xffff].data & 0x40) {
         B(0x426) = 1;
         B(0x427) = 1;
     }
@@ -583,7 +580,6 @@ namespace c_actor_mode_obey_process {
 extern "C" {
 extern data_array *actor_data;
 extern Scenario *global_scenario;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback,
     uint32_t callback_extra, uint16_t *caller_record);
@@ -615,7 +611,7 @@ uint8_t halo::ai::obey_mode::process()
         int mark = 1;
 
         if ((list[0x20] & 0x10) && actor[0x15c] != 0) {
-            uint8_t *variant = (uint8_t *)tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
+            uint8_t *variant = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
 
             if ((*(uint32_t *)variant & 0x200000) == 0) {
                 mark = 0;
@@ -672,7 +668,6 @@ extern data_array *actor_data;
 extern real_vector2d *global_forward2d_pointer;
 
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
-extern real vector2d_normalize_with_length(real_vector2d *v);
 extern uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2]);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
@@ -755,7 +750,7 @@ void halo::ai::obey_mode::update()
 
             direction[0] = D(0x5a4);
             direction[1] = D(0x5a8);
-            vector2d_normalize_with_length((real_vector2d *)direction);
+            halo::math::vector2d_normalize_with_length(*(real_vector2d *)direction);
             actor_queue_secondary_action(actor_index, W(0xfa), direction);
         }
         if (W(0xfc) != -1) {
@@ -782,7 +777,7 @@ void halo::ai::obey_mode::update()
         float y;
 
         direction = *(real_vector2d *)&((struct actor *)actor)->facing.i;
-        if (vector2d_normalize_with_length(&direction) == 0.0f) {
+        if (halo::math::vector2d_normalize_with_length(direction) == 0.0f) {
             x = global_forward2d_pointer->i;
             y = global_forward2d_pointer->j;
         } else {
@@ -823,8 +818,6 @@ extern data_array *actor_data;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 
-extern tag_instance *tag_instances;
-extern uint32_t random_seed_global;
 }
 }
 
@@ -841,7 +834,7 @@ void halo::ai::search_mode::enter()
     using namespace c_actor_mode_search_enter;
     datum_index actor_index = datum;
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = (uint8_t *)tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
     float lo;
     float hi;
     float t;
@@ -854,8 +847,8 @@ void halo::ai::search_mode::enter()
         lo = *(float *)(actor_tag + 0x34c);
         hi = *(float *)(actor_tag + 0x350);
     }
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    t = (float)(random_seed_global >> 16) * 1.5259022e-05f;
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    t = (float)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f;
     ticks = (int32_t)(((hi - lo) * t + lo) * 30.0f);
     ((struct actor *)act)->mode_data.search.duration_ticks = ticks;
     ((struct actor *)act)->mode_data.search.remaining_ticks = ticks;
@@ -911,7 +904,6 @@ extern data_array *prop_data;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
 extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
     uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator);
 extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
@@ -953,11 +945,11 @@ uint8_t halo::ai::search_mode::process()
     if (kind == 0 && ((actor *)act)->target_unit_index != k_datum_index_none) {
         uint8_t *target = PROP(((actor *)act)->target_unit_index);
         float radius = *(int16_t *)(target + 0x38) == 0 ? 1.7f : 0.7f;
-        float distance_squared = vector3d_distance_squared((real_point3d *)(act + 0x12c), (real_point3d *)(target + 0xbc));
+        float distance_squared = halo::math::vector3d_distance_squared(*(real_point3d *)(act + 0x12c), *(real_point3d *)(target + 0xbc));
 
         ((struct actor *)act)->mode_data.search.reachable = (uint8_t)(radius * radius > distance_squared);
     } else if (kind == 1 && ((struct actor *)act)->mode_data.search.firing_position != -1) {
-        float distance_squared = vector3d_distance_squared((real_point3d *)(act + 0x12c), &((struct actor *)act)->mode_data.search.position);
+        float distance_squared = halo::math::vector3d_distance_squared(*(real_point3d *)(act + 0x12c), *(&((struct actor *)act)->mode_data.search.position));
 
         if (distance_squared < 0.49f) {
             ((struct actor *)act)->mode_data.search.reachable = 1;
@@ -992,7 +984,7 @@ uint8_t halo::ai::search_mode::process()
 
                 sharing++;
                 if (!other[0x6] && !other[0x504] &&
-                    vector3d_distance_squared((real_point3d *)(other + 0x12c), (real_point3d *)(act + 0x12c)) < 0.64000005f) {
+                    halo::math::vector3d_distance_squared(*(real_point3d *)(other + 0x12c), *(real_point3d *)(act + 0x12c)) < 0.64000005f) {
                     close_idle++;
                 }
             }
@@ -1043,10 +1035,9 @@ extern "C" uint8_t actor_mode_search_process(datum_index actor_index)
 namespace c_actor_mode_search_tick {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
@@ -1128,10 +1119,9 @@ extern "C" void actor_mode_search_tick(datum_index actor_index)
 namespace c_actor_mode_search_update {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 }
 

@@ -1,7 +1,7 @@
 /**
  * @file include/halo/math/sphere_mesh.hpp
  * The subdivided-octahedron sphere mesh and the 1026-entry direction table.
- * The C symbols other modules link against are the wrappers in src/math/math_c_api.cpp.
+ * Declared for other modules through halo/math/api.hpp.
  */
 #pragma once
 

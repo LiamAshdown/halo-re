@@ -5,28 +5,17 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
-extern int16_t geometry_buffer_warning;
 extern void **rasterizer_dynamic_index_buffer;
 extern int32_t rasterizer_dynamic_index_cache_reserve(int16_t vertex_count);
 extern void *rasterizer_dynamic_index_slot_lock(int32_t geometry_handle);
 extern ScenarioStructureBSP *global_structure_bsp;
 extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare);
-extern tag_instance *tag_instances;
 extern breakable_surface_globals *breakable_surface_state;
 extern int16_t global_structure_bsp_index;
-extern real_vector3d fog_plane_vector;
 extern const real_point3d *global_origin3d_pointer;
-extern int16_t visible_surface_count;
-extern int32_t visible_surface_indices[k_maximum_visible_surfaces];
-extern uint32_t surface_visible_bits[k_maximum_visible_surface_bits];
-extern uint8_t picked_surfaces_valid;
-extern int32_t picked_surfaces_geometry;
-extern int32_t picked_leaf_map_leaf;
-extern int32_t picked_leaf_map_portal;
-extern uint8_t debug_count_all_leaf_portals;
-extern uint8_t fog_plane_vector_valid;
 extern int16_t render_force_flag;
 extern int32_t rasterizer_device_version;
 extern void ***rasterizer_device;
@@ -65,8 +54,8 @@ int32_t structure_draw::build_visible_surface_geometry(int32_t *visible_surface_
             vtable[0xc](rasterizer_dynamic_index_buffer);
             return geometry_handle;
         }
-        if (geometry_buffer_warning != 0) {
-            geometry_buffer_warning = 0;
+        if (globals().geometry_buffer_warning != 0) {
+            globals().geometry_buffer_warning = 0;
         }
     }
     return -1;
@@ -130,7 +119,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
 
             if (global_structure_bsp->lightmaps_bitmap.tag_id.index != 0xffff) {
                 uint16_t bitmap_index = lightmap->bitmap;
-                Bitmap *bitmap = (Bitmap *)tag_instances[global_structure_bsp->lightmaps_bitmap.tag_id.index].data;
+                Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[global_structure_bsp->lightmaps_bitmap.tag_id.index].data;
                 if (bitmap != 0 && bitmap_index < bitmap->bitmap_data.count) {
                     bitmap_data = (uint8_t *)bitmap->bitmap_data.pointer + bitmap_index * 0x30;
                 }
@@ -149,7 +138,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
                         break;
                     }
                     if (*surface_indices < material_end) {
-                        Shader *shader = (Shader *)tag_instances[material->shader.tag_id.index].data;
+                        Shader *shader = (Shader *)halo::cache::globals().tag_instances[material->shader.tag_id.index].data;
                         int32_t *scan = surface_indices;
                         int16_t consumed;
 
@@ -167,7 +156,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
                             if (shader->shader_type == 1 || (shader->shader_type > 4 && shader->shader_type < 0xc)) {
                                 if (transparent_material_cb != 0) {
                                     void *coplanar_vector = ((uint16_t)material->flags & 2) != 0
-                                        ? (void *)&fog_plane_vector
+                                        ? (void *)&globals().fog_plane_vector
                                         : (void *)global_origin3d_pointer;
                                     void *lightmap_vertices = ((uint16_t)material->flags & 1) != 0
                                         ? (void *)((uint8_t *)material + 0x9c)
@@ -222,24 +211,24 @@ void structure_draw::picked_polygon_refresh(void)
 {
     structure_bsp_leaf_map *leaf_map = (structure_bsp_leaf_map *)((uint8_t *)global_structure_bsp + 0x26c);
 
-    picked_surfaces_geometry = structure_draw::build_visible_surface_geometry(visible_surface_indices, surface_visible_bits, (int16_t)visible_surface_count);
-    picked_surfaces_valid = picked_surfaces_geometry != -1;
+    globals().picked_surfaces_geometry = structure_draw::build_visible_surface_geometry(globals().visible_surface_indices, globals().surface_visible_bits, (int16_t)globals().visible_surface_count);
+    globals().picked_surfaces_valid = globals().picked_surfaces_geometry != -1;
 
-    if (picked_leaf_map_leaf > -1 && picked_leaf_map_leaf < leaf_map->leaves.count) {
-        structure_draw::leaf_portal_vertex_count_debug(picked_leaf_map_leaf, leaf_map);
+    if (globals().picked_leaf_map_leaf > -1 && globals().picked_leaf_map_leaf < leaf_map->leaves.count) {
+        structure_draw::leaf_portal_vertex_count_debug(globals().picked_leaf_map_leaf, leaf_map);
     }
 
-    if (picked_leaf_map_portal > -1 && picked_leaf_map_portal < leaf_map->portals.count) {
+    if (globals().picked_leaf_map_portal > -1 && globals().picked_leaf_map_portal < leaf_map->portals.count) {
         ScenarioStructureBSPGlobalLeafPortal *portals =
             (ScenarioStructureBSPGlobalLeafPortal *)leaf_map->portals.pointer;
-        int32_t vertex_count = portals[picked_leaf_map_portal].vertices.count;
+        int32_t vertex_count = portals[globals().picked_leaf_map_portal].vertices.count;
         int16_t discarded_count = 2;
         while (discarded_count < vertex_count) {
             discarded_count = discarded_count + 1;
         }
     }
 
-    if (debug_count_all_leaf_portals != 0) {
+    if (globals().debug_count_all_leaf_portals != 0) {
         ScenarioStructureBSPGlobalLeafPortal *portals =
             (ScenarioStructureBSPGlobalLeafPortal *)leaf_map->portals.pointer;
         int32_t i;
@@ -252,15 +241,15 @@ void structure_draw::picked_polygon_refresh(void)
         }
     }
 
-    fog_plane_vector_valid = 0;
-    fog_plane_vector = *(const real_vector3d *)global_origin3d_pointer;
+    globals().fog_plane_vector_valid = 0;
+    globals().fog_plane_vector = *(const real_vector3d *)global_origin3d_pointer;
 }
 
 void structure_draw::picked_polygon_draw(void)
 {
     int16_t saved_render_flag;
 
-    if (picked_surfaces_valid == 0) {
+    if (globals().picked_surfaces_valid == 0) {
         return;
     }
 
@@ -271,7 +260,7 @@ void structure_draw::picked_polygon_draw(void)
 
     rasterizer_underwater_tint_set_states();
 
-    structure_draw::leaf_faces_for_each(picked_surfaces_geometry, (structure_lightmap_begin_callback)structure_picked_polygon_lightmap_begin, (structure_material_callback)structure_picked_polygon_material, (structure_lightmap_end_callback)function_do_nothing, (structure_transparent_material_callback)0, visible_surface_indices, (int16_t)visible_surface_count);
+    structure_draw::leaf_faces_for_each(globals().picked_surfaces_geometry, (structure_lightmap_begin_callback)structure_picked_polygon_lightmap_begin, (structure_material_callback)structure_picked_polygon_material, (structure_lightmap_end_callback)function_do_nothing, (structure_transparent_material_callback)0, globals().visible_surface_indices, (int16_t)globals().visible_surface_count);
 
     if (rasterizer_device_version < 0xffff0101) {
         void **device = *rasterizer_device;
@@ -296,8 +285,8 @@ void structure_draw::debug_draw_surfaces_in_box(void *render_point, real_point3d
         if (surface_count > 0) {
             geometry_handle = rasterizer_dynamic_index_cache_reserve(surface_count);
             if (geometry_handle == -1) {
-                if (geometry_buffer_warning != 0) {
-                    geometry_buffer_warning = 0;
+                if (globals().geometry_buffer_warning != 0) {
+                    globals().geometry_buffer_warning = 0;
                 }
             } else {
                 void *vertex_buffer = rasterizer_dynamic_index_slot_lock(geometry_handle);
@@ -306,9 +295,9 @@ void structure_draw::debug_draw_surfaces_in_box(void *render_point, real_point3d
             }
         }
     } else {
-        geometry_handle = picked_surfaces_geometry;
-        surface_count = (int16_t)visible_surface_count;
-        surface_indices = visible_surface_indices;
+        geometry_handle = globals().picked_surfaces_geometry;
+        surface_count = (int16_t)globals().visible_surface_count;
+        surface_indices = globals().visible_surface_indices;
     }
 
     if (geometry_handle != -1) {
@@ -332,8 +321,8 @@ void structure_draw::debug_draw_surfaces_in_box_alt(void *render_point, real_poi
         if (surface_count > 0) {
             geometry_handle = rasterizer_dynamic_index_cache_reserve(surface_count);
             if (geometry_handle == -1) {
-                if (geometry_buffer_warning != 0) {
-                    geometry_buffer_warning = 0;
+                if (globals().geometry_buffer_warning != 0) {
+                    globals().geometry_buffer_warning = 0;
                 }
             } else {
                 void *vertex_buffer = rasterizer_dynamic_index_slot_lock(geometry_handle);
@@ -342,9 +331,9 @@ void structure_draw::debug_draw_surfaces_in_box_alt(void *render_point, real_poi
             }
         }
     } else {
-        geometry_handle = picked_surfaces_geometry;
-        surface_count = (int16_t)visible_surface_count;
-        surface_indices = visible_surface_indices;
+        geometry_handle = globals().picked_surfaces_geometry;
+        surface_count = (int16_t)globals().visible_surface_count;
+        surface_indices = globals().visible_surface_indices;
     }
 
     if (geometry_handle != -1) {
@@ -361,8 +350,8 @@ void structure_draw::debug_draw_surfaces_simple(real_point3d *query_point, float
     if (surface_count > 0) {
         int32_t geometry_handle = rasterizer_dynamic_index_cache_reserve(surface_count);
         if (geometry_handle == -1) {
-            if (geometry_buffer_warning != 0) {
-                geometry_buffer_warning = 0;
+            if (globals().geometry_buffer_warning != 0) {
+                globals().geometry_buffer_warning = 0;
             }
         } else {
             void *vertex_buffer = rasterizer_dynamic_index_slot_lock(geometry_handle);

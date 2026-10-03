@@ -1,9 +1,10 @@
 #include "halo/ai/actor_alerts.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace c_actor_alert_from_damage {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 #define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
 #define B(o) (actor[(o)])
@@ -82,7 +83,6 @@ extern "C" uint8_t actor_alert_from_damage(datum_index actor_index)
 namespace c_actor_alert_from_disturbance {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 #define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
 #define B(o) (actor[(o)])
@@ -116,7 +116,7 @@ uint8_t halo::ai::alert_ops::alert_from_disturbance()
     datum_index actor_index = datum;
     uint8_t *actor = ACTOR(actor_index);
 
-    if (B(0x2f0) == 0 || (*(uint32_t *)tag_instances[D(0x58) & 0xffff].data & 0x400) == 0) {
+    if (B(0x2f0) == 0 || (*(uint32_t *)halo::cache::globals().tag_instances[D(0x58) & 0xffff].data & 0x400) == 0) {
         return 0;
     }
     actor_raise_alert(actor, 7, D(0x2f4));
@@ -138,7 +138,6 @@ extern "C" uint8_t actor_alert_from_disturbance(datum_index actor_index)
 namespace c_actor_alert_from_flag_1b4 {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 #define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
 #define B(o) (actor[(o)])
@@ -186,7 +185,6 @@ extern "C" uint8_t actor_alert_from_flag_1b4(datum_index actor_index)
 namespace c_actor_alert_from_projectile {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 #define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
 #define B(o) (actor[(o)])
@@ -266,7 +264,6 @@ extern "C" uint8_t actor_alert_from_projectile(datum_index actor_index)
 namespace c_actor_alert_from_squad_attack {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 #define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
 #define B(o) (actor[(o)])
@@ -306,7 +303,7 @@ uint8_t halo::ai::alert_ops::alert_from_squad_attack()
     if (B(0x2ec) == 0) {
         return 0;
     }
-    definition = (uint8_t *)tag_instances[D(0x58) & 0xffff].data;
+    definition = (uint8_t *)halo::cache::globals().tag_instances[D(0x58) & 0xffff].data;
     if (!(F(0x1c0) > *(float *)(definition + 0x2ac))) {
         return 0;
     }
@@ -458,10 +455,8 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 
-extern real random_real(void);
 extern float actor_get_consideration_wait_threshold(uint32_t actor_index, int16_t mode, actor_combat_consideration *consideration);
 extern int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *target_point);
 extern uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index, datum_index actor_index,
@@ -485,7 +480,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
     using namespace c_actor_consider_combat_mode;
     uint32_t actor_index = datum;
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
     uint8_t *record = (uint8_t *)out;
     int16_t mode = consideration_mode;
     uint8_t result = 1;
@@ -524,7 +519,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
             leap = 1;
             mode = 3;
         } else {
-            leap = random_real() < ((Actor *)actor_tag)->melee_leap_chance;
+            leap = halo::math::random_real() < ((Actor *)actor_tag)->melee_leap_chance;
             record[0xa] = leap;
             if (*(float *)(target + 0x11c) < *(float *)(actor_tag + 0x384)) {
                 leap = 0;
@@ -578,12 +573,11 @@ extern "C" uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t cons
 namespace c_actor_escalate_apply {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 
 extern void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag);
@@ -628,12 +622,11 @@ extern "C" uint8_t actor_escalate_apply(datum_index actor_index, int16_t thresho
 namespace c_actor_escalate_check_leader_flag {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 }
 }
@@ -674,12 +667,11 @@ extern "C" uint8_t actor_escalate_check_leader_flag(datum_index actor_index)
 namespace c_actor_escalate_check_shield_damage {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 }
 }
@@ -722,12 +714,11 @@ extern "C" uint8_t actor_escalate_check_shield_damage(datum_index actor_index)
 namespace c_actor_escalate_check_target_close {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 }
 }
@@ -771,15 +762,13 @@ extern "C" uint8_t actor_escalate_check_target_close(datum_index actor_index)
 namespace c_actor_escalate_check_weapon_range {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 
-extern uint32_t random_seed_global;
 extern void *actor_get_actor_definition(datum_index actor_index);
 }
 }
@@ -806,8 +795,8 @@ uint8_t halo::ai::alert_ops::escalate_check_weapon_range()
     if (!(*(float *)(PROP(((actor *)act)->target_unit_index) + 0x11c) < *(float *)(definition + 0x16c))) {
         return 0;
     }
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    if (!((float)(random_seed_global >> 16) * 1.5259022e-05f < ((Actor *)actor_tag)->berserk_grenade_chance)) {
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    if (!((float)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f < ((Actor *)actor_tag)->berserk_grenade_chance)) {
         return 0;
     }
     if (*(int16_t *)(act + 0x310) <= 4) {
@@ -828,7 +817,6 @@ extern "C" uint8_t actor_escalate_check_weapon_range(datum_index actor_index)
 namespace c_actor_escalate_to_guard_or_combat {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 
 #define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
 #define B(o) (actor[(o)])
@@ -886,7 +874,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *prop_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern game_main_globals *main_game_globals;
 
@@ -899,7 +886,7 @@ extern uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consider
     actor_combat_consideration *out);
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
 
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 }
 }

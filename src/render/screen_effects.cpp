@@ -16,15 +16,15 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state;
 extern game_time_globals *game_time;
 extern GlobalsRasterizerData *rasterizer_globals_data;
-extern tag_instance *tag_instances;
 extern ColorRGB *default_axis_b;
 extern ColorRGB *global_real_rgb_green_pointer;
-extern void real_lerp_clamped(real *out, real a, real b, real t);
 extern frame_graph frame_graphs[1];
 extern void *rasterizer_device;
 extern rasterizer_window_parameters rasterizer_window;
@@ -297,13 +297,13 @@ void set_video(int16_t overbright_mode, float noise_intensity)
 
     g->video_enabled = 1;
 
-    scanline_tag = &tag_instances[(uint16_t)*(int32_t *)&rasterizer_globals_data->video_scanline_map.tag_id];
+    scanline_tag = &halo::cache::globals().tag_instances[(uint16_t)*(int32_t *)&rasterizer_globals_data->video_scanline_map.tag_id];
     g->video_scanline_map = *(uint32_t *)((uint8_t *)scanline_tag->data + 0x64);
 
     g->video_noise_intensity = noise_intensity;
     g->unknown_30 = 1.0f;
 
-    noise_tag = &tag_instances[(uint16_t)*(int32_t *)&rasterizer_globals_data->video_noise_map.tag_id];
+    noise_tag = &halo::cache::globals().tag_instances[(uint16_t)*(int32_t *)&rasterizer_globals_data->video_noise_map.tag_id];
     g->video_noise_map = *(uint32_t *)((uint8_t *)noise_tag->data + 0x64);
 }
 
@@ -331,10 +331,10 @@ cinematic_screen_effect_globals *update(cinematic_screen_effect_globals *input)
 
     g->convolution_radius = (1.0f - convolution_progress) * g->convolution_radius_lower_bound +
                             convolution_progress * g->convolution_radius_upper_bound;
-    real_lerp_clamped(&g->filter_light_enhancement_intensity,
+    halo::math::real_lerp_clamped(g->filter_light_enhancement_intensity,
                       g->filter_light_enhancement_intensity_lower_bound,
                       g->filter_light_enhancement_intensity_upper_bound, filter_progress);
-    real_lerp_clamped(&g->filter_desaturation_intensity,
+    halo::math::real_lerp_clamped(g->filter_desaturation_intensity,
                       g->filter_desaturation_intensity_lower_bound,
                       g->filter_desaturation_intensity_upper_bound, filter_progress);
 

@@ -1,4 +1,8 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 namespace halo::ai {
 
@@ -102,19 +106,16 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
 extern game_time_globals *game_time;
-extern const real_vector3d *global_forward3d_pointer;
 extern char ai_marker_name_a[];
 extern char ai_marker_name_b[];
 extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern void object_get_position(real_point3d *out_position, datum_index object_index);
 extern datum_index object_get_root_object_index(uint32_t object_index);
-extern real vector3d_magnitude_squared(real_vector3d *v);
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out);
 extern char unit_get_tag_flag_bit7(uint32_t unit_index);
 extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index, char stamp_group);
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 }
 }
 
@@ -157,7 +158,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
         }
         {
             if (((unit_obj->vitality_flags & 4) == 0 || *(int16_t *)((uint8_t *)unit_obj + 0x420) != 0) ||
-                (target->perception_level != 0 || 0.010000001f <= vector3d_magnitude_squared(&unit_obj->velocity))) {
+                (target->perception_level != 0 || 0.010000001f <= halo::math::vector3d_magnitude_squared(unit_obj->velocity))) {
                 is_eligible = 0;
             } else {
                 is_eligible = 1;
@@ -256,11 +257,11 @@ after_reassign:
     target->direction.x = target->last_known_position.x - *(float *)((uint8_t *)reference + 0xc);
     target->direction.y = target->last_known_position.y - *(float *)((uint8_t *)reference + 0x10);
     target->direction.z = target->last_known_position.z - *(float *)((uint8_t *)reference + 0x14);
-    length = vector3d_normalize_with_length((real_vector3d *)&target->direction);
+    length = halo::math::vector3d_normalize_with_length(*((real_vector3d *)&target->direction));
     target->distance = length;
 
     if (length == 0.0f) {
-        *(real_vector3d *)&target->direction = *global_forward3d_pointer;
+        *(real_vector3d *)&target->direction = *halo::math::globals().global_forward3d_pointer;
     }
 }
 
@@ -271,7 +272,6 @@ extern uint8_t actor_target_has_conflicting_neighbor(datum_index actor_index, da
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index target_prop_index, uint8_t already_noticed);
-extern void datum_delete(data_array *array, datum_index handle);
 }
 }
 
@@ -314,7 +314,7 @@ uint32_t TargetView::target_data_release(uint32_t actor_index, uint8_t *out_conf
 
             actor_replace_object_reference(actor_index, target_prop_index, pair_index);
             actor_unlink_prop(actor_index, pair_index);
-            datum_delete(prop_data, pair_index);
+            halo::memory::datum_delete(prop_data, pair_index);
             target->pair_index = k_datum_index_none;
         }
 
@@ -513,11 +513,8 @@ extern "C" {
 extern double sqrt(double x);
 static float sqrt_f(float x) { return (float)sqrt((double)x); }
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint8_t scenario_location_background_sound_is_deafening_to_ais(bsp_leaf_reference *location);
-extern uint8_t cluster_sound_distance_lookup(int16_t cluster_a, int16_t cluster_b,
-    ScenarioStructureBSP *structure_bsp);
 }
 }
 
@@ -552,7 +549,7 @@ uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_inde
     if (source_cluster == -1) {
         return 0;
     }
-    range = *(float *)((uint8_t *)tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data + 0x4c);
+    range = *(float *)((uint8_t *)halo::cache::globals().tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data + 0x4c);
     dx = listener_position->x - *(float *)(listener + 0x0);
     dy = listener_position->y - *(float *)(listener + 0x4);
     dz = listener_position->z - *(float *)(listener + 0x8);
@@ -582,7 +579,7 @@ uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_inde
     if (!(range * range > distance_squared)) {
         return 0;
     }
-    pas = cluster_sound_distance_lookup(listener_cluster, source_cluster, global_structure_bsp);
+    pas = halo::structures::cluster_sound_distance_lookup(listener_cluster, source_cluster, global_structure_bsp);
     if (pas & 0x80) {
         return 0;
     }
@@ -784,7 +781,6 @@ extern datum_index actor_find_or_allocate_prop(uint32_t actor_index, datum_index
 extern void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force, char allow_reassign);
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
-extern void datum_delete(data_array *array, datum_index handle);
 }
 }
 
@@ -1020,11 +1016,11 @@ merged:
                 if ((p->state < 4 || 5 < p->state) && p->pair_index != k_datum_index_none) {
                     actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(p->pair_index));
                     actor_unlink_prop(actor_index, p->pair_index);
-                    datum_delete(prop_data, p->pair_index);
+                    halo::memory::datum_delete(prop_data, p->pair_index);
                 }
                 actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(current));
                 actor_unlink_prop(actor_index, current);
-                datum_delete(prop_data, current);
+                halo::memory::datum_delete(prop_data, current);
             }
         }
     }
@@ -1119,11 +1115,11 @@ list_a_evict:
                             existing->pair_index != k_datum_index_none) {
                             actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(existing->pair_index));
                             actor_unlink_prop(actor_index, existing->pair_index);
-                            datum_delete(prop_data, existing->pair_index);
+                            halo::memory::datum_delete(prop_data, existing->pair_index);
                         }
                         actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(list_a.entries[i].prop_index));
                         actor_unlink_prop(actor_index, list_a.entries[i].prop_index);
-                        datum_delete(prop_data, list_a.entries[i].prop_index);
+                        halo::memory::datum_delete(prop_data, list_a.entries[i].prop_index);
                     }
                     i++;
                 } while (i < list_a.entry_count);
@@ -1173,11 +1169,11 @@ list_b_evict:
                         existing->pair_index != k_datum_index_none) {
                         actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(existing->pair_index));
                         actor_unlink_prop(actor_index, existing->pair_index);
-                        datum_delete(prop_data, existing->pair_index);
+                        halo::memory::datum_delete(prop_data, existing->pair_index);
                     }
                     actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(list_b.entries[i].prop_index));
                     actor_unlink_prop(actor_index, list_b.entries[i].prop_index);
-                    datum_delete(prop_data, list_b.entries[i].prop_index);
+                    halo::memory::datum_delete(prop_data, list_b.entries[i].prop_index);
                 }
                 i++;
             } while (i < list_b.entry_count);
@@ -1247,7 +1243,6 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
 extern data_array *encounter_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,
@@ -1255,7 +1250,6 @@ extern void object_get_root_object_velocities(uint32_t object_index, real_vector
 extern void actor_target_mark_engaged(datum_index target_prop_index, datum_index actor_index,
     uint8_t mark_engaged);
 extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index);
-extern void * datum_get(datum_index handle, data_array *array);
 extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index);
 extern float actor_compute_target_priority_weight(datum_index prop_index, datum_index actor_index);
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant,
@@ -1310,7 +1304,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
         return;
     }
 
-    actor_def = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    actor_def = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
     enc = (self->encounter_index == (datum_index)k_datum_index_none)
               ? (encounter *)0
               : &((encounter *)encounter_data->data)[self->encounter_index & 0xffff];
@@ -1443,7 +1437,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
         p->perception_range_class = 2;
 
         if (unit_obj->type == _object_type_biped) {
-            void *own_tag_data = tag_instances[unit_obj->definition_tag & 0xffff].data;
+            void *own_tag_data = halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
             p->flying = (uint8_t)((*(uint32_t *)((uint8_t *)own_tag_data + 0x2f4)) >> 2) & 1;
         } else {
             p->flying = 0;
@@ -1604,11 +1598,11 @@ after_engage:
         if (2 <= p->state && p->state < 4 &&
             (1 < p->visual_perception ||
              (p->has_current_information != 0 &&p->information_source_actor != -1 &&
-              ((actor *)datum_get(p->information_source_actor, actor_data)) != (actor *)0 &&
-              9 < ((actor *)datum_get(p->information_source_actor, actor_data))->target_combat_status &&
-              ((actor *)datum_get(p->information_source_actor, actor_data))->target_unit_index != (datum_index)k_datum_index_none &&
-              ((actor *)datum_get(p->information_source_actor, actor_data))->wants_to_fire != 0 &&
-              (((prop *)prop_data->data)[((actor *)datum_get(p->information_source_actor, actor_data))->target_unit_index & 0xffff]).object_index == p->object_index))) {
+              ((actor *)halo::memory::datum_get(p->information_source_actor, actor_data)) != (actor *)0 &&
+              9 < ((actor *)halo::memory::datum_get(p->information_source_actor, actor_data))->target_combat_status &&
+              ((actor *)halo::memory::datum_get(p->information_source_actor, actor_data))->target_unit_index != (datum_index)k_datum_index_none &&
+              ((actor *)halo::memory::datum_get(p->information_source_actor, actor_data))->wants_to_fire != 0 &&
+              (((prop *)prop_data->data)[((actor *)halo::memory::datum_get(p->information_source_actor, actor_data))->target_unit_index & 0xffff]).object_index == p->object_index))) {
             p->has_current_information = 1;
             p->information_age = 0;
         }
@@ -1720,8 +1714,6 @@ namespace actor_targets_share_descriptor_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern void * datum_get(datum_index handle, data_array *array);
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
 }
 }
 
@@ -1749,10 +1741,10 @@ uint8_t ActorOps::targets_share_descriptor(datum_index actor_a, datum_index acto
     if (desc_a[0] == 0 && desc_b[0] == 0) {
         datum_index datum_a = self_a->target_unit_index;
         datum_index datum_b = self_b->target_unit_index;
-        prop *prop_a = (prop *)datum_get(datum_a, prop_data);
-        prop *prop_b = (prop *)datum_get(datum_b, prop_data);
+        prop *prop_a = (prop *)halo::memory::datum_get(datum_a, prop_data);
+        prop *prop_b = (prop *)halo::memory::datum_get(datum_b, prop_data);
         if (prop_a == (prop *)0 || prop_b == (prop *)0) return 0;
-        if (0.48999998f <= vector3d_distance_squared(&prop_b->last_known_position, &prop_a->last_known_position)) return 0;
+        if (0.48999998f <= halo::math::vector3d_distance_squared(prop_b->last_known_position, prop_a->last_known_position)) return 0;
     } else if (desc_a[0] == 1 && desc_b[0] == 1) {
         return desc_a[1] == desc_b[1];
     } else if (desc_a[0] != 2 || desc_b[0] != 2) {

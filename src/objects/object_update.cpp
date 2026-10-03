@@ -1,6 +1,8 @@
 #include "halo/objects/object_update.hpp"
 #include "game.h"
 #include "models.h"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern float angle_delta_wrapped(float from, float to);
@@ -17,10 +19,6 @@ extern double fpatan(double y, double x);
 extern game_time_globals *game_time;
 extern real_vector3d *global_origin3d_pointer;
 extern Scenario *global_scenario;
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
-extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out);
-extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern void model_nodes_blend_transforms(real_orientation *in_out, int16_t node_count, real_orientation *other, int16_t step, int16_t steps);
 extern void model_nodes_get_default_transforms(GBXModel *model, real_orientation *out);
 extern int16_t network_game_mode;
@@ -40,13 +38,7 @@ extern uint8_t object_update(uint32_t object_index);
 extern void object_update_change_colors(uint32_t object_index);
 extern void object_update_functions(uint32_t object_index);
 extern void object_update_vitality_and_regeneration(uint32_t object_index);
-extern real periodic_function_evaluate(periodic_function_t type, double time);
 extern double pow(double base, double exponent);
-extern real random_real(void);
-extern uint32_t random_seed_global;
-extern tag_instance *tag_instances;
-extern real transition_function_evaluate(transition_function_t type, real phase);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 }
 
 /**
@@ -61,9 +53,9 @@ void halo::objects::ObjectUpdater::regions_reset_permutation_lock(int8_t unlock)
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
     object *obj = headers[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     ModelCollisionGeometry *geometry =
-        (ModelCollisionGeometry *)tag_instances[definition->collision_model.tag_id.index].data;
+        (ModelCollisionGeometry *)halo::cache::globals().tag_instances[definition->collision_model.tag_id.index].data;
     ModelCollisionGeometryRegion *regions = (ModelCollisionGeometryRegion *)geometry->regions.pointer;
     int32_t region_count = (int32_t)geometry->regions.count;
     int32_t region_index;
@@ -86,14 +78,14 @@ void halo::objects::ObjectUpdater::set_permutation_by_name(char *name, int16_t r
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if (definition->model.tag_id.index == 0xffff) {
         return;
     }
 
     {
-        GBXModel *model = (GBXModel *)tag_instances[definition->model.tag_id.index & 0xffff].data;
+        GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[definition->model.tag_id.index & 0xffff].data;
         int16_t region_index;
         for (region_index = 0; region_index < (int16_t)model->regions.count; region_index++) {
             ModelRegion *region;
@@ -133,7 +125,7 @@ uint8_t halo::objects::ObjectUpdater::update()
     uint32_t object_index = handle;
     object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
     object *obj = header->data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if ((header->flags & _object_header_just_created_bit) != 0) {
         return 1;
@@ -214,7 +206,7 @@ void halo::objects::ObjectUpdater::update_export_functions()
 {
     datum_index object_index = handle;
     uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
-    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & 0xffff].data;
     int32_t i;
 
     for (i = 0; i < 4; i++) {
@@ -232,7 +224,7 @@ void halo::objects::ObjectUpdater::update_export_functions()
         case 4: value = *(float *)(object + 0xe8); break;
         case 5:
             if (*(uint32_t *)output == 0x3f800000) {
-                value = random_real();
+                value = halo::math::random_real();
             }
             break;
         case 18: value = (object[0x106] & 4) != 0 ? 0.0f : 1.0f; break;
@@ -314,7 +306,7 @@ store_and_advance:
             goto store_and_advance;
         case 5:
             if (*out_values == 1.0f) {
-                value = random_real();
+                value = halo::math::random_real();
             }
             goto store_and_advance;
         case 0x12:
@@ -378,7 +370,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius_recursive()
 
 namespace {
 #define OFS(base, off, type) (*(type *)((uint8_t *)(base) + (off)))
-#define TAG_DATA(id) ((uint8_t *)tag_instances[(uint32_t)(id) & 0xffff].data)
+#define TAG_DATA(id) ((uint8_t *)halo::cache::globals().tag_instances[(uint32_t)(id) & 0xffff].data)
 static void matrix4x3_set_translation_only(real_matrix4x3 *m, const real_point3d *position)
 {
     m->scale = 1.0f;
@@ -417,7 +409,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         nodes[0].scale = 1.0f;
         nodes[0].forward = OFS(obj, 0x74, real_vector3d);
         nodes[0].up = OFS(obj, 0x80, real_vector3d);
-        vector3d_cross_product(&nodes[0].left, &nodes[0].forward, &nodes[0].up);
+        halo::math::vector3d_cross_product(nodes[0].left, nodes[0].forward, nodes[0].up);
         nodes[0].position = OFS(obj, 0x5c, real_point3d);
     } else {
         uint8_t *model = TAG_DATA(OFS(def, 0x34, uint32_t));
@@ -500,7 +492,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
 
             if (node_index == 0) {
                 real_matrix4x3 root;
-                matrix4x3_from_quaternion(&orientations[0].rotation, &root);
+                halo::math::matrix4x3_from_quaternion(orientations[0].rotation, root);
                 root.scale = orientations[0].scale;
                 root.position = orientations[0].translation;
 
@@ -514,7 +506,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                     real_matrix4x3 *base = parent_matrix;
 
                     matrix4x3_set_translation_only(&world, &OFS(obj, 0x5c, real_point3d));
-                    matrix4x3_from_forward_up(&OFS(obj, 0x80, real_vector3d), &OFS(obj, 0x74, real_vector3d), &orientation);
+                    halo::math::matrix4x3_from_forward_up(OFS(obj, 0x80, real_vector3d), OFS(obj, 0x74, real_vector3d), orientation);
                     if ((OFS(obj, 0x10, uint32_t) & 0x1000) != 0) {
                         orientation.left.i = -orientation.left.i;
                         orientation.left.j = -orientation.left.j;
@@ -527,10 +519,10 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                         negated.y = -OFS(tag, 0x10, float);
                         negated.z = -OFS(tag, 0x14, float);
                         matrix4x3_set_translation_only(&offset, &negated);
-                        matrix4x3_multiply_procedure(&orientation, &offset, &orientation);
+                        halo::math::globals().matrix4x3_multiply_procedure(&orientation, &offset, &orientation);
                     }
                     matrix4x3_set_translation_only(&offset, &OFS(def, 0x14, real_point3d));
-                    matrix4x3_multiply_procedure(&orientation, &offset, &orientation);
+                    halo::math::globals().matrix4x3_multiply_procedure(&orientation, &offset, &orientation);
 
                     if (base != 0) {
                         if (base->scale != 1.0f) {
@@ -554,20 +546,20 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                                 base->left.k = -base->left.k;
                             }
                         }
-                        matrix4x3_multiply_procedure(base, &world, &nodes[0]);
-                        matrix4x3_multiply_procedure(&nodes[0], &orientation, &nodes[0]);
-                        matrix4x3_multiply_procedure(&nodes[0], &root, &nodes[0]);
+                        halo::math::globals().matrix4x3_multiply_procedure(base, &world, &nodes[0]);
+                        halo::math::globals().matrix4x3_multiply_procedure(&nodes[0], &orientation, &nodes[0]);
+                        halo::math::globals().matrix4x3_multiply_procedure(&nodes[0], &root, &nodes[0]);
                     } else {
-                        matrix4x3_multiply_procedure(&world, &orientation, &nodes[0]);
-                        matrix4x3_multiply_procedure(&nodes[0], &root, &nodes[0]);
+                        halo::math::globals().matrix4x3_multiply_procedure(&world, &orientation, &nodes[0]);
+                        halo::math::globals().matrix4x3_multiply_procedure(&nodes[0], &root, &nodes[0]);
                     }
                 }
             } else {
                 real_matrix4x3 *m = &nodes[node_index];
-                matrix4x3_from_quaternion(&orientations[node_index].rotation, m);
+                halo::math::matrix4x3_from_quaternion(orientations[node_index].rotation, *m);
                 m->scale = orientations[node_index].scale;
                 m->position = orientations[node_index].translation;
-                matrix4x3_multiply_procedure(&nodes[OFS(node, 0x24, int16_t)], m, m);
+                halo::math::globals().matrix4x3_multiply_procedure(&nodes[OFS(node, 0x24, int16_t)], m, m);
             }
 
             if (OFS(node, 0x20, int16_t) != -1) {
@@ -579,7 +571,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         } while (head != tail);
     }
 
-    matrix4x3_transform_point(&OFS(obj, 0xa0, real_point3d), &OFS(def, 0x8, real_point3d), &nodes[0]);
+    halo::math::matrix4x3_transform_point(OFS(obj, 0xa0, real_point3d), OFS(def, 0x8, real_point3d), nodes[0]);
     OFS(obj, 0xac, float) = OFS(def, 0x4, float);
     if (OFS(obj, 0xb0, float) > 0.0f) {
         OFS(obj, 0xac, float) = OFS(def, 0x4, float) * OFS(obj, 0xb0, float);
@@ -612,7 +604,7 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
 {
     uint32_t object_index = handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     float *position = (float *)(obj + 0x5c);
     int32_t i;
 
@@ -705,8 +697,8 @@ uint8_t halo::objects::ObjectUpdater::regions_initialize_permutations(int16_t gr
         if (match_count == 1) {
             chosen = 0;
         } else {
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            chosen = (int16_t)(((int32_t)(random_seed_global >> 0x10) * match_count) >> 0x10);
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            chosen = (int16_t)(((int32_t)(halo::math::globals().random_seed_global >> 0x10) * match_count) >> 0x10);
         }
         obj->region_permutations[region_index] = (uint8_t)matches[chosen];
     }
@@ -750,10 +742,10 @@ void halo::objects::ObjectUpdater::refresh_region_permutations()
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if (definition->model.tag_id.index != 0xffff) {
-        GBXModel *model = (GBXModel *)tag_instances[definition->model.tag_id.index & 0xffff].data;
+        GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[definition->model.tag_id.index & 0xffff].data;
         int16_t *cached_group = (int16_t *)((uint8_t *)obj + 0xbe);
 
         if ((*cached_group <= 0) || (object_regions_initialize_permutations(object_index, *cached_group, model) == 0)) {
@@ -777,7 +769,7 @@ void halo::objects::ObjectUpdater::update_change_colors()
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if ((definition->scales_change_colors & 1) != 0) {
         int32_t count = definition->change_colors.count;
@@ -832,7 +824,7 @@ void halo::objects::ObjectUpdater::update_functions()
 {
     uint32_t object_index = handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     float phase = (float)(int32_t)((object_index & 0xffff) * 0x39 + game_time->game_time) * 0.033333335f;
     int16_t i;
 
@@ -848,7 +840,7 @@ void halo::objects::ObjectUpdater::update_functions()
                 period = period / scale;
             }
         }
-        value = periodic_function_evaluate(fn->function, (double)(period * phase));
+        value = halo::math::periodic_function_evaluate(fn->function, (double)(period * phase));
         if (fn->scale_function_by != 0) {
             value = function_scale_input(obj, fn->scale_function_by) * value;
         }
@@ -856,7 +848,7 @@ void halo::objects::ObjectUpdater::update_functions()
             value = 1.0f - value;
         }
         if (fn->wobble_magnitude != 0.0f) {
-            float wobble = periodic_function_evaluate(fn->wobble_function, (double)(phase * fn->wobble_period));
+            float wobble = halo::math::periodic_function_evaluate(fn->wobble_function, (double)(phase * fn->wobble_period));
             wobble = (wobble - 0.5f) * fn->wobble_magnitude;
             value = wobble + wobble + value;
         }
@@ -878,7 +870,7 @@ void halo::objects::ObjectUpdater::update_functions()
         if (fn->scale_result_by != 0) {
             value = function_scale_input(obj, fn->scale_result_by) * value;
         }
-        value = transition_function_evaluate(fn->map_to, value);
+        value = halo::math::transition_function_evaluate(fn->map_to, value);
         if (fn->scale_by > 0.0f) {
             value = value * fn->scale_by;
         }

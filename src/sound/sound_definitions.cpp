@@ -5,6 +5,8 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::sound {
 
@@ -12,7 +14,7 @@ namespace definitions {
 
 float maximum_distance(datum_index sound_definition)
 {
-    Sound *tag = (Sound *)tag_instances[sound_definition & 0xffff].data;
+    Sound *tag = (Sound *)halo::cache::globals().tag_instances[sound_definition & 0xffff].data;
     float distance = tag->maximum_distance;
 
     if (distance == 0.0f) {
@@ -85,8 +87,8 @@ int16_t pick_permutation(int16_t pitch_range_index, int16_t explicit_permutation
         return (int16_t)permutations[explicit_permutation_index].next_permutation_index;
     }
 
-    effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
-    candidate = (uint32_t)((effect_random_seed >> 16) * (int32_t)range->actual_permutation_count) >> 16;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+    candidate = (uint32_t)((halo::math::globals().effect_random_seed >> 16) * (int32_t)range->actual_permutation_count) >> 16;
     attempts = 0;
     permutations = (SoundPermutation *)range->permutations.pointer;
 
@@ -111,10 +113,10 @@ int16_t pick_permutation(int16_t pitch_range_index, int16_t explicit_permutation
                 break;
             }
 
-            effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
             attempts++;
 
-            if (permutations[chosen].skip_fraction <= (float)(effect_random_seed >> 16) * 1.5259022e-05f) {
+            if (permutations[chosen].skip_fraction <= (float)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f) {
                 break;
             }
         }
@@ -153,7 +155,7 @@ float compute_random_pitch(float pitch_bounds_min, float pitch_bounds_max, float
     float random_pitch;
 
     distance_modifier = (one_pitch_modifier - zero_pitch_modifier) * distance_scale + zero_pitch_modifier;
-    random_pitch = random_real_range_seeded(&effect_random_seed, pitch_bounds_min, pitch_bounds_max);
+    random_pitch = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed, pitch_bounds_min, pitch_bounds_max);
     return distance_modifier * random_pitch;
 }
 
@@ -162,7 +164,7 @@ uint32_t has_audible_permutations(TagID sound_tag_id)
     Sound *sound;
     SoundPitchRange *pitch_range;
 
-    sound = (Sound *)tag_instances[sound_tag_id.index].data;
+    sound = (Sound *)halo::cache::globals().tag_instances[sound_tag_id.index].data;
     if (sound->pitch_ranges.count != 0) {
         pitch_range = (SoundPitchRange *)sound->pitch_ranges.pointer;
         if (pitch_range->permutations.count != 0 &&
@@ -180,7 +182,7 @@ int16_t check_promotion(TagID sound_tag_id)
     int32_t accumulated;
     int32_t threshold;
 
-    sound = (Sound *)tag_instances[sound_tag_id.index].data;
+    sound = (Sound *)halo::cache::globals().tag_instances[sound_tag_id.index].data;
     if (sound->promotion_count == 0) {
         return 0;
     }
@@ -212,10 +214,10 @@ void random_detail_direction(SoundLoopingDetail *detail, real_vector3d *out)
     float pitch;
     float yaw;
 
-    distance = random_real_range_seeded(&effect_random_seed, detail->distance_bounds[0], detail->distance_bounds[1]);
+    distance = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed, detail->distance_bounds[0], detail->distance_bounds[1]);
     if (distance != 0.0f) {
-        pitch = random_real_range_seeded(&effect_random_seed, detail->pitch_bounds[0], detail->pitch_bounds[1]);
-        yaw = random_real_range_seeded(&effect_random_seed, detail->yaw_bounds[0], detail->yaw_bounds[1]);
+        pitch = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed, detail->pitch_bounds[0], detail->pitch_bounds[1]);
+        yaw = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed, detail->yaw_bounds[0], detail->yaw_bounds[1]);
         out->i = (float)(cos((double)yaw) * cos((double)pitch)) * distance;
         out->j = (float)(sin((double)yaw) * cos((double)pitch)) * distance;
         out->k = (float)sin((double)pitch) * distance;

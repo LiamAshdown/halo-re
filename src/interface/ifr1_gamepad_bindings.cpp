@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_gamepad_bindings.hpp"
 #include <string.h>
 #include <wchar.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -22,7 +23,6 @@ extern void controls_gamepad_lists_refresh(widget_instance *screen);
 extern uint8_t controls_gamepad_list_add(const controls_gamepad_record *entry, controls_gamepad_record *list);
 extern uint8_t controls_gamepad_list_remove(const controls_gamepad_record *entry, controls_gamepad_record *list);
 extern heap *widget_memory_pool;
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 }
 
 static void controls_gamepad_row_set_disabled(widget_instance *row)
@@ -245,7 +245,7 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
     nodes[0]->hidden = controls_assigned_gamepad_count == 0;
     for (i = 0; i < 4; i++) {
         widget_instance *text = nodes[1 + i]->first_child;
-        uint16_t *buffer = (uint16_t *)heap_reallocate(text->text, 0x80, widget_memory_pool);
+        uint16_t *buffer = (uint16_t *)halo::memory::heap_reallocate(text->text, 0x80, widget_memory_pool);
 
         text->text = buffer;
         if (buffer == 0) {
@@ -266,7 +266,7 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
     nodes[5]->hidden = controls_available_gamepad_count == 0;
     for (i = 0; i < 8; i++) {
         widget_instance *text = nodes[6 + i]->first_child;
-        uint16_t *buffer = (uint16_t *)heap_reallocate(text->text, 0x80, widget_memory_pool);
+        uint16_t *buffer = (uint16_t *)halo::memory::heap_reallocate(text->text, 0x80, widget_memory_pool);
 
         text->text = buffer;
         if (buffer == 0) {

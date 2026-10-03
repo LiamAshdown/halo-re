@@ -1,18 +1,18 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_seek_vehicle_to_board_local {
 extern "C" {
 extern data_array *actor_data;
-extern tag_instance *tag_instances;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 extern uint8_t *ai_globals_ptr;
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t actor_vehicle_not_recently_left(datum_index actor_index, datum_index vehicle_index);
@@ -68,7 +68,7 @@ uint8_t ActorView::seek_vehicle_to_board()
                 continue;
             }
             object_get_position(&position, vehicle);
-            distance_squared = vector3d_distance_squared(&position, (real_point3d *)(act + 0x12c));
+            distance_squared = halo::math::vector3d_distance_squared(position, *(real_point3d *)(act + 0x12c));
             if (distance_squared < 100.0f && distance_squared < best_distance) {
                 float distance = *(float *)(p + 0x11c);
 

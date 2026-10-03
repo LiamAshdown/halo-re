@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_play_diagnostics.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t rasterizer_window[];
@@ -8,7 +9,6 @@ extern data_array *object_data;
 extern data_array *prop_data;
 extern data_array *actor_data;
 extern team_pair_globals *team_pair_data;
-extern tag_instance *tag_instances;
 extern void *rasterizer_device;
 extern real_point3d camera_position;
 
@@ -111,7 +111,7 @@ void PlayDiagnostics::run(void)
  */
 void PlayDiagnostics::fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, const float *node0, const float *center, int32_t early_out)
 {
-    uint8_t *model = (uint8_t *)tag_instances[model_tag & 0xffff].data;
+    uint8_t *model = (uint8_t *)halo::cache::globals().tag_instances[model_tag & 0xffff].data;
     int32_t r;
 
     if ((debug_fp_draw_count++ % 90) != 0) {
@@ -144,7 +144,7 @@ void PlayDiagnostics::fp_render_model_note(uint32_t model_tag, float pixels, int
                 GBXModelGeometryPart *part = &((GBXModelGeometryPart *)geometry->parts.pointer)[p];
                 ModelShaderReference *ref =
                     &((ModelShaderReference *)((GBXModel *)model)->shaders.pointer)[(int16_t)part->base.shader_index];
-                uint8_t *shader = (uint8_t *)tag_instances[ref->shader.tag_id.index].data;
+                uint8_t *shader = (uint8_t *)halo::cache::globals().tag_instances[ref->shader.tag_id.index].data;
 
                 standalone_log("DIAG fpdraw   part %d shader_type=%d part_flags=%x triangles=%d", p,
                     *(int16_t *)&((struct Shader *)shader)->shader_type, part->base.flags, part->base.triangle_count);

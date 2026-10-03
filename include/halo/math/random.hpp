@@ -1,11 +1,11 @@
 /**
  * @file include/halo/math/random.hpp
  * The 32-bit lcg random streams and random directions.
- * The C symbols other modules link against are the wrappers in src/math/math_c_api.cpp.
+ * Declared for other modules through halo/math/api.hpp.
  */
 #pragma once
 
-#include "halo/math/math_globals.h"
+#include "halo/math/globals.hpp"
 #include "halo/math/math_types.hpp"
 
 namespace halo::math {
@@ -52,10 +52,10 @@ private:
 };
 
 /** The deterministic simulation stream (random_seed_global): game state, reproducible from its seed. */
-inline random_stream simulation_random() noexcept { return random_stream(random_seed_global); }
+inline random_stream simulation_random() noexcept { return random_stream(globals().random_seed_global); }
 
 /** The non-deterministic effects stream (effect_random_seed): visuals only, never game state. */
-inline random_stream effect_random() noexcept { return random_stream(effect_random_seed); }
+inline random_stream effect_random() noexcept { return random_stream(globals().effect_random_seed); }
 
 
 /**

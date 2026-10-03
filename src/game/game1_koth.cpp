@@ -15,6 +15,9 @@
 #include "cache.h"
 
 #include "halo/game/game1_koth.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern uint8_t hill_pulse_fade_done;
@@ -39,7 +42,6 @@ extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point
     float height_offset, datum_index player_filter, int16_t team_filter);
 extern void game_engine_koth_relocate_object_hill(uint32_t object_index);
 extern uint8_t weapon_must_be_readied(void);
-extern void *data_iterator_next(data_iterator *iterator);
 extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
     datum_index subject, char broadcast);
 extern uint8_t shared_hud_text_draw_state;
@@ -71,7 +73,6 @@ extern int32_t game_engine_find_valid_starting_locations(real_point3d *origin,
     int32_t max_results, int32_t *results);
 extern void point3d_array_project_to_xy_plane(real_point3d *source, Point2D *destination,
     int32_t count);
-extern int16_t polygon2d_convex_hull_build(int32_t count, Point2D *points);
 extern Globals *global_globals;
 extern double sqrt(double x);
 extern double fabs(double x);
@@ -79,16 +80,13 @@ extern double floor(double x);
 extern void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
     uint32_t *position_override, uint32_t *orientation_override, uint32_t param_4,
     uint32_t param_5, float *vertex_source);
-extern tag_instance *tag_instances;
 extern game_engine_state game_engine_state_value;
 extern void unit_reset_gauge_if_flagged(void);
 extern void game_engine_koth_alt_scorer_tick(uint32_t player_index);
 extern void game_engine_koth_update_occupant_table(uint32_t index);
-extern random_seed random_seed_global;
 extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player,
     int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast);
 extern uint16_t unit_find_weapon_index_by_flag(uint32_t unit_index, uint8_t flag_bit);
-extern uint8_t polygon2d_point_inside_margin(int16_t vertex_count, Point2D *point, int32_t margin);
 extern uint8_t king_hill_player_in_hill[16];
 extern int32_t king_bucket_last_credit_tick[16];
 extern uint8_t game_engine_koth_player_in_hill_bounds(uint32_t player_index);
@@ -125,6 +123,17 @@ extern void rasterizer_transparent_geometry_group_build(int32_t tag_data, int32_
 extern void rasterizer_model_draw_restore_states(void);
 extern uint8_t king_hill_single_occupant_flag;
 extern king_globals king_hill_state_globals;
+}
+
+/**
+ * Calls halo::math::polygon2d_point_inside_margin with the three arguments the koth code was reversed with (count,
+ * point, margin); the function also takes the vertex array, which the original passed in ECX and the reversal has
+ * not identified yet.
+ */
+static uint8_t polygon2d_point_inside_margin_unresolved(int16_t count, Point2D *point, int32_t margin)
+{
+    using call_t = uint8_t (*)(int16_t, Point2D *, int32_t);
+    return reinterpret_cast<call_t>(&halo::math::polygon2d_point_inside_margin)(count, point, margin);
 }
 
 namespace halo::game::engine1 {
@@ -246,10 +255,10 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
             iter.next_index = 0;
             iter.index = (datum_index)0xffffffff;
             iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-            element = data_iterator_next(&iter);
+            element = halo::memory::data_iterator_next(&iter);
             while (element != 0) {
                 chimera__kill_feed((datum_index)0xffffffff, 0x26, (uint32_t)0xffffffff, 1, 0);
-                element = data_iterator_next(&iter);
+                element = halo::memory::data_iterator_next(&iter);
             }
         }
         game_engine_koth_relocate_object_hill(object_handle);
@@ -427,7 +436,7 @@ void Koth::build_hill_boundary(void)
     }
 
     point3d_array_project_to_xy_plane(points, hull_points, count);
-    hull_count = polygon2d_convex_hull_build(count, hull_points);
+    hull_count = halo::math::polygon2d_convex_hull_build(reinterpret_cast<real_point2d *>(hull_points), count, reinterpret_cast<int16_t *>(hull_points));
     king_starting_location_count = hull_count;
 
     if (hull_count > 0) {
@@ -625,7 +634,7 @@ uint32_t Koth::dispatch_player_scoring(uint32_t player_index)
             datum_index weapon = unit->weapons[unit->current_weapon_index];
             if (weapon != (datum_index)0xffffffff) {
                 object *weapon_obj = ((object_header *)object_data->data)[weapon & 0xffff].data;
-                uint32_t *tag_data = (uint32_t *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+                uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
                 if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
                     int32_t score = king_alt_player_score[idx];
                     if (score > 0 && score % 0x96 == 0 && score < king_alt_score_target) {
@@ -673,8 +682,8 @@ void Koth::find_marker_position(real_point3d *out_position, int16_t type_filter)
 
         if (matching != 0) {
             int32_t pick;
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            pick = (int16_t)(((random_seed_global >> 0x10) *
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            pick = (int16_t)(((halo::math::globals().random_seed_global >> 0x10) *
                               (uint32_t)(int32_t)(int16_t)matching) >> 0x10);
 
             for (i = 0; i < flag_count; i++) {
@@ -758,7 +767,7 @@ uint8_t Koth::player_in_hill_bounds(uint32_t player_index)
         Point2D point;
         point.x = unit_obj->bounding_center.x;
         point.y = unit_obj->bounding_center.y;
-        return polygon2d_point_inside_margin((int16_t)king_starting_location_count, &point, 0);
+        return polygon2d_point_inside_margin_unresolved((int16_t)king_starting_location_count, &point, 0);
     }
     return 0;
 }
@@ -977,7 +986,7 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
             }
         }
 
-        tag_data = *(int32_t *)((uint8_t *)tag_instances[tag_handle_as_uint & 0xffff].data + 0);
+        tag_data = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_handle_as_uint & 0xffff].data + 0);
         local_f0 = (vertex_source[0x33] + vertex_source[0x22] + vertex_source[0x11] + vertex_source[0]) * 0.25f;
         fStack_ec = (vertex_source[0x34] + vertex_source[0x23] + vertex_source[0x12] + vertex_source[1]) * 0.25f;
         {
@@ -1081,14 +1090,14 @@ void Koth::update_hill_occupancy_state(void)
         int32_t occupant_candidate = -1;
         int32_t occupant = -1;
 
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
         if (element != 0) {
             do {
                 if (king_hill_single_occupant_flag != 0) {
                     count++;
                     occupant = occupant_candidate;
                 }
-                element = data_iterator_next(&iter);
+                element = halo::memory::data_iterator_next(&iter);
             } while (element != 0);
 
             if (count > 1) {
@@ -1126,7 +1135,7 @@ void Koth::update_hill_occupancy_state(void)
         int32_t team1_count = 0;
         int32_t new_state;
 
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
         if (element == 0) {
             king_hill_state_globals.hill_state = _king_hill_empty;
             king_hill_state_globals.hill_ticks = 0;
@@ -1140,7 +1149,7 @@ void Koth::update_hill_occupancy_state(void)
                     team1_count++;
                 }
             }
-            element = data_iterator_next(&iter);
+            element = halo::memory::data_iterator_next(&iter);
         } while (element != 0);
 
         if (team1_count == 0) {
@@ -1214,7 +1223,7 @@ void Koth::update_occupant_table(uint32_t index)
             datum_index weapon = unit_obj->weapons[slot];
             if (weapon != (datum_index)0xffffffff) {
                 object *weapon_obj = ((object_header *)object_data->data)[weapon & 0xffff].data;
-                uint32_t *tag_data = (uint32_t *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+                uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
                 if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
                     int16_t team = ((struct object *)weapon_obj)->owner_team;
                     king_hill_occupant_table[team] = index;

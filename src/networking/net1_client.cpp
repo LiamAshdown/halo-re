@@ -5,6 +5,8 @@
 #include <wchar.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern network_client_globals *network_client;
@@ -42,14 +44,12 @@ extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern int32_t network_channel_service_close_if_disconnected(network_channel *channel);
 extern network_server_globals *network_server;
 extern player_globals *local_player_globals;
-extern void *datum_get(datum_index index);
 extern void network_client_globals_dispose(void);
 extern void network_client_globals_create(void);
 extern uint8_t network_channel_table_default_flag;
 extern void network_client_begin_connect(const wchar_t *name);
 extern uint8_t network_client_vehicle_ack_enabled;
 extern network_id_table *machine_table;
-extern void *data_iterator_next(data_iterator *iterator);
 extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern int32_t build_local_player_position_update(uint8_t *out_changed, player *plr);
 extern int32_t build_local_player_vehicle_update(uint8_t *out_changed, player *plr);
@@ -80,18 +80,15 @@ extern uint8_t network_ping_debug_log_enabled;
 extern uint32_t network_ping_debug_last_sample;
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern int32_t message_delta_sample_ring_buffer_average(message_delta_sample_ring_buffer *ring);
-extern int32_t data_packet_group_encode_packet(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag);
 extern data_packet_group network_game_messages_group;
 extern uint16_t network_challenge_packet_block[];
 extern uint16_t *network_message_block_build(uint16_t *buffer, uint32_t *source, uint8_t flags, uint32_t length);
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 extern char network_player_entry_validate(network_player_entry *entry);
 extern char network_player_entry_add(network_player_entry *entry, network_game_session *session);
 extern int32_t network_channel_key_open(network_player_entry *entry);
 extern int32_t player_data_iterator_advance(int16_t step_count);
 extern void game_set_local_player(datum_index player_handle, int16_t local_player_index);
-extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array);
 extern void update_server_queue_create_entry(datum_index requested_handle);
 extern data_array *update_client_queues;
 extern network_client_globals network_client_storage;
@@ -110,7 +107,6 @@ extern void network_channel_reliable_pool_store(network_channel *channel, void *
 extern char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child);
 extern char network_client_identity_tick(network_client_globals *client);
 extern void network_host_presence_broadcast_tick(network_client_globals *client);
-extern char cache_file_request_map(int32_t unknown);
 extern char network_build_string[];
 extern int32_t network_signal_quality_glyph(void);
 extern void network_receive_queue_close_socket(void);
@@ -147,6 +143,39 @@ extern void network_join_hostname_resolved_callback(int32_t resolve_failed, uint
 extern void function_do_nothing(void);
 extern int32_t NNBeginNegotiationWithSocket(int32_t hostname, int32_t request_id, int32_t one, void (*progress_callback)(void), void (*complete_callback)(int32_t, uint32_t, uint8_t *), int32_t zero);
 extern uint32_t network_game_client_connect_to_address(char *address_string, uint16_t *target_string);
+}
+
+/**
+ * Calls halo::cache::cache_file_request_map with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static char cache_file_request_map_unresolved(int32_t unknown)
+{
+    using call_t = char (*)(int32_t unknown);
+    return reinterpret_cast<call_t>(&halo::cache::cache_file_request_map)(unknown);
+}
+
+/**
+ * Calls halo::memory::datum_get with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static void * datum_get_unresolved(datum_index index)
+{
+    using call_t = void * (*)(datum_index index);
+    return reinterpret_cast<call_t>(&halo::memory::datum_get)(index);
+}
+
+/**
+ * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static int32_t data_packet_group_encode_packet_unresolved(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag)
+{
+    using call_t = int32_t (*)(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag);
+    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(buffer, group, payload, capacity, message_type, flag);
 }
 
 namespace halo::networking {
@@ -475,7 +504,7 @@ int32_t ClientView::identity_tick()
 
         if (network_server == 0) {
             if (*(int32_t *)local_player_globals->local_players != -1) {
-                void *player = datum_get(*(datum_index *)local_player_globals->local_players);
+                void *player = datum_get_unresolved(*(datum_index *)local_player_globals->local_players);
                 if (player != 0) {
                     local_player_id = ((struct player *)player)->team;
                 }
@@ -526,7 +555,7 @@ void ClientView::send_local_player_updates()
     iter.next_index = 0;
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-    candidate = (player *)data_iterator_next(&iter);
+    candidate = (player *)halo::memory::data_iterator_next(&iter);
     while (candidate != 0) {
         if (candidate->local_player_index == -1 && candidate->unit != (datum_index)-1) {
             if (player_unit_has_parent(iter.index) == 0 || network_client_vehicle_ack_enabled == 0) {
@@ -538,7 +567,7 @@ void ClientView::send_local_player_updates()
                 network_session_send_to_machine(1, 0, encoded_size, 0, 0, 0, 0);
             }
         }
-        candidate = (player *)data_iterator_next(&iter);
+        candidate = (player *)halo::memory::data_iterator_next(&iter);
     }
 }
 
@@ -753,7 +782,7 @@ int32_t ClientView::record_message_send(const uint32_t *source)
     }
 
     capacity = 0x600;
-    if ((char)data_packet_group_encode_packet(encoded, &network_game_messages_group, record_copy, &capacity, 0x12, 1) == 0) {
+    if ((char)data_packet_group_encode_packet_unresolved(encoded, &network_game_messages_group, record_copy, &capacity, 0x12, 1) == 0) {
         return 0;
     }
 
@@ -775,9 +804,9 @@ int32_t ClientView::record_message_send(const uint32_t *source)
         }
         channel->send_budget = channel->send_budget + total_bits;
         item_flag = 0;
-        bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
+        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
         channel->outgoing.empty = 0;
-        bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)record, bits_to_send);
+        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)record, bits_to_send);
         channel->outgoing.empty = 0;
     }
     return 1;
@@ -817,7 +846,7 @@ char ClientView::join_finalize(network_player_entry *entry)
         if ((int32_t)row->machine_index == (int32_t)*(uint16_t *)client) {
             game_set_local_player(player_handle, (int16_t)row->machine_player_index);
         }
-        datum_new_at_index_with_salt(player_handle, update_client_queues);
+        halo::memory::datum_new_at_index_with_salt(player_handle, update_client_queues);
         if (network_server != 0) {
             update_server_queue_create_entry(player_handle);
         }
@@ -945,9 +974,9 @@ char ClientView::info_packet_send(const uint32_t *source)
         }
         channel->send_budget = channel->send_budget + bits_to_send + 1;
         item_flag = 0;
-        bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
+        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
         channel->outgoing.empty = 0;
-        bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)challenge, bits_to_send);
+        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)challenge, bits_to_send);
         channel->outgoing.empty = 0;
     }
     return result;
@@ -1004,9 +1033,9 @@ void ClientView::player_join_notify(const uint32_t *source)
                 (retransmit_ok = network_channel_stream_flush(&channel->outgoing, channel, 1), retransmit_ok != 0)) {
 
                 channel->send_budget = channel->send_budget + total_bits;
-                { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
+                { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
                 *((uint8_t *)channel + 0x2c) = 0;
-                bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
+                halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
                 *((uint8_t *)channel + 0x2c) = 0;
             }
         }
@@ -1084,9 +1113,9 @@ int32_t ClientView::staged_message_commit(uint16_t message_value)
             }
             channel->send_budget = channel->send_budget + bits_to_send + 1;
             item_flag = 0;
-            bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
+            halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
             channel->outgoing.empty = 0;
-            bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)challenge, bits_to_send);
+            halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)challenge, bits_to_send);
             channel->outgoing.empty = 0;
         }
     }
@@ -1395,7 +1424,7 @@ void HostClientView::presence_broadcast_tick()
 
     if (client->last_presence_broadcast_ms + 1000 < now_ms) {
         client->last_presence_broadcast_ms = now_ms;
-        if (cache_file_request_map(1) != 0) {
+        if (cache_file_request_map_unresolved(1) != 0) {
             memset(buffer, 0, sizeof(buffer));
             strncpy((char *)buffer, network_build_string, 0x100);
 
@@ -1412,9 +1441,9 @@ void HostClientView::presence_broadcast_tick()
                     {
 
                         ((network_channel *)channel)->send_budget = ((network_channel *)channel)->send_budget + bits_to_send + 1;
-                        { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
+                        { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
                         ((network_channel *)channel)->outgoing.empty = 0;
-                        bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
+                        halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
                         ((network_channel *)channel)->outgoing.empty = 0;
                     }
                 }

@@ -6,12 +6,9 @@
 
 #include "halo/models/models.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
-extern "C" {
-extern tag_instance *tag_instances;
-extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
-extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out);
-}
 
 namespace halo::models {
 
@@ -25,7 +22,7 @@ int16_t model_markers::group_index_from_name(datum_index model_tag_id, const cha
         return -1;
     }
 
-    model = (GBXModel *)tag_instances[halo::datum_slot(model_tag_id)].data;
+    model = (GBXModel *)halo::cache::globals().tag_instances[halo::datum_slot(model_tag_id)].data;
     markers = (ModelMarker *)model->markers.pointer;
 
     lo = 0;
@@ -60,7 +57,7 @@ int16_t model_markers::get_by_name(datum_index model_tag_id, const char *name, u
         return 0;
     }
 
-    model = (GBXModel *)tag_instances[halo::datum_slot(model_tag_id)].data;
+    model = (GBXModel *)halo::cache::globals().tag_instances[halo::datum_slot(model_tag_id)].data;
     marker = &((ModelMarker *)model->markers.pointer)[group_index];
     if (marker->instances.count <= 0) {
         return 0;
@@ -86,10 +83,10 @@ int16_t model_markers::get_by_name(datum_index model_tag_id, const char *name, u
             node_index = (node_remap == 0) ? (int16_t)instance->node_index : node_remap[instance->node_index];
             entry->node_index = node_index;
 
-            matrix4x3_from_quaternion((real_quaternion *)&instance->rotation, &entry->transform);
+            halo::math::matrix4x3_from_quaternion(*((real_quaternion *)&instance->rotation), entry->transform);
             entry->transform.position = *(real_point3d *)&instance->translation;
 
-            matrix4x3_multiply_procedure(&node_matrices[node_index], &entry->transform, &entry->node_transform);
+            halo::math::globals().matrix4x3_multiply_procedure(&node_matrices[node_index], &entry->transform, &entry->node_transform);
 
             if (mirrored != 0) {
                 entry->node_transform.left.i = -entry->node_transform.left.i;

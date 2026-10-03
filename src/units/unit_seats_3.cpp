@@ -1,10 +1,10 @@
 #include "halo/units/unit.hpp"
+#include "halo/cache/api.hpp"
 
+#include <string.h>
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern int tolower(int c);
-extern int32_t strstr(uint8_t *lowered_label, char *name_filter);
 }
 
 namespace halo::units {
@@ -19,7 +19,7 @@ int16_t UnitView::find_seats_matching_name_and_flags(char *name_filter, uint16_t
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Unit *unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
+    Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
 
     uint8_t name_is_empty;
     if (name_filter != (char *)0) {
@@ -47,7 +47,7 @@ int16_t UnitView::find_seats_matching_name_and_flags(char *name_filter, uint16_t
             i++;
         } while (src[i - 1] != '\0');
 
-        if ((!name_is_empty) && (strstr((uint8_t *)lowered, name_filter) == 0)) {
+        if ((!name_is_empty) && (strstr((const char *)lowered, name_filter) == 0)) {
             continue;
         }
 

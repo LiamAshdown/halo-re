@@ -1,7 +1,7 @@
 #include "halo/hs/hs1_interpreter.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
-extern datum_index datum_new(data_array *array);
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
 extern data_array *object_list_header_data;
 extern datum_index *object_name_list;
@@ -86,7 +86,7 @@ datum_index ScriptCasts::object_name_to_object_list(int32_t name_index)
     if (object_index == k_datum_index_none) {
         return k_datum_index_none;
     }
-    header_index = datum_new(object_list_header_data);
+    header_index = halo::memory::datum_new(object_list_header_data);
     if (header_index != k_datum_index_none) {
         object_list_header *header = (object_list_header *)((uint8_t *)object_list_header_data->data +
             (header_index & 0xffff) * 0x0c);

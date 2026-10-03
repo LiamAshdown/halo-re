@@ -1,3 +1,4 @@
+#pragma once
 // Blam projectiles module (halo.exe 1.0.10 retail, 0x4bda60..0x4c1070, 22 Ghidra functions).
 // The projectile branch of the object hierarchy: the projectile_data extension every
 // projectile object carries on top of the common object record, the per-tick ballistic

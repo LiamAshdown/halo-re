@@ -1,9 +1,9 @@
 #include "halo/items/items.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern object_globals *object_globals_pointer;
-extern uint32_t random_seed_global;
 extern void object_delete_unparented(uint32_t object_index);
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
 uint8_t garbage_new(uint32_t object_index);
@@ -33,8 +33,8 @@ uint8_t garbage_ref::create()
     }
     obj->flags |= _object_definition_flag0_bit | _object_connected_to_map_bit;
 
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    *despawn_countdown = (int16_t)(((random_seed_global >> 0x10) * 300) >> 0x10) + 300;
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    *despawn_countdown = (int16_t)(((halo::math::globals().random_seed_global >> 0x10) * 300) >> 0x10) + 300;
 
     return 1;
 }

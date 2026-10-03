@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_teams.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern team_pair_globals *team_pair_data;
@@ -9,7 +10,6 @@ extern void team_pair_set(team_pair_override *entry, uint8_t active, uint8_t cle
 extern int32_t game_state_cursor;
 extern uint8_t *game_state_base;
 extern uint32_t game_state_crc;
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 }
 
 namespace halo::game {
@@ -343,7 +343,7 @@ void TeamPairTable::allocate()
     cursor = (uint32_t *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 0xb4;
     size = 0xb4;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     team_pair_data = (team_pair_globals *)cursor;
     for (count = 0x2d; count != 0; count = count - 1) {
         *cursor = 0;

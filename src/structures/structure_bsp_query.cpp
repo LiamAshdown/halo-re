@@ -5,18 +5,15 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint32_t surface_visible_bits[k_maximum_visible_surface_bits];
-extern float k_cluster_query_radius_threshold;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
                                       real_point3d *point);
 extern real_point3d render_camera_global;
 extern real_vector3d camera_forward_x;
-extern uint8_t triangle_point_barycentric_2d(real_point3d *a, real_point3d *v_ecx, real_point3d *v_edx, real_point3d *p,
-    real *out_u, real *out_v);
 extern float k_surface_resolve_step;
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
     real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
@@ -113,7 +110,7 @@ int16_t structure_bsp_query::leaf_query(int32_t raw_child, int16_t inherited_cla
         int32_t surface = leaf_surfaces[i].surface;
         int32_t word = surface >> 5;
         uint32_t mask = 1u << (surface & 0x1f);
-        if ((surface_visible_bits[word] & mask) == 0) {
+        if ((globals().surface_visible_bits[word] & mask) == 0) {
             continue;
         }
         if ((visited_bits[word] & mask) != 0) {
@@ -160,7 +157,7 @@ int32_t structure_bsp_query::collect_surfaces_in_clusters(int32_t *out_surfaces,
                 int32_t surface = indices[k];
                 int32_t word = surface >> 5;
                 uint32_t mask = 1u << (surface & 0x1f);
-                if ((surface_visible_bits[word] & mask) != 0 && (visited_bits[word] & mask) == 0) {
+                if ((globals().surface_visible_bits[word] & mask) != 0 && (visited_bits[word] & mask) == 0) {
                     if (written >= max_count) {
                         break;
                     }
@@ -190,7 +187,7 @@ int16_t structure_bsp_query::query_surfaces(real_rectangle3d *query_box, real_po
         query_box = &built_box;
     }
 
-    if (radius >= k_cluster_query_radius_threshold) {
+    if (radius >= globals().k_cluster_query_radius_threshold) {
         if (cluster_indices != 0) {
             return (int16_t)structure_bsp_query::collect_surfaces_in_clusters(out_surfaces, (int16_t)max_count, query_box, plane_count, planes, visited_bits, cluster_count, cluster_indices);
         }
@@ -283,8 +280,8 @@ uint8_t structure_bsp_query::leaf_find_material_surface(real_point3d *point, int
             continue;
         }
 
-        if (triangle_point_barycentric_2d(&triangle[0], &triangle[2], &triangle[1], point,
-                                          (real *)out_barycentric_u, (real *)out_barycentric_v)) {
+        if (halo::math::triangle_point_barycentric_2d(triangle[0], triangle[2], triangle[1], *point,
+                                          *(real *)out_barycentric_u, *(real *)out_barycentric_v)) {
             *out_surface = surface_index;
             return 1;
         }

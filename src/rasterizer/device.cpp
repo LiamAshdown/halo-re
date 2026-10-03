@@ -5,6 +5,8 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 
@@ -15,10 +17,8 @@ extern uint16_t *bitmap_data_get_row_address(BitmapData *bitmap, int32_t mip_lev
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern uint32_t __stdcall D3DXGetFVFVertexSize(uint32_t fvf);
-extern void texture_cache_new(void);
 extern uint8_t command_line_check_flag(const char *flag, const char **out_value);
 extern int32_t shell_parse_config_txt(uint32_t adapter, void *direct3d);
-extern void crc32_build_table(crc32_table *table);
 extern void function_do_nothing(void);
 extern void bitmap_data_free(BitmapData *bitmap_data);
 
@@ -1101,16 +1101,16 @@ finish:
         int32_t n;
 
         game_state_cursor += 0x78;
-        if (crc32_lookup_table_initialized == 0) {
-            crc32_build_table(&crc32_lookup_table);
-            crc32_lookup_table_initialized = 1;
+        if (halo::memory::globals().crc32_lookup_table_initialized == 0) {
+            halo::memory::crc32_build_table(&halo::memory::globals().crc32_lookup_table);
+            halo::memory::globals().crc32_lookup_table_initialized = 1;
         }
         for (n = 0; n < 4; n++) {
-            game_state_crc = (game_state_crc >> 8) ^ crc32_lookup_table.entries[(bytes[n] ^ game_state_crc) & 0xff];
+            game_state_crc = (game_state_crc >> 8) ^ halo::memory::globals().crc32_lookup_table.entries[(bytes[n] ^ game_state_crc) & 0xff];
         }
         cinematic_screen_effect_state = (cinematic_screen_effect_globals *)block;
     }
-    texture_cache_new();
+    halo::cache::texture_cache_new();
     if (rasterizer_reset_device_if_needed()) {
         rasterizer_end_frame();
     }

@@ -3,12 +3,8 @@
 #include "halo/cache/cache.hpp"
 
 #include "crt.h"
+#include "halo/cache/globals.hpp"
 
-extern "C" {
-extern cache_file_tag_header *tag_header;
-extern tag_instance *tag_instances;
-extern uint8_t cache_file_loaded;
-}
 
 namespace halo::cache {
 
@@ -23,12 +19,12 @@ datum_index tag_iterator_view::next()
 {
     tag_instance *entry;
 
-    if (this->next_index >= tag_header->tag_count) {
+    if (this->next_index >= globals().tag_header->tag_count) {
         return (datum_index)0xffffffff;
     }
 
     for (;;) {
-        entry = &tag_instances[this->next_index];
+        entry = &globals().tag_instances[this->next_index];
         this->next_index = this->next_index + 1;
 
         if (entry != 0 &&
@@ -38,7 +34,7 @@ datum_index tag_iterator_view::next()
              (int32_t)this->group_tag == (int32_t)entry->grandparent_group_tag)) {
             break;
         }
-        if (this->next_index >= tag_header->tag_count) {
+        if (this->next_index >= globals().tag_header->tag_count) {
             return (datum_index)0xffffffff;
         }
     }
@@ -55,14 +51,14 @@ datum_index tag_table::lookup(tag_group group, char *path)
 {
     int16_t index;
 
-    if (!cache_file_loaded) {
+    if (!globals().cache_file_loaded) {
         return (datum_index)0xffffffff;
     }
 
-    for (index = 0; index < tag_header->tag_count; index++) {
-        if (tag_instances[index].group_tag == group) {
-            if (_stricmp(path, tag_instances[index].path) == 0) {
-                return tag_instances[index].tag_id;
+    for (index = 0; index < globals().tag_header->tag_count; index++) {
+        if (globals().tag_instances[index].group_tag == group) {
+            if (_stricmp(path, globals().tag_instances[index].path) == 0) {
+                return globals().tag_instances[index].tag_id;
             }
         }
     }

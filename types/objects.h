@@ -1,3 +1,4 @@
+#pragma once
 // Blam objects module (halo.exe 1.0.10 retail, 0x4088e0..0x4ffda0, 252 functions).
 // The object system: the object data_array and the variable-length object record that every
 // biped/vehicle/weapon/.../sound_scenery extends, the creation and damage paths, the object

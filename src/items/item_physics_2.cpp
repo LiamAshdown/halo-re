@@ -1,22 +1,18 @@
 #include "halo/items/items.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode;
 extern int16_t global_structure_bsp_index;
 extern uint8_t *global_structure_collision_bsp;
 extern real_vector3d *global_origin3d_pointer;
-extern real_vector3d *global_forward3d_pointer;
-extern real_vector3d *global_up3d_pointer;
 extern real_vector3d *global_down3d_pointer;
 extern float k_physics_gravity;
 extern char s_ground_point_marker[];
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
@@ -24,8 +20,6 @@ extern datum_index sound_start_at_location(datum_index definition_index, sound_p
 extern void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal, real_point3d *point);
 extern void object_list_membership_set(uint32_t object_index, char add);
 extern real_matrix4x3 *object_get_node_marker_address(uint32_t object_index, int16_t node_index);
-extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern void item_compute_rotation(uint32_t object_index);
 extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index);
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
@@ -67,7 +61,7 @@ uint8_t item_ref::update()
 {
     uint32_t item_index = datum;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[item_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
     real_vector3d *forward = &((item_object *)obj)->base.forward;
     real_vector3d *up = &((item_object *)obj)->base.up;
 
@@ -75,11 +69,11 @@ uint8_t item_ref::update()
         if ((((Item *)tag)->item_flags & 1) && !(fabs(((item_object *)obj)->base.up.k - 1.0f) < 9.999999747378752e-05)) {
             real_vector3d side;
 
-            *up = *global_up3d_pointer;
-            vector3d_cross_product(&side, forward, up);
-            vector3d_cross_product(forward, up, &side);
-            if (vector3d_normalize_with_length(forward) == 0.0f) {
-                *forward = *global_forward3d_pointer;
+            *up = *halo::math::globals().global_up3d_pointer;
+            halo::math::vector3d_cross_product(side, *forward, *up);
+            halo::math::vector3d_cross_product(*forward, *up, side);
+            if (halo::math::vector3d_normalize_with_length(*forward) == 0.0f) {
+                *forward = *halo::math::globals().global_forward3d_pointer;
             }
         }
 
@@ -148,8 +142,8 @@ uint8_t item_ref::update()
                     if (hit_type != 2) {
                         ((item_object *)obj)->item.flags |= 0x10;
                         ((item_object *)obj)->item.resting_object_index = hit.object_index;
-                        matrix4x3_inverse_transform_point(object_get_node_marker_address(hit.object_index, 0),
-                                                          &((item_object *)obj)->item.contact_point, &hit.point);
+                        halo::math::matrix4x3_inverse_transform_point(*object_get_node_marker_address(hit.object_index, 0),
+                                                          *(&((item_object *)obj)->item.contact_point), hit.point);
                     } else {
                         ((item_object *)obj)->item.flags |= 8;
                         ((item_object *)obj)->item.resting_surface_index = *(int16_t *)((uint8_t *)&hit + 0x44);
@@ -198,8 +192,8 @@ uint8_t item_ref::update()
                 if (object_try_and_get(support, 0xffffffff) != 0) {
                     real_point3d contact;
 
-                    matrix4x3_transform_point(&contact, &((item_object *)obj)->item.contact_point,
-                                              object_get_node_marker_address(support, 0));
+                    halo::math::matrix4x3_transform_point(contact, *(&((item_object *)obj)->item.contact_point),
+                                              *object_get_node_marker_address(support, 0));
                     item_align_to_normal_and_point(0, item_index, &((item_object *)obj)->item.rotation_axis, &contact);
                 } else {
                     ((item_object *)obj)->item.flags = flags & ~0x10u;
@@ -223,22 +217,22 @@ uint8_t item_ref::update()
                 (int16_t)object_get_node_local_transform(item_index, s_ground_point_marker, &marker, 1)) {
                 real_matrix4x3 frame = marker.node_transform;
 
-                vector3d_rotate_about_axis(&frame.forward, axis, sin_angle, cos_angle);
-                vector3d_rotate_about_axis(&frame.up, axis, sin_angle, cos_angle);
-                vector3d_cross_product(&frame.left, &frame.forward, &frame.up);
-                vector3d_cross_product(&frame.forward, &frame.up, &frame.left);
-                vector3d_normalize_with_length(&frame.forward);
-                vector3d_normalize_with_length(&frame.left);
-                vector3d_normalize_with_length(&frame.up);
+                halo::math::vector3d_rotate_about_axis(frame.forward, *axis, sin_angle, cos_angle);
+                halo::math::vector3d_rotate_about_axis(frame.up, *axis, sin_angle, cos_angle);
+                halo::math::vector3d_cross_product(frame.left, frame.forward, frame.up);
+                halo::math::vector3d_cross_product(frame.forward, frame.up, frame.left);
+                halo::math::vector3d_normalize_with_length(frame.forward);
+                halo::math::vector3d_normalize_with_length(frame.left);
+                halo::math::vector3d_normalize_with_length(frame.up);
                 object_recompute_basis_from_marker_delta((object *)obj, &marker, &frame);
             } else {
-                vector3d_rotate_about_axis(forward, axis, sin_angle, cos_angle);
-                vector3d_rotate_about_axis(up, axis, sin_angle, cos_angle);
+                halo::math::vector3d_rotate_about_axis(*forward, *axis, sin_angle, cos_angle);
+                halo::math::vector3d_rotate_about_axis(*up, *axis, sin_angle, cos_angle);
             }
-            vector3d_normalize_with_length(up);
-            vector3d_cross_product(&side, forward, up);
-            vector3d_cross_product(forward, up, &side);
-            vector3d_normalize_with_length(forward);
+            halo::math::vector3d_normalize_with_length(*up);
+            halo::math::vector3d_cross_product(side, *forward, *up);
+            halo::math::vector3d_cross_product(*forward, *up, side);
+            halo::math::vector3d_normalize_with_length(*forward);
         }
     }
 

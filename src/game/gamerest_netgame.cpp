@@ -1,5 +1,8 @@
 #include "halo/game/gamerest_netgame.hpp"
 #include <stdint.h>
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 #ifdef __cplusplus
 #define CTF_CUSTOM_WAYPOINT_ZERO custom_waypoint{}
@@ -14,7 +17,6 @@ extern int32_t ctf_flag_auto_return_ticks;
 extern uint8_t ctf_single_flag_mode;
 extern data_array *player_data;
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern player_globals *local_player_globals;
 extern uint8_t ctf_active_team;
@@ -24,8 +26,6 @@ extern uint8_t ctf_team_return_credit_active[2];
 extern int32_t ctf_team_return_credit_ticks[2];
 extern datum_index ctf_team_flag_object[2];
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
-extern void *data_iterator_next(data_iterator *iterator);
-extern void *datum_get(datum_index handle, data_array *array);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
 extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force);
@@ -42,8 +42,6 @@ extern datum_index game_engine_find_player_holding_object(datum_index target_obj
 extern uint8_t item_get_effective_position(datum_index object_index, real_point3d *out_position);
 extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position, float height_offset, datum_index player_filter, int16_t team_filter);
 extern int16_t hud_waypoint_arrow_find(void);
-extern real_vector3d *global_forward3d_pointer;
-extern real_vector3d *global_up3d_pointer;
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
 extern void object_reset_velocity_and_wake(uint32_t object_index);
 extern game_engine_definition *current_game_engine;
@@ -82,7 +80,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
             if (ctf_flag_auto_return_ticks == 0) {
                 if ((item->flags & _item_in_inventory_bit) != 0) {
                     if (ctf_single_flag_mode != 0 && *(int32_t *)&((struct object *)flag_obj)->owner_linkage != -1) {
-                        player *carrier = (player *)datum_get(
+                        player *carrier = (player *)halo::memory::datum_get(
                             (datum_index)((struct object *)flag_obj)->owner_linkage, player_data);
                         if (carrier != (player *)0) {
                             object *unit_obj = object_try_and_get(carrier->unit, _object_mask_unit);
@@ -120,10 +118,10 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                     iter.next_index = 0;
                     iter.index = (datum_index)0xffffffff;
                     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-                    element = data_iterator_next(&iter);
+                    element = halo::memory::data_iterator_next(&iter);
                     while (element != 0) {
                         chimera__kill_feed((datum_index)0xffffffff, 0x2d, (uint32_t)0xffffffff, 1, 0);
-                        element = data_iterator_next(&iter);
+                        element = halo::memory::data_iterator_next(&iter);
                     }
                 }
 
@@ -180,7 +178,7 @@ notify_teams:
         goto weapon_coordination;
     }
     {
-        int16_t obj_type = *(int16_t *)tag_instances[(uint32_t)flag_obj->definition_tag & 0xffff].data;
+        int16_t obj_type = *(int16_t *)halo::cache::globals().tag_instances[(uint32_t)flag_obj->definition_tag & 0xffff].data;
         object_type_definition *type_def = object_type_definitions[obj_type];
         if ((*(uint32_t *)((uint8_t *)type_def + 0x308) >> 3 & 1) == 0) {
             goto weapon_coordination;
@@ -262,8 +260,8 @@ void CtfEngine::clear_carrier(datum_index flag_object_index, real_point3d *posit
 
     flag_obj = ((object_header *)object_data->data)[flag_object_index & 0xffff].data;
 
-    object_set_position_and_orientation(flag_object_index, global_forward3d_pointer,
-                                         global_up3d_pointer, position);
+    object_set_position_and_orientation(flag_object_index, halo::math::globals().global_forward3d_pointer,
+                                         halo::math::globals().global_up3d_pointer, position);
     object_reset_velocity_and_wake(flag_object_index);
 
     unknown_22c = (uint32_t *)((uint8_t *)flag_obj + 0x22c);

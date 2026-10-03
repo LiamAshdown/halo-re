@@ -13,6 +13,8 @@
 #include <string.h>
 
 #include "halo/physics/object_physics.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" { extern double fabs(double x); }
 extern "C" { extern double sqrt(double x); }
@@ -23,15 +25,9 @@ extern "C" { extern ScenarioStructureBSP *global_structure_bsp; }
 extern "C" { extern ModelCollisionGeometryBSP *global_collision_bsp; }
 extern "C" { extern real_vector3d *global_down3d_pointer; }
 extern "C" { extern float k_physics_gravity; }
-extern "C" { extern tag_instance *tag_instances; }
 extern "C" { extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); }
-extern "C" { extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); }
-extern "C" { extern void matrix4x3_from_quaternion(void *quaternion, void *out_matrix); }
-extern "C" { extern void matrix4x3_multiply(void *a, void *b, void *out); }
-extern "C" { extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); }
 extern "C" { extern void object_physics_mass_point_resolve_ground_contact(uint32_t exclude_object_index, mass_point_state *mass_point, PhysicsMassPoint *definition); }
 extern "C" { extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point); }
-extern "C" { extern float real_inverse_lerp_clamped(float value, float ref_k0, float ref_k1); }
 extern "C" { extern void object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }
 extern "C" { extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
 extern "C" { extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); }
@@ -65,11 +61,11 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
     int32_t ground_contact_count = 0, on_ground_surface_count = 0, at_rest_count = 0, water_contact_count = 0;
     int32_t i;
 
-    object_tag_data = tag_instances[self->definition_tag & 0xffff].data;
-    definition = (Physics *)tag_instances[(uint16_t)(*(int32_t *)((uint8_t *)object_tag_data + 0x8c)) & 0xffff].data;
+    object_tag_data = halo::cache::globals().tag_instances[self->definition_tag & 0xffff].data;
+    definition = (Physics *)halo::cache::globals().tag_instances[(uint16_t)(*(int32_t *)((uint8_t *)object_tag_data + 0x8c)) & 0xffff].data;
     gravity_scale = k_physics_gravity * definition->gravity_scale;
 
-    matrix4x3_from_forward_up(&self->up, &self->forward, &step_matrix);
+    halo::math::matrix4x3_from_forward_up(self->up, self->forward, step_matrix);
     step_matrix.position = self->position;
     total_force.k = -(gravity_scale * definition->mass);
 
@@ -79,7 +75,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
             powered_mass_point_state *powered = &powered_states[p];
             float t;
 
-            matrix4x3_from_quaternion((uint8_t *)powered + 0x1c, &powered->matrix_scale);
+            halo::math::matrix4x3_from_quaternion(*reinterpret_cast<real_quaternion *>((uint8_t *)powered + 0x1c), *reinterpret_cast<real_matrix4x3 *>(&powered->matrix_scale));
             t = powered->matrix[0][1]; powered->matrix[0][1] = powered->matrix[1][0]; powered->matrix[1][0] = t;
             t = powered->matrix[0][2]; powered->matrix[0][2] = powered->matrix[2][0]; powered->matrix[2][0] = t;
             t = powered->matrix[1][2]; powered->matrix[1][2] = powered->matrix[2][1]; powered->matrix[2][1] = t;
@@ -134,7 +130,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
                 local_x * step_matrix.forward.k) + step_matrix.position.z;
 
             if (powered_state != 0) {
-                matrix4x3_multiply(&step_matrix, &powered_state->matrix_scale, &combined);
+                halo::math::matrix4x3_multiply(&step_matrix, reinterpret_cast<real_matrix4x3 *>(&powered_state->matrix_scale), &combined);
                 basis = &combined;
             }
             mp->forward_i = (mp_def->forward.k * basis->up.i + mp_def->forward.j * basis->left.i) +
@@ -192,7 +188,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
             mp->ground_friction_force[2] = friction_magnitude * mp->tangential_velocity_k;
 
             if (powered_def != 0 && (powered_def->flags & 0x01) != 0 && powered_state->ground_friction != 0.0f) {
-                float lean = real_inverse_lerp_clamped(mp->resting_plane_k, definition->ground_normal_k0, definition->ground_normal_k1);
+                float lean = halo::math::real_inverse_lerp_clamped(mp->resting_plane_k, definition->ground_normal_k0, definition->ground_normal_k1);
                 float alignment = (mp->up_k * mp->resting_plane_k + mp->up_j * mp->resting_plane_j) +
                     mp->up_i * mp->resting_plane_i;
                 float scale, d, push_i, push_j, push_k;
@@ -323,7 +319,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
                 if (collision_test_movement_segment(0xc0a0, (real_point3d *)&mp->position_x, &delta,
                         object_index, &probe_result)) {
                     float clearance = probe_length * probe_result.t - mp_def->radius;
-                    float lean = real_inverse_lerp_clamped(mp->up_k, powered_def->antigrav_normal_k0, powered_def->antigrav_normal_k1);
+                    float lean = halo::math::real_inverse_lerp_clamped(mp->up_k, powered_def->antigrav_normal_k0, powered_def->antigrav_normal_k1);
                     float fade = (clearance <= 0.0f) ? 1.0f : 1.0f - clearance / powered_def->antigrav_height;
                     float dot_nv = (probe_result.plane.normal.j * mp->velocity_j + probe_result.plane.normal.k * mp->velocity_k) +
                         probe_result.plane.normal.i * mp->velocity_i;
@@ -441,8 +437,8 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
                     float cos_angle = (real)cos((double)axis_length);
                     real_vector3d forward_length_check;
 
-                    vector3d_rotate_about_axis(&self->forward, &axis, sin_angle, cos_angle);
-                    vector3d_rotate_about_axis(&self->up, &axis, sin_angle, cos_angle);
+                    halo::math::vector3d_rotate_about_axis(self->forward, axis, sin_angle, cos_angle);
+                    halo::math::vector3d_rotate_about_axis(self->up, axis, sin_angle, cos_angle);
 
                     forward_length_check = self->forward;
                     {

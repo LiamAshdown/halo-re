@@ -5,12 +5,12 @@
  */
 
 #include "halo/bitmaps/bitmaps.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count];
-extern int32_t uint32_log2_floor(uint32_t value);
-extern struct cache *texture_cache;
-extern void cache_evict_entry(datum_index handle, struct cache *self);
 extern uint8_t file_reference_create(file_reference_record *ref);
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode);
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size);
@@ -254,7 +254,7 @@ uint8_t bitmap_data_view::verify(uint8_t require_runtime)
     if (self->width > max_dimension) {
         max_dimension = self->width;
     }
-    max_levels = uint32_log2_floor((uint32_t)max_dimension);
+    max_levels = halo::math::uint32_log2_floor((uint32_t)max_dimension);
     if ((int16_t)self->mipmap_count > (int16_t)max_levels) {
         return 0;
     }
@@ -280,7 +280,7 @@ void bitmap_data_view::free()
 
     if (self->flags & _bitmap_data_texture_cache_bit) {
         if (self->pointer != (uint32_t)k_datum_index_none) {
-            cache_evict_entry((datum_index)self->pointer, texture_cache);
+            halo::memory::cache_evict_entry((datum_index)self->pointer, halo::cache::globals().texture_cache);
         }
         self->pointer = (uint32_t)k_datum_index_none;
         self->pixel_base = 0;

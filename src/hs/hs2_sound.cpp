@@ -2,12 +2,12 @@
 
 #include "cache.h"
 #include "game.h"
+#include "halo/cache/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern void sound_cache_dump_to_file(void);
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
@@ -22,7 +22,6 @@ extern float sound_master_gain;
 extern float sound_music_gain;
 extern int16_t sound_supplementary_buffers_00746122;
 extern void sound_impulse_start(datum_index object_index, datum_index definition_index, float scale);
-extern tag_instance *tag_instances;
 extern void sound_impulse_fade_out(datum_index sound_index);
 extern game_time_globals *game_time;
 extern void sound_looping_predict(datum_index looping_definition);
@@ -41,7 +40,7 @@ namespace halo::hs {
  */
 void SoundCommands::evaluate_sound_cache_dump_to_file(int16_t function_index, uint32_t thread_index, char first)
 {
-    sound_cache_dump_to_file();
+    halo::cache::sound_cache_dump_to_file();
     hs_thread_return(0, thread_index);
 }
 
@@ -232,7 +231,7 @@ void SoundCommands::evaluate_sound_impulse_stop(int16_t function_index, uint32_t
     datum_index sound = (datum_index)arguments[0];
 
     if (sound != k_datum_index_none) {
-        uint8_t *definition = (uint8_t *)tag_instances[sound & 0xffff].data;
+        uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[sound & 0xffff].data;
 
         if (*(datum_index *)(definition + 0x94) != k_datum_index_none) {
             sound_impulse_fade_out(*(datum_index *)(definition + 0x94));
@@ -261,7 +260,7 @@ void SoundCommands::evaluate_sound_impulse_time(int16_t function_index, uint32_t
     int32_t ticks = 0;
 
     if (sound != k_datum_index_none) {
-        int32_t end_time = *(int32_t *)((uint8_t *)tag_instances[sound & 0xffff].data + 0x90);
+        int32_t end_time = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[sound & 0xffff].data + 0x90);
 
         if (end_time != -1) {
             ticks = end_time - game_time->game_time;

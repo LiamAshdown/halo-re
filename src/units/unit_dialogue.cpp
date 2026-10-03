@@ -1,11 +1,11 @@
 #include "halo/units/unit.hpp"
 #include "game.h"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern tag_instance *tag_instances;
 extern int32_t unit_dialogue_variant_counter;
-extern random_seed random_seed_global;
 }
 
 namespace halo::units {
@@ -22,7 +22,7 @@ void UnitView::choose_dialogue_variant()
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    Unit *unit_tag = (Unit *)tag_instances[obj->definition_tag & 0xffff].data;
+    Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     int16_t permutation_group = *(int16_t *)((uint8_t *)obj + 0xbe);
 
     TagID chosen;
@@ -74,7 +74,7 @@ int32_t UnitView::commit_speech(const unit_speech *source, int16_t mode)
                 return -1;
             }
 
-            Sound *sound_tag = (Sound *)tag_instances[unit->current_speech.sound_tag & 0xffff].data;
+            Sound *sound_tag = (Sound *)halo::cache::globals().tag_instances[unit->current_speech.sound_tag & 0xffff].data;
             int32_t length = *(int32_t *)((uint8_t *)sound_tag + 0x84) * 0x1e;
             unit->speech_duration_ticks = (int16_t)(length / 1000);
             return (int32_t)((int64_t)length * 0x10624dd3);
@@ -94,7 +94,7 @@ void UnitView::dialogue_determine_variant()
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Unit *tag = (Unit *)tag_instances[obj->definition_tag & 0xffff].data;
+    Unit *tag = (Unit *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     int16_t *variant = (int16_t *)((uint8_t *)obj + 0xbe);
     int16_t candidates[16];
     uint16_t count = 0;
@@ -146,8 +146,8 @@ TagID unit_pick_random_dialogue_variant(Unit *unit_tag, int16_t variant_number)
             if (match_count == 1) {
                 chosen = matches[0];
             } else {
-                random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                chosen = matches[(int16_t)((random_seed_global >> 0x10) * (uint32_t)match_count >> 0x10)];
+                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                chosen = matches[(int16_t)((halo::math::globals().random_seed_global >> 0x10) * (uint32_t)match_count >> 0x10)];
             }
             return variants[chosen].dialogue.tag_id;
         }

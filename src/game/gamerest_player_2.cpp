@@ -3,6 +3,9 @@
 #include "main.h"
 #include <string.h>
 #include <stdint.h>
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -12,9 +15,7 @@ extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode;
 extern Globals *global_globals;
 extern Scenario *global_scenario;
-extern const real_vector3d *global_up3d_pointer;
 extern uint8_t network_message_scratch;
-extern tag_instance *tag_instances;
 extern network_server_globals *network_server;
 extern observer observers[];
 extern void object_mark_pending_delete(uint32_t object_index);
@@ -43,11 +44,6 @@ extern real_vector3d *reference_axis_006696728;
 extern real_vector3d *global_down3d_pointer;
 extern double fcos(double radians);
 extern double fsin(double radians);
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
-extern random_seed random_seed_global;
 extern float k_random_scale_65536;
 extern double sqrt_pow_exponent;
 extern uint8_t netgame_equipment_game_type_matches(int16_t *types, int32_t count, int32_t current_engine_index);
@@ -65,7 +61,6 @@ extern const real_point3d *global_origin3d_pointer;
 extern uint8_t network_client_vehicle_ack_enabled;
 extern int32_t server_maximum_queued_client_updates;
 extern int32_t server_maximum_pending_client_update_ticks;
-extern void *data_iterator_next(data_iterator *iterator);
 extern uint8_t player_update_queue_pop_current(player_update_record *out, player_update_queue *queue);
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward);
 extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id);
@@ -94,7 +89,7 @@ static void player_respawn_drop_lights(datum_index object_index)
 {
     uint8_t *header = (uint8_t *)object_data->data + (object_index & 0xffff) * 0xc;
     uint8_t *obj = *(uint8_t **)(header + 8);
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
 
     if (*(int32_t *)&((Object *)tag)->model.tag_id == -1) {
         return;
@@ -191,7 +186,7 @@ void PlayerView::respawn()
         placement.forward.i = (real)cos(facing);
         placement.forward.j = (real)sin(facing);
         placement.forward.k = 0.0f;
-        placement.up = *global_up3d_pointer;
+        placement.up = *halo::math::globals().global_up3d_pointer;
         player_color = game_engine_get_player_color(player_index, color_buffer);
         color[0] = player_color[0];
         color[1] = player_color[1];
@@ -295,20 +290,20 @@ void PlayerView::compute_view_forward_vector(real *yaw_pitch, real_vector3d *out
     }
 
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-    parent_definition = (Unit *)tag_instances[parent_obj->definition_tag & 0xffff].data;
+    parent_definition = (Unit *)halo::cache::globals().tag_instances[parent_obj->definition_tag & 0xffff].data;
     seat = &((UnitSeat *)parent_definition->seats.pointer)[unit->vehicle_seat_index];
     if ((seat->flags & 0x10) != 0) {
         return;
     }
 
-    vector3d_cross_product(&cross_result, reference_axis_006696728, &parent_obj->up);
-    length = vector3d_normalize_with_length(&cross_result);
+    halo::math::vector3d_cross_product(cross_result, *reference_axis_006696728, parent_obj->up);
+    length = halo::math::vector3d_normalize_with_length(cross_result);
     if (length == 0.0f) {
-        vector3d_cross_product(&cross_result, global_down3d_pointer, &parent_obj->up);
-        vector3d_normalize_with_length(&cross_result);
+        halo::math::vector3d_cross_product(cross_result, *global_down3d_pointer, parent_obj->up);
+        halo::math::vector3d_normalize_with_length(cross_result);
     }
-    matrix4x3_from_forward_up(&parent_obj->up, &cross_result, &basis);
-    matrix4x3_transform_normal(out_forward, out_forward, &basis);
+    halo::math::matrix4x3_from_forward_up(parent_obj->up, cross_result, basis);
+    halo::math::matrix4x3_transform_normal(*out_forward, *out_forward, basis);
 }
 
 /**
@@ -356,9 +351,9 @@ int16_t PlayerView::pick_random_starting_location()
                 suitability = game_engine_rate_player_starting_location(location, player_handle);
             }
 
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
             {
-                float unit_random = (float)(random_seed_global >> 0x10) * k_random_scale_65536;
+                float unit_random = (float)(halo::math::globals().random_seed_global >> 0x10) * k_random_scale_65536;
                 float weight = (float)pow((double)unit_random, sqrt_pow_exponent) * suitability;
                 if (best_score < weight) {
                     best_score = weight;
@@ -488,8 +483,8 @@ void Players::server_catchup_on_client_updates()
     player_iter.index = (datum_index)-1;
     player_iter.signature = (uint32_t)(uintptr_t)player_data ^ k_data_iterator_signature;
 
-    for (plr = (player *)data_iterator_next(&player_iter); plr != 0;
-         plr = (player *)data_iterator_next(&player_iter)) {
+    for (plr = (player *)halo::memory::data_iterator_next(&player_iter); plr != 0;
+         plr = (player *)halo::memory::data_iterator_next(&player_iter)) {
         player_update_queue *queue;
 
         if (plr->local_player_index != -1) {
@@ -536,7 +531,7 @@ void Players::server_catchup_on_client_updates()
                 if (unit->current_weapon_index != -1) {
                     datum_index weapon_index = unit->weapons[unit->current_weapon_index];
                     if (weapon_index != (datum_index)-1) {
-                        Weapon *weapon = (Weapon *)tag_instances[object_from_index(weapon_index)->definition_tag & 0xffff].data;
+                        Weapon *weapon = (Weapon *)halo::cache::globals().tag_instances[object_from_index(weapon_index)->definition_tag & 0xffff].data;
                         if ((weapon->weapon_flags & 0x8) != 0) {
                             action.weapon_index = unit->current_weapon_index;
                         }
@@ -618,7 +613,7 @@ void StructureBsp::switch_structure_bsp()
     player_iter.index = (datum_index)-1;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
 
-    plr = (player *)data_iterator_next(&player_iter);
+    plr = (player *)halo::memory::data_iterator_next(&player_iter);
     while (plr != (player *)0) {
         player_handle = player_iter.index;
 
@@ -701,7 +696,7 @@ void StructureBsp::switch_structure_bsp()
             player_update_nearby_interactions_primary(player_handle);
         }
 
-        plr = (player *)data_iterator_next(&player_iter);
+        plr = (player *)halo::memory::data_iterator_next(&player_iter);
     }
 
     {

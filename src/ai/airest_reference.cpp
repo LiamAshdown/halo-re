@@ -2,6 +2,9 @@
 
 #include <string.h>
 #include <stdint.h>
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
 extern encounter_platoon_state *encounter_platoon_states;
@@ -14,7 +17,6 @@ extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, dat
 extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *object_list_header_data;
-extern datum_index datum_new(data_array *array);
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator);
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
@@ -43,16 +45,13 @@ extern void ai_release_actors_filtered(datum_index encounter_index, int32_t plat
 extern int32_t scenario_find_encounter_index_by_name(Scenario *scenario, char *name);
 extern int32_t encounter_definition_find_squad_index_by_name(ScenarioEncounter *encounter_definition, char *name);
 extern int32_t encounter_definition_find_platoon_index_by_name(ScenarioEncounter *encounter_definition, char *name);
-extern tag_instance *tag_instances;
 extern float k_real_zero;
 extern float k_real_one;
-extern uint32_t random_seed_global;
 extern void actor_clear_perceived_props(datum_index actor_index);
 extern void actor_dispatch_perception_reset(datum_index actor_index);
 extern void actor_set_units_active(datum_index actor_index, uint8_t dormant);
 extern uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_t squad_index);
 extern data_array *player_data;
-extern void *data_iterator_next(data_iterator *iterator);
 extern void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index);
 extern void encounter_activate(datum_index encounter_index);
 extern datum_index actor_find_or_create_shared_prop(datum_index unit_index, datum_index actor_index, int32_t flag_a, int32_t flag_b);
@@ -63,8 +62,6 @@ extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern network_client_globals *network_client;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
-extern void *datum_get(datum_index handle, data_array *array);
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern void player_update_history_free_all(void *history);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
@@ -368,7 +365,7 @@ datum_index ReferenceView::build_object_list()
     datum_index header_index = (datum_index)k_datum_index_none;
 
     if (packed_reference != (uint32_t)k_datum_index_none) {
-        header_index = datum_new(object_list_header_data);
+        header_index = halo::memory::datum_new(object_list_header_data);
         if (header_index != (datum_index)k_datum_index_none) {
             object_list_header *header =
                 (object_list_header *)((uint8_t *)object_list_header_data->data + (header_index & 0xffff) * 0x0c);
@@ -874,17 +871,17 @@ void ReferenceView::refill_grenades()
     a = ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
         if (a->unit_index != (datum_index)k_datum_index_none) {
-            variant_data = (uint8_t *)tag_instances[a->actor_variant_tag & 0xffff].data;
+            variant_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_variant_tag & 0xffff].data;
             unit = (uint8_t *)((object_header *)object_data->data)[a->unit_index & 0xffff].data;
 
             ((unit_object *)unit)->base.body_vitality = (((unit_object *)unit)->base.maximum_body_vitality <= 0.0f) ? k_real_zero : k_real_one;
             ((unit_object *)unit)->base.shield_vitality = (((unit_object *)unit)->base.maximum_shield_vitality <= 0.0f) ? k_real_zero : k_real_one;
 
             if (*(int16_t *)(variant_data + 0x180) != -1) {
-                random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
                 rolled = (int32_t)((uint32_t)(((int32_t)(int16_t)(*(int16_t *)(variant_data + 0x1d2) + 1) -
                                      (int32_t)(int16_t)*(uint16_t *)(variant_data + 0x1d0)) *
-                                    (int32_t)(random_seed_global >> 0x10)) >> 0x10) +
+                                    (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10) +
                          (int32_t)*(uint16_t *)(variant_data + 0x1d0);
 
                 unit = (uint8_t *)((object_header *)object_data->data)
@@ -1001,10 +998,10 @@ void ReferenceView::respawn_all_players()
         iterator.index = (datum_index)k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
         while (p != 0) {
             ai_reference_respawn_member(packed_reference, p->unit);
-            p = (player *)data_iterator_next(&iterator);
+            p = (player *)halo::memory::data_iterator_next(&iterator);
         }
     }
 }
@@ -1224,11 +1221,11 @@ void ReferenceView::spawn_starting_location_object(datum_index unit_index, uint3
 
             if (actor_variant_tag != (datum_index)k_datum_index_none) {
                 uint8_t *actor_variant_data =
-                    (uint8_t *)tag_instances[actor_variant_tag & 0xffff].data;
+                    (uint8_t *)halo::cache::globals().tag_instances[actor_variant_tag & 0xffff].data;
                 datum_index actor_definition_tag = *(datum_index *)(actor_variant_data + 0x10);
 
                 if (actor_definition_tag != (datum_index)k_datum_index_none) {
-                    uint8_t *actor_tag_data = (uint8_t *)tag_instances[actor_definition_tag & 0xffff].data;
+                    uint8_t *actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[actor_definition_tag & 0xffff].data;
                     uint32_t actor_tag_flags = *(uint32_t *)actor_tag_data;
                     char reuse_existing = (char)((actor_tag_flags >> 0x1a) & 1); // Actor.flags bit 26, "swarm"
                     char start_active =
@@ -1351,7 +1348,7 @@ void ReferenceView::squad_set_unknown_10(uint8_t value)
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
-#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 namespace {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
@@ -1393,7 +1390,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     {
         uint8_t *reloaded = OBJECT_DATA(object_index);
 
-        matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
+        halo::math::matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
     *(real_vector3d *)&((struct object *)self)->forward.i = basis.forward;
@@ -1438,7 +1435,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     if (network_game_mode == 1) {
-        uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(*(datum_index *)(self + 0x218), player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;

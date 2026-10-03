@@ -24,6 +24,7 @@
 #include <stdio.h>
 
 #include "halo/main/views.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" { void render_view_camera_fill(observer_camera *observer, render_view *view); }
 extern "C" { void screenshot_render(render_view *views); }
@@ -43,8 +44,6 @@ extern "C" { extern uint8_t render_view_local_player_sticky; }
 extern "C" { extern int32_t screenshots; }
 extern "C" { extern input_abstraction_globals input_globals; }
 extern "C" { extern const real_point3d *global_zero_vector3d_pointer; }
-extern "C" { extern const real_vector3d *global_forward3d_pointer; }
-extern "C" { extern const real_vector3d *global_up3d_pointer; }
 extern "C" { extern float rasterizer_default_z_near; }
 extern "C" { extern float rasterizer_default_z_far; }
 extern "C" { extern uint8_t unknown_00873d30; }
@@ -132,12 +131,12 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     view->local_player_index = -1;
     view->nonplayer = 1;
     view->rasterizer_camera.position = *global_zero_vector3d_pointer;
-    view->rasterizer_camera.forward.i = global_forward3d_pointer->i;
-    view->rasterizer_camera.forward.j = global_forward3d_pointer->j;
-    view->rasterizer_camera.forward.k = global_forward3d_pointer->k;
-    view->rasterizer_camera.up.i = global_up3d_pointer->i;
-    view->rasterizer_camera.up.j = global_up3d_pointer->j;
-    view->rasterizer_camera.up.k = global_up3d_pointer->k;
+    view->rasterizer_camera.forward.i = halo::math::globals().global_forward3d_pointer->i;
+    view->rasterizer_camera.forward.j = halo::math::globals().global_forward3d_pointer->j;
+    view->rasterizer_camera.forward.k = halo::math::globals().global_forward3d_pointer->k;
+    view->rasterizer_camera.up.i = halo::math::globals().global_up3d_pointer->i;
+    view->rasterizer_camera.up.j = halo::math::globals().global_up3d_pointer->j;
+    view->rasterizer_camera.up.k = halo::math::globals().global_up3d_pointer->k;
     view->rasterizer_camera.z_near = rasterizer_default_z_near;
     view->rasterizer_camera.mirrored = 0;
     view->rasterizer_camera.z_far = rasterizer_default_z_far;
@@ -248,9 +247,6 @@ extern "C" { extern game_time_globals *game_time; }
 extern "C" { extern console_globals console_globals_data; }
 extern "C" { extern int16_t camera_get_type_for_player(int16_t local_player_index); }
 extern "C" { extern void player_effect_build_camera_shake_matrix(void *out_shake_matrix, int16_t local_player_index); }
-extern "C" { extern void matrix4x3_from_forward_up_position(real_vector3d *up, real_vector3d *forward, real_point3d *position, real_matrix4x3 *out); }
-extern "C" { extern void matrix4x3_extract_forward_up_position(real_vector3d *up_out, real_vector3d *forward_out, real_matrix4x3 *matrix, real_point3d *position_out); }
-extern "C" { extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); }
 namespace halo::main {
 
 /**
@@ -297,18 +293,18 @@ void RenderViews::view_camera_fill(observer_camera *observer, render_view *view)
                 real_matrix4x3 orientation;
 
                 player_effect_build_camera_shake_matrix(shake_matrix, view->local_player_index);
-                matrix4x3_from_forward_up_position((real_vector3d *)&observer->up,
+                halo::math::matrix4x3_from_forward_up_position((real_vector3d *)&observer->up,
                                                     (real_vector3d *)&observer->forward,
-                                                    (real_point3d *)observer, &orientation);
-                matrix4x3_multiply(&orientation, (real_matrix4x3 *)shake_matrix, &orientation);
-                matrix4x3_extract_forward_up_position(&camera->up, &camera->forward, &orientation,
-                                                       &camera->position);
+                                                    *(real_point3d *)observer, &orientation);
+                halo::math::matrix4x3_multiply(&orientation, (real_matrix4x3 *)shake_matrix, &orientation);
+                halo::math::matrix4x3_extract_forward_up_position(camera->up, camera->forward, orientation,
+                                                       camera->position);
             }
         }
     } else {
         camera->position = *global_zero_vector3d_pointer;
-        camera->forward = *global_forward3d_pointer;
-        camera->up = *global_up3d_pointer;
+        camera->forward = *halo::math::globals().global_forward3d_pointer;
+        camera->up = *halo::math::globals().global_up3d_pointer;
         camera->vertical_field_of_view =
             (float)(2.0 * atan2(tan(0.6981316804885864) * 0.6375f, 1.0));
     }

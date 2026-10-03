@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_text_queue.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -14,7 +15,6 @@ extern void globals_color_table_get_cyclic_color(int16_t table_index, int16_t co
                                                    ColorARGB *out);
 extern growable_array hud_text_message_queue;
 extern uint16_t empty_string[];
-extern int32_t growable_array_add_element(growable_array *array);
 extern int64_t performance_frequency;
 extern int32_t hud_text_message_time_base;
 }
@@ -71,7 +71,7 @@ int32_t HudTextQueue::message_queue_add(uint16_t *text, int32_t start_time, int3
         return 0;
     }
 
-    index = growable_array_add_element(&hud_text_message_queue);
+    index = halo::memory::growable_array_add_element(&hud_text_message_queue);
     message = (hud_text_message *)hud_text_message_queue.data + index;
     message->start_time = start_time;
     message->unknown_04 = tag;

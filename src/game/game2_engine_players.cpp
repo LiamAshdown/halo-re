@@ -1,11 +1,13 @@
 #include "halo/game/game2_engine_players.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
 extern data_array *player_data;
-extern void *data_iterator_next(data_iterator *iterator);
 extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type, datum_index subject, size_t buffer_size);
 extern void chimera__multiplayer_message(wchar_t *text);
 extern game_variant game_engine_variant;
@@ -18,7 +20,6 @@ extern uint8_t game_engine_player_is_eliminated(uint32_t player_index);
 extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_index);
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
 extern void player_kill_and_release_unit(int32_t respawn_time);
-extern random_seed random_seed_global;
 extern int32_t players_active_count(void);
 extern void game_engine_player_new_life(uint32_t player_index);
 extern player_control_globals *player_control_globals_ptr;
@@ -32,13 +33,11 @@ extern void object_delete_unparented(datum_index object_index);
 extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings);
 extern player_globals *local_player_globals;
 extern Scenario *global_scenario;
-extern tag_instance *tag_instances;
 extern network_client_globals *network_client;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
 extern int32_t bsp3d_node_find_leaf(void);
 extern void object_get_node_local_transform(datum_index object_index, int32_t node_index, void *out_transform, int32_t unknown);
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern void unit_try_set_animation_state(datum_index unit_handle, int32_t state);
 extern void object_snap_to_parent_marker_and_detach(datum_index object_index);
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
@@ -49,7 +48,6 @@ extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const i
 extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index);
 extern void object_recalculate_bounding_radius_recursive(datum_index object_index);
 extern uint8_t unit_all_seats_unoccupied(void);
-extern void *datum_get(datum_index handle, data_array *array);
 extern void player_update_history_free_all(void *queue);
 extern void unit_dispatch_scripted_event_9(uint8_t flag);
 extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point);
@@ -74,7 +72,7 @@ void EnginePlayers::player_changed_object(uint32_t param)
     iterator.next_index = 0;
     iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    p = (player *)data_iterator_next(&iterator);
+    p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
         datum_index recipient = iterator.index;
         int16_t index = (int16_t)recipient;
@@ -102,7 +100,7 @@ void EnginePlayers::player_changed_object(uint32_t param)
                 }
             }
         }
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
     }
 
     if (current_game_engine->player_changed_object != (void *)0) {
@@ -137,7 +135,7 @@ uint8_t EnginePlayers::player_has_respawn_priority(uint32_t player_index)
             iter.index = (datum_index)0xffffffff;
             iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-            element = data_iterator_next(&iter);
+            element = halo::memory::data_iterator_next(&iter);
             if (element != 0) {
                 do {
                     player *other = (player *)element;
@@ -147,7 +145,7 @@ uint8_t EnginePlayers::player_has_respawn_priority(uint32_t player_index)
                           (player_index & 0xffff) < 0xffff))) {
                         result = 0;
                     }
-                    element = data_iterator_next(&iter);
+                    element = halo::memory::data_iterator_next(&iter);
                 } while (element != 0);
                 self->odd_man_out = result;
                 return result;
@@ -224,11 +222,11 @@ void EnginePlayers::player_new_life(uint32_t player_handle)
         iter.index = (datum_index)0xffffffff;
         iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-        p = (player *)data_iterator_next(&iter);
+        p = (player *)halo::memory::data_iterator_next(&iter);
         while (p != (player *)0) {
             kill_feed_handle = (player_handle == 0xffffffff) ? sentinel : player_handle;
             chimera__kill_feed(iter.index, kill_feed_handle, 0, (datum_index)sentinel, 0);
-            p = (player *)data_iterator_next(&iter);
+            p = (player *)halo::memory::data_iterator_next(&iter);
         }
     }
 
@@ -359,7 +357,7 @@ void EnginePlayers::player_select_random_target(datum_index player_or_all)
     iter.next_index = 0;
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-    element = data_iterator_next(&iter);
+    element = halo::memory::data_iterator_next(&iter);
     while (element != 0) {
         datum_index candidate = iter.index;
         player *candidate_player =
@@ -369,21 +367,21 @@ void EnginePlayers::player_select_random_target(datum_index player_or_all)
             candidate_player->team != self->team && candidate_player->unit != k_datum_index_none) {
             match_count = match_count + 1;
         }
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
     }
 
     if (match_count > 0) {
         int16_t pick;
 
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        pick = (int16_t)(((random_seed_global >> 16) *
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        pick = (int16_t)(((halo::math::globals().random_seed_global >> 16) *
                           (uint32_t)(int32_t)(int16_t)match_count) >> 16);
 
         iter.data = player_data;
         iter.next_index = 0;
         iter.index = k_datum_index_none;
         iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
         while (element != 0) {
             datum_index candidate = iter.index;
             player *candidate_player =
@@ -397,7 +395,7 @@ void EnginePlayers::player_select_random_target(datum_index player_or_all)
                 }
                 pick = pick - 1;
             }
-            element = data_iterator_next(&iter);
+            element = halo::memory::data_iterator_next(&iter);
         }
     }
 
@@ -419,10 +417,10 @@ void EnginePlayers::player_select_random_target(datum_index player_or_all)
         broadcast_iter.next_index = 0;
         broadcast_iter.index = k_datum_index_none;
         broadcast_iter.signature = (uint32_t)(uintptr_t)broadcast_iter.data ^ k_data_iterator_signature;
-        broadcast_element = data_iterator_next(&broadcast_iter);
+        broadcast_element = halo::memory::data_iterator_next(&broadcast_iter);
         while (broadcast_element != 0) {
             chimera__kill_feed(broadcast_iter.index, (int32_t)broadcast_iter.index, 0x20, winner, 1);
-            broadcast_element = data_iterator_next(&broadcast_iter);
+            broadcast_element = halo::memory::data_iterator_next(&broadcast_iter);
         }
     }
 }
@@ -455,7 +453,7 @@ uint8_t EnginePlayers::players_ready_for_bsp_switch(void)
     iterator.next_index = 0;
     iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    p = (player *)data_iterator_next(&iterator);
+    p = (player *)halo::memory::data_iterator_next(&iterator);
     if (p != (player *)0) {
         while (1) {
             uint8_t keep_going;
@@ -491,7 +489,7 @@ uint8_t EnginePlayers::players_ready_for_bsp_switch(void)
                 break;
             }
 
-            p = (player *)data_iterator_next(&iterator);
+            p = (player *)halo::memory::data_iterator_next(&iterator);
             if (p == (player *)0) {
                 return 0;
             }
@@ -523,7 +521,7 @@ uint8_t EnginePlayers::players_ready_for_bsp_switch_strict(void)
             iterator.next_index = 0;
             iterator.index = k_datum_index_none;
             iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-            p = (player *)data_iterator_next(&iterator);
+            p = (player *)halo::memory::data_iterator_next(&iterator);
             lives_cached = game_engine_variant.lives_per_round;
             while (p != (player *)0) {
                 reread_unit = p->unit;
@@ -533,7 +531,7 @@ uint8_t EnginePlayers::players_ready_for_bsp_switch_strict(void)
                 } else {
                     result = 0;
                 }
-                p = (player *)data_iterator_next(&iterator);
+                p = (player *)halo::memory::data_iterator_next(&iterator);
             }
         }
         return result;
@@ -554,7 +552,7 @@ uint8_t EnginePlayers::players_ready_for_bsp_switch_strict(void)
         iterator.next_index = 0;
         iterator.index = k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
         previous_team = -1;
         if (p != (player *)0) {
             do {
@@ -587,7 +585,7 @@ uint8_t EnginePlayers::players_ready_for_bsp_switch_strict(void)
                     }
                 }
 
-                p = (player *)data_iterator_next(&iterator);
+                p = (player *)halo::memory::data_iterator_next(&iterator);
                 previous_team = carry_team;
             } while (p != (player *)0);
 
@@ -614,10 +612,10 @@ void EnginePlayers::reset_all_players(void)
     iterator.next_index = 0;
     iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    entry = data_iterator_next(&iterator);
+    entry = halo::memory::data_iterator_next(&iterator);
     while (entry != (void *)0) {
         game_engine_player_new_life(iterator.index);
-        entry = data_iterator_next(&iterator);
+        entry = halo::memory::data_iterator_next(&iterator);
     }
 
     if (current_game_engine != (game_engine_definition *)0 && current_game_engine->reset_round != (void *)0) {
@@ -707,7 +705,7 @@ void EnginePlayers::reset_respawns_and_cleanup_bipeds(void)
         player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
         unused_checksum = (uint32_t)player_data ^ 0x69746572;
 
-        p = (player *)data_iterator_next(&player_iter);
+        p = (player *)halo::memory::data_iterator_next(&player_iter);
         while (p != (player *)0) {
             int32_t respawn_time = game_engine_variant.respawn_time;
             if (respawn_time < 0x5a) {
@@ -715,7 +713,7 @@ void EnginePlayers::reset_respawns_and_cleanup_bipeds(void)
             }
             player_kill_and_release_unit(respawn_time);
             p->respawn_timer = 0;
-            p = (player *)data_iterator_next(&player_iter);
+            p = (player *)halo::memory::data_iterator_next(&player_iter);
         }
         (void)unused_checksum;
     }
@@ -817,7 +815,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
             if (driver != (datum_index)-1 && *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) != -1) {
                 object *driver_obj = ((object_header *)object_data->data)[driver & 0xffff].data;
                 unit_data *driver_unit = (unit_data *)((uint8_t *)driver_obj + k_unit_data_offset);
-                Unit *driver_tag = (Unit *)tag_instances[driver_obj->definition_tag & 0xffff].data;
+                Unit *driver_tag = (Unit *)halo::cache::globals().tag_instances[driver_obj->definition_tag & 0xffff].data;
                 real_matrix4x3 local_transform;
                 real_matrix4x3 result_transform;
                 Unit *unit_tag;
@@ -828,8 +826,8 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                                        *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) * 0x11c),
                     &local_transform, 1);
 
-                unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
-                unit_as_vehicle_tag = (Vehicle *)tag_instances[
+                unit_tag = (Unit *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
+                unit_as_vehicle_tag = (Vehicle *)halo::cache::globals().tag_instances[
                     ((TagID *)((uint8_t *)unit_tag + 0x34))->index & 0xffff].data;
                 {
                     uint8_t *unknown_block = (uint8_t *)unit_as_vehicle_tag + 0xbc;
@@ -850,13 +848,13 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
 
                     object_snap_to_parent_marker_and_detach(unit_handle);
                     object_set_position_and_orientation(unit_handle, 0, 0, 0);
-                    matrix4x3_multiply(&local_transform, (real_matrix4x3 *)(unknown_block + 0xac),
+                    halo::math::matrix4x3_multiply(&local_transform, (real_matrix4x3 *)(unknown_block + 0xac),
                                         &result_transform);
                     unit_obj->forward = result_transform.forward;
                     unit_obj->up = result_transform.up;
 
                     {
-                        uint8_t *unit_tag_data = (uint8_t *)tag_instances[unit_obj->definition_tag & 0xffff].data;
+                        uint8_t *unit_tag_data = (uint8_t *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
                         if (*(int32_t *)(unit_tag_data + 0x34) != -1) {
                             if ((unit_obj->flags & 1) != 0) {
                                 object_for_each_light_attachment(0, 1, 0);
@@ -901,7 +899,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                 }
 
                 if (network_game_mode == 1) {
-                    void *datum = datum_get(unit_handle, object_data);
+                    void *datum = halo::memory::datum_get(unit_handle, object_data);
                     if (datum != (void *)0 && *(int16_t *)((uint8_t *)datum + 2) == -1) {
                         circular_queue *cq1 = (circular_queue *)((uint8_t *)datum + 0x170);
                         circular_queue *cq2 = (circular_queue *)((uint8_t *)datum + 0x1d0);
@@ -951,7 +949,7 @@ int32_t EnginePlayers::pick_random_recent_location(int32_t exclude_value, int32_
 {
     int16_t i;
 
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
 
     if (game_engine_recent_location_count < 1) {
         return fallback;
@@ -959,7 +957,7 @@ int32_t EnginePlayers::pick_random_recent_location(int32_t exclude_value, int32_
 
     for (i = 0; i < game_engine_recent_location_count; i++) {
         int16_t slot = (int16_t)(((int32_t)i +
-            (int16_t)(((int32_t)(random_seed_global >> 0x10) * (int32_t)game_engine_recent_location_count) >> 0x10))
+            (int16_t)(((int32_t)(halo::math::globals().random_seed_global >> 0x10) * (int32_t)game_engine_recent_location_count) >> 0x10))
             % (int32_t)game_engine_recent_location_count);
         if (exclude_value != (int32_t)game_engine_recent_location_table[slot]) {
             return (int32_t)game_engine_recent_location_table[slot];
@@ -986,7 +984,7 @@ void EnginePlayers::reset_all_unit_grenade_counts(void)
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     unused_checksum = (uint32_t)player_data ^ 0x69746572;
 
-    p = (player *)data_iterator_next(&iterator);
+    p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
         if (p->unit != (datum_index)0xffffffff) {
             object *unit_obj = ((object_header *)object_data->data)[p->unit & 0xffff].data;
@@ -994,7 +992,7 @@ void EnginePlayers::reset_all_unit_grenade_counts(void)
             unit->grenade_counts[0] = 0;
             unit->grenade_counts[1] = 0;
         }
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
     }
 
     (void)unused_checksum;
@@ -1022,7 +1020,7 @@ uint8_t EnginePlayers::team_has_scoring_capacity(int32_t team)
     iter.index = (datum_index)0xffffffff;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    p = (player *)data_iterator_next(&iter);
+    p = (player *)halo::memory::data_iterator_next(&iter);
     while (p != (player *)0) {
         if (p->team == team &&
             *(int16_t *)((uint8_t *)p + 0xc6) < game_engine_variant.score_limit &&
@@ -1032,7 +1030,7 @@ uint8_t EnginePlayers::team_has_scoring_capacity(int32_t team)
                 has_capacity = 0;
             }
         }
-        p = (player *)data_iterator_next(&iter);
+        p = (player *)halo::memory::data_iterator_next(&iter);
     }
     return has_capacity;
 }

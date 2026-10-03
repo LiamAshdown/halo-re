@@ -1,6 +1,8 @@
 #include "halo/interface/ifr2_network.hpp"
 #include "crt.h"
 #include <string.h>
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -28,11 +30,8 @@ extern void widget_list_scroll_window(int32_t out[3], widget_instance *widget);
 extern void ui_variant_carousel_slot_cache_populate(int32_t *candidate_ids, int32_t count);
 extern void multiplayer_settings_select_list_update_item(widget_instance *widget, const uint16_t *record);
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
-extern tag_instance *tag_instances;
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
-extern datum_index tag_lookup(tag_group group, char *path);
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern uint16_t *text_string_list_get_string(void);
 extern uint8_t default_profile_data[0x1ffc];
 extern char k_empty_string[];
@@ -168,7 +167,7 @@ void MenuListView::refresh_3wide()
 void MenuListView::update_item(const uint16_t *record)
 {
     datum_index variant_strings_tag =
-        tag_lookup(0x75737472  , (char *)"ui\\shell\\strings\\game_variant_descriptions");
+        halo::cache::tag_lookup(0x75737472  , (char *)"ui\\shell\\strings\\game_variant_descriptions");
     widget_instance *name_widget = widget->first_child;
     widget_instance *desc_widget = name_widget->next_sibling;
     widget_instance *icon_widget = desc_widget->next_sibling;
@@ -176,7 +175,7 @@ void MenuListView::update_item(const uint16_t *record)
     icon_widget->hidden = 0;
 
     if (record == (const uint16_t *)0) {
-        uint16_t *name_buf = (uint16_t *)heap_reallocate(name_widget->text, 0x100, widget_memory_pool);
+        uint16_t *name_buf = (uint16_t *)halo::memory::heap_reallocate(name_widget->text, 0x100, widget_memory_pool);
 
         name_widget->text = name_buf;
         if (name_buf != (uint16_t *)0) {
@@ -185,17 +184,17 @@ void MenuListView::update_item(const uint16_t *record)
         desc_widget->background_bitmap_frame = 5;
 
         {
-            uint16_t *desc_buf = (uint16_t *)heap_reallocate(desc_widget->text, 0x200, widget_memory_pool);
+            uint16_t *desc_buf = (uint16_t *)halo::memory::heap_reallocate(desc_widget->text, 0x200, widget_memory_pool);
 
             desc_widget->text = desc_buf;
             if (desc_buf != (uint16_t *)0) {
-                datum_index labels_tag = tag_lookup(
+                datum_index labels_tag = halo::cache::tag_lookup(
                     0x75737472  ,
                     (char *)"ui\\shell\\main_menu\\player_profiles_select\\profile_description_labels");
 
                 desc_buf[0] = 0;
                 if (labels_tag != (datum_index)-1) {
-                    UnicodeStringList *list = (UnicodeStringList *)tag_instances[labels_tag & 0xffff].data;
+                    UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[labels_tag & 0xffff].data;
                     const uint16_t *source = missing_string_text;
 
                     if (list->strings.count > 5) {
@@ -217,7 +216,7 @@ void MenuListView::update_item(const uint16_t *record)
     }
 
     {
-        uint16_t *name_buf = (uint16_t *)heap_reallocate(name_widget->text, 0x100, widget_memory_pool);
+        uint16_t *name_buf = (uint16_t *)halo::memory::heap_reallocate(name_widget->text, 0x100, widget_memory_pool);
 
         name_widget->text = name_buf;
         if (name_buf != (uint16_t *)0) {
@@ -227,7 +226,7 @@ void MenuListView::update_item(const uint16_t *record)
     }
     desc_widget->background_bitmap_frame = 5;
     {
-        uint16_t *desc_buf = (uint16_t *)heap_reallocate(desc_widget->text, 0x200, widget_memory_pool);
+        uint16_t *desc_buf = (uint16_t *)halo::memory::heap_reallocate(desc_widget->text, 0x200, widget_memory_pool);
 
         desc_widget->text = desc_buf;
         if (desc_buf != (uint16_t *)0) {

@@ -5,6 +5,8 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 namespace halo::sound {
 
@@ -36,7 +38,7 @@ void pause(void)
         }
     }
 
-    sound_cache_release_unused();
+    halo::cache::sound_cache_release_unused();
 }
 
 void resume(void)
@@ -60,7 +62,7 @@ void initialize(void)
 {
     sound_initialized = 0;
     sound_enabled = 1;
-    sound_cache_new();
+    halo::cache::sound_cache_new();
 
     if (sound_disabled == 0) {
         sound_environment = k_default_sound_environment;
@@ -76,10 +78,10 @@ void initialize(void)
 
             if (driver != (sound_driver *)0 && driver->type == driver_parameters.driver_index) {
                 current_sound_driver = driver;
-                sound_data = data_new(sizeof(sound), (char *)"sounds", k_maximum_sounds);
+                sound_data = halo::memory::data_new(sizeof(sound), (char *)"sounds", k_maximum_sounds);
 
                 if (sound_data != (data_array *)0) {
-                    looping_sound_data = data_new(sizeof(looping_sound), (char *)"looping sounds", k_maximum_looping_sounds);
+                    looping_sound_data = halo::memory::data_new(sizeof(looping_sound), (char *)"looping sounds", k_maximum_looping_sounds);
                 }
 
                 if (sound_data != (data_array *)0 && looping_sound_data != (data_array *)0) {
@@ -93,9 +95,9 @@ void initialize(void)
                         int32_t type;
 
                         sound_data->valid = 1;
-                        data_delete_all(sound_data);
+                        halo::memory::data_delete_all(sound_data);
                         looping_sound_data->valid = 1;
-                        data_delete_all(looping_sound_data);
+                        halo::memory::data_delete_all(looping_sound_data);
 
                         for (type = 0; type < 4; type++) {
                             int16_t slot_count = driver_parameters.slot_counts[type];
@@ -131,12 +133,12 @@ void initialize(void)
 
 uint8_t reopen_device(sound_driver_parameters *new_parameters)
 {
-    datum_index index = datum_next(-1, sound_data);
+    datum_index index = halo::memory::datum_next(-1, sound_data);
     uint8_t initialized;
 
     while (index != k_datum_index_none) {
         instances::stop(index);
-        index = datum_next((int16_t)index, sound_data);
+        index = halo::memory::datum_next((int16_t)index, sound_data);
     }
 
     audio_device().dispose();
@@ -198,10 +200,10 @@ void dispose(void)
         sound_dispose_zero_and_free(looping_sound_data, 0xe);
     }
 
-    sound_cache_initialized = 0;
-    sound_dispose_zero_and_free(sound_cache_entries, 0xe);
-    sound_dispose_zero_and_free(sound_cache, 0x11);
-    sound_cache_base = (void *)0;
+    halo::cache::globals().sound_cache_initialized = 0;
+    sound_dispose_zero_and_free(halo::cache::globals().sound_cache_entries, 0xe);
+    sound_dispose_zero_and_free(halo::cache::globals().sound_cache, 0x11);
+    halo::cache::globals().sound_cache_base = (void *)0;
 }
 
 void update(void)
@@ -261,7 +263,7 @@ void update(void)
     }
 
     if (sound_paused == 0) {
-        sound_cache->age += 1;
+        halo::cache::globals().sound_cache->age += 1;
     }
 }
 
@@ -296,7 +298,7 @@ void idle_update(void)
         }
     }
 
-    sound_cache->age += 1;
+    halo::cache::globals().sound_cache->age += 1;
     sound_idle_update_active = 0;
 }
 

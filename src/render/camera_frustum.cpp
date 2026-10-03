@@ -16,13 +16,10 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern real_point3d *global_zero_vector3d_pointer;
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in);
-extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern double tan(double x);
 extern double fabs(double x);
 extern double ftan(double x);
@@ -31,7 +28,6 @@ extern float render_camera_global[3];
 extern float camera_forward_x[3];
 extern float render_camera_facing_basis[16];
 extern double sqrt(double x);
-extern real vector3d_cross_product_length(real_vector3d *a, real_vector3d *b);
 extern float render_saved_projection_z[4];
 }
 
@@ -46,11 +42,11 @@ static void build_side_plane(render_frustum *frustum, int16_t index, real i, rea
     normal.i = i;
     normal.j = j;
     normal.k = k;
-    vector3d_normalize_with_length(&normal);
+    halo::math::vector3d_normalize_with_length(normal);
     plane.normal = normal;
     plane.d = normal.j * global_zero_vector3d_pointer->y + normal.k * global_zero_vector3d_pointer->z +
               normal.i * global_zero_vector3d_pointer->x;
-    matrix4x3_transform_plane(&frustum->world_planes[index], &frustum->view_to_world, &plane);
+    halo::math::matrix4x3_transform_plane(frustum->world_planes[index], frustum->view_to_world, plane);
 }
 
 namespace halo::render::camera {
@@ -114,15 +110,15 @@ void build_frustum(float *frustum_bounds, render_camera *camera, render_frustum 
     backward.i = -camera->forward.i;
     backward.j = -camera->forward.j;
     backward.k = -camera->forward.k;
-    vector3d_normalize_with_length(&left);
-    vector3d_normalize_with_length(&up);
-    vector3d_normalize_with_length(&backward);
+    halo::math::vector3d_normalize_with_length(left);
+    halo::math::vector3d_normalize_with_length(up);
+    halo::math::vector3d_normalize_with_length(backward);
     frustum->view_to_world.forward = left;
     frustum->view_to_world.left = up;
     frustum->view_to_world.up = backward;
     frustum->view_to_world.position = camera->position;
     frustum->view_to_world.scale = 1.0f;
-    matrix4x3_inverse(&frustum->world_to_view, &frustum->view_to_world);
+    halo::math::matrix4x3_inverse(&frustum->world_to_view, frustum->view_to_world);
 
     build_side_plane(frustum, 0, -sx, 0.0f, cx + 1.0f);
     build_side_plane(frustum, 1, sx, 0.0f, 1.0f - cx);
@@ -132,12 +128,12 @@ void build_frustum(float *frustum_bounds, render_camera *camera, render_frustum 
     plane.normal.j = 0.0f;
     plane.normal.k = 1.0f;
     plane.d = -camera->z_near;
-    matrix4x3_transform_plane(&frustum->world_planes[4], &frustum->view_to_world, &plane);
+    halo::math::matrix4x3_transform_plane(frustum->world_planes[4], frustum->view_to_world, plane);
     plane.normal.i = 0.0f;
     plane.normal.j = 0.0f;
     plane.normal.k = -1.0f;
     plane.d = camera->z_far;
-    matrix4x3_transform_plane(&frustum->world_planes[5], &frustum->view_to_world, &plane);
+    halo::math::matrix4x3_transform_plane(frustum->world_planes[5], frustum->view_to_world, plane);
     frustum->z_near = camera->z_near;
     frustum->z_far = camera->z_far;
 
@@ -149,24 +145,24 @@ void build_frustum(float *frustum_bounds, render_camera *camera, render_frustum 
     point.x = (cx + 1.0f) * far_x;
     point.y = (cy + 1.0f) * far_y;
     point.z = -camera->z_far;
-    matrix4x3_transform_point(&frustum->world_vertices[0], &point, &frustum->view_to_world);
+    halo::math::matrix4x3_transform_point(frustum->world_vertices[0], point, frustum->view_to_world);
     point.x = (cx - 1.0f) * far_x;
     point.y = (cy + 1.0f) * far_y;
     point.z = -camera->z_far;
-    matrix4x3_transform_point(&frustum->world_vertices[1], &point, &frustum->view_to_world);
+    halo::math::matrix4x3_transform_point(frustum->world_vertices[1], point, frustum->view_to_world);
     point.x = (cx + 1.0f) * far_x;
     point.y = (cy - 1.0f) * far_y;
     point.z = -camera->z_far;
-    matrix4x3_transform_point(&frustum->world_vertices[2], &point, &frustum->view_to_world);
+    halo::math::matrix4x3_transform_point(frustum->world_vertices[2], point, frustum->view_to_world);
     point.x = (cx - 1.0f) * far_x;
     point.y = (cy - 1.0f) * far_y;
     point.z = -camera->z_far;
-    matrix4x3_transform_point(&frustum->world_vertices[3], &point, &frustum->view_to_world);
+    halo::math::matrix4x3_transform_point(frustum->world_vertices[3], point, frustum->view_to_world);
     frustum->world_vertices[4] = camera->position;
     point.x = -(inverse_sx * mid * cx);
     point.y = -(inverse_sy * mid * cy);
     point.z = -mid;
-    matrix4x3_transform_point(&frustum->world_midpoint, &point, &frustum->view_to_world);
+    halo::math::matrix4x3_transform_point(frustum->world_midpoint, point, frustum->view_to_world);
 
     frustum->world_bounds.x.lower = frustum->world_bounds.x.upper = frustum->world_vertices[0].x;
     frustum->world_bounds.y.lower = frustum->world_bounds.y.upper = frustum->world_vertices[0].y;
@@ -199,7 +195,7 @@ void build_frustum(float *frustum_bounds, render_camera *camera, render_frustum 
         int16_t column;
 
         if (camera->z_near == 0.0f) {
-            matrix4x3_transform_plane(&clip, &frustum->world_to_view, &camera->mirror_plane);
+            halo::math::matrix4x3_transform_plane(clip, frustum->world_to_view, camera->mirror_plane);
         } else {
             clip.normal.i = 0.0f;
             clip.normal.j = 0.0f;
@@ -360,7 +356,7 @@ void mirror(render_camera *source_camera, structure_bsp_mirror_result *mirror, r
             reflect_dir.i = source_camera->forward.i * 0.005859375f + plane_normal.i;
             reflect_dir.j = source_camera->forward.j * 0.005859375f + plane_normal.j;
             reflect_dir.k = source_camera->forward.k * 0.005859375f + plane_normal.k;
-            vector3d_normalize_with_length(&reflect_dir);
+            halo::math::vector3d_normalize_with_length(reflect_dir);
             baseline = reflect_dir.k * (plane_normal.k * signed_offset + source_camera->position.z) +
                        reflect_dir.j * (plane_normal.j * signed_offset + source_camera->position.y) +
                        reflect_dir.i * (plane_normal.i * signed_offset + source_camera->position.x);
@@ -394,7 +390,7 @@ void mirror(render_camera *source_camera, structure_bsp_mirror_result *mirror, r
             1.0f / (float)sqrt((double)(source_camera->forward.k * source_camera->forward.k +
                                          source_camera->forward.j * source_camera->forward.j +
                                          source_camera->forward.i * source_camera->forward.i));
-        float sin_angle = vector3d_cross_product_length(&plane_normal, &source_camera->forward) *
+        float sin_angle = halo::math::vector3d_cross_product_length(plane_normal, source_camera->forward) *
                            inverse_forward_length;
         float shift = sin_angle * mirror->shader_mirror_value_0;
 

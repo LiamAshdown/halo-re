@@ -16,6 +16,10 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern float build_sprite_screen_coverage;
@@ -23,54 +27,39 @@ extern int16_t build_sprite_large_quad_count;
 extern real_vector3d build_sprite_view_up;
 extern real_vector3d build_sprite_view_left;
 extern render_frustum render_frustum_global;
-extern const real_vector3d *global_up3d_pointer;
-extern const real_vector3d *global_left3d_pointer;
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
-extern tag_instance *tag_instances;
 extern const ColorARGB *global_white_argb;
 extern real_rectangle3d *global_null_rectangle3d_pointer;
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern double sin(double x);
 extern double cos(double x);
 extern int16_t rasterizer_vertex_buffer_lock_state;
 extern uint8_t build_sprite_group_warning;
-extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern int32_t rasterizer_dynamic_vertex_cache_reserve(int16_t vertex_type, int32_t count);
 extern void *rasterizer_dynamic_vertex_cache_lock(int32_t slot_index);
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
 extern double fmod(double x, double y);
 extern double atan2(double y, double x);
 extern rasterizer_dynamic_vertex_slot rasterizer_dynamic_vertex_slots[k_rasterizer_dynamic_vertex_slots];
 extern rasterizer_dynamic_vertex_cache rasterizer_dynamic_vertex_caches[k_rasterizer_vertex_type_count];
 extern rasterizer_vertex_buffer_slot rasterizer_vertex_buffer_slots[k_rasterizer_vertex_buffer_slots];
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32_t dynamic_index_slot,
     int32_t dynamic_vertex_slot, int32_t primitive_count, uint32_t flags, real_point3d *world_position,
     Shader *shader);
-extern real transition_function_evaluate(transition_function_t type, real phase);
 extern double sqrt(double x);
 extern double fabs(double x);
 extern render_camera render_camera_global;
 extern float unknown_00672f20;
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
 extern data_array *contrail_point_data;
 extern data_array *object_data;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void *rasterizer_dynamic_index_buffer;
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern int32_t rasterizer_dynamic_index_cache_reserve(int32_t count);
-extern real vector2d_normalize_with_length(real_vector2d *v);
 extern data_array *contrail_data;
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern uint8_t particle_spawn_debug_mode;
 extern int16_t current_local_player_index;
 extern data_array *particle_data;
-extern uint32_t cluster_visible_bits[0x10];
 extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern int32_t render_frame_index;
-extern void datum_delete(data_array *array, datum_index index);
 }
 
 typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);
@@ -129,7 +118,7 @@ int16_t halo::render::SpriteBuilder::get_group(BitmapData *bitmap)
         data->group_count = count + 1;
         group->bitmap = (uint32_t)bitmap;
 
-        if (texture_cache_get(bitmap, 0, 1) == 0) {
+        if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
             group->vertices = 0;
             group->vertex_slot = -1;
         } else {
@@ -186,7 +175,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
 
     render_sprite_transform_point_and_normal(origin, axis, &transformed_axis, data,
                                              (uint8_t)(flags & 1), &transformed_origin);
-    d = vector3d_angle_between_4cd4f0(&transformed_axis, (real_vector3d *)&transformed_origin) -
+    d = halo::math::vector3d_angle_between_4cd4f0(transformed_axis, *((real_vector3d *)&transformed_origin)) -
         1.5707964f;
     t = d * d * 0.40528470f;
 
@@ -206,7 +195,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
             float quad_rotation;
             uint32_t quad_flags = 1;
 
-            bitmap_group = (Bitmap *)tag_instances[(uint16_t)data->bitmap_group_index].data;
+            bitmap_group = (Bitmap *)halo::cache::globals().tag_instances[(uint16_t)data->bitmap_group_index].data;
             sequences = (BitmapGroupSequence *)bitmap_group->bitmap_group_sequence.pointer;
             count = (int16_t)sequences[first_sequence_index + 1].sprites.count;
 
@@ -235,7 +224,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
         float side_fade = (1.0f - t) * fade;
         float side_rotation;
 
-        bitmap_group = (Bitmap *)tag_instances[(uint16_t)data->bitmap_group_index].data;
+        bitmap_group = (Bitmap *)halo::cache::globals().tag_instances[(uint16_t)data->bitmap_group_index].data;
         sequences = (BitmapGroupSequence *)bitmap_group->bitmap_group_sequence.pointer;
         count = (int16_t)sequences[first_sequence_index].sprites.count;
         side_rotation = (real)atan2(transformed_axis.j, transformed_axis.i);
@@ -273,9 +262,9 @@ void halo::render::SpriteBuilder::billboard_build_orientation_basis(int16_t rend
 
     if (render_type == 1) {
         out->tangent = *normal;
-        vector3d_normalize_with_length(&out->tangent);
-        vector3d_cross_product(&out->bitangent, &out->tangent, position);
-        vector3d_normalize_with_length(&out->bitangent);
+        halo::math::vector3d_normalize_with_length(out->tangent);
+        halo::math::vector3d_cross_product(out->bitangent, out->tangent, *position);
+        halo::math::vector3d_normalize_with_length(out->bitangent);
         return;
     }
 
@@ -287,13 +276,13 @@ void halo::render::SpriteBuilder::billboard_build_orientation_basis(int16_t rend
             axis = &build_sprite_view_left;
         }
 
-        vector3d_cross_product(&out->tangent, axis, normal);
-        vector3d_normalize_with_length(&out->tangent);
+        halo::math::vector3d_cross_product(out->tangent, *axis, *normal);
+        halo::math::vector3d_normalize_with_length(out->tangent);
 
         out->bitangent = out->tangent;
         out->normal = *normal;
-        vector3d_normalize_with_length(&out->normal);
-        vector3d_rotate_about_axis(&out->bitangent, &out->normal, -1.0f, 0.0f);
+        halo::math::vector3d_normalize_with_length(out->normal);
+        halo::math::vector3d_rotate_about_axis(out->bitangent, out->normal, -1.0f, 0.0f);
     }
 }
 
@@ -341,9 +330,9 @@ void halo::render::SpriteBuilder::sprite_transform_point_and_normal(real_point3d
     }
 
     if ((flags & _build_sprite_already_transformed_bit) == 0) {
-        matrix4x3_transform_point(out_position, position, &render_frustum_global.world_to_view);
+        halo::math::matrix4x3_transform_point(*out_position, *position, render_frustum_global.world_to_view);
         if (normal != 0) {
-            matrix4x3_transform_normal(out_normal, normal, &render_frustum_global.world_to_view);
+            halo::math::matrix4x3_transform_normal(*out_normal, *normal, render_frustum_global.world_to_view);
         }
     } else {
         *out_position = *position;
@@ -367,10 +356,10 @@ void frame_init(void)
     build_sprite_screen_coverage = 0.0f;
     build_sprite_large_quad_count = 0;
 
-    matrix4x3_transform_normal(&build_sprite_view_up, (real_vector3d *)global_up3d_pointer,
-                                &render_frustum_global.world_to_view);
-    matrix4x3_transform_normal(&build_sprite_view_left, (real_vector3d *)global_left3d_pointer,
-                                &render_frustum_global.world_to_view);
+    halo::math::matrix4x3_transform_normal(build_sprite_view_up, *(real_vector3d *)halo::math::globals().global_up3d_pointer,
+                                render_frustum_global.world_to_view);
+    halo::math::matrix4x3_transform_normal(build_sprite_view_left, *(real_vector3d *)halo::math::globals().global_left3d_pointer,
+                                render_frustum_global.world_to_view);
 }
 
 /**
@@ -435,7 +424,7 @@ void draw(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
     uint32_t mirror_v;
     int16_t corner;
 
-    bitmap_group = (Bitmap *)tag_instances[(uint16_t)data->bitmap_group_index].data;
+    bitmap_group = (Bitmap *)halo::cache::globals().tag_instances[(uint16_t)data->bitmap_group_index].data;
     if (color == 0) {
         color = (ColorARGB *)global_white_argb;
     }
@@ -482,7 +471,7 @@ void draw(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
 
     shader = (LightningShader *)data->shader;
     if (shader != 0 && shader->framebuffer_fade_mode != 0 && mode != 0) {
-        vector3d_cross_product(&basis.normal, &basis.bitangent, &basis.tangent);
+        halo::math::vector3d_cross_product(basis.normal, basis.bitangent, basis.tangent);
         fade = render_billboard_compute_view_fade((real_vector3d *)&transformed_origin,
                                                   &basis.normal,
                                                   shader->framebuffer_fade_mode) * fade;
@@ -608,7 +597,7 @@ void sprites_end(build_sprite_data *data)
     data->centroid.x = scale * data->centroid.x;
     data->centroid.y = scale * data->centroid.y;
     data->centroid.z = scale * data->centroid.z;
-    matrix4x3_transform_point(&data->centroid, &data->centroid, &render_frustum_global.view_to_world);
+    halo::math::matrix4x3_transform_point(data->centroid, data->centroid, render_frustum_global.view_to_world);
 
     for (i = 0; i < data->group_count; i++) {
         build_sprite_group *group = &data->groups[i];
@@ -667,7 +656,7 @@ real compute_edge_fade_factor(real_vector3d *direction, real_point3d *point, int
                                                to_camera.i * to_camera.i))));
 
     if ((*flags & 0x40) != 0) {
-        fade = transition_function_evaluate(_transition_function_very_early, fade);
+        fade = halo::math::transition_function_evaluate(_transition_function_very_early, fade);
     }
     if (fade_mode == 2) {
         fade = 1.0f - fade;
@@ -706,7 +695,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
     bitmap = bitmap_group_sequence_get_bitmap_data(*(datum_index *)&definition->bitmap.tag_id,
                                                    c->frame_index, c->sequence_index);
     rasterizer_vertex_buffer_lock_state = 0xf;
-    if (texture_cache_get(bitmap, 0, 1) == 0) {
+    if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         rasterizer_vertex_buffer_lock_state = 0;
         return;
     }
@@ -766,7 +755,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         }
         if (c->object_index != 0xffffffff) {
             object *o = ((object_header *)object_data->data)[(uint16_t)c->object_index].data;
-            Object *object_definition = (Object *)tag_instances[o->definition_tag & 0xffff].data;
+            Object *object_definition = (Object *)halo::cache::globals().tag_instances[o->definition_tag & 0xffff].data;
             int16_t change_color = (int16_t)(*(int16_t *)((uint8_t *)object_definition->attachments.pointer +
                                              (int32_t)c->attachment_index * 0x48 + 0x34) - 1);
 
@@ -807,7 +796,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
                     fade_normal.j = next->position.x - point->position.x;
                     fade_normal.k = 0.0f;
                 }
-                vector3d_normalize_with_length(&fade_normal);
+                halo::math::vector3d_normalize_with_length(fade_normal);
             }
             break;
         case 1:
@@ -821,7 +810,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
                 side.i = point->position.y - next->position.y;
                 side.j = next->position.x - point->position.x;
             }
-            vector2d_normalize_with_length(&side);
+            halo::math::vector2d_normalize_with_length(side);
             vertices[0].x = point->position.x - side.i * half_width;
             vertices[0].y = point->position.y - side.j * half_width;
             vertices[0].z = point->position.z;
@@ -829,7 +818,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
             vertices[1].y = side.j * half_width + point->position.y;
             vertices[1].z = point->position.z;
             if (has_fade) {
-                fade_normal = *global_up3d_pointer;
+                fade_normal = *halo::math::globals().global_up3d_pointer;
             }
             break;
         }
@@ -854,7 +843,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
             side.i = segment.k * to_camera.j - segment.j * to_camera.k;
             side.j = segment.i * to_camera.k - segment.k * to_camera.i;
             side.k = segment.j * to_camera.i - segment.i * to_camera.j;
-            vector3d_normalize_with_length(&side);
+            halo::math::vector3d_normalize_with_length(side);
             vertices[0].x = point->position.x - side.i * half_width;
             vertices[0].y = point->position.y - side.j * half_width;
             vertices[0].z = point->position.z - side.k * half_width;
@@ -862,8 +851,8 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
             vertices[1].y = side.j * half_width + point->position.y;
             vertices[1].z = side.k * half_width + point->position.z;
             if (has_fade) {
-                vector3d_cross_product(&fade_normal, &side, &segment);
-                vector3d_normalize_with_length(&fade_normal);
+                halo::math::vector3d_cross_product(fade_normal, side, segment);
+                halo::math::vector3d_normalize_with_length(fade_normal);
             }
             break;
         }
@@ -943,11 +932,11 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
  */
 void render_all(uint32_t render_type_flags)
 {
-    datum_index index = datum_next(-1, contrail_data);
+    datum_index index = halo::memory::datum_next(-1, contrail_data);
 
     while (index != k_datum_index_none) {
         contrail *c = &((contrail *)contrail_data->data)[(uint16_t)index];
-        Contrail *definition = (Contrail *)tag_instances[(uint16_t)c->definition_index].data;
+        Contrail *definition = (Contrail *)halo::cache::globals().tag_instances[(uint16_t)c->definition_index].data;
         int16_t i;
 
         for (i = 0; i < 4; i++) {
@@ -957,7 +946,7 @@ void render_all(uint32_t render_type_flags)
             }
         }
 
-        index = datum_next((int16_t)index, contrail_data);
+        index = halo::memory::datum_next((int16_t)index, contrail_data);
     }
 }
 
@@ -990,13 +979,13 @@ void particles(void)
     }
     viewer_value = (int32_t)viewer;
 
-    for (index = datum_next(-1, particle_data); index != 0xffffffff;
-         index = datum_next((int16_t)index, particle_data)) {
+    for (index = halo::memory::datum_next(-1, particle_data); index != 0xffffffff;
+         index = halo::memory::datum_next((int16_t)index, particle_data)) {
         particle *p = &((particle *)particle_data->data)[(uint16_t)index];
         int32_t cluster = (int32_t)p->location.cluster_index;
         uint8_t owned = (int32_t)p->first_person_weapon_index == viewer_value;
 
-        if ((cluster_visible_bits[cluster >> 5] & (1u << (cluster & 0x1f))) == 0) {
+        if ((halo::structures::globals().cluster_visible_bits[cluster >> 5] & (1u << (cluster & 0x1f))) == 0) {
             continue;
         }
         if ((p->flags & 0x10) != 0 && owned) {
@@ -1050,7 +1039,7 @@ void particles(void)
 
         group_first = records;
         for (group = 0; group < group_count; group++) {
-            Particle *definition = (Particle *)tag_instances[group_first->definition_index].data;
+            Particle *definition = (Particle *)halo::cache::globals().tag_instances[group_first->definition_index].data;
             int16_t in_group = (int16_t)group_counts[group];
             int16_t drawn = 0;
             float radius_sum = 0.0f;
@@ -1069,7 +1058,7 @@ void particles(void)
             for (k = 0; k < in_group; k++, group_first++) {
                 uint16_t particle_index = group_first->particle_index;
                 particle *p = &((particle *)particle_data->data)[particle_index];
-                Particle *pd = (Particle *)tag_instances[(uint16_t)p->definition_index].data;
+                Particle *pd = (Particle *)halo::cache::globals().tag_instances[(uint16_t)p->definition_index].data;
                 float radius = ((pd->radius_animation[1] - pd->radius_animation[0]) *
                                 (p->age / p->lifespan) + pd->radius_animation[0]) * p->scale;
                 real_point3d origin;
@@ -1109,7 +1098,7 @@ void particles(void)
                             }
                         }
                         if (m == 0) {
-                            datum_delete(particle_data, (datum_index)(int32_t)(int16_t)particle_index);
+                            halo::memory::datum_delete(particle_data, (datum_index)(int32_t)(int16_t)particle_index);
                             continue;
                         }
                     }

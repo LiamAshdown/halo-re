@@ -1,4 +1,7 @@
 #include "halo/game/game2_engine_players.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/cache/api.hpp"
 
 #define k_uninitialized_fill 0xfafafafau
 
@@ -11,9 +14,7 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t ui_split_screen;
 extern uint8_t global_00719750;
 extern int16_t global_00719772;
-extern real_vector3d global_origin3d;
 extern uint32_t update_client_distribute_staged_entry(uint8_t *out);
-extern void *data_iterator_next(data_iterator *iterator);
 extern uint8_t player_update_queue_pop_current(player_update_record *out, player_update_queue *queue);
 extern void player_apply_first_position_update(uint32_t field0, player *plr);
 extern uint8_t game_engine_player_ready_to_respawn(uint32_t player_index);
@@ -25,7 +26,6 @@ extern void unit_release_selected_equipment(datum_index unit_handle);
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward);
 extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id);
 extern void game_engine_build_visible_cluster_bitmask(void *out_bitmask, uint32_t flag);
-extern tag_instance *tag_instances;
 extern uint32_t update_client_queue_apply_tick(player_action *out_actions, client_update_carry *out_carry);
 extern void build_remote_player_transform_update(datum_index player_handle, int32_t field1, int32_t field2, player_action action);
 extern uint8_t player_execute_pending_interaction(datum_index player_handle);
@@ -63,7 +63,6 @@ extern int32_t weapon_get_next_zoom_level(int32_t current_level, datum_index ite
 extern uint8_t player_profile_get_flag_by_id(int16_t local_player_index);
 extern void chimera__spectate_fp_camera_position(camera_basis_out *out, int16_t local_player_index);
 extern void value_step_toward_target(float *value, float target, float max_step);
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, void *marker, uint32_t flags);
 extern double atan2(double y, double x);
 extern double cos(double x);
@@ -118,7 +117,7 @@ void EnginePlayerSync::players_update_client(void)
     carried_weapon_index = 0;
     carried_grenade_or_zoom = 0;
 
-    plr = (player *)data_iterator_next(&player_iter);
+    plr = (player *)halo::memory::data_iterator_next(&player_iter);
     while (plr != (player *)0) {
         if (plr->local_player_index == -1) {
             player_update_record peek;
@@ -205,7 +204,7 @@ void EnginePlayerSync::players_update_client(void)
                     ctrl.weapon_index = -1;
                     ctrl.grenade_index = -1;
                     ctrl.zoom_level = -1;
-                    ctrl.throttle = global_origin3d;
+                    ctrl.throttle = reinterpret_cast<real_vector3d &>(halo::math::globals().global_origin3d);
                     ctrl.primary_trigger = 0.0f;
                     ctrl.facing_vector = unit->desired_facing_vector;
                     ctrl.aiming_vector = unit->desired_aiming_vector;
@@ -215,7 +214,7 @@ void EnginePlayerSync::players_update_client(void)
             }
         }
 
-        plr = (player *)data_iterator_next(&player_iter);
+        plr = (player *)halo::memory::data_iterator_next(&player_iter);
     }
 
     game_engine_build_visible_cluster_bitmask((uint8_t *)local_player_globals + 0x58, 1);
@@ -255,7 +254,7 @@ void EnginePlayerSync::players_update_server(void)
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
     counter = 0;
 
-    plr = (player *)data_iterator_next(&player_iter);
+    plr = (player *)halo::memory::data_iterator_next(&player_iter);
     while (plr != (player *)0) {
         action = &actions[counter];
         entry = &carry[counter];
@@ -324,7 +323,7 @@ void EnginePlayerSync::players_update_server(void)
                         datum_index weapon_handle = unit->weapons[unit->current_weapon_index];
                         if (weapon_handle != (datum_index)-1) {
                             object *weapon_obj = ((object_header *)object_data->data)[weapon_handle & 0xffff].data;
-                            Weapon *weapon_tag = (Weapon *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
+                            Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
                             if ((weapon_tag->weapon_flags & 0x08) != 0) {
                                 if ((action->control_flags & 0x1800) != 0) {
                                     if (unit_obj->network_role == 0) {
@@ -368,7 +367,7 @@ void EnginePlayerSync::players_update_server(void)
                     ctrl.weapon_index = -1;
                     ctrl.grenade_index = -1;
                     ctrl.zoom_level = -1;
-                    ctrl.throttle = global_origin3d;
+                    ctrl.throttle = reinterpret_cast<real_vector3d &>(halo::math::globals().global_origin3d);
                     ctrl.primary_trigger = 0.0f;
                     ctrl.facing_vector = unit->desired_facing_vector;
                     ctrl.aiming_vector = unit->desired_aiming_vector;
@@ -378,7 +377,7 @@ void EnginePlayerSync::players_update_server(void)
             }
         }
 
-        plr = (player *)data_iterator_next(&player_iter);
+        plr = (player *)halo::memory::data_iterator_next(&player_iter);
     }
 
     game_engine_build_visible_cluster_bitmask((uint8_t *)local_player_globals + 0x58, 1);
@@ -408,7 +407,7 @@ void EnginePlayerSync::server_update_player_positions(void)
     iter.index = (datum_index)-1;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    plr = (player *)data_iterator_next(&iter);
+    plr = (player *)halo::memory::data_iterator_next(&iter);
     while (plr != (player *)0) {
         if (plr->unit != (datum_index)-1) {
             object *unit_obj = ((object_header *)object_data->data)[plr->unit & 0xffff].data;
@@ -442,7 +441,7 @@ void EnginePlayerSync::server_update_player_positions(void)
                 }
             }
         }
-        plr = (player *)data_iterator_next(&iter);
+        plr = (player *)halo::memory::data_iterator_next(&iter);
     }
 }
 
@@ -800,7 +799,7 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
 
     if (camera.seat_index != -1) {
         uint8_t *unit_object = (uint8_t *)((object_header *)object_data->data)[camera.unit & 0xffff].data;
-        uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit_object & 0xffff].data;
+        uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit_object & 0xffff].data;
         uint8_t *seat = *(uint8_t **)(unit_tag + 0x2e8) + (int32_t)camera.seat_index * 0x11c;
         real yaw_min = *(real *)(seat + 0xf0);
         real yaw_max = *(real *)(seat + 0xf4);
@@ -859,7 +858,7 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
                 heading.i = (real)cos((double)look->yaw) * 1.0f;
                 heading.j = (real)sin((double)look->yaw) * 1.0f;
                 heading.k = 0.0f;
-                adjust = 1.5707964f - vector3d_angle_between_4cd4f0((real_vector3d *)(unit + 0x80), &heading);
+                adjust = 1.5707964f - halo::math::vector3d_angle_between_4cd4f0(*(real_vector3d *)(unit + 0x80), heading);
                 pitch_min = pitch_min - adjust;
                 pitch_max = pitch_max - adjust;
                 target_pitch = target_pitch - adjust;
@@ -1040,7 +1039,7 @@ void EnginePlayerSync::spawn_player_starting_loadout(uint32_t starting_equipment
                 object_placement_data_initialize(&placement, picked_tag, (datum_index)0xffffffff);
 
                 if (network_game_mode == 2) {
-                    tag_instance *tag_inst = &tag_instances[picked_tag & 0xffff];
+                    tag_instance *tag_inst = &halo::cache::globals().tag_instances[picked_tag & 0xffff];
                     Object *object_tag = (Object *)tag_inst->data;
                     if (object_type_definitions[object_tag->object_type]->network_delta_message_type != -1) {
                         role = 0;

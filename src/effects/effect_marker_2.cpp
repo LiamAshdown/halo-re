@@ -1,7 +1,7 @@
 #include "halo/effects/effects.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
-extern tag_instance *tag_instances;
 extern datum_index effect_marker_new(effect *self, int16_t location_index, object_marker *resolved_marker, uint8_t first_person);
 extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
 void effect_rebuild_markers(effect *self, effect_marker_resolver resolve_marker);
@@ -18,7 +18,7 @@ namespace halo::effects {
 void effect_view::rebuild_markers(effect_marker_resolver resolve_marker)
 {
     effect * self = record;
-    Effect *tag = (Effect *)tag_instances[(uint16_t)self->definition_index].data;
+    Effect *tag = (Effect *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
     uint8_t *locations = (uint8_t *)tag->locations.pointer;
     int16_t location_index;
 

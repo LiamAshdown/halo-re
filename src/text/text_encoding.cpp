@@ -7,9 +7,9 @@
 #include "halo/text/text.hpp"
 #include "halo/text/limits.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/cache/api.hpp"
 
 extern "C" {
-extern tag_instance *tag_instances;
 extern datum_index text_localization_strings;
 extern char missing_string[17];
 extern datum_index hud_text_draw_font_tag_id;
@@ -66,14 +66,14 @@ int16_t narrow_text_strategy::parse_next_token(text_parse_state *state)
         if (token == _text_token_style) {
             datum_index resolved_font = state->font;
             if (state->style != (int16_t)-1) {
-                Font *base_font = (Font *)tag_instances[halo::datum_slot(state->font)].data;
+                Font *base_font = (Font *)halo::cache::globals().tag_instances[halo::datum_slot(state->font)].data;
                 TagDependency *style_dependency = &base_font->bold + state->style;
                 resolved_font = *(datum_index *)&style_dependency->tag_id;
                 if (resolved_font == (datum_index)k_datum_index_none) {
                     resolved_font = state->font;
                 }
             }
-            state->font_definition = (uint32_t)tag_instances[halo::datum_slot(resolved_font)].data;
+            state->font_definition = (uint32_t)halo::cache::globals().tag_instances[halo::datum_slot(resolved_font)].data;
         }
 
         if (token != _text_token_style && token != _text_token_unused_5) {
@@ -116,7 +116,7 @@ int16_t narrow_text_strategy::parse_next_token(text_parse_state *state)
         }
 
         if (text_localization_strings != (datum_index)k_datum_index_none) {
-            localization = (StringList *)tag_instances[halo::datum_slot(text_localization_strings)].data;
+            localization = (StringList *)halo::cache::globals().tag_instances[halo::datum_slot(text_localization_strings)].data;
 
             if (localization->strings.count > _text_localization_single_byte_break_characters) {
                 StringListString *entry = (StringListString *)localization->strings.pointer +
