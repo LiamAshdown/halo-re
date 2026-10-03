@@ -611,7 +611,7 @@ datum_index halo::ai::movement_ops::create_swarm()
                     s2->component_index[s2->component_count] = component_index;
                     s2->component_count = s2->component_count + 1;
 
-                    marker = (unit_object->type == 0) ? *(datum_index *)((uint8_t *)unit_object + 0x4d8)
+                    marker = (unit_object->type == 0) ? ((biped_object *)unit_object)->biped.ground_surface_index
                                                        : (datum_index)k_datum_index_none;
                     halo::objects::object_get_position(&component->position, unit_index);
                     component->marker_index = marker;

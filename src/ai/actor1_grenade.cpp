@@ -80,7 +80,7 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
                 }
                 ticks = (int16_t)(int32_t)(seconds * 30.0f);
                 halo::units::unit_set_control_countdown(a->unit_index, ticks, 0x800);
-                unit[0x28c] = (uint8_t)ticks;
+                ((unit_object *)unit)->unit.delayed_weapon_drop_ticks = (int8_t)ticks;
             }
         }
     }

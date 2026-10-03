@@ -247,7 +247,7 @@ void ActorView::refresh_combat_context()
                 self->enemy_child_attached = 1;
             }
         } else if (type == 5) {
-            if ((int8_t)child_object[0x22c] < 0 || (self->danger_type == 2 && child == self->danger_object_index)) {
+            if ((int8_t)((projectile_object *)child_object)->projectile.flags < 0 || (self->danger_type == 2 && child == self->danger_object_index)) {
                 self->stuck_projectile_index = child;
             }
         }

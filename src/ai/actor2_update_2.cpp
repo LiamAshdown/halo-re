@@ -94,7 +94,7 @@ void ActorView::update_firing_state()
         if (a->throw_grenade) {
             int16_t grenade = variant->grenade_type;
 
-            if (grenade != -1 && *(int8_t *)(halo::ai::object_bytes(a->unit_index) + 0x31e + grenade) == 0) {
+            if (grenade != -1 && halo::units::unit_data_of(halo::ai::object_at(a->unit_index))->grenade_counts[grenade] == 0) {
                 halo::units::unit_set_grenade_type_and_count_delta(a->unit_index, grenade, 1);
             }
             a->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::grenade);

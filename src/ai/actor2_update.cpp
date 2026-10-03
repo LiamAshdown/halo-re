@@ -1963,7 +1963,7 @@ void ActorOps::update_swarm_component_position(datum_index component_index, datu
     swarm_component *component = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[component_index & halo::k_slot_mask];
     datum_index marker;
 
-    marker = (unit_object->type == 0) ? *(datum_index *)((uint8_t *)unit_object + 0x4d8) : (datum_index)k_datum_index_none;
+    marker = (unit_object->type == 0) ? ((biped_object *)unit_object)->biped.ground_surface_index : (datum_index)k_datum_index_none;
 
     halo::objects::object_get_position(&component->position, unit_index);
     component->marker_index = marker;

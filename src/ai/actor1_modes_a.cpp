@@ -904,7 +904,7 @@ void halo::ai::search_mode::tick()
     } else {
         act->mode_data.search.unknown_03 = 0;
         if ((static_cast<uint8_t>(actor_tag->flags) & 2) && act->mode_data.search.stage == 0 && act->target_combat_status == 5 &&
-            (int8_t)((uint8_t *)halo::ai::globals().prop_data->data + (act->target_unit_index & halo::k_slot_mask) * k_prop_size)[0x121] <= 2) {
+            (int8_t)halo::ai::prop_at(act->target_unit_index)->distance_class <= 2) {
             act->mode_data.search.unknown_03 = 1;
         }
     }
