@@ -2,6 +2,7 @@
 #include "halo/interface/engine_state.hpp"
 #include "halo/interface/ifr2_players.hpp"
 #include "rasterizer.h"
+#include "halo/effects/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -24,8 +25,6 @@ extern uint8_t console_debug_toggle_6893f2;
 extern uint32_t rasterizer_capability_007c10e4;
 extern int16_t light_count_enabled;
 extern uint8_t console_debug_toggle_689404;
-extern uint8_t decals_for_all_responses;
-extern uint8_t particle_spawn_debug_mode;
 extern uint8_t particle_systems_enabled;
 extern int32_t rasterizer_gamma_exponent;
 extern struct cache *texture_cache;
@@ -115,8 +114,8 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
     light_count_enabled = 2;
     state::decals_and_lens_flares_enabled = 1;
     console_debug_toggle_689404 = 1;
-    decals_for_all_responses = (rasterizer_capability_007c10e4 & 0x6000000u) != 0 ? settings[0xa72] : 0;
-    particle_spawn_debug_mode = settings[0xa73];
+    halo::effects::globals().decals_for_all_responses = (rasterizer_capability_007c10e4 & 0x6000000u) != 0 ? settings[0xa72] : 0;
+    halo::effects::globals().particle_spawn_debug_mode = settings[0xa73];
     particle_systems_enabled = settings[0xa73];
     rasterizer_gamma_exponent = settings[0xa76];
     chimera__gamma();

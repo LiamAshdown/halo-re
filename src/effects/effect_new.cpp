@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
@@ -7,26 +8,15 @@ extern tag_instance *tag_instances;
 extern datum_index datum_new(data_array *array);
 extern void datum_delete(data_array *array, datum_index handle);
 extern datum_index datum_next(int16_t after_index, data_array *array);
-extern void effect_start_event(datum_index effect_handle, int16_t event_index);
 extern const ColorRGB *global_white_color;
-extern datum_index effect_new(datum_index definition_index, datum_index creator_object_index, uint8_t force_create);
 extern int32_t local_player_index_for_object(datum_index object_index);
-extern void effect_rebuild_markers(effect *self, int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t));
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name, object_marker *marker, uint32_t flags);
 extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
-extern void effect_update(datum_index effect_handle, real delta_time);
 extern uint8_t first_person_effects_enabled;
-extern void effect_set_placement(effect *self, const ColorRGB *color, const effect_tint_source *tint_source, real a_scale, real b_scale);
-extern uint8_t effect_first_person_screen_timer_active(datum_index object_index);
 extern data_array *object_data;
 extern void *effect_marker_callback_context;
-extern int32_t effect_marker_node_table_resolver(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
 extern ScenarioStructureBSP *global_structure_bsp;
 extern const real_point3d *global_origin3d_pointer;
-datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index, int16_t change_color_index, int16_t u, int16_t v);
-datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-datum_index effect_new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-datum_index effect_new_with_color(datum_index definition_index, datum_index creator_object_index, const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, real_point3d *position, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source, uint8_t force_create);
 }
 
 namespace halo::effects {
@@ -83,7 +73,7 @@ datum_index effect_ref::create(datum_index definition_index, datum_index creator
                 self->creator_object_index = creator_object_index;
                 self->first_person_weapon_index = -1;
                 self->flags = 0;
-                effect_start_event(handle, 0);
+                halo::effects::effect_start_event(handle, 0);
             }
         }
     }
@@ -99,7 +89,7 @@ datum_index effect_ref::create(datum_index definition_index, datum_index creator
  */
 datum_index effect_ref::new_at_texture_coordinate(datum_index definition_index, datum_index object_index, int16_t change_color_index, int16_t u, int16_t v)
 {
-    datum_index handle = effect_new(definition_index, object_index, 1);
+    datum_index handle = halo::effects::effect_new(definition_index, object_index, 1);
 
     if (handle != k_datum_index_none) {
         effect *self = &((effect *)effect_data->data)[(uint16_t)handle];
@@ -122,12 +112,12 @@ datum_index effect_ref::new_at_texture_coordinate(datum_index definition_index, 
             self->location_markers[i] = k_datum_index_none;
         }
 
-        effect_rebuild_markers(self, object_get_node_local_transform);
+        halo::effects::effect_rebuild_markers(self, object_get_node_local_transform);
         if (self->first_person_weapon_index != -1) {
-            effect_rebuild_markers(self, first_person_weapon_get_marker_data);
+            halo::effects::effect_rebuild_markers(self, first_person_weapon_get_marker_data);
         }
 
-        effect_update(handle, 0.0f);
+        halo::effects::effect_update(handle, 0.0f);
     }
 
     return handle;
@@ -142,17 +132,17 @@ datum_index effect_ref::new_at_texture_coordinate(datum_index definition_index, 
  */
 datum_index effect_ref::new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source)
 {
-    datum_index handle = effect_new(definition_index, creator_object_index, 1);
+    datum_index handle = halo::effects::effect_new(definition_index, creator_object_index, 1);
 
     if (handle != k_datum_index_none) {
         effect *self = &((effect *)effect_data->data)[(uint16_t)handle];
         int i;
 
-        effect_set_placement(self, color, tint_source, a_scale, b_scale);
+        halo::effects::effect_set_placement(self, color, tint_source, a_scale, b_scale);
         self->object_index = object_index;
         self->first_person_weapon_index = (int16_t)local_player_index_for_object(object_index);
 
-        if (first_person_effects_enabled != 0 && effect_first_person_screen_timer_active(object_index)) {
+        if (first_person_effects_enabled != 0 && halo::effects::effect_first_person_screen_timer_active(object_index)) {
             self->flags = self->flags | _effect_first_person_bit;
         }
 
@@ -160,16 +150,16 @@ datum_index effect_ref::new_on_object(datum_index creator_object_index, datum_in
             self->location_markers[i] = k_datum_index_none;
         }
 
-        effect_rebuild_markers(self, object_get_node_local_transform);
+        halo::effects::effect_rebuild_markers(self, object_get_node_local_transform);
         if (self->first_person_weapon_index != -1) {
-            effect_rebuild_markers(self, first_person_weapon_get_marker_data);
+            halo::effects::effect_rebuild_markers(self, first_person_weapon_get_marker_data);
         }
 
         if (first_person_weapon_override != -1) {
             self->first_person_weapon_index = first_person_weapon_override;
         }
 
-        effect_update(handle, 0.0f);
+        halo::effects::effect_update(handle, 0.0f);
     }
 
     return handle;
@@ -186,7 +176,7 @@ datum_index effect_ref::new_on_object(datum_index creator_object_index, datum_in
  */
 datum_index effect_ref::new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source)
 {
-    datum_index handle = effect_new(definition_index, creator_object_index, 1);
+    datum_index handle = halo::effects::effect_new(definition_index, creator_object_index, 1);
 
     if (handle != k_datum_index_none) {
         effect *self = &((effect *)effect_data->data)[(uint16_t)handle];
@@ -194,10 +184,10 @@ datum_index effect_ref::new_on_object_with_node_table(datum_index creator_object
         object *attach_object;
         int i;
 
-        effect_set_placement(self, color, tint_source, a_scale, b_scale);
+        halo::effects::effect_set_placement(self, color, tint_source, a_scale, b_scale);
         self->object_index = object_index;
 
-        if (first_person_effects_enabled != 0 && effect_first_person_screen_timer_active(object_index)) {
+        if (first_person_effects_enabled != 0 && halo::effects::effect_first_person_screen_timer_active(object_index)) {
             self->flags = self->flags | _effect_first_person_bit;
         }
 
@@ -217,9 +207,9 @@ datum_index effect_ref::new_on_object_with_node_table(datum_index creator_object
             self->location_markers[i] = k_datum_index_none;
         }
 
-        effect_rebuild_markers(self, effect_marker_node_table_resolver);
+        halo::effects::effect_rebuild_markers(self, halo::effects::effect_marker_node_table_resolver);
 
-        effect_update(handle, 0.0f);
+        halo::effects::effect_update(handle, 0.0f);
     }
 
     return handle;
@@ -237,7 +227,7 @@ datum_index effect_ref::new_on_object_with_node_table(datum_index creator_object
  */
 datum_index effect_ref::new_with_color(datum_index definition_index, datum_index creator_object_index, const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, real_point3d *position, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source, uint8_t force_create)
 {
-    datum_index handle = effect_new(definition_index, creator_object_index, force_create);
+    datum_index handle = halo::effects::effect_new(definition_index, creator_object_index, force_create);
 
     if (handle != k_datum_index_none) {
         effect *self = &((effect *)effect_data->data)[(uint16_t)handle];
@@ -245,7 +235,7 @@ datum_index effect_ref::new_with_color(datum_index definition_index, datum_index
         int32_t leaf;
         int i;
 
-        effect_set_placement(self, color, tint_source, a_scale, b_scale);
+        halo::effects::effect_set_placement(self, color, tint_source, a_scale, b_scale);
         self->object_index = k_datum_index_none;
 
         context.unknown_08 = ctx_08;
@@ -271,9 +261,9 @@ datum_index effect_ref::new_with_color(datum_index definition_index, datum_index
             self->location_markers[i] = k_datum_index_none;
         }
 
-        effect_rebuild_markers(self, effect_marker_node_table_resolver);
+        halo::effects::effect_rebuild_markers(self, halo::effects::effect_marker_node_table_resolver);
 
-        effect_update(handle, 0.0f);
+        halo::effects::effect_update(handle, 0.0f);
     }
 
     return handle;
@@ -281,7 +271,7 @@ datum_index effect_ref::new_with_color(datum_index definition_index, datum_index
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 datum_index effect_new(datum_index definition_index, datum_index creator_object_index, uint8_t force_create)
 {

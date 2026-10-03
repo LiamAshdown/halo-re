@@ -1,5 +1,6 @@
 #include "halo/game/game2_engine_placement.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 typedef struct netgame_equipment_spawn_message {
     int32_t object_hash;
@@ -57,7 +58,6 @@ extern int16_t teleport_flash_fade_function;
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern datum_index tag_lookup(tag_group group, char *path);
 extern double atan2(double y, double x);
-extern void player_effect_set_screen_flash_for_player(datum_index player_index, player_screen_flash *descriptor, float intensity_falloff);
 extern int game_engine_find_valid_starting_locations(real_point3d *origin, float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type, int32_t max_results, int32_t *results);
 extern int32_t game_engine_find_one_valid_starting_location(int16_t type, int16_t team, real_point3d *origin, float max_horizontal_dist, float max_height_delta);
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
@@ -772,7 +772,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
                     flash.color.red = *(float *)&teleport_flash_red;
                     flash.color.green = *(float *)&teleport_flash_green;
                     flash.color.blue = *(float *)&teleport_flash_blue;
-                    player_effect_set_screen_flash_for_player(player_index, &flash, 1.0f);
+                    halo::effects::player_effect_set_screen_flash_for_player(player_index, &flash, 1.0f);
                 }
             }
 

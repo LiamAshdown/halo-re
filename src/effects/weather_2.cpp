@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern uint8_t weather_enabled;
@@ -9,10 +10,6 @@ extern ScenarioStructureBSP *global_structure_bsp;
 extern weather_instance weather_instances[1];
 extern real_point3d render_camera_global;
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
-extern void weather_instance_deactivate(int16_t instance_index);
-extern void weather_instance_activate(datum_index definition_index, int16_t instance_index, real intensity);
-extern void weather_instance_build_render_geometry(int16_t instance_index);
-void weather_update_local_player();
 }
 
 namespace halo::effects {
@@ -45,22 +42,22 @@ void weather_system::update_local_player()
 
         if ((int32_t)instance->definition_index != new_definition_index) {
             if (instance->definition_index != (datum_index)0xffffffff) {
-                weather_instance_deactivate(instance_index);
+                halo::effects::weather_instance_deactivate(instance_index);
             }
             if (new_definition_index != -1) {
-                weather_instance_activate((datum_index)new_definition_index, instance_index, 1.0f);
+                halo::effects::weather_instance_activate((datum_index)new_definition_index, instance_index, 1.0f);
             }
         }
 
         if (instance->definition_index != (datum_index)0xffffffff) {
-            weather_instance_build_render_geometry(instance_index);
+            halo::effects::weather_instance_build_render_geometry(instance_index);
         }
     }
 }
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void weather_update_local_player()
 {

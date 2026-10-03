@@ -1,6 +1,7 @@
 #include "halo/items/items.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -15,8 +16,6 @@ extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode;
 extern uint8_t weapon_bottomless_clip;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern void *effect_try_and_get(datum_index effect_index);
 extern const real_point3d *global_zero_vector3d_pointer;
 extern const real_vector3d *global_forward3d_pointer;
 extern uint32_t local_player_index_for_weapon(datum_index item_index);
@@ -28,7 +27,6 @@ extern real transition_function_evaluate(transition_function_t type, real phase)
 extern double floor(double x);
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern void unit_dispatch_seat_overlay_command(uint32_t unit_index, int16_t command);
-extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index, int16_t change_color_index, int16_t u, int16_t v);
 extern void object_delete(uint32_t object_index);
 void halo::items::weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out);
 real halo::items::weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
@@ -672,10 +670,10 @@ uint32_t weapon_ref::play_trigger_tag_effect(datum_index tag_id, real scale_a, r
     }
     group = tag_instances[(uint16_t)tag_id].group_tag;
     if (group == 0x65666665) {
-        return effect_new_on_object(creator, tag_id, attach_to, -1, a_scale, b_scale, 0, 0);
+        return halo::effects::effect_new_on_object(creator, tag_id, attach_to, -1, a_scale, b_scale, 0, 0);
     }
     if (group == 0x736e6421) {
-        effect_try_and_get(tag_id);
+        halo::effects::effect_try_and_get(tag_id);
         halo::sound::sound_start_at_object_marker(creator, (Point3D *)global_zero_vector3d_pointer,
             (Vector3D *)global_forward3d_pointer, tag_id, -1, a_scale, 0);
     }
@@ -1094,7 +1092,7 @@ uint32_t weapon_ref::stop_object_effect(datum_index tag_id)
         item_index = item_obj->parent_object;
     }
     if (item_index != (datum_index)0xffffffff) {
-        return effect_new_at_texture_coordinate(tag_id, item_index, -1, -1, -1);
+        return halo::effects::effect_new_at_texture_coordinate(tag_id, item_index, -1, -1, -1);
     }
     return 0xffffffff;
 }

@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern weather_instance weather_instances[1];
@@ -7,7 +8,6 @@ extern int32_t weather_instance_count;
 extern tag_instance *tag_instances;
 extern random_seed effect_random_seed;
 extern data_array *weather_particle_data;
-extern datum_index weather_particle_new(int16_t instance_index, int16_t type_index);
 extern void datum_delete(data_array *array, datum_index handle);
 extern ScenarioStructureBSP *global_structure_bsp;
 extern float render_camera_global;
@@ -15,7 +15,6 @@ extern float camera_position_y;
 extern float camera_position_z;
 extern const real *global_up3d_pointer;
 extern const uint32_t k_particle_render_constant[3];
-extern void weather_instance_update(int16_t instance_index);
 extern void vector3d_positive_modulo(real reference);
 extern void render_camera_facing_frame_build(real reference);
 extern uint8_t *structure_weather_polyhedra_find_within_radius(real radius);
@@ -23,11 +22,8 @@ extern int16_t render_frustum_test_bounding_box(uint32_t mode);
 extern void build_sprite();
 extern void build_sprites_end(void);
 extern float render_time_since_frame;
-extern void weather_instance_adjust_count(int16_t instance_index, int16_t type_index, real target_value);
-extern void weather_particle_update(datum_index weather_particle_handle, int16_t type_index, int16_t instance_index);
 extern double fmod(double x, double y);
 extern datum_index datum_new(data_array *array);
-extern void effect_random_direction_from_table(real_point3d *out);
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern int32_t weather_frame_counter;
@@ -37,10 +33,6 @@ extern double atan2(double y, double x);
 extern double sqrt(double x);
 extern double cos(double x);
 extern double sin(double x);
-void weather_instance_activate(datum_index definition_index, int16_t instance_index, real intensity);
-void weather_instance_build_render_geometry(int16_t instance_index);
-void weather_instance_deactivate(int16_t instance_index);
-void weather_update();
 }
 
 namespace halo::effects {
@@ -98,7 +90,7 @@ void weather_instance_ref::adjust_count(int16_t type_index, real target_value)
     }
 
     while (slot->particle_count < target) {
-        if (weather_particle_new(instance_index, type_index) == (datum_index)0xffffffff) {
+        if (halo::effects::weather_particle_new(instance_index, type_index) == (datum_index)0xffffffff) {
             break;
         }
     }
@@ -129,7 +121,7 @@ void weather_instance_ref::build_render_geometry()
         (WeatherParticleSystem *)tag_instances[(uint16_t)instance->definition_index].data;
     int32_t type_index;
 
-    weather_instance_update(instance_index);
+    halo::effects::weather_instance_update(instance_index);
 
     for (type_index = 0; type_index < (int32_t)tag->particle_types.count; type_index++) {
         WeatherParticleSystemParticleType *type =
@@ -213,7 +205,7 @@ void weather_instance_ref::update()
                    (type->fade_out_end_height - type->fade_out_start_height);
         fade_out = (fade_out < 0.0f) ? 0.0f : (fade_out > 1.0f ? 1.0f : fade_out);
 
-        weather_instance_adjust_count(instance_index, (int16_t)i,
+        halo::effects::weather_instance_adjust_count(instance_index, (int16_t)i,
             (1.0f - fade_out) * fade_in * instance->intensity * slot->target_count);
 
         particle_index = slot->first_particle;
@@ -226,7 +218,7 @@ void weather_instance_ref::update()
             p->rotation = (real)((((particle_index & 1) != 0) ? -1 : 1)) * p->rotation_rate *
                 instance->delta_time + p->rotation;
 
-            weather_particle_update(particle_index, (int16_t)i, instance_index);
+            halo::effects::weather_particle_update(particle_index, (int16_t)i, instance_index);
 
             particle_index = p->next_particle;
         }
@@ -266,7 +258,7 @@ datum_index weather_particle_ref::create(int16_t instance_index, int16_t type_in
         p->velocity.j = 0.0f;
         p->velocity.k = 0.0f;
 
-        effect_random_direction_from_table((real_point3d *)&p->acceleration);
+        halo::effects::effect_random_direction_from_table((real_point3d *)&p->acceleration);
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
         {
             real magnitude = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
@@ -477,7 +469,7 @@ void weather_system::update()
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void weather_instance_activate(datum_index definition_index, int16_t instance_index, real intensity)
 {

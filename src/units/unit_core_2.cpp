@@ -4,6 +4,7 @@
 #include "effects.h"
 #include "halo/sound/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern uint8_t *object_network_id_table;
@@ -28,7 +29,6 @@ extern real_point3d *global_origin3d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index, int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay);
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const void *color, const void *tint_source);
 extern uint8_t game_engine_is_valid_team_player(uint32_t identifier);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
@@ -542,7 +542,7 @@ controls:
                             ? *(datum_index *)(effects + 0x64) : *(datum_index *)(effects + 0x54);
 
                         if (effect != k_datum_index_none) {
-                            effect_new_on_object(unit_index, effect, unit_index, -1, 0.0f, 0.0f, 0, 0);
+                            halo::effects::effect_new_on_object(unit_index, effect, unit_index, -1, 0.0f, 0.0f, 0, 0);
                         }
                         ((unit_object *)obj)->unit.flags ^= 0x4000000;
                     }
@@ -552,7 +552,7 @@ controls:
                 }
                 if (toggle_light && ((((unit_object *)obj)->unit.flags & 0x80000) != 0 || ((struct unit_object *)obj)->unit.integrated_light_energy > 0.2f) &&
                     ((unit_object *)obj)->base.parent_object == k_datum_index_none) {
-                    effect_new_on_object(unit_index, *(datum_index *)&((Unit *)tag)->integrated_light_toggle.tag_id, unit_index, -1, 0.0f, 0.0f, 0, 0);
+                    halo::effects::effect_new_on_object(unit_index, *(datum_index *)&((Unit *)tag)->integrated_light_toggle.tag_id, unit_index, -1, 0.0f, 0.0f, 0, 0);
                     ((unit_object *)obj)->unit.flags ^= 0x80000;
                 }
             }

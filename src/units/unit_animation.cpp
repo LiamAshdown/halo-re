@@ -6,6 +6,7 @@
 #include "crt.h"
 #include "halo/sound/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern uint8_t *game_state_base;
@@ -28,7 +29,6 @@ extern real vector3d_normalize_with_length(real_vector3d *v);
 extern real vector3d_length(real_vector3d *v);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern real_vector3d *global_down3d_pointer;
-extern void effect_marker_environment_probe(uint32_t definition_index, int16_t location_index, real_point3d *marker_position, uint32_t sound_param);
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
 extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
@@ -553,7 +553,7 @@ void UnitView::fire_animation_sound_trigger(uint32_t trigger_kind, int16_t conta
             (char *)(*(uint8_t **)(biped_tag + 0x4ec) + contact_point_index * 0x40 + 0x20), &marker, 1) == 0) {
         return;
     }
-    effect_marker_environment_probe(*(datum_index *)(biped_tag + 0x398), (int16_t)trigger_kind,
+    halo::effects::effect_marker_environment_probe(*(datum_index *)(biped_tag + 0x398), (int16_t)trigger_kind,
         (real_point3d *)((uint8_t *)&marker + 0x60), 0);
 }
 

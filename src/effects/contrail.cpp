@@ -1,10 +1,9 @@
 #include "halo/effects/effects.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *contrail_data;
-extern int16_t contrail_points_due(datum_index contrail_handle, real elapsed_time);
-extern void contrail_generate_points(datum_index contrail_handle, int16_t point_count, uint8_t force);
 extern data_array *contrail_point_data;
 extern tag_instance *tag_instances;
 extern random_seed effect_random_seed;
@@ -12,18 +11,10 @@ extern void datum_delete(data_array *array, datum_index handle);
 extern data_array *object_data;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern datum_index datum_new(data_array *array);
-extern real effect_random_scaled_range(uint32_t flags, real scale, real base_min, real base_max, uint8_t bit_index);
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name, object_marker *marker, uint32_t flags);
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, random_seed *seed, real lo, real hi);
-extern void contrail_next_sequence(contrail *self);
 extern datum_index datum_next(int16_t after_index, data_array *array);
-extern void contrail_age_points(datum_index contrail_handle, real delta_time);
-extern void contrail_delete(datum_index contrail_index);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time);
-datum_index contrail_new(int16_t attachment_index, datum_index object_index, datum_index definition_index);
-void contrail_update(real delta_time);
-void contrails_initialize();
 }
 
 namespace halo::effects {
@@ -41,8 +32,8 @@ void contrail_ref::advance(uint8_t detach, real delta_time)
     contrail *self = &((contrail *)contrail_data->data)[(uint16_t)contrail_handle];
 
     if ((self->flags & _contrail_emitting_bit) != 0) {
-        int16_t due = contrail_points_due(contrail_handle, delta_time);
-        contrail_generate_points(contrail_handle, due < 1 ? 1 : due, 0);
+        int16_t due = halo::effects::contrail_points_due(contrail_handle, delta_time);
+        halo::effects::contrail_generate_points(contrail_handle, due < 1 ? 1 : due, 0);
     }
 
     if (detach != 0) {
@@ -244,7 +235,7 @@ void contrail_ref::generate_points(int16_t point_count, uint8_t force)
             attachment->marker.string, markers, 4);
 
         if (marker_count > 0) {
-            real velocity_magnitude = effect_random_scaled_range(tag->scale_flags, self->scale,
+            real velocity_magnitude = halo::effects::effect_random_scaled_range(tag->scale_flags, self->scale,
                 tag->point_velocity[0], tag->point_velocity[1], 1);
             real cone_angle = tag->point_velocity_cone_angle;
             real inherited_fraction = tag->inherited_velocity_fraction;
@@ -377,7 +368,7 @@ datum_index contrail_ref::create(int16_t attachment_index, datum_index object_in
             self->attachment_index = attachment_index;
             self->scale_function_index = attachment->primary_scale - 1;
             self->sequence_index = (int16_t)0xffff;
-            contrail_next_sequence(self);
+            halo::effects::contrail_next_sequence(self);
 
             self->texture_offset_u = 0.0f;
             self->texture_offset_v = 0.0f;
@@ -404,7 +395,7 @@ datum_index contrail_ref::create(int16_t attachment_index, datum_index object_in
             }
 
             self->flags |= _contrail_emitting_bit;
-            contrail_generate_points(handle, 1, 1);
+            halo::effects::contrail_generate_points(handle, 1, 1);
         }
     }
 
@@ -511,7 +502,7 @@ void contrail_ref::update(real delta_time)
             if (want_emitting != (uint8_t)(self->flags & _contrail_emitting_bit)) {
                 real saved_scale = self->scale;
                 self->scale = 0.0f;
-                contrail_generate_points(contrail_index, 1, 1);
+                halo::effects::contrail_generate_points(contrail_index, 1, 1);
                 self->scale = saved_scale;
             }
 
@@ -520,8 +511,8 @@ void contrail_ref::update(real delta_time)
             } else {
                 self->flags = self->flags | _contrail_emitting_bit;
                 {
-                    int16_t due = contrail_points_due(contrail_index, delta_time);
-                    contrail_generate_points(contrail_index, due, 0);
+                    int16_t due = halo::effects::contrail_points_due(contrail_index, delta_time);
+                    halo::effects::contrail_generate_points(contrail_index, due, 0);
                 }
             }
         }
@@ -538,7 +529,7 @@ void contrail_ref::update(real delta_time)
                     self->animation_timer = self->animation_timer + remaining;
                     break;
                 }
-                contrail_next_sequence(self);
+                halo::effects::contrail_next_sequence(self);
                 remaining = remaining - time_to_next_frame;
             }
         }
@@ -558,14 +549,14 @@ void contrail_ref::update(real delta_time)
             self->texture_offset_v = self->texture_offset_v + v_rate * remaining;
         }
 
-        contrail_age_points(contrail_index, delta_time);
+        halo::effects::contrail_age_points(contrail_index, delta_time);
 
         {
             int list;
             for (list = 0; list < 4 && self->first_point[list] == k_datum_index_none; list++) {
             }
             if (list == 4 && self->object_index == k_datum_index_none) {
-                contrail_delete(contrail_index);
+                halo::effects::contrail_delete(contrail_index);
             }
         }
 
@@ -595,7 +586,7 @@ void contrail_ref::initialize()
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time)
 {

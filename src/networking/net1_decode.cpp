@@ -3,6 +3,7 @@
 #include <string.h>
 #include <wchar.h>
 #include "halo/items/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
@@ -14,7 +15,6 @@ extern void game_engine_apply_player_join_message(void **context);
 extern void game_engine_apply_player_spawn_loadout_message(void **context);
 extern void unit_dispatch_seat_exit_message(void **context);
 extern uint8_t game_engine_apply_player_interaction_message(void **context);
-extern void player_effect_mark_damage_direction_dispatch(void **context);
 extern void unit_apply_network_control_update(void **context);
 extern uint8_t game_engine_apply_kill_streak_message(void **context);
 extern void chat_dispatch_incoming(void **context);
@@ -119,7 +119,7 @@ static void network_game_action_apply_shared(void **context, network_client_glob
 {
     switch (type_id) {
     case 0x06: hud_receive_item_message(context); break;
-    case 0x0b: player_effect_mark_damage_direction_dispatch(context); break;
+    case 0x0b: halo::effects::player_effect_mark_damage_direction_dispatch(context); break;
     case 0x0f: chat_dispatch_incoming(context); break;
     case 0x1a: game_engine_client_apply_team_assignment(context); break;
     case 0x21: network_channel_key_send_state(client, context); break;

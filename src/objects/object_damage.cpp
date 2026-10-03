@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
@@ -16,9 +17,6 @@ extern game_engine_definition *current_game_engine;
 extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag);
 extern void damage_effect_new_at_location(datum_index effect_tag, int16_t node_index, real_vector3d *normal, real_vector3d *incident, real_point3d *impact_position, uint32_t object_index);
 extern ModelCollisionGeometryMaterial default_collision_material;
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern datum_index effect_new_with_color(datum_index definition_index, datum_index creator_object_index, const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, real_point3d *position, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source, uint8_t force_create);
 extern uint8_t g_00689481;
 extern uint8_t g_006f1cf4;
 extern uint8_t g_0087abc0;
@@ -75,8 +73,6 @@ extern void object_throttled_multiplayer_sound_event(void);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_type_definitions_notify_region_damage(uint32_t object_index, uint32_t argument_1, uint32_t argument_2);
 extern data_array *player_data;
-extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd, const real_vector3d *direction, float random_blend, float damage_amount);
-extern void player_effect_send_network_update(datum_index player_handle, const real_vector3d *direction, const damage_data *dd, float random_blend, float damage_amount);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern real random_real(void);
 extern uint32_t random_seed_global;
@@ -343,7 +339,7 @@ void halo::objects::ObjectDamage::set_health_frozen_flag()
 
     if (((Object *)tag_instances[obj->definition_tag & 0xffff].data)->collision_model.tag_id.index != 0xffff) {
 
-        effect_new_on_object(object_index,
+        halo::effects::effect_new_on_object(object_index,
             *(datum_index *)((uint8_t *)tag_instances[((Object *)tag_instances[obj->definition_tag & 0xffff].data)
                 ->collision_model.tag_id.index].data + 0xb4),
             object_index, -1, 0.0f, 0.0f, 0, 0);
@@ -389,7 +385,7 @@ void halo::objects::ObjectDamage::set_shield_depleted_flag()
 
         if (collision_model != k_datum_index_none) {
 
-            effect_new_on_object(object_index,
+            halo::effects::effect_new_on_object(object_index,
                 *(datum_index *)((uint8_t *)tag_instances[collision_model & 0xffff].data + 0x1a4),
                 object_index, -1, 0.0f, 0.0f, 0, 0);
         }
@@ -878,20 +874,20 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
             if (player_index != k_datum_index_none) {
                 switch (network_game_mode) {
                 case 0:
-                    player_effect_mark_damage_direction(player_index, dd, &dd->direction, dd->random_blend, amount);
+                    halo::effects::player_effect_mark_damage_direction(player_index, dd, &dd->direction, dd->random_blend, amount);
                     break;
                 case 1:
                     if (no_random_range == 1) {
-                        player_effect_mark_damage_direction(player_index, dd, &dd->direction, dd->random_blend,
+                        halo::effects::player_effect_mark_damage_direction(player_index, dd, &dd->direction, dd->random_blend,
                             amount);
                     }
                     break;
                 case 2:
                     if (no_random_range) {
-                        player_effect_mark_damage_direction(player_index, dd, &dd->direction, dd->random_blend,
+                        halo::effects::player_effect_mark_damage_direction(player_index, dd, &dd->direction, dd->random_blend,
                             amount);
                     } else {
-                        player_effect_send_network_update(player_index, &dd->direction, dd, dd->random_blend,
+                        halo::effects::player_effect_send_network_update(player_index, &dd->direction, dd, dd->random_blend,
                             amount);
                     }
                     break;
@@ -900,9 +896,9 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
                 datum_index first_local = local_player_globals->local_players[0];
 
                 if (network_game_mode == 0) {
-                    player_effect_mark_damage_direction(first_local, dd, &dd->direction, dd->random_blend, amount);
+                    halo::effects::player_effect_mark_damage_direction(first_local, dd, &dd->direction, dd->random_blend, amount);
                 } else if (network_game_mode == 2) {
-                    player_effect_send_network_update(first_local, &dd->direction, dd, dd->random_blend, amount);
+                    halo::effects::player_effect_send_network_update(first_local, &dd->direction, dd, dd->random_blend, amount);
                 }
             }
         }
@@ -1226,7 +1222,7 @@ bookkeeping:
                 *notify_flags |= 1;
             }
         } else if (absolute < *(float *)(geometry + 0x94) && (*vitality_flags & 1) == 0) {
-            effect_new_on_object(target_index, *(datum_index *)(geometry + 0xa4), target_index, -1, 0.0f, 0.0f, 0, 0);
+            halo::effects::effect_new_on_object(target_index, *(datum_index *)(geometry + 0xa4), target_index, -1, 0.0f, 0.0f, 0, 0);
             *vitality_flags |= 1;
         }
     }
@@ -1236,7 +1232,7 @@ bookkeeping:
     }
     if ((dd->flags & 1) && body > *(float *)(geometry + 0x80) &&
         *(datum_index *)(geometry + 0x90) != k_datum_index_none && *(int16_t *)(effect_block + 0x2) != 7) {
-        effect_new_on_object(target_index, *(datum_index *)(geometry + 0x90), target_index, -1, 0.0f, 0.0f, 0, 0);
+        halo::effects::effect_new_on_object(target_index, *(datum_index *)(geometry + 0x90), target_index, -1, 0.0f, 0.0f, 0, 0);
     }
     *body_damage_out = body;
     *material_multiplier_out = *(float *)(material + 0x3c);
@@ -1544,7 +1540,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
  */
 void halo::objects::DamageSystem::dispatch_effect_notify(uint32_t forwarded_eax, uint32_t forwarded_ecx)
 {
-    effect_new_on_object(forwarded_eax, forwarded_ecx, forwarded_eax, -1, 0.0f, 0.0f, 0, 0);
+    halo::effects::effect_new_on_object(forwarded_eax, forwarded_ecx, forwarded_eax, -1, 0.0f, 0.0f, 0, 0);
 }
 
 /**
@@ -1610,17 +1606,17 @@ void halo::objects::DamageSystem::effect_new_at_location(datum_index effect_tag,
         positions[i] = *impact_position;
     }
     if (object_index != 0xffffffff && node_index != -1) {
-        effect_new_on_object_with_node_table(object_index, effect_tag, object_index, (uint16_t)node_index, 5,
+        halo::effects::effect_new_on_object_with_node_table(object_index, effect_tag, object_index, (uint16_t)node_index, 5,
             (uint32_t)(uintptr_t)names, (uint32_t)(uintptr_t)positions, (uint32_t)(uintptr_t)vectors,
             1.0f, 0.0f, 0, 0);
         return;
     }
-    effect_new_with_color(effect_tag, object_index, global_origin3d_pointer, 5, (uint32_t)(uintptr_t)names,
+    halo::effects::effect_new_with_color(effect_tag, object_index, global_origin3d_pointer, 5, (uint32_t)(uintptr_t)names,
         positions, (uint32_t)(uintptr_t)vectors, 1.0f, 0.0f, 0, 0, 0);
 }
 
 namespace {
-static void (*const effect_new_on_object_with_node_table__as_object_damage_effect_dispatch)() = reinterpret_cast<void (*)()>(&effect_new_on_object_with_node_table);
+static void (*const effect_new_on_object_with_node_table__as_object_damage_effect_dispatch)() = reinterpret_cast<void (*)()>(&halo::effects::effect_new_on_object_with_node_table);
 }
 
 /**
@@ -1657,7 +1653,7 @@ void halo::objects::ObjectDamage::destroy_region(int32_t region_index)
                 (ModelCollisionGeometry *)tag_instances[definition->collision_model.tag_id.index].data;
             ModelCollisionGeometryRegion *region = &((ModelCollisionGeometryRegion *)geometry->regions.pointer)[region_index];
 
-            effect_new_on_object(object_index, *(datum_index *)&((struct ModelCollisionGeometryRegion *)region)->destroyed_effect.tag_id, object_index, -1,
+            halo::effects::effect_new_on_object(object_index, *(datum_index *)&((struct ModelCollisionGeometryRegion *)region)->destroyed_effect.tag_id, object_index, -1,
                 0.0f, 0.0f, 0, 0);
             object_set_permutation_by_name(object_index, (char *)"~damaged", (int16_t)region_index, 1);
 

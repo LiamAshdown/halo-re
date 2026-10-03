@@ -16,6 +16,7 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern float build_sprite_screen_coverage;
@@ -55,18 +56,14 @@ extern render_camera render_camera_global;
 extern float unknown_00672f20;
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
-extern data_array *contrail_point_data;
 extern data_array *object_data;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void *rasterizer_dynamic_index_buffer;
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern int32_t rasterizer_dynamic_index_cache_reserve(int32_t count);
 extern real vector2d_normalize_with_length(real_vector2d *v);
-extern data_array *contrail_data;
 extern datum_index datum_next(int16_t after_index, data_array *array);
-extern uint8_t particle_spawn_debug_mode;
 extern int16_t current_local_player_index;
-extern data_array *particle_data;
 extern uint32_t cluster_visible_bits[0x10];
 extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern int32_t render_frame_index;
@@ -743,7 +740,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
 
     for (point_index = c->first_point[instance]; point_index != 0xffffffff;
          point_index = previous->next_point) {
-        contrail_point *point = &((contrail_point *)contrail_point_data->data)[(uint16_t)point_index];
+        contrail_point *point = &((contrail_point *)halo::effects::globals().contrail_point_data->data)[(uint16_t)point_index];
         ContrailPointState *state = &states[point->state_index];
         float width;
         float half_width;
@@ -786,7 +783,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         centroid.y = centroid.y + point->position.y;
         centroid.z = centroid.z + point->position.z;
         if (previous == 0) {
-            next = &((contrail_point *)contrail_point_data->data)[(uint16_t)point->next_point];
+            next = &((contrail_point *)halo::effects::globals().contrail_point_data->data)[(uint16_t)point->next_point];
         }
 
         switch (definition->render_type) {
@@ -943,10 +940,10 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
  */
 void render_all(uint32_t render_type_flags)
 {
-    datum_index index = datum_next(-1, contrail_data);
+    datum_index index = datum_next(-1, halo::effects::globals().contrail_data);
 
     while (index != k_datum_index_none) {
-        contrail *c = &((contrail *)contrail_data->data)[(uint16_t)index];
+        contrail *c = &((contrail *)halo::effects::globals().contrail_data->data)[(uint16_t)index];
         Contrail *definition = (Contrail *)tag_instances[(uint16_t)c->definition_index].data;
         int16_t i;
 
@@ -957,7 +954,7 @@ void render_all(uint32_t render_type_flags)
             }
         }
 
-        index = datum_next((int16_t)index, contrail_data);
+        index = datum_next((int16_t)index, halo::effects::globals().contrail_data);
     }
 }
 
@@ -981,7 +978,7 @@ void particles(void)
     int32_t viewer_value;
     datum_index index;
 
-    if (!particle_spawn_debug_mode) {
+    if (!halo::effects::globals().particle_spawn_debug_mode) {
         return;
     }
     viewer = current_local_player_index;
@@ -990,9 +987,9 @@ void particles(void)
     }
     viewer_value = (int32_t)viewer;
 
-    for (index = datum_next(-1, particle_data); index != 0xffffffff;
-         index = datum_next((int16_t)index, particle_data)) {
-        particle *p = &((particle *)particle_data->data)[(uint16_t)index];
+    for (index = datum_next(-1, halo::effects::globals().particle_data); index != 0xffffffff;
+         index = datum_next((int16_t)index, halo::effects::globals().particle_data)) {
+        particle *p = &((particle *)halo::effects::globals().particle_data->data)[(uint16_t)index];
         int32_t cluster = (int32_t)p->location.cluster_index;
         uint8_t owned = (int32_t)p->first_person_weapon_index == viewer_value;
 
@@ -1068,7 +1065,7 @@ void particles(void)
 
             for (k = 0; k < in_group; k++, group_first++) {
                 uint16_t particle_index = group_first->particle_index;
-                particle *p = &((particle *)particle_data->data)[particle_index];
+                particle *p = &((particle *)halo::effects::globals().particle_data->data)[particle_index];
                 Particle *pd = (Particle *)tag_instances[(uint16_t)p->definition_index].data;
                 float radius = ((pd->radius_animation[1] - pd->radius_animation[0]) *
                                 (p->age / p->lifespan) + pd->radius_animation[0]) * p->scale;
@@ -1109,7 +1106,7 @@ void particles(void)
                             }
                         }
                         if (m == 0) {
-                            datum_delete(particle_data, (datum_index)(int32_t)(int16_t)particle_index);
+                            datum_delete(halo::effects::globals().particle_data, (datum_index)(int32_t)(int16_t)particle_index);
                             continue;
                         }
                     }

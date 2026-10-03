@@ -2,6 +2,7 @@
 #include "halo/units/unit.hpp"
 #include "projectiles.h"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -36,10 +37,8 @@ extern float DAT_0069c52c;
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
 extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
-extern random_seed effect_random_seed;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, void *marker, uint32_t flags);
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, void *seed, real lo, real hi);
-extern void effect_new_with_color(uint32_t effect, uint32_t creator, void *velocity, int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale, int32_t color, int32_t tint, int32_t force);
 }
 
 namespace halo::units {
@@ -773,7 +772,7 @@ void VehicleView::create_hover_thruster_effects()
         collision_result result;
         real length;
 
-        vector3d_randomize_direction((real_point3d *)(marker + 0x3c), &direction, &effect_random_seed, 0.0f,
+        vector3d_randomize_direction((real_point3d *)(marker + 0x3c), &direction, &halo::effects::globals().effect_random_seed, 0.0f,
             0.2617994f);
         length = (i < hover_count ? ((struct vehicle_object *)obj)->vehicle.ground_lean : ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction) * 6.0f + 2.0f;
         delta.i = direction.i * length;
@@ -799,7 +798,7 @@ void VehicleView::create_hover_thruster_effects()
             vectors[2].j = direction.j - result.plane.normal.j * twice_dot;
             vectors[2].k = direction.k - result.plane.normal.k * twice_dot;
             scale = 1.0f - result.t;
-            effect_new_with_color(*(uint32_t *)(tag + 0x3ec), 0xffffffff, 0, 3, names, points, vectors,
+            halo::effects::effect_new_with_color(*(uint32_t *)(tag + 0x3ec), 0xffffffff, 0, 3, (uint32_t)names, points, (uint32_t)vectors,
                 scale, scale, 0, 0, 1);
         }
     }
@@ -835,7 +834,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
         collision_result result;
         real v;
 
-        vector3d_randomize_direction((real_point3d *)(marker + 0x3c), &direction, &effect_random_seed, 0.0f, 15.0f);
+        vector3d_randomize_direction((real_point3d *)(marker + 0x3c), &direction, &halo::effects::globals().effect_random_seed, 0.0f, 15.0f);
         delta = direction;
         if (!halo::physics::collision_test_movement_segment(0x61, marker_position, &delta, unit_index, &result)) {
             continue;
@@ -871,7 +870,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
             vectors[2].j = direction.j - result.plane.normal.j * twice_dot;
             vectors[2].k = direction.k - result.plane.normal.k * twice_dot;
             vectors[3] = vectors[2];
-            effect_new_with_color(*(uint32_t *)(tag + 0x3ec), 0xffffffff, 0, 4, names, points, vectors, v, v,
+            halo::effects::effect_new_with_color(*(uint32_t *)(tag + 0x3ec), 0xffffffff, 0, 4, (uint32_t)names, points, (uint32_t)vectors, v, v,
                 0, 0, 1);
         }
     }

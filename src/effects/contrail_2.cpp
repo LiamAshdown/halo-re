@@ -1,12 +1,12 @@
 #include "halo/effects/effects.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *contrail_data;
 extern data_array *contrail_point_data;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern datum_index datum_next(int16_t after_index, data_array *array);
-void contrail_refresh_lightmap();
 }
 
 namespace halo::effects {
@@ -53,7 +53,7 @@ void contrail_ref::refresh_lightmap()
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void contrail_refresh_lightmap()
 {

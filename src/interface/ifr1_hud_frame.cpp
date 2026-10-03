@@ -1,18 +1,16 @@
 #include "halo/interface/ifr1_hud_frame.hpp"
 #include <string.h>
 #include "halo/items/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern player_globals *local_player_globals;
 extern HUDGlobals *hud_globals_tag_data;
-extern player_effect_globals *player_effect_globals_pointer;
 extern int16_t render_viewport_top;
 extern int16_t render_viewport_left;
 extern float hud_damage_indicator_screen_center_x;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void player_effect_fade_damage_indicators(int16_t local_player_index,
-                                                  uint32_t *out_previous_indicators);
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset);
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
@@ -155,7 +153,7 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
 
     unit = object_try_and_get(unit_index, 3);
     if (unit == 0) {
-        *(uint32_t *)player_effect_globals_pointer->players[local_player_index].damage_indicator_alpha = 0;
+        *(uint32_t *)halo::effects::globals().player_effect_state->players[local_player_index].damage_indicator_alpha = 0;
         return;
     }
 
@@ -168,7 +166,7 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
             : *(uint16_t *)(hud + 0x34a);
         uint32_t icon_color = *(uint32_t *)(hud + 0x34c);
 
-        player_effect_fade_damage_indicators(local_player_index, &previous_indicators);
+        halo::effects::player_effect_fade_damage_indicators(local_player_index, &previous_indicators);
 
         for (direction = 0; direction < 4; direction++) {
             float x, y;

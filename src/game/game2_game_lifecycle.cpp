@@ -3,6 +3,7 @@
 #include "halo/input/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -15,19 +16,11 @@ extern scenario_game_globals *global_scenario_game_globals;
 extern uint8_t *hs_camera_control_pointer;
 extern data_array *object_render_state_cache;
 extern void *runtime_decals_suppressed;
-extern data_array *particle_data;
-extern data_array *effect_data;
-extern data_array *effect_location_data;
-extern data_array *weather_particle_data;
 extern void *particle_system_data;
-extern data_array *particle_system_particle_data;
 extern void *sound_class_gains;
-extern player_effect_globals *player_effect_globals_pointer;
 extern void *recorded_animations;
 extern uint32_t *cinematic_globals_ptr;
 extern void ai_initialize_for_new_map(void);
-extern void contrails_initialize(void);
-extern void decals_initialize(void);
 extern void team_pair_table_allocate(void);
 extern void game_engine_load_from_variant(const game_variant *variant);
 extern void game_engine_allocate_tick_record(void);
@@ -46,7 +39,6 @@ extern void saved_game_files_initialize(void);
 extern void detail_objects_globals_allocate(void);
 extern object *object_iterator_next(object_iterator *iterator);
 extern uint8_t players_any_without_unit(void);
-extern uint8_t effect_check_object_collisions(void);
 extern uint8_t unit_any_dying_or_seat_transition(void);
 extern uint8_t ai_scan_for_recent_combat_activity(uint32_t hard_difficulty);
 extern uint8_t debug_print_safety_checks;
@@ -134,16 +126,16 @@ void GameLifecycle::initialize(void)
     game_state_cursor = game_state_cursor + 0x4204;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
-    decals_initialize();
+    halo::effects::decals_initialize();
     players_initialize();
-    contrails_initialize();
+    halo::effects::contrails_initialize();
 
-    particle_data = (data_array *)game_state_new((char *)"particle", 0x400, 0x70);
-    effect_data = (data_array *)game_state_new((char *)"effect", 0x100, 0xfc);
-    effect_location_data = (data_array *)game_state_new((char *)"effect location", 0x200, 0x3c);
-    weather_particle_data = data_new(0x54, (char *)"weather particles", 0x200);
+    halo::effects::globals().particle_data = (data_array *)game_state_new((char *)"particle", 0x400, 0x70);
+    halo::effects::globals().effect_data = (data_array *)game_state_new((char *)"effect", 0x100, 0xfc);
+    halo::effects::globals().effect_location_data = (data_array *)game_state_new((char *)"effect location", 0x200, 0x3c);
+    halo::effects::globals().weather_particle_data = data_new(0x54, (char *)"weather particles", 0x200);
     particle_system_data = game_state_new((char *)"particle systems", 0x40, 0x158);
-    particle_system_particle_data = (data_array *)game_state_new((char *)"particle system particles", 0x200, 0x80);
+    halo::effects::globals().particle_system_particle_data = (data_array *)game_state_new((char *)"particle system particles", 0x200, 0x80);
 
     size = 0x264;
     sound_class_gains = (void *)(game_state_cursor + game_state_base);
@@ -152,7 +144,7 @@ void GameLifecycle::initialize(void)
     halo::sound::game_sound_initialize();
 
     size = 0x128;
-    player_effect_globals_pointer = (player_effect_globals *)(game_state_cursor + game_state_base);
+    halo::effects::globals().player_effect_state = (player_effect_globals *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 0x128;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     ai_initialize_for_new_map();
@@ -214,7 +206,7 @@ uint32_t GameLifecycle::safe_to_pause(void)
     iterator.handle = k_datum_index_none;
 
     if (object_iterator_next(&iterator) == (object *)0) {
-        if (halo::items::item_any_detonating() == 0 && effect_check_object_collisions() == 0 && unit_any_dying_or_seat_transition() == 0 && ai_scan_for_recent_combat_activity(0) == 0) {
+        if (halo::items::item_any_detonating() == 0 && halo::effects::effect_check_object_collisions() == 0 && unit_any_dying_or_seat_transition() == 0 && ai_scan_for_recent_combat_activity(0) == 0) {
             return 1;
         }
     }
@@ -256,7 +248,7 @@ uint8_t GameLifecycle::safe_to_save(void)
         }
         return 0;
     }
-    if (effect_check_object_collisions() != 0) {
+    if (halo::effects::effect_check_object_collisions() != 0) {
         if (debug_print_safety_checks != 0) {
             console_print_va("not safe to save: dangerous_effects_near_player");
         }

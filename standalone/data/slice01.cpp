@@ -7,6 +7,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/effects/api.hpp"
 #include "halo/sound/api.hpp"
 #include <stdint.h>
 #include <stddef.h>
@@ -992,19 +993,19 @@ SLICE01_SIZE_CHECK(k_decal_type_parameters, 64);
 
 /* 0x0065743c, 0x8 bytes */
 __declspec(align(4)) void * particle_system_update_physics_table[2] = {
-    (void *)particle_system_update_physics_default, (void *)particle_system_update_physics_explosion
+    (void *)&halo::effects::particle_system_update_physics_default, (void *)&halo::effects::particle_system_update_physics_explosion
 };
 SLICE01_SIZE_CHECK(particle_system_update_physics_table, 8);
 
 /* 0x00657444, 0xc bytes */
 __declspec(align(4)) void * particle_creation_physics_table[3] = {
-    (void *)particle_creation_physics_default, (void *)particle_creation_physics_explosion, (void *)particle_creation_physics_jet
+    (void *)&halo::effects::particle_creation_physics_default, (void *)&halo::effects::particle_creation_physics_explosion, (void *)&halo::effects::particle_creation_physics_jet
 };
 SLICE01_SIZE_CHECK(particle_creation_physics_table, 12);
 
 /* 0x00657450, 0x4 bytes */
 __declspec(align(4)) void * particle_update_physics_table[1] = {
-    (void *)particle_update_physics_default
+    (void *)&halo::effects::particle_update_physics_default
 };
 SLICE01_SIZE_CHECK(particle_update_physics_table, 4);
 

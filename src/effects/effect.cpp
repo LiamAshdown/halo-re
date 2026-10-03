@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
@@ -10,7 +11,6 @@ extern tag_instance *tag_instances;
 extern uint8_t *first_person_weapon_interfaces;
 extern datum_index datum_next(int16_t after_index, data_array *array);
 extern void *data_iterator_next(data_iterator *iterator);
-extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
 extern void *datum_get(datum_index handle, data_array *array);
 extern void datum_delete(data_array *array, datum_index handle);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
@@ -18,22 +18,10 @@ extern game_time_globals *game_time;
 extern random_seed random_seed_global;
 extern random_seed effect_random_seed;
 extern real random_real_range_seeded(random_seed *seed, real min, real max);
-extern void effect_delete(datum_index effect_handle);
-extern void effect_start_event(datum_index effect_handle, int16_t event_index);
 extern player_globals *local_player_globals;
 extern uint32_t object_get_root_object_index(uint32_t object_index);
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
-extern void effect_stop(datum_index effect_handle, uint8_t stop_immediately);
-extern real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset, uint32_t b_bitset, random_seed *seed, real base_min, real base_max);
-extern void effect_spawn_particles(effect *self);
-extern void object_change_color_evaluate(effect *self);
 extern ScenarioStructureBSP *global_structure_bsp;
-extern void effect_update(datum_index effect_handle, real delta_time);
-uint32_t effect_check_object_collisions();
-uint8_t effect_first_person_screen_timer_active(datum_index object_index);
-effect * effect_try_and_get(datum_index effect_index);
-void effects_refresh_structure_locations();
-void effects_update_all(real delta_time);
 }
 
 namespace halo::effects {
@@ -91,7 +79,7 @@ uint32_t effect_ref::check_object_collisions()
                     marker_handle = entry->next_marker;
 
                     if (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0) {
-                        entry = effect_marker_next(self, &marker_handle, 0);
+                        entry = halo::effects::effect_marker_next(self, &marker_handle, 0);
                     }
                     if (entry == (effect_location_marker *)0) {
                         break;
@@ -249,7 +237,7 @@ void effect_ref::stop(uint8_t stop_immediately)
         Effect *tag = (Effect *)tag_instances[(uint16_t)self->definition_index].data;
 
         if ((self->flags & _effect_looping_bit) == 0) {
-            effect_delete(effect_handle);
+            halo::effects::effect_delete(effect_handle);
             return;
         }
 
@@ -264,7 +252,7 @@ void effect_ref::stop(uint8_t stop_immediately)
             return;
         }
 
-        effect_start_event(effect_handle, (int16_t)(tag->loop_stop_event + 1));
+        halo::effects::effect_start_event(effect_handle, (int16_t)(tag->loop_stop_event + 1));
         self->flags = self->flags | _effect_stopping_bit;
     }
 }
@@ -311,7 +299,7 @@ void effect_ref::update(real dt)
         uint8_t *root;
 
         if (obj == 0) {
-            effect_delete(effect_index);
+            halo::effects::effect_delete(effect_index);
             return;
         }
         root = *(uint8_t **)((uint8_t *)object_data->data +
@@ -327,10 +315,10 @@ void effect_ref::update(real dt)
             if (object_function_get_value(object_index, self->a_scale_function_index, &self->a_scale)) {
                 if (self->flags & 8) {
                     if (self->flags & 0x20) {
-                        effect_delete(effect_index);
+                        halo::effects::effect_delete(effect_index);
                     } else {
                         self->flags = (uint16_t)(self->flags & 0xfff7);
-                        effect_start_event(effect_index, 0);
+                        halo::effects::effect_start_event(effect_index, 0);
                     }
                 }
             } else if (tag[0] & 1) {
@@ -343,10 +331,10 @@ void effect_ref::update(real dt)
                         break;
                     }
                 }
-                effect_delete(effect_index);
+                halo::effects::effect_delete(effect_index);
                 return;
             } else if ((self->flags & 0xc) == 0) {
-                effect_stop(effect_index, 0);
+                halo::effects::effect_stop(effect_index, 0);
             }
             object_function_get_value(self->object_index, self->b_scale_function_index, &self->b_scale);
             if (self->change_color_index != -1) {
@@ -370,7 +358,7 @@ void effect_ref::update(real dt)
             }
         } else if ((self->flags & 0x10) == 0) {
             if ((self->flags & 2) == 0) {
-                effect_delete(effect_index);
+                halo::effects::effect_delete(effect_index);
                 return;
             }
             self->flags = (uint16_t)(self->flags | 0x10);
@@ -400,7 +388,7 @@ void effect_ref::update(real dt)
         }
         if (flags & 1) {
             if ((flags & 0x10) == 0) {
-                effect_spawn_particles(self);
+                halo::effects::effect_spawn_particles(self);
             }
             if (finished) {
                 int16_t next;
@@ -421,10 +409,10 @@ void effect_ref::update(real dt)
                         self->flags = (uint16_t)(self->flags | 8);
                         return;
                     }
-                    effect_delete(effect_index);
+                    halo::effects::effect_delete(effect_index);
                     return;
                 }
-                effect_start_event(effect_index, next);
+                halo::effects::effect_start_event(effect_index, next);
             }
         } else if (finished) {
             uint8_t *event = events + self->event_index * 0x44;
@@ -441,7 +429,7 @@ void effect_ref::update(real dt)
             }
             for (particle = 0; particle < *(int32_t *)(event + 0x38); particle = (int16_t)(particle + 1)) {
                 uint8_t *part = *(uint8_t **)(event + 0x3c) + particle * 0xe8;
-                uint8_t count = (uint8_t)(int32_t)effect_property_random_value(5, self, *(uint32_t *)(part + 0xe0),
+                uint8_t count = (uint8_t)(int32_t)halo::effects::effect_property_random_value(5, self, *(uint32_t *)(part + 0xe0),
                     *(uint32_t *)(part + 0xe4), &effect_random_seed, (real)*(int16_t *)(part + 0x6c),
                     (real)*(int16_t *)(part + 0x6e));
 
@@ -452,7 +440,7 @@ void effect_ref::update(real dt)
                 }
             }
             if ((self->flags & 0x10) == 0) {
-                object_change_color_evaluate(self);
+                halo::effects::object_change_color_evaluate(self);
             }
         }
         if (!(dt >= 0.0f)) {
@@ -481,9 +469,9 @@ void effect_ref::refresh_structure_locations()
             continue;
         }
         marker = entry->location_markers[0];
-        location = effect_marker_next(entry, &marker, 0);
+        location = halo::effects::effect_marker_next(entry, &marker, 0);
         if (location == 0) {
-            effect_delete(handle);
+            halo::effects::effect_delete(handle);
             continue;
         }
         leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)((uint8_t *)location + 0x30));
@@ -507,14 +495,14 @@ void effect_ref::update_all(real delta_time)
     datum_index effect_index = datum_next(-1, effect_data);
 
     while (effect_index != k_datum_index_none) {
-        effect_update(effect_index, delta_time);
+        halo::effects::effect_update(effect_index, delta_time);
         effect_index = datum_next((int16_t)effect_index, effect_data);
     }
 }
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 uint32_t effect_check_object_collisions()
 {

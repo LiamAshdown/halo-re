@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "halo/sound/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -16,9 +17,6 @@ extern int16_t model_markers_get_by_name(datum_index model_tag_id, const char *n
     int16_t *node_remap, real_matrix4x3 *node_matrices, uint8_t mirrored, object_marker *out, int16_t maximum);
 extern data_array *object_data;
 extern Globals *global_globals;
-extern void effect_reattach_markers_for_object(int16_t local_player_index, datum_index weapon_index);
-extern void effect_release_first_person_markers(int16_t local_player_index);
-extern void particles_delete_by_first_person_weapon(uint8_t local_player_index);
 extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot,
                                            int16_t new_state);
 extern uint8_t hud_meter_find_matching_elements(uint32_t source_tag_ref, uint32_t target_tag_ref,
@@ -205,8 +203,8 @@ void FirstPersonWeaponController::interface_initialize()
     fp->weapon_index = (datum_index)0xffffffff;
 
     if (was_attached != 0) {
-        effect_release_first_person_markers(local_player_index);
-        particles_delete_by_first_person_weapon((uint8_t)local_player_index);
+        halo::effects::effect_release_first_person_markers(local_player_index);
+        halo::effects::particles_delete_by_first_person_weapon((uint8_t)local_player_index);
         fp->attached = 0;
     }
 
@@ -285,7 +283,7 @@ void FirstPersonWeaponController::interface_initialize()
         first_person_weapon_set_state(local_player_index, 1, 0);
         fp->blend_end = 0;
         if (was_attached != 0 && fp->attached != 1) {
-            effect_reattach_markers_for_object(local_player_index, fp->weapon_index);
+            halo::effects::effect_reattach_markers_for_object(local_player_index, fp->weapon_index);
             fp->attached = 1;
         }
     }
@@ -455,10 +453,10 @@ void FirstPersonWeaponController::set_attached(uint8_t attached)
 
     if (fp->attached != attached) {
         if (attached != 0) {
-            effect_reattach_markers_for_object(local_player_index, fp->weapon_index);
+            halo::effects::effect_reattach_markers_for_object(local_player_index, fp->weapon_index);
         } else {
-            effect_release_first_person_markers(local_player_index);
-            particles_delete_by_first_person_weapon((uint8_t)local_player_index);
+            halo::effects::effect_release_first_person_markers(local_player_index);
+            halo::effects::particles_delete_by_first_person_weapon((uint8_t)local_player_index);
         }
         fp->attached = attached;
     }

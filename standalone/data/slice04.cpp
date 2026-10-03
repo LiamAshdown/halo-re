@@ -7,6 +7,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/effects/api.hpp"
 #include "halo/sound/api.hpp"
 #include <stdint.h>
 
@@ -260,9 +261,9 @@ int16_t global_structure_bsp_index = -1;
 /* 0x0069e8dc size 52: structure_bsp_activate_procedures */
 void * structure_bsp_activate_procedures[13] = {
     objects_recompute_cluster_membership, object_lights_refresh_transforms,
-    ai_unassigned_actors_attach_to_structure_bsp, effects_refresh_structure_locations,
-    particles_refresh_structure_locations, particle_system_resolve_local_players,
-    contrail_refresh_lightmap, decal_rehash_object_decals,
+    ai_unassigned_actors_attach_to_structure_bsp, &halo::effects::effects_refresh_structure_locations,
+    &halo::effects::particles_refresh_structure_locations, &halo::effects::particle_system_resolve_local_players,
+    &halo::effects::contrail_refresh_lightmap, &halo::effects::decal_rehash_object_decals,
     structure_runtime_decals_mark_dirty, observer_update_location,
     players_structure_bsp_switch_regroup, &halo::sound::sounds_refresh_structure_locations,
     scenario_objects_place_for_structure_bsp_on_activate,
@@ -274,7 +275,7 @@ void * structure_bsp_deactivate_procedures[10] = {
     object_lights_detach_from_structure_bsp, ai_reset_fire_group_assignments,
     function_do_nothing, function_do_nothing,
     function_do_nothing, function_do_nothing,
-    structure_runtime_decals_evict, decals_detach_from_structure_bsp,
+    structure_runtime_decals_evict, &halo::effects::decals_detach_from_structure_bsp,
 };
 
 /* 0x0069e940 size 184: glow_sprite_shader */

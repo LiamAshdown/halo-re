@@ -1,10 +1,9 @@
 #include "halo/effects/effects.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
-extern datum_index effect_marker_new(effect *self, int16_t location_index, object_marker *resolved_marker, uint8_t first_person);
 extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
-void effect_rebuild_markers(effect *self, effect_marker_resolver resolve_marker);
 }
 
 namespace halo::effects {
@@ -31,7 +30,7 @@ void effect_view::rebuild_markers(effect_marker_resolver resolve_marker)
             resolve_marker == first_person_weapon_get_marker_data);
 
         for (i = 0; i < count; i++) {
-            if (effect_marker_new(self, location_index, &markers[i], first_person) == k_datum_index_none) {
+            if (halo::effects::effect_marker_new(self, location_index, &markers[i], first_person) == k_datum_index_none) {
                 break;
             }
         }
@@ -40,7 +39,7 @@ void effect_view::rebuild_markers(effect_marker_resolver resolve_marker)
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void effect_rebuild_markers(effect *self, effect_marker_resolver resolve_marker)
 {

@@ -16,6 +16,7 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern uint8_t render_cluster_has_sky;
@@ -64,7 +65,6 @@ extern rasterizer_frame_statistics rasterizer_frame_statistics_state;
 extern rasterizer_window_parameters rasterizer_window;
 extern uint8_t console_debug_toggle_69c614;
 extern int16_t console_debug_toggle_6893e4;
-extern uint8_t decals_for_all_responses;
 extern int16_t visible_cluster_count;
 extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters];
 extern int16_t visible_surface_count;
@@ -80,7 +80,6 @@ extern int16_t rasterizer_decal_layer;
 extern d3d_caps9 rasterizer_caps;
 extern game_engine_definition *current_game_engine;
 extern void structure_bsp_cluster_visibility_update(void);
-extern void player_effect_build_screen_flash(render_screen_flash *out, int16_t local_player_index);
 extern void rasterizer_begin_frame(rasterizer_window_parameters *source);
 extern void first_person_weapon_update_zoom_static_tint(uint8_t enabled);
 extern void first_person_weapon_update_active_state(void);
@@ -105,8 +104,6 @@ extern void structure_leaf_faces_for_each(int32_t render_context, structure_ligh
     structure_material_callback material_cb, structure_lightmap_end_callback lightmap_end,
     structure_transparent_material_callback transparent_material_cb, int32_t *surface_indices,
     int16_t surface_index_count);
-extern void weather_update_local_player(void);
-extern void particle_systems_render(void);
 extern void transparent_geometry_group_draw_all(uint8_t resort);
 extern void detail_objects_update_render_list(void);
 extern void lens_flare_render_all(void);
@@ -393,7 +390,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     parameters.fog = render_fog_state;
 
     structure_bsp_cluster_visibility_update();
-    player_effect_build_screen_flash(&parameters.screen_flash, local_player_index);
+    halo::effects::player_effect_build_screen_flash((uint32_t *)(&parameters.screen_flash), local_player_index);
     rasterizer_begin_frame(&parameters);
     first_person_weapon_update_zoom_static_tint(1);
     billboard_system_frame_init();
@@ -415,7 +412,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     }
     lights_apply_spot_falloff();
 
-    if (console_debug_toggle_6893e4 == 0 && decals_for_all_responses) {
+    if (console_debug_toggle_6893e4 == 0 && halo::effects::globals().decals_for_all_responses) {
         rasterizer_decal_pass_begin(2);
         draw_visible_cluster_decals();
         rasterizer_end_decal_pass();
@@ -431,7 +428,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
         rasterizer_force_bilinear_filtering();
     }
 
-    if (console_debug_toggle_6893e4 == 0 && decals_for_all_responses) {
+    if (console_debug_toggle_6893e4 == 0 && halo::effects::globals().decals_for_all_responses) {
         rasterizer_decal_pass_begin(0);
         draw_visible_cluster_decals();
         rasterizer_end_decal_pass();
@@ -486,9 +483,9 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     if (current_game_engine != 0 && current_game_engine->post_rasterize != 0) {
         ((void (*)(void))current_game_engine->post_rasterize)();
     }
-    weather_update_local_player();
+    halo::effects::weather_update_local_player();
     render_particles();
-    particle_systems_render();
+    halo::effects::particle_systems_render();
     render_contrails(0xfffffff3);
     transparent_geometry_group_draw_all(1);
 

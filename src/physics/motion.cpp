@@ -12,6 +12,7 @@
 
 #include "halo/physics/motion.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" { void halo::physics::physics_clamp_value_to_spring_range(float *value, physics_scalar_rates *rates, float step); }
 extern "C" { void halo::physics::physics_scalar_advance_and_wrap(physics_scalar_range *range, float *value, uint8_t wrap, float delta); }
@@ -259,8 +260,6 @@ void PhysicsMotion::interpolate(PointPhysics *out, const PointPhysics *from, con
 extern "C" { extern float k_physics_gravity; }
 extern "C" { extern float k_water_density; }
 extern "C" { extern float k_air_density; }
-extern "C" { extern uint8_t ambient_color_marker_visible(bsp_leaf_reference *location, real_point3d *position, real_vector3d *out, uint32_t filter_flags); }
-extern "C" { extern void ambient_color_for_marker(int16_t weather_row, real_point3d *position, uint8_t flags, real_vector3d *out); }
 namespace halo::physics {
 
 /**
@@ -295,11 +294,11 @@ uint32_t PhysicsMotion::tick(real_vector3d *velocity, uint32_t flags_arg, PointP
         }
 
         if ((flags_arg & 1) == 0) {
-            in_water = ambient_color_marker_visible(out_leaf, position, &probed_wind, wind_mode_mask);
+            in_water = halo::effects::ambient_color_marker_visible(out_leaf, position, &probed_wind, wind_mode_mask);
         } else {
             in_water = (uint8_t)(flags_arg >> 1) & 1;
 
-            ambient_color_for_marker((int16_t)unused_param_4, position, (uint8_t)wind_mode_mask, &probed_wind);
+            halo::effects::ambient_color_for_marker((int16_t)unused_param_4, position, (uint8_t)wind_mode_mask, &probed_wind);
         }
     }
 

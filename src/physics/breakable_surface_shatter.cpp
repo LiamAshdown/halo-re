@@ -16,19 +16,18 @@
 
 #include "halo/physics/breakable_surface.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" { extern uint8_t breakable_surfaces_enabled; }
 extern "C" { extern ModelCollisionGeometryBSP *global_structure_collision_bsp; }
 extern "C" { extern uint8_t *global_structure_bsp; }
 extern "C" { extern Globals *global_globals; }
 extern "C" { extern tag_instance *tag_instances; }
-extern "C" { extern random_seed effect_random_seed; }
 extern "C" { extern const projection_axis_pair k_projection_axes[6]; }
 extern "C" { extern const real_vector3d *global_forward3d_pointer; }
 extern "C" { extern const real_point3d *global_origin3d_pointer; }
 extern "C" { extern real_point3d *sphere_point_table; }
 extern "C" { extern int16_t sphere_point_table_count; }
-extern "C" { extern void particle_new(particle_creation_data *creation_data); }
 extern "C" { extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, color_interpolation_flags flags, float t); }
 extern "C" { extern uint8_t polygon2d_point_inside_margin(real_point2d *vertices, int16_t count, real_point2d *point, real margin); }
 extern "C" { extern datum_index halo::sound::sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index, sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); }
@@ -44,8 +43,8 @@ extern "C" { extern double pow(double base, double exponent); }
 #define k_breakable_polygon_size 64
 static uint32_t effect_random_next(void)
 {
-    effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
-    return effect_random_seed >> 16;
+    halo::effects::globals().effect_random_seed = halo::effects::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+    return halo::effects::globals().effect_random_seed >> 16;
 }
 
 static float shatter_random_fraction(void)
@@ -420,7 +419,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                                 *direction = *(real_vector3d *)&sphere_point_table[index];
                             }
                         }
-                        particle_new(&creation);
+                        halo::effects::particle_new(&creation);
                     }
                 }
             }

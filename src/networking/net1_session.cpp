@@ -6,6 +6,7 @@
 #include "items.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern object *object_iterator_next(object_iterator *iterator);
@@ -24,7 +25,6 @@ extern void network_game_client_apply_position_update(void *state, uint32_t *pac
 extern void network_player_update_history_log_write(const char *format, ...);
 extern wchar_t empty_string;
 extern void *tag_instances;
-extern random_seed effect_random_seed;
 extern int32_t tag_lookup(const char *path);
 extern wchar_t *text_string_list_get_string(int32_t tag_index, int32_t string_index);
 extern network_client_globals *network_client;
@@ -303,7 +303,7 @@ wchar_t * GameRuntime::get_random_player_name()
     if (tag_id != 0xffffffff) {
         definition = *(void **)((uint8_t *)tag_instances + (tag_id & 0xffff) * 0x20 + 0x14);
         if (definition != 0 && *(int32_t *)definition != 0) {
-            effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
+            halo::effects::globals().effect_random_seed = halo::effects::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
             return text_string_list_get_string((int32_t)tag_id, 0);
         }
     }
@@ -765,7 +765,7 @@ void GameSessionView::assign_random_color(network_player_entry *entry)
     int32_t i;
 
     attempt = 0;
-    seed = effect_random_seed;
+    seed = halo::effects::globals().effect_random_seed;
     for (;;) {
         seed = seed * 0x19660d + 0x3c6ef35f;
         if (attempt < 10) {
@@ -774,7 +774,7 @@ void GameSessionView::assign_random_color(network_player_entry *entry)
             candidate = (int16_t)((int32_t)(seed >> 0x10) * 0x11 >> 0x10);
         }
         in_use = 0;
-        effect_random_seed = seed;
+        halo::effects::globals().effect_random_seed = seed;
         for (i = 0; i < 0x10; i++) {
             if (network_player_entry_validate(&session->players[i]) != 0 &&
                 session->players[i].color_index == candidate) {

@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_first_person_weapon_controller.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -22,7 +23,6 @@ extern void first_person_weapon_interface_tick_reset(int16_t local_player_index)
 extern uint8_t real_seek_toward_clamped(int wrap, real *velocity, real *value, real target,
     real accel, real max_speed, real range_min, real range_max);
 extern real random_range_real(real minimum, real maximum);
-extern float effect_random_fraction(void);
 extern float angle_delta_wrapped(float a, float b);
 extern double fmod(double x, double y);
 extern double sqrt(double x);
@@ -251,7 +251,7 @@ void FirstPersonWeaponController::update()
                     fp->idle_ticks++;
                     if (fp->idle_ticks > fp->idle_delay_ticks) {
                         fp->idle_delay_ticks = 0;
-                        if (!(effect_random_fraction() <
+                        if (!(halo::effects::effect_random_fraction() <
                               player_information->first_person_skip_fraction)) {
                             first_person_weapon_set_state(local_player_index, 1, 5);
                         }

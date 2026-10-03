@@ -69,7 +69,7 @@ def types_index():
     global _types_text
     if _types_text is None:
         _types_text = {}
-        for f in glob.glob("types/*.h"):
+        for f in glob.glob("types/*.h") + glob.glob(f"include/halo/{mod}/types.hpp"):
             _types_text[f] = open(f, encoding="utf-8", errors="replace").read()
     return _types_text
 

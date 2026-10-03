@@ -1,10 +1,10 @@
 #include "halo/effects/effects.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
 extern const real_vector3d *global_up3d_pointer;
-extern void effect_random_direction_from_table(real_point3d *out);
 extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle, real cos_angle);
 extern random_seed effect_random_seed;
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
@@ -14,7 +14,6 @@ extern void datum_delete(data_array *array, datum_index handle);
 extern uint8_t particle_systems_enabled;
 extern datum_index datum_new(data_array *array);
 extern void object_sample_ambient_lightmap_point(real_point3d *point, real_vector3d *lightmap_color, real_vector3d *base_map_color, uint8_t wait_for_textures);
-extern uint8_t particle_system_new_type_states(datum_index handle);
 extern data_array *object_data;
 extern const ColorARGB *global_white_argb;
 extern const ColorRGB *global_white_color;
@@ -23,7 +22,6 @@ extern void object_get_root_object_velocities(uint32_t object_index, real_vector
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
 extern ScenarioStructureBSP *global_structure_bsp;
 extern real random_real_range_seeded(random_seed *seed, real min, real max);
-extern uint8_t particle_system_update(float delta_time, datum_index handle);
 extern uint32_t cluster_visible_bits[];
 extern real_matrix4x3 render_camera_world_to_view;
 extern real_point3d *global_zero_vector3d_pointer;
@@ -33,33 +31,14 @@ extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_
 extern void build_sprites_end(build_sprite_data *data);
 extern datum_index datum_next(int16_t after_index, data_array *array);
 extern void object_get_root_location(int32_t *out, uint32_t object_index);
-extern void particle_system_delete(datum_index handle);
 extern int16_t current_local_player_index;
 extern uint8_t *first_person_weapon_interfaces;
 extern const real_vector3d *global_origin3d_pointer;
 extern void (*particle_creation_physics_table[3])(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
-extern int32_t player_weapon_locality_for_object(datum_index weapon_object_index);
 extern int16_t render_local_player_gunner_seat_visible(int16_t local_player_index);
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name, object_marker *out, uint32_t maximum);
 extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point);
-extern void particle_system_update_physics_default(particle_system *system, real dt);
 extern player_globals *local_player_globals;
-extern void particle_system_render(datum_index particle_system_handle);
-void particle_creation_physics_default(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
-void particle_creation_physics_explosion(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
-void particle_creation_physics_jet(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
-void particle_system_advance_type_state(particle_system_type_state *state, ParticleSystemType *type, particle_system *system);
-void particle_system_spawn(particle_system *system_record, int32_t type_index, float dt);
-void particle_system_update_physics_explosion(particle_system *system, real dt);
-void particle_update_physics_default(particle_system *system, int16_t type_index, real dt, particle_system_particle *particle);
-void particle_system_advance_particle_state(particle_system_particle *particle, ParticleSystemType *type);
-datum_index particle_system_new_at_point(uint32_t definition_index, real_point3d *position, real_vector3d *velocity, ColorARGB *color, float scale);
-datum_index particle_system_new_on_marker(uint32_t definition_index, uint32_t object_index, int16_t attachment_index);
-void particle_system_resolve_local_players();
-void particle_system_roll_particle_state(int16_t index, ParticleSystemTypeParticleState *states, particle_state_values *out);
-void particle_systems_delete_all();
-void particle_systems_render();
-void particle_systems_update(float delta_time);
 }
 
 namespace halo::effects {
@@ -106,7 +85,7 @@ void particle_system_view::creation_physics_explosion(int32_t type_index, partic
     real_point3d direction;
     float scaled_x, scaled_y, scaled_z;
 
-    effect_random_direction_from_table(&direction);
+    halo::effects::effect_random_direction_from_table(&direction);
 
     scaled_x = k0 * direction.x;
     scaled_y = k0 * direction.y;
@@ -324,7 +303,7 @@ datum_index particle_system_ref::new_at_point(uint32_t definition_index, real_po
             object_sample_ambient_lightmap_point(&system->position,
                 (real_vector3d *)&system->ambient_color, &incident_scratch, 0);
 
-            if (!particle_system_new_type_states(handle)) {
+            if (!halo::effects::particle_system_new_type_states(handle)) {
                 datum_delete(particle_system_data, handle);
                 return (datum_index)0xffffffff;
             }
@@ -385,7 +364,7 @@ datum_index particle_system_ref::new_on_marker(uint32_t definition_index, uint32
                 system->flags &= ~(uint32_t)_particle_system_emitting_bit;
             }
 
-            if (!particle_system_new_type_states(handle)) {
+            if (!halo::effects::particle_system_new_type_states(handle)) {
                 datum_delete(particle_system_data, handle);
                 return (datum_index)0xffffffff;
             }
@@ -447,7 +426,7 @@ uint8_t particle_system_ref::new_type_states()
 
         if (any_type_ok) {
             if (all_types_ok) {
-                particle_system_update(0.001f, handle);
+                halo::effects::particle_system_update(0.001f, handle);
             }
             return all_types_ok;
         }
@@ -667,7 +646,7 @@ void particle_system_ref::resolve_local_players()
             *(uint32_t *)&((particle_system *)system)->location.leaf_index = leaf;
             ((particle_system *)system)->location.cluster_index = cluster;
             if (cluster == -1) {
-                particle_system_delete(handle);
+                halo::effects::particle_system_delete(handle);
                 continue;
             }
         }
@@ -755,7 +734,7 @@ void particle_system_view::spawn(int32_t type_index, float dt)
     int16_t marker_count;
     int16_t spawned;
 
-    locality = (int16_t)player_weapon_locality_for_object(object_index);
+    locality = (int16_t)halo::effects::player_weapon_locality_for_object(object_index);
     if (locality != 0) {
         if (type_flags & 0x20000) {
             if (locality == -1 || !render_local_player_gunner_seat_visible(current_local_player_index)) {
@@ -896,7 +875,7 @@ void particle_system_view::update_physics_default(real dt)
 void particle_system_view::update_physics_explosion(real dt)
 {
     particle_system * system = record;
-    particle_system_update_physics_default(system, dt);
+    halo::effects::particle_system_update_physics_default(system, dt);
 }
 
 /**
@@ -912,7 +891,7 @@ void particle_system_ref::delete_all()
         datum_index handle = datum_next(-1, systems);
 
         while (handle != (datum_index)0xffffffff) {
-            particle_system_delete(handle);
+            halo::effects::particle_system_delete(handle);
             handle = datum_next((int16_t)handle, systems);
         }
 
@@ -940,7 +919,7 @@ void particle_system_ref::render_all()
             uint32_t *visible_clusters = (uint32_t *)((uint8_t *)local_player_globals + 0x58);
 
             if ((visible_clusters[cluster >> 5] & (1u << (cluster & 0x1f))) != 0) {
-                particle_system_render(system_index);
+                halo::effects::particle_system_render(system_index);
             }
         }
 
@@ -959,7 +938,7 @@ void particle_system_ref::update_all(float delta_time)
     datum_index handle = datum_next(-1, systems);
 
     while (handle != (datum_index)0xffffffff) {
-        particle_system_update(delta_time, handle);
+        halo::effects::particle_system_update(delta_time, handle);
         handle = datum_next((int16_t)handle, systems);
     }
 }
@@ -1024,7 +1003,7 @@ void particle_system_view::update_physics_default(int16_t type_index, real dt, p
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void particle_creation_physics_default(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker)
 {

@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
@@ -22,16 +23,12 @@ extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB 
 extern void *texture_cache_get(void *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern int16_t vector3d_major_axis_index(real_vector3d *v);
 extern void structure_lightmap_uv_rect_build(int16_t sequence_index, int16_t sprite_index, real scale, real *out_extent, real *out_sprite_rect, const Decal *decal_definition);
-extern datum_index decal_new(datum_index requested_handle, int16_t cluster_index, int16_t layer, datum_index insert_before, uint8_t object_attached);
-extern void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
-extern void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator *accumulator, int32_t surface_index, uint8_t is_first_surface, real radius, int16_t decal_type, int32_t *surface_queue, uint16_t *surface_queue_count, int32_t *fallback_queue, uint16_t *fallback_queue_count);
 extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle, real cos_angle);
 extern real vector3d_angle_between_4cd5e0(real_vector3d *a, real_vector3d *b);
 extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
 extern datum_index cache_allocate_block(cache *self, uint32_t requested_bytes);
 extern void cache_evict_entry(datum_index handle, cache *self);
 extern void *rasterizer_decal_vertex_cache_lock(uint32_t decal_index, int32_t byte_count);
-void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t requested_sequence_index);
 }
 
 namespace halo::effects {
@@ -270,7 +267,7 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
             folded.position.z = rotation.left.k * offset.j + rotation.forward.k * offset.i +
                 rotation.up.k * offset.k + rotation.position.z + edge_start.z;
 
-            decal_build_projection(&folded, box, &wrapped);
+            halo::effects::decal_build_projection(&folded, box, &wrapped);
 
             if (!(folded.up.i > normal_min->i)) normal_min->i = folded.up.i;
             if (folded.up.i > normal_max->i) normal_max->i = folded.up.i;
@@ -282,7 +279,7 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
     }
 
     for (g = 0; g < group_count; g++) {
-        decal_flood_surfaces(&wrapped, accumulator, group[g], 0, radius, (int16_t)definition->type, 0, 0, 0, 0);
+        halo::effects::decal_flood_surfaces(&wrapped, accumulator, group[g], 0, radius, (int16_t)definition->type, 0, 0, 0, 0);
     }
     return group_count;
 }
@@ -430,7 +427,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
             return;
         }
 
-        decal_build_projection(&matrix, box, &projection);
+        halo::effects::decal_build_projection(&matrix, box, &projection);
 
         normal_min = matrix.up;
         normal_max = matrix.up;
@@ -443,7 +440,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
             int32_t surface_index = surface_queue[queue_cursor];
 
             queue_cursor++;
-            decal_flood_surfaces(&projection, &accumulator, surface_index, 1, radius, (int16_t)definition->type,
+            halo::effects::decal_flood_surfaces(&projection, &accumulator, surface_index, 1, radius, (int16_t)definition->type,
                 surface_queue, &queue_count, fallback_queue, &fallback_count);
         } while (queue_cursor < (int16_t)queue_count);
 
@@ -495,7 +492,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
         if (geometry_handle == k_datum_index_none) {
             return;
         }
-        decal_index = decal_new(geometry_handle, placement->leaf.cluster_index, (int16_t)definition->layer,
+        decal_index = halo::effects::decal_new(geometry_handle, placement->leaf.cluster_index, (int16_t)definition->layer,
             k_datum_index_none, object_attached);
         if (decal_index == k_datum_index_none) {
             cache_evict_entry(geometry_handle, rasterizer_decal_vertex_cache_handle);
@@ -619,7 +616,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t requested_sequence_index)
 {

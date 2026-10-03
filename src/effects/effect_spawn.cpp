@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern random_seed random_seed_global;
@@ -15,24 +16,14 @@ extern void damage_apply_area_effect(damage_data *dd);
 extern datum_index light_new_positioned(datum_index light_tag, int32_t marker_index, int16_t marker_sub_index, real_point3d *position, uint32_t param_5, real_vector3d *direction);
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
 extern datum_index object_new(object_placement_data *placement);
-extern void effect_random_velocity_vector(effect *self, random_seed *seed, real_vector3d *direction, real_vector3d *out_direction, real_vector3d *out_velocity, real min, real max, real angle_max, uint32_t a_bitset, uint8_t b_bitset);
-extern void effect_random_direction_vector(random_seed *seed, real_point3d *out, real min, real max, effect *self, uint32_t a_bitset, uint32_t b_bitset);
-extern datum_index particle_system_new_at_point(uint32_t definition_index, real_point3d *position, real_vector3d *velocity, ColorARGB *color, float scale);
-extern void decal_spawn_for_response(datum_index response_tag_index, uint8_t deterministic, real_point3d *origin, real_vector3d *direction, real radius, int32_t marker_index);
 extern const ColorRGB *global_white_color;
 extern data_array *effect_location_data;
 extern data_array *object_data;
 extern tag_instance *tag_instances;
 extern const real_vector3d *global_down3d_pointer;
 extern const real_vector3d *global_forward3d_pointer;
-extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
-extern real_matrix4x3 *effect_resolve_marker_transform(effect *self, int16_t marker);
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
-extern void effect_event_apply(effect *self, EffectPart *part, effect_location_marker *marker, real_vector3d *up, real_vector3d *forward, real_point3d *position, real scale);
-real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset, uint32_t b_bitset, random_seed *seed, real base_min, real base_max);
-void effect_set_placement(effect *self, const ColorRGB *color, const effect_tint_source *tint_source, real a_scale, real b_scale);
-void object_change_color_evaluate(effect *self);
 }
 
 namespace halo::effects {
@@ -94,11 +85,11 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
         real_vector3d direction;
         real radius;
 
-        effect_random_velocity_vector(self, &effect_random_seed, forward, &out_direction, &direction,
+        halo::effects::effect_random_velocity_vector(self, &effect_random_seed, forward, &out_direction, &direction,
             PART_FIELD(real, 0x40), PART_FIELD(real, 0x44), PART_FIELD(real, 0x48), PART_FIELD(uint32_t, 0x60),
             PART_FIELD(uint8_t, 0x64));
         radius = random_range_real(PART_FIELD(real, 0x54), PART_FIELD(real, 0x58));
-        decal_spawn_for_response(tag, 0, position, &direction, radius, -1);
+        halo::effects::decal_spawn_for_response(tag, 0, position, &direction, radius, -1);
     } else if (group == 0x6f626a65u) {
         object_placement_data placement;
         uint8_t *raw = (uint8_t *)&placement;
@@ -109,13 +100,13 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
         *(real_point3d *)(raw + 0x18) = *position;
         *(real_vector3d *)(raw + 0x34) = *forward;
         *(real_vector3d *)(raw + 0x40) = *up;
-        effect_random_velocity_vector(self, &random_seed_global, forward, &out_direction, velocity,
+        halo::effects::effect_random_velocity_vector(self, &random_seed_global, forward, &out_direction, velocity,
             PART_FIELD(real, 0x40), PART_FIELD(real, 0x44), PART_FIELD(real, 0x48), PART_FIELD(uint32_t, 0x60),
             PART_FIELD(uint8_t, 0x64));
         velocity->i = velocity->i + SELF_FIELD(real, 0x24);
         velocity->j = velocity->j + SELF_FIELD(real, 0x28);
         velocity->k = velocity->k + SELF_FIELD(real, 0x2c);
-        effect_random_direction_vector(&random_seed_global, (real_point3d *)(raw + 0x4c), PART_FIELD(real, 0x4c),
+        halo::effects::effect_random_direction_vector(&random_seed_global, (real_point3d *)(raw + 0x4c), PART_FIELD(real, 0x4c),
             PART_FIELD(real, 0x50), self, PART_FIELD(uint32_t, 0x60), PART_FIELD(uint32_t, 0x64));
         object_new(&placement);
     } else if (group == 0x7063746cu) {
@@ -127,13 +118,13 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
         color.red = SELF_FIELD(real, 0x18);
         color.green = SELF_FIELD(real, 0x1c);
         color.blue = SELF_FIELD(real, 0x20);
-        effect_random_velocity_vector(self, &effect_random_seed, forward, &out_direction, &velocity,
+        halo::effects::effect_random_velocity_vector(self, &effect_random_seed, forward, &out_direction, &velocity,
             PART_FIELD(real, 0x40), PART_FIELD(real, 0x44), PART_FIELD(real, 0x48), PART_FIELD(uint32_t, 0x60),
             PART_FIELD(uint8_t, 0x64));
         velocity.i = velocity.i + SELF_FIELD(real, 0x24);
         velocity.j = velocity.j + SELF_FIELD(real, 0x28);
         velocity.k = velocity.k + SELF_FIELD(real, 0x2c);
-        particle_system_new_at_point(tag, position, &velocity, &color, scale);
+        halo::effects::particle_system_new_at_point(tag, position, &velocity, &color, scale);
     } else if (group == 0x736e6421u) {
         datum_index object_index = SELF_FIELD(datum_index, 0x3c);
 
@@ -269,7 +260,7 @@ void effect_view::change_color_evaluate()
                     marker_handle = entry->next_marker;
 
                     if (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0) {
-                        entry = effect_marker_next(self, &marker_handle, 0);
+                        entry = halo::effects::effect_marker_next(self, &marker_handle, 0);
                     }
                     if (entry == (effect_location_marker *)0) {
                         break;
@@ -282,7 +273,7 @@ void effect_view::change_color_evaluate()
                         placement[1] = entry->transform.forward;
                         *(real_point3d *)&placement[2] = entry->transform.position;
                     } else {
-                        real_matrix4x3 *node = effect_resolve_marker_transform(self, (int16_t)entry->marker_index);
+                        real_matrix4x3 *node = halo::effects::effect_resolve_marker_transform(self, (int16_t)entry->marker_index);
                         real forward_i = entry->transform.forward.i;
                         real forward_j = entry->transform.forward.j;
                         real forward_k = entry->transform.forward.k;
@@ -332,7 +323,7 @@ void effect_view::change_color_evaluate()
                         if ((part->b_scales_values & 0x20) != 0) {
                             scale = scale * self->b_scale;
                         }
-                        effect_event_apply(self, part, entry, &placement[0], &placement[1],
+                        halo::effects::effect_event_apply(self, part, entry, &placement[0], &placement[1],
                             (real_point3d *)&placement[2], scale);
                     }
                 }
@@ -343,7 +334,7 @@ void effect_view::change_color_evaluate()
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void effect_event_apply(effect *self, EffectPart *part, effect_location_marker *marker, real_vector3d *up, real_vector3d *forward, real_point3d *position, real scale)
 {

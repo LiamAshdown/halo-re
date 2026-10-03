@@ -13,6 +13,7 @@
 
 #include "halo/game/game1_lifecycle.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -22,12 +23,9 @@ extern void *weather_particle_data;
 extern uint32_t effect_data;
 extern uint32_t effect_location_data;
 extern uint32_t particle_data;
-extern data_array *contrail_point_data;
-extern data_array *contrail_data;
 extern data_array *player_data;
 extern data_array *team_data;
 extern player_globals *local_player_globals;
-extern data_array *decal_data;
 extern uint8_t *widget_memory_pool;
 extern uint32_t ui_root_widget[13];
 extern uint32_t sound_class_gains;
@@ -140,12 +138,12 @@ void Lifecycle::dispose(void)
     effect_data = 0;
     effect_location_data = 0;
     particle_data = 0;
-    contrail_point_data = (data_array *)0;
-    contrail_data = (data_array *)0;
+    halo::effects::globals().contrail_point_data = (data_array *)0;
+    halo::effects::globals().contrail_data = (data_array *)0;
     player_data = (data_array *)0;
     team_data = (data_array *)0;
     local_player_globals = (player_globals *)0;
-    decal_data = (data_array *)0;
+    halo::effects::globals().decal_data = (data_array *)0;
 
     if (rasterizer_device != 0 && rasterizer_decal_vertex_cache != (void **)0) {
         ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*rasterizer_decal_vertex_cache + 8)))(rasterizer_decal_vertex_cache);

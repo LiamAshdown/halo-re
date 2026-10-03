@@ -6,6 +6,7 @@
 #include "effects.h"
 #include "crt.h"
 #include "halo/items/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -20,7 +21,6 @@ extern void object_delete_unparented(uint32_t object_index);
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
 extern Globals *global_globals;
 extern real vector2d_normalize_with_length(real_vector2d *v);
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern void unit_invalidate_local_player_zoom_level(uint32_t unit_index);
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);
@@ -202,7 +202,7 @@ uint8_t UnitView::begin_throw_grenade(const real_vector2d *direction)
         unit_invalidate_local_player_zoom_level(unit_index);
         uint8_t *grenade_table_entry = ((uint8_t *)global_globals->grenades.pointer) + (int8_t)grenade_type * 0x44;
         if (*(int32_t *)(grenade_table_entry + 0x10) != -1) {
-            effect_new_on_object(unit_index, *(datum_index *)(grenade_table_entry + 0x10), unit_index, -1,
+            halo::effects::effect_new_on_object(unit_index, *(datum_index *)(grenade_table_entry + 0x10), unit_index, -1,
                 0.0f, 0.0f, 0, 0);
         }
         return 1;

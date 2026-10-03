@@ -6,6 +6,7 @@
 #include "cutscene.h"
 #include "halo/input/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
@@ -14,7 +15,6 @@ extern void block_list_compact(memory_pool *arena);
 extern cinematic_globals *cinematic_globals_ptr;
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern game_engine_definition *current_game_engine;
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern void euler_angles_to_basis_vectors(real_euler_angles3d *angles, real_vector3d *up_out, real_vector3d *forward_out);
 extern uint32_t game_engine_remap_placement_by_type(uint32_t handle);
 extern real_vector3d *global_forward3d_pointer;
@@ -515,7 +515,7 @@ out_of_objects:
 
     if (TAG_ID_AS_DATUM_INDEX(object_tag->creation_effect.tag_id) != k_datum_index_none) {
 
-        effect_new_on_object(new_index, TAG_ID_AS_DATUM_INDEX(object_tag->creation_effect.tag_id), new_index, -1,
+        halo::effects::effect_new_on_object(new_index, TAG_ID_AS_DATUM_INDEX(object_tag->creation_effect.tag_id), new_index, -1,
             0.0f, 0.0f, (const ColorRGB *)0, (const effect_tint_source *)0);
         return new_index;
     }

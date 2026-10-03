@@ -1,5 +1,6 @@
 #include "halo/items/items.hpp"
 #include "halo/items/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -8,7 +9,6 @@ extern uint8_t unit_updates_suppressed;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter, char use_matched_index);
 extern char *weapon_blur_permutation_names[2];
-extern void effect_stop(datum_index effect_handle, uint8_t stop_immediately);
 extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code);
 extern animation_state_advance_result animation_state_advance(uint32_t animation_graph_tag_index, animation_state *state, int32_t *sound_tag_id, animation_random_stream random_stream);
 extern game_time_globals *game_time;
@@ -132,7 +132,7 @@ int32_t weapon_ref::update()
         if ((wd->flags & 1) != 0 && wd->heat < weapon_tag->heat_recovery_threshold) {
             wd->flags = wd->flags & ~(uint32_t)3;
             if (wd->overheat_effect_handle != (datum_index)0xffffffff) {
-                effect_stop(wd->overheat_effect_handle, 1);
+                halo::effects::effect_stop(wd->overheat_effect_handle, 1);
             }
         }
     }
@@ -317,7 +317,7 @@ int32_t weapon_ref::update()
                         trigger->effect_state_ticks = 0;
                     }
                     if (trigger->effect_handle != (datum_index)0xffffffff) {
-                        effect_stop(trigger->effect_handle, 1);
+                        halo::effects::effect_stop(trigger->effect_handle, 1);
                         trigger->effect_handle = (datum_index)0xffffffff;
                     }
                 }

@@ -65,6 +65,7 @@ name_re = re.compile(r"\b(" + "|".join(map(re.escape, names)) + r")\b")
 BARE = re.compile(r"(?<![\w:.>])(" + "|".join(map(re.escape, names)) + r")\b(?!\s*\[)")
 DECL1 = lambda n: re.compile(r'^[ \t]*extern\s+(?:"C"\s+)?[^;{}()]*?\b' + re.escape(n) + r'\s*\((?:[^;{}()]|\([^()]*\))*\)\s*;[ \t]*\r?\n', re.M)
 DECL2 = lambda n: re.compile(r'^[ \t]*extern\s+"C"\s*\{\s*extern\s+[^;{}()]*?\b' + re.escape(n) + r'\s*\((?:[^;{}()]|\([^()]*\))*\)\s*;\s*\}[ \t]*\r?\n', re.M)
+DECL3 = lambda n: re.compile(r'^[ \t]*(?!return\b|else\b|goto\b|case\b|delete\b|throw\b)(?:[A-Za-z_]\w*[ \t]*\**[ \t]+)+\**' + re.escape(n) + r'\s*\([^;{}=]*\)\s*;[ \t]*\r?\n', re.M)
 api_inc = f'#include "halo/{mod}/api.hpp"'
 
 
@@ -97,11 +98,26 @@ for f in src_files():
     for n in set(name_re.findall(s)):
         s = DECL1(n).sub("", s)
         s = DECL2(n).sub("", s)
+        if not f.endswith((".hpp", ".h")):
+            s = DECL3(n).sub("", s)
+    if f.endswith((".hpp", ".h")):
+        results[f] = (s, tokens, key)
+        continue
     s = code_sub(s, lambda t: BARE.sub(lambda m: f"halo::{mod}::{m.group(1)}", t))
     for q in re.findall(r"halo::" + mod + r"::(\w+)", s):
         if q in all_funcs:
             used.add(q)
     results[f] = (s, tokens, key)
+
+# names that headers also declare (class members etc.): unqualified calls inside those classes now bind to the C++ API instead
+for hf in glob.glob("include/halo/**/*.hpp", recursive=True) + glob.glob("src/**/*.hpp", recursive=True):
+    hf = hf.replace("\\", "/")
+    if hf == f"include/halo/{mod}/api.hpp":
+        continue
+    ht = open(hf, encoding="utf-8", errors="replace").read()
+    for n in set(name_re.findall(code_sub(ht, lambda t: t))):
+        if re.search(r"\b" + re.escape(n) + r"\s*\(", re.sub(r"//[^\n]*|/\*.*?\*/", "", ht, flags=re.S)):
+            print(f"  warning: header {hf} mentions {n}(")
 
 # tables
 tab_changed = {}

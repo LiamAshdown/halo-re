@@ -14,6 +14,7 @@
 #include <stdio.h>
 
 #include "halo/main/timedemo.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern timedemo_globals timedemo_globals_data; }
@@ -44,7 +45,6 @@ extern "C" { extern uint8_t directsound_eax_enabled; }
 extern "C" { extern int32_t directsound_quality; }
 extern "C" { extern int16_t renderer_texture_quality; }
 extern "C" { extern int16_t light_count_enabled; }
-extern "C" { extern uint8_t decals_for_all_responses; }
 extern "C" { extern uint8_t console_debug_toggle_6893f2; }
 extern "C" { extern uint8_t console_debug_toggle_6893fa; }
 extern "C" { extern uint32_t time_query_performance_counter_ms(void); }
@@ -284,7 +284,7 @@ void Timedemo::benchmark_update(void)
         } else {
             particles = "Off";
         }
-        decals = decals_for_all_responses != 0 ? "Yes" : "No";
+        decals = halo::effects::globals().decals_for_all_responses != 0 ? "Yes" : "No";
         shadows = console_debug_toggle_6893f2 != 0 ? "Yes" : "No";
         specular = console_debug_toggle_6893fa != 0 ? "Yes" : "No";
         fprintf(file,

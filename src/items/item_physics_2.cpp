@@ -2,6 +2,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -20,7 +21,6 @@ extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, c
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
-extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 extern void object_list_membership_set(uint32_t object_index, char add);
 extern real_matrix4x3 *object_get_node_marker_address(uint32_t object_index, int16_t node_index);
 extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point);
@@ -30,7 +30,6 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int8_t breakable_surface_is_intact(int16_t bit_index);
 extern void object_recompute_basis_from_marker_delta(object *obj, object_marker *marker, real_matrix4x3 *output_matrix);
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern void object_delete(uint32_t object_index);
 extern double fabs(double x);
 extern double sqrt(double x);
@@ -105,7 +104,7 @@ uint8_t item_ref::update()
                     speed_factor = 1.0f;
                 }
                 if (*(datum_index *)&((Item *)tag)->material_effects.tag_id != k_datum_index_none && any_local_player_within_10_units(&hit.point)) {
-                    material_effects_play_at_marker(*(datum_index *)&((Item *)tag)->material_effects.tag_id, 8, *(int16_t *)&hit.material_type,
+                    halo::effects::material_effects_play_at_marker(*(datum_index *)&((Item *)tag)->material_effects.tag_id, 8, *(int16_t *)&hit.material_type,
                                                     (uint32_t *)&hit.leaf, *(uint32_t *)&speed_factor, &hit.point,
                                                     &hit.plane.normal);
                 }
@@ -241,7 +240,7 @@ uint8_t item_ref::update()
     if (((item_object *)obj)->item.detonation_countdown > 0) {
         ((item_object *)obj)->item.detonation_countdown -= 1;
         if (((item_object *)obj)->item.detonation_countdown == 0) {
-            effect_new_on_object(item_index, *(datum_index *)&((Item *)tag)->detonation_effect.tag_id, item_index, -1, 0.0f, 0.0f, 0, 0);
+            halo::effects::effect_new_on_object(item_index, *(datum_index *)&((Item *)tag)->detonation_effect.tag_id, item_index, -1, 0.0f, 0.0f, 0, 0);
             object_delete(item_index);
         }
     }

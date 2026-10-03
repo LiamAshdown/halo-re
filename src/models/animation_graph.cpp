@@ -5,11 +5,11 @@
  */
 
 #include "halo/models/models.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
 extern random_seed random_seed_global;
-extern random_seed effect_random_seed;
 extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out);
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
@@ -81,8 +81,8 @@ int16_t animation_graph::choose_random_permutation(datum_index animation_graph_t
         random_seed_global = random_seed_global * k_random_multiplier + k_random_increment;
         seed = random_seed_global;
     } else {
-        effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        seed = effect_random_seed;
+        halo::effects::globals().effect_random_seed = halo::effects::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+        seed = halo::effects::globals().effect_random_seed;
     }
     threshold = (real)(seed >> k_random_value_shift) * 1.5259022e-05f;
 

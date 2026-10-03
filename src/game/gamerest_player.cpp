@@ -5,6 +5,7 @@
 #include "halo/input/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
@@ -88,7 +89,6 @@ extern uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t or
 extern void player_release_unit_and_reset(uint32_t player_index, int32_t previous_unit_override);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern void game_engine_build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_t local_players_only);
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern game_engine_definition *current_game_engine;
 extern game_engine_state game_engine_state_value;
 extern void game_engine_attribute_player_death(datum_index victim_unit, datum_index killer, datum_index death_object, int32_t killer_team, char credit_kills);
@@ -99,7 +99,6 @@ extern player_control_globals *player_control_globals_ptr;
 extern data_array *update_server_queues;
 extern void *data_iterator_next(data_iterator *iterator);
 extern void player_remove(datum_index player_handle);
-extern void player_effect_set_screen_flash_for_player(datum_index player_index, void *descriptor, float intensity_falloff);
 extern uint16_t global_006889d0;
 extern uint16_t global_007102e4;
 extern uint32_t global_006889e0;
@@ -973,7 +972,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
 
         if (effect != k_datum_index_none) {
             game_engine_build_visible_cluster_bitmask((uint32_t *)local_player_globals->cluster_pvs, 0);
-            effect_new_on_object(unit_index, effect, unit_index, -1, 0.0f, 0.0f, 0, 0);
+            halo::effects::effect_new_on_object(unit_index, effect, unit_index, -1, 0.0f, 0.0f, 0, 0);
         }
     }
     return placed;
@@ -1203,7 +1202,7 @@ void PlayerView::trigger_full_health_effect()
         *(uint32_t *)(buffer + 0x30) = 0x3f6aeaea;
         *(uint32_t *)(buffer + 0x34) = 0x3f6aeaea;
 
-        player_effect_set_screen_flash_for_player(player_index, buffer, 1.0f);
+        halo::effects::player_effect_set_screen_flash_for_player(player_index, (player_screen_flash *)buffer, 1.0f);
     }
 }
 
@@ -1236,7 +1235,7 @@ void PlayerView::trigger_shield_recharge_effect()
         *(uint32_t *)(buffer + 0x30) = global_007102ec;
         *(uint32_t *)(buffer + 0x34) = global_006889dc;
 
-        player_effect_set_screen_flash_for_player(player_index, buffer, 1.0f);
+        halo::effects::player_effect_set_screen_flash_for_player(player_index, (player_screen_flash *)buffer, 1.0f);
     }
 }
 
@@ -1880,7 +1879,7 @@ void KillStreak::trigger_kill_streak_effect()
         *(uint32_t *)(buffer + 0x30) = global_006889f0;
         *(uint32_t *)(buffer + 0x34) = global_007102f8;
 
-        player_effect_set_screen_flash_for_player(player_index, buffer, 1.0f);
+        halo::effects::player_effect_set_screen_flash_for_player(player_index, (player_screen_flash *)buffer, 1.0f);
     }
 }
 

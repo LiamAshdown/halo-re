@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern const projection_axis_pair k_projection_axes[6];
@@ -19,12 +20,10 @@ extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *or
 extern const decal_type_parameters k_decal_type_parameters[4];
 extern random_seed effect_random_seed;
 extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array);
-extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer);
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint8_t decals_enabled;
 extern uint8_t decals_for_all_responses;
 extern tag_instance *tag_instances;
-extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t sequence_index);
 extern game_time_globals *game_time;
 extern long lrint(double x);
 extern uint8_t *game_state_base;
@@ -33,18 +32,6 @@ extern uint32_t game_state_crc;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern void rasterizer_decals_initialize(void);
-extern void decal_update_fade(datum_index decal_index);
-void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
-void decal_clear_flags(uint8_t clear_object_attached);
-void decal_delete(datum_index decal_index);
-void decal_evict_object_decals(int16_t cluster_index);
-void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator *accumulator, int32_t surface_index, uint8_t is_first_surface, real radius, int16_t decal_type, int32_t *surface_queue, uint16_t *surface_queue_count, int32_t *fallback_queue, uint16_t *fallback_queue_count);
-datum_index decal_new(datum_index requested_handle, int16_t cluster_index, int16_t layer, datum_index insert_before, uint8_t object_attached);
-void decal_rehash_object_decals();
-void decal_spawn_for_response(datum_index response_tag_index, uint8_t deterministic, real_point3d *origin, real_vector3d *direction, real radius, int32_t marker_index);
-void decals_detach_from_structure_bsp();
-void decals_initialize();
-void decals_update_fade();
 }
 
 namespace halo::effects {
@@ -538,7 +525,7 @@ datum_index decal_ref::create(datum_index requested_handle, int16_t cluster_inde
         return handle;
     }
 
-    decal_link(cluster_index, handle, layer);
+    halo::effects::decal_link(cluster_index, handle, layer);
     return handle;
 }
 
@@ -573,7 +560,7 @@ void decal_ref::rehash_object_decals()
                         ((decal *)decal_data->data)[(uint16_t)self->previous_decal].next_decal = next;
                     }
 
-                    decal_link(cluster, decal_index, self->layer);
+                    halo::effects::decal_link(cluster, decal_index, self->layer);
                 }
             }
 
@@ -610,7 +597,7 @@ void decal_ref::spawn_for_response(datum_index response_tag_index, uint8_t deter
     if (halo::physics::collision_test_movement_segment(0x100061, origin, direction, 0xffffffff, &result) &&
         result.type == 2 &&
         (*(uint8_t *)tag_instances[response_tag_index & 0xffff].data & 0x10) == 0) {
-        decal_place(response_tag_index, &result, direction, radius, deterministic, (int16_t)marker_index);
+        halo::effects::decal_place(response_tag_index, &result, direction, radius, deterministic, (int16_t)marker_index);
     }
     if (deterministic != 0) {
         effect_random_seed = saved_seed;
@@ -731,14 +718,14 @@ void decal_ref::update_fade_all()
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
         while (data_iterator_next(&iterator) != 0) {
-            decal_update_fade(iterator.index);
+            halo::effects::decal_update_fade(iterator.index);
         }
     }
 }
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out)
 {

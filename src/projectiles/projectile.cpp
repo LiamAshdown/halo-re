@@ -1,5 +1,6 @@
 #include "halo/projectiles/projectile.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -32,9 +33,7 @@ extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
 extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position, uint32_t ignore_object_index);
-extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time);
 extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind, ObjectNoise_t noise, int32_t param_5);
-extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
 extern void *game_time;
 extern int32_t k_projectile_minimum_age_ticks;
 uint8_t projectile_new(uint32_t object_index);
@@ -460,7 +459,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
             obj->attachment_handles[proj->contrail_attachment_index] != (datum_index)k_datum_index_none) {
             object_recalculate_bounding_radius(object_index);
             
-            contrail_advance(obj->attachment_handles[proj->contrail_attachment_index], 0,
+            halo::effects::contrail_advance(obj->attachment_handles[proj->contrail_attachment_index], 0,
                 (1.0f - remaining_tick_fraction) * 0.033333335f);
         }
     }
@@ -473,8 +472,8 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
         position_block[1] = position_block[0]; 
         direction_block[1] = *global_down3d_pointer;
 
-        effect_new_with_color(effect_tag_id, obj->creator_object, 0, 2, effect_names, position_block,
-                     direction_block, 0, 0, 0, 0, 1);
+        halo::effects::effect_new_with_color(effect_tag_id, obj->creator_object, 0, 2, (uint32_t)effect_names, position_block,
+                     (uint32_t)direction_block, 0, 0, 0, 0, 1);
     }
 
     if (obj->parent_object != (datum_index)k_datum_index_none &&
@@ -518,8 +517,8 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
             } else {
                 response = (ProjectileMaterialResponse *)tag->projectile_material_response.pointer + index;
             }
-            effect_new_with_color(*(uint32_t *)&response->detonation_effect.tag_id, obj->creator_object, 0, 2,
-                         effect_names, position_block, direction_block, 0, 0, 0, 0, 1);
+            halo::effects::effect_new_with_color(*(uint32_t *)&response->detonation_effect.tag_id, obj->creator_object, 0, 2,
+                         (uint32_t)effect_names, position_block, (uint32_t)direction_block, 0, 0, 0, 0, 1);
         }
     }
 

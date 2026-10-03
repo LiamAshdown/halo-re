@@ -25,12 +25,12 @@
 
 #include "halo/main/views.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" { void render_view_camera_fill(observer_camera *observer, render_view *view); }
 extern "C" { void screenshot_render(render_view *views); }
 extern "C" { void viewport_split_rect_compute(int32_t view_count, int32_t view_index, Rectangle2D *window, Rectangle2D *out_viewport); }
 
-extern "C" { extern int32_t player_effect_reentry_count; }
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern render_view render_views[2]; }
 extern "C" { extern game_engine_definition *current_game_engine; }
@@ -74,7 +74,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     int16_t resolved_local_player_index;
     render_view *view;
 
-    player_effect_reentry_count = player_effect_reentry_count + 1;
+    halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count + 1;
     halo::sound::sound_update();
 
     showing_results = (current_game_engine != 0 && (int32_t)game_engine_state_value > 1 &&
@@ -151,7 +151,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     if (screenshots == 0) {
         render_frame(0, render_views, (int16_t)(view_count + 1), 0, time_since_tick,
                      time_since_frame);
-        player_effect_reentry_count = player_effect_reentry_count - 1;
+        halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count - 1;
         return;
     }
 
@@ -160,14 +160,14 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
         if (main_globals_data.screenshot_tile_count < 1) {
             render_frame(0, render_views, (int16_t)(view_count + 1), 0, time_since_tick,
                          time_since_frame);
-            player_effect_reentry_count = player_effect_reentry_count - 1;
+            halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count - 1;
             return;
         }
     } else {
         main_globals_data.screenshot_tile_count = 1;
     }
     screenshot_render(render_views);
-    player_effect_reentry_count = player_effect_reentry_count - 1;
+    halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count - 1;
 }
 
 }
@@ -248,7 +248,6 @@ void RenderViews::pregame_view_initialize(void)
 extern "C" { extern game_time_globals *game_time; }
 extern "C" { extern console_globals console_globals_data; }
 extern "C" { extern int16_t camera_get_type_for_player(int16_t local_player_index); }
-extern "C" { extern void player_effect_build_camera_shake_matrix(void *out_shake_matrix, int16_t local_player_index); }
 extern "C" { extern void matrix4x3_from_forward_up_position(real_vector3d *up, real_vector3d *forward, real_point3d *position, real_matrix4x3 *out); }
 extern "C" { extern void matrix4x3_extract_forward_up_position(real_vector3d *up_out, real_vector3d *forward_out, real_matrix4x3 *matrix, real_point3d *position_out); }
 extern "C" { extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); }
@@ -297,7 +296,7 @@ void RenderViews::view_camera_fill(observer_camera *observer, render_view *view)
                 uint8_t shake_matrix[56];
                 real_matrix4x3 orientation;
 
-                player_effect_build_camera_shake_matrix(shake_matrix, view->local_player_index);
+                halo::effects::player_effect_build_camera_shake_matrix((real_matrix4x3 *)shake_matrix, view->local_player_index);
                 matrix4x3_from_forward_up_position((real_vector3d *)&observer->up,
                                                     (real_vector3d *)&observer->forward,
                                                     (real_point3d *)observer, &orientation);

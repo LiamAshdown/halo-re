@@ -1,4 +1,5 @@
 #include "halo/camera/camera.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern director_globals camera_director_globals;
@@ -34,7 +35,6 @@ extern void editor_camera_set_position_and_direction(editor_camera_data *out, Ve
 extern void vector3d_compute_up_from_forward(Vector3D *forward, Vector3D *out_up);
 extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
 extern void editor_camera_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
-extern random_seed effect_random_seed;
 extern game_engine_definition *current_game_engine;
 void camera_initialize(void);
 void camera_control(uint8_t enable);
@@ -601,16 +601,16 @@ dead_camera_data * DeadCamera::construct(dead_camera_data *self, int16_t local_p
 
     self->field_of_view = 1.2217305f; 
 
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    self->distance = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 4.0f + 2.0f;
+    halo::effects::globals().effect_random_seed = halo::effects::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    self->distance = (real)(halo::effects::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 4.0f + 2.0f;
 
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    self->yaw = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
+    halo::effects::globals().effect_random_seed = halo::effects::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    self->yaw = (real)(halo::effects::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
 
     self->transition_time = 3.0f;
 
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    self->pitch = -((real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 0.6283184f + 0.47123894f);
+    halo::effects::globals().effect_random_seed = halo::effects::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    self->pitch = -((real)(halo::effects::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 0.6283184f + 0.47123894f);
 
     if (unit != k_datum_index_none) {
         self->retarget_time = 3.4028235e38f; 

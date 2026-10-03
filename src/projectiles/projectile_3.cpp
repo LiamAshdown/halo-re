@@ -1,5 +1,6 @@
 #include "halo/projectiles/projectile.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -23,8 +24,6 @@ extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void vector3d_project_onto_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out);
 extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, void *seed, real lo, real hi);
-extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const void *color, const void *tint_source);
-extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
 void projectile_response(datum_index projectile_index, collision_result *hit, real_point3d *out_position, real_vector3d *velocity);
 }
 
@@ -353,11 +352,11 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
                 
                 
                 
-                effect_new_on_object_with_node_table(projectile_index, response_effect_tag, hit->object_index,
+                halo::effects::effect_new_on_object_with_node_table(projectile_index, response_effect_tag, hit->object_index,
                     (uint16_t)hit->node_index, 5, (uint32_t)projectile_effect_coordinate_system_names, (uint32_t)positions,
                     (uint32_t)coordinate_system, effect_scale, fade_out, 0, 0);
             } else {
-                effect_new_with_color(response_effect_tag, projectile_index, 0, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0, 1);
+                halo::effects::effect_new_with_color(response_effect_tag, projectile_index, 0, 5, (uint32_t)projectile_effect_coordinate_system_names, positions, (uint32_t)coordinate_system, effect_scale, fade_out, 0, 0, 1);
             }
         }
         
@@ -365,11 +364,11 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
             ((pd->flags & _projectile_at_rest_bit) != 0 || response_type == projectileresponse_attach)) {
             if (hit->type == _collision_result_type_object) {
                 
-                effect_new_on_object_with_node_table(projectile_index, *(uint32_t *)&tag->detonation_started.tag_id,
+                halo::effects::effect_new_on_object_with_node_table(projectile_index, *(uint32_t *)&tag->detonation_started.tag_id,
                     hit->object_index, (uint16_t)hit->node_index, 5, (uint32_t)projectile_effect_coordinate_system_names,
                     (uint32_t)positions, (uint32_t)coordinate_system, effect_scale, fade_out, 0, 0);
             } else {
-                effect_new_with_color(*(uint32_t *)&tag->detonation_started.tag_id, projectile_index, 0, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0, 1);
+                halo::effects::effect_new_with_color(*(uint32_t *)&tag->detonation_started.tag_id, projectile_index, 0, 5, (uint32_t)projectile_effect_coordinate_system_names, positions, (uint32_t)coordinate_system, effect_scale, fade_out, 0, 0, 1);
             }
         }
     }

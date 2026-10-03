@@ -4,14 +4,10 @@
 #include "effects.h"
 #include "networking.h"
 #include "halo/sound/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
-extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time);
-extern datum_index contrail_new(int16_t attachment_index, datum_index object_index, datum_index definition_index);
 extern void datum_delete(data_array *array, datum_index handle);
-extern void effect_delete(datum_index handle);
-extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index, int16_t change_color_index, int16_t u, int16_t v);
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern int32_t hash_table_get(hash_table *table, uint32_t key);
 extern void light_delete(datum_index light_handle);
 extern datum_index light_new_attached(datum_index light_tag, datum_index owner_object, int16_t marker_index, int16_t marker_index_secondary, int16_t change_color_index);
@@ -42,7 +38,6 @@ extern void object_type_definitions_notify_0x30(uint32_t object_index);
 extern void object_type_definitions_notify_0x3c(uint32_t object_index, uint32_t dying_object_index);
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern data_array *particle_system_data;
-extern datum_index particle_system_new_on_marker(uint32_t definition_index, uint32_t object_index, int16_t attachment_index);
 extern tag_instance *tag_instances;
 extern void (*object_delete_callbacks[3])(uint32_t object_index);
 extern void widget_delete_all(uint32_t object_index);
@@ -66,7 +61,7 @@ void halo::objects::ObjectLifetime::delete_teardown()
 
     if (definition->collision_model.tag_id.index != 0xffff) {
 
-        effect_new_on_object(object_index,
+        halo::effects::effect_new_on_object(object_index,
             *(datum_index *)((uint8_t *)tag_instances[definition->collision_model.tag_id.index].data + 0xc8),
             object_index, -1, 0.0f, 0.0f, 0, 0);
     }
@@ -420,13 +415,13 @@ void halo::objects::ObjectLifetime::create_attachments()
             }
             break;
         case 2:
-            handle = effect_new_at_texture_coordinate(tag, object_index, change_color, first_scale, second_scale);
+            handle = halo::effects::effect_new_at_texture_coordinate(tag, object_index, change_color, first_scale, second_scale);
             break;
         case 3:
-            handle = contrail_new(i, object_index, tag);
+            handle = halo::effects::contrail_new(i, object_index, tag);
             break;
         case 4:
-            handle = particle_system_new_on_marker(tag, object_index, i);
+            handle = halo::effects::particle_system_new_on_marker(tag, object_index, i);
             break;
         }
         obj[0x144 + i] = (uint8_t)type;
@@ -464,11 +459,11 @@ void halo::objects::ObjectLifetime::delete_attachments()
                     datum_delete(halo::sound::globals().game_looping_sound_data, handle);
                     break;
                 case _object_attachment_type_effect:
-                    effect_delete(handle);
+                    halo::effects::effect_delete(handle);
                     break;
                 case _object_attachment_type_contrail:
                     object_recalculate_bounding_radius(object_index);
-                    contrail_advance(handle, 1, 0.0f);
+                    halo::effects::contrail_advance(handle, 1, 0.0f);
                     break;
                 case _object_attachment_type_particle_system: {
 
