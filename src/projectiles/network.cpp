@@ -63,12 +63,12 @@ void ProjectileNetwork::apply_update(uint32_t *update_record)
         return;
     }
     proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
-    header = (projectile_network_update_header *)update_record[0x11];
+    header = (projectile_network_update_header *)update_record[k_projectile_update_header_slot];
 
     if ((obj->flags & _object_took_network_update_bit) != 0 && *(int32_t *)update_record[0] == 1 &&
         (header->baseline_index != proj->network_baseline_index ||
          (header->sequence <= proj->network_sequence &&
-          (int)((uint32_t)(header->sequence - proj->network_sequence) + 0xff) > 0x1d))) {
+          (int)((uint32_t)(header->sequence - proj->network_sequence) + 0xff) > k_projectile_network_stale_window))) {
         message_delta_decode_compound_field_staged(update_record);
         return;
     }

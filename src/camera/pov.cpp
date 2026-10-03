@@ -83,6 +83,17 @@ void orbiting_camera_update(director_camera_data *data, camera_input *input, obs
 
 namespace halo::camera {
 
+namespace {
+/**
+ * The render frame the flying camera reads its starting pose from: a header followed by the render camera.
+ */
+struct flying_render_frame {
+    uint8_t header[20];
+    render_camera camera;
+};
+static_assert(offsetof(flying_render_frame, camera) == 0x14);
+}
+
 /**
  * Original function camera_first_person_compute_pov; the author notes are in
  * docs/original/camera/camera_first_person_compute_pov.c.txt.
@@ -901,7 +912,7 @@ void FlyingCamera::compute_pov(director_camera_data *data, camera_input *input, 
             camera_debug_compute_pov((director_camera_data *)0, input, command);
             return;
         }
-        camera = (render_camera *)((uint8_t *)flying_camera_render_frame + 0x14);
+        camera = &((flying_render_frame *)flying_camera_render_frame)->camera;
         flying = flying_camera_data;
         flying->position = *(Point3D *)&camera->position;
         flying->yaw = (float)atan2(camera->forward.j, camera->forward.i);
@@ -931,7 +942,7 @@ void FlyingCamera::compute_pov(director_camera_data *data, camera_input *input, 
  */
 void FlyingCamera::enter_flying(editor_camera_data *data)
 {
-    render_camera *camera = (render_camera *)((uint8_t *)flying_camera_render_frame + 0x14);
+    render_camera *camera = &((flying_render_frame *)flying_camera_render_frame)->camera;
 
     flying_camera_saved_orbiting = *(orbiting_camera_data *)data;
     flying_camera_saved_orbiting_valid = 1;
@@ -960,7 +971,7 @@ void FlyingCamera::enter_orbiting(editor_camera_data *data)
         *orbit = flying_camera_saved_orbiting;
         return;
     }
-    camera = (render_camera *)((uint8_t *)flying_camera_render_frame + 0x14);
+    camera = &((flying_render_frame *)flying_camera_render_frame)->camera;
     orbit->unknown_00 = 0.0f;
     orbit->distance = 1.0f;
     orbit->unknown_08 = 0.0f;

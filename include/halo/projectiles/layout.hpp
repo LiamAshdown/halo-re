@@ -63,6 +63,12 @@ constexpr uint32_t advance_random_seed(uint32_t seed) noexcept { return seed * k
 /** Tag group of a contrail attachment ('cont'). */
 inline constexpr uint32_t k_contrail_group_tag = groups::contrail;
 
+/** A network update is stale unless its sequence is newer than the stored one by less than this many steps. */
+inline constexpr int32_t k_projectile_network_stale_window = 29;
+
+/** Index of the header pointer inside a decoded compound update record. */
+inline constexpr int32_t k_projectile_update_header_slot = 17;
+
 /** Size of the shared network message scratch buffer. */
 inline constexpr uint32_t k_network_message_scratch_size = 0x7ff8;
 
