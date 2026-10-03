@@ -1,0 +1,90 @@
+/**
+ * @file standalone/data/link/ai_vars.hpp
+ * Link names of the engine variables owned by the ai module (halo::ai::vars()). The data image defines them under these C
+ * names; only src/ai/vars.cpp includes this header, so the names are declared as untyped storage.
+ */
+#pragma once
+
+extern "C" {
+extern char DAT_00655ab4[];
+extern char DAT_00656b24[];
+extern char actor_avoidance_a_bearing[];
+extern char actor_avoidance_a_elevation[];
+extern char actor_avoidance_a_radius[];
+extern char actor_avoidance_b_bearing[];
+extern char actor_avoidance_b_elevation[];
+extern char actor_avoidance_b_radius[];
+extern char actor_avoidance_circle[];
+extern char actor_avoidance_near_weights[];
+extern char actor_avoidance_ray_weights[];
+extern char actor_avoidance_samples_a[];
+extern char actor_avoidance_samples_b[];
+extern char actor_combat_status_min_grade[];
+extern char actor_control_animation_state_table[];
+extern char actor_data[];
+extern char actor_dialogue_variant_offset_1a[];
+extern char actor_dialogue_variant_offset_2a[];
+extern char actor_dialogue_variant_offset_3a[];
+extern char actor_dialogue_variant_scale_1b[];
+extern char actor_dialogue_variant_scale_23b[];
+extern char actor_dialogue_variant_scale_2a[];
+extern char actor_dialogue_variant_table_a[];
+extern char actor_dialogue_variant_table_b[];
+extern char actor_dialogue_variant_table_c[];
+extern char actor_dialogue_variant_table_d[];
+extern char actor_dialogue_variant_table_e[];
+extern char actor_dialogue_variant_table_f[];
+extern char actor_dialogue_variant_table_g[];
+extern char actor_dodge_table[];
+extern char actor_firing_position_reject_rules[];
+extern char actor_firing_position_score_rules[];
+extern char actor_lookup_table_006555a8[];
+extern char actor_mode_definitions[];
+extern char actor_type_procs[];
+extern char actor_vocalization_duration[];
+extern char actor_vocalization_variant[];
+extern char ai_actor_mode_dispatch_table[];
+extern char ai_communication_class_follow_up[];
+extern char ai_communication_class_look_marker[];
+extern char ai_communication_class_no_actor_class[];
+extern char ai_communication_class_priority[];
+extern char ai_communication_class_repeat_delay[];
+extern char ai_communication_class_tail_seconds[];
+extern char ai_communication_direction_table[];
+extern char ai_communication_event_definitions[];
+extern char ai_communication_lines[];
+extern char ai_communication_quiet_until_tick[];
+extern char ai_communication_selector_delay_seconds[];
+extern char ai_conversation_data[];
+extern char ai_default_2d_direction[];
+extern char ai_globals_ptr[];
+extern char ai_marker_name_b[];
+extern char ai_pursuit_data[];
+extern char ai_vocalization_line_table[];
+extern char communication_line_base[];
+extern char communication_line_count[];
+extern char conversation_index_lookup[];
+extern char conversation_line_base[];
+extern char conversation_line_count[];
+extern char encounter_data[];
+extern char encounter_platoon_states[];
+extern char encounter_squad_states[];
+extern char game_time[];
+extern char global_down3d_pointer[];
+extern char global_forward2d_pointer[];
+extern char global_origin3d_pointer[];
+extern char global_structure_bsp[];
+extern char k_random_scale_65536[];
+extern char k_real_one[];
+extern char k_real_point_six[];
+extern char k_real_zero[];
+extern char order_code_mode_data_expect[];
+extern char prop_array_name[];
+extern char prop_data[];
+extern char qsort_candidate_base[];
+extern char qsort_candidate_count[];
+extern char swarm_component_data[];
+extern char swarm_data[];
+extern char team_pair_data[];
+extern char ticks_per_second[];
+}

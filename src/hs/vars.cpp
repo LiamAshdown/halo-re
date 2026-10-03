@@ -1,0 +1,86 @@
+/**
+ * @file src/hs/vars.cpp
+ * Binds halo::hs::Vars to the engine variables the data image defines under their original link names.
+ */
+
+#include "halo/hs/vars.hpp"
+#include "link/hs_vars.hpp"
+
+namespace halo::hs {
+
+const Vars &vars()
+{
+    static const Vars table{
+        DAT_00689471,
+        DAT_0087abc1,
+        DAT_0087abc3,
+        ai_debug_gate_87abc6,
+        camera_script_time_remaining,
+        cheat_super_jump,
+        director_camera_mode,
+        director_camera_target,
+        directsound_eax_enabled,
+        directsound_listener,
+        g_00689481,
+        g_0087abc0,
+        g_0087abc5,
+        g_0087abc7,
+        global_scenario,
+        hs_autocomplete_count,
+        hs_autocomplete_gametype_mask,
+        hs_autocomplete_maximum_count,
+        hs_autocomplete_prefix,
+        hs_autocomplete_procedures,
+        hs_autocomplete_results,
+        hs_blocking_forbidden,
+        hs_comparison_types,
+        hs_compile_error,
+        hs_compile_error_buffer,
+        hs_compile_error_offset,
+        hs_compile_release_source,
+        hs_compiled_source,
+        hs_compiled_source_length,
+        hs_compiled_source_owned,
+        hs_compiling,
+        hs_current_thread_index,
+        hs_empty_string,
+        hs_enum_definitions,
+        hs_function_definitions,
+        hs_global_definitions,
+        hs_globals_data,
+        hs_newline_characters,
+        hs_object_type_masks,
+        hs_parse_primitive_procedures,
+        hs_postprocessing,
+        hs_preserve_token_case,
+        hs_reload_pending,
+        hs_runtime_active,
+        hs_script_type_names,
+        hs_set_forbidden,
+        hs_space_characters,
+        hs_syntax_data,
+        hs_syntax_data_dirty,
+        hs_syntax_data_header_byte_swap_definition,
+        hs_syntax_data_is_local,
+        hs_syntax_node_byte_swap_definition,
+        hs_tag_group_for_type,
+        hs_thread_data,
+        hs_type_conversion_procedures,
+        hs_type_names,
+        main_globals_byte_00719751,
+        main_globals_byte_00719752,
+        main_globals_byte_00719753,
+        message_delta_config_text_buffer,
+        object_headers,
+        sound_listener_doppler_factor,
+        sound_listener_rolloff_factor,
+        sound_supplementary_buffers_00746122,
+        ui_widget_show_path_flag,
+        unknown_006869d1,
+        unknown_006894ba,
+        unknown_00746fa4,
+    };
+    return table;
+}
+
+}  // namespace halo::hs

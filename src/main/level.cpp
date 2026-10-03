@@ -37,10 +37,15 @@
 #include "halo/scenario/scenario.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
 
 
-extern "C" { extern main_globals main_globals_data; }
-extern "C" { extern char *campaign_level_paths[k_main_campaign_level_count]; }
+static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
+static auto &campaign_level_paths = halo::link::ref<char *[k_main_campaign_level_count]>(halo::interface::vars().campaign_level_paths);
 namespace halo::main {
 
 /**
@@ -85,7 +90,7 @@ void LevelControl::campaign_level_advance(void)
 
 }
 
-extern "C" { extern char campaign_level_short_names[k_main_campaign_level_count][4]; }
+static auto &campaign_level_short_names = halo::link::ref<char [k_main_campaign_level_count][4]>(halo::main::vars().campaign_level_short_names);
 namespace halo::main {
 
 /**
@@ -118,11 +123,11 @@ int LevelControl::campaign_level_find_index_for_path(char *path)
 
 }
 
-extern "C" { extern uint8_t player_profile_cache_initialized; }
-extern "C" { extern uint8_t player_profile_cache[0xc0 * 4]; }
-extern "C" { extern uint8_t game_engine_active_variant[0x26 * 4]; }
-extern "C" { extern uint8_t ui_split_screen; }
-extern "C" { extern uint8_t *main_game_globals; }
+static auto &player_profile_cache_initialized = halo::link::ref<uint8_t>(halo::game::vars().player_profile_cache_initialized);
+static auto &player_profile_cache = halo::link::ref<uint8_t [0xc0 * 4]>(halo::game::vars().player_profile_cache);
+static auto &game_engine_active_variant = halo::link::ref<uint8_t [0x26 * 4]>(halo::game::vars().game_engine_active_variant);
+static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::interface::vars().ui_split_screen);
+static auto &main_game_globals = halo::link::ref<uint8_t *>(halo::game::vars().main_game_globals);
 namespace halo::main {
 
 /**
@@ -182,8 +187,8 @@ void LevelControl::chimera__load_ui_map(char play_title_music)
 
 }
 
-extern "C" { extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; }
-extern "C" { extern int32_t hud_text_message_cycle_state_00719230; }
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::interface::vars().profile_globals_block);
+static auto &hud_text_message_cycle_state_00719230 = halo::link::ref<int32_t>(halo::interface::vars().hud_text_message_cycle_state_00719230);
 namespace halo::main {
 
 /**
@@ -212,12 +217,12 @@ void LevelControl::credits_load_directly_for_endgame(void)
 
 }
 
-extern "C" { extern uint8_t console_debug_flag_0; }
-extern "C" { extern int16_t console_debug_word_8; }
-extern "C" { extern int32_t ui_pause_pending_count_00718fa0; }
-extern "C" { extern int32_t join_ui_state; }
-extern "C" { extern int32_t interface_loading_screen_address_a; }
-extern "C" { extern int32_t interface_loading_screen_address_b; }
+static auto &console_debug_flag_0 = halo::link::ref<uint8_t>(halo::main::vars().console_debug_flag_0);
+static auto &console_debug_word_8 = halo::link::ref<int16_t>(halo::main::vars().console_debug_word_8);
+static auto &ui_pause_pending_count_00718fa0 = halo::link::ref<int32_t>(halo::main::vars().ui_pause_pending_count_00718fa0);
+static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
+static auto &interface_loading_screen_address_a = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_a);
+static auto &interface_loading_screen_address_b = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_b);
 extern "C" { extern void main_ensure_local_players(void); }
 extern "C" { extern void game_state_load_checkpoint(void); }
 namespace halo::main {
@@ -304,7 +309,7 @@ after_load:
 
 }
 
-extern "C" { extern int16_t pending_difficulty; }
+static auto &pending_difficulty = halo::link::ref<int16_t>(halo::interface::vars().pending_difficulty);
 namespace halo::main {
 
 /**
@@ -344,14 +349,14 @@ void LevelControl::start_new_single_player_map(void)
 
 }
 
-extern "C" { extern char map_path_prefix[]; }
-extern "C" { extern uint8_t main_menu_music_pending; }
-extern "C" { extern uint8_t ui_input_batch_mode; }
-extern "C" { extern float ui_unknown_718fa8; }
-extern "C" { extern int32_t interface_loading_screen_progress; }
-extern "C" { extern uint16_t progress_screen_text[0x20]; }
-extern "C" { extern uint16_t progress_screen_subtext[0x20]; }
-extern "C" { extern int32_t interface_loading_screen_request_id; }
+static auto &map_path_prefix = halo::link::ref<char []>(halo::main::vars().map_path_prefix);
+static auto &main_menu_music_pending = halo::link::ref<uint8_t>(halo::main::vars().main_menu_music_pending);
+static auto &ui_input_batch_mode = halo::link::ref<uint8_t>(halo::interface::vars().ui_input_batch_mode);
+static auto &ui_unknown_718fa8 = halo::link::ref<float>(halo::interface::vars().ui_unknown_718fa8);
+static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_progress);
+static auto &progress_screen_text = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_text);
+static auto &progress_screen_subtext = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_subtext);
+static auto &interface_loading_screen_request_id = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_request_id);
 extern "C" { extern int32_t _access(const char *path, int32_t mode); }
 namespace halo::main {
 
@@ -615,7 +620,7 @@ void LevelControl::save_map_private(void)
 
 }
 
-extern "C" { extern uint8_t *hud_messaging; }
+static auto &hud_messaging = halo::link::ref<uint8_t *>(halo::interface::vars().hud_messaging);
 namespace halo::main {
 
 /**

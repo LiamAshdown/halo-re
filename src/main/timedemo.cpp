@@ -23,27 +23,34 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/hs/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/shell/vars.hpp"
 
-extern "C" { extern main_globals main_globals_data; }
-extern "C" { extern timedemo_globals timedemo_globals_data; }
-extern "C" { extern int32_t timedemo_last_frame_index; }
-extern "C" { extern uint8_t local_player_input_frozen[]; }
-extern "C" { extern uint8_t console_debug_flag_5; }
-extern "C" { extern char timedemo_pixel_shader_version[0x14]; }
-extern "C" { extern int32_t os_platform_refresh_default; }
-extern "C" { extern char *graphics_vendor_name; }
-extern "C" { extern char *graphics_device_name; }
-extern "C" { extern uint32_t graphics_device_id; }
-extern "C" { extern uint16_t graphics_driver_version[4]; }
-extern "C" { extern uint32_t physical_memory; }
-extern "C" { extern uint32_t cpu_speed; }
-extern "C" { extern uint32_t video_memory; }
-extern "C" { extern uint32_t shell_startup_tick_count; }
-extern "C" { extern int16_t sound_permutation_limit; }
-extern "C" { extern uint8_t directsound_eax_enabled; }
-extern "C" { extern int32_t directsound_quality; }
-extern "C" { extern int16_t renderer_texture_quality; }
-extern "C" { extern int16_t light_count_enabled; }
+static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
+static auto &timedemo_globals_data = halo::link::ref<timedemo_globals>(halo::main::vars().timedemo_globals_data);
+static auto &timedemo_last_frame_index = halo::link::ref<int32_t>(halo::main::vars().timedemo_last_frame_index);
+static auto &local_player_input_frozen = halo::link::ref<uint8_t []>(halo::game::vars().local_player_input_frozen);
+static auto &console_debug_flag_5 = halo::link::ref<uint8_t>(halo::main::vars().console_debug_flag_5);
+static auto &timedemo_pixel_shader_version = halo::link::ref<char [0x14]>(halo::main::vars().timedemo_pixel_shader_version);
+static auto &os_platform_refresh_default = halo::link::ref<int32_t>(halo::interface::vars().os_platform_refresh_default);
+static auto &graphics_vendor_name = halo::link::ref<char *>(halo::shell::vars().graphics_vendor_name);
+static auto &graphics_device_name = halo::link::ref<char *>(halo::shell::vars().graphics_device_name);
+static auto &graphics_device_id = halo::link::ref<uint32_t>(halo::shell::vars().graphics_device_id);
+static auto &graphics_driver_version = halo::link::ref<uint16_t [4]>(halo::main::vars().graphics_driver_version);
+static auto &physical_memory = halo::link::ref<uint32_t>(halo::shell::vars().physical_memory);
+static auto &cpu_speed = halo::link::ref<uint32_t>(halo::shell::vars().cpu_speed);
+static auto &video_memory = halo::link::ref<uint32_t>(halo::interface::vars().video_memory);
+static auto &shell_startup_tick_count = halo::link::ref<uint32_t>(halo::main::vars().shell_startup_tick_count);
+static auto &sound_permutation_limit = halo::link::ref<int16_t>(halo::interface::vars().sound_permutation_limit);
+static auto &directsound_eax_enabled = halo::link::ref<uint8_t>(halo::hs::vars().directsound_eax_enabled);
+static auto &directsound_quality = halo::link::ref<int32_t>(halo::main::vars().directsound_quality);
+static auto &renderer_texture_quality = halo::link::ref<int16_t>(halo::interface::vars().renderer_texture_quality);
+static auto &light_count_enabled = halo::link::ref<int16_t>(halo::effects::vars().light_count_enabled);
 extern "C" { extern uint32_t user_profile_signin_state_is_valid(void); }
 namespace halo::main {
 

@@ -17,12 +17,16 @@
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
 
 
-extern "C" { extern main_globals main_globals_data; }
-extern "C" { extern void *connect_thread; }
-extern "C" { extern uint8_t ui_split_screen; }
-extern "C" { extern widget_instance *ui_root_widget[1]; }
+static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
+static auto &connect_thread = halo::link::ref<void *>(halo::main::vars().connect_thread);
+static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::interface::vars().ui_split_screen);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::interface::vars().ui_root_widget);
 namespace halo::main {
 
 /**
@@ -84,7 +88,7 @@ done:
 
 }
 
-extern "C" { extern int32_t join_ui_state; }
+static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
 extern "C" { extern void widget_close_all(void); }
 extern "C" { extern void interface_loading_screen_reset(void); }
 extern "C" { extern void interface_loading_screen_set_text(const char *text); }
@@ -163,12 +167,12 @@ fail:
 
 }
 
-extern "C" { extern int32_t interface_loading_screen_address_a; }
-extern "C" { extern int32_t interface_loading_screen_address_b; }
-extern "C" { extern int32_t interface_loading_screen_progress; }
-extern "C" { extern uint16_t progress_screen_text[0x20]; }
-extern "C" { extern uint16_t progress_screen_subtext[0x20]; }
-extern "C" { extern int32_t interface_loading_screen_request_id; }
+static auto &interface_loading_screen_address_a = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_a);
+static auto &interface_loading_screen_address_b = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_b);
+static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_progress);
+static auto &progress_screen_text = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_text);
+static auto &progress_screen_subtext = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_subtext);
+static auto &interface_loading_screen_request_id = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_request_id);
 namespace halo::main {
 
 /**
@@ -224,8 +228,8 @@ void ClientConnection::game_client_connect_to_resolved_address(void)
 
 }
 
-extern "C" { extern void *hostname_resolve_result; }
-extern "C" { extern int32_t hostname_resolve_complete; }
+static auto &hostname_resolve_result = halo::link::ref<void *>(halo::main::vars().hostname_resolve_result);
+static auto &hostname_resolve_complete = halo::link::ref<int32_t>(halo::main::vars().hostname_resolve_complete);
 namespace halo::main {
 
 /**

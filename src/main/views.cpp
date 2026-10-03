@@ -39,16 +39,20 @@
 #include "halo/bitmaps/bitmaps.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/units/vars.hpp"
 
 
-extern "C" { extern main_globals main_globals_data; }
-extern "C" { extern render_view render_views[2]; }
-extern "C" { extern widget_instance *ui_root_widget[1]; }
-extern "C" { extern uint8_t render_view_local_player_sticky; }
-extern "C" { extern int32_t screenshots; }
-extern "C" { extern input_abstraction_globals input_globals; }
-extern "C" { extern const real_point3d *global_zero_vector3d_pointer; }
-extern "C" { extern uint8_t unknown_00873d30; }
+static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
+static auto &render_views = halo::link::ref<render_view [2]>(halo::main::vars().render_views);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::interface::vars().ui_root_widget);
+static auto &render_view_local_player_sticky = halo::link::ref<uint8_t>(halo::main::vars().render_view_local_player_sticky);
+static auto &screenshots = halo::link::ref<int32_t>(halo::main::vars().screenshots);
+static auto &input_globals = halo::link::ref<input_abstraction_globals>(halo::main::vars().input_globals);
+static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
+static auto &unknown_00873d30 = halo::link::ref<uint8_t>(halo::main::vars().unknown_00873d30);
 extern "C" { extern double tan(double x); }
 extern "C" { extern double atan2(double y, double x); }
 extern "C" { extern void halo::sound::sound_update(void); }
@@ -199,7 +203,7 @@ int RenderViews::local_view_count(void)
 
 }
 
-extern "C" { extern render_view pregame_render_view; }
+static auto &pregame_render_view = halo::link::ref<render_view>(halo::main::vars().pregame_render_view);
 namespace halo::main {
 
 /**
@@ -243,7 +247,7 @@ void RenderViews::pregame_view_initialize(void)
 
 }
 
-extern "C" { extern console_globals console_globals_data; }
+static auto &console_globals_data = halo::link::ref<console_globals>(halo::main::vars().console_globals_data);
 namespace halo::main {
 
 /**
@@ -317,8 +321,8 @@ void RenderViews::view_camera_fill(observer_camera *observer, render_view *view)
 
 }
 
-extern "C" { extern int16_t screenshot_scale; }
-extern "C" { extern Rectangle2D game_window_top_left; }
+static auto &screenshot_scale = halo::link::ref<int16_t>(halo::main::vars().screenshot_scale);
+static auto &game_window_top_left = halo::link::ref<Rectangle2D>(halo::main::vars().game_window_top_left);
 extern "C" { extern void console_print_error_va(uint8_t clear_first, const char *format, ...); }
 extern "C" { extern void console_deactivate(void); }
 extern "C" { extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); }
@@ -433,7 +437,7 @@ void RenderViews::screenshot_render(render_view *views)
 
 }
 
-extern "C" { extern Rectangle2D game_screen_rect; }
+static auto &game_screen_rect = halo::link::ref<Rectangle2D>(halo::main::vars().game_screen_rect);
 namespace halo::main {
 
 /**

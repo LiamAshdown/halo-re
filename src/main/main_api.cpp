@@ -40,22 +40,24 @@
 #include "halo/main/views.hpp"
 #include "halo/main/timedemo.hpp"
 #include "halo/main/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
 
-extern "C" {
-extern game_main_globals *main_game_globals;
-extern uint8_t main_menu_music_pending;
-extern int32_t movie_playback_abort;
-extern uint8_t terminal_initialized;
-extern datum_index console_message_head;
-extern datum_index console_message_tail;
-extern int32_t console_rcon_handle;
-extern uint8_t console_win32_attached;
-extern int32_t console_caret_blink_time;
-extern main_globals main_globals_data;
-extern console_globals console_globals_data;
-extern terminal_console *console_active;
-extern data_array *terminal_messages;
-}
+static auto &main_game_globals = halo::link::ref<game_main_globals *>(halo::game::vars().main_game_globals);
+static auto &main_menu_music_pending = halo::link::ref<uint8_t>(halo::main::vars().main_menu_music_pending);
+static auto &movie_playback_abort = halo::link::ref<int32_t>(halo::main::vars().movie_playback_abort);
+static auto &terminal_initialized = halo::link::ref<uint8_t>(halo::main::vars().terminal_initialized);
+static auto &console_message_head = halo::link::ref<datum_index>(halo::main::vars().console_message_head);
+static auto &console_message_tail = halo::link::ref<datum_index>(halo::main::vars().console_message_tail);
+static auto &console_rcon_handle = halo::link::ref<int32_t>(halo::main::vars().console_rcon_handle);
+static auto &console_win32_attached = halo::link::ref<uint8_t>(halo::main::vars().console_win32_attached);
+static auto &console_caret_blink_time = halo::link::ref<int32_t>(halo::interface::vars().console_caret_blink_time);
+static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
+static auto &console_globals_data = halo::link::ref<console_globals>(halo::main::vars().console_globals_data);
+static auto &console_active = halo::link::ref<terminal_console *>(halo::main::vars().console_active);
+static auto &terminal_messages = halo::link::ref<data_array *>(halo::main::vars().terminal_messages);
 
 namespace halo::main {
 

@@ -25,8 +25,10 @@
 #include "halo/main/layout.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/main/vars.hpp"
 
-extern "C" { extern main_globals main_globals_data; }
+static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
 extern "C" { extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); }
 extern "C" { extern void path_append_component(char *destination, const char *component); }
 extern "C" { extern void path_remove_last_component(uint8_t *path); }
@@ -68,8 +70,8 @@ void MoviePlayer::capture_frame_export(void)
 
 }
 
-extern "C" { extern int32_t movie_playback_abort; }
-extern "C" { extern uint8_t rasterizer_device_lost; }
+static auto &movie_playback_abort = halo::link::ref<int32_t>(halo::main::vars().movie_playback_abort);
+static auto &rasterizer_device_lost = halo::link::ref<uint8_t>(halo::main::vars().rasterizer_device_lost);
 typedef int32_t (__stdcall *d3d_test_cooperative_level_fn)(void *device);
 
 typedef int32_t (__stdcall *d3d_create_offscreen_plain_surface_fn)(void *device, uint32_t width,

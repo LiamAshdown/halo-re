@@ -1,0 +1,77 @@
+/**
+ * @file standalone/data/link/hs_vars.hpp
+ * Link names of the engine variables owned by the hs module (halo::hs::vars()). The data image defines them under these C
+ * names; only src/hs/vars.cpp includes this header, so the names are declared as untyped storage.
+ */
+#pragma once
+
+extern "C" {
+extern char DAT_00689471[];
+extern char DAT_0087abc1[];
+extern char DAT_0087abc3[];
+extern char ai_debug_gate_87abc6[];
+extern char camera_script_time_remaining[];
+extern char cheat_super_jump[];
+extern char director_camera_mode[];
+extern char director_camera_target[];
+extern char directsound_eax_enabled[];
+extern char directsound_listener[];
+extern char g_00689481[];
+extern char g_0087abc0[];
+extern char g_0087abc5[];
+extern char g_0087abc7[];
+extern char global_scenario[];
+extern char hs_autocomplete_count[];
+extern char hs_autocomplete_gametype_mask[];
+extern char hs_autocomplete_maximum_count[];
+extern char hs_autocomplete_prefix[];
+extern char hs_autocomplete_procedures[];
+extern char hs_autocomplete_results[];
+extern char hs_blocking_forbidden[];
+extern char hs_comparison_types[];
+extern char hs_compile_error[];
+extern char hs_compile_error_buffer[];
+extern char hs_compile_error_offset[];
+extern char hs_compile_release_source[];
+extern char hs_compiled_source[];
+extern char hs_compiled_source_length[];
+extern char hs_compiled_source_owned[];
+extern char hs_compiling[];
+extern char hs_current_thread_index[];
+extern char hs_empty_string[];
+extern char hs_enum_definitions[];
+extern char hs_function_definitions[];
+extern char hs_global_definitions[];
+extern char hs_globals_data[];
+extern char hs_newline_characters[];
+extern char hs_object_type_masks[];
+extern char hs_parse_primitive_procedures[];
+extern char hs_postprocessing[];
+extern char hs_preserve_token_case[];
+extern char hs_reload_pending[];
+extern char hs_runtime_active[];
+extern char hs_script_type_names[];
+extern char hs_set_forbidden[];
+extern char hs_space_characters[];
+extern char hs_syntax_data[];
+extern char hs_syntax_data_dirty[];
+extern char hs_syntax_data_header_byte_swap_definition[];
+extern char hs_syntax_data_is_local[];
+extern char hs_syntax_node_byte_swap_definition[];
+extern char hs_tag_group_for_type[];
+extern char hs_thread_data[];
+extern char hs_type_conversion_procedures[];
+extern char hs_type_names[];
+extern char main_globals_byte_00719751[];
+extern char main_globals_byte_00719752[];
+extern char main_globals_byte_00719753[];
+extern char message_delta_config_text_buffer[];
+extern char object_headers[];
+extern char sound_listener_doppler_factor[];
+extern char sound_listener_rolloff_factor[];
+extern char sound_supplementary_buffers_00746122[];
+extern char ui_widget_show_path_flag[];
+extern char unknown_006869d1[];
+extern char unknown_006894ba[];
+extern char unknown_00746fa4[];
+}

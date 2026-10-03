@@ -36,6 +36,10 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
 
 
 namespace halo::main {
@@ -69,7 +73,7 @@ void Console::chimera__exec_init(void)
 
 }
 
-extern "C" { extern console_globals console_globals_data; }
+static auto &console_globals_data = halo::link::ref<console_globals>(halo::main::vars().console_globals_data);
 extern "C" { extern int standalone_devmode(void); }
 namespace halo::main {
 
@@ -187,8 +191,8 @@ void Console::autocomplete_command(void)
 
 }
 
-extern "C" { extern main_globals main_globals_data; }
-extern "C" { extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; }
+static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::interface::vars().profile_globals_block);
 namespace halo::main {
 
 /**
@@ -251,10 +255,10 @@ uint32_t Console::command_context_mask(uint32_t context_flags)
 
 }
 
-extern "C" { extern input_abstraction_globals input_globals; }
-extern "C" { extern void *keyboard_device; }
-extern "C" { extern uint8_t key_frames[0x6d]; }
-extern "C" { extern uint8_t key_release_pending[0x6d]; }
+static auto &input_globals = halo::link::ref<input_abstraction_globals>(halo::main::vars().input_globals);
+static auto &keyboard_device = halo::link::ref<void *>(halo::interface::vars().keyboard_device);
+static auto &key_frames = halo::link::ref<uint8_t [0x6d]>(halo::interface::vars().key_frames);
+static auto &key_release_pending = halo::link::ref<uint8_t [0x6d]>(halo::interface::vars().key_release_pending);
 namespace halo::main {
 
 /**
@@ -313,7 +317,7 @@ uint8_t Console::exec_file_run(const char *file_name)
 
 }
 
-extern "C" { extern ColorARGB console_default_color; }
+static auto &console_default_color = halo::link::ref<ColorARGB>(halo::main::vars().console_default_color);
 namespace halo::main {
 
 /**
@@ -348,11 +352,11 @@ void Console::initialize(void)
 
 }
 
-extern "C" { extern uint8_t terminal_initialized; }
-extern "C" { extern data_array *terminal_messages; }
-extern "C" { extern datum_index console_message_head; }
-extern "C" { extern datum_index console_message_tail; }
-extern "C" { extern uint8_t error_file_logging_enabled; }
+static auto &terminal_initialized = halo::link::ref<uint8_t>(halo::main::vars().terminal_initialized);
+static auto &terminal_messages = halo::link::ref<data_array *>(halo::main::vars().terminal_messages);
+static auto &console_message_head = halo::link::ref<datum_index>(halo::main::vars().console_message_head);
+static auto &console_message_tail = halo::link::ref<datum_index>(halo::main::vars().console_message_tail);
+static auto &error_file_logging_enabled = halo::link::ref<uint8_t>(halo::main::vars().error_file_logging_enabled);
 /**
  * While the console is active: optionally clears the terminal's message history first (when
  * clear_first is set and the terminal has been initialized), then formats a printf-style message
@@ -388,7 +392,7 @@ void halo::main::console_out_printf(uint8_t clear_first, const char *format, ...
     }
 }
 
-extern "C" { extern terminal_console *console_active; }
+static auto &console_active = halo::link::ref<terminal_console *>(halo::main::vars().console_active);
 namespace halo::main {
 
 /**
@@ -445,7 +449,7 @@ void halo::main::console_print_error_va(uint8_t clear_first, const char *format,
     }
 }
 
-extern "C" { extern ColorARGB *console_message_default_color; }
+static auto &console_message_default_color = halo::link::ref<ColorARGB *>(halo::networking::vars().console_message_default_color);
 /**
  * Formats a printf-style message and appends it to the console's message list via
  * console_printf_verbose (so it only actually shows once debug_log_level > 3), additionally
@@ -608,7 +612,7 @@ uint8_t Console::process_key_events(void)
 
 }
 
-extern "C" { extern int32_t console_rcon_handle; }
+static auto &console_rcon_handle = halo::link::ref<int32_t>(halo::main::vars().console_rcon_handle);
 namespace halo::main {
 
 /**
@@ -626,7 +630,7 @@ void Console::process_rcon_command(int32_t rcon_handle, char *command_line)
 
 }
 
-extern "C" { extern uint8_t virtual_keyboard; }
+static auto &virtual_keyboard = halo::link::ref<uint8_t>(halo::interface::vars().virtual_keyboard);
 namespace halo::main {
 
 /**

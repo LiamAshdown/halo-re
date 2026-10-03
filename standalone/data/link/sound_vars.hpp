@@ -1,0 +1,84 @@
+/**
+ * @file standalone/data/link/sound_vars.hpp
+ * Link names of the engine variables owned by the sound module (halo::sound::vars()). The data image defines them under these C
+ * names; only src/sound/vars.cpp includes this header, so the names are declared as untyped storage.
+ */
+#pragma once
+
+extern "C" {
+extern char adpcm_index_table[];
+extern char adpcm_step_table[];
+extern char camera_leaf[];
+extern char current_sound_driver[];
+extern char debug_sound[];
+extern char debug_sound_channel_details[];
+extern char debug_sound_channels[];
+extern char directsound[];
+extern char directsound_binding_count[];
+extern char directsound_bindings[];
+extern char directsound_caps[];
+extern char directsound_channel_count[];
+extern char directsound_channels[];
+extern char directsound_deferred_dirty[];
+extern char directsound_environment_cache[];
+extern char directsound_fade[];
+extern char directsound_first_channel_of_type[];
+extern char directsound_hardware_3d_channel_count[];
+extern char directsound_hardware_mode[];
+extern char directsound_listener_cached[];
+extern char directsound_paused[];
+extern char directsound_primary_buffer[];
+extern char directsound_rolloff_factor[];
+extern char driver_parameters[];
+extern char ds3dalg_hrtf_full[];
+extern char error_text_buffer[];
+extern char game_sound_globals_ptr[];
+extern char iid_directsound_3d_buffer[];
+extern char iid_directsound_3d_listener[];
+extern char k_sound_decode_procs[];
+extern char k_sound_sample_rates[];
+extern char local_player_0_cluster_index[];
+extern char looping_sound_data[];
+extern char sound_channel_count[];
+extern char sound_channel_parameters_proc_ptr[];
+extern char sound_channel_type_flag_table[];
+extern char sound_channels[];
+extern char sound_class_definitions[];
+extern char sound_class_names[];
+extern char sound_cluster_audible_bitmap[];
+extern char sound_data[];
+extern char sound_decode_proc[];
+extern char sound_delay_per_world_unit[];
+extern char sound_dialog_ducking_gain[];
+extern char sound_dialog_unspatialized[];
+extern char sound_disabled[];
+extern char sound_drivers[];
+extern char sound_ducking_gain[];
+extern char sound_eax1_vtable[];
+extern char sound_eax20_buffer_property_guid[];
+extern char sound_eax20_listener_property_guid[];
+extern char sound_eax20_underwater_direct_gain[];
+extern char sound_eax2_vtable[];
+extern char sound_eax30_buffer_property_guid[];
+extern char sound_eax30_listener_property_guid[];
+extern char sound_eax3_vtable[];
+extern char sound_eax_listener_property_guid[];
+extern char sound_eax_property_set_guid[];
+extern char sound_effect_object_state[];
+extern char sound_effects_gain[];
+extern char sound_enabled[];
+extern char sound_environment[];
+extern char sound_fade_curve_exponent[];
+extern char sound_fade_duration_scale[];
+extern char sound_idle_update_active[];
+extern char sound_initialized[];
+extern char sound_listeners[];
+extern char sound_looping_audibility_check[];
+extern char sound_music_gain[];
+extern char sound_ogg_underrun_count[];
+extern char sound_stopping_all[];
+extern char sound_time[];
+extern char sound_time_delta[];
+extern char sound_underwater_direct_gain[];
+extern char sound_update_toggle[];
+}
