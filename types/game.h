@@ -427,17 +427,6 @@ typedef struct player_update_queue {
 // here; the body is the packed per-player payload the network module encodes.
 // update_record: see after player_action
 
-// One element of the "update server queues" data_array (16 x 0x64). 0x472c90 creates the
-// datum and immediately calls player_update_queue_create on it, and every ring access in
-// 0x472cc0 is at base + 0x28 .. + 0x3c, so the 0x3c-byte queue sits at 0x28 and fills the
-// record exactly.
-typedef struct update_server_queue {
-    int16_t identifier;                // 0x00 datum_header
-    uint8_t pad_02[2];                 // 0x02
-    int32_t history_tick;              // 0x04 next tick UpdateServer::queue_get_history_entry replays for this player
-    uint8_t unknown_08[0x28 - 0x08];   // 0x08
-    player_update_queue queue;         // 0x28
-} update_server_queue;                 // size 0x64
 
 // ---------------------------------------------------------------------------
 // position_update_record (0x14) / vehicle_update_record (0x48)
@@ -879,6 +868,18 @@ typedef struct update_client_queue_entry {
     int16_t zoom_level;            // 0x24
     uint8_t pad_26[2];             // 0x26
 } update_client_queue_entry;       // size 0x28
+
+// One element of the "update server queues" data_array (16 x 0x64). 0x472c90 creates the
+// datum and immediately calls player_update_queue_create on it, and every ring access in
+// 0x472cc0 is at base + 0x28 .. + 0x3c, so the 0x3c-byte queue sits at 0x28 and fills the
+// record exactly.
+typedef struct update_server_queue {
+    int16_t identifier;                // 0x00 datum_header
+    uint8_t pad_02[2];                 // 0x02
+    int32_t history_tick;              // 0x04 next tick UpdateServer::queue_get_history_entry replays for this player
+    player_action last_action;         // 0x08 the action UpdateServer::push_player_tick_history repeats when the queue is empty
+    player_update_queue queue;         // 0x28
+} update_server_queue;                 // size 0x64
 
 // ---------------------------------------------------------------------------
 // player_update_record  (0x2c bytes, the record type of player_update_queue)

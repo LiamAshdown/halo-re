@@ -126,6 +126,9 @@ static_assert(offsetof(ScenarioNetgameFlags, usage_id) == 0x12);
 static_assert(offsetof(vehicle_object, vehicle) == 0x4cc);
 static_assert(offsetof(biped_object, biped) == 0x4cc);
 static_assert(offsetof(update_client_queue_entry, held_control_flags) == 0x08);
+static_assert(sizeof(update_server_queue) == 0x64);
+static_assert(offsetof(update_server_queue, queue) == 0x28);
+static_assert(offsetof(update_server_queue, last_action) == 0x08);
 static_assert(offsetof(unit_object, unit.weapons) == 0x2f8);
 static_assert(offsetof(unit_object, unit.current_weapon_index) == 0x2f2);
 

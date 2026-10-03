@@ -30,7 +30,7 @@ static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::gam
 static auto &king_alt_team_scores_network2 = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_team_scores_network2);
 static auto &king_alt_player_scores_network = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_player_scores_network);
 static auto &king_alt_scores_network_tail = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_scores_network_tail);
-static auto &custom_waypoints = halo::link::ref<uint8_t []>(halo::game::vars().custom_waypoints);
+static auto &custom_waypoints = halo::link::ref<custom_waypoint []>(halo::game::vars().custom_waypoints);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
 namespace halo::game {
@@ -386,7 +386,7 @@ void OddballEngine::reset_objects(void)
         }
     }
     for (i = 0; i < count; i++) {
-        memset(custom_waypoints + (int16_t)i * 0x20, 0, 0x20);
+        memset(&custom_waypoints[(int16_t)i], 0, sizeof(custom_waypoint));
     }
 }
 
@@ -442,13 +442,13 @@ void OddballEngine::unknown_48(void)
         return;
     }
     for (i = 0; i < count; i++) {
-        uint8_t *waypoint = custom_waypoints + (int16_t)i * 0x20;
+        custom_waypoint *waypoint = &custom_waypoints[(int16_t)i];
         datum_index carrier = king_hill_occupant_table[i];
         datum_index unit_index;
         uint8_t *unit;
 
         if (carrier == halo::k_dword_none) {
-            memset(waypoint, 0, 0x20);
+            memset(waypoint, 0, sizeof(*waypoint));
             continue;
         }
         unit_index = halo::game::player_at(carrier)->unit;
@@ -456,13 +456,13 @@ void OddballEngine::unknown_48(void)
             continue;
         }
         unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & halo::k_datum_slot_mask) * 12 + 8);
-        *(datum_index *)(waypoint + 0x18) = carrier;
-        *(int16_t *)(waypoint + 0x1c) = halo::interface::hud_waypoint_arrow_find("target_blue");
-        waypoint[0x0c] = 1;
-        *(real_point3d *)waypoint = *(real_point3d *)&((unit_object *)unit)->base.bounding_center.x;
-        *(float *)(waypoint + 0x08) += 0.63f;
-        *(int16_t *)(waypoint + 0x14) = -1;
-        *(int32_t *)(waypoint + 0x10) = -1;
+        waypoint->owner = carrier;
+        waypoint->icon = halo::interface::hud_waypoint_arrow_find("target_blue");
+        waypoint->active = 1;
+        waypoint->position = *(real_point3d *)&((unit_object *)unit)->base.bounding_center.x;
+        waypoint->position.z += 0.63f;
+        waypoint->team = -1;
+        waypoint->player = (datum_index)-1;
     }
 }
 
