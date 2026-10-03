@@ -27,7 +27,9 @@ for _m in os.listdir(_inc) if os.path.isdir(_inc) else []:
             _x = _gm.match(_l)
             if _x and _x.group(1).split("::")[-1] not in BYTE:
                 GMEM[(_m, _x.group(2))] = _x.group(1)
-gacc = re.compile(r"halo::(\w+)::globals\(\)\.(\w+)\s*(?:\+\s*(" + HEX + r")|\[\s*(" + HEX + r")\s*\])")
+# accessor calls that return typed record pointers (halo::ai::object_at(h), tag_data<T>(h), reflexive_data<T>(r)) followed by hex arithmetic
+cacc = re.compile(r"(\w+(?:_at|_data<[\w:]+>|_bytes_of))\([^()]*\)\s*\+\s*(" + HEX + r")")
+r"halo::(\w+)::globals\(\)\.(\w+)\s*(?:\+\s*(" + HEX + r")|\[\s*(" + HEX + r")\s*\])")
 galias = re.compile(r"(\w+)\s*=\s*halo::(\w+)::globals\(\)\.(\w+)\s*;")
 lref = re.compile(r"\bauto\s*&\s*(\w+)\s*=\s*halo::link::ref<\s*(?:const\s+)?([\w: ]+?)\s*\*\s*>")
 SKIP = {"return", "sizeof", "else", "case", "delete", "new"}
@@ -72,6 +74,9 @@ def scan(path, show_ok):
                     continue
                 off = "+ " + m.group(2) if m.group(2) else "[" + m.group(3) + "]"
                 hits.append(f"{m.group(1)} ({'/'.join(sorted(names[m.group(1)]))}*) {off}")
+        for m in cacc.finditer(s):
+            if not bytecast.search(s[:m.start()]) and "reinterpret_cast<uint8_t *>(" not in s[max(0, m.start() - 40):m.start()]:
+                hits.append(f"{m.group(1)}(..) + {m.group(2)}")
         for m in gacc.finditer(s):
             t = GMEM.get((m.group(1), m.group(2)))
             if t and not bytecast.search(s[:m.start()]):
