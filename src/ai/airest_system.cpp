@@ -18,6 +18,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/ai/records.hpp"
 
 extern "C" {
 extern int32_t game_engine_get_current_tick(void);

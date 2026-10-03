@@ -6,6 +6,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/ai/records.hpp"
 
 namespace halo::ai {
 

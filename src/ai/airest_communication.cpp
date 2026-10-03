@@ -14,6 +14,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/ai/records.hpp"
 
 extern "C" {
 extern uint8_t *global_structure_bsp;
