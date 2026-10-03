@@ -523,7 +523,9 @@ typedef char client_position_packet_size[sizeof(client_position_packet) == 0x28 
 typedef enum network_machine_flags {
     k_network_machine_established = 0x01,
     k_network_machine_pending = 0x02,         // set by 0x4df690
-    k_network_machine_version_mismatch = 0x08 // set by 0x4dff20
+    k_network_machine_join_handled = 0x04,    // set by handle_client_join; cleared by the join_finalize_ack_role2 handler
+    k_network_machine_version_mismatch = 0x08, // set by 0x4dff20
+    k_network_machine_password_accepted = 0x10 // set by handle_join_password
 } network_machine_flags;
 
 typedef struct network_machine {

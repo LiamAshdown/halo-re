@@ -2493,7 +2493,7 @@ void Players::client_catchup_on_server_updates()
                     if (header != 0 && (((1u << (header->type & 0x1f)) & _object_mask_unit) != 0) &&
                         header->data != 0) {
                         object *unit_obj = header->data;
-                        uint8_t seated = PlayerView(*(datum_index *)((uint8_t *)unit_obj + 0x218)).unit_has_parent();
+                        uint8_t seated = PlayerView(reinterpret_cast<unit_object *>(unit_obj)->unit.controlling_player).unit_has_parent();
 
                         *(uint32_t *)((uint8_t *)unit_obj + 0x4bc) = record.field0;
                         if (seated == 0) {

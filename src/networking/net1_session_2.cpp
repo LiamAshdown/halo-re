@@ -46,8 +46,9 @@ uint32_t GameRuntime::process_incoming_message(int32_t length, network_machine *
         return 1;
     }
     type_byte = ((uint8_t *)record)[(int16_t)length - 1];
-    machine_flags = *((uint8_t *)machine + 0xe);
-    if (((machine_flags >> 1) & 1) == 0 && type_byte != 0x0e && !(((machine_flags >> 4) & 1) != 0 && type_byte == 1)) {
+    machine_flags = machine->flags;
+    if ((machine_flags & k_network_machine_pending) == 0 && type_byte != 0x0e &&
+        !((machine_flags & k_network_machine_password_accepted) != 0 && type_byte == 1)) {
         return 1;
     }
     handler = ServerMessageRegistry::find(type_byte);

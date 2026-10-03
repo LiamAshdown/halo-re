@@ -338,34 +338,20 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
     player_profile *profile;
     int32_t j;
 
-    machine->flags |= 0x04;
+    machine->flags |= k_network_machine_join_handled;
     unknown_9bc_base = (uint8_t *)server;
     field_9c4 = (int32_t *)(unknown_9bc_base + 0x9c4);
 
     if (server->state != 1) {
-        int16_t *machine_id_ptr;
         char all_processed_or_invalid;
 
         all_processed_or_invalid = 1;
-        machine_id_ptr = (int16_t *)((uint8_t *)server + 0x3c4);
-        for (i = 4; i != 0; i = i - 1) {
-            if (machine_id_ptr[0] >= 0 && machine_id_ptr[0] < 16 &&
-                (((uint8_t *)machine_id_ptr)[2] & 0x04) == 0) {
+        for (i = 0; i < 16; i++) {
+            const network_machine &listed = server->machines[i];
+
+            if (listed.machine_id >= 0 && listed.machine_id < 16 && (listed.flags & k_network_machine_join_handled) == 0) {
                 all_processed_or_invalid = 0;
             }
-            if (machine_id_ptr[0x30] >= 0 && machine_id_ptr[0x30] < 16 &&
-                (((uint8_t *)(machine_id_ptr + 0x30))[2] & 0x04) == 0) {
-                all_processed_or_invalid = 0;
-            }
-            if (machine_id_ptr[0x60] >= 0 && machine_id_ptr[0x60] < 16 &&
-                (((uint8_t *)(machine_id_ptr + 0x60))[2] & 0x04) == 0) {
-                all_processed_or_invalid = 0;
-            }
-            if (machine_id_ptr[0x90] >= 0 && machine_id_ptr[0x90] < 16 &&
-                (((uint8_t *)(machine_id_ptr + 0x90))[2] & 0x04) == 0) {
-                all_processed_or_invalid = 0;
-            }
-            machine_id_ptr = machine_id_ptr + 0xc0;
         }
         if (all_processed_or_invalid) {
             char has_client;
@@ -373,7 +359,7 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
             has_client = (network_client != 0);
             server->state = 1;
             *field_9c4 = 0;
-            server->session.map_loaded = has_client ? *((uint8_t *)network_client + 0xec0) : 0;
+            server->session.map_loaded = has_client ? network_client->session.map_loaded : 0;
 
         }
         if (*field_9c4 == 0) {
@@ -475,7 +461,7 @@ uint32_t ServerView::handle_info_request(network_machine *machine, network_messa
         return 0;
     }
     connection = machine != 0 ? *(uint8_t **)machine : 0;
-    if ((connection != 0 && connection[0xa98] != 0) || *((uint8_t *)server + 0xa0f) == 0) {
+    if ((connection != 0 && connection[0xa98] != 0) || server->game_over == 0) {
         halo::networking::network_game_server_handle_client_join(0 , server, machine, 1);
         return 1;
     }
@@ -547,7 +533,7 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
             } while (i < 16);
         }
 
-        if (do_transfer && owner != 0 && (owner->flags & 0x04) != 0) {
+        if (do_transfer && owner != 0 && (owner->flags & k_network_machine_join_handled) != 0) {
 
             datum = halo::networking::player_data_iterator_advance((uint8_t)entry->slot_index) ;
             if (datum != halo::k_dword_none) {
@@ -706,7 +692,7 @@ void * ServerView::host_new()
         halo::networking::network_game_session_reset(&host->session);
         host->session.message_callback = (void *)halo::networking::network_session_reject_pending_connection_callback;
         host->session.difficulty = pending_difficulty;
-        *(int32_t *)((uint8_t *)host + 0x3b0) = -1;
+        host->session.session_counter = -1;
         for (i = 0; i < 16; i++) {
             machine = &host->machines[i];
             machine->channel = 0;
@@ -1255,7 +1241,7 @@ char ServerView::broadcast_to_all(int32_t param_1, void *data, int32_t param_3, 
         channel = machine->channel;
         connected = (channel != 0) ? channel->connected : 0;
 
-        if ((machine->flags & 0x02) != 0 &&
+        if ((machine->flags & k_network_machine_pending) != 0 &&
             (connected != 1 || force != 0) &&
             channel != 0 &&
             (channel->flags & 0x10) == 0) {
@@ -1408,7 +1394,7 @@ uint32_t ServerMessageHandlers::join_finalize_ack_role2(network_machine *machine
     uint16_t version_used;
 
     if (server->state == 2 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record->body, &out_type, &version_used, 7) != 0) {
-        *((uint8_t *)machine + 0xe) &= 0xfb;
+        machine->flags &= ~k_network_machine_join_handled;
     }
     return 1;
 }

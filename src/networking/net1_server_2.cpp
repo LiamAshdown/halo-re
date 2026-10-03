@@ -113,7 +113,7 @@ char ServerView::handle_join_password(network_machine *machine, network_message_
         return 1;
     }
     remaining = (int16_t)(length - 2);
-    if ((machine->flags & 0x02) != 0) {
+    if ((machine->flags & k_network_machine_pending) != 0) {
         return 1;
     }
     if ((machine->channel == 0 || machine->channel->connected == 0) && server->game_over != 0) {
@@ -270,7 +270,7 @@ char ServerView::build_full_game_info_packet(network_machine *machine)
     if (ok == 0) {
         return 0;
     }
-    machine->flags |= 0x10;
+    machine->flags |= k_network_machine_password_accepted;
     return ok;
 }
 
@@ -392,7 +392,7 @@ int32_t ServerView::check_machine_timeout(network_machine *machine)
                     if (halo::networking::network_game_settings_broadcast_send(server, &copy) != 0) {
                         halo::networking::network_player_entry_remove(&copy, &server->session);
                         if (network_client != 0 && (int32_t)network_client != -0xb14 &&
-                            (machine->flags >> 2 & 1) != 0) {
+                            (machine->flags & k_network_machine_join_handled) != 0) {
                             halo::networking::network_player_entry_remove(&copy, &network_client->session);
                         }
                     }

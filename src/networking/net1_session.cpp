@@ -455,7 +455,7 @@ uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, ui
         network_server->flags = network_server->flags | 1;
         listen_channel->listening = 1;
 
-        *((uint8_t *)network_server + 0x9d5) = 0;
+        network_server->handshake_blocked = 0;
 
         wcsncpy((wchar_t *)((uint8_t *)network_server + 8), (const wchar_t *)name, 0x3f);
         network_server->session.unknown_07e = 0;
