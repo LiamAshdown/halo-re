@@ -80,7 +80,7 @@ void GameClientView::action_apply(void **context)
         return;
     }
     network_action_apply_active = 1;
-    type_id = ((int32_t *)context[0])[1];
+    type_id = halo::networking::delta_context(context)->state->message_type;
     if (network_game_mode == halo::networking::k_game_mode_host) {
         network_game_action_apply_shared(context, client, type_id);
         network_action_apply_active = 0;
@@ -147,40 +147,38 @@ char GameClientView::action_queue_drain(bit_stream *stream, const uint32_t *send
 {
     network_client_globals *client = self;
     network_resolved_address remote;
-    union {
-        message_delta_decode_state state;
-        uint8_t bytes[0x34];
-    } state;
+    message_delta_decode_state state;
     uint8_t record[0x80];
-    void *context[0x12];
+    message_delta_context storage;
+    void **context = (void **)&storage;
     char result = 0;
 
     halo::networking::network_channel_remote_address_or_default(client->channel, &remote);
-    if (*(uint32_t *)&remote == *sender && (char)halo::networking::message_delta_decode_begin(&state.state, stream) != 0) {
+    if (*(uint32_t *)&remote == *sender && (char)halo::networking::message_delta_decode_begin(&state, stream) != 0) {
         memset(record, 0, sizeof(record));
-        memset(&context[1], 0, 0x40);
-        context[0] = &state;
-        context[0x11] = record;
-        state.bytes[0x1d] = 0;
-        state.bytes[0x1c] = 0;
+        memset(storage.changed, 0, sizeof(storage.changed));
+        storage.state = &state;
+        storage.target = record;
+        state.changed = 0;
+        state.more_items = 0;
         for (;;) {
-            uint8_t *current;
+            message_delta_decode_state *current;
 
             if ((char)halo::networking::message_delta_decode_array_field(context) == 0) {
                 result = 0;
                 break;
             }
             halo::networking::network_game_action_apply(context, client);
-            current = (uint8_t *)context[0];
-            result = current[0x1c] == 1 && current[0x1d] == 1;
-            ++*(int32_t *)(current + 0x18);
-            memset(&context[1], 0, 0x40);
-            current[0x1c] = 0;
-            current[0x1d] = 0;
+            current = storage.state;
+            result = current->more_items == 1 && current->changed == 1;
+            ++current->processed_count;
+            memset(storage.changed, 0, sizeof(storage.changed));
+            current->more_items = 0;
+            current->changed = 0;
             if (result != 1) {
                 break;
             }
-            if (*(int32_t *)(current + 0x18) > *(int32_t *)(current + 0x08)) {
+            if (current->processed_count > current->item_count) {
                 return result;
             }
         }

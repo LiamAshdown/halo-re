@@ -1120,12 +1120,23 @@ typedef struct message_delta_decode_state {
     uint8_t more_items;        // 0x1c the drain loop stops when this clears
     uint8_t changed;           // 0x1d every delta handler stores 1 here after decoding
     uint8_t pad_1e[2];         // 0x1e
-} message_delta_decode_state;  // size 0x20
-// The decode context itself (EAX or EDX in the 0x4e5390..0x4e6510 handlers) is an
-// array of pointers: slot 0 is this record, slot 1 onward is the field-binding list
-// handed to message_delta_read_changed_subfields as (context + 1), and slot 0x11 is
-// a remote_player_update_header *. It is left untyped because only those three slots
-// are ever touched and its size is not pinned by anything in the image.
+    int32_t item_count_bits;   // 0x20 bits of the item count field (0 when the message holds one item)
+    int32_t parameter_bits;    // 0x24 bits of the protocol parameter prefix: 3 with parameters enabled, else 0
+    int32_t message_type_bits; // 0x28 bits of the message type field: 6
+    int32_t incremental_bits;  // 0x2c bits of the incremental flag: 1
+    int32_t unknown_30;        // 0x30
+} message_delta_decode_state;  // size 0x34
+typedef char message_delta_decode_state_size[sizeof(message_delta_decode_state) == 0x34 ? 1 : -1];
+
+// The decode context the 0x4e5390..0x4e6510 handlers receive (EAX or EDX): the state being decoded, the
+// per-field changed flags message_delta_read_changed_subfields fills (it is handed `changed`) and the record
+// the handler decodes into, a remote_player_update_header * for the remote player messages.
+typedef struct message_delta_context {
+    message_delta_decode_state *state; // 0x00
+    uint8_t changed[0x40];             // 0x04 one flag per field of the message definition
+    void *target;                      // 0x44
+} message_delta_context;               // size 0x48
+typedef char message_delta_context_size[sizeof(message_delta_context) == 0x48 ? 1 : -1];
 
 // ---------------------------------------------------------------------------
 // remote_player_update_header

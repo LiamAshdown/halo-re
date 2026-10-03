@@ -1,4 +1,5 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/core/ui_tag_paths.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -453,8 +454,8 @@ void RaceEngine::skip_unchanged_message(message_delta_decode_state *state)
  */
 uint8_t RaceEngine::read_changed(void **context, void *changed_base, void *destination)
 {
-    message_delta_decode_state *state = (message_delta_decode_state *)context[0];
-    int32_t bits = halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(context + 1), (int32_t)changed_base, (int32_t)destination);
+    message_delta_decode_state *state = halo::networking::delta_context(context)->state;
+    int32_t bits = halo::networking::message_delta_read_changed_subfields(state, halo::networking::delta_context(context)->changed, (int32_t)changed_base, (int32_t)destination);
 
     state->bits_read += bits;
     if (bits != 0) {
@@ -475,7 +476,7 @@ uint8_t RaceEngine::read_changed(void **context, void *changed_base, void *desti
  */
 void RaceEngine::profile_post_update(void **context)
 {
-    message_delta_decode_state *state = (message_delta_decode_state *)context[0];
+    message_delta_decode_state *state = halo::networking::delta_context(context)->state;
     uint8_t changed;
 
     if (state->incremental == 0) {

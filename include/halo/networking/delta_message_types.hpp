@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+struct message_delta_context;
+
 namespace halo::networking {
 
 /**
@@ -68,6 +70,9 @@ enum class delta_message : int32_t {
     rcon_request = 0x36,
     server_text = 0x37,
 };
+
+/** The typed view of the void ** decode context the delta handlers are called with. */
+inline ::message_delta_context *delta_context(void **context) noexcept { return reinterpret_cast<::message_delta_context *>(context); }
 
 /** The integer id the encoder takes for a message type. */
 constexpr int32_t message_id(delta_message type) noexcept { return static_cast<int32_t>(type); }
