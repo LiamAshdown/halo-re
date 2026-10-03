@@ -8,7 +8,7 @@ os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 mod = sys.argv[1]
 names = sys.argv[2:]
 alt = "|".join(map(re.escape, names))
-decl = re.compile(r'^[ \t]*(?:extern\s+"C"\s*\{\s*)?extern\s+(?:"C"\s+)?[^;{}()]*?\b(?:' + alt + r')\s*\((?:[^;{}()]|\([^()]*\))*\)\s*;[ \t]*\r?\n', re.M)
+decl = re.compile(r'^[ \t]*extern\s+(?:"C"\s+)?[^;{}()]*?\b(?:' + alt + r')\s*\((?:[^;{}()]|\([^()]*\))*\)\s*;[ \t]*\r?\n', re.M)
 decl2 = re.compile(r'^[ \t]*extern\s+"C"\s*\{\s*[^;{}()]*?\b(?:' + alt + r')\s*\((?:[^;{}()]|\([^()]*\))*\)\s*;\s*\}[ \t]*\r?\n', re.M)
 call = re.compile(r'(?<![\w:.>&"\'])(' + alt + r')(?=\s*\()')
 TOK = re.compile(r'"(?:[^"\\\n]|\\.)*"|\'(?:[^\'\\\n]|\\.)*\'|//[^\n]*|/\*.*?\*/', re.S)
