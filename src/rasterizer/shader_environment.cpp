@@ -14,6 +14,24 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
 #include <stdio.h>
+#include <cstddef>
+#include "halo/tags/flags.hpp"
+
+namespace {
+
+constexpr uint16_t k_senv_alpha_tested = static_cast<uint16_t>(halo::tags::shader_environment_tag_flag::alpha_tested);
+constexpr uint16_t k_senv_bump_map_is_specular_mask =
+    static_cast<uint16_t>(halo::tags::shader_environment_tag_flag::bump_map_is_specular_mask);
+constexpr uint16_t k_senv_true_atmospheric_fog = static_cast<uint16_t>(halo::tags::shader_environment_tag_flag::true_atmospheric_fog);
+constexpr uint16_t k_senv_dynamic_mirror = static_cast<uint16_t>(halo::tags::shader_environment_reflection_tag_flag::dynamic_mirror);
+
+}  // namespace
+
+static_assert(offsetof(ShaderEnvironment, bump_map_scale_xy) == 0x138, "environment bump scale");
+static_assert(offsetof(ShaderEnvironment, perpendicular_color) == 0x2a8, "environment perpendicular color");
+static_assert(offsetof(ShaderEnvironment, parallel_color) == 0x2b4, "environment parallel color");
+static_assert(offsetof(ShaderEnvironment, reflection_flags) == 0x2d0, "environment reflection flags");
+static_assert(offsetof(ShaderEnvironment, reflection_type) == 0x2d2, "environment reflection type");
 
 static_assert(sizeof(ShaderEnvironment) == 0x344);
 
@@ -191,7 +209,7 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
     set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
     set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
     set_render_state(halo::d3d9::rs::blend_op, 1);
-    set_render_state(halo::d3d9::rs::alpha_test_enable, senv(shader)->shader_environment_flags & 1);
+    set_render_state(halo::d3d9::rs::alpha_test_enable, senv(shader)->shader_environment_flags & k_senv_alpha_tested);
     set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
     set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled != 0);
 
@@ -203,7 +221,7 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
     matrix[0] = rasterizer_active_model_context->base_map_u_scale;
     matrix[5] = rasterizer_active_model_context->base_map_v_scale;
     matrix[15] = 1.0f;
-    chimera__rasterizer_set_texture((senv(shader)->shader_environment_flags & 1) ? *(uint32_t *)&senv(shader)->bump_map.tag_id : 0xffffffff, 1, 0, 1, frame);
+    chimera__rasterizer_set_texture((senv(shader)->shader_environment_flags & k_senv_alpha_tested) ? *(uint32_t *)&senv(shader)->bump_map.tag_id : 0xffffffff, 1, 0, 1, frame);
 
     if (rasterizer_active_model_context->flags & _model_draw_fixed_function_fog_bit) {
         render_device().set_vertex_shader(0);
@@ -277,7 +295,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
 {
     rasterizer_model_draw_context *context;
     float relative[3];
-    uint16_t pixel_shader_fog = senv(shader)->shader_environment_flags & 4;
+    uint16_t pixel_shader_fog = senv(shader)->shader_environment_flags & k_senv_true_atmospheric_fog;
     int16_t vertex_shader;
     uint8_t draw_ok = 1;
     void *effect;
@@ -312,7 +330,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
     environment_set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
     environment_set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
     environment_set_render_state(halo::d3d9::rs::blend_op, 1);
-    environment_set_render_state(halo::d3d9::rs::alpha_test_enable, senv(shader)->shader_environment_flags & 1);
+    environment_set_render_state(halo::d3d9::rs::alpha_test_enable, senv(shader)->shader_environment_flags & k_senv_alpha_tested);
     environment_set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
     if (rasterizer_device_version < halo::d3d9::k_pixel_shader_version_1_4) {
         environment_set_render_state(halo::d3d9::rs::fog_enable, 0);
@@ -344,7 +362,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
             (uint32_t)environment_techniques_no[senv(shader)->detail_map_function]);
     rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->base_map.tag_id, 0, 0, 1, frame, &environment_effect_slot);
     rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->primary_detail_map.tag_id, 0, 1, 2, frame, &environment_effect_slot);
-    rasterizer_resolve_and_cache_submap_b((senv(shader)->shader_environment_flags & 1) ? *(uint32_t *)&senv(shader)->bump_map.tag_id : 0xffffffff, 0, 2, 1, frame,
+    rasterizer_resolve_and_cache_submap_b((senv(shader)->shader_environment_flags & k_senv_alpha_tested) ? *(uint32_t *)&senv(shader)->bump_map.tag_id : 0xffffffff, 0, 2, 1, frame,
         &environment_effect_slot);
     rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->reflection_cube_map.tag_id, 2, 3, 0, frame, &environment_effect_slot);
 
@@ -515,7 +533,7 @@ void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t f
     set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
     set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
     set_render_state(halo::d3d9::rs::blend_op, 1);
-    set_render_state(halo::d3d9::rs::alpha_test_enable, senv(shader)->shader_environment_flags & 1);
+    set_render_state(halo::d3d9::rs::alpha_test_enable, senv(shader)->shader_environment_flags & k_senv_alpha_tested);
     set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
     set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled != 0);
 
@@ -595,11 +613,10 @@ static float real_negate_pinned(float x)
  */
 void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer)
 {
-    const uint8_t *raw = (const uint8_t *)shader;
     uint32_t reflection_type;
     int16_t effect_index;
     rasterizer_effect_slot *effect_slot;
-    void *effect;
+    uint32_t effect;
     uint32_t bump_map_tag;
     uint32_t normalization_tag;
     float constants[12];
@@ -612,19 +629,19 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
         return;
     }
 
-    reflection_type = *(uint16_t *)&((struct ShaderEnvironment *)raw)->reflection_type;
+    reflection_type = (uint16_t)shader->reflection_type;
     if (reflection_type == 0 || reflection_type == 2) {
-        if ((raw[0x28] & 2) != 0) {
+        if ((shader->shader_environment_flags & k_senv_bump_map_is_specular_mask) != 0) {
             reflection_type = 1;
         }
-        if (*(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id == 0xffffffff) {
+        if (*(const uint32_t *)&shader->bump_map.tag_id == 0xffffffff) {
             reflection_type = 1;
         }
     }
-    if ((raw[0x2d0] & 1) == 0) {
+    if ((shader->reflection_flags & k_senv_dynamic_mirror) == 0) {
         return;
     }
-    if (!(((struct ShaderEnvironment *)raw)->perpendicular_brightness > 0.0f) && !(((struct ShaderEnvironment *)raw)->parallel_brightness > 0.0f)) {
+    if (!(shader->perpendicular_brightness > 0.0f) && !(shader->parallel_brightness > 0.0f)) {
         return;
     }
 
@@ -634,14 +651,14 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
         effect_index = 0x25;
         break;
     case 1:
-        effect_index = (raw[0x28] & 2) != 0 ? 0x27 : 0x26;
+        effect_index = (shader->shader_environment_flags & k_senv_bump_map_is_specular_mask) != 0 ? 0x27 : 0x26;
         break;
     default:
         effect_index = 0;
         break;
     }
     effect_slot = &rasterizer_effects[effect_index];
-    effect = (void *)effect_slot->effect;
+    effect = effect_slot->effect;
     if (effect == 0) {
         return;
     }
@@ -650,7 +667,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
     render_device().set_vertex_shader(rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
 
     normalization_tag = *(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id;
-    bump_map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
+    bump_map_tag = *(const uint32_t *)&shader->bump_map.tag_id;
     if (bump_map_tag == 0xffffffff) {
         chimera__rasterizer_set_texture_direct_d3dx(normalization_tag, 2, 0, effect_slot);
     } else {
@@ -688,8 +705,8 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
 
     render_device().effect_set_texture(effect, effect_slot->texture_handles[3], rasterizer_render_targets[2].texture);
 
-    constants[0] = *(float *)&((struct ShaderEnvironment *)raw)->bump_map_scale_xy;
-    constants[1] = *(const float *)(raw + 0x13c);
+    constants[0] = shader->bump_map_scale_xy.x;
+    constants[1] = shader->bump_map_scale_xy.y;
     constants[2] = 320.0f;
     constants[3] = 240.0f;
     constants[4] = 1.0f;
@@ -706,15 +723,15 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
     vectors[0] = real_negate_pinned(rasterizer_window.camera.forward.i);
     vectors[1] = real_negate_pinned(rasterizer_window.camera.forward.j);
     vectors[2] = real_negate_pinned(rasterizer_window.camera.forward.k);
-    vectors[3] = (raw[0x28] & 2) != 0 ? -1.0f : 0.0f;
-    vectors[4] = *(float *)&((struct ShaderEnvironment *)raw)->perpendicular_color;
-    vectors[5] = *(const float *)(raw + 0x2ac);
-    vectors[6] = *(const float *)(raw + 0x2b0);
-    vectors[7] = ((struct ShaderEnvironment *)raw)->perpendicular_brightness;
-    vectors[8] = *(float *)&((struct ShaderEnvironment *)raw)->parallel_color;
-    vectors[9] = *(const float *)(raw + 0x2b8);
-    vectors[10] = *(const float *)(raw + 0x2bc);
-    vectors[11] = ((struct ShaderEnvironment *)raw)->parallel_brightness;
+    vectors[3] = (shader->shader_environment_flags & k_senv_bump_map_is_specular_mask) != 0 ? -1.0f : 0.0f;
+    vectors[4] = shader->perpendicular_color.red;
+    vectors[5] = shader->perpendicular_color.green;
+    vectors[6] = shader->perpendicular_color.blue;
+    vectors[7] = shader->perpendicular_brightness;
+    vectors[8] = shader->parallel_color.red;
+    vectors[9] = shader->parallel_color.green;
+    vectors[10] = shader->parallel_color.blue;
+    vectors[11] = shader->parallel_brightness;
     if (effect_slot->constant_handles != 0) {
         const uint32_t *handles = (const uint32_t *)effect_slot->constant_handles;
 
