@@ -133,7 +133,7 @@ public:
      * Builds the wire segments between antenna vertices as sprites. Unreferenced in the retail binary and kept as a
      * literal transliteration; its signature is a best-effort reconstruction.
      *
-     * Original register convention: UNSURE, see file header; this signature is a best-effort reconstruction with no.
+     * Original register convention: not observable, because the retail binary never calls this function.
      *
      * @address 0x004fb3e0
      */

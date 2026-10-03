@@ -650,7 +650,7 @@ void halo::objects::ObjectManager::garbage_collection()
     int32_t used;
     datum_index handle;
 
-    if (object_globals_pointer->unknown_02[0] != 0) {
+    if (object_globals_pointer->garbage_collect_requested != 0) {
         mode = 0;
     } else {
         used = (object_memory_pool->last_block == 0) ? 0 :
@@ -662,14 +662,14 @@ void halo::objects::ObjectManager::garbage_collection()
                 (int32_t)((uint8_t *)object_memory_pool->last_block + object_memory_pool->last_block->size -
                           (uint8_t *)object_memory_pool->base);
             if (object_memory_pool->size - used > 0x33333) {
-                object_globals_pointer->unknown_02[0] = 0;
+                object_globals_pointer->garbage_collect_requested = 0;
                 return;
             }
             mode = 2;
         } else if (0x800 - object_data->actual_count <= 0x66) {
             mode = 2;
         } else if (object_globals_pointer->active_garbage_object_count < 0x32) {
-            object_globals_pointer->unknown_02[0] = 0;
+            object_globals_pointer->garbage_collect_requested = 0;
             return;
         } else {
             mode = 1;
@@ -721,7 +721,7 @@ void halo::objects::ObjectManager::garbage_collection()
 
     block_list_compact(object_memory_pool);
     if (done) {
-        object_globals_pointer->unknown_02[0] = 0;
+        object_globals_pointer->garbage_collect_requested = 0;
         return;
     }
 
@@ -776,7 +776,7 @@ void halo::objects::ObjectManager::garbage_collection()
                 if ((significant && stale) || reported) {
                     break;
                 }
-                object_globals_pointer->unknown_02[0] = 0;
+                object_globals_pointer->garbage_collect_requested = 0;
                 return;
             }
 
@@ -819,7 +819,7 @@ void halo::objects::ObjectManager::garbage_collection()
     }
 
     object_globals_pointer->last_garbage_collection_time = (uint32_t)game_time->game_time;
-    object_globals_pointer->unknown_02[0] = 0;
+    object_globals_pointer->garbage_collect_requested = 0;
 }
 
 /**
