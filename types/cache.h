@@ -263,9 +263,9 @@ typedef struct cache_io_request {
 // ---------------------------------------------------------------------------
 typedef struct data_file {
     int32_t file_id;               // 0x00 1 = bitmaps, 2 = sounds (cache_io_data_file)
-    int32_t data_offset;           // 0x04 file offset of the raw payload block
+    int32_t data_offset;           // 0x04 file offset of the name block, the end of the payloads (DataFileHeader::names_offset)
     int32_t table_offset;          // 0x08 file offset of the reference table, and the end
-                                   //      of the payload block
+                                   //      of the name block
     int32_t entry_count;           // 0x0c reference table entry count
     struct data_file_reference *references; // 0x10 GlobalAlloc of entry_count*0x0c
     int32_t reference_count;       // 0x14 copy of entry_count, written on success
@@ -278,12 +278,11 @@ typedef struct data_file {
     void *file;                    // 0x3c HANDLE, -1 when the open failed
 } data_file;                       // size 0x40
 
-// One reference table entry. Nothing in this module indexes the table; only the 0x0c stride
-// is established, by the entry_count*0xc allocation in data_file_read_offset_table.
+// One reference table entry of bitmaps.map / sounds.map (see halo/cache/data_map_file.hpp for the file layout).
 typedef struct data_file_reference {
-    uint32_t unknown_00;           // 0x00
-    uint32_t unknown_04;           // 0x04
-    uint32_t unknown_08;           // 0x08
+    uint32_t name_offset;          // 0x00 offset of the resource name inside the name block
+    uint32_t size;                 // 0x04 payload size in bytes
+    uint32_t file_offset;          // 0x08 file offset of the payload
 } data_file_reference;             // size 0x0c
 
 // ---------------------------------------------------------------------------

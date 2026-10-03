@@ -52,7 +52,7 @@ int32_t data_file_view::read_header(int32_t expected_file_id)
     uint32_t bytes_read;
 
     if (ReadFile(this->file, this, 0x10, (LPDWORD)(&bytes_read), nullptr) != 0 && bytes_read == 0x10) {
-        if (this->file_id != expected_file_id) {
+        if (!data_file_id_matches(*reinterpret_cast<const DataFileHeader *>(this), expected_file_id)) {
             this->file_id = 0;
             this->data_offset = 0;
             this->table_offset = 0;

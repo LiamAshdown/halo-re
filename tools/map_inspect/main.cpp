@@ -2,7 +2,8 @@
  * map_inspect: reads Halo PC .map files with halo::cache::MapFile and prints their header and tag index.
  *
  *   map_inspect <file.map> [--tags]      header summary, tag counts per group, optionally every tag
- *   map_inspect --check <maps folder>    validates every .map in the folder and exits non-zero on the first bad one
+ *   map_inspect --check <maps folder>    validates every .map and the shared bitmaps.map / sounds.map; non-zero exit on a failure
+ *   map_inspect --data <file.map> [--list]   summary (and optionally every resource) of bitmaps.map or sounds.map
  */
 #include <cstdio>
 #include <cstring>
@@ -13,6 +14,8 @@
 
 #include "halo/cache/map_reader.hpp"
 
+using halo::cache::DataFileError;
+using halo::cache::DataMapFile;
 using halo::cache::MapError;
 using halo::cache::MapFile;
 
@@ -45,6 +48,8 @@ void print_summary(const std::string &path, const MapFile &map, bool list_tags)
     }
 }
 
+int check_data_files(const std::string &folder);
+
 /** Opens every .map in a folder (the data files bitmaps.map, sounds.map and loc.map are skipped) and reports problems. */
 int check_folder(const std::string &folder)
 {
@@ -73,8 +78,47 @@ int check_folder(const std::string &folder)
         }
     } while (FindNextFileA(handle, &found) != 0);
     FindClose(handle);
-    std::printf("%d ok, %d failed\n", good, bad);
+    bad += check_data_files(folder);
+    std::printf("%d maps ok, %d failed\n", good, bad);
     return bad == 0 ? 0 : 1;
+}
+
+/** Prints the summary of a shared resource file: resource count, payload bytes and optionally every resource. */
+void print_data_summary(const std::string &path, const DataMapFile &data, bool list)
+{
+    uint64_t payload_bytes = 0;
+    for (const halo::cache::DataFileResource &resource : data.resources()) {
+        payload_bytes += resource.size;
+    }
+    std::printf("%s\n", path.c_str());
+    std::printf("  file id      %d\n", data.header().file_id);
+    std::printf("  resources    %zu (%llu payload bytes)\n", data.resources().size(), static_cast<unsigned long long>(payload_bytes));
+    if (list) {
+        for (const halo::cache::DataFileResource &resource : data.resources()) {
+            std::printf("  %08x %8u  %s\n", resource.file_offset, resource.size, resource.name.c_str());
+        }
+    }
+}
+
+/** Validates bitmaps.map and sounds.map in a folder; returns the number that failed. */
+int check_data_files(const std::string &folder)
+{
+    struct Entry {
+        const char *file;
+        int32_t id;
+    };
+    int bad = 0;
+    for (const Entry &entry : { Entry{ "bitmaps.map", halo::cache::k_data_file_id_bitmaps }, Entry{ "sounds.map", halo::cache::k_data_file_id_sounds } }) {
+        DataMapFile data;
+        const DataFileError error = data.open(folder + "\\" + entry.file, entry.id);
+        if (error == DataFileError::none) {
+            std::printf("ok   %-24s %5zu resources\n", entry.file, data.resources().size());
+        } else {
+            std::printf("FAIL %-24s %s\n", entry.file, halo::cache::data_file_error_text(error));
+            bad++;
+        }
+    }
+    return bad;
 }
 
 }  // namespace
@@ -83,6 +127,18 @@ int main(int argc, char **argv)
 {
     if (argc >= 3 && std::strcmp(argv[1], "--check") == 0) {
         return check_folder(argv[2]);
+    }
+    if (argc >= 3 && std::strcmp(argv[1], "--data") == 0) {
+        DataMapFile data;
+        const std::string file = argv[2];
+        const bool sounds = file.find("sounds") != std::string::npos;
+        const DataFileError error = data.open(file, sounds ? halo::cache::k_data_file_id_sounds : halo::cache::k_data_file_id_bitmaps);
+        if (error != DataFileError::none) {
+            std::printf("%s: %s\n", argv[2], halo::cache::data_file_error_text(error));
+            return 1;
+        }
+        print_data_summary(argv[2], data, argc >= 4 && std::strcmp(argv[3], "--list") == 0);
+        return 0;
     }
     if (argc >= 2) {
         MapFile map;
@@ -94,6 +150,6 @@ int main(int argc, char **argv)
         print_summary(argv[1], map, argc >= 3 && std::strcmp(argv[2], "--tags") == 0);
         return 0;
     }
-    std::printf("usage: map_inspect <file.map> [--tags] | --check <maps folder>\n");
+    std::printf("usage: map_inspect <file.map> [--tags] | --data <bitmaps.map|sounds.map> [--list] | --check <maps folder>\n");
     return 2;
 }

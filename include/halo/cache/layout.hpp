@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <cstddef>
 #include "cache.h"
+#include "halo/cache/data_map_file.hpp"
 #include "halo/cache/map_file.hpp"
 
 namespace halo::cache {
@@ -38,6 +39,11 @@ inline bool map_header_valid(const cache_file_header &header)
     return validate_map_header(reinterpret_cast<const MapFileHeader &>(header)) == MapError::none;
 }
 static_assert(sizeof(cache_file_slot) == 0x80c);
+static_assert(offsetof(data_file, file_id) == offsetof(DataFileHeader, file_id) && offsetof(data_file, data_offset) == offsetof(DataFileHeader, names_offset) &&
+              offsetof(data_file, table_offset) == offsetof(DataFileHeader, table_offset) && offsetof(data_file, entry_count) == offsetof(DataFileHeader, entry_count),
+              "the first 0x10 bytes of data_file are the on-disk DataFileHeader");
+static_assert(sizeof(data_file_reference) == sizeof(DataFileEntry) && offsetof(data_file_reference, size) == offsetof(DataFileEntry, size) &&
+              offsetof(data_file_reference, file_offset) == offsetof(DataFileEntry, file_offset));
 static_assert(sizeof(cache_io_request) * k_cache_io_request_count == 0x6000);
 
 }  // namespace halo::cache

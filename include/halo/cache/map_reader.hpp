@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include "halo/cache/data_map_file.hpp"
 #include "halo/cache/map_file.hpp"
 
 namespace halo::cache {
@@ -49,6 +50,34 @@ private:
     std::vector<uint8_t> tag_data_;
     std::vector<MapTag> tags_;
     uint64_t disk_size_ = 0;
+};
+
+/** One resource of a shared resource file with its name resolved. */
+struct DataFileResource {
+    std::string name;
+    uint32_t size = 0;
+    uint32_t file_offset = 0;
+};
+
+/**
+ * A shared resource file (bitmaps.map or sounds.map) loaded from disk: the header, the name block and the resolved entry
+ * table. The payloads stay in the file; payload() reads one on demand.
+ */
+class DataMapFile {
+public:
+    /** Opens `path`, which must be the file with id `expected_file_id`, and validates its layout and table. */
+    DataFileError open(const std::string &path, int32_t expected_file_id);
+
+    const DataFileHeader &header() const { return header_; }
+    const std::vector<DataFileResource> &resources() const { return resources_; }
+
+    /** Reads the payload bytes of resource `index` from disk; empty when the index is out of range or the read fails. */
+    std::vector<uint8_t> payload(size_t index) const;
+
+private:
+    std::string path_;
+    DataFileHeader header_{};
+    std::vector<DataFileResource> resources_;
 };
 
 }  // namespace halo::cache
