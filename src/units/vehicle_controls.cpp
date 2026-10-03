@@ -39,7 +39,7 @@ static double clamp_unit(double value)
 
 static void blend_fraction(ModelAnimationsAnimation *animation, double fraction, real_orientation *orientations)
 {
-    int32_t last_frame = *(int16_t *)&((struct ModelAnimationsAnimation *)animation)->frame_count - 1;
+    int32_t last_frame = static_cast<int16_t>(animation->frame_count) - 1;
 
     halo::models::animation_view(animation).overlay_interpolated_frame_orientations((float)((double)last_frame * fraction), orientations);
 }
@@ -55,7 +55,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
 {
     using namespace vehicle_blend_animations_local;
     datum_index object_index = datum_handle;
-    uint8_t *obj = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(object_index) * 0xc + 8);
+    uint8_t *obj = halo::objects::object_record_bytes(object_index);
     Vehicle *vehicle_tag = halo::objects::tag_as<Vehicle>(*(datum_index *)obj);
     datum_index graph_tag = halo::objects::tag_handle(vehicle_tag->base.base.animation_graph);
     ModelAnimations *graph;
@@ -78,17 +78,17 @@ void VehicleView::blend_animations(real_orientation *orientations)
     }
     animations = halo::objects::block_elements<ModelAnimationsAnimation>(graph->animations);
     count = (int32_t)entry->animations.count;
-    indices = (int16_t *)entry->animations.pointer;
+    indices = halo::objects::block_elements<int16_t>(entry->animations);
 
     if (count > 0 && indices[0] != -1) {
-        halo::models::animation_view((ModelAnimationsAnimation *)(reinterpret_cast<uint8_t *>(animations) + indices[0] * 0xb4)).aiming_screen_blend((animation_aiming_screen *)entry, ((struct vehicle_object *)obj)->vehicle.turning_velocity, 0.0f, orientations);
+        halo::models::animation_view(&animations[indices[0]]).aiming_screen_blend((animation_aiming_screen *)entry, ((struct vehicle_object *)obj)->vehicle.turning_velocity, 0.0f, orientations);
     }
     if (count > 1 && indices[1] != -1) {
         double speed = halo::math::vector3d_scalar_triple_product(*((real_vector3d *)&((struct object *)obj)->up), *((real_vector3d *)&((struct object *)obj)->forward),
             *((real_vector3d *)&((struct object *)obj)->velocity));
 
         speed = (speed / vehicle_tag->maximum_forward_speed + 1.0) * 0.5;
-        blend_fraction((ModelAnimationsAnimation *)(reinterpret_cast<uint8_t *>(animations) + indices[1] * 0xb4), clamp_unit(speed), orientations);
+        blend_fraction(&animations[indices[1]], clamp_unit(speed), orientations);
     }
     if (count > 2 && indices[2] != -1) {
         float steering = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
@@ -99,7 +99,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
         } else {
             fraction = (steering / vehicle_tag->maximum_forward_speed + 1.0) * 0.5;
         }
-        blend_fraction((ModelAnimationsAnimation *)(reinterpret_cast<uint8_t *>(animations) + indices[2] * 0xb4), fraction, orientations);
+        blend_fraction(&animations[indices[2]], fraction, orientations);
     }
     if (count > 3 && indices[3] != -1) {
         double forward_speed = (double)((unit_object *)obj)->base.velocity.k * ((unit_object *)obj)->base.forward.k +
@@ -107,12 +107,12 @@ void VehicleView::blend_animations(real_orientation *orientations)
             (double)((unit_object *)obj)->base.velocity.i * ((unit_object *)obj)->base.forward.i;
 
         forward_speed = clamp_unit(clamp_unit(forward_speed) / halo::libm::fabs(vehicle_tag->maximum_forward_speed));
-        blend_fraction((ModelAnimationsAnimation *)(reinterpret_cast<uint8_t *>(animations) + indices[3] * 0xb4), forward_speed, orientations);
+        blend_fraction(&animations[indices[3]], forward_speed, orientations);
     }
     if (count > 5 && indices[5] != -1) {
-        ModelAnimationsAnimation *animation = (ModelAnimationsAnimation *)(reinterpret_cast<uint8_t *>(animations) + indices[5] * 0xb4);
+        ModelAnimationsAnimation *animation = &animations[indices[5]];
         double fraction = 0.0;
-        int32_t frames = *(int16_t *)&((struct ModelAnimationsAnimation *)animation)->frame_count;
+        int32_t frames = static_cast<int16_t>(animation->frame_count);
 
         if (vehicle_tag->wheel_circumference > 0.0f) {
             fraction = ((struct vehicle_object *)obj)->vehicle.wheel_rotation / vehicle_tag->wheel_circumference;
@@ -120,13 +120,13 @@ void VehicleView::blend_animations(real_orientation *orientations)
         halo::models::animation_view(animation).overlay_interpolated_frame_orientations((float)((double)frames * fraction), orientations);
     }
     for (i = 0; i < (int32_t)entry->suspension_animations.count; i++) {
-        int16_t suspension = *(int16_t *)(&halo::objects::block_element<ModelAnimationSuspensionAnimation>(entry->suspension_animations, i).animation);
+        int16_t suspension = static_cast<int16_t>(halo::objects::block_element<ModelAnimationSuspensionAnimation>(entry->suspension_animations, i).animation);
 
         if (suspension != -1) {
-            uint8_t compression = obj[0x4f4 + i];
+            uint8_t compression = reinterpret_cast<vehicle_object *>(obj)->vehicle.contact_point_traction[i];
             double fraction = compression == 0xff ? 1.0 : (double)compression * (double)0.0039215689f;
 
-            blend_fraction((ModelAnimationsAnimation *)(reinterpret_cast<uint8_t *>(animations) + suspension * 0xb4), fraction, orientations);
+            blend_fraction(&animations[suspension], fraction, orientations);
         }
     }
 }
@@ -160,8 +160,8 @@ void VehicleView::calculate_animation_controls()
     float max_left_turn = halo::x87::fabsf(tag->maximum_left_turn);
     float max_right_turn = halo::x87::fabsf(tag->maximum_right_turn);
     float max_turn = (max_left_turn > max_right_turn) ? max_left_turn : max_right_turn;
-    int16_t *selectors = (int16_t *)&((struct Vehicle *)tag)->vehicle_a_in;
-    float *outputs = (float *)&obj->base.function_in_values;
+    const int16_t selectors[4] = {tag->vehicle_a_in, tag->vehicle_b_in, tag->vehicle_c_in, tag->vehicle_d_in};
+    float *outputs = obj->base.function_in_values;
     int i;
 
     for (i = 0; i < 4; i++) {
@@ -523,7 +523,7 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
     int32_t i;
 
     if (flags & 2) {
-        int32_t bytes = physics->mass_points.count * 0x130;
+        int32_t bytes = physics->mass_points.count * sizeof(mass_point_state);
         for (i = 0; i < bytes; i++) {
             out_transform[i] = 0;
         }
