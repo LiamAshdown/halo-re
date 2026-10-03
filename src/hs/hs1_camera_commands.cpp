@@ -11,14 +11,16 @@
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/cutscene/vars.hpp"
+#include "halo/hs/vars.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern int16_t director_camera_mode;
-extern datum_index director_camera_target;
-extern float camera_script_time_remaining;
-extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t *cinematic_screen_effect_state;
-}
+static auto &director_camera_mode = halo::link::ref<int16_t>(halo::hs::vars().director_camera_mode);
+static auto &director_camera_target = halo::link::ref<datum_index>(halo::hs::vars().director_camera_target);
+static auto &camera_script_time_remaining = halo::link::ref<float>(halo::hs::vars().camera_script_time_remaining);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
+static auto &cinematic_screen_effect_state = halo::link::ref<uint8_t *>(halo::cutscene::vars().cinematic_screen_effect_state);
 
 namespace halo::hs {
 

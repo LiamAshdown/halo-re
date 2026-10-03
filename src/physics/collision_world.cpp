@@ -22,6 +22,8 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/scenario/scenario.hpp"
+#include "halo/core/link.hpp"
+#include "halo/physics/vars.hpp"
 
 extern "C" { void halo::physics::collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index, real_point3d *origin, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 extern "C" { uint8_t halo::physics::collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
@@ -121,8 +123,8 @@ void CollisionWorld::gather_nearby_object_shapes(uint32_t flags, uint32_t start_
 
 }
 
-extern "C" { extern ModelCollisionGeometryBSP *global_structure_collision_bsp; }
-extern "C" { extern ModelCollisionGeometryBSP *global_collision_bsp; }
+static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);
+static auto &global_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_collision_bsp);
 static int16_t pill_leaf_cluster(int32_t leaf)
 {
     if (leaf == -1) {
@@ -199,10 +201,10 @@ uint8_t CollisionWorld::test_movement_pill(uint32_t flags, real_point3d *origin,
 
 }
 
-extern "C" { extern int32_t object_cluster_stamp; }
-extern "C" { extern data_array *collideable_object_references; }
+static auto &object_cluster_stamp = halo::link::ref<int32_t>(halo::physics::vars().object_cluster_stamp);
+static auto &collideable_object_references = halo::link::ref<data_array *>(halo::physics::vars().collideable_object_references);
 extern "C" { extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result, ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin, real_vector3d *delta, float max_fraction); }
-extern "C" { extern breakable_surface_globals *breakable_surface_state; }
+static auto &breakable_surface_state = halo::link::ref<breakable_surface_globals *>(halo::physics::vars().breakable_surface_state);
 extern "C" { extern double fabs(double x); }
 namespace halo::physics {
 

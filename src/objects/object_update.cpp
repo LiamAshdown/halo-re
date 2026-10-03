@@ -14,6 +14,9 @@
 #include "halo/models/models.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/objects/vars.hpp"
 
 extern "C" {
 extern double atan2(double y, double x);
@@ -22,11 +25,11 @@ extern float fabsf(float x);
 extern double floor(double x);
 extern double fmod(double x, double y);
 extern double fpatan(double y, double x);
-extern real_vector3d *global_origin3d_pointer;
-extern data_array *object_data;
-extern object_globals *object_globals_pointer;
 extern double pow(double base, double exponent);
 }
+static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &object_globals_pointer = halo::link::ref<object_globals *>(halo::objects::vars().object_globals_pointer);
 
 /**
  * Locks or unlocks the object's region permutations.

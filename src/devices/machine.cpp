@@ -4,11 +4,12 @@
 #include "halo/devices/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/devices/vars.hpp"
 
-extern "C" {
-extern data_array *device_groups;
-extern void *team_pair_data;
-}
+static auto &device_groups = halo::link::ref<data_array *>(halo::devices::vars().device_groups);
+static auto &team_pair_data = halo::link::ref<void *>(halo::ai::vars().team_pair_data);
 
 namespace {
 

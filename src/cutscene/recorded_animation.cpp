@@ -8,12 +8,15 @@
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/cutscene/vars.hpp"
+#include "halo/game/vars.hpp"
 
 extern "C" {
-extern data_array *recorded_animations;
-extern recorded_animation_codec *recorded_animation_codecs_by_version[4];
 extern int32_t player_index_from_unit_index(uint32_t unit_index);
 }
+static auto &recorded_animations = halo::link::ref<data_array *>(halo::game::vars().recorded_animations);
+static auto &recorded_animation_codecs_by_version = halo::link::ref<recorded_animation_codec *[4]>(halo::cutscene::vars().recorded_animation_codecs_by_version);
 
 namespace halo::cutscene {
 

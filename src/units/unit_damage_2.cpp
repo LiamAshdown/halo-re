@@ -8,12 +8,15 @@
 #include "halo/devices/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern Globals *global_globals;
-extern char ai_marker_name_a[];
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 }
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
 
 namespace halo::units {
 

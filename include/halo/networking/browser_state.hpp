@@ -1,18 +1,22 @@
 #pragma once
 
 #include <cstdint>
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
-extern "C" {
-extern int32_t DAT_00719484;
-extern uint8_t DAT_00719488;
-extern wchar_t DAT_00719498[0x100];
-extern uint16_t DAT_00719696;
-extern int32_t DAT_00719698;
-extern int32_t DAT_007196a0;
-extern int32_t DAT_006953fc;
-extern int32_t DAT_00695420;
-extern uint8_t DAT_00695424[10];
-}
+inline auto &DAT_00719484 = halo::link::ref<int32_t>(halo::networking::vars().DAT_00719484);
+inline auto &DAT_00719488 = halo::link::ref<uint8_t>(halo::networking::vars().DAT_00719488);
+inline auto &DAT_00719498 = halo::link::ref<wchar_t [0x100]>(halo::networking::vars().DAT_00719498);
+inline auto &DAT_00719696 = halo::link::ref<uint16_t>(halo::networking::vars().DAT_00719696);
+inline auto &DAT_00719698 = halo::link::ref<int32_t>(halo::networking::vars().DAT_00719698);
+inline auto &DAT_007196a0 = halo::link::ref<int32_t>(halo::networking::vars().DAT_007196a0);
+inline auto &DAT_006953fc = halo::link::ref<int32_t>(halo::networking::vars().DAT_006953fc);
+#ifndef HALO_LINKED_DAT_00695420
+#define HALO_LINKED_DAT_00695420
+inline auto &DAT_00695420 = halo::link::ref<int32_t>(halo::ui::vars().DAT_00695420);
+#endif
+inline auto &DAT_00695424 = halo::link::ref<uint8_t [10]>(halo::networking::vars().DAT_00695424);
 
 namespace halo::networking::browser_state {
 

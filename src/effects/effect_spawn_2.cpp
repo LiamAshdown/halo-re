@@ -8,12 +8,14 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern uint8_t particle_spawn_debug_mode;
-extern uint8_t *first_person_weapon_interfaces;
-extern const real_point3d *global_origin3d_pointer;
-}
+static auto &particle_spawn_debug_mode = halo::link::ref<uint8_t>(halo::effects::vars().particle_spawn_debug_mode);
+static auto &first_person_weapon_interfaces = halo::link::ref<uint8_t *>(halo::ui::vars().first_person_weapon_interfaces);
+static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 
 namespace halo::effects {
 

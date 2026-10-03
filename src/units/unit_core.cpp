@@ -16,16 +16,19 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
 extern double sqrt(double x);
-extern uint8_t *global_globals;
-extern network_id_table *object_network_id_table;
-extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
-extern player_globals *local_player_globals;
-extern data_array *player_data;
-extern char *unit_base_animation_state_names[6];
 }
+static auto &global_globals = halo::link::ref<uint8_t *>(halo::game::vars().global_globals);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
+static auto &network_message_scratch = halo::link::ref<uint8_t [halo::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &unit_base_animation_state_names = halo::link::ref<char *[6]>(halo::units::vars().unit_base_animation_state_names);
 
 namespace halo::units {
 

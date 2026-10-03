@@ -10,20 +10,24 @@
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/interface/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
 extern "C" {
-extern const real_vector3d *global_down3d_pointer;
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
-extern data_array *effect_location_data;
-extern uint8_t *effect_marker_callback_context;
-extern data_array *effect_data;
 extern void effect_rebuild_markers(effect *self, int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t));
-extern uint8_t *first_person_weapon_interfaces;
 }
+static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
+static auto &effect_location_data = halo::link::ref<data_array *>(halo::effects::vars().effect_location_data);
+static auto &effect_marker_callback_context = halo::link::ref<uint8_t *>(halo::effects::vars().effect_marker_callback_context);
+static auto &effect_data = halo::link::ref<data_array *>(halo::effects::vars().effect_data);
+static auto &first_person_weapon_interfaces = halo::link::ref<uint8_t *>(halo::ui::vars().first_person_weapon_interfaces);
 
 namespace halo::effects {
 

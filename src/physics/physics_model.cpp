@@ -16,6 +16,9 @@
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/physics/vars.hpp"
 
 extern "C" { uint8_t halo::physics::physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 extern "C" { int16_t halo::physics::physics_model_slide_along_contacts(real_point3d *start_position, real_vector3d *delta, physics_model *model, real_point3d *out_position, real_vector3d *out_velocity, int16_t max_contacts, physics_model_contact *contacts); }
@@ -37,10 +40,10 @@ extern "C" { uint32_t halo::physics::physics_shape_test_point(physics_model *mod
 extern "C" { uint32_t halo::physics::physics_shape_test_ray(physics_model *model, real_point3d *origin, real_vector3d *delta, physics_model_contact *out_contact); }
 extern "C" { void halo::physics::physics_shape_vertex_to_sphere(physics_model *model, real_point3d *vertex, int16_t material_type, float height_offset, float radius, uint32_t object_index, int32_t surface_index, uint8_t surface_flags, int8_t breakable_surface_index); }
 
-extern "C" { extern ModelCollisionGeometryBSP *global_structure_collision_bsp; }
-extern "C" { extern breakable_surface_globals *breakable_surface_state; }
-extern "C" { extern int32_t object_cluster_stamp; }
-extern "C" { extern data_array *collideable_object_references; }
+static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);
+static auto &breakable_surface_state = halo::link::ref<breakable_surface_globals *>(halo::physics::vars().breakable_surface_state);
+static auto &object_cluster_stamp = halo::link::ref<int32_t>(halo::physics::vars().object_cluster_stamp);
+static auto &collideable_object_references = halo::link::ref<data_array *>(halo::physics::vars().collideable_object_references);
 extern "C" { extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius); }
 extern "C" { extern void collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index, real_point3d *origin, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 namespace halo::physics {
@@ -343,8 +346,8 @@ int16_t PhysicsModelOps::model_slide_along_contacts(real_point3d *start_position
 
 #undef CONTACT_PLANE
 
-extern "C" { extern real_vector3d *global_down3d_pointer; }
-extern "C" { extern float k_physics_displacement_directions[k_physics_displacement_direction_count][3]; }
+static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
+static auto &k_physics_displacement_directions = halo::link::ref<float [k_physics_displacement_direction_count][3]>(halo::physics::vars().k_physics_displacement_directions);
 namespace halo::physics {
 
 /**

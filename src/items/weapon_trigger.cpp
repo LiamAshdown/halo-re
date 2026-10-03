@@ -10,10 +10,10 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/items/vars.hpp"
 
 extern "C" {
-extern char s_primary_trigger_marker[];
-extern char s_secondary_trigger_marker[];
 extern uint32_t camera_observer_update(datum_index player_index, real_point3d *observer_position, real_vector3d *fallback_facing);
 extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index, int16_t distribution_function, real distribution_angle, uint32_t flags);
 extern double fabs(double x);
@@ -40,6 +40,8 @@ real halo::items::weapon_trigger_projectile_time_fraction(datum_index item_index
 int32_t halo::items::weapon_trigger_ready_to_fire(datum_index item_index, int16_t trigger_index);
 void halo::items::weapon_trigger_reset_tracking(datum_index item_index, int16_t trigger_index);
 }
+static auto &s_primary_trigger_marker = halo::link::ref<char []>(halo::items::vars().s_primary_trigger_marker);
+static auto &s_secondary_trigger_marker = halo::link::ref<char []>(halo::items::vars().s_secondary_trigger_marker);
 
 namespace halo::items {
 

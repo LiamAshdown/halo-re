@@ -11,6 +11,8 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/hs/vars.hpp"
 
 typedef struct rebuild_file_reference {
     uint32_t signature;
@@ -23,10 +25,8 @@ typedef struct rebuild_file_reference {
 
 rebuild_file_reference;
 
-extern "C" {
-extern char hs_space_characters[2];
-extern char hs_newline_characters[2];
-}
+static auto &hs_space_characters = halo::link::ref<char [2]>(halo::hs::vars().hs_space_characters);
+static auto &hs_newline_characters = halo::link::ref<char [2]>(halo::hs::vars().hs_newline_characters);
 
 namespace halo::hs::part3 {
 

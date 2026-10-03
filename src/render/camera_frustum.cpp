@@ -19,19 +19,23 @@
 #include "halo/math/api.hpp"
 #include "halo/render/layout.hpp"
 #include "halo/render/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/render/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern real_point3d *global_zero_vector3d_pointer;
 extern double tan(double x);
 extern double fabs(double x);
 extern double ftan(double x);
-extern uint8_t render_asymmetric_frustum_disabled;
-extern float render_camera_global[3];
-extern float camera_forward_x[3];
-extern float render_camera_facing_basis[16];
 extern double sqrt(double x);
-extern float render_saved_projection_z[4];
 }
+static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
+static auto &render_asymmetric_frustum_disabled = halo::link::ref<uint8_t>(halo::render::vars().render_asymmetric_frustum_disabled);
+static auto &render_camera_global = halo::link::ref<float [3]>(halo::render::vars().render_camera_global);
+static auto &camera_forward_x = halo::link::ref<float [3]>(halo::effects::vars().camera_forward_x);
+static auto &render_camera_facing_basis = halo::link::ref<float [16]>(halo::render::vars().render_camera_facing_basis);
+static auto &render_saved_projection_z = halo::link::ref<float [4]>(halo::render::vars().render_saved_projection_z);
 
 /**
  * Fills one side plane of the frustum from the plane normal (i, j, k) and the camera position.

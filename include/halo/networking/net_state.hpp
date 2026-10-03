@@ -1,11 +1,11 @@
 #pragma once
 
 #include <cstdint>
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
-extern "C" {
-extern int32_t unknown_00697ed8;
-extern int32_t unknown_006982e8;
-}
+inline auto &unknown_00697ed8 = halo::link::ref<int32_t>(halo::networking::vars().unknown_00697ed8);
+inline auto &unknown_006982e8 = halo::link::ref<int32_t>(halo::networking::vars().unknown_006982e8);
 
 namespace halo::networking::net_state {
 

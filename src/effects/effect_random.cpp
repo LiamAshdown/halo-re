@@ -2,9 +2,10 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 extern "C" {
-extern const real_point3d *global_origin3d_pointer;
 extern double cos(double x);
 extern double sin(double x);
 float effect_distribution_function_evaluate(EffectDistributionFunction_t type, float fraction);
@@ -16,6 +17,7 @@ real effect_random_scaled_range(uint32_t flags, real scale, real base_min, real 
 uint32_t effect_random_uint16();
 void effect_random_velocity_vector(effect *self, random_seed *seed, real_vector3d *direction, real_vector3d *out_direction, real_vector3d *out_velocity, real min, real max, real angle_max, uint32_t a_bitset, uint8_t b_bitset);
 }
+static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 
 namespace halo::effects {
 

@@ -12,23 +12,28 @@
 #include "halo/text/text.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/cutscene/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
 extern "C" {
-extern float cinematic_saved_music_gain;
-extern cinematic_globals *cinematic_globals_ptr;
-extern player_globals *local_player_globals;
-extern game_time_globals *game_time;
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error);
-extern cinematic_screen_effect_globals *cinematic_screen_effect_state;
-extern ColorARGB *rasterizer_model_ambient_reflection_tint;
-extern ui_pending_error ui_pending_errors[4];
 extern int32_t ROUND(float x);
 extern float fabsf(float x);
-extern widget_instance *ui_root_widget[1];
-extern Rectangle2D render_viewport_top;
-extern uint32_t text_shadow_color_argb;
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 }
+static auto &cinematic_saved_music_gain = halo::link::ref<float>(halo::cutscene::vars().cinematic_saved_music_gain);
+static auto &cinematic_globals_ptr = halo::link::ref<cinematic_globals *>(halo::game::vars().cinematic_globals_ptr);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &cinematic_screen_effect_state = halo::link::ref<cinematic_screen_effect_globals *>(halo::cutscene::vars().cinematic_screen_effect_state);
+static auto &rasterizer_model_ambient_reflection_tint = halo::link::ref<ColorARGB *>(halo::cutscene::vars().rasterizer_model_ambient_reflection_tint);
+static auto &ui_pending_errors = halo::link::ref<ui_pending_error [4]>(halo::ui::vars().ui_pending_errors);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
+static auto &render_viewport_top = halo::link::ref<Rectangle2D>(halo::ui::vars().render_viewport_top);
+static auto &text_shadow_color_argb = halo::link::ref<uint32_t>(halo::cutscene::vars().text_shadow_color_argb);
 
 namespace halo::cutscene {
 

@@ -24,18 +24,19 @@
 #include "halo/physics/motion.hpp"
 #include "halo/physics/physics_model.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/objects/vars.hpp"
+#include "halo/physics/vars.hpp"
 
-extern "C" {
-extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
-extern float k_physics_gravity;
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
-extern datum_index *collideable_cluster_first;
-extern data_array *collideable_object_references;
-extern int32_t object_cluster_stamp;
-extern breakable_surface_globals *breakable_surface_state;
-}
+static auto &global_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_collision_bsp);
+static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);
+static auto &k_physics_gravity = halo::link::ref<float>(halo::physics::vars().k_physics_gravity);
+static auto &sphere_point_table = halo::link::ref<real_point3d *>(halo::physics::vars().sphere_point_table);
+static auto &sphere_point_table_count = halo::link::ref<int16_t>(halo::physics::vars().sphere_point_table_count);
+static auto &collideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().collideable_cluster_first);
+static auto &collideable_object_references = halo::link::ref<data_array *>(halo::physics::vars().collideable_object_references);
+static auto &object_cluster_stamp = halo::link::ref<int32_t>(halo::physics::vars().object_cluster_stamp);
+static auto &breakable_surface_state = halo::link::ref<breakable_surface_globals *>(halo::physics::vars().breakable_surface_state);
 
 namespace halo::physics {
 

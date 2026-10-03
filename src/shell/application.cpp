@@ -25,84 +25,94 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/hs/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/physics/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/saved_games/vars.hpp"
+#include "halo/shell/vars.hpp"
 
 extern "C" {
-extern char *shell_command_line;
-extern void *shell_window;
-extern void *shell_instance;
-extern int32_t shell_show_command;
-extern uint32_t shell_window_proc;
-extern uint8_t shell_window_maximized;
-extern uint8_t shell_window_minimized;
-extern char shell_window_class_name[k_shell_window_name_length];
-extern char shell_window_title[k_shell_window_name_length];
-extern void *shell_arrow_cursor;
-extern char eula_file_name[k_shell_eula_name_length];
-
-extern char **shell_argv;
-extern int32_t shell_argc;
-extern void *shell_direct3d;
-extern void *d3d9_module;
-extern void *direct3d_create9;
-extern void *dsound_module;
-extern void *direct_sound_create8;
-extern void *dinput8_module;
-extern void *direct_input8_create;
-extern void *shfolder_module;
-extern void *sh_get_folder_path;
-
-extern int32_t screenshots;
-extern int32_t shell_nosound;
-extern int32_t novideo_or_connect;
-extern int32_t network_disabled_flag;
-extern int32_t width640;
-extern int32_t safe_mode;
-extern int32_t nowindowskey;
-extern int32_t nojoystick;
-extern int32_t checkfpu;
-extern int32_t windowed;
-
-extern uint32_t physical_memory;
-extern int16_t sound_cache_size_megabytes;
-extern int16_t sound_cache_unknown_c8;
-extern int32_t required_memory;
-extern uint32_t cpu_speed;
-extern int32_t required_cpu_speed;
-extern int32_t required_disk_space;
-extern char *shell_product_id;
-extern char strings_dll_invalid_text[k_shell_strings_dll_error_length];
-
-extern void *shell_stack_guard_page;
-extern uint32_t shell_stack_guard_old_protect;
-
-extern uint32_t game_cport;
-extern uint8_t port_overridden;
-extern uint32_t network_local_address;
-extern uint32_t connect_address;
 
 
-extern char profile_directory[0x105];
-extern uint8_t console_debug_flag_0;
-extern uint8_t error_file_enabled;
-extern uint8_t console_debug_flag_4;
-extern uint8_t console_debug_flag_5;
-extern uint16_t console_debug_word_8;
 
-extern uint32_t global_scenario_index;
-extern uint16_t global_structure_bsp_index;
-extern uint16_t *global_scenario_game_globals;
-extern uint32_t global_scenario;
-extern uint32_t global_structure_collision_bsp;
-extern uint32_t global_collision_bsp;
-extern uint32_t global_globals;
-extern uint32_t external_00686b4c;
-extern uint8_t external_00686b50;
-extern void *external_00686b58;
-extern void *external_00686b5c;
-extern uint32_t external_00686b54;
+
+
+
+
+
 
 extern uint32_t sound_initialize(void);
 }
+static auto &shell_command_line = halo::link::ref<char *>(halo::shell::vars().shell_command_line);
+static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
+static auto &shell_instance = halo::link::ref<void *>(halo::shell::vars().shell_instance);
+static auto &shell_show_command = halo::link::ref<int32_t>(halo::shell::vars().shell_show_command);
+static auto &shell_window_proc = halo::link::ref<uint32_t>(halo::rasterizer::vars().shell_window_proc);
+static auto &shell_window_maximized = halo::link::ref<uint8_t>(halo::shell::vars().shell_window_maximized);
+static auto &shell_window_minimized = halo::link::ref<uint8_t>(halo::shell::vars().shell_window_minimized);
+static auto &shell_window_class_name = halo::link::ref<char [k_shell_window_name_length]>(halo::rasterizer::vars().shell_window_class_name);
+static auto &shell_window_title = halo::link::ref<char [k_shell_window_name_length]>(halo::rasterizer::vars().shell_window_title);
+static auto &shell_arrow_cursor = halo::link::ref<void *>(halo::shell::vars().shell_arrow_cursor);
+static auto &eula_file_name = halo::link::ref<char [k_shell_eula_name_length]>(halo::shell::vars().eula_file_name);
+static auto &shell_argv = halo::link::ref<char **>(halo::shell::vars().shell_argv);
+static auto &shell_argc = halo::link::ref<int32_t>(halo::shell::vars().shell_argc);
+static auto &shell_direct3d = halo::link::ref<void *>(halo::rasterizer::vars().shell_direct3d);
+static auto &d3d9_module = halo::link::ref<void *>(halo::shell::vars().d3d9_module);
+static auto &direct3d_create9 = halo::link::ref<void *>(halo::shell::vars().direct3d_create9);
+static auto &dsound_module = halo::link::ref<void *>(halo::shell::vars().dsound_module);
+static auto &direct_sound_create8 = halo::link::ref<void *>(halo::shell::vars().direct_sound_create8);
+static auto &dinput8_module = halo::link::ref<void *>(halo::shell::vars().dinput8_module);
+static auto &direct_input8_create = halo::link::ref<void *>(halo::shell::vars().direct_input8_create);
+static auto &shfolder_module = halo::link::ref<void *>(halo::shell::vars().shfolder_module);
+static auto &sh_get_folder_path = halo::link::ref<void *>(halo::shell::vars().sh_get_folder_path);
+static auto &screenshots = halo::link::ref<int32_t>(halo::main::vars().screenshots);
+static auto &shell_nosound = halo::link::ref<int32_t>(halo::shell::vars().shell_nosound);
+static auto &novideo_or_connect = halo::link::ref<int32_t>(halo::main::vars().novideo_or_connect);
+static auto &network_disabled_flag = halo::link::ref<int32_t>(halo::ui::vars().network_disabled_flag);
+static auto &width640 = halo::link::ref<int32_t>(halo::rasterizer::vars().width640);
+static auto &safe_mode = halo::link::ref<int32_t>(halo::shell::vars().safe_mode);
+static auto &nowindowskey = halo::link::ref<int32_t>(halo::shell::vars().nowindowskey);
+static auto &nojoystick = halo::link::ref<int32_t>(halo::shell::vars().nojoystick);
+static auto &checkfpu = halo::link::ref<int32_t>(halo::main::vars().checkfpu);
+static auto &windowed = halo::link::ref<int32_t>(halo::rasterizer::vars().windowed);
+static auto &physical_memory = halo::link::ref<uint32_t>(halo::shell::vars().physical_memory);
+static auto &sound_cache_size_megabytes = halo::link::ref<int16_t>(halo::shell::vars().sound_cache_size_megabytes);
+static auto &sound_cache_unknown_c8 = halo::link::ref<int16_t>(halo::shell::vars().sound_cache_unknown_c8);
+static auto &required_memory = halo::link::ref<int32_t>(halo::shell::vars().required_memory);
+static auto &cpu_speed = halo::link::ref<uint32_t>(halo::shell::vars().cpu_speed);
+static auto &required_cpu_speed = halo::link::ref<int32_t>(halo::shell::vars().required_cpu_speed);
+static auto &required_disk_space = halo::link::ref<int32_t>(halo::shell::vars().required_disk_space);
+static auto &shell_product_id = halo::link::ref<char *>(halo::networking::vars().shell_product_id);
+static auto &strings_dll_invalid_text = halo::link::ref<char [k_shell_strings_dll_error_length]>(halo::shell::vars().strings_dll_invalid_text);
+static auto &shell_stack_guard_page = halo::link::ref<void *>(halo::shell::vars().shell_stack_guard_page);
+static auto &shell_stack_guard_old_protect = halo::link::ref<uint32_t>(halo::shell::vars().shell_stack_guard_old_protect);
+static auto &game_cport = halo::link::ref<uint32_t>(halo::ui::vars().game_cport);
+static auto &port_overridden = halo::link::ref<uint8_t>(halo::ui::vars().port_overridden);
+static auto &network_local_address = halo::link::ref<uint32_t>(halo::networking::vars().network_local_address);
+static auto &connect_address = halo::link::ref<uint32_t>(halo::shell::vars().connect_address);
+static auto &profile_directory = halo::link::ref<char [0x105]>(halo::saved_games::vars().profile_directory);
+static auto &console_debug_flag_0 = halo::link::ref<uint8_t>(halo::main::vars().console_debug_flag_0);
+static auto &error_file_enabled = halo::link::ref<uint8_t>(halo::shell::vars().error_file_enabled);
+static auto &console_debug_flag_4 = halo::link::ref<uint8_t>(halo::shell::vars().console_debug_flag_4);
+static auto &console_debug_flag_5 = halo::link::ref<uint8_t>(halo::main::vars().console_debug_flag_5);
+static auto &console_debug_word_8 = halo::link::ref<uint16_t>(halo::main::vars().console_debug_word_8);
+static auto &global_scenario_index = halo::link::ref<uint32_t>(halo::game::vars().global_scenario_index);
+static auto &global_structure_bsp_index = halo::link::ref<uint16_t>(halo::game::vars().global_structure_bsp_index);
+static auto &global_scenario_game_globals = halo::link::ref<uint16_t *>(halo::shell::vars().global_scenario_game_globals);
+static auto &global_scenario = halo::link::ref<uint32_t>(halo::hs::vars().global_scenario);
+static auto &global_structure_collision_bsp = halo::link::ref<uint32_t>(halo::physics::vars().global_structure_collision_bsp);
+static auto &global_collision_bsp = halo::link::ref<uint32_t>(halo::physics::vars().global_collision_bsp);
+static auto &global_globals = halo::link::ref<uint32_t>(halo::game::vars().global_globals);
+static auto &external_00686b4c = halo::link::ref<uint32_t>(halo::shell::vars().external_00686b4c);
+static auto &external_00686b50 = halo::link::ref<uint8_t>(halo::shell::vars().external_00686b50);
+static auto &external_00686b58 = halo::link::ref<void *>(halo::shell::vars().external_00686b58);
+static auto &external_00686b5c = halo::link::ref<void *>(halo::shell::vars().external_00686b5c);
+static auto &external_00686b54 = halo::link::ref<uint32_t>(halo::shell::vars().external_00686b54);
 
 typedef int32_t (__cdecl *eula_show_fn)(const char *registry_path, const char *eula_file, int32_t unknown_2, int32_t unknown_3);
 typedef void *(__stdcall *direct3d_create9_fn)(uint32_t sdk_version);

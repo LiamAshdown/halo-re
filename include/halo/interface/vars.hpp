@@ -5,11 +5,8 @@
  */
 #pragma once
 
-#ifdef interface
-#undef interface
-#endif
 
-namespace halo::interface {
+namespace halo::ui {
 
 /** Address table of the engine variables owned by the interface module. */
 struct Vars {
@@ -357,4 +354,4 @@ struct Vars {
 /** The singleton address table; its storage is constant-initialised. */
 const Vars &vars();
 
-}  // namespace halo::interface
+}  // namespace halo::ui

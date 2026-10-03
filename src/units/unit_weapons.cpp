@@ -23,23 +23,30 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/items/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern Globals *global_globals;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern char k_empty_string[];
-extern real_vector3d *global_origin3d_pointer;
-extern char s_left_hand_marker[];
 extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level);
-extern uint8_t *local_player_globals;
-extern uint8_t network_message_scratch[0x7ff8];
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
-extern uint8_t *object_network_id_table;
-extern uint8_t weapon_bottomless_clip;
-extern uint32_t game_engine_unknown_aa00;
-extern uint32_t motion_sensor_override_value;
 }
+static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &k_empty_string = halo::link::ref<char []>(halo::networking::vars().k_empty_string);
+static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &s_left_hand_marker = halo::link::ref<char []>(halo::units::vars().s_left_hand_marker);
+static auto &local_player_globals = halo::link::ref<uint8_t *>(halo::game::vars().local_player_globals);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &object_network_id_table = halo::link::ref<uint8_t *>(halo::units::vars().object_network_id_table);
+static auto &weapon_bottomless_clip = halo::link::ref<uint8_t>(halo::items::vars().weapon_bottomless_clip);
+static auto &game_engine_unknown_aa00 = halo::link::ref<uint32_t>(halo::game::vars().game_engine_unknown_aa00);
+static auto &motion_sensor_override_value = halo::link::ref<uint32_t>(halo::ui::vars().motion_sensor_override_value);
 
 namespace halo::units {
 

@@ -14,8 +14,10 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/physics/vars.hpp"
 
-extern "C" { extern breakable_surface_globals *breakable_surface_state; }
+static auto &breakable_surface_state = halo::link::ref<breakable_surface_globals *>(halo::physics::vars().breakable_surface_state);
 namespace halo::physics {
 
 /**

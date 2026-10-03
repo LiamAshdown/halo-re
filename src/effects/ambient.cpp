@@ -9,14 +9,15 @@
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/scenario/scenario.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/effects/vars.hpp"
 
-extern "C" {
-extern int16_t weather_particle_system_count;
-extern weather_particle_system_state weather_wind_states[8];
-extern const real_point3d *global_origin3d_pointer;
-extern ambient_noise_grid ambient_noise;
-extern int32_t weather_frame_counter;
-}
+static auto &weather_particle_system_count = halo::link::ref<int16_t>(halo::effects::vars().weather_particle_system_count);
+static auto &weather_wind_states = halo::link::ref<weather_particle_system_state [8]>(halo::effects::vars().weather_wind_states);
+static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &ambient_noise = halo::link::ref<ambient_noise_grid>(halo::effects::vars().ambient_noise);
+static auto &weather_frame_counter = halo::link::ref<int32_t>(halo::effects::vars().weather_frame_counter);
 
 namespace halo::effects {
 

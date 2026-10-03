@@ -12,18 +12,21 @@
 #include "halo/render/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/objects/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
-extern data_array *antenna_data;
-extern uint8_t antenna_sprite_shader[];
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
 extern double cos(double x);
-extern real_point3d *global_zero_vector3d_pointer;
 extern double sin(double x);
 extern double sqrt(double x);
 }
+static auto &antenna_data = halo::link::ref<data_array *>(halo::objects::vars().antenna_data);
+static auto &antenna_sprite_shader = halo::link::ref<uint8_t []>(halo::objects::vars().antenna_sprite_shader);
+static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 
 /**
  * Creates the antenna data array with room for twelve antennas.

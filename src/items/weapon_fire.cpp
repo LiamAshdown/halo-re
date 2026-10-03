@@ -8,12 +8,11 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/items/vars.hpp"
 
 extern "C" {
-extern uint8_t weapon_infinite_ammo;
-extern uint8_t weapon_bottomless_clip;
-extern uint8_t weapon_client_side_projectiles;
-extern game_time_globals *game_time;
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern void unit_update_active_camouflage_depower(datum_index player_handle);
 extern uint32_t local_player_index_for_weapon(datum_index item_index);
@@ -21,6 +20,10 @@ extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
 uint32_t halo::items::weapon_fire_trigger(datum_index item_index, int16_t trigger_index);
 }
+static auto &weapon_infinite_ammo = halo::link::ref<uint8_t>(halo::items::vars().weapon_infinite_ammo);
+static auto &weapon_bottomless_clip = halo::link::ref<uint8_t>(halo::items::vars().weapon_bottomless_clip);
+static auto &weapon_client_side_projectiles = halo::link::ref<uint8_t>(halo::items::vars().weapon_client_side_projectiles);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
 namespace halo::items {
 

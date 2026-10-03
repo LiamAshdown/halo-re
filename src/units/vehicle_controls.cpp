@@ -12,11 +12,12 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/models/models.hpp"
+#include "halo/core/link.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
 extern double fabs(double x);
 extern float fabsf(float x);
-extern uint8_t *global_identity_quaternion_pointer;
 extern void object_physics_tick(uint32_t object_index, void *powered_states, void *contact_points, real_vector3d *extra_force, real_vector3d *extra_torque);
 extern double sqrt(double x);
 extern double sin(double x);
@@ -24,6 +25,7 @@ extern double cos(double x);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void effect_new_with_color(uint32_t effect, uint32_t creator, void *velocity, int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale, int32_t color, int32_t tint, int32_t force);
 }
+static auto &global_identity_quaternion_pointer = halo::link::ref<uint8_t *>(halo::units::vars().global_identity_quaternion_pointer);
 
 namespace halo::units {
 

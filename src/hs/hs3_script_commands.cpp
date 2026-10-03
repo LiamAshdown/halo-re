@@ -8,11 +8,13 @@
 #include "halo/hs/api.hpp"
 #include "halo/scenario/scenario.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/hs/vars.hpp"
 
 extern "C" {
 extern void player_update_history_log_set_name_filter(char *name);
-extern uint8_t ui_widget_show_path_flag;
 }
+static auto &ui_widget_show_path_flag = halo::link::ref<uint8_t>(halo::hs::vars().ui_widget_show_path_flag);
 
 namespace halo::hs::part3 {
 

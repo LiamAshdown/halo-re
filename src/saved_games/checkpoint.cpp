@@ -14,17 +14,19 @@
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/saved_games/vars.hpp"
 
-extern "C" {
-extern int32_t saved_player_profile_slots_handle;
-extern uint8_t checkpoint_sort_newest_first;
-extern char *campaign_level_paths[k_campaign_level_count];
-extern ColorARGB *actor_mode_default_look_weights;
-extern char network_ban_file_read_mode_string[];
-extern uint8_t game_state_write_in_progress;
-extern char network_summary_log_mode_string[];
-extern int16_t pending_difficulty;
-}
+static auto &saved_player_profile_slots_handle = halo::link::ref<int32_t>(halo::saved_games::vars().saved_player_profile_slots_handle);
+static auto &checkpoint_sort_newest_first = halo::link::ref<uint8_t>(halo::saved_games::vars().checkpoint_sort_newest_first);
+static auto &campaign_level_paths = halo::link::ref<char *[k_campaign_level_count]>(halo::ui::vars().campaign_level_paths);
+static auto &actor_mode_default_look_weights = halo::link::ref<ColorARGB *>(halo::networking::vars().actor_mode_default_look_weights);
+static auto &network_ban_file_read_mode_string = halo::link::ref<char []>(halo::networking::vars().network_ban_file_read_mode_string);
+static auto &game_state_write_in_progress = halo::link::ref<uint8_t>(halo::saved_games::vars().game_state_write_in_progress);
+static auto &network_summary_log_mode_string = halo::link::ref<char []>(halo::networking::vars().network_summary_log_mode_string);
+static auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);
 
 namespace halo::saved_games::checkpoint {
 

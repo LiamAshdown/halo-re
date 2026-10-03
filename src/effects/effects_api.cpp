@@ -1,21 +1,22 @@
 #include "halo/effects/effects.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
 
-extern "C" {
-extern random_seed effect_random_seed;
-extern data_array *contrail_data;
-extern data_array *contrail_point_data;
-extern data_array *decal_data;
-extern data_array *effect_data;
-extern data_array *effect_location_data;
-extern data_array *particle_data;
-extern data_array *particle_system_particle_data;
-extern data_array *weather_particle_data;
-extern player_effect_globals *player_effect_globals_pointer;
-extern uint8_t decals_for_all_responses;
-extern int32_t player_effect_reentry_count;
-extern uint8_t particle_spawn_debug_mode;
-}
+static auto &effect_random_seed = halo::link::ref<random_seed>(halo::effects::vars().effect_random_seed);
+static auto &contrail_data = halo::link::ref<data_array *>(halo::effects::vars().contrail_data);
+static auto &contrail_point_data = halo::link::ref<data_array *>(halo::effects::vars().contrail_point_data);
+static auto &decal_data = halo::link::ref<data_array *>(halo::effects::vars().decal_data);
+static auto &effect_data = halo::link::ref<data_array *>(halo::effects::vars().effect_data);
+static auto &effect_location_data = halo::link::ref<data_array *>(halo::effects::vars().effect_location_data);
+static auto &particle_data = halo::link::ref<data_array *>(halo::effects::vars().particle_data);
+static auto &particle_system_particle_data = halo::link::ref<data_array *>(halo::effects::vars().particle_system_particle_data);
+static auto &weather_particle_data = halo::link::ref<data_array *>(halo::game::vars().weather_particle_data);
+static auto &player_effect_globals_pointer = halo::link::ref<player_effect_globals *>(halo::effects::vars().player_effect_globals_pointer);
+static auto &decals_for_all_responses = halo::link::ref<uint8_t>(halo::effects::vars().decals_for_all_responses);
+static auto &player_effect_reentry_count = halo::link::ref<int32_t>(halo::effects::vars().player_effect_reentry_count);
+static auto &particle_spawn_debug_mode = halo::link::ref<uint8_t>(halo::effects::vars().particle_spawn_debug_mode);
 
 namespace halo::effects {
 

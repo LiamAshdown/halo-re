@@ -31,16 +31,14 @@
 #include "halo/models/models.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/render/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern float sky_animation_times[9];
-extern render_camera render_camera_global;
-extern real_point3d *global_zero_vector3d_pointer;
-extern real_matrix4x3 *k_render_identity_matrix_ptr;
-extern ColorRGB *global_white_color;
-extern uint8_t console_debug_toggle_6893ec;
-extern uint8_t rasterizer_render_states_dirty;
-extern uint32_t rasterizer_device_version;
 extern void light_transient_add(datum_index light_tag, ColorRGB *color, real_point3d *position,
     real_vector3d *direction, real_vector3d *up, float intensity);
 extern double fmod(double x, double y);
@@ -48,23 +46,12 @@ extern double sqrt(double x);
 extern double fabs(double x);
 extern double sin(double x);
 extern double cos(double x);
-extern int32_t render_window_count;
-extern int16_t render_window_index;
-extern render_frustum render_frustum_global;
-extern render_fog render_fog_state;
-extern uint8_t decals_for_all_responses;
-extern uint32_t rasterizer_active_environment_effect;
-extern int32_t transparent_geometry_group_last_drawn_key;
-extern uint8_t rasterizer_secondary_groups_drawn;
-extern int16_t rasterizer_decal_layer;
 extern void player_effect_build_screen_flash(render_screen_flash *out, int16_t local_player_index);
 extern void object_lights_update_all(void);
 extern void lights_apply_spot_falloff(void);
 extern void lights_apply_spot_falloff_specular(void);
 extern void weather_update_local_player(void);
 extern void particle_systems_render(void);
-extern void *rasterizer_lightmap_bitmap;
-extern uint8_t rasterizer_lightmap_bitmap_missing;
 extern void rasterizer_shader_environment_set_lightmap(void *lightmap);
 extern void rasterizer_object_shadow_structure_draw(void *vertex_buffer, int32_t dynamic_index_slot,
     int32_t first_primitive, int32_t primitive_count);
@@ -84,6 +71,24 @@ extern void rasterizer_transparent_geometry_group_new(void *shader, int16_t shad
     uint32_t lightmap_bitmap, uint32_t dynamic_index_slot, uint32_t first_index, uint32_t primitive_count,
     uint32_t vertex_buffer, void *tint, uint32_t lighting, uint32_t flags, void *world_position);
 }
+static auto &sky_animation_times = halo::link::ref<float [9]>(halo::render::vars().sky_animation_times);
+static auto &render_camera_global = halo::link::ref<render_camera>(halo::render::vars().render_camera_global);
+static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
+static auto &k_render_identity_matrix_ptr = halo::link::ref<real_matrix4x3 *>(halo::effects::vars().k_render_identity_matrix_ptr);
+static auto &global_white_color = halo::link::ref<ColorRGB *>(halo::effects::vars().global_white_color);
+static auto &rasterizer_render_states_dirty = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_render_states_dirty);
+static auto &rasterizer_device_version = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_device_version);
+static auto &render_window_count = halo::link::ref<int32_t>(halo::render::vars().render_window_count);
+static auto &render_window_index = halo::link::ref<int16_t>(halo::render::vars().render_window_index);
+static auto &render_frustum_global = halo::link::ref<render_frustum>(halo::render::vars().render_frustum_global);
+static auto &render_fog_state = halo::link::ref<render_fog>(halo::render::vars().render_fog_state);
+static auto &decals_for_all_responses = halo::link::ref<uint8_t>(halo::effects::vars().decals_for_all_responses);
+static auto &rasterizer_active_environment_effect = halo::link::ref<uint32_t>(halo::rasterizer::vars().rasterizer_active_environment_effect);
+static auto &transparent_geometry_group_last_drawn_key = halo::link::ref<int32_t>(halo::rasterizer::vars().transparent_geometry_group_last_drawn_key);
+static auto &rasterizer_secondary_groups_drawn = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_secondary_groups_drawn);
+static auto &rasterizer_decal_layer = halo::link::ref<int16_t>(halo::rasterizer::vars().rasterizer_decal_layer);
+static auto &rasterizer_lightmap_bitmap = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_lightmap_bitmap);
+static auto &rasterizer_lightmap_bitmap_missing = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_lightmap_bitmap_missing);
 
 typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 

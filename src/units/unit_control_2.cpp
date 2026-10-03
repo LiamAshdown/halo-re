@@ -8,14 +8,17 @@
 #include "halo/core/flag_bits.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/models/models.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern float *global_zero_vector2d_pointer;
-extern real_point3d *global_zero_vector3d_pointer;
 extern double atan2(double y, double x);
 extern double sqrt(double x);
-extern Globals *global_globals;
 }
+static auto &global_zero_vector2d_pointer = halo::link::ref<float *>(halo::units::vars().global_zero_vector2d_pointer);
+static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 
 namespace halo::units {
 

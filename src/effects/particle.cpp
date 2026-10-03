@@ -10,18 +10,18 @@
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/render/vars.hpp"
 
 extern "C" {
-extern data_array *particle_data;
 extern uint8_t particle_advance_frame(datum_index particle_handle);
 extern uint8_t particle_next_sequence(datum_index particle_handle);
 extern void particle_impact_response_dispatch(particle *self, tag_group fourcc, datum_index definition_index, real intensity);
 extern datum_index effect_new_with_color(uint32_t definition_index, uint32_t creator, real_vector3d *velocity, int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale, int32_t color, int32_t tint, int32_t force);
 extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
-extern const real_vector3d *global_down3d_pointer;
-extern char *particle_impact_vector_names[2];
-extern uint8_t *first_person_weapon_interfaces;
-extern int32_t render_frame_index;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint16_t effect_random_uint16(void);
 extern int effect_random_int_between(int16_t minimum, int16_t maximum);
@@ -37,6 +37,11 @@ void particles_delete_by_first_person_weapon(uint8_t first_person_weapon_index);
 void particles_refresh_structure_locations();
 void particles_update(real delta_time);
 }
+static auto &particle_data = halo::link::ref<data_array *>(halo::effects::vars().particle_data);
+static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
+static auto &particle_impact_vector_names = halo::link::ref<char *[2]>(halo::effects::vars().particle_impact_vector_names);
+static auto &first_person_weapon_interfaces = halo::link::ref<uint8_t *>(halo::ui::vars().first_person_weapon_interfaces);
+static auto &render_frame_index = halo::link::ref<int32_t>(halo::render::vars().render_frame_index);
 
 namespace halo::effects {
 

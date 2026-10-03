@@ -30,17 +30,17 @@
 #include "cutscene.h"
 #include "bitmaps.h"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/objects/vars.hpp"
 
-extern "C" {
-extern data_array *object_data;
-extern object_globals *object_globals_pointer;
-extern data_array *object_list_header_data;
-extern data_array *object_list_reference_data;
-extern datum_index *object_name_list;
-extern memory_pool *object_memory_pool;
-extern datum_index *noncollideable_cluster_first;
-extern data_array *noncollideable_object_references;
-}
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &object_globals_pointer = halo::link::ref<object_globals *>(halo::objects::vars().object_globals_pointer);
+static auto &object_list_header_data = halo::link::ref<data_array *>(halo::objects::vars().object_list_header_data);
+static auto &object_list_reference_data = halo::link::ref<data_array *>(halo::objects::vars().object_list_reference_data);
+static auto &object_name_list = halo::link::ref<datum_index *>(halo::objects::vars().object_name_list);
+static auto &object_memory_pool = halo::link::ref<memory_pool *>(halo::objects::vars().object_memory_pool);
+static auto &noncollideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().noncollideable_cluster_first);
+static auto &noncollideable_object_references = halo::link::ref<data_array *>(halo::objects::vars().noncollideable_object_references);
 
 namespace halo::objects {
 

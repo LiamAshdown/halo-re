@@ -3,22 +3,21 @@
 #include "halo/shell/diagnostics.hpp"
 #include "halo/shell/system.hpp"
 #include <dsound.h>
+#include "halo/core/link.hpp"
+#include "halo/shell/vars.hpp"
 
-extern "C" {
-extern uint32_t physical_memory;
-extern uint32_t cpu_speed;
-extern uint32_t display_adapter_count;
-extern shell_display_adapter display_adapters[k_shell_maximum_display_adapters];
-extern shell_sound_device sound_devices[k_shell_maximum_sound_devices];
-extern uint32_t sound_device_count;
-extern int32_t selected_sound_device;
-
-extern const uint32_t iid_direct_draw7[4];
-extern const uint32_t dsdevid_default_playback[4];
-extern const uint32_t clsid_dxdiag_provider[4];
-extern const uint32_t iid_dxdiag_provider[4];
-extern const uint16_t dxdiag_sound_device_child_name[];
-}
+static auto &physical_memory = halo::link::ref<uint32_t>(halo::shell::vars().physical_memory);
+static auto &cpu_speed = halo::link::ref<uint32_t>(halo::shell::vars().cpu_speed);
+static auto &display_adapter_count = halo::link::ref<uint32_t>(halo::shell::vars().display_adapter_count);
+static auto &display_adapters = halo::link::ref<shell_display_adapter [k_shell_maximum_display_adapters]>(halo::shell::vars().display_adapters);
+static auto &sound_devices = halo::link::ref<shell_sound_device [k_shell_maximum_sound_devices]>(halo::shell::vars().sound_devices);
+static auto &sound_device_count = halo::link::ref<uint32_t>(halo::shell::vars().sound_device_count);
+static auto &selected_sound_device = halo::link::ref<int32_t>(halo::shell::vars().selected_sound_device);
+static auto &iid_direct_draw7 = halo::link::ref<const uint32_t [4]>(halo::shell::vars().iid_direct_draw7);
+static auto &dsdevid_default_playback = halo::link::ref<const uint32_t [4]>(halo::shell::vars().dsdevid_default_playback);
+static auto &clsid_dxdiag_provider = halo::link::ref<const uint32_t [4]>(halo::shell::vars().clsid_dxdiag_provider);
+static auto &iid_dxdiag_provider = halo::link::ref<const uint32_t [4]>(halo::shell::vars().iid_dxdiag_provider);
+static auto &dxdiag_sound_device_child_name = halo::link::ref<const uint16_t []>(halo::shell::vars().dxdiag_sound_device_child_name);
 
 #define SOUND_DEVICE_HARDWARE_ID_NFORCE "pci\ven_10de&dev_01b0&subsys_37301462&rev_c2\3&13c0b0c5&0&28"
 

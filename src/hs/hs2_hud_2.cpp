@@ -3,14 +3,10 @@
 #include "interface.h"
 #include "halo/hs/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern hud_messaging_globals *hud_messaging;
-#ifdef __cplusplus
-}
-#endif
+static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
 
 namespace halo::hs {
 

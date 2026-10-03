@@ -21,25 +21,32 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/hs/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/objects/vars.hpp"
+#include "halo/physics/vars.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern uint8_t *global_scenario;
-extern const real_vector3d *global_white_color;
-extern uint8_t network_action_apply_active;
-extern int32_t network_client;
-extern char network_log_path_format[];
-extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
-extern int32_t network_server;
-extern data_array *object_data;
-extern object_globals *object_globals_pointer;
-extern memory_pool *object_memory_pool;
-extern datum_index *object_name_list;
-extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern uint16_t object_visibility_computed_mask;
 }
+static auto &global_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_collision_bsp);
+static auto &global_scenario = halo::link::ref<uint8_t *>(halo::hs::vars().global_scenario);
+static auto &global_white_color = halo::link::ref<const real_vector3d *>(halo::effects::vars().global_white_color);
+static auto &network_action_apply_active = halo::link::ref<uint8_t>(halo::objects::vars().network_action_apply_active);
+static auto &network_client = halo::link::ref<int32_t>(halo::networking::vars().network_client);
+static auto &network_log_path_format = halo::link::ref<char []>(halo::networking::vars().network_log_path_format);
+static auto &network_message_scratch = halo::link::ref<uint8_t [halo::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
+static auto &network_server = halo::link::ref<int32_t>(halo::networking::vars().network_server);
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &object_globals_pointer = halo::link::ref<object_globals *>(halo::objects::vars().object_globals_pointer);
+static auto &object_memory_pool = halo::link::ref<memory_pool *>(halo::objects::vars().object_memory_pool);
+static auto &object_name_list = halo::link::ref<datum_index *>(halo::objects::vars().object_name_list);
+static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
+static auto &object_visibility_computed_mask = halo::link::ref<uint16_t>(halo::objects::vars().object_visibility_computed_mask);
 
 namespace {
 static datum_index palette_tag(TagReflexive *palette, int16_t type)

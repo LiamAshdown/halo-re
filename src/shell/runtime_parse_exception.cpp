@@ -1,11 +1,11 @@
 #include "halo/shell/runtime.hpp"
 #include "halo/shell/layout.hpp"
+#include "halo/core/link.hpp"
+#include "halo/shell/vars.hpp"
 
-extern "C" {
-extern void *logic_error_vtable;
-extern void *length_error_vtable;
-extern void *out_of_range_vtable;
-}
+static auto &logic_error_vtable = halo::link::ref<void *>(halo::shell::vars().logic_error_vtable);
+static auto &length_error_vtable = halo::link::ref<void *>(halo::shell::vars().length_error_vtable);
+static auto &out_of_range_vtable = halo::link::ref<void *>(halo::shell::vars().out_of_range_vtable);
 
 namespace halo::shell {
 

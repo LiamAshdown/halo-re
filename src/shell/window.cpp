@@ -16,6 +16,11 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/shell/vars.hpp"
 
 typedef struct win32_bitmap {
     int32_t type;
@@ -26,29 +31,21 @@ typedef struct win32_bitmap {
 
 static_assert(sizeof(win32_bitmap) == 0x18, "win32_bitmap layout");
 
-extern "C" {
-
-extern uint8_t shell_window_proc_bypass;
-extern uint8_t shell_application_inactive;
-extern void *shell_window;
-extern uint8_t shell_window_minimized;
-extern uint8_t shell_window_maximized;
-extern void *shell_arrow_cursor;
-extern int32_t nowindowskey;
-
-
-extern void *rasterizer_window_icon_dc;
-extern void *rasterizer_window_icon_bitmap;
-
-extern uint8_t sound_paused;
-
-
-extern void *keystone_module;
-extern void *chat_gui_root_handle;
-extern keystone_dispatch_message_fn keystone_dispatch_message;
-extern chat_gui_release_fn chat_gui_release;
-extern keystone_translate_accelerator_fn keystone_translate_accelerator;
-}
+static auto &shell_window_proc_bypass = halo::link::ref<uint8_t>(halo::shell::vars().shell_window_proc_bypass);
+static auto &shell_application_inactive = halo::link::ref<uint8_t>(halo::main::vars().shell_application_inactive);
+static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
+static auto &shell_window_minimized = halo::link::ref<uint8_t>(halo::shell::vars().shell_window_minimized);
+static auto &shell_window_maximized = halo::link::ref<uint8_t>(halo::shell::vars().shell_window_maximized);
+static auto &shell_arrow_cursor = halo::link::ref<void *>(halo::shell::vars().shell_arrow_cursor);
+static auto &nowindowskey = halo::link::ref<int32_t>(halo::shell::vars().nowindowskey);
+static auto &rasterizer_window_icon_dc = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_window_icon_dc);
+static auto &rasterizer_window_icon_bitmap = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_window_icon_bitmap);
+static auto &sound_paused = halo::link::ref<uint8_t>(halo::shell::vars().sound_paused);
+static auto &keystone_module = halo::link::ref<void *>(halo::shell::vars().keystone_module);
+static auto &chat_gui_root_handle = halo::link::ref<void *>(halo::ui::vars().chat_gui_root_handle);
+static auto &keystone_dispatch_message = halo::link::ref<keystone_dispatch_message_fn>(halo::shell::vars().keystone_dispatch_message);
+static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
+static auto &keystone_translate_accelerator = halo::link::ref<keystone_translate_accelerator_fn>(halo::shell::vars().keystone_translate_accelerator);
 
 namespace halo::shell {
 

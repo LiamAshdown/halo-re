@@ -1,9 +1,9 @@
 #include "halo/units/unit.hpp"
 #include "halo/units/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/units/vars.hpp"
 
-extern "C" {
-extern uint8_t unit_updates_suppressed;
-}
+static auto &unit_updates_suppressed = halo::link::ref<uint8_t>(halo::units::vars().unit_updates_suppressed);
 
 namespace halo::units {
 

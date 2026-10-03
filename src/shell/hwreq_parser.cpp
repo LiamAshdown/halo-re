@@ -1,13 +1,13 @@
 #include "halo/shell/hwreq.hpp"
 #include "halo/shell/layout.hpp"
+#include "halo/core/link.hpp"
+#include "halo/shell/vars.hpp"
 
-extern "C" {
-extern hwreq_parser_vtable hwreq_parser_vtable_instance;
-extern char hwreq_open_error_text[];
-extern const char hwreq_cannot_find_format[];
-extern const char hwreq_config_file_suffix[];
-extern const char hwreq_version_root_block[];
-}
+static auto &hwreq_parser_vtable_instance = halo::link::ref<hwreq_parser_vtable>(halo::shell::vars().hwreq_parser_vtable_instance);
+static auto &hwreq_open_error_text = halo::link::ref<char []>(halo::shell::vars().hwreq_open_error_text);
+static auto &hwreq_cannot_find_format = halo::link::ref<const char []>(halo::shell::vars().hwreq_cannot_find_format);
+static auto &hwreq_config_file_suffix = halo::link::ref<const char []>(halo::shell::vars().hwreq_config_file_suffix);
+static auto &hwreq_version_root_block = halo::link::ref<const char []>(halo::shell::vars().hwreq_version_root_block);
 
 namespace halo::shell {
 

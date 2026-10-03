@@ -7,14 +7,10 @@
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 extern void player_update_history_play_local_player(int32_t target_update_id);
 extern uint8_t playback_requested_00719768;
-#ifdef __cplusplus
 }
-#endif
 
 namespace halo::hs {
 

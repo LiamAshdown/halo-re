@@ -2,11 +2,11 @@
 #include <string.h>
 #include "halo/memory/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/objects/vars.hpp"
 
-extern "C" {
-extern data_array *object_data;
-extern memory_pool *object_memory_pool;
-}
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &object_memory_pool = halo::link::ref<memory_pool *>(halo::objects::vars().object_memory_pool);
 
 /**
  * Allocates a datum in the array with a variable-length block of the given size.

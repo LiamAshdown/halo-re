@@ -15,20 +15,26 @@
 #include "halo/scenario/scenario.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/hs/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern char ai_marker_name_a[];
-extern data_array *player_data;
-extern game_time_globals *game_time;
-extern uint8_t *network_client;
 extern double cos(double x);
 extern double sin(double x);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_object, void *local_offset);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern uint32_t player_index_from_unit_index(datum_index object_index);
-extern data_array *object_headers;
 }
+static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &network_client = halo::link::ref<uint8_t *>(halo::networking::vars().network_client);
+static auto &object_headers = halo::link::ref<data_array *>(halo::hs::vars().object_headers);
 
 #undef OBJ
 #define OBJ(i) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(i) & halo::k_slot_mask].data)

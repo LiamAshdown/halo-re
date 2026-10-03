@@ -10,15 +10,17 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
 extern double acos(double x);
 extern double sin(double x);
 extern double fabs(double x);
-extern physics_model ground_adjust_physics_model;
 extern double sqrt(double x);
-extern real_point3d unit_ground_adjust_node_positions[64];
 }
+static auto &ground_adjust_physics_model = halo::link::ref<physics_model>(halo::units::vars().ground_adjust_physics_model);
+static auto &unit_ground_adjust_node_positions = halo::link::ref<real_point3d [64]>(halo::units::vars().unit_ground_adjust_node_positions);
 
 namespace halo::units {
 

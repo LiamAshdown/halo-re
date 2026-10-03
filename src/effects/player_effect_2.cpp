@@ -3,15 +3,17 @@
 #include "halo/math/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
 
 extern "C" {
-extern player_effect_globals *player_effect_globals_pointer;
-extern real_matrix4x3 *k_render_identity_matrix_ptr;
 extern double cos(double x);
 extern double sin(double x);
 extern void player_effect_random_shake_offset(real_matrix4x3 *out, real magnitude, real angle);
 void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_player_index);
 }
+static auto &player_effect_globals_pointer = halo::link::ref<player_effect_globals *>(halo::effects::vars().player_effect_globals_pointer);
+static auto &k_render_identity_matrix_ptr = halo::link::ref<real_matrix4x3 *>(halo::effects::vars().k_render_identity_matrix_ptr);
 
 namespace halo::effects {
 

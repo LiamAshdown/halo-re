@@ -1,10 +1,10 @@
 #include "halo/hs/hs3_machine.hpp"
 #include "crt.h"
 #include "halo/hs/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/hs/vars.hpp"
 
-extern "C" {
-extern hs_enum_definition hs_enum_definitions[5];
-}
+static auto &hs_enum_definitions = halo::link::ref<hs_enum_definition [5]>(halo::hs::vars().hs_enum_definitions);
 
 namespace halo::hs::part3 {
 

@@ -13,15 +13,15 @@
 #include "halo/saved_games/layout.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/text/text.hpp"
+#include "halo/core/link.hpp"
+#include "halo/saved_games/vars.hpp"
 
-extern "C" {
-extern file_enumeration_position file_enumeration_pos;
-extern uint32_t file_enumeration_flags_value;
-extern void *file_enumeration_handles[8];
-extern char file_enumeration_path[0x100];
-extern win32_find_dataa file_enumeration_find_data;
-extern char file_root_template[4];
-}
+static auto &file_enumeration_pos = halo::link::ref<file_enumeration_position>(halo::saved_games::vars().file_enumeration_pos);
+static auto &file_enumeration_flags_value = halo::link::ref<uint32_t>(halo::saved_games::vars().file_enumeration_flags_value);
+static auto &file_enumeration_handles = halo::link::ref<void *[8]>(halo::saved_games::vars().file_enumeration_handles);
+static auto &file_enumeration_path = halo::link::ref<char [0x100]>(halo::saved_games::vars().file_enumeration_path);
+static auto &file_enumeration_find_data = halo::link::ref<win32_find_dataa>(halo::saved_games::vars().file_enumeration_find_data);
+static auto &file_root_template = halo::link::ref<char [4]>(halo::saved_games::vars().file_root_template);
 
 /**
  * Closes ref's open handle and clears it. Returns 1 on success, 0 on failure (after reporting

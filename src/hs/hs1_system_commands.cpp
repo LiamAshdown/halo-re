@@ -7,15 +7,18 @@
 #include "halo/hs/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/hs/vars.hpp"
+#include "halo/main/vars.hpp"
 
 extern "C" {
 extern void game_engine_send_team_allegiance_message(char broadcast);
-extern int32_t console_message_head;
-extern int32_t console_message_tail;
-extern uint8_t main_globals_byte_00719752;
-extern uint8_t main_globals_byte_00719753;
-extern uint8_t main_globals_byte_00719751;
 }
+static auto &console_message_head = halo::link::ref<int32_t>(halo::main::vars().console_message_head);
+static auto &console_message_tail = halo::link::ref<int32_t>(halo::main::vars().console_message_tail);
+static auto &main_globals_byte_00719752 = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_00719752);
+static auto &main_globals_byte_00719753 = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_00719753);
+static auto &main_globals_byte_00719751 = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_00719751);
 
 namespace halo::hs {
 

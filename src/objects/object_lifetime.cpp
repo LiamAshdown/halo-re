@@ -13,6 +13,12 @@
 #include "halo/sound/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/objects/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
 extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time);
@@ -20,15 +26,15 @@ extern datum_index contrail_new(int16_t attachment_index, datum_index object_ind
 extern void effect_delete(datum_index handle);
 extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index, int16_t change_color_index, int16_t u, int16_t v);
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern data_array *game_looping_sound_data;
-extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
-extern void *network_object_index_cache;
-extern data_array *object_data;
-extern network_id_table *object_network_id_table;
-extern data_array *particle_system_data;
 extern datum_index particle_system_new_on_marker(uint32_t definition_index, uint32_t object_index, int16_t attachment_index);
-extern void (*object_delete_callbacks[3])(uint32_t object_index);
 }
+static auto &game_looping_sound_data = halo::link::ref<data_array *>(halo::ui::vars().game_looping_sound_data);
+static auto &network_message_scratch = halo::link::ref<uint8_t [halo::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
+static auto &network_object_index_cache = halo::link::ref<void *>(halo::units::vars().network_object_index_cache);
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
+static auto &particle_system_data = halo::link::ref<data_array *>(halo::effects::vars().particle_system_data);
+static auto &object_delete_callbacks = halo::link::ref<void (*[3])(uint32_t object_index)>(halo::objects::vars().object_delete_callbacks);
 
 /**
  * Runs the common teardown before an object datum is freed.

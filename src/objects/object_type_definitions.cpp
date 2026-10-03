@@ -1,13 +1,15 @@
 #include "halo/objects/object_type_definitions.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/objects/vars.hpp"
+#include "halo/units/vars.hpp"
 
-extern "C" {
-extern data_array *object_data;
-extern network_id_table *object_network_id_table;
-extern object_type_definition *object_type_definition_list;
-extern object_type_definition *object_type_definitions[k_maximum_object_types];
-}
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
+static auto &object_type_definition_list = halo::link::ref<object_type_definition *>(halo::objects::vars().object_type_definition_list);
+static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
 
 /**
  * Builds the chain list of object type definitions from their sub-definitions.

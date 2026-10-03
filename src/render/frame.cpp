@@ -28,22 +28,27 @@
 #include "halo/scenario/scenario.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/cutscene/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/render/vars.hpp"
 
 extern "C" {
-extern int32_t render_frame_index;
-extern float render_time_since_tick;
-extern float render_time_since_frame;
-extern int16_t render_window_index;
-extern int16_t screenshot_scale;
-extern ColorARGB *rasterizer_model_ambient_reflection_tint;
-extern render_camera render_camera_global;
-extern render_frustum render_frustum_global;
-extern render_fog render_fog_state;
-extern uint8_t render_clip_warning;
-extern uint32_t rasterizer_device_version;
-extern uint8_t rasterizer_caps_flag_68a;
 extern void widget_draw_fullscreen_region(int16_t controller_index);
 }
+static auto &render_frame_index = halo::link::ref<int32_t>(halo::render::vars().render_frame_index);
+static auto &render_time_since_tick = halo::link::ref<float>(halo::render::vars().render_time_since_tick);
+static auto &render_time_since_frame = halo::link::ref<float>(halo::render::vars().render_time_since_frame);
+static auto &render_window_index = halo::link::ref<int16_t>(halo::render::vars().render_window_index);
+static auto &screenshot_scale = halo::link::ref<int16_t>(halo::main::vars().screenshot_scale);
+static auto &rasterizer_model_ambient_reflection_tint = halo::link::ref<ColorARGB *>(halo::cutscene::vars().rasterizer_model_ambient_reflection_tint);
+static auto &render_camera_global = halo::link::ref<render_camera>(halo::render::vars().render_camera_global);
+static auto &render_frustum_global = halo::link::ref<render_frustum>(halo::render::vars().render_frustum_global);
+static auto &render_fog_state = halo::link::ref<render_fog>(halo::render::vars().render_fog_state);
+static auto &render_clip_warning = halo::link::ref<uint8_t>(halo::render::vars().render_clip_warning);
+static auto &rasterizer_device_version = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_device_version);
+static auto &rasterizer_caps_flag_68a = halo::link::ref<uint8_t>(halo::ui::vars().rasterizer_caps_flag_68a);
 
 namespace halo::render::frame {
 

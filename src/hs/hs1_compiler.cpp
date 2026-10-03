@@ -10,13 +10,13 @@
 #include "halo/main/api.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/text/text.hpp"
+#include "halo/core/link.hpp"
+#include "halo/hs/vars.hpp"
 
-extern "C" {
-extern uint8_t hs_syntax_data_dirty;
-extern uint8_t hs_compiling;
-extern uint8_t hs_compile_release_source;
-extern uint8_t hs_compiled_source_owned;
-}
+static auto &hs_syntax_data_dirty = halo::link::ref<uint8_t>(halo::hs::vars().hs_syntax_data_dirty);
+static auto &hs_compiling = halo::link::ref<uint8_t>(halo::hs::vars().hs_compiling);
+static auto &hs_compile_release_source = halo::link::ref<uint8_t>(halo::hs::vars().hs_compile_release_source);
+static auto &hs_compiled_source_owned = halo::link::ref<uint8_t>(halo::hs::vars().hs_compiled_source_owned);
 
 namespace halo::hs {
 

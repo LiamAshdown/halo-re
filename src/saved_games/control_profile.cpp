@@ -19,25 +19,28 @@
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/saved_games/vars.hpp"
 
 static_assert(halo::saved_games::k_input_device_stride_dwords * sizeof(uint32_t) == sizeof(input_device));
 
 extern "C" {
-extern int16_t control_keyboard_scan_table[k_control_keyboard_key_count];
-extern int16_t control_mouse_button_scan_table[k_control_mouse_button_count];
-extern int16_t control_mouse_axis_scan_table[k_control_mouse_axis_count][2];
-extern int16_t control_gamepad_button_scan_table[k_control_gamepad_count][k_control_gamepad_button_count];
-extern int16_t control_gamepad_axis_scan_table[k_control_gamepad_count][k_control_gamepad_axis_count][2];
-extern int16_t control_gamepad_pov_scan_table[k_control_gamepad_count][k_control_gamepad_pov_count][k_control_gamepad_pov_direction_count];
-extern int32_t input_device_count;
-extern int32_t input_device_to_slot[];
 extern void *memcpy(void *dest, const void *src, uint32_t count);
-extern uint8_t input_devices[];
-extern int16_t control_gamepad_action_scan_buttons[k_control_gamepad_count][2];
-extern saved_player_profile saved_item_working_copy;
-extern network_thread_record *variant_write_thread;
-extern variant_write_request variant_write_request_state;
 }
+static auto &control_keyboard_scan_table = halo::link::ref<int16_t [k_control_keyboard_key_count]>(halo::ui::vars().control_keyboard_scan_table);
+static auto &control_mouse_button_scan_table = halo::link::ref<int16_t [k_control_mouse_button_count]>(halo::ui::vars().control_mouse_button_scan_table);
+static auto &control_mouse_axis_scan_table = halo::link::ref<int16_t [k_control_mouse_axis_count][2]>(halo::saved_games::vars().control_mouse_axis_scan_table);
+static auto &control_gamepad_button_scan_table = halo::link::ref<int16_t [k_control_gamepad_count][k_control_gamepad_button_count]>(halo::saved_games::vars().control_gamepad_button_scan_table);
+static auto &control_gamepad_axis_scan_table = halo::link::ref<int16_t [k_control_gamepad_count][k_control_gamepad_axis_count][2]>(halo::saved_games::vars().control_gamepad_axis_scan_table);
+static auto &control_gamepad_pov_scan_table = halo::link::ref<int16_t [k_control_gamepad_count][k_control_gamepad_pov_count][k_control_gamepad_pov_direction_count]>(halo::saved_games::vars().control_gamepad_pov_scan_table);
+static auto &input_device_count = halo::link::ref<int32_t>(halo::ui::vars().input_device_count);
+static auto &input_device_to_slot = halo::link::ref<int32_t []>(halo::saved_games::vars().input_device_to_slot);
+static auto &input_devices = halo::link::ref<uint8_t []>(halo::ui::vars().input_devices);
+static auto &control_gamepad_action_scan_buttons = halo::link::ref<int16_t [k_control_gamepad_count][2]>(halo::saved_games::vars().control_gamepad_action_scan_buttons);
+static auto &saved_item_working_copy = halo::link::ref<saved_player_profile>(halo::ui::vars().saved_item_working_copy);
+static auto &variant_write_thread = halo::link::ref<network_thread_record *>(halo::saved_games::vars().variant_write_thread);
+static auto &variant_write_request_state = halo::link::ref<variant_write_request>(halo::saved_games::vars().variant_write_request_state);
 
 /**
  * Unbinds whatever device slot the binding descriptor names, by writing the unbound marker into

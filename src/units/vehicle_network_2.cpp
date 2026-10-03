@@ -3,13 +3,16 @@
 #include "halo/cseries/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern network_id_table *object_network_id_table;
 extern int64_t __allmul(int32_t a_low, int32_t a_high, int32_t b_low, int32_t b_high);
 extern int32_t __alldiv(int64_t a, int32_t b_low, int32_t b_high);
 }
+static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 
 namespace halo::units {
 

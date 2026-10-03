@@ -8,15 +8,18 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern network_id_table *object_network_id_table;
-extern network_id_table *machine_table;
-extern uint8_t network_object_index_cache[];
-extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern int64_t __allmul(int32_t a_low, int32_t a_high, int32_t b_low, int32_t b_high);
 extern int32_t __alldiv(int64_t a, int32_t b_low, int32_t b_high);
 }
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
+static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
+static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
+static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
 
 namespace halo::units {
 

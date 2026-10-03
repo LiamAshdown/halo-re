@@ -7,17 +7,15 @@
 #include "halo/items/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/items/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern real equipment_network_update_position_tolerance;
 extern double sqrt(double x);
-extern network_id_table *object_network_id_table;
-extern network_id_table *machine_table;
-extern uint8_t network_object_index_cache[];
-extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern uint32_t sound_play_new(uint32_t sound_tag_id, void *parameters, uint32_t owner_index, int32_t extra_size, void *extra, uint32_t extra_count, uint32_t allow_deferred);
-extern void *game_time;
-extern int32_t k_equipment_minimum_age_ticks;
 void halo::items::equipment_apply_network_update(datum_index item_index, uint32_t *update_record);
 int32_t halo::items::equipment_build_network_update(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
 void halo::items::equipment_create_from_creation_message(void *incoming_record);
@@ -29,6 +27,13 @@ void halo::items::equipment_new_from_placement(uint32_t equipment_object_index, 
 void halo::items::equipment_pickup_play_sound(uint32_t object_index);
 void halo::items::equipment_send_creation(uint32_t item_index, uint32_t arg2, uint32_t arg3);
 }
+static auto &equipment_network_update_position_tolerance = halo::link::ref<real>(halo::items::vars().equipment_network_update_position_tolerance);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
+static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
+static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
+static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
+static auto &game_time = halo::link::ref<void *>(halo::ai::vars().game_time);
+static auto &k_equipment_minimum_age_ticks = halo::link::ref<int32_t>(halo::items::vars().k_equipment_minimum_age_ticks);
 
 namespace halo::items {
 

@@ -192,7 +192,7 @@ void Console::autocomplete_command(void)
 }
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
-static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::interface::vars().profile_globals_block);
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
 namespace halo::main {
 
 /**
@@ -256,9 +256,9 @@ uint32_t Console::command_context_mask(uint32_t context_flags)
 }
 
 static auto &input_globals = halo::link::ref<input_abstraction_globals>(halo::main::vars().input_globals);
-static auto &keyboard_device = halo::link::ref<void *>(halo::interface::vars().keyboard_device);
-static auto &key_frames = halo::link::ref<uint8_t [0x6d]>(halo::interface::vars().key_frames);
-static auto &key_release_pending = halo::link::ref<uint8_t [0x6d]>(halo::interface::vars().key_release_pending);
+static auto &keyboard_device = halo::link::ref<void *>(halo::ui::vars().keyboard_device);
+static auto &key_frames = halo::link::ref<uint8_t [0x6d]>(halo::ui::vars().key_frames);
+static auto &key_release_pending = halo::link::ref<uint8_t [0x6d]>(halo::ui::vars().key_release_pending);
 namespace halo::main {
 
 /**
@@ -630,7 +630,7 @@ void Console::process_rcon_command(int32_t rcon_handle, char *command_line)
 
 }
 
-static auto &virtual_keyboard = halo::link::ref<uint8_t>(halo::interface::vars().virtual_keyboard);
+static auto &virtual_keyboard = halo::link::ref<uint8_t>(halo::ui::vars().virtual_keyboard);
 namespace halo::main {
 
 /**

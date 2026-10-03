@@ -6,18 +6,21 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/hs/vars.hpp"
+#include "halo/networking/vars.hpp"
 
 extern "C" {
 extern void sv_ban(uint32_t argument_count, int32_t *arguments);
 extern void network_banlist_print(void);
 extern void chimera__console_out(void *color, char *format, ...);
 extern void game_engine_begin_end_game_sequence(void);
-extern void *global_white_argb;
 extern void game_engine_find_player_by_name(char *source_name);
-extern uint8_t message_delta_parameters_enabled;
-extern char message_delta_config_text_buffer[];
-extern growable_array ban_list;
 }
+static auto &global_white_argb = halo::link::ref<void *>(halo::networking::vars().global_white_argb);
+static auto &message_delta_parameters_enabled = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_enabled);
+static auto &message_delta_config_text_buffer = halo::link::ref<char []>(halo::hs::vars().message_delta_config_text_buffer);
+static auto &ban_list = halo::link::ref<growable_array>(halo::networking::vars().ban_list);
 
 namespace halo::hs::part3 {
 

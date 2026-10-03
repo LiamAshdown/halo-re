@@ -5,13 +5,15 @@
 #include "halo/core/datum.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 extern "C" {
 extern void *memset(void *dst, int32_t value, uint32_t size);
 extern double fcos(double x);
 extern double fsin(double x);
-extern void *global_origin3d_pointer;
 }
+static auto &global_origin3d_pointer = halo::link::ref<void *>(halo::ai::vars().global_origin3d_pointer);
 
 namespace halo::hs {
 

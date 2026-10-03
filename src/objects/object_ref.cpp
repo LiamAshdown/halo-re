@@ -23,26 +23,31 @@
 #include "halo/scenario/scenario.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/objects/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern char ai_marker_name_a[];
 extern double atan2(double y, double x);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern datum_index *collideable_cluster_first;
-extern void *collideable_cluster_partition;
 extern double cos(double x);
-extern real_vector3d *global_origin3d_pointer;
-extern player_globals *local_player_globals;
-extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
-extern void *network_object_index_cache;
-extern datum_index *noncollideable_cluster_first;
-extern void *noncollideable_cluster_partition;
-extern data_array *object_data;
-extern object_globals *object_globals_pointer;
-extern uint8_t object_marker_scratch[0x6c];
-extern datum_index *object_name_list;
 extern double sqrt(double x);
 }
+static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
+static auto &collideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().collideable_cluster_first);
+static auto &collideable_cluster_partition = halo::link::ref<void *>(halo::objects::vars().collideable_cluster_partition);
+static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &network_message_scratch = halo::link::ref<uint8_t [halo::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
+static auto &network_object_index_cache = halo::link::ref<void *>(halo::units::vars().network_object_index_cache);
+static auto &noncollideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().noncollideable_cluster_first);
+static auto &noncollideable_cluster_partition = halo::link::ref<void *>(halo::objects::vars().noncollideable_cluster_partition);
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &object_globals_pointer = halo::link::ref<object_globals *>(halo::objects::vars().object_globals_pointer);
+static auto &object_marker_scratch = halo::link::ref<uint8_t [0x6c]>(halo::objects::vars().object_marker_scratch);
+static auto &object_name_list = halo::link::ref<datum_index *>(halo::objects::vars().object_name_list);
 
 /**
  * Returns the object's bounding centre and bounding radius.

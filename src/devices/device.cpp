@@ -11,14 +11,17 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/models/models.hpp"
+#include "halo/core/link.hpp"
+#include "halo/devices/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern data_array *device_groups;
-extern void *global_zero_vector3d_pointer;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 extern object *object_iterator_next(object_iterator *iterator);
 }
+static auto &device_groups = halo::link::ref<data_array *>(halo::devices::vars().device_groups);
+static auto &global_zero_vector3d_pointer = halo::link::ref<void *>(halo::units::vars().global_zero_vector3d_pointer);
 
 namespace {
 

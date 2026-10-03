@@ -10,21 +10,24 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/physics/vars.hpp"
 
 extern "C" {
-extern data_array *decal_data;
-extern decal_grid *decal_grid_block;
-extern cache *rasterizer_decal_vertex_cache_handle;
-extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
-extern real_point2d decal_clip_buffers[2][12];
-extern const decal_type_parameters k_decal_type_parameters[4];
 extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer);
-extern uint8_t decals_enabled;
-extern uint8_t decals_for_all_responses;
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t sequence_index);
 extern long lrint(double x);
 }
+static auto &decal_data = halo::link::ref<data_array *>(halo::effects::vars().decal_data);
+static auto &decal_grid_block = halo::link::ref<decal_grid *>(halo::effects::vars().decal_grid_block);
+static auto &rasterizer_decal_vertex_cache_handle = halo::link::ref<cache *>(halo::effects::vars().rasterizer_decal_vertex_cache_handle);
+static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);
+static auto &decal_clip_buffers = halo::link::ref<real_point2d [2][12]>(halo::effects::vars().decal_clip_buffers);
+static auto &k_decal_type_parameters = halo::link::ref<const decal_type_parameters [4]>(halo::effects::vars().k_decal_type_parameters);
+static auto &decals_enabled = halo::link::ref<uint8_t>(halo::effects::vars().decals_enabled);
+static auto &decals_for_all_responses = halo::link::ref<uint8_t>(halo::effects::vars().decals_for_all_responses);
 
 namespace halo::effects {
 

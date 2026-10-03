@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stdint.h>
+#include "halo/core/link.hpp"
+#include "halo/hs/vars.hpp"
 
 /**
  * Link names of the script-visible cheat and debug flags (and the director camera request flag) that the
@@ -8,20 +10,21 @@
  * original names (the hs global table points at them); the named references of halo::hs::globals below are
  * what the engine code uses.
  */
-extern "C" {
-extern uint8_t g_0087abc0;
-extern uint8_t DAT_0087abc1;
-extern uint8_t DAT_0087abc3;
-extern uint8_t g_0087abc5;
-extern uint8_t ai_debug_gate_87abc6;
-extern uint8_t g_0087abc7;
-extern uint8_t cheat_super_jump;
-extern uint8_t DAT_00689471;
-extern uint8_t g_00689481;
-extern uint8_t unknown_00746fa4;
-extern uint8_t unknown_006869d1;
-extern uint8_t unknown_006894ba;
-}
+inline auto &g_0087abc0 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc0);
+inline auto &DAT_0087abc1 = halo::link::ref<uint8_t>(halo::hs::vars().DAT_0087abc1);
+inline auto &DAT_0087abc3 = halo::link::ref<uint8_t>(halo::hs::vars().DAT_0087abc3);
+inline auto &g_0087abc5 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc5);
+inline auto &ai_debug_gate_87abc6 = halo::link::ref<uint8_t>(halo::hs::vars().ai_debug_gate_87abc6);
+inline auto &g_0087abc7 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc7);
+inline auto &cheat_super_jump = halo::link::ref<uint8_t>(halo::hs::vars().cheat_super_jump);
+inline auto &DAT_00689471 = halo::link::ref<uint8_t>(halo::hs::vars().DAT_00689471);
+inline auto &g_00689481 = halo::link::ref<uint8_t>(halo::hs::vars().g_00689481);
+inline auto &unknown_00746fa4 = halo::link::ref<uint8_t>(halo::hs::vars().unknown_00746fa4);
+inline auto &unknown_006869d1 = halo::link::ref<uint8_t>(halo::hs::vars().unknown_006869d1);
+#ifndef HALO_LINKED_unknown_006894ba
+#define HALO_LINKED_unknown_006894ba
+inline auto &unknown_006894ba = halo::link::ref<uint8_t>(halo::hs::vars().unknown_006894ba);
+#endif
 
 namespace halo::hs::fields {
 

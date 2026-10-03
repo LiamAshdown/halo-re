@@ -1,35 +1,36 @@
 #include "halo/shell/system.hpp"
 #include "halo/shell/diagnostics.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/shell/vars.hpp"
 
-extern "C" {
-extern char **shell_argv;
-extern int32_t shell_argc;
-extern char k_empty_string;
-extern void *shell_window;
-extern uint32_t crypt_provider;
-extern char product_id_string[k_product_id_string_length];
-extern int32_t cpu_identification_state;
-extern char cpu_vendor_string[0x10];
-extern char cpu_brand_string[0x30];
-extern uint32_t cpu_signature;
-extern uint32_t cpu_features;
-extern uint32_t cpu_extended_features;
-extern uint32_t cpu_l1_tlb_large;
-extern uint32_t cpu_l1_tlb_4k;
-extern uint32_t cpu_l1_data_cache;
-extern uint32_t cpu_l1_code_cache;
-extern uint32_t cpu_l2_tlb_large;
-extern uint32_t cpu_l2_tlb_4k;
-extern uint32_t cpu_l2_cache;
-extern uint32_t cpu_l2_unknown;
-extern int32_t os_platform_value;
-extern int32_t security_write_access_state;
-extern int32_t shell_instance_mode_value;
-extern int32_t shell_instance_index;
-extern void *shell_instance_mutex;
-extern char *shell_instance_mutex_names[9];
-extern char *shell_module_path;
-}
+static auto &shell_argv = halo::link::ref<char **>(halo::shell::vars().shell_argv);
+static auto &shell_argc = halo::link::ref<int32_t>(halo::shell::vars().shell_argc);
+static auto &k_empty_string = halo::link::ref<char>(halo::networking::vars().k_empty_string);
+static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
+static auto &crypt_provider = halo::link::ref<uint32_t>(halo::shell::vars().crypt_provider);
+static auto &product_id_string = halo::link::ref<char [k_product_id_string_length]>(halo::shell::vars().product_id_string);
+static auto &cpu_identification_state = halo::link::ref<int32_t>(halo::shell::vars().cpu_identification_state);
+static auto &cpu_vendor_string = halo::link::ref<char [0x10]>(halo::shell::vars().cpu_vendor_string);
+static auto &cpu_brand_string = halo::link::ref<char [0x30]>(halo::shell::vars().cpu_brand_string);
+static auto &cpu_signature = halo::link::ref<uint32_t>(halo::shell::vars().cpu_signature);
+static auto &cpu_features = halo::link::ref<uint32_t>(halo::shell::vars().cpu_features);
+static auto &cpu_extended_features = halo::link::ref<uint32_t>(halo::shell::vars().cpu_extended_features);
+static auto &cpu_l1_tlb_large = halo::link::ref<uint32_t>(halo::shell::vars().cpu_l1_tlb_large);
+static auto &cpu_l1_tlb_4k = halo::link::ref<uint32_t>(halo::shell::vars().cpu_l1_tlb_4k);
+static auto &cpu_l1_data_cache = halo::link::ref<uint32_t>(halo::shell::vars().cpu_l1_data_cache);
+static auto &cpu_l1_code_cache = halo::link::ref<uint32_t>(halo::shell::vars().cpu_l1_code_cache);
+static auto &cpu_l2_tlb_large = halo::link::ref<uint32_t>(halo::shell::vars().cpu_l2_tlb_large);
+static auto &cpu_l2_tlb_4k = halo::link::ref<uint32_t>(halo::shell::vars().cpu_l2_tlb_4k);
+static auto &cpu_l2_cache = halo::link::ref<uint32_t>(halo::shell::vars().cpu_l2_cache);
+static auto &cpu_l2_unknown = halo::link::ref<uint32_t>(halo::shell::vars().cpu_l2_unknown);
+static auto &os_platform_value = halo::link::ref<int32_t>(halo::shell::vars().os_platform_value);
+static auto &security_write_access_state = halo::link::ref<int32_t>(halo::shell::vars().security_write_access_state);
+static auto &shell_instance_mode_value = halo::link::ref<int32_t>(halo::shell::vars().shell_instance_mode_value);
+static auto &shell_instance_index = halo::link::ref<int32_t>(halo::shell::vars().shell_instance_index);
+static auto &shell_instance_mutex = halo::link::ref<void *>(halo::shell::vars().shell_instance_mutex);
+static auto &shell_instance_mutex_names = halo::link::ref<char *[9]>(halo::shell::vars().shell_instance_mutex_names);
+static auto &shell_module_path = halo::link::ref<char *>(halo::shell::vars().shell_module_path);
 
 namespace halo::shell {
 

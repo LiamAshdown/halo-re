@@ -1,28 +1,31 @@
 #include "halo/rasterizer/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
 
-extern "C" {
-extern void *rasterizer_device;
-extern int32_t rasterizer_device_version;
-extern uint8_t rasterizer_fullscreen;
-extern int32_t rasterizer_gamma_exponent;
-extern int32_t rasterizer_window_requested;
-extern float rasterizer_default_z_near;
-extern float rasterizer_default_z_far;
-extern int32_t rasterizer_present_counter_high;
-extern int32_t rasterizer_present_counter_low;
-extern uint8_t rasterizer_needs_reset;
-extern int16_t rasterizer_vertex_buffer_lock_state;
-extern char *rasterizer_shader_file_name;
-extern void *rasterizer_dynamic_index_buffer;
-extern uint32_t rasterizer_decal_vertex_cache_handle;
-extern uint8_t rasterizer_render_states_dirty;
-extern rasterizer_window_parameters rasterizer_window;
-extern rasterizer_frame_statistics rasterizer_frame_statistics_state;
-extern d3d_caps9 rasterizer_caps;
-extern d3d_present_parameters rasterizer_present_parameters;
-extern uint8_t rasterizer_software_vertex_processing;
-extern void *rasterizer_window_handle;
-}
+static auto &rasterizer_device = halo::link::ref<void *>(halo::game::vars().rasterizer_device);
+static auto &rasterizer_device_version = halo::link::ref<int32_t>(halo::ui::vars().rasterizer_device_version);
+static auto &rasterizer_fullscreen = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_fullscreen);
+static auto &rasterizer_gamma_exponent = halo::link::ref<int32_t>(halo::rasterizer::vars().rasterizer_gamma_exponent);
+static auto &rasterizer_window_requested = halo::link::ref<int32_t>(halo::rasterizer::vars().rasterizer_window_requested);
+static auto &rasterizer_default_z_near = halo::link::ref<float>(halo::rasterizer::vars().rasterizer_default_z_near);
+static auto &rasterizer_default_z_far = halo::link::ref<float>(halo::rasterizer::vars().rasterizer_default_z_far);
+static auto &rasterizer_present_counter_high = halo::link::ref<int32_t>(halo::rasterizer::vars().rasterizer_present_counter_high);
+static auto &rasterizer_present_counter_low = halo::link::ref<int32_t>(halo::rasterizer::vars().rasterizer_present_counter_low);
+static auto &rasterizer_needs_reset = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_needs_reset);
+static auto &rasterizer_vertex_buffer_lock_state = halo::link::ref<int16_t>(halo::rasterizer::vars().rasterizer_vertex_buffer_lock_state);
+static auto &rasterizer_shader_file_name = halo::link::ref<char *>(halo::rasterizer::vars().rasterizer_shader_file_name);
+static auto &rasterizer_dynamic_index_buffer = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_dynamic_index_buffer);
+static auto &rasterizer_decal_vertex_cache_handle = halo::link::ref<uint32_t>(halo::effects::vars().rasterizer_decal_vertex_cache_handle);
+static auto &rasterizer_render_states_dirty = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_render_states_dirty);
+static auto &rasterizer_window = halo::link::ref<rasterizer_window_parameters>(halo::rasterizer::vars().rasterizer_window);
+static auto &rasterizer_frame_statistics_state = halo::link::ref<rasterizer_frame_statistics>(halo::rasterizer::vars().rasterizer_frame_statistics_state);
+static auto &rasterizer_caps = halo::link::ref<d3d_caps9>(halo::rasterizer::vars().rasterizer_caps);
+static auto &rasterizer_present_parameters = halo::link::ref<d3d_present_parameters>(halo::rasterizer::vars().rasterizer_present_parameters);
+static auto &rasterizer_software_vertex_processing = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_software_vertex_processing);
+static auto &rasterizer_window_handle = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_window_handle);
 
 namespace halo::rasterizer {
 

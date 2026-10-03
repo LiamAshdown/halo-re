@@ -6,12 +6,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
 
 extern "C" {
-extern data_array *particle_system_data;
-extern data_array *particle_system_particle_data;
-extern void (*particle_system_update_physics_table[2])(particle_system *self, float delta_time);
-extern void (*particle_update_physics_table[1])(particle_system *self, int32_t type_index, float delta_time, particle_system_particle *particle);
 extern void particle_system_spawn(particle_system *self, int32_t type_index, float dt);
 extern void particle_system_delete(datum_index handle);
 extern void particle_system_advance_type_state(particle_system_type_state *state, ParticleSystemType *type, particle_system *system);
@@ -19,6 +17,10 @@ extern void particle_system_advance_particle_state(particle_system_particle *par
 extern void particle_system_roll_particle_state(int16_t index, ParticleSystemTypeParticleState *states, particle_state_values *out);
 void particle_system_update(float delta_time, datum_index handle);
 }
+static auto &particle_system_data = halo::link::ref<data_array *>(halo::effects::vars().particle_system_data);
+static auto &particle_system_particle_data = halo::link::ref<data_array *>(halo::effects::vars().particle_system_particle_data);
+static auto &particle_system_update_physics_table = halo::link::ref<void (*[2])(particle_system *self, float delta_time)>(halo::effects::vars().particle_system_update_physics_table);
+static auto &particle_update_physics_table = halo::link::ref<void (*[1])(particle_system *self, int32_t type_index, float delta_time, particle_system_particle *particle)>(halo::effects::vars().particle_update_physics_table);
 
 namespace halo::effects {
 

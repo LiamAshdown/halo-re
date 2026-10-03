@@ -12,34 +12,39 @@
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/objects/vars.hpp"
+#include "halo/physics/vars.hpp"
 
 extern "C" {
-extern void *ai_gc_callback_table;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern datum_index *collideable_cluster_first;
-extern void *collideable_cluster_partition;
-extern uint32_t global_structure_collision_bsp;
-extern datum_index *light_cluster_first;
-extern data_array *light_cluster_references;
-extern data_array *light_data;
-extern data_array *light_object_references;
-extern uint8_t *main_game_globals;
-extern char network_log_path_format[];
-extern datum_index *noncollideable_cluster_first;
-extern void *noncollideable_cluster_partition;
-extern data_array *noncollideable_object_references;
-extern data_array *object_data;
-extern object_globals *object_globals_pointer;
-extern memory_pool *object_memory_pool;
-extern datum_index *object_name_list;
-extern int32_t object_sound_event_last_tick;
-extern object_type_definition *object_type_definition_list;
-extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern uint32_t object_unknown_006b8c60;
-extern uint16_t object_visibility_computed_mask;
 extern int32_t sprintf(char *buffer, const char *format, ...);
-extern widget_type_definition widget_type_definitions[k_maximum_widget_types];
 }
+static auto &ai_gc_callback_table = halo::link::ref<void *>(halo::objects::vars().ai_gc_callback_table);
+static auto &collideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().collideable_cluster_first);
+static auto &collideable_cluster_partition = halo::link::ref<void *>(halo::objects::vars().collideable_cluster_partition);
+static auto &global_structure_collision_bsp = halo::link::ref<uint32_t>(halo::physics::vars().global_structure_collision_bsp);
+static auto &light_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().light_cluster_first);
+static auto &light_cluster_references = halo::link::ref<data_array *>(halo::objects::vars().light_cluster_references);
+static auto &light_data = halo::link::ref<data_array *>(halo::objects::vars().light_data);
+static auto &light_object_references = halo::link::ref<data_array *>(halo::objects::vars().light_object_references);
+static auto &main_game_globals = halo::link::ref<uint8_t *>(halo::game::vars().main_game_globals);
+static auto &network_log_path_format = halo::link::ref<char []>(halo::networking::vars().network_log_path_format);
+static auto &noncollideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().noncollideable_cluster_first);
+static auto &noncollideable_cluster_partition = halo::link::ref<void *>(halo::objects::vars().noncollideable_cluster_partition);
+static auto &noncollideable_object_references = halo::link::ref<data_array *>(halo::objects::vars().noncollideable_object_references);
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &object_globals_pointer = halo::link::ref<object_globals *>(halo::objects::vars().object_globals_pointer);
+static auto &object_memory_pool = halo::link::ref<memory_pool *>(halo::objects::vars().object_memory_pool);
+static auto &object_name_list = halo::link::ref<datum_index *>(halo::objects::vars().object_name_list);
+static auto &object_sound_event_last_tick = halo::link::ref<int32_t>(halo::objects::vars().object_sound_event_last_tick);
+static auto &object_type_definition_list = halo::link::ref<object_type_definition *>(halo::objects::vars().object_type_definition_list);
+static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
+static auto &object_unknown_006b8c60 = halo::link::ref<uint32_t>(halo::objects::vars().object_unknown_006b8c60);
+static auto &object_visibility_computed_mask = halo::link::ref<uint16_t>(halo::objects::vars().object_visibility_computed_mask);
+static auto &widget_type_definitions = halo::link::ref<widget_type_definition [k_maximum_widget_types]>(halo::objects::vars().widget_type_definitions);
 
 /**
  * Deletes unparented scenery and light fixtures.

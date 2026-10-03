@@ -37,19 +37,19 @@ static auto &timedemo_last_frame_index = halo::link::ref<int32_t>(halo::main::va
 static auto &local_player_input_frozen = halo::link::ref<uint8_t []>(halo::game::vars().local_player_input_frozen);
 static auto &console_debug_flag_5 = halo::link::ref<uint8_t>(halo::main::vars().console_debug_flag_5);
 static auto &timedemo_pixel_shader_version = halo::link::ref<char [0x14]>(halo::main::vars().timedemo_pixel_shader_version);
-static auto &os_platform_refresh_default = halo::link::ref<int32_t>(halo::interface::vars().os_platform_refresh_default);
+static auto &os_platform_refresh_default = halo::link::ref<int32_t>(halo::ui::vars().os_platform_refresh_default);
 static auto &graphics_vendor_name = halo::link::ref<char *>(halo::shell::vars().graphics_vendor_name);
 static auto &graphics_device_name = halo::link::ref<char *>(halo::shell::vars().graphics_device_name);
 static auto &graphics_device_id = halo::link::ref<uint32_t>(halo::shell::vars().graphics_device_id);
 static auto &graphics_driver_version = halo::link::ref<uint16_t [4]>(halo::main::vars().graphics_driver_version);
 static auto &physical_memory = halo::link::ref<uint32_t>(halo::shell::vars().physical_memory);
 static auto &cpu_speed = halo::link::ref<uint32_t>(halo::shell::vars().cpu_speed);
-static auto &video_memory = halo::link::ref<uint32_t>(halo::interface::vars().video_memory);
+static auto &video_memory = halo::link::ref<uint32_t>(halo::ui::vars().video_memory);
 static auto &shell_startup_tick_count = halo::link::ref<uint32_t>(halo::main::vars().shell_startup_tick_count);
-static auto &sound_permutation_limit = halo::link::ref<int16_t>(halo::interface::vars().sound_permutation_limit);
+static auto &sound_permutation_limit = halo::link::ref<int16_t>(halo::ui::vars().sound_permutation_limit);
 static auto &directsound_eax_enabled = halo::link::ref<uint8_t>(halo::hs::vars().directsound_eax_enabled);
 static auto &directsound_quality = halo::link::ref<int32_t>(halo::main::vars().directsound_quality);
-static auto &renderer_texture_quality = halo::link::ref<int16_t>(halo::interface::vars().renderer_texture_quality);
+static auto &renderer_texture_quality = halo::link::ref<int16_t>(halo::ui::vars().renderer_texture_quality);
 static auto &light_count_enabled = halo::link::ref<int16_t>(halo::effects::vars().light_count_enabled);
 extern "C" { extern uint32_t user_profile_signin_state_is_valid(void); }
 namespace halo::main {

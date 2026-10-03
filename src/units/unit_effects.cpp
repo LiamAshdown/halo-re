@@ -11,14 +11,17 @@
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern real_point3d *global_zero_vector3d_pointer;
 extern uint8_t object_physics_context_build(uint32_t object_index, object_physics_context *out_context);
-extern char ai_marker_name_a[];
-extern char ai_marker_name_b[];
 extern double sqrt(double x);
 }
+static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
+static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
+static auto &ai_marker_name_b = halo::link::ref<char []>(halo::ai::vars().ai_marker_name_b);
 
 namespace halo::units {
 

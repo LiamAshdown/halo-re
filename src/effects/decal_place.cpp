@@ -9,12 +9,10 @@
 #include "halo/physics/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
 
 extern "C" {
-extern data_array *decal_data;
-extern const decal_type_parameters k_decal_type_parameters[4];
-extern cache *rasterizer_decal_vertex_cache_handle;
-extern void *rasterizer_decal_vertex_cache;
 extern long lrint(double x);
 extern double floor(double x);
 extern double sqrt(double x);
@@ -25,6 +23,10 @@ extern datum_index decal_new(datum_index requested_handle, int16_t cluster_index
 extern void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
 extern void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator *accumulator, int32_t surface_index, uint8_t is_first_surface, real radius, int16_t decal_type, int32_t *surface_queue, uint16_t *surface_queue_count, int32_t *fallback_queue, uint16_t *fallback_queue_count);
 }
+static auto &decal_data = halo::link::ref<data_array *>(halo::effects::vars().decal_data);
+static auto &k_decal_type_parameters = halo::link::ref<const decal_type_parameters [4]>(halo::effects::vars().k_decal_type_parameters);
+static auto &rasterizer_decal_vertex_cache_handle = halo::link::ref<cache *>(halo::effects::vars().rasterizer_decal_vertex_cache_handle);
+static auto &rasterizer_decal_vertex_cache = halo::link::ref<void *>(halo::effects::vars().rasterizer_decal_vertex_cache);
 
 namespace halo::effects {
 

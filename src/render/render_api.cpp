@@ -17,15 +17,16 @@
 #include <stdint.h>
 #include "halo/render/render.hpp"
 #include "halo/render/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/render/vars.hpp"
 
-extern "C" {
-extern real_matrix4x3 render_camera_world_to_view;
-extern int16_t render_viewport_left;
-extern int16_t render_viewport_bottom;
-extern int16_t render_viewport_right;
-extern float render_time_since_frame;
-extern int16_t render_force_flag;
-}
+static auto &render_camera_world_to_view = halo::link::ref<real_matrix4x3>(halo::render::vars().render_camera_world_to_view);
+static auto &render_viewport_left = halo::link::ref<int16_t>(halo::render::vars().render_viewport_left);
+static auto &render_viewport_bottom = halo::link::ref<int16_t>(halo::rasterizer::vars().render_viewport_bottom);
+static auto &render_viewport_right = halo::link::ref<int16_t>(halo::render::vars().render_viewport_right);
+static auto &render_time_since_frame = halo::link::ref<float>(halo::render::vars().render_time_since_frame);
+static auto &render_force_flag = halo::link::ref<int16_t>(halo::rasterizer::vars().render_force_flag);
 
 namespace halo::render {
 

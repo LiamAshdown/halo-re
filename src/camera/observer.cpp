@@ -9,22 +9,26 @@
 #include "halo/objects/api.hpp"
 #include "halo/scenario/scenario.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/camera/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern observer observers[1];
-extern float observer_dt;
 extern double sqrt(double x);
 extern double fabs(double x);
-extern int16_t observer_derivative_float_counts[5];
-extern float observer_channel_acceleration_limit[5];
-extern int16_t observer_parameter_float_counts[5];
-extern const real_point3d *global_origin3d_pointer;
-extern real_point3d *global_zero_vector3d_pointer;
-extern director directors[1];
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
 extern double atan2(double y, double x);
-extern void (*matrix4x3_multiply_ptr)(void *a, void *b, void *out);
 }
+static auto &observers = halo::link::ref<observer [1]>(halo::camera::vars().observers);
+static auto &observer_dt = halo::link::ref<float>(halo::camera::vars().observer_dt);
+static auto &observer_derivative_float_counts = halo::link::ref<int16_t [5]>(halo::camera::vars().observer_derivative_float_counts);
+static auto &observer_channel_acceleration_limit = halo::link::ref<float [5]>(halo::camera::vars().observer_channel_acceleration_limit);
+static auto &observer_parameter_float_counts = halo::link::ref<int16_t [5]>(halo::camera::vars().observer_parameter_float_counts);
+static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
+static auto &directors = halo::link::ref<director [1]>(halo::camera::vars().directors);
+static auto &matrix4x3_multiply_ptr = halo::link::ref<void (*)(void *a, void *b, void *out)>(halo::camera::vars().matrix4x3_multiply_ptr);
 
 namespace halo::camera {
 

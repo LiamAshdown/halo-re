@@ -1,6 +1,9 @@
 #pragma once
 
 #include <stdint.h>
+#include "halo/core/link.hpp"
+#include "halo/hs/vars.hpp"
+#include "halo/interface/vars.hpp"
 
 #ifdef interface
 #undef interface
@@ -11,26 +14,39 @@
  * standalone data layer under these original names; everything in the module reaches them through the
  * named references of halo::interface::state below.
  */
-extern "C" {
-extern char DAT_0065fb2c[4];
-extern char DAT_0065fb14[4];
-extern char DAT_00669ae0[4];
-extern int32_t DAT_00695420;
-extern int32_t unknown_00692b0c;
-extern int16_t unknown_00689450;
-extern uint8_t unknown_006893ff;
-extern uint8_t unknown_006894ba;
-extern uint8_t unknown_007127d1;
-extern uint8_t unknown_00712f07;
-extern uint8_t unknown_00719738;
-extern char unknown_00719779[255];
-extern uint32_t unknown_00719208;
-extern uint32_t unknown_00879f34;
-extern uint32_t unknown_00879f38;
-extern int32_t unknown_006b38f4;
-extern int32_t unknown_006b3914;
-extern float ui_unknown_718fa8;
-}
+inline auto &DAT_0065fb2c = halo::link::ref<char [4]>(halo::ui::vars().DAT_0065fb2c);
+inline auto &DAT_0065fb14 = halo::link::ref<char [4]>(halo::ui::vars().DAT_0065fb14);
+inline auto &DAT_00669ae0 = halo::link::ref<char [4]>(halo::ui::vars().DAT_00669ae0);
+#ifndef HALO_LINKED_DAT_00695420
+#define HALO_LINKED_DAT_00695420
+inline auto &DAT_00695420 = halo::link::ref<int32_t>(halo::ui::vars().DAT_00695420);
+#endif
+inline auto &unknown_00692b0c = halo::link::ref<int32_t>(halo::ui::vars().unknown_00692b0c);
+#ifndef HALO_LINKED_unknown_00689450
+#define HALO_LINKED_unknown_00689450
+inline auto &unknown_00689450 = halo::link::ref<int16_t>(halo::ui::vars().unknown_00689450);
+#endif
+#ifndef HALO_LINKED_unknown_006893ff
+#define HALO_LINKED_unknown_006893ff
+inline auto &unknown_006893ff = halo::link::ref<uint8_t>(halo::ui::vars().unknown_006893ff);
+#endif
+#ifndef HALO_LINKED_unknown_006894ba
+#define HALO_LINKED_unknown_006894ba
+inline auto &unknown_006894ba = halo::link::ref<uint8_t>(halo::hs::vars().unknown_006894ba);
+#endif
+inline auto &unknown_007127d1 = halo::link::ref<uint8_t>(halo::ui::vars().unknown_007127d1);
+inline auto &unknown_00712f07 = halo::link::ref<uint8_t>(halo::ui::vars().unknown_00712f07);
+#ifndef HALO_LINKED_unknown_00719738
+#define HALO_LINKED_unknown_00719738
+inline auto &unknown_00719738 = halo::link::ref<uint8_t>(halo::ui::vars().unknown_00719738);
+#endif
+inline auto &unknown_00719779 = halo::link::ref<char [255]>(halo::ui::vars().unknown_00719779);
+inline auto &unknown_00719208 = halo::link::ref<uint32_t>(halo::ui::vars().unknown_00719208);
+inline auto &unknown_00879f34 = halo::link::ref<uint32_t>(halo::ui::vars().unknown_00879f34);
+inline auto &unknown_00879f38 = halo::link::ref<uint32_t>(halo::ui::vars().unknown_00879f38);
+inline auto &unknown_006b38f4 = halo::link::ref<int32_t>(halo::ui::vars().unknown_006b38f4);
+inline auto &unknown_006b3914 = halo::link::ref<int32_t>(halo::ui::vars().unknown_006b3914);
+inline auto &ui_unknown_718fa8 = halo::link::ref<float>(halo::ui::vars().ui_unknown_718fa8);
 
 namespace halo::interface::state {
 

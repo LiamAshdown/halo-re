@@ -8,12 +8,14 @@
 #include "halo/units/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/items/vars.hpp"
 
 extern "C" {
-extern char *weapon_blur_permutation_names[2];
 int32_t halo::items::weapon_update(datum_index item_index);
 void halo::items::weapon_update_function_values(uint32_t object_index);
 }
+static auto &weapon_blur_permutation_names = halo::link::ref<char *[2]>(halo::items::vars().weapon_blur_permutation_names);
 
 namespace halo::items {
 

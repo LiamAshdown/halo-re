@@ -12,15 +12,15 @@
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/saved_games/vars.hpp"
 
-extern "C" {
-extern uint8_t *game_state_base;
-extern uint32_t game_state_crc;
-extern int32_t game_state_cursor;
-extern int32_t saved_player_profile_slots_handle;
-extern uint8_t game_state_write_in_progress;
-extern uint8_t profile_load_complete;
-}
+static auto &game_state_base = halo::link::ref<uint8_t *>(halo::saved_games::vars().game_state_base);
+static auto &game_state_crc = halo::link::ref<uint32_t>(halo::saved_games::vars().game_state_crc);
+static auto &game_state_cursor = halo::link::ref<int32_t>(halo::saved_games::vars().game_state_cursor);
+static auto &saved_player_profile_slots_handle = halo::link::ref<int32_t>(halo::saved_games::vars().saved_player_profile_slots_handle);
+static auto &game_state_write_in_progress = halo::link::ref<uint8_t>(halo::saved_games::vars().game_state_write_in_progress);
+static auto &profile_load_complete = halo::link::ref<uint8_t>(halo::saved_games::vars().profile_load_complete);
 
 namespace halo::saved_games {
 

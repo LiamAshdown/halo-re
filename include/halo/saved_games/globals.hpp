@@ -1,15 +1,15 @@
 #pragma once
 
 #include <stdint.h>
+#include "halo/core/link.hpp"
+#include "halo/saved_games/vars.hpp"
 
 /**
  * Link names of the engine globals the saved games module keeps in anonymous data. The definitions live in the
  * standalone data layer under these original names; the module reaches them through the named references of
  * halo::saved_games::globals below.
  */
-extern "C" {
-extern uint8_t unknown_0072132a;
-}
+inline auto &unknown_0072132a = halo::link::ref<uint8_t>(halo::saved_games::vars().unknown_0072132a);
 
 namespace halo::saved_games::fields {
 

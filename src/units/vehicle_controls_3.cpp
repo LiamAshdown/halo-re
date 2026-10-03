@@ -8,15 +8,18 @@
 #include "halo/objects/api.hpp"
 #include "halo/scenario/scenario.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern real_point3d *global_origin3d_pointer;
-extern real_vector3d *g_006966e4;
 extern void object_physics_tick(uint32_t unit_index, void *node_output, void *contact_points, void *extra_force, void *extra_torque);
 extern double sqrt(double x);
 extern double fabs(double x);
 extern float fabsf(float x);
 }
+static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &g_006966e4 = halo::link::ref<real_vector3d *>(halo::units::vars().g_006966e4);
 
 namespace halo::units {
 

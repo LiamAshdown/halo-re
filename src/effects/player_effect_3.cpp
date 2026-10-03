@@ -3,13 +3,15 @@
 #include "halo/math/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
 extern "C" {
-extern int32_t *player_control_globals_ptr;
 extern double fabs(double x);
 extern double cos(double x);
 extern double sin(double x);
 }
+static auto &player_control_globals_ptr = halo::link::ref<int32_t *>(halo::game::vars().player_control_globals_ptr);
 
 namespace halo::effects {
 

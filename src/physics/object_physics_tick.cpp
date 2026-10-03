@@ -20,14 +20,17 @@
 #include "halo/physics/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/scenario/scenario.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/physics/vars.hpp"
 
 extern "C" { extern double fabs(double x); }
 extern "C" { extern double sqrt(double x); }
 extern "C" { extern double sin(double x); }
 extern "C" { extern double cos(double x); }
-extern "C" { extern ModelCollisionGeometryBSP *global_collision_bsp; }
-extern "C" { extern real_vector3d *global_down3d_pointer; }
-extern "C" { extern float k_physics_gravity; }
+static auto &global_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_collision_bsp);
+static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
+static auto &k_physics_gravity = halo::link::ref<float>(halo::physics::vars().k_physics_gravity);
 extern "C" { extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); }
 extern "C" { extern void object_physics_mass_point_resolve_ground_contact(uint32_t exclude_object_index, mass_point_state *mass_point, PhysicsMassPoint *definition); }
 extern "C" { extern void object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }

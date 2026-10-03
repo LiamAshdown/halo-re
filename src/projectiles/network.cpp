@@ -5,15 +5,17 @@
 #include "halo/cache/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/projectiles/vars.hpp"
+#include "halo/units/vars.hpp"
 
-extern "C" {
-extern real projectile_network_update_position_tolerance;
-extern network_id_table *object_network_id_table;
-extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern network_id_table *machine_table;
-extern void *network_object_index_cache;
-extern uint8_t network_message_scratch[0x7ff8];
-}
+static auto &projectile_network_update_position_tolerance = halo::link::ref<real>(halo::projectiles::vars().projectile_network_update_position_tolerance);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
+static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
+static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
+static auto &network_object_index_cache = halo::link::ref<void *>(halo::units::vars().network_object_index_cache);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 
 namespace halo::projectiles {
 

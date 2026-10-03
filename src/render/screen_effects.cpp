@@ -29,43 +29,50 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/render/vars.hpp"
 
 static_assert(offsetof(Bitmap, bitmap_data) + offsetof(TagReflexive, pointer) == halo::render::k_bitmap_data_pointer_offset);
 
 extern "C" {
-extern GlobalsRasterizerData *rasterizer_globals_data;
-extern ColorRGB *default_axis_b;
-extern ColorRGB *global_real_rgb_green_pointer;
-extern frame_graph frame_graphs[1];
-extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count];
-extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders];
-extern float hud_text_draw_color_a;
-extern float hud_text_draw_color_r;
-extern float hud_text_draw_color_g;
-extern float hud_text_draw_color_b;
 extern void rasterizer_set_shader_stage_config(int16_t mode);
-extern rasterizer_dynamic_index_slot rasterizer_dynamic_index_slots[];
-extern void **rasterizer_effect_pool_scratch;
 extern void rasterizer_lens_flare_batch_flush_all(void);
-extern int32_t frame_statistics_key_a_latch;
-extern int32_t frame_statistics_key_b_latch;
-extern int32_t frame_graph_render_graph;
-extern int32_t frame_graph_render_infos;
-extern int32_t frame_statistics_last_time;
-extern int64_t frame_statistics_unknown_d0;
-extern int64_t frame_statistics_unknown_d8;
-extern Rectangle2D game_screen_rect;
-extern int16_t text_tab_stops[6];
-extern Rectangle2D game_window_top_left;
-extern int32_t frame_graph_window_width;
-extern int32_t frame_graph_window_height;
-extern uint32_t frame_statistics_times[60];
-extern uint8_t frame_statistics_dropped[60];
-extern int16_t frame_statistics_count;
-extern lens_flare_batch_key lens_flare_current_key;
-extern uint32_t lens_flare_vertex_specular;
-extern uint32_t rasterizer_frustum_z_values[2];
 }
+static auto &rasterizer_globals_data = halo::link::ref<GlobalsRasterizerData *>(halo::game::vars().rasterizer_globals_data);
+static auto &default_axis_b = halo::link::ref<ColorRGB *>(halo::game::vars().default_axis_b);
+static auto &global_real_rgb_green_pointer = halo::link::ref<ColorRGB *>(halo::render::vars().global_real_rgb_green_pointer);
+static auto &frame_graphs = halo::link::ref<frame_graph [1]>(halo::render::vars().frame_graphs);
+static auto &rasterizer_vertex_declarations = halo::link::ref<rasterizer_vertex_declaration [k_rasterizer_vertex_type_count]>(halo::networking::vars().rasterizer_vertex_declarations);
+static auto &rasterizer_vertex_shaders = halo::link::ref<rasterizer_vertex_shader [k_rasterizer_vertex_shaders]>(halo::networking::vars().rasterizer_vertex_shaders);
+static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_a);
+static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
+static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
+static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
+static auto &rasterizer_dynamic_index_slots = halo::link::ref<rasterizer_dynamic_index_slot []>(halo::rasterizer::vars().rasterizer_dynamic_index_slots);
+static auto &rasterizer_effect_pool_scratch = halo::link::ref<void **>(halo::rasterizer::vars().rasterizer_effect_pool_scratch);
+static auto &frame_statistics_key_a_latch = halo::link::ref<int32_t>(halo::render::vars().frame_statistics_key_a_latch);
+static auto &frame_statistics_key_b_latch = halo::link::ref<int32_t>(halo::render::vars().frame_statistics_key_b_latch);
+static auto &frame_graph_render_graph = halo::link::ref<int32_t>(halo::render::vars().frame_graph_render_graph);
+static auto &frame_graph_render_infos = halo::link::ref<int32_t>(halo::render::vars().frame_graph_render_infos);
+static auto &frame_statistics_last_time = halo::link::ref<int32_t>(halo::render::vars().frame_statistics_last_time);
+static auto &frame_statistics_unknown_d0 = halo::link::ref<int64_t>(halo::render::vars().frame_statistics_unknown_d0);
+static auto &frame_statistics_unknown_d8 = halo::link::ref<int64_t>(halo::render::vars().frame_statistics_unknown_d8);
+static auto &game_screen_rect = halo::link::ref<Rectangle2D>(halo::main::vars().game_screen_rect);
+static auto &text_tab_stops = halo::link::ref<int16_t [6]>(halo::game::vars().text_tab_stops);
+static auto &game_window_top_left = halo::link::ref<Rectangle2D>(halo::main::vars().game_window_top_left);
+static auto &frame_graph_window_width = halo::link::ref<int32_t>(halo::render::vars().frame_graph_window_width);
+static auto &frame_graph_window_height = halo::link::ref<int32_t>(halo::render::vars().frame_graph_window_height);
+static auto &frame_statistics_times = halo::link::ref<uint32_t [60]>(halo::render::vars().frame_statistics_times);
+static auto &frame_statistics_dropped = halo::link::ref<uint8_t [60]>(halo::render::vars().frame_statistics_dropped);
+static auto &frame_statistics_count = halo::link::ref<int16_t>(halo::render::vars().frame_statistics_count);
+static auto &lens_flare_current_key = halo::link::ref<lens_flare_batch_key>(halo::rasterizer::vars().lens_flare_current_key);
+static auto &lens_flare_vertex_specular = halo::link::ref<uint32_t>(halo::rasterizer::vars().lens_flare_vertex_specular);
+static auto &rasterizer_frustum_z_values = halo::link::ref<uint32_t [2]>(halo::rasterizer::vars().rasterizer_frustum_z_values);
 
 /**
  * Returns the clamped 0..1 progress of the current game time between start_time and end_time, or 1 when they are equal.

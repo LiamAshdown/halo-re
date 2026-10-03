@@ -1,14 +1,16 @@
 #include "halo/cutscene/codec.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/cutscene/vars.hpp"
 
 extern "C" {
 extern double cos(double x);
 extern double sin(double x);
-extern float recorded_animation_angle_scale;
-extern unit_control_data_field_layout *unit_control_data_version_layouts[4];
-extern recorded_animation_compressed_event_proc recorded_animation_compressed_event_handlers[k_recorded_animation_event_type_count];
-extern recorded_animation_v1_event_proc recorded_animation_v1_event_handlers[k_recorded_animation_event_type_count];
 }
+static auto &recorded_animation_angle_scale = halo::link::ref<float>(halo::cutscene::vars().recorded_animation_angle_scale);
+static auto &unit_control_data_version_layouts = halo::link::ref<unit_control_data_field_layout *[4]>(halo::cutscene::vars().unit_control_data_version_layouts);
+static auto &recorded_animation_compressed_event_handlers = halo::link::ref<recorded_animation_compressed_event_proc [k_recorded_animation_event_type_count]>(halo::cutscene::vars().recorded_animation_compressed_event_handlers);
+static auto &recorded_animation_v1_event_handlers = halo::link::ref<recorded_animation_v1_event_proc [k_recorded_animation_event_type_count]>(halo::cutscene::vars().recorded_animation_v1_event_handlers);
 
 namespace halo::cutscene {
 

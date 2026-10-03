@@ -20,29 +20,34 @@
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/hs/vars.hpp"
+#include "halo/physics/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern const real_point3d *global_zero_vector3d_pointer;
 extern double atan2(double y, double x);
 extern double fcos(double x);
 extern double fsin(double x);
 extern double sqrt(double x);
-extern real_point3d *global_origin3d_pointer;
-extern char ai_marker_name_a[];
-extern void *global_structure_collision_bsp;
-extern const real_vector3d *global_down3d_pointer;
 extern void *memcpy(void *dst, const void *src, uint32_t n);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
-extern uint8_t *global_scenario;
-extern int32_t control_binding_device_type;
-extern uint8_t *object_type_definitions_ex;
 extern double cos(double x);
 extern double sin(double x);
-extern char *s_stand;
 extern double fabs(double x);
 extern uint32_t weapon_must_be_readied(uint32_t weapon_object_index);
 extern double acos(double x);
 }
+static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
+static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
+static auto &global_structure_collision_bsp = halo::link::ref<void *>(halo::physics::vars().global_structure_collision_bsp);
+static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
+static auto &global_scenario = halo::link::ref<uint8_t *>(halo::hs::vars().global_scenario);
+static auto &control_binding_device_type = halo::link::ref<int32_t>(halo::units::vars().control_binding_device_type);
+static auto &object_type_definitions_ex = halo::link::ref<uint8_t *>(halo::units::vars().object_type_definitions_ex);
+static auto &s_stand = halo::link::ref<char *>(halo::units::vars().s_stand);
 
 namespace halo::units {
 

@@ -15,11 +15,12 @@
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
-extern "C" {
-extern data_array *player_data;
-extern game_time_globals *game_time;
-}
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
 namespace halo::units {
 

@@ -10,13 +10,12 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/items/vars.hpp"
+#include "halo/physics/vars.hpp"
 
 extern "C" {
-extern game_time_globals *game_time;
-extern uint8_t *global_structure_collision_bsp;
-extern real_vector3d *global_origin3d_pointer;
-extern real_vector3d *global_down3d_pointer;
-extern char s_ground_point_marker[];
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
 extern void item_compute_rotation(uint32_t object_index);
 extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index);
@@ -24,6 +23,11 @@ extern double fabs(double x);
 extern double sqrt(double x);
 uint8_t halo::items::item_update(uint32_t item_index);
 }
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &global_structure_collision_bsp = halo::link::ref<uint8_t *>(halo::physics::vars().global_structure_collision_bsp);
+static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
+static auto &s_ground_point_marker = halo::link::ref<char []>(halo::items::vars().s_ground_point_marker);
 
 namespace halo::items {
 

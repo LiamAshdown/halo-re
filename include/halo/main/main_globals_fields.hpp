@@ -1,20 +1,24 @@
 #pragma once
 
 #include <stdint.h>
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
 
 /**
  * Link names of the fields of the main_globals block (types/main.h, 0x719700) that other modules raise or read
  * as separate bytes. The standalone data layer defines them under these names inside the block's address
  * range; the named references of halo::main::fields are what the engine code uses.
  */
-extern "C" {
-extern uint8_t main_globals_byte_0071973a;
-extern uint8_t unknown_00719738;
-extern uint8_t unknown_0071973b;
-extern uint8_t main_globals_byte_0071974f;
-extern uint8_t unknown_00719769;
-extern uint8_t unknown_0071976a;
-}
+inline auto &main_globals_byte_0071973a = halo::link::ref<uint8_t>(halo::main::vars().main_globals_byte_0071973a);
+#ifndef HALO_LINKED_unknown_00719738
+#define HALO_LINKED_unknown_00719738
+inline auto &unknown_00719738 = halo::link::ref<uint8_t>(halo::ui::vars().unknown_00719738);
+#endif
+inline auto &unknown_0071973b = halo::link::ref<uint8_t>(halo::main::vars().unknown_0071973b);
+inline auto &main_globals_byte_0071974f = halo::link::ref<uint8_t>(halo::main::vars().main_globals_byte_0071974f);
+inline auto &unknown_00719769 = halo::link::ref<uint8_t>(halo::main::vars().unknown_00719769);
+inline auto &unknown_0071976a = halo::link::ref<uint8_t>(halo::main::vars().unknown_0071976a);
 
 namespace halo::main::fields {
 

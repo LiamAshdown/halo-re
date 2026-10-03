@@ -7,18 +7,22 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/hs/vars.hpp"
+#include "halo/networking/vars.hpp"
 
 extern "C" {
 extern void game_variant_list_matching_substring(uint32_t argument_count, int32_t *arguments);
-extern int16_t hs_autocomplete_maximum_count;
-extern char *hs_autocomplete_prefix;
-extern int16_t hs_autocomplete_count;
-extern char **hs_autocomplete_results;
-extern Globals *global_globals;
 extern void KeyValCompareKeyA(const void *a, const void *b);
-extern void *hs_autocomplete_procedures[0x12];
-extern char k_empty_string[1];
 }
+static auto &hs_autocomplete_maximum_count = halo::link::ref<int16_t>(halo::hs::vars().hs_autocomplete_maximum_count);
+static auto &hs_autocomplete_prefix = halo::link::ref<char *>(halo::hs::vars().hs_autocomplete_prefix);
+static auto &hs_autocomplete_count = halo::link::ref<int16_t>(halo::hs::vars().hs_autocomplete_count);
+static auto &hs_autocomplete_results = halo::link::ref<char **>(halo::hs::vars().hs_autocomplete_results);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &hs_autocomplete_procedures = halo::link::ref<void *[0x12]>(halo::hs::vars().hs_autocomplete_procedures);
+static auto &k_empty_string = halo::link::ref<char [1]>(halo::networking::vars().k_empty_string);
 
 static void autocomplete_offer(char *candidate)
 {

@@ -6,10 +6,10 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/main/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/hs/vars.hpp"
 
-extern "C" {
-extern char *hs_empty_string;
-}
+static auto &hs_empty_string = halo::link::ref<char *>(halo::hs::vars().hs_empty_string);
 
 namespace halo::hs::part3 {
 

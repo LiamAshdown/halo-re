@@ -5,10 +5,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/units/vars.hpp"
 
-extern "C" {
-extern int32_t unit_dialogue_variant_counter;
-}
+static auto &unit_dialogue_variant_counter = halo::link::ref<int32_t>(halo::units::vars().unit_dialogue_variant_counter);
 
 namespace halo::units {
 

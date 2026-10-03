@@ -1,9 +1,9 @@
 #include "halo/hs/hs3_machine.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/hs/vars.hpp"
 
-extern "C" {
-extern int32_t (*hs_type_conversion_procedures[k_hs_type_count][k_hs_type_count])(int32_t value);
-}
+static auto &hs_type_conversion_procedures = halo::link::ref<int32_t (*[k_hs_type_count][k_hs_type_count])(int32_t value)>(halo::hs::vars().hs_type_conversion_procedures);
 
 namespace halo::hs::part3 {
 

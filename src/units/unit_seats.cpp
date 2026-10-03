@@ -22,19 +22,23 @@
 #include "halo/scenario/scenario.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern data_array *player_data;
-extern game_time_globals *game_time;
-extern uint8_t *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern uint8_t network_object_index_cache[];
 extern double sqrt(double x);
-extern char *unit_base_animation_state_names[6];
 extern void player_reset_after_unit_change(uint32_t controlling_player);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 }
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &object_network_id_table = halo::link::ref<uint8_t *>(halo::units::vars().object_network_id_table);
+static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
+static auto &unit_base_animation_state_names = halo::link::ref<char *[6]>(halo::units::vars().unit_base_animation_state_names);
 
 namespace halo::units {
 

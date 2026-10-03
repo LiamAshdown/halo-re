@@ -1,17 +1,17 @@
 #include "halo/shell/runtime.hpp"
 #include "halo/shell/layout.hpp"
+#include "halo/core/link.hpp"
+#include "halo/shell/vars.hpp"
 
-extern "C" {
-extern void *std_exception_vtable;
-extern void *length_error_vtable;
-extern void *out_of_range_vtable;
-extern const char string_string_too_long[];
-extern const char string_invalid_string_position[];
-extern const char string_vector_too_long[];
-extern const char string_invalid_vector_subscript[];
-extern uint8_t length_error_throw_info[];
-extern uint8_t out_of_range_throw_info[];
-}
+static auto &std_exception_vtable = halo::link::ref<void *>(halo::shell::vars().std_exception_vtable);
+static auto &length_error_vtable = halo::link::ref<void *>(halo::shell::vars().length_error_vtable);
+static auto &out_of_range_vtable = halo::link::ref<void *>(halo::shell::vars().out_of_range_vtable);
+static auto &string_string_too_long = halo::link::ref<const char []>(halo::shell::vars().string_string_too_long);
+static auto &string_invalid_string_position = halo::link::ref<const char []>(halo::shell::vars().string_invalid_string_position);
+static auto &string_vector_too_long = halo::link::ref<const char []>(halo::shell::vars().string_vector_too_long);
+static auto &string_invalid_vector_subscript = halo::link::ref<const char []>(halo::shell::vars().string_invalid_vector_subscript);
+static auto &length_error_throw_info = halo::link::ref<uint8_t []>(halo::shell::vars().length_error_throw_info);
+static auto &out_of_range_throw_info = halo::link::ref<uint8_t []>(halo::shell::vars().out_of_range_throw_info);
 
 namespace halo::shell {
 

@@ -7,28 +7,29 @@
 #include "halo/sound/api.hpp"
 #include "halo/dialogs/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/shell/vars.hpp"
 
-extern "C" {
-extern void *shell_module_handle;
-extern char fatal_error_text[k_shell_fatal_error_text_length];
-extern char fatal_error_help_file[k_shell_fatal_error_readme_length];
-extern char fatal_error_title[k_shell_fatal_error_title_length];
-extern int32_t fatal_error_is_fatal;
-extern char *graphics_vendor_name;
-extern char *graphics_device_name;
-extern uint32_t graphics_device_id;
-extern void *shell_window;
-extern void *shell_instance;
-extern uint32_t shell_language_id;
-extern uint8_t shell_window_proc_bypass;
-extern int32_t safe_mode;
-extern int32_t fatal_error_remember_choice;
-extern char exception_title[k_shell_exception_string_length];
-extern char exception_gathering_text[k_shell_exception_string_length];
-extern char eula_file_name[k_shell_eula_name_length];
-extern char strings_dll_invalid_text[k_shell_strings_dll_error_length];
-extern uint32_t shell_startup_tick_count;
-}
+static auto &shell_module_handle = halo::link::ref<void *>(halo::shell::vars().shell_module_handle);
+static auto &fatal_error_text = halo::link::ref<char [k_shell_fatal_error_text_length]>(halo::shell::vars().fatal_error_text);
+static auto &fatal_error_help_file = halo::link::ref<char [k_shell_fatal_error_readme_length]>(halo::shell::vars().fatal_error_help_file);
+static auto &fatal_error_title = halo::link::ref<char [k_shell_fatal_error_title_length]>(halo::shell::vars().fatal_error_title);
+static auto &fatal_error_is_fatal = halo::link::ref<int32_t>(halo::shell::vars().fatal_error_is_fatal);
+static auto &graphics_vendor_name = halo::link::ref<char *>(halo::shell::vars().graphics_vendor_name);
+static auto &graphics_device_name = halo::link::ref<char *>(halo::shell::vars().graphics_device_name);
+static auto &graphics_device_id = halo::link::ref<uint32_t>(halo::shell::vars().graphics_device_id);
+static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
+static auto &shell_instance = halo::link::ref<void *>(halo::shell::vars().shell_instance);
+static auto &shell_language_id = halo::link::ref<uint32_t>(halo::shell::vars().shell_language_id);
+static auto &shell_window_proc_bypass = halo::link::ref<uint8_t>(halo::shell::vars().shell_window_proc_bypass);
+static auto &safe_mode = halo::link::ref<int32_t>(halo::shell::vars().safe_mode);
+static auto &fatal_error_remember_choice = halo::link::ref<int32_t>(halo::shell::vars().fatal_error_remember_choice);
+static auto &exception_title = halo::link::ref<char [k_shell_exception_string_length]>(halo::shell::vars().exception_title);
+static auto &exception_gathering_text = halo::link::ref<char [k_shell_exception_string_length]>(halo::shell::vars().exception_gathering_text);
+static auto &eula_file_name = halo::link::ref<char [k_shell_eula_name_length]>(halo::shell::vars().eula_file_name);
+static auto &strings_dll_invalid_text = halo::link::ref<char [k_shell_strings_dll_error_length]>(halo::shell::vars().strings_dll_invalid_text);
+static auto &shell_startup_tick_count = halo::link::ref<uint32_t>(halo::main::vars().shell_startup_tick_count);
 
 namespace halo::shell {
 

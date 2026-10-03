@@ -24,20 +24,23 @@
 #include "halo/models/models.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern halo::units::ai_update_stagger_state *ai_update_stagger;
-extern int16_t unit_speech_fallback_index[];
-extern int16_t unit_speech_priority_table[];
-extern float unit_speech_repeat_seconds[];
-extern char *unit_base_animation_state_names[6];
-extern game_time_globals *game_time;
-extern real_vector3d *global_down3d_pointer;
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
 extern void console_print_va(const char *format, ...);
-extern real_point3d *global_zero_vector3d_pointer;
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 }
+static auto &ai_update_stagger = halo::link::ref<halo::units::ai_update_stagger_state *>(halo::units::vars().ai_update_stagger);
+static auto &unit_speech_fallback_index = halo::link::ref<int16_t []>(halo::units::vars().unit_speech_fallback_index);
+static auto &unit_speech_priority_table = halo::link::ref<int16_t []>(halo::units::vars().unit_speech_priority_table);
+static auto &unit_speech_repeat_seconds = halo::link::ref<float []>(halo::units::vars().unit_speech_repeat_seconds);
+static auto &unit_base_animation_state_names = halo::link::ref<char *[6]>(halo::units::vars().unit_base_animation_state_names);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
+static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 
 namespace halo::units {
 

@@ -11,21 +11,25 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern game_time_globals *game_time;
-extern int32_t k_vehicle_minimum_age_ticks;
-extern int32_t vehicle_network_update_period;
-extern uint8_t unit_updates_suppressed;
-extern uint8_t *global_structure_bsp;
-extern Globals *global_globals;
 extern double atan2(double y, double x);
 extern double fabs(double x);
 extern uint8_t physics_scalar_step_to_target_clamped(void *rates, float *value, float target, float step);
 extern uint8_t physics_scalar_move_toward_target(void *range, float *value, uint8_t wrap, float target, float rate);
 extern void object_physics_tick(uint32_t object_index, void *powered_states, void *mass_points, real_vector3d *extra_force, real_vector3d *extra_torque);
-extern char s_blur_permutation[];
 }
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &k_vehicle_minimum_age_ticks = halo::link::ref<int32_t>(halo::units::vars().k_vehicle_minimum_age_ticks);
+static auto &vehicle_network_update_period = halo::link::ref<int32_t>(halo::units::vars().vehicle_network_update_period);
+static auto &unit_updates_suppressed = halo::link::ref<uint8_t>(halo::units::vars().unit_updates_suppressed);
+static auto &global_structure_bsp = halo::link::ref<uint8_t *>(halo::ai::vars().global_structure_bsp);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &s_blur_permutation = halo::link::ref<char []>(halo::units::vars().s_blur_permutation);
 
 namespace halo::units {
 

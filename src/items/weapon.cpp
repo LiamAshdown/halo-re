@@ -11,15 +11,13 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/items/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern real k_weapon_zoom_fov_maximum;
-extern real k_weapon_zoom_fov_minimum;
-extern char k_empty_string[1];
 extern double pow(double x, double y);
-extern int32_t k_weapon_minimum_age_ticks;
-extern uint8_t weapon_bottomless_clip;
-extern const real_point3d *global_zero_vector3d_pointer;
 extern void weapon_reset_triggers(datum_index item_index);
 extern void weapon_magazine_reload_tick(datum_index item_index, int16_t magazine_index);
 extern void weapon_notify_reload_cancel(datum_index item_index, int16_t magazine_index);
@@ -51,6 +49,12 @@ uint32_t halo::items::weapon_stop_object_effect(datum_index item_index, datum_in
 uint32_t halo::items::weapon_transfer_ammunition(datum_index target_item_index, datum_index source_item_index, int16_t requesting_player_index, int16_t *out_transferred);
 int32_t halo::items::weapon_triggers_idle(datum_index item_index);
 }
+static auto &k_weapon_zoom_fov_maximum = halo::link::ref<real>(halo::items::vars().k_weapon_zoom_fov_maximum);
+static auto &k_weapon_zoom_fov_minimum = halo::link::ref<real>(halo::items::vars().k_weapon_zoom_fov_minimum);
+static auto &k_empty_string = halo::link::ref<char [1]>(halo::networking::vars().k_empty_string);
+static auto &k_weapon_minimum_age_ticks = halo::link::ref<int32_t>(halo::items::vars().k_weapon_minimum_age_ticks);
+static auto &weapon_bottomless_clip = halo::link::ref<uint8_t>(halo::items::vars().weapon_bottomless_clip);
+static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 
 namespace halo::items {
 

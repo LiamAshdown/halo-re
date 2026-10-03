@@ -8,18 +8,18 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/hs/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/sound/vars.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern uint8_t *global_sound_effect_object;
-extern float sound_effects_gain;
-extern float sound_master_gain;
-extern int16_t sound_supplementary_buffers_00746122;
-extern game_time_globals *game_time;
-#ifdef __cplusplus
-}
-#endif
+static auto &global_sound_effect_object = halo::link::ref<uint8_t *>(halo::game::vars().global_sound_effect_object);
+static auto &sound_effects_gain = halo::link::ref<float>(halo::sound::vars().sound_effects_gain);
+static auto &sound_master_gain = halo::link::ref<float>(halo::ui::vars().sound_master_gain);
+static auto &sound_supplementary_buffers_00746122 = halo::link::ref<int16_t>(halo::hs::vars().sound_supplementary_buffers_00746122);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
 namespace halo::hs {
 

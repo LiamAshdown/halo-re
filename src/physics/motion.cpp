@@ -18,6 +18,9 @@
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/physics/vars.hpp"
 
 extern "C" { void halo::physics::physics_clamp_value_to_spring_range(float *value, physics_scalar_rates *rates, float step); }
 extern "C" { void halo::physics::physics_scalar_advance_and_wrap(physics_scalar_range *range, float *value, uint8_t wrap, float delta); }
@@ -259,9 +262,9 @@ void PhysicsMotion::interpolate(PointPhysics *out, const PointPhysics *from, con
 
 }
 
-extern "C" { extern float k_physics_gravity; }
-extern "C" { extern float k_water_density; }
-extern "C" { extern float k_air_density; }
+static auto &k_physics_gravity = halo::link::ref<float>(halo::physics::vars().k_physics_gravity);
+static auto &k_water_density = halo::link::ref<float>(halo::game::vars().k_water_density);
+static auto &k_air_density = halo::link::ref<float>(halo::game::vars().k_air_density);
 namespace halo::physics {
 
 /**

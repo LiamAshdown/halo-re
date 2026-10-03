@@ -23,6 +23,12 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/saved_games/vars.hpp"
+#include "halo/shell/vars.hpp"
 
 static void copy_profile_block(saved_player_profile *destination, const saved_player_profile *source, size_t first_offset, size_t end_offset)
 {
@@ -30,35 +36,35 @@ static void copy_profile_block(saved_player_profile *destination, const saved_pl
 }
 
 extern "C" {
-extern network_thread_record *variant_write_thread;
-extern variant_write_request variant_write_request_state;
-extern network_mutex_record *saved_game_files_mutex;
-extern uint32_t player_color_table[k_player_color_count];
-extern network_thread_record *player_profile_thread;
-extern saved_player_profile default_profile_data;
-extern uint32_t safe_mode;
-extern uint32_t cpu_speed;
-extern uint32_t physical_memory;
-extern int32_t saved_player_profile_slots_handle;
-extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 extern void *memset(void *dest, int32_t value, uint32_t count);
 extern void *memcpy(void *dest, const void *src, uint32_t count);
-extern char unknown_00719779[];
-extern char savegames_directory[0x100];
-extern uint16_t empty_string[];
-extern uint32_t rasterizer_device_version;
-extern uint32_t video_memory;
-extern uint8_t width640;
 extern uint8_t rasterizer_decal_zbias_active(void);
 extern uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height_out, long *refresh_out);
 extern void display_mode_get_current(rasterizer_display_mode *out);
-extern char default_player_profiles_directory[0x100];
-extern int16_t default_game_variant_count;
-extern uint8_t savegame_index_dirty;
-extern char default_playlists_directory[0x100];
-extern uint16_t missing_string_text[];
-extern game_variant_defaults_proc default_game_variant_procs[k_default_game_variant_count];
 }
+static auto &variant_write_thread = halo::link::ref<network_thread_record *>(halo::saved_games::vars().variant_write_thread);
+static auto &variant_write_request_state = halo::link::ref<variant_write_request>(halo::saved_games::vars().variant_write_request_state);
+static auto &saved_game_files_mutex = halo::link::ref<network_mutex_record *>(halo::saved_games::vars().saved_game_files_mutex);
+static auto &player_color_table = halo::link::ref<uint32_t [k_player_color_count]>(halo::saved_games::vars().player_color_table);
+static auto &player_profile_thread = halo::link::ref<network_thread_record *>(halo::saved_games::vars().player_profile_thread);
+static auto &default_profile_data = halo::link::ref<saved_player_profile>(halo::ui::vars().default_profile_data);
+static auto &safe_mode = halo::link::ref<uint32_t>(halo::shell::vars().safe_mode);
+static auto &cpu_speed = halo::link::ref<uint32_t>(halo::shell::vars().cpu_speed);
+static auto &physical_memory = halo::link::ref<uint32_t>(halo::shell::vars().physical_memory);
+static auto &saved_player_profile_slots_handle = halo::link::ref<int32_t>(halo::saved_games::vars().saved_player_profile_slots_handle);
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
+static auto &unknown_00719779 = halo::link::ref<char []>(halo::ui::vars().unknown_00719779);
+static auto &savegames_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().savegames_directory);
+static auto &empty_string = halo::link::ref<uint16_t []>(halo::game::vars().empty_string);
+static auto &rasterizer_device_version = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_device_version);
+static auto &video_memory = halo::link::ref<uint32_t>(halo::ui::vars().video_memory);
+static auto &width640 = halo::link::ref<uint8_t>(halo::rasterizer::vars().width640);
+static auto &default_player_profiles_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().default_player_profiles_directory);
+static auto &default_game_variant_count = halo::link::ref<int16_t>(halo::saved_games::vars().default_game_variant_count);
+static auto &savegame_index_dirty = halo::link::ref<uint8_t>(halo::saved_games::vars().savegame_index_dirty);
+static auto &default_playlists_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().default_playlists_directory);
+static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
+static auto &default_game_variant_procs = halo::link::ref<game_variant_defaults_proc [k_default_game_variant_count]>(halo::saved_games::vars().default_game_variant_procs);
 
 /**
  * Fabricates a default profile into profile and names it from the display name of the saved-game

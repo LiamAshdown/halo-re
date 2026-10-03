@@ -2,10 +2,10 @@
 
 #include "halo/shell/hwreq.hpp"
 #include "halo/shell/layout.hpp"
+#include "halo/core/link.hpp"
+#include "halo/shell/vars.hpp"
 
-extern "C" {
-extern char hwreq_quoted_string[k_hwreq_quoted_string_length];
-}
+static auto &hwreq_quoted_string = halo::link::ref<char [k_hwreq_quoted_string_length]>(halo::shell::vars().hwreq_quoted_string);
 
 namespace halo::shell {
 

@@ -3,31 +3,31 @@
 #include "halo/hs/hs3_objects.hpp"
 #include "halo/hs/hs3_parser.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/hs/vars.hpp"
 
-extern "C" {
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
-extern char *hs_type_names[k_hs_type_count];
-extern char *hs_script_type_names[k_hs_script_type_count];
-extern uint16_t hs_object_type_masks[6];
-extern char hs_compile_error_buffer[k_hs_error_buffer_size];
-extern data_array *hs_thread_data;
-extern data_array *hs_globals_data;
-extern data_array *hs_syntax_data;
-extern uint8_t hs_runtime_active;
-extern uint8_t hs_syntax_data_is_local;
-extern int16_t hs_current_thread_index;
-extern int32_t hs_compile_error_offset;
-extern char *hs_compile_error;
-extern char *hs_compiled_source;
-extern int32_t hs_compiled_source_length;
-extern uint8_t hs_set_forbidden;
-extern uint8_t hs_reload_pending;
-extern uint8_t hs_preserve_token_case;
-extern uint8_t hs_postprocessing;
-extern uint8_t hs_blocking_forbidden;
-extern uint16_t hs_autocomplete_gametype_mask;
-}
+static auto &hs_function_definitions = halo::link::ref<hs_function_definition *[k_hs_function_count]>(halo::hs::vars().hs_function_definitions);
+static auto &hs_global_definitions = halo::link::ref<hs_global_definition *[k_hs_builtin_global_count]>(halo::hs::vars().hs_global_definitions);
+static auto &hs_type_names = halo::link::ref<char *[k_hs_type_count]>(halo::hs::vars().hs_type_names);
+static auto &hs_script_type_names = halo::link::ref<char *[k_hs_script_type_count]>(halo::hs::vars().hs_script_type_names);
+static auto &hs_object_type_masks = halo::link::ref<uint16_t [6]>(halo::hs::vars().hs_object_type_masks);
+static auto &hs_compile_error_buffer = halo::link::ref<char [k_hs_error_buffer_size]>(halo::hs::vars().hs_compile_error_buffer);
+static auto &hs_thread_data = halo::link::ref<data_array *>(halo::hs::vars().hs_thread_data);
+static auto &hs_globals_data = halo::link::ref<data_array *>(halo::hs::vars().hs_globals_data);
+static auto &hs_syntax_data = halo::link::ref<data_array *>(halo::hs::vars().hs_syntax_data);
+static auto &hs_runtime_active = halo::link::ref<uint8_t>(halo::hs::vars().hs_runtime_active);
+static auto &hs_syntax_data_is_local = halo::link::ref<uint8_t>(halo::hs::vars().hs_syntax_data_is_local);
+static auto &hs_current_thread_index = halo::link::ref<int16_t>(halo::hs::vars().hs_current_thread_index);
+static auto &hs_compile_error_offset = halo::link::ref<int32_t>(halo::hs::vars().hs_compile_error_offset);
+static auto &hs_compile_error = halo::link::ref<char *>(halo::hs::vars().hs_compile_error);
+static auto &hs_compiled_source = halo::link::ref<char *>(halo::hs::vars().hs_compiled_source);
+static auto &hs_compiled_source_length = halo::link::ref<int32_t>(halo::hs::vars().hs_compiled_source_length);
+static auto &hs_set_forbidden = halo::link::ref<uint8_t>(halo::hs::vars().hs_set_forbidden);
+static auto &hs_reload_pending = halo::link::ref<uint8_t>(halo::hs::vars().hs_reload_pending);
+static auto &hs_preserve_token_case = halo::link::ref<uint8_t>(halo::hs::vars().hs_preserve_token_case);
+static auto &hs_postprocessing = halo::link::ref<uint8_t>(halo::hs::vars().hs_postprocessing);
+static auto &hs_blocking_forbidden = halo::link::ref<uint8_t>(halo::hs::vars().hs_blocking_forbidden);
+static auto &hs_autocomplete_gametype_mask = halo::link::ref<uint16_t>(halo::hs::vars().hs_autocomplete_gametype_mask);
 
 namespace halo::hs {
 

@@ -1,11 +1,11 @@
 #include "halo/objects/hash_table.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/objects/vars.hpp"
 
-extern "C" {
-extern data_array *object_data;
-extern data_array *object_list_header_data;
-extern data_array *object_list_reference_data;
-}
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &object_list_header_data = halo::link::ref<data_array *>(halo::objects::vars().object_list_header_data);
+static auto &object_list_reference_data = halo::link::ref<data_array *>(halo::objects::vars().object_list_reference_data);
 
 /**
  * Clears bit 3 in the hash chain entry for the key.

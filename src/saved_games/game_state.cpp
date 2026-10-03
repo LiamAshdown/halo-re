@@ -21,45 +21,50 @@
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/saved_games/vars.hpp"
 
 static_assert(sizeof(data_array) == halo::saved_games::k_game_state_block_header_size);
 static_assert(sizeof(memory_pool) == halo::saved_games::k_game_state_block_header_size);
 static_assert(sizeof(game_state_header) == k_game_state_header_size);
 
 extern "C" {
-extern int32_t game_state_revert_time;
-extern uint8_t *game_state_snapshot_source;
-extern uint8_t game_state_write_buffer_allocated;
-extern uint32_t game_state_size;
-extern uint8_t *game_state_write_buffer;
-extern char profile_directory[0x105];
-extern char game_state_persistent_storage_path[0x100];
-extern char game_state_core_directory[0x100];
-extern uint8_t game_state_write_in_progress;
-extern void *game_state_write_event;
-extern game_state_header *game_state_header_ptr;
-extern uint8_t game_state_header_valid;
-extern uint8_t game_state_revert_available;
-extern uint32_t cache_file_current_header_crc32;
-extern uint32_t game_state_crc;
-extern void *game_state_persistent_storage;
-extern uint8_t game_state_persistent_storage_created;
-extern game_state_proc game_state_after_load_procs[k_game_state_after_load_proc_count];
-extern uint16_t game_time_force_single_tick;
-extern int16_t pending_difficulty;
-extern uint8_t *game_state_base;
-extern game_state_proc game_state_revert_proc;
-extern int32_t game_state_cursor;
-extern int32_t saved_player_profile_slots_handle;
 extern char *strcpy(char *dest, const char *source);
 extern uint32_t strlen(const char *str);
 extern void *memset(void *dest, int32_t value, uint32_t count);
-extern uint16_t split_screen_quit_prompt_string;
-extern game_state_proc game_state_before_save_proc;
-extern uint8_t game_state_write_is_checkpoint;
 extern void *memcpy(void *dest, const void *src, uint32_t count);
-extern uint8_t game_state_write_completed;
 }
+static auto &game_state_revert_time = halo::link::ref<int32_t>(halo::saved_games::vars().game_state_revert_time);
+static auto &game_state_snapshot_source = halo::link::ref<uint8_t *>(halo::saved_games::vars().game_state_snapshot_source);
+static auto &game_state_write_buffer_allocated = halo::link::ref<uint8_t>(halo::game::vars().game_state_write_buffer_allocated);
+static auto &game_state_size = halo::link::ref<uint32_t>(halo::saved_games::vars().game_state_size);
+static auto &game_state_write_buffer = halo::link::ref<uint8_t *>(halo::game::vars().game_state_write_buffer);
+static auto &profile_directory = halo::link::ref<char [0x105]>(halo::saved_games::vars().profile_directory);
+static auto &game_state_persistent_storage_path = halo::link::ref<char [0x100]>(halo::saved_games::vars().game_state_persistent_storage_path);
+static auto &game_state_core_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().game_state_core_directory);
+static auto &game_state_write_in_progress = halo::link::ref<uint8_t>(halo::saved_games::vars().game_state_write_in_progress);
+static auto &game_state_write_event = halo::link::ref<void *>(halo::saved_games::vars().game_state_write_event);
+static auto &game_state_header_ptr = halo::link::ref<game_state_header *>(halo::saved_games::vars().game_state_header_ptr);
+static auto &game_state_header_valid = halo::link::ref<uint8_t>(halo::saved_games::vars().game_state_header_valid);
+static auto &game_state_revert_available = halo::link::ref<uint8_t>(halo::main::vars().game_state_revert_available);
+static auto &cache_file_current_header_crc32 = halo::link::ref<uint32_t>(halo::saved_games::vars().cache_file_current_header_crc32);
+static auto &game_state_crc = halo::link::ref<uint32_t>(halo::saved_games::vars().game_state_crc);
+static auto &game_state_persistent_storage = halo::link::ref<void *>(halo::game::vars().game_state_persistent_storage);
+static auto &game_state_persistent_storage_created = halo::link::ref<uint8_t>(halo::game::vars().game_state_persistent_storage_created);
+static auto &game_state_after_load_procs = halo::link::ref<game_state_proc [k_game_state_after_load_proc_count]>(halo::saved_games::vars().game_state_after_load_procs);
+static auto &game_time_force_single_tick = halo::link::ref<uint16_t>(halo::game::vars().game_time_force_single_tick);
+static auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);
+static auto &game_state_base = halo::link::ref<uint8_t *>(halo::saved_games::vars().game_state_base);
+static auto &game_state_revert_proc = halo::link::ref<game_state_proc>(halo::saved_games::vars().game_state_revert_proc);
+static auto &game_state_cursor = halo::link::ref<int32_t>(halo::saved_games::vars().game_state_cursor);
+static auto &saved_player_profile_slots_handle = halo::link::ref<int32_t>(halo::saved_games::vars().saved_player_profile_slots_handle);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
+static auto &game_state_before_save_proc = halo::link::ref<game_state_proc>(halo::main::vars().game_state_before_save_proc);
+static auto &game_state_write_is_checkpoint = halo::link::ref<uint8_t>(halo::saved_games::vars().game_state_write_is_checkpoint);
+static auto &game_state_write_completed = halo::link::ref<uint8_t>(halo::saved_games::vars().game_state_write_completed);
 
 namespace halo::saved_games::game_state {
 

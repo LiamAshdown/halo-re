@@ -12,47 +12,44 @@
 #include "halo/shell/system.hpp"
 #include "halo/shell/window.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/shell/vars.hpp"
 
-extern "C" {
-extern int32_t shell_argc;
-extern char **shell_argv;
-extern char *shell_command_line;
-extern void *shell_window;
-extern void *shell_instance;
-extern int32_t shell_nosound;
-extern void *shell_module_handle;
-extern int32_t config_force_shader;
-extern int32_t config_maximum_resolution;
-extern int32_t config_disable_alpha_render_targets;
-extern int32_t config_disable_buffering;
-extern int32_t config_disable_driver_management;
-extern int32_t config_disable_render_targets;
-extern int32_t config_disable_specular;
-extern int32_t config_enable_stop_start;
-extern int32_t config_head_relative_speech;
-extern int32_t config_invalid_driver;
-extern int32_t config_invalid_sound_driver;
-extern int32_t config_linear_texture_addressing;
-extern int32_t config_linear_texture_addressing_sun;
-extern int32_t config_linear_texture_addressing_zoom;
-extern int32_t config_min_max_blend_op_is_broken;
-extern int32_t config_old_driver;
-extern int32_t config_old_sound_driver;
-extern int32_t config_prototype_card;
-extern int32_t config_safe_mode;
-extern int32_t config_unsupported_card;
-extern int32_t config_use_alternate_convolve_mask;
-extern int32_t config_use_anisotropic_filter;
-extern int32_t config_use_fixed_function;
-extern float config_decal_z_bias;
-extern float config_decal_slope_z_bias;
-extern float config_transparent_decal_z_bias;
-extern float config_transparent_decal_slope_z_bias;
-}
+static auto &shell_argc = halo::link::ref<int32_t>(halo::shell::vars().shell_argc);
+static auto &shell_argv = halo::link::ref<char **>(halo::shell::vars().shell_argv);
+static auto &shell_command_line = halo::link::ref<char *>(halo::shell::vars().shell_command_line);
+static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
+static auto &shell_instance = halo::link::ref<void *>(halo::shell::vars().shell_instance);
+static auto &shell_nosound = halo::link::ref<int32_t>(halo::shell::vars().shell_nosound);
+static auto &shell_module_handle = halo::link::ref<void *>(halo::shell::vars().shell_module_handle);
+static auto &config_force_shader = halo::link::ref<int32_t>(halo::shell::vars().config_force_shader);
+static auto &config_maximum_resolution = halo::link::ref<int32_t>(halo::shell::vars().config_maximum_resolution);
+static auto &config_disable_alpha_render_targets = halo::link::ref<int32_t>(halo::shell::vars().config_disable_alpha_render_targets);
+static auto &config_disable_buffering = halo::link::ref<int32_t>(halo::shell::vars().config_disable_buffering);
+static auto &config_disable_driver_management = halo::link::ref<int32_t>(halo::shell::vars().config_disable_driver_management);
+static auto &config_disable_render_targets = halo::link::ref<int32_t>(halo::shell::vars().config_disable_render_targets);
+static auto &config_disable_specular = halo::link::ref<int32_t>(halo::shell::vars().config_disable_specular);
+static auto &config_enable_stop_start = halo::link::ref<int32_t>(halo::shell::vars().config_enable_stop_start);
+static auto &config_head_relative_speech = halo::link::ref<int32_t>(halo::shell::vars().config_head_relative_speech);
+static auto &config_invalid_driver = halo::link::ref<int32_t>(halo::shell::vars().config_invalid_driver);
+static auto &config_invalid_sound_driver = halo::link::ref<int32_t>(halo::shell::vars().config_invalid_sound_driver);
+static auto &config_linear_texture_addressing = halo::link::ref<int32_t>(halo::shell::vars().config_linear_texture_addressing);
+static auto &config_linear_texture_addressing_sun = halo::link::ref<int32_t>(halo::shell::vars().config_linear_texture_addressing_sun);
+static auto &config_linear_texture_addressing_zoom = halo::link::ref<int32_t>(halo::shell::vars().config_linear_texture_addressing_zoom);
+static auto &config_min_max_blend_op_is_broken = halo::link::ref<int32_t>(halo::shell::vars().config_min_max_blend_op_is_broken);
+static auto &config_old_driver = halo::link::ref<int32_t>(halo::shell::vars().config_old_driver);
+static auto &config_old_sound_driver = halo::link::ref<int32_t>(halo::shell::vars().config_old_sound_driver);
+static auto &config_prototype_card = halo::link::ref<int32_t>(halo::shell::vars().config_prototype_card);
+static auto &config_safe_mode = halo::link::ref<int32_t>(halo::shell::vars().config_safe_mode);
+static auto &config_unsupported_card = halo::link::ref<int32_t>(halo::shell::vars().config_unsupported_card);
+static auto &config_use_alternate_convolve_mask = halo::link::ref<int32_t>(halo::shell::vars().config_use_alternate_convolve_mask);
+static auto &config_use_anisotropic_filter = halo::link::ref<int32_t>(halo::shell::vars().config_use_anisotropic_filter);
+static auto &config_use_fixed_function = halo::link::ref<int32_t>(halo::shell::vars().config_use_fixed_function);
+static auto &config_decal_z_bias = halo::link::ref<float>(halo::shell::vars().config_decal_z_bias);
+static auto &config_decal_slope_z_bias = halo::link::ref<float>(halo::shell::vars().config_decal_slope_z_bias);
+static auto &config_transparent_decal_z_bias = halo::link::ref<float>(halo::shell::vars().config_transparent_decal_z_bias);
+static auto &config_transparent_decal_slope_z_bias = halo::link::ref<float>(halo::shell::vars().config_transparent_decal_slope_z_bias);
 
-extern "C" {
-extern int32_t config_force_shader;
-}
 
 namespace halo::shell {
 

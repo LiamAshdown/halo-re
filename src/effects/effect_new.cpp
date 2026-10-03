@@ -7,15 +7,18 @@
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/effects/vars.hpp"
 
 extern "C" {
-extern data_array *effect_data;
 extern void effect_start_event(datum_index effect_handle, int16_t event_index);
-extern const ColorRGB *global_white_color;
-extern uint8_t first_person_effects_enabled;
-extern void *effect_marker_callback_context;
-extern const real_point3d *global_origin3d_pointer;
 }
+static auto &effect_data = halo::link::ref<data_array *>(halo::effects::vars().effect_data);
+static auto &global_white_color = halo::link::ref<const ColorRGB *>(halo::effects::vars().global_white_color);
+static auto &first_person_effects_enabled = halo::link::ref<uint8_t>(halo::effects::vars().first_person_effects_enabled);
+static auto &effect_marker_callback_context = halo::link::ref<void *>(halo::effects::vars().effect_marker_callback_context);
+static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 
 namespace halo::effects {
 

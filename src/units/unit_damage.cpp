@@ -22,23 +22,27 @@
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern data_array *player_data;
-extern game_time_globals *game_time;
-extern uint8_t is_dedicated_server_flag;
-extern Globals *global_globals;
-extern uint8_t network_object_index_cache[];
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern void player_update_history_free_all(void *history);
-extern uint8_t unit_updates_suppressed;
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
-extern real_vector3d *global_origin3d_pointer;
-extern uint8_t *team_pair_data;
 extern double sin(double x);
 extern double cos(double x);
 }
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &is_dedicated_server_flag = halo::link::ref<uint8_t>(halo::units::vars().is_dedicated_server_flag);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
+static auto &unit_updates_suppressed = halo::link::ref<uint8_t>(halo::units::vars().unit_updates_suppressed);
+static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &team_pair_data = halo::link::ref<uint8_t *>(halo::ai::vars().team_pair_data);
 
 namespace halo::units {
 

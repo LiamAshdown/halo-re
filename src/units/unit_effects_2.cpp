@@ -3,10 +3,10 @@
 #include "halo/math/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/units/vars.hpp"
 
-extern "C" {
-extern void *global_zero_vector3d_pointer;
-}
+static auto &global_zero_vector3d_pointer = halo::link::ref<void *>(halo::units::vars().global_zero_vector3d_pointer);
 
 namespace halo::units {
 

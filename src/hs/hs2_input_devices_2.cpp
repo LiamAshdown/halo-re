@@ -1,16 +1,13 @@
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/input/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/saved_games/vars.hpp"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern int32_t input_device_count;
-extern uint8_t input_device_to_slot[];
-#ifdef __cplusplus
-}
-#endif
+static auto &input_device_count = halo::link::ref<int32_t>(halo::ui::vars().input_device_count);
+static auto &input_device_to_slot = halo::link::ref<uint8_t []>(halo::saved_games::vars().input_device_to_slot);
 
 namespace halo::hs {
 

@@ -15,26 +15,27 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/cutscene/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/objects/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
 
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 extern void chimera__console_out(void *color, const char *format, ...);
 extern void (*hs_type_inspectors[])(int16_t type, int32_t value, char *buffer);
 extern void message_delta_metrics_dump(char *suffix);
-extern uint8_t network_bandwidth_graph_globals[];
-extern void *actor_mode_default_look_weights;
-extern uint32_t renderer_unknown_69c684;
-extern uint32_t lens_flare_object_visibility_table[0x8c0];
-extern uint32_t lens_flare_marker_visibility[0x4002];
-extern int32_t lens_flare_instance_count;
-extern uint32_t *rasterizer_model_ambient_reflection_tint;
-extern uint8_t *lights_enabled;
-extern uint8_t *cinematic_screen_effect_state;
-#ifdef __cplusplus
 }
-#endif
+static auto &network_bandwidth_graph_globals = halo::link::ref<uint8_t []>(halo::main::vars().network_bandwidth_graph_globals);
+static auto &actor_mode_default_look_weights = halo::link::ref<void *>(halo::networking::vars().actor_mode_default_look_weights);
+static auto &lens_flare_object_visibility_table = halo::link::ref<uint32_t [0x8c0]>(halo::rasterizer::vars().lens_flare_object_visibility_table);
+static auto &lens_flare_marker_visibility = halo::link::ref<uint32_t [0x4002]>(halo::rasterizer::vars().lens_flare_marker_visibility);
+static auto &lens_flare_instance_count = halo::link::ref<int32_t>(halo::rasterizer::vars().lens_flare_instance_count);
+static auto &rasterizer_model_ambient_reflection_tint = halo::link::ref<uint32_t *>(halo::cutscene::vars().rasterizer_model_ambient_reflection_tint);
+static auto &lights_enabled = halo::link::ref<uint8_t *>(halo::objects::vars().lights_enabled);
+static auto &cinematic_screen_effect_state = halo::link::ref<uint8_t *>(halo::cutscene::vars().cinematic_screen_effect_state);
 
 static hs_syntax_node *syntax_get(datum_index node)
 {

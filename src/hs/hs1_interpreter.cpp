@@ -5,11 +5,11 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/hs/vars.hpp"
 
-extern "C" {
-extern int32_t (*hs_type_conversion_procedures[k_hs_type_count][k_hs_type_count])(int32_t value);
-extern int16_t hs_comparison_types[2];
-}
+static auto &hs_type_conversion_procedures = halo::link::ref<int32_t (*[k_hs_type_count][k_hs_type_count])(int32_t value)>(halo::hs::vars().hs_type_conversion_procedures);
+static auto &hs_comparison_types = halo::link::ref<int16_t [2]>(halo::hs::vars().hs_comparison_types);
 
 static hs_syntax_node *syntax_get(datum_index node)
 {

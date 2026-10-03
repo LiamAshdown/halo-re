@@ -20,36 +20,41 @@
 #include "halo/bitmaps/bitmaps.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/objects/vars.hpp"
+#include "halo/render/vars.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern int32_t fistp_round(float x);
-extern uint8_t game_engine_unknown_aa00;
-extern float *global_white_color;
-extern datum_index light_active_list[0x80];
-extern int16_t light_active_list_count;
-extern datum_index *light_cluster_first;
-extern data_array *light_cluster_references;
-extern int16_t light_count_enabled;
-extern data_array *light_data;
-extern int32_t light_frame_counter;
-extern data_array *light_object_references;
-extern uint8_t light_render_unknown_7c0;
-extern int16_t light_transient_count;
-extern int16_t light_transient_count_or_queue;
-extern light_transient light_transient_table[k_maximum_transient_lights];
-extern uint8_t *lights_enabled;
-extern data_array *object_data;
 extern char *object_get_attachment_marker_name(uint32_t object_index, int16_t attachment_index);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
 extern void object_get_root_location(int32_t *out, uint32_t object_index);
 extern void object_light_recompute_transform(uint32_t light_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern int32_t rasterizer_light_count;
-extern rasterizer_light rasterizer_lights[0x80];
-extern uint8_t render_window_index;
 extern double sqrt(double x);
 }
+static auto &game_engine_unknown_aa00 = halo::link::ref<uint8_t>(halo::game::vars().game_engine_unknown_aa00);
+static auto &global_white_color = halo::link::ref<float *>(halo::effects::vars().global_white_color);
+static auto &light_active_list = halo::link::ref<datum_index [0x80]>(halo::objects::vars().light_active_list);
+static auto &light_active_list_count = halo::link::ref<int16_t>(halo::objects::vars().light_active_list_count);
+static auto &light_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().light_cluster_first);
+static auto &light_cluster_references = halo::link::ref<data_array *>(halo::objects::vars().light_cluster_references);
+static auto &light_count_enabled = halo::link::ref<int16_t>(halo::effects::vars().light_count_enabled);
+static auto &light_data = halo::link::ref<data_array *>(halo::objects::vars().light_data);
+static auto &light_frame_counter = halo::link::ref<int32_t>(halo::objects::vars().light_frame_counter);
+static auto &light_object_references = halo::link::ref<data_array *>(halo::objects::vars().light_object_references);
+static auto &light_render_unknown_7c0 = halo::link::ref<uint8_t>(halo::objects::vars().light_render_unknown_7c0);
+static auto &light_transient_count = halo::link::ref<int16_t>(halo::objects::vars().light_transient_count);
+static auto &light_transient_count_or_queue = halo::link::ref<int16_t>(halo::objects::vars().light_transient_count_or_queue);
+static auto &light_transient_table = halo::link::ref<light_transient [k_maximum_transient_lights]>(halo::objects::vars().light_transient_table);
+static auto &lights_enabled = halo::link::ref<uint8_t *>(halo::objects::vars().lights_enabled);
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &rasterizer_light_count = halo::link::ref<int32_t>(halo::objects::vars().rasterizer_light_count);
+static auto &rasterizer_lights = halo::link::ref<rasterizer_light [0x80]>(halo::objects::vars().rasterizer_lights);
+static auto &render_window_index = halo::link::ref<uint8_t>(halo::render::vars().render_window_index);
 
 namespace {
 static cluster_reference_group &light_cluster_first__as_lights_initialize = reinterpret_cast<cluster_reference_group &>(light_cluster_first);

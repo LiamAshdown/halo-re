@@ -1,32 +1,32 @@
 #include "halo/shell/window.hpp"
 #include "interface.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/shell/vars.hpp"
 
-extern "C" {
-extern uint8_t default_locale_name[2];
-extern char locale_codepage_format[4];
-
-extern void *keystone_module;
-extern keystone_create_fn keystone_create;
-extern keystone_translate_accelerator_fn keystone_translate_accelerator;
-extern keystone_create_window_fn keystone_create_window;
-extern chat_gui_find_object_fn chat_gui_find_object;
-extern keystone_update_fn keystone_update;
-extern keystone_dispatch_message_fn keystone_dispatch_message;
-extern chat_gui_release_fn chat_gui_release;
-extern keystone_unknown_fn keystone_set_focus_window;
-extern chat_gui_find_child_fn chat_gui_find_child;
-extern chat_gui_get_property_string_fn keystone_control_get_attribute;
-extern chat_gui_set_property_string_fn keystone_control_set_attribute;
-extern chat_gui_set_property_int_fn chat_gui_set_property_int;
-extern chat_gui_finalize_fn chat_gui_finalize;
-extern chat_gui_set_focus_fn chat_gui_set_focus;
-extern keystone_unknown_fn keystone_window_add_dirty_control;
-extern keystone_release_fn keystone_release;
-extern chat_gui_set_state_fn chat_gui_set_state;
-
-extern uint16_t *keystone_current_directory;
-extern int32_t safe_mode;
-}
+static auto &default_locale_name = halo::link::ref<uint8_t [2]>(halo::shell::vars().default_locale_name);
+static auto &locale_codepage_format = halo::link::ref<char [4]>(halo::shell::vars().locale_codepage_format);
+static auto &keystone_module = halo::link::ref<void *>(halo::shell::vars().keystone_module);
+static auto &keystone_create = halo::link::ref<keystone_create_fn>(halo::shell::vars().keystone_create);
+static auto &keystone_translate_accelerator = halo::link::ref<keystone_translate_accelerator_fn>(halo::shell::vars().keystone_translate_accelerator);
+static auto &keystone_create_window = halo::link::ref<keystone_create_window_fn>(halo::shell::vars().keystone_create_window);
+static auto &chat_gui_find_object = halo::link::ref<chat_gui_find_object_fn>(halo::ui::vars().chat_gui_find_object);
+static auto &keystone_update = halo::link::ref<keystone_update_fn>(halo::shell::vars().keystone_update);
+static auto &keystone_dispatch_message = halo::link::ref<keystone_dispatch_message_fn>(halo::shell::vars().keystone_dispatch_message);
+static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
+static auto &keystone_set_focus_window = halo::link::ref<keystone_unknown_fn>(halo::shell::vars().keystone_set_focus_window);
+static auto &chat_gui_find_child = halo::link::ref<chat_gui_find_child_fn>(halo::ui::vars().chat_gui_find_child);
+static auto &keystone_control_get_attribute = halo::link::ref<chat_gui_get_property_string_fn>(halo::ui::vars().keystone_control_get_attribute);
+static auto &keystone_control_set_attribute = halo::link::ref<chat_gui_set_property_string_fn>(halo::ui::vars().keystone_control_set_attribute);
+static auto &chat_gui_set_property_int = halo::link::ref<chat_gui_set_property_int_fn>(halo::ui::vars().chat_gui_set_property_int);
+static auto &chat_gui_finalize = halo::link::ref<chat_gui_finalize_fn>(halo::ui::vars().chat_gui_finalize);
+static auto &chat_gui_set_focus = halo::link::ref<chat_gui_set_focus_fn>(halo::ui::vars().chat_gui_set_focus);
+static auto &keystone_window_add_dirty_control = halo::link::ref<keystone_unknown_fn>(halo::shell::vars().keystone_window_add_dirty_control);
+static auto &keystone_release = halo::link::ref<keystone_release_fn>(halo::shell::vars().keystone_release);
+static auto &chat_gui_set_state = halo::link::ref<chat_gui_set_state_fn>(halo::ui::vars().chat_gui_set_state);
+static auto &keystone_current_directory = halo::link::ref<uint16_t *>(halo::rasterizer::vars().keystone_current_directory);
+static auto &safe_mode = halo::link::ref<int32_t>(halo::shell::vars().safe_mode);
 
 namespace halo::shell {
 

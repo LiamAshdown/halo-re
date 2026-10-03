@@ -1,12 +1,12 @@
 #include "halo/camera/camera.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/camera/vars.hpp"
 
-extern "C" {
-extern uint8_t *hs_camera_control_pointer;
-extern observer observers[1];
-extern director directors[1];
-extern camera_script_globals camera_script;
-}
+static auto &hs_camera_control_pointer = halo::link::ref<uint8_t *>(halo::camera::vars().hs_camera_control_pointer);
+static auto &observers = halo::link::ref<observer [1]>(halo::camera::vars().observers);
+static auto &directors = halo::link::ref<director [1]>(halo::camera::vars().directors);
+static auto &camera_script = halo::link::ref<camera_script_globals>(halo::camera::vars().camera_script);
 
 namespace halo::camera {
 

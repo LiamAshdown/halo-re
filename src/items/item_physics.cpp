@@ -8,9 +8,10 @@
 #include "halo/items/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/physics/vars.hpp"
 
 extern "C" {
-extern uint8_t *global_structure_collision_bsp;
 extern void item_detonation_timer_start(uint32_t object_index);
 extern void item_compute_rotation(uint32_t object_index);
 extern double sqrt(double x);
@@ -20,6 +21,7 @@ void halo::items::item_accelerate(uint32_t item_index, real_vector3d *delta, uin
 void halo::items::item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal, real_point3d *point);
 uint8_t halo::items::item_get_effective_position(datum_index object_index, real_point3d *out_position);
 }
+static auto &global_structure_collision_bsp = halo::link::ref<uint8_t *>(halo::physics::vars().global_structure_collision_bsp);
 
 namespace halo::items {
 

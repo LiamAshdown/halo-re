@@ -222,7 +222,7 @@ static auto &multiplayer_maps = halo::link::ref<multiplayer_map_table_entry [k_m
 static auto &console_globals_data = halo::link::ref<console_globals>(halo::main::vars().console_globals_data);
 static auto &main_unknown_696570 = halo::link::ref<uint8_t>(halo::main::vars().main_unknown_696570);
 static auto &input_globals = halo::link::ref<input_abstraction_globals>(halo::main::vars().input_globals);
-static auto &input_event_queue_active = halo::link::ref<input_event_queue>(halo::interface::vars().input_event_queue_active);
+static auto &input_event_queue_active = halo::link::ref<input_event_queue>(halo::ui::vars().input_event_queue_active);
 static auto &network_banlist_full_path = halo::link::ref<char [0x104]>(halo::networking::vars().network_banlist_full_path);
 static auto &profile_directory = halo::link::ref<char [0x105]>(halo::saved_games::vars().profile_directory);
 static auto &ban_list = halo::link::ref<growable_array>(halo::networking::vars().ban_list);
@@ -236,8 +236,8 @@ static auto &ui_pause_pending_count_00718fa0 = halo::link::ref<int32_t>(halo::ma
 static auto &network_console_connection_id = halo::link::ref<int32_t>(halo::networking::vars().network_console_connection_id);
 static auto &network_bandwidth_graph_globals = halo::link::ref<network_bandwidth_graph>(halo::main::vars().network_bandwidth_graph_globals);
 static auto &network_bandwidth_graph_default_interval_ms = halo::link::ref<uint32_t>(halo::main::vars().network_bandwidth_graph_default_interval_ms);
-static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::interface::vars().ui_split_screen);
-static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::interface::vars().ui_root_widget);
+static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::ui::vars().ui_split_screen);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
 static auto &shell_application_inactive = halo::link::ref<uint8_t>(halo::main::vars().shell_application_inactive);
 static auto &terminal_initialized = halo::link::ref<uint8_t>(halo::main::vars().terminal_initialized);
 static auto &update_client_staged = halo::link::ref<uint32_t [8]>(halo::game::vars().update_client_staged);
@@ -918,9 +918,9 @@ static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::
 static auto &progress_screen_text = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_text);
 static auto &progress_screen_subtext = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_subtext);
 static auto &interface_loading_screen_request_id = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_request_id);
-static auto &ui_network_wait_timed_out = halo::link::ref<uint8_t>(halo::interface::vars().ui_network_wait_timed_out);
-static auto &ui_network_wait_active = halo::link::ref<uint8_t>(halo::interface::vars().ui_network_wait_active);
-static auto &ui_network_wait_start_time = halo::link::ref<int32_t>(halo::interface::vars().ui_network_wait_start_time);
+static auto &ui_network_wait_timed_out = halo::link::ref<uint8_t>(halo::ui::vars().ui_network_wait_timed_out);
+static auto &ui_network_wait_active = halo::link::ref<uint8_t>(halo::ui::vars().ui_network_wait_active);
+static auto &ui_network_wait_start_time = halo::link::ref<int32_t>(halo::ui::vars().ui_network_wait_start_time);
 extern "C" { extern void chimera__load_main_menu(void); }
 extern "C" { extern void hud_chat_listbox_clear(void); }
 extern "C" { extern void update_queues_dispose(void); }

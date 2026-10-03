@@ -1,74 +1,94 @@
 #pragma once
 
 #include <stdint.h>
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/render/vars.hpp"
 
 /**
  * Link names of the engine globals of the rasterizer that the original image keeps as anonymous data. The
  * definitions live in the standalone data layer under these original names; the module reaches them through
  * the named references of halo::rasterizer::globals below.
  */
-extern "C" {
-extern uint8_t unknown_006893ef;
-extern uint8_t console_debug_toggle_689409;
-extern uint8_t console_debug_toggle_689404;
-extern uint8_t console_debug_toggle_689403;
-extern uint8_t console_debug_toggle_689421;
-extern uint8_t console_debug_toggle_68941e;
-extern uint8_t console_debug_toggle_68941c;
-extern uint8_t console_debug_toggle_6893f3;
-extern uint8_t console_debug_toggle_6893e0;
-extern uint8_t console_debug_toggle_6893e4;
-extern uint8_t console_debug_toggle_6893e6;
-extern uint8_t console_debug_toggle_6893ec;
-extern uint8_t console_debug_toggle_6893f2;
-extern uint8_t console_debug_toggle_6893f4;
-extern uint8_t console_debug_toggle_6893fa;
-extern uint8_t console_debug_toggle_689400;
-extern uint8_t console_debug_toggle_689407;
-extern uint8_t console_debug_toggle_689408;
-extern uint8_t console_debug_toggle_69c614;
-extern uint8_t unknown_006893ff;
-extern int16_t unknown_00689450;
-extern uint16_t unknown_006893e2;
-extern uint8_t unknown_006893f6;
-extern uint8_t unknown_006893f7;
-extern uint8_t unknown_006893f8;
-extern uint8_t unknown_006893fd;
-extern uint8_t unknown_0068941d;
-extern float unknown_00689418;
-extern uint8_t unknown_00689426;
-extern float renderer_unknown_68940c;
-extern uint32_t renderer_unknown_69c684;
-extern int16_t unknown_0069c63e;
-extern int16_t unknown_0069c640;
-extern int16_t unknown_0069c642;
-extern void *unknown_0069da10;
-extern uint8_t unknown_006e0a04;
-extern int16_t unknown_00719aac;
-extern uint32_t unknown_0071d160;
-extern uint8_t unknown_0071d18d;
-extern uint8_t unknown_0071d1b0;
-extern uint16_t unknown_0071d1b4;
-extern uint8_t unknown_0071d1c4;
-extern uint8_t unknown_0071d1fa;
-extern uint8_t unknown_0071d1fb;
-extern uint8_t unknown_0071d1fc;
-extern uint8_t unknown_0071d1fd;
-extern uint8_t unknown_0071d275;
-extern uint8_t unknown_0071d276;
-extern void *(*unknown_00721ea0)(void *hwnd, void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e);
-extern void (*unknown_00721eac)(void *engine);
-extern int32_t (*unknown_00721eb4)(void *engine, void *path, void *key, uint32_t flags, void *rect, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e, uint32_t f);
-extern int32_t (*unknown_00721eb8)(void *engine, void *key);
-extern int32_t (*unknown_00721ebc)(void *engine);
-extern void (*unknown_00721ec8)(int32_t document);
-extern void (*unknown_00721edc)(int32_t document, uint32_t a);
-extern int16_t unknown_00746fbc;
-extern float unknown_007c047c;
-extern void *unknown_007c048c;
-extern void *unknown_007c0490;
-extern void *unknown_007c0494;
-}
+inline auto &unknown_006893ef = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006893ef);
+inline auto &console_debug_toggle_689409 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689409);
+#ifndef HALO_LINKED_console_debug_toggle_689404
+#define HALO_LINKED_console_debug_toggle_689404
+inline auto &console_debug_toggle_689404 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689404);
+#endif
+inline auto &console_debug_toggle_689403 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689403);
+inline auto &console_debug_toggle_689421 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689421);
+inline auto &console_debug_toggle_68941e = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_68941e);
+inline auto &console_debug_toggle_68941c = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_68941c);
+inline auto &console_debug_toggle_6893f3 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_6893f3);
+inline auto &console_debug_toggle_6893e0 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_6893e0);
+inline auto &console_debug_toggle_6893e4 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_6893e4);
+inline auto &console_debug_toggle_6893e6 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_6893e6);
+inline auto &console_debug_toggle_6893ec = halo::link::ref<uint8_t>(halo::render::vars().console_debug_toggle_6893ec);
+inline auto &console_debug_toggle_6893f2 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_6893f2);
+inline auto &console_debug_toggle_6893f4 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_6893f4);
+inline auto &console_debug_toggle_6893fa = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_6893fa);
+inline auto &console_debug_toggle_689400 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689400);
+inline auto &console_debug_toggle_689407 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689407);
+inline auto &console_debug_toggle_689408 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689408);
+inline auto &console_debug_toggle_69c614 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_69c614);
+#ifndef HALO_LINKED_unknown_006893ff
+#define HALO_LINKED_unknown_006893ff
+inline auto &unknown_006893ff = halo::link::ref<uint8_t>(halo::ui::vars().unknown_006893ff);
+#endif
+#ifndef HALO_LINKED_unknown_00689450
+#define HALO_LINKED_unknown_00689450
+inline auto &unknown_00689450 = halo::link::ref<int16_t>(halo::ui::vars().unknown_00689450);
+#endif
+inline auto &unknown_006893e2 = halo::link::ref<uint16_t>(halo::rasterizer::vars().unknown_006893e2);
+inline auto &unknown_006893f6 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006893f6);
+inline auto &unknown_006893f7 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006893f7);
+inline auto &unknown_006893f8 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006893f8);
+inline auto &unknown_006893fd = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006893fd);
+inline auto &unknown_0068941d = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0068941d);
+inline auto &unknown_00689418 = halo::link::ref<float>(halo::rasterizer::vars().unknown_00689418);
+inline auto &unknown_00689426 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_00689426);
+inline auto &renderer_unknown_68940c = halo::link::ref<float>(halo::rasterizer::vars().renderer_unknown_68940c);
+inline auto &renderer_unknown_69c684 = halo::link::ref<uint32_t>(halo::rasterizer::vars().renderer_unknown_69c684);
+inline auto &unknown_0069c63e = halo::link::ref<int16_t>(halo::rasterizer::vars().unknown_0069c63e);
+inline auto &unknown_0069c640 = halo::link::ref<int16_t>(halo::rasterizer::vars().unknown_0069c640);
+inline auto &unknown_0069c642 = halo::link::ref<int16_t>(halo::rasterizer::vars().unknown_0069c642);
+inline auto &unknown_0069da10 = halo::link::ref<void *>(halo::rasterizer::vars().unknown_0069da10);
+inline auto &unknown_006e0a04 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006e0a04);
+inline auto &unknown_00719aac = halo::link::ref<int16_t>(halo::rasterizer::vars().unknown_00719aac);
+inline auto &unknown_0071d160 = halo::link::ref<uint32_t>(halo::rasterizer::vars().unknown_0071d160);
+inline auto &unknown_0071d18d = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d18d);
+inline auto &unknown_0071d1b0 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1b0);
+inline auto &unknown_0071d1b4 = halo::link::ref<uint16_t>(halo::rasterizer::vars().unknown_0071d1b4);
+inline auto &unknown_0071d1c4 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1c4);
+inline auto &unknown_0071d1fa = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1fa);
+inline auto &unknown_0071d1fb = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1fb);
+inline auto &unknown_0071d1fc = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1fc);
+inline auto &unknown_0071d1fd = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1fd);
+#ifndef HALO_LINKED_unknown_0071d275
+#define HALO_LINKED_unknown_0071d275
+inline auto &unknown_0071d275 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d275);
+#endif
+#ifndef HALO_LINKED_unknown_0071d276
+#define HALO_LINKED_unknown_0071d276
+inline auto &unknown_0071d276 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d276);
+#endif
+inline auto &unknown_00721ea0 = halo::link::ref<void *(*)(void *hwnd, void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e)>(halo::rasterizer::vars().unknown_00721ea0);
+#ifndef HALO_LINKED_unknown_00721eac
+#define HALO_LINKED_unknown_00721eac
+inline auto &unknown_00721eac = halo::link::ref<void (*)(void *engine)>(halo::rasterizer::vars().unknown_00721eac);
+#endif
+inline auto &unknown_00721eb4 = halo::link::ref<int32_t (*)(void *engine, void *path, void *key, uint32_t flags, void *rect, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e, uint32_t f)>(halo::rasterizer::vars().unknown_00721eb4);
+inline auto &unknown_00721eb8 = halo::link::ref<int32_t (*)(void *engine, void *key)>(halo::rasterizer::vars().unknown_00721eb8);
+inline auto &unknown_00721ebc = halo::link::ref<int32_t (*)(void *engine)>(halo::rasterizer::vars().unknown_00721ebc);
+inline auto &unknown_00721ec8 = halo::link::ref<void (*)(int32_t document)>(halo::rasterizer::vars().unknown_00721ec8);
+inline auto &unknown_00721edc = halo::link::ref<void (*)(int32_t document, uint32_t a)>(halo::rasterizer::vars().unknown_00721edc);
+inline auto &unknown_00746fbc = halo::link::ref<int16_t>(halo::rasterizer::vars().unknown_00746fbc);
+inline auto &unknown_007c047c = halo::link::ref<float>(halo::rasterizer::vars().unknown_007c047c);
+inline auto &unknown_007c048c = halo::link::ref<void *>(halo::rasterizer::vars().unknown_007c048c);
+inline auto &unknown_007c0490 = halo::link::ref<void *>(halo::rasterizer::vars().unknown_007c0490);
+inline auto &unknown_007c0494 = halo::link::ref<void *>(halo::rasterizer::vars().unknown_007c0494);
 
 namespace halo::rasterizer::fields {
 

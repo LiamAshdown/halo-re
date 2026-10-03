@@ -32,29 +32,34 @@
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/render/vars.hpp"
 
 extern "C" {
-extern render_frustum render_frustum_global;
-extern data_array *object_render_state_cache;
-extern render_lighting render_uncached_object_lighting;
-extern int32_t render_window_count;
-extern int32_t render_frame_index;
-extern uint8_t render_lighting_smoothing_enabled;
-extern uint32_t rasterizer_device_version;
-extern render_fog render_fog_state;
-extern render_camera render_camera_global;
-extern uint8_t render_debug_objects;
 extern uint8_t rasterizer_object_shadow_begin(real_matrix4x3 *projection, ColorRGB *color, float radius,
     float *out_radius);
-extern rasterizer_window_parameters rasterizer_window;
-extern uint8_t rasterizer_caps_flag_689;
-extern uint8_t rasterizer_object_shadow_window_restored;
-extern int16_t rendered_object_count;
-extern datum_index rendered_objects[halo::render::k_maximum_rendered_objects];
-extern uint8_t rasterizer_render_states_dirty;
-extern uint8_t console_debug_toggle_6893ee;
-extern uint8_t rendered_objects_full_warning;
 }
+static auto &render_frustum_global = halo::link::ref<render_frustum>(halo::render::vars().render_frustum_global);
+static auto &object_render_state_cache = halo::link::ref<data_array *>(halo::game::vars().object_render_state_cache);
+static auto &render_uncached_object_lighting = halo::link::ref<render_lighting>(halo::render::vars().render_uncached_object_lighting);
+static auto &render_window_count = halo::link::ref<int32_t>(halo::render::vars().render_window_count);
+static auto &render_frame_index = halo::link::ref<int32_t>(halo::render::vars().render_frame_index);
+static auto &render_lighting_smoothing_enabled = halo::link::ref<uint8_t>(halo::render::vars().render_lighting_smoothing_enabled);
+static auto &rasterizer_device_version = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_device_version);
+static auto &render_fog_state = halo::link::ref<render_fog>(halo::render::vars().render_fog_state);
+static auto &render_camera_global = halo::link::ref<render_camera>(halo::render::vars().render_camera_global);
+static auto &render_debug_objects = halo::link::ref<uint8_t>(halo::render::vars().render_debug_objects);
+static auto &rasterizer_window = halo::link::ref<rasterizer_window_parameters>(halo::rasterizer::vars().rasterizer_window);
+static auto &rasterizer_caps_flag_689 = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_caps_flag_689);
+static auto &rasterizer_object_shadow_window_restored = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_object_shadow_window_restored);
+static auto &rendered_object_count = halo::link::ref<int16_t>(halo::render::vars().rendered_object_count);
+static auto &rendered_objects = halo::link::ref<datum_index [halo::render::k_maximum_rendered_objects]>(halo::render::vars().rendered_objects);
+static auto &rasterizer_render_states_dirty = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_render_states_dirty);
+static auto &console_debug_toggle_6893ee = halo::link::ref<uint8_t>(halo::render::vars().console_debug_toggle_6893ee);
+static auto &rendered_objects_full_warning = halo::link::ref<uint8_t>(halo::render::vars().rendered_objects_full_warning);
 
 typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 

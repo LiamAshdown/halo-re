@@ -4,15 +4,13 @@
 #include "effects.h"
 #include "halo/effects/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
-#ifdef __cplusplus
 extern "C" {
-#endif
-extern uint8_t *player_control_globals_ptr;
 extern long lrint(double x);
-#ifdef __cplusplus
 }
-#endif
+static auto &player_control_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().player_control_globals_ptr);
 
 namespace halo::hs {
 

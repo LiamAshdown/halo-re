@@ -9,13 +9,11 @@
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/effects/vars.hpp"
 
 extern "C" {
-extern int16_t light_count_enabled;
-extern const real_vector3d *global_origin3d_pointer;
-extern const ColorRGB *global_white_color;
-extern data_array *effect_location_data;
-extern const real_vector3d *global_down3d_pointer;
 extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
 extern real_matrix4x3 *effect_resolve_marker_transform(effect *self, int16_t marker);
 extern void effect_event_apply(effect *self, EffectPart *part, effect_location_marker *marker, real_vector3d *up, real_vector3d *forward, real_point3d *position, real scale);
@@ -23,6 +21,11 @@ real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bi
 void effect_set_placement(effect *self, const ColorRGB *color, const effect_tint_source *tint_source, real a_scale, real b_scale);
 void object_change_color_evaluate(effect *self);
 }
+static auto &light_count_enabled = halo::link::ref<int16_t>(halo::effects::vars().light_count_enabled);
+static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &global_white_color = halo::link::ref<const ColorRGB *>(halo::effects::vars().global_white_color);
+static auto &effect_location_data = halo::link::ref<data_array *>(halo::effects::vars().effect_location_data);
+static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
 
 namespace halo::effects {
 

@@ -10,21 +10,24 @@
 #include "halo/structures/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/objects/vars.hpp"
 
 extern "C" {
-extern real_vector3d *default_axis_b;
-extern data_array *light_data;
-extern int32_t light_frame_counter;
-extern uint8_t light_render_unknown_7c0;
-extern real_vector3d *object_ambient_lightmap_default;
-extern data_array *object_data;
-extern float object_lighting_ambient_bias;
-extern float object_lighting_ambient_scale;
-extern float object_lighting_base_light_scale;
-extern real_vector3d object_lightmap_probe_direction;
 extern double pow(double x, double y);
 extern double sqrt(double x);
 }
+static auto &default_axis_b = halo::link::ref<real_vector3d *>(halo::game::vars().default_axis_b);
+static auto &light_data = halo::link::ref<data_array *>(halo::objects::vars().light_data);
+static auto &light_frame_counter = halo::link::ref<int32_t>(halo::objects::vars().light_frame_counter);
+static auto &light_render_unknown_7c0 = halo::link::ref<uint8_t>(halo::objects::vars().light_render_unknown_7c0);
+static auto &object_ambient_lightmap_default = halo::link::ref<real_vector3d *>(halo::objects::vars().object_ambient_lightmap_default);
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &object_lighting_ambient_bias = halo::link::ref<float>(halo::objects::vars().object_lighting_ambient_bias);
+static auto &object_lighting_ambient_scale = halo::link::ref<float>(halo::objects::vars().object_lighting_ambient_scale);
+static auto &object_lighting_base_light_scale = halo::link::ref<float>(halo::objects::vars().object_lighting_base_light_scale);
+static auto &object_lightmap_probe_direction = halo::link::ref<real_vector3d>(halo::objects::vars().object_lightmap_probe_direction);
 
 /**
  * Returns the summed luminance of the lights attached to an object.

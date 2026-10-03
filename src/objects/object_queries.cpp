@@ -3,16 +3,19 @@
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/objects/vars.hpp"
+#include "halo/physics/vars.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern datum_index *collideable_cluster_first;
-extern data_array *collideable_object_references;
-extern datum_index *noncollideable_cluster_first;
-extern data_array *noncollideable_object_references;
-extern data_array *object_data;
-extern object_globals *object_globals_pointer;
 }
+static auto &collideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().collideable_cluster_first);
+static auto &collideable_object_references = halo::link::ref<data_array *>(halo::physics::vars().collideable_object_references);
+static auto &noncollideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().noncollideable_cluster_first);
+static auto &noncollideable_object_references = halo::link::ref<data_array *>(halo::objects::vars().noncollideable_object_references);
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &object_globals_pointer = halo::link::ref<object_globals *>(halo::objects::vars().object_globals_pointer);
 
 /**
  * Starts a cursor over the non-collideable object references of a cluster.

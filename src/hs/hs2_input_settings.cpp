@@ -8,17 +8,16 @@
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
 
 
-#ifdef __cplusplus
 extern "C" {
-#endif
-extern uint8_t input_globals[];
 extern uint8_t player_control_look_rates_0070facc[];
-extern uint8_t profile_globals_block[0x60a4];
-#ifdef __cplusplus
 }
-#endif
+static auto &input_globals = halo::link::ref<uint8_t []>(halo::main::vars().input_globals);
+static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
 
 static const uint32_t k_turn_rate_display_bits = 0x431f27aa;
 

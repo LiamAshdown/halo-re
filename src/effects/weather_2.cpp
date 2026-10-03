@@ -3,12 +3,13 @@
 #include "halo/structures/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/render/vars.hpp"
 
-extern "C" {
-extern uint8_t weather_enabled;
-extern weather_instance weather_instances[1];
-extern real_point3d render_camera_global;
-}
+static auto &weather_enabled = halo::link::ref<uint8_t>(halo::effects::vars().weather_enabled);
+static auto &weather_instances = halo::link::ref<weather_instance [1]>(halo::effects::vars().weather_instances);
+static auto &render_camera_global = halo::link::ref<real_point3d>(halo::render::vars().render_camera_global);
 
 namespace halo::effects {
 

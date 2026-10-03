@@ -47,7 +47,7 @@
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
 static auto &render_views = halo::link::ref<render_view [2]>(halo::main::vars().render_views);
-static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::interface::vars().ui_root_widget);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
 static auto &render_view_local_player_sticky = halo::link::ref<uint8_t>(halo::main::vars().render_view_local_player_sticky);
 static auto &screenshots = halo::link::ref<int32_t>(halo::main::vars().screenshots);
 static auto &input_globals = halo::link::ref<input_abstraction_globals>(halo::main::vars().input_globals);

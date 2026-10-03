@@ -12,6 +12,10 @@
 #include "halo/scenario/scenario.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/projectiles/vars.hpp"
 
 extern "C" {
 extern double sqrt(double x);
@@ -19,12 +23,12 @@ extern double fsin(double x);
 extern double fcos(double x);
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t collision_mask, uint32_t ignore_object_index, void *out_record);
-extern char k_empty_string[1];
-extern ProjectileMaterialResponse projectile_default_material_response;
-extern real_vector3d *global_down3d_pointer;
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
-extern int32_t k_projectile_minimum_age_ticks;
 }
+static auto &k_empty_string = halo::link::ref<char [1]>(halo::networking::vars().k_empty_string);
+static auto &projectile_default_material_response = halo::link::ref<ProjectileMaterialResponse>(halo::projectiles::vars().projectile_default_material_response);
+static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
+static auto &k_projectile_minimum_age_ticks = halo::link::ref<int32_t>(halo::projectiles::vars().k_projectile_minimum_age_ticks);
 
 namespace halo::projectiles {
 

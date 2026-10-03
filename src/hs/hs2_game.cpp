@@ -13,19 +13,16 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/saved_games/vars.hpp"
+#include "halo/shell/vars.hpp"
 
-#ifdef __cplusplus
 extern "C" {
-#endif
-extern network_client_globals *network_client;
 extern void network_client_rejoin_check(int8_t machine_player_index);
-extern uint8_t console_debug_flag_4;
-extern uint8_t *player_effect_globals_pointer;
-extern int16_t pending_difficulty;
-extern int16_t local_player_count;
-extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t main_globals_byte_0071973a;
-extern int32_t game_state_revert_time;
 extern uint8_t main_globals_byte_0071973d;
 extern uint8_t main_globals_byte_0071973e;
 extern int32_t main_globals_dword_00719740;
@@ -34,14 +31,18 @@ extern int16_t main_globals_word_0071974c;
 extern int16_t main_globals_word_0071976e;
 extern uint8_t main_globals_byte_0071976c;
 extern uint8_t main_globals_byte_0071974e;
-extern uint8_t profile_globals_block[0x60a4];
-extern uint8_t ui_event_byte_0071975b;
-extern uint8_t split_screen_quit_prompt_armed;
 extern void rcon(int32_t argument_count, char **arguments);
 extern void player_update_queue_flush_by_name(char *name);
-#ifdef __cplusplus
 }
-#endif
+static auto &console_debug_flag_4 = halo::link::ref<uint8_t>(halo::shell::vars().console_debug_flag_4);
+static auto &player_effect_globals_pointer = halo::link::ref<uint8_t *>(halo::effects::vars().player_effect_globals_pointer);
+static auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);
+static auto &local_player_count = halo::link::ref<int16_t>(halo::game::vars().local_player_count);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
+static auto &game_state_revert_time = halo::link::ref<int32_t>(halo::saved_games::vars().game_state_revert_time);
+static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
+static auto &ui_event_byte_0071975b = halo::link::ref<uint8_t>(halo::ui::vars().ui_event_byte_0071975b);
+static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
 
 namespace halo::hs {
 

@@ -15,7 +15,6 @@ extern ColorRGB model_render_default_change_colors[4];
 extern float model_render_default_function_values[4];
 extern int16_t console_model_lod_override;
 extern uint8_t rasterizer_caps_flag_689;
-extern uint8_t console_debug_toggle_6893f2;
 extern rasterizer_model_draw_context *rasterizer_object_shadow_model_context;
 extern uint8_t rasterizer_object_shadow_model_active;
 }

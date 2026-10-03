@@ -11,29 +11,34 @@
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/render/api.hpp"
-extern "C" { extern real_vector3d camera_forward_x; }
-extern "C" { extern real_point3d *global_zero_vector3d_pointer; }
-extern "C" { extern render_frustum render_frustum_global; }
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/render/vars.hpp"
+#include "halo/units/vars.hpp"
+static auto &camera_forward_x = halo::link::ref<real_vector3d>(halo::effects::vars().camera_forward_x);
+static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
+static auto &render_frustum_global = halo::link::ref<render_frustum>(halo::render::vars().render_frustum_global);
 
 extern "C" {
-extern weather_instance weather_instances[1];
-extern int32_t weather_instance_count;
-extern data_array *weather_particle_data;
 extern datum_index weather_particle_new(int16_t instance_index, int16_t type_index);
-extern real_point3d render_camera_global;
-extern float camera_position_z;
 extern void weather_instance_update(int16_t instance_index);
 extern double fmod(double x, double y);
 extern void effect_random_direction_from_table(real_point3d *out);
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
-extern int32_t weather_frame_counter;
-extern int16_t weather_particle_system_count;
-extern weather_particle_system_state weather_wind_states[8];
 extern double atan2(double y, double x);
 extern double sqrt(double x);
 extern double cos(double x);
 extern double sin(double x);
 }
+static auto &weather_instances = halo::link::ref<weather_instance [1]>(halo::effects::vars().weather_instances);
+static auto &weather_instance_count = halo::link::ref<int32_t>(halo::effects::vars().weather_instance_count);
+static auto &weather_particle_data = halo::link::ref<data_array *>(halo::game::vars().weather_particle_data);
+static auto &render_camera_global = halo::link::ref<real_point3d>(halo::render::vars().render_camera_global);
+static auto &camera_position_z = halo::link::ref<float>(halo::effects::vars().camera_position_z);
+static auto &weather_frame_counter = halo::link::ref<int32_t>(halo::effects::vars().weather_frame_counter);
+static auto &weather_particle_system_count = halo::link::ref<int16_t>(halo::effects::vars().weather_particle_system_count);
+static auto &weather_wind_states = halo::link::ref<weather_particle_system_state [8]>(halo::effects::vars().weather_wind_states);
 
 namespace halo::effects {
 

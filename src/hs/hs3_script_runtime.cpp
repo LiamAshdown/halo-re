@@ -11,14 +11,17 @@
 #include "halo/hs/api.hpp"
 #include "halo/scenario/scenario.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/hs/vars.hpp"
+#include "halo/objects/vars.hpp"
 
-extern "C" {
-extern data_array *player_data;
-extern data_array *object_data;
-extern game_time_globals *game_time;
-extern byte_swap_definition hs_syntax_data_header_byte_swap_definition;
-extern byte_swap_definition hs_syntax_node_byte_swap_definition;
-}
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &hs_syntax_data_header_byte_swap_definition = halo::link::ref<byte_swap_definition>(halo::hs::vars().hs_syntax_data_header_byte_swap_definition);
+static auto &hs_syntax_node_byte_swap_definition = halo::link::ref<byte_swap_definition>(halo::hs::vars().hs_syntax_node_byte_swap_definition);
 
 static const uint8_t k_swapped_script_node_name[12] = { 0x63, 0x73, 0x69, 0x72, 0x74, 0x70, 0x6e, 0x20, 0x00, 0x65, 0x64, 0x6f };
 

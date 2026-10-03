@@ -27,6 +27,13 @@
 #include "halo/render/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/render/vars.hpp"
+#include "halo/units/vars.hpp"
 
 static_assert(offsetof(first_person_weapon_interface, node_matrices) == 0x108c);
 static_assert(sizeof(real_matrix4x3) == 0x34);
@@ -36,33 +43,33 @@ static_assert(offsetof(Contrail, _pad_84) == 0x84);
 static_assert(offsetof(Particle, _pad_b0) == 0xb0);
 
 extern "C" {
-extern float build_sprite_screen_coverage;
-extern int16_t build_sprite_large_quad_count;
-extern real_vector3d build_sprite_view_up;
-extern real_vector3d build_sprite_view_left;
-extern render_frustum render_frustum_global;
-extern const ColorARGB *global_white_argb;
-extern real_rectangle3d *global_null_rectangle3d_pointer;
 extern double sin(double x);
 extern double cos(double x);
-extern uint8_t build_sprite_group_warning;
 extern double fmod(double x, double y);
 extern double atan2(double y, double x);
-extern rasterizer_dynamic_vertex_slot rasterizer_dynamic_vertex_slots[k_rasterizer_dynamic_vertex_slots];
-extern rasterizer_dynamic_vertex_cache rasterizer_dynamic_vertex_caches[k_rasterizer_vertex_type_count];
-extern rasterizer_vertex_buffer_slot rasterizer_vertex_buffer_slots[k_rasterizer_vertex_buffer_slots];
 extern double sqrt(double x);
 extern double fabs(double x);
-extern render_camera render_camera_global;
-extern data_array *contrail_point_data;
-extern real_point3d *global_zero_vector3d_pointer;
-extern void *rasterizer_dynamic_index_buffer;
 extern int32_t rasterizer_dynamic_index_cache_reserve(int32_t count);
-extern data_array *contrail_data;
-extern uint8_t particle_spawn_debug_mode;
-extern data_array *particle_data;
-extern int32_t render_frame_index;
 }
+static auto &build_sprite_screen_coverage = halo::link::ref<float>(halo::render::vars().build_sprite_screen_coverage);
+static auto &build_sprite_large_quad_count = halo::link::ref<int16_t>(halo::render::vars().build_sprite_large_quad_count);
+static auto &build_sprite_view_up = halo::link::ref<real_vector3d>(halo::render::vars().build_sprite_view_up);
+static auto &build_sprite_view_left = halo::link::ref<real_vector3d>(halo::render::vars().build_sprite_view_left);
+static auto &render_frustum_global = halo::link::ref<render_frustum>(halo::render::vars().render_frustum_global);
+static auto &global_white_argb = halo::link::ref<const ColorARGB *>(halo::networking::vars().global_white_argb);
+static auto &global_null_rectangle3d_pointer = halo::link::ref<real_rectangle3d *>(halo::render::vars().global_null_rectangle3d_pointer);
+static auto &build_sprite_group_warning = halo::link::ref<uint8_t>(halo::render::vars().build_sprite_group_warning);
+static auto &rasterizer_dynamic_vertex_slots = halo::link::ref<rasterizer_dynamic_vertex_slot [k_rasterizer_dynamic_vertex_slots]>(halo::game::vars().rasterizer_dynamic_vertex_slots);
+static auto &rasterizer_dynamic_vertex_caches = halo::link::ref<rasterizer_dynamic_vertex_cache [k_rasterizer_vertex_type_count]>(halo::rasterizer::vars().rasterizer_dynamic_vertex_caches);
+static auto &rasterizer_vertex_buffer_slots = halo::link::ref<rasterizer_vertex_buffer_slot [k_rasterizer_vertex_buffer_slots]>(halo::rasterizer::vars().rasterizer_vertex_buffer_slots);
+static auto &render_camera_global = halo::link::ref<render_camera>(halo::render::vars().render_camera_global);
+static auto &contrail_point_data = halo::link::ref<data_array *>(halo::effects::vars().contrail_point_data);
+static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
+static auto &rasterizer_dynamic_index_buffer = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_dynamic_index_buffer);
+static auto &contrail_data = halo::link::ref<data_array *>(halo::effects::vars().contrail_data);
+static auto &particle_spawn_debug_mode = halo::link::ref<uint8_t>(halo::effects::vars().particle_spawn_debug_mode);
+static auto &particle_data = halo::link::ref<data_array *>(halo::effects::vars().particle_data);
+static auto &render_frame_index = halo::link::ref<int32_t>(halo::render::vars().render_frame_index);
 
 typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);
 

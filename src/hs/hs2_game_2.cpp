@@ -1,14 +1,10 @@
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern uint8_t *game_time;
-#ifdef __cplusplus
-}
-#endif
+static auto &game_time = halo::link::ref<uint8_t *>(halo::ai::vars().game_time);
 
 namespace halo::hs {
 

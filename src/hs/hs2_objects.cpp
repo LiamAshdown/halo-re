@@ -11,16 +11,15 @@
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/hs/vars.hpp"
 
-#ifdef __cplusplus
 extern "C" {
-#endif
-extern data_array *player_data;
 extern int16_t magic_seat_animation_state_0069fde0;
-extern int16_t hs_object_type_masks[];
-#ifdef __cplusplus
 }
-#endif
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &hs_object_type_masks = halo::link::ref<int16_t []>(halo::hs::vars().hs_object_type_masks);
 
 namespace halo::hs {
 

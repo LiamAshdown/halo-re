@@ -1,15 +1,16 @@
 #include "halo/hs/hs3_commands.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/hs/vars.hpp"
 
-extern "C" {
-extern void *global_sound_effect_object;
-extern void *directsound_listener;
-extern float sound_listener_doppler_factor;
-extern float sound_listener_rolloff_factor;
-extern int16_t sound_supplementary_buffers_00746122;
-extern uint8_t directsound_eax_enabled;
-}
+static auto &global_sound_effect_object = halo::link::ref<void *>(halo::game::vars().global_sound_effect_object);
+static auto &directsound_listener = halo::link::ref<void *>(halo::hs::vars().directsound_listener);
+static auto &sound_listener_doppler_factor = halo::link::ref<float>(halo::hs::vars().sound_listener_doppler_factor);
+static auto &sound_listener_rolloff_factor = halo::link::ref<float>(halo::hs::vars().sound_listener_rolloff_factor);
+static auto &sound_supplementary_buffers_00746122 = halo::link::ref<int16_t>(halo::hs::vars().sound_supplementary_buffers_00746122);
+static auto &directsound_eax_enabled = halo::link::ref<uint8_t>(halo::hs::vars().directsound_eax_enabled);
 
 namespace halo::hs::part3 {
 

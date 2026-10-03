@@ -7,16 +7,20 @@
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/physics/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern Globals *global_globals;
-extern uint8_t material_table_warning_issued;
-extern int32_t material_table_bad_index;
-extern uint8_t material_table_fallback[0x374];
-extern const real_point3d *global_zero_vector3d_pointer;
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 }
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &material_table_warning_issued = halo::link::ref<uint8_t>(halo::physics::vars().material_table_warning_issued);
+static auto &material_table_bad_index = halo::link::ref<int32_t>(halo::physics::vars().material_table_bad_index);
+static auto &material_table_fallback = halo::link::ref<uint8_t [0x374]>(halo::physics::vars().material_table_fallback);
+static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 
 namespace halo::units {
 

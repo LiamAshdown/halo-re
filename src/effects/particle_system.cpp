@@ -14,22 +14,28 @@
 #include "halo/scenario/scenario.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
 extern void effect_random_direction_from_table(real_point3d *out);
-extern data_array *particle_system_data;
-extern data_array *particle_system_particle_data;
-extern uint8_t particle_systems_enabled;
-extern const ColorARGB *global_white_argb;
-extern const ColorRGB *global_white_color;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint8_t particle_system_update(float delta_time, datum_index handle);
-extern real_point3d *global_zero_vector3d_pointer;
 extern void object_get_root_location(int32_t *out, uint32_t object_index);
-extern uint8_t *first_person_weapon_interfaces;
-extern const real_vector3d *global_origin3d_pointer;
-extern void (*particle_creation_physics_table[3])(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
 }
+static auto &particle_system_data = halo::link::ref<data_array *>(halo::effects::vars().particle_system_data);
+static auto &particle_system_particle_data = halo::link::ref<data_array *>(halo::effects::vars().particle_system_particle_data);
+static auto &particle_systems_enabled = halo::link::ref<uint8_t>(halo::effects::vars().particle_systems_enabled);
+static auto &global_white_argb = halo::link::ref<const ColorARGB *>(halo::networking::vars().global_white_argb);
+static auto &global_white_color = halo::link::ref<const ColorRGB *>(halo::effects::vars().global_white_color);
+static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
+static auto &first_person_weapon_interfaces = halo::link::ref<uint8_t *>(halo::ui::vars().first_person_weapon_interfaces);
+static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &particle_creation_physics_table = halo::link::ref<void (*[3])(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker)>(halo::effects::vars().particle_creation_physics_table);
 
 namespace halo::effects {
 

@@ -3,12 +3,12 @@
 #include "halo/cache/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/objects/vars.hpp"
 
-extern "C" {
-extern data_array *object_data;
-extern data_array *widget_data;
-extern widget_type_definition widget_type_definitions[k_maximum_widget_types];
-}
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &widget_data = halo::link::ref<data_array *>(halo::objects::vars().widget_data);
+static auto &widget_type_definitions = halo::link::ref<widget_type_definition [k_maximum_widget_types]>(halo::objects::vars().widget_type_definitions);
 
 /**
  * Creates the widget data array and initialises the widget types.

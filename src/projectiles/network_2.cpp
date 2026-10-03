@@ -3,12 +3,13 @@
 #include "halo/core/datum.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
-extern "C" {
-extern network_id_table *object_network_id_table;
-extern uint8_t network_message_scratch[halo::projectiles::k_network_message_scratch_size];
-extern void *network_object_index_cache;
-}
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
+static auto &network_message_scratch = halo::link::ref<uint8_t [halo::projectiles::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
+static auto &network_object_index_cache = halo::link::ref<void *>(halo::units::vars().network_object_index_cache);
 
 namespace halo::projectiles {
 

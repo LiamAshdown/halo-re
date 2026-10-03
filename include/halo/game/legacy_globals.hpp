@@ -1,16 +1,16 @@
 #pragma once
 
 #include <cstdint>
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
-extern "C" {
-extern uint8_t DAT_0087ab18;
-extern uint8_t g_006f1d25;
-extern int32_t g_006f1d28;
-extern uint8_t unknown_00699f40[];
-extern uint8_t unknown_0071cc20[];
-extern float unknown_0069c530;
-extern float unknown_0069c534;
-}
+inline auto &DAT_0087ab18 = halo::link::ref<uint8_t>(halo::game::vars().DAT_0087ab18);
+inline auto &g_006f1d25 = halo::link::ref<uint8_t>(halo::game::vars().g_006f1d25);
+inline auto &g_006f1d28 = halo::link::ref<int32_t>(halo::game::vars().g_006f1d28);
+inline auto &unknown_00699f40 = halo::link::ref<uint8_t []>(halo::game::vars().unknown_00699f40);
+inline auto &unknown_0071cc20 = halo::link::ref<uint8_t []>(halo::game::vars().unknown_0071cc20);
+inline auto &unknown_0069c530 = halo::link::ref<float>(halo::game::vars().unknown_0069c530);
+inline auto &unknown_0069c534 = halo::link::ref<float>(halo::game::vars().unknown_0069c534);
 
 namespace halo::game::fields {
 

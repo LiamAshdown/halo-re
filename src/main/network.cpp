@@ -25,8 +25,8 @@
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
 static auto &connect_thread = halo::link::ref<void *>(halo::main::vars().connect_thread);
-static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::interface::vars().ui_split_screen);
-static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::interface::vars().ui_root_widget);
+static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::ui::vars().ui_split_screen);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
 namespace halo::main {
 
 /**

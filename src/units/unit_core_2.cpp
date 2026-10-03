@@ -17,23 +17,28 @@
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/items/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern uint8_t *object_network_id_table;
-extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
-extern data_array *player_data;
-extern uint8_t unit_updates_suppressed;
-extern uint8_t *ai_update_stagger;
-extern uint8_t weapon_bottomless_clip;
-extern Globals *global_globals;
-extern char *s_stand;
-extern real_point3d *global_origin3d_pointer;
-extern real_point3d *global_zero_vector3d_pointer;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const void *color, const void *tint_source);
 extern void weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger);
 extern void weapon_set_ready_timer(datum_index item_index, real value);
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 }
+static auto &object_network_id_table = halo::link::ref<uint8_t *>(halo::units::vars().object_network_id_table);
+static auto &network_message_scratch = halo::link::ref<uint8_t [halo::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &unit_updates_suppressed = halo::link::ref<uint8_t>(halo::units::vars().unit_updates_suppressed);
+static auto &ai_update_stagger = halo::link::ref<uint8_t *>(halo::units::vars().ai_update_stagger);
+static auto &weapon_bottomless_clip = halo::link::ref<uint8_t>(halo::items::vars().weapon_bottomless_clip);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &s_stand = halo::link::ref<char *>(halo::units::vars().s_stand);
+static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 
 namespace halo::units {
 

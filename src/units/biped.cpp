@@ -21,22 +21,17 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern uint8_t *cinematic_globals_ptr;
-extern uint8_t unit_updates_suppressed;
 extern double fcos(double x);
 extern double fsin(double x);
-extern Globals *global_globals;
-extern real_vector3d *global_down3d_pointer;
-extern uint32_t k_default_resting_plane[4];
 extern uint8_t collision_bsp_surface_test_point_side_2d(ModelCollisionGeometryBSP *bsp, real_point2d *point, int32_t surface_index, int16_t axis, uint8_t sign);
 extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeometryBSP *bsp, int32_t surface_index, uint16_t axis, uint8_t sign, real_point2d *point, real_point2d *out_point);
 extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeometryBSP *collision_bsp, int32_t surface_index, uint8_t component_sign, real_point3d *out, int32_t dominant_axis, const real_point2d *known);
-extern int32_t k_biped_minimum_age_ticks;
-extern data_array *player_data;
-extern uint8_t biped_detach_from_flipped_vehicle;
-extern real_point3d *global_origin3d_pointer;
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
 extern uint32_t weapon_prevents_melee_attack(datum_index item_index);
 extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category, int16_t mode);
@@ -45,6 +40,15 @@ extern double sqrt(double x);
 extern int32_t unit_get_local_player_weapon_index(datum_index unit);
 extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index);
 }
+static auto &cinematic_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().cinematic_globals_ptr);
+static auto &unit_updates_suppressed = halo::link::ref<uint8_t>(halo::units::vars().unit_updates_suppressed);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
+static auto &k_default_resting_plane = halo::link::ref<uint32_t [4]>(halo::units::vars().k_default_resting_plane);
+static auto &k_biped_minimum_age_ticks = halo::link::ref<int32_t>(halo::units::vars().k_biped_minimum_age_ticks);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &biped_detach_from_flipped_vehicle = halo::link::ref<uint8_t>(halo::units::vars().biped_detach_from_flipped_vehicle);
+static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 
 namespace halo::units {
 

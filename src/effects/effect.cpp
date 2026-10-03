@@ -10,15 +10,18 @@
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/interface/vars.hpp"
 
 extern "C" {
-extern data_array *effect_data;
-extern data_array *effect_location_data;
-extern uint8_t *first_person_weapon_interfaces;
 extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
 extern void effect_delete(datum_index effect_handle);
 extern void effect_start_event(datum_index effect_handle, int16_t event_index);
 }
+static auto &effect_data = halo::link::ref<data_array *>(halo::effects::vars().effect_data);
+static auto &effect_location_data = halo::link::ref<data_array *>(halo::effects::vars().effect_location_data);
+static auto &first_person_weapon_interfaces = halo::link::ref<uint8_t *>(halo::ui::vars().first_person_weapon_interfaces);
 
 namespace halo::effects {
 

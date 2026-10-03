@@ -28,21 +28,26 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/objects/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern ModelCollisionGeometryMaterial default_collision_material;
-extern uint8_t g_006f1cf4;
-extern real_vector3d *global_down3d_pointer;
-extern Globals *global_globals;
-extern real_vector3d *global_origin3d_pointer;
 extern void hud_unit_meter_apply_predictive_damage(datum_index player_index, float damage);
-extern player_globals *local_player_globals;
-extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
-extern data_array *object_data;
-extern network_id_table *object_network_id_table;
-extern int32_t object_sound_event_last_tick;
-extern uint8_t *team_pair_data;
 }
+static auto &default_collision_material = halo::link::ref<ModelCollisionGeometryMaterial>(halo::objects::vars().default_collision_material);
+static auto &g_006f1cf4 = halo::link::ref<uint8_t>(halo::objects::vars().g_006f1cf4);
+static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &network_message_scratch = halo::link::ref<uint8_t [halo::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
+static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
+static auto &object_sound_event_last_tick = halo::link::ref<int32_t>(halo::objects::vars().object_sound_event_last_tick);
+static auto &team_pair_data = halo::link::ref<uint8_t *>(halo::ai::vars().team_pair_data);
 
 /**
  * Initialises the object's vitality maxima and stun thresholds, optionally from override values.

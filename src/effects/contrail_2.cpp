@@ -3,13 +3,15 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
 
 extern "C" {
-extern data_array *contrail_data;
-extern data_array *contrail_point_data;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 void contrail_refresh_lightmap();
 }
+static auto &contrail_data = halo::link::ref<data_array *>(halo::effects::vars().contrail_data);
+static auto &contrail_point_data = halo::link::ref<data_array *>(halo::effects::vars().contrail_point_data);
 
 namespace halo::effects {
 

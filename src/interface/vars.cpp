@@ -6,7 +6,7 @@
 #include "halo/interface/vars.hpp"
 #include "link/interface_vars.hpp"
 
-namespace halo::interface {
+namespace halo::ui {
 
 const Vars &vars()
 {
@@ -354,4 +354,4 @@ const Vars &vars()
     return table;
 }
 
-}  // namespace halo::interface
+}  // namespace halo::ui

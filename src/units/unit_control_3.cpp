@@ -3,12 +3,15 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern Globals *global_globals;
-extern const real_point3d *global_zero_vector3d_pointer;
 extern double sqrt(double x);
 }
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 
 namespace halo::units {
 

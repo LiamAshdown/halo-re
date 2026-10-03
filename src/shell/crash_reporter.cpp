@@ -3,24 +3,24 @@
 #include "interface.h"
 #include "halo/sound/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/shell/vars.hpp"
 
-extern "C" {
-
-extern void *shell_stack_guard_page;
-extern uint32_t shell_stack_guard_old_protect;
-extern int32_t crash_in_progress;
-extern report_fault_fn report_fault;
-extern uint8_t shell_window_proc_bypass;
-extern void *chat_gui_root_handle;
-extern chat_gui_find_object_fn chat_gui_find_object;
-extern chat_gui_release_fn chat_gui_release;
-extern keystone_release_fn keystone_release;
-extern void *chat_gui_find_object_arg;
-extern void *chat_listbox_gui_find_object_arg;
-extern void *shell_window;
-extern char exception_title[k_shell_exception_string_length];
-extern char exception_gathering_text[k_shell_exception_string_length];
-}
+static auto &shell_stack_guard_page = halo::link::ref<void *>(halo::shell::vars().shell_stack_guard_page);
+static auto &shell_stack_guard_old_protect = halo::link::ref<uint32_t>(halo::shell::vars().shell_stack_guard_old_protect);
+static auto &crash_in_progress = halo::link::ref<int32_t>(halo::shell::vars().crash_in_progress);
+static auto &report_fault = halo::link::ref<report_fault_fn>(halo::shell::vars().report_fault);
+static auto &shell_window_proc_bypass = halo::link::ref<uint8_t>(halo::shell::vars().shell_window_proc_bypass);
+static auto &chat_gui_root_handle = halo::link::ref<void *>(halo::ui::vars().chat_gui_root_handle);
+static auto &chat_gui_find_object = halo::link::ref<chat_gui_find_object_fn>(halo::ui::vars().chat_gui_find_object);
+static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
+static auto &keystone_release = halo::link::ref<keystone_release_fn>(halo::shell::vars().keystone_release);
+static auto &chat_gui_find_object_arg = halo::link::ref<void *>(halo::ui::vars().chat_gui_find_object_arg);
+static auto &chat_listbox_gui_find_object_arg = halo::link::ref<void *>(halo::ui::vars().chat_listbox_gui_find_object_arg);
+static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
+static auto &exception_title = halo::link::ref<char [k_shell_exception_string_length]>(halo::shell::vars().exception_title);
+static auto &exception_gathering_text = halo::link::ref<char [k_shell_exception_string_length]>(halo::shell::vars().exception_gathering_text);
 
 namespace halo::shell {
 

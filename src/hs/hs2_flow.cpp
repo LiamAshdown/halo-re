@@ -9,16 +9,15 @@
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/hs/vars.hpp"
 
-#ifdef __cplusplus
 extern "C" {
-#endif
-extern data_array *hs_thread_data;
 extern int16_t hs_type_sizes[];
-extern game_time_globals *game_time;
-#ifdef __cplusplus
 }
-#endif
+static auto &hs_thread_data = halo::link::ref<data_array *>(halo::hs::vars().hs_thread_data);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
 static hs_syntax_node *syntax_get(datum_index node)
 {

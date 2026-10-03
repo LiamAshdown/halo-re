@@ -22,12 +22,16 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/physics/vars.hpp"
 
-extern "C" { extern uint8_t breakable_surfaces_enabled; }
-extern "C" { extern ModelCollisionGeometryBSP *global_structure_collision_bsp; }
-extern "C" { extern uint8_t *global_structure_bsp; }
-extern "C" { extern Globals *global_globals; }
-extern "C" { extern const real_point3d *global_origin3d_pointer; }
+static auto &breakable_surfaces_enabled = halo::link::ref<uint8_t>(halo::physics::vars().breakable_surfaces_enabled);
+static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);
+static auto &global_structure_bsp = halo::link::ref<uint8_t *>(halo::ai::vars().global_structure_bsp);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 extern "C" { extern void particle_new(particle_creation_data *creation_data); }
 extern "C" { extern datum_index halo::sound::sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index, sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); }
 extern "C" { extern double sqrt(double x); }

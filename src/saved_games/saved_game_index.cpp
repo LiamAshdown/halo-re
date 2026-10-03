@@ -31,41 +31,46 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/saved_games/vars.hpp"
 
 extern "C" {
-extern char savegames_directory[0x100];
-extern uint16_t missing_string_text[];
-extern uint8_t savegame_index_dirty;
-extern saved_player_profile default_profile_data;
-extern int32_t cached_saved_game_something;
-extern int32_t saved_player_profile_slots_handle;
-extern network_mutex_record *saved_game_files_mutex;
-extern network_mutex_record *savegame_index_mutex;
-extern file_reference_record savegame_index_file;
-extern uint8_t saved_game_files_initialized;
-extern char profile_directory[0x105];
-extern char saved_game_root_directory[0x100];
-extern char saved_game_root_path[0x100];
-extern char saved_directory[0x100];
-extern char player_profiles_directory[0x100];
-extern char default_player_profiles_directory[0x100];
-extern char playlists_directory[0x100];
-extern char default_playlists_directory[0x100];
-extern char last_profile_path[0x100];
-extern char last_game_variant_path[0x100];
-extern char last_multiplayer_map_path[0x100];
-extern uint8_t default_player_profile_initialized;
-extern variant_write_request variant_write_request_state;
-extern int16_t default_game_variant_count;
-extern uint16_t saved_game_display_name_buffer[0x80];
-extern network_thread_record *variant_write_thread;
-extern int16_t savegame_index_write_count;
-extern uint8_t saved_game_index_file_open;
-extern uint32_t game_state_crc;
-extern uint32_t cache_file_current_header_crc32;
-extern char *rasterizer_shader_file_name;
 extern int32_t strcmp(const char *a, const char *b);
 }
+static auto &savegames_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().savegames_directory);
+static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
+static auto &savegame_index_dirty = halo::link::ref<uint8_t>(halo::saved_games::vars().savegame_index_dirty);
+static auto &default_profile_data = halo::link::ref<saved_player_profile>(halo::ui::vars().default_profile_data);
+static auto &cached_saved_game_something = halo::link::ref<int32_t>(halo::ui::vars().cached_saved_game_something);
+static auto &saved_player_profile_slots_handle = halo::link::ref<int32_t>(halo::saved_games::vars().saved_player_profile_slots_handle);
+static auto &saved_game_files_mutex = halo::link::ref<network_mutex_record *>(halo::saved_games::vars().saved_game_files_mutex);
+static auto &savegame_index_mutex = halo::link::ref<network_mutex_record *>(halo::game::vars().savegame_index_mutex);
+static auto &savegame_index_file = halo::link::ref<file_reference_record>(halo::game::vars().savegame_index_file);
+static auto &saved_game_files_initialized = halo::link::ref<uint8_t>(halo::saved_games::vars().saved_game_files_initialized);
+static auto &profile_directory = halo::link::ref<char [0x105]>(halo::saved_games::vars().profile_directory);
+static auto &saved_game_root_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().saved_game_root_directory);
+static auto &saved_game_root_path = halo::link::ref<char [0x100]>(halo::game::vars().saved_game_root_path);
+static auto &saved_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().saved_directory);
+static auto &player_profiles_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().player_profiles_directory);
+static auto &default_player_profiles_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().default_player_profiles_directory);
+static auto &playlists_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().playlists_directory);
+static auto &default_playlists_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().default_playlists_directory);
+static auto &last_profile_path = halo::link::ref<char [0x100]>(halo::saved_games::vars().last_profile_path);
+static auto &last_game_variant_path = halo::link::ref<char [0x100]>(halo::saved_games::vars().last_game_variant_path);
+static auto &last_multiplayer_map_path = halo::link::ref<char [0x100]>(halo::saved_games::vars().last_multiplayer_map_path);
+static auto &default_player_profile_initialized = halo::link::ref<uint8_t>(halo::saved_games::vars().default_player_profile_initialized);
+static auto &variant_write_request_state = halo::link::ref<variant_write_request>(halo::saved_games::vars().variant_write_request_state);
+static auto &default_game_variant_count = halo::link::ref<int16_t>(halo::saved_games::vars().default_game_variant_count);
+static auto &saved_game_display_name_buffer = halo::link::ref<uint16_t [0x80]>(halo::saved_games::vars().saved_game_display_name_buffer);
+static auto &variant_write_thread = halo::link::ref<network_thread_record *>(halo::saved_games::vars().variant_write_thread);
+static auto &savegame_index_write_count = halo::link::ref<int16_t>(halo::saved_games::vars().savegame_index_write_count);
+static auto &saved_game_index_file_open = halo::link::ref<uint8_t>(halo::saved_games::vars().saved_game_index_file_open);
+static auto &game_state_crc = halo::link::ref<uint32_t>(halo::saved_games::vars().game_state_crc);
+static auto &cache_file_current_header_crc32 = halo::link::ref<uint32_t>(halo::saved_games::vars().cache_file_current_header_crc32);
+static auto &rasterizer_shader_file_name = halo::link::ref<char *>(halo::rasterizer::vars().rasterizer_shader_file_name);
 
 namespace halo::saved_games::saved_game {
 

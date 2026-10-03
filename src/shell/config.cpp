@@ -2,59 +2,61 @@
 #include "halo/shell/layout.hpp"
 #include "halo/shell/diagnostics.hpp"
 #include "halo/shell/hwreq.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/shell/vars.hpp"
 
-extern "C" {
-extern int32_t config_maximum_resolution;
-extern int32_t config_linear_texture_addressing;
-extern int32_t config_linear_texture_addressing_zoom;
-extern int32_t config_linear_texture_addressing_sun;
-extern int32_t config_use_fixed_function;
-extern int32_t config_disable_driver_management;
-extern int32_t config_unsupported_card;
-extern int32_t config_prototype_card;
-extern int32_t config_old_driver;
-extern int32_t config_old_sound_driver;
-extern int32_t config_invalid_driver;
-extern int32_t config_invalid_sound_driver;
-extern int32_t config_disable_buffering;
-extern int32_t config_enable_stop_start;
-extern int32_t config_head_relative_speech;
-extern int32_t config_safe_mode;
-extern int32_t config_force_shader;
-extern int32_t config_use_anisotropic_filter;
-extern int32_t config_disable_specular;
-extern int32_t config_disable_render_targets;
-extern int32_t config_disable_alpha_render_targets;
-extern int32_t config_use_alternate_convolve_mask;
-extern int32_t config_min_max_blend_op_is_broken;
-extern float config_decal_z_bias;
-extern float config_transparent_decal_z_bias;
-extern float config_decal_slope_z_bias;
-extern float config_transparent_decal_slope_z_bias;
-
-extern uint32_t physical_memory;
-extern uint32_t video_memory;
-extern large_integer graphics_driver_version;
-extern uint32_t display_adapter_count;
-extern shell_display_adapter display_adapters[k_shell_maximum_display_adapters];
-extern hwreq_parser *hardware_requirements;
-extern shell_sound_device sound_devices[k_shell_maximum_sound_devices];
-extern int32_t selected_sound_device;
-extern uint32_t cpu_speed;
-extern char *graphics_vendor_name;
-extern char *graphics_device_name;
-extern uint32_t graphics_device_id;
-extern uint32_t graphics_vendor_id;
-extern shell_config_property config_properties[k_shell_config_property_count];
-extern char config_unknown_property_text[k_shell_config_message_length];
-extern char config_error_text[k_shell_config_message_length];
-extern int32_t required_cpu_speed;
-extern int32_t required_memory;
-extern int32_t required_video_memory;
-extern int32_t required_directx_build;
-extern int32_t required_disk_space;
-extern int32_t safe_mode;
-}
+static auto &config_maximum_resolution = halo::link::ref<int32_t>(halo::shell::vars().config_maximum_resolution);
+static auto &config_linear_texture_addressing = halo::link::ref<int32_t>(halo::shell::vars().config_linear_texture_addressing);
+static auto &config_linear_texture_addressing_zoom = halo::link::ref<int32_t>(halo::shell::vars().config_linear_texture_addressing_zoom);
+static auto &config_linear_texture_addressing_sun = halo::link::ref<int32_t>(halo::shell::vars().config_linear_texture_addressing_sun);
+static auto &config_use_fixed_function = halo::link::ref<int32_t>(halo::shell::vars().config_use_fixed_function);
+static auto &config_disable_driver_management = halo::link::ref<int32_t>(halo::shell::vars().config_disable_driver_management);
+static auto &config_unsupported_card = halo::link::ref<int32_t>(halo::shell::vars().config_unsupported_card);
+static auto &config_prototype_card = halo::link::ref<int32_t>(halo::shell::vars().config_prototype_card);
+static auto &config_old_driver = halo::link::ref<int32_t>(halo::shell::vars().config_old_driver);
+static auto &config_old_sound_driver = halo::link::ref<int32_t>(halo::shell::vars().config_old_sound_driver);
+static auto &config_invalid_driver = halo::link::ref<int32_t>(halo::shell::vars().config_invalid_driver);
+static auto &config_invalid_sound_driver = halo::link::ref<int32_t>(halo::shell::vars().config_invalid_sound_driver);
+static auto &config_disable_buffering = halo::link::ref<int32_t>(halo::shell::vars().config_disable_buffering);
+static auto &config_enable_stop_start = halo::link::ref<int32_t>(halo::shell::vars().config_enable_stop_start);
+static auto &config_head_relative_speech = halo::link::ref<int32_t>(halo::shell::vars().config_head_relative_speech);
+static auto &config_safe_mode = halo::link::ref<int32_t>(halo::shell::vars().config_safe_mode);
+static auto &config_force_shader = halo::link::ref<int32_t>(halo::shell::vars().config_force_shader);
+static auto &config_use_anisotropic_filter = halo::link::ref<int32_t>(halo::shell::vars().config_use_anisotropic_filter);
+static auto &config_disable_specular = halo::link::ref<int32_t>(halo::shell::vars().config_disable_specular);
+static auto &config_disable_render_targets = halo::link::ref<int32_t>(halo::shell::vars().config_disable_render_targets);
+static auto &config_disable_alpha_render_targets = halo::link::ref<int32_t>(halo::shell::vars().config_disable_alpha_render_targets);
+static auto &config_use_alternate_convolve_mask = halo::link::ref<int32_t>(halo::shell::vars().config_use_alternate_convolve_mask);
+static auto &config_min_max_blend_op_is_broken = halo::link::ref<int32_t>(halo::shell::vars().config_min_max_blend_op_is_broken);
+static auto &config_decal_z_bias = halo::link::ref<float>(halo::shell::vars().config_decal_z_bias);
+static auto &config_transparent_decal_z_bias = halo::link::ref<float>(halo::shell::vars().config_transparent_decal_z_bias);
+static auto &config_decal_slope_z_bias = halo::link::ref<float>(halo::shell::vars().config_decal_slope_z_bias);
+static auto &config_transparent_decal_slope_z_bias = halo::link::ref<float>(halo::shell::vars().config_transparent_decal_slope_z_bias);
+static auto &physical_memory = halo::link::ref<uint32_t>(halo::shell::vars().physical_memory);
+static auto &video_memory = halo::link::ref<uint32_t>(halo::ui::vars().video_memory);
+static auto &graphics_driver_version = halo::link::ref<large_integer>(halo::main::vars().graphics_driver_version);
+static auto &display_adapter_count = halo::link::ref<uint32_t>(halo::shell::vars().display_adapter_count);
+static auto &display_adapters = halo::link::ref<shell_display_adapter [k_shell_maximum_display_adapters]>(halo::shell::vars().display_adapters);
+static auto &hardware_requirements = halo::link::ref<hwreq_parser *>(halo::shell::vars().hardware_requirements);
+static auto &sound_devices = halo::link::ref<shell_sound_device [k_shell_maximum_sound_devices]>(halo::shell::vars().sound_devices);
+static auto &selected_sound_device = halo::link::ref<int32_t>(halo::shell::vars().selected_sound_device);
+static auto &cpu_speed = halo::link::ref<uint32_t>(halo::shell::vars().cpu_speed);
+static auto &graphics_vendor_name = halo::link::ref<char *>(halo::shell::vars().graphics_vendor_name);
+static auto &graphics_device_name = halo::link::ref<char *>(halo::shell::vars().graphics_device_name);
+static auto &graphics_device_id = halo::link::ref<uint32_t>(halo::shell::vars().graphics_device_id);
+static auto &graphics_vendor_id = halo::link::ref<uint32_t>(halo::rasterizer::vars().graphics_vendor_id);
+static auto &config_properties = halo::link::ref<shell_config_property [k_shell_config_property_count]>(halo::shell::vars().config_properties);
+static auto &config_unknown_property_text = halo::link::ref<char [k_shell_config_message_length]>(halo::shell::vars().config_unknown_property_text);
+static auto &config_error_text = halo::link::ref<char [k_shell_config_message_length]>(halo::shell::vars().config_error_text);
+static auto &required_cpu_speed = halo::link::ref<int32_t>(halo::shell::vars().required_cpu_speed);
+static auto &required_memory = halo::link::ref<int32_t>(halo::shell::vars().required_memory);
+static auto &required_video_memory = halo::link::ref<int32_t>(halo::rasterizer::vars().required_video_memory);
+static auto &required_directx_build = halo::link::ref<int32_t>(halo::shell::vars().required_directx_build);
+static auto &required_disk_space = halo::link::ref<int32_t>(halo::shell::vars().required_disk_space);
+static auto &safe_mode = halo::link::ref<int32_t>(halo::shell::vars().safe_mode);
 
 namespace halo::shell {
 

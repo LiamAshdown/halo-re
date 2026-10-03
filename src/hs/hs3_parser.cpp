@@ -11,13 +11,14 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/hs/vars.hpp"
 
-extern "C" {
-extern Globals *global_globals;
-extern void *hs_parse_primitive_procedures[k_hs_type_count];
-extern uint32_t hs_tag_group_for_type[8];
-extern hs_enum_definition hs_enum_definitions[5];
-}
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &hs_parse_primitive_procedures = halo::link::ref<void *[k_hs_type_count]>(halo::hs::vars().hs_parse_primitive_procedures);
+static auto &hs_tag_group_for_type = halo::link::ref<uint32_t [8]>(halo::hs::vars().hs_tag_group_for_type);
+static auto &hs_enum_definitions = halo::link::ref<hs_enum_definition [5]>(halo::hs::vars().hs_enum_definitions);
 
 #undef HS_NODE
 #define HS_NODE(index) ((uint8_t *)halo::hs::globals().syntax_data->data + ((index) & halo::k_slot_mask) * 0x14)

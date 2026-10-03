@@ -10,23 +10,28 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/objects/vars.hpp"
+#include "halo/render/vars.hpp"
 
 extern "C" {
-extern float camera_forward_x;
-extern float camera_forward_y;
-extern float camera_forward_z;
-extern float camera_position_y;
-extern float camera_position_z;
 extern float curve_apply_exponent(float value, float exponent);
-extern real_vector3d *global_white_color;
-extern data_array *light_volume_instances;
-extern data_array *lightning_instances;
 extern uint8_t *object_attachment_get_blended_marker(uint32_t object_index, uint8_t *instance);
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern float render_camera_global;
-extern real_vector3d *shared_constant_vector_696704;
 }
+static auto &camera_forward_x = halo::link::ref<float>(halo::effects::vars().camera_forward_x);
+static auto &camera_forward_y = halo::link::ref<float>(halo::objects::vars().camera_forward_y);
+static auto &camera_forward_z = halo::link::ref<float>(halo::objects::vars().camera_forward_z);
+static auto &camera_position_y = halo::link::ref<float>(halo::ui::vars().camera_position_y);
+static auto &camera_position_z = halo::link::ref<float>(halo::effects::vars().camera_position_z);
+static auto &global_white_color = halo::link::ref<real_vector3d *>(halo::effects::vars().global_white_color);
+static auto &light_volume_instances = halo::link::ref<data_array *>(halo::objects::vars().light_volume_instances);
+static auto &lightning_instances = halo::link::ref<data_array *>(halo::objects::vars().lightning_instances);
+static auto &render_camera_global = halo::link::ref<float>(halo::render::vars().render_camera_global);
+static auto &shared_constant_vector_696704 = halo::link::ref<real_vector3d *>(halo::objects::vars().shared_constant_vector_696704);
 
 /**
  * Creates the light volume data array.

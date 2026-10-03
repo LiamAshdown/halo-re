@@ -13,22 +13,27 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
 extern double sqrt(double x);
 extern void player_effect_apply_continuous_damage(uint32_t tag_reference, int16_t local_player_index, float distance);
-extern player_effect_globals *player_effect_globals_pointer;
-extern const ColorARGB *global_white_argb;
-extern int16_t screen_flash_pass[8];
-extern int32_t player_effect_reentry_count;
 extern double atan2(double y, double x);
 extern double fabs(double x);
-extern network_id_table *object_network_id_table;
 extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd, const real_vector3d *direction, float random_blend, float damage_amount);
 extern double cos(double x);
 extern double sin(double x);
-extern uint8_t network_message_scratch[0x7ff8];
 }
+static auto &player_effect_globals_pointer = halo::link::ref<player_effect_globals *>(halo::effects::vars().player_effect_globals_pointer);
+static auto &global_white_argb = halo::link::ref<const ColorARGB *>(halo::networking::vars().global_white_argb);
+static auto &screen_flash_pass = halo::link::ref<int16_t [8]>(halo::effects::vars().screen_flash_pass);
+static auto &player_effect_reentry_count = halo::link::ref<int32_t>(halo::effects::vars().player_effect_reentry_count);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 
 namespace halo::effects {
 

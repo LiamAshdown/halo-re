@@ -11,39 +11,44 @@
 #include "halo/models/models.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/camera/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
-extern director_pov_proc director_last_pov_proc;
 extern double sqrt(double x);
 extern double fabs(double x);
 extern double asin(double x);
-extern const real_point3d *global_origin3d_pointer;
-extern Globals *global_globals;
 extern double fcos(double angle);
 extern double fsin(double angle);
 extern double cos(double x);
 extern double sin(double x);
-extern camera_script_globals camera_script;
-extern real_point3d *global_zero_vector3d_pointer;
 extern int32_t __ftol(double x);
 extern double atan2(double y, double x);
-extern datum_index flying_camera_attached_object;
-extern editor_camera_data *flying_camera_data;
-extern Vector3D flying_camera_attached_offset;
-extern uint8_t flying_camera_follow_script;
-extern void *flying_camera_render_frame;
-extern int16_t flying_camera_current_mode;
-extern director_pov_proc flying_camera_update_procs[2];
-extern flying_camera_transition_proc flying_camera_transition_procs[2][2];
-extern orbiting_camera_data flying_camera_saved_orbiting;
-extern uint8_t flying_camera_saved_orbiting_valid;
-extern editor_camera_data flying_camera_saved_flying;
-extern uint8_t flying_camera_home_initialized;
-extern flying_camera_home flying_camera_home_location;
-extern float flying_camera_speed;
-extern uint8_t flying_camera_allow_roll;
-extern director directors[1];
 }
+static auto &director_last_pov_proc = halo::link::ref<director_pov_proc>(halo::camera::vars().director_last_pov_proc);
+static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &camera_script = halo::link::ref<camera_script_globals>(halo::camera::vars().camera_script);
+static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
+static auto &flying_camera_attached_object = halo::link::ref<datum_index>(halo::camera::vars().flying_camera_attached_object);
+static auto &flying_camera_data = halo::link::ref<editor_camera_data *>(halo::camera::vars().flying_camera_data);
+static auto &flying_camera_attached_offset = halo::link::ref<Vector3D>(halo::camera::vars().flying_camera_attached_offset);
+static auto &flying_camera_follow_script = halo::link::ref<uint8_t>(halo::camera::vars().flying_camera_follow_script);
+static auto &flying_camera_render_frame = halo::link::ref<void *>(halo::camera::vars().flying_camera_render_frame);
+static auto &flying_camera_current_mode = halo::link::ref<int16_t>(halo::camera::vars().flying_camera_current_mode);
+static auto &flying_camera_update_procs = halo::link::ref<director_pov_proc [2]>(halo::camera::vars().flying_camera_update_procs);
+static auto &flying_camera_transition_procs = halo::link::ref<flying_camera_transition_proc [2][2]>(halo::camera::vars().flying_camera_transition_procs);
+static auto &flying_camera_saved_orbiting = halo::link::ref<orbiting_camera_data>(halo::camera::vars().flying_camera_saved_orbiting);
+static auto &flying_camera_saved_orbiting_valid = halo::link::ref<uint8_t>(halo::camera::vars().flying_camera_saved_orbiting_valid);
+static auto &flying_camera_saved_flying = halo::link::ref<editor_camera_data>(halo::camera::vars().flying_camera_saved_flying);
+static auto &flying_camera_home_initialized = halo::link::ref<uint8_t>(halo::camera::vars().flying_camera_home_initialized);
+static auto &flying_camera_home_location = halo::link::ref<flying_camera_home>(halo::camera::vars().flying_camera_home_location);
+static auto &flying_camera_speed = halo::link::ref<float>(halo::camera::vars().flying_camera_speed);
+static auto &flying_camera_allow_roll = halo::link::ref<uint8_t>(halo::camera::vars().flying_camera_allow_roll);
+static auto &directors = halo::link::ref<director [1]>(halo::camera::vars().directors);
 
 namespace halo::camera {
 

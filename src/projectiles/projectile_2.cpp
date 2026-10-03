@@ -11,9 +11,10 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 extern "C" {
-extern real_vector3d *global_origin3d_pointer;
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern double cos(double x);
 extern double sin(double x);
@@ -21,6 +22,7 @@ extern double sqrt(double x);
 extern float sound_definition_maximum_distance(datum_index sound_definition);
 extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 }
+static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 
 namespace {
 

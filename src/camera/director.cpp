@@ -3,18 +3,20 @@
 #include "halo/input/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/camera/vars.hpp"
 
 extern "C" {
-extern void *mouse_device;
-extern mouse_state live_mouse_state;
-extern mouse_state mouse_neutral_state;
-extern uint8_t director_camera_switching;
-extern director_globals camera_director_globals;
-extern director directors[1];
-extern uint8_t *hs_camera_control_pointer;
-extern camera_input_axis_definition camera_input_axes[4];
 extern double pow(double base, double exponent);
 }
+static auto &mouse_device = halo::link::ref<void *>(halo::camera::vars().mouse_device);
+static auto &live_mouse_state = halo::link::ref<mouse_state>(halo::camera::vars().live_mouse_state);
+static auto &mouse_neutral_state = halo::link::ref<mouse_state>(halo::camera::vars().mouse_neutral_state);
+static auto &director_camera_switching = halo::link::ref<uint8_t>(halo::camera::vars().director_camera_switching);
+static auto &camera_director_globals = halo::link::ref<director_globals>(halo::camera::vars().camera_director_globals);
+static auto &directors = halo::link::ref<director [1]>(halo::camera::vars().directors);
+static auto &hs_camera_control_pointer = halo::link::ref<uint8_t *>(halo::camera::vars().hs_camera_control_pointer);
+static auto &camera_input_axes = halo::link::ref<camera_input_axis_definition [4]>(halo::camera::vars().camera_input_axes);
 
 namespace {
 
