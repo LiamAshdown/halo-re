@@ -659,8 +659,8 @@ void ActorView::type_infection_swarm_update()
                 prop_handle = prop->next_in_actor;
                 if (prop->desirability > 0.0f) {
                     float dx = F(component, 0x4) - F(prop, 0xbc);
-                    float dy = F(component, 0x8) - F(prop, 0xc0);
-                    float dz = F(component, 0xc) - F(prop, 0xc4);
+                    float dy = F(component, 0x8) - prop->last_known_position.y;
+                    float dz = F(component, 0xc) - prop->last_known_position.z;
                     float distance = (float)sqrt((double)(dz * dz + dy * dy + dx * dx));
                     float score = 0.0f;
 
@@ -821,8 +821,8 @@ void ActorView::type_infection_swarm_update()
 
                     component[0x1d] = (uint8_t)halo::ai::actor_pick_dialogue_variant_b(behaviour);
                     to_goal.i = F(swarm, 0xc) - F(component, 0x4);
-                    to_goal.j = F(swarm, 0x10) - F(component, 0x8);
-                    to_goal.k = F(swarm, 0x14) - F(component, 0xc);
+                    to_goal.j = swarm->aggregate_position.y - F(component, 0x8);
+                    to_goal.k = swarm->aggregate_position.z - F(component, 0xc);
                     distance_squared = to_goal.k * to_goal.k + to_goal.j * to_goal.j + to_goal.i * to_goal.i;
                     if (!(distance_squared < 0.25f)) {
                         float spread = 0.5f / (float)sqrt((double)distance_squared) * 3.1415927f;
@@ -849,8 +849,8 @@ void ActorView::type_infection_swarm_update()
             struct prop *prop = halo::ai::prop_at(target);
 
             desired.i = F(prop, 0xbc) - F(component, 0x4);
-            desired.j = F(prop, 0xc0) - F(component, 0x8);
-            desired.k = F(prop, 0xc4) - F(component, 0xc);
+            desired.j = prop->last_known_position.y - F(component, 0x8);
+            desired.k = prop->last_known_position.z - F(component, 0xc);
             if (behaviour == 5) {
                 desired.i = -desired.i;
                 desired.j = -desired.j;
@@ -1231,7 +1231,7 @@ void ActorView::type_marine_update()
         halo::ai::actor_alert_from_damage(actor_index);
         halo::ai::actor_gate_jump_traversal(actor_index, 1, 0, 14);
         halo::ai::actor_escalate_check_shield_damage(actor_index);
-        halo::ai::actor_escalate_apply(actor_index, (int16_t)((int8_t)((uint8_t *)act)[0x20a] > 2 ? 5 : 3));
+        halo::ai::actor_escalate_apply(actor_index, (int16_t)((int8_t)act->tally.group_a_by_actor_type[7] > 2 ? 5 : 3));
         halo::ai::actor_escalate_to_guard_or_combat(actor_index);
         halo::ai::actor_seek_vehicle_to_board(actor_index);
         halo::ai::actor_process_vehicle_seat_exit(actor_index);
