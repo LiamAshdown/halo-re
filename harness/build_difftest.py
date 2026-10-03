@@ -8,14 +8,11 @@ sys.argv = sys.argv_saved
 
 def main():
     out = g.OUT; objs = []
-    for c in ("difftest_main.c", "gen/difftest_table.c"):
+    for c in ("difftest_main.c", "gen/difftest_table.c", "difftest_call.c"):
         o = os.path.join(out, os.path.basename(c).replace(".c", ".obj")); objs.append(o)
         r = subprocess.run([g.tool("cl"), "/nologo", "/c", "/GS-", "/O2", "/W3", "/wd4996", "/Fo" + o, os.path.join(g.H, c)],
                            capture_output=True, text=True, env=g.env)
         if r.returncode: print(r.stdout[-3000:]); return 1
-    o = os.path.join(out, "difftest_call.obj"); objs.append(o)
-    r = subprocess.run([g.tool("ml"), "/nologo", "/c", "/coff", "/Fo" + o, os.path.join(g.H, "difftest_call.asm")], capture_output=True, text=True, env=g.env)
-    if r.returncode: print(r.stdout[-3000:]); return 1
     objs += [os.path.join(out, n) for n in ("x87_shims.obj", "adapters.obj", "resolve.obj", "hook_table.obj")]
     objs += glob.glob(os.path.join(g.ROOT, "build", "obj", "*", "*.obj"))
     rsp = os.path.join(out, "difftest.rsp"); open(rsp, "w").write("\n".join('"%s"' % x for x in objs))
