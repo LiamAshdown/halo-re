@@ -38,9 +38,8 @@ namespace halo::networking {
  *
  * @address 0x4d9960
  */
-int32_t ConnectionView::finalize_join(uint16_t *connection)
+int32_t ConnectionView::finalize_join(network_client_globals *client)
 {
-    network_client_globals *client = (network_client_globals *)connection;
     large_integer counter;
     int32_t now_ms;
     uint8_t encode_buffer[1540];

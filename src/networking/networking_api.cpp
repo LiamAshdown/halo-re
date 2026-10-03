@@ -1856,9 +1856,9 @@ void network_join_status_text_update(int32_t mode, network_client_globals *clien
  *
  * @address 0x4d9960
  */
-int32_t network_connection_finalize_join(uint16_t *connection)
+int32_t network_connection_finalize_join(network_client_globals *client)
 {
-    return halo::networking::ConnectionView::finalize_join(connection);
+    return halo::networking::ConnectionView::finalize_join(client);
 }
 
 /**
@@ -2446,7 +2446,7 @@ int32_t network_game_is_active(void)
  *
  * @address 0x4d9f50
  */
-char network_game_settings_ack_send(uint8_t *client, int16_t template_row)
+char network_game_settings_ack_send(network_client_globals *client, int16_t template_row)
 {
     return halo::networking::GameRuntime::settings_ack_send(client, template_row);
 }

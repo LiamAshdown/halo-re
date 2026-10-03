@@ -163,11 +163,11 @@ char GameClientView::action_queue_drain(bit_stream *stream, const uint32_t *send
     message_delta_decode_state state;
     uint8_t record[0x80];
     message_delta_context storage;
-    void **context = (void **)&storage;
+    void **context = halo::networking::raw_context(&storage);
     char result = 0;
 
     halo::networking::network_channel_remote_address_or_default(client->channel, &remote);
-    if (*(uint32_t *)&remote == *sender && (char)halo::networking::message_delta_decode_begin(&state, stream) != 0) {
+    if (remote.address.ipv4 == *sender && (char)halo::networking::message_delta_decode_begin(&state, stream) != 0) {
         memset(record, 0, sizeof(record));
         memset(storage.changed, 0, sizeof(storage.changed));
         storage.state = &state;
@@ -334,7 +334,7 @@ int32_t GameClientView::settings_packet_receive(const uint32_t *request)
     memcpy(&client->session, incoming, offsetof(network_game_session, map_loaded));
 
     if (client->settings_ack_sent == 0) {
-        halo::networking::network_game_settings_ack_send((uint8_t *)client, 0);
+        halo::networking::network_game_settings_ack_send(client, 0);
         client->settings_ack_sent = 1;
         return 1;
     }
@@ -546,7 +546,7 @@ int32_t ClientMessageDecoder::beacon_reply(const uint8_t *buffer, int32_t length
         return 1;
     }
     if (decode_game_message(buffer, length, decoded_body, 1) != 0) {
-        halo::networking::network_game_search_results_add_or_update((network_game_search_entry *)((uint8_t *)client + 4),
+        halo::networking::network_game_search_results_add_or_update(client->search_entries,
                                                    decoded_body);
     }
     return 1;
@@ -643,7 +643,7 @@ int32_t ClientMessageDecoder::join_finalize_message(const uint8_t *buffer, int32
     if (decode_game_message(buffer, length, decoded_body, 2) == 0) {
         return 0;
     }
-    return (uint8_t)halo::networking::network_connection_finalize_join((uint16_t *)client);
+    return (uint8_t)halo::networking::network_connection_finalize_join(client);
 }
 
 /**

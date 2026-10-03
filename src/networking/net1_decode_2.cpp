@@ -55,7 +55,7 @@ int32_t ClientMessageDecoder::settings_or_ack(const uint8_t *buffer, int32_t len
     if (sender.address.ipv4 == *expected_sequence) {
         if (network_game_mode == halo::networking::k_game_mode_host) {
             if (client->state == 2 && client->settings_ack_sent == 0) {
-                halo::networking::network_game_settings_ack_send((uint8_t *)client, 0);
+                halo::networking::network_game_settings_ack_send(client, 0);
                 client->settings_ack_sent = 1;
             }
         } else if (client->state == 2 || client->state == 3) {
