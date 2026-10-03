@@ -467,7 +467,7 @@ uint8_t network_name_string_is_valid_for_mode(char *name, void *character, int32
 int32_t network_object_owner_team_index_desired(object *obj);
 uint32_t network_object_record_last_sender(int32_t player_index, int32_t quit_tick, network_server_globals *server);
 void network_object_release_ownership_claim(uint8_t slot_index);
-void network_password_field_set(uint8_t *object, wchar_t *source);
+void network_password_field_set(network_server_globals *object, wchar_t *source);
 void network_player_assign_random_color(network_game_session *session, network_player_entry *entry);
 uint32_t network_player_entry_add(network_game_session *session, network_player_entry *incoming);
 char network_player_entry_find(network_game_session *session, network_player_entry *key);

@@ -427,7 +427,7 @@ void ServerCommands::name(uint32_t argument_count, char **arguments)
                 wcsncpy((wchar_t *)network_server_name, (const wchar_t *)scratch, 0x3f);
                 network_server_name_is_default = 0;
                 if (server != 0) {
-                    halo::networking::network_password_field_set((uint8_t *)server, (wchar_t *)scratch);
+                    halo::networking::network_password_field_set(server, (wchar_t *)scratch);
                 }
                 report = true;
             } else {

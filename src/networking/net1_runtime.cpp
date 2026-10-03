@@ -493,17 +493,19 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
 /**
  * out/phase4/networking_functions.md: "Register-based helper that copies a
  * wide-character string (e.g. a password) into the object at unaff_ESI+8 and clears the field
- * immediately following it." Neither the object nor the exact fields at +8/+0x86 could be tied
- * to a specific header-declared struct (network_server_globals.password is 9 wide chars at
- * +0x9fc, not +8, and the 0x3f-char copy count does not match its size); kept as raw offsets on
- * a generic object pointer.
+ * immediately following it." The only caller (sv_name, 0x4e2f10) passes network_server in ESI, so
+ * retail copies the new server name over the start of server->session (server+8, which overlaps
+ * session.message_callback and the fields up to +0x7e) and zeroes session.unknown_07e (server+0x86).
+ * The layout is reproduced as is.
  *
  * @address 0x4df070
  */
-void NetworkRuntime::password_field_set(uint8_t *object, wchar_t *source)
+void NetworkRuntime::password_field_set(network_server_globals *server, wchar_t *source)
 {
-    wcsncpy((wchar_t *)(object + 8), source, 0x3f);
-    *(uint16_t *)(object + 0x86) = 0;
+    static_assert(offsetof(network_server_globals, session) == 8, "retail writes the wide string at server+8");
+    static_assert(offsetof(network_game_session, unknown_07e) == 0x7e, "terminator at server+0x86");
+    wcsncpy(reinterpret_cast<wchar_t *>(&server->session), source, 0x3f);
+    server->session.unknown_07e = 0;
 }
 
 /**
@@ -683,6 +685,23 @@ uint32_t NetworkRuntime::update_()
     return 0;
 }
 
+namespace {
+
+/** The 16-slot remote-player event queue: a mode byte, the record count, 2-dword keys and 12-dword payloads. */
+struct network_event_queue {
+    uint8_t mode;
+    uint8_t pad_01[3];
+    int32_t count;
+    uint32_t keys[16][2];
+    uint32_t payloads[16][12];
+};
+static_assert(offsetof(network_event_queue, count) == 4, "event queue count");
+static_assert(offsetof(network_event_queue, keys) == 8, "event queue keys");
+static_assert(offsetof(network_event_queue, payloads) == 0x88, "event queue payloads");
+static_assert(sizeof(network_event_queue) == 0x388, "event queue size");
+
+}
+
 /**
  * Resolves every queued event record's unit index (queue+8, stride 8) to its object_data slot's
  * player-count and player-table entry, keeping only records whose slot resolves to a live entry
@@ -695,6 +714,7 @@ uint32_t NetworkRuntime::update_()
  */
 void EventFeed::flush(int32_t *queue)
 {
+    network_event_queue *q = reinterpret_cast<network_event_queue *>(queue);
     int32_t remaining;
     int32_t *key_slot;
     int32_t *payload_slot;
@@ -720,11 +740,11 @@ void EventFeed::flush(int32_t *queue)
         survivors_payload[i] = 0;
     }
 
-    remaining = queue[1];
+    remaining = q->count;
     survivor_count = 0;
     if (0 < remaining) {
-        payload_slot = queue + 0x22;
-        key_slot = queue;
+        payload_slot = reinterpret_cast<int32_t *>(q->payloads[0]);
+        key_slot = reinterpret_cast<int32_t *>(q);
         do {
             key_slot = key_slot + 2;
             raw_key = *key_slot;
@@ -773,11 +793,11 @@ void EventFeed::flush(int32_t *queue)
         } while (remaining < survivor_count);
     }
 
-    force_changed = (char)*queue != 1;
+    force_changed = (char)q->mode != 1;
     type_offset_arg = force_changed ? survivors_extra : 0;
     halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, (uint32_t)force_changed, halo::networking::message_id(halo::networking::delta_message::remote_player_action_apply), (int32_t)survivors_key,
-        survivors_payload, (int32_t)type_offset_arg, survivor_count, force_changed), network_server, 1, 0, (char)*queue, 0, 0, 2);
-    queue[1] = 0;
+        survivors_payload, (int32_t)type_offset_arg, survivor_count, force_changed), network_server, 1, 0, (char)q->mode, 0, 0, 2);
+    q->count = 0;
 }
 
 /**
@@ -790,23 +810,24 @@ void EventFeed::flush(int32_t *queue)
  */
 void EventFeed::queue_append(uint8_t *queue, uint32_t *key, uint32_t *payload)
 {
+    network_event_queue *q = reinterpret_cast<network_event_queue *>(queue);
     int32_t count;
     uint32_t *slot_key;
     uint32_t *slot_payload;
     int32_t i;
 
-    count = *(int32_t *)(queue + 4);
-    slot_key = (uint32_t *)(queue + 8 + count * 8);
+    count = q->count;
+    slot_key = q->keys[count];
     slot_key[0] = key[0];
     slot_key[1] = key[1];
-    slot_payload = (uint32_t *)(queue + 0x88 + count * 0x30);
+    slot_payload = q->payloads[count];
     for (i = 0xc; i != 0; i = i - 1) {
         *slot_payload = *payload;
         payload = payload + 1;
         slot_payload = slot_payload + 1;
     }
-    count = *(int32_t *)(queue + 4) + 1;
-    *(int32_t *)(queue + 4) = count;
+    count = q->count + 1;
+    q->count = count;
     if (count == 0x10) {
         halo::networking::network_event_feed_flush((int32_t *)queue);
     }
