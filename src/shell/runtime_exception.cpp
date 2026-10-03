@@ -1,4 +1,5 @@
 #include "halo/shell/runtime.hpp"
+#include "halo/shell/layout.hpp"
 
 extern "C" {
 extern void *std_exception_vtable;
@@ -78,7 +79,7 @@ void StdException::destruct()
  */
 const char *StdRuntimeError::what() const
 {
-    return self->message.capacity >= 0x10 ? self->message.bx.pointer : self->message.bx.buffer;
+    return self->message.capacity >= k_string_inline_capacity + 1 ? self->message.bx.pointer : self->message.bx.buffer;
 }
 
 /**

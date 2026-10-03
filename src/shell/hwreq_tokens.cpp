@@ -1,6 +1,7 @@
 #define _NO_CRT_STDIO_INLINE
 
 #include "halo/shell/hwreq.hpp"
+#include "halo/shell/layout.hpp"
 
 extern "C" {
 extern char hwreq_quoted_string[k_hwreq_quoted_string_length];
@@ -47,15 +48,15 @@ int32_t HwreqParser::parse_hex_digit()
 
     if (c > '/' && c < ':') {
         self->cursor = (uint32_t)(cursor + 1);
-        return c - 0x30;
+        return c - '0';
     }
     if (c > '`' && c < 'g') {
         self->cursor = (uint32_t)(cursor + 1);
-        return c - 0x57;
+        return c - ('a' - 10);
     }
     if (c > '@' && c < 'G') {
         self->cursor = (uint32_t)(cursor + 1);
-        return c - 0x37;
+        return c - ('A' - 10);
     }
     return -1;
 }
@@ -73,25 +74,25 @@ uint32_t HwreqParser::parse_hex_id()
 
     c = *(char *)self->cursor;
     if (c >= '0' && c <= '9') {
-        d0 = c - 0x30;
+        d0 = c - '0';
     } else if (c >= 'a' && c <= 'f') {
-        d0 = c - 0x57;
+        d0 = c - ('a' - 10);
     } else if (c >= 'A' && c <= 'F') {
-        d0 = c - 0x37;
+        d0 = c - ('A' - 10);
     } else {
-        return 0xffffffff;
+        return k_dword_none;
     }
     self->cursor++;
     if (d0 == -1) {
-        return 0xffffffff;
+        return k_dword_none;
     }
 
     d1 = parse_hex_digit();
-    if (d1 == -1) return 0xffffffff;
+    if (d1 == -1) return k_dword_none;
     d2 = parse_hex_digit();
-    if (d2 == -1) return 0xffffffff;
+    if (d2 == -1) return k_dword_none;
     d3 = parse_hex_digit();
-    if (d3 == -1) return 0xffffffff;
+    if (d3 == -1) return k_dword_none;
 
     return (uint32_t)(d0 << 0xc | d1 << 8 | d2 << 4 | d3);
 }
@@ -105,7 +106,7 @@ uint32_t HwreqParser::parse_hex_id()
 int32_t HwreqParser::parse_hex_id_byteswap()
 {
     uint32_t value = parse_hex_id();
-    if (value == 0xffffffff) {
+    if (value == k_dword_none) {
         return -1;
     }
     return (int32_t)((value & 0xff) * 0x100 + (value >> 8 & 0xff));
@@ -132,7 +133,7 @@ int32_t HwreqParser::parse_number()
 
     cursor = (char *)self->cursor;
 
-    if (*(uint16_t *)cursor == 0x7830) {
+    if (*(uint16_t *)cursor == char_pair('0', 'x')) {
         self->cursor = (uint32_t)(cursor + 2);
         digit = parse_hex_digit();
         if (digit != -1) {
@@ -148,13 +149,13 @@ int32_t HwreqParser::parse_number()
                 digit_count++;
                 next_digit = -1;
                 if (c >= '0' && c <= '9') {
-                    next_digit = c - 0x30;
+                    next_digit = c - '0';
                     self->cursor++;
                 } else if (c > '`' && c < 'g') {
-                    next_digit = c - 0x57;
+                    next_digit = c - ('a' - 10);
                     self->cursor++;
                 } else if (c > '@' && c < 'G') {
-                    next_digit = c - 0x37;
+                    next_digit = c - ('A' - 10);
                     self->cursor++;
                 }
                 if (next_digit == -1) {

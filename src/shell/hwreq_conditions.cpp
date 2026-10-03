@@ -1,4 +1,5 @@
 #include "halo/shell/hwreq.hpp"
+#include "halo/shell/layout.hpp"
 
 namespace halo::shell {
 
@@ -12,22 +13,48 @@ struct d3dcaps_field_entry {
 
 
 const d3dcaps_field_entry k_d3dcaps_fields[] = {
-    { "Caps", 0x08 }, { "Caps2", 0x0c }, { "Caps3", 0x10 },
-    { "PresentationIntervals", 0x14 }, { "CursorCaps", 0x18 }, { "DevCaps", 0x1c },
-    { "PrimitiveMiscCaps", 0x20 }, { "RasterCaps", 0x24 }, { "ZCmpCaps", 0x28 },
-    { "SrcBlendCaps", 0x2c }, { "DestBlendCaps", 0x30 }, { "AlphaCmpCaps", 0x34 },
-    { "ShadeCaps", 0x38 }, { "TextureCaps", 0x3c }, { "TextureFilterCaps", 0x40 },
-    { "CubeTextureFilterCaps", 0x44 }, { "VolumeTextureFilterCaps", 0x48 },
-    { "TextureAddressCaps", 0x4c }, { "VolumeTextureAddressCaps", 0x50 }, { "LineCaps", 0x54 },
-    { "MaxTextureWidth", 0x58 }, { "MaxVolumeExtent", 0x60 }, { "MaxTextureRepeat", 0x64 },
-    { "MaxTextureAspectRatio", 0x68 }, { "MaxAnisotropy", 0x6c }, { "StencilCaps", 0x88 },
-    { "FVFCaps", 0x8c }, { "TextureOpCaps", 0x90 }, { "MaxTextureBlendStages", 0x94 },
-    { "MaxSimultaneousTextures", 0x98 }, { "VertexProcessingCaps", 0x9c },
-    { "MaxActiveLights", 0xa0 }, { "MaxUserClipPlanes", 0xa4 },
-    { "MaxVertexBlendMatrices", 0xa8 }, { "MaxVertexBlendMatrixIndex", 0xac },
-    { "MaxPrimitiveCount", 0xb4 }, { "MaxVertexIndex", 0xb8 }, { "MaxStreams", 0xbc },
-    { "MaxStreamStride", 0xc0 }, { "VertexShaderVersion", 0xc4 },
-    { "MaxVertexShaderConst", 0xc8 }, { "PixelShaderVersion", 0xcc }
+    { "Caps", offsetof(d3d_caps9, caps) },
+    { "Caps2", offsetof(d3d_caps9, caps2) },
+    { "Caps3", offsetof(d3d_caps9, caps3) },
+    { "PresentationIntervals", offsetof(d3d_caps9, presentation_intervals) },
+    { "CursorCaps", offsetof(d3d_caps9, cursor_caps) },
+    { "DevCaps", offsetof(d3d_caps9, dev_caps) },
+    { "PrimitiveMiscCaps", offsetof(d3d_caps9, primitive_misc_caps) },
+    { "RasterCaps", offsetof(d3d_caps9, raster_caps) },
+    { "ZCmpCaps", offsetof(d3d_caps9, z_cmp_caps) },
+    { "SrcBlendCaps", offsetof(d3d_caps9, src_blend_caps) },
+    { "DestBlendCaps", offsetof(d3d_caps9, dest_blend_caps) },
+    { "AlphaCmpCaps", offsetof(d3d_caps9, alpha_cmp_caps) },
+    { "ShadeCaps", offsetof(d3d_caps9, shade_caps) },
+    { "TextureCaps", offsetof(d3d_caps9, texture_caps) },
+    { "TextureFilterCaps", offsetof(d3d_caps9, texture_filter_caps) },
+    { "CubeTextureFilterCaps", offsetof(d3d_caps9, cube_texture_filter_caps) },
+    { "VolumeTextureFilterCaps", offsetof(d3d_caps9, volume_texture_filter_caps) },
+    { "TextureAddressCaps", offsetof(d3d_caps9, texture_address_caps) },
+    { "VolumeTextureAddressCaps", offsetof(d3d_caps9, volume_texture_address_caps) },
+    { "LineCaps", offsetof(d3d_caps9, line_caps) },
+    { "MaxTextureWidth", offsetof(d3d_caps9, max_texture_width) },
+    { "MaxVolumeExtent", offsetof(d3d_caps9, max_volume_extent) },
+    { "MaxTextureRepeat", offsetof(d3d_caps9, max_texture_repeat) },
+    { "MaxTextureAspectRatio", offsetof(d3d_caps9, max_texture_aspect_ratio) },
+    { "MaxAnisotropy", offsetof(d3d_caps9, max_anisotropy) },
+    { "StencilCaps", offsetof(d3d_caps9, stencil_caps) },
+    { "FVFCaps", offsetof(d3d_caps9, fvf_caps) },
+    { "TextureOpCaps", offsetof(d3d_caps9, texture_op_caps) },
+    { "MaxTextureBlendStages", offsetof(d3d_caps9, max_texture_blend_stages) },
+    { "MaxSimultaneousTextures", offsetof(d3d_caps9, max_simultaneous_textures) },
+    { "VertexProcessingCaps", offsetof(d3d_caps9, vertex_processing_caps) },
+    { "MaxActiveLights", offsetof(d3d_caps9, max_active_lights) },
+    { "MaxUserClipPlanes", offsetof(d3d_caps9, max_user_clip_planes) },
+    { "MaxVertexBlendMatrices", offsetof(d3d_caps9, max_vertex_blend_matrices) },
+    { "MaxVertexBlendMatrixIndex", offsetof(d3d_caps9, max_vertex_blend_matrix_index) },
+    { "MaxPrimitiveCount", offsetof(d3d_caps9, max_primitive_count) },
+    { "MaxVertexIndex", offsetof(d3d_caps9, max_vertex_index) },
+    { "MaxStreams", offsetof(d3d_caps9, max_streams) },
+    { "MaxStreamStride", offsetof(d3d_caps9, max_stream_stride) },
+    { "VertexShaderVersion", offsetof(d3d_caps9, vertex_shader_version) },
+    { "MaxVertexShaderConst", offsetof(d3d_caps9, max_vertex_shader_const) },
+    { "PixelShaderVersion", offsetof(d3d_caps9, pixel_shader_version) }
 };
 #define k_d3dcaps_field_count (sizeof(k_d3dcaps_fields) / sizeof(k_d3dcaps_fields[0]))
 
@@ -52,13 +79,13 @@ const char *HwreqParser::evaluate_condition(int32_t kind, uint32_t value)
 
     op_word = *(uint16_t *)self->cursor;
     switch (op_word) {
-    case 0x3d3d: self->cursor += 2; op = k_hwreq_operator_equal; break;
-    case 0x3d21: self->cursor += 2; op = k_hwreq_operator_not_equal; break;
-    case 0x3e3c: self->cursor += 2; op = k_hwreq_operator_not_equal; break;
-    case 0x3e3d: self->cursor += 2; op = k_hwreq_operator_greater_equal; break;
-    case 0x3c3d: self->cursor += 2; op = k_hwreq_operator_less_equal; break;
-    case 0x3d3c: self->cursor += 2; op = k_hwreq_operator_less_equal; break;
-    case 0x3d3e: self->cursor += 2; op = k_hwreq_operator_greater_equal; break;
+    case char_pair('=', '='): self->cursor += 2; op = k_hwreq_operator_equal; break;
+    case char_pair('!', '='): self->cursor += 2; op = k_hwreq_operator_not_equal; break;
+    case char_pair('<', '>'): self->cursor += 2; op = k_hwreq_operator_not_equal; break;
+    case char_pair('=', '>'): self->cursor += 2; op = k_hwreq_operator_greater_equal; break;
+    case char_pair('=', '<'): self->cursor += 2; op = k_hwreq_operator_less_equal; break;
+    case char_pair('<', '='): self->cursor += 2; op = k_hwreq_operator_less_equal; break;
+    case char_pair('>', '='): self->cursor += 2; op = k_hwreq_operator_greater_equal; break;
     default:
         c = *(char *)self->cursor;
         if (c == '=') { self->cursor += 1; op = k_hwreq_operator_equal; }
@@ -278,20 +305,20 @@ const char *HwreqParser::resolve_field()
         os_version_info_a version;
         uint32_t detected;
 
-        version.size = 0x94;
+        version.size = sizeof(os_version_info_a);
         GetVersionExA((LPOSVERSIONINFOA)&version);
 
         if (version.platform_id == 2) {
             if (version.major_version == 5) {
-                detected = (version.build_number >= 0xa28) ? k_hwreq_os_winxp : k_hwreq_os_win2k;
+                detected = (version.build_number >= k_windows_xp_build) ? k_hwreq_os_winxp : k_hwreq_os_win2k;
             } else {
                 detected = k_hwreq_os_winxp;
             }
         } else {
             uint32_t build = version.build_number & 0xffff;
-            if (build > 0x8ae) detected = k_hwreq_os_winme;
-            else if (build > 0x7ce) detected = k_hwreq_os_win98se;
-            else if (build > 0x3b6) detected = k_hwreq_os_win98;
+            if (build > k_windows_me_build - 1) detected = k_hwreq_os_winme;
+            else if (build > k_windows_98se_build - 1) detected = k_hwreq_os_win98se;
+            else if (build > k_windows_98_build - 1) detected = k_hwreq_os_win98;
             else detected = k_hwreq_os_win95;
         }
 

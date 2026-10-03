@@ -1,4 +1,5 @@
 #include "halo/shell/hwreq.hpp"
+#include "halo/shell/layout.hpp"
 
 namespace halo::shell {
 
@@ -111,7 +112,7 @@ uint8_t HwreqParser::parse_block(hwreq_property_set *target)
         self->cursor = (uint32_t)cursor;
 
         c = *cursor;
-        if (c == '\r' || *(uint16_t *)cursor == 0x2f2f || (c >= '0' && c <= '9') ||
+        if (c == '\r' || *(uint16_t *)cursor == char_pair('/', '/') || (c >= '0' && c <= '9') ||
             (_strnicmp(cursor, "unknown", 7) == 0 &&
              (c = cursor[7], is_delimiter(c)))) {
         } else if (match_keyword("break")) {
@@ -344,7 +345,7 @@ have_value:
         value_string.capacity = k_msvc_string_inline_capacity;
         StdString(&value_string).assign_n(value, (uint32_t)(value_out - value));
         *StdMap(&self->graphic_detail_sets).index_property_set(&value_string) = property_set;
-        if (value_string.capacity >= 0x10) {
+        if (value_string.capacity >= k_string_inline_capacity + 1) {
             free((void *)value_string.buffer.heap_buffer);
         }
     }
@@ -541,7 +542,7 @@ uint8_t HwreqParser::parse_vendor_block()
                             self->cursor = (uint32_t)cursor;
                             c = *cursor;
                             if (c < '0' || c > '9') {
-                                if (c != '\r' && *(uint16_t *)cursor != 0x2f2f) {
+                                if (c != '\r' && *(uint16_t *)cursor != char_pair('/', '/')) {
                                     ok = parse_block((hwreq_property_set *)self->flags);
                                     if (ok == 0) {
                                         return 0;
@@ -705,7 +706,7 @@ uint8_t HwreqParser::parse_audiovendor_block()
                             self->cursor = (uint32_t)cursor;
                             c = *cursor;
                             if (c < '0' || c > '9') {
-                                if (c != '\r' && *(uint16_t *)cursor != 0x2f2f) {
+                                if (c != '\r' && *(uint16_t *)cursor != char_pair('/', '/')) {
                                     ok = parse_block((hwreq_property_set *)self->flags);
                                     if (ok == 0) {
                                         return 0;

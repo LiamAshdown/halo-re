@@ -102,6 +102,18 @@ inline constexpr uint32_t k_transparent_decal_z_bias_default_bits = 0xb6a7c5ac;
 inline constexpr uint32_t k_string_inline_capacity = 0xf;
 inline constexpr uint32_t k_string_npos = 0xffffffffu;
 
+/** Two characters packed the way a 16-bit load of "ab" reads them (little endian: first character in the low byte). */
+constexpr uint16_t char_pair(char first, char second) noexcept {
+    return static_cast<uint16_t>(static_cast<uint8_t>(first) | (static_cast<uint8_t>(second) << 8));
+}
+
+/** Windows build numbers the hardware requirement parser maps to OS names. */
+inline constexpr uint32_t k_windows_95_build = 950;
+inline constexpr uint32_t k_windows_98_build = 951;
+inline constexpr uint32_t k_windows_98se_build = 1999;
+inline constexpr uint32_t k_windows_me_build = 2223;
+inline constexpr uint32_t k_windows_xp_build = 2600;
+
 /** Words of stack the integrity guard fills with a marker. */
 inline constexpr int32_t k_stack_guard_words = 0x800;
 inline constexpr uint32_t k_stack_guard_marker = 0xeeeeeeee;
