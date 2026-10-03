@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/networking/channel_queue.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/memory/api.hpp"
@@ -111,27 +112,12 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
     ok = (char)halo::memory::data_packet_group_encode_packet(&network_game_messages_group, encode_buffer, &payload, &capacity, 0x1a, 1);
     if (ok != 0) {
         network_channel *channel = client->channel;
-        int32_t bits_to_send;
 
         network_challenge_packet_block = (((int16_t)capacity + 2) * 0x10) | 0xc;
         memcpy(network_broadcast_body, encode_buffer, (uint16_t)capacity);
 
-        bits_to_send = (uint32_t)(network_challenge_packet_block >> 4) * 8;
-        if ((channel->flags & 1) == 0) {
-            if ((((*(int32_t *)&channel->outgoing.stream.last_bit + *(int32_t *)&channel->outgoing.stream.byte_cursor * -8) -
-                  *(int32_t *)&channel->outgoing.stream.bit_cursor) + 1 < bits_to_send + 1) &&
-                (ok = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1), ok == 0)) {
-                return client->state == 3;
-            }
-            {
-                uint32_t item_flag = 0;
-
-                channel->send_budget = channel->send_budget + bits_to_send + 1;
-                halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
-                channel->outgoing.empty = 0;
-                halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)(&network_challenge_packet_block), bits_to_send);
-                channel->outgoing.empty = 0;
-            }
+        if (!halo::networking::channel_queue_packet(channel, &network_challenge_packet_block)) {
+            return client->state == 3;
         }
 
         client->state = 3;

@@ -1,4 +1,5 @@
 #include "halo/networking/net1_server.hpp"
+#include "halo/networking/channel_queue.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/networking/delta_message_types.hpp"
@@ -314,30 +315,7 @@ char ServerView::build_game_info_packet(network_machine *machine)
 
             channel = machine->channel;
             if (channel != 0) {
-                int32_t bit_len;
-                char result;
-
-                bit_len = (int32_t)(*encoded_buffer >> 4) * 8;
-                result = 1;
-                if ((channel->flags & 0x01) == 0) {
-                    int32_t free_bits;
-
-                    free_bits = (int32_t)(channel->outgoing.stream.last_bit -
-                                          channel->outgoing.stream.byte_cursor * 8) -
-                                (int32_t)channel->outgoing.stream.bit_cursor + 1;
-                    if (free_bits < bit_len + 1) {
-                        result = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
-                        if (result == 0) {
-                            return 0;
-                        }
-                    }
-                    channel->send_budget = channel->send_budget + bit_len + 1;
-                    { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1); }
-                    channel->outgoing.empty = 0;
-                    halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)(encoded_buffer), bit_len);
-                    channel->outgoing.empty = 0;
-                }
-                return result;
+                return halo::networking::channel_queue_packet(channel, encoded_buffer) ? 1 : 0;
             }
         }
     }
