@@ -50,7 +50,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
     }
 
     variant = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
-    actor_definition_tag = *(datum_index *)&variant->actor_definition.tag_id;
+    actor_definition_tag = halo::ai::tag_handle(variant->actor_definition);
     if (actor_definition_tag == (datum_index)k_datum_index_none) {
         return (datum_index)k_datum_index_none;
     }
@@ -304,11 +304,11 @@ datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, d
     halo::objects::objects_garbage_collection();
     variant = halo::ai::tag_data<ActorVariant>(variant_tag);
     if (use_palette_entry) {
-        variant_tag = *(datum_index *)&variant->major_variant.tag_id;
+        variant_tag = halo::ai::tag_handle(variant->major_variant);
         variant = halo::ai::tag_data<ActorVariant>(variant_tag);
     }
     actor_definition = halo::ai::tag_data<Actor>(halo::ai::tag_handle(variant->actor_definition));
-    halo::objects::object_placement_data_initialize(&placement, *(datum_index *)&((ActorVariant *)variant)->unit.tag_id, k_datum_index_none);
+    halo::objects::object_placement_data_initialize(&placement, halo::ai::tag_handle(variant->unit), k_datum_index_none);
     yaw = request->yaw;
     placement.position = request->position;
     placement.permutation_group = (int16_t)unit_type_index;
@@ -697,10 +697,10 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         unit_object *object = (unit_object *)halo::ai::object_at(object_index);
         Object *object_tag = halo::ai::tag_data<Object>(object->base.definition_tag);
 
-        if (*(int32_t *)&object_tag->model.tag_id != -1 && (static_cast<uint8_t>(object->base.flags) & 1) != 0) {
+        if (halo::ai::tag_handle(object_tag->model) != (datum_index)k_datum_index_none && (static_cast<uint8_t>(object->base.flags) & 1) != 0) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
-        if (*(int32_t *)&object_tag->model.tag_id != -1) {
+        if (halo::ai::tag_handle(object_tag->model) != (datum_index)k_datum_index_none) {
             object->base.flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
             halo::ai::object_header_at(object_index).flags |= 2;
         }
@@ -842,11 +842,11 @@ uint8_t ActorView::process_vehicle_seat_exit()
                                               halo::models::animation_choose_random_permutation(graph, exit_animation, static_cast<animation_random_stream>(1)));
                     object = (unit_object *)halo::ai::object_bytes(rider_index);
                     object_tag = halo::ai::tag_data<Object>(object->base.definition_tag);
-                    if (*(int32_t *)&object_tag->model.tag_id != -1) {
+                    if (halo::ai::tag_handle(object_tag->model) != (datum_index)k_datum_index_none) {
                         if (static_cast<uint8_t>(object->base.flags) & 1) {
                             halo::objects::object_for_each_light_attachment(rider_index, 0, 1);
                         }
-                        if (*(int32_t *)&object_tag->model.tag_id != -1) {
+                        if (halo::ai::tag_handle(object_tag->model) != (datum_index)k_datum_index_none) {
                             ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
                             halo::ai::object_header_at(rider_index).flags |= 2;
                         }
@@ -2320,7 +2320,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
 
         {
             const ActorVariant *variant = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
-            const Actor *actor_tag_data = halo::ai::tag_data<Actor>(halo::bit_cast<datum_index>(variant->actor_definition.tag_id));
+            const Actor *actor_tag_data = halo::ai::tag_data<Actor>(halo::ai::tag_handle(variant->actor_definition));
             int16_t i;
 
             for (i = 0; i < spawn_count; i++) {
@@ -2332,7 +2332,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
                 halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                 random_bits = halo::math::globals().random_seed_global >> 16;
                 angle = (float)(int32_t)random_bits * 1.5259022e-05f * 6.2831855f;
-                halo::objects::object_placement_data_initialize(&placement, halo::bit_cast<datum_index>(variant->unit.tag_id), (datum_index)k_datum_index_none);
+                halo::objects::object_placement_data_initialize(&placement, halo::ai::tag_handle(variant->unit), (datum_index)k_datum_index_none);
                 placement.forward.i = (float)halo::libm::cos(angle);
                 placement.forward.j = (float)halo::libm::sin(angle);
                 placement.forward.k = 0.0f;

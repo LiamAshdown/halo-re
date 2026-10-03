@@ -118,7 +118,7 @@ uint8_t ConversationView::activate_next_participant()
         {
             TagDependency *variants = &line->variant_1;
             int16_t variant_selector = instance->participant_variant[participant_index];
-            instance->sound_index = *(uint32_t *)&variants[variant_selector].tag_id;
+            instance->sound_index = halo::ai::tag_handle(variants[variant_selector]);
         }
 
         instance->line_delay_ticks = (int16_t)halo::x87::__ftol((double)(line->line_delay_time * ticks_per_second));

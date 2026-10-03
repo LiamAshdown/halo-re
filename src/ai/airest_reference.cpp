@@ -1167,11 +1167,11 @@ void ReferenceView::spawn_starting_location_object(datum_index unit_index, uint3
         if (actor_palette_index != -1) {
             TagDependency *actor_palette_entry =
                 &((TagDependency *)halo::scenario::globals().scenario->actor_palette.pointer)[actor_palette_index];
-            datum_index actor_variant_tag = *(datum_index *)&actor_palette_entry->tag_id;
+            datum_index actor_variant_tag = halo::ai::tag_handle(*actor_palette_entry);
 
             if (actor_variant_tag != (datum_index)k_datum_index_none) {
                 ActorVariant *actor_variant_data = reinterpret_cast<ActorVariant *>(halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].data);
-                datum_index actor_definition_tag = *(datum_index *)&actor_variant_data->actor_definition.tag_id;
+                datum_index actor_definition_tag = halo::ai::tag_handle(actor_variant_data->actor_definition);
 
                 if (actor_definition_tag != (datum_index)k_datum_index_none) {
                     Actor *actor_tag_data = halo::ai::tag_data<Actor>(actor_definition_tag);
@@ -1345,10 +1345,10 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         unit_object *object = (unit_object *)halo::ai::object_at(object_index);
         Object *object_tag = halo::ai::tag_data<Object>(object->base.definition_tag);
 
-        if (*(int32_t *)&object_tag->model.tag_id != -1 && (static_cast<uint8_t>(object->base.flags) & 1) != 0) {
+        if (halo::ai::tag_handle(object_tag->model) != (datum_index)k_datum_index_none && (static_cast<uint8_t>(object->base.flags) & 1) != 0) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
-        if (*(int32_t *)&object_tag->model.tag_id != -1) {
+        if (halo::ai::tag_handle(object_tag->model) != (datum_index)k_datum_index_none) {
             object->base.flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
             halo::ai::object_header_at(object_index).flags |= 2;
         }
@@ -1476,11 +1476,11 @@ void ReferenceView::units_exit_vehicles()
                     halo::models::animation_choose_random_permutation(graph, exit_animation, static_cast<animation_random_stream>(1)));
                 object = (unit_object *)halo::ai::object_bytes(unit_index);
                 object_tag = halo::ai::tag_data<Object>(object->base.definition_tag);
-                if (*(int32_t *)&object_tag->model.tag_id != -1) {
+                if (halo::ai::tag_handle(object_tag->model) != (datum_index)k_datum_index_none) {
                     if ((static_cast<uint8_t>(object->base.flags) & 1) != 0) {
                         halo::objects::object_for_each_light_attachment(unit_index, 0, 1);
                     }
-                    if (*(int32_t *)&object_tag->model.tag_id != -1) {
+                    if (halo::ai::tag_handle(object_tag->model) != (datum_index)k_datum_index_none) {
                         ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
                         halo::ai::object_header_at(unit_index).flags |= 2;
                     }

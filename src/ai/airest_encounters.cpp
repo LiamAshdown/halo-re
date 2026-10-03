@@ -306,7 +306,7 @@ int32_t Encounters::find_best_matching_member(uint32_t packed_reference, int16_t
             if (actor_palette_index >= 0 && actor_palette_index < halo::scenario::globals().scenario->actor_palette.count) {
                 TagDependency *entry =
                     &((TagDependency *)halo::scenario::globals().scenario->actor_palette.pointer)[actor_palette_index];
-                datum_index actor_variant_tag = *(datum_index *)&entry->tag_id;
+                datum_index actor_variant_tag = halo::ai::tag_handle(*entry);
                 if (actor_variant_tag != (datum_index)k_datum_index_none &&
                     halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].group_tag == 0x61637476 /* 'actv' */) {
                     actor_variant_data = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
@@ -382,7 +382,7 @@ int16_t Encounters::resolve_actor_type(ScenarioSquad *squad)
 
     if (actor_palette_index >= 0 && actor_palette_index < halo::scenario::globals().scenario->actor_palette.count) {
         TagDependency *entry = &((TagDependency *)halo::scenario::globals().scenario->actor_palette.pointer)[actor_palette_index];
-        datum_index actor_variant_tag = *(datum_index *)&entry->tag_id;
+        datum_index actor_variant_tag = halo::ai::tag_handle(*entry);
         if (actor_variant_tag != (datum_index)k_datum_index_none) {
             ActorVariant *actor_variant_data = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
             datum_index actor_definition_tag = halo::ai::tag_handle(actor_variant_data->actor_definition);

@@ -138,7 +138,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
     using namespace c_actor_apply_unit_definition_properties;
     ActorVariant *variant = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
     unit_object *unit = (unit_object *)object_get(unit_index);
-    Unit *unit_tag = halo::ai::tag_data<Unit>(*(datum_index *)&variant->actor_definition.tag_id);
+    Unit *unit_tag = halo::ai::tag_data<Unit>(halo::ai::tag_handle(variant->actor_definition));
     int16_t i;
 
     if (variant->body_vitality > 0.0f || variant->shield_vitality > 0.0f) {
@@ -159,8 +159,8 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
             *(ColorRGB *)&unit->base.change_colors[i] = *working;
         }
     }
-    if (*(datum_index *)&variant->weapon.tag_id != k_datum_index_none) {
-        datum_index weapon = actor_create_unit_item(*(datum_index *)&variant->weapon.tag_id, unit_index);
+    if (halo::ai::tag_handle(variant->weapon) != k_datum_index_none) {
+        datum_index weapon = actor_create_unit_item(halo::ai::tag_handle(variant->weapon), unit_index);
 
         if (weapon != k_datum_index_none && !halo::units::unit_pickup_weapon(2, weapon, unit_index)) {
             int32_t role = ((object *)object_get(weapon))->network_role;
@@ -185,11 +185,11 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         unit_state->desired_grenade_index = (int8_t)type;
         unit_state->current_grenade_index = (int8_t)type;
     }
-    if (*(datum_index *)&variant->equipment.tag_id != k_datum_index_none) {
+    if (halo::ai::tag_handle(variant->equipment) != k_datum_index_none) {
         int16_t equipment_kind = halo::ai::tag_data<Equipment>(halo::ai::tag_handle(variant->equipment))->powerup_type;
 
         if (equipment_kind != 0 && equipment_kind != 6) {
-            datum_index equipment = actor_create_unit_item(*(datum_index *)&variant->equipment.tag_id, unit_index);
+            datum_index equipment = actor_create_unit_item(halo::ai::tag_handle(variant->equipment), unit_index);
 
             if (equipment != k_datum_index_none && !halo::units::unit_try_select_equipment(unit_index, equipment, 1)) {
                 halo::objects::object_delete(equipment);
