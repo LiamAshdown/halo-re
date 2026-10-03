@@ -469,7 +469,7 @@ typedef struct unit_data {
     int16_t looking_animation_index;    // 0x29c the "look" unit animation permutation (unit_try_set_animation_state),
                                         //    blended by the looking vector (0x563b50); -1 none
                                         //       seat / turret overlay
-    int16_t unknown_29e;                // 0x29e
+    int16_t overlay_animation_index;       // 0x29e third animation overlay index next to aiming/looking (seat / turret overlay); -1 at spawn, nothing else touches it
     int8_t animation_definition_index;  // 0x2a0 index into the unit block of the animation graph
                                         //       (tag data + 0x0c count, + 0x10 address,
                                         //       stride 100); -1 when the unit has none
@@ -578,7 +578,7 @@ typedef struct unit_data {
     int16_t major_hurt_speech_delay_ticks; // 0x3ee 60 after a high-damage line; blocks non-scripted lines while set
                                            //    (nothing in the rewrite counts it down: 0x561620 decrements 0x3ec
                                            //    twice)
-    uint32_t unknown_3f0;               // 0x3f0 0x560d00 returns it to its caller unchanged
+    uint32_t communication_hold_tick;      // 0x3f0 ai_communication_record_line_played stamps it with game tick + max(speech_duration_ticks - 45, 0); -1 at spawn; unit_animation_change_priority_check hands it back to its callers
     int8_t speech_started;              // 0x3f4 0x561620 sets it once the sound was started
     int8_t speech_lipsync_stopped;      // 0x3f5 set once the lipsync countdown hit 0
     int8_t speech_finished;             // 0x3f6 set once the duration countdown hit 0
@@ -844,7 +844,8 @@ typedef struct vehicle_data {
     uint8_t collision_update_pending;   // 0x524 0x524 set when mass-point overlap applies force to the vehicle;
                                         //    cleared by vehicle_encode_network_update and player_update_history_play
     uint8_t unknown_525;                // 0x525 the scripted spawn seeds it with 1
-    uint8_t unknown_526;                // 0x526 read into the film snapshot
+    uint8_t network_epoch;              // 0x526 incremented by the vehicle reset at 0x572410 (which also sets 0x525 and 0x528 to 1); sent in every
+                                        //    vehicle network update header; the receiver compares it with its own epoch (0x572742) and takes a different path on a mismatch
     uint8_t network_update_sequence;    // 0x527 0x5724d0 increments it and wraps it at 0xff
     uint8_t network_delta_sequence;     // 0x528 base of the delta record 0x5724d0 encodes
     uint8_t unknown_529[0x83];          // 0x529 untouched by this module

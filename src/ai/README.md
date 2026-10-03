@@ -119,51 +119,42 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0x158` | `active_unit_index` | `datum_index` | preferred unit object for movement; 0x4193d0 falls back to unit_index |
 | `0x160` | `order_committed` | `uint8_t` | the order builders set it once the actor commits to the order they built |
 | `0x174` | `facing` | `real_vector3d` | the actor unit forward vector, NOT a position: all 35 arithmetic |
-| `0x180` | `facing_unknown_180` | `real_vector3d` | snapshotted to 0x708 |
-| `0x18c` | `facing_unknown_18c` | `real_vector3d` | snapshotted to 0x714 |
+| `0x180` | `unit_aiming_vector` | `real_vector3d` | the unit's aiming vector, snapshotted to 0x708 |
+| `0x18c` | `unit_looking_vector` | `real_vector3d` | the unit's looking vector, snapshotted to 0x714 |
 | `0x1dc` | `conversation_index` | `datum_index` | ai_conversation_stop clears this and conversation_participant |
 | `0x1e0` | `conversation_participant` | `datum_index` |  |
 | `0x1ec` | `tally` | `actor_target_tally` | the 0x7b-byte perception tally actor_choose_best_target |
 | `0x268` | `target_combat_status` | `int16_t` | actor_update_target_combat_status writes it, actor_update_awareness_level reads it |
 | `0x270` | `target_unit_index` | `datum_index` | the unit the actor is fighting; actor_choose_best_target writes it |
 | `0x280` | `danger_type` | `int16_t` | 0x41ea60 and 0x41ec90 only register a danger that outranks this |
-| `0x282` | `danger_unknown_282` | `int16_t` |  |
-| `0x284` | `danger_unknown_284` | `int16_t` |  |
-| `0x286` | `danger_unknown_286` | `uint8_t` |  |
+| `0x282` | `danger_owner_relation` | `int16_t` | 0 enemy or unknown, 1 friend, 2 this actor's own unit |
+| `0x284` | `danger_reaction_ticks` | `int16_t` | countdown before the actor reacts |
+| `0x286` | `danger_reaction_delayed` | `uint8_t` | the countdown is allowed to run |
 | `0x28c` | `danger_object_index` | `datum_index` |  |
-| `0x290` | `danger_unknown_290` | `uint32_t` |  |
-| `0x294` | `danger_unknown_294` | `float` |  |
-| `0x298` | `danger_unknown_298` | `float` |  |
-| `0x29c` | `danger_unknown_29c` | `float` |  |
-| `0x2a0` | `danger_unknown_2a0` | `float` |  |
-| `0x2a4` | `danger_unknown_2a4` | `uint32_t` |  |
-| `0x2a8` | `danger_unknown_2a8` | `uint32_t` |  |
-| `0x2ac` | `danger_unknown_2ac` | `uint32_t` |  |
+| `0x290` | `danger_owner_unit` | `datum_index` | unit that fired / drives the dangerous object |
+| `0x294` | `danger_object_radius` | `float` | avoid sphere radius |
+| `0x298` | `danger_object_position` | `real_point3d` | position when registered (0x298..0x2a3) |
+| `0x2a4` | `danger_object_velocity` | `real_vector3d` | velocity when registered (0x2a4..0x2af) |
 | `0x2b0` | `flee_from_point` | `real_point3d` | 0x4146c0 resolves the point the actor flees away from; the |
 | `0x2c8` | `danger_segment_end` | `real_point3d` | 0x4112b0 builds the segment flee_from_point -> here |
-| `0x2d4` | `danger_unknown_2d4` | `float` |  |
+| `0x2d4` | `danger_distance` | `float` | distance of the registered danger |
 | `0x2d8` | `danger_radius` | `float` | the sphere around danger_center a candidate has to be inside |
 | `0x2dc` | `danger_center` | `real_point3d` |  |
 | `0x2ee` | `look_at_priority` | `int16_t` | 0x421bc0 keeps only the highest-priority look-at point |
-| `0x2f4` | `look_at_unknown_2f4` | `uint32_t` |  |
-| `0x2f8` | `look_at_unknown_2f8` | `float` |  |
-| `0x2fc` | `look_at_unknown_2fc` | `uint32_t` |  |
-| `0x300` | `look_at_unknown_300` | `float` |  |
-| `0x304` | `look_at_unknown_304` | `uint32_t` |  |
+| `0x2f4` | `look_at_reference` | `datum_index` | datum of the highest-priority look-at request |
+| `0x2f8` | `look_at_has_point` | `uint8_t` | the request supplied a point |
+| `0x2fc` | `look_at_point` | `real_point3d` | the point to look at (0x2fc..0x307) |
 | `0x312` | `search_priority` | `int16_t` | 0x421af0 keeps only the highest-priority search position |
-| `0x314` | `search_unknown_314` | `uint8_t` |  |
-| `0x318` | `search_unknown_318` | `uint32_t` |  |
-| `0x31c` | `search_unknown_31c` | `uint32_t` |  |
-| `0x320` | `search_unknown_320` | `uint32_t` |  |
-| `0x324` | `search_unknown_324` | `uint32_t` |  |
-| `0x328` | `search_unknown_328` | `uint32_t` |  |
-| `0x32c` | `search_unknown_32c` | `uint8_t` |  |
-| `0x330` | `search_unknown_330` | `uint32_t` |  |
-| `0x338` | `search_unknown_338` | `uint32_t` |  |
-| `0x33c` | `search_unknown_33c` | `uint32_t` |  |
-| `0x340` | `search_unknown_340` | `uint32_t` |  |
-| `0x344` | `search_unknown_344` | `uint32_t` |  |
-| `0x348` | `search_unknown_348` | `uint8_t` |  |
+| `0x314` | `search_position_valid` | `uint8_t` |  |
+| `0x318` | `search_position` | `real_point3d` | 0x318..0x323 |
+| `0x324` | `search_surface_index` | `int32_t` | pathfinding surface of the position |
+| `0x328` | `search_position_extra` | `uint32_t` | caller parameter stored with the position |
+| `0x32c` | `search_velocity_valid` | `uint8_t` |  |
+| `0x330` | `search_velocity` | `real_vector3d` | 0x330..0x33b |
+| `0x33c` | `search_velocity_ticks` | `uint32_t` | caller parameter; the velocity is used while positive |
+| `0x340` | `search_prop_index` | `datum_index` | prop the request came from |
+| `0x344` | `search_prop_value` | `uint32_t` | caller parameter stored with the prop |
+| `0x348` | `search_prop_flag` | `uint8_t` | caller parameter stored with the prop |
 | `0x34a` | `perception_event` | `int16_t` | 0x422070 records the highest-priority pending perception event |
 | `0x34c` | `perception_event_data` | `int32_t` |  |
 | `0x376` | `ignores_glass` | `uint8_t` | actor_new rolls Actor.glass_ignorance_chance at Actor+0x90 once into this |
@@ -174,8 +165,8 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0x3d8` | `recognition_valid` | `uint8_t` | 0x4141a0 sets it, 0x414140 and actor_set_mode clear it |
 | `0x3d9` | `recognition_type` | `uint8_t` |  |
 | `0x3dc` | `recognition_position` | `real_point3d` | copied out of the encounter ScenarioFiringPosition block (stride 0x18) |
-| `0x3e8` | `vocalization_unknown_3e8` | `int16_t` |  |
-| `0x3ec` | `vocalization_unknown_3ec` | `int16_t` |  |
+| `0x3e8` | `flee_reason` | `int16_t` | why the actor wants to move away from flee_source |
+| `0x3ec` | `flee_source` | `actor_flee_source_reason` | what the actor flees from or looks at (16 bytes) |
 | `0x400` | `queued_movement` | `actor_movement_action` | the action the setters at 0x417610..0x417910 write |
 | `0x418` | `secondary_action` | `int16_t` | 0x417a60 queues it, actor_action_has_queued_secondary reads it |
 | `0x46c` | `active_movement` | `actor_movement_action` | the six dwords the setters copy over from queued_movement |
@@ -185,37 +176,30 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0x544` | `vocalization_line` | `int16_t` | actor_clear_vocalization zeroes 0x544, 0x546 and 0x548 |
 | `0x546` | `vocalization_variant` | `int16_t` |  |
 | `0x548` | `vocalization_state` | `int16_t` |  |
-| `0x54c` | `vocalization_unknown_54c` | `uint32_t` |  |
-| `0x550` | `vocalization_unknown_550` | `uint32_t` |  |
-| `0x554` | `vocalization_unknown_554` | `uint32_t` |  |
-| `0x558` | `vocalization_unknown_558` | `uint32_t` |  |
+| `0x54c` | `vocalization_source` | `actor_flee_source_reason` | prop or point the pending vocalization is about (16 bytes) |
 | `0x5a4` | `position_cache_a` | `real_point3d` | actor_movement_update copies position here every tick |
 | `0x5b0` | `position_cache_b` | `real_point3d` | actor_new seeds all three caches from the zero vector at 0x00696718 |
 | `0x5bc` | `position_cache_c` | `real_point3d` |  |
 | `0x5dc` | `avoidance_direction` | `real_vector3d` | actor_movement_update low-pass filters the avoidance |
 | `0x5e8` | `avoidance_scale` | `float` | the matching low-pass filtered magnitude, snapped to |
 | `0x608` | `vitality_wait_time` | `float` | 0x4028e0 uses it as the vitality-based reaction delay |
-| `0x62c` | `wander_unknown_62c` | `float` | 0x40fcb0 destination and velocity scratch |
-| `0x630` | `wander_unknown_630` | `float` |  |
-| `0x634` | `wander_unknown_634` | `float` |  |
-| `0x638` | `wander_unknown_638` | `float` |  |
-| `0x64c` | `wander_unknown_64c` | `real_vector3d` |  |
-| `0x664` | `wander_unknown_664` | `real_vector3d` |  |
-| `0x670` | `wander_unknown_670` | `real_vector3d` |  |
+| `0x62c` | `firing_target_point` | `real_point3d` | where the actor aims (0x62c..0x637) |
+| `0x638` | `firing_target_distance` | `float` | distance from the aim origin to firing_target_point |
+| `0x64c` | `aim_target_point` | `real_point3d` | firing_target_point after the bombardment scatter |
+| `0x664` | `aim_wander_offset` | `real_vector3d` | aim error offset rolled per burst |
+| `0x670` | `aim_recoil_per_tick` | `real_vector3d` | per tick share of the recoil error |
 | `0x67c` | `grenade_aim_direction` | `real_vector3d` | written by 0x40f7e0 and 0x40fcb0 |
 | `0x69c` | `perception_scale` | `float` | 0x42aa90 scales hearing and awareness ranges by this |
 | `0x6a8` | `grenade_impact_point` | `real_point3d` | 0x410710 records a validated landing point |
-| `0x6bc` | `grenade_unknown_6bc` | `float` | throw-direction scratch written by 0x410a60 |
-| `0x6c0` | `grenade_unknown_6c0` | `float` |  |
-| `0x6c4` | `grenade_unknown_6c4` | `float` |  |
-| `0x6c8` | `grenade_unknown_6c8` | `float` |  |
+| `0x6bc` | `grenade_throw_direction` | `real_vector3d` | planned throw direction (0x6bc..0x6c7) |
+| `0x6c8` | `grenade_throw_speed` | `float` | planned throw launch speed |
 | `0x6cc` | `grenade_eligible` | `uint8_t` | 0x42f260 caches the eligibility test here |
 | `0x6ce` | `grenade_recheck_ticks` | `int16_t` | actor_new sets 30 |
 | `0x6d0` | `flags` | `uint32_t` | bit 0x2 set by 0x42a5b0, bit 0x400 by 0x4347b0, bit 0x800 by 0x42a5e0 (override target) |
 | `0x6e0` | `queued_look_vector` | `real_vector3d` | actor_snapshot_orientation seeds it from the zero vector at 0x00696714 |
 | `0x6fc` | `snapshot_facing` | `real_vector3d` | copy of facing taken by actor_snapshot_orientation |
-| `0x708` | `snapshot_unknown_708` | `real_vector3d` | copy of facing_unknown_180 |
-| `0x714` | `snapshot_unknown_714` | `real_vector3d` | copy of facing_unknown_18c |
+| `0x708` | `aiming_vector_snapshot` | `real_vector3d` | copy of unit_aiming_vector |
+| `0x714` | `looking_vector_snapshot` | `real_vector3d` | copy of unit_looking_vector |
 | `0x720` | `override_target` | `datum_index` | 0x42a5e0 writes it together with flags bit 0x800 |
 
 *(only the named fields; the 233 `unknown_*` slots that fill the rest of the actor are in `types/ai.h`)*
@@ -242,7 +226,7 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0xa4` | `engaged` | `uint8_t` | 0x41fa80 marks the target actively engaged |
 | `0xaa` | `shots_fired` | `int16_t` | actor_target_reset_shot_counters zeroes 0xaa, 0xac and 0xae |
 | `0xac` | `shots_hit` | `int16_t` |  |
-| `0xae` | `shots_unknown_ae` | `int16_t` |  |
+| `0xae` | `danger_trigger_ticks` | `int16_t` | ticks of being shot at after which the prop raises the danger priority to 7 |
 | `0xb9` | `noticed_a` | `uint8_t` | set by 0x41fb00 (unit+0xb9), cleared by actor_target_reset_combat_flags |
 | `0xba` | `noticed_b` | `uint8_t` | set by 0x41fb60 (unit+0xba) |
 | `0xbb` | `noticed_c` | `uint8_t` | set by 0x41fbc0 |

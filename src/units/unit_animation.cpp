@@ -89,7 +89,7 @@ void unit_ai_update_stagger_reset(void)
  *
  * @address 0x560d00
  */
-int32_t UnitView::animation_change_priority_check(uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value)
+int32_t UnitView::animation_change_priority_check(uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index, int32_t *chain_value)
 {
     uint32_t unit_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
@@ -157,8 +157,8 @@ int32_t UnitView::animation_change_priority_check(uint8_t follow_fallback, int16
     }
     *dialogue_index = index;
     *chain_value = chain;
-    if (out_unknown_3f0 != 0) {
-        *out_unknown_3f0 = ((struct unit_object *)obj)->unit.unknown_3f0;
+    if (out_communication_hold_tick != 0) {
+        *out_communication_hold_tick = ((struct unit_object *)obj)->unit.communication_hold_tick;
     }
     return result;
 }
@@ -309,7 +309,7 @@ uint8_t UnitView::choose_combat_reaction_animation(const datum_index *reaction_s
     uint8_t low_damage = recent_damage < 0.6f;
     uint8_t use_second_tier = 0;
     int32_t chain = -1;
-    int32_t out_unknown_3f0 = 0;
+    int32_t out_communication_hold_tick = 0;
     int16_t reaction_id;
     uint8_t success = 0;
 
@@ -374,7 +374,7 @@ uint8_t UnitView::choose_combat_reaction_animation(const datum_index *reaction_s
         use_second_tier = 1;
         if (reaction_id != 0xe) {
             chain = 2;
-            out_unknown_3f0 = (reaction_id == 0x12) ? 4 : 1;
+            out_communication_hold_tick = (reaction_id == 0x12) ? 4 : 1;
         }
 have_reaction_id:
         if (reaction_id == -1) {
@@ -413,7 +413,7 @@ have_reaction_id:
 
 done:
     if (chain != -1) {
-        ai_refresh_unit_stimulus_and_alert(unit_index, (int16_t)out_unknown_3f0, (int16_t)chain);
+        ai_refresh_unit_stimulus_and_alert(unit_index, (int16_t)out_communication_hold_tick, (int16_t)chain);
     }
     return success;
 }

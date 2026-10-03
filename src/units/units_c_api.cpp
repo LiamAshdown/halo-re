@@ -365,9 +365,9 @@ uint8_t unit_all_seats_unoccupied(uint32_t unit_index)
  *
  * @address 0x560d00
  */
-int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value)
+int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index, int32_t *chain_value)
 {
-    return halo::units::UnitView(unit_index).animation_change_priority_check(follow_fallback, requested_priority, allow_repeat, out_unknown_3f0, dialogue_index, chain_value);
+    return halo::units::UnitView(unit_index).animation_change_priority_check(follow_fallback, requested_priority, allow_repeat, out_communication_hold_tick, dialogue_index, chain_value);
 }
 
 /**

@@ -361,7 +361,7 @@ uint8_t UnitView::new_()
     unit->overlays[1].animation_index = -1;
     unit->overlays[2].animation_index = -1;
     unit->base_animation_state = 2;
-    unit->unknown_29e = -1;
+    unit->overlay_animation_index = -1;
     unit->emotion_animation_frame = -1;
     unit->emotion_animation_index = -1;
     unit->scripted_base_animation_state = -1;
@@ -390,7 +390,7 @@ uint8_t UnitView::new_()
     for (i = 0x1f; i != 0; i--) {
         *field++ = 0;
     }
-    unit->unknown_3f0 = (uint32_t)-1;
+    unit->communication_hold_tick = (uint32_t)-1;
 
     UnitView(object_index).dialogue_determine_variant();
 

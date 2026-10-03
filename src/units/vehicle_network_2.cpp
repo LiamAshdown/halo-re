@@ -19,7 +19,7 @@ namespace vehicle_encode_network_update_local {
 
 typedef struct vehicle_network_update_header {
     int32_t network_key;
-    uint8_t unknown_526;
+    uint8_t network_epoch;
     uint8_t update_sequence;
     uint8_t is_delta;
     uint8_t pad_07;
@@ -81,7 +81,7 @@ int32_t VehicleView::encode_network_update(void *buffer, int32_t bit_budget, int
         }
     }
     header.network_key = key;
-    header.unknown_526 = vehicle->unknown_526;
+    header.network_epoch = vehicle->network_epoch;
     header.update_sequence = vehicle->network_update_sequence;
     header.is_delta = (uint8_t)(full_update == 0);
 
