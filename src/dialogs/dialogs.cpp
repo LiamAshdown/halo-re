@@ -1,12 +1,10 @@
 #include "halo/dialogs/dialogs.hpp"
+#include "halo/dialogs/api.hpp"
 
 extern "C" {
-extern int32_t __stdcall dialog_static_hyperlink_subclass_proc(void *window, uint32_t message, uint32_t wparam, int32_t lparam);
-extern int32_t __stdcall dialog_static_hyperlink_parent_proc(void *window, uint32_t message, uint32_t wparam, int32_t lparam);
 extern int32_t dialog_hyperlink_hovered;
 extern uint32_t shell_language_id;
 extern int32_t sprintf(char *buffer, const char *format, ...);
-extern int32_t dialog_static_hyperlink_install(void *control);
 extern char fatal_error_text[k_shell_fatal_error_text_length];
 extern char fatal_error_help_file[k_shell_fatal_error_readme_length];
 extern char fatal_error_title[k_shell_fatal_error_title_length];
@@ -20,8 +18,6 @@ extern uint32_t video_memory;
 extern void *shell_window;
 extern int32_t fatal_error_remember_choice;
 extern char fatal_error_system_specs[halo::dialogs::k_system_specs_capacity];
-int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void *module, const char *template_name, void *parent_window);
-int32_t __stdcall fatal_error_dialog_proc(void *dialog, uint32_t message, uint32_t wparam, int32_t lparam);
 }
 
 namespace halo::dialogs {
@@ -52,9 +48,9 @@ int32_t StaticHyperlink::install()
     parent = GetParent((HWND)control);
     if (parent != 0) {
         previous_wnd_proc = (void *)GetWindowLongA((HWND)parent, k_dialog_window_long_wndproc);
-        if (previous_wnd_proc != (void *)dialog_static_hyperlink_parent_proc) {
+        if (previous_wnd_proc != (void *)halo::dialogs::dialog_static_hyperlink_parent_proc) {
             SetPropA((HWND)parent, "Old_Proc", previous_wnd_proc);
-            SetWindowLongA((HWND)parent, k_dialog_window_long_wndproc, (int32_t)dialog_static_hyperlink_parent_proc);
+            SetWindowLongA((HWND)parent, k_dialog_window_long_wndproc, (int32_t)halo::dialogs::dialog_static_hyperlink_parent_proc);
         }
     }
 
@@ -63,7 +59,7 @@ int32_t StaticHyperlink::install()
 
     previous_wnd_proc = (void *)GetWindowLongA((HWND)control, k_dialog_window_long_wndproc);
     SetPropA((HWND)control, "Old_Proc", previous_wnd_proc);
-    SetWindowLongA((HWND)control, k_dialog_window_long_wndproc, (int32_t)dialog_static_hyperlink_subclass_proc);
+    SetWindowLongA((HWND)control, k_dialog_window_long_wndproc, (int32_t)halo::dialogs::dialog_static_hyperlink_subclass_proc);
 
     previous_font = (void *)SendMessageA((HWND)control, k_dialog_message_get_font, 0, 0);
     SetPropA((HWND)control, "Old_Font", previous_font);
@@ -274,7 +270,7 @@ int32_t __stdcall FatalErrorDialog::proc(void *dialog, uint32_t message, uint32_
                 EnableWindow(GetDlgItem((HWND)dialog, k_dialog_button_abort), 0);
             }
             hyperlink_control = GetDlgItem((HWND)dialog, id_of(fatal_error_control::help_link));
-            dialog_static_hyperlink_install(hyperlink_control);
+            halo::dialogs::dialog_static_hyperlink_install(hyperlink_control);
             if (graphics_device_id == 0) {
                 if (cpu_speed == 0 || physical_memory == 0) {
                     fatal_error_system_specs[0] = 0;
@@ -343,7 +339,7 @@ int32_t __stdcall FatalErrorDialog::proc(void *dialog, uint32_t message, uint32_
 
 }
 
-extern "C" {
+namespace halo::dialogs {
 
 int32_t dialog_static_hyperlink_install(void *control)
 {

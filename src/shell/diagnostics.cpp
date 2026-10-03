@@ -4,6 +4,7 @@
 #include "dialogs.h"
 #include "interface.h"
 #include "halo/sound/api.hpp"
+#include "halo/dialogs/api.hpp"
 
 extern "C" {
 extern void *shell_module_handle;
@@ -28,9 +29,6 @@ extern char strings_dll_invalid_text[k_shell_strings_dll_error_length];
 extern uint32_t shell_startup_tick_count;
 extern void chimera__registry_check_3(void);
 extern void rasterizer_service_deferred_windowed_ops(void);
-extern int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void *module, const char *template_name,
-                                         void *parent_window);
-extern int32_t __stdcall fatal_error_dialog_proc(void *dialog, uint32_t message, uint32_t wparam, int32_t lparam);
 }
 
 namespace halo::shell {
@@ -307,7 +305,7 @@ int32_t FatalError::show(uint32_t resource_id, uint32_t help_text_or_id, int32_t
     }
 
     ShowCursor(1);
-    result = dialog_box_show_localized((dialog_window_proc_fn)fatal_error_dialog_proc, shell_module_handle, (const char *)0x66, window);
+    result = halo::dialogs::dialog_box_show_localized((dialog_window_proc_fn)halo::dialogs::fatal_error_dialog_proc, shell_module_handle, (const char *)0x66, window);
     ShowCursor(0);
 
     if (is_fatal != 0 || result == 2) {
