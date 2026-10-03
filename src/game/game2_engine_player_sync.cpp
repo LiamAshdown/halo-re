@@ -35,7 +35,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &shared_hud_text_draw_state = halo::link::ref<uint8_t>(halo::game::vars().shared_hud_text_draw_state);
-static auto &machine_table = halo::link::ref<uint8_t *>(halo::game::vars().machine_table);
+static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 static auto &player_control_globals_ptr = halo::link::ref<player_control_globals *>(halo::game::vars().player_control_globals_ptr);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &cinematic_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().cinematic_globals_ptr);
@@ -501,7 +501,7 @@ void EnginePlayerSync::send_unit_weapon_loadout(uint32_t unit_index, datum_index
 
     fields.player_hash = 0;
     if (player_handle != (datum_index)halo::k_dword_none) {
-        fields.player_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)player_handle);
+        fields.player_hash = halo::objects::hash_table_get(&machine_table->id_to_index, (int32_t)player_handle);
         if (fields.player_hash == -1) {
             fields.player_hash = 0;
         }

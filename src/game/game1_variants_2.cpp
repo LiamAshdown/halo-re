@@ -19,7 +19,7 @@
 static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
-static auto &machine_table = halo::link::ref<uint8_t *>(halo::game::vars().machine_table);
+static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 
 namespace halo::game::engine1 {
 
@@ -42,7 +42,7 @@ void Variants::capture_player_profile(int32_t slot, int32_t commit)
 
     lookup_result = 0;
     if (player_handle != (datum_index)halo::k_dword_none) {
-        lookup_result = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)player_handle);
+        lookup_result = halo::objects::hash_table_get(&machine_table->id_to_index, (int32_t)player_handle);
         if (lookup_result == -1) {
             lookup_result = 0;
         }

@@ -61,7 +61,7 @@ static auto &multikill_medal_threshold = halo::link::ref<int32_t>(halo::game::va
 static auto &sv_tk_grace_ticks = halo::link::ref<int32_t>(halo::game::vars().sv_tk_grace_ticks);
 static auto &sv_tk_cooldown_ticks = halo::link::ref<int32_t>(halo::game::vars().sv_tk_cooldown_ticks);
 static auto &shared_hud_text_draw_state = halo::link::ref<uint8_t>(halo::game::vars().shared_hud_text_draw_state);
-static auto &machine_table = halo::link::ref<uint8_t *>(halo::game::vars().machine_table);
+static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &global_006889e4 = halo::link::ref<uint16_t>(halo::game::vars().global_006889e4);
 static auto &global_007102f0 = halo::link::ref<uint16_t>(halo::game::vars().global_007102f0);
@@ -1706,7 +1706,7 @@ void KillStreak::notify_kill_streak_update(int32_t slot, int16_t amount)
 
     fields.hash_result = 0;
     if (player_handle != halo::k_dword_none) {
-        fields.hash_result = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)player_handle);
+        fields.hash_result = halo::objects::hash_table_get(&machine_table->id_to_index, (int32_t)player_handle);
         if (fields.hash_result == -1) {
             fields.hash_result = 0;
         }

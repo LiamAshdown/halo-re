@@ -60,7 +60,7 @@ static auto &network_summary_log_file = halo::link::ref<void *>(halo::networking
 static auto &network_high_res_clock_ms = halo::link::ref<int32_t>(halo::networking::vars().network_high_res_clock_ms);
 static auto &network_update_unknown_869bf = halo::link::ref<uint8_t>(halo::networking::vars().network_update_unknown_869bf);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
-static auto &machine_table = halo::link::ref<void *>(halo::game::vars().machine_table);
+static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &network_summary_log_needs_open = halo::link::ref<uint8_t>(halo::networking::vars().network_summary_log_needs_open);
 
@@ -769,7 +769,7 @@ void EventFeed::flush(int32_t *queue)
 
     remaining = 0;
     if (0 < survivor_count) {
-        table = (hash_table *)((uint8_t *)machine_table + 0x0c);
+        table = &machine_table->id_to_index;
         do {
             raw_key = *(int32_t *)survivors_key[remaining];
             hash = 0;
