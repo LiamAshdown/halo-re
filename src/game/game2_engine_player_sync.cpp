@@ -579,126 +579,127 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
     }
     button_flags = input.button_flags;
 
-    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_local) {
-        if ((button_flags & 0x18) != 0) {
-            int32_t new_unit;
+    do {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_local) {
+            if ((button_flags & 0x18) != 0) {
+                int32_t new_unit;
 
-            if ((button_flags & 0x10) != 0) {
-                new_unit = halo::units::object_find_next_untargeted((int32_t)control->unit);
-            } else {
-                new_unit = halo::units::object_find_nearest_biped((int32_t)control->unit);
+                if ((button_flags & 0x10) != 0) {
+                    new_unit = halo::units::object_find_next_untargeted((int32_t)control->unit);
+                } else {
+                    new_unit = halo::units::object_find_nearest_biped((int32_t)control->unit);
+                }
+                if (new_unit != -1) {
+                    halo::game::local_player_set_controlled_unit((datum_index)new_unit, local_player_index);
+                }
             }
-            if (new_unit != -1) {
-                halo::game::local_player_set_controlled_unit((datum_index)new_unit, local_player_index);
+            if ((button_flags & 0x20) != 0) {
+                if (control->unit == (datum_index)-1) {
+                    break;
+                }
+                halo::units::unit_sample_camera_shake_from_velocity(control->unit);
+                button_flags = input.button_flags;
             }
         }
-        if ((button_flags & 0x20) != 0) {
-            if (control->unit == (datum_index)-1) {
-                goto store_input;
-            }
-            halo::units::unit_sample_camera_shake_from_velocity(control->unit);
+
+        if (control->unit == (datum_index)-1) {
+            break;
+        }
+
+        unit_object = halo::game::object_at(control->unit);
+        unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
+
+        current_weapon = (datum_index)-1;
+        if (unit->current_weapon_index != -1) {
+            current_weapon = unit->weapons[unit->current_weapon_index];
+        }
+
+        if (control->desired_weapon_index == -1 ||
+            unit->weapons[control->desired_weapon_index] == (datum_index)-1) {
+            control->desired_weapon_index = unit->desired_weapon_index;
+        }
+
+        if ((button_flags & 1) != 0 || control->desired_weapon_index == -1 ||
+            unit->weapons[control->desired_weapon_index] == (datum_index)-1) {
+            control->desired_weapon_index = halo::units::unit_find_next_zone_permitted_weapon_slot(control->unit,
+                control->desired_weapon_index, (int16_t)(button_flags & 1));
+            control->desired_zoom_level = -1;
             button_flags = input.button_flags;
         }
-    }
 
-    if (control->unit == (datum_index)-1) {
-        goto store_input;
-    }
-
-    unit_object = halo::game::object_at(control->unit);
-    unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
-
-    current_weapon = (datum_index)-1;
-    if (unit->current_weapon_index != -1) {
-        current_weapon = unit->weapons[unit->current_weapon_index];
-    }
-
-    if (control->desired_weapon_index == -1 ||
-        unit->weapons[control->desired_weapon_index] == (datum_index)-1) {
-        control->desired_weapon_index = unit->desired_weapon_index;
-    }
-
-    if ((button_flags & 1) != 0 || control->desired_weapon_index == -1 ||
-        unit->weapons[control->desired_weapon_index] == (datum_index)-1) {
-        control->desired_weapon_index = halo::units::unit_find_next_zone_permitted_weapon_slot(control->unit,
-            control->desired_weapon_index, (int16_t)(button_flags & 1));
-        control->desired_zoom_level = -1;
-        button_flags = input.button_flags;
-    }
-
-    {
-        int16_t forced = (int16_t)halo::units::unit_find_weapon_index_with_fixed_flag(control->unit);
-        if (forced != -1 && control->desired_weapon_index != forced) {
-            control->desired_weapon_index = forced;
-            control->desired_zoom_level = -1;
+        {
+            int16_t forced = (int16_t)halo::units::unit_find_weapon_index_with_fixed_flag(control->unit);
+            if (forced != -1 && control->desired_weapon_index != forced) {
+                control->desired_weapon_index = forced;
+                control->desired_zoom_level = -1;
+            }
         }
-    }
 
-    if (control->desired_grenade_index == -1 ||
-        unit->grenade_counts[control->desired_grenade_index] == 0) {
-        control->desired_grenade_index = (int16_t)unit->desired_grenade_index;
-    }
-    if ((button_flags & 2) != 0 || control->desired_grenade_index == -1 ||
-        unit->grenade_counts[control->desired_grenade_index] == 0) {
-        int16_t start = control->desired_grenade_index;
-        int16_t best = -1;
-        int16_t index;
-
-        if (start == -1) {
-            start = 0;
+        if (control->desired_grenade_index == -1 ||
+            unit->grenade_counts[control->desired_grenade_index] == 0) {
+            control->desired_grenade_index = (int16_t)unit->desired_grenade_index;
         }
-        index = start;
-        for (;;) {
-            if (unit->grenade_counts[index] > 0) {
-                best = index;
-                if (index != start) {
+        if ((button_flags & 2) != 0 || control->desired_grenade_index == -1 ||
+            unit->grenade_counts[control->desired_grenade_index] == 0) {
+            int16_t start = control->desired_grenade_index;
+            int16_t best = -1;
+            int16_t index;
+
+            if (start == -1) {
+                start = 0;
+            }
+            index = start;
+            for (;;) {
+                if (unit->grenade_counts[index] > 0) {
+                    best = index;
+                    if (index != start) {
+                        break;
+                    }
+                }
+                index = index == 1 ? (int16_t)0 : (int16_t)(index + 1);
+                if (index == start) {
                     break;
                 }
             }
-            index = index == 1 ? (int16_t)0 : (int16_t)(index + 1);
-            if (index == start) {
+            control->desired_grenade_index = best;
+            button_flags = input.button_flags;
+        }
+
+        if ((button_flags & 4) != 0 && (player_control_globals_ptr->flags & 1) == 0 &&
+            game_time->paused == 0 && current_weapon != (datum_index)-1 &&
+            cinematic_globals_ptr[9] == 0) {
+            control->desired_zoom_level =
+                (int16_t)halo::items::weapon_get_next_zoom_level(control->desired_zoom_level, current_weapon);
+        }
+
+        if (local_player_look_frozen[local_player_index * 0xf8] == 0) {
+            halo::game::game_engine_update_local_player_look(local_player_index, input.yaw_delta, input.pitch_delta);
+        }
+
+        if (unit_object->parent_object == (datum_index)-1) {
+            real absolute_throttle_x = control->input_throttle_x < 0.0f
+                                           ? -control->input_throttle_x
+                                           : control->input_throttle_x;
+
+            if (halo::interface::player_profile_get_flag_by_id(local_player_index) != 0 && absolute_throttle_x > 0.5 &&
+                input.pitch_delta < 0.0001f && control->aim_assist_weight < 0.0001f) {
+                int32_t ticks = (int32_t)control->autolevelling_ticks + 1;
+
+                if (ticks < 0) {
+                    ticks = 0;
+                } else if (ticks > 0x7f) {
+                    ticks = 0x7f;
+                }
+                control->autolevelling_ticks = (int8_t)ticks;
+                control->autolevelling_active =
+                    (uint8_t)((int16_t)(int8_t)ticks > player_control->minimum_autolevelling_ticks);
                 break;
             }
+            control->autolevelling_ticks = 0;
         }
-        control->desired_grenade_index = best;
-        button_flags = input.button_flags;
-    }
+        control->autolevelling_active = 0;
+    } while (false);
 
-    if ((button_flags & 4) != 0 && (player_control_globals_ptr->flags & 1) == 0 &&
-        game_time->paused == 0 && current_weapon != (datum_index)-1 &&
-        cinematic_globals_ptr[9] == 0) {
-        control->desired_zoom_level =
-            (int16_t)halo::items::weapon_get_next_zoom_level(control->desired_zoom_level, current_weapon);
-    }
-
-    if (local_player_look_frozen[local_player_index * 0xf8] == 0) {
-        halo::game::game_engine_update_local_player_look(local_player_index, input.yaw_delta, input.pitch_delta);
-    }
-
-    if (unit_object->parent_object == (datum_index)-1) {
-        real absolute_throttle_x = control->input_throttle_x < 0.0f
-                                       ? -control->input_throttle_x
-                                       : control->input_throttle_x;
-
-        if (halo::interface::player_profile_get_flag_by_id(local_player_index) != 0 && absolute_throttle_x > 0.5 &&
-            input.pitch_delta < 0.0001f && control->aim_assist_weight < 0.0001f) {
-            int32_t ticks = (int32_t)control->autolevelling_ticks + 1;
-
-            if (ticks < 0) {
-                ticks = 0;
-            } else if (ticks > 0x7f) {
-                ticks = 0x7f;
-            }
-            control->autolevelling_ticks = (int8_t)ticks;
-            control->autolevelling_active =
-                (uint8_t)((int16_t)(int8_t)ticks > player_control->minimum_autolevelling_ticks);
-            goto store_input;
-        }
-        control->autolevelling_ticks = 0;
-    }
-    control->autolevelling_active = 0;
-
-store_input:
     control->input_primary_trigger = input.primary_trigger;
     control->input_control_flags = input.control_flags;
     control->input_throttle_x = input.throttle_x;
@@ -1017,18 +1018,17 @@ void EnginePlayerSync::spawn_player_starting_loadout(uint32_t starting_equipment
                             int32_t category = *(int32_t *)((uint8_t *)previous + 4);
                             if (category == 0) {
                                 halo::objects::object_delete_unparented(new_object);
-                            } else if (category != 3) {
-                                goto next_slot;
                             }
-                            halo::objects::object_delete_recursive(new_object, 0);
-                            goto next_slot;
+                            if (category == 0 || category == 3) {
+                                halo::objects::object_delete_recursive(new_object, 0);
+                            }
+                            continue;
                         }
                     }
                     halo::units::unit_pickup_weapon((int16_t)(0 - first_spawn & 2), new_object, starting_equipment_index);
                     first_spawn = 0;
                 }
             }
-        next_slot:;
         }
     }
 

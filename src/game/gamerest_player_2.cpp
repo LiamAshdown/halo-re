@@ -97,6 +97,15 @@ namespace halo::game {
 void PlayerView::respawn()
 {
     player *p = halo::game::player_at(player_index);
+    auto reset_player_state = [&]() {
+        p = halo::game::player_at(player_index);
+        memset(((player *)p)->kill_streak, 0, sizeof(((player *)p)->kill_streak));
+        *(uint16_t *)&((player *)p)->interaction_type = 0;
+        ((player *)p)->interaction_object = k_datum_index_none;
+        if (((player *)p)->local_player_index != -1) {
+            halo::camera::observer_new(&halo::camera::globals().observers[((player *)p)->local_player_index]);
+        }
+    };
 
     if (current_game_engine == 0 && ((player *)p)->local_player_index != -1) {
         datum_index *slot = (datum_index *)&local_player_globals->local_player_units[((player *)p)->local_player_index];
@@ -111,7 +120,7 @@ void PlayerView::respawn()
                 int16_t weapon_index = ((unit_object *)unit)->unit.current_weapon_index;
 
                 if (weapon_index != -1) {
-                    held_weapon = *(datum_index *)(unit + 0x2f8 + weapon_index * 4);
+                    held_weapon = ((unit_object *)unit)->unit.weapons[weapon_index];
                 }
                 halo::objects::object_mark_pending_delete(existing_unit);
                 player_respawn_drop_lights(existing_unit);
@@ -119,7 +128,8 @@ void PlayerView::respawn()
                 if (held_weapon != k_datum_index_none) {
                     player_respawn_drop_lights(held_weapon);
                 }
-                goto reset_player_state;
+                reset_player_state();
+                return;
             }
             halo::objects::object_delete(existing_unit);
         }
@@ -138,11 +148,13 @@ void PlayerView::respawn()
         uint8_t *unit;
 
         if (location_index == -1) {
-            goto reset_player_state;
+            reset_player_state();
+            return;
         }
         unit_tag = *(datum_index *)((uint8_t *)global_globals->player_information.pointer + 0xc);
         if (unit_tag == k_datum_index_none) {
-            goto reset_player_state;
+            reset_player_state();
+            return;
         }
         location = halo::game::game_get_player_starting_location(location_index);
         if (current_game_engine != 0) {
@@ -163,11 +175,13 @@ void PlayerView::respawn()
 
         new_unit = halo::objects::object_new_with_datum_role_control(&placement, 3);
         if (new_unit == k_datum_index_none) {
-            goto reset_player_state;
+            reset_player_state();
+            return;
         }
         unit = (uint8_t *)halo::objects::object_try_and_get(new_unit, _object_mask_unit);
         if (unit == 0) {
-            goto reset_player_state;
+            reset_player_state();
+            return;
         }
         p = halo::game::player_at(player_index);
         ((unit_object *)unit)->base.owner_linkage = player_index;
@@ -204,14 +218,7 @@ void PlayerView::respawn()
         }
     }
 
-reset_player_state:
-    p = halo::game::player_at(player_index);
-    memset(((player *)p)->kill_streak, 0, sizeof(((player *)p)->kill_streak));
-    *(uint16_t *)&((player *)p)->interaction_type = 0;
-    ((player *)p)->interaction_object = k_datum_index_none;
-    if (((player *)p)->local_player_index != -1) {
-        halo::camera::observer_new(&halo::camera::globals().observers[((player *)p)->local_player_index]);
-    }
+    reset_player_state();
 }
 
 /**
