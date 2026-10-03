@@ -487,7 +487,7 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
     }
     actor_tag = (uint8_t *)halo::cache::globals().tag_instances[a->actor_definition_tag & halo::k_slot_mask].data;
     if (*(uint32_t *)actor_tag & 0x200000) {
-        float dot = *(float *)((uint8_t *)p + 0xe8) * facing[2] + *(float *)((uint8_t *)p + 0xe4) * facing[1] + *(float *)((uint8_t *)p + 0xe0) * facing[0];
+        float dot = p->direction.z * facing[2] + p->direction.y * facing[1] + *(float *)((uint8_t *)p + 0xe0) * facing[0];
 
         if (!(dot > 0.4f)) {
             return 0;
@@ -496,7 +496,7 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
         real_vector2d flat;
 
         flat.i = *(float *)((uint8_t *)p + 0xe0);
-        flat.j = *(float *)((uint8_t *)p + 0xe4);
+        flat.j = p->direction.y;
         if (halo::math::vector2d_normalize_with_length(flat) > 0.0f && !(flat.j * facing[1] + flat.i * facing[0] > 0.4f)) {
             return 0;
         }
@@ -509,7 +509,7 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
         int16_t action;
 
         direction.i = *(float *)((uint8_t *)p + 0xe0);
-        direction.j = *(float *)((uint8_t *)p + 0xe4);
+        direction.j = p->direction.y;
         halo::math::vector2d_normalize_with_length(direction);
         if (!halo::ai::actor_probe_step_direction(actor_index, *(float *)(unit_tag + 0x234), &direction, &side, 0.0f, &flag, extra)) {
             return 0;
