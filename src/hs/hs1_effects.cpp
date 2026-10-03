@@ -1,4 +1,5 @@
 #include "halo/hs/hs1_effects.hpp"
+#include "halo/scenario/leaf.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
@@ -52,7 +53,7 @@ void ScriptEffects::damage_apply_at_location(int16_t location_index, uint32_t da
         halo::objects::damage_apply_area_effect((damage_data *)&request);
         return;
     }
-    request.sound_index = ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
+    request.sound_index = halo::scenario::structure_leaf_cluster(impulse);
     halo::objects::damage_apply_area_effect((damage_data *)&request);
 }
 
@@ -86,7 +87,7 @@ void ScriptEffects::damage_apply_with_sound(datum_index object_index, uint32_t d
         if (impulse == -1) {
             request.sound_index = halo::k_word_none;
         } else {
-            request.sound_index = ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
+            request.sound_index = halo::scenario::structure_leaf_cluster(impulse);
         }
         halo::objects::object_apply_damage((damage_data *)&request, object_index, -1, -1, -1, 0);
     }

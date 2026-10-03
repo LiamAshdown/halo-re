@@ -3,6 +3,7 @@
  */
 
 #include "halo/core/slot_mask.hpp"
+#include "halo/scenario/leaf.hpp"
 #include "halo/physics/layout.hpp"
 #include "halo/core/datum.hpp"
 #include "tags.h"
@@ -379,7 +380,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
 
         mp->leaf_index = halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&mp->position_x);
         mp->cluster_index = (mp->leaf_index == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[mp->leaf_index & halo::k_leaf_index_mask].cluster;
+            halo::scenario::structure_leaf_cluster(mp->leaf_index);
 
         offset.i = mp->position_x - obj->position.x;
         offset.j = mp->position_y - obj->position.y;

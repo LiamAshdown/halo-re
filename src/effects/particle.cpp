@@ -1,4 +1,5 @@
 #include "halo/core/slot_mask.hpp"
+#include "halo/scenario/leaf.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
@@ -244,7 +245,7 @@ void particle_ref::create(particle_creation_data *creation_data)
     if (leaf == -1) {
         return;
     }
-    cluster = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + ((uint32_t)leaf & 0x7fffffff) * 0x10 + 8);
+    cluster = halo::scenario::structure_leaf_cluster(leaf);
 
     visible = *(uint32_t *)((uint8_t *)halo::game::globals().local_player_globals + 0x58 + (cluster >> 5) * 4) &
         (1u << (cluster & 0x1f));
@@ -615,7 +616,7 @@ void particle_ref::refresh_structure_locations()
         if (leaf == halo::k_dword_none) {
             cluster = -1;
         } else {
-            cluster = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8);
+            cluster = halo::scenario::structure_leaf_cluster(leaf);
         }
         entry->location.cluster_index = cluster;
         if (cluster == -1) {

@@ -3,6 +3,7 @@
  */
 
 #include "halo/core/slot_mask.hpp"
+#include "halo/scenario/leaf.hpp"
 #include "tags.h"
 #include "halo/scenario/api.hpp"
 #include "memory.h"
@@ -142,7 +143,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
 
         mp->leaf_index = halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&mp->position_x);
         mp->cluster_index = (mp->leaf_index == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[mp->leaf_index & 0x7fffffff].cluster;
+            halo::scenario::structure_leaf_cluster(mp->leaf_index);
 
         offset.i = mp->position_x - self->position.x;
         offset.j = mp->position_y - self->position.y;
@@ -410,7 +411,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
 
             location.leaf_index = halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, &new_position);
             location.cluster_index = (location.leaf_index == -1) ? -1 :
-                ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[location.leaf_index & 0x7fffffff].cluster;
+                halo::scenario::structure_leaf_cluster(location.leaf_index);
 
             halo::objects::object_unlink_cluster_or_notify_parent(object_index);
             self->position = new_position;

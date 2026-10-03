@@ -1,4 +1,5 @@
 #include "halo/core/flags.hpp"
+#include "halo/scenario/leaf.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
@@ -480,7 +481,7 @@ void effect_ref::refresh_structure_locations()
             entry->location.cluster_index = -1;
         } else {
             entry->location.cluster_index =
-                *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8);
+                halo::scenario::structure_leaf_cluster(leaf);
         }
     }
 }

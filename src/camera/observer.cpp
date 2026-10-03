@@ -1,4 +1,5 @@
 #include "halo/camera/observer.hpp"
+#include "halo/scenario/leaf.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
@@ -140,7 +141,7 @@ void ObserverHandle::commit()
     leaf_index = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)&camera->position);
     if (leaf_index != -1) {
         int16_t new_cluster =
-            ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
+            halo::scenario::structure_leaf_cluster(leaf_index);
 
         if (new_cluster != -1) {
             if (new_cluster != camera->cluster_index) {

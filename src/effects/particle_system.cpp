@@ -1,4 +1,5 @@
 #include "halo/core/lcg.hpp"
+#include "halo/scenario/leaf.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
@@ -382,7 +383,7 @@ uint8_t particle_system_ref::new_type_states()
     leaf_index = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &system->position);
     system->location.leaf_index = leaf_index;
     system->location.cluster_index = (leaf_index == -1) ? (int16_t)0xffff :
-        (int16_t)((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf_index & 0x7fffffff].cluster;
+        halo::scenario::structure_leaf_cluster(leaf_index);
     system->flags |= _particle_system_in_update_bit;
 
     if (0 < (int32_t)definition->particle_types.count) {
@@ -605,7 +606,7 @@ static int16_t particle_leaf_cluster(uint32_t leaf)
     if (leaf == halo::k_dword_none) {
         return -1;
     }
-    return (int16_t)((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf & 0x7fffffff].cluster;
+    return halo::scenario::structure_leaf_cluster(leaf);
 }
 
 /**
