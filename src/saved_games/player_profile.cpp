@@ -42,7 +42,6 @@ extern uint8_t savegame_index_write_slot(int32_t slot_index, saved_game_index_en
 extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,
     uint32_t out_path_size);
 extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path);
-extern void console_out_printf(uint8_t color_index, const char *format, ...);
 extern uint16_t empty_string[];
 extern int32_t rasterizer_gamma_exponent;
 extern uint32_t rasterizer_device_version;
@@ -363,7 +362,7 @@ void halo::saved_games::PlayerProfile::save_539bf0(int32_t handle)
 {
     saved_player_profile *profile = self;
     if (handle == -1) {
-        console_out_printf(0, "profile not saved since it was a default profile");
+        halo::main::console_out_printf(0, "profile not saved since it was a default profile");
         return;
     }
     halo::saved_games::player_profile_write_data(handle, profile);

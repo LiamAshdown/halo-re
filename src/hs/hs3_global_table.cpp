@@ -1,6 +1,7 @@
 #include "halo/hs/hs3_machine.hpp"
 #include "crt.h"
 #include "halo/cache/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
@@ -9,7 +10,6 @@ extern datum_index global_scenario_index;
 extern void hs_global_read_value(hs_global_reference reference);
 extern data_array *hs_globals_data;
 extern char *hs_empty_string;
-extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 }
 
 namespace halo::hs::part3 {
@@ -243,7 +243,7 @@ float *GlobalTable::sound_get_gain_reference(char *name) const
         }
     }
 
-    console_print_error_va(0, "the sound '%s' does not exist");
+    halo::main::console_print_error_va(0, "the sound '%s' does not exist");
     return 0;
 }
 

@@ -6,6 +6,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -78,7 +79,6 @@ extern player_control_settings input_globals[];
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_disk_copy[0x1ffc];
 extern uint8_t saved_item_working_copy[0x1ffc];
-extern void console_out_printf(uint8_t unknown, const char *format, ...);
 extern void game_variant_sanitize_options(game_variant *variant);
 extern void player_profile_select_list_widget_build(widget_instance *widget);
 extern virtual_keyboard_globals virtual_keyboard;
@@ -795,7 +795,7 @@ uint8_t PlayerProfiles::save()
 
     if ((item & 0xf) == 0) {
         if (item == -1) {
-            console_out_printf(0, "profile not saved since it was a default profile");
+            halo::main::console_out_printf(0, "profile not saved since it was a default profile");
         } else {
             halo::saved_games::player_profile_write_data(item, (saved_player_profile *)saved_item_working_copy);
         }

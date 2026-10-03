@@ -61,5 +61,8 @@ void render_view_camera_fill(observer_camera *observer, render_view *view);
 void screenshot_render(render_view *views);
 void viewport_split_rect_compute(int32_t view_count, int32_t view_index, Rectangle2D *window, Rectangle2D *out_viewport);
 void timedemo_benchmark_update();
+void console_out_printf(uint8_t clear_first, const char *format, ...);
+void console_print_error_va(uint8_t clear_first, const char *format, ...);
+void console_print_va(const char *format, ...);
 
 }

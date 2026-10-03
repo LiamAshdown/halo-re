@@ -13,8 +13,8 @@
 
 #include "halo/input/bindings.hpp"
 #include "halo/input/api.hpp"
+#include "halo/main/api.hpp"
 
-extern "C" { extern void console_out_printf(uint8_t unknown, const char *format, ...); }
 namespace halo::input {
 
 /**
@@ -33,7 +33,7 @@ void Bindings::hs_bind_control(const char *device_class_name, const char *input_
         action_index = halo::input::input_action_name_to_index((char *)action_name);
         if (action_index != (int16_t)k_input_unbound) {
             if (halo::input::input_apply_control_binding(&binding, action_index) != 0) {
-                console_out_printf(0, "bound %s %s to game control %s", device_class_name, input_name, action_name);
+                halo::main::console_out_printf(0, "bound %s %s to game control %s", device_class_name, input_name, action_name);
             }
         }
     }
@@ -62,24 +62,24 @@ void Bindings::hs_unbind_control(const char *device_class_name, const char *inpu
 
     switch (binding.device_type) {
     case _control_device_keyboard:
-        console_out_printf(0, "unbound %s key", input_name);
+        halo::main::console_out_printf(0, "unbound %s key", input_name);
         break;
 
     case _control_device_mouse:
 
-        console_out_printf(0, "unbound %s key", input_name);
+        halo::main::console_out_printf(0, "unbound %s key", input_name);
         if (binding.input_kind == _control_input_axis) {
-            console_out_printf(0, "unbound mouse axis %s", input_name);
+            halo::main::console_out_printf(0, "unbound mouse axis %s", input_name);
         } else {
-            console_out_printf(0, "unbound %s mouse button", input_name);
+            halo::main::console_out_printf(0, "unbound %s mouse button", input_name);
         }
         break;
 
     case _control_device_gamepad:
         if (binding.input_kind == _control_input_axis) {
-            console_out_printf(0, "unbound axis %s on gamepad %d", input_name, binding.device_index);
+            halo::main::console_out_printf(0, "unbound axis %s on gamepad %d", input_name, binding.device_index);
         } else {
-            console_out_printf(0, "unbound %s on gamepad %d", input_name, binding.device_index);
+            halo::main::console_out_printf(0, "unbound %s on gamepad %d", input_name, binding.device_index);
         }
         break;
 

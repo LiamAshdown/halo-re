@@ -266,7 +266,6 @@ extern "C" { extern void game_stop_current_map(void); }
 extern "C" { extern void game_start_new_map(void); }
 extern "C" { extern void game_engine_init_tick_record_for_mode(void); }
 extern "C" { extern void game_engine_reset_all_players(void); }
-extern "C" { extern void console_print_error_va(uint8_t clear_first, const char *format, ...); }
 extern "C" { extern void network_session_host_update(void); }
 extern "C" { extern void gcd_think(void); }
 extern "C" { extern uint32_t network_update(void); }
@@ -449,9 +448,9 @@ void MainLoop::loop(void)
         }
         if (main_globals_data.save_core != 0) {
             if (halo::saved_games::game_state_write_profile_file(0x440000, (char *)"core.bin", game_state_base) != 0) {
-                console_print_error_va(0, "saved '%s'", "core.bin");
+                halo::main::console_print_error_va(0, "saved '%s'", "core.bin");
             } else {
-                console_print_error_va(0, "error writing '%s'", "core.bin");
+                halo::main::console_print_error_va(0, "error writing '%s'", "core.bin");
             }
             main_globals_data.save_core = 0;
         }

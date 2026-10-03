@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "halo/memory/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern int16_t string_table_index_of(const char *search, int16_t count, const char **table);
@@ -43,7 +44,6 @@ extern char hs_types_are_compatible(hs_type_t destination_type, hs_type_t source
 extern uint8_t hs_postprocessing;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern void hs_compile(int32_t source_length, char *source_text, char **error_message, int32_t *error_offset);
-extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 }
 
 namespace halo::hs {
@@ -735,7 +735,7 @@ char ScriptCompiler::compile_source(void)
             goto cleanup;
         }
     }
-    console_print_error_va(0, "scripts successfully compiled.");
+    halo::main::console_print_error_va(0, "scripts successfully compiled.");
 cleanup:
     if (hs_compile_release_source != 0) {
         if (hs_syntax_data_dirty != 0) {

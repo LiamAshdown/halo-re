@@ -8,13 +8,13 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern void *ai_gc_callback_table;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern datum_index *collideable_cluster_first;
 extern void *collideable_cluster_partition;
-extern void console_print_error_va(const char *format, ...);
 extern uint8_t *game_state_base;
 extern uint32_t game_state_crc;
 extern int32_t game_state_cursor;
@@ -773,7 +773,7 @@ void halo::objects::ObjectManager::garbage_collection()
             }
 
             sprintf(critical_text, "garbage collection %scritical (%s)", qualifier, free_text);
-            console_print_error_va(network_log_path_format, critical_text);
+            halo::main::console_print_error_va(0, network_log_path_format, critical_text);
             reported = 1;
             if (!critical || entry[1] == 0) {
                 break;
@@ -793,7 +793,7 @@ void halo::objects::ObjectManager::garbage_collection()
                         list, 0x1000);
                     if (removed) {
                         sprintf(removing_text, "removing objects: %s", callback_text);
-                        console_print_error_va(network_log_path_format, removing_text);
+                        halo::main::console_print_error_va(0, network_log_path_format, removing_text);
                     }
                     if (!more) {
                         entry += 2;

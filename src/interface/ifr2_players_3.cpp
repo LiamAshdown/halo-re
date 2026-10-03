@@ -2,6 +2,7 @@
 #include "halo/interface/engine_state.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -14,7 +15,6 @@ extern void hud_message_broadcast_to_local_players(const uint16_t *text);
 extern const uint16_t empty_string[];
 extern const uint16_t missing_string_text[];
 extern void player_profile_refresh_settings_cache(int16_t player_index);
-extern void console_out_printf(uint8_t unknown, const char *format, ...);
 }
 
 namespace halo::interface {
@@ -54,7 +54,7 @@ void PlayerProfiles::save_495fb0(uint8_t flag)
         }
         hud_message_broadcast_to_local_players(text);
         if (saved_player_profile_slots_handle == -1) {
-            console_out_printf(0, "profile not saved since it was a default profile");
+            halo::main::console_out_printf(0, "profile not saved since it was a default profile");
             player_profile_refresh_settings_cache(0);
             return;
         }

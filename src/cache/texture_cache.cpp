@@ -10,11 +10,11 @@
 #include "halo/cache/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 extern uint8_t debug_texture_cache_prints;
-extern void console_print_va(const char *format, ...);
 extern uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap);
 extern void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap);
 extern void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap);
@@ -106,7 +106,7 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
             if (wait != 0 && entry->loaded == 0) {
                 if (debug_texture_cache_prints != 0) {
 
-                    console_print_va("%s",
+                    halo::main::console_print_va("%s",
                         globals().tag_instances[(int16_t)bitmap->bitmap_tag_id.index].path);
                 }
                 globals().cache_io_requests[entry->io_request_index].priority = 1;

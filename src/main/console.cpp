@@ -26,7 +26,6 @@
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
 
-extern "C" { void console_out_printf(uint8_t clear_first, const char *format, ...); }
 
 extern "C" { extern int32_t rasterizer_window_requested; }
 namespace halo::main {
@@ -122,7 +121,7 @@ void Console::autocomplete_command(void)
     }
 
     line[0] = 0;
-    console_out_printf(0, "");
+    halo::main::console_out_printf(0, "");
     printed_count = 0;
     if (match_count > 0) {
         remaining = (uint16_t)match_count;
@@ -153,11 +152,11 @@ void Console::autocomplete_command(void)
                     strcat(line, *cursor);
                     strcat(line, "|t");
                     if (printed_count % 4 == 3) {
-                        console_out_printf(0, line);
+                        halo::main::console_out_printf(0, line);
                         line[0] = 0;
                     }
                 } else {
-                    console_out_printf(0, *cursor);
+                    halo::main::console_out_printf(0, *cursor);
                 }
                 printed_count++;
             }
@@ -167,7 +166,7 @@ void Console::autocomplete_command(void)
     }
 
     if (many_matches != 0 && (printed_count - 1) % 4 != 3) {
-        console_out_printf(0, line);
+        halo::main::console_out_printf(0, line);
     }
     if (common_index != 0x7fff) {
         strncpy(word, names[0], (int32_t)common_index + 1);
@@ -359,7 +358,7 @@ extern "C" { extern void chimera__console_out(ColorARGB *color, char *format, ..
  *
  * @address 0x4c6860
  */
-extern "C" void console_out_printf(uint8_t clear_first, const char *format, ...)
+void halo::main::console_out_printf(uint8_t clear_first, const char *format, ...)
 {
     char formatted[0x400];
     va_list args;
@@ -422,7 +421,7 @@ extern "C" { extern void console_printf_verbose(ColorARGB *color, char *format, 
  *
  * @address 0x4c67c0
  */
-extern "C" void console_print_error_va(uint8_t clear_first, const char *format, ...)
+void halo::main::console_print_error_va(uint8_t clear_first, const char *format, ...)
 {
     char formatted[0x400];
     va_list args;
@@ -453,7 +452,7 @@ extern "C" { extern ColorARGB *console_message_default_color; }
  *
  * @address 0x4c6920
  */
-extern "C" void console_print_va(const char *format, ...)
+void halo::main::console_print_va(const char *format, ...)
 {
     char formatted[0x400];
     va_list args;
@@ -528,7 +527,7 @@ char Console::process_command(char *command_line, uint32_t context_flags)
             return result;
         }
     }
-    console_out_printf(0, "Requested function \"%s\" cannot be executed now.", command_name);
+    halo::main::console_out_printf(0, "Requested function \"%s\" cannot be executed now.", command_name);
     return 0;
 }
 

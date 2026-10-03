@@ -1,6 +1,7 @@
 #include "halo/interface/ifr2_players.hpp"
 #include <string.h>
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -19,7 +20,6 @@ extern int32_t safe_mode;
 extern uint8_t profile_load_complete;
 extern void player_profile_refresh_settings_cache(int16_t player_index);
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
-extern void console_out_printf(uint8_t unknown, const char *format, ...);
 }
 
 namespace halo::interface {
@@ -77,7 +77,7 @@ have_slot:
         player_profile_load(0, profile_data, slot_to_load);
         if (safe_mode != 0) {
             if (enumerated_slot == -1) {
-                console_out_printf(0, "profile not saved since it was a default profile");
+                halo::main::console_out_printf(0, "profile not saved since it was a default profile");
                 profile_load_complete = 1;
                 return;
             }

@@ -320,7 +320,6 @@ void RenderViews::view_camera_fill(observer_camera *observer, render_view *view)
 
 extern "C" { extern int16_t screenshot_scale; }
 extern "C" { extern Rectangle2D game_window_top_left; }
-extern "C" { extern void console_print_error_va(uint8_t clear_first, const char *format, ...); }
 extern "C" { extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); }
 extern "C" { extern char * targa_export(BitmapData *bitmap, file_reference_record *destination); }
 extern "C" { extern uint32_t bitmap_data_calculate_pixel_data_size(BitmapData *bitmap); }
@@ -379,7 +378,7 @@ void RenderViews::screenshot_render(render_view *views)
     *(void **)&((struct BitmapData *)bitmap)->pixel_base = GlobalAlloc(0, bitmap_data_calculate_pixel_data_size(bitmap));
 
     if (*(void **)&((struct BitmapData *)bitmap)->pixel_base != 0) {
-        console_print_error_va(1, "");
+        halo::main::console_print_error_va(1, "");
         halo::main::console_deactivate();
 
         for (page_row = 0; page_row < main_globals_data.screenshot_tile_count; page_row++) {

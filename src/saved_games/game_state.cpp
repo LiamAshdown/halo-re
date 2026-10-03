@@ -13,6 +13,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -41,7 +42,6 @@ extern uint16_t game_time_force_single_tick;
 extern int16_t pending_difficulty;
 extern uint8_t *game_state_base;
 extern game_state_proc game_state_revert_proc;
-extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern int32_t game_state_cursor;
 extern int32_t saved_player_profile_slots_handle;
 extern char *strcpy(char *dest, const char *source);
@@ -234,11 +234,11 @@ void load_core(char *name)
         halo::saved_games::saved_game_verify_version_and_checksum(&header, 1) != 0) {
         game_state_revert_proc();
         halo::saved_games::game_state_read_profile_file(name, k_game_state_size, game_state_base);
-        console_print_error_va(0, "loaded '%s'", name);
+        halo::main::console_print_error_va(0, "loaded '%s'", name);
         halo::saved_games::game_state_dispatch_load_callbacks();
         return;
     }
-    console_print_error_va(0, "couldn't open '%s'", name);
+    halo::main::console_print_error_va(0, "couldn't open '%s'", name);
 }
 
 /**

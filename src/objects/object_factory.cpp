@@ -11,12 +11,12 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern int32_t animation_state_advance(uint32_t animation_graph_tag_index, void *state, int32_t *sound_tag_id, int32_t random_stream);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern game_engine_definition *current_game_engine;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern uint8_t g_control_binding_secondary_active;
@@ -509,7 +509,7 @@ out_of_objects:
             tag_path = last_slash + 1;
         }
         sprintf(out_of_objects_message, "OUT OF OBJECTS: cannot create %s", tag_path);
-        console_print_error_va(0, network_log_path_format, out_of_objects_message);
+        halo::main::console_print_error_va(0, network_log_path_format, out_of_objects_message);
         return new_index;
     }
 

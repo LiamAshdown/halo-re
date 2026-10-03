@@ -8,6 +8,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -45,7 +46,6 @@ extern uint8_t players_any_without_unit(void);
 extern uint8_t unit_any_dying_or_seat_transition(void);
 extern uint8_t ai_scan_for_recent_combat_activity(uint32_t hard_difficulty);
 extern uint8_t debug_print_safety_checks;
-extern void console_print_va(const char *format, ...);
 extern uint8_t players_any_pending_seat_or_respawn(void);
 extern uint8_t unit_is_area_clear_of_fast_objects(void);
 extern player_globals *local_player_globals;
@@ -229,7 +229,7 @@ uint8_t GameLifecycle::safe_to_save(void)
 
     if (ai_scan_for_recent_combat_activity(0) != 0) {
         if (debug_print_safety_checks != 0) {
-            console_print_va("not safe to save: ai_enemies_can_see_player");
+            halo::main::console_print_va("not safe to save: ai_enemies_can_see_player");
         }
         return 0;
     }
@@ -241,43 +241,43 @@ uint8_t GameLifecycle::safe_to_save(void)
 
     if (object_iterator_next(&iterator) != (object *)0) {
         if (debug_print_safety_checks != 0) {
-            console_print_va("not safe to save: dangerous_projectiles_near_player");
+            halo::main::console_print_va("not safe to save: dangerous_projectiles_near_player");
         }
         return 0;
     }
     if (halo::items::item_any_detonating() != 0) {
         if (debug_print_safety_checks != 0) {
-            console_print_va("not safe to save: dangerous_items_near_player");
+            halo::main::console_print_va("not safe to save: dangerous_items_near_player");
         }
         return 0;
     }
     if (halo::effects::effect_check_object_collisions() != 0) {
         if (debug_print_safety_checks != 0) {
-            console_print_va("not safe to save: dangerous_effects_near_player");
+            halo::main::console_print_va("not safe to save: dangerous_effects_near_player");
         }
         return 0;
     }
     if (unit_any_dying_or_seat_transition() != 0) {
         if (debug_print_safety_checks != 0) {
-            console_print_va("not safe to save: any_unit_is_dangerous");
+            halo::main::console_print_va("not safe to save: any_unit_is_dangerous");
         }
         return 0;
     }
     if (players_any_pending_seat_or_respawn() != 0) {
         if (debug_print_safety_checks != 0) {
-            console_print_va("not safe to save: any_player_is_in_the_air");
+            halo::main::console_print_va("not safe to save: any_player_is_in_the_air");
         }
         return 0;
     }
     if (players_any_without_unit() != 0) {
         if (debug_print_safety_checks != 0) {
-            console_print_va("not safe to save: any_player_is_dead");
+            halo::main::console_print_va("not safe to save: any_player_is_dead");
         }
         return 0;
     }
     if (unit_is_area_clear_of_fast_objects() != 0) {
         if (debug_print_safety_checks != 0) {
-            console_print_va("not safe to save: vehicle_moving_near_any_player");
+            halo::main::console_print_va("not safe to save: vehicle_moving_near_any_player");
         }
         return 0;
     }

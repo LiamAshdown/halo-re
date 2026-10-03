@@ -10,6 +10,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern uint8_t *game_state_base;
@@ -30,7 +31,6 @@ extern uint8_t any_local_player_within_10_units(const real_point3d *query_point)
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
 extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
 extern int16_t animation_graph_find_animation_by_name(uint32_t unit_index, const char *name);
-extern void console_print_va(const char *format, ...);
 extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
@@ -768,7 +768,7 @@ void UnitView::scripting_set_emotion_animation(const char *emotion_name)
             unit->emotion_animation_index = region;
             return;
         }
-        console_print_va("couldn't find the emotion animation '%s'", emotion_name);
+        halo::main::console_print_va("couldn't find the emotion animation '%s'", emotion_name);
     }
     return;
 }
@@ -971,7 +971,7 @@ uint8_t UnitView::start_user_animation(datum_index graph_tag, const char *animat
     unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
     animation = animation_graph_find_animation_by_name(graph_tag, animation_name);
     if (animation == -1) {
-        console_print_va("the animation '%s' doesn't exist in the graph '%s'", animation_name,
+        halo::main::console_print_va("the animation '%s' doesn't exist in the graph '%s'", animation_name,
             *(char **)((uint8_t *)halo::cache::globals().tag_instances + (int16_t)graph_tag * 0x20 + 0x10));
         return 0;
     }

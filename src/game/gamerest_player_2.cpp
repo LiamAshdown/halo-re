@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -77,7 +78,6 @@ extern uint8_t *main_game_globals;
 extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type, datum_index subject, char broadcast);
 extern void player_kill_streak_tick(datum_index player_handle);
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
-extern void console_print_va(const char *format, ...);
 extern void hud_display_loading_message(uint8_t is_begin);
 extern void player_update_nearby_interactions_primary(datum_index player_handle);
 extern void player_update_nearby_interactions_secondary(datum_index player_handle);
@@ -673,9 +673,9 @@ void StructureBsp::switch_structure_bsp()
                         }
                         local_player_globals->bsp_switch_trigger_volume_index = (int16_t)i;
                         if (destination < 0 || destination >= global_scenario->structure_bsps.count) {
-                            console_print_va("tried to switch to invalid structure-bsp %d", (int32_t)destination);
+                            halo::main::console_print_va("tried to switch to invalid structure-bsp %d", (int32_t)destination);
                         } else if (destination == global_structure_bsp_index) {
-                            console_print_va("tried to switch to current structure-bsp %d", (int32_t)destination);
+                            halo::main::console_print_va("tried to switch to current structure-bsp %d", (int32_t)destination);
                         } else {
 
                             split_screen_quit_prompt_string = (uint16_t)destination;

@@ -76,7 +76,6 @@ extern int16_t network_join_error_code;
 extern void network_connection_send_keepalive(network_client_globals *client);
 extern uint8_t network_ping_debug_log_enabled;
 extern uint32_t network_ping_debug_last_sample;
-extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern int32_t message_delta_sample_ring_buffer_average(message_delta_sample_ring_buffer *ring);
 extern data_packet_group network_game_messages_group;
 extern uint16_t network_challenge_packet_block[];
@@ -733,13 +732,13 @@ tail:
         int32_t now2;
 
         network_ping_debug_last_sample = (uint16_t)endpoint->message_count;
-        console_print_error_va(0, "current ping time[%d]  samples received[%d]  samples sent[%d]\n",
+        halo::main::console_print_error_va(0, "current ping time[%d]  samples received[%d]  samples sent[%d]\n",
             endpoint->current_ping_ms, endpoint->retry_count, (uint16_t)endpoint->message_count);
         server_base_time = *(int32_t *)endpoint->control_block;
 
         challenge_time = message_delta_sample_ring_buffer_average((message_delta_sample_ring_buffer *)endpoint->control_block);
         now2 = halo::cseries::time_query_performance_counter_ms();
-        console_print_error_va(0, "current time delta[%d]  latency[%d]  server time[%d]\n",
+        halo::main::console_print_error_va(0, "current time delta[%d]  latency[%d]  server time[%d]\n",
             server_base_time, challenge_time, now2 + server_base_time);
     }
     return result;

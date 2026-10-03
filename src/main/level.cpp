@@ -539,7 +539,6 @@ uint8_t LevelControl::queue_map_change_by_name_or_clear(char *name)
 
 extern "C" { extern int32_t game_time_force_single_tick; }
 extern "C" { extern char game_safe_to_save(void); }
-extern "C" { extern void console_print_error_va(uint8_t clear_first, const char *format, ...); }
 extern "C" { extern void hud_display_checkpoint_message(uint8_t is_begin); }
 namespace halo::main {
 
@@ -565,7 +564,7 @@ void LevelControl::save_map_private(void)
 
     if (main_globals_data.save_map_require_safe == 0) {
         if (main_globals_data.debug_game_save != 0) {
-            console_print_error_va(0, "unsafe save");
+            halo::main::console_print_error_va(0, "unsafe save");
         }
     } else {
         int32_t next_attempt_count = main_globals_data.save_map_attempt_count + 1;
@@ -577,7 +576,7 @@ void LevelControl::save_map_private(void)
                 main_globals_data.save_map = 0;
                 return;
             }
-            console_print_error_va(0, "gave up trying to save");
+            halo::main::console_print_error_va(0, "gave up trying to save");
             main_globals_data.save_map = 0;
             return;
         }
