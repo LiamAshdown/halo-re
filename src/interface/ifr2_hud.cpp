@@ -768,7 +768,7 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
         uint32_t bit;
         int32_t result_accum = 0;
         uint8_t *edx = tag_data;
-        extern int32_t *game_time;
+        int32_t *game_time = (int32_t *)::game_time;
 
         for (case_index = 0; case_index < 0x13; case_index++) {
             int32_t value;

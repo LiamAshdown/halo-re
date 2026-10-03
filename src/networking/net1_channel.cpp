@@ -1459,7 +1459,6 @@ char ChannelView::service(int32_t timeout_ms, network_channel **out_new_child)
 
     {
 
-        extern int64_t performance_frequency;
         large_integer counter;
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);

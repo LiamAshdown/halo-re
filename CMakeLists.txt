@@ -128,7 +128,7 @@ target_link_libraries(halo_rebuilt PRIVATE
     ${THIRD_PARTY_LIBS} delayimp)
 # the data image sits at the original addresses (0x400000..0x891000), so the exe must load elsewhere, unrelocated
 target_link_options(halo_rebuilt PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x10000000 /SAFESEH:NO /OPT:NOREF /OPT:NOICF
-    /LARGEADDRESSAWARE:NO /NODEFAULTLIB:msvcrt.lib /DELAYLOAD:binkw32.dll /DELAYLOAD:vorbisfile.dll /MAP)
+    /LARGEADDRESSAWARE:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcpmt.lib /DELAYLOAD:binkw32.dll /DELAYLOAD:vorbisfile.dll /MAP)
 
 if(EXISTS "${HALO_FX_OVERRIDE}")
     add_custom_command(TARGET halo_rebuilt POST_BUILD

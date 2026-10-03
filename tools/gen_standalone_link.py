@@ -97,7 +97,7 @@ def main():
     rsp = o("objs.rsp")
     open(rsp, "w").write("\n".join('"%s"' % x for x in objs))
     cmd = [gl.tool("link"), "/nologo", "/MACHINE:X86", "/SUBSYSTEM:WINDOWS", "/FIXED", "/BASE:0x%x" % BASE,
-           "/SAFESEH:NO", "/OPT:NOREF", "/OPT:NOICF", "/LARGEADDRESSAWARE:NO", "/NODEFAULTLIB:msvcrt.lib",
+           "/SAFESEH:NO", "/OPT:NOREF", "/OPT:NOICF", "/LARGEADDRESSAWARE:NO", "/NODEFAULTLIB:msvcrt.lib", "/NODEFAULTLIB:libcpmt.lib",
            "/LIBPATH:" + os.path.join(DXSDK, "Lib", "x86"), "/OUT:" + EXE, "/MAP:" + o("halo_rebuilt.map"), "@" + rsp] + \
           gl.SYS_LIBS + EXTRA_LIBS + third_party_import_libs() + ["libcmt.lib", "libvcruntime.lib", "libucrt.lib"]
     r = subprocess.run(cmd, capture_output=True, text=True, env=gl.env, errors="replace")
