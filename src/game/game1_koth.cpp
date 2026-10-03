@@ -198,7 +198,7 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
         return;
     }
 
-    halo::game::custom_waypoint_register((datum_index)halo::k_dword_none, (int16_t)0, &position, "ball_blue", 0.0f,
+    halo::game::custom_waypoint_register((datum_index)king_hill_occupant_table[((object *)obj)->owner_team], ((object *)obj)->owner_team, &position, "ball_blue", 0.0f,
         (datum_index)halo::k_dword_none, (int16_t)halo::k_word_none);
 
     tick = game_time->game_time;
