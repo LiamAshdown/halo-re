@@ -40,9 +40,9 @@
 #include "halo/render/vars.hpp"
 #include "halo/main/api.hpp"
 
-using halo::rasterizer::render_device;
+#include <cstring>
 
-static_assert(offsetof(Bitmap, bitmap_data) + offsetof(TagReflexive, pointer) == halo::render::k_bitmap_data_pointer_offset);
+using halo::rasterizer::render_device;
 
 static auto &rasterizer_globals_data = halo::link::ref<GlobalsRasterizerData *>(halo::game::vars().rasterizer_globals_data);
 static auto &default_axis_b = halo::link::ref<ColorRGB *>(halo::game::vars().default_axis_b);
@@ -110,8 +110,6 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
 {
     render_device().set_texture_stage_state(stage, type, value);
 }
-
-typedef int32_t (__stdcall *d3d_release_fn)(void *self);
 
 /**
  * stack -> (cursor, flags, text). src/rasterizer types the two stack slots as opaque
@@ -233,7 +231,6 @@ void set_video(int16_t overbright_mode, float noise_intensity)
     cinematic_screen_effect_globals *g = halo::cutscene::globals().cinematic_screen_effect_state;
     tag_instance *scanline_tag;
     tag_instance *noise_tag;
-    uint32_t *block;
     int i;
 
     if (g == 0) {
@@ -246,10 +243,7 @@ void set_video(int16_t overbright_mode, float noise_intensity)
         return;
     }
 
-    block = (uint32_t *)g;
-    for (i = 0; i < 0xe; i++) {
-        block[i] = 0;
-    }
+    std::memset(g, 0, offsetof(cinematic_screen_effect_globals, active));
 
     g->video_overbright_mode = overbright_mode;
 
@@ -267,13 +261,13 @@ void set_video(int16_t overbright_mode, float noise_intensity)
     g->video_enabled = 1;
 
     scanline_tag = &halo::cache::globals().tag_instances[datum_slot(halo::tag_id_bits<int32_t>(rasterizer_globals_data->video_scanline_map.tag_id))];
-    g->video_scanline_map = *(uint32_t *)((uint8_t *)scanline_tag->data + k_bitmap_data_pointer_offset);
+    g->video_scanline_map = reinterpret_cast<Bitmap *>(scanline_tag->data)->bitmap_data.pointer;
 
     g->video_noise_intensity = noise_intensity;
     g->unknown_30 = 1.0f;
 
     noise_tag = &halo::cache::globals().tag_instances[datum_slot(halo::tag_id_bits<int32_t>(rasterizer_globals_data->video_noise_map.tag_id))];
-    g->video_noise_map = *(uint32_t *)((uint8_t *)noise_tag->data + k_bitmap_data_pointer_offset);
+    g->video_noise_map = reinterpret_cast<Bitmap *>(noise_tag->data)->bitmap_data.pointer;
 }
 
 /**
@@ -288,8 +282,6 @@ cinematic_screen_effect_globals *update(cinematic_screen_effect_globals *input)
     cinematic_screen_effect_globals *g = halo::cutscene::globals().cinematic_screen_effect_state;
     float convolution_progress;
     float filter_progress;
-    uint32_t *tint;
-    uint32_t *black;
 
     if (g == 0 || g->active == 0) {
         return input;
@@ -307,9 +299,7 @@ cinematic_screen_effect_globals *update(cinematic_screen_effect_globals *input)
                       g->filter_desaturation_intensity_lower_bound,
                       g->filter_desaturation_intensity_upper_bound, filter_progress);
 
-    tint = (uint32_t *)&g->filter_desaturation_tint;
-    black = (uint32_t *)default_axis_b;
-    if (tint[0] == black[0] && tint[1] == black[1] && tint[2] == black[2]) {
+    if (std::memcmp(&g->filter_desaturation_tint, default_axis_b, sizeof(ColorRGB)) == 0) {
         g->filter_desaturation_tint = *global_real_rgb_green_pointer;
     }
 
@@ -498,14 +488,10 @@ void *dynamic_index_slot_lock(int32_t slot_index)
  */
 void effect_slot_release_active(void)
 {
-    void **vtable;
-
     halo::rasterizer::rasterizer_lens_flare_batch_flush_all();
 
     if (rasterizer_effect_pool_scratch != 0 && *rasterizer_effect_pool_scratch != 0) {
-        void *effect = *rasterizer_effect_pool_scratch;
-        vtable = *(void ***)effect;
-        ((d3d_release_fn)vtable[k_effect_release_slot])(effect);
+        render_device().effect_end(*rasterizer_effect_pool_scratch);
     }
     rasterizer_effect_pool_scratch = 0;
 
@@ -689,7 +675,6 @@ void graph_init(void)
     float x_scale;
     float y_scale;
     float border_right;
-    uint32_t *raw;
     int32_t i;
 
     if (frame_graph_window_width == height && frame_graph_window_height == width) {
@@ -707,14 +692,8 @@ void graph_init(void)
     span = right - 64.0f;
     g->bounds.bottom = 0x96;
 
-    raw = (uint32_t *)g->vertices;
-    for (i = 0; i < 0xc00; i++) {
-        raw[i] = 0;
-    }
-    raw = (uint32_t *)g->frame_vertices;
-    for (i = 0; i < 0x1e; i++) {
-        raw[i] = 0;
-    }
+    std::memset(g->vertices, 0, sizeof(g->vertices));
+    std::memset(g->frame_vertices, 0, sizeof(g->frame_vertices));
     g->recent_samples[0] = 0.0f;
     g->recent_samples[1] = 0.0f;
     g->recent_samples[2] = 0.0f;
@@ -756,7 +735,7 @@ void graph_init(void)
     g->average_bounds.right = k_debug_screen_width;
     g->average_bounds.bottom = k_debug_screen_height;
 
-    *(uint32_t *)g->name = 0x00535046;
+    std::memcpy(g->name, "FPS", 4);
     g->maximum = 60.0f;
     g->average = 0.0f;
 }

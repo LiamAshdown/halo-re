@@ -51,13 +51,13 @@ enum class box_side_bit : uint8_t {
 /** particle.flags. */
 enum class particle_flag : uint16_t {
     none = 0,
-    animating_backwards = 0x0001,
-    at_rest = 0x0002,
-    mirror_horizontal = 0x0004,
-    mirror_vertical = 0x0008,
-    third_person_only = 0x0010,
-    first_person_only = 0x0020,
-    first_person = 0x0040,
+    animating_backwards = 0x1,
+    at_rest = 0x2,
+    mirror_horizontal = 0x4,
+    mirror_vertical = 0x8,
+    third_person_only = 0x10,
+    first_person_only = 0x20,
+    first_person = 0x40,
 };
 
 /** build_sprite_data.flags. */
@@ -82,7 +82,7 @@ enum class contrail_point_flag : uint8_t {
 };
 
 /** Largest number of objects the render pass keeps in its candidate list. */
-inline constexpr int32_t k_maximum_rendered_objects = 0x100;
+inline constexpr int32_t k_maximum_rendered_objects = 256;
 
 /** Size of the model ambient reflection tint block carved out of the game state. */
 inline constexpr int32_t k_model_ambient_reflection_tint_size = 0x10;
@@ -96,30 +96,24 @@ struct facing_frame {
     float plane[4];
 };
 
-/** Offset of the bitmap data pointer inside a bitmap tag. */
-inline constexpr size_t k_bitmap_data_pointer_offset = 0x64;
-
 /** Left margin of the frame statistics graph and the screen size its text bounds are clamped to. */
 inline constexpr int32_t k_frame_graph_margin = 0x40;
-inline constexpr int16_t k_debug_screen_width = 0x280;
-inline constexpr int16_t k_debug_screen_height = 0x1e0;
+inline constexpr int16_t k_debug_screen_width = 640;
+inline constexpr int16_t k_debug_screen_height = 480;
 
 /** Packed ARGB colors used by the debug graphs. */
-inline constexpr uint32_t k_argb_white = 0xffffffff;
-inline constexpr uint32_t k_argb_yellow = 0xffffff00;
-
-/** Method table index of the release call made on the rasterizer effect pool object. */
-inline constexpr uint32_t k_effect_release_slot = 0x108 / 4;
+inline constexpr uint32_t k_argb_white = halo::d3d9::k_color_white;
+inline constexpr uint32_t k_argb_yellow = halo::d3d9::color_argb(0xff, 0xff, 0xff, 0);
 
 /** Bit pattern of 1.0f, tested to skip the scale of a marker transform. */
-inline constexpr uint32_t k_float_one_bits = 0x3f800000;
+inline constexpr uint32_t k_float_one_bits = __builtin_bit_cast(uint32_t, 1.0f);
 
 /** Device versions (pixel shader version encoding) the draw code gates features on. */
-inline constexpr uint32_t k_device_version_lightmap_pass = 0xffff0104;
-inline constexpr uint32_t k_device_version_mirror_pass = 0xffff0100;
+inline constexpr uint32_t k_device_version_lightmap_pass = halo::d3d9::pixel_shader_version(1, 4);
+inline constexpr uint32_t k_device_version_mirror_pass = halo::d3d9::pixel_shader_version(1, 0);
 
 /** Number of frame statistics graph vertices and layout used by the debug graphs. */
-inline constexpr int32_t k_frame_graph_vertex_count = 0x200;
+inline constexpr int32_t k_frame_graph_vertex_count = 512;
 inline constexpr int32_t k_frame_graph_history_length = 0x3c;
 
 }  // namespace halo::render
