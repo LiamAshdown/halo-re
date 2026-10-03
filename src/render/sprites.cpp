@@ -19,6 +19,8 @@
 #include <stdint.h>
 #include "halo/render/render.hpp"
 #include "halo/render/layout.hpp"
+#include "halo/rasterizer/constants.hpp"
+#include "halo/core/bit_cast.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/math/api.hpp"
@@ -488,7 +490,7 @@ void draw(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
     } else {
         vertex_color = (uint32_t)(uint8_t)(int32_t)((real)(packed_color >> 24) * fade);
     }
-    vertex_color = (vertex_color << 24) | (packed_color & 0xffffff);
+    vertex_color = (vertex_color << 24) | (packed_color & halo::rasterizer::k_color_rgb_mask);
 
     mirror_u = flags & _build_sprite_mirror_u_bit;
     mirror_v = flags & _build_sprite_mirror_v_bit;
@@ -715,7 +717,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         halo::rasterizer::globals().vertex_buffer_lock_state = 0;
         return;
     }
-    indices = (uint16_t *)halo::render::rasterizer_dynamic_index_slot_lock(index_slot);
+    indices = static_cast<uint16_t *>(halo::render::rasterizer_dynamic_index_slot_lock(index_slot));
     vertices = (rasterizer_dynamic_screen_vertex *)halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(vertex_slot);
 
     has_fade = definition->framebuffer_fade_mode != 0;
@@ -882,12 +884,12 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
 
     vertices -= vertex_count;
     if ((definition->flags & 1) == 0) {
-        ((uint8_t *)&vertices[0].color)[3] = 0;
-        ((uint8_t *)&vertices[1].color)[3] = 0;
+        vertices[0].color &= halo::rasterizer::k_color_rgb_mask;
+        vertices[1].color &= halo::rasterizer::k_color_rgb_mask;
     }
     if ((definition->flags & 2) == 0) {
-        ((uint8_t *)&vertices[vertex_count - 1].color)[3] = 0;
-        ((uint8_t *)&vertices[vertex_count - 2].color)[3] = 0;
+        vertices[vertex_count - 1].color &= halo::rasterizer::k_color_rgb_mask;
+        vertices[vertex_count - 2].color &= halo::rasterizer::k_color_rgb_mask;
     }
     if (segment_count > 0) {
         uint16_t a = 1;
@@ -1106,7 +1108,7 @@ void particles(void)
                     }
 
                     pos = p->position;
-                    if (*(uint32_t *)&m->scale != k_float_one_bits) {
+                    if (halo::bit_cast<uint32_t>(m->scale) != k_float_one_bits) {
                         pos.x = pos.x * m->scale;
                         pos.y = pos.y * m->scale;
                         pos.z = pos.z * m->scale;
