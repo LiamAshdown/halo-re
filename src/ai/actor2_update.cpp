@@ -1,3 +1,5 @@
+#include "halo/ai/flags.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
@@ -568,7 +570,8 @@ void ActorView::update_crouch_state()
         self->stood_down_body_vitality = self->body_vitality;
     }
 
-    if ((actor_definition->flags & 0xc0000000u) != 0) {
+    if (halo::ai::flag_set(actor_definition->flags, halo::tags::actor_tag_flag::crouch_when_in_line_of_fire) ||
+        halo::ai::flag_set(actor_definition->flags, halo::tags::actor_tag_flag::avoid_friends_line_of_fire)) {
         if (self->active_unit_index == (datum_index)k_datum_index_none && self->combat_status > 2) {
             combat_status = self->target_combat_status;
             *flag_35d = 0;
@@ -883,8 +886,8 @@ uint8_t ActorView::update_danger_avoidance()
                     return false;
                 }
                 if (take || reacting) {
-                    ActorVariant *definition = halo::ai::tag_data<ActorVariant>(actor->actor_definition_tag);
-                    float distance = (definition->flags & 0x2000000) ? 8.0f : 0.0f;
+                    Actor *definition = halo::ai::tag_data<Actor>(actor->actor_definition_tag);
+                    float distance = halo::ai::flag_set(definition->flags, halo::tags::actor_tag_flag::dive_off_ledges) ? 8.0f : 0.0f;
 
                     result = halo::ai::actor_take_danger_escape(&path_delta, actor_index, escape, *(uint32_t *)escape_position,
                         distance);

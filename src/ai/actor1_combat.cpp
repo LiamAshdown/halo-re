@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_combat.hpp"
 #include "halo/math/api.hpp"
@@ -1126,7 +1128,7 @@ void halo::ai::combat_ops::get_aim_from_position(uint32_t out_position[3])
         unit_index = self->active_unit_index;
         hdr = (object_header *)halo::objects::globals().object_data->data + (unit_index & halo::k_slot_mask);
         unit_obj = hdr->data;
-        if ((halo::ai::tag_data<Vehicle>(unit_obj->definition_tag)->vehicle_flags & 0x100) != 0) {
+        if (halo::ai::flag_set(halo::ai::tag_data<Vehicle>(unit_obj->definition_tag)->vehicle_flags, halo::tags::vehicle_tag_flag::ai_weapon_cannot_rotate)) {
             out_position[0] = halo::bit_cast<uint32_t>(unit_obj->forward.i);
             out_position[1] = halo::bit_cast<uint32_t>(unit_obj->forward.j);
             out_position[2] = halo::bit_cast<uint32_t>(unit_obj->forward.k);

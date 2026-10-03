@@ -104,7 +104,7 @@ uint8_t halo::ai::alert_ops::alert_from_disturbance()
     datum_index actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
 
-    if (actor->surprise_pending == 0 || (halo::ai::tag_data<Actor>(actor->actor_definition_tag)->flags & 0x400) == 0) {
+    if (actor->surprise_pending == 0 || !halo::ai::flag_set(halo::ai::tag_data<Actor>(actor->actor_definition_tag)->flags, halo::tags::actor_tag_flag::panic_when_surprised)) {
         return 0;
     }
     actor_raise_alert(actor, 7, actor->look_at_reference);

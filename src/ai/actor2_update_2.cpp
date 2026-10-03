@@ -201,7 +201,7 @@ void ActorView::update_firing_state()
             if (!forced && !(a->firing_target_distance < a->maximum_firing_distance)) return true;
             wants_fire = 1;
             a->target_in_firing_range = 1;
-            if (!(actor_tag->flags & 0x2000)) {
+            if (!halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::start_firing_before_aligned)) {
                 float tolerance = a->firing_target_distance >= 1.5f ? 0.97f : a->firing_target_distance * 0.17526217f + 0.70710677f;
                 real_vector3d aim;
 

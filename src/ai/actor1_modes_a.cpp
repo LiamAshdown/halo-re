@@ -224,7 +224,7 @@ void halo::ai::alert_mode::update()
     struct actor *actor = halo::ai::actor_at(actor_index);
 
     actor->look_posture = 1;
-    if (halo::ai::tag_data<Actor>(actor->actor_definition_tag)->flags & 0x40) {
+    if (halo::ai::flag_set(halo::ai::tag_data<Actor>(actor->actor_definition_tag)->flags, halo::tags::actor_tag_flag::crouch_when_not_in_combat)) {
         actor->crouch_decision[0] = 1;
         actor->crouch_decision[1] = 1;
     }

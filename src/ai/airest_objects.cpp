@@ -1218,20 +1218,19 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
         return;
     }
 
-    actor_definition_tag = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances
-        [actor_variant_tag & halo::k_slot_mask].data + 0x10);
+    actor_definition_tag = halo::ai::tag_handle(halo::ai::tag_data<ActorVariant>(actor_variant_tag)->actor_definition);
     if (actor_definition_tag == (datum_index)k_datum_index_none) {
         return;
     }
-    if ((**(uint32_t **)&halo::cache::globals().tag_instances[actor_definition_tag & halo::k_slot_mask].data & 0x4000000) != 0) {
-        return; // Actor.flags bit 26, "swarm"
+    if (halo::ai::flag_set(halo::ai::tag_data<Actor>(actor_definition_tag)->flags, halo::tags::actor_tag_flag::swarm)) {
+        return;
     }
 
     unit_definition = halo::objects::object_try_and_get(unit_index, 1);
     if (unit_definition == 0) {
         return;
     }
-    if ((*((uint8_t *)unit_definition + 0x106) & 4) != 0) {
+    if (halo::ai::flag_set(((object *)unit_definition)->vitality_flags, halo::objects::vitality_flag::health_frozen)) {
         return;
     }
 

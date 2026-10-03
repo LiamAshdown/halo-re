@@ -2006,9 +2006,9 @@ void ActorView::set_combat_alert_flag(uint8_t new_flag)
     if (self->swarm == 0) {
         unit_obj = halo::ai::object_at(self->unit_index);
         if (new_flag == 0) {
-            halo::units::unit_data_of(unit_obj)->flags &= 0xffffff7f;
+            halo::units::unit_data_of(unit_obj)->flags &= ~halo::to_bits(halo::units::unit_flag::disoriented);
         } else {
-            halo::units::unit_data_of(unit_obj)->flags |= 0x80;
+            halo::units::unit_data_of(unit_obj)->flags |= halo::to_bits(halo::units::unit_flag::disoriented);
         }
     } else {
         cluster_unit = self->cluster_unit_index;

@@ -161,11 +161,11 @@ void ActorView::refresh_combat_context()
         if (static_cast<int32_t>(parent->unit.driver_unit_index) == self->unit_index) {
             self->vehicle_driving_type = 1;
             vehicle_flags = vehicle_tag->vehicle_flags;
-            if (vehicle_flags & 0x800) {
-                if (vehicle_flags & 0x1000) {
+            if (halo::ai::flag_set(vehicle_flags, halo::tags::vehicle_tag_flag::ai_driver_enable)) {
+                if (halo::ai::flag_set(vehicle_flags, halo::tags::vehicle_tag_flag::ai_driver_flying)) {
                     self->vehicle_driving_type = 4;
                     self->flying = 1;
-                } else if (vehicle_flags & 0x2000) {
+                } else if (halo::ai::flag_set(vehicle_flags, halo::tags::vehicle_tag_flag::ai_driver_can_sidestep)) {
                     self->vehicle_driving_type = (int16_t)((~(vehicle_flags >> 14) & 1) | 2);
                 }
             }
