@@ -61,7 +61,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
     float total = shield_damage + body_damage;
     unit_object *obj = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(unit_index));
     Unit *unit_tag = halo::objects::tag_as<Unit>(*(datum_index *)obj);
-    uint8_t *effect_block = halo::objects::tag_record_bytes(dd->damage_effect_tag) + 0x1c4;
+    DamageEffect &effect = *halo::objects::tag_as<DamageEffect>(dd->damage_effect_tag);
     uint8_t killed = (uint8_t)(flags & 1);
     uint8_t knocked_down = 0;
     uint8_t violent = 0;
@@ -73,7 +73,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
         float recent = obj->base.recent_body_damage + obj->base.recent_shield_damage;
 
         if (recent > 0.0f) {
-            obj->unit.delayed_damage_category = *(int16_t *)(effect_block + 0x2);
+            obj->unit.delayed_damage_category = effect.damage_category;
             obj->unit.delayed_damage_ticks = 0x2d;
             if (recent < obj->unit.delayed_damage_amount) {
                 recent = obj->unit.delayed_damage_amount;
@@ -85,8 +85,8 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
         }
     }
     unit_flags = obj->unit.flags;
-    if (unit_flags & 0x10) {
-        float left = obj->unit.active_camouflage_power - *(float *)(effect_block + 0x1c);
+    if (test_flag(unit_flags, units::unit_flag::unknown_10)) {
+        float left = obj->unit.active_camouflage_power - effect.damage_active_camouflage_damage;
 
         obj->unit.active_camouflage_power = left;
         if (left < 0.0f) {
@@ -94,7 +94,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
         }
     }
     if (is_local == 1) {
-        violent = (uint8_t)(killed && !(*(float *)(effect_block + 0x30) < 2.0f));
+        violent = (uint8_t)(killed && !(effect.damage_instantaneous_acceleration.i < 2.0f));
         if (!killed && (test_flag(unit_flags, units::unit_flag::unknown_2000)) && unit_tag->feign_death_threshold > 0.0f &&
             unit_tag->feign_death_time > 0.0f && obj->base.body_vitality > 0.0f &&
             obj->base.recent_body_damage > unit_tag->feign_death_threshold) {
@@ -110,7 +110,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
     }
 
     bool skip_record_check = false;
-    if (obj->unit.controlling_player == k_datum_index_none && killed && (effect_block[0x4] & 0x80) &&
+    if (obj->unit.controlling_player == k_datum_index_none && killed && test_flag(effect.damage_flags, tags::damage_effect_damage_tag_flag::causes_flaming_death) &&
         (test_flag(unit_tag->unit_flags, tags::unit_tag_flag::runs_around_flaming))) {
         const bool enter_stunned = [&]() -> bool {
             unit_object *self;
@@ -140,15 +140,16 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
             {
                 Unit *self_tag = halo::objects::tag_as<Unit>(*(datum_index *)self);
                 datum_index graph = halo::objects::tag_handle(self_tag->base.animation_graph);
-                uint8_t *seat_block = *(uint8_t **)(halo::objects::tag_record_bytes(graph) + 0x10) + (int8_t)(uint8_t)self->unit.animation_definition_index * 0x64;
+                const ModelAnimationsAnimationGraphUnitSeat &seat_block = halo::objects::block_element<ModelAnimationsAnimationGraphUnitSeat>(
+                    halo::objects::tag_as<ModelAnimations>(graph)->units, (int8_t)(uint8_t)self->unit.animation_definition_index);
                 int16_t death_animation;
                 uint8_t *object;
                 Object *object_tag;
 
-                if (*(int32_t *)(seat_block + 0x40) <= 8) {
+                if (static_cast<int32_t>(seat_block.animations.count) <= 8) {
                     return false;
                 }
-                death_animation = (*(int16_t **)(seat_block + 0x44))[8];
+                death_animation = halo::objects::block_element<int16_t>(seat_block.animations, 8);
                 if (death_animation == -1) {
                     return false;
                 }
@@ -183,9 +184,9 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
     }
 
     if (!skip_record_check) {
-        if ((dd->flags & 0x10) == 0 && (killed || knocked_down || !test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen)) &&
-            !test_flag(obj->unit.flags, units::unit_flag::unknown_800000) && (*(uint32_t *)(effect_block + 0x4) & 0x10) == 0) {
-            uint32_t effect_flags = *(uint32_t *)(effect_block + 0x4);
+        if (!test_flag(dd->flags, objects::damage_data_flag::unknown_10) && (killed || knocked_down || !test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen)) &&
+            !test_flag(obj->unit.flags, units::unit_flag::unknown_800000) && !test_flag(effect.damage_flags, tags::damage_effect_damage_tag_flag::does_not_ping_units)) {
+            uint32_t effect_flags = effect.damage_flags;
             real_vector2d direction;
             real_vector2d forward;
             uint8_t stunned_flag = 0;
@@ -201,7 +202,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
                 angle = halo::math::vector2d_angle_between(forward, direction);
                 has_direction = 1;
             }
-            if (((uint8_t)unit_tag->unit_flags & 0x80) && (effect_flags & 4) == 0) {
+            if (test_flag(unit_tag->unit_flags, tags::unit_tag_flag::resists_pings) && !test_flag(effect_flags, tags::damage_effect_damage_tag_flag::pings_resistant_units)) {
                 stunned_flag = 1;
             }
             if ((uint8_t)obj->unit.flaming_ticks != 0) {
@@ -226,10 +227,10 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
             }
             record.player_value = 0;
             if (obj->unit.controlling_player != k_datum_index_none) {
-                uint8_t *player = (uint8_t *)halo::memory::datum_get(obj->unit.controlling_player, halo::game::globals().player_data);
+                player *player_record = (player *)halo::memory::datum_get(obj->unit.controlling_player, halo::game::globals().player_data);
 
-                if (player != 0) {
-                    record.player_value = *(uint32_t *)&((struct player *)player)->respawn_timer;
+                if (player_record != 0) {
+                    record.player_value = static_cast<uint32_t>(player_record->respawn_timer);
                 }
             }
             UnitView(unit_index).update_stance_and_jump(killed, knocked_down, violent, stunned_flag, special, angle, (int16_t)region_index, has_direction ? &direction : 0, is_local);
@@ -247,9 +248,9 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
                 dd->responsible_player, unit_player, (flags >> 4) & 0xffffff01);
         }
         if (dd->responsible_player != k_datum_index_none || dd->responsible_object != k_datum_index_none) {
-            UnitView(unit_index).record_recent_damage_and_react(total, (int16_t)*(uint16_t *)(effect_block + 0x2), killed, dd->responsible_player, (int16_t)(uint16_t)dd->team_index, dd->responsible_object);
+            UnitView(unit_index).record_recent_damage_and_react(total, effect.damage_category, killed, dd->responsible_player, (int16_t)(uint16_t)dd->team_index, dd->responsible_object);
         }
-        if ((dd->flags & 0x10) == 0 && ((flags & 1) || body_damage > 0.0f || shield_damage > 0.0f)) {
+        if (!test_flag(dd->flags, objects::damage_data_flag::unknown_10) && ((flags & 1) || body_damage > 0.0f || shield_damage > 0.0f)) {
             UnitView(unit_index).choose_combat_reaction_animation((const datum_index *)dd, (uint8_t)(knocked_down | killed), (uint8_t)((flags >> 6) & 0xffffff01), body_damage);
         }
     }
@@ -258,18 +259,18 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
     }
     if (is_local == 1 && obj->base.type == _object_type_biped) {
         if (killed) {
-            halo::ai::actor_reassign_vehicle_seat(dd->responsible_object, unit_index, *(uint16_t *)(effect_block + 0x2));
+            halo::ai::actor_reassign_vehicle_seat(dd->responsible_object, unit_index, static_cast<uint16_t>(effect.damage_category));
         } else if (!test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen)) {
-            halo::ai::actor_react_to_threat_event(unit_index, dd->responsible_object, *(uint16_t *)(effect_block + 0x2), total,
+            halo::ai::actor_react_to_threat_event(unit_index, dd->responsible_object, static_cast<uint16_t>(effect.damage_category), total,
                 (uint32_t)(uintptr_t)&dd->direction, 0);
         }
     }
 
-    if (obj->unit.controlling_player != k_datum_index_none && *(float *)(effect_block + 0x20) > 0.0f &&
+    if (obj->unit.controlling_player != k_datum_index_none && effect.damage_stun > 0.0f &&
         (halo::game::globals().current_engine != 0 || is_dedicated_server_flag)) {
         GlobalsPlayerInformation *shake = halo::objects::block_elements<GlobalsPlayerInformation>(global_globals->player_information);
-        float step = dd->random_blend * *(float *)(effect_block + 0x20);
-        float cap = *(float *)(effect_block + 0x24) * dd->random_blend;
+        float step = dd->random_blend * effect.damage_stun;
+        float cap = effect.damage_maximum_stun * dd->random_blend;
         int16_t add;
         int16_t low;
         int16_t high;
@@ -290,7 +291,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
                 obj->unit.stun = cap;
             }
         }
-        add = (int16_t)(int32_t)(*(float *)(effect_block + 0x28) * 30.0f);
+        add = (int16_t)(int32_t)(effect.damage_stun_time * 30.0f);
         low = (int16_t)(int32_t)(shake->minimum_stun_time * 30.0f);
         high = (int16_t)(int32_t)(shake->maximum_stun_time * 30.0f);
         if (obj->unit.stun_ticks < low) {
@@ -437,7 +438,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
         dd.responsible_object = unit_index;
         dd.team_index = obj->owner_team;
         dd.location_leaf_index = obj->location_leaf_index;
-        *(int32_t *)&dd.location_cluster_index = *(int32_t *)&obj->location_cluster_index;
+        dd.location_cluster_index = obj->location_cluster_index;
         dd.epicentre = target_pos;
         dd.origin = origin_pos;
         dd.random_blend = 1.0f;
@@ -473,7 +474,8 @@ void UnitView::enter_stunned_state(uint32_t responsible_object)
 
     UnitView(unit_index).drop_current_weapon(1);
     unit->flags |= _unit_flag_disoriented;
-    obj->vitality_flags = (obj->vitality_flags & 0xfffb) | 0x800;
+    clear_flag(obj->vitality_flags, objects::vitality_flag::health_frozen);
+    set_flag(obj->vitality_flags, objects::vitality_flag::hash_flag);
 
     if (unit->flaming_ticks == 0) {
         int16_t duration;
@@ -524,15 +526,15 @@ void UnitView::melee_lunge_damage_tick()
         start.y -= plane.normal.j * 0.5f;
         start.z -= plane.normal.k * 0.5f;
         if (halo::physics::object_collision_context_test_segment(&context, 3, &start, &plane.normal, &record)) {
-            float fraction = *(float *)((uint8_t *)&record + 0x08);
+            float fraction = record.segment.t;
 
             hit_point.x = plane.normal.i * fraction + start.x;
             hit_point.y = plane.normal.j * fraction + start.y;
             hit_point.z = plane.normal.k * fraction + start.z;
             halo::math::matrix4x3_transform_plane(plane,
-                *(real_matrix4x3 *)((uint8_t *)context.nodes + record.node_index * 0x34),
-                *(*(real_plane3d **)((uint8_t *)&record + 0x0c)));
-            if (*(int32_t *)((uint8_t *)&record + 0x14) < 0) {
+                static_cast<real_matrix4x3 *>(context.nodes)[record.node_index],
+                *static_cast<real_plane3d *>(record.segment.plane));
+            if (record.segment.plane_index < 0) {
                 plane.normal.i = -plane.normal.i;
                 plane.normal.j = -plane.normal.j;
                 plane.normal.k = -plane.normal.k;
@@ -557,7 +559,7 @@ void UnitView::melee_lunge_damage_tick()
         dd.flags |= 2;
         obj->unit.melee_damage_countdown = 10;
         halo::objects::object_apply_damage(&dd, obj->base.parent_object, record.node_index, record.region_index,
-            *(int16_t *)((uint8_t *)&record + 0x1a), (uint32_t)(uintptr_t)&plane);
+            record.segment.material_index, (uint32_t)(uintptr_t)&plane);
     } else {
         halo::objects::object_apply_damage(&dd, obj->base.parent_object, -1, -1, -1, 0);
     }
@@ -575,7 +577,7 @@ void halo::units::unit_process_melee_special_interaction(uint32_t attacker_index
     uint32_t unit_flags = halo::objects::tag_as<Unit>(*(datum_index *)attacker)->unit_flags;
     object *target = reinterpret_cast<object *>(halo::objects::object_record_bytes(target_index));
 
-    if ((unit_flags & 0x2000) && target->type == _object_type_biped && target->shield_vitality > 0.0f &&
+    if (test_flag(unit_flags, tags::unit_tag_flag::impact_melee_dies_on_shields) && target->type == _object_type_biped && target->shield_vitality > 0.0f &&
         (test_flag(halo::objects::tag_as<Unit>(*(datum_index *)target)->unit_flags, tags::unit_tag_flag::shields_fry_infection_forms))) {
         UnitView(attacker_index).cause_melee_damage(1, target_index, (int16_t)node_pair, (int16_t)region_pair, (int16_t)material, (uint32_t)contact_plane);
         halo::objects::object_set_health_frozen_flag(attacker_index);
@@ -707,14 +709,14 @@ void UnitView::record_recent_damage_and_react(float damage_amount, int16_t respo
     }
 
     {
-        uint8_t *attacker = 0;
+        unit_object *attacker = 0;
         uint32_t attacker_handle = k_datum_index_none;
 
         if (responsible_player != k_datum_index_none) {
             uint32_t controlled_unit = halo::game::player_at(responsible_player)->unit;
 
             if (controlled_unit != k_datum_index_none) {
-                attacker = halo::objects::object_record_bytes(controlled_unit);
+                attacker = halo::objects::object_as<unit_object>(controlled_unit);
                 attacker_handle = controlled_unit;
             }
         }
@@ -724,8 +726,7 @@ void UnitView::record_recent_damage_and_react(float damage_amount, int16_t respo
             attacker_handle = responsible_object;
             if ((responsible_object != k_datum_index_none) && (0 <= (int16_t)responsible_object) &&
                 ((int16_t)responsible_object < halo::objects::globals().object_data->maximum_count)) {
-                object_header *candidate = (object_header *)((uint8_t *)halo::objects::globals().object_data->data +
-                                                             (int16_t)responsible_object * halo::objects::globals().object_data->size);
+                object_header *candidate = &halo::objects::object_header_of((int16_t)responsible_object);
 
                 if ((candidate->identifier != 0) &&
                     (((int16_t)(responsible_object >> 16) == 0) ||
@@ -733,8 +734,8 @@ void UnitView::record_recent_damage_and_react(float damage_amount, int16_t respo
                     hdr = candidate;
                 }
             }
-            if (hdr != 0 && ((1 << (((uint8_t *)hdr)[3] & 0x1f)) & 3) != 0) {
-                attacker = (uint8_t *)hdr->data;
+            if (hdr != 0 && objects::object_mask_has_type(objects::object_mask::unit, hdr->type)) {
+                attacker = reinterpret_cast<unit_object *>(hdr->data);
             }
             if (attacker == 0) {
                 return;
@@ -742,29 +743,29 @@ void UnitView::record_recent_damage_and_react(float damage_amount, int16_t respo
         }
 
         {
-            uint32_t link = *(uint32_t *)(attacker + (response_index == 9 ? 0x324 : 0x328));
+            uint32_t link = response_index == 9 ? attacker->unit.driver_unit_index : attacker->unit.gunner_unit_index;
 
             if (link != k_datum_index_none) {
                 attacker_handle = link;
-                attacker = halo::objects::object_record_bytes(link);
+                attacker = halo::objects::object_as<unit_object>(link);
             }
         }
 
-        if ((attacker[0x106] & 4) == 0) {
+        if (!test_flag(attacker->base.vitality_flags, objects::vitality_flag::health_frozen)) {
             int32_t tick = halo::game::globals().game_time->game_time;
-            int32_t last = *(int32_t *)(attacker + 0x42c);
+            int32_t last = attacker->unit.ai_communication_tick;
             int16_t threshold;
 
             if (last == -1 || !(last + 0x78 >= tick)) {
-                *(int16_t *)(attacker + 0x42a) = 0;
+                attacker->unit.ai_communication_count = 0;
             }
-            *(int16_t *)(attacker + 0x42a) = (int16_t)(*(int16_t *)(attacker + 0x42a) + 1);
-            *(int32_t *)(attacker + 0x42c) = tick;
-            threshold = (*(uint32_t *)(attacker + 0x218) != k_datum_index_none) ? 5 : 3;
-            if (*(int16_t *)(attacker + 0x42a) >= threshold) {
+            attacker->unit.ai_communication_count = (int16_t)(attacker->unit.ai_communication_count + 1);
+            attacker->unit.ai_communication_tick = tick;
+            threshold = (attacker->unit.controlling_player != k_datum_index_none) ? 5 : 3;
+            if (attacker->unit.ai_communication_count >= threshold) {
                 halo::ai::ai_communication_broadcast(1, (datum_index)attacker_handle, k_datum_index_none, -1, k_datum_index_none,
                                            k_datum_index_none, 0);
-                *(int16_t *)(attacker + 0x42a) = 0;
+                attacker->unit.ai_communication_count = 0;
             }
         }
     }
