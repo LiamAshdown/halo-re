@@ -11,14 +11,7 @@
 #include "halo/core/libm.hpp"
 #include "halo/game/api.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern player_control_globals *player_control_globals_ptr;
-extern long halo::libm::lrint(double x);
-#ifdef __cplusplus
-}
-#endif
+static auto &player_control_globals_ptr = halo::link::ref<player_control_globals *>(halo::game::vars().player_control_globals_ptr);
 
 namespace halo::hs {
 

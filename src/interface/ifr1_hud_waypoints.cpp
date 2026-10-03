@@ -20,23 +20,15 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 
-extern "C" {
-extern hud_waypoint_state *hud_waypoints;
-extern HUDGlobals *hud_globals_tag_data;
-extern uint8_t render_frustum_global[];
-extern uint8_t render_camera_global[];
-extern int16_t render_viewport_top;
-extern Rectangle2D screen_safe_area_right;
-extern float sqrtf(float x);
-extern float atan2f(float y, float x);
-extern double pow(double base, double exponent);
-extern double fmod(double x, double y);
-extern long lrint(double x);
-extern int32_t __ftol(double x);
-extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *point, void *frustum,
-                                                    void *camera);
-extern int16_t current_local_player_index;
-}
+
+static auto &hud_waypoints = halo::link::ref<hud_waypoint_state *>(halo::ui::vars().hud_waypoints);
+static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
+static auto &render_frustum_global = halo::link::ref<uint8_t[]>(halo::render::vars().render_frustum_global);
+static auto &render_camera_global = halo::link::ref<uint8_t[]>(halo::render::vars().render_camera_global);
+static auto &render_viewport_top = halo::link::ref<int16_t>(halo::ui::vars().render_viewport_top);
+static auto &screen_safe_area_right = halo::link::ref<Rectangle2D>(halo::game::vars().screen_safe_area_right);
+static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::vars().current_local_player_index);
+
 
 static float hud_clamp01(float value)
 {

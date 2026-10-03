@@ -12,16 +12,8 @@
 #include "halo/game/vars.hpp"
 #include "halo/effects/api.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern player_control_globals *player_control_globals_ptr;
-extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle, uint8_t reset_stats);
-extern player_effect_globals *player_effect_globals_pointer;
-extern player_globals *local_player_globals;
-#ifdef __cplusplus
-}
-#endif
+static auto &player_control_globals_ptr = halo::link::ref<player_control_globals *>(halo::game::vars().player_control_globals_ptr);
+static auto &player_effect_globals_pointer = halo::link::ref<player_effect_globals *>(halo::effects::vars().player_effect_globals_pointer);
 
 namespace halo::hs {
 

@@ -12,16 +12,9 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern void player_help_screen_select_by_name(int16_t value);
-extern hud_messaging_globals *hud_messaging;
-extern uint8_t *hud_weapon_state;
-extern uint8_t *hud_flags;
-#ifdef __cplusplus
-}
-#endif
+static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
+static auto &hud_weapon_state = halo::link::ref<uint8_t *>(halo::ui::vars().hud_weapon_state);
+static auto &hud_flags = halo::link::ref<uint8_t *>(halo::ui::vars().hud_flags);
 
 namespace halo::hs {
 

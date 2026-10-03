@@ -320,11 +320,9 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
 }
 
 namespace actor_try_grenade_evasion_local {
-extern "C" {
-extern game_time_globals *game_time;
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition[16]>(halo::ai::vars().actor_mode_definitions);
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-extern actor_mode_definition actor_mode_definitions[16];
-}
 }
 
 /**

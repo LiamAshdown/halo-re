@@ -24,27 +24,23 @@
 #include "halo/units/vars.hpp"
 #include "halo/units/api.hpp"
 
-extern "C" {
-extern hud_messaging_globals *hud_messaging;
-extern int32_t hud_chat_message_count;
-extern int32_t hud_chat_message_expiry[8];
-extern void *chat_gui_root_handle;
-extern chat_gui_find_object_fn chat_gui_find_object;
-extern void *chat_listbox_gui_find_object_arg;
-extern chat_gui_find_child_fn chat_gui_find_child;
-extern chat_gui_set_property_int_fn chat_gui_set_property_int;
-extern chat_gui_finalize_fn chat_gui_finalize;
-extern chat_gui_release_fn chat_gui_release;
-extern HUDGlobals *hud_globals_tag_data;
-extern uint16_t *empty_wide_string_pointer;
-extern void *global_zero_vector3d_pointer;
-extern int16_t item_type_to_message_stage(int16_t item_type_code);
-extern int16_t item_type_to_animation_stage(int16_t message_stage);
-extern uint8_t network_message_scratch[halo::interface::k_network_message_scratch_size];
-extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
-                                 int16_t count);
-extern hud_globals_flags *hud_flags;
-}
+
+static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
+static auto &hud_chat_message_count = halo::link::ref<int32_t>(halo::ui::vars().hud_chat_message_count);
+static auto &hud_chat_message_expiry = halo::link::ref<int32_t[8]>(halo::ui::vars().hud_chat_message_expiry);
+static auto &chat_gui_root_handle = halo::link::ref<void *>(halo::ui::vars().chat_gui_root_handle);
+static auto &chat_gui_find_object = halo::link::ref<chat_gui_find_object_fn>(halo::ui::vars().chat_gui_find_object);
+static auto &chat_listbox_gui_find_object_arg = halo::link::ref<void *>(halo::ui::vars().chat_listbox_gui_find_object_arg);
+static auto &chat_gui_find_child = halo::link::ref<chat_gui_find_child_fn>(halo::ui::vars().chat_gui_find_child);
+static auto &chat_gui_set_property_int = halo::link::ref<chat_gui_set_property_int_fn>(halo::ui::vars().chat_gui_set_property_int);
+static auto &chat_gui_finalize = halo::link::ref<chat_gui_finalize_fn>(halo::ui::vars().chat_gui_finalize);
+static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
+static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
+static auto &empty_wide_string_pointer = halo::link::ref<uint16_t *>(halo::ui::vars().empty_wide_string_pointer);
+static auto &global_zero_vector3d_pointer = halo::link::ref<void *>(halo::units::vars().global_zero_vector3d_pointer);
+static auto &network_message_scratch = halo::link::ref<uint8_t[halo::interface::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
+static auto &hud_flags = halo::link::ref<hud_globals_flags *>(halo::ui::vars().hud_flags);
+
 
 namespace halo::interface {
 

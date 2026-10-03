@@ -27,43 +27,35 @@
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
 
-extern "C" {
-extern int32_t ui_list_current;
-extern growable_array ui_lists[3];
-extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
-extern heap *widget_memory_pool;
-extern uint16_t network_host_name_field_00719238[32];
-extern uint16_t network_host_subname_007191f0[9];
-extern int32_t selected_saved_item;
-extern saved_player_profile saved_item_working_copy;
-extern uint8_t network_game_client_connect_to_address_async(char *name, char *address);
-extern uint32_t network_game_option_a_00719210;
-extern uint32_t network_game_option_b_00719214;
-extern uint16_t network_host_name_00719170[144];
-extern int32_t quality_selection_00692b04;
-extern int32_t resolution_row_count_table_0065bfb4[5][1];
-extern int32_t resolution_selection_00719204;
-extern int32_t resolution_index_table_0065bf74[];
-extern uint32_t sv_maxplayers_value;
-extern uint32_t network_resolved_local_address;
-extern uint16_t local_port_006869b6;
-extern uint16_t ip_port_format_string_0066a564[];
-extern uint8_t network_host_name_flag_00719276;
-extern uint8_t ui_network_wait_active;
-extern int32_t ui_network_wait_start_time;
-extern uint8_t ui_network_wait_timed_out;
-extern void *widget_instance_find_root(widget_instance *widget);
-extern int32_t widget_get_sibling_index(widget_instance *widget);
-extern void chat_close(void);
-extern widget_instance *chimera__load_ui_widget(const char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection);
-extern uint8_t autopatch_status_state_00719234;
-extern uint8_t autopatch_status_active_00719235;
-extern uint8_t ui_server_option_flag_00692b10;
-extern uint8_t network_game_info_packet_flag;
-extern uint8_t server_browser_require_valid_entry;
-}
+
+static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
+static auto &ui_lists = halo::link::ref<growable_array[3]>(halo::ui::vars().ui_lists);
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot[k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+static auto &network_host_name_field_00719238 = halo::link::ref<uint16_t[32]>(halo::ui::vars().network_host_name_field_00719238);
+static auto &network_host_subname_007191f0 = halo::link::ref<uint16_t[9]>(halo::ui::vars().network_host_subname_007191f0);
+static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
+static auto &saved_item_working_copy = halo::link::ref<saved_player_profile>(halo::ui::vars().saved_item_working_copy);
+static auto &network_game_option_a_00719210 = halo::link::ref<uint32_t>(halo::ui::vars().network_game_option_a_00719210);
+static auto &network_game_option_b_00719214 = halo::link::ref<uint32_t>(halo::ui::vars().network_game_option_b_00719214);
+static auto &network_host_name_00719170 = halo::link::ref<uint16_t[144]>(halo::ui::vars().network_host_name_00719170);
+static auto &quality_selection_00692b04 = halo::link::ref<int32_t>(halo::ui::vars().quality_selection_00692b04);
+static auto &resolution_row_count_table_0065bfb4 = halo::link::ref<int32_t[5][1]>(halo::ui::vars().resolution_row_count_table_0065bfb4);
+static auto &resolution_selection_00719204 = halo::link::ref<int32_t>(halo::ui::vars().resolution_selection_00719204);
+static auto &resolution_index_table_0065bf74 = halo::link::ref<int32_t[]>(halo::ui::vars().resolution_index_table_0065bf74);
+static auto &sv_maxplayers_value = halo::link::ref<uint32_t>(halo::ui::vars().sv_maxplayers_value);
+static auto &network_resolved_local_address = halo::link::ref<uint32_t>(halo::ui::vars().network_resolved_local_address);
+static auto &ip_port_format_string_0066a564 = halo::link::ref<uint16_t[]>(halo::ui::vars().ip_port_format_string_0066a564);
+static auto &network_host_name_flag_00719276 = halo::link::ref<uint8_t>(halo::ui::vars().network_host_name_flag_00719276);
+static auto &ui_network_wait_active = halo::link::ref<uint8_t>(halo::ui::vars().ui_network_wait_active);
+static auto &ui_network_wait_start_time = halo::link::ref<int32_t>(halo::ui::vars().ui_network_wait_start_time);
+static auto &ui_network_wait_timed_out = halo::link::ref<uint8_t>(halo::ui::vars().ui_network_wait_timed_out);
+static auto &autopatch_status_state_00719234 = halo::link::ref<uint8_t>(halo::ui::vars().autopatch_status_state_00719234);
+static auto &autopatch_status_active_00719235 = halo::link::ref<uint8_t>(halo::ui::vars().autopatch_status_active_00719235);
+static auto &ui_server_option_flag_00692b10 = halo::link::ref<uint8_t>(halo::ui::vars().ui_server_option_flag_00692b10);
+static auto &network_game_info_packet_flag = halo::link::ref<uint8_t>(halo::ui::vars().network_game_info_packet_flag);
+static auto &server_browser_require_valid_entry = halo::link::ref<uint8_t>(halo::networking::vars().server_browser_require_valid_entry);
+
 
 namespace halo::ui {
 
