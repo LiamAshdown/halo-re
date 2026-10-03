@@ -804,9 +804,11 @@ typedef struct vehicle_data {
                                         //       counts it down and fires on the 0 edge
     uint8_t airborne_ticks;             // 0x4d0 0x575640 increments it while off the ground
                                         //       and 0x5756f0 folds it into the blend weight
-    uint8_t unknown_4d1;                // 0x4d1 vehicle_update clears it with unknown_4d2
-    uint8_t unknown_4d2;                // 0x4d2 counter vehicle_update raises while 0x4d1 is
-                                        //       1 or 2 and clears past 0x1d
+    uint8_t push_direction;             // 0x4d1 direction code a player push interaction (action type 11) stores:
+                                        //       1 / 2 push sideways, 3 / 4 push along the vehicle's forward axis;
+                                        //       vehicle_update applies the velocity impulse while it is non-zero
+    uint8_t push_ticks;                 // 0x4d2 ticks the impulse has been applied; vehicle_update clears it
+                                        //       and push_direction once it reaches 0x1e
     uint8_t landing_ticks;              // 0x4d3 0x575640 bumps it when ground contact resumes
     float forward_velocity;             // 0x4d4 divided by the Vehicle tag field
                                         //       maximum_forward_speed (0x2f8) or

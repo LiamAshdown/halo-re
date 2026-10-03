@@ -1,3 +1,4 @@
+#include "halo/hs/script_globals.hpp"
 #include "halo/objects/object_damage.hpp"
 #include "game.h"
 #include "units.h"
@@ -20,11 +21,7 @@ extern ModelCollisionGeometryMaterial default_collision_material;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern datum_index effect_new_with_color(datum_index definition_index, datum_index creator_object_index, const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, real_point3d *position, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source, uint8_t force_create);
-extern uint8_t g_00689481;
 extern uint8_t g_006f1cf4;
-extern uint8_t g_0087abc0;
-extern uint8_t g_0087abc5;
-extern uint8_t g_0087abc7;
 extern void game_engine_attribute_player_death(datum_index victim_unit, datum_index killer, datum_index death_object, int32_t killer_team, char credit_kills);
 extern float game_engine_compute_time_scale(int32_t param_a, int32_t param_b);
 extern void game_engine_on_player_death(datum_index killer, datum_index death_object, datum_index victim, char is_suicide);
@@ -358,7 +355,7 @@ void halo::objects::ObjectDamage::set_health_frozen_flag()
             uint8_t *child_bytes = (uint8_t *)child;
 
             if (child->type == _object_type_biped &&
-                (*(int32_t *)(child_bytes + 0x218) == -1 || g_0087abc0 == 0) &&
+                (*(int32_t *)(child_bytes + 0x218) == -1 || halo::hs::globals::deathless_player == 0) &&
                 *(int16_t *)(child_bytes + 0x2f0) != -1) {
                 child->vitality_flags |= 0x0020;
             }
@@ -624,7 +621,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
  */
 void halo::objects::DamageSystem::throttled_multiplayer_sound_event()
 {
-    if (g_00689481 == 1 && (uint32_t)(object_sound_event_last_tick + 2) < (uint32_t)game_time->game_time) {
+    if (halo::hs::globals::should_play_multiplayer_hit_sound == 1 && (uint32_t)(object_sound_event_last_tick + 2) < (uint32_t)game_time->game_time) {
         game_engine_queue_multiplayer_sound(0x2b, 0xffffffff, 0);
         object_sound_event_last_tick = game_time->game_time;
     }
@@ -898,7 +895,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
                     }
                     break;
                 }
-            } else if (g_0087abc5) {
+            } else if (halo::hs::globals::reflexive_damage_effects) {
                 datum_index first_local = local_player_globals->local_players[0];
 
                 if (network_game_mode == 0) {
@@ -1014,7 +1011,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
             material = (uint8_t *)&default_collision_material;
         }
         dd->material_type = *(int16_t *)(material + 0x24);
-        if (g_0087abc7 && dd->responsible_player != k_datum_index_none) {
+        if (halo::hs::globals::omnipotent && dd->responsible_player != k_datum_index_none) {
             kill = 1;
         }
         if (*(int16_t *)effect_block == 2 && unit_point_in_front_and_asleep(&dd->origin, id) &&
@@ -1189,7 +1186,7 @@ bookkeeping:
             ((object *)obj)->recent_body_damage = 1.0f;
         }
     }
-    if (g_0087abc0 && *vitality < 0.0f && ((1u << (obj[0xb4] & 0x1f)) & 3)) {
+    if (halo::hs::globals::deathless_player && *vitality < 0.0f && ((1u << (obj[0xb4] & 0x1f)) & 3)) {
         if (*(datum_index *)(obj + 0x218) != k_datum_index_none) {
             *vitality = 0.0f;
         } else if (((object *)obj)->type == 1) {
