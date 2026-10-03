@@ -38,7 +38,7 @@ void halo::ai::charge_mode::enter()
     actor *act = halo::ai::actor_at(actor_index);
 
     if (act->mode_data.charge.stage == 4 &&
-        *(int16_t *)((uint8_t *)halo::ai::actor_get_actor_definition(actor_index) + 0x156) == 3 &&
+        reinterpret_cast<ActorVariant *>(halo::ai::actor_get_actor_definition(actor_index))->special_fire_situation == 3 &&
         act->special_fire_strafe_cooldown > 0) {
         act->special_fire_strafe_cooldown -= 1;
     }
@@ -154,7 +154,7 @@ uint8_t halo::ai::charge_mode::process()
             } else {
                 float range_lo;
                 float range_hi;
-                uint8_t *weapon;
+                Weapon *weapon;
 
                 if (act->berserking) {
                     range_hi = definition->berserk_firing_ranges[1];
@@ -163,9 +163,9 @@ uint8_t halo::ai::charge_mode::process()
                     range_hi = definition->desired_combat_range[1];
                     range_lo = definition->desired_combat_range[0];
                 }
-                weapon = (uint8_t *)halo::ai::actor_get_threat_weapon_definition(actor_index);
-                if (weapon != 0 && *(float *)(weapon + 0x40c) > 0.0f && !(range_lo > *(float *)(weapon + 0x40c))) {
-                    range_lo = *(float *)(weapon + 0x40c);
+                weapon = (Weapon *)halo::ai::actor_get_threat_weapon_definition(actor_index);
+                if (weapon != 0 && weapon->minimum_target_range > 0.0f && !(range_lo > weapon->minimum_target_range)) {
+                    range_lo = weapon->minimum_target_range;
                 }
                 if (md->close_in) {
                     if (range_lo > target->distance) {

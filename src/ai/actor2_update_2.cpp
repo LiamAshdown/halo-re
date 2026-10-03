@@ -129,7 +129,7 @@ void ActorView::update_firing_state()
                 a->special_fire_timer = (int16_t)(int32_t)(delay * 30.0f);
                 if (roll < def->special_fire_chance &&
                     halo::ai::actor_target_is_visible_or_object_count_ok(actor_index, (int16_t)def->special_fire_situation)) {
-                    if (*(int16_t *)((uint8_t *)def + 0x156) == 3) {
+                    if (def->special_fire_situation == 3) {
                         a->special_fire_strafe_cooldown = 3;
                     }
                     if (def->special_fire_mode == 1) {
@@ -201,7 +201,7 @@ void ActorView::update_firing_state()
             if (!forced && !(a->firing_target_distance < a->maximum_firing_distance)) return true;
             wants_fire = 1;
             a->target_in_firing_range = 1;
-            if (!(*(uint32_t *)actor_tag & 0x2000)) {
+            if (!(actor_tag->flags & 0x2000)) {
                 float tolerance = a->firing_target_distance >= 1.5f ? 0.97f : a->firing_target_distance * 0.17526217f + 0.70710677f;
                 real_vector3d aim;
 

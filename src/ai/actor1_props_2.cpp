@@ -21,7 +21,7 @@ static uint8_t actor_danger_prop_seen_twice(datum_index actor_index, datum_index
     if (prop_index == k_datum_index_none) {
         return 0xff;
     }
-    return *(int16_t *)((uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size + 0x30) >= 2;
+    return halo::ai::prop_at(prop_index)->perception_level >= 2;
 }
 
 static uint8_t actor_danger_asleep(struct actor *actor)
@@ -111,7 +111,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         break;
     }
     case 2: {
-        uint8_t *tag;
+        Projectile *tag;
         int16_t cluster;
         int16_t status;
 
@@ -130,8 +130,8 @@ void halo::ai::prop_ops::danger_update_reaction()
         if (actor_danger_asleep(actor)) {
             break;
         }
-        tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & halo::k_slot_mask].data;
-        if (!(actor->danger_distance < *(float *)(tag + 0x19c))) {
+        tag = halo::ai::tag_data<Projectile>(*(datum_index *)object);
+        if (!(actor->danger_distance < tag->ai_perception_radius)) {
             break;
         }
         cluster = ((struct object *)object)->location_cluster_index;
@@ -150,7 +150,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         break;
     }
     case 3: {
-        uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & halo::k_slot_mask].data;
+        Unit *tag = halo::ai::tag_data<Unit>(*(datum_index *)object);
         float vi = ((struct object *)object)->velocity.i;
         float vj = ((struct object *)object)->velocity.j;
         float vk = ((struct object *)object)->velocity.k;
@@ -158,7 +158,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         bsp_leaf_reference *location;
         int16_t status;
 
-        if (vi * vi + vj * vj + vk * vk < 4.4444445e-05f || ((struct Object *)tag)->bounding_radius + 10.0f < actor->danger_distance) {
+        if (vi * vi + vj * vj + vk * vk < 4.4444445e-05f || tag->base.bounding_radius + 10.0f < actor->danger_distance) {
             actor->danger_type = 0;
             break;
         }
@@ -187,7 +187,7 @@ void halo::ai::prop_ops::danger_update_reaction()
             noticed = 1;
             break;
         }
-        if ((int16_t)halo::ai::actor_target_hearing_check(location, status, actor_index, &block, *(int16_t *)(tag + 0x182),
+        if ((int16_t)halo::ai::actor_target_hearing_check(location, status, actor_index, &block, (int16_t)tag->constant_sound_volume,
                 position) >= 2) {
             noticed = 1;
         }

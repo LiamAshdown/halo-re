@@ -172,7 +172,7 @@ void ActorView::refresh_combat_context()
         }
         if (static_cast<int32_t>(parent->unit.gunner_unit_index) == self->unit_index) {
             self->vehicle_gunner = 1;
-            self->vehicle_gunner_bombards[0] = *(float *)((uint8_t *)halo::ai::actor_get_actor_definition(actor_index) + 0x14c) > 0.0f;
+            self->vehicle_gunner_bombards[0] = reinterpret_cast<ActorVariant *>(halo::ai::actor_get_actor_definition(actor_index))->bombardment_range > 0.0f;
         }
         self->order_committed = self->vehicle_driving_type <= 1;
         if (parent->unit.encounter_index != -1) {
