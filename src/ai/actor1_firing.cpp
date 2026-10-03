@@ -1007,7 +1007,7 @@ void halo::ai::firing_position_ops::get_firing_positions(actor_firing_positions 
     self = halo::ai::actor_at(actor_index);
 
     if (self->swarm == 0) {
-        *out_block = *reinterpret_cast<actor_firing_positions *>(&self->aim_origin);
+        *out_block = *halo::ai::own_firing_positions(self);
         return;
     }
 
@@ -1032,7 +1032,7 @@ void halo::ai::firing_position_ops::get_firing_positions(actor_firing_positions 
         }
     }
 
-    halo::ai::actor_fill_unit_position_context(nearest_unit, (actor_unit_position_context *)out_block);
+    halo::ai::actor_fill_unit_position_context(nearest_unit, out_block);
     }
 }
 

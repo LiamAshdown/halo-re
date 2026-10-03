@@ -652,7 +652,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
         halo::objects::object_reset_velocity_and_wake(check_object_index);
         halo::objects::object_recalculate_bounding_radius_recursive(check_object_index);
         if (check_object_index == unit_index) {
-            halo::ai::actor_fill_unit_position_context(unit_index, (actor_unit_position_context *)&act->aim_origin);
+            halo::ai::actor_fill_unit_position_context(unit_index, halo::ai::own_firing_positions(act));
             halo::ai::actor_movement_action_stop(actor_index);
         }
         return 1;

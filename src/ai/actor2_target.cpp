@@ -167,7 +167,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, actor_firing_pos
         if (((target->swarm_owned != 0 && target->owner_actor_index != k_datum_index_none) && allow_reassign != 0) &&
             target->swarm_reassign_time + 0x5a <= halo::game::globals().game_time->game_time) {
             target->swarm_reassign_time = halo::game::globals().game_time->game_time;
-            reassigned = halo::ai::object_find_nearest_squad_member(target->owner_actor_index, reinterpret_cast<const actor_firing_positions *>(&self->aim_origin), object_index, 0);
+            reassigned = halo::ai::object_find_nearest_squad_member(target->owner_actor_index, halo::ai::own_firing_positions(self), object_index, 0);
             if (reassigned != object_index) {
                 target->object_index = reassigned;
                 unit_obj = halo::ai::object_at(reassigned);

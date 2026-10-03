@@ -365,7 +365,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
             obstructed = 1;
             {
 
-                float dz = *(float *)((uint8_t *)extra_param + 0xc) - self->body_position.z;
+                float dz = ((path_find_boundary_crossing *)extra_param)->position.z - self->body_position.z;
                 if (dz <= step_distance * 0.5f && (step_up != 0.0f || step_distance * -0.5f <= dz)) {
                     trace_done = true;
                 }
@@ -681,7 +681,7 @@ static actor *actor_try_get(datum_index handle)
         return 0;
     }
     record = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + halo::ai::globals().actor_data->size * index);
-    if (*(int16_t *)record == 0 || (salt != 0 && *(int16_t *)record != salt)) {
+    if (record->identifier == 0 || (salt != 0 && record->identifier != salt)) {
         return 0;
     }
     return record;
@@ -820,20 +820,19 @@ static uint8_t *object_get(datum_index object_index)
  *
  * @address 0x4296c0
  */
-void halo::ai::movement_ops::fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context)
+void halo::ai::movement_ops::fill_unit_position_context(datum_index unit_index, actor_firing_positions *out_context)
 {
     using namespace c_actor_fill_unit_position_context;
-    uint8_t *context = (uint8_t *)out_context;
-    uint8_t *unit = object_get(unit_index);
+    object *unit = (object *)object_get(unit_index);
     object_marker marker;
     datum_index root = k_datum_index_none;
-    uint8_t *root_object;
+    object *root_object;
 
-    halo::objects::object_get_position((real_point3d *)(context + 0xc), unit_index);
-    *(real_vector3d *)&((struct actor_unit_position_context *)context)->forward.i = *(real_vector3d *)&((unit_object *)unit)->base.forward.i;
+    halo::objects::object_get_position(&out_context->body_position, unit_index);
+    out_context->forward = *(real_vector3d *)&unit->forward.i;
     halo::objects::object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1);
-    *(real_point3d *)context = marker.node_transform.position;
-    halo::objects::object_get_root_object_velocities(unit_index, (real_vector3d *)(context + 0x2c), 0);
+    out_context->aim_origin = marker.node_transform.position;
+    halo::objects::object_get_root_object_velocities(unit_index, &out_context->velocity, 0);
     if (unit_index != k_datum_index_none) {
         datum_index cursor = unit_index;
 
@@ -842,13 +841,12 @@ void halo::ai::movement_ops::fill_unit_position_context(datum_index unit_index, 
             cursor = ((object *)object_get(cursor))->parent_object;
         } while (cursor != k_datum_index_none);
     }
-    root_object = object_get(root);
-    ((struct actor_unit_position_context *)context)->root_position_x = halo::bit_cast<float>(static_cast<uint32_t>(*(uint32_t *)(root_object + 0x98)));
-    ((struct actor_unit_position_context *)context)->root_position_y = halo::bit_cast<float>(static_cast<uint32_t>(*(uint32_t *)(root_object + 0x9c)));
+    root_object = (object *)object_get(root);
+    out_context->location = *halo::ai::object_location(root_object);
 }
 
 namespace halo::ai {
-void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context)
+void actor_fill_unit_position_context(datum_index unit_index, actor_firing_positions *out_context)
 {
     halo::ai::movement_ops::fill_unit_position_context(unit_index, out_context);
 }

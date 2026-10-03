@@ -2552,15 +2552,6 @@ typedef struct ai_line_history {
     int32_t cooldown_until_tick; // 0x04 game tick before which the line may not repeat, -1 none
 } ai_line_history;               // size 0x08
 
-// The block actor_fill_unit_position_context @0x41b930 fills for its callers.
-typedef struct actor_unit_position_context {
-    real_point3d local_transform_position; // 0x00 UNSURE
-    uint8_t unknown_0c[12];                // 0x0c never written by that function
-    real_vector3d forward;                 // 0x18 object.forward of the given unit
-    float root_position_x;                 // 0x24 UNSURE offset (root object + 0x98)
-    float root_position_y;                 // 0x28 UNSURE offset (root object + 0x9c)
-} actor_unit_position_context; // size 0x2c, only verified up to 0x2b
-
 // The spawn request actor_place_new_unit @0x421ea0 reads out of EAX.
 typedef struct actor_placement_request {
     real_point3d position;  // 0x00 ScenarioActorStartingLocation.position

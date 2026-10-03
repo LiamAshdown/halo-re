@@ -105,18 +105,17 @@ void ActorView::refresh_combat_context()
 
         *center = *global_zero_vector3d_pointer;
         for (i = 0; i < count; i++) {
-            uint8_t *creature = (uint8_t *)halo::ai::globals().swarm_component_data->data +
-                (*(datum_index *)((uint8_t *)swarm + 0x58 + i * 4) & halo::k_slot_mask) * 0x40;
-            datum_index creature_unit = *(datum_index *)((uint8_t *)swarm + 0x18 + i * 4);
+            swarm_component *creature = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[swarm->component_index[i] & halo::k_slot_mask];
+            datum_index creature_unit = swarm->unit_index[i];
             uint8_t *creature_object = object_get(creature_unit);
             datum_index vehicle = ((struct object *)creature_object)->type == 0 ?
                 ((biped_object *)creature_object)->biped.ground_surface_index : k_datum_index_none;
 
-            halo::objects::object_get_position((real_point3d *)(creature + 4), creature_unit);
-            *(datum_index *)(creature + 0x10) = vehicle;
-            center->x = *(float *)(creature + 4) + center->x;
-            center->y = *(float *)(creature + 8) + center->y;
-            center->z = *(float *)(creature + 0xc) + center->z;
+            halo::objects::object_get_position(&creature->position, creature_unit);
+            creature->marker_index = vehicle;
+            center->x = creature->position.x + center->x;
+            center->y = creature->position.y + center->y;
+            center->z = creature->position.z + center->z;
         }
         if (count > 0) {
             float scale = 1.0f / (float)count;
@@ -129,7 +128,7 @@ void ActorView::refresh_combat_context()
         self->active_unit_index = -1;
         self->pathfinding_surface_index = -1;
         if (self->cluster_unit_index != -1) {
-            halo::ai::actor_fill_unit_position_context((int32_t)self->cluster_unit_index, reinterpret_cast<actor_unit_position_context *>(&self->aim_origin));
+            halo::ai::actor_fill_unit_position_context((int32_t)self->cluster_unit_index, halo::ai::own_firing_positions(self));
         }
         return;
     }
@@ -139,7 +138,7 @@ void ActorView::refresh_combat_context()
     if (parent_index != k_datum_index_none) {
         parent = (unit_object *)object_get(parent_index);
     }
-    halo::ai::actor_fill_unit_position_context((int32_t)self->unit_index, reinterpret_cast<actor_unit_position_context *>(&self->aim_origin));
+    halo::ai::actor_fill_unit_position_context((int32_t)self->unit_index, halo::ai::own_firing_positions(self));
     {
         object_marker marker;
         real_point3d head;

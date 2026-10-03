@@ -40,7 +40,6 @@ struct actor_placement_request;
 struct actor_prop_iterator;
 struct actor_recognition_scan_result;
 struct actor_squad_order_header;
-struct actor_unit_position_context;
 struct ai_communication_order;
 struct ai_communication_record;
 struct ai_communication_target_result;
@@ -192,7 +191,7 @@ int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t tar
 int16_t actor_evaluate_flank_offset(real_vector3d *cover_direction, real_vector3d *out_offset, real_point3d *threat_position, real_point3d *candidate_position);
 uint8_t actor_evaluate_grenade_target_position(datum_index actor_index);
 uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index, real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score, uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front);
-void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context);
+void actor_fill_unit_position_context(datum_index unit_index, actor_firing_positions *out_context);
 uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query, actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context, uint8_t *out_path_ok);
 int16_t actor_find_best_search_node(datum_index actor_index, datum_index vehicle_index, real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint);
 uint8_t actor_find_danger_escape(datum_index actor_index, uint32_t *out_word, uint8_t *out_position, real_vector3d *path_delta, uint8_t *in_danger);

@@ -30,7 +30,7 @@ public:
     datum_index create_swarm();
     void delete_swarm();
     uint8_t evaluate_search_node(datum_index vehicle_index, int16_t seat_index, real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score, uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front);
-    static void fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context);
+    static void fill_unit_position_context(datum_index unit_index, actor_firing_positions *out_context);
     int16_t find_best_search_node(datum_index vehicle_index, real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint);
     uint8_t gate_jump_traversal(int16_t threshold, char allow_broadcast, int16_t broadcast_threshold);
     uint8_t get_cached_wander_position(real_vector3d *out_position);

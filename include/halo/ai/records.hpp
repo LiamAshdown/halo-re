@@ -120,6 +120,12 @@ static_assert(sizeof(ModelAnimationsAnimationGraphUnitSeat) == 0x64 && offsetof(
 static_assert(offsetof(ModelAnimations, units) == 0xc);
 static_assert(offsetof(Object, animation_graph) == 0x38);
 
+/** The actor's own aim origin .. velocity run, viewed as the block actor_get_firing_positions hands out. */
+inline actor_firing_positions *own_firing_positions(actor *a)
+{
+    return reinterpret_cast<actor_firing_positions *>(&a->aim_origin);
+}
+
 /** The scenario firing position a firing position candidate refers to (the candidate stores its address in a 32 bit field). */
 inline ScenarioFiringPosition *candidate_firing_position(const actor_firing_position_candidate &candidate)
 {
