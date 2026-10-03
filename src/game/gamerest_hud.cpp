@@ -618,7 +618,7 @@ void CustomWaypoints::custom_waypoint_register(datum_index owner, int16_t slot, 
  * (variant override first, default builder second) and routes it to either the multiplayer chat
  * line or the HUD message line depending on `message_type`. Independently of the local-player
  * check, when hosting and `broadcast` is set, forwards the event to other machines via
- * FUN_004608d0.
+ * KillFeed::notify_kill_event.
  *
  * @address 0x460a30
  */

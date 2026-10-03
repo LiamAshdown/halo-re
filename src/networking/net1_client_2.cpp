@@ -60,9 +60,9 @@ namespace halo::networking {
 /**
  * out/phase4/networking_functions.md: "State machine that drives the client
  * connection handshake/timeout: while connected, updates the disconnect-timeout timer per
- * incoming message id, and while not yet connected, (re)starts the timeout ti[mer]." The four
- * FUN_004debXX callees are types/networking.h's network_timer_pair helpers, already rewritten
- * in this repo (network_timer_advance/_start/_increment_clamped/_decrement_floored).
+ * incoming message id, and while not yet connected, (re)starts the timeout ti[mer]."
+ * The four network_timer_* callees are types/networking.h's network_timer_pair helpers, already rewritten
+ * in this repo.
  *
  * @address 0x4e0590
  */
@@ -139,8 +139,8 @@ void ClientView::connection_handshake_tick(int16_t state, network_server_globals
 
 /**
  * out/phase4/networking_functions.md: "Finds the channel-key entry matching the
- * caller's key and parameter and, unless a follow-up check succeeds, flags DAT_0071c2de and
- * calls FUN_004aa900 (likely to force a host handoff or disconnect)." The scanned array (client
+ * caller's key and parameter and, unless a follow-up check succeeds, flags network_host_handoff_requested and
+ * calls ChatDialog::close (likely to force a host handoff or disconnect)." The scanned array (client
  * treated as short*, +0x669 shorts == byte +0xcd2) matches network_client->session.players[]'s
  * machine_index/machine_player_index fields exactly (same evidence as
  * network_game_session_reset.c and network_player_entry_add.c). network_session_info_packet_send and

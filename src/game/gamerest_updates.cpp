@@ -753,7 +753,7 @@ void PlayerNetworkState::apply_remote_vehicle_position_update(object *unit_obj)
  * Only while this machine is a network client, and only for a non-local player with a unit:
  * revalidates the unit (_object_mask_unit) and stamps field0 into its +0x4bc (see
  * game_engine_server_update_player_positions.c, this batch, for the producer side). Then, based
- * on whether FUN_00477210 says the unit's controlling player currently has a parent object (e.g.
+ * on whether player_unit_has_parent says the unit's controlling player currently has a parent object (e.g.
  * boarding or seated), applies either a smooth remote-player position update or the vehicle
  * variant.
  *

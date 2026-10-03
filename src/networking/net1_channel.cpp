@@ -1,4 +1,6 @@
 #include "halo/networking/net1_channel.hpp"
+#include "halo/networking/browser_state.hpp"
+#include "halo/networking/net_state.hpp"
 #include <string.h>
 
 extern "C" {
@@ -64,7 +66,6 @@ extern uint8_t network_query_receive_buffer[0x2000];
 typedef struct network_receive_queue network_receive_queue;
 typedef struct server_list_globals server_list_globals;
 extern uint8_t server_browser_initialized;
-extern uint8_t DAT_00719488;
 extern int32_t server_browser_query_elapsed_ms;
 extern int32_t server_browser_selected_index;
 extern int32_t server_browser_last_click_ms;
@@ -96,7 +97,6 @@ extern int32_t network_channel_reliable_pool_ensure_capacity(network_channel *ch
 extern int32_t network_rate_override;
 extern int32_t network_rate_table[];
 extern uint8_t network_channel_service_backoff_bypass;
-extern int32_t unknown_00697ed8;
 extern game_time_globals *game_time;
 extern int16_t network_game_mode;
 extern void network_channel_scan_retransmit_timeouts(network_channel *channel);
@@ -860,10 +860,10 @@ void ChannelCallbacks::on_server_browser_list(void *sb, uint32_t reason, void *s
         }
         return;
     default:
-        if (DAT_00719488 != 0) {
+        if (halo::networking::browser_state::refresh_in_flight != 0) {
             server_browser_query_elapsed_ms = 9999;
         }
-        DAT_00719488 = 0;
+        halo::networking::browser_state::refresh_in_flight = 0;
         return;
     }
 }
@@ -1474,7 +1474,7 @@ char ChannelView::service(int32_t timeout_ms, network_channel **out_new_child)
             goto after_timestamp;
         }
         if (network_channel_service_backoff_bypass == 0 &&
-            (unknown_00697ed8 * 0x1e < game_time->game_time || network_game_mode == 1)) {
+            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < game_time->game_time || network_game_mode == 1)) {
             return 0;
         }
     }
@@ -1550,7 +1550,7 @@ char ChannelView::service_light(int32_t timeout_ms, network_channel **out_new_ch
             goto after_timestamp;
         }
         if (network_channel_service_backoff_bypass == 0 &&
-            (unknown_00697ed8 * 0x1e < game_time->game_time || network_game_mode == 1)) {
+            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < game_time->game_time || network_game_mode == 1)) {
             return 0;
         }
     }
@@ -1793,8 +1793,8 @@ uint8_t ChannelKeys::resolve_target(network_player_entry *entry)
 
 /**
  * out/phase4/networking_functions.md: "Builds and sends a large state packet (via
- * FUN_004ec590/network_game_settings_packet_receive) when the connection is mid-game as host or client, otherwise
- * delegates to FUN_004ec670." client->state (state 2 or 3) matches this cluster's established
+ * AggregateFieldCodec::decode_compound_field/network_game_settings_packet_receive) when the connection is mid-game as host or client, otherwise
+ * delegates to AggregateFieldCodec::decode_compound_field_staged." client->state (state 2 or 3) matches this cluster's established
  * field.
  *
  * @address 0x4de950
@@ -2139,7 +2139,7 @@ void ListenerCallbacks::connection_request_handler(int32_t listen_handle, int32_
  * out/phase4/networking_functions.md summary ("cancels (rejects) the most recently
  * queued pending incoming connection request without accepting it"); mirrors
  * network_listen_accept_pending_connection.c's `network_pending_connections[count - 1]`
- * derivation from the same `(&DAT_0087bc0c)[count*5]` dword-array indexing.
+ * derivation from the same dword-array indexing.
  *
  * @address 0x442250
  */

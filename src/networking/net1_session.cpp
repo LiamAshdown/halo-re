@@ -238,7 +238,7 @@ void GameRuntime::client_apply_position_update(uint8_t *state, uint32_t *packet,
 
 /**
  * Stages `machine`'s connect_state, dispatches the message record by its type (either merges
- * changed sub-fields or takes the FUN_004ec590 path), restores connect_state, and -- if the
+ * changed sub-fields or takes the AggregateFieldCodec::decode_compound_field path), restores connect_state, and -- if the
  * staged copy's first byte is set -- checks connection quality and, on success, applies the
  * position/orientation update and logs it.
  *
@@ -411,7 +411,7 @@ char GameRuntime::settings_ack_send(uint8_t *client, int16_t template_row)
  * out/phase4/networking_functions.md: "Packages a 32-byte game-settings record
  * together with the current tick, encodes and broadcasts it as message type 0x18, and records
  * the send via network_object_record_last_sender." Follows the same data_packet_group_encode_packet /
- * network_message_block_build / FUN_004e19c0 broadcast idiom as network_prepare_challenge_packet.c and
+ * network_message_block_build / network_session_broadcast_to_all broadcast idiom as network_prepare_challenge_packet.c and
  * network_game_server_host_dispose.c's challenge-packet send.
  *
  * @address 0x4df0e0

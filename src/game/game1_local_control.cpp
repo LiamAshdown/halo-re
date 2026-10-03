@@ -12,8 +12,11 @@
 #include "game.h"
 #include "crt.h"
 #include <string.h>
+#include "interface.h"
+#include "main.h"
 
 #include "halo/game/game1_local_control.hpp"
+#include "halo/game/legacy_globals.hpp"
 
 #define k_degrees_to_radians 0.017453292f
 #define k_seconds_per_tick   0.033333335f
@@ -49,12 +52,11 @@ extern void player_compute_view_forward_vector(datum_index player_handle, real *
     real_vector3d *out_forward);
 extern double atan2(double y, double x);
 extern uint8_t game_engine_input_source_flag;
-extern uint8_t unknown_007124a0;
 extern uint8_t game_state_write_in_progress;
 extern uint8_t *cinematic_globals_ptr;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
-extern uint8_t unknown_0071973b;
+extern main_globals main_globals_data;
 extern real weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
 }
 
@@ -433,11 +435,11 @@ void LocalControl::digitize_control_input(player_control_input *input)
     uint32_t control_flags = input->control_flags;
     uint32_t button_flags = input->button_flags;
 
-    if ((input->melee != 0 || unknown_007124a0 != 0) && game_state_write_in_progress == 0 &&
+    if ((input->melee != 0 || local_player_input_states[0].buttons[halo::game::globals::k_input_action_accept] != 0) && game_state_write_in_progress == 0 &&
         *(int8_t *)(cinematic_globals_ptr + 10) != 0) {
         split_screen_quit_prompt_string = 0xffff;
         network_join_error_reason = 0;
-        unknown_0071973b = 1;
+        main_globals_data.revert_map_if_allowed = 1;
     }
 
     if (control_flags & 0x40) { *flags |= _player_action_jump; }

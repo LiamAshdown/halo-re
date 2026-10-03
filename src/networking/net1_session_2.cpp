@@ -100,7 +100,7 @@ void GameRuntime::start_new_server_from_profile(uint32_t param_1)
 }
 
 /**
- * REVIEW PASS 2026-09-20: FUN_004ec590 takes the decode context in EAX and the destination in
+ * REVIEW PASS 2026-09-20: AggregateFieldCodec::decode_compound_field takes the decode context in EAX and the destination in
  * ECX (0x4dbaa3 `lea ecx,[esp+0xc]`). The scratch it fills is what supplies player_index
  * (scratch[0], read back at 0x4dbab4) and new_value; both were modelled as elided outputs.
  * The EAX argument is this function own incoming EAX, which Ghidra dropped entirely -- the

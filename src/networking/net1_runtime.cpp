@@ -194,8 +194,7 @@ void ConnectionStats::log_tick()
  * name confidence: 0.5   rewrite confidence: 0.65
  * out/phase4/networking_types_notes.md "network_connection_statistics (0x44) and
  * network_summary_statistics (0x1c)": the stride is pinned three ways in this exact function
- * ("(&DAT_0087becc)[i*0x11]" dword array, "(&DAT_0087bed0)[i*0x22]" word array and
- * "(&DAT_0087bec8)[i*0x44]" byte array all resolve to the same element").
+ * (the dword, word and byte indexings of network_connection_stats all resolve to the same element).
  *
  * @address 0x440a80
  */
@@ -452,7 +451,7 @@ char * NetworkRuntime::log_path_resolve(char *requested_path)
 /**
  * Checks that every character of `name` is renderable in the small UI font and, for mode 3
  * (UNSURE: player-name entry), that the name is non-empty and does not begin with a space or
- * byte 0xa0. For mode 1 (UNSURE: server-name entry), additionally requires FUN_004a8b10 to pass.
+ * byte 0xa0. For mode 1 (UNSURE: server-name entry), additionally requires UiStrings::wide_string_has_non_whitespace to pass.
  *
  * @address 0x4e4350
  */
@@ -991,7 +990,7 @@ uint16_t * MessageBlocks::block_build(uint16_t *buffer, uint32_t *source, uint8_
 
 /**
  * out/phase4/networking_functions.md: "Register-based helper (EDI) that validates a
- * size/capacity value obtained twice from FUN_004cf950 against param_1 before returning the
+ * size/capacity value obtained twice from bit_stream_view::read_bits_chunked against param_1 before returning the
  * buffer pointer, otherwise returns null." Reads a 16-bit chunked header into `buffer` itself,
  * checks its high 12 bits (a byte count) against the caller's capacity, then reads that many
  * more bits and confirms the bit count consumed matches exactly, before returning `buffer`.

@@ -12,7 +12,7 @@
 //     +0x204 object_names.count +0x208 .pointer            stride 0x24  ScenarioObjectName
 //     +0x364 trigger_volumes.pointer                       stride 0x60  ScenarioTriggerVolume
 //     +0x384 netgame_equipment.count +0x388 .pointer        stride 0x90  ScenarioNetgameEquipment,
-//            scenario_load stamps +0x10 (unknown_ffffffff) with -1 in every element
+//            scenario_load stamps +0x10 (spawned_item) with -1 in every element
 //     +0x5a4 structure_bsps.count +0x5a8 .pointer           stride 0x20  ScenarioBSP,
 //            structure_bsp.tag_id at +0x1c
 //   ScenarioStructureBSP (global_structure_bsp, 0x00746f9c)

@@ -18,6 +18,7 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "halo/networking/browser_state.hpp"
 #include "halo/networking/net2_server_browser.hpp"
 #include "halo/networking/server_sort.hpp"
 
@@ -34,14 +35,13 @@ extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern void * server_browser_join_target;
 extern uint8_t server_browser_join_target_has_password;
 extern uint16_t network_join_target_address[128];
-extern uint8_t DAT_007193be;
+extern virtual_keyboard_globals virtual_keyboard;
 extern int32_t mouse_device;
 extern uint8_t input_suppressed;
 extern int32_t mouse_neutral_state[3];
 extern int32_t live_mouse_state[3];
 extern void * master_server_query_engine;
 extern network_thread_record * server_list_thread;
-extern int32_t DAT_007196a0;
 extern uint8_t server_browser_query_pending;
 extern int32_t server_list_scroll_offset;
 extern int32_t server_browser_selected_index;
@@ -50,15 +50,9 @@ extern int32_t server_browser_last_click_ms;
 extern network_mutex_record * server_list_mutex;
 extern uint8_t server_browser_join_requested;
 extern int32_t master_server_last_result;
-extern int32_t DAT_00719484;
 extern uint32_t master_server_request_flags;
 extern int32_t master_server_connection_last_tick_ms;
-extern int32_t DAT_006b5e88;
-extern int32_t DAT_006953fc;
-extern int32_t DAT_00695420;
 extern autopatch_download_slot autopatch_download_slots[k_network_autopatch_download_slots];
-extern wchar_t DAT_00719498[0x100];
-extern uint16_t DAT_00719696;
 extern uint8_t server_browser_require_valid_entry;
 extern int32_t server_browser_total_players;
 extern heap * widget_memory_pool;
@@ -67,7 +61,6 @@ extern wchar_t empty_string[];
 extern int32_t network_join_request_resolve_host(void);
 extern void widget_close_all(void);
 extern uint8_t input_get_key_state(int16_t key_index);
-extern int32_t DAT_00719698;
 extern void widget_play_sound_effect(int16_t effect_id);
 extern void master_server_process_pending_requests(void);
 extern int32_t SBServerHasFullKeys(void *entry);
@@ -113,16 +106,8 @@ extern const wchar_t PTR_s_parameter_handles_0063fff0_0x35_006607a0[];
 extern uint8_t server_browser_initialized;
 extern uint8_t network_session_start_host_name[];
 extern uint8_t network_session_start_map_name[];
-extern int32_t DAT_006b5e6c;
-extern int32_t DAT_006b5e68;
-extern int32_t DAT_006b5e64;
-extern int32_t DAT_006b5e60;
-extern int32_t DAT_006b5e84;
-extern int32_t DAT_006b5e80;
-extern int32_t DAT_006b5e7c;
 extern int32_t saved_player_profile_slots_handle;
 extern uint8_t profile_globals_block[];
-extern uint8_t DAT_00719488;
 extern void network_channels_open(void);
 extern int32_t master_server_connection_start(void);
 extern void * ServerBrowserNew(void *a, void *b, void *c, int32_t d, int32_t e, int32_t f,
@@ -145,7 +130,7 @@ extern int32_t server_browser_ping_limits[];
 extern uint32_t gamespy_array_length(int32_t object);
 extern uint8_t autopatch_version_string_is_outdated(const char *gamever);
 extern int32_t map_list_find_known_map_index(const char *mapname);
-extern char DAT_0066b090[];
+
 void game_variant_list_matching_substring(uint32_t argument_count, char **arguments);
 int32_t join_game_server_browser_tick(network_ui_widget *browser_widget);
 void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index);
@@ -330,7 +315,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
                 widget_close_all();
                 return 1;
             }
-        } else if (DAT_007193be != 0) {
+        } else if (virtual_keyboard.committed != 0) {
             password_panel = browser_widget->parent->first_child->next_sibling->next_sibling->next_sibling;
             password_panel->visible = 1;
             password_panel->hidden = 0;
@@ -428,7 +413,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
             row_entry->hidden = 1;
         } while (idx < 0xf);
     } else {
-        DAT_007196a0 = 0;
+        browser_state::tick_reset_flag = 0;
         if (server_list_thread == 0) {
             master_server_process_pending_requests();
         }
@@ -532,22 +517,22 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
         }
     }
 
-    if (DAT_00719484 < 0) {
-        DAT_00719484 = DAT_00719484 + 4;
-        if (DAT_00719484 < 1) {
+    if (browser_state::scroll_arrow_flash < 0) {
+        browser_state::scroll_arrow_flash = browser_state::scroll_arrow_flash + 4;
+        if (browser_state::scroll_arrow_flash < 1) {
             goto scroll_fade_settled;
         }
-    } else if (DAT_00719484 < 1 || (DAT_00719484 = DAT_00719484 - 4, -1 < DAT_00719484)) {
+    } else if (browser_state::scroll_arrow_flash < 1 || (browser_state::scroll_arrow_flash = browser_state::scroll_arrow_flash - 4, -1 < browser_state::scroll_arrow_flash)) {
         goto scroll_fade_settled;
     }
-    DAT_00719484 = 0;
+    browser_state::scroll_arrow_flash = 0;
 scroll_fade_settled:
     if (server_list_scroll_offset < 1 || player_count < 1) {
         bVar11 = 0;
     } else {
         bVar11 = 1;
     }
-    bVar12 = DAT_00719484 < 0;
+    bVar12 = browser_state::scroll_arrow_flash < 0;
     w_iter = up_arrow->parent->selected_child;
     if (bVar11) {
         up_arrow->hidden = 0;
@@ -578,7 +563,7 @@ scroll_fade_settled:
         down_arrow->highlight_flag = 0;
         *(uint32_t *)&down_arrow->alpha = 0x3eaa7efa;
     }
-    if (DAT_00719484 < 1) {
+    if (browser_state::scroll_arrow_flash < 1) {
         down_arrow->first_child->highlight_flag = 0;
     } else {
         down_arrow->first_child->highlight_flag = 1;
@@ -603,62 +588,62 @@ scroll_fade_settled:
         master_server_last_result = 0;
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-        if (DAT_006b5e88 <= (uint32_t)(now_ms - master_server_connection_last_tick_ms)) {
+        if ((uint32_t)server_browser_variant_ticker.scroll_delay_ms <= (uint32_t)(now_ms - master_server_connection_last_tick_ms)) {
             master_server_connection_last_tick_ms = now_ms;
             ticker_text_buffer_advance((uint8_t *)w17, &server_browser_player_ticker);
             ticker_text_buffer_advance((uint8_t *)w18, &server_browser_variant_ticker);
         }
-        if ((uint32_t)DAT_006953fc < (uint32_t)now_ms) {
+        if ((uint32_t)browser_state::next_auto_refresh_ms < (uint32_t)now_ms) {
             if (server_browser_require_valid_entry == 0 && server_browser_selected_index == -1) {
                 master_server_list_refresh_request();
             }
-            DAT_006953fc = now_ms + 10000;
+            browser_state::next_auto_refresh_ms = now_ms + 10000;
         }
-        autopatch_slot = DAT_00695420;
-        if (DAT_00695420 != -1) {
+        autopatch_slot = browser_state::motd_download_slot;
+        if (browser_state::motd_download_slot != -1) {
             state = -1;
-            if (-1 < DAT_00695420 && DAT_00695420 < 2) {
-                state = autopatch_download_slots[DAT_00695420].state;
+            if (-1 < browser_state::motd_download_slot && browser_state::motd_download_slot < 2) {
+                state = autopatch_download_slots[browser_state::motd_download_slot].state;
             }
             switch (state) {
             case 4:
                 got_result = autopatch_download_get_result((void **)&result_a, &result_b, autopatch_slot);
                 if (got_result != 0) {
                     if (result_a == 0 || result_b == 0) {
-                        join_game_ticker_string_copy((uint16_t *)DAT_00719498, 0x100, 5);
-                        autopatch_slot = DAT_00695420;
+                        join_game_ticker_string_copy((uint16_t *)browser_state::ticker_message, 0x100, 5);
+                        autopatch_slot = browser_state::motd_download_slot;
                     } else {
 
-                        string_convert_ascii_to_unicode(DAT_00719498, 0x200, (const char *)(uintptr_t)result_a);
-                        DAT_00719696 = 0;
+                        string_convert_ascii_to_unicode(browser_state::ticker_message, 0x200, (const char *)(uintptr_t)result_a);
+                        browser_state::ticker_message_terminator = 0;
                     }
                     if (server_browser_selected_index == -1) {
                         server_browser_ui_refresh();
-                        autopatch_slot = DAT_00695420;
+                        autopatch_slot = browser_state::motd_download_slot;
                     }
                 }
                 if (-1 < autopatch_slot && autopatch_slot < 2 &&
                     autopatch_download_slots[autopatch_slot].request_id != -1) {
                     *((uint8_t *)&autopatch_download_slots[autopatch_slot] + 0x11) = 1;
                 }
-                DAT_00695420 = -1;
-                DAT_00719698 = 3;
+                browser_state::motd_download_slot = -1;
+                browser_state::motd_download_state = 3;
                 return 1;
             case -1:
             case 0:
             case 5:
-                if (-1 < DAT_00695420 && DAT_00695420 < 2 &&
-                    autopatch_download_slots[DAT_00695420].request_id != -1) {
-                    *((uint8_t *)&autopatch_download_slots[DAT_00695420] + 0x11) = 1;
+                if (-1 < browser_state::motd_download_slot && browser_state::motd_download_slot < 2 &&
+                    autopatch_download_slots[browser_state::motd_download_slot].request_id != -1) {
+                    *((uint8_t *)&autopatch_download_slots[browser_state::motd_download_slot] + 0x11) = 1;
                 }
-                DAT_00695420 = -1;
-                DAT_00719698 = 2;
-                DAT_00719498[0] = 0;
+                browser_state::motd_download_slot = -1;
+                browser_state::motd_download_state = 2;
+                browser_state::ticker_message[0] = 0;
                 tag_idx = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
                 if (tag_idx != -1) {
                     src = text_string_list_get_string(tag_idx, 5);
-                    wcsncpy(DAT_00719498, (const wchar_t *)src, 0xff);
-                    DAT_00719696 = 0;
+                    wcsncpy(browser_state::ticker_message, (const wchar_t *)src, 0xff);
+                    browser_state::ticker_message_terminator = 0;
                 }
                 if (server_browser_selected_index == -1) {
                     server_browser_ui_refresh();
@@ -1483,9 +1468,6 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
 int32_t ServerBrowser::open(network_ui_widget *root)
 {
     uint8_t &network_join_target_address = reinterpret_cast<uint8_t &>(::network_join_target_address);
-    uint8_t &DAT_00719698 = reinterpret_cast<uint8_t &>(::DAT_00719698);
-    uint8_t &DAT_00719696 = reinterpret_cast<uint8_t &>(::DAT_00719696);
-    int32_t &server_browser_player_ticker = reinterpret_cast<int32_t &>(::server_browser_player_ticker);
     int32_t (*const tag_lookup)(const char *path) = reinterpret_cast<int32_t (*)(const char *path)>(&::tag_lookup);
     uint16_t * (*const text_string_list_get_string)(int32_t tag_index, int32_t string_index) = reinterpret_cast<uint16_t * (*)(int32_t tag_index, int32_t string_index)>(&::text_string_list_get_string);
     void (*const server_list_reset)(void) = reinterpret_cast<void (*)(void)>(&::server_list_reset);
@@ -1515,34 +1497,34 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     server_browser_join_target_has_password = 0;
     network_join_target_address = 0;
     autopatch_download_pool_initialize();
-    if (server_browser_require_valid_entry != 0 && DAT_00719698 == 0) {
+    if (server_browser_require_valid_entry != 0 && browser_state::motd_download_state == 0) {
         motd_available = shell_load_localized_string(0x90, motd_string);
         if (motd_available != 0) {
-            DAT_00695420 = autopatch_download_start(motd_string);
-            DAT_00719698 = 1;
-            join_game_ticker_string_copy((uint16_t *)DAT_00719498, 0x100, 4);
+            browser_state::motd_download_slot = autopatch_download_start(motd_string);
+            browser_state::motd_download_state = 1;
+            join_game_ticker_string_copy((uint16_t *)browser_state::ticker_message, 0x100, 4);
         }
     }
-    if (DAT_00719498[0] == 0) {
-        DAT_00719498[0] = 0;
+    if (browser_state::ticker_message[0] == 0) {
+        browser_state::ticker_message[0] = 0;
         tag_index = tag_lookup(
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
         if (tag_index != -1) {
             source = text_string_list_get_string(tag_index, 0);
-            wcsncpy(DAT_00719498, (const wchar_t *)source, 0xff);
-            DAT_00719696 = 0;
+            wcsncpy(browser_state::ticker_message, (const wchar_t *)source, 0xff);
+            browser_state::ticker_message_terminator = 0;
         }
     }
-    DAT_006b5e6c = 100;
-    DAT_006b5e88 = 100;
-    server_browser_player_ticker = 0;
-    DAT_006b5e68 = 0;
-    DAT_006b5e64 = 0;
-    DAT_006b5e60 = 0;
+    server_browser_player_ticker.scroll_delay_ms = 100;
+    server_browser_variant_ticker.scroll_delay_ms = 100;
+    server_browser_player_ticker.text = 0;
+    server_browser_player_ticker.capacity = 0;
+    server_browser_player_ticker.length = 0;
+    server_browser_player_ticker.scroll_cursor = 0;
     server_browser_variant_ticker.text = 0;
-    DAT_006b5e84 = 0;
-    DAT_006b5e80 = 0;
-    DAT_006b5e7c = 0;
+    server_browser_variant_ticker.capacity = 0;
+    server_browser_variant_ticker.length = 0;
+    server_browser_variant_ticker.scroll_cursor = 0;
 
     if (saved_player_profile_slots_handle == -1) {
         saved_config[0x1787] = 1;
@@ -1619,8 +1601,8 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     list_container->parent->visible = 0;
     list_container->parent->hidden = 1;
     join_game_server_browser_tick(root->selected_child);
-    DAT_006953fc = 0;
-    DAT_00719488 = 0;
+    browser_state::next_auto_refresh_ms = 0;
+    browser_state::refresh_in_flight = 0;
     return 1;
 }
 
@@ -1934,7 +1916,7 @@ void ServerBrowser::ui_refresh(void)
 {
     ticker_text_buffer_append(0, 2, &server_browser_player_ticker);
     ticker_text_buffer_append(0, 1, &server_browser_variant_ticker);
-    ticker_text_buffer_append(DAT_00719498, 0, &server_browser_player_ticker);
+    ticker_text_buffer_append(browser_state::ticker_message, 0, &server_browser_player_ticker);
 }
 
 int32_t ServerBrowser::compare_by_gametype(const void *a, const void *b)
@@ -2035,8 +2017,8 @@ int32_t ServerBrowser::compare_by_ping_then_hostname(void **a, void **b)
     char *hostname_b;
     int32_t hostname_diff;
 
-    ping_a = SBServerGetIntValue(*a, DAT_0066b090, 0);
-    ping_b = SBServerGetIntValue(*b, DAT_0066b090, 0);
+    ping_a = SBServerGetIntValue(*a, "ping", 0);
+    ping_b = SBServerGetIntValue(*b, "ping", 0);
     if (ping_a == 0) {
         ping_a = 9999;
     }
@@ -2138,12 +2120,12 @@ void ServerBrowser::reset(uint8_t *entry)
     server_browser_last_click_ms = 0;
     server_browser_player_list_ready = 0;
     server_browser_skip_reselect = 0;
-    DAT_00719484 = 0;
+    browser_state::scroll_arrow_flash = 0;
     server_browser_total_players = 0;
     server_list_result_reset(entry);
     ticker_text_buffer_append(0, 2, &server_browser_player_ticker);
     ticker_text_buffer_append(0, 1, &server_browser_variant_ticker);
-    ticker_text_buffer_append(DAT_00719498, 0, &server_browser_player_ticker);
+    ticker_text_buffer_append(browser_state::ticker_message, 0, &server_browser_player_ticker);
 }
 
 uint32_t ServerBrowser::result_count_get(void)
@@ -2235,7 +2217,7 @@ void ServerBrowser::scroll_page_down(uint8_t jump_to_bottom)
     server_list_scroll_offset = max_scroll;
 after_clamp:
     if (old_offset != server_list_scroll_offset) {
-        DAT_00719484 = 0x10;
+        browser_state::scroll_arrow_flash = 0x10;
         if (server_list_scroll_offset <= server_browser_selected_index &&
             server_browser_selected_index < server_list_scroll_offset + 0xf) {
             server_browser_skip_reselect = 0;
@@ -2268,7 +2250,7 @@ void ServerBrowser::scroll_page_up(uint8_t jump_to_top)
     server_list_scroll_offset = max_scroll;
 after_clamp:
     if (old_offset != server_list_scroll_offset) {
-        DAT_00719484 = 0xfffffff0;
+        browser_state::scroll_arrow_flash = 0xfffffff0;
         if (server_list_scroll_offset <= server_browser_selected_index &&
             server_browser_selected_index < server_list_scroll_offset + 0xf) {
             server_browser_skip_reselect = 0;

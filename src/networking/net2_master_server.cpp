@@ -8,6 +8,7 @@
 #include "win32.h"
 #include "game.h"
 #include "networking.h"
+#include "halo/networking/browser_state.hpp"
 #include "halo/networking/net2_master_server.hpp"
 
 extern "C" {
@@ -24,14 +25,11 @@ extern int32_t sound_time;
 extern int64_t performance_frequency;
 extern void sound_idle_update(void);
 extern void * master_server_query_engine;
-extern uint8_t DAT_00719488;
 extern int32_t server_browser_query_elapsed_ms;
 extern int32_t ServerBrowserState(void *engine);
 extern int32_t ServerBrowserCount(void *engine);
-extern int32_t DAT_006953fc;
 extern server_list_globals server_list;
 extern uint8_t server_browser_require_valid_entry;
-extern uint8_t DAT_00695424[10];
 extern uint32_t network_session_start_game_type;
 extern int32_t server_browser_selected_index;
 extern server_list_globals * server_list_mutex_try_lock(uint32_t timeout_ms);
@@ -159,13 +157,13 @@ void MasterServerConnection::ensure_list_connection(void)
                 master_server_list_refresh_request();
                 return;
             }
-            DAT_00719488 = 1;
+            browser_state::refresh_in_flight = 1;
             master_server_request_flags = master_server_request_flags | 0x10;
             return;
         }
         master_server_request_flags = master_server_request_flags | 4;
         server_browser_query_elapsed_ms = 9999;
-        DAT_00719488 = 0;
+        browser_state::refresh_in_flight = 0;
     }
 }
 
@@ -177,8 +175,8 @@ void MasterServerConnection::list_refresh_request(void)
     master_server_request_flags = master_server_request_flags | 8;
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-    DAT_006953fc = now_ms + 10000;
-    DAT_00719488 = 1;
+    browser_state::next_auto_refresh_ms = now_ms + 10000;
+    browser_state::refresh_in_flight = 1;
 }
 
 void MasterServerConnection::process_pending_requests(void)
@@ -237,7 +235,7 @@ void MasterServerConnection::process_pending_requests(void)
                     last_result = ServerBrowserLANUpdate(master_server_query_engine, 1, network_session_start_game_type,
                                                 (uint16_t)network_session_start_game_type);
                 } else {
-                    last_result = ServerBrowserUpdate(master_server_query_engine, 1, 0, DAT_00695424, 10, 0);
+                    last_result = ServerBrowserUpdate(master_server_query_engine, 1, 0, browser_state::master_query_key_ids, 10, 0);
                 }
             } else {
                 master_server_request_flags = master_server_request_flags | 0x10;

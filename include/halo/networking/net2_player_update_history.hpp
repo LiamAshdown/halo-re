@@ -23,7 +23,7 @@ public:
     static int32_t advance(int16_t step_count);
 
     /**
-     * this call site's decompile shows zero arguments (`cVar1 = FUN_00477210();`), i.e. the batch dropped whatever ECX held; unit_ext->controlling_player (unit_data +0x218) is the only player handle in scope and is what is passed here, but this is a reconstruction, not something the decompile itself shows.
+     * this call site's decompile shows zero arguments (`cVar1 = player_unit_has_parent();`), i.e. the batch dropped whatever ECX held; unit_ext->controlling_player (unit_data +0x218) is the only player handle in scope and is what is passed here, but this is a reconstruction, not something the decompile itself shows.
      *
      * @address 0x4e6b50
      */

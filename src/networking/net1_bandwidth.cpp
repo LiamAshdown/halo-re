@@ -148,7 +148,7 @@ uint32_t BandwidthMonitor::reset()
  * out/phase4/networking_functions.md summary ("Parses a units/direction
  * command-line pair (e.g. 'bytes sent') and, if valid, (re)configures the network bandwidth
  * debug graph to display them"); out/phase2/results/networking_01.json evidence ("only
- * proceeds if the overlay is enabled (DAT_00710305), resolves a units token via
+ * proceeds if the overlay is enabled (network_bandwidth_overlay_enabled), resolves a units token via
  *
  * @address 0x4d7d90
  */

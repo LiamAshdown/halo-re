@@ -1344,7 +1344,7 @@ void PlayerView::update_nearby_interactions_primary()
 /**
  * blam-cc: EDI -> player_index
  * As player_update_nearby_interactions_primary, but routes object_type 2/3 candidates to the
- * lightweight player_check_vehicle_boarding_interaction_lightweight instead of FUN_004788a0.
+ * lightweight player_check_vehicle_boarding_interaction_lightweight instead of player_check_vehicle_boarding_interaction.
  *
  * @address 0x478500
  */
@@ -1671,7 +1671,7 @@ void PlayerView::update_active_camouflage_depower()
  * unit without unit_flags bit 0x10 set). On success, fires the streak-start/streak-continue
  * notifications the first time this streak is touched, adds `amount` to
  * player::kill_streak[slot], and (dedicated server only, and only for the player's own
- * controlling unit) forwards the update via FUN_00479aa0. Returns 1 on success, 0 if any check
+ * controlling unit) forwards the update via player_notify_kill_streak_update. Returns 1 on success, 0 if any check
  * failed.
  *
  * @address 0x479ba0
