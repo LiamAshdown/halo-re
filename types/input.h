@@ -250,13 +250,10 @@ static_assert(sizeof(joystick_state) == 0xa0, "joystick_state layout");
 // The GetDeviceState buffer the poll hands input_joystick_state_process in its first
 // argument. Only the first axis_count / pov_count / button_count entries are consumed.
 // ---------------------------------------------------------------------------
-struct input_device;
 typedef struct joystick_raw_state {
     int32_t axes[0x20];            // 0x00 low 16 bits copied to joystick_state::axes
     uint32_t povs[0x10];           // 0x80 hundredths of a degree; low word 0xffff centered
     uint8_t buttons[0x20];         // 0xc0 bit 7 set while pressed
-
-    void joystick_state_process(joystick_state *dest, input_device *device);
 } joystick_raw_state;              // size 0xe0
 static_assert(sizeof(joystick_raw_state) == 0xe0, "joystick_raw_state layout");
 
@@ -286,8 +283,6 @@ typedef struct mouse_state {
     uint8_t button_pressed[8];     // 0x14 1 on the poll the button was RELEASED (held before,
                                    //      up now; 0x491c01..0x491c0d), else 0. The menu
                                    //      generator double click reads [0] (a completed click)
-
-    void mouse_state_process(di_mouse_state2 *raw);
 } mouse_state;                     // size 0x1c
 static_assert(sizeof(mouse_state) == 0x1c, "mouse_state layout");
 

@@ -26,11 +26,13 @@ struct DirectInput {
     static uint8_t get_key_state(int16_t key_index);
     static uint8_t get_mouse_button_state(int16_t button_index);
     static uint8_t guid_parse_ansi(input_guid *out_guid, char *ansi);
+    static void joystick_state_process(joystick_raw_state *raw, joystick_state *dest, input_device *device);
     static void key_block_timer_set(int16_t key, int32_t duration_ms);
     static void key_block_timers_expire(void);
     static uint8_t keyboard_device_create(void);
     static void keyboard_set_capture_mode(uint8_t enable_capture);
     static uint8_t mouse_device_create(void);
+    static void mouse_state_process(mouse_state *dest, di_mouse_state2 *raw);
     static void record_windows_key_message(uint32_t wparam, int32_t message);
 };
 

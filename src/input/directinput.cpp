@@ -885,6 +885,8 @@ uint8_t DirectInput::guid_parse_ansi(input_guid *out_guid, char *ansi)
 
 }
 
+namespace halo::input {
+
 /**
  * VERIFIED against disassembly 0x491fd0..0x49213f (2026-09-30): button saturation, the pov threshold cascade (negative or
  * 0xffff low word -> none, >= 0x83d6 -> north), axis copy and all three loop counts (+0x238/+0x23c/+0x234) match.
@@ -897,9 +899,8 @@ uint8_t DirectInput::guid_parse_ansi(input_guid *out_guid, char *ansi)
  *
  * @address 0x491fd0
  */
-void joystick_raw_state::joystick_state_process(joystick_state *dest, input_device *device)
+void DirectInput::joystick_state_process(joystick_raw_state *raw, joystick_state *dest, input_device *device)
 {
-    joystick_raw_state *raw = this;
     int32_t i;
     int32_t angle;
     int32_t octant;
@@ -947,6 +948,8 @@ void joystick_raw_state::joystick_state_process(joystick_state *dest, input_devi
     for (i = 0; i < device->axis_count; i++) {
         dest->axes[i] = (int16_t)raw->axes[i];
     }
+}
+
 }
 
 extern "C" { extern int16_t system_keys[k_input_system_key_count]; }
@@ -1187,6 +1190,8 @@ uint8_t DirectInput::mouse_device_create(void)
 
 }
 
+namespace halo::input {
+
 /**
  * Converts one raw DirectInput mouse sample into the engine's mouse_state: x copied, y negated,
  * wheel divided by mouse_wheel_granularity and negated (left unchanged if the granularity is
@@ -1197,9 +1202,8 @@ uint8_t DirectInput::mouse_device_create(void)
  *
  * @address 0x491bc0
  */
-void mouse_state::mouse_state_process(di_mouse_state2 *raw)
+void DirectInput::mouse_state_process(mouse_state *dest, di_mouse_state2 *raw)
 {
-    mouse_state *dest = this;
     int32_t i;
     int32_t mapped_slot;
     uint8_t pressed_now;
@@ -1224,6 +1228,8 @@ void mouse_state::mouse_state_process(di_mouse_state2 *raw)
             dest->button_frames[mapped_slot] = 0;
         }
     }
+}
+
 }
 
 extern "C" { extern int16_t virtual_key_to_key[0x100]; }

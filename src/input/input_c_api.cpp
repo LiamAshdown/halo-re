@@ -347,7 +347,7 @@ uint8_t input_guid_parse_ansi(input_guid *out_guid, char *ansi)
 
 void input_joystick_state_process(joystick_raw_state *raw, joystick_state *dest, input_device *device)
 {
-    raw->joystick_state_process(dest, device);
+    halo::input::DirectInput::joystick_state_process(raw, dest, device);
 }
 
 void input_key_block_timer_set(int16_t key, int32_t duration_ms)
@@ -377,7 +377,7 @@ uint8_t input_mouse_device_create()
 
 void input_mouse_state_process(mouse_state *dest, di_mouse_state2 *raw)
 {
-    dest->mouse_state_process(raw);
+    halo::input::DirectInput::mouse_state_process(dest, raw);
 }
 
 void input_record_windows_key_message(uint32_t wparam, int32_t message)
