@@ -1,6 +1,7 @@
 #include "halo/game/gamerest_camera.hpp"
 #include <string.h>
 #include "halo/math/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -91,7 +92,7 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
         probe_delta.i = camera_direction.i * 128.0f;
         probe_delta.j = camera_direction.j * 128.0f;
         probe_delta.k = camera_direction.k * 128.0f;
-        collision_test_movement_segment(0x1000e9, &probe_origin, &probe_delta, ((struct player *)player)->unit, record);
+        halo::physics::collision_test_movement_segment(0x1000e9, &probe_origin, &probe_delta, ((struct player *)player)->unit, (collision_result *)record);
 
         look_direction.i = *(real *)(record + 0x18) - observer_position->x;
         look_direction.j = *(real *)(record + 0x1c) - observer_position->y;

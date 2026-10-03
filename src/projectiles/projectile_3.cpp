@@ -2,6 +2,8 @@
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -209,7 +211,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         *(uint32_t *)&breakable_surface_damage.location_cluster_index =
             *(uint32_t *)((uint8_t *)&hit->leaf + 4);
 
-        breakable_surface_apply_damage(&breakable_surface_damage,
+        halo::physics::breakable_surface_apply_damage(&breakable_surface_damage,
             (*(uint32_t *)&hit->leaf & 0xffff0000u) | (uint32_t)hit->breakable_surface_index,
             hit->surface_index);
     }
@@ -349,11 +351,11 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
                 
                 
                 
-                effect_new_on_object_with_node_table(projectile_index, response_effect_tag, hit->object_index,
+                halo::effects::effect_new_on_object_with_node_table(projectile_index, response_effect_tag, hit->object_index,
                     (uint16_t)hit->node_index, 5, (uint32_t)projectile_effect_coordinate_system_names, (uint32_t)positions,
                     (uint32_t)coordinate_system, effect_scale, fade_out, 0, 0);
             } else {
-                effect_new_with_color(response_effect_tag, projectile_index, 0, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0, 1);
+                halo::effects::effect_new_with_color(response_effect_tag, projectile_index, 0, 5, (uint32_t)projectile_effect_coordinate_system_names, positions, (uint32_t)coordinate_system, effect_scale, fade_out, 0, 0, 1);
             }
         }
         
@@ -361,11 +363,11 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
             ((pd->flags & _projectile_at_rest_bit) != 0 || response_type == projectileresponse_attach)) {
             if (hit->type == _collision_result_type_object) {
                 
-                effect_new_on_object_with_node_table(projectile_index, *(uint32_t *)&tag->detonation_started.tag_id,
+                halo::effects::effect_new_on_object_with_node_table(projectile_index, *(uint32_t *)&tag->detonation_started.tag_id,
                     hit->object_index, (uint16_t)hit->node_index, 5, (uint32_t)projectile_effect_coordinate_system_names,
                     (uint32_t)positions, (uint32_t)coordinate_system, effect_scale, fade_out, 0, 0);
             } else {
-                effect_new_with_color(*(uint32_t *)&tag->detonation_started.tag_id, projectile_index, 0, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0, 1);
+                halo::effects::effect_new_with_color(*(uint32_t *)&tag->detonation_started.tag_id, projectile_index, 0, 5, (uint32_t)projectile_effect_coordinate_system_names, positions, (uint32_t)coordinate_system, effect_scale, fade_out, 0, 0, 1);
             }
         }
     }

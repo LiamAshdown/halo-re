@@ -6,6 +6,8 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -24,7 +26,6 @@ extern uint8_t actor_resolve_wander_or_look_direction(datum_index actor_index, r
 extern char ai_marker_name_a[];
 extern void *global_structure_collision_bsp;
 extern const real_vector3d *global_down3d_pointer;
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result, ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin, real_vector3d *delta, float max_fraction);
 extern data_array *player_data;
 extern void *memcpy(void *dst, const void *src, uint32_t n);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
@@ -436,7 +437,7 @@ int32_t UnitView::predict_aim_target_position(real_point3d *out_position)
 
         {
             uint32_t flt_max_bits = 0x7f7fffff;
-            hit = collision_bsp_query_segment_init(1, &segment_result, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
+            hit = halo::physics::collision_bsp_query_segment_init(1, &segment_result, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
                 (uint32_t *)0, &base_position, &delta, *(float *)&flt_max_bits);
         }
         hit_fraction = segment_result.t;
@@ -681,7 +682,7 @@ void UnitView::sample_camera_shake_from_velocity()
     delta.i = ((unit_object *)obj)->unit.aiming_vector.i * 25.0f;
     delta.j = ((unit_object *)obj)->unit.aiming_vector.j * 25.0f;
     delta.k = ((unit_object *)obj)->unit.aiming_vector.k * 25.0f;
-    if (collision_test_movement_segment(0x22, &camera_position, &delta, unit_index, &hit) &&
+    if (halo::physics::collision_test_movement_segment(0x22, &camera_position, &delta, unit_index, &hit) &&
         hit.plane.normal.k > 0.95f) {
         real_point3d position = hit.point;
 
@@ -1121,7 +1122,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
             if (!keep_still && network_game_mode != 0) {
                 datum_index weapon = UnitView(unit_index).get_weapon_object_index(OBJECT_I16(obj, 0x2f2));
 
-                if (object_try_and_get(weapon, 4) != 0 && weapon_must_be_readied(weapon) == 1) {
+                if (object_try_and_get(weapon, 4) != 0 && halo::items::weapon_must_be_readied(weapon) == 1) {
                     keep_still = 1;
                 }
             }

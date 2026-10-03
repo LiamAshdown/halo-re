@@ -7,6 +7,7 @@
 #include "crt.h"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -14,8 +15,6 @@ extern game_time_globals *game_time;
 extern void object_set_shield_depleted_flag(uint32_t object_index);
 extern void object_delete(uint32_t object_index);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
-extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
-extern breakable_surface_globals *breakable_surface_state;
 extern int16_t global_structure_bsp_index;
 extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
@@ -45,7 +44,6 @@ extern uint8_t cheat_super_jump;
 extern uint8_t unit_updates_suppressed;
 extern uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index, real_vector3d *out_velocity, uint32_t object_index, float speed_limit);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result, ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin, real_vector3d *delta, float max_fraction);
 }
 
 namespace halo::units {
@@ -110,7 +108,7 @@ void UnitView::find_nearest_valid_surface_plane()
 {
     uint32_t unit_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    ModelCollisionGeometryBSP *bsp = global_structure_collision_bsp;
+    ModelCollisionGeometryBSP *bsp = halo::physics::globals().structure_collision_bsp;
     real_point3d position;
     float pill_height;
     float pill_radius;
@@ -123,8 +121,8 @@ void UnitView::find_nearest_valid_surface_plane()
     int16_t i;
 
     ::halo::units::unit_get_crouch_height_offset(&position, unit_index, &pill_height, &pill_radius);
-    if (!(uint8_t)collision_bsp_query_sphere_init(bsp, 0x100, &result,
-            breakable_surface_state->active[global_structure_bsp_index], &position, pill_radius + 0.05f)) {
+    if (!(uint8_t)halo::physics::collision_bsp_query_sphere_init(bsp, 0x100, &result,
+            halo::physics::globals().breakable_surface_state->active[global_structure_bsp_index], &position, pill_radius + 0.05f)) {
         return;
     }
     if (result.surface_count <= 0) {
@@ -220,7 +218,7 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
     }
     count = grid_mode ? 27 : 18;
     if (orientation_object != k_datum_index_none) {
-        object_collision_context_build(orientation_object, &context);
+        halo::physics::object_collision_context_build(orientation_object, &context);
     }
     {
         real_vector3d *f = (real_vector3d *)(unit + 0x74);
@@ -257,29 +255,29 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
             point.y = radius * offset->j + base.y;
             point.z = radius * offset->k + base.z;
         }
-        leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, &point);
+        leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &point);
         if (leaf == -1) {
             continue;
         }
         if (*(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8) == -1) {
             continue;
         }
-        if (!physics_point_find_clear_position(flags, &point, pill_radius + pill_radius, pill_height, pill_radius,
+        if (!halo::physics::physics_point_find_clear_position(flags, &point, pill_radius + pill_radius, pill_height, pill_radius,
                 anchor_object, &point)) {
             continue;
         }
-        if (collision_test_movement_pill(flags, &point, pill_radius, &vertical, &pill_result)) {
+        if (halo::physics::collision_test_movement_pill(flags, &point, pill_radius, &vertical, &pill_result)) {
             continue;
         }
         if (orientation_object != k_datum_index_none) {
-            if (object_collision_context_test_pill(&context, &point, &vertical, pill_radius, &context_result)) {
+            if (halo::physics::object_collision_context_test_pill(&context, &point, &vertical, pill_radius, &context_result)) {
                 continue;
             }
-            if (collision_test_movement_segment_between_points(&point, &center, flags, anchor_object, &segment_result) &&
+            if (halo::physics::collision_test_movement_segment_between_points(&point, &center, flags, anchor_object, &segment_result) &&
                 segment_result.object_index != orientation_object) {
                 continue;
             }
-            if (collision_test_movement_segment_between_points(&center, &point, flags, orientation_object, &segment_result) &&
+            if (halo::physics::collision_test_movement_segment_between_points(&center, &point, flags, orientation_object, &segment_result) &&
                 segment_result.object_index != anchor_object) {
                 continue;
             }
@@ -729,7 +727,7 @@ int32_t UnitView::test_placement_candidate(const real_vector3d *direction, real_
     delta.i = distance * direction->i;
     delta.j = distance * direction->j;
     delta.k = distance * direction->k;
-    if (!collision_bsp_query_segment_init(1, &result, global_structure_collision_bsp, 0, 0, &origin, &delta,
+    if (!halo::physics::collision_bsp_query_segment_init(1, &result, halo::physics::globals().structure_collision_bsp, 0, 0, &origin, &delta,
                                           3.4028235e+38f)) {
         return -1;
     }

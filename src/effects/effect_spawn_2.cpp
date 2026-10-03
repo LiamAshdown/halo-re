@@ -1,6 +1,8 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern uint8_t particle_spawn_debug_mode;
@@ -8,13 +10,7 @@ extern data_array *object_data;
 extern uint8_t *first_person_weapon_interfaces;
 extern const real_point3d *global_origin3d_pointer;
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
-extern real effect_distribution_function_evaluate(EffectDistributionFunction_t type, real fraction);
-extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
-extern void particle_new(particle_creation_data *creation_data);
-extern real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset, uint32_t b_bitset, random_seed *seed, real base_min, real base_max);
-extern void effect_random_velocity_vector(effect *self, random_seed *seed, real_vector3d *direction, real_vector3d *out_direction, real_vector3d *out_velocity, real min, real max, real angle_max, uint32_t a_bitset, uint8_t b_bitset);
-void effect_spawn_particles(effect *self);
 }
 
 namespace halo::effects {
@@ -115,9 +111,9 @@ void effect_view::spawn_particles()
             continue;
         }
         count_scale = (real)(int32_t)self->particle_counts[type_index];
-        current_count = (int16_t)(int32_t)(effect_distribution_function_evaluate(
+        current_count = (int16_t)(int32_t)(halo::effects::effect_distribution_function_evaluate(
             (EffectDistributionFunction_t)*(uint16_t *)(pt + 0x68), current_fraction) * count_scale);
-        spawn_count = (int16_t)((uint16_t)current_count - (int32_t)(effect_distribution_function_evaluate(
+        spawn_count = (int16_t)((uint16_t)current_count - (int32_t)(halo::effects::effect_distribution_function_evaluate(
             (EffectDistributionFunction_t)*(uint16_t *)(pt + 0x68), previous_fraction) * count_scale));
         if (particle_spawn_debug_mode == 1) {
             spawn_count = (int16_t)(int32_t)((real)(int32_t)spawn_count * 0.5f);
@@ -127,8 +123,8 @@ void effect_view::spawn_particles()
         }
 
         marker_handle = self->location_markers[location];
-        for (entry = effect_marker_next(self, &marker_handle, create); entry != 0;
-             entry = effect_marker_next(self, &marker_handle, create)) {
+        for (entry = halo::effects::effect_marker_next(self, &marker_handle, create); entry != 0;
+             entry = halo::effects::effect_marker_next(self, &marker_handle, create)) {
             uint16_t remaining;
 
             if (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0 &&
@@ -183,7 +179,7 @@ void effect_view::spawn_particles()
                 {
                     real_vector3d raw_direction, raw_velocity;
 
-                    effect_random_velocity_vector(self, &halo::math::globals().effect_random_seed, (real_vector3d *)(pt + 0x20),
+                    halo::effects::effect_random_velocity_vector(self, &halo::math::globals().effect_random_seed, (real_vector3d *)(pt + 0x20),
                         &raw_direction, &raw_velocity, *(real *)(pt + 0x84), *(real *)(pt + 0x88),
                         *(real *)(pt + 0x8c), a_bits, (uint8_t)b_bits);
                     effect_spawn_particles_rotate_unscaled((real_vector3d *)&record.direction, raw_direction.i, raw_direction.j,
@@ -256,9 +252,9 @@ void effect_view::spawn_particles()
                     record.velocity.j = self->velocity.j * 30.0f + velocity.j;
                     record.velocity.k = self->velocity.k * 30.0f + velocity.k;
                 }
-                record.scale = effect_property_random_value(9, self, a_bits, b_bits, &halo::math::globals().effect_random_seed,
+                record.scale = halo::effects::effect_property_random_value(9, self, a_bits, b_bits, &halo::math::globals().effect_random_seed,
                     *(real *)(pt + 0xa0), *(real *)(pt + 0xa4));
-                record.angular_velocity = effect_property_random_value(3, self, *(uint32_t *)(pt + 0xe0),
+                record.angular_velocity = halo::effects::effect_property_random_value(3, self, *(uint32_t *)(pt + 0xe0),
                     *(uint32_t *)(pt + 0xe4), &halo::math::globals().effect_random_seed, *(real *)(pt + 0x90), *(real *)(pt + 0x94));
                 if ((pt[0x64] & 2) != 0) {
                     halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
@@ -288,7 +284,7 @@ void effect_view::spawn_particles()
                 record.first_person = (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0);
                 record.third_person_only = (create == 2);
                 record.first_person_only = (create == 1);
-                particle_new(&record);
+                halo::effects::particle_new(&record);
             } while (--remaining != 0);
         }
     }
@@ -297,7 +293,7 @@ void effect_view::spawn_particles()
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void effect_spawn_particles(effect *self)
 {

@@ -2,6 +2,8 @@
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -29,7 +31,6 @@ extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
 extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position, uint32_t ignore_object_index);
-extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time);
 extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind, ObjectNoise_t noise, int32_t param_5);
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
 extern game_time_globals *game_time;
@@ -304,8 +305,8 @@ uint8_t ProjectileHandle::collision_test(real_point3d *target, void *out_record)
     sweep_delta.j = target->y - obj->position.y;
     sweep_delta.k = target->z - obj->position.z;
 
-    hit = collision_test_movement_segment(k_projectile_collision_mask_point, &obj->position, &sweep_delta,
-                        (uint32_t)proj->ignore_object_index, out_record);
+    hit = halo::physics::collision_test_movement_segment(k_projectile_collision_mask_point, &obj->position, &sweep_delta,
+                        (uint32_t)proj->ignore_object_index, (collision_result *)out_record);
     if (hit != 0) {
         return 1;
     }
@@ -346,11 +347,11 @@ uint8_t ProjectileHandle::collision_test(real_point3d *target, void *out_record)
         minus_target.y = perpendicular.j * radius + target->y;
         minus_target.z = perpendicular.k * radius + target->z;
 
-        hit = collision_test_movement_segment(k_projectile_collision_mask_radius, &plus_origin, &plus_delta,
-                            (uint32_t)proj->ignore_object_index, out_record);
+        hit = halo::physics::collision_test_movement_segment(k_projectile_collision_mask_radius, &plus_origin, &plus_delta,
+                            (uint32_t)proj->ignore_object_index, (collision_result *)out_record);
         if (hit == 0) {
-            hit = collision_test_movement_segment_between_points(&minus_origin, &minus_target, k_projectile_collision_mask_radius, 
-                                   (uint32_t)proj->ignore_object_index, out_record);
+            hit = halo::physics::collision_test_movement_segment_between_points(&minus_origin, &minus_target, k_projectile_collision_mask_radius, 
+                                   (uint32_t)proj->ignore_object_index, (collision_result *)out_record);
             if (hit == 0) {
                 return 0;
             }
@@ -457,7 +458,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
             obj->attachment_handles[proj->contrail_attachment_index] != (datum_index)k_datum_index_none) {
             object_recalculate_bounding_radius(object_index);
             
-            contrail_advance(obj->attachment_handles[proj->contrail_attachment_index], 0,
+            halo::effects::contrail_advance(obj->attachment_handles[proj->contrail_attachment_index], 0,
                 (1.0f - remaining_tick_fraction) * 0.033333335f);
         }
     }
@@ -470,8 +471,8 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
         position_block[1] = position_block[0]; 
         direction_block[1] = *global_down3d_pointer;
 
-        effect_new_with_color(effect_tag_id, obj->creator_object, 0, 2, effect_names, position_block,
-                     direction_block, 0, 0, 0, 0, 1);
+        halo::effects::effect_new_with_color(effect_tag_id, obj->creator_object, 0, 2, (uint32_t)effect_names, position_block,
+                     (uint32_t)direction_block, 0, 0, 0, 0, 1);
     }
 
     if (obj->parent_object != (datum_index)k_datum_index_none &&
@@ -515,8 +516,8 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
             } else {
                 response = (ProjectileMaterialResponse *)tag->projectile_material_response.pointer + index;
             }
-            effect_new_with_color(*(uint32_t *)&response->detonation_effect.tag_id, obj->creator_object, 0, 2,
-                         effect_names, position_block, direction_block, 0, 0, 0, 0, 1);
+            halo::effects::effect_new_with_color(*(uint32_t *)&response->detonation_effect.tag_id, obj->creator_object, 0, 2,
+                         (uint32_t)effect_names, position_block, (uint32_t)direction_block, 0, 0, 0, 0, 1);
         }
     }
 

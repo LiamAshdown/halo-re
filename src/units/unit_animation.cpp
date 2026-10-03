@@ -7,6 +7,9 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern uint8_t *game_state_base;
@@ -23,8 +26,6 @@ extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t
 extern game_time_globals *game_time;
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern real_vector3d *global_down3d_pointer;
-extern float k_physics_gravity;
-extern void effect_marker_environment_probe(uint32_t definition_index, int16_t location_index, real_point3d *marker_position, uint32_t sound_param);
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
 extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
@@ -548,7 +549,7 @@ void UnitView::fire_animation_sound_trigger(uint32_t trigger_kind, int16_t conta
             (char *)(*(uint8_t **)(biped_tag + 0x4ec) + contact_point_index * 0x40 + 0x20), &marker, 1) == 0) {
         return;
     }
-    effect_marker_environment_probe(*(datum_index *)(biped_tag + 0x398), (int16_t)trigger_kind,
+    halo::effects::effect_marker_environment_probe(*(datum_index *)(biped_tag + 0x398), (int16_t)trigger_kind,
         (real_point3d *)((uint8_t *)&marker + 0x60), 0);
 }
 
@@ -1477,7 +1478,7 @@ void UnitView::update_animation_timers()
                 forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
             }
             if (((unit_object *)obj)->unit.current_speech.sound_tag != k_datum_index_none) {
-                ((unit_object *)obj)->unit.speech_sound_handle = sound_start_at_object_marker(unit_index, &position, &forward,
+                ((unit_object *)obj)->unit.speech_sound_handle = halo::sound::sound_start_at_object_marker(unit_index, &position, &forward,
                     ((unit_object *)obj)->unit.current_speech.sound_tag, node, 1.0f, 0);
             }
             ai_communication_gate_line_played(((unit_object *)obj)->unit.current_speech.priority, (ai_communication_record *)(obj + 0x398),

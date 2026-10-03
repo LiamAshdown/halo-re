@@ -10,6 +10,7 @@
 #include "networking.h"
 #include "halo/networking/browser_state.hpp"
 #include "halo/networking/net2_master_server.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern void * negotiatorList;
@@ -21,9 +22,7 @@ extern int32_t master_server_last_result;
 extern int32_t mutex_create(network_mutex_record **out_handle);
 extern int32_t network_thread_create(uint8_t flags, void *start_address, void *parameter,
                                        network_thread_record **out_handle);
-extern int32_t sound_time;
 extern int64_t performance_frequency;
-extern void sound_idle_update(void);
 extern void * master_server_query_engine;
 extern int32_t server_browser_query_elapsed_ms;
 extern int32_t ServerBrowserState(void *engine);
@@ -127,8 +126,8 @@ void MasterServerConnection::connection_wait_thread(void)
         }
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-        if (0x84 < (uint32_t)(now_ms - sound_time)) {
-            sound_idle_update();
+        if (0x84 < (uint32_t)(now_ms - halo::sound::globals().time)) {
+            halo::sound::sound_idle_update();
         }
         master_server_request_flags = master_server_request_flags | 2;
         Sleep(0x14);

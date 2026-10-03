@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "halo/input/system.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" { extern input_abstraction_globals input_globals; }
 extern "C" { extern int32_t last_input_device; }
@@ -58,7 +59,6 @@ extern "C" { extern int32_t nojoystick; }
 extern "C" { extern void *direct_input; }
 extern "C" { extern joystick_state joystick_neutral_state; }
 extern "C" { extern int32_t joystick_slot_devices[4]; }
-extern "C" { extern int32_t __stdcall input_enumerate_gamepad_callback(const di_device_instance *instance, void *reference); }
 namespace halo::input {
 
 /**
@@ -96,7 +96,7 @@ uint32_t InputSystem::system_initialize(void)
 
     if (nojoystick == 0) {
         ((idirectinput8_enumdevices_proc)(*(void ***)direct_input)[4])(direct_input, 4,
-            (void *)input_enumerate_gamepad_callback, (void *)0, 1);
+            (void *)halo::input::input_enumerate_gamepad_callback, (void *)0, 1);
     }
 
     memset(&joystick_neutral_state, 0, sizeof(joystick_neutral_state));
@@ -133,11 +133,6 @@ void InputSystem::time_base_resync(void)
 
 extern "C" { extern uint32_t input_menu_exit_deadline; }
 extern "C" { extern int16_t system_keys[k_input_system_key_count]; }
-extern "C" { extern uint8_t input_get_key_state(int16_t key_index); }
-extern "C" { extern void input_key_block_timers_expire(void); }
-extern "C" { extern void input_scan_any_bound_input(void); }
-extern "C" { extern void input_menu_generate_events(void); }
-extern "C" { extern void input_game_action_update(void); }
 namespace halo::input {
 
 /**
@@ -161,24 +156,24 @@ void InputSystem::update_tick(void)
     now_ms = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
 
     input_globals.idle = 1;
-    input_key_block_timers_expire();
+    halo::input::input_key_block_timers_expire();
 
     for (i = 0; i < k_input_system_key_count; i++) {
-        input_globals.system_key_states[i] = input_get_key_state(system_keys[i]);
+        input_globals.system_key_states[i] = halo::input::input_get_key_state(system_keys[i]);
     }
 
     mode = input_globals.mode_flags;
     if (mode == _input_mode_game_bit) {
         if (input_menu_exit_deadline < now_ms) {
-            input_game_action_update();
+            halo::input::input_game_action_update();
         }
     } else if ((mode & _input_mode_bind_scan_bit) != 0) {
-        input_scan_any_bound_input();
+        halo::input::input_scan_any_bound_input();
     } else if ((mode & _input_mode_keyboard_capture_bit) != 0) {
         memset(&input_globals.states[0], 0, sizeof(input_globals.states[0]));
     } else if ((mode & _input_mode_menu_bit) != 0) {
         input_menu_exit_deadline = now_ms + k_input_menu_exit_delay_ms;
-        input_menu_generate_events();
+        halo::input::input_menu_generate_events();
     }
 }
 

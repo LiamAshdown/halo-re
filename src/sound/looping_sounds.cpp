@@ -8,6 +8,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/effects/api.hpp"
 
 #define TRACK_TAG(track, field) (*(uint32_t *)&(track)->field.tag_id)
 
@@ -300,7 +301,7 @@ uint8_t set_state(int32_t owner, datum_index definition_index, sound_location *l
     }
 
     if (*(uint32_t *)&definition->continuous_damage_effect.tag_id != 0xffffffff) {
-        player_effect_apply_at_object(*(uint32_t *)&definition->continuous_damage_effect.tag_id, 0,
+        halo::effects::player_effect_apply_at_object(*(uint32_t *)&definition->continuous_damage_effect.tag_id, 0,
             (real_point3d *)&location->position);
     }
 

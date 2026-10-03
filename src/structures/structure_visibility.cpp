@@ -7,6 +7,7 @@
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern uint8_t render_frustum_global[];
@@ -17,7 +18,6 @@ extern void chimera__render_camera_build_frustum(float *frustum_bounds, void *ca
     uint8_t build_projection);
 extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t render_frustum_test_sphere(void *frustum, real_point3d *center, float radius);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern Scenario *global_scenario;
 extern int32_t bsp3d_node_find_leaf(int32_t node_index, void *bsp, real_point3d *point);
 }
@@ -137,7 +137,7 @@ int16_t structure_visibility::collect_visible_objects(int32_t *out_handles, int1
 
 void structure_visibility::render_camera_update_leaf_and_cluster(real_point3d *camera_position)
 {
-    int32_t leaf = bsp3d_node_find_leaf(0, *(void **)((uint8_t *)global_structure_bsp + 0xb4), camera_position);
+    int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)(*(void **)((uint8_t *)global_structure_bsp + 0xb4)), camera_position);
 
     if (leaf == -1 && globals().render_leaf_index < global_structure_bsp->leaves.count) {
         leaf = globals().render_leaf_index;

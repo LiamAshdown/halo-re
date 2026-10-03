@@ -1,11 +1,10 @@
 #include "halo/cutscene/cutscene.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
-extern void sound_set_music_gain(float gain);
 extern void game_engine_cleanup_stray_projectiles(void);
-extern float sound_music_gain;
 extern float cinematic_saved_music_gain;
 extern cinematic_globals *cinematic_globals_ptr;
 extern player_globals *local_player_globals;
@@ -56,9 +55,9 @@ constexpr uint32_t k_alpha_shift = 24;
 void CutsceneDirector::start()
 {
     if (cinematic_saved_music_gain == -1.0f) {
-        cinematic_saved_music_gain = sound_music_gain;
+        cinematic_saved_music_gain = halo::sound::globals().music_gain;
     }
-    sound_set_music_gain(1.0f);
+    halo::sound::sound_set_music_gain(1.0f);
 
     local_player_globals->input_disabled = 1;
     ai_globals_ptr->dialogue_triggers_enabled = 0;
@@ -87,7 +86,7 @@ void CutsceneDirector::stop()
     int32_t i;
 
     if (cinematic_saved_music_gain != -1.0f) {
-        sound_set_music_gain(cinematic_saved_music_gain);
+        halo::sound::sound_set_music_gain(cinematic_saved_music_gain);
     }
 
     cinematic_globals_ptr->show_letterbox = 0;

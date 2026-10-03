@@ -2,28 +2,21 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern const real_vector3d *global_down3d_pointer;
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 extern data_array *effect_location_data;
 extern player_globals *local_player_globals;
 extern uint8_t *effect_marker_callback_context;
-extern void effect_marker_from_node_table(int16_t entry_index, uint8_t *context, object_marker *out);
 extern data_array *effect_data;
 extern void effect_rebuild_markers(effect *self, int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t));
 extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
 extern data_array *object_data;
 extern uint8_t *first_person_weapon_interfaces;
-void effect_marker_environment_probe(uint32_t definition_index, int16_t location_index, real_point3d *marker_position, uint32_t sound_param);
-datum_index effect_marker_new(effect *self, int16_t location_index, object_marker *resolved_marker, uint8_t first_person);
-effect_location_marker * effect_marker_next(effect *self, datum_index *marker, int32_t mode);
-int32_t effect_marker_node_table_resolver(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
-void effect_reattach_markers_for_object(int16_t first_person_weapon_index, datum_index object_index);
-void effect_release_first_person_markers(int16_t first_person_weapon_index);
-real_matrix4x3 * effect_resolve_marker_transform(effect *self, int16_t marker);
 }
 
 namespace halo::effects {
@@ -50,12 +43,12 @@ void effect_view::environment_probe(uint32_t definition_index, int16_t location_
         delta.j = global_down3d_pointer->j * 0.3f;
         delta.k = global_down3d_pointer->k * 0.3f;
 
-        hit = collision_test_movement_segment(0xc2a0, &origin, &delta, 0xffffffff, &result);
+        hit = halo::physics::collision_test_movement_segment(0xc2a0, &origin, &delta, 0xffffffff, &result);
         if (hit) {
             uint8_t in_sky = scenario_location_get_water_and_weather(&result.point, &result.leaf, 0);
             int16_t material_type = in_sky ? 0x1c : result.material_type;
 
-            material_effects_play_at_marker(definition_index, location_index, material_type,
+            halo::effects::material_effects_play_at_marker(definition_index, location_index, material_type,
                                              (uint32_t *)&result.leaf, sound_param, &result.point,
                                              (real_vector3d *)&result.plane);
         }
@@ -146,10 +139,10 @@ effect_location_marker * effect_view::next(datum_index *marker, int32_t mode)
         (mode == 3 && self->first_person_weapon_index != -1 &&
          local_player_globals->local_player_count == 1)) {
         if (entry->marker_index == 0xffff || (entry->marker_index & 0x8000) == 0) {
-            return effect_marker_next(self, marker, mode);
+            return halo::effects::effect_marker_next(self, marker, mode);
         }
     } else if (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0) {
-        return effect_marker_next(self, marker, mode);
+        return halo::effects::effect_marker_next(self, marker, mode);
     }
 
     return entry;
@@ -174,7 +167,7 @@ int32_t effect_view::node_table_resolver(uint32_t object_index, const char *loca
                 break;
             }
             if (strcmp(location, (*(char ***)(context + 0xc))[i]) == 0) {
-                effect_marker_from_node_table(i, context, &out[count]);
+                halo::effects::effect_marker_from_node_table(i, context, &out[count]);
                 count++;
             }
         }
@@ -182,7 +175,7 @@ int32_t effect_view::node_table_resolver(uint32_t object_index, const char *loca
             return count;
         }
     }
-    effect_marker_from_node_table(0, context, out);
+    halo::effects::effect_marker_from_node_table(0, context, out);
     return 1;
 }
 
@@ -201,7 +194,7 @@ void effect_view::reattach_markers_for_object(int16_t first_person_weapon_index,
 
         if (self->object_index == object_index) {
             self->first_person_weapon_index = first_person_weapon_index;
-            effect_rebuild_markers(self, first_person_weapon_get_marker_data);
+            halo::effects::effect_rebuild_markers(self, first_person_weapon_get_marker_data);
         }
 
         effect_index = halo::memory::datum_next((int16_t)effect_index, effect_data);
@@ -279,7 +272,7 @@ real_matrix4x3 * effect_view::resolve_marker_transform(int16_t marker)
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void effect_marker_environment_probe(uint32_t definition_index, int16_t location_index, real_point3d *marker_position, uint32_t sound_param)
 {

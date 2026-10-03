@@ -4,6 +4,8 @@
 #include "physics.h"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -17,7 +19,6 @@ extern uint8_t object_physics_context_build(uint32_t object_index, object_physic
 extern char ai_marker_name_a[];
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
 extern char ai_marker_name_b[];
-extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 extern double sqrt(double x);
 }
 
@@ -159,7 +160,7 @@ uint8_t UnitView::get_average_active_marker_direction(real_vector3d *out_directi
     if (mask == 0) {
         return 0;
     }
-    if (!object_physics_context_build(unit_index, &ctx)) {
+    if (!halo::physics::object_physics_context_build(unit_index, &ctx)) {
         return 0;
     }
 
@@ -318,7 +319,7 @@ void UnitView::update_marker_skid_effects(uint8_t *contact_points)
             scaled = 1.0f;
         }
         intensity_bits = *(uint32_t *)&scaled;
-        material_effects_play_at_marker(*(uint32_t *)(tag + 0x3dc), (int16_t)(9 + (*(uint32_t *)(node + 0x24) & 1)),
+        halo::effects::material_effects_play_at_marker(*(uint32_t *)(tag + 0x3dc), (int16_t)(9 + (*(uint32_t *)(node + 0x24) & 1)),
             *(int16_t *)(contact + 0x70), (uint32_t *)(obj + 0x98), intensity_bits, &position, &offset);
     }
 }

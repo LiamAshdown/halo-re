@@ -1,5 +1,6 @@
 #include "halo/ai/actor_grenade.hpp"
 #include "halo/math/api.hpp"
+#include "halo/items/api.hpp"
 
 namespace c_actor_compute_grenade_throw_vector {
 extern "C" {
@@ -87,8 +88,6 @@ extern "C" {
 
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern void encounter_recompute_morale(datum_index encounter_index);
-extern void weapon_set_loaded_ammo_fraction(float fraction);
-extern void weapon_set_ammo_counts(int16_t *counts);
 }
 }
 
@@ -111,7 +110,7 @@ void halo::ai::grenade_ops::died_unit_grenade_count_mod(object *unit_object, con
 
         if (min_fraction > 0.0f || max_fraction > 0.0f) {
             halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
-            weapon_set_loaded_ammo_fraction(
+            halo::items::weapon_set_loaded_ammo_fraction(
                 (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f * (max_fraction - min_fraction) + min_fraction);
         }
 
@@ -124,7 +123,7 @@ void halo::ai::grenade_ops::died_unit_grenade_count_mod(object *unit_object, con
                 halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
 
                 count = (int16_t)((uint32_t)(((int32_t)(int16_t)(max_count + 1) - min_count) * (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10) + min_count;
-                weapon_set_ammo_counts(&count);
+                halo::items::weapon_set_ammo_counts(&count);
             }
         }
     }

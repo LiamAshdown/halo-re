@@ -3,9 +3,9 @@
 #include <stdint.h>
 #include <string.h>
 #include "halo/math/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
-extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern double sqrt(double x);
 extern double fabs(double x);
@@ -34,12 +34,8 @@ extern uint8_t path_find_trace_cluster_boundary(void *map, int32_t edge_index, r
 extern uint8_t ai_search_choose_shorter_corner(real_point2d *p, real_point2d *corner_a, real_point2d *q, real_point2d *corner_b, real_point2d *r, real_point2d *out_point);
 extern void ai_search_find_circle_tangent_point(real_point2d *center, real_point2d *target, real_point2d *out_point, float radius, uint8_t side);
 extern void ai_search_find_circle_portal_crossing(real_point2d *center, real_point2d *portal, real_point2d *out_point, real_point2d *fallback_reference, float radius);
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result, ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin, real_vector3d *delta, float max_fraction);
 extern real_point3d *global_zero_vector3d_pointer;
-extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeometryBSP *collision_bsp, int32_t surface_index, uint8_t component_sign, real_point3d *out, int32_t dominant_axis, const real_point2d *known);
-extern uint32_t collision_bsp_surface_clip_line_2d(collision_bsp_boundary_clip *clip, ModelCollisionGeometryBSP *bsp, int32_t surface_index, real_point2d *origin, real_vector2d *direction);
 extern uint8_t path_find_test_direct_reachability(const real_point3d *point_a, const real_point3d *point_b, real_point3d *out_position, void *context, uint8_t *out_success);
-extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeometryBSP *bsp, int32_t surface_index, uint16_t axis, uint8_t sign, real_point2d *point, real_point2d *out_point);
 }
 
 namespace halo::ai {
@@ -65,7 +61,7 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
 {
     path_find_context * context = ptr;
     path_find_request *request = (path_find_request *)context;
-    ModelCollisionGeometryBSP *collision_bsp = global_structure_collision_bsp;
+    ModelCollisionGeometryBSP *collision_bsp = halo::physics::globals().structure_collision_bsp;
     float radius = (request->pathfinding_radius > 0.2f) ? request->pathfinding_radius : 0.2f;
     uint8_t *cache = *(uint8_t **)&((struct path_find_context *)context)->obstacle_cache;
     ai_search_obstacle_list local_obstacles;
@@ -1130,7 +1126,7 @@ uint8_t PathFindGeometry::test_direct_reachability(const real_point3d *point_a, 
         delta.i = point_a->x - point_b->x;
         delta.j = point_a->y - point_b->y;
         delta.k = point_a->z - point_b->z;
-        hit = collision_bsp_query_segment_init(1, &result, *(ModelCollisionGeometryBSP **)((uint8_t *)context + 0xb4),
+        hit = halo::physics::collision_bsp_query_segment_init(1, &result, *(ModelCollisionGeometryBSP **)((uint8_t *)context + 0xb4),
             0, 0, (real_point3d *)point_b, &delta, 3.4028235e+38f);
         fraction = result.t;
     }
@@ -1356,7 +1352,7 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
         }
         if (!outside) {
             if (surface != target_surface && !borders_target && target_surface != -1) {
-                collision_bsp_surface_solve_third_axis((ModelCollisionGeometryBSP *)bsp, start_surface, 1,
+                halo::physics::collision_bsp_surface_solve_third_axis((ModelCollisionGeometryBSP *)bsp, start_surface, 1,
                     &out_result->position, 2, (real_point2d *)start);
                 out_result->edge_a = -1;
                 out_result->edge_b = -1;
@@ -1540,7 +1536,7 @@ uint8_t PathFindGeometry::trace_cluster_boundary_from_vertex(void *context, uint
     collision_bsp_boundary_clip clip;
 
     for (;;) {
-        collision_bsp_surface_clip_line_2d(&clip, bsp, surface_index, point, direction);
+        halo::physics::collision_bsp_surface_clip_line_2d(&clip, bsp, surface_index, point, direction);
 
         if (max_distance < clip.enter.t &&
             path_find_surface_passable_2(surface_permissions, ignore_permission, bsp, intact_row,
@@ -1628,7 +1624,7 @@ float PathFindGeometry::vertex_distance(ScenarioStructureBSP *structure_bsp, int
     real_point2d closest;
     float dx, dy, dz;
 
-    collision_bsp_surface_closest_edge_point_2d(collision_bsp, surface, 2, 1, (real_point2d *)point_a, &closest);
+    halo::physics::collision_bsp_surface_closest_edge_point_2d(collision_bsp, surface, 2, 1, (real_point2d *)point_a, &closest);
     halo::math::decal_plane_solve_third_axis(out_point, 1, 2, &planes[surfaces[surface].plane & 0x7fffffff], closest);
 
     dx = out_point->x - point_a->x;

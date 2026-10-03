@@ -25,6 +25,8 @@
 #include "halo/main/main_loop.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" { void game_engine_flush_pending_simulation_ticks(void); }
 extern "C" { uint32_t game_frame_rate_average_update(void); }
@@ -229,7 +231,6 @@ extern "C" { extern int32_t novideo_or_connect; }
 extern "C" { extern int32_t safe_mode; }
 extern "C" { extern int32_t rasterizer_window_requested; }
 extern "C" { extern int32_t checkfpu; }
-extern "C" { extern uint8_t sound_disabled; }
 extern "C" { extern game_state_proc game_state_before_save_proc; }
 extern "C" { extern uint8_t game_state_revert_available; }
 extern "C" { extern uint8_t game_state_write_in_progress; }
@@ -273,7 +274,6 @@ extern "C" { extern void hud_display_checkpoint_message(uint8_t is_begin); }
 extern "C" { extern void main_level_transition_update(void); }
 extern "C" { extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index); }
 extern "C" { extern void game_stop_current_map(void); }
-extern "C" { extern void input_reset_state_and_axis_configs(void); }
 extern "C" { extern void game_start_new_map(void); }
 extern "C" { extern void game_engine_init_tick_record_for_mode(void); }
 extern "C" { extern void game_engine_reset_all_players(void); }
@@ -281,10 +281,7 @@ extern "C" { extern uint8_t game_state_write_profile_file(int32_t size, char *na
 extern "C" { extern void console_print_error_va(uint8_t clear_first, const char *format, ...); }
 extern "C" { extern void game_state_load_core(char *name); }
 extern "C" { extern void network_game_client_connect_to_resolved_address(void); }
-extern "C" { extern void input_directinput_poll_devices(void); }
-extern "C" { extern void input_update_tick(void); }
 extern "C" { extern void shell_pump_windows_messages(void); }
-extern "C" { extern void input_queue_push_event(int16_t queue_index, ui_input_event *record); }
 extern "C" { extern void network_session_host_update(void); }
 extern "C" { extern void gcd_think(void); }
 extern "C" { extern uint32_t network_update(void); }
@@ -389,7 +386,7 @@ void MainLoop::loop(void)
     game_start_new_single_player_map();
     game_timer_reset();
     network_autojoin_from_command_line();
-    sound_disabled = (uint8_t)shell_nosound;
+    halo::sound::globals().disabled = (uint8_t)shell_nosound;
     if (game_time_force_single_tick == 0 && novideo_or_connect == 0 && safe_mode == 0 &&
         rasterizer_window_requested == 0) {
         movie_play_bink("bungie.bik");
@@ -463,7 +460,7 @@ void MainLoop::loop(void)
         if (main_globals_data.reset_map != 0 && game_time->paused == 0) {
             scenario_structure_bsp_switch(0);
             game_stop_current_map();
-            input_reset_state_and_axis_configs();
+            halo::input::input_reset_state_and_axis_configs();
             memset(&input_globals.states[0], 0, sizeof(input_globals.states[0]));
             input_globals.system_key_states[0] = 0;
             input_globals.system_key_states[1] = 0;
@@ -515,9 +512,9 @@ void MainLoop::loop(void)
         }
 
         connection = main_globals_data.game_connection;
-        input_directinput_poll_devices();
+        halo::input::input_directinput_poll_devices();
         if (game_time_force_single_tick == 0) {
-            input_update_tick();
+            halo::input::input_update_tick();
         }
         shell_pump_windows_messages();
         if (main_globals_data.quit != 0) {
@@ -530,7 +527,7 @@ void MainLoop::loop(void)
             input_event_queue_active.start_time = (uint32_t)((counter * 1000) / performance_frequency);
             if (input_event_queue_active.last_event_time < previous_queue_time && input_event_queue_active.enabled != 0) {
                 memset(&idle_event, 0, sizeof(idle_event));
-                input_queue_push_event(0, &idle_event);
+                halo::input::input_queue_push_event(0, &idle_event);
             }
         }
         if (connection == _game_connection_network_server) {
@@ -939,7 +936,7 @@ void MainLoop::loop_shutdown_cleanup(void)
 }
 
 extern "C" { extern uint8_t main_menu_music_pending; }
-extern "C" { extern void sound_looping_stop(datum_index sound_tag); }
+extern "C" { extern void halo::sound::sound_looping_stop(datum_index sound_tag); }
 namespace halo::main {
 
 /**
@@ -954,7 +951,7 @@ void MainLoop::menu_music_stop(void)
     if (main_menu_music_pending == 1) {
         datum_index sound_tag = halo::cache::tag_lookup(0x6c736e64 , (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
-            sound_looping_stop(sound_tag);
+            halo::sound::sound_looping_stop(sound_tag);
         }
         main_menu_music_pending = 0;
     }

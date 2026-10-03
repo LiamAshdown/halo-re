@@ -1,23 +1,19 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern int16_t weather_particle_system_count;
 extern weather_particle_system_state weather_wind_states[8];
 extern ScenarioStructureBSP *global_structure_bsp;
 extern const real_point3d *global_origin3d_pointer;
-extern void ambient_color_sample(ColorRGB *out, real_point3d *position, real hash_scale, real intensity);
 extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point);
-extern void ambient_color_for_marker(int16_t weather_row, real_point3d *position, uint8_t flags, real_vector3d *out);
 extern ambient_noise_grid ambient_noise;
 extern void vector3d_catmull_rom_interpolate(real_vector3d *source1, real_vector3d *source3, real_vector3d *source2, real_vector3d *out, real_vector3d *source0, float time0, float dt, float time);
 extern int32_t weather_frame_counter;
-extern datum_index effect_new_with_color(datum_index definition_index, datum_index creator_object_index, const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, real_point3d *position, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source, uint8_t force_create);
-extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
-uint8_t ambient_color_marker_visible(bsp_leaf_reference *location, real_point3d *position, real_vector3d *out, uint32_t filter_flags);
-void ambient_color_randomize();
-void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 }
 
 namespace halo::effects {
@@ -41,7 +37,7 @@ void ambient_color::for_marker(int16_t weather_row, real_point3d *position, uint
         real local_variation = (flags & 1) == 0 ? wind_tag->local_variation_weight : 0.0f;
         ColorRGB sample;
 
-        ambient_color_sample(&sample, position, wind_tag->local_variation_rate,
+        halo::effects::ambient_color_sample(&sample, position, wind_tag->local_variation_rate,
             wind_tag->local_variation_weight * wind->magnitude);
 
         local_variation = 1.0f - local_variation;
@@ -100,7 +96,7 @@ uint8_t ambient_color::marker_visible(bsp_leaf_reference *location, real_point3d
             }
         }
     }
-    ambient_color_for_marker(weather_row, position, (uint8_t)filter_flags, out);
+    halo::effects::ambient_color_for_marker(weather_row, position, (uint8_t)filter_flags, out);
     return in_water;
 }
 
@@ -211,7 +207,7 @@ void material_effects::play_at_marker(uint32_t material_effects_tag, int16_t mat
             spawn_position.z = offset->k * 0.01f + position->z;
 
             if (*(uint32_t *)&entry->effect.tag_id != 0xffffffffu) {
-                effect_new_with_color(*(uint32_t *)&entry->effect.tag_id, 0xffffffff, (const real_vector3d *)0, 1, 0,
+                halo::effects::effect_new_with_color(*(uint32_t *)&entry->effect.tag_id, 0xffffffff, (const real_vector3d *)0, 1, 0,
                     &spawn_position, (uint32_t)offset, *(real *)&sound_param, 0.0f, (const ColorRGB *)0,
                     (const effect_tint_source *)0, 0);
             }
@@ -231,7 +227,7 @@ void material_effects::play_at_marker(uint32_t material_effects_tag, int16_t mat
                 sound_args.bundle_word0 = location_bundle[0];
                 sound_args.bundle_word1 = location_bundle[1];
 
-                sound_start_at_location(*(datum_index *)&entry->sound.tag_id, (sound_placement *)&sound_args,
+                halo::sound::sound_start_at_location(*(datum_index *)&entry->sound.tag_id, (sound_placement *)&sound_args,
                     *(float *)&sound_param);
             }
         }
@@ -240,7 +236,7 @@ void material_effects::play_at_marker(uint32_t material_effects_tag, int16_t mat
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void ambient_color_for_marker(int16_t weather_row, real_point3d *position, uint8_t flags, real_vector3d *out)
 {

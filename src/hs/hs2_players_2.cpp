@@ -2,6 +2,7 @@
 
 #include "objects.h"
 #include "effects.h"
+#include "halo/effects/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,7 +12,6 @@ extern uint8_t *player_control_globals_ptr;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
-extern player_effect_globals *player_effect_globals_pointer;
 extern long lrint(double x);
 #ifdef __cplusplus
 }
@@ -48,10 +48,10 @@ void PlayerCommands::evaluate_player_effect_start(int16_t function_index, uint32
     float scaled = *(float *)&arguments[1] * 30.0f;
     int16_t ticks = (int16_t)lrint((double)scaled);
 
-    *(int32_t *)&player_effect_globals_pointer->scripted_shake_intensity = arguments[0];
-    player_effect_globals_pointer->scripted_shake_ticks = ticks;
-    player_effect_globals_pointer->scripted_shake_duration = ticks;
-    player_effect_globals_pointer->scripted_shake_flags = (player_effect_globals_pointer->scripted_shake_flags & 0xfffffffd) | 1;
+    *(int32_t *)&halo::effects::globals().player_effect_state->scripted_shake_intensity = arguments[0];
+    halo::effects::globals().player_effect_state->scripted_shake_ticks = ticks;
+    halo::effects::globals().player_effect_state->scripted_shake_duration = ticks;
+    halo::effects::globals().player_effect_state->scripted_shake_flags = (halo::effects::globals().player_effect_state->scripted_shake_flags & 0xfffffffd) | 1;
     hs_thread_return(0, thread_index);
     }
 }
@@ -72,9 +72,9 @@ void PlayerCommands::evaluate_player_effect_stop(int16_t function_index, uint32_
     float scaled = *(float *)&arguments[0] * 30.0f;
     int16_t ticks = (int16_t)lrint((double)scaled);
 
-    player_effect_globals_pointer->scripted_shake_ticks = ticks;
-    player_effect_globals_pointer->scripted_shake_duration = ticks;
-    player_effect_globals_pointer->scripted_shake_flags |= 2;
+    halo::effects::globals().player_effect_state->scripted_shake_ticks = ticks;
+    halo::effects::globals().player_effect_state->scripted_shake_duration = ticks;
+    halo::effects::globals().player_effect_state->scripted_shake_flags |= 2;
     hs_thread_return(0, thread_index);
     }
 }

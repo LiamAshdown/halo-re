@@ -20,6 +20,8 @@
 #include "halo/interface/uis_event_handlers.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -75,7 +77,6 @@ extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t ui_event_byte_0071975b;
 extern int32_t movie_playback_abort;
 extern uint8_t input_event_queue_active;
-extern void input_queue_push_event(int16_t queue_index, ui_input_event *record);
 }
 
 namespace halo::ui {
@@ -630,7 +631,7 @@ uint8_t UiEventHandlers::event_4a1bf0(widget_instance *widget, int16_t *event, u
         datum_index music = halo::cache::tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1");
 
         if (music != 0xffffffff) {
-            sound_looping_stop(music);
+            halo::sound::sound_looping_stop(music);
         }
         main_menu_music_pending = 0;
     }
@@ -664,7 +665,7 @@ uint8_t UiEventHandlers::event_4a1ca0(widget_instance *widget, int16_t *event, u
         queued.kind = 3;
         queued.code = 0;
         queued.pressed = 1;
-        input_queue_push_event(0, &queued);
+        halo::input::input_queue_push_event(0, &queued);
     }
     return 1;
 }
@@ -683,7 +684,7 @@ uint8_t UiEventHandlers::event_4a1cd0(widget_instance *widget, int16_t *event, u
         queued.kind = 3;
         queued.code = 0xd;
         queued.pressed = 1;
-        input_queue_push_event(0, &queued);
+        halo::input::input_queue_push_event(0, &queued);
     }
     return 1;
 }
@@ -702,7 +703,7 @@ uint8_t UiEventHandlers::event_4a1d00(widget_instance *widget, int16_t *event, u
         queued.kind = 3;
         queued.code = 0xa;
         queued.pressed = 1;
-        input_queue_push_event(0, &queued);
+        halo::input::input_queue_push_event(0, &queued);
     }
     return 1;
 }

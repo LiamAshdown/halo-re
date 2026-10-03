@@ -2,6 +2,8 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -13,12 +15,6 @@ extern void damage_apply_area_effect(damage_data *dd);
 extern datum_index light_new_positioned(datum_index light_tag, int32_t marker_index, int16_t marker_sub_index, real_point3d *position, uint32_t param_5, real_vector3d *direction);
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
 extern datum_index object_new(object_placement_data *placement);
-extern void effect_random_velocity_vector(effect *self, random_seed *seed, real_vector3d *direction, real_vector3d *out_direction, real_vector3d *out_velocity, real min, real max, real angle_max, uint32_t a_bitset, uint8_t b_bitset);
-extern void effect_random_direction_vector(random_seed *seed, real_point3d *out, real min, real max, effect *self, uint32_t a_bitset, uint32_t b_bitset);
-extern datum_index particle_system_new_at_point(uint32_t definition_index, real_point3d *position, real_vector3d *velocity, ColorARGB *color, float scale);
-extern void decal_spawn_for_response(datum_index response_tag_index, uint8_t deterministic, real_point3d *origin, real_vector3d *direction, real radius, int32_t marker_index);
-extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
-extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 extern const ColorRGB *global_white_color;
 extern data_array *effect_location_data;
 extern data_array *object_data;
@@ -91,11 +87,11 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
         real_vector3d direction;
         real radius;
 
-        effect_random_velocity_vector(self, &halo::math::globals().effect_random_seed, forward, &out_direction, &direction,
+        halo::effects::effect_random_velocity_vector(self, &halo::math::globals().effect_random_seed, forward, &out_direction, &direction,
             PART_FIELD(real, 0x40), PART_FIELD(real, 0x44), PART_FIELD(real, 0x48), PART_FIELD(uint32_t, 0x60),
             PART_FIELD(uint8_t, 0x64));
         radius = halo::math::random_range_real(PART_FIELD(real, 0x54), PART_FIELD(real, 0x58));
-        decal_spawn_for_response(tag, 0, position, &direction, radius, -1);
+        halo::effects::decal_spawn_for_response(tag, 0, position, &direction, radius, -1);
     } else if (group == 0x6f626a65u) {
         object_placement_data placement;
         uint8_t *raw = (uint8_t *)&placement;
@@ -106,13 +102,13 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
         *(real_point3d *)(raw + 0x18) = *position;
         *(real_vector3d *)(raw + 0x34) = *forward;
         *(real_vector3d *)(raw + 0x40) = *up;
-        effect_random_velocity_vector(self, &halo::math::globals().random_seed_global, forward, &out_direction, velocity,
+        halo::effects::effect_random_velocity_vector(self, &halo::math::globals().random_seed_global, forward, &out_direction, velocity,
             PART_FIELD(real, 0x40), PART_FIELD(real, 0x44), PART_FIELD(real, 0x48), PART_FIELD(uint32_t, 0x60),
             PART_FIELD(uint8_t, 0x64));
         velocity->i = velocity->i + SELF_FIELD(real, 0x24);
         velocity->j = velocity->j + SELF_FIELD(real, 0x28);
         velocity->k = velocity->k + SELF_FIELD(real, 0x2c);
-        effect_random_direction_vector(&halo::math::globals().random_seed_global, (real_point3d *)(raw + 0x4c), PART_FIELD(real, 0x4c),
+        halo::effects::effect_random_direction_vector(&halo::math::globals().random_seed_global, (real_point3d *)(raw + 0x4c), PART_FIELD(real, 0x4c),
             PART_FIELD(real, 0x50), self, PART_FIELD(uint32_t, 0x60), PART_FIELD(uint32_t, 0x64));
         object_new(&placement);
     } else if (group == 0x7063746cu) {
@@ -124,13 +120,13 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
         color.red = SELF_FIELD(real, 0x18);
         color.green = SELF_FIELD(real, 0x1c);
         color.blue = SELF_FIELD(real, 0x20);
-        effect_random_velocity_vector(self, &halo::math::globals().effect_random_seed, forward, &out_direction, &velocity,
+        halo::effects::effect_random_velocity_vector(self, &halo::math::globals().effect_random_seed, forward, &out_direction, &velocity,
             PART_FIELD(real, 0x40), PART_FIELD(real, 0x44), PART_FIELD(real, 0x48), PART_FIELD(uint32_t, 0x60),
             PART_FIELD(uint8_t, 0x64));
         velocity.i = velocity.i + SELF_FIELD(real, 0x24);
         velocity.j = velocity.j + SELF_FIELD(real, 0x28);
         velocity.k = velocity.k + SELF_FIELD(real, 0x2c);
-        particle_system_new_at_point(tag, position, &velocity, &color, scale);
+        halo::effects::particle_system_new_at_point(tag, position, &velocity, &color, scale);
     } else if (group == 0x736e6421u) {
         datum_index object_index = SELF_FIELD(datum_index, 0x3c);
 
@@ -145,7 +141,7 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
                     first_person = 1;
                 }
             }
-            sound_start_at_object_marker(object_index, (Point3D *)marker_position, (Vector3D *)marker_forward, tag,
+            halo::sound::sound_start_at_object_marker(object_index, (Point3D *)marker_position, (Vector3D *)marker_forward, tag,
                 (int16_t)effect_event_apply_marker_index(marker), scale, first_person);
         } else {
             sound_placement placement;
@@ -155,7 +151,7 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
             placement.velocity = *(const Vector3D *)global_origin3d_pointer;
             *(uint32_t *)&placement.leaf_index = SELF_FIELD(uint32_t, 0x10);
             *(uint32_t *)&placement.cluster_index = SELF_FIELD(uint32_t, 0x14);
-            sound_start_at_location(tag, &placement, scale);
+            halo::sound::sound_start_at_location(tag, &placement, scale);
         }
     }
 }
@@ -266,7 +262,7 @@ void effect_view::change_color_evaluate()
                     marker_handle = entry->next_marker;
 
                     if (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0) {
-                        entry = effect_marker_next(self, &marker_handle, 0);
+                        entry = halo::effects::effect_marker_next(self, &marker_handle, 0);
                     }
                     if (entry == (effect_location_marker *)0) {
                         break;
@@ -279,7 +275,7 @@ void effect_view::change_color_evaluate()
                         placement[1] = entry->transform.forward;
                         *(real_point3d *)&placement[2] = entry->transform.position;
                     } else {
-                        real_matrix4x3 *node = effect_resolve_marker_transform(self, (int16_t)entry->marker_index);
+                        real_matrix4x3 *node = halo::effects::effect_resolve_marker_transform(self, (int16_t)entry->marker_index);
                         real forward_i = entry->transform.forward.i;
                         real forward_j = entry->transform.forward.j;
                         real forward_k = entry->transform.forward.k;
@@ -329,7 +325,7 @@ void effect_view::change_color_evaluate()
                         if ((part->b_scales_values & 0x20) != 0) {
                             scale = scale * self->b_scale;
                         }
-                        effect_event_apply(self, part, entry, &placement[0], &placement[1],
+                        halo::effects::effect_event_apply(self, part, entry, &placement[0], &placement[1],
                             (real_point3d *)&placement[2], scale);
                     }
                 }
@@ -340,7 +336,7 @@ void effect_view::change_color_evaluate()
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void effect_event_apply(effect *self, EffectPart *part, effect_location_marker *marker, real_vector3d *up, real_vector3d *forward, real_point3d *position, real scale)
 {

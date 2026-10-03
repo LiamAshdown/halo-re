@@ -20,6 +20,7 @@
 #include "halo/interface/uis_lists.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern uint8_t ui_list_has_default;
@@ -51,8 +52,6 @@ extern widget_instance *widget_find_by_tag_id(widget_instance *widget, datum_ind
 extern void widget_instance_relink_focus(widget_instance *widget, widget_instance *child);
 extern void widget_instance_close_and_restore_previous(widget_instance *widget);
 extern widget_instance *widget_reopen_as_root_with_history(widget_instance *widget, datum_index open_tag);
-extern void sound_play_new(datum_index sound_tag, void *position, int32_t unknown1, int32_t unknown2,
-                          void *callback_data, int32_t unknown4, int32_t unknown5);
 }
 
 namespace halo::ui {
@@ -745,7 +744,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
         if (*(uint32_t *)&handler->sound_effect.tag_id != 0xffffffffu) {
             float position[3] = {0.0f, 1.0f, 1.0f};
 
-            sound_play_new(*(datum_index *)&handler->sound_effect.tag_id, position, -1, 0, 0, 0, 0);
+            halo::sound::sound_play_new(*(datum_index *)&handler->sound_effect.tag_id, (sound_location *)position, -1, 0, 0, 0, 0);
         }
         if (close_all == 0) {
             widget_instance *target = widget;

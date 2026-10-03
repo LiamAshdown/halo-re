@@ -4,6 +4,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
@@ -26,8 +27,6 @@ extern player_globals *local_player_globals;
 extern uint16_t *empty_wide_string_pointer;
 extern void chimera__hud_message(int16_t local_player_index, const uint16_t *text);
 extern uint16_t *text_string_list_get_string(datum_index tag_id, int16_t index);
-extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t unknown_0, int32_t unknown_1,
-                            int32_t unknown_2, int32_t unknown_3, int32_t unknown_4);
 extern uint16_t *hud_get_message_string(int32_t message_index);
 extern data_array *player_data;
 extern data_array *object_data;
@@ -35,8 +34,6 @@ extern void *global_zero_vector3d_pointer;
 extern int16_t item_type_to_message_stage(int16_t item_type_code);
 extern int16_t item_type_to_animation_stage(int16_t message_stage);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern int32_t sound_start_at_object_marker(datum_index object_index, void *position, void *forward,
-                            datum_index sound, int32_t marker, float gain, uint8_t flag);
 extern int16_t network_game_mode;
 extern network_server_globals *network_server;
 extern uint8_t network_message_scratch[0x7ff8];
@@ -170,7 +167,7 @@ void HudMessaging::display_checkpoint_message(uint8_t is_begin)
             parameters.unknown_00 = 0;
             parameters.scale = 1.0f;
             parameters.gain = 1.0f;
-            sound_play_new((datum_index)sound_tag_id, &parameters, -1, 0, 0, 0, 0);
+            halo::sound::sound_play_new((datum_index)sound_tag_id, (sound_location *)&parameters, -1, 0, 0, 0, 0);
         }
     }
 
@@ -407,7 +404,7 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
         }
     }
 
-    sound_start_at_object_marker((datum_index)object_or_slot_index, global_zero_vector3d_pointer, halo::math::globals().global_forward3d_pointer,
+    halo::sound::sound_start_at_object_marker((datum_index)object_or_slot_index, global_zero_vector3d_pointer, halo::math::globals().global_forward3d_pointer,
                  (datum_index)message_index, -1, 1.0f, has_carried_object);
 }
 

@@ -1,10 +1,10 @@
 #include "halo/shell/diagnostics.hpp"
 #include "interface.h"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern void chimera__registry_check_3(void);
 extern void rasterizer_service_deferred_windowed_ops(void);
-extern void sound_stop_all(void);
 
 extern void *shell_stack_guard_page;
 extern uint32_t shell_stack_guard_old_protect;
@@ -100,7 +100,7 @@ void WatsonCrashReporter::shut_down_services()
         shell_window_proc_bypass = 1;
         chimera__registry_check_3();
         rasterizer_service_deferred_windowed_ops();
-        sound_stop_all();
+        halo::sound::sound_stop_all();
         ShowCursor(1);
         if (chat_gui_root_handle != 0) {
             window = chat_gui_find_object(chat_gui_root_handle, chat_gui_find_object_arg);

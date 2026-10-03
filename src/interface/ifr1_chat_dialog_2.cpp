@@ -3,6 +3,7 @@
 #include <wchar.h>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern uint8_t network_message_scratch[0x7ff8];
@@ -38,7 +39,6 @@ extern chat_gui_release_fn chat_gui_release;
 extern uint8_t chat_gui_active;
 extern uint16_t *text_string_list_get_string(void);
 extern uint8_t game_engine_get_teams_enabled(void);
-extern void input_keyboard_set_capture_mode(void);
 extern int32_t chat_default_team_channel(void);
 }
 
@@ -276,7 +276,7 @@ gui_setup:
         chat_gui_release(gui_object);
     }
     chat_dialog_open = 1;
-    input_keyboard_set_capture_mode();
+    halo::input::input_keyboard_set_capture_mode(1);
 }
 
 }

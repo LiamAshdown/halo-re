@@ -6,6 +6,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -1348,7 +1349,7 @@ uint8_t ProjectileAim::solve_ballistic_arc(real_point3d *target, real_point3d *o
     dz = target->z - origin->z;
     dxy2 = (real)((double)dy * dy + (double)dx * dx);
 
-    g = (double)k_physics_gravity * (double)gravity_scale;
+    g = (double)halo::physics::globals().gravity * (double)gravity_scale;
     if (g < 0.0) {
         g = 0.0;
     }

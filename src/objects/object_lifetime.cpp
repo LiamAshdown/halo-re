@@ -16,7 +16,6 @@ extern data_array *game_looping_sound_data;
 extern int32_t hash_table_get(hash_table *table, uint32_t key);
 extern void light_delete(datum_index light_handle);
 extern datum_index light_new_attached(datum_index light_tag, datum_index owner_object, int16_t marker_index, int16_t marker_index_secondary, int16_t change_color_index);
-extern datum_index looping_sound_new(datum_index object_index, datum_index definition_index, char *marker_name, int16_t function_index);
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
@@ -67,7 +66,7 @@ void halo::objects::ObjectLifetime::delete_teardown()
 
     if (definition->collision_model.tag_id.index != 0xffff) {
 
-        effect_new_on_object(object_index,
+        halo::effects::effect_new_on_object(object_index,
             *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[definition->collision_model.tag_id.index].data + 0xc8),
             object_index, -1, 0.0f, 0.0f, 0, 0);
     }
@@ -415,19 +414,19 @@ void halo::objects::ObjectLifetime::create_attachments()
             }
             break;
         case 1:
-            handle = looping_sound_new(object_index, tag, (char *)(attachment + 0x10), first_scale);
+            handle = halo::sound::looping_sound_new(object_index, tag, (char *)(attachment + 0x10), first_scale);
             if (handle != k_datum_index_none) {
                 ((object *)obj)->flags |= 0x400;
             }
             break;
         case 2:
-            handle = effect_new_at_texture_coordinate(tag, object_index, change_color, first_scale, second_scale);
+            handle = halo::effects::effect_new_at_texture_coordinate(tag, object_index, change_color, first_scale, second_scale);
             break;
         case 3:
-            handle = contrail_new(i, object_index, tag);
+            handle = halo::effects::contrail_new(i, object_index, tag);
             break;
         case 4:
-            handle = particle_system_new_on_marker(tag, object_index, i);
+            handle = halo::effects::particle_system_new_on_marker(tag, object_index, i);
             break;
         }
         obj[0x144 + i] = (uint8_t)type;
@@ -462,14 +461,14 @@ void halo::objects::ObjectLifetime::delete_attachments()
                     light_delete(handle);
                     break;
                 case _object_attachment_type_looping_sound:
-                    halo::memory::datum_delete(game_looping_sound_data, handle);
+                    halo::memory::datum_delete(halo::sound::globals().game_looping_sound_data, handle);
                     break;
                 case _object_attachment_type_effect:
-                    effect_delete(handle);
+                    halo::effects::effect_delete(handle);
                     break;
                 case _object_attachment_type_contrail:
                     object_recalculate_bounding_radius(object_index);
-                    contrail_advance(handle, 1, 0.0f);
+                    halo::effects::contrail_advance(handle, 1, 0.0f);
                     break;
                 case _object_attachment_type_particle_system: {
 

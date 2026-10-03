@@ -2,6 +2,8 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 typedef struct netgame_equipment_spawn_message {
     int32_t object_hash;
@@ -54,7 +56,6 @@ extern uint32_t teleport_flash_blue;
 extern uint32_t teleport_flash_duration;
 extern int16_t teleport_flash_fade_function;
 extern double atan2(double y, double x);
-extern void player_effect_set_screen_flash_for_player(datum_index player_index, player_screen_flash *descriptor, float intensity_falloff);
 extern int game_engine_find_valid_starting_locations(real_point3d *origin, float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type, int32_t max_results, int32_t *results);
 extern int32_t game_engine_find_one_valid_starting_location(int16_t type, int16_t team, real_point3d *origin, float max_horizontal_dist, float max_height_delta);
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
@@ -63,8 +64,6 @@ extern void chimera__hud_message(int16_t local_player_index, wchar_t *text);
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern void player_update_history_free_all(void *queue);
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
-extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *point, physics_model_contact *out_contact);
-extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model);
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out);
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
@@ -709,11 +708,11 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
             destination_position.y = exit_flag->position.y;
             destination_position.z = exit_flag->position.z;
 
-            blocked = physics_model_build_from_sphere_query(0x200380, &destination_position,
+            blocked = halo::physics::physics_model_build_from_sphere_query(0x200380, &destination_position,
                 pill_radius + pill_radius + pill_height, pill_height, pill_radius, 0xffffffff, &candidates);
 
             if (blocked != 0) {
-                blocked = physics_shape_test_point(&candidates, &destination_position, &contact);
+                blocked = halo::physics::physics_shape_test_point(&candidates, &destination_position, &contact);
             }
 
             if (blocked != 0) {
@@ -769,7 +768,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
                     flash.color.red = *(float *)&teleport_flash_red;
                     flash.color.green = *(float *)&teleport_flash_green;
                     flash.color.blue = *(float *)&teleport_flash_blue;
-                    player_effect_set_screen_flash_for_player(player_index, &flash, 1.0f);
+                    halo::effects::player_effect_set_screen_flash_for_player(player_index, &flash, 1.0f);
                 }
             }
 

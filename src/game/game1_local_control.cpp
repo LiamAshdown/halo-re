@@ -18,6 +18,7 @@
 #include "halo/game/game1_local_control.hpp"
 #include "halo/game/legacy_globals.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/items/api.hpp"
 
 #define k_degrees_to_radians 0.017453292f
 #define k_seconds_per_tick   0.033333335f
@@ -580,7 +581,7 @@ real LocalControl::get_max_look_pitch(int16_t local_player_index)
         uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[(uint16_t)o->definition_tag].data;
 
         if (u->current_weapon_index != -1 && u->weapons[u->current_weapon_index] != k_datum_index_none) {
-            result = weapon_clamp_zoom_fov(u->weapons[u->current_weapon_index], look->desired_zoom_level,
+            result = halo::items::weapon_clamp_zoom_fov(u->weapons[u->current_weapon_index], look->desired_zoom_level,
                                            *(real *)(tag_data + 0x1a0));
         } else {
             result = *(real *)(tag_data + 0x1a0);

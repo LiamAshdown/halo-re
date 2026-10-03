@@ -3,6 +3,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *decal_data;
@@ -14,7 +16,6 @@ extern const decal_type_parameters k_decal_type_parameters[4];
 extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint8_t decals_enabled;
 extern uint8_t decals_for_all_responses;
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
@@ -26,18 +27,6 @@ extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern void rasterizer_decals_initialize(void);
-extern void decal_update_fade(datum_index decal_index);
-void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
-void decal_clear_flags(uint8_t clear_object_attached);
-void decal_delete(datum_index decal_index);
-void decal_evict_object_decals(int16_t cluster_index);
-void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator *accumulator, int32_t surface_index, uint8_t is_first_surface, real radius, int16_t decal_type, int32_t *surface_queue, uint16_t *surface_queue_count, int32_t *fallback_queue, uint16_t *fallback_queue_count);
-datum_index decal_new(datum_index requested_handle, int16_t cluster_index, int16_t layer, datum_index insert_before, uint8_t object_attached);
-void decal_rehash_object_decals();
-void decal_spawn_for_response(datum_index response_tag_index, uint8_t deterministic, real_point3d *origin, real_vector3d *direction, real radius, int32_t marker_index);
-void decals_detach_from_structure_bsp();
-void decals_initialize();
-void decals_update_fade();
 }
 
 namespace halo::effects {
@@ -249,9 +238,9 @@ void decal_ref::flood_surfaces(decal_projection *projection, decal_flood_accumul
         return;
     }
 
-    surfaces = (ModelCollisionGeometryBSPSurface *)global_structure_collision_bsp->surfaces.pointer;
-    edges = (ModelCollisionGeometryBSPEdge *)global_structure_collision_bsp->edges.pointer;
-    bsp_vertices = (ModelCollisionGeometryBSPVertex *)global_structure_collision_bsp->vertices.pointer;
+    surfaces = (ModelCollisionGeometryBSPSurface *)halo::physics::globals().structure_collision_bsp->surfaces.pointer;
+    edges = (ModelCollisionGeometryBSPEdge *)halo::physics::globals().structure_collision_bsp->edges.pointer;
+    bsp_vertices = (ModelCollisionGeometryBSPVertex *)halo::physics::globals().structure_collision_bsp->vertices.pointer;
     surface = &surfaces[surface_index];
 
     if (is_first_surface != 0) {
@@ -531,7 +520,7 @@ datum_index decal_ref::create(datum_index requested_handle, int16_t cluster_inde
         return handle;
     }
 
-    decal_link(cluster_index, handle, layer);
+    halo::effects::decal_link(cluster_index, handle, layer);
     return handle;
 }
 
@@ -550,7 +539,7 @@ void decal_ref::rehash_object_decals()
         while (decal_index != k_datum_index_none) {
             decal *self = &((decal *)decal_data->data)[(uint16_t)decal_index];
             datum_index next = self->next_decal;
-            int32_t leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &self->position);
+            int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &self->position);
 
             if (leaf != -1) {
                 int16_t cluster = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
@@ -566,7 +555,7 @@ void decal_ref::rehash_object_decals()
                         ((decal *)decal_data->data)[(uint16_t)self->previous_decal].next_decal = next;
                     }
 
-                    decal_link(cluster, decal_index, self->layer);
+                    halo::effects::decal_link(cluster, decal_index, self->layer);
                 }
             }
 
@@ -600,10 +589,10 @@ void decal_ref::spawn_for_response(datum_index response_tag_index, uint8_t deter
         saved_seed = halo::math::globals().effect_random_seed;
         halo::math::globals().effect_random_seed = words[2] ^ words[1] ^ words[0] ^ 0xdeadc0de;
     }
-    if (collision_test_movement_segment(0x100061, origin, direction, 0xffffffff, &result) &&
+    if (halo::physics::collision_test_movement_segment(0x100061, origin, direction, 0xffffffff, &result) &&
         result.type == 2 &&
         (*(uint8_t *)halo::cache::globals().tag_instances[response_tag_index & 0xffff].data & 0x10) == 0) {
-        decal_place(response_tag_index, &result, direction, radius, deterministic, (int16_t)marker_index);
+        halo::effects::decal_place(response_tag_index, &result, direction, radius, deterministic, (int16_t)marker_index);
     }
     if (deterministic != 0) {
         halo::math::globals().effect_random_seed = saved_seed;
@@ -724,14 +713,14 @@ void decal_ref::update_fade_all()
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
         while (halo::memory::data_iterator_next(&iterator) != 0) {
-            decal_update_fade(iterator.index);
+            halo::effects::decal_update_fade(iterator.index);
         }
     }
 }
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out)
 {

@@ -1,11 +1,9 @@
 #include "halo/interface/ifr1_audio_options_profile.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
-extern void sound_set_master_gain(float gain);
-extern void sound_set_music_gain(float gain);
-extern void sound_set_effects_gain(float gain);
 }
 
 static widget_instance *find_row_control(widget_instance *row)
@@ -64,19 +62,19 @@ uint32_t AudioOptionsProfile::apply_from_profile(widget_instance *widget)
     row = widget->first_child;
     control = find_row_control(row);
     if (clamp_slider(control->selection_index) != record[0xb78]) {
-        apply_gain(sound_set_master_gain, record[0xb78]);
+        apply_gain(halo::sound::sound_set_master_gain, record[0xb78]);
     }
 
     row = row->next_sibling;
     control = find_row_control(row);
     if (clamp_slider(control->selection_index) != record[0xb79]) {
-        apply_gain(sound_set_effects_gain, record[0xb79]);
+        apply_gain(halo::sound::sound_set_effects_gain, record[0xb79]);
     }
 
     row = row->next_sibling;
     control = find_row_control(row);
     if (clamp_slider(control->selection_index) != record[0xb7a]) {
-        apply_gain(sound_set_music_gain, record[0xb7a]);
+        apply_gain(halo::sound::sound_set_music_gain, record[0xb7a]);
     }
     return 1;
 }

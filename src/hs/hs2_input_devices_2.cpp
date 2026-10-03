@@ -1,4 +1,5 @@
 #include "halo/hs/hs2_commands.hpp"
+#include "halo/input/api.hpp"
 
 
 #ifdef __cplusplus
@@ -10,7 +11,6 @@ extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t param
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern int32_t input_device_count;
 extern uint8_t input_device_to_slot[];
-extern int32_t joystick_slot_devices[4];
 #ifdef __cplusplus
 }
 #endif
@@ -39,7 +39,7 @@ void InputDeviceCommands::evaluate_input_deactivate_joy(int16_t function_index, 
                 int32_t old_slot = *slot;
 
                 *slot = -1;
-                joystick_slot_devices[old_slot] = -1;
+                halo::input::globals().joystick_slot_devices[old_slot] = -1;
             }
         }
         hs_thread_return(0, thread_index);

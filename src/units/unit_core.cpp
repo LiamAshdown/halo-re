@@ -3,14 +3,13 @@
 #include "networking.h"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern double sqrt(double x);
 extern uint8_t *global_globals;
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
-extern void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, int32_t collision_surface_index);
 extern void device_machine_melee_attacked(uint32_t object_index);
 extern game_engine_definition *current_game_engine;
 extern void object_delete(uint32_t object_index);
@@ -123,7 +122,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
             delta.j = target_direction->j * 0.8f + ((float)col * perp->j + (float)row * up->j) * 0.1f;
             delta.k = target_direction->k * 0.8f + ((float)col * perp->k + (float)row * up->k) * 0.1f;
 
-            if (collision_test_movement_segment(0x1000e9, (real_point3d *)target_direction, &delta, unit_index, scratch) == 0) {
+            if (halo::physics::collision_test_movement_segment(0x1000e9, (real_point3d *)target_direction, &delta, unit_index, (collision_result *)scratch) == 0) {
                 continue;
             }
 
@@ -192,7 +191,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
 
             if (best_object == 0xffffffff) {
                 if ((int16_t)best_decal != -1) {
-                    breakable_surface_apply_damage(&dd, best_decal, best_decal_extra);
+                    halo::physics::breakable_surface_apply_damage(&dd, best_decal, best_decal_extra);
                 }
             } else {
                 object *best_obj = ((object_header *)object_data->data)[best_object & 0xffff].data;

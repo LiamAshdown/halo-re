@@ -1,6 +1,8 @@
 #include "halo/interface/ifr1_first_person_weapon_controller.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -13,8 +15,6 @@ extern int16_t camera_get_type_for_player(int16_t player_index);
 extern uint8_t biped_is_idle_eligible(datum_index unit_index);
 extern int16_t animation_state_advance(datum_index animation_graph, int16_t *animation_state,
                             datum_index *out_frame_sound, int32_t unknown);
-extern int32_t sound_start_at_object_marker(datum_index object_index, void *position, void *forward,
-                            datum_index sound, int32_t marker, float gain, uint8_t flag);
 extern void first_person_weapon_update_state(int16_t local_player_index);
 extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot,
                                           int16_t new_state);
@@ -137,7 +137,7 @@ void FirstPersonWeaponController::update()
         }
 
         if (frame_sound != (datum_index)-1 && camera_get_type_for_player(local_player_index) == 0) {
-            fp->frame_sound_index = sound_start_at_object_marker(fp->weapon_index, global_zero_vector3d_pointer,
+            fp->frame_sound_index = halo::sound::sound_start_at_object_marker(fp->weapon_index, global_zero_vector3d_pointer,
                                             halo::math::globals().global_forward3d_pointer, frame_sound, -1, 1.0f,
                                             local_player_index != -1);
             fp->frame_sound_state = fp->state;
@@ -249,7 +249,7 @@ void FirstPersonWeaponController::update()
                     fp->idle_ticks++;
                     if (fp->idle_ticks > fp->idle_delay_ticks) {
                         fp->idle_delay_ticks = 0;
-                        if (!(effect_random_fraction() <
+                        if (!(halo::effects::effect_random_fraction() <
                               player_information->first_person_skip_fraction)) {
                             first_person_weapon_set_state(local_player_index, 1, 5);
                         }

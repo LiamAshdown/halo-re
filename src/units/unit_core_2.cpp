@@ -4,6 +4,9 @@
 #include "effects.h"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/items/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern uint8_t *object_network_id_table;
@@ -288,7 +291,7 @@ controls:
                             fraction = (float)(int8_t)obj[0x320] / (float)(*(int16_t *)(weapon_tag + 0x3da) - 1);
                         }
                         if (sound != k_datum_index_none) {
-                            sound_start_unspatialized(sound, fraction);
+                            halo::sound::sound_start_unspatialized(sound, fraction);
                         }
                     }
                 }
@@ -401,7 +404,7 @@ controls:
                     control |= 4;
                 }
                 if ((*(uint32_t *)(TAG_DATA(*(datum_index *)obj) + 0x17c) & 0x800000) != 0) {
-                    weapon_set_ready_timer(UnitView(unit_index).get_weapon_object_index(*(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2)), ((struct unit_object *)obj)->unit.integrated_light_power);
+                    halo::items::weapon_set_ready_timer(UnitView(unit_index).get_weapon_object_index(*(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2)), ((struct unit_object *)obj)->unit.integrated_light_power);
                 }
                 if ((((unit_object *)obj)->unit.control_flags & 0x400) != 0) {
                     control |= 8;
@@ -422,7 +425,7 @@ controls:
             if (*(int16_t *)(unit_now + 0x2f2) != -1) {
                 weapon = *(datum_index *)(unit_now + 0x2f8 + *(int16_t *)(unit_now + 0x2f2) * 4);
             }
-            weapon_set_control_flags(weapon, (uint16_t)control, trigger);
+            halo::items::weapon_set_control_flags(weapon, (uint16_t)control, trigger);
         }
     }
 
@@ -539,7 +542,7 @@ controls:
                             ? *(datum_index *)(effects + 0x64) : *(datum_index *)(effects + 0x54);
 
                         if (effect != k_datum_index_none) {
-                            effect_new_on_object(unit_index, effect, unit_index, -1, 0.0f, 0.0f, 0, 0);
+                            halo::effects::effect_new_on_object(unit_index, effect, unit_index, -1, 0.0f, 0.0f, 0, 0);
                         }
                         ((unit_object *)obj)->unit.flags ^= 0x4000000;
                     }
@@ -549,7 +552,7 @@ controls:
                 }
                 if (toggle_light && ((((unit_object *)obj)->unit.flags & 0x80000) != 0 || ((struct unit_object *)obj)->unit.integrated_light_energy > 0.2f) &&
                     ((unit_object *)obj)->base.parent_object == k_datum_index_none) {
-                    effect_new_on_object(unit_index, *(datum_index *)&((Unit *)tag)->integrated_light_toggle.tag_id, unit_index, -1, 0.0f, 0.0f, 0, 0);
+                    halo::effects::effect_new_on_object(unit_index, *(datum_index *)&((Unit *)tag)->integrated_light_toggle.tag_id, unit_index, -1, 0.0f, 0.0f, 0, 0);
                     ((unit_object *)obj)->unit.flags ^= 0x80000;
                 }
             }

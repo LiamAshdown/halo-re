@@ -10,14 +10,12 @@ extern data_array *particle_system_data;
 extern data_array *particle_system_particle_data;
 extern uint8_t particle_systems_enabled;
 extern void object_sample_ambient_lightmap_point(real_point3d *point, real_vector3d *lightmap_color, real_vector3d *base_map_color, uint8_t wait_for_textures);
-extern uint8_t particle_system_new_type_states(datum_index handle);
 extern data_array *object_data;
 extern const ColorARGB *global_white_argb;
 extern const ColorRGB *global_white_color;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint8_t particle_system_update(float delta_time, datum_index handle);
@@ -27,35 +25,14 @@ extern void build_sprite_rotational(build_sprite_data *data, uint32_t flags, int
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
 extern void object_get_root_location(int32_t *out, uint32_t object_index);
-extern void particle_system_delete(datum_index handle);
 extern int16_t current_local_player_index;
 extern uint8_t *first_person_weapon_interfaces;
 extern const real_vector3d *global_origin3d_pointer;
 extern void (*particle_creation_physics_table[3])(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
-extern int32_t player_weapon_locality_for_object(datum_index weapon_object_index);
 extern int16_t render_local_player_gunner_seat_visible(int16_t local_player_index);
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name, object_marker *out, uint32_t maximum);
 extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point);
-extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
-extern void particle_system_update_physics_default(particle_system *system, real dt);
 extern player_globals *local_player_globals;
-extern void particle_system_render(datum_index particle_system_handle);
-extern void point_physics_interpolate(PointPhysics *out, const PointPhysics *from, const PointPhysics *to, float fraction);
-void particle_creation_physics_default(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
-void particle_creation_physics_explosion(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
-void particle_creation_physics_jet(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
-void particle_system_advance_type_state(particle_system_type_state *state, ParticleSystemType *type, particle_system *system);
-void particle_system_spawn(particle_system *system_record, int32_t type_index, float dt);
-void particle_system_update_physics_explosion(particle_system *system, real dt);
-void particle_update_physics_default(particle_system *system, int16_t type_index, real dt, particle_system_particle *particle);
-void particle_system_advance_particle_state(particle_system_particle *particle, ParticleSystemType *type);
-datum_index particle_system_new_at_point(uint32_t definition_index, real_point3d *position, real_vector3d *velocity, ColorARGB *color, float scale);
-datum_index particle_system_new_on_marker(uint32_t definition_index, uint32_t object_index, int16_t attachment_index);
-void particle_system_resolve_local_players();
-void particle_system_roll_particle_state(int16_t index, ParticleSystemTypeParticleState *states, particle_state_values *out);
-void particle_systems_delete_all();
-void particle_systems_render();
-void particle_systems_update(float delta_time);
 }
 
 namespace halo::effects {
@@ -102,7 +79,7 @@ void particle_system_view::creation_physics_explosion(int32_t type_index, partic
     real_point3d direction;
     float scaled_x, scaled_y, scaled_z;
 
-    effect_random_direction_from_table(&direction);
+    halo::effects::effect_random_direction_from_table(&direction);
 
     scaled_x = k0 * direction.x;
     scaled_y = k0 * direction.y;
@@ -320,7 +297,7 @@ datum_index particle_system_ref::new_at_point(uint32_t definition_index, real_po
             object_sample_ambient_lightmap_point(&system->position,
                 (real_vector3d *)&system->ambient_color, &incident_scratch, 0);
 
-            if (!particle_system_new_type_states(handle)) {
+            if (!halo::effects::particle_system_new_type_states(handle)) {
                 halo::memory::datum_delete(particle_system_data, handle);
                 return (datum_index)0xffffffff;
             }
@@ -381,7 +358,7 @@ datum_index particle_system_ref::new_on_marker(uint32_t definition_index, uint32
                 system->flags &= ~(uint32_t)_particle_system_emitting_bit;
             }
 
-            if (!particle_system_new_type_states(handle)) {
+            if (!halo::effects::particle_system_new_type_states(handle)) {
                 halo::memory::datum_delete(particle_system_data, handle);
                 return (datum_index)0xffffffff;
             }
@@ -406,7 +383,7 @@ uint8_t particle_system_ref::new_type_states()
     int32_t leaf_index;
     int32_t i;
 
-    leaf_index = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &system->position);
+    leaf_index = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &system->position);
     system->location.leaf_index = leaf_index;
     system->location.cluster_index = (leaf_index == -1) ? (int16_t)0xffff :
         *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
@@ -443,7 +420,7 @@ uint8_t particle_system_ref::new_type_states()
 
         if (any_type_ok) {
             if (all_types_ok) {
-                particle_system_update(0.001f, handle);
+                halo::effects::particle_system_update(0.001f, handle);
             }
             return all_types_ok;
         }
@@ -657,13 +634,13 @@ void particle_system_ref::resolve_local_players()
         if (((particle_system *)system)->object_index != k_datum_index_none) {
             object_get_root_location((int32_t *)(system + 0x18), ((particle_system *)system)->object_index);
         } else {
-            uint32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(system + 0x20));
+            uint32_t leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)(system + 0x20));
             int16_t cluster = particle_leaf_cluster(leaf);
 
             *(uint32_t *)&((particle_system *)system)->location.leaf_index = leaf;
             ((particle_system *)system)->location.cluster_index = cluster;
             if (cluster == -1) {
-                particle_system_delete(handle);
+                halo::effects::particle_system_delete(handle);
                 continue;
             }
         }
@@ -672,7 +649,7 @@ void particle_system_ref::resolve_local_players()
 
             while (*link != k_datum_index_none) {
                 uint8_t *particle = (uint8_t *)particle_system_particle_data->data + (*link & 0xffff) * 0x80;
-                uint32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(particle + 0x1c));
+                uint32_t leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)(particle + 0x1c));
                 int16_t cluster = particle_leaf_cluster(leaf);
 
                 *(uint32_t *)&((particle_system_particle *)particle)->location.leaf_index = leaf;
@@ -751,7 +728,7 @@ void particle_system_view::spawn(int32_t type_index, float dt)
     int16_t marker_count;
     int16_t spawned;
 
-    locality = (int16_t)player_weapon_locality_for_object(object_index);
+    locality = (int16_t)halo::effects::player_weapon_locality_for_object(object_index);
     if (locality != 0) {
         if (type_flags & 0x20000) {
             if (locality == -1 || !render_local_player_gunner_seat_visible(current_local_player_index)) {
@@ -877,7 +854,7 @@ void particle_system_view::update_physics_default(real dt)
         return;
     }
 
-    point_physics_tick(&system->velocity, 0,
+    halo::physics::point_physics_tick(&system->velocity, 0,
         (PointPhysics *)halo::cache::globals().tag_instances[point_physics_tag_id & 0xffff].data,
         &system->location, (uint32_t)-1, &system->position, (real_vector3d *)0,
         (real_vector3d *)0, (int16_t *)0, 1.0f, dt);
@@ -892,7 +869,7 @@ void particle_system_view::update_physics_default(real dt)
 void particle_system_view::update_physics_explosion(real dt)
 {
     particle_system * system = record;
-    particle_system_update_physics_default(system, dt);
+    halo::effects::particle_system_update_physics_default(system, dt);
 }
 
 /**
@@ -908,7 +885,7 @@ void particle_system_ref::delete_all()
         datum_index handle = halo::memory::datum_next(-1, systems);
 
         while (handle != (datum_index)0xffffffff) {
-            particle_system_delete(handle);
+            halo::effects::particle_system_delete(handle);
             handle = halo::memory::datum_next((int16_t)handle, systems);
         }
 
@@ -936,7 +913,7 @@ void particle_system_ref::render_all()
             uint32_t *visible_clusters = (uint32_t *)((uint8_t *)local_player_globals + 0x58);
 
             if ((visible_clusters[cluster >> 5] & (1u << (cluster & 0x1f))) != 0) {
-                particle_system_render(system_index);
+                halo::effects::particle_system_render(system_index);
             }
         }
 
@@ -955,7 +932,7 @@ void particle_system_ref::update_all(float delta_time)
     datum_index handle = halo::memory::datum_next(-1, systems);
 
     while (handle != (datum_index)0xffffffff) {
-        particle_system_update(delta_time, handle);
+        halo::effects::particle_system_update(delta_time, handle);
         handle = halo::memory::datum_next((int16_t)handle, systems);
     }
 }
@@ -999,14 +976,14 @@ void particle_system_view::update_physics_default(int16_t type_index, real dt, p
 
             radius = ((1.0f - fraction) * next_state->radius_multiplier + fraction * state->radius_multiplier) *
                      type_state->radius * particle_type->radius;
-            point_physics_interpolate(&blended,
+            halo::physics::point_physics_interpolate(&blended,
                 (PointPhysics *)halo::cache::globals().tag_instances[*(uint32_t *)&((struct ParticleSystemTypeParticleState *)state)->point_physics.tag_id & 0xffff].data,
                 (PointPhysics *)halo::cache::globals().tag_instances[*(uint32_t *)&((struct ParticleSystemTypeParticleState *)next_state)->point_physics.tag_id & 0xffff].data,
                 fraction);
             physics = &blended;
         }
 
-        collision_flags = point_physics_tick((real_vector3d *)&particle->velocity, 0, physics,
+        collision_flags = halo::physics::point_physics_tick((real_vector3d *)&particle->velocity, 0, physics,
             &particle->location, (uint32_t)-1, &particle->position, (real_vector3d *)0,
             (real_vector3d *)0, (int16_t *)0, radius, dt);
 
@@ -1020,7 +997,7 @@ void particle_system_view::update_physics_default(int16_t type_index, real dt, p
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void particle_creation_physics_default(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker)
 {

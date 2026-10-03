@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
 
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 
@@ -36,7 +37,6 @@ extern Scenario *global_scenario;
 extern network_client_globals *network_client;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
-extern int32_t bsp3d_node_find_leaf(void);
 extern void object_get_node_local_transform(datum_index object_index, int32_t node_index, void *out_transform, int32_t unknown);
 extern void unit_try_set_animation_state(datum_index unit_handle, int32_t state);
 extern void object_snap_to_parent_marker_and_detach(datum_index object_index);
@@ -802,7 +802,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
         skip_trigger_check = 1;
     }
 
-    unknown_result = bsp3d_node_find_leaf();
+    unknown_result = (int32_t)halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)0, (real_point3d *)0);
     if (unknown_result == -1 || skip_trigger_check != 0) {
         object *current_parent_obj = ((object_header *)object_data->data)[unit_handle & 0xffff].data;
         if (target_obj->parent_object != (datum_index)-1 &&

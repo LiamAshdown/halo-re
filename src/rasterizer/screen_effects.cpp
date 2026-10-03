@@ -7,10 +7,10 @@
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 
-extern void decals_update_fade(void);
 extern double log(double x);
 extern double pow(double base, double exponent);
 extern int __cdecl _stricmp(const char *a, const char *b);
@@ -55,7 +55,7 @@ void chimera__cinematic_screen_effect(rasterizer_frame_time *time_source)
     *(int32_t *)(halo::cache::globals().texture_cache + 0x30) = *(int32_t *)(halo::cache::globals().texture_cache + 0x30) + 1;
     if (decals_for_all_responses != 0) {
         *(int32_t *)(rasterizer_decal_vertex_cache_handle + 0x30) = *(int32_t *)(rasterizer_decal_vertex_cache_handle + 0x30) + 1;
-        decals_update_fade();
+        halo::effects::decals_update_fade();
     }
 }
 
@@ -200,7 +200,6 @@ set_bit:
 namespace rasterizer_fog_screen_overlay_set_states_impl {
 
 
-
 /**
  * Direct3D 9 back end function rasterizer_fog_screen_overlay_set_states. The original author notes are in
  * docs/original/rasterizer/rasterizer_fog_screen_overlay_set_states.c.txt.
@@ -324,13 +323,6 @@ void rasterizer_gamma_brightness_to_exponent(rasterizer_gamma_settings *settings
 }
 
 namespace rasterizer_motion_sensor_begin_impl {
-
-
-
-
-
-
-
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -504,11 +496,6 @@ void rasterizer_motion_sensor_blip_draw(const float *position, const float *colo
 }  // namespace rasterizer_motion_sensor_blip_draw_impl
 
 namespace rasterizer_motion_sensor_end_impl {
-
-
-
-
-
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -809,8 +796,8 @@ void rasterizer_screen_effect_compute_uv_transform(uint32_t width, uint32_t heig
         m[6][3] += frame_u * frame_shift * 0.5f;
         m[7][3] += frame_shift * frame_v * 0.5f;
     } else if (pass == 1 && has_extra_maps) {
-        m[4][3] += effect_random_fraction() * c_u * (float)(int16_t)map_c->width;
-        m[5][3] += effect_random_fraction() * c_v * (float)(int16_t)map_c->height;
+        m[4][3] += halo::effects::effect_random_fraction() * c_u * (float)(int16_t)map_c->width;
+        m[5][3] += halo::effects::effect_random_fraction() * c_v * (float)(int16_t)map_c->height;
     }
 
     if (shift_down) {
@@ -872,15 +859,6 @@ uint8_t rasterizer_screen_effect_init_shaders(void)
 }
 
 namespace rasterizer_screen_effect_render_impl {
-
-
-
-
-
-
-
-
-
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -1165,11 +1143,6 @@ void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
 namespace rasterizer_screen_effect_render_fixed_function_impl {
 
 
-
-
-
-
-
 static void set_render_state(uint32_t state, uint32_t value)
 {
     render_device().set_render_state(state, value);
@@ -1385,15 +1358,6 @@ int rasterizer_screen_flash_init_shaders(void)
 }
 
 namespace rasterizer_screen_flash_render_impl {
-
-
-
-
-
-
-
-
-
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -1657,14 +1621,6 @@ void rasterizer_screen_flash_render(void)
 namespace rasterizer_sun_glow_blur_impl {
 
 
-
-
-
-
-
-
-
-
 static void set_render_state(uint32_t state, uint32_t value)
 {
     render_device().set_render_state(state, value);
@@ -1745,14 +1701,6 @@ int16_t rasterizer_sun_glow_blur(int16_t first, int16_t second, int16_t passes)
 }  // namespace rasterizer_sun_glow_blur_impl
 
 namespace rasterizer_sun_glow_capture_impl {
-
-
-
-
-
-
-
-
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -1908,14 +1856,6 @@ uint8_t rasterizer_sun_glow_project_point(real_point3d *point, float radius, flo
 }
 
 namespace rasterizer_sun_glow_render_impl {
-
-
-
-
-
-
-
-
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -2161,15 +2101,6 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
 }  // namespace rasterizer_sun_glow_render_impl
 
 namespace rasterizer_ui_quad_draw_impl {
-
-
-
-
-
-
-
-
-
 
 
 static void set_render_state(uint32_t state, uint32_t value)
@@ -2475,8 +2406,6 @@ void rasterizer_underwater_tint_jitter_update(BitmapData *lightmap)
 }
 
 namespace rasterizer_underwater_tint_set_states_impl {
-
-
 
 
 /**

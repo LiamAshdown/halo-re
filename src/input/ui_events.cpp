@@ -15,8 +15,9 @@
 #include "crt.h"
 
 #include "halo/input/ui_events.hpp"
+#include "halo/input/api.hpp"
 
-extern "C" { uint8_t input_queue_pop_event(ui_input_event *out_event, int16_t queue_index); }
+extern "C" { uint8_t halo::input::input_queue_pop_event(ui_input_event *out_event, int16_t queue_index); }
 
 extern "C" { extern input_abstraction_globals input_globals; }
 extern "C" { extern input_event_queue input_event_queue_active; }
@@ -35,8 +36,6 @@ extern "C" { extern void *mouse_device; }
 extern "C" { extern mouse_state live_mouse_state; }
 extern "C" { extern uint32_t mouse_double_click_time; }
 extern "C" { extern int64_t performance_frequency; }
-extern "C" { extern uint8_t input_get_key_state(int16_t key_index); }
-extern "C" { extern void input_queue_push_event(int16_t queue_index, ui_input_event *record); }
 static void menu_direction_update(menu_repeat_state *state, uint8_t active, int32_t now_ms,
                                    int32_t virtual_key_id, uint8_t *fired)
 {
@@ -88,7 +87,7 @@ static void push_menu_event(int16_t kind, uint8_t code, uint8_t pressed)
     event.kind = kind;
     event.code = code;
     event.pressed = pressed;
-    input_queue_push_event(0, &event);
+    halo::input::input_queue_push_event(0, &event);
 }
 
 namespace halo::input {
@@ -131,7 +130,7 @@ void UiEvents::menu_generate_events(void)
 
     virtual_id = 0;
     for (key_index = 0; key_index < k_control_keyboard_key_count; key_index++) {
-        held = input_get_key_state((int16_t)key_index);
+        held = halo::input::input_get_key_state((int16_t)key_index);
         virtual_id++;
         switch (key_index) {
         case _input_key_escape:
@@ -242,15 +241,15 @@ void UiEvents::menu_generate_events(void)
         push_menu_event(3, 0xd, 1);
     }
 
-    held = input_get_key_state(_input_key_insert);
+    held = halo::input::input_get_key_state(_input_key_insert);
     if (held != 0 && input_event_queue_active.enabled) {
-        held = input_get_key_state(_input_key_insert);
+        held = halo::input::input_get_key_state(_input_key_insert);
         push_menu_event(3, 3, held);
     }
 
-    held = input_get_key_state(_input_key_delete);
+    held = halo::input::input_get_key_state(_input_key_delete);
     if (held != 0 && input_event_queue_active.enabled) {
-        held = input_get_key_state(_input_key_delete);
+        held = halo::input::input_get_key_state(_input_key_delete);
         push_menu_event(3, 2, held);
     }
 
@@ -345,7 +344,7 @@ uint8_t UiEvents::queue_pop_event(ui_input_event *out_event, int16_t queue_index
         return 0;
     }
     for (queue_index = 0; queue_index < 4; queue_index++) {
-        if (input_queue_pop_event(out_event, queue_index) != 0) {
+        if (halo::input::input_queue_pop_event(out_event, queue_index) != 0) {
             return 1;
         }
     }

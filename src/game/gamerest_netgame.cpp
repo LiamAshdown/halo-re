@@ -3,6 +3,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/items/api.hpp"
 
 #ifdef __cplusplus
 #define CTF_CUSTOM_WAYPOINT_ZERO custom_waypoint{}
@@ -39,7 +40,6 @@ extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index
 extern void game_engine_broadcast_kill_feed_to_team(int32_t message_type, int32_t team, uint8_t broadcast);
 extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index);
 extern datum_index game_engine_find_player_holding_object(datum_index target_object);
-extern uint8_t item_get_effective_position(datum_index object_index, real_point3d *out_position);
 extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position, float height_offset, datum_index player_filter, int16_t team_filter);
 extern int16_t hud_waypoint_arrow_find(void);
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
@@ -220,7 +220,7 @@ weapon_coordination:
         }
         other_team = (int32_t)toggled;
     }
-    position_valid = item_get_effective_position((datum_index)flag_handle, &item_position);
+    position_valid = halo::items::item_get_effective_position((datum_index)flag_handle, &item_position);
 
     if ((game_engine_variant.engine.ctf.single_flag_time < 1 || ctf_active_team == team) && position_valid == 1) {
         int16_t icon;

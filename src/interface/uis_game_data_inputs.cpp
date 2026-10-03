@@ -19,6 +19,7 @@
 
 #include "halo/interface/uis_game_data_inputs.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern uint8_t ui_split_screen;
@@ -37,7 +38,6 @@ extern char network_player_entry_validate(void *entry);
 extern void widget_instance_set_state_recursive(widget_instance *widget, uint8_t state);
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
-extern int32_t joystick_slot_devices[4];
 extern uint8_t variant_teams_enabled_0071920c;
 extern int32_t variant_team_selection_00692b08;
 extern void ui_controls_populate_bind_rows(widget_instance *widget, uint32_t packed);
@@ -629,7 +629,7 @@ void UiGameDataInputs::input_4a7350(widget_instance *widget)
  */
 void UiGameDataInputs::input_4a73d0(widget_instance *widget)
 {
-    int32_t count = joystick_slot_devices[0] != -1 ? 1 : 0;
+    int32_t count = halo::input::globals().joystick_slot_devices[0] != -1 ? 1 : 0;
 
     if (count >= 2) {
         widget->scale = 1.0f;

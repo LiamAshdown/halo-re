@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern void unit_get_look_origin_and_direction(uint32_t object_index, uint32_t *out_status, real_vector3d *out_direction, real_point3d *out_origin);

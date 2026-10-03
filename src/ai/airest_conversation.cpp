@@ -4,6 +4,7 @@
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -17,8 +18,6 @@ extern int32_t __ftol(double x);
 extern data_array *object_data;
 extern game_time_globals *game_time;
 extern int32_t ai_communication_quiet_until_tick;
-extern void sound_impulse_start(datum_index object_index, datum_index definition_index, float scale);
-extern int32_t sound_impulse_time(datum_index sound_tag_handle);
 extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value);
 extern int32_t unit_commit_speech(uint32_t unit_index, const void *source, int16_t mode);
 extern ai_globals *ai_globals_ptr;
@@ -324,7 +323,7 @@ uint8_t ConversationView::current_line_is_ready()
                     unit_commit_speech(*(datum_index *)(inst + 0x54), speech, result);
                 }
             } else {
-                sound_impulse_start(k_datum_index_none, sound, 1.0f);
+                halo::sound::sound_impulse_start(k_datum_index_none, sound, 1.0f);
             }
         }
         inst[0x61] = 1;
@@ -338,7 +337,7 @@ uint8_t ConversationView::current_line_is_ready()
 
         if (*(datum_index *)(inst + 0x54) == k_datum_index_none) {
             done = !(*(datum_index *)(inst + 0x5c) != k_datum_index_none &&
-                     sound_impulse_time(*(datum_index *)(inst + 0x5c)) != 0);
+                     halo::sound::sound_impulse_time(*(datum_index *)(inst + 0x5c)) != 0);
         } else {
             uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[*(datum_index *)(inst + 0x54) & 0xffff].data;
 

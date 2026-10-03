@@ -14,18 +14,15 @@
 
 #include "halo/game/game1_clock.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern game_main_globals *main_game_globals;
 extern game_time_globals *game_time;
 extern real chimera_contrail_scale;
-extern void contrail_update(real delta_time);
-extern void particle_systems_update(real delta_time);
-extern void particles_update(real tick_delta_time);
 extern void widgets_update_all(real tick_delta_time);
-extern void weather_update(void);
 extern void numeric_countdown_timer_update(void);
-extern void game_sound_update(void);
 extern int16_t network_game_mode;
 extern double floor(double x);
 extern int32_t game_time_force_single_tick;
@@ -72,15 +69,15 @@ void SimulationClock::effects_update(real delta_time)
     delta_time = scale * delta_time;
 
     if (ticks_this_frame != 0) {
-        particles_update(tick_delta_time);
+        halo::effects::particles_update(tick_delta_time);
     }
-    contrail_update(delta_time);
-    particle_systems_update(delta_time);
+    halo::effects::contrail_update(delta_time);
+    halo::effects::particle_systems_update(delta_time);
     if (ticks_this_frame != 0) {
         widgets_update_all(tick_delta_time);
     }
-    game_sound_update();
-    weather_update();
+    halo::sound::game_sound_update();
+    halo::effects::weather_update();
     chimera_contrail_scale = delta_time;
     numeric_countdown_timer_update();
 }

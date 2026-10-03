@@ -1,20 +1,18 @@
 #include "halo/hs/hs1_effects.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern void *memset(void *dst, int32_t value, uint32_t size);
-extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void damage_apply_area_effect(void *request, uint32_t param_2);
 extern Scenario *global_scenario;
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void object_apply_damage(void *dd, uint32_t object_index, int16_t hit_node_index, int16_t hit_region_index, int16_t hit_material_index, uint32_t hit_plane);
 extern double fcos(double x);
 extern double fsin(double x);
-extern void effect_new_with_color(uint32_t effect, uint32_t creator_object_index, void *velocity, int32_t ctx_08, int32_t ctx_0c, real_point3d *position, real_vector3d *forward, float a_scale, float b_scale, int32_t color, int32_t tint_source, int32_t force_create);
 extern void *global_origin3d_pointer;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
-extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 }
 
 namespace halo::hs {
@@ -49,7 +47,7 @@ void ScriptEffects::damage_apply_at_location(int16_t location_index, uint32_t da
     *(Point3D *)&request.position = location->position;
     *(Point3D *)&request.direction = location->position;
 
-    impulse = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&location->position);
+    impulse = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)&location->position);
     request.sound_impulse = impulse;
     if (impulse == -1) {
         request.sound_index = 0xffff;
@@ -85,7 +83,7 @@ void ScriptEffects::damage_apply_with_sound(datum_index object_index, uint32_t d
         object_get_position((real_point3d *)&request.position, object_index);
         *(Point3D *)&request.direction = *(Point3D *)&request.position;
 
-        impulse = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&request.position);
+        impulse = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)&request.position);
         request.sound_impulse = impulse;
         if (impulse == -1) {
             request.sound_index = 0xffff;
@@ -114,7 +112,7 @@ void ScriptEffects::effect_spawn_at_location(int16_t location_index, uint32_t ef
         fcos((double)location->facing.pitch));
     forward.k = (float)fsin((double)location->facing.pitch);
 
-    effect_new_with_color(effect, 0xffffffff, global_origin3d_pointer, 1, 0, (real_point3d *)&location->position, &forward,
+    halo::effects::effect_new_with_color(effect, 0xffffffff, (const real_vector3d *)global_origin3d_pointer, 1, 0, (real_point3d *)&location->position, (uint32_t)&forward,
         1.0f, 1.0f, 0, 0, 1);
 }
 
@@ -133,7 +131,7 @@ void ScriptEffects::effect_spawn_on_marker(datum_index object_index, datum_index
     if ((int16_t)object_get_node_local_transform(object_index, marker_name, &marker, 1) == 0) {
         return;
     }
-    effect_new_on_object_with_node_table(k_datum_index_none, effect, object_index, *(uint16_t *)&marker,
+    halo::effects::effect_new_on_object_with_node_table(k_datum_index_none, effect, object_index, *(uint16_t *)&marker,
         1, (uint32_t)&marker_name, (uint32_t)((uint8_t *)&marker + 0x60), (uint32_t)((uint8_t *)&marker + 0x3c),
         1.0f, 1.0f, 0, 0);
 }

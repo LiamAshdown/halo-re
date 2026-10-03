@@ -19,6 +19,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -375,7 +376,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     parameters.fog = render_fog_state;
 
     halo::structures::structure_bsp_cluster_visibility_update();
-    player_effect_build_screen_flash(&parameters.screen_flash, local_player_index);
+    halo::effects::player_effect_build_screen_flash(&parameters.screen_flash, local_player_index);
     rasterizer_begin_frame(&parameters);
     first_person_weapon_update_zoom_static_tint(1);
     billboard_system_frame_init();
@@ -397,7 +398,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     }
     lights_apply_spot_falloff();
 
-    if (console_debug_toggle_6893e4 == 0 && decals_for_all_responses) {
+    if (console_debug_toggle_6893e4 == 0 && halo::effects::globals().decals_for_all_responses) {
         rasterizer_decal_pass_begin(2);
         draw_visible_cluster_decals();
         rasterizer_end_decal_pass();
@@ -413,7 +414,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
         rasterizer_force_bilinear_filtering();
     }
 
-    if (console_debug_toggle_6893e4 == 0 && decals_for_all_responses) {
+    if (console_debug_toggle_6893e4 == 0 && halo::effects::globals().decals_for_all_responses) {
         rasterizer_decal_pass_begin(0);
         draw_visible_cluster_decals();
         rasterizer_end_decal_pass();
@@ -468,9 +469,9 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     if (current_game_engine != 0 && current_game_engine->post_rasterize != 0) {
         ((void (*)(void))current_game_engine->post_rasterize)();
     }
-    weather_update_local_player();
+    halo::effects::weather_update_local_player();
     render_particles();
-    particle_systems_render();
+    halo::effects::particle_systems_render();
     render_contrails(0xfffffff3);
     transparent_geometry_group_draw_all(1);
 

@@ -6,6 +6,7 @@
 
 #include "halo/structures/structures.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern void **rasterizer_dynamic_index_buffer;
@@ -151,7 +152,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
                         consumed = (int16_t)(scan - surface_indices);
 
                         if (material->breakable_surface == (uint16_t)-1 ||
-                            (breakable_surface_state->active[global_structure_bsp_index][material->breakable_surface >> 5] &
+                            (halo::physics::globals().breakable_surface_state->active[global_structure_bsp_index][material->breakable_surface >> 5] &
                              (1u << (material->breakable_surface & 0x1f))) != 0) {
                             if (shader->shader_type == 1 || (shader->shader_type > 4 && shader->shader_type < 0xc)) {
                                 if (transparent_material_cb != 0) {

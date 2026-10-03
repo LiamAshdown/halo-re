@@ -5,6 +5,7 @@
 #include "units.h"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream);

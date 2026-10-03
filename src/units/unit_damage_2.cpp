@@ -3,6 +3,7 @@
 #include "projectiles.h"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -11,7 +12,6 @@ extern char ai_marker_name_a[];
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
-extern void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, int32_t collision_surface_index);
 extern void device_machine_melee_attacked(uint32_t object_index);
 }
 
@@ -64,7 +64,7 @@ void UnitView::melee_attack_scan()
             delta.i = (rowf * perp.i + colf * side.i) * 0.1f + aim->i * 0.8f;
             delta.j = (rowf * perp.j + colf * side.j) * 0.1f + aim->j * 0.8f;
             delta.k = (rowf * perp.k + colf * side.k) * 0.1f + aim->k * 0.8f;
-            if (!collision_test_movement_segment(0x1000e9, &origin, &delta, unit_index, &hit)) {
+            if (!halo::physics::collision_test_movement_segment(0x1000e9, &origin, &delta, unit_index, &hit)) {
                 continue;
             }
             if (*(int16_t *)&hit == 2) {
@@ -153,7 +153,7 @@ void UnitView::melee_attack_scan()
 
         if (best_object == 0xffffffff) {
             if ((int16_t)breakable_index != -1) {
-                breakable_surface_apply_damage(&dd, (int32_t)breakable_index, breakable_surface);
+                halo::physics::breakable_surface_apply_damage(&dd, (int32_t)breakable_index, breakable_surface);
             }
         } else {
             float speed_scale = *(float *)((uint8_t *)global_globals->player_information.pointer + 0x34);

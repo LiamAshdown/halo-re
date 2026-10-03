@@ -114,7 +114,7 @@ uint8_t decal_vertex_cache_in_use(datum_index handle)
  */
 void decal_vertex_cache_release(datum_index handle)
 {
-    decal_delete(handle);
+    halo::effects::decal_delete(handle);
 }
 
 /**
@@ -203,8 +203,6 @@ uint8_t rasterizer_decal_index_buffer_initialize(void)
 }  // namespace rasterizer_decal_index_buffer_initialize_impl
 
 namespace rasterizer_decal_pass_begin_impl {
-
-
 
 
 /**
@@ -333,11 +331,6 @@ int rasterizer_decal_zbias_active(void)
 }
 
 namespace rasterizer_decals_draw_cluster_impl {
-
-
-
-
-
 
 
 static void rasterizer_set_render_state(uint32_t state, uint32_t value)
@@ -556,7 +549,6 @@ void rasterizer_end_decal_pass(void)
 }
 
 namespace rasterizer_shader_decal_pass_set_states_impl {
-
 
 
 /**

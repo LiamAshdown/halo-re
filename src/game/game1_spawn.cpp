@@ -13,6 +13,7 @@
 #include "halo/game/game1_spawn.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -28,9 +29,6 @@ extern Scenario *global_scenario;
 extern int game_engine_find_valid_starting_locations(real_point3d *origin,
     float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type,
     int32_t max_results, int32_t *results);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
-    real_point3d *point);
 extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location,
     real_point3d *center, float radius, datum_index *out_objects, int16_t max_output);
 }
@@ -246,7 +244,7 @@ uint8_t SpawnLocations::location_blocked_by_vehicle(real_point3d *point)
     int16_t count;
     int16_t i;
 
-    location.leaf_index = bsp3d_node_find_leaf(0, global_collision_bsp, point);
+    location.leaf_index = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, point);
     if (location.leaf_index == -1) {
         location.cluster_index = -1;
     } else {

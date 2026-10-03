@@ -4,6 +4,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/effects/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -11,7 +13,6 @@ extern "C" {
 extern ai_update_stagger_state *ai_update_stagger;
 extern int16_t network_game_mode;
 extern game_main_globals *main_game_globals;
-extern int32_t player_effect_reentry_count;
 extern int32_t network_scenario_round_counter_a;
 extern int32_t network_scenario_round_counter_b;
 extern void game_engine_flag_local_player_units(void);
@@ -20,8 +21,6 @@ extern void game_engine_tick(void);
 extern void hs_runtime_update(void);
 extern void ai_tick_dispatcher(void);
 extern void recorded_animations_update(void);
-extern void effects_update_all(float seconds_per_tick);
-extern void player_effect_clear_dead_players(void);
 extern void game_engine_players_update_server(void);
 extern void game_engine_players_update_client(void);
 extern void main_switch_structure_bsp(void);
@@ -44,20 +43,8 @@ extern scenario_game_globals *global_scenario_game_globals;
 extern uint32_t k_default_sound_environment[0x12];
 extern data_array *object_render_state_cache;
 extern void *decal_grid_block;
-extern data_array *decal_data;
-extern data_array *contrail_data;
-extern data_array *contrail_point_data;
-extern data_array *particle_data;
-extern data_array *effect_data;
-extern data_array *effect_location_data;
 extern void *particle_system_data;
-extern data_array *particle_system_particle_data;
-extern uint8_t sound_disabled;
-extern void *sound_data;
-extern void *looping_sound_data;
 extern void *sound_class_gains;
-extern data_array *game_looping_sound_data;
-extern uint32_t *game_sound_globals_ptr;
 extern int32_t weather_instances;
 extern int32_t weather_instance_count;
 extern data_array *weather_particle_data;
@@ -88,7 +75,6 @@ extern void objects_reset(void);
 extern void breakable_surfaces_reset(void);
 extern void decal_and_font_system_reset(void);
 extern void game_state_build_header(void);
-extern void ambient_color_randomize(void);
 extern uint32_t rasterizer_globals_data;
 extern data_array *ai_conversation_data;
 extern data_array *encounter_data;
@@ -104,14 +90,10 @@ extern data_array *team_data;
 extern director directors[1];
 extern uint8_t *hs_camera_control_pointer;
 extern uint32_t text_localization_strings;
-extern void decal_clear_flags(uint8_t clear_object_attached);
-extern void particle_systems_delete_all(void);
 extern void update_queues_dispose(void);
 extern void hs_scripts_free(void);
 extern void objects_flush_dirty_state(void);
 extern void font_glyph_cache_clear_all(void);
-extern void game_sound_revert_scripting_sounds(void);
-extern void sound_fade_out_and_stop_all(void);
 extern void widget_close_all(void);
 extern uint32_t global_scenario_index;
 extern uint16_t global_structure_bsp_index;
@@ -161,12 +143,12 @@ void GameLifecycle::simulate_tick(uint32_t predict_pass)
 after_role_update:
     {
         float seconds_per_tick = (main_game_globals->players_are_double_speed == 0) ? 0.033333335f : 0.016666668f;
-        effects_update_all(seconds_per_tick);
+        halo::effects::effects_update_all(seconds_per_tick);
     }
 
-    player_effect_reentry_count = player_effect_reentry_count + 1;
+    halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count + 1;
     first_person_weapon_interface_tick();
-    player_effect_reentry_count = player_effect_reentry_count - 1;
+    halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count - 1;
 
     game_engine_tick();
     hs_runtime_update();
@@ -174,7 +156,7 @@ after_role_update:
     objects_update();
     main_switch_structure_bsp();
     hud_update_dispatch();
-    player_effect_clear_dead_players();
+    halo::effects::player_effect_clear_dead_players();
 
     if (network_game_mode == 2) {
         if (predict_pass == 0) {
@@ -249,7 +231,7 @@ void GameLifecycle::start_new_map(void)
         cursor = cursor + 1;
     }
     *(uint8_t *)unknown_00746280_block = 1;
-    ambient_color_randomize();
+    halo::effects::ambient_color_randomize();
 
     tag_cache_bytes = (uint8_t *)global_scenario_game_globals;
     cursor = (uint32_t *)tag_cache_bytes;
@@ -284,32 +266,32 @@ void GameLifecycle::start_new_map(void)
     dst[0] = 0xffffffff;
     dst[1] = 0;
     dst[2] = 0;
-    decal_data->valid = 1;
-    halo::memory::data_delete_all(decal_data);
+    halo::effects::globals().decal_data->valid = 1;
+    halo::memory::data_delete_all(halo::effects::globals().decal_data);
 
     camera_initialize();
     observer_new(&observers[0]);
 
-    contrail_data->valid = 1;
-    halo::memory::data_delete_all(contrail_data);
-    contrail_point_data->valid = 1;
-    halo::memory::data_delete_all(contrail_point_data);
-    particle_data->valid = 1;
-    halo::memory::data_delete_all(particle_data);
-    effect_data->valid = 1;
-    halo::memory::data_delete_all(effect_data);
-    effect_location_data->valid = 1;
-    halo::memory::data_delete_all(effect_location_data);
+    halo::effects::globals().contrail_data->valid = 1;
+    halo::memory::data_delete_all(halo::effects::globals().contrail_data);
+    halo::effects::globals().contrail_point_data->valid = 1;
+    halo::memory::data_delete_all(halo::effects::globals().contrail_point_data);
+    halo::effects::globals().particle_data->valid = 1;
+    halo::memory::data_delete_all(halo::effects::globals().particle_data);
+    halo::effects::globals().effect_data->valid = 1;
+    halo::memory::data_delete_all(halo::effects::globals().effect_data);
+    halo::effects::globals().effect_location_data->valid = 1;
+    halo::memory::data_delete_all(halo::effects::globals().effect_location_data);
     *((uint8_t *)particle_system_data + 0x24) = 1;
     halo::memory::data_delete_all((data_array *)particle_system_data);
-    particle_system_particle_data->valid = 1;
-    halo::memory::data_delete_all(particle_system_particle_data);
+    halo::effects::globals().particle_system_particle_data->valid = 1;
+    halo::memory::data_delete_all(halo::effects::globals().particle_system_particle_data);
 
     if (sound_disabled == 0) {
-        *((uint8_t *)sound_data + 0x24) = 1;
-        halo::memory::data_delete_all((data_array *)sound_data);
-        *((uint8_t *)looping_sound_data + 0x24) = 1;
-        halo::memory::data_delete_all((data_array *)looping_sound_data);
+        *((uint8_t *)halo::sound::globals().sound_data + 0x24) = 1;
+        halo::memory::data_delete_all((data_array *)halo::sound::globals().sound_data);
+        *((uint8_t *)halo::sound::globals().looping_sound_data + 0x24) = 1;
+        halo::memory::data_delete_all((data_array *)halo::sound::globals().looping_sound_data);
     }
 
     record = (uint8_t *)sound_class_gains + 8;
@@ -322,9 +304,9 @@ void GameLifecycle::start_new_map(void)
         i = i - 1;
     } while (i != 0);
 
-    if (game_looping_sound_data != (data_array *)0) {
-        game_looping_sound_data->valid = 1;
-        halo::memory::data_delete_all(game_looping_sound_data);
+    if (halo::sound::globals().game_looping_sound_data != (data_array *)0) {
+        halo::sound::globals().game_looping_sound_data->valid = 1;
+        halo::memory::data_delete_all(halo::sound::globals().game_looping_sound_data);
         game_sound_globals_ptr[1] = 0xffffffff;
         game_sound_globals_ptr[0] = 0;
         game_sound_globals_ptr[2] = 0;
@@ -332,8 +314,8 @@ void GameLifecycle::start_new_map(void)
 
     weather_instances = -1;
     weather_instance_count = 0;
-    weather_particle_data->valid = 1;
-    halo::memory::data_delete_all(weather_particle_data);
+    halo::effects::globals().weather_particle_data->valid = 1;
+    halo::memory::data_delete_all(halo::effects::globals().weather_particle_data);
 
     k_air_density = globals::air_density_base * 118613.34f;
     k_water_density = globals::water_density_base * 118613.34f;
@@ -398,22 +380,22 @@ void GameLifecycle::stop_current_map(void)
     swarm_data->valid = 0;
     swarm_component_data->valid = 0;
     ai_globals_ptr->actors_valid = 0;
-    particle_systems_delete_all();
+    halo::effects::particle_systems_delete_all();
 
-    if (weather_particle_data->valid != 0) {
-        weather_particle_data->valid = 0;
+    if (halo::effects::globals().weather_particle_data->valid != 0) {
+        halo::effects::globals().weather_particle_data->valid = 0;
     }
     if (rasterizer_decal_vertex_cache_handle != 0) {
-        decal_clear_flags(1);
+        halo::effects::decal_clear_flags(1);
         halo::memory::cache_flush((::cache *)rasterizer_decal_vertex_cache_handle);
     }
-    decal_data->valid = 0;
+    halo::effects::globals().decal_data->valid = 0;
     if (object_render_state_cache != (data_array *)0 && object_render_state_cache->valid != 0) {
         object_render_state_cache->valid = 0;
     }
     objects_flush_dirty_state();
 
-    had_network_predicted_globals = game_looping_sound_data != (data_array *)0;
+    had_network_predicted_globals = halo::sound::globals().game_looping_sound_data != (data_array *)0;
     directors[0].pov_proc = 0;
     directors[0].look_scale = 1.0f;
     directors[0].unknown_c0 = 0;
@@ -421,18 +403,18 @@ void GameLifecycle::stop_current_map(void)
     text_localization_strings = 0xffffffff;
     player_data->valid = 0;
     team_data->valid = 0;
-    contrail_point_data->valid = 0;
-    contrail_data->valid = 0;
-    particle_data->valid = 0;
-    effect_data->valid = 0;
-    effect_location_data->valid = 0;
+    halo::effects::globals().contrail_point_data->valid = 0;
+    halo::effects::globals().contrail_data->valid = 0;
+    halo::effects::globals().particle_data->valid = 0;
+    halo::effects::globals().effect_data->valid = 0;
+    halo::effects::globals().effect_location_data->valid = 0;
 
-    if (had_network_predicted_globals && game_looping_sound_data->valid != 0) {
-        game_sound_revert_scripting_sounds();
-        game_looping_sound_data->valid = 0;
+    if (had_network_predicted_globals && halo::sound::globals().game_looping_sound_data->valid != 0) {
+        halo::sound::game_sound_revert_scripting_sounds();
+        halo::sound::globals().game_looping_sound_data->valid = 0;
     }
 
-    sound_fade_out_and_stop_all();
+    halo::sound::sound_fade_out_and_stop_all();
     update_queues_dispose();
 
     if (current_game_engine != (game_engine_definition *)0 && current_game_engine->dispose_from_old_game != (void *)0) {

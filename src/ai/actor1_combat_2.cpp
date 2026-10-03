@@ -1,6 +1,7 @@
 #include "halo/ai/actor_combat.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
 
 namespace c_actor_evaluate_engagement_reachability {
 extern "C" {
@@ -47,7 +48,7 @@ int32_t halo::ai::combat_ops::evaluate_engagement_reachability(int16_t self_clus
     delta.i = target_position->x - self_position->x;
     delta.j = target_position->y - self_position->y;
     delta.k = target_position->z - self_position->z;
-    if (!collision_test_movement_segment(mask, self_position, &delta, exclude_object_index, result)) {
+    if (!halo::physics::collision_test_movement_segment(mask, self_position, &delta, exclude_object_index, (collision_result *)result)) {
         direct_clear = 1;
     } else {
         direct_clear = 0;
@@ -74,14 +75,14 @@ int32_t halo::ai::combat_ops::evaluate_engagement_reachability(int16_t self_clus
             b.y = self_position->y - offset.j;
             b.z = self_position->z - offset.k;
             if (direct_clear) {
-                if (collision_test_movement_segment_between_points(&a, target_position, mask, exclude_object_index, result) ||
-                    collision_test_movement_segment_between_points(&b, target_position, mask, exclude_object_index, result)) {
+                if (halo::physics::collision_test_movement_segment_between_points(&a, target_position, mask, exclude_object_index, (collision_result *)result) ||
+                    halo::physics::collision_test_movement_segment_between_points(&b, target_position, mask, exclude_object_index, (collision_result *)result)) {
                     return 1;
                 }
                 return 0;
             }
-            if (!collision_test_movement_segment_between_points(&a, target_position, mask, exclude_object_index, result) ||
-                !collision_test_movement_segment_between_points(&b, target_position, mask, exclude_object_index, result)) {
+            if (!halo::physics::collision_test_movement_segment_between_points(&a, target_position, mask, exclude_object_index, (collision_result *)result) ||
+                !halo::physics::collision_test_movement_segment_between_points(&b, target_position, mask, exclude_object_index, (collision_result *)result)) {
                 return 1;
             }
         } else if (direct_clear) {
@@ -98,9 +99,9 @@ int32_t halo::ai::combat_ops::evaluate_engagement_reachability(int16_t self_clus
             b.y = target_position->y - offset.j;
             b.z = target_position->z - offset.k;
             halo::math::point3d_add_scaled(raised, *(real_vector3d *)global_down3d_pointer, *target_position, 0.1f);
-            if (collision_test_movement_segment_between_points(&a, self_position, mask, exclude_object_index, result) ||
-                collision_test_movement_segment_between_points(&b, self_position, mask, exclude_object_index, result) ||
-                collision_test_movement_segment_between_points(&raised, self_position, mask, exclude_object_index, result)) {
+            if (halo::physics::collision_test_movement_segment_between_points(&a, self_position, mask, exclude_object_index, result) ||
+                halo::physics::collision_test_movement_segment_between_points(&b, self_position, mask, exclude_object_index, result) ||
+                halo::physics::collision_test_movement_segment_between_points(&raised, self_position, mask, exclude_object_index, result)) {
                 return 1;
             }
             return 0;

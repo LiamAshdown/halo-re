@@ -1,6 +1,8 @@
 #include "halo/interface/ifr2_hud.hpp"
 #include <string.h>
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/items/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -9,7 +11,6 @@
 extern "C" {
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern HUDGlobals *hud_globals_tag_data;
 extern hud_waypoint_state *hud_waypoints;
 extern Scenario *global_scenario;
@@ -45,7 +46,6 @@ extern void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_pla
 extern void hud_draw_static_element(int16_t local_player_index, uint16_t *anchor, const hud_static_element_placement *element, uint32_t draw_flags, int32_t flash_start_time);
 extern void hud_draw_overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t type_mask, int32_t flash_start_time, uint32_t draw_flags, uint8_t split_screen);
 extern int32_t local_player_get_zoom_level(int16_t local_player_index);
-extern void weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out);
 extern int16_t unit_count_deployed_weapons(datum_index unit_index);
 extern void hud_weapon_interface_meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index, int32_t weapon_or_vehicle_index, void *state_ptr);
 extern int16_t current_local_player_index;
@@ -135,7 +135,7 @@ int16_t HudWaypoints::visibility(const real_point3d *eye, const real_point3d *ta
     delta.i = target->x - eye->x;
     delta.j = target->y - eye->y;
     delta.k = target->z - eye->z;
-    if (collision_test_movement_segment(0xc2ad, (real_point3d *)eye, &delta, unit_index, &result) != 0) {
+    if (halo::physics::collision_test_movement_segment(0xc2ad, (real_point3d *)eye, &delta, unit_index, &result) != 0) {
         if (result.type != 3 || result.object_index != ignore_object) {
             return 2;
         }
@@ -1004,7 +1004,7 @@ void WeaponHud::state_update()
                     uint8_t *weapon_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)weapon_object & 0xffff].data;
                     weapon_hud_ammo_state ammo;
 
-                    weapon_build_hud_ammo_state(weapon, &ammo);
+                    halo::items::weapon_build_hud_ammo_state(weapon, &ammo);
                     if (*(datum_index *)(weapon_tag + 0x48c) != (datum_index)-1) {
                         hud_weapon_interface_meters_evaluate(*(datum_index *)(weapon_tag + 0x48c), local_player_index,
                                                              weapon, &ammo);

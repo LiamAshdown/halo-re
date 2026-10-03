@@ -21,6 +21,7 @@
 
 #include "halo/main/console.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" { void console_autocomplete_command(void); }
 extern "C" { uint32_t console_command_context_mask(uint32_t context_flags); }
@@ -541,7 +542,6 @@ char Console::process_command(char *command_line, uint32_t context_flags)
 }
 
 extern "C" { extern uint8_t chat_dialog_open; }
-extern "C" { extern uint8_t input_get_mouse_button_state(int16_t button_index); }
 extern "C" { extern void widget_text_edit_reset_length(text_edit_state *state); }
 namespace halo::main {
 
@@ -566,7 +566,7 @@ uint8_t Console::process_key_events(void)
             return console_globals_data.active;
         }
         if (console_globals_data.active != 0) {
-            if (input_get_mouse_button_state(2) == 1) {
+            if (halo::input::input_get_mouse_button_state(2) == 1) {
                 console_paste_clipboard_text();
             }
             for (i = 0; i < console_globals_data.terminal.key_event_count; i++) {
@@ -639,7 +639,6 @@ void Console::process_rcon_command(int32_t rcon_handle, char *command_line)
 
 extern "C" { extern uint8_t virtual_keyboard; }
 extern "C" { extern uint8_t console_open(terminal_console *console); }
-extern "C" { extern void input_keyboard_set_capture_mode(uint8_t enable_capture); }
 namespace halo::main {
 
 /**
@@ -658,7 +657,7 @@ void Console::toggle(void)
     if (console_globals_data.enabled != 0 && virtual_keyboard == 0) {
         console_globals_data.terminal.input[0] = 0;
         console_globals_data.active = console_open(&console_globals_data.terminal);
-        input_keyboard_set_capture_mode(1);
+        halo::input::input_keyboard_set_capture_mode(1);
     }
 }
 

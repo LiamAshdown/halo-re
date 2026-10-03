@@ -4,6 +4,8 @@
 #include <string.h>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/input/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -48,7 +50,6 @@ extern void widget_instance_select_list_index(widget_instance *widget, datum_ind
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
 extern uint8_t split_screen_quit_prompt_armed;
-extern int32_t joystick_slot_devices[4];
 extern uint8_t widget_list_select_next(widget_instance *widget);
 extern uint8_t widget_list_select_previous(widget_instance *widget);
 extern uint8_t widget_instance_point_in_bounds(widget_instance *widget);
@@ -76,7 +77,6 @@ extern uint8_t widget_instance_is_input_eligible(widget_instance *widget);
 extern widget_instance *widget_list_get_child_by_index(widget_instance *list, int32_t index);
 extern void widget_relink_focus_by_tag_id(widget_instance *widget, datum_index child_definition);
 extern void widget_play_sound_effect_tag(datum_index sound_tag);
-extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index, sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint);
 extern void text_clamp_byte_length_to_character_boundary(char *string, int16_t *length);
 extern void widget_text_edit_clamp_selection(text_edit_state *state);
 extern uint32_t widget_text_edit_get_selection(text_edit_state *state, int16_t *out_start, int16_t *out_end);
@@ -1034,7 +1034,7 @@ void WidgetView::handle_input_event(UIWidgetDefinition *tag, int16_t *event, uin
             int32_t i;
 
             for (i = 0; i <= 3; i++) {
-                if (joystick_slot_devices[i] != -1) {
+                if (halo::input::globals().joystick_slot_devices[i] != -1) {
                     break;
                 }
             }
@@ -1047,7 +1047,7 @@ void WidgetView::handle_input_event(UIWidgetDefinition *tag, int16_t *event, uin
             }
             widget_close(ancestor);
             handled = 1;
-        } else if (joystick_slot_devices[controller] != -1) {
+        } else if (halo::input::globals().joystick_slot_devices[controller] != -1) {
             ancestor = widget;
             while (ancestor->parent != (widget_instance *)0) {
                 ancestor = ancestor->parent;
@@ -2134,7 +2134,7 @@ void WidgetLifecycle::play_sound_effect_tag(datum_index sound_tag)
         location.type = 0;
         location.scale = 1.0f;
         location.gain = 1.0f;
-        sound_play_new(sound_tag, &location, -1, 0, 0, 0, 0);
+        halo::sound::sound_play_new(sound_tag, &location, -1, 0, 0, 0, 0);
     }
 }
 

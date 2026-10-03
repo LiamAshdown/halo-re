@@ -7,6 +7,7 @@
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
 #include "code_refs.hpp"
+#include "halo/sound/api.hpp"
 #include <stdint.h>
 
 extern "C" {
@@ -26,39 +27,39 @@ char locale_codepage_format[4] = ".%d";
 uint8_t default_locale_name[2] = { 0x43, 0x0 };
 /* 0x00671d04 */
 void *sound_eax2_vtable[9] = {
-    (void *)sound_eax20_effect_shutdown,
-    (void *)sound_eax20_effect_initialize,
-    (void *)sound_eax_effect_initialize_channel,
-    (void *)sound_effect_object_listener_supported,
-    (void *)sound_effect_object_channel_supported,
-    (void *)sound_eax20_effect_apply_channel,
-    (void *)sound_eax20_effect_set_environment_index,
-    (void *)sound_eax20_effect_apply_listener,
-    (void *)sound_eax20_effect_set_room_gain
+    (void *)&halo::sound::sound_eax20_effect_shutdown,
+    (void *)&halo::sound::sound_eax20_effect_initialize,
+    (void *)&halo::sound::sound_eax_effect_initialize_channel,
+    (void *)&halo::sound::sound_effect_object_listener_supported,
+    (void *)&halo::sound::sound_effect_object_channel_supported,
+    (void *)&halo::sound::sound_eax20_effect_apply_channel,
+    (void *)&halo::sound::sound_eax20_effect_set_environment_index,
+    (void *)&halo::sound::sound_eax20_effect_apply_listener,
+    (void *)&halo::sound::sound_eax20_effect_set_room_gain
 };
 /* 0x00671d28 */
 void *sound_eax3_vtable[9] = {
-    (void *)sound_eax30_effect_shutdown,
-    (void *)sound_eax30_effect_initialize,
-    (void *)sound_eax_effect_initialize_channel,
-    (void *)sound_effect_object_listener_supported,
-    (void *)sound_effect_object_channel_supported,
-    (void *)sound_eax30_effect_apply_channel,
-    (void *)sound_eax30_effect_set_environment_index,
-    (void *)sound_eax30_effect_apply_listener,
-    (void *)sound_eax30_effect_set_room_gain
+    (void *)&halo::sound::sound_eax30_effect_shutdown,
+    (void *)&halo::sound::sound_eax30_effect_initialize,
+    (void *)&halo::sound::sound_eax_effect_initialize_channel,
+    (void *)&halo::sound::sound_effect_object_listener_supported,
+    (void *)&halo::sound::sound_effect_object_channel_supported,
+    (void *)&halo::sound::sound_eax30_effect_apply_channel,
+    (void *)&halo::sound::sound_eax30_effect_set_environment_index,
+    (void *)&halo::sound::sound_eax30_effect_apply_listener,
+    (void *)&halo::sound::sound_eax30_effect_set_room_gain
 };
 /* 0x00671d4c */
 void *sound_eax1_vtable[9] = {
-    (void *)sound_eax1_effect_shutdown,
-    (void *)sound_eax1_effect_initialize,
-    (void *)sound_eax1_effect_initialize_channel,
-    (void *)sound_effect_object_listener_supported,
-    (void *)sound_eax1_effect_channel_supported,
-    (void *)sound_eax1_effect_apply_channel,
-    (void *)sound_eax1_effect_set_environment_index,
-    (void *)sound_eax1_effect_apply_listener,
-    (void *)sound_eax1_effect_set_room_gain
+    (void *)&halo::sound::sound_eax1_effect_shutdown,
+    (void *)&halo::sound::sound_eax1_effect_initialize,
+    (void *)&halo::sound::sound_eax1_effect_initialize_channel,
+    (void *)&halo::sound::sound_effect_object_listener_supported,
+    (void *)&halo::sound::sound_eax1_effect_channel_supported,
+    (void *)&halo::sound::sound_eax1_effect_apply_channel,
+    (void *)&halo::sound::sound_eax1_effect_set_environment_index,
+    (void *)&halo::sound::sound_eax1_effect_apply_listener,
+    (void *)&halo::sound::sound_eax1_effect_set_room_gain
 };
 /* 0x00671fa0 */
 char text_markup_codes[11] = "ibukprlctn";

@@ -18,6 +18,7 @@
 #include "halo/render/render.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state;
@@ -59,7 +60,6 @@ extern Rectangle2D game_screen_rect;
 extern int32_t rasterizer_present_counter_low;
 extern int32_t rasterizer_present_counter_high;
 extern int16_t text_tab_stops[6];
-extern uint8_t input_get_key_state(int16_t key_index);
 extern void network_bandwidth_graph_update(void);
 extern Rectangle2D game_window_top_left;
 extern int32_t frame_graph_window_width;
@@ -615,7 +615,7 @@ void draw(void)
     int16_t i;
     char text[0x3000];
 
-    if (input_get_key_state(0x6f) && input_get_key_state(0x0b)) {
+    if (halo::input::input_get_key_state(0x6f) && halo::input::input_get_key_state(0x0b)) {
         if (frame_statistics_key_a_latch == 0) {
             frame_graph_render_infos = 1 - frame_graph_render_infos;
             frame_statistics_key_a_latch = 1;
@@ -623,7 +623,7 @@ void draw(void)
     } else {
         frame_statistics_key_a_latch = 0;
     }
-    if (input_get_key_state(0x6f) && input_get_key_state(0x0c)) {
+    if (halo::input::input_get_key_state(0x6f) && halo::input::input_get_key_state(0x0c)) {
         if (frame_statistics_key_b_latch == 0) {
             frame_graph_render_graph = 1 - frame_graph_render_graph;
             frame_statistics_key_b_latch = 1;

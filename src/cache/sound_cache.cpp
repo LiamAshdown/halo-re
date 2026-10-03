@@ -8,6 +8,7 @@
 #include "crt.h"
 #include "math.h"
 #include "halo/cache/globals.hpp"
+#include "halo/sound/api.hpp"
 
 
 extern "C" {
@@ -15,8 +16,6 @@ extern int32_t sound_decode_dispatch(int16_t channel_count, void *destination, v
 extern int32_t sound_cache_size_megabytes;
 extern char file_open_mode_w[];
 extern int64_t performance_frequency;
-extern int32_t sound_time;
-extern uint32_t sound_idle_update(void);
 }
 
 namespace halo::cache {
@@ -51,7 +50,7 @@ void sound_cache_manager::decode_permutation(SoundPermutation *permutation)
             Sound *sound_tag = (Sound *)globals().tag_instances[*(datum_index *)&permutation->tag_id_1 & 0xffff].data;
             int16_t channel_count = (int16_t)(1 + (sound_tag->channel_count == 1));
             decode_context = permutation->cache_page;
-            if (sound_decode_dispatch(channel_count, globals().sound_decode_buffer, decode_context,
+            if (halo::sound::sound_decode_dispatch(channel_count, globals().sound_decode_buffer, decode_context,
                                       (int32_t)permutation->samples.size) != 0) {
                 return;
             }
@@ -423,9 +422,9 @@ uint8_t sound_cache_manager::touch(uint8_t allocate_if_missing, uint8_t lock, ui
 
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         elapsed_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-        stall_ms = (uint32_t)(elapsed_ms - sound_time);
+        stall_ms = (uint32_t)(elapsed_ms - halo::sound::globals().time);
         if (0x84 < stall_ms) {
-            sound_idle_update();
+            halo::sound::sound_idle_update();
         }
 
         if (wait_until_loaded == 0) {

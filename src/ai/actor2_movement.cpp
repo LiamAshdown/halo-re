@@ -1,6 +1,7 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
 
 namespace halo::ai {
 
@@ -1349,12 +1350,12 @@ int16_t ActorOps::movement_test_obstacle_ray(real_vector3d *out_elevation, const
     segment.j = out_end_point->y - context->position.y;
     segment.k = out_end_point->z - context->position.z;
 
-    if (collision_bsp_query_segment_init(3, &bsp_result,
+    if (halo::physics::collision_bsp_query_segment_init(3, &bsp_result,
                                          (ModelCollisionGeometryBSP *)context->collision_bsp,
                                          0, 0, &context->position, &segment, 1.0f) != 0) {
         result = 2;
         *out_distance = 0.0f;
-    } else if (collision_bsp_query_segment_init(3, &bsp_result,
+    } else if (halo::physics::collision_bsp_query_segment_init(3, &bsp_result,
                                                 (ModelCollisionGeometryBSP *)context->collision_bsp,
                                                 0, 0, out_end_point, out_elevation, 1.0f) != 0) {
         result = 2;

@@ -16,11 +16,10 @@
 #include <string.h>
 
 #include "halo/interface/uis_screens.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
-extern void sound_set_master_gain(float gain);
-extern void sound_set_effects_gain(float gain);
-extern void sound_set_music_gain(float gain);
 extern void widget_extended_description_sync_selection(widget_instance *widget);
 extern int32_t chat_window_default_x;
 extern int32_t chat_window_default_y;
@@ -39,7 +38,6 @@ extern int32_t previous_mouse_y;
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
 extern int32_t mouse_device;
-extern uint8_t input_suppressed;
 extern int32_t mouse_neutral_state[2];
 extern int32_t live_mouse_state[2];
 extern float cursor_sensitivity_x;
@@ -97,13 +95,13 @@ void UiScreens::audio_options_apply_volume_sliders(widget_instance *widget)
     widget_instance *target;
 
     row = widget->first_child;
-    sound_set_master_gain(find_row_spinner_gain(row));
+    halo::sound::sound_set_master_gain(find_row_spinner_gain(row));
 
     row = row->next_sibling;
-    sound_set_effects_gain(find_row_spinner_gain(row));
+    halo::sound::sound_set_effects_gain(find_row_spinner_gain(row));
 
     row = row->next_sibling;
-    sound_set_music_gain(find_row_spinner_gain(row));
+    halo::sound::sound_set_music_gain(find_row_spinner_gain(row));
 
     row = row->next_sibling;
     spinner = row->first_child;
@@ -168,7 +166,7 @@ void UiScreens::cursor_update(void)
         record = live_mouse_state;
         if (mouse_device != 0) {
             record = mouse_neutral_state;
-            if (input_suppressed == 0) {
+            if (halo::input::globals().suppressed == 0) {
                 record = live_mouse_state;
             }
         }

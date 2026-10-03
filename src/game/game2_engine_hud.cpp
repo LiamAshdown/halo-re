@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -461,11 +462,11 @@ void EngineHud::play_multiplayer_sound(int32_t sound_index, datum_index recipien
     }
 
     if (recipient_player == (datum_index)0xffffffff || network_game_mode != 2) {
-        sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
+        halo::sound::sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
     } else {
         player *p = (player *)halo::memory::datum_get(recipient_player, player_data);
         if (p != (player *)0 && p->local_player_index != -1) {
-            sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
+            halo::sound::sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
         }
     }
 }

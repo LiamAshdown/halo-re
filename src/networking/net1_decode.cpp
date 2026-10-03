@@ -4,6 +4,8 @@
 #include <wchar.h>
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/items/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
@@ -15,7 +17,6 @@ extern void game_engine_apply_player_join_message(void **context);
 extern void game_engine_apply_player_spawn_loadout_message(void **context);
 extern void unit_dispatch_seat_exit_message(void **context);
 extern uint8_t game_engine_apply_player_interaction_message(void **context);
-extern void player_effect_mark_damage_direction_dispatch(void **context);
 extern void unit_apply_network_control_update(void **context);
 extern uint8_t game_engine_apply_kill_streak_message(void **context);
 extern void chat_dispatch_incoming(void **context);
@@ -30,8 +31,6 @@ extern void unit_scripting_set_or_drop_weapon(void **context);
 extern void unit_spawn_with_starting_weapons(void **context);
 extern void unit_network_create_update_apply(void **context);
 extern void projectile_create_from_network(void **context);
-extern void equipment_create_from_creation_message(void **context);
-extern void weapon_create_from_creation_message(void **context);
 extern int32_t network_channel_key_send_state(network_client_globals *client, void **context);
 extern void message_delta_parameters_protocol_receive_update(void **context);
 extern void message_delta_definitions_invoke_field_bindings(void);
@@ -43,10 +42,6 @@ extern void player_update_client_remote_player_position_delta_from_network(void 
 extern void player_update_client_remote_player_vehicle_position_delta_from_network(void **context);
 extern void player_update_client_remote_player_total_biped_update_from_network(void **context);
 extern void player_update_client_remote_player_total_vehicle_update_from_network(void **context);
-extern void weapon_predict_ammo(void **context);
-extern int32_t weapon_add_ammunition(void **context);
-extern void weapon_apply_ammo_correction(void **context);
-extern void weapon_apply_ammo_correction_and_resync(void **context);
 extern void game_engine_spawn_or_replay_netgame_equipment(void **context);
 extern void projectile_detonation_message_apply(void **context);
 extern void object_apply_linked_impulse(void **context);
@@ -123,7 +118,7 @@ static void network_game_action_apply_shared(void **context, network_client_glob
 {
     switch (type_id) {
     case 0x06: hud_receive_item_message(context); break;
-    case 0x0b: player_effect_mark_damage_direction_dispatch(context); break;
+    case 0x0b: halo::effects::player_effect_mark_damage_direction_dispatch(context); break;
     case 0x0f: chat_dispatch_incoming(context); break;
     case 0x1a: game_engine_client_apply_team_assignment(context); break;
     case 0x21: network_channel_key_send_state(client, context); break;
@@ -186,8 +181,8 @@ void GameClientView::action_apply(void **context)
     case 0x1c: unit_spawn_with_starting_weapons(context); break;
     case 0x1d: unit_network_create_update_apply(context); break;
     case 0x1e: projectile_create_from_network(context); break;
-    case 0x1f: equipment_create_from_creation_message(context); break;
-    case 0x20: weapon_create_from_creation_message(context); break;
+    case 0x1f: halo::items::equipment_create_from_creation_message(context); break;
+    case 0x20: halo::items::weapon_create_from_creation_message(context); break;
     case 0x23: player_update_client_local_player_update_from_network(context); break;
     case 0x24: player_update_client_local_player_vehicle_update_from_network(context); break;
     case 0x25: player_update_client_remote_player_action_update_from_network(context); break;
@@ -196,10 +191,10 @@ void GameClientView::action_apply(void **context)
     case 0x28: player_update_client_remote_player_vehicle_position_delta_from_network(context); break;
     case 0x29: player_update_client_remote_player_total_biped_update_from_network(context); break;
     case 0x2a: player_update_client_remote_player_total_vehicle_update_from_network(context); break;
-    case 0x2b: weapon_predict_ammo(context); break;
-    case 0x2c: weapon_add_ammunition(context); break;
-    case 0x2d: weapon_apply_ammo_correction(context); break;
-    case 0x2e: weapon_apply_ammo_correction_and_resync(context); break;
+    case 0x2b: halo::items::weapon_predict_ammo(context); break;
+    case 0x2c: halo::items::weapon_add_ammunition(context); break;
+    case 0x2d: halo::items::weapon_apply_ammo_correction(context); break;
+    case 0x2e: halo::items::weapon_apply_ammo_correction_and_resync(context); break;
     case 0x2f: game_engine_spawn_or_replay_netgame_equipment(context); break;
     case 0x30: projectile_detonation_message_apply(context); break;
     case 0x31: object_apply_linked_impulse(context); break;

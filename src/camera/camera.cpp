@@ -3,6 +3,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern director_globals camera_director_globals;

@@ -17,9 +17,9 @@
 
 #include "halo/input/binding_names.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" { extern uint16_t missing_string_text[]; }
-extern "C" { extern void input_get_axis_direction_name(int16_t direction_index, uint16_t *out_name); }
 extern "C" { extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); }
 namespace halo::input {
 
@@ -40,7 +40,7 @@ void BindingNames::chimera__axis_text(int16_t axis_index, uint8_t direction, uin
 
     tag_id = halo::cache::tag_lookup(0x75737472,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
-    input_get_axis_direction_name(direction == 0 ? 1 : 0, direction_name);
+    halo::input::input_get_axis_direction_name(direction == 0 ? 1 : 0, direction_name);
 
     source = missing_string_text;
     if (tag_id != (datum_index)0xffffffff) {
@@ -197,7 +197,7 @@ int16_t BindingNames::axis_direction_name_to_index(char *name)
 
     direction_index = 0;
     for (;;) {
-        input_get_axis_direction_name((int16_t)direction_index, wide);
+        halo::input::input_get_axis_direction_name((int16_t)direction_index, wide);
         length = (uint32_t)wcslen((const wchar_t *)wide);
         if (length < 9) {
             for (i = 0; i < length; i++) {
@@ -255,12 +255,6 @@ void BindingNames::get_axis_direction_name(int16_t direction_index, uint16_t *ou
 
 }
 
-extern "C" { extern void input_get_keyboard_key_name(int16_t key_index, uint16_t *out_name); }
-extern "C" { extern void input_get_mouse_button_name(int16_t button_index, uint16_t *out_name); }
-extern "C" { extern void input_get_mouse_axis_name(int16_t axis_index, uint8_t direction, uint16_t *out_name); }
-extern "C" { extern void chimera__button_text(int16_t button_index, uint16_t *out_text); }
-extern "C" { extern void chimera__axis_text(int16_t axis_index, uint8_t direction, uint16_t *out_text); }
-extern "C" { extern void chimera__pov_text(int16_t pov_index, int16_t direction_index, uint16_t *out_text); }
 namespace halo::input {
 
 /**
@@ -276,28 +270,28 @@ void BindingNames::get_binding_display_name(control_binding_descriptor *binding,
     switch (binding->device_type) {
     case _control_device_keyboard:
         if (binding->input_kind == _control_input_button) {
-            input_get_keyboard_key_name(binding->input_index, out_text);
+            halo::input::input_get_keyboard_key_name(binding->input_index, out_text);
         }
         break;
 
     case _control_device_mouse:
         if (binding->input_kind == _control_input_button) {
-            input_get_mouse_button_name(binding->input_index, out_text);
+            halo::input::input_get_mouse_button_name(binding->input_index, out_text);
         } else if (binding->input_kind == _control_input_axis) {
-            input_get_mouse_axis_name(binding->input_index, binding->direction == 1, out_text);
+            halo::input::input_get_mouse_axis_name(binding->input_index, binding->direction == 1, out_text);
         }
         break;
 
     case _control_device_gamepad:
         switch (binding->input_kind) {
         case _control_input_button:
-            chimera__button_text(binding->input_index, out_text);
+            halo::input::chimera__button_text(binding->input_index, out_text);
             break;
         case _control_input_axis:
-            chimera__axis_text(binding->input_index, binding->direction == 1, out_text);
+            halo::input::chimera__axis_text(binding->input_index, binding->direction == 1, out_text);
             break;
         case _control_input_pov:
-            chimera__pov_text(binding->input_index, (int16_t)binding->direction, out_text);
+            halo::input::chimera__pov_text(binding->input_index, (int16_t)binding->direction, out_text);
             break;
         }
         break;
@@ -382,7 +376,7 @@ void BindingNames::get_mouse_axis_name(int16_t axis_index, uint8_t direction, ui
         }
     }
     wcsncpy((wchar_t *)out_name, (const wchar_t *)source, 0x21);
-    input_get_axis_direction_name(direction != 0, direction_name);
+    halo::input::input_get_axis_direction_name(direction != 0, direction_name);
     wcscat((wchar_t *)out_name, L" ");
     wcscat((wchar_t *)out_name, (const wchar_t *)direction_name);
     out_name[0x20] = 0;
@@ -476,7 +470,7 @@ uint32_t BindingNames::keyboard_key_name_to_index(char *name)
 
     key_index = 0;
     for (;;) {
-        input_get_keyboard_key_name((int16_t)key_index, wide);
+        halo::input::input_get_keyboard_key_name((int16_t)key_index, wide);
         length = (uint32_t)wcslen((const wchar_t *)wide);
         if (length < 0x18) {
             for (i = 0; i < length; i++) {
@@ -518,7 +512,7 @@ uint32_t BindingNames::mouse_axis_name_to_index(char *name, uint8_t *out_directi
 
     for (axis_index = 0; axis_index <= (uint32_t)k_control_mouse_axis_count - 1; axis_index++) {
         for (dir = 0; dir < 2; dir++) {
-            input_get_mouse_axis_name((int16_t)axis_index, k_directions[dir], wide);
+            halo::input::input_get_mouse_axis_name((int16_t)axis_index, k_directions[dir], wide);
             length = (uint32_t)wcslen((const wchar_t *)wide);
             if (length < 0x21) {
                 for (i = 0; i < length; i++) {
@@ -555,7 +549,7 @@ uint32_t BindingNames::mouse_button_name_to_index(char *name)
 
     button_index = 0;
     for (;;) {
-        input_get_mouse_button_name((int16_t)button_index, wide);
+        halo::input::input_get_mouse_button_name((int16_t)button_index, wide);
         length = (uint32_t)wcslen((const wchar_t *)wide);
         if (length < 0x18) {
             for (i = 0; i < length; i++) {

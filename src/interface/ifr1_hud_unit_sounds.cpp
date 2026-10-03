@@ -40,9 +40,9 @@ void HudUnitSounds::play(uint32_t active_mask, const TagReflexive *sounds, int32
                     datum_index handle = (datum_index)-1;
 
                     if (tag != (datum_index)-1) {
-                        handle = halo::memory::datum_new(game_looping_sound_data);
+                        handle = halo::memory::datum_new(halo::sound::globals().game_looping_sound_data);
                         if (handle != (datum_index)-1) {
-                            uint8_t *element = (uint8_t *)game_looping_sound_data->data + (handle & 0xffff) * 0x34;
+                            uint8_t *element = (uint8_t *)halo::sound::globals().game_looping_sound_data->data + (handle & 0xffff) * 0x34;
                             *(int32_t *)&((game_looping_sound *)element)->object_index = -1;
                             ((game_looping_sound *)element)->definition_index = tag;
                             ((game_looping_sound *)element)->state = 2;
@@ -59,17 +59,17 @@ void HudUnitSounds::play(uint32_t active_mask, const TagReflexive *sounds, int32
                 hud_sound_start_parameters parameters;
 
                 if (handles[i] != -1) {
-                    sound_impulse_fade_out(handles[i]);
+                    halo::sound::sound_impulse_fade_out(handles[i]);
                 }
                 parameters.unknown_00 = 0;
                 parameters.scale = sound->scale;
                 parameters.gain = 1.0f;
-                handles[i] = sound_play_new(*(const datum_index *)&sound->sound.tag_id, &parameters, -1, 0, 0, 0, 0);
+                handles[i] = halo::sound::sound_play_new(*(const datum_index *)&sound->sound.tag_id, (sound_location *)&parameters, -1, 0, 0, 0, 0);
             }
             *playing |= (uint16_t)(1u << i);
         } else if (handles[i] != -1) {
             if (is_looping) {
-                uint8_t *element = (uint8_t *)game_looping_sound_data->data + (handles[i] & 0xffff) * 0x34;
+                uint8_t *element = (uint8_t *)halo::sound::globals().game_looping_sound_data->data + (handles[i] & 0xffff) * 0x34;
                 ((game_looping_sound *)element)->flags |= 2;
             }
             handles[i] = -1;

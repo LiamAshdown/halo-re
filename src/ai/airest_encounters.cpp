@@ -6,6 +6,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -102,7 +103,6 @@ extern data_array *swarm_data;
 extern void encounter_gather_occupied_clusters(datum_index encounter_index, uint32_t *out_clusters, uint8_t record_per_actor, uint32_t *other_clusters);
 extern void encounter_deactivate(datum_index encounter_index);
 extern data_array *swarm_component_data;
-extern int32_t object_cluster_stamp;
 }
 
 namespace halo::ai {
@@ -3555,8 +3555,8 @@ datum_index Encounters::find_nearest_squad_member(datum_index actor_index, void 
                 best_dist = dist_sq;
             }
             if (stamp_group != 0) {
-                if (obj->cluster_stamp != object_cluster_stamp) {
-                    obj->cluster_stamp = object_cluster_stamp;
+                if (obj->cluster_stamp != halo::physics::globals().object_cluster_stamp) {
+                    obj->cluster_stamp = halo::physics::globals().object_cluster_stamp;
                 }
             }
             cursor = *(datum_index *)((uint8_t *)obj + 0x1fc);
@@ -3589,8 +3589,8 @@ datum_index Encounters::find_nearest_squad_member(datum_index actor_index, void 
 
             if (stamp_group != 0) {
                 stamp_target = ((object_header *)object_data->data)[group->unit_index[i] & 0xffff].data;
-                if (stamp_target->cluster_stamp != object_cluster_stamp) {
-                    stamp_target->cluster_stamp = object_cluster_stamp;
+                if (stamp_target->cluster_stamp != halo::physics::globals().object_cluster_stamp) {
+                    stamp_target->cluster_stamp = halo::physics::globals().object_cluster_stamp;
                 }
             }
         }

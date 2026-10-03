@@ -16,7 +16,6 @@ extern data_array *object_data;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern player_globals *local_player_globals;
 extern uint8_t *first_person_weapon_interfaces;
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern int32_t render_frame_index;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint16_t effect_random_uint16(void);
@@ -61,13 +60,13 @@ uint8_t particle_ref::advance_animation(real delta_time)
 
     if ((tag->flags & 0x8) != 0  ) {
         if (delta_time != 0.0f) {
-            return particle_advance_frame(particle_handle);
+            return halo::effects::particle_advance_frame(particle_handle);
         }
         return has_frame;
     }
 
     if (self->animation_timer == -1.0f) {
-        has_frame = particle_advance_frame(particle_handle);
+        has_frame = halo::effects::particle_advance_frame(particle_handle);
         self->animation_timer = 0.0f;
     }
 
@@ -80,7 +79,7 @@ uint8_t particle_ref::advance_animation(real delta_time)
                 break;
             }
 
-            has_frame = particle_advance_frame(particle_handle);
+            has_frame = halo::effects::particle_advance_frame(particle_handle);
             delta_time -= remaining;
             if (delta_time <= 0.0f) {
                 return has_frame;
@@ -116,7 +115,7 @@ uint8_t particle_ref::advance_frame()
             return 1;
         }
         {
-            uint8_t has_frame = particle_next_sequence(particle_handle);
+            uint8_t has_frame = halo::effects::particle_next_sequence(particle_handle);
             self->frame_index = 0;
             return has_frame;
         }
@@ -126,7 +125,7 @@ uint8_t particle_ref::advance_frame()
             return 1;
         }
         {
-            uint8_t has_frame = particle_next_sequence(particle_handle);
+            uint8_t has_frame = halo::effects::particle_next_sequence(particle_handle);
             if (has_frame != 0) {
                 self->frame_index = (int16_t)(sequences[self->sequence_index].sprites.count - 1);
                 return has_frame;
@@ -166,7 +165,7 @@ void particle_ref::impact()
     Particle *tag = (Particle *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
 
     if (*(uint32_t *)&tag->death_effect.tag_id != 0xffffffffu) {
-        particle_impact_response_dispatch(self, *(tag_group *)&tag->death_effect.tag_fourcc,
+        halo::effects::particle_impact_response_dispatch(self, *(tag_group *)&tag->death_effect.tag_fourcc,
             *(datum_index *)&tag->death_effect.tag_id, 0.0f);
     }
 
@@ -198,7 +197,7 @@ void particle_ref::impact_response_dispatch(particle *self, tag_group fourcc, da
         vectors[0] = self->direction;
         vectors[1] = *global_down3d_pointer;
         halo::math::vector3d_normalize_with_length(vectors[0]);
-        effect_new_with_color(definition_index, 0xffffffff, &velocity, 2, particle_impact_vector_names, points,
+        halo::effects::effect_new_with_color(definition_index, 0xffffffff, &velocity, 2, particle_impact_vector_names, points,
             vectors, intensity, 0.0f, 0, 0, 0);
     } else if (fourcc == 0x736e6421) {
         sound_placement placement;
@@ -207,7 +206,7 @@ void particle_ref::impact_response_dispatch(particle *self, tag_group fourcc, da
         placement.forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
         placement.velocity = *(Vector3D *)&velocity;
         *(bsp_leaf_reference *)&placement.leaf_index = self->location;
-        sound_start_at_location(definition_index, &placement, intensity);
+        halo::sound::sound_start_at_location(definition_index, &placement, intensity);
     }
 }
 
@@ -248,7 +247,7 @@ void particle_ref::create(particle_creation_data *creation_data)
         halo::math::matrix4x3_transform_point(position, creation_data->position, *marker);
     }
 
-    leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &position);
+    leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &position);
     if (leaf == -1) {
         return;
     }
@@ -269,13 +268,13 @@ void particle_ref::create(particle_creation_data *creation_data)
 
             self->flags = 0;
             if ((tag->flags & 0x1) != 0) {
-                self->flags |= (uint16_t)(effect_random_uint16() & 1);
+                self->flags |= (uint16_t)(halo::effects::effect_random_uint16() & 1);
             }
             if ((tag->flags & 0x400) != 0) {
-                self->flags |= (uint16_t)(effect_random_uint16() & 4);
+                self->flags |= (uint16_t)(halo::effects::effect_random_uint16() & 4);
             }
             if ((tag->flags & 0x800) != 0) {
-                self->flags |= (uint16_t)(effect_random_uint16() & 8);
+                self->flags |= (uint16_t)(halo::effects::effect_random_uint16() & 8);
             }
             self->flags = (creation_data->third_person_only == 0) ? (self->flags & ~0x10) : (self->flags | 0x10);
             self->flags = (creation_data->first_person_only == 0) ? (self->flags & ~0x20) : (self->flags | 0x20);
@@ -312,7 +311,7 @@ void particle_ref::create(particle_creation_data *creation_data)
             self->rotation = creation_data->rotation;
 
             if (self->object_index == (datum_index)0xffffffff) {
-                real radius = particle_current_radius(handle);
+                real radius = halo::effects::particle_current_radius(handle);
                 PointPhysics *physics = (PointPhysics *)halo::cache::globals().tag_instances[tag->physics.tag_id.index].data;
                 real fold = radius * physics->mass_scale * radius * radius;
 
@@ -341,13 +340,13 @@ void particle_ref::create(particle_creation_data *creation_data)
                 }
             }
 
-            if (particle_next_sequence(handle) != 0) {
+            if (halo::effects::particle_next_sequence(handle) != 0) {
                 Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[tag->bitmap.tag_id.index].data;
                 BitmapGroupSequence *sequence =
                     (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer + self->sequence_index;
 
                 if ((tag->flags & 0x4) != 0) {
-                    int16_t roll = (int16_t)effect_random_int_between(0, (int16_t)sequence->sprites.count);
+                    int16_t roll = (int16_t)halo::effects::effect_random_int_between(0, (int16_t)sequence->sprites.count);
                     self->frame_index = roll + (((-(int16_t)((self->flags & 1) != 0)) & 2) - 1);
                     return;
                 }
@@ -427,7 +426,7 @@ uint8_t particle_ref::next_sequence()
         return 1;
     }
 
-    particle_impact(particle_handle);
+    halo::effects::particle_impact(particle_handle);
     return 0;
 }
 
@@ -463,13 +462,13 @@ uint8_t particle_ref::update_motion(real delta_time)
 
     if (self->object_index == k_datum_index_none) {
         PointPhysics *physics = (PointPhysics *)halo::cache::globals().tag_instances[tag->physics.tag_id.index].data;
-        real radius = particle_current_radius(particle_handle);
+        real radius = halo::effects::particle_current_radius(particle_handle);
         real_vector3d out_normal;
         int16_t out_material_type;
         uint32_t collision_flags;
         uint8_t collided;
 
-        collision_flags = point_physics_tick(&self->velocity, 0, physics, &self->location,
+        collision_flags = halo::physics::point_physics_tick(&self->velocity, 0, physics, &self->location,
             0xffffffff, &self->position, (real_vector3d *)0, &out_normal, &out_material_type,
             radius, delta_time);
 
@@ -483,12 +482,12 @@ uint8_t particle_ref::update_motion(real delta_time)
                 speed = (speed < 0.0f) ? 0.0f : (speed > 1.0f ? 1.0f : speed);
 
                 if (*(uint32_t *)&tag->collision_effect.tag_id != 0xffffffffu) {
-                    particle_impact_response_dispatch(self, *(tag_group *)&tag->collision_effect.tag_fourcc,
+                    halo::effects::particle_impact_response_dispatch(self, *(tag_group *)&tag->collision_effect.tag_fourcc,
                         *(datum_index *)&tag->collision_effect.tag_id, speed);
                 }
                 if (*(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id != 0xffffffffu &&
                     any_local_player_within_10_units(&self->position) != 0) {
-                    material_effects_play_at_marker(
+                    halo::effects::material_effects_play_at_marker(
                         *(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id,
                         8, out_material_type, (uint32_t *)&self->location,
                         *(uint32_t *)&speed, &self->position, &out_normal);
@@ -499,14 +498,14 @@ uint8_t particle_ref::update_motion(real delta_time)
                     halo::memory::datum_delete(particle_data, particle_handle);
                     return 0;
                 }
-                particle_impact(particle_handle);
+                halo::effects::particle_impact(particle_handle);
                 return 0;
             }
         }
 
         if (((collision_flags & _point_physics_in_air_bit) != 0 && (tag->flags & 0x100) != 0) ||
             ((collision_flags & _point_physics_in_water_bit) != 0 && (tag->flags & 0x80) != 0)) {
-            particle_impact(particle_handle);
+            halo::effects::particle_impact(particle_handle);
             return 0;
         }
 
@@ -526,7 +525,7 @@ uint8_t particle_ref::update_motion(real delta_time)
             return 0;
         }
 
-        radius = particle_current_radius(particle_handle);
+        radius = halo::effects::particle_current_radius(particle_handle);
         friction = radius * physics->air_friction * radius;
         mass_related = radius * physics->mass_scale * radius * radius;
 
@@ -555,7 +554,7 @@ uint8_t particle_ref::update_motion(real delta_time)
         self->direction = self->velocity;
     } else if (settled) {
         if ((tag->flags & 0x10) != 0) {
-            particle_impact(particle_handle);
+            halo::effects::particle_impact(particle_handle);
             return 0;
         }
         self->flags |= _particle_at_rest_bit;
@@ -618,7 +617,7 @@ void particle_ref::refresh_structure_locations()
             }
             point = (real_point3d *)(owner + ((struct object *)owner)->nodes.offset + entry->marker_index * 0x34 + 0x28);
         }
-        leaf = bsp3d_node_find_leaf(0, global_collision_bsp, point);
+        leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, point);
         entry->location.leaf_index = (int32_t)leaf;
         if (leaf == 0xffffffff) {
             cluster = -1;
@@ -652,11 +651,11 @@ void particle_ref::update(real delta_time)
             self->age = delta_time + self->age;
 
             if (self->age < self->lifespan || age_before == 0.0f || tag->final_sequence_count != 0) {
-                if (particle_advance_animation(particle_index, delta_time) != 0) {
-                    particle_update_motion(particle_index, delta_time);
+                if (halo::effects::particle_advance_animation(particle_index, delta_time) != 0) {
+                    halo::effects::particle_update_motion(particle_index, delta_time);
                 }
             } else {
-                particle_impact(particle_index);
+                halo::effects::particle_impact(particle_index);
             }
         } else {
             halo::memory::datum_delete(particle_data, particle_index);
@@ -668,7 +667,7 @@ void particle_ref::update(real delta_time)
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 uint8_t particle_advance_animation(datum_index particle_handle, real delta_time)
 {

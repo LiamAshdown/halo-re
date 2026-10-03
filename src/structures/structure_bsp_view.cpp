@@ -6,6 +6,7 @@
 
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern uint8_t render_frustum_global[];
@@ -147,7 +148,7 @@ uint8_t structure_bsp_view::portal_sphere_test(real_point3d *point, int16_t port
         return 0;
     }
 
-    Vector3D *normal_raw = &((ModelCollisionGeometryBSPPlane *)global_collision_bsp->planes
+    Vector3D *normal_raw = &((ModelCollisionGeometryBSPPlane *)halo::physics::globals().collision_bsp->planes
                                   .pointer)[portal->plane_index]
                                  .plane.vector;
     real_vector3d *normal = (real_vector3d *)normal_raw;

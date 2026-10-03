@@ -17,6 +17,8 @@
 #include "halo/physics/breakable_surface.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" { extern uint8_t breakable_surfaces_enabled; }
 extern "C" { extern ModelCollisionGeometryBSP *global_structure_collision_bsp; }
@@ -25,7 +27,7 @@ extern "C" { extern Globals *global_globals; }
 extern "C" { extern const real_point3d *global_origin3d_pointer; }
 extern "C" { extern void particle_new(particle_creation_data *creation_data); }
 extern "C" { extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, color_interpolation_flags flags, float t); }
-extern "C" { extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index, sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); }
+extern "C" { extern datum_index halo::sound::sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index, sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); }
 extern "C" { extern double sqrt(double x); }
 extern "C" { extern double fabs(double x); }
 extern "C" { extern double floor(double x); }
@@ -414,7 +416,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                                 *direction = *(real_vector3d *)&halo::math::globals().sphere_point_table[index];
                             }
                         }
-                        particle_new(&creation);
+                        halo::effects::particle_new(&creation);
                     }
                 }
             }
@@ -439,7 +441,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
         location.velocity.k = global_origin3d_pointer->z;
         *(int32_t *)((uint8_t *)&location + 0x30) = I32(damage_raw, 0x14);
         *(int32_t *)((uint8_t *)&location + 0x34) = I32(damage_raw, 0x18);
-        sound_play_new(I32(shatter, 0x2c), &location, k_datum_index_none, 0, 0, 0, 0);
+        halo::sound::sound_play_new(I32(shatter, 0x2c), &location, k_datum_index_none, 0, 0, 0, 0);
     }
 }
 

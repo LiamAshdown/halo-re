@@ -23,7 +23,6 @@ extern datum_index decal_new(datum_index requested_handle, int16_t cluster_index
 extern void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
 extern void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator *accumulator, int32_t surface_index, uint8_t is_first_surface, real radius, int16_t decal_type, int32_t *surface_queue, uint16_t *surface_queue_count, int32_t *fallback_queue, uint16_t *fallback_queue_count);
 extern void *rasterizer_decal_vertex_cache_lock(uint32_t decal_index, int32_t byte_count);
-void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t requested_sequence_index);
 }
 
 namespace halo::effects {
@@ -102,7 +101,7 @@ static void decal_place_snap_basis(real_vector3d *axis_source, const real_vector
  */
 static void decal_place_surface_plane(real_plane3d *out, uint32_t signed_plane_index)
 {
-    const real_plane3d *plane = &((const real_plane3d *)global_structure_collision_bsp->planes.pointer)
+    const real_plane3d *plane = &((const real_plane3d *)halo::physics::globals().structure_collision_bsp->planes.pointer)
         [signed_plane_index & 0x7fffffff];
 
     if ((int32_t)signed_plane_index < 0) {
@@ -135,7 +134,7 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
     decal_flood_accumulator *accumulator, real_vector3d *normal_min, real_vector3d *normal_max)
 {
     ModelCollisionGeometryBSPSurface *surfaces =
-        (ModelCollisionGeometryBSPSurface *)global_structure_collision_bsp->surfaces.pointer;
+        (ModelCollisionGeometryBSPSurface *)halo::physics::globals().structure_collision_bsp->surfaces.pointer;
     ModelCollisionGeometryBSPEdge *edges;
     ModelCollisionGeometryBSPVertex *vertices;
     real maximum_angle = k_decal_type_parameters[definition->type].maximum_edge_angle * 0.017453292f;
@@ -171,8 +170,8 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
         }
     }
 
-    edges = (ModelCollisionGeometryBSPEdge *)global_structure_collision_bsp->edges.pointer;
-    vertices = (ModelCollisionGeometryBSPVertex *)global_structure_collision_bsp->vertices.pointer;
+    edges = (ModelCollisionGeometryBSPEdge *)halo::physics::globals().structure_collision_bsp->edges.pointer;
+    vertices = (ModelCollisionGeometryBSPVertex *)halo::physics::globals().structure_collision_bsp->vertices.pointer;
     for (g = 0; g < group_count; g++) {
         int32_t surface_index = group[g];
         ModelCollisionGeometryBSPSurface *surface = &surfaces[surface_index];
@@ -262,7 +261,7 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
             folded.position.z = rotation.left.k * offset.j + rotation.forward.k * offset.i +
                 rotation.up.k * offset.k + rotation.position.z + edge_start.z;
 
-            decal_build_projection(&folded, box, &wrapped);
+            halo::effects::decal_build_projection(&folded, box, &wrapped);
 
             if (!(folded.up.i > normal_min->i)) normal_min->i = folded.up.i;
             if (folded.up.i > normal_max->i) normal_max->i = folded.up.i;
@@ -274,7 +273,7 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
     }
 
     for (g = 0; g < group_count; g++) {
-        decal_flood_surfaces(&wrapped, accumulator, group[g], 0, radius, (int16_t)definition->type, 0, 0, 0, 0);
+        halo::effects::decal_flood_surfaces(&wrapped, accumulator, group[g], 0, radius, (int16_t)definition->type, 0, 0, 0, 0);
     }
     return group_count;
 }
@@ -422,7 +421,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
             return;
         }
 
-        decal_build_projection(&matrix, box, &projection);
+        halo::effects::decal_build_projection(&matrix, box, &projection);
 
         normal_min = matrix.up;
         normal_max = matrix.up;
@@ -435,7 +434,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
             int32_t surface_index = surface_queue[queue_cursor];
 
             queue_cursor++;
-            decal_flood_surfaces(&projection, &accumulator, surface_index, 1, radius, (int16_t)definition->type,
+            halo::effects::decal_flood_surfaces(&projection, &accumulator, surface_index, 1, radius, (int16_t)definition->type,
                 surface_queue, &queue_count, fallback_queue, &fallback_count);
         } while (queue_cursor < (int16_t)queue_count);
 
@@ -487,7 +486,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
         if (geometry_handle == k_datum_index_none) {
             return;
         }
-        decal_index = decal_new(geometry_handle, placement->leaf.cluster_index, (int16_t)definition->layer,
+        decal_index = halo::effects::decal_new(geometry_handle, placement->leaf.cluster_index, (int16_t)definition->layer,
             k_datum_index_none, object_attached);
         if (decal_index == k_datum_index_none) {
             halo::memory::cache_evict_entry(geometry_handle, rasterizer_decal_vertex_cache_handle);
@@ -611,7 +610,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t requested_sequence_index)
 {

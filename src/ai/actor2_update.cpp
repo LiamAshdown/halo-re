@@ -1,6 +1,7 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/items/api.hpp"
 
 namespace halo::ai {
 
@@ -185,7 +186,7 @@ void ActorView::update_aim_wander()
 
         if (weapon != k_datum_index_none) {
             float rate;
-            float damage = weapon_trigger_get_average_damage(
+            float damage = halo::items::weapon_trigger_get_average_damage(
                 *(datum_index *)((object_header *)object_data->data)[weapon & 0xffff].data, &rate);
 
             if (((ActorVariant *)variant)->rate_of_fire > 0.0f && rate > ((ActorVariant *)variant)->rate_of_fire) {

@@ -9,7 +9,6 @@ extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern datum_index *noncollideable_cluster_first;
 extern data_array *noncollideable_object_references;
-extern int32_t object_cluster_stamp;
 extern int16_t object_collect_in_clusters(uint32_t search_mask, int16_t cluster_count, int16_t *cluster_indices, int16_t max_output, datum_index *out_objects);
 extern data_array *object_data;
 extern object_globals *object_globals_pointer;
@@ -67,12 +66,12 @@ datum_index halo::objects::ObjectQueries::noncollideable_iterate_next(datum_inde
 datum_index halo::objects::ObjectQueries::resolve_collideable_reference(datum_index *next_reference,
     int16_t cluster_index)
 {
-    datum_index head = collideable_cluster_first[cluster_index];
+    datum_index head = halo::physics::globals().collideable_cluster_first[cluster_index];
     object_cluster_reference *ref;
 
     *next_reference = head;
     if (head != k_datum_index_none) {
-        ref = (object_cluster_reference *)collideable_object_references->data + (head & 0xffff);
+        ref = (object_cluster_reference *)halo::physics::globals().collideable_object_references->data + (head & 0xffff);
         *next_reference = ref->next_reference;
         return ref->object_index;
     }
@@ -93,7 +92,7 @@ datum_index halo::objects::ObjectQueries::collideable_iterate_next(datum_index *
     if (*cursor == k_datum_index_none) {
         return k_datum_index_none;
     }
-    element = (uint8_t *)collideable_object_references->data + (*cursor & 0xffff) * 0xc;
+    element = (uint8_t *)halo::physics::globals().collideable_object_references->data + (*cursor & 0xffff) * 0xc;
     *cursor = *(datum_index *)(element + 8);
     return *(datum_index *)(element + 4);
 }
@@ -227,17 +226,17 @@ int16_t halo::objects::ObjectQueries::collect_in_clusters(uint32_t search_mask, 
         search_mask = 0xffffffff;
     }
     object_globals_pointer->collecting_in_clusters = 1;
-    object_cluster_stamp = object_cluster_stamp + 1;
-    stamp = object_cluster_stamp;
+    halo::physics::globals().object_cluster_stamp = halo::physics::globals().object_cluster_stamp + 1;
+    stamp = halo::physics::globals().object_cluster_stamp;
 
     for (i = 0; i < cluster_count; i++) {
         int16_t cluster_index = cluster_indices[i];
 
         if ((search_mask & 1) != 0) {
-            datum_index ref = collideable_cluster_first[cluster_index];
+            datum_index ref = halo::physics::globals().collideable_cluster_first[cluster_index];
             while (ref != k_datum_index_none) {
                 object_cluster_reference *node = (object_cluster_reference *)
-                    collideable_object_references->data + (ref & 0xffff);
+                    halo::physics::globals().collideable_object_references->data + (ref & 0xffff);
                 datum_index object_index = node->object_index;
                 object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
                 if (obj->cluster_stamp != stamp) {
@@ -296,10 +295,10 @@ uint8_t halo::objects::ObjectQueries::cluster_stamp_mark_visited(datum_index obj
 {
     uint8_t *object = object_get(object_index);
 
-    if (*(int32_t *)(object + 0x14) == object_cluster_stamp) {
+    if (*(int32_t *)(object + 0x14) == halo::physics::globals().object_cluster_stamp) {
         return 0;
     }
-    *(int32_t *)(object + 0x14) = object_cluster_stamp;
+    *(int32_t *)(object + 0x14) = halo::physics::globals().object_cluster_stamp;
     return 1;
 }
 
@@ -347,7 +346,7 @@ int32_t halo::objects::ObjectQueries::collect_local_player_relevant_objects(real
     uint8_t (*filter)(uint32_t, void *), void *filter_context, int32_t max_count, datum_index *out)
 {
     int32_t count = 0;
-    uint32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp, point);
+    uint32_t leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, point);
     ScenarioStructureBSP *bsp;
     int16_t cluster;
     int32_t words;
@@ -367,7 +366,7 @@ int32_t halo::objects::ObjectQueries::collect_local_player_relevant_objects(real
     object_globals_pointer->collecting_in_clusters = 1;
     words = ((int32_t)bsp->clusters.count + 0x1f) >> 5;
     row = (int32_t *)((uint8_t *)bsp->cluster_data.pointer) + (int32_t)cluster * words;
-    object_cluster_stamp = object_cluster_stamp + 1;
+    halo::physics::globals().object_cluster_stamp = halo::physics::globals().object_cluster_stamp + 1;
 
     word = row;
     for (word_index = 0; word_index < (int16_t)words; word_index++, word++) {
@@ -393,18 +392,18 @@ int32_t halo::objects::ObjectQueries::collect_local_player_relevant_objects(real
         bit = lo;
         do {
             if ((row[bit >> 5] & (1u << (bit & 0x1f))) != 0) {
-                datum_index ref = collideable_cluster_first[bit];
+                datum_index ref = halo::physics::globals().collideable_cluster_first[bit];
 
                 while (ref != 0xffffffff) {
                     object_cluster_reference *node =
-                        (object_cluster_reference *)collideable_object_references->data + (ref & 0xffff);
+                        (object_cluster_reference *)halo::physics::globals().collideable_object_references->data + (ref & 0xffff);
                     datum_index object_index = node->object_index;
                     object *obj;
 
                     ref = node->next_reference;
                     obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-                    if (obj->cluster_stamp != object_cluster_stamp) {
-                        obj->cluster_stamp = object_cluster_stamp;
+                    if (obj->cluster_stamp != halo::physics::globals().object_cluster_stamp) {
+                        obj->cluster_stamp = halo::physics::globals().object_cluster_stamp;
                         count = object_tree_collect_matching(object_index, filter, filter_context, count, max_count,
                             out);
                     }
@@ -433,17 +432,17 @@ int32_t halo::objects::ObjectQueries::collect_by_flag_bits(int32_t bit_index, in
 
     do {
         if ((bit_array[bit_index >> 5] & (1u << (bit_index & 0x1f))) != 0) {
-            datum_index ref = collideable_cluster_first[bit_index];
+            datum_index ref = halo::physics::globals().collideable_cluster_first[bit_index];
 
             while (ref != k_datum_index_none) {
                 object_cluster_reference *node = (object_cluster_reference *)
-                    collideable_object_references->data + (ref & 0xffff);
+                    halo::physics::globals().collideable_object_references->data + (ref & 0xffff);
                 object *obj = ((object_header *)object_data->data)[node->object_index & 0xffff].data;
 
                 if (obj->cluster_stamp != cluster_stamp_snapshot) {
                     obj->cluster_stamp = cluster_stamp_snapshot;
                     result = object_tree_collect_matching(node->object_index, filter, filter_context, result, max_count, out);
-                    cluster_stamp_snapshot = object_cluster_stamp;
+                    cluster_stamp_snapshot = halo::physics::globals().object_cluster_stamp;
                 }
                 ref = node->next_reference;
             }

@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern int32_t *player_control_globals_ptr;
@@ -9,7 +10,6 @@ extern double sin(double x);
 extern void game_engine_update_local_player_look(int16_t local_player_index, real yaw_delta, real pitch_delta);
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward);
 extern player_globals *local_player_globals;
-void player_effect_set_camera_impulse(player_effect *self, int16_t local_player_index, real *descriptor, real *direction, real intensity_falloff, real duration_scale);
 }
 
 namespace halo::effects {
@@ -114,7 +114,7 @@ void player_effect_view::set_camera_impulse(int16_t local_player_index, real *de
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void player_effect_set_camera_impulse(player_effect *self, int16_t local_player_index, real *descriptor, real *direction, real intensity_falloff, real duration_scale)
 {

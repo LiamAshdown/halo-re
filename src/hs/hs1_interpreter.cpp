@@ -1,5 +1,6 @@
 #include "halo/hs/hs1_interpreter.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
@@ -13,7 +14,6 @@ extern data_array *hs_thread_data;
 extern data_array *hs_syntax_data;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
-extern void hs_bind_control(const char *device_class_name, const char *input_name, const char *action_name);
 extern int16_t hs_comparison_types[2];
 }
 
@@ -312,7 +312,7 @@ void ScriptFlowCommands::bind(int16_t function_index, uint32_t thread_index, cha
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        hs_bind_control((const char *)arguments[0], (const char *)arguments[1], (const char *)arguments[2]);
+        halo::input::hs_bind_control((const char *)arguments[0], (const char *)arguments[1], (const char *)arguments[2]);
         hs_thread_return(0, thread_index);
     }
 }

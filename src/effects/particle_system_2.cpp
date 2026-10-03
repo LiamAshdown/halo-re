@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *particle_system_data;
@@ -84,7 +85,7 @@ void particle_system_ref::update(float delta_time)
                     float min_bound, max_bound, rolled;
 
                     if (next_index == -1) {
-                        particle_system_advance_type_state(state, type, self);
+                        halo::effects::particle_system_advance_type_state(state, type, self);
                         min_bound = current_state->transition_time_bounds[0];
                         max_bound = current_state->transition_time_bounds[1];
                     } else {
@@ -179,7 +180,7 @@ void particle_system_ref::update(float delta_time)
                 uint16_t previous_particle = 0xffff;
 
                 if ((self->flags & _particle_system_emitting_bit) != 0) {
-                    particle_system_spawn(self, type_index, delta_time);
+                    halo::effects::particle_system_spawn(self, type_index, delta_time);
                 }
 
                 particle_index = (uint16_t)state->first_particle;
@@ -199,7 +200,7 @@ void particle_system_ref::update(float delta_time)
                             initial_state->duration_bounds[0], initial_state->duration_bounds[1]);
                         particle->state_duration = rolled;
                         particle->state_time_remaining = rolled;
-                        particle_system_roll_particle_state(0,
+                        halo::effects::particle_system_roll_particle_state(0,
                             (ParticleSystemTypeParticleState *)type->particle_states.pointer,
                             &particle->values);
                     }
@@ -217,7 +218,7 @@ void particle_system_ref::update(float delta_time)
                             float min_bound, max_bound, rolled;
 
                             if (next_index == -1) {
-                                particle_system_advance_particle_state(particle, type);
+                                halo::effects::particle_system_advance_particle_state(particle, type);
                                 entry = &particle_states[particle->state_index];
                                 min_bound = entry->transition_time_bounds[0];
                                 max_bound = entry->transition_time_bounds[1];
@@ -236,7 +237,7 @@ void particle_system_ref::update(float delta_time)
                             if (particle->next_state_index == -1) {
                                 particle->values = particle->next_values;
                             } else {
-                                particle_system_roll_particle_state(particle->next_state_index,
+                                halo::effects::particle_system_roll_particle_state(particle->next_state_index,
                                     particle_states, &particle->next_values);
                             }
                         }
@@ -287,13 +288,13 @@ void particle_system_ref::update(float delta_time)
 
     self->flags &= ~(uint32_t)_particle_system_in_update_bit;
     if (types_alive == 0 && self->object_index == (datum_index)0xffffffff) {
-        particle_system_delete(handle);
+        halo::effects::particle_system_delete(handle);
     }
 }
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void particle_system_update(float delta_time, datum_index handle)
 {

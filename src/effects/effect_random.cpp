@@ -3,7 +3,6 @@
 
 extern "C" {
 extern const real_point3d *global_origin3d_pointer;
-extern real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset, uint32_t b_bitset, random_seed *seed, real base_min, real base_max);
 extern double cos(double x);
 extern double sin(double x);
 float effect_distribution_function_evaluate(EffectDistributionFunction_t type, float fraction);
@@ -69,7 +68,7 @@ void effect_random::direction_from_table(real_point3d *out)
  */
 void effect_random::direction_vector(random_seed *seed, real_point3d *out, real min, real max, effect *self, uint32_t a_bitset, uint32_t b_bitset)
 {
-    real magnitude = effect_property_random_value(3, self, a_bitset, b_bitset, seed, min, max);
+    real magnitude = halo::effects::effect_property_random_value(3, self, a_bitset, b_bitset, seed, min, max);
 
     if (magnitude != 0.0f) {
         int16_t index;
@@ -152,7 +151,7 @@ uint32_t effect_random::uint16()
  */
 void effect_random::velocity_vector(effect *self, random_seed *seed, real_vector3d *direction, real_vector3d *out_direction, real_vector3d *out_velocity, real min, real max, real angle_max, uint32_t a_bitset, uint8_t b_bitset)
 {
-    real magnitude = effect_property_random_value(0, self, a_bitset, b_bitset, seed, min, max);
+    real magnitude = halo::effects::effect_property_random_value(0, self, a_bitset, b_bitset, seed, min, max);
     real angle = angle_max;
 
     *out_direction = *direction;
@@ -192,7 +191,7 @@ void effect_random::velocity_vector(effect *self, random_seed *seed, real_vector
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 float effect_distribution_function_evaluate(EffectDistributionFunction_t type, float fraction)
 {

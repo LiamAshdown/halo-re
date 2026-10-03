@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
 extern "C" {
@@ -602,7 +603,7 @@ uint8_t halo::ai::look_ops::look_pick_random_point_in_cone(void *origin, float y
             scaled.j = direction.j * 3.0f;
             scaled.k = direction.k * 3.0f;
 
-            if (!collision_test_movement_segment(0x21, (real_point3d *)origin, &scaled, (uint32_t)k_datum_index_none, trace_buffer)) {
+            if (!halo::physics::collision_test_movement_segment(0x21, (real_point3d *)origin, &scaled, (uint32_t)k_datum_index_none, (collision_result *)trace_buffer)) {
                 break;
             }
         }

@@ -16,6 +16,7 @@
 #include "halo/game/game1_notifications.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -515,7 +516,7 @@ void Notifications::handle_sound_status_event(void *event)
                 sound_index < (int32_t)mp_info->sounds.count) {
                 uint8_t *sound = (uint8_t *)mp_info->sounds.pointer + sound_index * 0x10;
                 if (sound != (uint8_t *)0 && *(int32_t *)(sound + 0xc) != -1) {
-                    sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
+                    halo::sound::sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
                 }
             }
         }

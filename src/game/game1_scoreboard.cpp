@@ -16,6 +16,7 @@
 #include "halo/game/game1_scoreboard.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -57,7 +58,6 @@ extern uint8_t controls_input_capture_buffer[0xa0 * 4];
 extern void game_engine_player_profile_cache_sync_all(datum_index player_handle);
 extern void widget_close(void *widget);
 extern void widget_pool_list_free_all(void);
-extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 extern int32_t game_engine_get_multiplayer_sound_duration_ticks(int32_t sound_index);
 extern uint8_t network_message_scratch[0x7ff8];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
@@ -411,7 +411,7 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
                 if (mp_info != (GlobalsMultiplayerInformation *)0 && (int32_t)mp_info->sounds.count > 1) {
                     uint8_t *sound1 = (uint8_t *)mp_info->sounds.pointer + 0x10;
                     if ((int32_t)mp_info->sounds.pointer != -0x10 && *(int32_t *)(sound1 + 0xc) != -1) {
-                        sound_start_unspatialized(*(datum_index *)(sound1 + 0xc), 1.0f);
+                        halo::sound::sound_start_unspatialized(*(datum_index *)(sound1 + 0xc), 1.0f);
                     }
                 }
             } else {
@@ -430,7 +430,7 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
                     if (mp_info != (GlobalsMultiplayerInformation *)0 && (int32_t)mp_info->sounds.count > 1) {
                         uint8_t *sound1 = (uint8_t *)mp_info->sounds.pointer + 0x10;
                         if ((int32_t)mp_info->sounds.pointer != -0x10 && *(int32_t *)(sound1 + 0xc) != -1) {
-                            sound_start_unspatialized(*(datum_index *)(sound1 + 0xc), 1.0f);
+                            halo::sound::sound_start_unspatialized(*(datum_index *)(sound1 + 0xc), 1.0f);
                         }
                     }
                 }

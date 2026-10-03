@@ -1,6 +1,8 @@
 #include "halo/interface/ifr1_chimera_bridge.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -41,8 +43,6 @@ extern loading_thread_record *loading_thread;
 extern int16_t network_join_error_code;
 extern uint8_t main_menu_music_pending;
 extern datum_index cached_saved_game_something;
-extern void input_time_base_resync(void);
-extern void input_queue_sample_time_update(void);
 extern void player_profile_check_storage_and_defaults(void);
 extern void widget_close_all(void);
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
@@ -241,9 +241,9 @@ void ChimeraBridge::load_main_menu(void)
         loading_thread = (loading_thread_record *)0;
         player_profile_check_storage_and_defaults();
         ui_input_batch_mode = 0;
-        input_time_base_resync();
+        halo::input::input_time_base_resync();
     }
-    input_queue_sample_time_update();
+    halo::input::input_queue_sample_time_update();
     widget_close_all();
     chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, 0xffff,
                             (datum_index)-1, (datum_index)-1, -1);
@@ -343,11 +343,11 @@ void ChimeraBridge::main_menu_music(uint8_t finalize_render_frame)
     if (main_menu_music_pending == 1) {
         datum_index sound_tag = halo::cache::tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
-            sound_looping_stop(sound_tag);
+            halo::sound::sound_looping_stop(sound_tag);
         }
         main_menu_music_pending = 0;
     }
-    sound_stop_all();
+    halo::sound::sound_stop_all();
     if (finalize_render_frame != 0) {
         rasterizer_end_frame();
     }

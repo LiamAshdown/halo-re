@@ -1,6 +1,8 @@
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern real equipment_network_update_position_tolerance;
@@ -24,17 +26,16 @@ extern uint32_t sound_play_new(uint32_t sound_tag_id, void *parameters, uint32_t
 extern void *game_time;
 extern int32_t k_equipment_minimum_age_ticks;
 extern int16_t network_game_mode;
-extern void equipment_build_creation_message(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, uint32_t object_flags);
-void equipment_apply_network_update(datum_index item_index, uint32_t *update_record);
-int32_t equipment_build_network_update(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
-void equipment_create_from_creation_message(void *incoming_record);
-void equipment_definition_play_pickup_sound(uint32_t equipment_tag_id);
-uint8_t equipment_is_old_enough(uint32_t object_index);
-void equipment_network_baseline_take(uint32_t item_index);
-uint8_t equipment_new(uint32_t object_index);
-void equipment_new_from_placement(uint32_t equipment_object_index, ScenarioEquipment *placement);
-void equipment_pickup_play_sound(uint32_t object_index);
-void equipment_send_creation(uint32_t item_index, uint32_t arg2, uint32_t arg3);
+void halo::items::equipment_apply_network_update(datum_index item_index, uint32_t *update_record);
+int32_t halo::items::equipment_build_network_update(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
+void halo::items::equipment_create_from_creation_message(void *incoming_record);
+void halo::items::equipment_definition_play_pickup_sound(uint32_t equipment_tag_id);
+uint8_t halo::items::equipment_is_old_enough(uint32_t object_index);
+void halo::items::equipment_network_baseline_take(uint32_t item_index);
+uint8_t halo::items::equipment_new(uint32_t object_index);
+void halo::items::equipment_new_from_placement(uint32_t equipment_object_index, ScenarioEquipment *placement);
+void halo::items::equipment_pickup_play_sound(uint32_t object_index);
+void halo::items::equipment_send_creation(uint32_t item_index, uint32_t arg2, uint32_t arg3);
 }
 
 namespace halo::items {
@@ -335,7 +336,7 @@ void equipment_ref::definition_play_pickup_sound(uint32_t equipment_tag_id)
         ((sound_location *)parameters)->type = 0;
         ((sound_location *)parameters)->scale = 1.0f;
         ((sound_location *)parameters)->gain = 1.0f;
-        sound_play_new((uint32_t)pickup_sound_tag_id, parameters, 0xffffffff, 0, 0, 0, 0);
+        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, 0xffffffff, 0, 0, 0, 0);
     }
 }
 
@@ -465,7 +466,7 @@ void equipment_ref::pickup_play_sound()
         ((sound_location *)parameters)->type = 0;
         ((sound_location *)parameters)->scale = 1.0f;
         ((sound_location *)parameters)->gain = 1.0f;
-        sound_play_new((uint32_t)pickup_sound_tag_id, parameters, 0xffffffff, 0, 0, 0, 0);
+        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, 0xffffffff, 0, 0, 0, 0);
     }
 }
 
@@ -484,15 +485,15 @@ void equipment_ref::send_creation(uint32_t arg2, uint32_t arg3)
     item_data *id = (item_data *)((uint8_t *)obj + k_item_data_offset);
 
     if ((obj->flags & _object_at_rest_bit) != 0 && (id->flags & _item_at_rest_on_structure_bit) == 0) {
-        equipment_build_creation_message(item_index, arg2, arg3, _object_at_rest_bit);
+        halo::items::equipment_build_creation_message(item_index, arg2, arg3, _object_at_rest_bit);
         return;
     }
-    equipment_build_creation_message(item_index, arg2, arg3, 0);
+    halo::items::equipment_build_creation_message(item_index, arg2, arg3, 0);
 }
 
 }
 
-extern "C" {
+namespace halo::items {
 
 void equipment_apply_network_update(datum_index item_index, uint32_t *update_record)
 {

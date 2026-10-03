@@ -1,4 +1,5 @@
 #include "halo/hs/hs2_commands.hpp"
+#include "halo/input/api.hpp"
 
 
 #ifdef __cplusplus
@@ -12,10 +13,6 @@ extern uint8_t input_globals[];
 extern uint8_t player_control_look_rates_0070facc[];
 extern uint8_t profile_globals_block[0x60a4];
 extern void player_profile_save_495fb0(uint8_t flag);
-extern float input_clamp_unit_float(float value);
-extern float input_sensitivity_to_turn_rate(float sensitivity);
-extern void input_joystick_set_axis_scale_x(int16_t slot, float value);
-extern void input_joystick_set_axis_scale_y(int16_t slot, float value);
 #ifdef __cplusplus
 }
 #endif
@@ -325,7 +322,7 @@ void InputSettingsCommands::evaluate_set_digital_forward_throttle(int16_t functi
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x810) = input_clamp_unit_float(*(float *)&arguments[1]);
+            *(float *)(input_globals + slot * 0x85c + 0x810) = halo::input::input_clamp_unit_float(*(float *)&arguments[1]);
         }
         hs_thread_return(0, thread_index);
     }
@@ -347,7 +344,7 @@ void InputSettingsCommands::evaluate_set_digital_pitch_increment(int16_t functio
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x81c) = input_sensitivity_to_turn_rate(*(float *)&arguments[1]);
+            *(float *)(input_globals + slot * 0x85c + 0x81c) = halo::input::input_sensitivity_to_turn_rate(*(float *)&arguments[1]);
         }
         hs_thread_return(0, thread_index);
     }
@@ -369,7 +366,7 @@ void InputSettingsCommands::evaluate_set_digital_strafe_throttle(int16_t functio
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x814) = input_clamp_unit_float(*(float *)&arguments[1]);
+            *(float *)(input_globals + slot * 0x85c + 0x814) = halo::input::input_clamp_unit_float(*(float *)&arguments[1]);
         }
         hs_thread_return(0, thread_index);
     }
@@ -391,7 +388,7 @@ void InputSettingsCommands::evaluate_set_digital_yaw_increment(int16_t function_
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x818) = input_sensitivity_to_turn_rate(*(float *)&arguments[1]);
+            *(float *)(input_globals + slot * 0x85c + 0x818) = halo::input::input_sensitivity_to_turn_rate(*(float *)&arguments[1]);
         }
         hs_thread_return(0, thread_index);
     }
@@ -410,7 +407,7 @@ void InputSettingsCommands::evaluate_set_gamepad_forward_threshold(int16_t funct
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        input_joystick_set_axis_scale_x((int16_t)arguments[0], *(float *)&arguments[1]);
+        halo::input::input_joystick_set_axis_scale_x((int16_t)arguments[0], *(float *)&arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -428,7 +425,7 @@ void InputSettingsCommands::evaluate_set_gamepad_strafe_threshold(int16_t functi
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        input_joystick_set_axis_scale_y((int16_t)arguments[0], *(float *)&arguments[1]);
+        halo::input::input_joystick_set_axis_scale_y((int16_t)arguments[0], *(float *)&arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -471,7 +468,7 @@ void InputSettingsCommands::evaluate_set_mouse_pitch_scale(int16_t function_inde
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x82c) = input_sensitivity_to_turn_rate(*(float *)&arguments[1]);
+            *(float *)(input_globals + slot * 0x85c + 0x82c) = halo::input::input_sensitivity_to_turn_rate(*(float *)&arguments[1]);
         }
         hs_thread_return(0, thread_index);
     }
@@ -515,7 +512,7 @@ void InputSettingsCommands::evaluate_set_mouse_yaw_scale(int16_t function_index,
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x828) = input_sensitivity_to_turn_rate(*(float *)&arguments[1]);
+            *(float *)(input_globals + slot * 0x85c + 0x828) = halo::input::input_sensitivity_to_turn_rate(*(float *)&arguments[1]);
         }
         hs_thread_return(0, thread_index);
     }

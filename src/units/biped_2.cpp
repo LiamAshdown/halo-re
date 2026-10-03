@@ -5,6 +5,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -841,9 +842,9 @@ step_crouch:
         lunge.k = solve.result_position.z - solve.start_position.z;
         if (halo::math::ray_intersects_sphere_test(solve.start_position, *(real_point3d *)(target + 0xa0), lunge,
                                        ((object *)target)->bounding_radius) &&
-            object_collision_context_build(target_index, &context) &&
-            object_collision_context_test_segment(&context, 3, &solve.start_position, &lunge, &node_hit) &&
-            !collision_test_movement_segment(0xc2a0, &solve.start_position, &lunge, object_index, &structure_hit)) {
+            halo::physics::object_collision_context_build(target_index, &context) &&
+            halo::physics::object_collision_context_test_segment(&context, 3, &solve.start_position, &lunge, &node_hit) &&
+            !halo::physics::collision_test_movement_segment(0xc2a0, &solve.start_position, &lunge, object_index, &structure_hit)) {
             real_point3d contact_point;
             real_plane3d contact_plane;
             uint8_t *hit = (uint8_t *)&node_hit;
@@ -971,7 +972,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
         *result_flags = (uint16_t)(flags & 2);
         solve->result_velocity.i = dx + solve->velocity.i;
         solve->result_velocity.j = dy + solve->velocity.j;
-        solve->result_velocity.k = solve->velocity.k - k_physics_gravity;
+        solve->result_velocity.k = solve->velocity.k - halo::physics::globals().gravity;
     } else {
         real_vector3d *ground_normal = &solve->ground_normal;
         uint8_t jumping = 0;
@@ -1062,7 +1063,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
         solve->result_velocity.j = (c.j - ground_normal->j * K_GROUND_NORMAL_OFFSET) + solve->velocity.j;
         solve->result_velocity.k = (c.k - ground_normal->k * K_GROUND_NORMAL_OFFSET) + solve->velocity.k;
         if ((*result_flags & 2) != 0) {
-            solve->result_velocity.k -= k_physics_gravity;
+            solve->result_velocity.k -= halo::physics::globals().gravity;
         }
     }
 
@@ -1083,7 +1084,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
         delta = solve->result_velocity;
         delta.k = delta.k + solve->height_change;
         e = delta;
-        contact_count = physics_sweep_capsule_step((real_point3d *)&a, &e, &swept_velocity, solve->object_index,
+        contact_count = halo::physics::physics_sweep_capsule_step((real_point3d *)&a, &e, &swept_velocity, solve->object_index,
             model_flags, solve->pill_height, solve->pill_radius, &swept_position, 16, contacts);
         if (contact_count < 16) {
             solve->result_flags &= 0xf7;
@@ -1093,7 +1094,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
     }
     solve->snapped_ground_surface_index = 0xffffffff;
     if (contact_count == 0 && solve->ground_surface_index != 0xffffffff) {
-        ModelCollisionGeometryBSP *bsp = global_structure_collision_bsp;
+        ModelCollisionGeometryBSP *bsp = halo::physics::globals().structure_collision_bsp;
         int32_t surface_index = (int32_t)solve->ground_surface_index;
         int32_t best_surface = -1;
         float best_distance_squared = 3.4028235e+38f;
@@ -1393,7 +1394,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                     center.x = solve->result_position.x;
                     center.y = solve->result_position.y;
                     center.z = solve->result_position.z + half_height;
-                    if (physics_model_build_from_sphere_query(query_flags, &center, half_height, 0.0f,
+                    if (halo::physics::physics_model_build_from_sphere_query(query_flags, &center, half_height, 0.0f,
                                                               tag->collision_radius, solve->object_index, &probe_model)) {
                         float reach = tag->standing_collision_height - (tag->collision_radius + tag->collision_radius);
                         real_vector3d up_ray;
@@ -1402,7 +1403,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                         up_ray.i = reach * halo::math::globals().global_up3d_pointer->i;
                         up_ray.j = reach * halo::math::globals().global_up3d_pointer->j;
                         up_ray.k = reach * halo::math::globals().global_up3d_pointer->k;
-                        if (physics_shape_test_ray(&probe_model, &solve->result_position, &up_ray, &probe_contact)) {
+                        if (halo::physics::physics_shape_test_ray(&probe_model, &solve->result_position, &up_ray, &probe_contact)) {
                             solve->result_flags |= 0x04;
                         }
                     }

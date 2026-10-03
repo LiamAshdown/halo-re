@@ -2,6 +2,9 @@
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -10,8 +13,6 @@ extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern real_vector3d *global_origin3d_pointer;
 extern game_main_globals *main_game_globals;
-extern float k_physics_gravity;
-extern void contrail_delete(datum_index attachment_handle);
 extern void projectile_update_function_values(datum_index projectile_index);
 extern void projectile_request_state(datum_index projectile_index, int16_t requested_state);
 extern uint8_t projectile_collision_test(uint32_t object_index, real_point3d *target, void *out_record);
@@ -27,7 +28,6 @@ extern datum_index sound_start_at_location(datum_index definition_index, sound_p
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
 extern void object_recalculate_bounding_radius(uint32_t object_index);
-extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time);
 extern void projectile_send_detonation(datum_index projectile_index);
 extern void projectile_detonate(uint32_t object_index, char first_collision, real remaining_tick_fraction);
 extern void object_delete_unparented(uint32_t object_index);
@@ -89,7 +89,7 @@ int ProjectileHandle::update()
         int32_t slot = self->projectile.contrail_attachment_index;
 
         if (self->base.attachment_handles[slot] != k_datum_index_none) {
-            contrail_delete(self->base.attachment_handles[slot]);
+            halo::effects::contrail_delete(self->base.attachment_handles[slot]);
         }
         self->base.attachment_handles[self->projectile.contrail_attachment_index] = k_datum_index_none;
         self->projectile.contrail_attachment_index = -1;
@@ -255,7 +255,7 @@ int ProjectileHandle::update()
         }
 
         
-        gravity = k_physics_gravity * ((self->base.flags & to_bits(projectile_object_flag::in_water)) ? definition->water_gravity_scale : definition->air_gravity_scale);
+        halo::physics::globals().gravity = k_physics_gravity * ((self->base.flags & to_bits(projectile_object_flag::in_water)) ? definition->water_gravity_scale : definition->air_gravity_scale);
         vel.k = vel_k - gravity * remaining;
         step_k = step.k - gravity * remaining * 0.5f;
 
@@ -332,7 +332,7 @@ int ProjectileHandle::update()
 
                 if (listener != k_datum_index_none && listener != shooter) {
                     real_point3d *center = &((object *)OBJECT_DATA(listener))->bounding_center;
-                    real radius = sound_definition_maximum_distance(*(datum_index *)&definition->flyby_sound.tag_id);
+                    real radius = halo::sound::sound_definition_maximum_distance(*(datum_index *)&definition->flyby_sound.tag_id);
                     real_vector3d to_listener;  
                     real_vector3d projected;    
                     real_vector3d perpendicular; 
@@ -355,7 +355,7 @@ int ProjectileHandle::update()
                         *(real_vector3d *)&placement.velocity = *global_origin3d_pointer;
                         placement.leaf_index = *(int32_t *)&hit.leaf;
                         *(int32_t *)&placement.cluster_index = *(int32_t *)((uint8_t *)&hit.leaf + 4);
-                        sound_start_at_location(*(datum_index *)&definition->flyby_sound.tag_id, &placement, 1.0f);
+                        halo::sound::sound_start_at_location(*(datum_index *)&definition->flyby_sound.tag_id, &placement, 1.0f);
                         flyby_played = 1;
                     }
                 }
@@ -399,7 +399,7 @@ int ProjectileHandle::update()
         if (remaining != 0.0f && collisions != 0 && self->projectile.contrail_attachment_index != -1 &&
             self->base.attachment_handles[self->projectile.contrail_attachment_index] != k_datum_index_none) {
             object_recalculate_bounding_radius(projectile_index);
-            contrail_advance(self->base.attachment_handles[self->projectile.contrail_attachment_index], 0,
+            halo::effects::contrail_advance(self->base.attachment_handles[self->projectile.contrail_attachment_index], 0,
                              (1.0f - remaining) * k_seconds_per_tick);
         }
     next_step:

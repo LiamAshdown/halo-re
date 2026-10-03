@@ -1,6 +1,6 @@
 /**
- * C linkage shims for the input module: one extern "C" function per original symbol, forwarding to the
- * C++ implementation in namespace halo::input or to the member function of the record it operates on.
+ * The input module's public API (include/halo/input/api.hpp): forwards the calls other modules make to the C++ implementation in
+ * namespace halo::input or to the member function of the record it operates on, and exposes the module's engine globals.
  */
 
 #include "tags.h"
@@ -27,8 +27,22 @@
 #include "halo/input/directinput.hpp"
 #include "halo/input/ui_events.hpp"
 #include "halo/input/system.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
+extern int32_t joystick_slot_devices[4];
+extern uint8_t input_suppressed;
+extern uint8_t g_control_binding_state;
+extern uint8_t g_control_binding_secondary_active;
+}
+
+namespace halo::input {
+
+Globals &globals()
+{
+    static Globals instance{::joystick_slot_devices, ::input_suppressed, ::g_control_binding_state, ::g_control_binding_secondary_active};
+    return instance;
+}
 
 void chimera__axis_text(int16_t axis_index, uint8_t direction, uint16_t *out_text)
 {

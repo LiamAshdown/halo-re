@@ -1,6 +1,6 @@
 /**
- * C linkage shims for the physics module: one extern "C" function per original symbol, forwarding to the
- * C++ implementation in namespace halo::physics or to the member function of the record it operates on.
+ * The physics module's public API (include/halo/physics/api.hpp): forwards the calls other modules make to the C++ implementation
+ * in namespace halo::physics or to the member function of the record it operates on, and exposes the module's engine globals.
  */
 
 #include "tags.h"
@@ -23,8 +23,27 @@
 #include "halo/physics/object_physics.hpp"
 #include "halo/physics/motion.hpp"
 #include "halo/physics/physics_model.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
+extern ModelCollisionGeometryBSP *global_collision_bsp;
+extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
+extern float k_physics_gravity;
+extern real_point3d *sphere_point_table;
+extern int16_t sphere_point_table_count;
+extern datum_index *collideable_cluster_first;
+extern data_array *collideable_object_references;
+extern int32_t object_cluster_stamp;
+extern breakable_surface_globals *breakable_surface_state;
+}
+
+namespace halo::physics {
+
+Globals &globals()
+{
+    static Globals instance{::global_collision_bsp, ::global_structure_collision_bsp, ::k_physics_gravity, ::sphere_point_table, ::sphere_point_table_count, ::collideable_cluster_first, ::collideable_object_references, ::object_cluster_stamp, ::breakable_surface_state};
+    return instance;
+}
 
 void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, int32_t collision_surface_index)
 {

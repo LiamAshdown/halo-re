@@ -1,5 +1,6 @@
 #include "halo/hs/hs3_commands.hpp"
 #include "win32.h"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
@@ -10,7 +11,6 @@ extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t param
 extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index);
 extern void player_update_history_log_set_name_filter(char *name);
 extern uint8_t ui_widget_show_path_flag;
-extern void hs_unbind_control(const char *device_class_name, const char *input_name);
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern data_array *hs_thread_data;
 extern data_array *hs_syntax_data;
@@ -116,7 +116,7 @@ void ScriptCommands::evaluate_unbind(int16_t function_index, uint32_t thread_ind
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        hs_unbind_control((const char *)arguments[0], (const char *)arguments[1]);
+        halo::input::hs_unbind_control((const char *)arguments[0], (const char *)arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }

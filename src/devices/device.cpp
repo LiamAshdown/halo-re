@@ -3,6 +3,8 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -431,11 +433,11 @@ void DeviceHandle::play_state_change_effect(TagID tag_id)
             device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
             
             
-            effect_new_on_object(object_index, *(datum_index *)&tag_id, object_index, -1, dev->position, dev->power,
+            halo::effects::effect_new_on_object(object_index, *(datum_index *)&tag_id, object_index, -1, dev->position, dev->power,
                 (const ColorRGB *)0, (const effect_tint_source *)0);
         } else if (group_tag == k_device_state_change_tag_sound) {
             
-            sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer, (Vector3D *)halo::math::globals().global_forward3d_pointer,
+            halo::sound::sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer, (Vector3D *)halo::math::globals().global_forward3d_pointer,
                 *(datum_index *)&tag_id, -1, 1.0f, 0);
         }
     }

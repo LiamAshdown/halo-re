@@ -20,6 +20,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -69,7 +70,6 @@ extern uint8_t rasterizer_render_states_dirty;
 extern uint8_t unknown_0071d1fa;
 extern uint8_t console_debug_toggle_6893ee;
 extern void first_person_weapon_update_lighting(void);
-extern int32_t object_cluster_stamp;
 extern object_globals *object_globals_pointer;
 extern uint8_t rendered_objects_full_warning;
 extern datum_index object_resolve_collideable_reference(uint32_t *cursor, int16_t cluster_index);
@@ -945,7 +945,7 @@ void s_collect(void)
 {
     int16_t count;
 
-    object_cluster_stamp++;
+    halo::physics::globals().object_cluster_stamp++;
     object_globals_pointer->collecting_in_clusters = 1;
 
     count = halo::structures::structure_bsp_collect_visible_objects((int32_t *)rendered_objects, 0x100,

@@ -1,24 +1,18 @@
 #include "halo/hs/hs3_commands.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern void sound_looping_set_scale(datum_index looping_definition, float gain);
-extern void sound_looping_start(datum_index definition_index, datum_index object_index, float scale);
-extern void sound_looping_stop(datum_index looping_definition);
-extern void sound_set_effects_gain(float gain);
 extern void *global_sound_effect_object;
 extern void *directsound_listener;
 extern float sound_listener_doppler_factor;
 extern float *hs_sound_get_gain_reference(char *name);
-extern void sound_set_master_gain(float gain);
-extern void sound_set_music_gain(float gain);
 extern float sound_listener_rolloff_factor;
 extern int16_t sound_supplementary_buffers_00746122;
 extern uint8_t directsound_eax_enabled;
-extern void sound_driver_set_eax_enabled(uint8_t eax_enabled, uint8_t force);
 }
 
 namespace halo::hs::part3 {
@@ -36,7 +30,7 @@ void SoundCommands::evaluate_sound_looping_set_scale(int16_t function_index, uin
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    sound_looping_set_scale((datum_index)arguments[0], *(float *)&arguments[1]);
+    halo::sound::sound_looping_set_scale((datum_index)arguments[0], *(float *)&arguments[1]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -54,7 +48,7 @@ void SoundCommands::evaluate_sound_looping_start(int16_t function_index, uint32_
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    sound_looping_start((datum_index)arguments[0], (datum_index)arguments[1], *(float *)&arguments[2]);
+    halo::sound::sound_looping_start((datum_index)arguments[0], (datum_index)arguments[1], *(float *)&arguments[2]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -72,7 +66,7 @@ void SoundCommands::evaluate_sound_looping_stop(int16_t function_index, uint32_t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    sound_looping_stop((datum_index)arguments[0]);
+    halo::sound::sound_looping_stop((datum_index)arguments[0]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -90,7 +84,7 @@ void SoundCommands::evaluate_sound_set_effects_gain(int16_t function_index, uint
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        sound_set_effects_gain(*(float *)&arguments[0]);
+        halo::sound::sound_set_effects_gain(*(float *)&arguments[0]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -172,7 +166,7 @@ void SoundCommands::evaluate_sound_set_master_gain(int16_t function_index, uint3
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        sound_set_master_gain(*(float *)&arguments[0]);
+        halo::sound::sound_set_master_gain(*(float *)&arguments[0]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -190,7 +184,7 @@ void SoundCommands::evaluate_sound_set_music_gain(int16_t function_index, uint32
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        sound_set_music_gain(*(float *)&arguments[0]);
+        halo::sound::sound_set_music_gain(*(float *)&arguments[0]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -241,7 +235,7 @@ void SoundCommands::evaluate_sound_set_supplementary_buffers(int16_t function_in
             changed = 1;
         }
         if ((uint8_t)arguments[1] && changed) {
-            sound_driver_set_eax_enabled(directsound_eax_enabled, 1);
+            halo::sound::sound_driver_set_eax_enabled(directsound_eax_enabled, 1);
         }
         hs_thread_return(0, thread_index);
     }

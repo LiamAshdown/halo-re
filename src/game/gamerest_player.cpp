@@ -5,6 +5,10 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/input/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/items/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
@@ -20,7 +24,6 @@ extern void player_trigger_full_health_effect(uint32_t player_index);
 extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle);
 extern void player_trigger_kill_streak_effect(uint32_t player_index);
 extern void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t local_player_index, int8_t machine_id);
-extern void equipment_pickup_play_sound(uint32_t object_index);
 extern void object_delete(uint32_t object_index);
 extern game_time_globals *game_time;
 extern network_client_globals *network_client;
@@ -43,7 +46,6 @@ extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
 extern uint8_t device_frontfacing(uint32_t device_index, real_vector3d *forward);
 extern uint8_t device_can_change_position(uint32_t candidate_object);
 extern void player_set_pending_interaction_action(int16_t priority_type, int16_t seat, uint32_t player_index, uint32_t candidate_object);
-extern uint32_t weapon_transfer_ammunition(datum_index target_item_index, datum_index source_item_index, int16_t requesting_player_index, int16_t *out_transferred);
 extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind, int16_t count);
 extern uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index);
 extern void player_apply_pickup_effect(uint32_t player_index, uint32_t pickup_object);
@@ -80,7 +82,6 @@ extern uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t or
 extern void player_release_unit_and_reset(uint32_t player_index, int32_t previous_unit_override);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern void game_engine_build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_t local_players_only);
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern game_engine_definition *current_game_engine;
 extern game_engine_state game_engine_state_value;
 extern void game_engine_attribute_player_death(datum_index victim_unit, datum_index killer, datum_index death_object, int32_t killer_team, char credit_kills);
@@ -90,7 +91,6 @@ extern void player_reset_after_unit_change(uint32_t player_index);
 extern player_control_globals *player_control_globals_ptr;
 extern data_array *update_server_queues;
 extern void player_remove(datum_index player_handle);
-extern void player_effect_set_screen_flash_for_player(datum_index player_index, void *descriptor, float intensity_falloff);
 extern uint16_t global_006889d0;
 extern uint16_t global_007102e4;
 extern uint32_t global_006889e0;
@@ -172,11 +172,8 @@ extern uint32_t game_state_crc;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index);
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out);
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void game_engine_reattach_player_unit_unused(uint32_t player_index, uint32_t target_object, void *local_offset);
-extern int32_t joystick_slot_devices[4];
 extern uint8_t players_any_with_local_player_index(int16_t local_player_index);
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_handle, uint8_t attaching);
 extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index);
@@ -376,7 +373,7 @@ void PlayerView::apply_pickup_effect(uint32_t pickup_object)
     hud_post_item_message(0, (int32_t)pickup->definition_tag, 0, p->local_player_index,
                           (int8_t)*((uint8_t *)p + 0x64));
     if (p->local_player_index != -1) {
-        equipment_pickup_play_sound(pickup_object);
+        halo::items::equipment_pickup_play_sound(pickup_object);
     }
     object_delete(pickup_object);
 }
@@ -482,7 +479,7 @@ void PlayerView::check_vehicle_boarding_interaction(uint32_t candidate_object)
         int16_t transferred;
 
         if (carried != k_datum_index_none &&
-            (uint8_t)weapon_transfer_ammunition(carried, candidate_object, local_player_index, &transferred)) {
+            (uint8_t)halo::items::weapon_transfer_ammunition(carried, candidate_object, local_player_index, &transferred)) {
             if (transferred > 0) {
                 hud_post_item_message(transferred, (int32_t)*(datum_index *)OBJECT_DATA(carried), 1,
                     local_player_index, machine);
@@ -962,7 +959,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
 
         if (effect != k_datum_index_none) {
             game_engine_build_visible_cluster_bitmask((uint32_t *)local_player_globals->cluster_pvs, 0);
-            effect_new_on_object(unit_index, effect, unit_index, -1, 0.0f, 0.0f, 0, 0);
+            halo::effects::effect_new_on_object(unit_index, effect, unit_index, -1, 0.0f, 0.0f, 0, 0);
         }
     }
     return placed;
@@ -1192,7 +1189,7 @@ void PlayerView::trigger_full_health_effect()
         *(uint32_t *)(buffer + 0x30) = 0x3f6aeaea;
         *(uint32_t *)(buffer + 0x34) = 0x3f6aeaea;
 
-        player_effect_set_screen_flash_for_player(player_index, buffer, 1.0f);
+        halo::effects::player_effect_set_screen_flash_for_player(player_index, (player_screen_flash *)buffer, 1.0f);
     }
 }
 
@@ -1225,7 +1222,7 @@ void PlayerView::trigger_shield_recharge_effect()
         *(uint32_t *)(buffer + 0x30) = global_007102ec;
         *(uint32_t *)(buffer + 0x34) = global_006889dc;
 
-        player_effect_set_screen_flash_for_player(player_index, buffer, 1.0f);
+        halo::effects::player_effect_set_screen_flash_for_player(player_index, (player_screen_flash *)buffer, 1.0f);
     }
 }
 
@@ -1869,7 +1866,7 @@ void KillStreak::trigger_kill_streak_effect()
         *(uint32_t *)(buffer + 0x30) = global_006889f0;
         *(uint32_t *)(buffer + 0x34) = global_007102f8;
 
-        player_effect_set_screen_flash_for_player(player_index, buffer, 1.0f);
+        halo::effects::player_effect_set_screen_flash_for_player(player_index, (player_screen_flash *)buffer, 1.0f);
     }
 }
 
@@ -1978,7 +1975,7 @@ uint8_t LocalPlayerUnit::get_current_weapon_autoaim_cone(int16_t require_zoomed,
         return 0;
     }
 
-    aspect = weapon_get_zoom_magnification(weapon_index, require_zoomed);
+    aspect = halo::items::weapon_get_zoom_magnification(weapon_index, require_zoomed);
     inv_aspect = 1.0f / aspect;
     out[0] = inv_aspect * weapon->autoaim_angle;
     out[1] = aspect * weapon->autoaim_range;
@@ -2869,7 +2866,7 @@ void StructureBsp::switch_regroup()
     if (flag_index != -1) {
         target = *(real_point3d *)((uint8_t *)global_scenario->cutscene_flags.pointer + flag_index * 0x5c + 0x24);
         offset = 0.0f;
-        while (object_collision_test_cluster_group(0x4029, &target, 0xffffffff)) {
+        while (halo::physics::object_collision_test_cluster_group(0x4029, &target, 0xffffffff)) {
             double sum;
 
             target.z = target.z + 0.05f;
@@ -2907,7 +2904,7 @@ void StructureBsp::switch_regroup()
         }
         unit_get_crouch_height_offset(&probe, entry->unit, &height, &radius);
         offset = radius;
-        leaf = bsp3d_node_find_leaf(0, global_collision_bsp, &probe);
+        leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &probe);
         if (leaf == 0xffffffff ||
             *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8) == -1) {
             continue;
@@ -2946,7 +2943,7 @@ int32_t LocalPlayers::find_free_slot_index()
     int32_t i;
 
     for (i = 0; i < 4; i = i + 1) {
-        if (joystick_slot_devices[i] != -1 &&
+        if (halo::input::globals().joystick_slot_devices[i] != -1 &&
             Players::any_with_local_player_index((int16_t)i) == 0) {
             return i;
         }

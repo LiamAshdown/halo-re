@@ -1,9 +1,9 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
-extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 extern void unit_invalidate_local_player_zoom_level(void);
 extern data_array *object_data;
 extern network_id_table *object_network_id_table;
@@ -28,7 +28,7 @@ namespace halo::units {
 void unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_notify, datum_index sound_definition_index)
 {
     if (!skip_notify) {
-        sound_start_unspatialized(sound_definition_index, 1.0f);
+        halo::sound::sound_start_unspatialized(sound_definition_index, 1.0f);
     }
     unit->zoom_level = -1;
     unit->desired_zoom_level = -1;

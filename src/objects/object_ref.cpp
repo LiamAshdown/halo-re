@@ -7,6 +7,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern int32_t __ftol();
@@ -16,8 +17,6 @@ extern double atan2(double y, double x);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern datum_index *collideable_cluster_first;
 extern void *collideable_cluster_partition;
-extern data_array *collideable_object_references;
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void console_print_va(const char *format, ...);
 extern double cos(double x);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
@@ -38,7 +37,6 @@ extern void *noncollideable_cluster_partition;
 extern data_array *noncollideable_object_references;
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, uint32_t marker_word);
 extern void object_children_recurse_prune(uint32_t object_index);
-extern int32_t object_cluster_stamp;
 extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
 extern data_array *object_data;
 extern void object_delete(uint32_t object_index);
@@ -327,7 +325,7 @@ void halo::objects::ObjectRef::set_position_and_recalculate(real_point3d *positi
     bsp_leaf_reference location;
     int32_t leaf;
 
-    leaf = (int32_t)bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, position);
+    leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, position);
     location.leaf_index = leaf;
     if (leaf == -1) {
         location.cluster_index = -1;
@@ -376,7 +374,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
         bsp_leaf_reference local_location;
 
         if (location == 0) {
-            int32_t leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &obj->bounding_center);
+            int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &obj->bounding_center);
             if (leaf == -1) {
                 local_location.cluster_index = -1;
             } else {
@@ -406,7 +404,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
 
         halo::structures::cluster_reference_add_within_radius(object_index, &obj->placement_id, &obj->bounding_center, obj->bounding_radius,
                      (bsp_leaf_reference *)&obj->location_leaf_index,
-                     (obj->flags & 0x2000000) != 0 ? (cluster_reference_group *)&collideable_cluster_first : (cluster_reference_group *)&noncollideable_cluster_first);
+                     (obj->flags & 0x2000000) != 0 ? (cluster_reference_group *)&halo::physics::globals().collideable_cluster_first : (cluster_reference_group *)&noncollideable_cluster_first);
 
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
             int16_t cluster = header->cluster_index;
@@ -451,7 +449,7 @@ void halo::objects::ObjectRef::unlink_cluster_or_notify_parent()
     if (obj->parent_object == k_datum_index_none) {
 
         halo::structures::cluster_reference_remove_all(object_index, (datum_index *)((uint8_t *)obj + 0x10c),
-                     (obj->flags & 0x2000000) != 0 ? (cluster_reference_group *)&collideable_cluster_first
+                     (obj->flags & 0x2000000) != 0 ? (cluster_reference_group *)&halo::physics::globals().collideable_cluster_first
                                                    : (cluster_reference_group *)&noncollideable_cluster_first);
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
             header = (object_header *)object_data->data + (object_index & 0xffff);
@@ -504,7 +502,7 @@ int16_t halo::objects::ObjectRef::get_root_parent_placement(object_placement_cur
         family = (int32_t *)&noncollideable_cluster_first;
         reference_table = (data_array *)noncollideable_cluster_partition;
     } else {
-        family = (int32_t *)&collideable_cluster_first;
+        family = (int32_t *)&halo::physics::globals().collideable_cluster_first;
         reference_table = (data_array *)collideable_cluster_partition;
     }
     out_cursor->cluster_globals = family;
@@ -1329,7 +1327,7 @@ uint8_t halo::objects::ObjectRef::reposition_to_spawn_location(real_point3d *tar
     delta.i = ((object *)obj)->position.x - target_position->x;
     delta.j = ((object *)obj)->position.y - target_position->y;
     delta.k = ((object *)obj)->position.z - target_position->z;
-    if (!collision_test_movement_segment(0x1000e9, target_position, &delta, ignore_object_index, &hit) &&
+    if (!halo::physics::collision_test_movement_segment(0x1000e9, target_position, &delta, ignore_object_index, &hit) &&
         ((object *)obj)->location_cluster_index != -1) {
         return 1;
     }
@@ -1452,7 +1450,7 @@ uint8_t halo::objects::ObjectRef::disconnect_from_map()
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    return obj->cluster_stamp != object_cluster_stamp;
+    return obj->cluster_stamp != halo::physics::globals().object_cluster_stamp;
 }
 
 /**

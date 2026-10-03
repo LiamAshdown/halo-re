@@ -23,6 +23,7 @@
 #include "halo/networking/server_sort.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern uint8_t playlist_profiles_need_defaults;
@@ -39,7 +40,6 @@ extern uint8_t server_browser_join_target_has_password;
 extern uint16_t network_join_target_address[128];
 extern virtual_keyboard_globals virtual_keyboard;
 extern int32_t mouse_device;
-extern uint8_t input_suppressed;
 extern int32_t mouse_neutral_state[3];
 extern int32_t live_mouse_state[3];
 extern void * master_server_query_engine;
@@ -330,24 +330,24 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
     scroll_target = 0;
     if (mouse_device != 0) {
         scroll_target = mouse_neutral_state;
-        if (input_suppressed == 0) {
+        if (halo::input::globals().suppressed == 0) {
             scroll_target = live_mouse_state;
         }
     }
 
-    if (input_get_key_state(0x53) == 1) {
+    if (halo::input::input_get_key_state(0x53) == 1) {
         server_list_scroll_page_up(0);
         widget_play_sound_effect(2);
     }
-    if (input_get_key_state(0x52) == 1) {
+    if (halo::input::input_get_key_state(0x52) == 1) {
         server_list_scroll_page_up(1);
         widget_play_sound_effect(2);
     }
-    if (input_get_key_state(0x56) == 1) {
+    if (halo::input::input_get_key_state(0x56) == 1) {
         server_list_scroll_page_down(0);
         widget_play_sound_effect(2);
     }
-    if (input_get_key_state(0x55) == 1) {
+    if (halo::input::input_get_key_state(0x55) == 1) {
         server_list_scroll_page_down(1);
         widget_play_sound_effect(2);
     }

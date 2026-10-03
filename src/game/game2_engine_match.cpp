@@ -1,5 +1,6 @@
 #include "halo/game/game2_engine_match.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/sound/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -26,7 +27,6 @@ extern void player_kill_streak_set_max(int16_t slot, uint32_t player_index, int1
 extern void game_engine_update_teleporter(datum_index player_handle);
 extern char game_engine_announce_time_remaining(void);
 extern void game_engine_begin_end_game_sequence(void);
-extern void sound_class_set_gain_by_name(const char *class_name, float gain, int32_t ticks);
 extern void game_engine_end_game_sequence_stage2(void);
 extern void game_engine_send_end_game_notification(uint32_t reason);
 extern void network_server_advance_connect_state(network_server_globals *server);
@@ -315,10 +315,10 @@ void EngineMatch::tick(void)
         }
     } else if (game_engine_state_value == _game_engine_state_ending) {
         if (game_engine_end_game_timer <= 2.0f && (game_engine_unknown_aa00 & 0x10) == 0) {
-            sound_class_set_gain_by_name(k_empty_string, 0.0f, 0x1e);
-            sound_class_set_gain_by_name("ambient_nature", 0.2f, 0x1e);
-            sound_class_set_gain_by_name("ambient_machinery", 0.2f, 0x1e);
-            sound_class_set_gain_by_name("ambient_computers", 0.2f, 0x1e);
+            halo::sound::sound_class_set_gain_by_name(k_empty_string, 0.0f, 0x1e);
+            halo::sound::sound_class_set_gain_by_name((char *)"ambient_nature", 0.2f, 0x1e);
+            halo::sound::sound_class_set_gain_by_name((char *)"ambient_machinery", 0.2f, 0x1e);
+            halo::sound::sound_class_set_gain_by_name((char *)"ambient_computers", 0.2f, 0x1e);
             game_engine_unknown_aa00 = game_engine_unknown_aa00 | 0x10;
         }
 

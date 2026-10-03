@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern player_effect_globals *player_effect_globals_pointer;
@@ -149,7 +150,7 @@ void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t l
                 b = 0.0f;
             }
             self[0xe8] &= 0xfb;
-            player_effect_random_shake_offset(&second, a + *(real *)(self + 0xd4), b + *(real *)(self + 0xd8));
+            halo::effects::player_effect_random_shake_offset(&second, a + *(real *)(self + 0xd4), b + *(real *)(self + 0xd8));
             dt = game_time->ticks_this_frame;
             *(int16_t *)(self + 0xdc) = (int16_t)(*(int16_t *)(self + 0xdc) + dt);
             if (*(int16_t *)(self + 0xdc) > 0) {
@@ -159,7 +160,7 @@ void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t l
                 *(real *)(self + 0xd4) = 0.0f;
                 *(real *)(self + 0xd8) = 0.0f;
             }
-            player_effect_random_shake_offset(&second, a, b);
+            halo::effects::player_effect_random_shake_offset(&second, a, b);
             *(int16_t *)(self + 0xe2) = (int16_t)(*(int16_t *)(self + 0xe2) - dt);
             halo::math::globals().matrix4x3_multiply_procedure(out, &second, out);
         }
@@ -168,7 +169,7 @@ void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t l
 
 }
 
-extern "C" {
+namespace halo::effects {
 
 void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_player_index)
 {

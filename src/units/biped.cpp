@@ -5,6 +5,8 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/items/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -14,7 +16,6 @@ extern double fcos(double x);
 extern double fsin(double x);
 extern game_time_globals *game_time;
 extern Globals *global_globals;
-extern float k_physics_gravity;
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern real_vector3d *global_down3d_pointer;
 extern int16_t network_game_mode;
@@ -172,7 +173,7 @@ void BipedView::check_evade_reaction()
             float v = obj->velocity.k;
 
             object_get_position(&position, object_index);
-            if (v <= 0.0f && !(radius * radius > (position.z - ground.z) * k_physics_gravity * 2.0f + v * v)) {
+            if (v <= 0.0f && !(radius * radius > (position.z - ground.z) * halo::physics::globals().gravity * 2.0f + v * v)) {
                 UnitView((int32_t)object_index).dispatch_reaction_animation(0);
             }
         }
@@ -267,7 +268,7 @@ datum_index BipedView::get_cached_look_at_position(real_point3d *out_position)
         biped->cached_ground_surface_index = k_datum_index_none;
         object_get_position(out_position, object_index);
     } else if (biped->cached_ground_surface_index == k_datum_index_none && game_time->game_time > (int32_t)biped->cached_ground_point_tick) {
-        ModelCollisionGeometryBSP *bsp = global_structure_collision_bsp;
+        ModelCollisionGeometryBSP *bsp = halo::physics::globals().structure_collision_bsp;
         int32_t surface = (int32_t)biped->ground_surface_index;
         real_point3d point = biped->cached_ground_point;
         real_point2d closest;
@@ -279,17 +280,17 @@ datum_index BipedView::get_cached_look_at_position(real_point3d *out_position)
             const real_plane3d *plane = (const real_plane3d *)((uint8_t *)bsp->planes.pointer +
                 (surfaces[surface].plane & 0x7fffffff) * 0x10);
 
-            collision_bsp_surface_closest_edge_point_2d(bsp, surface, 2, 1,
+            halo::physics::collision_bsp_surface_closest_edge_point_2d(bsp, surface, 2, 1,
                 (real_point2d *)&biped->cached_ground_point, &closest);
             halo::math::decal_plane_solve_third_axis(&point, 1, 2, plane, closest);
             biped->cached_ground_surface_index = biped->ground_surface_index;
         } else {
             int32_t previous = (int32_t)biped->last_ground_surface_index;
             if (previous != -1 &&
-                collision_bsp_surface_test_point_side_2d(bsp, (real_point2d *)&biped->cached_ground_point,
+                halo::physics::collision_bsp_surface_test_point_side_2d(bsp, (real_point2d *)&biped->cached_ground_point,
                     previous, 2, 1)) {
                 biped->cached_ground_surface_index = (datum_index)previous;
-                collision_bsp_surface_solve_third_axis(bsp, previous, 1, &point, 2,
+                halo::physics::collision_bsp_surface_solve_third_axis(bsp, previous, 1, &point, 2,
                     (const real_point2d *)&biped->cached_ground_point);
                 biped->cached_ground_surface_index = (datum_index)previous;
             }
@@ -656,18 +657,18 @@ uint8_t BipedView::update()
         if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none && (int8_t)obj[0x208] < 0) {
             datum_index weapon = UnitView(object_index).get_weapon_object_index(*(int16_t *)(OBJECT_DATA(object_index) + 0x2f2));
 
-            if (!weapon_prevents_melee_attack(weapon) && obj[0x320] == 0xff) {
+            if (!halo::items::weapon_prevents_melee_attack(weapon) && obj[0x320] == 0xff) {
                 int8_t total;
                 int8_t quarter;
                 int8_t tail_time;
 
                 UnitView(object_index).start_seat_overlay_animation_a(7);
-                weapon_reset_triggers(weapon);
+                halo::items::weapon_reset_triggers(weapon);
                 weapon_action_notify_for_unit(object_index, 4);
-                total = (int8_t)weapon_get_first_person_animation_time(weapon, 0xd, 0, -1);
+                total = (int8_t)halo::items::weapon_get_first_person_animation_time(weapon, 0xd, 0, -1);
                 quarter = (int8_t)(total >> 2);
                 obj[0x505] = (uint8_t)(total - quarter);
-                tail_time = (int8_t)weapon_get_first_person_animation_time(weapon, 0xd, 1, -1);
+                tail_time = (int8_t)halo::items::weapon_get_first_person_animation_time(weapon, 0xd, 1, -1);
                 obj[0x506] = (uint8_t)(total - quarter - tail_time);
                 if (unit_updates_suppressed) {
                     goto tail;

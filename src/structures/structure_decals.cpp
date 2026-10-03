@@ -7,19 +7,15 @@
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
 extern Scenario *global_scenario;
-extern uint8_t decals_for_all_responses;
 extern uint8_t decals_enabled;
 extern double cos(double x);
 extern double sin(double x);
-extern void decal_evict_object_decals(int32_t cluster_slot);
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
-    real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
-extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction,
-    real radius_scale, uint8_t object_attached, int16_t sequence_index);
 }
 
 namespace halo::structures {
@@ -64,7 +60,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
         }
 
         if (entering) {
-            decal_evict_object_decals(slot);
+            halo::effects::decal_evict_object_decals(slot);
         } else {
             halo::math::globals().effect_random_seed = saved_seed;
             if (leaving && cluster->decal_count != 0) {
@@ -87,7 +83,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
                     orientation.j = (float)sin(yaw) * cos_pitch;
                     orientation.k = (float)sin(pitch);
 
-                    if (decals_for_all_responses == 0) {
+                    if (halo::effects::globals().decals_for_all_responses == 0) {
                         Decal *shader_decal = (Decal *)halo::cache::globals().tag_instances[shader_tag_id.index].data;
                         if (shader_decal->layer != decallayer_alpha_tested) {
                             spawn_ok = 0;
@@ -99,12 +95,12 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
 
                         halo::math::globals().effect_random_seed = *(uint32_t *)&decal->position.z ^
                             *(uint32_t *)&decal->position.y ^ *(uint32_t *)&decal->position.x ^ 0xdeadc0de;
-                        if (collision_test_movement_segment(0x100061,
+                        if (halo::physics::collision_test_movement_segment(0x100061,
                                 (real_point3d *)&decal->position, &orientation, 0xffffffff,
                                 &placement) != 0 &&
                             placement.type == _collision_result_type_structure &&
                             (*(uint8_t *)halo::cache::globals().tag_instances[shader_tag_id.index].data & 0x10) == 0) {
-                            decal_place(*(datum_index *)&shader_tag_id, &placement, &orientation, 1.0f, 1, -1);
+                            halo::effects::decal_place(*(datum_index *)&shader_tag_id, &placement, &orientation, 1.0f, 1, -1);
                         }
                     }
                     halo::math::globals().effect_random_seed = saved_seed;
@@ -134,7 +130,7 @@ void structure_decals::runtime_decals_evict(void)
         uint8_t *cluster = (uint8_t *)global_structure_bsp->clusters.pointer + cluster_index * 0x68;
 
         if (*(uint16_t *)(cluster + 0xc) != 0xffff && *(int16_t *)(cluster + 0xe) != 0) {
-            decal_evict_object_decals(cluster_index);
+            halo::effects::decal_evict_object_decals(cluster_index);
         }
     }
 }

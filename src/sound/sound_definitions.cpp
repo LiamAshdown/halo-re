@@ -7,6 +7,7 @@
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/effects/api.hpp"
 
 namespace halo::sound {
 
@@ -140,7 +141,7 @@ int16_t pick_permutation(int16_t pitch_range_index, int16_t explicit_permutation
                 return chosen;
             }
             if (range->actual_permutation_count > 1) {
-                return (int16_t)effect_random_int_between(0, (int16_t)((int16_t)range->actual_permutation_count / 2));
+                return (int16_t)halo::effects::effect_random_int_between(0, (int16_t)((int16_t)range->actual_permutation_count / 2));
             }
         }
         chosen = 0;

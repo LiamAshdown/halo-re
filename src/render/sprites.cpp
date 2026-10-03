@@ -20,6 +20,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/effects/api.hpp"
 
 extern "C" {
 extern float build_sprite_screen_coverage;
@@ -732,7 +733,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
 
     for (point_index = c->first_point[instance]; point_index != 0xffffffff;
          point_index = previous->next_point) {
-        contrail_point *point = &((contrail_point *)contrail_point_data->data)[(uint16_t)point_index];
+        contrail_point *point = &((contrail_point *)halo::effects::globals().contrail_point_data->data)[(uint16_t)point_index];
         ContrailPointState *state = &states[point->state_index];
         float width;
         float half_width;
@@ -775,7 +776,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         centroid.y = centroid.y + point->position.y;
         centroid.z = centroid.z + point->position.z;
         if (previous == 0) {
-            next = &((contrail_point *)contrail_point_data->data)[(uint16_t)point->next_point];
+            next = &((contrail_point *)halo::effects::globals().contrail_point_data->data)[(uint16_t)point->next_point];
         }
 
         switch (definition->render_type) {
@@ -932,10 +933,10 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
  */
 void render_all(uint32_t render_type_flags)
 {
-    datum_index index = halo::memory::datum_next(-1, contrail_data);
+    datum_index index = halo::memory::datum_next(-1, halo::effects::globals().contrail_data);
 
     while (index != k_datum_index_none) {
-        contrail *c = &((contrail *)contrail_data->data)[(uint16_t)index];
+        contrail *c = &((contrail *)halo::effects::globals().contrail_data->data)[(uint16_t)index];
         Contrail *definition = (Contrail *)halo::cache::globals().tag_instances[(uint16_t)c->definition_index].data;
         int16_t i;
 
@@ -946,7 +947,7 @@ void render_all(uint32_t render_type_flags)
             }
         }
 
-        index = halo::memory::datum_next((int16_t)index, contrail_data);
+        index = halo::memory::datum_next((int16_t)index, halo::effects::globals().contrail_data);
     }
 }
 
@@ -970,7 +971,7 @@ void particles(void)
     int32_t viewer_value;
     datum_index index;
 
-    if (!particle_spawn_debug_mode) {
+    if (!halo::effects::globals().particle_spawn_debug_mode) {
         return;
     }
     viewer = current_local_player_index;
@@ -979,9 +980,9 @@ void particles(void)
     }
     viewer_value = (int32_t)viewer;
 
-    for (index = halo::memory::datum_next(-1, particle_data); index != 0xffffffff;
-         index = halo::memory::datum_next((int16_t)index, particle_data)) {
-        particle *p = &((particle *)particle_data->data)[(uint16_t)index];
+    for (index = halo::memory::datum_next(-1, halo::effects::globals().particle_data); index != 0xffffffff;
+         index = halo::memory::datum_next((int16_t)index, halo::effects::globals().particle_data)) {
+        particle *p = &((particle *)halo::effects::globals().particle_data->data)[(uint16_t)index];
         int32_t cluster = (int32_t)p->location.cluster_index;
         uint8_t owned = (int32_t)p->first_person_weapon_index == viewer_value;
 
@@ -1057,7 +1058,7 @@ void particles(void)
 
             for (k = 0; k < in_group; k++, group_first++) {
                 uint16_t particle_index = group_first->particle_index;
-                particle *p = &((particle *)particle_data->data)[particle_index];
+                particle *p = &((particle *)halo::effects::globals().particle_data->data)[particle_index];
                 Particle *pd = (Particle *)halo::cache::globals().tag_instances[(uint16_t)p->definition_index].data;
                 float radius = ((pd->radius_animation[1] - pd->radius_animation[0]) *
                                 (p->age / p->lifespan) + pd->radius_animation[0]) * p->scale;
@@ -1098,7 +1099,7 @@ void particles(void)
                             }
                         }
                         if (m == 0) {
-                            halo::memory::datum_delete(particle_data, (datum_index)(int32_t)(int16_t)particle_index);
+                            halo::memory::datum_delete(halo::effects::globals().particle_data, (datum_index)(int32_t)(int16_t)particle_index);
                             continue;
                         }
                     }
