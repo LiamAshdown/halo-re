@@ -2320,9 +2320,8 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
         }
 
         {
-            const uint8_t *variant_tag_data = (const uint8_t *)(halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].data);
-            const uint32_t *variant = (const uint32_t *)variant_tag_data;
-            const Actor *actor_tag_data = halo::ai::tag_data<Actor>(variant[4]);
+            const ActorVariant *variant = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
+            const Actor *actor_tag_data = halo::ai::tag_data<Actor>(halo::bit_cast<datum_index>(variant->actor_definition.tag_id));
             int16_t i;
 
             for (i = 0; i < spawn_count; i++) {
@@ -2334,7 +2333,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
                 halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                 random_bits = halo::math::globals().random_seed_global >> 16;
                 angle = (float)(int32_t)random_bits * 1.5259022e-05f * 6.2831855f;
-                halo::objects::object_placement_data_initialize(&placement, (datum_index)variant[8], (datum_index)k_datum_index_none);
+                halo::objects::object_placement_data_initialize(&placement, halo::bit_cast<datum_index>(variant->unit.tag_id), (datum_index)k_datum_index_none);
                 placement.forward.i = (float)halo::libm::cos(angle);
                 placement.forward.j = (float)halo::libm::sin(angle);
                 placement.forward.k = 0.0f;
