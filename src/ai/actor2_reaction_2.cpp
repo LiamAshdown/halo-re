@@ -40,16 +40,16 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
         return 0;
     }
     if (actor->look_at_has_point != 0) {
-        direction.i = F(0x2fc);
+        direction.i = actor->look_at_point.x;
         direction.j = actor->look_at_point.y;
         halo::math::vector2d_normalize_with_length(direction);
-        if (direction.j * actor->desired_facing_vector.y + direction.i * F(0x5a4) < 0.0f) {
+        if (direction.j * actor->desired_facing_vector.y + direction.i * actor->desired_facing_vector.x < 0.0f) {
             direction.i = -direction.i;
             direction.j = -direction.j;
             action = 5;
         }
     } else {
-        direction.i = F(0x174);
+        direction.i = actor->facing.i;
         direction.j = actor->facing.j;
         halo::math::vector2d_normalize_with_length(direction);
     }
