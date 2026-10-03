@@ -99,7 +99,7 @@ int32_t UnitView::animation_change_priority_check(uint8_t follow_fallback, int16
     int16_t result = 0;
 
     if (chain == -1 && ((unit_object *)obj)->unit.dialogue_tag_index != k_datum_index_none && index != -1) {
-        uint8_t *dialogue = (uint8_t *)tag_instances[halo::datum_slot(((unit_object *)obj)->unit.dialogue_tag_index)].data;
+        uint8_t *dialogue = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(((unit_object *)obj)->unit.dialogue_tag_index)].data;
 
         for (;;) {
             chain = *(int32_t *)(dialogue + index * 16 + 0x1c);
@@ -315,7 +315,7 @@ uint8_t UnitView::choose_combat_reaction_animation(const datum_index *reaction_s
     uint8_t success = 0;
 
     if (reaction_source != 0 && *reaction_source != k_datum_index_none) {
-        source_category = *(int16_t *)((uint8_t *)tag_instances[halo::datum_slot(*reaction_source)].data + 0x1c6);
+        source_category = *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*reaction_source)].data + 0x1c6);
     }
 
     if (!is_scripted) {
@@ -353,7 +353,7 @@ uint8_t UnitView::choose_combat_reaction_animation(const datum_index *reaction_s
         past_distance_bias = 0;
 
         if (reaction_source != 0 && *reaction_source != k_datum_index_none) {
-            near_tag_detection = *(float *)((uint8_t *)tag_instances[halo::datum_slot(*reaction_source)].data + 500) >= 2.0f;
+            near_tag_detection = *(float *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*reaction_source)].data + 500) >= 2.0f;
         }
         if (actor == k_datum_index_none) {
             past_distance_bias = (distance_bias + 0.2f) < recent_damage;
@@ -439,8 +439,8 @@ uint8_t UnitView::dispatch_reaction_animation(int16_t reaction_code)
         index = 0xa;
         break;
     case 1:
-        random_seed_global = halo::advance_random_seed(random_seed_global);
-        index = ((float)(random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale < 0.5f) ? 0x27 : 0xb;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
+        index = ((float)(halo::math::globals().random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale < 0.5f) ? 0x27 : 0xb;
         break;
     case 2:
         index = 0xb;
@@ -460,7 +460,7 @@ uint8_t UnitView::dispatch_reaction_animation(int16_t reaction_code)
     if (dialogue == k_datum_index_none) {
         return 0;
     }
-    sound = *(int32_t *)((uint8_t *)tag_instances[halo::datum_slot(dialogue)].data + index * 16 + 0x1c);
+    sound = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(dialogue)].data + index * 16 + 0x1c);
     if (sound == -1) {
         return 0;
     }
@@ -497,7 +497,7 @@ void UnitView::evaluate_flee_reaction()
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
     object *parent = ((object_header *)object_data->data)[halo::datum_slot(obj->parent_object)].data;
-    void *parent_tag = tag_instances[halo::datum_slot(parent->definition_tag)].data;
+    void *parent_tag = halo::cache::globals().tag_instances[halo::datum_slot(parent->definition_tag)].data;
 
     if (test_flag(((struct Unit *)parent_tag)->unit_flags, tags::unit_tag_flag::causes_passenger_dialogue) &&
         unit->actor_index != k_datum_index_none && unit->animation_state != 0x1d &&
@@ -519,7 +519,7 @@ void UnitView::evaluate_flee_reaction()
                 return;
             }
         }
-        if (parent->up.k > 0.6f && halo::math::vector3d_length(&parent->angular_velocity) < 0.05235988f) {
+        if (parent->up.k > 0.6f && halo::math::vector3d_length(parent->angular_velocity) < 0.05235988f) {
             ai_communication_broadcast(0x26, object_index, k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
             return;
         }
@@ -540,7 +540,7 @@ void UnitView::fire_animation_sound_trigger(uint32_t trigger_kind, int16_t conta
 {
     uint32_t unit_index = datum_handle;
     uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(unit_index) * 0xc + 8);
-    uint8_t *biped_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)unit)].data;
+    uint8_t *biped_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)unit)].data;
     object_marker marker;
 
     if ((int32_t)contact_point_index >= *(int32_t *)(biped_tag + 0x4e8) ||
@@ -571,7 +571,7 @@ int32_t UnitView::get_animation_frames_remaining(int16_t *out_animation_state)
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
-    void *graph = tag_instances[halo::datum_slot(obj->animation_graph)].data;
+    void *graph = halo::cache::globals().tag_instances[halo::datum_slot(obj->animation_graph)].data;
     uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
     ModelAnimationsAnimation *anim = (ModelAnimationsAnimation *)(animations + obj->animation_index * 0xb4);
 
@@ -602,7 +602,7 @@ int32_t UnitView::get_custom_animation_time_remaining()
     }
 
     {
-        uint8_t *graph_tag = (uint8_t *)tag_instances[halo::datum_slot(obj->animation_graph)].data;
+        uint8_t *graph_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->animation_graph)].data;
         uint8_t *anim_block = *(uint8_t **)(graph_tag + 0x78);
         int16_t frame_count = *(int16_t *)(anim_block + obj->animation_index * 0xb4 + 0x22);
 
@@ -741,8 +741,8 @@ uint8_t UnitView::scripted_action_animation_exists(int16_t command)
         return 0;
     }
 
-    Unit *unit_tag = (Unit *)tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
-    uint8_t *graph = (uint8_t *)tag_instances[halo::datum_slot(unit_tag->base.animation_graph.tag_id.index)].data;
+    Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
+    uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(unit_tag->base.animation_graph.tag_id.index)].data;
     uint8_t *units_block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer;
     int8_t seat_block_index = ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->animation_definition_index;
     uint8_t *weapons_array = *(uint8_t **)(units_block + 0x5c + seat_block_index * 100);
@@ -816,7 +816,7 @@ uint8_t UnitView::set_custom_animation_frame(uint8_t warn_if_missing, datum_inde
         return 0;
     }
 
-    graph_tag = (uint8_t *)tag_instances[halo::datum_slot(obj->animation_graph)].data;
+    graph_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->animation_graph)].data;
     {
         uint8_t *anim_block = *(uint8_t **)(graph_tag + 0x78);
         int16_t frame_count = *(int16_t *)(anim_block + obj->animation_index * 0xb4 + 0x22);
@@ -849,8 +849,8 @@ void UnitView::start_seat_overlay_animation_a(int16_t command)
         return;
     }
 
-    Object *obj_tag = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    void *graph = tag_instances[obj_tag->animation_graph.tag_id.index].data;
+    Object *obj_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    void *graph = halo::cache::globals().tag_instances[obj_tag->animation_graph.tag_id.index].data;
     uint8_t *unit_block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer;
     ModelAnimationsAnimationGraphUnitSeat *unit_seat =
         (ModelAnimationsAnimationGraphUnitSeat *)(unit_block + unit->animation_definition_index * 100);
@@ -924,8 +924,8 @@ void UnitView::start_seat_overlay_animation_b(int16_t command)
         break;
     }
 
-    Object *obj_tag = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    void *graph = tag_instances[obj_tag->animation_graph.tag_id.index].data;
+    Object *obj_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    void *graph = halo::cache::globals().tag_instances[obj_tag->animation_graph.tag_id.index].data;
     uint8_t *unit_block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer;
     ModelAnimationsAnimationGraphUnitSeat *unit_seat =
         (ModelAnimationsAnimationGraphUnitSeat *)(unit_block + unit->animation_definition_index * 100);
@@ -981,7 +981,7 @@ uint8_t UnitView::start_user_animation(datum_index graph_tag, const char *animat
         return 0;
     }
     animation = animation_choose_random_permutation(graph_tag, animation, 1);
-    animations = *(uint8_t **)((uint8_t *)tag_instances[halo::datum_slot(graph_tag)].data + 0x78);
+    animations = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(graph_tag)].data + 0x78);
     record = animations + animation * 0xb4;
     if (*(int16_t *)(record + 0x20) != 0) {
         return 0;
@@ -1062,9 +1062,9 @@ uint8_t UnitView::try_set_animation_state(int16_t new_state)
     using namespace unit_try_set_animation_state_local;
     uint32_t unit_index = datum_handle;
     uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(unit_index) * 0xc + 8);
-    uint8_t *unit_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)unit)].data;
+    uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)unit)].data;
     datum_index graph = *(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id;
-    uint8_t *graph_data = (uint8_t *)tag_instances[halo::datum_slot(graph)].data;
+    uint8_t *graph_data = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(graph)].data;
     uint8_t *unit_block = *(uint8_t **)(graph_data + 0x10) + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_definition_index * 0x64;
     uint8_t *weapon_block = *(uint8_t **)(unit_block + 0x5c) + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_weapon_index * 0xbc;
     uint8_t no_state = (uint8_t)((uint8_t)((struct unit_object *)unit)->unit.animation_state == 0xff);
@@ -1156,9 +1156,9 @@ uint8_t UnitView::try_start_scripted_action_animation(int16_t command, const rea
     if (!UnitView(unit_index).is_seat_control_available(command)) {
         return 0;
     }
-    unit_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)unit)].data;
+    unit_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)unit)].data;
     {
-        uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id & 0xffff].data;
+        uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id & 0xffff].data;
         uint8_t *units_block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer;
         uint8_t *weapons = *(uint8_t **)(units_block + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_definition_index * 0x64 + 0x5c);
 
@@ -1187,7 +1187,7 @@ uint8_t UnitView::try_start_scripted_action_animation(int16_t command, const rea
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 /**
  * Engine function unit_try_start_seat_exit_animation.
  *
@@ -1271,7 +1271,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
     using namespace unit_update_animation_state_machine_local;
     uint32_t unit_index = datum_handle;
     uint8_t *unit = state_machine_object(unit_index);
-    uint8_t *unit_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)unit)].data;
+    uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)unit)].data;
     int16_t requested = request[0];
     uint16_t result = 0;
     uint8_t force = 0;
@@ -1333,7 +1333,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
                         delete_now = 1;
                     } else if (((unit_object *)unit)->base.type == 0) {
                         uint8_t *biped = state_machine_object(unit_index);
-                        uint8_t *biped_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)biped)].data;
+                        uint8_t *biped_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)biped)].data;
 
                         if (!(biped[0x4cc] & 1) || (*(uint32_t *)(biped_tag + 0x2f4) & 0x400)) {
                             delete_now = 1;
@@ -1355,7 +1355,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
             case 0x1a: {
                 datum_index parent_index = ((unit_object *)unit)->base.parent_object;
                 uint8_t *parent = state_machine_object(parent_index);
-                uint8_t *parent_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)parent)].data;
+                uint8_t *parent_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)parent)].data;
                 uint8_t seat_flags = *((uint8_t *)((struct Unit *)parent_tag)->seats.pointer + ((unit_object *)unit)->unit.vehicle_seat_index * 0x11c);
 
                 object_set_collision_enabled(unit_index, (uint8_t)(~seat_flags & 1));
@@ -1366,8 +1366,8 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
             }
             case 0x1b: {
                 uint8_t *animations =
-                    *(uint8_t **)((uint8_t *)tag_instances[halo::datum_slot(((unit_object *)unit)->base.animation_graph)].data + 0x78);
-                void *model = tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id & 0xffff].data;
+                    *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(((unit_object *)unit)->base.animation_graph)].data + 0x78);
+                void *model = halo::cache::globals().tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id & 0xffff].data;
                 real_vector3d delta;
                 real_matrix4x3 world;
                 real_matrix4x3 *matrix;
@@ -1558,7 +1558,7 @@ void UnitView::update_footstep_and_idle_triggers()
     }
 
     if (obj->animation_index != -1) {
-        void *graph = tag_instances[halo::datum_slot(obj->animation_graph)].data;
+        void *graph = halo::cache::globals().tag_instances[halo::datum_slot(obj->animation_graph)].data;
         uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
         ModelAnimationsAnimation *anim = (ModelAnimationsAnimation *)(animations + obj->animation_index * 0xb4);
 
@@ -1614,7 +1614,7 @@ void UnitView::update_ik_detail_nodes(void *node_base)
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Unit *tag = (Unit *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Unit *tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     if (test_flag(tag->unit_flags, tags::unit_tag_flag::simple_creature) || unit->animation_definition_index == -1) {

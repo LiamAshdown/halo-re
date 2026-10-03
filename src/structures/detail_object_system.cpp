@@ -6,6 +6,7 @@
 
 #include "halo/structures/structures.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern uint8_t *game_state_base;
@@ -40,7 +41,7 @@ void detail_object_system::globals_allocate(void)
 
 void detail_object_system::invalidate(void)
 {
-    ((uint8_t *)detail_objects)[k_detail_objects_valid_offset] = 0;
+    ((uint8_t *)halo::structures::globals().detail_objects)[k_detail_objects_valid_offset] = 0;
 }
 
 void detail_object_system::update_render_list(void)

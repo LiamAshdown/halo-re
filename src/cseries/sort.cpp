@@ -2,6 +2,7 @@
 
 #include "crt.h"
 #include "tags.h"
+#include "halo/cseries/api.hpp"
 
 namespace halo::cseries {
 

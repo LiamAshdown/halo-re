@@ -43,7 +43,7 @@ real halo::objects::ObjectLighting::sum_attached_light_luminance()
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
     object *obj = headers[halo::datum_slot(object_index)].data;
-    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int32_t attachment_count = definition->attachments.count;
     real total = 0.0f;
     int32_t i;
@@ -215,7 +215,7 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
     lightmap_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
         (int16_t)lightmap->bitmap);
     base_map = *(datum_index *)(shader + 0x94);
-    base_map_tag = (uint8_t *)tag_instances[halo::datum_slot(base_map)].data;
+    base_map_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(base_map)].data;
     base_map_bitmap = bitmap_group_get_bitmap_data(base_map,
         (int16_t)((int32_t)(int16_t)material->shader_permutation % *(int32_t *)(base_map_tag + 0x60)));
 
@@ -264,7 +264,7 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Object *object_tag = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Object *object_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     uint8_t flags = (int8_t)(obj->flags >> 8) < 0 ? 1 : 0;
     char center_ok;
     int16_t successes;
@@ -511,7 +511,7 @@ void halo::objects::ObjectLighting::for_each_light_attachment(int32_t register_i
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
     if (test_flag(obj->flags, objects::object_flag::unknown_100)) {
-        Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+        Object *definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
         int16_t i;
 
         for (i = 0; i < (int16_t)definition->attachments.count; i++) {

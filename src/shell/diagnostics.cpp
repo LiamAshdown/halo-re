@@ -306,7 +306,7 @@ int32_t FatalError::show(uint32_t resource_id, uint32_t help_text_or_id, int32_t
     }
 
     ShowCursor(1);
-    result = halo::dialogs::dialog_box_show_localized((dialog_window_proc_fn)fatal_error_dialog_proc, shell_module_handle, (const char *)k_fatal_error_dialog_resource, window);
+    result = halo::dialogs::dialog_box_show_localized((dialog_window_proc_fn)halo::dialogs::fatal_error_dialog_proc, shell_module_handle, (const char *)k_fatal_error_dialog_resource, window);
     ShowCursor(0);
 
     if (is_fatal != 0 || result == 2) {

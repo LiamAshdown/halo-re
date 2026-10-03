@@ -7,6 +7,7 @@
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -109,7 +110,7 @@ int16_t structure_bsp_query::leaf_query(int32_t raw_child, int16_t inherited_cla
         int32_t surface = leaf_surfaces[i].surface;
         int32_t word = bit_array_word(surface);
         uint32_t mask = bit_array_mask(surface);
-        if ((surface_visible_bits[word] & mask) == 0) {
+        if ((halo::structures::globals().surface_visible_bits[word] & mask) == 0) {
             continue;
         }
         if ((visited_bits[word] & mask) != 0) {
@@ -156,7 +157,7 @@ int32_t structure_bsp_query::collect_surfaces_in_clusters(int32_t *out_surfaces,
                 int32_t surface = indices[k];
                 int32_t word = surface >> 5;
                 uint32_t mask = bit_array_mask(surface);
-                if ((surface_visible_bits[word] & mask) != 0 && (visited_bits[word] & mask) == 0) {
+                if ((halo::structures::globals().surface_visible_bits[word] & mask) != 0 && (visited_bits[word] & mask) == 0) {
                     if (written >= max_count) {
                         break;
                     }

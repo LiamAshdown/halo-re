@@ -39,7 +39,7 @@ static uint8_t *object_get(datum_index object_index)
 
 static uint8_t *object_definition(uint8_t *object)
 {
-    return (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)object)].data;
+    return (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)object)].data;
 }
 
 }
@@ -66,7 +66,7 @@ uint8_t VehicleView::create()
     }
     if (network_game_mode == 1 || network_game_mode == 2) {
         ((struct vehicle_object *)object)->vehicle.unknown_525 = 0;
-        ((struct vehicle_object *)object)->vehicle.unknown_526 = 0;
+        ((struct vehicle_object *)object)->vehicle.network_epoch = 0;
         ((struct vehicle_object *)object)->vehicle.network_update_sequence = 0;
         ((struct object *)object)->network_state_009 = 0;
     }
@@ -137,7 +137,7 @@ void VehicleView::reset_state()
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 #define F(p, o) (*(float *)((p) + (o)))
 /**
  * Engine function vehicle_update.
@@ -156,7 +156,7 @@ uint32_t VehicleView::update()
 
     if (network_game_mode == 2 && ((struct vehicle_object *)obj)->vehicle.network_update_tick != -1 && vehicle_network_update_period != 0 &&
         game_time->game_time >= ((struct vehicle_object *)obj)->vehicle.network_update_tick + vehicle_network_update_period) {
-        if (halo::math::vector3d_distance((real_point3d *)&((struct vehicle_object *)obj)->vehicle.unknown_5b2[2], (real_point3d *)&((struct object *)obj)->position) > 1.5f &&
+        if (halo::math::vector3d_distance(*((real_point3d *)&((struct vehicle_object *)obj)->vehicle.unknown_5b2[2]), *((real_point3d *)&((struct object *)obj)->position)) > 1.5f &&
             UnitView(object_index).get_recently_updated_flag() == 1 && !UnitView(object_index).has_child_of_type5()) {
             UnitView(object_index).set_facing_from_index_table();
         }
@@ -203,9 +203,9 @@ uint32_t VehicleView::update()
         }
 
         {
-            uint8_t direction = ((struct vehicle_object *)obj)->vehicle.unknown_4d1;
+            uint8_t direction = ((struct vehicle_object *)obj)->vehicle.push_direction;
 
-            if ((((struct vehicle_object *)obj)->vehicle.flags & 0x10) && direction != 0 && ((struct vehicle_object *)obj)->vehicle.unknown_4d2 < 0x1e && up->k <= 0.9f) {
+            if ((((struct vehicle_object *)obj)->vehicle.flags & 0x10) && direction != 0 && ((struct vehicle_object *)obj)->vehicle.push_ticks < 0x1e && up->k <= 0.9f) {
                 float sign = (direction == 2 || direction == 4) ? 0.3f : -0.3f;
                 float spin;
 
@@ -244,19 +244,19 @@ uint32_t VehicleView::update()
                         ((struct object *)obj)->velocity.k = -0.01f;
                     }
                 }
-                ((struct vehicle_object *)obj)->vehicle.unknown_4d2++;
+                ((struct vehicle_object *)obj)->vehicle.push_ticks++;
             } else {
                 clear_flag(((struct vehicle_object *)obj)->vehicle.flags, units::vehicle_flag::controls_active);
-                ((struct vehicle_object *)obj)->vehicle.unknown_4d2 = 0;
-                ((struct vehicle_object *)obj)->vehicle.unknown_4d1 = 0;
+                ((struct vehicle_object *)obj)->vehicle.push_ticks = 0;
+                ((struct vehicle_object *)obj)->vehicle.push_direction = 0;
             }
         }
 
         if ((uint8_t)((struct vehicle_object *)obj)->vehicle.flags & 8) {
-            halo::physics::physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)&((struct vehicle_object *)obj)->vehicle.forward_velocity, 0.0f, 1.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.forward_velocity, 0.0f, 1.0f);
         } else {
-            halo::physics::physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)&((struct vehicle_object *)obj)->vehicle.forward_velocity, ((struct unit_object *)obj)->unit.throttle.i, 1.0f);
-            halo::physics::physics_scalar_step_to_target_clamped(tag + 0x330, (float *)&((struct vehicle_object *)obj)->vehicle.sideways_velocity, ((struct unit_object *)obj)->unit.throttle.j, 1.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.forward_velocity, ((struct unit_object *)obj)->unit.throttle.i, 1.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x330), (float *)&((struct vehicle_object *)obj)->vehicle.sideways_velocity, ((struct unit_object *)obj)->unit.throttle.j, 1.0f);
         }
         if (((struct Vehicle *)tag)->vehicle_type != 0) {
             float target = ((struct vehicle_object *)obj)->vehicle.forward_velocity >= 0.0f ? angle : -angle;
@@ -271,10 +271,10 @@ uint32_t VehicleView::update()
                     target = high;
                 }
             }
-            halo::physics::physics_scalar_move_toward_target(tag + 0x308, (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, 0, target,
+            halo::physics::physics_scalar_move_toward_target((physics_scalar_range *)(tag + 0x308), (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, 0, target,
                                               ((struct Vehicle *)tag)->turn_rate * 0.017453292f * 0.033333335f);
         } else if (((struct vehicle_object *)obj)->vehicle.forward_velocity == 0.0f) {
-            halo::physics::physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, 0.0f, 1.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, 0.0f, 1.0f);
         } else {
             float target = angle * 0.63661975f;
 
@@ -283,7 +283,7 @@ uint32_t VehicleView::update()
             } else if (!(target <= 1.0f)) {
                 target = 1.0f;
             }
-            halo::physics::physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, target * ((struct Vehicle *)tag)->maximum_forward_speed, 2.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, target * ((struct Vehicle *)tag)->maximum_forward_speed, 2.0f);
         }
 
         if (*(datum_index *)&((Unit *)tag)->base.physics.tag_id != k_datum_index_none) {

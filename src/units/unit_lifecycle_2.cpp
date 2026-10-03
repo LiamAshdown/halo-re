@@ -36,7 +36,7 @@ namespace halo::units {
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
 #define OBJECT_HEADER(h) (((object_header *)object_data->data)[halo::datum_slot((h))])
-#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 namespace unit_release_transient_state_local {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
@@ -195,8 +195,8 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
     } else {
         uint8_t *unit_tag = TAG_DATA(*(datum_index *)obj);
 
-        random_seed_global = halo::advance_random_seed(random_seed_global);
-        if ((float)(int32_t)(random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale < ((struct Unit *)unit_tag)->feign_repeat_chance) {
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
+        if ((float)(int32_t)(halo::math::globals().random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale < ((struct Unit *)unit_tag)->feign_repeat_chance) {
             set_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unknown_2000);
         } else {
             clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unknown_2000);

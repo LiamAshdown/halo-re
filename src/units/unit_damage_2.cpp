@@ -19,7 +19,7 @@ extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t 
 namespace halo::units {
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 /**
  * Engine function unit_melee_attack_scan.
  *

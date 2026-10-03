@@ -10,6 +10,7 @@
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
 #include "halo/saved_games/layout.hpp"
+#include "halo/input/api.hpp"
 
 static_assert(halo::saved_games::k_input_device_stride_dwords * sizeof(uint32_t) == sizeof(input_device));
 
@@ -469,7 +470,7 @@ void clear_device_slot_mappings(saved_player_profile *profile)
             slot = input_device_to_slot[device_index * k_input_device_stride_dwords];
             if (slot != -1) {
                 input_device_to_slot[device_index * k_input_device_stride_dwords] = -1;
-                joystick_slot_devices[slot] = -1;
+                halo::input::globals().joystick_slot_devices[slot] = -1;
             }
         }
         entry = entry + sizeof(controls_gamepad_record);
@@ -687,9 +688,9 @@ void reestablish_device_slot_mappings(saved_player_profile *profile)
             device_index = halo::input::input_device_find_index_by_guid(&profile->gamepads[slot]);
             if (device_index != -1 && device_index < input_device_count  &&
                 input_device_to_slot[device_index * k_input_device_stride_dwords] == -1 &&
-                joystick_slot_devices[slot] == -1) {
+                halo::input::globals().joystick_slot_devices[slot] == -1) {
                 input_device_to_slot[device_index * k_input_device_stride_dwords] = slot;
-                joystick_slot_devices[slot] = device_index;
+                halo::input::globals().joystick_slot_devices[slot] = device_index;
             }
         }
     }

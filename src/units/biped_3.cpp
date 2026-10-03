@@ -29,7 +29,7 @@ void BipedView::update_facing(int8_t *out_animation_state)
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     real_vector3d target;
     real_vector3d scratch;

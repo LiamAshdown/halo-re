@@ -67,7 +67,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
         int32_t incoming = record[5];
         int32_t current = ((struct vehicle_object *)vehicle)->vehicle.network_update_sequence;
 
-        if (record[4] != ((struct vehicle_object *)vehicle)->vehicle.unknown_526 || (incoming <= current && incoming - current + 0xff >= 0x1e)) {
+        if (record[4] != ((struct vehicle_object *)vehicle)->vehicle.network_epoch || (incoming <= current && incoming - current + 0xff >= 0x1e)) {
             message_delta_decode_compound_field_staged(message);
             return;
         }
@@ -84,7 +84,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     ((struct vehicle_object *)vehicle)->vehicle.network_update_sequence = record[5];
     set_flag(((unit_object *)vehicle)->base.flags, objects::object_flag::took_network_update);
     if (record[6] != 0) {
-        ((struct vehicle_object *)vehicle)->vehicle.unknown_526 = record[4];
+        ((struct vehicle_object *)vehicle)->vehicle.network_epoch = record[4];
         memcpy(vehicle + 0x528, &baseline, sizeof(baseline));
     }
     halo::math::vector3d_cross_product(side, baseline.up, baseline.forward);
@@ -196,7 +196,7 @@ int32_t VehicleView::encode_network_create(int32_t buffer, int32_t bit_budget)
 
         record.seat_keys[i] = seat == -1 ? 0 : hash_table_get(keys, seat);
     }
-    record.unknown_526 = ((struct vehicle_object *)vehicle)->vehicle.unknown_526;
+    record.network_epoch = ((struct vehicle_object *)vehicle)->vehicle.network_epoch;
     memcpy(record.vectors[0], vehicle + 0x52c, 12);
     memcpy(record.vectors[1], vehicle + 0x550, 12);
     memcpy(record.vectors[2], vehicle + 0x55c, 12);
@@ -230,7 +230,7 @@ void VehicleView::network_baseline_take()
     if (obj == 0) {
         return;
     }
-    ((struct vehicle_object *)obj)->vehicle.unknown_526++;
+    ((struct vehicle_object *)obj)->vehicle.network_epoch++;
     ((struct vehicle_object *)obj)->vehicle.unknown_525 = 1;
     ((struct vehicle_object *)obj)->vehicle.network_delta_sequence = 1;
     copy3(obj, 0x52c, 0x5c);

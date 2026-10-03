@@ -58,7 +58,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
     uint32_t object_index = datum_handle;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     biped_movement_solver_data solve;
     GlobalsPlayerInformation player_info_copy;
@@ -143,7 +143,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
          !test_flag(tag->biped_flags, tags::biped_tag_flag::flying)) &&
         (unit->animation_state_flags & _unit_animation_flag_unknown_4) == 0) {
         ModelAnimationsAnimation *animation =
-            (ModelAnimationsAnimation *)((uint8_t *)*(void **)((uint8_t *)tag_instances[halo::datum_slot(obj->animation_graph)].data + 0x78) +
+            (ModelAnimationsAnimation *)((uint8_t *)*(void **)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->animation_graph)].data + 0x78) +
                                          obj->animation_index * 0xb4);
         float *frame_info = (float *)(uint8_t *)animation->frame_info.pointer;
 
@@ -453,7 +453,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     biped_movement_solver_data solve;
     GlobalsPlayerInformation player_info_copy;
@@ -539,7 +539,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
          !test_flag(tag->biped_flags, tags::biped_tag_flag::flying)) &&
         (unit->animation_state_flags & _unit_animation_flag_unknown_4) == 0) {
         ModelAnimationsAnimation *animation =
-            (ModelAnimationsAnimation *)(*(uint8_t **)((uint8_t *)tag_instances[halo::datum_slot(obj->animation_graph)].data + 0x78) +
+            (ModelAnimationsAnimation *)(*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->animation_graph)].data + 0x78) +
                                          obj->animation_index * 0xb4);
         float *frame_info = (float *)(uint8_t *)animation->frame_info.pointer;
 
@@ -845,7 +845,7 @@ step_crouch:
         lunge.i = solve.result_position.x - solve.start_position.x;
         lunge.j = solve.result_position.y - solve.start_position.y;
         lunge.k = solve.result_position.z - solve.start_position.z;
-        if (halo::math::ray_intersects_sphere_test(&solve.start_position, (real_point3d *)&((struct object *)target)->bounding_center, &lunge,
+        if (halo::math::ray_intersects_sphere_test(solve.start_position, *((real_point3d *)&((struct object *)target)->bounding_center), lunge,
                                        ((object *)target)->bounding_radius) &&
             halo::physics::object_collision_context_build(target_index, &context) &&
             halo::physics::object_collision_context_test_segment(&context, 3, &solve.start_position, &lunge, &node_hit) &&
@@ -1368,7 +1368,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                 }
             }
             if (header != 0 && (int8_t)(1 << (header->type & 0x1f)) < 0 && header->data != 0) {
-                uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(header->data->definition_tag)].data;
+                uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(header->data->definition_tag)].data;
                 if (((uint8_t)(((struct Unit *)tag)->melee_damage.path_size >> 16) & 4) != 0 && *(int16_t *)(tag + 0x2ea) != -1) {
                     solve->result_surface_index = object_index;
                 }
@@ -1390,7 +1390,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
             unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
             if (unit->controlling_player != k_datum_index_none) {
-                Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+                Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
                 if ((tag->biped_flags & 0x18) == 0) {
                     float half_height = tag->standing_collision_height * 0.5f;
                     uint32_t query_flags = test_flag(flags, units::biped_movement_solver_flag::dead) ? 0xc0a0 : 0x20c3a0;
@@ -1405,9 +1405,9 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                         real_vector3d up_ray;
                         physics_model_contact probe_contact;
 
-                        up_ray.i = reach * global_up3d_pointer->i;
-                        up_ray.j = reach * global_up3d_pointer->j;
-                        up_ray.k = reach * global_up3d_pointer->k;
+                        up_ray.i = reach * halo::math::globals().global_up3d_pointer->i;
+                        up_ray.j = reach * halo::math::globals().global_up3d_pointer->j;
+                        up_ray.k = reach * halo::math::globals().global_up3d_pointer->k;
                         if (halo::physics::physics_shape_test_ray(&probe_model, &solve->result_position, &up_ray, &probe_contact)) {
                             set_flag(solve->result_flags, units::biped_movement_result_flag::landed);
                         }

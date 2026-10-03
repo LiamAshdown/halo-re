@@ -221,7 +221,7 @@ void UnitView::get_camera_position(real_point3d *out)
 
     if (unit_obj->parent_object == k_datum_index_none) {
         if (((unit_obj->vitality_flags & _object_health_frozen_bit) == 0) && (unit_obj->type == _object_type_biped)) {
-            Biped *biped_tag = (Biped *)tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
+            Biped *biped_tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
             object_get_position(out, unit_index);
             biped_data *biped = (biped_data *)((uint8_t *)unit_obj + k_unit_object_size);
             float height = biped->crouch_fraction;
@@ -240,7 +240,7 @@ void UnitView::get_camera_position(real_point3d *out)
             object_get_node_local_transform(unit_index, (char *)"head", &marker, 1);
         } else {
             object *gunner = ((object_header *)object_data->data)[halo::datum_slot(unit->gunner_unit_index)].data;
-            Unit *unit_tag = (Unit *)tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
+            Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
             UnitSeat *seat = (UnitSeat *)unit_tag->seats.pointer +
                 ((unit_data *)((uint8_t *)gunner + k_unit_data_offset))->vehicle_seat_index;
             object_get_node_local_transform(unit_index, seat->marker_name.string, &marker, 1);
@@ -258,7 +258,7 @@ void UnitView::get_camera_position(real_point3d *out)
         if (unit->vehicle_seat_index == -1) {
             return;
         }
-        parent_tag = (Unit *)tag_instances[halo::datum_slot(parent->definition_tag)].data;
+        parent_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(parent->definition_tag)].data;
         seat = (UnitSeat *)parent_tag->seats.pointer + unit->vehicle_seat_index;
         if (parent->type == _object_type_vehicle && seat->camera_marker_name.string[0] == '\0') {
             return;
@@ -281,7 +281,7 @@ void UnitView::get_look_origin_and_direction(uint32_t *out_autoaim_width, real_v
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     real_matrix4x3 *nodes = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset);
 
     if (tag->pelvis_model_node_index != halo::k_word_none && tag->head_model_node_index != halo::k_word_none) {
@@ -350,8 +350,8 @@ void UnitView::initialize_random_turn_angle()
         half_range = 0.43633232f;
     }
 
-    random_seed_global = halo::advance_random_seed(random_seed_global);
-    unit->idle_turn_angle = (half_range - -half_range) * (float)(random_seed_global >> halo::k_random_high_shift) *
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
+    unit->idle_turn_angle = (half_range - -half_range) * (float)(halo::math::globals().random_seed_global >> halo::k_random_high_shift) *
                             halo::k_unit_word_scale + -half_range + unit->idle_turn_angle;
 }
 
@@ -421,7 +421,7 @@ int32_t UnitView::predict_aim_target_position(real_point3d *out_position)
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
-    Vehicle *tag = (Vehicle *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     real_point3d base_position;
     real_vector3d delta;
     char hit;
@@ -503,7 +503,7 @@ uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vec
 
             {
                 object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
-                void *tag_data = tag_instances[halo::datum_slot(obj->definition_tag)].data;
+                void *tag_data = halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
                 uint8_t working_copy[0x550];
                 object *copy = (object *)working_copy;
                 unit_data *copy_unit = (unit_data *)(working_copy + 0x1f4);
@@ -737,7 +737,7 @@ void UnitView::set_facing_from_index_table()
     }
 
     obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    tag = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     facing_index = *(int16_t *)((uint8_t *)obj + 0x5b0);
 
     object_reset_velocity_and_wake(object_index);
@@ -852,12 +852,12 @@ void UnitView::update_look_delta_controls()
         forward = obj->forward;
         up = obj->up;
         {
-            Unit *tag = (Unit *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+            Unit *tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
             scale = (real_vector3d *)&((struct Unit *)tag)->seat_acceleration_scale;
         }
     } else {
         object *parent = ((object_header *)object_data->data)[halo::datum_slot(obj->parent_object)].data;
-        Unit *parent_tag = (Unit *)tag_instances[halo::datum_slot(parent->definition_tag)].data;
+        Unit *parent_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(parent->definition_tag)].data;
         UnitSeat *seat = (UnitSeat *)((uint8_t *)*(uint8_t **)&((struct Unit *)parent_tag)->seats.pointer +
                                        unit->vehicle_seat_index * sizeof(UnitSeat));
         object_marker marker;
@@ -941,16 +941,16 @@ void UnitView::update_random_turn_angle(real_vector3d *out_axis)
     if (pitch_high <= pitch_low) {
         if (pitch_high >= -1.0f) {
             float clamped = (pitch_high < 1.0f) ? pitch_high : 1.0f;
-            random_seed_global = halo::advance_random_seed(random_seed_global);
+            halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
             delta = (0.02094395f - clamped * -0.02094395f) *
-                    (float)(random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale + clamped * -0.02094395f;
+                    (float)(halo::math::globals().random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale + clamped * -0.02094395f;
         } else {
             delta = 0.02094395f;
         }
     } else if (pitch_low >= -1.0f) {
         float clamped = (pitch_low < 1.0f) ? pitch_low : 1.0f;
-        random_seed_global = halo::advance_random_seed(random_seed_global);
-        delta = (float)(random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale *
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
+        delta = (float)(halo::math::globals().random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale *
                 (clamped * 0.02094395f - -0.02094395f) - 0.02094395f;
     } else {
         delta = -0.02094395f;
@@ -1001,7 +1001,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     using namespace unit_update_stance_and_jump_local;
     uint32_t unit_index = datum_handle;
     uint8_t *obj = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(unit_index) * 0xc + 8);
-    uint8_t *unit_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     uint8_t forced = force_ready;
     uint8_t soft_ping;
     uint8_t hard_ping;
@@ -1053,7 +1053,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         return;
     }
     graph_tag = *(datum_index *)&((struct Object *)unit_tag)->animation_graph.tag_id;
-    graph = (uint8_t *)tag_instances[halo::datum_slot(graph_tag)].data;
+    graph = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(graph_tag)].data;
 
     if (!hard_ping && !forced) {
         if (((struct unit_object *)obj)->unit.overlays[2].animation_index != -1 && ((struct unit_object *)obj)->unit.overlays[2].frame <= ((struct Unit *)unit_tag)->soft_ping_interrupt_ticks) {

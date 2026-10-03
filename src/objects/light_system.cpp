@@ -135,7 +135,7 @@ void halo::objects::LightSystem::dispose_all()
 datum_index halo::objects::LightSystem::new_attached(datum_index light_tag, datum_index owner_object,
     int16_t marker_index, int16_t marker_index_secondary, int16_t change_color_index)
 {
-    Light *tag = (Light *)tag_instances[halo::datum_slot(light_tag)].data;
+    Light *tag = (Light *)halo::cache::globals().tag_instances[halo::datum_slot(light_tag)].data;
     datum_index handle = k_datum_index_none;
 
     if (test_flag(tag->flags, tags::light_tag_flag::dynamic) || *(int32_t *)&((struct Light *)tag)->lens_flare.tag_id != -1) {
@@ -236,7 +236,7 @@ static uint8_t *object_data_get(datum_index handle)
 
 static uint8_t *tag_data(datum_index tag)
 {
-    return (uint8_t *)tag_instances[halo::datum_slot(tag)].data;
+    return (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(tag)].data;
 }
 
 static const char *light_owner_marker_name(uint8_t *light)
@@ -471,7 +471,7 @@ void halo::objects::LightSystem::transient_add(datum_index light_tag, real_vecto
 
         slot->color = halo::math::color_real_to_argb_pack(1.0f, reinterpret_cast<float *>(color));
         slot->intensity = (uint8_t)fistp_round(intensity * 255.0f);
-        slot->definition = tag_instances[halo::datum_slot(light_tag)].data;
+        slot->definition = halo::cache::globals().tag_instances[halo::datum_slot(light_tag)].data;
         slot->position = *position;
 
         slot->packed_forward = vector3d_pack_normal_11_11_10((real_vector3d *)direction);
@@ -553,7 +553,7 @@ void halo::objects::LightSystem::apply_spot_falloff()
                 int32_t queue_slot = *(int32_t *)&((struct light *)l)->queue_slot;
 
                 if (queue_slot != -1) {
-                    Light *tag = (Light *)tag_instances[halo::datum_slot(l->definition_tag)].data;
+                    Light *tag = (Light *)halo::cache::globals().tag_instances[halo::datum_slot(l->definition_tag)].data;
                     int8_t is_cone = (l->flags & _light_needs_cone_update_bit) != 0 &&
                         test_flag(tag->flags, tags::light_tag_flag::supersize_in_first_person);
                     int16_t marker_count = 0;
@@ -613,7 +613,7 @@ void halo::objects::LightSystem::apply_spot_falloff_specular()
                 int32_t queue_slot = *(int32_t *)&((struct light *)l)->queue_slot;
 
                 if (queue_slot != -1) {
-                    Light *tag = (Light *)tag_instances[halo::datum_slot(l->definition_tag)].data;
+                    Light *tag = (Light *)halo::cache::globals().tag_instances[halo::datum_slot(l->definition_tag)].data;
 
                     if (!test_flag(tag->flags, tags::light_tag_flag::no_specular)) {
                         int8_t is_cone = (l->flags & _light_needs_cone_update_bit) != 0 &&
@@ -713,7 +713,7 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
     }
 
     if ((entry->flags & _light_attached_bit) != 0) {
-        uint8_t *light_tag = (uint8_t *)tag_instances[halo::datum_slot(entry->definition_tag)].data;
+        uint8_t *light_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
         float attenuation = ((struct Light *)light_tag)->radius_modifer[1] * *(float *)(light_tag + 4);
         bsp_leaf_reference leaf_reference;
         real_point3d position;
@@ -978,7 +978,7 @@ static void offset_center(real_point3d *out, uint8_t *light, float distance)
 void halo::objects::LightSystem::get_render_bounds(datum_index handle, real_point3d *center_out, float *radius_out)
 {
     uint8_t *light = light_get(handle);
-    uint8_t *definition = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)(light + 4))].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)(light + 4))].data;
     float reach = *(float *)(definition + 0xc) * *(float *)(definition + 4);
     float angle = *(float *)(definition + 0x14);
 

@@ -92,7 +92,7 @@ datum_index halo::objects::AntennaSystem::create(datum_index antenna_tag)
     datum_index handle = k_datum_index_none;
 
     if (antenna_tag != k_datum_index_none) {
-        Antenna *tag = (Antenna *)tag_instances[halo::datum_slot(antenna_tag)].data;
+        Antenna *tag = (Antenna *)halo::cache::globals().tag_instances[halo::datum_slot(antenna_tag)].data;
         handle = halo::memory::datum_new(antenna_data);
 
         if (handle != k_datum_index_none) {
@@ -123,7 +123,7 @@ datum_index halo::objects::AntennaSystem::create(datum_index antenna_tag)
                 vertex->step_count = 0;
 
                 if (tag->bitmaps.tag_id.index != halo::k_word_none) {
-                    Bitmap *bitmap = (Bitmap *)tag_instances[halo::datum_slot(tag->bitmaps.tag_id.index)].data;
+                    Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[halo::datum_slot(tag->bitmaps.tag_id.index)].data;
                     int16_t sequence_index = tag_vertex->sequence_index;
 
                     if ((sequence_index >= 0) && (sequence_index < (int16_t)bitmap->bitmap_group_sequence.count)) {
@@ -182,7 +182,7 @@ void halo::objects::AntennaSystem::destroy(datum_index antenna_index)
 void halo::objects::AntennaSystem::render_callback(datum_index object_index, datum_index antenna_index)
 {
     antenna *self = (antenna *)((uint8_t *)antenna_data->data + halo::datum_slot(antenna_index) * 0x2bc);
-    Antenna *tag = (Antenna *)tag_instances[halo::datum_slot(self->definition_tag)].data;
+    Antenna *tag = (Antenna *)halo::cache::globals().tag_instances[halo::datum_slot(self->definition_tag)].data;
 
     if (self->degenerate) {
         return;
@@ -214,7 +214,7 @@ void halo::objects::AntennaSystem::update(float dt)
         if (ant->degenerate == 0) {
             ant->update_counter = ant->update_counter + 1;
             if ((ant->object_index != k_datum_index_none) && (ant->update_counter < 5)) {
-                Antenna *tag = (Antenna *)tag_instances[halo::datum_slot(ant->definition_tag)].data;
+                Antenna *tag = (Antenna *)halo::cache::globals().tag_instances[halo::datum_slot(ant->definition_tag)].data;
                 float clamped_dt = (dt <= 0.06666667f) ? dt : 0.06666667f;
                 antenna_update_physics(ant, tag, clamped_dt);
             }
@@ -274,7 +274,7 @@ void halo::objects::AntennaView::update_physics(Antenna *antenna_tag, float dt)
                     new_position = vertex->position;
 
                     halo::physics::point_physics_tick(&vertex->velocity, 0,
-                        tag_instances[antenna_tag->physics.tag_id.index].data,
+                        (PointPhysics *)(halo::cache::globals().tag_instances[antenna_tag->physics.tag_id.index].data),
                         &node_ref, k_datum_index_none, &new_position, 0, 0, 0, 0.02f, dt);
 
                     {
@@ -514,14 +514,14 @@ void halo::objects::AntennaView::render_wire(uint32_t widget_flags, float scale,
  */
 void halo::objects::AntennaSystem::tip_jitter(real_vector3d *amplitude, real_point3d *position, real_matrix4x3 *m)
 {
-    uint32_t s1 = halo::advance_random_seed(effect_random_seed);
+    uint32_t s1 = halo::advance_random_seed(halo::math::globals().effect_random_seed);
     uint32_t s2 = halo::advance_random_seed(s1);
     float rz = (float)(s1 >> halo::k_random_high_shift) * halo::k_unit_word_scale;
     float ry, rx;
 
-    effect_random_seed = halo::advance_random_seed(s2);
+    halo::math::globals().effect_random_seed = halo::advance_random_seed(s2);
     ry = (float)(s2 >> halo::k_random_high_shift) * halo::k_unit_word_scale;
-    rx = (float)(effect_random_seed >> halo::k_random_high_shift) * halo::k_unit_word_scale;
+    rx = (float)(halo::math::globals().effect_random_seed >> halo::k_random_high_shift) * halo::k_unit_word_scale;
 
     {
         real_vector3d jitter;

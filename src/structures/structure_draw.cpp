@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern void **rasterizer_dynamic_index_buffer;
@@ -156,7 +157,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
                             if (render::shader_type_is_transparent(shader->shader_type)) {
                                 if (transparent_material_cb != 0) {
                                     void *coplanar_vector = test_flag(material->flags, tags::scenario_structure_bsp_material_tag_flag::fog_plane)
-                                        ? (void *)&fog_plane_vector
+                                        ? (void *)&halo::structures::globals().fog_plane_vector
                                         : (void *)global_origin3d_pointer;
                                     void *lightmap_vertices = test_flag(material->flags, tags::scenario_structure_bsp_material_tag_flag::coplanar)
                                         ? (void *)&material->plane

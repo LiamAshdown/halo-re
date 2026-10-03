@@ -296,10 +296,10 @@ uint8_t halo::objects::ObjectQueries::cluster_stamp_mark_visited(datum_index obj
 {
     uint8_t *object = object_get(object_index);
 
-    if (((struct object *)object)->cluster_stamp == object_cluster_stamp) {
+    if (((struct object *)object)->cluster_stamp == halo::physics::globals().object_cluster_stamp) {
         return 0;
     }
-    ((struct object *)object)->cluster_stamp = object_cluster_stamp;
+    ((struct object *)object)->cluster_stamp = halo::physics::globals().object_cluster_stamp;
     return 1;
 }
 
@@ -403,8 +403,8 @@ int32_t halo::objects::ObjectQueries::collect_local_player_relevant_objects(real
 
                     ref = node->next_reference;
                     obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-                    if (obj->cluster_stamp != object_cluster_stamp) {
-                        obj->cluster_stamp = object_cluster_stamp;
+                    if (obj->cluster_stamp != halo::physics::globals().object_cluster_stamp) {
+                        obj->cluster_stamp = halo::physics::globals().object_cluster_stamp;
                         count = object_tree_collect_matching(object_index, filter, filter_context, count, max_count,
                             out);
                     }

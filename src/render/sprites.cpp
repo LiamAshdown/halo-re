@@ -17,6 +17,11 @@
 #include <stdint.h>
 #include "halo/render/render.hpp"
 #include "halo/render/layout.hpp"
+#include "halo/cache/api.hpp"
+#include "halo/effects/api.hpp"
+#include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/structures/api.hpp"
 
 static_assert(offsetof(first_person_weapon_interface, node_matrices) == 0x108c);
 static_assert(sizeof(real_matrix4x3) == 0x34);
@@ -759,7 +764,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         }
         if (c->object_index != k_dword_none) {
             object *o = ((object_header *)object_data->data)[(uint16_t)c->object_index].data;
-            Object *object_definition = (Object *)tag_instances[halo::datum_slot(o->definition_tag)].data;
+            Object *object_definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(o->definition_tag)].data;
             int16_t change_color = (int16_t)(((ObjectAttachment *)object_definition->attachments.pointer)[c->attachment_index].change_color - 1);
 
             if (change_color != -1) {
@@ -988,7 +993,7 @@ void particles(void)
         int32_t cluster = (int32_t)p->location.cluster_index;
         uint8_t owned = (int32_t)p->first_person_weapon_index == viewer_value;
 
-        if ((cluster_visible_bits[bit_array_word(cluster)] & bit_array_mask(cluster)) == 0) {
+        if ((halo::structures::globals().cluster_visible_bits[bit_array_word(cluster)] & bit_array_mask(cluster)) == 0) {
             continue;
         }
         if (test_flag(p->flags, particle_flag::third_person_only) && owned) {

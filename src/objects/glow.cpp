@@ -146,9 +146,9 @@ datum_index halo::objects::GlowSystem::create(datum_index glow_tag)
         return index;
     }
     self = (uint8_t *)datum_try_get(glow_data, index);
-    tag = (uint8_t *)tag_instances[halo::datum_slot(glow_tag)].data;
+    tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(glow_tag)].data;
     bitmap_tag = *(datum_index *)(tag + 0x150);
-    bitmap = (uint8_t *)tag_instances[halo::datum_slot(bitmap_tag)].data;
+    bitmap = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(bitmap_tag)].data;
     if (*(int16_t *)bitmap == 3) {
         uint8_t *sequence = *(uint8_t **)(bitmap + 0x58);
         uint8_t *sprite = *(uint8_t **)(sequence + 0x38);
@@ -210,7 +210,7 @@ void halo::objects::GlowSystem::render_dispatch(uint32_t object_index, datum_ind
     }
 
     {
-        void *glow_tag_data = tag_instances[halo::datum_slot(entry->definition_tag)].data;
+        void *glow_tag_data = halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
 
         object_marker marker;
 
@@ -232,7 +232,7 @@ void halo::objects::GlowSystem::render_dispatch(uint32_t object_index, datum_ind
 void halo::objects::GlowView::update(uint32_t object_index)
 {
     glow *entry = self;
-    void *glow_tag_data = tag_instances[halo::datum_slot(entry->definition_tag)].data;
+    void *glow_tag_data = halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
 
     if (glow_tag_data == 0) {
         return;
@@ -442,7 +442,7 @@ void halo::objects::GlowView::update(uint32_t object_index)
 void halo::objects::GlowParticleView::compute_fade(glow *entry)
 {
     glow_particle *particle = self;
-    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(entry->definition_tag)].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
 
     if (!test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::trailing_particles_fade_over_time)) {
         particle->fade = 1.0f;
@@ -473,7 +473,7 @@ void halo::objects::GlowParticleView::compute_fade(glow *entry)
 void halo::objects::GlowParticleView::compute_color(glow *entry)
 {
     glow_particle *particle = self;
-    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(entry->definition_tag)].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
 
     if (test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::trailing_particles_slow_over_time)) {
         float fade = 1.0f - (float)particle->age / (float)particle->lifetime;
@@ -498,7 +498,7 @@ void halo::objects::GlowParticleView::compute_color(glow *entry)
 void halo::objects::GlowParticleView::compute_position(uint32_t object_index, glow *entry)
 {
     glow_particle *particle = self;
-    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(entry->definition_tag)].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
     int16_t attachment = ((struct Glow *)tag)->attachment_5;
     uint8_t *p = (uint8_t *)particle;
 
@@ -558,7 +558,7 @@ void halo::objects::GlowParticleView::compute_position(uint32_t object_index, gl
 void halo::objects::GlowView::particle_advance_time(uint32_t object_index, uint8_t *particle, float rate)
 {
     glow *entry = self;
-    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(entry->definition_tag)].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
     int16_t attachment = ((struct Glow *)tag)->attachment_3;
     int16_t loop_mode = ((struct Glow *)tag)->boundary_effect;
     uint32_t flags = *(uint32_t *)(particle + 0x54);
@@ -637,7 +637,7 @@ void halo::objects::GlowView::particle_advance_time(uint32_t object_index, uint8
 void halo::objects::GlowView::chain_build()
 {
     glow *entry = self;
-    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(entry->definition_tag)].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
     int32_t i = 0;
     int alternate = 1;
     glow_particle *prev = 0;
@@ -677,8 +677,8 @@ void halo::objects::GlowView::chain_build()
 namespace {
 static float glow_next_random_unit(void)
 {
-    effect_random_seed = halo::advance_random_seed(effect_random_seed);
-    return (float)(effect_random_seed >> halo::k_random_high_shift) * halo::k_unit_word_scale;
+    halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
+    return (float)(halo::math::globals().effect_random_seed >> halo::k_random_high_shift) * halo::k_unit_word_scale;
 }
 }
 
@@ -693,7 +693,7 @@ static float glow_next_random_unit(void)
 glow_particle * halo::objects::GlowView::particle_new(int16_t index, int16_t count)
 {
     glow *entry = self;
-    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(entry->definition_tag)].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
     glow_particle *p = glow_particle_datum_new();
 
     if (p != 0) {
@@ -737,7 +737,7 @@ glow_particle * halo::objects::GlowView::particle_new(int16_t index, int16_t cou
 glow_particle * halo::objects::GlowView::particle_spawn()
 {
     glow *entry = self;
-    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(entry->definition_tag)].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
     glow_particle *p = glow_particle_datum_new();
 
     if (p != 0) {
@@ -771,7 +771,7 @@ glow_particle * halo::objects::GlowView::particle_spawn()
                 v.i = glow_next_random_unit() * 2.0f - 1.0f;
                 v.j = glow_next_random_unit() * 2.0f - 1.0f;
                 v.k = glow_next_random_unit() * 2.0f - 1.0f;
-                halo::math::vector3d_normalize_with_length(&v);
+                halo::math::vector3d_normalize_with_length(v);
                 ((struct glow_particle *)pb)->base_color[0] = v.i;
                 ((struct glow_particle *)pb)->base_color[1] = v.j;
                 ((struct glow_particle *)pb)->base_color[2] = v.k;
@@ -1067,7 +1067,7 @@ void halo::objects::GlowSystem::render(datum_index glow_handle)
         return;
     }
     memset(&data, 0, sizeof(data));
-    data.bitmap_group_index = *(datum_index *)((uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)(entry + 0x224))].data + 0x150);
+    data.bitmap_group_index = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)(entry + 0x224))].data + 0x150);
     data.maximum_sprite_count = *(int16_t *)(entry + 0x24c);
     data.shader = (uint32_t)glow_sprite_shader;
     data.sprite_count = 0;

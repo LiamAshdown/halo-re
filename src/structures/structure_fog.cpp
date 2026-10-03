@@ -29,7 +29,7 @@ uint32_t structure_fog::resolve_fog_tag(int16_t cluster_index, ScenarioStructure
                           << 16);
         }
         if (sky_tag_id != k_dword_none) {
-            Sky *sky = (Sky *)tag_instances[datum_slot(sky_tag_id)].data;
+            Sky *sky = (Sky *)halo::cache::globals().tag_instances[datum_slot(sky_tag_id)].data;
             if (sky != 0) {
                 return *(uint32_t *)&sky->indoor_fog_screen.tag_id;
             }
@@ -84,7 +84,7 @@ void structure_fog::build_fog_environment(int16_t cluster_index, structure_fog_e
         from_sky = 0;
     }
 
-    Fog *fog = (Fog *)tag_instances[datum_slot(fog_tag_id)].data;
+    Fog *fog = (Fog *)halo::cache::globals().tag_instances[datum_slot(fog_tag_id)].data;
     ScenarioStructureBSPCluster *cluster =
         &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[cluster_index];
 

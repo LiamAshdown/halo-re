@@ -119,7 +119,7 @@ void halo::objects::ObjectRef::apply_impulse_and_spin(real_vector3d *delta_veloc
 
     magnitude = (real)sqrt((double)(delta_velocity->j * delta_velocity->j +
         delta_velocity->k * delta_velocity->k + delta_velocity->i * delta_velocity->i));
-    spin_scale = (real)(random_seed_global >> k_random_value_shift) * halo::k_unit_word_scale * magnitude * 1.5707964f;
+    spin_scale = (real)(halo::math::globals().random_seed_global >> k_random_value_shift) * halo::k_unit_word_scale * magnitude * 1.5707964f;
 
     obj->angular_velocity.i = sample.x * spin_scale + obj->angular_velocity.i;
     obj->angular_velocity.j = sample.y * spin_scale + obj->angular_velocity.j;
@@ -408,8 +408,8 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
         header->flags &= (uint8_t)~_object_header_unknown_80_bit;
 
         halo::structures::cluster_reference_add_within_radius(object_index, &obj->placement_id, &obj->bounding_center, obj->bounding_radius,
-                     &obj->location_leaf_index,
-                     test_flag(obj->flags, objects::object_flag::has_collision_model) ? (void *)&collideable_cluster_first : (void *)&noncollideable_cluster_first);
+                     (bsp_leaf_reference *)(&obj->location_leaf_index),
+                     (cluster_reference_group *)(test_flag(obj->flags, objects::object_flag::has_collision_model) ? (void *)&collideable_cluster_first : (void *)&noncollideable_cluster_first));
 
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
             int16_t cluster = header->cluster_index;
@@ -454,8 +454,8 @@ void halo::objects::ObjectRef::unlink_cluster_or_notify_parent()
     if (obj->parent_object == k_datum_index_none) {
 
         halo::structures::cluster_reference_remove_all(object_index, (datum_index *)&((struct object *)obj)->placement_id,
-                     test_flag(obj->flags, objects::object_flag::has_collision_model) ? (void *)&collideable_cluster_first
-                                                   : (void *)&noncollideable_cluster_first);
+                     (cluster_reference_group *)(test_flag(obj->flags, objects::object_flag::has_collision_model) ? (void *)&collideable_cluster_first
+                                                   : (void *)&noncollideable_cluster_first));
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
             header = (object_header *)object_data->data + halo::datum_slot(object_index);
             if ((header->flags & _object_header_active_bit) != 0) {
@@ -548,7 +548,7 @@ char * halo::objects::ObjectRef::get_attachment_marker_name(int16_t attachment_i
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Object *object_tag = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Object *object_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if (attachment_index >= 0 && attachment_index < (int32_t)object_tag->attachments.count) {
         return (char *)object_tag->attachments.pointer + 0x10 + attachment_index * 0x48;
@@ -571,7 +571,7 @@ int32_t halo::objects::ObjectRef::get_node_local_transform(char *marker_name, ob
     void *node_array = (uint8_t *)obj + obj->nodes.offset;
 
     int32_t result = model_markers_get_by_name(
-        *(datum_index *)((uint8_t *)tag_instances[halo::datum_slot(obj->definition_tag)].data + 0x34), marker_name,
+        *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data + 0x34), marker_name,
         (uint8_t *)obj + 0x180, (int16_t *)0, (real_matrix4x3 *)node_array, (uint8_t)((obj->flags >> 0xc) & 1),
         marker, (int16_t)maximum_markers);
 
@@ -863,7 +863,7 @@ void halo::objects::ObjectRef::set_collision_enabled(uint8_t enable)
     uint32_t object_index = handle;
     object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     object *obj = header->data;
-    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int has_model = (definition->model.tag_id.index != halo::k_word_none);
     int currently_disabled = (obj->flags & _object_no_collision_bit) != 0;
     int requesting_disabled = (enable == 0);
@@ -1027,8 +1027,8 @@ void halo::objects::ObjectRef::copy_default_node_transforms(int16_t requested_co
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    GBXModel *model = (GBXModel *)tag_instances[halo::datum_slot(definition->model.tag_id.index)].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[halo::datum_slot(definition->model.tag_id.index)].data;
     int32_t byte_count = (int16_t)model->nodes.count << 5;
 
     uint8_t *src = (uint8_t *)obj + obj->node_function_defaults.offset;
@@ -1075,9 +1075,9 @@ void halo::objects::ObjectRef::solve_two_bone_ik_to_marker(char *marker_a_name, 
     char *marker_b_name, uint8_t *node_base)
 {
     uint32_t object_index = handle;
-    Object *definition = (Object *)tag_instances[
+    Object *definition = (Object *)halo::cache::globals().tag_instances[
         ((object_header *)object_data->data)[halo::datum_slot(object_index)].data->definition_tag & 0xffff].data;
-    GBXModel *model = (GBXModel *)tag_instances[halo::datum_slot(definition->model.tag_id.index)].data;
+    GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[halo::datum_slot(definition->model.tag_id.index)].data;
     uint8_t *nodes = (uint8_t *)model->nodes.pointer;
 
     object_marker marker_a;
@@ -1306,8 +1306,8 @@ void halo::objects::ObjectRef::notify_children_recursive()
         object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
         if (obj->definition_tag != k_datum_index_none) {
-            uint8_t *tag_data = (uint8_t *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
-            halo::cache::predicted_resource_list_touch(tag_data + 0x170);
+            uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
+            halo::cache::predicted_resource_list_touch((TagReflexive *)(tag_data + 0x170));
         }
 
         object_notify_children_recursive(obj->first_child_object);
@@ -1390,7 +1390,7 @@ void halo::objects::ObjectRef::notify_node_array_if_animated()
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if ((definition->model.tag_id.index != halo::k_word_none) && (definition->animation_graph.tag_id.index != halo::k_word_none)) {
         object_type_definitions_notify_0x4c(object_index, (uint8_t *)obj + obj->nodes.offset);
@@ -1453,7 +1453,7 @@ uint8_t halo::objects::ObjectRef::disconnect_from_map()
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    return obj->cluster_stamp != object_cluster_stamp;
+    return obj->cluster_stamp != halo::physics::globals().object_cluster_stamp;
 }
 
 /**
@@ -1512,7 +1512,7 @@ void halo::objects::ObjectRef::start_animation(datum_index graph_tag, char *name
     uint32_t object_index = handle;
     if ((object_index != k_datum_index_none) && (graph_tag != k_datum_index_none)) {
         object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-        void *graph = tag_instances[halo::datum_slot(graph_tag)].data;
+        void *graph = halo::cache::globals().tag_instances[halo::datum_slot(graph_tag)].data;
 
         int16_t animation_index = animation_graph_find_animation_by_name(graph_tag, name);
 
@@ -1540,7 +1540,7 @@ void halo::objects::ObjectRef::start_animation(datum_index graph_tag, char *name
         }
 
         console_print_va("the animation '%s' doesn't exist in the graph '%s'", name,
-            *(char **)((uint8_t *)&tag_instances[halo::datum_slot(graph_tag)] + 0x10));
+            *(char **)((uint8_t *)&halo::cache::globals().tag_instances[halo::datum_slot(graph_tag)] + 0x10));
     }
 }
 
@@ -1559,7 +1559,7 @@ uint32_t halo::objects::ObjectRef::animation_get_frames_remaining()
     uint8_t *extended_flags = (uint8_t *)obj + 0x1f4;
 
     if ((*extended_flags & 1) != 0) {
-        void *graph = tag_instances[halo::datum_slot(obj->animation_graph)].data;
+        void *graph = halo::cache::globals().tag_instances[halo::datum_slot(obj->animation_graph)].data;
         uint8_t *nodes = *(uint8_t **)((uint8_t *)graph + 0x78);
         int32_t frame_count = *(int16_t *)(nodes + obj->animation_index * 0xb4 + 0x22);
         int32_t remaining = (frame_count - obj->animation_frame) - 2;

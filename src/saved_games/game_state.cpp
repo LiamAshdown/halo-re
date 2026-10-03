@@ -12,6 +12,8 @@
 #include "saved_games.h"
 #include "halo/saved_games/saved_games.hpp"
 #include "halo/saved_games/layout.hpp"
+#include "halo/cache/api.hpp"
+#include "halo/memory/api.hpp"
 
 static_assert(sizeof(data_array) == halo::saved_games::k_game_state_block_header_size);
 static_assert(sizeof(memory_pool) == halo::saved_games::k_game_state_block_header_size);

@@ -48,7 +48,7 @@ void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_t
     }
 
     if (unit_tag_id != k_datum_index_none) {
-        uint8_t *tag_data = (uint8_t *)tag_instances[halo::datum_slot(unit_tag_id)].data;
+        uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(unit_tag_id)].data;
         datum_index effect = *(datum_index *)(tag_data + 0x120);
         if (effect != k_datum_index_none) {
             halo::sound::sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,
@@ -69,7 +69,7 @@ uint32_t UnitView::update_marker_traction_effects()
 {
     uint32_t object_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     uint8_t *graph;
     uint8_t *node_array;
     uint8_t *physics;
@@ -88,8 +88,8 @@ uint32_t UnitView::update_marker_traction_effects()
     if (node_array == 0) {
         return 0;
     }
-    physics = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
-    halo::math::matrix4x3_from_forward_up((real_vector3d *)&((struct object *)obj)->up, (real_vector3d *)&((struct object *)obj)->forward, &basis);
+    physics = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    halo::math::matrix4x3_from_forward_up(*((real_vector3d *)&((struct object *)obj)->up), *((real_vector3d *)&((struct object *)obj)->forward), basis);
     basis.position = *(real_point3d *)&((unit_object *)obj)->base.position.x;
 
     for (i = 0; (int32_t)i < (int32_t)((struct ModelAnimationsAnimationGraphVehicleAnimations *)node_array)->suspension_animations.count; i++) {

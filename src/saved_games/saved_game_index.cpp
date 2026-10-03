@@ -105,7 +105,7 @@ void allocate_new_slot(uint16_t *out_name)
         memset(scratch_path, 0, sizeof(scratch_path));
         number = 0;
         do {
-            string_list = (UnicodeStringList *)tag_instances[datum_slot(tag_index)].data;
+            string_list = (UnicodeStringList *)halo::cache::globals().tag_instances[datum_slot(tag_index)].data;
             format_string = missing_string_text;
             if (2 < (int32_t)string_list->strings.count) {
                 string_entry = (UnicodeStringListString *)string_list->strings.pointer + 2;
@@ -291,7 +291,7 @@ uint32_t create_default_profile(uint16_t *name)
     wcsncpy((wchar_t *)file.profile.name, (const wchar_t *)name, k_player_profile_name_length - 1);
 
     file.checksum = k_crc32_seed;
-    ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
+    halo::memory::crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
 
     if (file_reference_seek(0, &ref) == 0 || file_reference_write(&ref, &file, sizeof(file)) == 0) {
         saved_game_delete_by_handle(handle);
@@ -1016,7 +1016,7 @@ int16_t index_register_default_playlists(void)
     i = 0;
     last = 0;
     if (tag_id != k_datum_index_none && 0 < count) {
-        name_list = (UnicodeStringList *)tag_instances[datum_slot(tag_id)].data;
+        name_list = (UnicodeStringList *)halo::cache::globals().tag_instances[datum_slot(tag_id)].data;
         do {
             source_name = missing_string_text;
             if (0 <= i && i < (int32_t)name_list->strings.count) {
@@ -1121,7 +1121,7 @@ int16_t index_register_default_profiles(void)
     i = 0;
     last = 0;
     if (tag_id != k_datum_index_none) {
-        name_list = (UnicodeStringList *)tag_instances[datum_slot(tag_id)].data;
+        name_list = (UnicodeStringList *)halo::cache::globals().tag_instances[datum_slot(tag_id)].data;
         do {
             source_name = missing_string_text;
             if (0 <= i && i < (int32_t)name_list->strings.count) {

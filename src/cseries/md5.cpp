@@ -3,6 +3,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "halo/cseries/api.hpp"
 
 namespace {
 

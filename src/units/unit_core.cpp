@@ -50,7 +50,7 @@ void UnitView::apply_impulse(real_vector3d *impulse)
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    void *tag_data = tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    void *tag_data = halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
@@ -74,13 +74,13 @@ void UnitView::apply_impulse(real_vector3d *impulse)
     if (test_flag(obj->vitality_flags, objects::vitality_flag::health_frozen) || (*(uint8_t *)((uint8_t *)tag_data + 0x2f4) & 0x44) != 0) {
         real_vector3d jitter_axis;
         float length;
-        halo::math::vector3d_cross_product(&jitter_axis, impulse, global_up3d_pointer);
-        length = halo::math::vector3d_normalize_with_length(&jitter_axis);
-        random_seed_global = halo::advance_random_seed(random_seed_global);
+        halo::math::vector3d_cross_product(jitter_axis, *impulse, *(halo::math::globals().global_up3d_pointer));
+        length = halo::math::vector3d_normalize_with_length(jitter_axis);
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         {
             float magnitude = (float)sqrt((double)(impulse->i * impulse->i + impulse->j * impulse->j +
                                                      impulse->k * impulse->k));
-            float angle = (float)(int32_t)(random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale * magnitude * 1.5707964f;
+            float angle = (float)(int32_t)(halo::math::globals().random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale * magnitude * 1.5707964f;
             obj->angular_velocity.i += jitter_axis.i * angle;
             obj->angular_velocity.j += jitter_axis.j * angle;
             obj->angular_velocity.k += jitter_axis.k * angle;
@@ -109,7 +109,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
-    Unit *tag = (Unit *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Unit *tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     uint32_t best_object = k_datum_index_none;
@@ -129,7 +129,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
             delta.j = target_direction->j * 0.8f + ((float)col * perp->j + (float)row * up->j) * 0.1f;
             delta.k = target_direction->k * 0.8f + ((float)col * perp->k + (float)row * up->k) * 0.1f;
 
-            if (halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::unstick), (real_point3d *)target_direction, &delta, unit_index, scratch) == 0) {
+            if (halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::unstick), (real_point3d *)target_direction, &delta, unit_index, (collision_result *)scratch) == 0) {
                 continue;
             }
 
@@ -164,7 +164,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
             datum_index weapon_index = unit->weapons[unit->current_weapon_index];
             if (weapon_index != k_datum_index_none) {
                 object *weapon_obj = ((object_header *)object_data->data)[halo::datum_slot(weapon_index)].data;
-                Weapon *weapon_tag = (Weapon *)tag_instances[halo::datum_slot(weapon_obj->definition_tag)].data;
+                Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[halo::datum_slot(weapon_obj->definition_tag)].data;
                 weapon_response_tag = *(int32_t *)&weapon_tag->player_melee_response.tag_id;
                 secondary_damage_effect = *(int32_t *)&((struct Weapon *)weapon_tag)->player_melee_response.tag_id;
             }
@@ -389,7 +389,7 @@ uint32_t UnitView::get_biped_specific_value()
 void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out)
 {
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
@@ -469,7 +469,7 @@ uint32_t UnitView::get_tag_flag_bit7()
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
-    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     return (*(uint32_t *)(tag + 0x2f0) >> 7) & 1;
 }
 
@@ -578,7 +578,7 @@ uint8_t unit_point_in_front_and_asleep(real_point3d *world_point, uint32_t unit_
     if (obj == 0 || ((unit_object *)obj)->base.type != 0) {
         return 0;
     }
-    if (*(uint32_t *)((uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data + 0x17c) & 0x10000) {
+    if (*(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data + 0x17c) & 0x10000) {
         return 0;
     }
     dot = (((unit_object *)obj)->base.bounding_center.z - world_point->z) * ((unit_object *)obj)->unit.looking_vector.k +
@@ -608,8 +608,8 @@ void UnitView::update_ground_contact_counter(uint8_t *contact_points)
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
-    Vehicle *tag = (Vehicle *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    uint8_t *physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
     int32_t count = *(int32_t *)(physics_tag + 0x74);
     int32_t i;

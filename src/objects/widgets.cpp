@@ -79,7 +79,7 @@ void halo::objects::WidgetSystem::dispose_clear_flag()
 void halo::objects::WidgetSystem::create(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Object *tag = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Object *tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int32_t i;
 
     obj->first_widget = k_datum_index_none;

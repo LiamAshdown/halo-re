@@ -62,7 +62,7 @@ namespace halo::units {
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
 #define OBJECT_HEADER(h) (((object_header *)object_data->data)[halo::datum_slot((h))])
-#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 namespace unit_apply_damage_effects_local {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
@@ -460,7 +460,7 @@ void UnitView::apply_fall_damage(float fall_speed)
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     uint8_t *fall_table = (uint8_t *)global_globals->falling_damage.pointer;
     uint32_t exempt;
 
@@ -516,7 +516,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
-    Unit *tag = (Unit *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Unit *tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     real_point3d origin_pos = obj->bounding_center;
     real_point3d target_pos;
     object_marker melee_marker;
@@ -540,7 +540,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
         delta.j = target_pos.y - origin_pos.y;
         delta.k = target_pos.z - origin_pos.z;
 
-        if (halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::unstick), &origin_pos, &delta, k_datum_index_none, scratch) != 0) {
+        if (halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::unstick), &origin_pos, &delta, k_datum_index_none, (collision_result *)scratch) != 0) {
             target_pos = origin_pos;
         }
     } else {
@@ -556,7 +556,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
             datum_index weapon_index = unit->weapons[unit->current_weapon_index];
             if (weapon_index != k_datum_index_none) {
                 object *weapon_obj = ((object_header *)object_data->data)[halo::datum_slot(weapon_index)].data;
-                Weapon *weapon_tag = (Weapon *)tag_instances[halo::datum_slot(weapon_obj->definition_tag)].data;
+                Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[halo::datum_slot(weapon_obj->definition_tag)].data;
                 if (test_flag(weapon_tag->weapon_flags, tags::weapon_tag_flag::ais_use_weapon_melee_damage)) {
                     damage_effect = *(datum_index *)&weapon_tag->player_melee_response.tag_id;
                 }
@@ -609,8 +609,8 @@ void UnitView::enter_stunned_state(uint32_t responsible_object)
     if (unit->flaming_ticks == 0) {
         int16_t duration;
 
-        random_seed_global = halo::advance_random_seed(random_seed_global);
-        duration = (int16_t)(((int32_t)(random_seed_global >> halo::k_random_high_shift) * 0x5a) >> 0x10) + 0x3c;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
+        duration = (int16_t)(((int32_t)(halo::math::globals().random_seed_global >> halo::k_random_high_shift) * 0x5a) >> 0x10) + 0x3c;
 
         if (duration == 0) {
             duration = 1;
@@ -633,7 +633,7 @@ void UnitView::melee_lunge_damage_tick()
 {
     uint32_t unit_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
-    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     datum_index target = ((unit_object *)obj)->base.parent_object;
     uint8_t hit = 0;
     real_plane3d plane;
@@ -696,7 +696,7 @@ void UnitView::melee_lunge_damage_tick()
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 /**
  * Engine function unit_process_melee_special_interaction.
  *

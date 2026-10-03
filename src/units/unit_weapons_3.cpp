@@ -32,7 +32,7 @@ void UnitView::validate_and_clear_weapon_switch()
             if (slot != -1 && *(datum_index *)(unit + 0x2f8 + slot * 4) != k_datum_index_none) {
                 uint8_t *weapon = (uint8_t *)((object_header *)object_data->data)
                     [halo::datum_slot(*(datum_index *)(unit + 0x2f8 + slot * 4))].data;
-                datum_index zoom_sound = *(datum_index *)((uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)weapon)].data + 0x4bc);
+                datum_index zoom_sound = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)weapon)].data + 0x4bc);
 
                 if (zoom_sound != k_datum_index_none) {
                     halo::sound::sound_start_unspatialized(zoom_sound, 1.0f);

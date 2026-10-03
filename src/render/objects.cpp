@@ -455,7 +455,7 @@ real compute_level_of_detail_pixels(datum_index object_index)
 
     obj = ((object_header *)object_data->data)[(uint16_t)object_index].data;
 
-    if (cinematic_globals_ptr->in_progress != 0 && test_flag(obj->flags, objects::object_flag::unknown_400000)) {
+    if (halo::cutscene::globals().cinematic_globals->in_progress != 0 && test_flag(obj->flags, objects::object_flag::unknown_400000)) {
         return k_maximum_level_of_detail_pixels;
     }
 
@@ -942,21 +942,21 @@ void s_collect(void)
     halo::physics::globals().object_cluster_stamp++;
     object_globals_pointer->collecting_in_clusters = 1;
 
-    count = halo::structures::structure_bsp_collect_visible_objects(rendered_objects, k_maximum_rendered_objects,
-        (void *)object_resolve_collideable_reference,
-        (void *)object_cluster_collideable_iterate_next,
-        (void *)render_object_get_cull_sphere,
-        (void *)object_disconnect_from_map,
-        (void *)object_cluster_stamp_mark_visited);
+    count = halo::structures::structure_bsp_collect_visible_objects((int32_t *)rendered_objects, k_maximum_rendered_objects,
+        (structure_bsp_object_iterate_begin_fn)object_resolve_collideable_reference,
+        (structure_bsp_object_iterate_next_fn)object_cluster_collideable_iterate_next,
+        (structure_bsp_object_get_bounds_fn)render_object_get_cull_sphere,
+        (structure_bsp_object_predicate_fn)object_disconnect_from_map,
+        (structure_bsp_object_accept_fn)object_cluster_stamp_mark_visited);
     rendered_object_count = count;
 
-    rendered_object_count += halo::structures::structure_bsp_collect_visible_objects(&rendered_objects[count],
+    rendered_object_count += halo::structures::structure_bsp_collect_visible_objects((int32_t *)(&rendered_objects[count]),
         (int16_t)(k_maximum_rendered_objects - rendered_object_count),
-        (void *)object_cluster_noncollideable_iterate_begin,
-        (void *)object_cluster_noncollideable_iterate_next,
-        (void *)render_object_get_cull_sphere,
-        (void *)object_disconnect_from_map,
-        (void *)object_cluster_stamp_mark_visited);
+        (structure_bsp_object_iterate_begin_fn)object_cluster_noncollideable_iterate_begin,
+        (structure_bsp_object_iterate_next_fn)object_cluster_noncollideable_iterate_next,
+        (structure_bsp_object_get_bounds_fn)render_object_get_cull_sphere,
+        (structure_bsp_object_predicate_fn)object_disconnect_from_map,
+        (structure_bsp_object_accept_fn)object_cluster_stamp_mark_visited);
 
     object_globals_pointer->collecting_in_clusters = 0;
 

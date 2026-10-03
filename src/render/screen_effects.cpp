@@ -18,6 +18,11 @@
 #include <stdint.h>
 #include "halo/render/render.hpp"
 #include "halo/render/layout.hpp"
+#include "halo/cseries/api.hpp"
+#include "halo/cutscene/api.hpp"
+#include "halo/input/api.hpp"
+#include "halo/math/api.hpp"
+#include "halo/cache/api.hpp"
 
 static_assert(offsetof(Bitmap, bitmap_data) + offsetof(TagReflexive, pointer) == halo::render::k_bitmap_data_pointer_offset);
 
@@ -285,13 +290,13 @@ void set_video(int16_t overbright_mode, float noise_intensity)
 
     g->video_enabled = 1;
 
-    scanline_tag = &tag_instances[datum_slot(*(int32_t *)&rasterizer_globals_data->video_scanline_map.tag_id)];
+    scanline_tag = &halo::cache::globals().tag_instances[datum_slot(*(int32_t *)&rasterizer_globals_data->video_scanline_map.tag_id)];
     g->video_scanline_map = *(uint32_t *)((uint8_t *)scanline_tag->data + k_bitmap_data_pointer_offset);
 
     g->video_noise_intensity = noise_intensity;
     g->unknown_30 = 1.0f;
 
-    noise_tag = &tag_instances[datum_slot(*(int32_t *)&rasterizer_globals_data->video_noise_map.tag_id)];
+    noise_tag = &halo::cache::globals().tag_instances[datum_slot(*(int32_t *)&rasterizer_globals_data->video_noise_map.tag_id)];
     g->video_noise_map = *(uint32_t *)((uint8_t *)noise_tag->data + k_bitmap_data_pointer_offset);
 }
 

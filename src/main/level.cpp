@@ -163,12 +163,12 @@ void LevelControl::chimera__load_ui_map(char play_title_music)
     main_globals_data.main_menu_scenario_loaded = 1;
     game_scenario_session_begin(&request);
 
-    *hs_camera_control_pointer = 1;
-    directors[0].pov_proc = camera_debug_compute_pov;
-    directors[0].look_scale = 1.0f;
-    directors[0].unknown_c0 = 0;
-    camera_script.camera_control = 1;
-    camera_script.changed = 1;
+    *halo::camera::globals().hs_camera_control_pointer = 1;
+    halo::camera::globals().directors[0].pov_proc = halo::camera::camera_debug_compute_pov;
+    halo::camera::globals().directors[0].look_scale = 1.0f;
+    halo::camera::globals().directors[0].unknown_c0 = 0;
+    halo::camera::globals().camera_script.camera_control = 1;
+    halo::camera::globals().camera_script.changed = 1;
     halo::camera::camera_debug_start(0, 0, k_datum_index_none);
 
     ui_split_screen = 1;

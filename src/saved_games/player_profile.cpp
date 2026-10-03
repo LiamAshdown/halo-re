@@ -13,6 +13,8 @@
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
 #include "halo/saved_games/layout.hpp"
+#include "halo/cache/api.hpp"
+#include "halo/memory/api.hpp"
 
 static void copy_profile_block(saved_player_profile *destination, const saved_player_profile *source, size_t first_offset, size_t end_offset)
 {
@@ -169,7 +171,7 @@ uint8_t halo::saved_games::PlayerProfile::get(int32_t index)
         if (saved_game_open_file_by_handle(index, &ref) != 0) {
             if (file_reference_read(&ref, &file, sizeof(file)) != 0) {
                 running_crc = k_crc32_seed;
-                ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&running_crc, (uint8_t *)&file.profile, k_saved_player_profile_size);
+                halo::memory::crc32_update(&running_crc, (uint8_t *)&file.profile, k_saved_player_profile_size);
                 if (running_crc == file.checksum && file.profile.version == k_saved_player_profile_version) {
                     *out_buffer = file.profile;
                 } else {
@@ -564,7 +566,7 @@ void halo::saved_games::PlayerProfile::write_data(int32_t handle)
 
     file.profile = *profile;
     file.checksum = k_crc32_seed;
-    ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
+    halo::memory::crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
 
     if (file_reference_seek(0, &ref) == 0 || file_reference_write(&ref, &file, sizeof(file)) == 0) {
         write_failed = 1;
@@ -960,7 +962,7 @@ void write_default_files(void)
         ref.flags |= 1;
 
         file.checksum = k_crc32_seed;
-        ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
+        halo::memory::crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
 
         if (file_reference_create(&ref) != 0 && file_reference_open(&ref, 2) != 0 &&
             file_reference_seek(0, &ref) != 0) {
@@ -1017,7 +1019,7 @@ void create_default_profiles_on_disk(void)
         strncat(path, "\\blam.lst", k_path_maximum_length);
 
         source_name = missing_string_text;
-        name_list = (UnicodeStringList *)tag_instances[datum_slot(tag_id)].data;
+        name_list = (UnicodeStringList *)halo::cache::globals().tag_instances[datum_slot(tag_id)].data;
         if (0 <= i && i < (int32_t)name_list->strings.count) {
             entry = (UnicodeStringListString *)name_list->strings.pointer + i;
             source_size = entry->string.size;

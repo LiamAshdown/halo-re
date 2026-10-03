@@ -66,7 +66,7 @@ void halo::objects::ObjectLifetime::delete_teardown()
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
     object *obj = headers[halo::datum_slot(object_index)].data;
-    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     object_set_health_frozen_flag(object_index);
 
@@ -178,7 +178,7 @@ void halo::objects::ObjectLifetime::delete_recursive(uint8_t recurse_siblings)
 
     header = (object_header *)object_data->data + halo::datum_slot(object_index);
     obj = header->data;
-    object_tag = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    object_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     if (TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) != k_datum_index_none &&
         (obj->flags & _object_no_collision_bit) == 0) {
 
@@ -390,7 +390,7 @@ void halo::objects::ObjectLifetime::create_attachments()
 {
     uint32_t object_index = handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    uint8_t *definition = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     int16_t i;
 
     for (i = 0; i < *(int32_t *)&((struct Object *)definition)->attachments.count; i++) {
@@ -451,7 +451,7 @@ void halo::objects::ObjectLifetime::delete_attachments()
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Object *definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int16_t i;
 
     for (i = 0; i < (int16_t)definition->attachments.count; i++) {

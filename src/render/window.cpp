@@ -206,13 +206,13 @@ void sky(void)
         return;
     }
     sky_tag = k_dword_none;
-    if (render_cluster_sky_index >= 0 &&
-        (int32_t)render_cluster_sky_index < (int32_t)global_scenario->skies.count) {
-        sky_tag = tag_id_of(((ScenarioSky *)global_scenario->skies.pointer)[render_cluster_sky_index].sky.tag_id);
+    if (halo::structures::globals().render_cluster_sky_index >= 0 &&
+        (int32_t)halo::structures::globals().render_cluster_sky_index < (int32_t)global_scenario->skies.count) {
+        sky_tag = tag_id_of(((ScenarioSky *)global_scenario->skies.pointer)[halo::structures::globals().render_cluster_sky_index].sky.tag_id);
     }
     sky = 0;
     if (sky_tag != k_dword_none) {
-        sky = (Sky *)tag_instances[(uint16_t)sky_tag].data;
+        sky = (Sky *)halo::cache::globals().tag_instances[(uint16_t)sky_tag].data;
     }
     model = (GBXModel *)halo::cache::globals().tag_instances[sky->model.tag_id.index].data;
     model_nodes_get_default_transforms(model, nodes);

@@ -76,7 +76,7 @@ void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key)
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
-#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 #define LOOK_BLEND_NEW 0.3f
 #define LOOK_BLEND_OLD 0.7f
 /**
@@ -322,16 +322,16 @@ controls:
             halo::math::vector3d_cross_product(basis.left, basis.forward, basis.up);
             basis.position = *zero_vector;
             halo::math::vector3d_rotate_toward_bounded((real_vector3d *)&((struct unit_object *)obj)->unit.aiming_vector, (real_vector3d *)&((struct unit_object *)obj)->unit.aiming_velocity,
-                (real *)&((struct unit_object *)obj)->unit.aiming_bounds, rate, acceleration, (real_vector3d *)&((struct unit_object *)obj)->unit.desired_aiming_vector, &basis);
+                (real *)&((struct unit_object *)obj)->unit.aiming_bounds, rate, acceleration, *((real_vector3d *)&((struct unit_object *)obj)->unit.desired_aiming_vector), &basis);
         } else {
-            halo::math::vector3d_rotate_toward_with_acceleration((real_vector3d *)&((struct unit_object *)obj)->unit.aiming_vector, (real_vector3d *)&((struct unit_object *)obj)->unit.desired_aiming_vector,
-                (real_vector3d *)&((struct unit_object *)obj)->unit.aiming_velocity, rate, acceleration);
+            halo::math::vector3d_rotate_toward_with_acceleration((real_vector3d *)&((struct unit_object *)obj)->unit.aiming_vector, *((real_vector3d *)&((struct unit_object *)obj)->unit.desired_aiming_vector),
+                *((real_vector3d *)&((struct unit_object *)obj)->unit.aiming_velocity), rate, acceleration);
         }
         {
             float change = 0.0f;
 
             if (((Unit *)tag)->aiming_velocity_maximum != 0.0f) {
-                change = halo::math::vector3d_angle_between_4cd4f0(&previous_aim, (real_vector3d *)&((struct unit_object *)obj)->unit.aiming_vector) /
+                change = halo::math::vector3d_angle_between_4cd4f0(previous_aim, *((real_vector3d *)&((struct unit_object *)obj)->unit.aiming_vector)) /
                     (((Unit *)tag)->aiming_velocity_maximum * 0.033333335f);
                 if (change < 0.0f) {
                     change = 0.0f;
@@ -355,10 +355,10 @@ controls:
             halo::math::vector3d_cross_product(basis.left, basis.forward, basis.up);
             basis.position = *zero_vector;
             halo::math::vector3d_rotate_toward_bounded((real_vector3d *)&((struct unit_object *)obj)->unit.looking_vector, (real_vector3d *)&((struct unit_object *)obj)->unit.looking_velocity,
-                (real *)&((struct unit_object *)obj)->unit.looking_bounds, rate, acceleration, (real_vector3d *)&((struct unit_object *)obj)->unit.desired_looking_vector, &basis);
+                (real *)&((struct unit_object *)obj)->unit.looking_bounds, rate, acceleration, *((real_vector3d *)&((struct unit_object *)obj)->unit.desired_looking_vector), &basis);
         } else {
-            halo::math::vector3d_rotate_toward_with_acceleration((real_vector3d *)&((struct unit_object *)obj)->unit.looking_vector, (real_vector3d *)&((struct unit_object *)obj)->unit.desired_looking_vector,
-                (real_vector3d *)&((struct unit_object *)obj)->unit.looking_velocity, rate, acceleration);
+            halo::math::vector3d_rotate_toward_with_acceleration((real_vector3d *)&((struct unit_object *)obj)->unit.looking_vector, *((real_vector3d *)&((struct unit_object *)obj)->unit.desired_looking_vector),
+                *((real_vector3d *)&((struct unit_object *)obj)->unit.looking_velocity), rate, acceleration);
         }
 
         if (!unit_updates_suppressed) {

@@ -9,6 +9,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -49,7 +50,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
         } else {
             uint32_t bit = bit_array_mask(bit_index);
             uint32_t word = (uint32_t)(bit_array_word(bit_index) * 4);
-            int suppressed = *runtime_decals_suppressed != 0;
+            int suppressed = *halo::structures::globals().runtime_decals_suppressed != 0;
 
             entering = !suppressed &&
                 (*(uint32_t *)((uint8_t *)switch_group_a + word) & bit) != 0 &&
@@ -93,13 +94,13 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
                     if (decals_enabled != 0 && spawn_ok) {
                         collision_result placement;
 
-                        effect_random_seed = *(uint32_t *)&decal->position.z ^
+                        halo::math::globals().effect_random_seed = *(uint32_t *)&decal->position.z ^
                             *(uint32_t *)&decal->position.y ^ *(uint32_t *)&decal->position.x ^ k_decal_placement_seed_xor;
                         if (halo::physics::collision_test_movement_segment(to_bits(k_decal_placement_query),
                                 (real_point3d *)&decal->position, &orientation, k_dword_none,
                                 &placement) != 0 &&
                             placement.type == _collision_result_type_structure &&
-                            (*(uint8_t *)tag_instances[shader_tag_id.index].data & k_decal_shader_skip_structure_flag) == 0) {
+                            (*(uint8_t *)halo::cache::globals().tag_instances[shader_tag_id.index].data & k_decal_shader_skip_structure_flag) == 0) {
                             halo::effects::decal_place(*(datum_index *)&shader_tag_id, &placement, &orientation, 1.0f, 1, -1);
                         }
                     }

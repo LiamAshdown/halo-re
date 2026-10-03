@@ -167,7 +167,7 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
     bsp = global_structure_bsp;
     lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
     material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
-    shader = (uint8_t *)tag_instances[datum_slot(*(uint32_t *)&material->shader.tag_id)].data;
+    shader = (uint8_t *)halo::cache::globals().tag_instances[datum_slot(*(uint32_t *)&material->shader.tag_id)].data;
 
     if (*(int16_t *)&((struct Shader *)shader)->shader_type != shadertype_environment ||
         *(int32_t *)&bsp->lightmaps_bitmap.tag_id == -1 ||
@@ -179,7 +179,7 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
     triangle = (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
     lightmap_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
         (int16_t)lightmap->bitmap);
-    base_map_tag = (uint8_t *)tag_instances[datum_slot(*(uint32_t *)(shader + k_shader_environment_base_map_tag_offset))].data;
+    base_map_tag = (uint8_t *)halo::cache::globals().tag_instances[datum_slot(*(uint32_t *)(shader + k_shader_environment_base_map_tag_offset))].data;
     base_map_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)(shader + k_shader_environment_base_map_tag_offset),
         (int16_t)((int32_t)(int16_t)material->shader_permutation % *(int32_t *)(base_map_tag + k_bitmap_data_count_offset)));
     if (lightmap_bitmap == 0 || base_map_bitmap == 0 ||

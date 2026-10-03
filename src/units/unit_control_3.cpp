@@ -23,7 +23,7 @@ void UnitView::update_steering_deviation_effects(real_vector3d *reference_direct
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
-    Vehicle *tag = (Vehicle *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     uint8_t *fall_table = (uint8_t *)global_globals->falling_damage.pointer;
     int32_t impact_effect_tag = *(int32_t *)(fall_table + 0x48);
 

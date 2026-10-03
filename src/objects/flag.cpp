@@ -97,7 +97,7 @@ datum_index halo::objects::FlagSystem::create(datum_index flag_tag)
     datum_index handle = k_datum_index_none;
 
     if (flag_tag != k_datum_index_none) {
-        Flag *tag = (Flag *)tag_instances[halo::datum_slot(flag_tag)].data;
+        Flag *tag = (Flag *)halo::cache::globals().tag_instances[halo::datum_slot(flag_tag)].data;
 
         handle = halo::memory::datum_new(flag_data);
         if (handle != k_datum_index_none) {
@@ -290,7 +290,7 @@ void halo::objects::FlagSystem::render_callback(datum_index object_index, datum_
     uint32_t arg4)
 {
     uint8_t *self = (uint8_t *)flag_data->data + halo::datum_slot(flag_index) * 0x16bc;
-    Flag *tag = (Flag *)tag_instances[halo::datum_slot(*(datum_index *)(self + 0xc))].data;
+    Flag *tag = (Flag *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)(self + 0xc))].data;
 
     *(datum_index *)(self + 8) = object_index;
     if (*(int16_t *)(self + 6) > 5 || self[3] == 0) {
@@ -326,7 +326,7 @@ void halo::objects::FlagSystem::update(float dt)
         {
             flag *entry = (flag *)((uint8_t *)flags->data + halo::datum_slot(current) * flags->size);
             datum_index object_index = entry->object_index;
-            void *tag_data = tag_instances[halo::datum_slot(entry->definition_tag)].data;
+            void *tag_data = halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
             int16_t *update_counter = (int16_t *)((uint8_t *)entry + 6);
 
             *update_counter = *update_counter + 1;
@@ -434,11 +434,11 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                                      tag->wind_noise * 0.00016f;
                     }
 
-                    effect_random_seed = halo::advance_random_seed(effect_random_seed);
+                    halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
                     {
-                        int16_t idx = (int16_t)(((effect_random_seed >> halo::k_random_high_shift) *
-                                                  (uint32_t)sphere_point_table_count) >> 16);
-                        real_point3d *dir = &sphere_point_table[idx];
+                        int16_t idx = (int16_t)(((halo::math::globals().effect_random_seed >> halo::k_random_high_shift) *
+                                                  (uint32_t)halo::math::globals().sphere_point_table_count) >> 16);
+                        real_point3d *dir = &halo::math::globals().sphere_point_table[idx];
                         wind_dir.i = dir->x * wind_scale;
                         wind_dir.j = dir->y * wind_scale;
                         wind_dir.k = dir->z * wind_scale;

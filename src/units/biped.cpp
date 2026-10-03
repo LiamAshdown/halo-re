@@ -98,7 +98,7 @@ void BipedView::apply_idle_fidget(uint8_t *state_out)
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     uint32_t already_idle = 0;
 
@@ -156,7 +156,7 @@ void BipedView::check_evade_reaction()
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
@@ -210,7 +210,7 @@ static uint8_t *object_get(datum_index object_index)
 
 static uint8_t *object_definition(uint8_t *object)
 {
-    return (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)object)].data;
+    return (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)object)].data;
 }
 
 }
@@ -265,7 +265,7 @@ datum_index BipedView::get_cached_look_at_position(real_point3d *out_position)
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
     if (test_flag(tag->biped_flags, tags::biped_tag_flag::flying) && !test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen)) {
@@ -323,7 +323,7 @@ uint32_t BipedView::is_idle_eligible()
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
     return (int8_t)biped->airborne_ticks > 3 &&
@@ -356,7 +356,7 @@ void BipedView::placement_offset_centered_pill(object_placement_data *placement)
 {
     datum_index object_index = datum_handle;
     uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
-    uint8_t *biped_tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)object)].data;
+    uint8_t *biped_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)object)].data;
     uint32_t flags = ((struct Biped *)biped_tag)->biped_flags;
     float radius;
 
@@ -392,7 +392,7 @@ void BipedView::trigger_on_velocity_threshold()
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
 #define OBJECT_HEADER(h) (((object_header *)object_data->data)[halo::datum_slot((h))])
-#define TAG_DATA(t) ((uint8_t *)tag_instances[halo::datum_slot((t))].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 namespace biped_update_local {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
@@ -603,8 +603,8 @@ uint8_t BipedView::update()
     ::halo::units::unit_update_up_vector((Biped *)(Biped *)tag, (::object *)(object *)obj);
     if (test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) || !test_flag(((struct Biped *)tag)->biped_flags, tags::biped_tag_flag::flying | tags::biped_tag_flag::can_climb_any_surface)) {
         ((unit_object *)obj)->unit.desired_facing_vector.k = 0.0f;
-        if (halo::math::vector3d_normalize_with_length((real_vector3d *)&((struct unit_object *)obj)->unit.desired_facing_vector) == 0.0f) {
-            *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i = *global_forward3d_pointer;
+        if (halo::math::vector3d_normalize_with_length(*((real_vector3d *)&((struct unit_object *)obj)->unit.desired_facing_vector)) == 0.0f) {
+            *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i = *halo::math::globals().global_forward3d_pointer;
         }
     }
     switch ((uint8_t)((struct unit_object *)obj)->unit.animation_state) {
@@ -771,7 +771,7 @@ void BipedView::update_idle_basis(uint8_t *state_out)
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
@@ -809,7 +809,7 @@ void BipedView::update_scale_function_inputs()
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    Biped *tag = (Biped *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
+    Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     const int16_t *selector = &tag->biped_a_in;
     float *function_in = obj->function_in_values;
     int32_t i;
