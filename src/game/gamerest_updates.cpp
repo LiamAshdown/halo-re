@@ -692,7 +692,7 @@ void PlayerNetworkState::apply_remote_vehicle_position_update(object *unit_obj)
 
                 *(float *)&plr->vehicle_update_error_total = dist + *(float *)&plr->vehicle_update_error_total;
                 plr->vehicle_updates_applied_count = plr->vehicle_updates_applied_count + 1;
-                halo::units::unit_propagate_position_delta_to_children(&parent_obj->position, (uint32_t)record.body.parent_or_tag);
+                halo::units::unit_propagate_position_delta_to_children(&record.body.position, (uint32_t)record.body.parent_or_tag);
                 parent_obj->velocity = record.body.velocity;
                 parent_obj->angular_velocity = record.body.angular_velocity;
                 parent_obj->forward = record.body.forward;

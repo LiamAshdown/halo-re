@@ -403,7 +403,11 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
             vehicle_ext->driver_seat_power = node->vehicle_state.driver_seat_power;
             vehicle_ext->gunner_seat_power = node->vehicle_state.gunner_seat_power;
             memcpy((uint8_t *)vehicle_obj + 0x4cc, node->vehicle_state.tail, 0xf4);
-            halo::units::unit_propagate_position_delta_to_children(&vehicle_obj->position, unit_index);
+            {
+                real_point3d server_position = {server_x, server_y, server_z};
+
+                halo::units::unit_propagate_position_delta_to_children(&server_position, parent_object);
+            }
             vehicle_obj->velocity = vehicle_ack->vehicle.velocity;
             vehicle_obj->angular_velocity = vehicle_ack->vehicle.angular_velocity;
             vehicle_obj->forward = vehicle_ack->vehicle.forward;
