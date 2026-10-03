@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 
+struct real_matrix4x3;
+
 struct BitmapData;
 struct ColorARGB;
 struct Contrail;
@@ -36,6 +38,21 @@ typedef uint32_t datum_index;
 typedef float real;
 
 namespace halo::render {
+
+/**
+ * The engine globals the render module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    real_matrix4x3 &camera_world_to_view;
+    int16_t &viewport_left;
+    int16_t &viewport_bottom;
+    int16_t &viewport_right;
+    float &time_since_frame;
+    int16_t &force_flag;
+};
+
+Globals &globals();
 
 void billboard_system_frame_init(void);
 void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);

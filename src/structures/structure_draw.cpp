@@ -17,7 +17,6 @@ extern ScenarioStructureBSP *global_structure_bsp;
 extern breakable_surface_globals *breakable_surface_state;
 extern int16_t global_structure_bsp_index;
 extern const real_point3d *global_origin3d_pointer;
-extern int16_t render_force_flag;
 extern int32_t rasterizer_device_version;
 extern void ***rasterizer_device;
 extern void *unknown_007c048c;
@@ -243,9 +242,9 @@ void structure_draw::picked_polygon_draw(void)
         return;
     }
 
-    saved_render_flag = render_force_flag;
+    saved_render_flag = halo::render::globals().force_flag;
     if (global_structure_bsp->lightmaps_bitmap.tag_id.index == 0xffff && saved_render_flag == 0) {
-        render_force_flag = 1;
+        halo::render::globals().force_flag = 1;
     }
 
     halo::rasterizer::rasterizer_underwater_tint_set_states();
@@ -257,7 +256,7 @@ void structure_draw::picked_polygon_draw(void)
         (*(void (__stdcall **)(void *, int32_t, int32_t))((uint8_t *)device + 0xe4))(device, 0x89, 0);
     }
 
-    render_force_flag = saved_render_flag;
+    halo::render::globals().force_flag = saved_render_flag;
 }
 
 void structure_draw::debug_draw_surfaces_in_box(void *render_point, real_point3d *query_point, float radius, int16_t cluster_count, int16_t *cluster_indices)

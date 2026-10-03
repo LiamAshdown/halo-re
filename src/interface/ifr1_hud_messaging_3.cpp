@@ -4,6 +4,7 @@
 #include "halo/input/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern player_globals *local_player_globals;
@@ -15,7 +16,6 @@ extern game_time_globals *game_time;
 extern Scenario *global_scenario;
 extern int16_t current_local_player_index;
 extern int32_t hud_splitscreen_message_raise;
-extern int16_t render_viewport_left;
 extern Rectangle2D screen_safe_area_right;
 extern int8_t hud_message_button_icon_table[0x1d];
 extern const uint16_t *empty_wide_string_pointer;
@@ -188,7 +188,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         line.top = y;
         line.left = origin.x;
         line.bottom = (int16_t)(y + line_height * 5);
-        line.right = (int16_t)(screen_safe_area_right.right - render_viewport_left);
+        line.right = (int16_t)(screen_safe_area_right.right - halo::render::globals().viewport_left);
         cursor = line;
         hud_messaging_set_text_state(font, &color);
 
@@ -299,7 +299,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         }
 
         cursor = screen_safe_area_right;
-        cursor.right = (int16_t)(screen_safe_area_right.right - render_viewport_left);
+        cursor.right = (int16_t)(screen_safe_area_right.right - halo::render::globals().viewport_left);
         cursor.left = origin.x;
         cursor.top = y;
         cursor.bottom = (int16_t)(line_height + y);

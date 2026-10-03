@@ -18,7 +18,6 @@ extern float camera_position_y;
 extern float camera_position_z;
 extern const uint32_t k_particle_render_constant[3];
 extern void weather_instance_update(int16_t instance_index);
-extern float render_time_since_frame;
 extern double fmod(double x, double y);
 extern void effect_random_direction_from_table(real_point3d *out);
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
@@ -206,7 +205,7 @@ void weather_instance_ref::update()
         (WeatherParticleSystem *)halo::cache::globals().tag_instances[(uint16_t)instance->definition_index].data;
     int32_t i;
 
-    instance->delta_time = render_time_since_frame;
+    instance->delta_time = halo::render::globals().time_since_frame;
     instance->elapsed_time = instance->delta_time + instance->elapsed_time;
 
     for (i = 0; i < (int32_t)tag->particle_types.count; i++) {

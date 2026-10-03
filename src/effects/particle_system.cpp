@@ -22,7 +22,6 @@ extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint8_t particle_system_update(float delta_time, datum_index handle);
-extern real_matrix4x3 render_camera_world_to_view;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void object_get_root_location(int32_t *out, uint32_t object_index);
 extern int16_t current_local_player_index;
@@ -511,9 +510,9 @@ void particle_system_ref::render()
                 float vx = *(float *)(particle + 0x34);
                 float vy = *(float *)(particle + 0x38);
                 float vz = *(float *)(particle + 0x3c);
-                float *m = (float *)&render_camera_world_to_view;
+                float *m = (float *)&halo::render::globals().camera_world_to_view;
 
-                halo::math::matrix4x3_transform_point(position, *(real_point3d *)(particle + 0x1c), render_camera_world_to_view);
+                halo::math::matrix4x3_transform_point(position, *(real_point3d *)(particle + 0x1c), halo::render::globals().camera_world_to_view);
                 direction.i = vx * m[1] + vy * m[4] + vz * m[7];
                 direction.j = vx * m[2] + vy * m[5] + vz * m[8];
                 direction.k = vx * m[3] + vy * m[6] + vz * m[9];

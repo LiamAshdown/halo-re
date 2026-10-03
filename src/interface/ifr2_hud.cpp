@@ -5,6 +5,7 @@
 #include "halo/items/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/render/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -29,9 +30,6 @@ extern data_array *object_data;
 extern game_time_globals *game_time;
 extern hud_weapon_interface_state *hud_weapon_state;
 extern int16_t render_viewport_top;
-extern int16_t render_viewport_left;
-extern int16_t render_viewport_bottom;
-extern int16_t render_viewport_right;
 extern long lrint(double x);
 extern uint32_t hud_meter_flash_color_blend(const hud_flash_parameters *flash, int32_t start_time);
 extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs, void *meter_parameters, BitmapData *bitmap, uint16_t *anchor, float scale, float rotation, uint32_t color, uint8_t split_screen);
@@ -474,9 +472,9 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
                         u_factor = pixel_uvs ? 1.0f : (float)((double)(1.0f / (float)(int16_t)bitmap->width) * 1.25);
                         v_factor = pixel_uvs ? 1.0f : (float)((double)(1.0f / (float)(int16_t)bitmap->height) * 1.25);
                     }
-                    dx = ((float)(int16_t)bitmap->width - (float)(render_viewport_right - render_viewport_left) * (1.0f / scale)) *
+                    dx = ((float)(int16_t)bitmap->width - (float)(halo::render::globals().viewport_right - halo::render::globals().viewport_left) * (1.0f / scale)) *
                          u_factor * -0.5f;
-                    dy = ((float)(int16_t)bitmap->height - (float)(render_viewport_bottom - render_viewport_top) * (1.0f / scale)) *
+                    dy = ((float)(int16_t)bitmap->height - (float)(halo::render::globals().viewport_bottom - render_viewport_top) * (1.0f / scale)) *
                          v_factor * -0.5f;
                     stretched_uv[0] = stretched_uv[0] - dx;
                     stretched_uv[1] = dx + stretched_uv[1];

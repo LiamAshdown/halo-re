@@ -18,7 +18,22 @@
 #include "halo/render/render.hpp"
 #include "halo/render/api.hpp"
 
+extern "C" {
+extern real_matrix4x3 render_camera_world_to_view;
+extern int16_t render_viewport_left;
+extern int16_t render_viewport_bottom;
+extern int16_t render_viewport_right;
+extern float render_time_since_frame;
+extern int16_t render_force_flag;
+}
+
 namespace halo::render {
+
+Globals &globals()
+{
+    static Globals instance{::render_camera_world_to_view, ::render_viewport_left, ::render_viewport_bottom, ::render_viewport_right, ::render_time_since_frame, ::render_force_flag};
+    return instance;
+}
 
 void billboard_system_frame_init(void)
 {

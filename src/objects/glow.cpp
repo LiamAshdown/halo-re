@@ -32,7 +32,6 @@ extern void glow_update(uint32_t object_index, glow *entry );
 extern data_array *object_data;
 extern int8_t object_function_get_value(void);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern float render_time_since_frame;
 extern double sin(double x);
 extern double sqrt(double x);
 }
@@ -356,7 +355,7 @@ void halo::objects::GlowView::update(uint32_t object_index)
             if ((*((uint8_t *)p + 0x54) & 2) == 0) {
 
                 glow_particle_advance_time(object_index, entry, (uint8_t *)p,
-                                            render_time_since_frame * *(float *)((uint8_t *)p));
+                                            halo::render::globals().time_since_frame * *(float *)((uint8_t *)p));
                 glow_particle_compute_position(object_index, entry, p);
                 *(uint32_t *)((uint8_t *)p + 0x24) = *(uint32_t *)((uint8_t *)p + 0x20);
             }
@@ -379,9 +378,9 @@ void halo::objects::GlowView::update(uint32_t object_index)
                 }
                 glow_particle_compute_color(entry, p);
 
-                *(float *)((uint8_t *)p + 0x2c) += render_time_since_frame * *(float *)((uint8_t *)p + 0x44);
-                *(float *)((uint8_t *)p + 0x30) += render_time_since_frame * *(float *)((uint8_t *)p + 0x48);
-                *(float *)((uint8_t *)p + 0x34) += render_time_since_frame * *(float *)((uint8_t *)p + 0x4c);
+                *(float *)((uint8_t *)p + 0x2c) += halo::render::globals().time_since_frame * *(float *)((uint8_t *)p + 0x44);
+                *(float *)((uint8_t *)p + 0x30) += halo::render::globals().time_since_frame * *(float *)((uint8_t *)p + 0x48);
+                *(float *)((uint8_t *)p + 0x34) += halo::render::globals().time_since_frame * *(float *)((uint8_t *)p + 0x4c);
 
                 if (*lifetime < *age) {
                     glow_particle *prev = *(glow_particle **)&((struct glow_particle *)p)->previous;

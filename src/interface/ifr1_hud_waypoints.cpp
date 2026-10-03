@@ -10,11 +10,9 @@ extern data_array *player_data;
 extern hud_waypoint_state *hud_waypoints;
 extern HUDGlobals *hud_globals_tag_data;
 extern player_globals *local_player_globals;
-extern real_matrix4x3 render_camera_world_to_view;
 extern uint8_t render_frustum_global[];
 extern uint8_t render_camera_global[];
 extern int16_t render_viewport_top;
-extern int16_t render_viewport_left;
 extern Rectangle2D screen_safe_area_right;
 extern float sqrtf(float x);
 extern float atan2f(float y, float x);
@@ -292,9 +290,9 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
         scale = (float)(pow((double)(1.0f - distance * 0.06666667014360428f), 0.7) + 0.5);
     }
 
-    halo::math::matrix4x3_transform_point(point, point, render_camera_world_to_view);
+    halo::math::matrix4x3_transform_point(point, point, halo::render::globals().camera_world_to_view);
     if (visibility != 1 && halo::render::render_project_world_point_to_screen(&screen, &point, (render_frustum *)render_frustum_global, (render_camera *)render_camera_global) != 0) {
-        x = screen.x - (float)(render_viewport_left + 0x140);
+        x = screen.x - (float)(halo::render::globals().viewport_left + 0x140);
         y = screen.y - (float)(render_viewport_top + 0xf0);
     } else {
         x = point.x;
@@ -379,7 +377,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
                                             (float)arrow_position.x));
         number_y = (int16_t)__ftol((double)((uv[3] - uv[2]) * (float)(int16_t)bitmap->height * 0.5f * scale * 0.66f +
                                             (float)arrow_position.y));
-        placement.anchor_offset.x = (int16_t)(number_x + (int16_t)(render_viewport_left - screen_safe_area_right.left));
+        placement.anchor_offset.x = (int16_t)(number_x + (int16_t)(halo::render::globals().viewport_left - screen_safe_area_right.left));
         placement.anchor_offset.y = (int16_t)(number_y + (int16_t)(render_viewport_top - screen_safe_area_right.top));
         power = (float)pow(10.0, 4.0);
         whole = (int32_t)lrint(fmod((double)(power * meters < 0.0f ? -(power * meters) : power * meters), (double)power));

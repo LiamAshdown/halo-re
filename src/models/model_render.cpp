@@ -9,6 +9,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -18,7 +19,6 @@ extern render_model_effect model_render_default_effect;
 extern ColorRGB model_render_default_change_colors[4];
 extern float model_render_default_function_values[4];
 extern int16_t console_model_lod_override;
-extern real_matrix4x3 render_camera_world_to_view;
 extern uint8_t rasterizer_caps_flag_689;
 extern uint8_t console_debug_toggle_6893f2;
 extern rasterizer_window_parameters rasterizer_window;
@@ -203,7 +203,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
 
     if (node_matrices == 0) {
         for (node = 0; (int32_t)node < model->nodes.count; node++) {
-            node_matrix_array[node] = render_camera_world_to_view;
+            node_matrix_array[node] = halo::render::globals().camera_world_to_view;
         }
     } else {
         for (node = 0; (int32_t)node < model->nodes.count; node++) {

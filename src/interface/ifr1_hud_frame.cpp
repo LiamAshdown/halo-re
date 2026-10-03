@@ -5,13 +5,13 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern player_globals *local_player_globals;
 extern HUDGlobals *hud_globals_tag_data;
 extern int16_t render_viewport_top;
-extern int16_t render_viewport_left;
 extern float hud_damage_indicator_screen_center_x;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
@@ -197,7 +197,7 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
                 rotation_bits = 0x40490fdb;
                 break;
             }
-            x -= (float)render_viewport_left;
+            x -= (float)halo::render::globals().viewport_left;
             y -= (float)render_viewport_top;
 
             hud_meter_resolve_bitmap_frame(icon_bitmap, (int16_t)sequence_index, 0, &bitmap_data, &sprite_rect);
