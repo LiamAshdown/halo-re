@@ -596,7 +596,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
     case 0x15: {
         object *obj = halo::ai::object_at(check_object_index);
 
-        obj->vitality_flags |= halo::to_bits(entry->atom_modifier == 1 ? halo::objects::vitality_flag::unknown_40 : halo::objects::vitality_flag::unknown_20);
+        obj->vitality_flags |= halo::to_bits(entry->atom_modifier == 1 ? halo::objects::vitality_flag::die_act_of_god_silent : halo::objects::vitality_flag::die_act_of_god);
         return 1;
     }
 

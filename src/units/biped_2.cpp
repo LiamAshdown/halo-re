@@ -338,8 +338,8 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
 
         if (test_flag(biped_state, units::biped_flag::airborne)) solve.flags |= _biped_movement_solver_airborne;
         if (test_flag(biped_state, units::biped_flag::jumping)) solve.flags |= _biped_movement_solver_jumping;
-        if (test_flag(biped_state, units::biped_flag::unknown_4)) solve.flags |= _biped_movement_solver_unknown_20;
-        if (test_flag(biped_state, units::biped_flag::unknown_8)) solve.flags |= _biped_movement_solver_unknown_40;
+        if (test_flag(biped_state, units::biped_flag::absolute_movement)) solve.flags |= _biped_movement_solver_absolute_movement;
+        if (test_flag(biped_state, units::biped_flag::no_collision)) solve.flags |= _biped_movement_solver_no_collision;
         if (dead != 0) solve.flags |= _biped_movement_solver_dead;
 
         biped_flags = tag->biped_flags;
@@ -740,8 +740,8 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
 
         if (test_flag(biped_state, units::biped_flag::airborne)) solve.flags |= _biped_movement_solver_airborne;
         if (test_flag(biped_state, units::biped_flag::jumping)) solve.flags |= _biped_movement_solver_jumping;
-        if (test_flag(biped_state, units::biped_flag::unknown_4)) solve.flags |= _biped_movement_solver_unknown_20;
-        if (test_flag(biped_state, units::biped_flag::unknown_8)) solve.flags |= _biped_movement_solver_unknown_40;
+        if (test_flag(biped_state, units::biped_flag::absolute_movement)) solve.flags |= _biped_movement_solver_absolute_movement;
+        if (test_flag(biped_state, units::biped_flag::no_collision)) solve.flags |= _biped_movement_solver_no_collision;
         if (dead != 0) solve.flags |= _biped_movement_solver_dead;
 
         if (test_flag(tag->biped_flags, tags::biped_tag_flag::flying) && dead == 0) {
@@ -935,7 +935,7 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
         solve->result_velocity.j = a.j + solve->velocity.j;
         solve->result_velocity.k = a.k + solve->velocity.k;
         result_flags = static_cast<uint8_t>((result_flags & 0xfd) | 1);
-    } else if (test_flag(flags, units::biped_movement_solver_flag::unknown_20)) {
+    } else if (test_flag(flags, units::biped_movement_solver_flag::absolute_movement)) {
         solve->result_velocity.k = solve->movement_delta.k;
         lateral_x = solve->facing.i * solve->movement_delta.i - solve->movement_delta.j * solve->facing.j;
         solve->result_velocity.i = lateral_x;
@@ -1061,7 +1061,7 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
         uint32_t model_flags;
         real_vector3d delta;
 
-        if (test_flag(flags, units::biped_movement_solver_flag::unknown_40)) {
+        if (test_flag(flags, units::biped_movement_solver_flag::no_collision)) {
             model_flags = 0;
         } else if (test_flag(flags, units::biped_movement_solver_flag::dead)) {
             model_flags = k_dead_unit_collision_flags;

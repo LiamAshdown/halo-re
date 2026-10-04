@@ -151,7 +151,7 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
             uint16_t flags = *vitality_flags;
             uint16_t kill_request = (uint16_t)(flags & static_cast<uint16_t>(vitality_flag::shield_stationary));
 
-            if (kill_request || test_flag(flags, vitality_flag::unknown_20 | vitality_flag::unknown_40)) {
+            if (kill_request || test_flag(flags, vitality_flag::die_act_of_god | vitality_flag::die_act_of_god_silent)) {
                 datum_index effect = halo::objects::tag_handle(halo::objects::block_element<GlobalsFallingDamage>(global_globals->falling_damage, 0).falling_damage);
 
                 if (!test_flag(flags, vitality_flag::health_frozen) && effect != k_datum_index_none) {
@@ -160,7 +160,7 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
                     halo::objects::damage_data_initialize(&dd, effect);
                     set_flag(dd.flags, damage_data_flag::kill_target);
                     dd.random_blend = 1.0f;
-                    if (test_flag(flags, vitality_flag::unknown_40)) {
+                    if (test_flag(flags, vitality_flag::die_act_of_god_silent)) {
                         set_flag(dd.flags, damage_data_flag::unknown_10);
                     }
                     if (kill_request) {
@@ -168,7 +168,7 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
                     }
                     halo::objects::object_apply_damage(&dd, object_index, -1, -1, -1, 0);
                 }
-                clear_flag(*vitality_flags, vitality_flag::shield_stationary | vitality_flag::unknown_20 | vitality_flag::unknown_40);
+                clear_flag(*vitality_flags, vitality_flag::shield_stationary | vitality_flag::die_act_of_god | vitality_flag::die_act_of_god_silent);
             }
             clear_flag(obj->base.vitality_flags, vitality_flag::stunned);
             if (obj->base.maximum_shield_vitality > 0.0f && (*vitality_flags & 4) == 0) {
@@ -318,7 +318,7 @@ void halo::objects::ObjectDamage::set_health_frozen_flag()
             if (child->type == _object_type_biped &&
                 (child_unit->unit.controlling_player == k_datum_index_none || halo::hs::fields::deathless_player == 0) &&
                 child_unit->unit.vehicle_seat_index != -1) {
-                set_flag(child->vitality_flags, objects::vitality_flag::unknown_20);
+                set_flag(child->vitality_flags, objects::vitality_flag::die_act_of_god);
             }
             child_index = child->next_object;
         }

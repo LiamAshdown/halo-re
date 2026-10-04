@@ -308,8 +308,8 @@ typedef enum biped_movement_solver_flags {
     _biped_movement_solver_crouching = 0x0004,     // crouch_fraction != 0
     _biped_movement_solver_crouch_began = 0x0008,  // and the caller had not latched a landing
     _biped_movement_solver_flying = 0x0010,        // Biped.biped_flags "flying" and not dead
-    _biped_movement_solver_unknown_20 = 0x0020,    // biped_data.flags bit 2
-    _biped_movement_solver_unknown_40 = 0x0040,    // biped_data.flags bit 3
+    _biped_movement_solver_absolute_movement = 0x0020,    // biped_data.flags bit 2
+    _biped_movement_solver_no_collision = 0x0040,    // biped_data.flags bit 3
     _biped_movement_solver_dead = 0x0080,          // object.vitality_flags health-frozen bit
     _biped_movement_solver_passes_through_bipeds = 0x0100, // Biped.biped_flags bit 0x20
     _biped_movement_solver_climbs_any_surface = 0x0200     // Biped.biped_flags bit 0x40, alive

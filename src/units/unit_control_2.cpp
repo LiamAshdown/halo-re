@@ -199,7 +199,7 @@ void UnitView::update_autoaim_interaction()
     }
 
     if (!test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen)) {
-        set_flag(obj->base.vitality_flags, objects::vitality_flag::unknown_20);
+        set_flag(obj->base.vitality_flags, objects::vitality_flag::die_act_of_god);
     }
 }
 

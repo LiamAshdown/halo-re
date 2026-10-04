@@ -86,8 +86,8 @@ enum class vitality_flag : uint16_t {
     hash_flag = 1u << 11,
     stunned = 1u << 12,
     shield_stationary = 1u << 13,
-    unknown_20 = 0x20,
-    unknown_40 = 0x40,
+    die_act_of_god = 0x20,
+    die_act_of_god_silent = 0x40,
     unknown_4000 = 1u << 14,
     unknown_8000 = 1u << 15,
 };

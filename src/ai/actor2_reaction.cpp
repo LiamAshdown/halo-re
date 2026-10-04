@@ -735,13 +735,13 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
         if (self->swarm == 0) {
             datum_index unit_index = self->unit_index;
             object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
-            header->data->vitality_flags |= halo::to_bits(halo::objects::vitality_flag::unknown_20);
+            header->data->vitality_flags |= halo::to_bits(halo::objects::vitality_flag::die_act_of_god);
         } else {
             datum_index cluster_index = self->cluster_unit_index;
             while (cluster_index != (datum_index)k_datum_index_none) {
                 object_header *header = &((object_header *)halo::objects::globals().object_data->data)[cluster_index & halo::k_slot_mask];
                 struct object *unit_object = header->data;
-                unit_object->vitality_flags |= halo::to_bits(halo::objects::vitality_flag::unknown_20);
+                unit_object->vitality_flags |= halo::to_bits(halo::objects::vitality_flag::die_act_of_god);
                 cluster_index = halo::units::unit_data_of(unit_object)->swarm_next_unit_index;
             }
         }

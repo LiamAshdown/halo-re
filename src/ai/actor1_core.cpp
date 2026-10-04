@@ -1040,7 +1040,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
 
     if (self->swarm == 0) {
         object *unit_object = halo::ai::object_at(self->unit_index);
-        unit_object->vitality_flags |= halo::to_bits(use_alternate_flag == 0 ? halo::objects::vitality_flag::unknown_20 : halo::objects::vitality_flag::unknown_40);
+        unit_object->vitality_flags |= halo::to_bits(use_alternate_flag == 0 ? halo::objects::vitality_flag::die_act_of_god : halo::objects::vitality_flag::die_act_of_god_silent);
 
         if (suppress_release != 0) {
             return;
@@ -1050,7 +1050,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
         datum_index unit_index = self->cluster_unit_index;
         while (unit_index != (datum_index)k_datum_index_none) {
             object *unit_object = halo::ai::object_at(unit_index);
-            unit_object->vitality_flags |= halo::to_bits(use_alternate_flag == 0 ? halo::objects::vitality_flag::unknown_20 : halo::objects::vitality_flag::unknown_40);
+            unit_object->vitality_flags |= halo::to_bits(use_alternate_flag == 0 ? halo::objects::vitality_flag::die_act_of_god : halo::objects::vitality_flag::die_act_of_god_silent);
 
             if (suppress_release == 0) {
                 halo::ai::actor_remove_from_unit_cluster(actor_index, unit_index);
