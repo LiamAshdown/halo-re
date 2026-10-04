@@ -1,0 +1,329 @@
+--- a/mojoshader.c
++++ b/mojoshader.c
+@@ -753,8 +753,34 @@
+             // figure out what array we're in...
+             if (!ctx->ignores_ctab)
+             {
+-                if (!ctx->ctab.have_ctab)  // hard to do efficiently without!
+-                    fail(ctx, "relative addressing unsupported without a CTAB");
++                if (!ctx->ctab.have_ctab)
++                {
++                    // halo-re: vs_1_x skinning shaders index the constant file without a CTAB. Treat the whole float
++                    //  constant file (c0..c255) as one uniform array, so register N lives at array position N.
++                    VariableList *whole = NULL;
++                    for (whole = ctx->variables; whole != NULL; whole = whole->next)
++                    {
++                        if (whole->index == 0 && whole->count == 256 && !whole->constant)
++                            break;
++                    } // for
++
++                    if (whole == NULL)
++                    {
++                        whole = (VariableList *) Malloc(ctx, sizeof (VariableList));
++                        if (whole == NULL)
++                            return retval;
++                        whole->type = MOJOSHADER_UNIFORM_FLOAT;
++                        whole->index = 0;
++                        whole->count = 256;
++                        whole->constant = NULL;
++                        whole->used = 1;
++                        whole->emit_position = -1;
++                        whole->next = ctx->variables;
++                        ctx->variables = whole;
++                    } // if
++                    info->relative_array = whole;
++                    set_used_register(ctx, info->relative_regtype, info->relative_regnum, 0);
++                } // if
+                 else
+                 {
+                     determine_constants_arrays(ctx);
+@@ -1974,7 +2000,8 @@
+ 
+     else if (shader_version_atleast(ctx, 1, 4))
+     {
+-        // !!! FIXME: checks for ps_1_4 version here...
++        // halo-re: ps_1_4 "texld rN, tM": the destination register number is the sampler (2D assumed)
++        add_sampler(ctx, ctx->dest_arg.regnum, TEXTURE_TYPE_2D, 0);
+     } // else if
+ 
+     else
+@@ -2288,6 +2315,7 @@
+ //  http://msdn.microsoft.com/en-us/library/bb205440(VS.85).aspx
+ // This may tell us high-level truths about an otherwise generic low-level
+ //  registers, for instance, how large an array actually is, etc.
++extern int mojo_ctab_line;  // halo-re debugging aid, defined in src/rasterizer/gl_effect.cpp
+ static void parse_constant_table(Context *ctx, const uint32 *tokens,
+                                  const uint32 bytes, const uint32 okay_version,
+                                  const int setvariables, CtabData *ctab)
+@@ -2317,19 +2345,23 @@
+     const uint32 version = SWAP32(tokens[4]);
+     const uint32 constants = SWAP32(tokens[5]);
+     const uint32 constantinfo = SWAP32(tokens[6]);
+-    const uint32 target = SWAP32(tokens[8]);
++    // halo-re: Halo's effect shaders carry a 20-byte constant table header (no flags/target fields)
++    const uint32 target = (SWAP32(tokens[2]) == CTAB_SIZE) ? SWAP32(tokens[8]) : 0;
+ 
+-    if (size != CTAB_SIZE)
+-        goto corrupt_ctab;
++    if (size != CTAB_SIZE && size != 20)
++        { mojo_ctab_line = __LINE__; goto corrupt_ctab; }
+     else if (constants > 1000000)  // sanity check.
+-        goto corrupt_ctab;
++        { mojo_ctab_line = __LINE__; goto corrupt_ctab; }
+ 
+-    if (version != okay_version) goto corrupt_ctab;
+-    if (creator >= bytes) goto corrupt_ctab;
+-    if (constantinfo >= bytes) goto corrupt_ctab;
+-    if ((bytes - constantinfo) < (constants * CINFO_SIZE)) goto corrupt_ctab;
+-    if (target >= bytes) goto corrupt_ctab;
+-    if (!parse_ctab_string(start, bytes, target)) goto corrupt_ctab;
++    if (version != okay_version) { mojo_ctab_line = __LINE__; goto corrupt_ctab; }
++    if (creator >= bytes) { mojo_ctab_line = __LINE__; goto corrupt_ctab; }
++    if (constantinfo >= bytes) { mojo_ctab_line = __LINE__; goto corrupt_ctab; }
++    if ((bytes - constantinfo) < (constants * CINFO_SIZE)) { mojo_ctab_line = __LINE__; goto corrupt_ctab; }
++    if (size == CTAB_SIZE)
++    {
++        if (target >= bytes) { mojo_ctab_line = __LINE__; goto corrupt_ctab; }
++        if (!parse_ctab_string(start, bytes, target)) { mojo_ctab_line = __LINE__; goto corrupt_ctab; }
++    } // if
+     // !!! FIXME: check that (start+target) points to "ps_3_0", etc.
+ 
+     ctab->symbols = NULL;
+@@ -2354,8 +2386,8 @@
+         const uint32 defval = SWAP32(*((uint32 *) (ptr + 16)));
+         MOJOSHADER_uniformType mojotype = MOJOSHADER_UNIFORM_UNKNOWN;
+ 
+-        if (!parse_ctab_string(start, bytes, name)) goto corrupt_ctab;
+-        if (defval >= bytes) goto corrupt_ctab;
++        if (!parse_ctab_string(start, bytes, name)) { mojo_ctab_line = __LINE__; goto corrupt_ctab; }
++        if (defval >= bytes) { mojo_ctab_line = __LINE__; goto corrupt_ctab; }
+ 
+         switch (regset)
+         {
+@@ -2363,7 +2395,7 @@
+             case 1: mojotype = MOJOSHADER_UNIFORM_INT; break;
+             case 2: mojotype = MOJOSHADER_UNIFORM_FLOAT; break;
+             case 3: /* SAMPLER */ break;
+-            default: goto corrupt_ctab;
++            default: { mojo_ctab_line = __LINE__; goto corrupt_ctab; }
+         } // switch
+ 
+         if ((setvariables) && (mojotype != MOJOSHADER_UNIFORM_UNKNOWN))
+@@ -2394,7 +2426,7 @@
+         sym->register_index = (unsigned int) regidx;
+         sym->register_count = (unsigned int) regcnt;
+         if (!parse_ctab_typeinfo(ctx, start, bytes, typeinf, &sym->info, 0))
+-            goto corrupt_ctab;  // sym->name will get free()'d later.
++            { mojo_ctab_line = __LINE__; goto corrupt_ctab; }  // sym->name will get free()'d later.
+         else if (ctx->out_of_memory)
+             return;  // just bail now.
+     } // for
+--- a/mojoshader.h
++++ b/mojoshader.h
+@@ -2619,6 +2619,8 @@
+ {
+     MOJOSHADER_renderStateType type;
+     MOJOSHADER_effectValue value;
++    unsigned int index; /* halo-re: state index (the stage of Texture[n]) */
++    unsigned int param; /* halo-re: 1 + index of the parameter a shader-constant state names (<param>), 0 for an inline value */
+ } MOJOSHADER_effectState;
+ 
+ struct MOJOSHADER_effectSamplerState
+--- a/mojoshader_effects.c
++++ b/mojoshader_effects.c
+@@ -561,7 +561,7 @@
+         MOJOSHADER_effectState *state = &(*states)[i];
+ 
+         const uint32 type = readui32(ptr, len);
+-        /*const uint32 FIXME =*/ readui32(ptr, len);
++        state->index = readui32(ptr, len); // halo-re: keep the state index
+         const uint32 typeoffset = readui32(ptr, len);
+         const uint32 valoffset = readui32(ptr, len);
+ 
+@@ -769,6 +769,8 @@
+     } // for
+ } // readstrings
+ 
++void mojo_trace(const char *format, ...);  // halo-re debugging hook (gl_effect.cpp)
++
+ static void readlargeobjects(const uint32 numlargeobjects,
+                              const uint32 numsmallobjects,
+                              const uint8 **ptr,
+@@ -798,12 +800,91 @@
+         const uint32 type = readui32(ptr, len);
+         const uint32 length = readui32(ptr, len);
+ 
++        if ((type == 0 || type == 1) && technique != 0xFFFFFFFF
++         && effect->techniques[technique].passes[index].states[state].type >= 0x94
++         && effect->techniques[technique].passes[index].states[state].type <= 0xA3)
++        {
++            // halo-re: Vertex/PixelShaderConstant*[n] = <param>. Usage 1: the payload is the parameter's name. Usage 0: an
++            // FXLC expression; every one in Halo's fx.bin (tools/convert_fx.py) is a float4 copy of the single parameter
++            // its CTAB lists, so that name is taken from the CTAB. The state's own value holds no object.
++            char varname[128];
++            varname[0] = 0;
++            if (type == 1)
++            {
++                const uint32 copylen = (length < sizeof (varname) - 1) ? length : (uint32) sizeof (varname) - 1;
++                memcpy(varname, *ptr, copylen);
++                varname[copylen] = 0;
++            } // if
++            else
++            {
++                uint32 k;
++                for (k = 0; k + 4 + 20 <= length; k += 4)
++                {
++                    if (memcmp(*ptr + k, "CTAB", 4) == 0)
++                    {
++                        const uint8 *ctab = *ptr + k + 4;
++                        const uint32 ctablen = length - k - 4;
++                        const uint32 count = *(const uint32 *) (ctab + 12);
++                        const uint32 info = *(const uint32 *) (ctab + 16);
++                        if (count >= 1 && info + 4 <= ctablen)
++                        {
++                            const uint32 nameoff = *(const uint32 *) (ctab + info);
++                            uint32 c = 0;
++                            while (nameoff + c < ctablen && c < sizeof (varname) - 1 && ctab[nameoff + c] != 0)
++                            {
++                                varname[c] = (char) ctab[nameoff + c];
++                                c++;
++                            } // while
++                            varname[c] = 0;
++                        } // if
++                        break;
++                    } // if
++                } // for
++            } // else
++            for (j = 0; j < effect->param_count; j++)
++            {
++                if (effect->params[j].value.name != NULL && strcmp(varname, effect->params[j].value.name) == 0)
++                {
++                    effect->techniques[technique].passes[index].states[state].param = (unsigned int) j + 1;
++                    break;
++                } // if
++            } // for
++            const uint32 skiplen = (length + 3) - ((length - 1) % 4);
++            *ptr += skiplen;
++            *len -= skiplen;
++            continue;
++        } // if
++
+         uint32 objectIndex;
+         if (technique == -1)
+             objectIndex = effect->params[index].value.valuesSS[state].value.valuesI[0];
+         else
+             objectIndex = effect->techniques[technique].passes[index].states[state].value.valuesI[0];
+ 
++        mojo_trace("large object %d: technique %d pass %d state %d type %d length %d objtype %d", (int) objectIndex, (int) technique, (int) index, (int) state, (int) type, (int) length, (int) effect->objects[objectIndex].type);
++        if (type == 1 && technique != 0xFFFFFFFF
++         && (effect->objects[objectIndex].type == MOJOSHADER_SYMTYPE_PIXELSHADER
++          || effect->objects[objectIndex].type == MOJOSHADER_SYMTYPE_VERTEXSHADER))
++        {
++            // halo-re: the pass names a shader variable (its bytecode is that variable's own object): point the pass at it
++            char varname[128];
++            const uint32 copylen = (length < sizeof (varname) - 1) ? length : (uint32) sizeof (varname) - 1;
++            memcpy(varname, *ptr, copylen);
++            varname[copylen] = 0;
++            for (j = 0; j < effect->param_count; j++)
++            {
++                if (effect->params[j].value.name != NULL && strcmp(varname, effect->params[j].value.name) == 0)
++                {
++                    effect->techniques[technique].passes[index].states[state].value.valuesI[0] = effect->params[j].value.valuesI[0];
++                    break;
++                } // if
++            } // for
++            const uint32 skiplen = (length + 3) - ((length - 1) % 4);
++            *ptr += skiplen;
++            *len -= skiplen;
++            continue;
++        } // if
++
+         MOJOSHADER_effectObject *object = &effect->objects[objectIndex];
+         if (object->type == MOJOSHADER_SYMTYPE_PIXELSHADER
+          || object->type == MOJOSHADER_SYMTYPE_VERTEXSHADER)
+--- a/profiles/mojoshader_profile_glsl.c
++++ b/profiles/mojoshader_profile_glsl.c
+@@ -301,13 +301,13 @@
+             break;
+ 
+         case SRCMOD_DZ:
+-            fail(ctx, "SRCMOD_DZ unsupported"); return buf; // !!! FIXME
+-            postmod_str = "_dz";
++            premod_str = "mojo_dz(";   // halo-re: projective ps_1_4 coordinates, helper defined in emit_GLSL_start
++            postmod_str = ")";
+             break;
+ 
+         case SRCMOD_DW:
+-            fail(ctx, "SRCMOD_DW unsupported"); return buf; // !!! FIXME
+-            postmod_str = "_dw";
++            premod_str = "mojo_dw(";
++            postmod_str = ")";
+             break;
+ 
+         case SRCMOD_ABSNEGATE:
+@@ -582,6 +582,16 @@
+         return;
+     } // else
+ 
++    if (shader_is_pixel(ctx))
++    {
++        push_output(ctx, &ctx->preflight);
++        output_line(ctx, "vec3 mojo_dz(vec3 v) { return vec3(v.xy / v.z, 1.0); }");
++        output_line(ctx, "vec4 mojo_dz(vec4 v) { return vec4(v.xy / v.z, v.zw); }");
++        output_line(ctx, "vec3 mojo_dw(vec3 v) { return vec3(v.xy / v.z, 1.0); }");
++        output_line(ctx, "vec4 mojo_dw(vec4 v) { return vec4(v.xy / v.w, v.zw); }");
++        pop_output(ctx);
++    } // if
++
+     push_output(ctx, &ctx->mainline_intro);
+     output_line(ctx, "void main()");
+     output_line(ctx, "{");
+@@ -1234,7 +1244,19 @@
+ {
+     char src0[64]; make_GLSL_srcarg_string_masked(ctx, 0, src0, sizeof (src0));
+     char code[128];
+-    make_GLSL_destarg_assign(ctx, code, sizeof (code), "%s", src0);
++    if (shader_is_vertex(ctx) && ctx->dest_arg.regtype == REG_TYPE_ADDRESS)
++    {
++        // halo-re: vs_1_x "mov a0.x, r" converts float to int (rounding down); GLSL 1.10 has no implicit conversion
++        const int vecsize = vecsize_from_writemask(ctx->dest_arg.writemask);
++        if (vecsize == 1)
++            make_GLSL_destarg_assign(ctx, code, sizeof (code), "int(floor(%s))", src0);
++        else
++            make_GLSL_destarg_assign(ctx, code, sizeof (code), "ivec%d(floor(%s))", vecsize, src0);
++    } // if
++    else
++    {
++        make_GLSL_destarg_assign(ctx, code, sizeof (code), "%s", src0);
++    } // else
+     output_line(ctx, "%s", code);
+ } // emit_GLSL_MOV
+ 
+@@ -1854,8 +1876,25 @@
+ 
+     else if (!shader_version_atleast(ctx, 2, 0))
+     {
+-        // ps_1_4 is different, too!
+-        fail(ctx, "TEXLD == Shader Model 1.4 unimplemented.");  // !!! FIXME
++        // halo-re: ps_1_4 "texld rN, tM" samples sampler N at the coordinates in src0
++        DestArgInfo *info = &ctx->dest_arg;
++        char sampler[64];
++        char src0[64];
++        char code[160] = {0};
++
++        RegisterList *sreg = reglist_find(&ctx->samplers, REG_TYPE_SAMPLER, info->regnum);
++        const TextureType ttype = (TextureType) (sreg ? sreg->index : TEXTURE_TYPE_2D);
++
++        make_GLSL_srcarg_string_masked(ctx, 0, src0, sizeof (src0));
++        get_GLSL_varname_in_buf(ctx, REG_TYPE_SAMPLER, info->regnum, sampler, sizeof (sampler));
++        // the type comes from the caller's sampler map (the bound texture), 2D otherwise
++        if (ttype == TEXTURE_TYPE_CUBE)
++            make_GLSL_destarg_assign(ctx, code, sizeof (code), "textureCube(%s, (%s).xyz)", sampler, src0);
++        else if (ttype == TEXTURE_TYPE_VOLUME)
++            make_GLSL_destarg_assign(ctx, code, sizeof (code), "texture3D(%s, (%s).xyz)", sampler, src0);
++        else
++            make_GLSL_destarg_assign(ctx, code, sizeof (code), "texture2D(%s, (%s).xy)", sampler, src0);
++        output_line(ctx, "%s", code);
+         return;
+     } // else if
+ 

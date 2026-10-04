@@ -60,8 +60,8 @@ add_library(stb_vorbis STATIC third_party/stb/stb_vorbis.c)
 target_compile_definitions(stb_vorbis PRIVATE STB_VORBIS_NO_STDIO STB_VORBIS_NO_PUSHDATA_API _CRT_SECURE_NO_WARNINGS)
 target_compile_options(stb_vorbis PRIVATE /W0 /GS-)
 
-# ---- MojoShader (zlib, vendor/mojoshader): D3D shader bytecode -> GLSL for the OpenGL backend (HALO_RENDERER=gl)
-file(GLOB MOJO_DIR LIST_DIRECTORIES true "${CMAKE_SOURCE_DIR}/vendor/mojoshader/mojoshader-*")
+# ---- MojoShader (zlib, third_party/mojoshader, patched: see its README.halo.md): D3D shader bytecode -> GLSL for HALO_RENDERER=gl
+set(MOJO_DIR "${CMAKE_SOURCE_DIR}/third_party/mojoshader")
 add_library(mojoshader STATIC
     "${MOJO_DIR}/mojoshader.c" "${MOJO_DIR}/mojoshader_common.c" "${MOJO_DIR}/mojoshader_effects.c"
     "${MOJO_DIR}/profiles/mojoshader_profile_common.c" "${MOJO_DIR}/profiles/mojoshader_profile_glsl.c")

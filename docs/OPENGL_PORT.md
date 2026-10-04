@@ -97,3 +97,5 @@ unchanged and translate them; the engine code above the interface is not rewritt
   textures (the flashlight's projected cube map) sampled black. ps_1_x shaders keep their bytecode and are re-translated with a MojoShader sampler
   map when a cube/volume texture is bound (cached per shader, up to 8 combinations). Vendored MojoShader patch: ps_1_4 `texld` emits
   textureCube/texture3D for those samplers. Flashlight lights the BSP. Open: other levels unchecked, GLES3/WebGL profile (milestone 6).
+- 2026-10-04: MojoShader is now tracked in third_party/mojoshader (upstream ad5dff8 plus the halo-re changes listed in its README.halo.md, full diff
+  in halo.patch); the build no longer reads vendor/mojoshader.
