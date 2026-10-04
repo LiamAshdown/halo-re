@@ -46,7 +46,7 @@ inline auto &game_screen_rect_bottom = halo::link::ref<int16_t>(halo::rasterizer
 inline auto &game_screen_rect_right = halo::link::ref<int16_t>(halo::rasterizer::vars().game_screen_rect_right);
 inline auto &lens_flare_effect = halo::link::ref<void *>(halo::rasterizer::vars().lens_flare_effect);
 inline auto &environment_effect_variant = halo::link::ref<uint8_t>(halo::rasterizer::vars().environment_effect_variant);
-inline auto &unknown_00719aac = halo::link::ref<int16_t>(halo::rasterizer::vars().unknown_00719aac);
+inline auto &screenshot_tile_count = halo::link::ref<int16_t>(halo::rasterizer::vars().screenshot_tile_count);
 inline auto &frame_reset_cleared_word = halo::link::ref<uint32_t>(halo::rasterizer::vars().frame_reset_cleared_word);
 inline auto &lockable_back_buffer_requested = halo::link::ref<uint8_t>(halo::rasterizer::vars().lockable_back_buffer_requested);
 inline auto &video_mode_command_line_parsed = halo::link::ref<uint8_t>(halo::rasterizer::vars().video_mode_command_line_parsed);
@@ -222,7 +222,7 @@ inline uint8_t &environment_effect_variant = ::environment_effect_variant;
  *
  * @address 0x719aac
  */
-inline int16_t &screenshot_tile_count = unknown_00719aac;
+inline int16_t &screenshot_tile_count = ::screenshot_tile_count;
 
 /**
  * Cleared at the start of every frame by the dynamic geometry reset. Nothing in the image reads it.

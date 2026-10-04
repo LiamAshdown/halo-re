@@ -212,7 +212,7 @@ scenario_game_globals *global_scenario_game_globals;  // 0x00746f94
 ModelCollisionGeometryBSP *global_structure_collision_bsp;  // 0x00746f98
 ScenarioStructureBSP *global_structure_bsp;  // 0x00746f9c
 Globals *global_globals;  // 0x00746fa0
-uint8_t unknown_00746fa4;  // 0x00746fa4
+uint8_t recover_saved_games_hack;  // 0x00746fa4
 uint32_t lens_flare_batch_clock;  // 0x00746fa8
 lens_flare_batch lens_flare_batches[k_lens_flare_batch_slots];  // 0x00746fc0
 void *rasterizer_water_draw_procedure;  // 0x007bf050
@@ -412,7 +412,7 @@ HALO_SZ_CHECK(global_scenario_game_globals, 4);
 HALO_SZ_CHECK(global_structure_collision_bsp, 4);
 HALO_SZ_CHECK(global_structure_bsp, 4);
 HALO_SZ_CHECK(global_globals, 4);
-HALO_SZ_CHECK(unknown_00746fa4, 4);
+HALO_SZ_CHECK(recover_saved_games_hack, 4);
 HALO_SZ_CHECK(lens_flare_batch_clock, 8);
 HALO_SZ_CHECK(lens_flare_batches, 491648);
 HALO_SZ_CHECK(rasterizer_water_draw_procedure, 16);

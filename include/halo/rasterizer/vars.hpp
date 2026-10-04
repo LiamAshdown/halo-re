@@ -265,7 +265,7 @@ struct Vars {
     void *game_screen_rect_right;
     void *lens_flare_effect;
     void *environment_effect_variant;
-    void *unknown_00719aac;
+    void *screenshot_tile_count;
     void *frame_reset_cleared_word;
     void *lockable_back_buffer_requested;
     void *video_mode_command_line_parsed;

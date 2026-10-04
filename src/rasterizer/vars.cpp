@@ -268,7 +268,7 @@ const Vars &vars()
         game_screen_rect_right,
         lens_flare_effect,
         environment_effect_variant,
-        unknown_00719aac,
+        screenshot_tile_count,
         frame_reset_cleared_word,
         lockable_back_buffer_requested,
         video_mode_command_line_parsed,

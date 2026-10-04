@@ -35,8 +35,8 @@ struct Vars {
     void *input_globals;
     void *interface_loading_screen_address_a;
     void *interface_loading_screen_address_b;
-    void *main_globals_byte_0071973a;
-    void *main_globals_byte_0071974f;
+    void *revert_map;
+    void *lost_map;
     void *main_globals_data;
     void *main_menu_music_pending;
     void *main_render_skip_threshold_ms;
@@ -66,7 +66,7 @@ struct Vars {
     void *timedemo_pixel_shader_version;
     void *ui_pause_pending_count_00718fa0;
     void *unknown_00710301;
-    void *unknown_0071973b;
+    void *revert_map_if_allowed;
     void *time_is_running;
     void *reset_frame_timers;
     void *unknown_00873d30;

@@ -239,7 +239,7 @@ void GameCommands::evaluate_game_revert(int16_t function_index, uint32_t thread_
     halo::networking::globals().join_error_reason = 0;
     halo::main::fields::lost_map = 0;
     split_screen_quit_prompt_string = halo::k_word_none;
-    main_globals_byte_0071973a = 1;
+    revert_map = 1;
     halo::hs::hs_thread_return(0, thread_index);
 }
 

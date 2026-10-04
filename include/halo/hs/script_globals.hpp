@@ -18,9 +18,9 @@ inline auto &g_0087abc5 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc5);
 inline auto &ai_debug_gate_87abc6 = halo::link::ref<uint8_t>(halo::hs::vars().ai_debug_gate_87abc6);
 inline auto &g_0087abc7 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc7);
 inline auto &cheat_super_jump = halo::link::ref<uint8_t>(halo::hs::vars().cheat_super_jump);
-inline auto &DAT_00689471 = halo::link::ref<uint8_t>(halo::hs::vars().DAT_00689471);
+inline auto &object_prediction = halo::link::ref<uint8_t>(halo::hs::vars().object_prediction);
 inline auto &g_00689481 = halo::link::ref<uint8_t>(halo::hs::vars().g_00689481);
-inline auto &unknown_00746fa4 = halo::link::ref<uint8_t>(halo::hs::vars().unknown_00746fa4);
+inline auto &recover_saved_games_hack = halo::link::ref<uint8_t>(halo::hs::vars().recover_saved_games_hack);
 inline auto &director_camera_target_changed = halo::link::ref<uint8_t>(halo::hs::vars().director_camera_target_changed);
 
 namespace halo::hs::fields {
@@ -85,7 +85,7 @@ inline uint8_t &omnipotent = g_0087abc7;
  *
  * @address 0x689471
  */
-inline uint8_t &object_prediction = DAT_00689471;
+inline uint8_t &object_prediction = ::object_prediction;
 
 /**
  * hs global "should_play_multiplayer_hit_sound" (default 1). The throttled multiplayer sound event only plays
@@ -101,7 +101,7 @@ inline uint8_t &should_play_multiplayer_hit_sound = g_00689481;
  *
  * @address 0x746fa4
  */
-inline uint8_t &recover_saved_games_hack = unknown_00746fa4;
+inline uint8_t &recover_saved_games_hack = ::recover_saved_games_hack;
 
 /**
  * Set whenever the director camera mode and target are changed (by the camera scripts, the followed object

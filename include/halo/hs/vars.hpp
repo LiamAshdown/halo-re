@@ -9,7 +9,7 @@ namespace halo::hs {
 
 /** Address table of the engine variables owned by the hs module. */
 struct Vars {
-    void *DAT_00689471;
+    void *object_prediction;
     void *jetpack;
     void *bump_possession;
     void *ai_debug_gate_87abc6;
@@ -89,7 +89,7 @@ struct Vars {
     void *ui_widget_show_path_flag;
     void *director_camera_target_changed;
     void *unknown_006894ba;
-    void *unknown_00746fa4;
+    void *recover_saved_games_hack;
 };
 
 /** The singleton address table; its storage is constant-initialised. */

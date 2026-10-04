@@ -67,7 +67,7 @@ __declspec(allocate(".g08$0014")) __declspec(align(1)) uint8_t debug_print_safet
 #pragma section(".g08$0015", read, write)
 __declspec(allocate(".g08$0015")) __declspec(align(1)) uint8_t g08_pad_00719aa9[2] = {0}; // 0x00719aaa pad to next symbol
 #pragma section(".g08$0016", read, write)
-__declspec(allocate(".g08$0016")) __declspec(align(2)) int16_t unknown_00719aac = {0}; // 0x00719aac
+__declspec(allocate(".g08$0016")) __declspec(align(2)) int16_t screenshot_tile_count = {0}; // 0x00719aac
 #pragma section(".g08$0017", read, write)
 __declspec(allocate(".g08$0017")) __declspec(align(1)) uint8_t g08_pad_00719aac[2] = {0}; // 0x00719aae pad to next symbol
 #pragma section(".g08$0018", read, write)

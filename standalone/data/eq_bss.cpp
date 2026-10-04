@@ -551,9 +551,9 @@ __declspec(allocate(".g08$0000_00719738v")) __declspec(align(8)) uint8_t unknown
 #pragma section(".g08$0000_00719739v", read, write)
 __declspec(allocate(".g08$0000_00719739v")) __declspec(align(1)) uint8_t network_wait_flag_00719739[1] = {0};
 #pragma section(".g08$0000_0071973av", read, write)
-__declspec(allocate(".g08$0000_0071973av")) __declspec(align(2)) uint8_t main_globals_byte_0071973a[1] = {0};
+__declspec(allocate(".g08$0000_0071973av")) __declspec(align(2)) uint8_t revert_map[1] = {0};
 #pragma section(".g08$0000_0071973bv", read, write)
-__declspec(allocate(".g08$0000_0071973bv")) __declspec(align(1)) uint8_t unknown_0071973b[1] = {0};
+__declspec(allocate(".g08$0000_0071973bv")) __declspec(align(1)) uint8_t revert_map_if_allowed[1] = {0};
 #pragma section(".g08$0000_0071973cv", read, write)
 __declspec(allocate(".g08$0000_0071973cv")) __declspec(align(4)) uint8_t network_join_error_reason[1] = {0};
 #pragma section(".g08$0000_0071973dv", read, write)
@@ -571,7 +571,7 @@ __declspec(allocate(".g08$0000_0071974cv")) __declspec(align(4)) uint8_t main_gl
 #pragma section(".g08$0000_0071974ev", read, write)
 __declspec(allocate(".g08$0000_0071974ev")) __declspec(align(2)) uint8_t main_globals_byte_0071974e[1] = {0};
 #pragma section(".g08$0000_0071974fv", read, write)
-__declspec(allocate(".g08$0000_0071974fv")) __declspec(align(1)) uint8_t main_globals_byte_0071974f[1] = {0};
+__declspec(allocate(".g08$0000_0071974fv")) __declspec(align(1)) uint8_t lost_map[1] = {0};
 #pragma section(".g08$0000_00719750v", read, write)
 __declspec(allocate(".g08$0000_00719750v")) __declspec(align(16)) uint8_t global_00719750[1] = {0};
 #pragma section(".g08$0000_00719751v", read, write)

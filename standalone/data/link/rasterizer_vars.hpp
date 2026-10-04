@@ -262,7 +262,7 @@ extern char game_screen_rect_bottom[];
 extern char game_screen_rect_right[];
 extern char lens_flare_effect[];
 extern char environment_effect_variant[];
-extern char unknown_00719aac[];
+extern char screenshot_tile_count[];
 extern char frame_reset_cleared_word[];
 extern char lockable_back_buffer_requested[];
 extern char video_mode_command_line_parsed[];

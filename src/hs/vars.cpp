@@ -12,7 +12,7 @@ namespace halo::hs {
 const Vars &vars()
 {
     static const Vars table{
-        DAT_00689471,
+        object_prediction,
         jetpack,
         bump_possession,
         ai_debug_gate_87abc6,
@@ -92,7 +92,7 @@ const Vars &vars()
         ui_widget_show_path_flag,
         director_camera_target_changed,
         unknown_006894ba,
-        unknown_00746fa4,
+        recover_saved_games_hack,
     };
     return table;
 }
