@@ -570,7 +570,7 @@ typedef char actor_jump_request_size[sizeof(actor_jump_request) == 0x14 ? 1 : -1
 
 typedef struct actor {
     int16_t identifier;               // 0x00 datum_header
-    uint8_t unknown_02[2];            // 0x02
+    uint8_t pad_02[2];                // 0x02
     int16_t type;                     // 0x04 ActorType, copied from the actor tag type at Actor+0x14 by actor_new; indexes actor_type_procs
     uint8_t swarm;                    // 0x06 Actor.flags bit 26 "swarm"; the order builders refuse to act while it is set
     uint8_t unit_control_pending;     // 0x07 actor_new and actor_freeze_unit-like 0x429000 set it;
@@ -598,7 +598,7 @@ typedef struct actor {
     uint8_t pad_16[2];                // 0x16
     datum_index unit_index;           // 0x18 the one unit object this actor controls; the unit points back at 0x1f4
     uint8_t counts_toward_encounter;  // 0x1c actor_unlink_unit decrements encounter+0x1c only when set
-    uint8_t unknown_1d;               // 0x1d
+    uint8_t pad_1d;                   // 0x1d
     int16_t cluster_count;            // 0x1e actor_link_to_unit_cluster increments, actor_remove_from_unit_cluster decrements
     int16_t total_cluster_count;      // 0x20 actor_link_to_unit_cluster 0x4279f0 increments it with cluster_count but
                                       //    nothing decrements it; encounter_recompute_morale uses cluster_count/this
@@ -622,7 +622,7 @@ typedef struct actor {
     int16_t saved_squad_index;        // 0x48 ... and its squad
     int16_t idle_counter;             // 0x4a 0x429430 advances it and trips the global update stagger past 15
     uint8_t needs_new_path;           // 0x4c 0x4017b0 issues a fresh path request while set; 0x429430 also writes it
-    uint8_t unknown_4d;               // 0x4d
+    uint8_t pad_4d;                   // 0x4d
     int16_t target_reaction_threshold;// 0x4e ticks a prop's reaction_timer must reach before the actor refreshes its aim (set by the target relationship pass)
     datum_index first_prop;           // 0x50 head of the prop list, chained through prop.next_in_actor at +0x08
     datum_index nearest_orphan_prop_index; // 0x54 actor_target_relationship_think 0x41abd0 stores the nearest prop in
@@ -640,7 +640,7 @@ typedef struct actor {
                                       //    ScenarioActorStartingLocation.sequence_id (request+0x12);
                                       //    actor_select_move_position 0x4014c0 skips move positions whose sequence_id
                                       //    differs
-    uint8_t unknown_69;               // 0x69
+    uint8_t pad_69;                   // 0x69
     int16_t awareness_level;          // 0x6a 0..3; actor_set_mode clamps it to 2 or 3 by mode, actor_update_awareness_level drives it
     int16_t mode;                     // 0x6c actor_set_mode writes it; indexes actor_mode_definitions
     int16_t combat_status;            // 0x6e actor_update_awareness_level: max(suspicion_status, minimum_combat_status,
@@ -649,14 +649,14 @@ typedef struct actor {
                                       //   enemy: attack vs pursue shield fractions, dialogue variants), > 6 as
                                       //   engaged (has_engaged). The CEA names this step actor_situation_combat_status_update.
     uint8_t mode_changed;             // 0x70 actor_set_mode sets 1
-    uint8_t unknown_71;               // 0x71
+    uint8_t pad_71;                   // 0x71
     int16_t minimum_combat_status;    // 0x72 floor of combat_status that orders impose (order request 10 sets 2,
                                       //   0x41fbc0 clears it); "minimum < combat_status" is the test for a threat
                                       //   the actor perceived itself (0x428180, grenade eligibility, morale)
     int16_t suspicion_status;         // 0x74 latched maximum of the recorded perception events (perception_event,
                                       //   the CEA's suspicion_combat_status); cleared when combat_status rises
                                       //   past it or suspicion_timer runs out
-    int16_t unknown_76;               // 0x76
+    int16_t pad_76;                   // 0x76
     int32_t suspicion_timer;          // 0x78 ticks, from perception_event_data (450 / 600 / 900 at the callers);
                                       //   actor_update_squad_link_state counts it down and clears suspicion_status at 0
     int32_t ticks_in_combat;          // 0x7c consecutive ticks at awareness_level 3, else 0
@@ -776,7 +776,7 @@ typedef struct actor {
                                       //   every time it walks the prop list. The three per-actor-type
                                       //   runs inside it are what fixes the 0x1ec base: the last one
                                       //   ends at 0x266, one byte short of target_combat_status.
-    uint8_t unknown_267;              // 0x267 the byte the zeroing run does not reach
+    uint8_t pad_267;                  // 0x267 the byte the zeroing run does not reach
     int16_t target_combat_status;     // 0x268 actor_update_target_combat_status writes it, actor_update_awareness_level reads it
     uint8_t pad_26a[2];               // 0x26a
     datum_index target_last_seen_time; // 0x26c int32 time (declared datum_index): actor_update_target_combat_status
@@ -860,7 +860,7 @@ typedef struct actor {
     datum_index search_prop_index;    // 0x340 prop the request came from (swapped by actor_replace_object_reference)
     uint32_t search_prop_value;      // 0x344 caller parameter stored with search_prop_index (150 in the known caller); the guard order data takes its low word when a prop is set
     uint8_t search_prop_flag;        // 0x348 caller parameter stored with search_prop_index (0 in the known callers); the guard order data copies it when a prop is set
-    uint8_t unknown_349;              // 0x349
+    uint8_t pad_349;                  // 0x349
     int16_t perception_event;         // 0x34a 0x422070 records the highest-priority pending perception event
     int32_t perception_event_data;    // 0x34c
     // 0x350..0x36b block; actor_new zeroes 0x1a dwords starting here, i.e. 0x350..0x3b7. Member types agree between
@@ -872,7 +872,7 @@ typedef struct actor {
                                       //    grenade reactions / smoothing clamp (facing_change_timer)
     uint8_t crouch_active;            // 0x358 byte flag; crouching (crouch_state) vs pending flag (facing timer);
                                       //    also copied to 0x426/0x427 by fight/charge/avoid mode updates
-    uint8_t unknown_359;              // 0x359
+    uint8_t pad_359;                  // 0x359
     int16_t crouch_ticks;             // 0x35a tick counter (crouch timer / facing-change ticks)
     uint8_t crouch_cover_flags[4];    // 0x35c crouch_state neighbour flags
     int16_t incoming_fire_ticks;      // 0x360 countdown: crouch_state; actor_movement_update tests >= 1
@@ -1068,7 +1068,7 @@ typedef struct actor {
     uint8_t crouching;                // 0x508 0x416790 stores crouch decision (0x426/0x427, Actor
                                       //    cannot_move_while_crouching) mirrored to control flag bit0; 0x4173a0
                                       //    crouch_velocity_modifier; 0x40e7b0 crouch gun offset
-    uint8_t unknown_509;              // 0x509
+    uint8_t pad_509;                  // 0x509
     int16_t moving_facing_direction;  // 0x50a CEA control.moving_facing_direction; 0x4180c0 *desired_facing_direction
                                       //    out (0 fwd,1 back,2/3 sides,4 free); squad_action_execute moving_forward =
                                       //    moving && ==0
@@ -1193,7 +1193,7 @@ typedef struct actor {
     uint8_t use_high_arc;             // 0x622 the target is beyond the variant's arc range; passed to weapon_trigger_get_aiming_vector
     uint8_t fire_blindly;             // 0x623 the actor fires without a clear line (forced aim and a blind-fire range)
     uint8_t firing_target_hidden;     // 0x624 the firing target's cluster is not visible to the local player
-    uint8_t unknown_625;              // 0x625
+    uint8_t pad_625;                  // 0x625
     int16_t firing_target_obstruction; // 0x626 obstruction of the firing target (0 and 1 are clear)
     uint8_t target_in_firing_range;   // 0x628 0x40e7b0 clears each tick, sets once all fire gates pass (range < max
                                       //    firing distance 0x608); look decode code 2 then uses target_aim_vector
@@ -1238,7 +1238,7 @@ typedef struct actor {
                                       //    the grenade arc solver
     float grenade_throw_speed;        // 0x6c8 launch speed of the planned throw
     uint8_t grenade_eligible;         // 0x6cc 0x42f260 caches the eligibility test here
-    uint8_t unknown_6cd;              // 0x6cd
+    uint8_t pad_6cd;                  // 0x6cd
     int16_t grenade_recheck_ticks;    // 0x6ce actor_new sets 30
     uint32_t control_flags;           // 0x6d0 the unit control flags word staged for unit_apply_control_block (crouch
                                       //    1, 0x20, primary 0x800, secondary 0x1000, grenade 0x2000)
