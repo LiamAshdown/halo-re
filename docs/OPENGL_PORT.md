@@ -67,3 +67,10 @@ unchanged and translate them; the engine code above the interface is not rewritt
   (stage/sampler/render states, water ripple draw, GetDisplayMode). `build/dbg/gl_smoke.sh <seconds>` runs the GL path and screenshots the
   screen to `build/dbg/gl_shot.png`; `build/dbg/resolve_eip.py` resolves crash addresses against the link map. Next: milestone 2 (texture and buffer
   uploads, render targets, 2D menu drawing). vendor/mojoshader holds the MojoShader source for milestone 4.
+
+- 2026-10-04: milestones 2-3 first cut. The main menu now draws through OpenGL (`HALO_RENDERER=gl`): GL entry points loaded at run time (`gl_api.hpp`),
+  textures uploaded from the CPU shadow copies (DXT, legacy formats converted to RGBA8), vertex/index buffers, vertex declarations and FVF, render/sampler
+  state mapped to GL state, render targets via FBOs, vs/ps bytecode translated to GLSL 1.10 by MojoShader (built as a static lib; vendored copy patched for
+  vs_1_x relative addressing without a CTAB and `mov a0` float-to-int), and generated GLSL for the fixed-function vertex and texture-stage pixel pipelines.
+  Not done yet: fixed-function lighting/fog, ID3DXEffect (fx.bin) for world rendering, process_vertices, parity screenshots, GLES3 profile.
+  Debug: `HALO_GL_TRACE=1` logs draws; `HALO_GL_PROGRAMS=<dir/>` dumps generated GLSL.

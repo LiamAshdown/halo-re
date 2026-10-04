@@ -50,6 +50,7 @@ add_library(halo_game OBJECT ${GAME_SOURCES})
 set(CXX_GAME_SOURCES ${GAME_SOURCES})
 list(FILTER CXX_GAME_SOURCES EXCLUDE REGEX "/src/gamespy/")   # GameSpy stays vendored C
 set_source_files_properties(${CXX_GAME_SOURCES} PROPERTIES LANGUAGE CXX)
+target_link_libraries(halo_game PRIVATE mojoshader)
 target_include_directories(halo_game PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/third_party" "${CMAKE_SOURCE_DIR}/standalone/data" "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
 target_compile_options(halo_game PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++20> $<$<COMPILE_LANGUAGE:CXX>:/permissive-> $<$<COMPILE_LANGUAGE:CXX>:/GR-> /W3 /Od /GS- /Oy- /Gy /wd4996
     "/FI${CMAKE_SOURCE_DIR}/include/halo/msvc_compat.h")
@@ -58,6 +59,17 @@ target_compile_options(halo_game PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++20> $
 add_library(stb_vorbis STATIC third_party/stb/stb_vorbis.c)
 target_compile_definitions(stb_vorbis PRIVATE STB_VORBIS_NO_STDIO STB_VORBIS_NO_PUSHDATA_API _CRT_SECURE_NO_WARNINGS)
 target_compile_options(stb_vorbis PRIVATE /W0 /GS-)
+
+# ---- MojoShader (zlib, vendor/mojoshader): D3D shader bytecode -> GLSL for the OpenGL backend (HALO_RENDERER=gl)
+file(GLOB MOJO_DIR LIST_DIRECTORIES true "${CMAKE_SOURCE_DIR}/vendor/mojoshader/mojoshader-*")
+add_library(mojoshader STATIC
+    "${MOJO_DIR}/mojoshader.c" "${MOJO_DIR}/mojoshader_common.c" "${MOJO_DIR}/mojoshader_effects.c"
+    "${MOJO_DIR}/profiles/mojoshader_profile_common.c" "${MOJO_DIR}/profiles/mojoshader_profile_glsl.c")
+target_include_directories(mojoshader PUBLIC "${MOJO_DIR}")
+target_compile_definitions(mojoshader PUBLIC MOJOSHADER_NO_VERSION_INCLUDE=1 MOJOSHADER_EFFECT_SUPPORT=1 MOJOSHADER_FLIP_RENDERTARGET=1 MOJOSHADER_DEPTH_CLIPPING=1 _CRT_SECURE_NO_WARNINGS=1
+    SUPPORT_PROFILE_D3D=0 SUPPORT_PROFILE_BYTECODE=0 SUPPORT_PROFILE_HLSL=0 SUPPORT_PROFILE_GLSL120=0
+    SUPPORT_PROFILE_ARB1=0 SUPPORT_PROFILE_ARB1_NV=0 SUPPORT_PROFILE_METAL=0 SUPPORT_PROFILE_SPIRV=0 SUPPORT_PROFILE_GLSPIRV=0)
+target_compile_options(mojoshader PRIVATE /TP /W0 /GS- /std:c++20)
 
 # ---- the standalone exe: loader, data image, link tables
 set(SA "${CMAKE_SOURCE_DIR}/standalone")
@@ -87,7 +99,7 @@ target_link_directories(halo_rebuilt PRIVATE "${DXSDK_DIR}/Lib/x86")
 target_link_libraries(halo_rebuilt PRIVATE
     kernel32 user32 gdi32 advapi32 ole32 oleaut32 winmm ws2_32 shell32 version shlwapi comdlg32
     dsound dinput8 dxguid d3d9 d3dx9 opengl32 legacy_stdio_definitions wininet
-    stb_vorbis)
+    stb_vorbis mojoshader)
 # the data image sits at the original addresses (0x400000..0x891000), so the exe must load elsewhere, unrelocated
 target_link_options(halo_rebuilt PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x10000000 /SAFESEH:NO /OPT:NOREF /OPT:NOICF
     /LARGEADDRESSAWARE:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcpmt.lib /MAP)

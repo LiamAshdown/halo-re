@@ -1,120 +1,29 @@
 /**
  * @file src/rasterizer/gl_device.cpp
- * OpenGL implementation of the RenderDevice interface, milestone 1 (see docs/OPENGL_PORT.md): a WGL context on the game
- * window that clears and presents, and CPU-side stand-ins for every resource so the engine can create, lock and fill them.
- * Nothing is drawn yet. Adapter and capability queries are forwarded to the real Direct3D 9 object the shell creates.
+ * OpenGL implementation of the RenderDevice interface (see docs/OPENGL_PORT.md): resources (CPU shadow memory uploaded to GL
+ * on use), device and frame management. Drawing, state and shader handling live in gl_draw.cpp. Adapter and capability
+ * queries are forwarded to the real Direct3D 9 object the shell creates.
  */
 
-#include "halo/rasterizer/gl_device.hpp"
+#include "gl_internal.hpp"
 #include "halo/shell/standalone.hpp"
 
-#include <windows.h>
-#include <GL/gl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 namespace halo::rasterizer {
 
-namespace {
+using namespace gl;
 
-constexpr uint32_t k_magic = 0x424f4c47;  // "GLOB": first dword of every object this backend hands out
-
-enum kind : uint32_t {
-    kind_device = 1,
-    kind_texture,
-    kind_volume_texture,
-    kind_cube_texture,
-    kind_vertex_buffer,
-    kind_index_buffer,
-    kind_surface,
-    kind_declaration,
-    kind_vertex_shader,
-    kind_pixel_shader,
-    kind_query,
-    kind_effect,
-};
-
-struct gl_object {
-    uint32_t magic;
-    uint32_t kind;
-    int32_t refs;
-};
-
-struct gl_level {
-    uint32_t width, height, depth;
-    uint32_t pitch;  // bytes per row (per block row for compressed formats)
-    uint32_t slice;  // bytes per depth slice
-    uint8_t *data;
-};
-
-constexpr uint32_t k_max_levels = 16;
-
-struct gl_texture : gl_object {
-    uint32_t format;
-    uint32_t levels;
-    uint32_t faces;
-    gl_level level[6 * k_max_levels];
-};
-
-struct gl_surface : gl_object {
-    uint32_t format;
-    uint32_t width, height;
-    uint32_t pitch;
-    uint8_t *data;
-    bool owns_data;
-    gl_texture *parent;  // texture whose level this surface views (kept alive), or null
-};
-
-struct gl_buffer : gl_object {
-    uint32_t size;
-    uint32_t format;  // FVF for a vertex buffer, index format for an index buffer
-    uint8_t *data;
-};
-
-struct gl_declaration : gl_object {
-    uint32_t element_count;
-    uint8_t *elements;  // 8 bytes per D3DVERTEXELEMENT9, end marker included
-};
-
-/* Direct3D 9 values the stand-ins need */
-constexpr uint32_t k_fourcc_dxt1 = 0x31545844;
-constexpr uint32_t k_fourcc_dxt2 = 0x32545844;
-constexpr uint32_t k_fourcc_dxt3 = 0x33545844;
-constexpr uint32_t k_fourcc_dxt4 = 0x34545844;
-constexpr uint32_t k_fourcc_dxt5 = 0x35545844;
-
-struct device_state {
-    HWND window;
-    HDC dc;
-    HGLRC context;
-    uint32_t width;
-    uint32_t height;
-    gl_object *device_object;
-};
+namespace gl {
 
 device_state g_state;
-
-/** Everything the draw calls depend on, tracked as the engine sets it (the fixed-function emulation reads this). */
-struct pipeline_state {
-    uint32_t render_state[256];
-    uint32_t texture_stage_state[8][32];
-    uint32_t sampler_state[16][16];
-    gl_object *texture[16];
-    gl_declaration *declaration;
-    uint32_t fvf;
-    gl_object *vertex_shader;
-    gl_object *pixel_shader;
-    gl_buffer *stream[4];
-    uint32_t stream_offset[4];
-    uint32_t stream_stride[4];
-    gl_buffer *indices;
-    float vertex_constants[256][4];
-    float pixel_constants[32][4];
-    float transform[512][16];  // indexed by D3DTRANSFORMSTATETYPE (view 2, projection 3, texture 16.., world 256)
-};
-
 pipeline_state g_pipe;
+
+}  // namespace gl
+
+namespace {
 
 bool trace_enabled()
 {
@@ -128,6 +37,15 @@ bool trace_enabled()
 }
 
 int g_trace_budget = 60;
+
+uint32_t block_bytes(uint32_t format)
+{
+    return format == k_fourcc_dxt1 ? 8 : 16;
+}
+
+}  // namespace
+
+namespace gl {
 
 void trace_draw(const char *name, uint32_t type, uint32_t count)
 {
@@ -154,22 +72,6 @@ void trace_draw(const char *name, uint32_t type, uint32_t count)
         g_pipe.render_state[20], g_pipe.render_state[15], g_pipe.render_state[22]);
 }
 
-template <typename T>
-T *new_object(uint32_t object_kind)
-{
-    T *object = static_cast<T *>(calloc(1, sizeof(T)));
-
-    object->magic = k_magic;
-    object->kind = object_kind;
-    object->refs = 1;
-    return object;
-}
-
-bool is_ours(const void *object)
-{
-    return object != nullptr && static_cast<const gl_object *>(object)->magic == k_magic;
-}
-
 /** Bytes per pixel, or 0 for a block-compressed format. */
 uint32_t bytes_per_pixel(uint32_t format)
 {
@@ -194,11 +96,6 @@ uint32_t bytes_per_pixel(uint32_t format)
     }
 }
 
-uint32_t block_bytes(uint32_t format)
-{
-    return format == k_fourcc_dxt1 ? 8 : 16;
-}
-
 /** Row pitch in bytes and the number of rows (block rows for compressed formats) of a width x height image. */
 void image_layout(uint32_t format, uint32_t width, uint32_t height, uint32_t *pitch, uint32_t *rows)
 {
@@ -211,6 +108,22 @@ void image_layout(uint32_t format, uint32_t width, uint32_t height, uint32_t *pi
         *pitch = width * bpp;
         *rows = height;
     }
+}
+
+}  // namespace gl
+
+namespace {
+
+template <typename T>
+void hold(T *&slot, T *value)
+{
+    if (value != nullptr) {
+        value->refs++;
+    }
+    if (slot != nullptr) {
+        gl_device().release(slot);
+    }
+    slot = value;
 }
 
 uint32_t mip_dimension(uint32_t value, uint32_t level)
@@ -239,6 +152,10 @@ uint32_t level_count(uint32_t requested, uint32_t width, uint32_t height, uint32
 
 void allocate_levels(gl_texture *texture, uint32_t width, uint32_t height, uint32_t depth)
 {
+    texture->width = width;
+    texture->height = height;
+    texture->depth = depth;
+    texture->dirty = true;
     for (uint32_t face = 0; face < texture->faces; face++) {
         for (uint32_t i = 0; i < texture->levels; i++) {
             gl_level &level = texture->level[face * k_max_levels + i];
@@ -299,8 +216,78 @@ gl_surface *make_surface(uint32_t format, uint32_t width, uint32_t height)
     return surface;
 }
 
+gl_surface *make_back_buffer()
+{
+    gl_surface *surface = make_surface(21, g_state.width, g_state.height);
+
+    surface->back_buffer = true;
+    return surface;
+}
+
+/** A surface that views one level of a texture (the texture stays alive while the surface does). */
+gl_surface *make_level_surface(gl_texture *texture, uint32_t face, uint32_t level)
+{
+    gl_surface *surface = new_object<gl_surface>(kind_surface);
+    const gl_level &view = texture->level[face * k_max_levels + level];
+
+    surface->format = texture->format;
+    surface->width = view.width;
+    surface->height = view.height;
+    surface->pitch = view.pitch;
+    surface->data = view.data;
+    surface->owns_data = false;
+    surface->parent = texture;
+    surface->face = face;
+    surface->level = level;
+    texture->refs++;
+    return surface;
+}
+
+bool create_context(HWND window)
+{
+    PIXELFORMATDESCRIPTOR descriptor;
+    int format;
+
+    memset(&descriptor, 0, sizeof(descriptor));
+    descriptor.nSize = sizeof(descriptor);
+    descriptor.nVersion = 1;
+    descriptor.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+    descriptor.iPixelType = PFD_TYPE_RGBA;
+    descriptor.cColorBits = 32;
+    descriptor.cDepthBits = 24;
+    descriptor.cStencilBits = 8;
+    descriptor.iLayerType = PFD_MAIN_PLANE;
+
+    g_state.window = window;
+    g_state.dc = GetDC(window);
+    format = ChoosePixelFormat(g_state.dc, &descriptor);
+    if (format == 0 || !SetPixelFormat(g_state.dc, format, &descriptor)) {
+        halo::shell::standalone_log("gl: no usable pixel format (error %lu)", GetLastError());
+        return false;
+    }
+    g_state.context = wglCreateContext(g_state.dc);
+    if (g_state.context == nullptr || !wglMakeCurrent(g_state.dc, g_state.context)) {
+        halo::shell::standalone_log("gl: could not create or activate the OpenGL context (error %lu)", GetLastError());
+        return false;
+    }
+    halo::shell::standalone_log("gl: context ready, %s / %s / %s", reinterpret_cast<const char *>(glGetString(GL_VENDOR)),
+        reinterpret_cast<const char *>(glGetString(GL_RENDERER)), reinterpret_cast<const char *>(glGetString(GL_VERSION)));
+    g_state.modern = gl_load_api();
+    if (!g_state.modern) {
+        halo::shell::standalone_log("gl: this driver lacks OpenGL 3 entry points; drawing is disabled");
+    } else {
+        draw_init();
+    }
+    return true;
+}
+
+}  // namespace
+
+namespace gl {
+
 void destroy_object(gl_object *object)
 {
+    draw_shutdown_object(object);
     switch (object->kind) {
     case kind_texture:
     case kind_volume_texture:
@@ -336,39 +323,7 @@ void destroy_object(gl_object *object)
     free(object);
 }
 
-bool create_context(HWND window)
-{
-    PIXELFORMATDESCRIPTOR descriptor;
-    int format;
-
-    memset(&descriptor, 0, sizeof(descriptor));
-    descriptor.nSize = sizeof(descriptor);
-    descriptor.nVersion = 1;
-    descriptor.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-    descriptor.iPixelType = PFD_TYPE_RGBA;
-    descriptor.cColorBits = 32;
-    descriptor.cDepthBits = 24;
-    descriptor.cStencilBits = 8;
-    descriptor.iLayerType = PFD_MAIN_PLANE;
-
-    g_state.window = window;
-    g_state.dc = GetDC(window);
-    format = ChoosePixelFormat(g_state.dc, &descriptor);
-    if (format == 0 || !SetPixelFormat(g_state.dc, format, &descriptor)) {
-        halo::shell::standalone_log("gl: no usable pixel format (error %lu)", GetLastError());
-        return false;
-    }
-    g_state.context = wglCreateContext(g_state.dc);
-    if (g_state.context == nullptr || !wglMakeCurrent(g_state.dc, g_state.context)) {
-        halo::shell::standalone_log("gl: could not create or activate the OpenGL context (error %lu)", GetLastError());
-        return false;
-    }
-    halo::shell::standalone_log("gl: context ready, %s / %s", reinterpret_cast<const char *>(glGetString(GL_VENDOR)),
-        reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
-    return true;
-}
-
-}  // namespace
+}  // namespace gl
 
 bool gl_renderer_requested()
 {
@@ -444,7 +399,12 @@ int32_t GlDevice::clear(uint32_t, d3d_arg, uint32_t flags, uint32_t color, float
 {
     GLbitfield mask = 0;
 
+    if (!g_state.modern) {
+        return 0;
+    }
+    viewport_scissor(true);
     if ((flags & 1) != 0) {
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glClearColor(static_cast<float>((color >> 16) & 0xff) / 255.0f, static_cast<float>((color >> 8) & 0xff) / 255.0f,
             static_cast<float>(color & 0xff) / 255.0f, static_cast<float>(color >> 24) / 255.0f);
         mask |= GL_COLOR_BUFFER_BIT;
@@ -455,12 +415,14 @@ int32_t GlDevice::clear(uint32_t, d3d_arg, uint32_t flags, uint32_t color, float
         mask |= GL_DEPTH_BUFFER_BIT;
     }
     if ((flags & 4) != 0) {
+        glStencilMask(0xff);
         glClearStencil(static_cast<GLint>(stencil));
         mask |= GL_STENCIL_BUFFER_BIT;
     }
     if (mask != 0) {
         glClear(mask);
     }
+    glDisable(GL_SCISSOR_TEST);
     return 0;
 }
 
@@ -469,20 +431,39 @@ int32_t GlDevice::set_viewport(d3d_arg viewport)
     const uint32_t *v = static_cast<const uint32_t *>(viewport.get());
 
     if (v != nullptr) {
-        glViewport(static_cast<GLint>(v[0]), static_cast<GLint>(g_state.height) - static_cast<GLint>(v[1] + v[3]),
-            static_cast<GLsizei>(v[2]), static_cast<GLsizei>(v[3]));
+        g_pipe.viewport[0] = static_cast<float>(v[0]);
+        g_pipe.viewport[1] = static_cast<float>(v[1]);
+        g_pipe.viewport[2] = static_cast<float>(v[2]);
+        g_pipe.viewport[3] = static_cast<float>(v[3]);
+        g_pipe.viewport[4] = reinterpret_cast<const float *>(v)[4];
+        g_pipe.viewport[5] = reinterpret_cast<const float *>(v)[5];
     }
     return 0;
 }
 
-int32_t GlDevice::set_render_target(uint32_t, d3d_arg)
+int32_t GlDevice::set_render_target(uint32_t index, d3d_arg surface)
 {
+    gl_surface *target = static_cast<gl_surface *>(surface.get());
+
+    if (index != 0) {
+        return 0;
+    }
+    if (target != nullptr && target->back_buffer) {
+        target = nullptr;
+    }
+    hold(g_pipe.render_target, target);
+    bind_render_target(g_pipe.render_target);
     return 0;
 }
 
 int32_t GlDevice::get_render_target(uint32_t, d3d_arg out_surface)
 {
-    write_out(out_surface, make_surface(21, g_state.width, g_state.height));
+    if (g_pipe.render_target != nullptr) {
+        g_pipe.render_target->refs++;
+        write_out(out_surface, g_pipe.render_target);
+    } else {
+        write_out(out_surface, make_back_buffer());
+    }
     return 0;
 }
 
@@ -499,12 +480,14 @@ int32_t GlDevice::get_display_mode(uint32_t, d3d_arg mode)
 
 int32_t GlDevice::get_back_buffer(uint32_t, uint32_t, uint32_t, d3d_arg out_surface)
 {
-    write_out(out_surface, make_surface(21, g_state.width, g_state.height));
+    write_out(out_surface, make_back_buffer());
     return 0;
 }
 
-int32_t GlDevice::stretch_rect(d3d_arg, d3d_arg, d3d_arg, d3d_arg, uint32_t)
+int32_t GlDevice::stretch_rect(d3d_arg source, d3d_arg source_rect, d3d_arg dest, d3d_arg dest_rect, uint32_t filter)
 {
+    stretch_rect_impl(static_cast<gl_surface *>(source.get()), static_cast<const int32_t *>(source_rect.get()),
+        static_cast<gl_surface *>(dest.get()), static_cast<const int32_t *>(dest_rect.get()), filter);
     return 0;
 }
 
@@ -515,11 +498,12 @@ int32_t GlDevice::set_gamma_ramp(uint32_t, uint32_t, d3d_arg)
 
 /* Resource creation */
 
-int32_t GlDevice::create_texture(uint32_t width, uint32_t height, uint32_t levels, uint32_t, uint32_t format, uint32_t, d3d_arg out_texture, d3d_arg)
+int32_t GlDevice::create_texture(uint32_t width, uint32_t height, uint32_t levels, uint32_t usage, uint32_t format, uint32_t, d3d_arg out_texture, d3d_arg)
 {
     gl_texture *texture = new_object<gl_texture>(kind_texture);
 
     texture->format = format;
+    texture->usage = usage;
     texture->faces = 1;
     texture->levels = level_count(levels, width, height, 1);
     allocate_levels(texture, width, height, 1);
@@ -527,10 +511,11 @@ int32_t GlDevice::create_texture(uint32_t width, uint32_t height, uint32_t level
     return 0;
 }
 
-int32_t GlDevice::create_volume_texture(uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t, uint32_t format, uint32_t, d3d_arg out_texture, d3d_arg)
+int32_t GlDevice::create_volume_texture(uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t usage, uint32_t format, uint32_t, d3d_arg out_texture, d3d_arg)
 {
     gl_texture *texture = new_object<gl_texture>(kind_volume_texture);
 
+    texture->usage = usage;
     texture->format = format;
     texture->faces = 1;
     texture->levels = level_count(levels, width, height, depth);
@@ -539,10 +524,11 @@ int32_t GlDevice::create_volume_texture(uint32_t width, uint32_t height, uint32_
     return 0;
 }
 
-int32_t GlDevice::create_cube_texture(uint32_t edge_length, uint32_t levels, uint32_t, uint32_t format, uint32_t, d3d_arg out_texture, d3d_arg)
+int32_t GlDevice::create_cube_texture(uint32_t edge_length, uint32_t levels, uint32_t usage, uint32_t format, uint32_t, d3d_arg out_texture, d3d_arg)
 {
     gl_texture *texture = new_object<gl_texture>(kind_cube_texture);
 
+    texture->usage = usage;
     texture->format = format;
     texture->faces = 6;
     texture->levels = level_count(levels, edge_length, edge_length, 1);
@@ -558,6 +544,7 @@ int32_t GlDevice::create_vertex_buffer(uint32_t length, uint32_t, uint32_t fvf, 
     buffer->size = length;
     buffer->format = fvf;
     buffer->data = static_cast<uint8_t *>(calloc(1, static_cast<size_t>(length) + 16));
+    buffer->dirty = true;
     write_out(out_buffer, buffer);
     return 0;
 }
@@ -569,6 +556,7 @@ int32_t GlDevice::create_index_buffer(uint32_t length, uint32_t, uint32_t format
     buffer->size = length;
     buffer->format = format;
     buffer->data = static_cast<uint8_t *>(calloc(1, static_cast<size_t>(length) + 16));
+    buffer->dirty = true;
     write_out(out_buffer, buffer);
     return 0;
 }
@@ -597,21 +585,32 @@ int32_t GlDevice::create_vertex_declaration(d3d_arg elements, d3d_arg out_declar
     return 0;
 }
 
-int32_t GlDevice::create_vertex_shader(d3d_arg, d3d_arg out_shader)
+int32_t GlDevice::create_vertex_shader(d3d_arg function, d3d_arg out_shader)
 {
-    write_out(out_shader, new_object<gl_object>(kind_vertex_shader));
+    gl_shader *shader = new_object<gl_shader>(kind_vertex_shader);
+
+    create_shader(shader, function.get(), false);
+    write_out(out_shader, shader);
     return 0;
 }
 
-int32_t GlDevice::create_pixel_shader(d3d_arg, d3d_arg out_shader)
+int32_t GlDevice::create_pixel_shader(d3d_arg function, d3d_arg out_shader)
 {
-    write_out(out_shader, new_object<gl_object>(kind_pixel_shader));
+    gl_shader *shader = new_object<gl_shader>(kind_pixel_shader);
+
+    create_shader(shader, function.get(), true);
+    write_out(out_shader, shader);
     return 0;
 }
 
 int32_t GlDevice::create_query(uint32_t, d3d_arg out_query)
 {
-    write_out(out_query, new_object<gl_object>(kind_query));
+    gl_query *query = new_object<gl_query>(kind_query);
+
+    if (g_state.modern) {
+        glGenQueries(1, &query->name);
+    }
+    write_out(out_query, query);
     return 0;
 }
 
@@ -669,14 +668,14 @@ int32_t GlDevice::set_render_state(uint32_t state, uint32_t value)
 int32_t GlDevice::set_texture(uint32_t stage, d3d_arg texture)
 {
     if (stage < 16) {
-        g_pipe.texture[stage] = static_cast<gl_object *>(texture.get());
+        hold(g_pipe.texture[stage], static_cast<gl_object *>(texture.get()));
     }
     return 0;
 }
 
 int32_t GlDevice::set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    if (stage < 8 && type < 32) {
+    if (stage < 8 && type < 40) {
         g_pipe.texture_stage_state[stage][type] = value;
     }
     return 0;
@@ -695,46 +694,50 @@ int32_t GlDevice::set_software_vertex_processing(uint32_t)
     return 0;
 }
 
-int32_t GlDevice::draw_primitive(uint32_t type, uint32_t, uint32_t primitive_count)
+int32_t GlDevice::draw_primitive(uint32_t type, uint32_t start_vertex, uint32_t primitive_count)
 {
     trace_draw("prim", type, primitive_count);
+    draw_geometry(type, 0, 0, 0, primitive_count, start_vertex, nullptr, 0, nullptr, 0, false, false);
     return 0;
 }
 
-int32_t GlDevice::draw_indexed_primitive(uint32_t type, int32_t, uint32_t, uint32_t, uint32_t, uint32_t primitive_count)
+int32_t GlDevice::draw_indexed_primitive(uint32_t type, int32_t base_vertex, uint32_t, uint32_t vertex_count, uint32_t start_index, uint32_t primitive_count)
 {
     trace_draw("indexed", type, primitive_count);
+    draw_geometry(type, base_vertex, vertex_count, start_index, primitive_count, 0, nullptr, 0, nullptr, 0, true, false);
     return 0;
 }
 
-int32_t GlDevice::draw_primitive_up(uint32_t type, uint32_t primitive_count, d3d_arg, uint32_t)
+int32_t GlDevice::draw_primitive_up(uint32_t type, uint32_t primitive_count, d3d_arg data, uint32_t stride)
 {
     trace_draw("prim_up", type, primitive_count);
+    draw_geometry(type, 0, 0, 0, primitive_count, 0, data.get(), stride, nullptr, 0, false, true);
     return 0;
 }
 
-int32_t GlDevice::draw_indexed_primitive_up(uint32_t type, uint32_t, uint32_t, uint32_t primitive_count, d3d_arg, uint32_t, d3d_arg, uint32_t)
+int32_t GlDevice::draw_indexed_primitive_up(uint32_t type, uint32_t min_index, uint32_t vertex_count, uint32_t primitive_count, d3d_arg index_data, uint32_t index_format, d3d_arg vertex_data, uint32_t stride)
 {
     trace_draw("indexed_up", type, primitive_count);
+    draw_geometry(type, 0, min_index + vertex_count, 0, primitive_count, 0, vertex_data.get(), stride, index_data.get(), index_format, true, true);
     return 0;
 }
 
 int32_t GlDevice::set_vertex_declaration(d3d_arg declaration)
 {
-    g_pipe.declaration = static_cast<gl_declaration *>(declaration.get());
+    hold(g_pipe.declaration, static_cast<gl_declaration *>(declaration.get()));
     return 0;
 }
 
 int32_t GlDevice::set_fvf(uint32_t fvf)
 {
     g_pipe.fvf = fvf;
-    g_pipe.declaration = nullptr;
+    hold(g_pipe.declaration, static_cast<gl_declaration *>(nullptr));
     return 0;
 }
 
 int32_t GlDevice::set_vertex_shader(d3d_arg shader)
 {
-    g_pipe.vertex_shader = static_cast<gl_object *>(shader.get());
+    hold(g_pipe.vertex_shader, static_cast<gl_shader *>(shader.get()));
     return 0;
 }
 
@@ -749,7 +752,7 @@ int32_t GlDevice::set_vertex_shader_constant_f(uint32_t start_register, d3d_arg 
 int32_t GlDevice::set_stream_source(uint32_t stream, d3d_arg buffer, uint32_t offset, uint32_t stride)
 {
     if (stream < 4) {
-        g_pipe.stream[stream] = static_cast<gl_buffer *>(buffer.get());
+        hold(g_pipe.stream[stream], static_cast<gl_buffer *>(buffer.get()));
         g_pipe.stream_offset[stream] = offset;
         g_pipe.stream_stride[stream] = stride;
     }
@@ -758,19 +761,19 @@ int32_t GlDevice::set_stream_source(uint32_t stream, d3d_arg buffer, uint32_t of
 
 int32_t GlDevice::set_indices(d3d_arg index_buffer)
 {
-    g_pipe.indices = static_cast<gl_buffer *>(index_buffer.get());
+    hold(g_pipe.indices, static_cast<gl_buffer *>(index_buffer.get()));
     return 0;
 }
 
 int32_t GlDevice::set_pixel_shader(d3d_arg shader)
 {
-    g_pipe.pixel_shader = static_cast<gl_object *>(shader.get());
+    hold(g_pipe.pixel_shader, static_cast<gl_shader *>(shader.get()));
     return 0;
 }
 
 int32_t GlDevice::set_pixel_shader_constant_f(uint32_t start_register, d3d_arg data, uint32_t count)
 {
-    if (start_register + count <= 32 && data.get() != nullptr) {
+    if (start_register + count <= 224 && data.get() != nullptr) {
         memcpy(g_pipe.pixel_constants[start_register], data.get(), count * 4 * sizeof(float));
     }
     return 0;
@@ -817,11 +820,15 @@ int32_t GlDevice::surface_get_desc(d3d_arg object, d3d_arg desc)
     return 0;
 }
 
-int32_t GlDevice::surface_lock_rect(d3d_arg object, d3d_arg locked, d3d_arg rect, uint32_t)
+int32_t GlDevice::surface_lock_rect(d3d_arg object, d3d_arg locked, d3d_arg rect, uint32_t flags)
 {
     gl_surface *surface = static_cast<gl_surface *>(object.get());
     locked_rect *out = static_cast<locked_rect *>(locked.get());
 
+    read_back_surface(surface);
+    if (surface->parent != nullptr && (flags & 0x10) == 0) {
+        surface->parent->dirty = true;
+    }
     out->pitch = static_cast<int32_t>(surface->pitch);
     out->bits = surface->data + rect_offset(surface->format, surface->pitch, rect.get());
     return 0;
@@ -832,10 +839,13 @@ int32_t GlDevice::surface_unlock_rect(d3d_arg)
     return 0;
 }
 
-int32_t GlDevice::buffer_lock(d3d_arg object, uint32_t offset, uint32_t, d3d_arg out_data, uint32_t)
+int32_t GlDevice::buffer_lock(d3d_arg object, uint32_t offset, uint32_t, d3d_arg out_data, uint32_t flags)
 {
     gl_buffer *buffer = static_cast<gl_buffer *>(object.get());
 
+    if ((flags & 0x10) == 0) {
+        buffer->dirty = true;
+    }
     write_out(out_data, buffer->data + offset);
     return 0;
 }
@@ -860,27 +870,20 @@ int32_t GlDevice::buffer_get_desc(d3d_arg object, d3d_arg desc)
 int32_t GlDevice::texture_get_surface_level(d3d_arg object, uint32_t level, d3d_arg out_surface)
 {
     gl_texture *texture = static_cast<gl_texture *>(object.get());
-    gl_surface *surface = new_object<gl_surface>(kind_surface);
-    const gl_level &view = texture->level[level < texture->levels ? level : 0];
 
-    surface->format = texture->format;
-    surface->width = view.width;
-    surface->height = view.height;
-    surface->pitch = view.pitch;
-    surface->data = view.data;
-    surface->owns_data = false;
-    surface->parent = texture;
-    texture->refs++;
-    write_out(out_surface, surface);
+    write_out(out_surface, make_level_surface(texture, 0, level < texture->levels ? level : 0));
     return 0;
 }
 
-int32_t GlDevice::texture_lock_rect(d3d_arg object, uint32_t level, d3d_arg locked, d3d_arg rect, uint32_t)
+int32_t GlDevice::texture_lock_rect(d3d_arg object, uint32_t level, d3d_arg locked, d3d_arg rect, uint32_t flags)
 {
     gl_texture *texture = static_cast<gl_texture *>(object.get());
     const gl_level &view = texture->level[level < texture->levels ? level : 0];
     locked_rect *out = static_cast<locked_rect *>(locked.get());
 
+    if ((flags & 0x10) == 0) {
+        texture->dirty = true;
+    }
     out->pitch = static_cast<int32_t>(view.pitch);
     out->bits = view.data + rect_offset(texture->format, view.pitch, rect.get());
     return 0;
@@ -891,12 +894,15 @@ int32_t GlDevice::texture_unlock_rect(d3d_arg, uint32_t)
     return 0;
 }
 
-int32_t GlDevice::volume_texture_lock_box(d3d_arg object, uint32_t level, d3d_arg locked, d3d_arg, uint32_t)
+int32_t GlDevice::volume_texture_lock_box(d3d_arg object, uint32_t level, d3d_arg locked, d3d_arg, uint32_t flags)
 {
     gl_texture *texture = static_cast<gl_texture *>(object.get());
     const gl_level &view = texture->level[level < texture->levels ? level : 0];
     locked_box *out = static_cast<locked_box *>(locked.get());
 
+    if ((flags & 0x10) == 0) {
+        texture->dirty = true;
+    }
     out->row_pitch = static_cast<int32_t>(view.pitch);
     out->slice_pitch = static_cast<int32_t>(view.slice);
     out->bits = view.data;
@@ -908,12 +914,15 @@ int32_t GlDevice::volume_texture_unlock_box(d3d_arg, uint32_t)
     return 0;
 }
 
-int32_t GlDevice::cube_texture_lock_rect(d3d_arg object, uint32_t face, uint32_t level, d3d_arg locked, d3d_arg rect, uint32_t)
+int32_t GlDevice::cube_texture_lock_rect(d3d_arg object, uint32_t face, uint32_t level, d3d_arg locked, d3d_arg rect, uint32_t flags)
 {
     gl_texture *texture = static_cast<gl_texture *>(object.get());
     const gl_level &view = texture->level[(face < 6 ? face : 0) * k_max_levels + (level < texture->levels ? level : 0)];
     locked_rect *out = static_cast<locked_rect *>(locked.get());
 
+    if ((flags & 0x10) == 0) {
+        texture->dirty = true;
+    }
     out->pitch = static_cast<int32_t>(view.pitch);
     out->bits = view.data + rect_offset(texture->format, view.pitch, rect.get());
     return 0;
@@ -927,32 +936,46 @@ int32_t GlDevice::cube_texture_unlock_rect(d3d_arg, uint32_t, uint32_t)
 int32_t GlDevice::cube_texture_get_surface(d3d_arg object, uint32_t face, uint32_t level, d3d_arg out_surface)
 {
     gl_texture *texture = static_cast<gl_texture *>(object.get());
-    gl_surface *surface = new_object<gl_surface>(kind_surface);
-    const gl_level &view = texture->level[(face < 6 ? face : 0) * k_max_levels + (level < texture->levels ? level : 0)];
 
-    surface->format = texture->format;
-    surface->width = view.width;
-    surface->height = view.height;
-    surface->pitch = view.pitch;
-    surface->data = view.data;
-    surface->owns_data = false;
-    surface->parent = texture;
-    texture->refs++;
-    write_out(out_surface, surface);
+    write_out(out_surface, make_level_surface(texture, face < 6 ? face : 0, level < texture->levels ? level : 0));
     return 0;
 }
 
 /* Queries: report zero visible pixels */
 
-int32_t GlDevice::query_issue(d3d_arg, uint32_t)
+int32_t GlDevice::query_issue(d3d_arg object, uint32_t flags)
 {
+    gl_query *query = static_cast<gl_query *>(object.get());
+
+    if (!g_state.modern || query->name == 0) {
+        return 0;
+    }
+    if ((flags & 1) != 0) {
+        glBeginQuery(GL_SAMPLES_PASSED, query->name);
+    }
+    if ((flags & 2) != 0) {
+        glEndQuery(GL_SAMPLES_PASSED);
+        query->issued = true;
+    }
     return 0;
 }
 
-int32_t GlDevice::query_get_data(d3d_arg, d3d_arg data, uint32_t size, uint32_t)
+int32_t GlDevice::query_get_data(d3d_arg object, d3d_arg data, uint32_t size, uint32_t flags)
 {
-    if (data.get() != nullptr && size > 0) {
+    gl_query *query = static_cast<gl_query *>(object.get());
+    GLuint available = 1;
+    GLuint samples = 0;
+
+    if (g_state.modern && query->name != 0 && query->issued) {
+        glGetQueryObjectuiv(query->name, GL_QUERY_RESULT_AVAILABLE, &available);
+        if (available == 0 && (flags & 1) == 0) {
+            return 1;  // S_FALSE: not ready yet
+        }
+        glGetQueryObjectuiv(query->name, GL_QUERY_RESULT, &samples);
+    }
+    if (data.get() != nullptr && size >= 4) {
         memset(data.get(), 0, size);
+        *static_cast<uint32_t *>(data.get()) = samples;
     }
     return 0;
 }
