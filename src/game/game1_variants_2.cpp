@@ -49,11 +49,11 @@ void Variants::capture_player_profile(int32_t slot, int32_t commit)
     }
 
     snapshot.kills = p->kills;
-    snapshot.unknown_0a = p->unknown_9e;
-    snapshot.unknown_0c = p->unknown_a0;
+    snapshot.kills_1 = p->kills_1;
+    snapshot.kills_2_and_3 = p->kills_2_and_3;
     snapshot.assists = p->assists;
-    snapshot.unknown_12 = p->unknown_a6;
-    snapshot.unknown_14 = p->unknown_a8;
+    snapshot.assists_1 = p->assists_1;
+    snapshot.assists_2_and_3 = p->assists_2_and_3;
     snapshot.betrayals = p->betrayals;
     snapshot.deaths = p->deaths;
     snapshot.suicides = p->suicides;
@@ -72,11 +72,11 @@ void Variants::capture_player_profile(int32_t slot, int32_t commit)
 
     if (commit == 1) {
         player_profile_cache[slot].kills = snapshot.kills;
-        player_profile_cache[slot].unknown_0a = snapshot.unknown_0a;
-        player_profile_cache[slot].unknown_0c = snapshot.unknown_0c;
+        player_profile_cache[slot].kills_1 = snapshot.kills_1;
+        player_profile_cache[slot].kills_2_and_3 = snapshot.kills_2_and_3;
         player_profile_cache[slot].assists = snapshot.assists;
-        player_profile_cache[slot].unknown_12 = snapshot.unknown_12;
-        player_profile_cache[slot].unknown_14 = snapshot.unknown_14;
+        player_profile_cache[slot].assists_1 = snapshot.assists_1;
+        player_profile_cache[slot].assists_2_and_3 = snapshot.assists_2_and_3;
         player_profile_cache[slot].betrayals = snapshot.betrayals;
         player_profile_cache[slot].deaths = snapshot.deaths;
         player_profile_cache[slot].suicides = snapshot.suicides;

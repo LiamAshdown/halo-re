@@ -1926,7 +1926,7 @@ datum_index Players::new_local(datum_index requested_handle, uint32_t machine_in
         p->local_player_index = local_player_index;
         p->unit = k_datum_index_none;
         p->previous_unit = k_datum_index_none;
-        p->unknown_1c = -1;
+        p->squad_index = -1;
         p->bsp_cluster = -1;
         p->observer_target = k_datum_index_none;
         p->speed = 1.0f;
@@ -2019,7 +2019,7 @@ datum_index Players::new_network(datum_index requested_index, uint32_t machine_i
         p->medal_streak_timer = 0;
         p->unit = k_datum_index_none;
         p->previous_unit = k_datum_index_none;
-        p->unknown_1c = -1;
+        p->squad_index = -1;
         p->bsp_cluster = -1;
         p->observer_target = k_datum_index_none;
         p->speed = 1.0f;

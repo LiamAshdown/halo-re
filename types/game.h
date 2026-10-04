@@ -504,7 +504,7 @@ typedef struct player {
                                        //      player_globals::local_players
     uint16_t name[12];                 // 0x04 UTF-16, _wcsncpy of 11 chars plus the NUL the
                                        //      constructors write at 0x1a
-    int32_t unknown_1c;                // 0x1c both constructors write -1
+    int32_t squad_index;               // 0x1c both constructors write -1
     int32_t team;                      // 0x20 0..k_team_pair_index_count-1; both constructors
                                        //      seed it with 1, 0x45c440 recomputes it
     datum_index interaction_object;    // 0x24 board / swap / assassinate target
@@ -564,16 +564,16 @@ typedef struct player {
                                        //      0x78 ticks (4 s) old, else incremented
     int16_t last_kill_tick;            // 0x9a game_time of the last kill, -1 on death
     int16_t kills;                     // 0x9c
-    int16_t unknown_9e;                // 0x9e
-    int32_t unknown_a0;                // 0xa0
+    int16_t kills_1;                   // 0x9e
+    int32_t kills_2_and_3;             // 0xa0
     int16_t assists;                   // 0xa4 credited to each of the four recent damagers
-    int16_t unknown_a6;                // 0xa6
-    int32_t unknown_a8;                // 0xa8
+    int16_t assists_1;                 // 0xa6
+    int32_t assists_2_and_3;           // 0xa8
     int16_t betrayals;                 // 0xac +1 when killer and victim are not enemies
     int16_t deaths;                    // 0xae compared against game_variant::lives_per_round
                                        //      to decide elimination
     int16_t suicides;                  // 0xb0 +1 when the killer is the victim
-    int16_t unknown_b2;                // 0xb2
+    int16_t pad_b2;                    // 0xb2
     int32_t unknown_b4;                // 0xb4 game_engine_update_teleporter
     uint8_t unknown_b8[0xc0 - 0xb8];   // 0xb8
     int16_t betrayal_penalty_count;    // 0xc0 +1 per betrayal; on_player_death scales it by
@@ -968,11 +968,11 @@ typedef struct player_profile {
     uint8_t pad_01[3];         // 0x01
     datum_index player;        // 0x04 the handle 0x466e80 matches against
     int16_t kills;             // 0x08 <- player + 0x9c   (the cache copies 0x9c..0xb2 as
-    int16_t unknown_0a;        // 0x0a <- player + 0x9e    four dwords and three words, so
-    int32_t unknown_0c;        // 0x0c <- player + 0xa0    the field split here is the
+    int16_t kills_1;           // 0x0a <- player + 0x9e    four dwords and three words, so
+    int32_t kills_2_and_3;     // 0x0c <- player + 0xa0    the field split here is the
     int16_t assists;           // 0x10 <- player + 0xa4    player's, not the copy's)
-    int16_t unknown_12;        // 0x12 <- player + 0xa6
-    int32_t unknown_14;        // 0x14 <- player + 0xa8
+    int16_t assists_1;         // 0x12 <- player + 0xa6
+    int32_t assists_2_and_3;   // 0x14 <- player + 0xa8
     int16_t betrayals;         // 0x18 <- player + 0xac
     int16_t deaths;            // 0x1a <- player + 0xae
     int16_t suicides;          // 0x1c <- player + 0xb0

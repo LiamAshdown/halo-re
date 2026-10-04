@@ -161,11 +161,11 @@ void Variants::apply_player_profile_entry(void *event)
     }
 
     p->kills = profile->kills;
-    p->unknown_9e = profile->unknown_0a;
-    p->unknown_a0 = profile->unknown_0c;
+    p->kills_1 = profile->kills_1;
+    p->kills_2_and_3 = profile->kills_2_and_3;
     p->assists = profile->assists;
-    p->unknown_a6 = profile->unknown_12;
-    p->unknown_a8 = profile->unknown_14;
+    p->assists_1 = profile->assists_1;
+    p->assists_2_and_3 = profile->assists_2_and_3;
     p->betrayals = profile->betrayals;
     p->deaths = profile->deaths;
     p->suicides = profile->suicides;
