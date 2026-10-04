@@ -107,7 +107,7 @@ void ActorView::mode_uncover_update()
         if (act->mode_data.uncover.stage == 0) {
             if (act->vehicle_gunner_bombards[0]) {
                 act->wants_to_fire = 1;
-                act->unknown_455[0] = 1;
+                act->bombard_target = 1;
                 forced = 1;
             } else {
                 act->wants_to_fire = (uint8_t)(act->target_combat_status >= ((static_cast<uint8_t>(actor_tag->flags) & 0x10) ? 5 : 6));
@@ -133,8 +133,8 @@ void ActorView::mode_uncover_update()
     act->crouch_decision[0] = act->mode_data.uncover.crouch;
     act->crouch_decision[1] = act->mode_data.uncover.crouch;
     act->crouch_hold = 0;
-    act->unknown_424[0] = 0;
-    act->unknown_424[1] = 1;
+    act->dive_into_cover = 0;
+    act->emerge_from_cover = 1;
 }
 
 
@@ -186,8 +186,8 @@ void ActorView::mode_vehicle_update()
     act->crouch_decision[0] = 0;
     act->crouch_decision[1] = 0;
     act->crouch_hold = 0;
-    act->unknown_424[0] = 0;
-    act->unknown_424[1] = 0;
+    act->dive_into_cover = 0;
+    act->emerge_from_cover = 0;
 }
 
 
@@ -323,8 +323,8 @@ void ActorView::mode_wait_update()
     act->crouch_decision[0] = 0;
     act->crouch_decision[1] = 0;
     act->crouch_hold = 0;
-    act->unknown_424[0] = 0;
-    act->unknown_424[1] = 0;
+    act->dive_into_cover = 0;
+    act->emerge_from_cover = 0;
 }
 
 

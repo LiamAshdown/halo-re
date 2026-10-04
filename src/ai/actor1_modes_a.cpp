@@ -260,8 +260,8 @@ void halo::ai::avoid_mode::update()
     act->crouch_decision[0] = act->crouch_active;
     act->crouch_decision[1] = 0;
     act->crouch_hold = 0;
-    act->unknown_424[0] = 0;
-    act->unknown_424[1] = 0;
+    act->dive_into_cover = 0;
+    act->emerge_from_cover = 0;
 }
 
 namespace halo::ai {
@@ -974,8 +974,8 @@ void halo::ai::search_mode::update()
     act->crouch_decision[0] = act->mode_data.search.unknown_03;
     act->crouch_decision[1] = act->mode_data.search.unknown_03;
     act->crouch_hold = 0;
-    act->unknown_424[0] = 0;
-    act->unknown_424[1] = 1;
+    act->dive_into_cover = 0;
+    act->emerge_from_cover = 1;
 }
 
 namespace halo::ai {

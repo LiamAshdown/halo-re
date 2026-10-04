@@ -167,7 +167,7 @@ void ActorView::update_firing_state()
                 }
             }
             a->use_high_arc = (uint8_t)(def->super_ballistic_range > 0.0f && a->firing_target_distance > def->super_ballistic_range);
-            a->fire_blindly = (uint8_t)(a->unknown_455[0] && def->bombardment_range > 0.0f);
+            a->fire_blindly = (uint8_t)(a->bombard_target && def->bombardment_range > 0.0f);
             if (!halo::items::weapon_trigger_get_aiming_vector(weapon, 0, &a->aim_origin, &a->firing_target_point,
                                                   a->use_high_arc, &a->target_aim_vector, 0, &a->target_aim_range,
                                                   &used_straight_line)) {

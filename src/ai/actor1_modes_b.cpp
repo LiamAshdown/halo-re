@@ -454,8 +454,8 @@ void halo::ai::charge_mode::update()
             act->crouch_hold = (uint8_t)(act->mode_data.charge.close_in && !act->crouch_decision[1]);
         }
     }
-    act->unknown_424[0] = 0;
-    act->unknown_424[1] = 0;
+    act->dive_into_cover = 0;
+    act->emerge_from_cover = 0;
     act->force_turn = 1;
     act->wants_to_fire = (uint8_t)(act->mode_data.charge.stage != 1);
 }
@@ -522,8 +522,8 @@ void halo::ai::fight_mode::update()
     actor->look_posture = 4;
     actor->crouch_decision[1] = 0;
     actor->crouch_hold = 0;
-    actor->unknown_424[0] = 0;
-    actor->unknown_424[1] = 0;
+    actor->dive_into_cover = 0;
+    actor->emerge_from_cover = 0;
     if (actor->vehicle_driving_type != 4 && actor->combat_status >= 5) {
         actor->wants_to_fire = 1;
         actor->flee_reason = 7;
@@ -900,7 +900,7 @@ void halo::ai::flee_mode::update()
     if (panic > 0) {
         act->flee_reason = 6;
         act->flee_source.code = 0;
-        act->unknown_455[1] = 1;
+        act->abort_burst = 1;
     } else if (target != k_datum_index_none && ((struct prop *)halo::ai::prop_bytes(target))->visual_perception > 0) {
         act->flee_reason = 7;
         act->flee_source.code = 2;
@@ -917,8 +917,8 @@ void halo::ai::flee_mode::update()
     act->cowering = (uint8_t)(act->mode_data.flee.panic >= 9 && act->mode_data.flee.panic <= 12);
     act->crouch_decision[0] = 1;
     act->crouch_decision[1] = 0;
-    act->unknown_424[0] = 1;
-    act->unknown_424[1] = 0;
+    act->dive_into_cover = 1;
+    act->emerge_from_cover = 0;
 
     destination = act->mode_data.flee.destination;
     if (destination == -1) {
@@ -1267,8 +1267,8 @@ void halo::ai::guard_mode::update()
         }
     }
     act->crouch_hold = 0;
-    act->unknown_424[0] = 0;
-    act->unknown_424[1] = 0;
+    act->dive_into_cover = 0;
+    act->emerge_from_cover = 0;
 
     if (act->needs_new_path && !act->swarm) {
         uint8_t in_place = 0;

@@ -1104,7 +1104,7 @@ void ActorView::update_look_target()
 
         memset(&kind2, 0, sizeof(kind2));
         kind2.code = 2;
-        if (a->firing_target_type > 0 && a->firing_state == 2 && a->unknown_455[1] == 0 &&
+        if (a->firing_target_type > 0 && a->firing_state == 2 && a->abort_burst == 0 &&
             halo::ai::actor_resolve_flee_source_point(&kind2, (real_vector3d *)&flee_point, actor_index)) {
             reason = 7;
             flee_look = 1;

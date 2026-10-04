@@ -961,7 +961,8 @@ typedef struct actor {
     int16_t secondary_action;         // 0x418 0x417a60 queues it, actor_action_has_queued_secondary reads it
     uint8_t pad_41a[2];               // 0x41a
     real_vector2d secondary_action_direction; // 0x41c direction the queued secondary action faces (actor_queue_secondary_action)
-    uint8_t unknown_424[2];           // 0x424 cleared together with the crouch decision by most mode updates
+    uint8_t dive_into_cover;              // 0x424 CEA actor_move_orders.dive_into_cover
+    uint8_t emerge_from_cover;            // 0x425 CEA actor_move_orders.emerge_from_cover
     uint8_t crouch_decision[2];       // 0x426 the crouch decision of the mode update, mirrored into the crouch control flag
     uint8_t crouch_hold;              // 0x428 charge and obey keep a crouch going while it is set
     uint8_t cowering;                 // 0x429 flee: the panic is in the cowering band (9..12)
@@ -994,7 +995,8 @@ typedef struct actor {
     uint8_t wants_to_fire;            // 0x454 per-tick control set by mode updates; 0x40e7b0 fires at
                                       //    target_unit_index (or shoot point when +0x45d); 0x435680 activity 6;
                                       //    informant test in 0x41c8f0
-    uint8_t unknown_455[2];           // 0x455
+    uint8_t bombard_target;              // 0x455 CEA actor_combat_orders.bombard_target; fire_blindly derives from it
+    uint8_t abort_burst;                 // 0x456 CEA actor_combat_orders.abort_burst
     uint8_t force_fire;               // 0x457 obey scripted target sets it; 0x40e7b0 skips the fire cooldown and
                                       //    stance/crouch restrictions when set; actor_should_hold_position returns 0
                                       //    for it
