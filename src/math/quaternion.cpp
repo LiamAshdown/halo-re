@@ -3,6 +3,7 @@
  * Real_quaternion: normalize, multiply, lerp, rotate, matrix conversions.
  */
 
+#include "halo/math/constants.hpp"
 #include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 #include "halo/math/globals.hpp"
@@ -184,11 +185,11 @@ void quaternion_to_axis_angle(const real_quaternion &quat, real_vector3d *axis_o
     half_angle = (real)atan2((double)length, (double)w);
     angle_out = half_angle + half_angle;
 
-    if (3.1415927f < half_angle + half_angle) {
+    if (halo::math::k_pi < half_angle + half_angle) {
         axis_out->i = -axis_out->i;
         axis_out->j = -axis_out->j;
         axis_out->k = -axis_out->k;
-        angle_out = 6.2831855f - angle_out;
+        angle_out = halo::math::k_two_pi - angle_out;
     }
 }
 

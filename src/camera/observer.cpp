@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/camera/observer.hpp"
 #include "halo/scenario/leaf.hpp"
 #include "halo/scenario/api.hpp"
@@ -105,8 +106,8 @@ void ObserverHandle::commit()
     }
 
     if (0.001 <= o->parameters.field_of_view) {
-        fov = (o->parameters.field_of_view <= 1.5707964f) ? o->parameters.field_of_view :
-            1.5707964f;
+        fov = (o->parameters.field_of_view <= halo::math::k_half_pi) ? o->parameters.field_of_view :
+            halo::math::k_half_pi;
     } else {
         fov = 0.001f;
     }
@@ -900,11 +901,11 @@ void ObserverSystem::compute_remaining_offset(float *target, float *current, flo
 
     angle = (float)halo::libm::atan2((double)axis_length, (double)relative_rotation.w);
     angle = angle + angle;
-    if (3.1415927f < angle) {
+    if (halo::math::k_pi < angle) {
         axis.i = -axis.i;
         axis.j = -axis.j;
         axis.k = -axis.k;
-        angle = 6.2831855f - angle;
+        angle = halo::math::k_two_pi - angle;
     }
 
     out[8] = angle * axis.i;

@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/projectiles/projectile.hpp"
 #include "halo/projectiles/api.hpp"
 #include "halo/core/datum.hpp"
@@ -163,9 +164,9 @@ int ProjectileHandle::update()
             }
             halo::units::unit_get_secondary_eye_marker_position(tracked_index, &target);
             angle_a = halo::math::periodic_function_evaluate(_periodic_function_wander,
-                (double)((real)(int32_t)((salt * 7 + tick) & halo::k_datum_slot_mask) * 0.011111111f)) * 6.2831855f;
-            angle_b = 3.1415927f - halo::math::periodic_function_evaluate(_periodic_function_wander,
-                (double)((real)(int32_t)((tick + salt * 3) & halo::k_datum_slot_mask) * 0.011111111f)) * 1.5707964f;
+                (double)((real)(int32_t)((salt * 7 + tick) & halo::k_datum_slot_mask) * 0.011111111f)) * halo::math::k_two_pi;
+            angle_b = halo::math::k_pi - halo::math::periodic_function_evaluate(_periodic_function_wander,
+                (double)((real)(int32_t)((tick + salt * 3) & halo::k_datum_slot_mask) * 0.011111111f)) * halo::math::k_half_pi;
             {
                 real cos_b = (real)halo::libm::cos(angle_b);
                 real wander_x = (real)halo::libm::cos(angle_a) * cos_b;

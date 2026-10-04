@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/scenario/api.hpp"
@@ -130,7 +131,7 @@ uint8_t ActorView::reject_firing_position_by_pursuit(actor_firing_position_query
         if (last_tick == -1 || last_tick + 300 < tick) {
             bonus = 10.0f;
         } else if (last_tick < tick) {
-            bonus = (float)(tick - last_tick) * 0.033333335f;
+            bonus = (float)(tick - last_tick) * halo::math::k_seconds_per_tick;
         }
         candidate->score = candidate->score + bonus;
 

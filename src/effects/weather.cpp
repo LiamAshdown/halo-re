@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
@@ -447,7 +448,7 @@ datum_index weather_particle_ref::create(int16_t instance_index, int16_t type_in
             p->rotation = 0.0f;
         } else {
             halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-            p->rotation = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * 6.2831855f;
+            p->rotation = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * halo::math::k_two_pi;
         }
 
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;

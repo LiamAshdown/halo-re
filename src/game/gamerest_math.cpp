@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/gamerest_math.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
@@ -32,11 +33,11 @@ float ScalarMath::angle_delta_wrapped(float from, float to)
 {
     float delta = to - from;
 
-    if (3.1415927f <= delta) {
-        delta = delta - 6.2831855f;
+    if (halo::math::k_pi <= delta) {
+        delta = delta - halo::math::k_two_pi;
     }
-    if (delta <= -3.1415927f) {
-        delta = delta + 6.2831855f;
+    if (delta <= -halo::math::k_pi) {
+        delta = delta + halo::math::k_two_pi;
     }
     return delta;
 }

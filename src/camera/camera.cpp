@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/camera/camera.hpp"
 #include "halo/core/datum.hpp"
@@ -574,7 +575,7 @@ dead_camera_data * DeadCamera::construct(dead_camera_data *self, int16_t local_p
     self->distance = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * 4.0f + 2.0f;
 
     halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-    self->yaw = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * 6.2831855f;
+    self->yaw = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * halo::math::k_two_pi;
 
     self->transition_time = 3.0f;
 

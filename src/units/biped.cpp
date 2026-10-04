@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/units/seat_detach.hpp"
 #include "halo/units/animation_states.hpp"
@@ -595,8 +596,8 @@ uint8_t BipedView::update()
 void halo::units::biped_update_animation_frame_trigger(float threshold, const Biped *timing_table, object *object_base)
 {
     biped_object *biped = reinterpret_cast<biped_object *>(object_base);
-    float t0 = timing_table->minimum_soft_landing_velocity * 0.033333335f;
-    float t1 = timing_table->minimum_hard_landing_velocity * 0.033333335f;
+    float t0 = timing_table->minimum_soft_landing_velocity * halo::math::k_seconds_per_tick;
+    float t1 = timing_table->minimum_hard_landing_velocity * halo::math::k_seconds_per_tick;
     float numerator;
     float span;
     float value;
@@ -613,7 +614,7 @@ void halo::units::biped_update_animation_frame_trigger(float threshold, const Bi
         phase = 0;
     } else {
         numerator = threshold;
-        span = timing_table->maximum_hard_landing_velocity * 0.033333335f - t1;
+        span = timing_table->maximum_hard_landing_velocity * halo::math::k_seconds_per_tick - t1;
         value = timing_table->maximum_hard_landing_time;
         phase = 1;
     }
@@ -695,7 +696,7 @@ void BipedView::update_scale_function_inputs()
                 value = (float)halo::libm::sqrt((double)(obj->velocity.i * obj->velocity.i +
                                               obj->velocity.j * obj->velocity.j +
                                               obj->velocity.k * obj->velocity.k)) /
-                        (tag->max_velocity * 0.033333335f);
+                        (tag->max_velocity * halo::math::k_seconds_per_tick);
                 if (value < 0.0f) {
                     value = 0.0f;
                 } else if (value > 1.0f) {

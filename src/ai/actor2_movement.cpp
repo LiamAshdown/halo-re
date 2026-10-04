@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/ai/flags.hpp"
 #include "halo/core/bit_cast.hpp"
@@ -632,7 +633,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
         if (dot_facing >= 1.0f) {
             target_angle = 0.0f;
         } else if (dot_facing <= -1.0f) {
-            target_angle = 3.1415927f;
+            target_angle = halo::math::k_pi;
         } else {
             target_angle = (float)halo::libm::acos(dot_facing);
         }
@@ -985,9 +986,9 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
                         unit_object->velocity.j * unit_object->forward.j +
                         unit_object->velocity.k * unit_object->forward.k;
                 if (halo::ai::flag_set(biped_definition->biped_flags, halo::tags::biped_tag_flag::flying)) {
-                    top_speed = biped_definition->max_velocity * 0.033333335f;
-                    acceleration = biped_definition->acceleration * 0.033333335f;
-                    deceleration = biped_definition->deceleration * 0.033333335f;
+                    top_speed = biped_definition->max_velocity * halo::math::k_seconds_per_tick;
+                    acceleration = biped_definition->acceleration * halo::math::k_seconds_per_tick;
+                    deceleration = biped_definition->deceleration * halo::math::k_seconds_per_tick;
                     if (self->crouching != 0 && biped_definition->crouch_velocity_modifier > 0.0f) {
                         top_speed = top_speed * biped_definition->crouch_velocity_modifier;
                         acceleration = acceleration * biped_definition->crouch_velocity_modifier;

@@ -2,6 +2,7 @@
  * Damage, reset and shattering of breakable collision surfaces.
  */
 
+#include "halo/math/constants.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
@@ -396,7 +397,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                         creation.gravity.i = global_origin3d_pointer->x;
                         creation.gravity.j = global_origin3d_pointer->y;
                         creation.gravity.k = global_origin3d_pointer->z;
-                        creation.rotation = shatter_random_fraction() * 6.2831855f;
+                        creation.rotation = shatter_random_fraction() * halo::math::k_two_pi;
                         creation.angular_velocity = (particles->angular_velocity[1] - particles->angular_velocity[0]) * shatter_random_fraction() +
                             particles->angular_velocity[0];
                         creation.scale = (particles->radius[1] - particles->radius[0]) * shatter_random_fraction() +

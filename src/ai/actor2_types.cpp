@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/ai/flags.hpp"
 #include "halo/units/flags.hpp"
@@ -806,12 +807,12 @@ void ActorView::type_infection_swarm_update()
                         to_goal.k = swarm->aggregate_position.z - component->position.z;
                         distance_squared = to_goal.k * to_goal.k + to_goal.j * to_goal.j + to_goal.i * to_goal.i;
                         if (!(distance_squared < 0.25f)) {
-                            float spread = 0.5f / (float)halo::libm::sqrt((double)distance_squared) * 3.1415927f;
+                            float spread = 0.5f / (float)halo::libm::sqrt((double)distance_squared) * halo::math::k_pi;
 
                             angle = halo::math::random_real_range(-spread, spread);
                             component->infection.heading = to_goal;
                         } else {
-                            angle = halo::math::random_real_range(-3.1415927f, 3.1415927f);
+                            angle = halo::math::random_real_range(-halo::math::k_pi, halo::math::k_pi);
                             component->infection.heading = object->base.forward;
                         }
                         halo::math::vector3d_rotate_about_axis(component->infection.heading, up, (float)sin((double)angle),
@@ -949,11 +950,11 @@ void ActorView::type_infection_swarm_update()
                     }
                     if (turn != 0.0f) {
                         if (!(turn <= 1.0f)) {
-                            turn = 1.5707964f;
+                            turn = halo::math::k_half_pi;
                         } else if (turn < -1.0f) {
-                            turn = -1.5707964f;
+                            turn = -halo::math::k_half_pi;
                         } else {
-                            turn = turn * 1.5707964f;
+                            turn = turn * halo::math::k_half_pi;
                         }
                         halo::math::vector3d_rotate_about_axis(desired, up, (float)sin((double)turn), (float)cos((double)turn));
                     }

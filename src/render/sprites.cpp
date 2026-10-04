@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "crt.h"
 #include "halo/core/datum.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -183,7 +184,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
     halo::render::render_sprite_transform_point_and_normal(origin, axis, &transformed_axis, data,
                                              (uint8_t)(flags & 1), &transformed_origin);
     d = halo::math::vector3d_angle_between_4cd4f0(transformed_axis, *((real_vector3d *)&transformed_origin)) -
-        1.5707964f;
+        halo::math::k_half_pi;
     t = d * d * 0.40528470f;
 
     if (t < 0.0f) {

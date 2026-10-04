@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "halo/rasterizer/render_device.hpp"
 #include "halo/core/datum.hpp"
@@ -85,7 +86,7 @@ static float progress(float start_time, float end_time)
     if (end_time == start_time) {
         return 1.0f;
     }
-    t = ((float)halo::game::globals().game_time->game_time * 0.033333335f - start_time) / (end_time - start_time);
+    t = ((float)halo::game::globals().game_time->game_time * halo::math::k_seconds_per_tick - start_time) / (end_time - start_time);
     if (t < 0.0f) {
         return 0.0f;
     }
@@ -177,7 +178,7 @@ void set_convolution(int16_t convolution_type, int16_t extra_passes, float radiu
     g->convolution_radius_lower_bound = radius_lower_bound;
     g->convolution_radius_upper_bound = radius_upper_bound;
 
-    start_time = (float)halo::game::globals().game_time->game_time * 0.033333335f;
+    start_time = (float)halo::game::globals().game_time->game_time * halo::math::k_seconds_per_tick;
     g->convolution_start_time = start_time;
     g->convolution_end_time = start_time + duration;
 }
@@ -213,7 +214,7 @@ void set_filter(float light_enhancement_lower, float light_enhancement_upper, fl
 
     g->filter_desaturation_is_additive = is_additive;
 
-    start_time = (float)halo::game::globals().game_time->game_time * 0.033333335f;
+    start_time = (float)halo::game::globals().game_time->game_time * halo::math::k_seconds_per_tick;
     g->night_vision_masked = 0;
     g->desaturation_masked = 0;
     g->filter_start_time = start_time;

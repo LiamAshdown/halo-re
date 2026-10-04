@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/core/bit_cast.hpp"
 #include <string.h>
@@ -256,12 +257,12 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
                     sideways_speed = 0.0f;
                 }
 
-                solve.movement_delta.i = speed_scale * forward_speed * unit->throttle.i * 0.033333335f;
-                solve.movement_delta.j = speed_scale * unit->throttle.j * sideways_speed * 0.033333335f;
+                solve.movement_delta.i = speed_scale * forward_speed * unit->throttle.i * halo::math::k_seconds_per_tick;
+                solve.movement_delta.j = speed_scale * unit->throttle.j * sideways_speed * halo::math::k_seconds_per_tick;
                 solve.maximum_acceleration = (stand_weight * player_info->run_acceleration +
                                               player_info->sneak_acceleration * biped->crouch_fraction) *
-                                             0.033333335f;
-                solve.airborne_acceleration = player_info->airborne_acceleration * 0.033333335f;
+                                             halo::math::k_seconds_per_tick;
+                solve.airborne_acceleration = player_info->airborne_acceleration * halo::math::k_seconds_per_tick;
 
                 if ((unit->control_flags & _unit_control_flag_look_dont_turn) == 0) {
                     solve.facing = unit->desired_facing_vector;
@@ -297,12 +298,12 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
 
             sideways_rate = crouch_modifier * tag->max_sidestep_velocity * speed_scale;
             solve.movement_delta.i = crouch_modifier * tag->max_velocity * speed_scale *
-                                     unit->throttle.i * 0.033333335f;
-            solve.movement_delta.j = sideways_rate * unit->throttle.j * 0.033333335f;
-            solve.movement_delta.k = sideways_rate * unit->throttle.k * 0.033333335f;
+                                     unit->throttle.i * halo::math::k_seconds_per_tick;
+            solve.movement_delta.j = sideways_rate * unit->throttle.j * halo::math::k_seconds_per_tick;
+            solve.movement_delta.k = sideways_rate * unit->throttle.k * halo::math::k_seconds_per_tick;
             solve.maximum_acceleration = ((1.0f - throttle_length) * tag->deceleration +
                                           throttle_length * tag->acceleration) *
-                                         crouch_modifier * speed_scale * 0.033333335f;
+                                         crouch_modifier * speed_scale * halo::math::k_seconds_per_tick;
             solve.airborne_acceleration = solve.maximum_acceleration;
         }
 
@@ -648,12 +649,12 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
                     sideways_speed = 0.0f;
                 }
 
-                solve.movement_delta.i = speed_scale * unit->throttle.i * forward_speed * 0.033333335f;
-                solve.movement_delta.j = speed_scale * unit->throttle.j * sideways_speed * 0.033333335f;
+                solve.movement_delta.i = speed_scale * unit->throttle.i * forward_speed * halo::math::k_seconds_per_tick;
+                solve.movement_delta.j = speed_scale * unit->throttle.j * sideways_speed * halo::math::k_seconds_per_tick;
                 solve.maximum_acceleration = (player_info->sneak_acceleration * biped->crouch_fraction +
                                               stand_weight * player_info->run_acceleration) *
-                                             0.033333335f;
-                solve.airborne_acceleration = player_info->airborne_acceleration * 0.033333335f;
+                                             halo::math::k_seconds_per_tick;
+                solve.airborne_acceleration = player_info->airborne_acceleration * halo::math::k_seconds_per_tick;
 
                 if ((unit->control_flags & _unit_control_flag_look_dont_turn) == 0) {
                     solve.facing = unit->desired_facing_vector;
@@ -687,14 +688,14 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
             }
 
             solve.movement_delta.i = crouch_modifier * tag->max_velocity * speed_scale *
-                                     unit->throttle.i * 0.033333335f;
+                                     unit->throttle.i * halo::math::k_seconds_per_tick;
             solve.movement_delta.j = crouch_modifier * tag->max_sidestep_velocity * speed_scale *
-                                     unit->throttle.j * 0.033333335f;
+                                     unit->throttle.j * halo::math::k_seconds_per_tick;
             solve.movement_delta.k = crouch_modifier * tag->max_sidestep_velocity * speed_scale *
-                                     unit->throttle.k * 0.033333335f;
+                                     unit->throttle.k * halo::math::k_seconds_per_tick;
             solve.maximum_acceleration = ((1.0f - throttle_length) * tag->deceleration +
                                           throttle_length * tag->acceleration) *
-                                         crouch_modifier * speed_scale * 0.033333335f;
+                                         crouch_modifier * speed_scale * halo::math::k_seconds_per_tick;
             solve.airborne_acceleration = solve.maximum_acceleration;
         }
 
@@ -1169,8 +1170,8 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
                     swept_position.x = best_plane.normal.i * -height + swept_position.x;
                     swept_position.y = best_plane.normal.j * -height + swept_position.y;
                     swept_position.z = best_plane.normal.k * -height + swept_position.z;
-                    if (into > -0.033333335f) {
-                        float push = -(into + 0.033333335f);
+                    if (into > -halo::math::k_seconds_per_tick) {
+                        float push = -(into + halo::math::k_seconds_per_tick);
                         swept_velocity.i = best_plane.normal.i * push + swept_velocity.i;
                         swept_velocity.j = best_plane.normal.j * push + swept_velocity.j;
                         swept_velocity.k = best_plane.normal.k * push + swept_velocity.k;

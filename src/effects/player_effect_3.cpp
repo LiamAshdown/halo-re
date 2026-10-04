@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/effects/effects.hpp"
@@ -77,7 +78,7 @@ void player_effect_view::set_camera_impulse(int16_t local_player_index, real *de
             magnitude = (real)(int32_t)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale *
                 (((struct player_effect *)fx)->impulse.magnitude_maximum - ((struct player_effect *)fx)->impulse.magnitude_minimum) + ((struct player_effect *)fx)->impulse.magnitude_minimum;
             halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-            random_angle = (real)(int32_t)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * 6.2831855f;
+            random_angle = (real)(int32_t)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale * halo::math::k_two_pi;
 
             halo::math::vector3d_cross_product(*impulse_rotation, *up, *impulse_direction);
             halo::math::vector3d_normalize_with_length(*impulse_rotation);

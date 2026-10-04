@@ -2,6 +2,7 @@
  * @file src/networking/net2_vector_quantize.cpp
  * Vector quantization and digital throttle helpers.
  */
+#include "halo/math/constants.hpp"
 #include "message_delta_codec.h"
 #include "halo/networking/net2_vector_quantize.hpp"
 #include "halo/math/api.hpp"
@@ -130,13 +131,13 @@ void VectorQuantizer::to_angles(real *out, real_vector3d vector)
 {
     halo::math::vector3d_normalize_with_length(vector);
     if (!(vector.i > 0.0001f) && !(vector.i != vector.i) && !(vector.i < -0.0001f)) {
-        out[1] = vector.j > 0.0f ? 1.5707964f : -1.5707964f;
+        out[1] = vector.j > 0.0f ? halo::math::k_half_pi : -halo::math::k_half_pi;
         out[0] = (real)halo::libm::acos(vector.k);
         return;
     }
     out[1] = (real)halo::libm::atan(vector.j / vector.i);
     if (vector.i < 0.0f) {
-        out[1] = out[1] + 3.1415927f;
+        out[1] = out[1] + halo::math::k_pi;
     }
     out[0] = (real)halo::libm::acos(vector.k);
 }

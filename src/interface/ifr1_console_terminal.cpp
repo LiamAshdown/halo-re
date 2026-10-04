@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/interface/ifr1_console_terminal.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/interface/engine_state.hpp"
@@ -306,7 +307,7 @@ void ConsoleTerminal::draw_overlay(void)
             hud_text_draw_color_r = message->color.red;
             hud_text_draw_color_g = message->color.green;
             hud_text_draw_color_b = message->color.blue;
-            fade = 4.0f - (float)message->age * 0.033333335f;
+            fade = 4.0f - (float)message->age * halo::math::k_seconds_per_tick;
             if (fade < 0.0f) {
                 fade = 0.0f;
             } else if (fade > 1.0f) {

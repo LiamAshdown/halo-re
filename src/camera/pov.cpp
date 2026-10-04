@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/camera/pov.hpp"
 #include "halo/models/api.hpp"
@@ -335,7 +336,7 @@ void FirstPersonCamera::track_offset(unit_camera_properties *properties, float a
     control_point_count = (int32_t)track->control_points.count;
 
     
-    time = (angle + 1.5707964f) * 0.31830987f;
+    time = (angle + halo::math::k_half_pi) * 0.31830987f;
 
     dt = 1.0f / (float)(control_point_count - 1);
     frame_guess = (int16_t)(time * (float)(control_point_count - 1));
@@ -481,10 +482,10 @@ void ThirdPersonCamera::compute_pov(director_camera_data *data, camera_input *in
         player = &halo::game::globals().player_control->local_players[input->local_player_index];
         yaw = player->yaw + tp->yaw_offset;
         pitch = player->pitch + tp->pitch_offset;
-        if (pitch < -1.5707964f) {
-            pitch = -1.5707964f;
-        } else if (pitch > 1.5707964f) {
-            pitch = 1.5707964f;
+        if (pitch < -halo::math::k_half_pi) {
+            pitch = -halo::math::k_half_pi;
+        } else if (pitch > halo::math::k_half_pi) {
+            pitch = halo::math::k_half_pi;
         }
 
         cos_pitch = (float)halo::x87::fcos((double)pitch);

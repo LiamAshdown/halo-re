@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/core/bit_cast.hpp"
@@ -336,8 +337,8 @@ void UnitView::initialize_random_turn_angle()
     real_vector3d direction;
     if (unit->actor_index == k_datum_index_none || halo::ai::actor_resolve_wander_or_look_direction(unit->actor_index, &direction) == 0) {
         float angle = (float)halo::libm::atan2((double)obj->forward.j, (double)obj->forward.i);
-        if (angle > 3.1415927f) {
-            angle -= 6.2831855f;
+        if (angle > halo::math::k_pi) {
+            angle -= halo::math::k_two_pi;
         }
         unit->idle_turn_angle = angle;
         half_range = 1.7453293f;
@@ -970,10 +971,10 @@ void UnitView::update_random_turn_angle(real_vector3d *out_axis)
     delta += unit->idle_turn_angle;
     unit->idle_turn_angle = delta;
 
-    if (delta < -3.1415927f) {
-        unit->idle_turn_angle = delta + 6.2831855f;
-    } else if (delta > 3.1415927f) {
-        unit->idle_turn_angle = delta - 6.2831855f;
+    if (delta < -halo::math::k_pi) {
+        unit->idle_turn_angle = delta + halo::math::k_two_pi;
+    } else if (delta > halo::math::k_pi) {
+        unit->idle_turn_angle = delta - halo::math::k_two_pi;
     }
 
     {

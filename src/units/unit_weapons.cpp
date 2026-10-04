@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/networking/delta_message_types.hpp"
 #include "halo/units/animation_states.hpp"
@@ -1286,7 +1287,7 @@ void UnitView::release_thrown_grenade(uint8_t early)
             halo::objects::object_set_position_and_relink(&launch, grenade, 0);
         }
         {
-            real speed = unit_tag->grenade_velocity * 0.033333335f;
+            real speed = unit_tag->grenade_velocity * halo::math::k_seconds_per_tick;
 
             velocity.i = speed * aim->i;
             velocity.j = speed * aim->j;

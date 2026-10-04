@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/objects/light_system.hpp"
 #include "halo/tags/flags.hpp"
@@ -560,7 +561,7 @@ void halo::objects::LightSystem::apply_spot_falloff()
                         marker_count = halo::objects::light_collect_object_references(light_active_list[i], 0x200, references);
                     }
 
-                    if (1.5707964f <= tag->cutoff_angle) {
+                    if (halo::math::k_half_pi <= tag->cutoff_angle) {
                         position = l->position;
                     } else if (0.7853982f <= tag->cutoff_angle) {
                         float scale = radius * tag->cos_cutoff_angle;
@@ -626,7 +627,7 @@ void halo::objects::LightSystem::apply_spot_falloff_specular()
                             radius = radius * tag->specular_radius_multiplier;
                         }
 
-                        if (1.5707964f <= tag->cutoff_angle) {
+                        if (halo::math::k_half_pi <= tag->cutoff_angle) {
                             position = l->position;
                         } else if (0.7853982f <= tag->cutoff_angle) {
                             float scale = radius * tag->cos_cutoff_angle;
@@ -720,7 +721,7 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
         }
 
         if (light_tag->lens_flare_only_radius <= attenuation) {
-            if (light_tag->cutoff_angle >= 1.5707964f) {
+            if (light_tag->cutoff_angle >= halo::math::k_half_pi) {
                 position = entry->position;
             } else if (light_tag->cutoff_angle >= 0.7853982f) {
                 float offset = attenuation * light_tag->cos_cutoff_angle;
@@ -984,7 +985,7 @@ void halo::objects::LightSystem::get_render_bounds(datum_index handle, real_poin
     if (reach < definition->lens_flare_only_radius) {
         *center_out = light->position;
         *radius_out = definition->lens_flare_only_radius;
-    } else if (!(angle < 1.5707964f)) {
+    } else if (!(angle < halo::math::k_half_pi)) {
         *center_out = light->position;
         *radius_out = reach;
     } else if (!(angle < 0.78539819f)) {

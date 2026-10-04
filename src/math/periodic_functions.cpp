@@ -3,6 +3,7 @@
  * Periodic (wave) and transition (easing) function tables and evaluators.
  */
 
+#include "halo/math/constants.hpp"
 #include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 #include "halo/math/globals.hpp"
@@ -33,7 +34,7 @@ public:
     explicit constexpr cosine_wave(bool warped) : warped(warped) {}
     real sample(const wave_phase &phase, random_seed &) const override
     {
-        return (real)cos((double)((warped ? phase.warped : phase.linear) * 6.2831855f));
+        return (real)cos((double)((warped ? phase.warped : phase.linear) * halo::math::k_two_pi));
     }
 
 private:
@@ -90,9 +91,9 @@ public:
         const real a = (real)cos((double)(t * 0.8975979f));
         const real b = (real)cos((double)(t * 25.132742f));
         const real c = (real)cos((double)(t * 43.9823f));
-        const real d = (real)sin((double)(t * 1.5707964f));
-        const real e = (real)sin((double)(t * 3.1415927f));
-        const real f = (real)cos((double)(t * 6.2831855f));
+        const real d = (real)sin((double)(t * halo::math::k_half_pi));
+        const real e = (real)sin((double)(t * halo::math::k_pi));
+        const real f = (real)cos((double)(t * halo::math::k_two_pi));
         return f * e + (d * c + b * a) * 0.5f;
     }
 };
@@ -126,7 +127,7 @@ private:
 /** (sin(t*pi - pi/2) + 1) / 2, the raised cosine. */
 class cosine_curve final : public transition_curve {
 public:
-    real value(real t) const override { return ((real)sin((double)(t * 3.1415927f - 1.5707964f)) + 1.0f) * 0.5f; }
+    real value(real t) const override { return ((real)sin((double)(t * halo::math::k_pi - halo::math::k_half_pi)) + 1.0f) * 0.5f; }
 };
 
 const constant_wave k_wave_one(1.0f);

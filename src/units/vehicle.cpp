@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/records.hpp"
@@ -260,19 +261,19 @@ uint32_t VehicleView::update()
         }
         if (tag->vehicle_type != vehicletype_human_tank) {
             float target = ((struct vehicle_object *)obj)->vehicle.forward_velocity >= 0.0f ? angle : -angle;
-            float low = tag->maximum_right_turn * 0.017453292f;
+            float low = tag->maximum_right_turn * halo::math::k_degrees_to_radians;
 
             if (!(target >= low)) {
                 target = low;
             } else {
-                float high = tag->maximum_left_turn * 0.017453292f;
+                float high = tag->maximum_left_turn * halo::math::k_degrees_to_radians;
 
                 if (!(target <= high)) {
                     target = high;
                 }
             }
             halo::physics::physics_scalar_move_toward_target((physics_scalar_range *)(reinterpret_cast<uint8_t *>(tag) + 0x308), (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, 0, target,
-                                              tag->turn_rate * 0.017453292f * 0.033333335f);
+                                              tag->turn_rate * halo::math::k_degrees_to_radians * halo::math::k_seconds_per_tick);
         } else if (((struct vehicle_object *)obj)->vehicle.forward_velocity == 0.0f) {
             halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(reinterpret_cast<uint8_t *>(tag) + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, 0.0f, 1.0f);
         } else {

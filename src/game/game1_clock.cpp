@@ -2,6 +2,7 @@
  * Fixed-rate simulation tick accounting, tick records, time scale and the multiplayer clock.
  */
 
+#include "halo/math/constants.hpp"
 #include "tags.h"
 #include "halo/networking/game_mode.hpp"
 #include "halo/game/constants.hpp"
@@ -58,7 +59,7 @@ void SimulationClock::effects_update(real delta_time)
 
     scale = (halo::main::globals().game_globals->players_are_double_speed == 0) ? 1.0f : 0.5f;
     ticks_this_frame = game_time->ticks_this_frame;
-    tick_delta_time = (real)ticks_this_frame * scale * 0.033333335f;
+    tick_delta_time = (real)ticks_this_frame * scale * halo::math::k_seconds_per_tick;
     delta_time = scale * delta_time;
 
     if (ticks_this_frame != 0) {

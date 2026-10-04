@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/items/items.hpp"
@@ -695,7 +696,7 @@ real weapon_trigger_ref::get_charge_fraction(int16_t trigger_index)
 
     if (trigger->effect_state == _weapon_trigger_effect_charging) {
         tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
-        return 1.0f - ((real)trigger->effect_state_ticks * 0.033333335f) / tag_trigger->charging_time;
+        return 1.0f - ((real)trigger->effect_state_ticks * halo::math::k_seconds_per_tick) / tag_trigger->charging_time;
     }
     if (trigger->effect_state != _weapon_trigger_effect_charged) {
         return 0.0f;

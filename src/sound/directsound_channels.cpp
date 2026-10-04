@@ -3,6 +3,7 @@
  * DirectSound hardware channel streaming, parameters and spatialization.
  */
 
+#include "halo/math/constants.hpp"
 #include "halo/sound/directsound.hpp"
 #include "internal/state.hpp"
 #include "halo/shell/api.hpp"
@@ -177,8 +178,8 @@ void DirectSoundDevice::commit_parameters(int16_t channel_index, sound_channel_p
                 directsound_initialized == 0) {
                 int32_t (__stdcall *set_cone_angles)(void *, uint32_t, uint32_t, uint32_t) =
                     (int32_t (__stdcall *)(void *, uint32_t, uint32_t, uint32_t))vtable_3d[halo::sound::dsound_slot::b3d_set_cone_angles];
-                uint32_t outer_degrees = (uint32_t)(int32_t)(parameters->outer_cone_angle * 57.29578f);
-                uint32_t inner_degrees = (uint32_t)(int32_t)(parameters->inner_cone_angle * 57.29578f);
+                uint32_t outer_degrees = (uint32_t)(int32_t)(parameters->outer_cone_angle * halo::math::k_radians_to_degrees);
+                uint32_t inner_degrees = (uint32_t)(int32_t)(parameters->inner_cone_angle * halo::math::k_radians_to_degrees);
                 set_cone_angles(channel->buffer_3d, inner_degrees, outer_degrees, 1);
                 channel->inner_cone_angle = parameters->inner_cone_angle;
                 channel->outer_cone_angle = parameters->outer_cone_angle;

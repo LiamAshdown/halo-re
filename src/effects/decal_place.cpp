@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -132,7 +133,7 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
         (ModelCollisionGeometryBSPSurface *)halo::physics::globals().structure_collision_bsp->surfaces.pointer;
     ModelCollisionGeometryBSPEdge *edges;
     ModelCollisionGeometryBSPVertex *vertices;
-    real maximum_angle = k_decal_type_parameters[definition->type].maximum_edge_angle * 0.017453292f;
+    real maximum_angle = k_decal_type_parameters[definition->type].maximum_edge_angle * halo::math::k_degrees_to_radians;
     int32_t group[0x400];
     int16_t group_count = 0;
     real_plane3d first_plane;
@@ -341,7 +342,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
                     halo::math::vector3d_cross_product(b, a, *normal);
                 }
             } else {
-                real angle = decal_place_random_fraction() * 6.2831855f;
+                real angle = decal_place_random_fraction() * halo::math::k_two_pi;
 
                 rotation_cos = (real)halo::libm::cos((double)angle);
                 rotation_sin = (real)halo::libm::sin((double)angle);

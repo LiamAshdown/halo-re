@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
@@ -99,7 +100,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         }
 
         halo::math::globals().random_seed_global = halo::advance_random_seed(seed_snapshot);
-        angle = (real)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * halo::k_unit_word_scale * magnitude * 1.5707964f;
+        angle = (real)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * halo::k_unit_word_scale * magnitude * halo::math::k_half_pi;
         obj->angular_velocity.i += cross_axis.i * angle;
         obj->angular_velocity.j += cross_axis.j * angle;
         obj->angular_velocity.k += cross_axis.k * angle;
@@ -113,7 +114,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         } else {
             axis = *halo::math::globals().global_up3d_pointer;
         }
-        angle = halo::math::random_real_range(-1.5707964f, 1.5707964f);
+        angle = halo::math::random_real_range(-halo::math::k_half_pi, halo::math::k_half_pi);
         obj->angular_velocity.i += axis.i * angle;
         obj->angular_velocity.j += axis.j * angle;
         obj->angular_velocity.k += axis.k * angle;

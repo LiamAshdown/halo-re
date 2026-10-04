@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/units/records.hpp"
@@ -493,7 +494,7 @@ int32_t UnitView::pick_random_spawned_actor_count()
                      (int32_t)((((uint32_t)halo::cache::globals().tag_instances >> 16) << 16) | (uint16_t)unit_tag->spawned_actor_count[0]);
             if (0 < (int16_t)result) {
                 result = halo::ai::actor_spawn_additional_units(halo::objects::tag_handle(((struct Unit *)unit_tag)->spawned_actor), (int16_t)result,
-                    unit_index, ((struct Unit *)unit_tag)->spawned_velocity * 0.033333335f);
+                    unit_index, ((struct Unit *)unit_tag)->spawned_velocity * halo::math::k_seconds_per_tick);
             }
             unit->flags |= _unit_flag_permutation_chosen;
         }

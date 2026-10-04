@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/objects/flags.hpp"
@@ -1554,7 +1555,7 @@ uint8_t ActorOps::resolve_look_target(real_point3d *preferred_direction, datum_i
                                ? definition->maximum_aiming_deviation.yaw
                                : definition->idle_aiming_range.yaw;
             } else {
-                yaw_half = 3.1415927f;
+                yaw_half = halo::math::k_pi;
             }
             pitch_half = (definition->maximum_aiming_deviation.pitch <= definition->idle_aiming_range.pitch)
                               ? definition->maximum_aiming_deviation.pitch
@@ -2332,7 +2333,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
 
                 halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                 random_bits = halo::math::globals().random_seed_global >> 16;
-                angle = (float)(int32_t)random_bits * 1.5259022e-05f * 6.2831855f;
+                angle = (float)(int32_t)random_bits * 1.5259022e-05f * halo::math::k_two_pi;
                 halo::objects::object_placement_data_initialize(&placement, halo::ai::tag_handle(variant->unit), (datum_index)k_datum_index_none);
                 placement.forward.i = (float)halo::libm::cos(angle);
                 placement.forward.j = (float)halo::libm::sin(angle);

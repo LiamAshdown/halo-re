@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/game2_game_lifecycle.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/datum.hpp"
@@ -100,7 +101,7 @@ void GameLifecycle::simulate_tick(uint32_t predict_pass)
     }
 
     {
-        float seconds_per_tick = (halo::main::globals().game_globals->players_are_double_speed == 0) ? 0.033333335f : 0.016666668f;
+        float seconds_per_tick = (halo::main::globals().game_globals->players_are_double_speed == 0) ? halo::math::k_seconds_per_tick : 0.016666668f;
         halo::effects::effects_update_all(seconds_per_tick);
     }
 

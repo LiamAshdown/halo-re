@@ -2,6 +2,7 @@
  * @file src/networking/net2_message_delta_vector.cpp
  * Vector, normal, throttle and quantized real message-delta field codecs.
  */
+#include "halo/math/constants.hpp"
 #include "message_delta_codec.h"
 #include "halo/core/cstring.hpp"
 #include <math.h>
@@ -301,8 +302,8 @@ int32_t VectorFieldCodec::normal_decode(message_delta_field_type *field_type, vo
     (void)previous;
     bits = halo::memory::bit_stream_read_bits_chunked(bits_a, &value_a, stream);
     bits += halo::memory::bit_stream_read_bits_chunked(bits_b, &value_b, stream);
-    angle_a = (real)((double)value_a / (double)(uint32_t)((1 << bits_a) - 1)) * 3.1415927f;
-    angle_b = (real)((double)value_b / (double)(uint32_t)((1 << bits_b) - 1)) * 6.2831855f - 1.5707964f;
+    angle_a = (real)((double)value_a / (double)(uint32_t)((1 << bits_a) - 1)) * halo::math::k_pi;
+    angle_b = (real)((double)value_b / (double)(uint32_t)((1 << bits_b) - 1)) * halo::math::k_two_pi - halo::math::k_half_pi;
     halo::networking::vector3d_from_yaw_pitch((real_vector3d *)current, angle_a, angle_b);
     return bits;
 }
@@ -324,7 +325,7 @@ int32_t VectorFieldCodec::normal_encode(message_delta_field_type *field_type, vo
     if (level_a > levels_a) {
         level_a = levels_a;
     }
-    level_b = (uint32_t)(int64_t)halo::libm::floor((double)((angles[1] - -1.5707964f) * 0.15915494f * (real)levels_b + 0.5f));
+    level_b = (uint32_t)(int64_t)halo::libm::floor((double)((angles[1] - -halo::math::k_half_pi) * 0.15915494f * (real)levels_b + 0.5f));
     if (level_b > levels_b) {
         level_b = levels_b;
     }
@@ -332,9 +333,9 @@ int32_t VectorFieldCodec::normal_encode(message_delta_field_type *field_type, vo
         uint32_t previous_a;
 
         halo::networking::vector3d_to_angles(angles, *(real_vector3d *)previous);
-        previous_a = halo::networking::message_delta_quantize_float_to_int(levels_a, angles[0], 0.0f, 3.1415927f);
+        previous_a = halo::networking::message_delta_quantize_float_to_int(levels_a, angles[0], 0.0f, halo::math::k_pi);
         if (level_a == previous_a &&
-            level_b == halo::networking::message_delta_quantize_float_to_int(levels_b, angles[1], -1.5707964f, 4.712389f)) {
+            level_b == halo::networking::message_delta_quantize_float_to_int(levels_b, angles[1], -halo::math::k_half_pi, 4.712389f)) {
             return 0;
         }
     }

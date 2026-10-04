@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
@@ -211,15 +212,15 @@ void BipedView::update_facing(int8_t *out_animation_state)
         }
         biped->bank_angle = bank_target;
 
-        bounds[0] = -3.1415927f;
-        bounds[1] = 3.1415927f;
-        bounds[2] = -1.5707964f;
-        bounds[3] = 1.5707964f;
+        bounds[0] = -halo::math::k_pi;
+        bounds[1] = halo::math::k_pi;
+        bounds[2] = -halo::math::k_half_pi;
+        bounds[3] = halo::math::k_half_pi;
 
         servo_acceleration = tag->angular_acceleration_maximum * 0.0011111111f;
         if (servo_acceleration != 0.0f) {
             halo::math::vector3d_rotate_toward_bounded(&obj->forward, &obj->angular_velocity, bounds,
-                         tag->angular_velocity_maximum * 0.033333335f, servo_acceleration, target, 0);
+                         tag->angular_velocity_maximum * halo::math::k_seconds_per_tick, servo_acceleration, target, 0);
         } else {
             obj->forward = target;
         }

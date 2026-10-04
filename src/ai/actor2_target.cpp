@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/ai/flags.hpp"
@@ -1239,7 +1240,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, acto
         p->speed_class = 0;
     } else if (speed < 0.016666668f) {
         p->speed_class = 1;
-    } else if (speed < 0.033333335f) {
+    } else if (speed < halo::math::k_seconds_per_tick) {
         p->speed_class = 2;
     } else {
         p->speed_class = 3;
@@ -1248,7 +1249,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, acto
     closing_rate = -((velocity.i - scratch->velocity.i) * p->direction.x +
                       (velocity.j - scratch->velocity.j) * p->direction.y +
                       (velocity.k - scratch->velocity.k) * p->direction.z);
-    if (closing_rate < -0.033333335f) {
+    if (closing_rate < -halo::math::k_seconds_per_tick) {
         p->closing_speed_class = 0;
     } else if (closing_rate < -0.016666668f) {
         p->closing_speed_class = 1;
@@ -1258,7 +1259,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, acto
         p->closing_speed_class = 3;
     } else if (closing_rate < 0.016666668f) {
         p->closing_speed_class = 4;
-    } else if (closing_rate < 0.033333335f) {
+    } else if (closing_rate < halo::math::k_seconds_per_tick) {
         p->closing_speed_class = 5;
     } else {
         p->closing_speed_class = 6;

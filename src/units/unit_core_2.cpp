@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/units/records.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/game/records.hpp"
@@ -295,7 +296,7 @@ uint8_t UnitView::update()
         }
 
         speed_scale = ((uint8_t)obj->unit.aiming_speed == 1) ? tag->casual_aiming_modifier : 1.0f;
-        rate = speed_scale * tag->aiming_velocity_maximum * 0.033333335f;
+        rate = speed_scale * tag->aiming_velocity_maximum * halo::math::k_seconds_per_tick;
         acceleration = speed_scale * tag->aiming_acceleration_maximum * 0.0011111111f;
         previous_aim = *(real_vector3d *)&obj->unit.aiming_vector.i;
         zero_vector = global_zero_vector3d_pointer;
@@ -323,7 +324,7 @@ uint8_t UnitView::update()
 
             if (tag->aiming_velocity_maximum != 0.0f) {
                 change = halo::math::vector3d_angle_between_4cd4f0(previous_aim, *((real_vector3d *)&obj->unit.aiming_vector)) /
-                    (tag->aiming_velocity_maximum * 0.033333335f);
+                    (tag->aiming_velocity_maximum * halo::math::k_seconds_per_tick);
                 if (change < 0.0f) {
                     change = 0.0f;
                 } else if (change > 1.0f) {
@@ -332,7 +333,7 @@ uint8_t UnitView::update()
             }
             obj->unit.aiming_change = (uint8_t)(int32_t)(change * 255.0f);
         }
-        rate = speed_scale * tag->looking_velocity_maximum * 0.033333335f;
+        rate = speed_scale * tag->looking_velocity_maximum * halo::math::k_seconds_per_tick;
         acceleration = speed_scale * tag->looking_acceleration_maximum * 0.0011111111f;
         if (rate == 0.0f && acceleration == 0.0f) {
             *(real_vector3d *)&obj->unit.looking_vector.i = *(real_vector3d *)&obj->unit.desired_looking_vector.i;

@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/projectiles/projectile.hpp"
@@ -438,7 +439,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
             halo::objects::object_recalculate_bounding_radius(object_index);
             
             halo::effects::contrail_advance(obj->attachment_handles[proj->contrail_attachment_index], 0,
-                (1.0f - remaining_tick_fraction) * 0.033333335f);
+                (1.0f - remaining_tick_fraction) * halo::math::k_seconds_per_tick);
         }
     }
 

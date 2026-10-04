@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/core/slot_mask.hpp"
@@ -112,7 +113,7 @@ int32_t weapon_ref::update()
         }
 
         if (wd->charged_fraction == 0.0f) {
-            real loss = weapon_tag->heat_loss_rate * 0.033333335f;
+            real loss = weapon_tag->heat_loss_rate * halo::math::k_seconds_per_tick;
             if (weapon_tag->age_heat_recovery_penalty > 0.0f) {
                 loss = (1.0f - wd->age * weapon_tag->age_heat_recovery_penalty) * loss;
             }
@@ -328,7 +329,7 @@ int32_t weapon_ref::update()
                 if (is_pulled == 0) {
                     halo::items::weapon_trigger_enter_recovery(item_index, local_trigger_index);
                 } else {
-                    wd->charged_fraction = 1.0f - ((real)trigger->effect_state_ticks * 0.033333335f) / tag_trigger->charged_time;
+                    wd->charged_fraction = 1.0f - ((real)trigger->effect_state_ticks * halo::math::k_seconds_per_tick) / tag_trigger->charged_time;
                     if (trigger->effect_state_ticks == 0) {
                         halo::items::weapon_trigger_handle_empty(item_index, local_trigger_index);
                     } else {

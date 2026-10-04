@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/ai/flags.hpp"
 #include "halo/tags/flags.hpp"
@@ -154,7 +155,7 @@ void ActorView::update_aim_wander()
         error = error * scale->projectile_error;
     }
     if (a->playfight != 0) {
-        error = error + error + 0.017453292f;
+        error = error + error + halo::math::k_degrees_to_radians;
     }
     a->projectile_error = error;
 
@@ -225,7 +226,7 @@ void ActorView::update_aim_wander()
 
     if (a->firing_state_timer > 0 && burst->angular_velocity > 0.0f) {
         float ticks = (float)(int32_t)a->firing_state_timer;
-        float sweep = ticks * burst->angular_velocity * 0.033333335f;
+        float sweep = ticks * burst->angular_velocity * halo::math::k_seconds_per_tick;
         float limit;
 
         if (!(sweep <= 0.7853982f)) {

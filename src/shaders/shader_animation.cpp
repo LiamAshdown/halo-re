@@ -3,6 +3,7 @@
  * Texture animation evaluation for shader tags.
  */
 
+#include "halo/math/constants.hpp"
 #include "halo/core/crt.hpp"
 #include "halo/shaders/shaders.hpp"
 #include "halo/math/api.hpp"
@@ -56,7 +57,7 @@ void shader_texture_animation_evaluate(render_animation *frame_animation, shader
         cos_r = 1.0f;
         sin_r = 0.0f;
     } else {
-        double radians = (double)total_rotation * (double)0.017453292f;
+        double radians = (double)total_rotation * (double)halo::math::k_degrees_to_radians;
 
         cos_r = cos(radians);
         sin_r = sin((double)(real)radians);

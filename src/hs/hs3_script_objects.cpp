@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/objects/record_access.hpp"
@@ -197,7 +198,7 @@ uint8_t ScriptObjects::object_angle_predicate_helper(datum_index object_index, d
 
         point = *&object->base.bounding_center;
     }
-    return halo::units::unit_point_within_look_cone(angle_degrees * 0.017453292f, viewer_unit, &point);
+    return halo::units::unit_point_within_look_cone(angle_degrees * halo::math::k_degrees_to_radians, viewer_unit, &point);
 }
 
 /**
@@ -430,7 +431,7 @@ uint32_t ScriptObjects::object_list_any_angle_match_gated(datum_index header_ind
                 salt = (int16_t)((uint32_t)object_index >> 0x10);
                 if ((salt == 0 || entry->identifier == salt) &&
                     (1 << (entry->type_flag & 0x1f) & _object_mask_unit) != 0 && entry->data != 0 &&
-                    gate != 0 && halo::units::unit_point_within_look_cone(angle_degrees * 0.017453292f, object_index,
+                    gate != 0 && halo::units::unit_point_within_look_cone(angle_degrees * halo::math::k_degrees_to_radians, object_index,
                         reinterpret_cast<real_point3d *>(&halo::objects::block_element<ScenarioCutsceneFlag>(halo::scenario::globals().scenario->cutscene_flags, gate).position)) != 0) {
 
                     return 1;

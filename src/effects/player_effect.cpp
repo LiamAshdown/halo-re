@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
 #include <cstring>
@@ -361,7 +362,7 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
         angle = halo::libm::atan2(projected.j, projected.i);
         abs_angle = (float)halo::libm::fabs(angle);
         if (angle < 0.78539819f || angle > 2.3561945f) {
-            if (abs_angle > 1.5707964f) {
+            if (abs_angle > halo::math::k_half_pi) {
                 self->damage_indicator_alpha[1] = 1;
             } else {
                 self->damage_indicator_alpha[3] = 1;

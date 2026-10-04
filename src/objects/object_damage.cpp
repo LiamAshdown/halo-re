@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/networking/game_mode.hpp"
@@ -177,7 +178,7 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
                 uint16_t current = *vitality_flags;
 
                 if (current & 0x10) {
-                    float value = *shield + 0.033333335f;
+                    float value = *shield + halo::math::k_seconds_per_tick;
 
                     *shield = value;
                     if (value < 3.0f) {
@@ -1420,7 +1421,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
         direction.k = direction.k + 0.45f;
         halo::math::vector3d_normalize_with_length(direction);
         type = obj->base.type;
-        scale = object_tag->acceleration_scale * effect->damage_instantaneous_acceleration.i * 0.033333335f;
+        scale = object_tag->acceleration_scale * effect->damage_instantaneous_acceleration.i * halo::math::k_seconds_per_tick;
         impulse.i = direction.i * scale;
         impulse.j = direction.j * scale;
         impulse.k = scale * direction.k;

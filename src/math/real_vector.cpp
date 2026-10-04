@@ -3,6 +3,7 @@
  * Real vectors and points: length, normalize, cross/dot products, projections, angles.
  */
 
+#include "halo/math/constants.hpp"
 #include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 #include "halo/math/glm_interop.hpp"
@@ -188,7 +189,7 @@ real vector3d_angle_between_4cd4f0(const real_vector3d &a, const real_vector3d &
         angle = (real)acos((double)cos_double_angle);
         angle = angle * 0.5f;
         if (dot < 0.0f) {
-            angle = 3.1415927f - angle;
+            angle = halo::math::k_pi - angle;
         }
     }
     return angle;

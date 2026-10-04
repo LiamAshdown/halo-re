@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/objects/glow.hpp"
 #include "halo/tags/flags.hpp"
@@ -691,10 +692,10 @@ glow_particle * halo::objects::GlowView::particle_new(int16_t index, int16_t cou
         }
         if (tag->normal_particle_distribution == 0) {
             pb->t = glow_next_random_unit() * entry->total_length;
-            pb->angle = glow_next_random_unit() * 6.2831855f;
+            pb->angle = glow_next_random_unit() * halo::math::k_two_pi;
         } else if (tag->normal_particle_distribution == 1) {
             pb->t = ((float)index / (float)count) * entry->total_length;
-            pb->angle = glow_next_random_unit() * 6.2831855f;
+            pb->angle = glow_next_random_unit() * halo::math::k_two_pi;
         }
     }
     return p;
@@ -753,7 +754,7 @@ glow_particle * halo::objects::GlowView::particle_spawn()
         }
 
         {
-            float speed = tag->velocity_of_trailing_particles * 0.033333335f;
+            float speed = tag->velocity_of_trailing_particles * halo::math::k_seconds_per_tick;
             pb->base_velocity[0] *= speed;
             pb->base_velocity[1] *= speed;
             pb->base_velocity[2] *= speed;

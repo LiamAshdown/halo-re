@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/game2_engine_match.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
@@ -313,7 +314,7 @@ void EngineMatch::tick(void)
             game_engine_unknown_aa00 = game_engine_unknown_aa00 | 0x10;
         }
 
-        game_engine_end_game_timer = game_engine_end_game_timer - 0.033333335f;
+        game_engine_end_game_timer = game_engine_end_game_timer - halo::math::k_seconds_per_tick;
         if (game_engine_end_game_timer <= 0.0f && halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
             halo::game::game_engine_end_game_sequence_stage2();
             halo::game::game_engine_send_end_game_notification(2);

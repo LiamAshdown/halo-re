@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
@@ -250,7 +251,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
 
                 halo::math::vector3d_cross_product(axis, world_up, cross);
                 if (halo::math::vector3d_normalize_with_length(axis) > 0.0f) {
-                    float air_fraction = clamp_float(1.0f - (float)vehicle->airborne_ticks * 0.033333335f, 0.0f, 1.0f);
+                    float air_fraction = clamp_float(1.0f - (float)vehicle->airborne_ticks * halo::math::k_seconds_per_tick, 0.0f, 1.0f);
                     float scale = air_fraction * ((1.0f - vehicle->ground_lean) * mass);
                     float side_scale = scale * 0.002f;
                     float up_scale = scale * 0.001f;

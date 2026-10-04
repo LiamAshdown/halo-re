@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/records.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/units/records.hpp"
@@ -77,7 +78,7 @@ void UnitView::apply_impulse(real_vector3d *impulse)
         {
             float magnitude = (float)halo::libm::sqrt((double)(impulse->i * impulse->i + impulse->j * impulse->j +
                                                      impulse->k * impulse->k));
-            float angle = (float)(int32_t)(halo::math::globals().random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale * magnitude * 1.5707964f;
+            float angle = (float)(int32_t)(halo::math::globals().random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale * magnitude * halo::math::k_half_pi;
             obj->angular_velocity.i += jitter_axis.i * angle;
             obj->angular_velocity.j += jitter_axis.j * angle;
             obj->angular_velocity.k += jitter_axis.k * angle;

@@ -3,6 +3,7 @@
  * Lens flare instances, occlusion sampling and the flare sprite batcher.
  */
 
+#include "halo/math/constants.hpp"
 #include <cstddef>
 #include "halo/core/slot_mask.hpp"
 #include "halo/render/d3d9.hpp"
@@ -288,7 +289,7 @@ void lens_flare_render_all(void)
         rotation = lens_flare_compute_rotation(instance, definition->rotation_function) *
                    definition->rotation_function_scale;
         angle = (float)halo::x87::fpatan((double)(axis_a[2] * d.k + axis_a[1] * d.j + d.i * axis_a[0]),
-                              (double)(axis_b[2] * d.k + axis_b[1] * d.j + d.i * axis_b[0])) * 57.29578f;
+                              (double)(axis_b[2] * d.k + axis_b[1] * d.j + d.i * axis_b[0])) * halo::math::k_radians_to_degrees;
 
         span = definition->cos_falloff_angle - definition->cos_cutoff_angle;
         inv = (span != 0.0f) ? 1.0f / span : 0.0f;
@@ -387,7 +388,7 @@ void lens_flare_render_all(void)
             }
             halo::render::rasterizer_lens_flare_set_vertex_specular(specular);
             halo::rasterizer::fields::lens_flare_batch_mode = ((flags & 8) != 0 && (instance->window_flags & _lens_flare_window_flag_80_bit) != 0) ? 2 : 0;
-            rasterizer_lens_flare_quad_add(scale, colour, &vertex, radius, reflection_rotation * 0.017453292f);
+            rasterizer_lens_flare_quad_add(scale, colour, &vertex, radius, reflection_rotation * halo::math::k_degrees_to_radians);
         }
     }
 

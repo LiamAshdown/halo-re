@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/interface/ifr1_hud_frame.hpp"
 #include "halo/core/ui_tag_paths.hpp"
@@ -147,7 +148,7 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
             case 1:
                 x = (float)(hud->hud_damage_left_offset + 8);
                 y = 240.0f;
-                rotation = 1.5707964f;
+                rotation = halo::math::k_half_pi;
                 break;
             case 2:
                 x = hud_damage_indicator_screen_center_x;
@@ -162,7 +163,7 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
             default:
                 x = hud_damage_indicator_screen_center_x;
                 y = (float)(hud->hud_damage_top_offset + 8);
-                rotation = 3.1415927f;
+                rotation = halo::math::k_pi;
                 break;
             }
             x -= (float)halo::render::globals().viewport_left;

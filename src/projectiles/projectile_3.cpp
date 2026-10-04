@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
@@ -141,7 +142,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
             hit->plane.normal.i * velocity->i;
         
         angle_score = ((angular_noise - -angular_noise) * ((real)((halo::math::globals().random_seed_global >> k_random_high_shift) & halo::k_slot_mask) * halo::k_unit_word_scale) +
-            -angular_noise) + (halo::math::vector3d_angle_between_4cd4f0(*(real_vector3d *)&hit->plane.normal, *velocity) - 1.5707964f);
+            -angular_noise) + (halo::math::vector3d_angle_between_4cd4f0(*(real_vector3d *)&hit->plane.normal, *velocity) - halo::math::k_half_pi);
         
     }
 

@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/records.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/objects/object_ref.hpp"
@@ -96,7 +97,7 @@ void halo::objects::ObjectRef::apply_impulse_and_spin(real_vector3d *delta_veloc
 
     magnitude = (real)halo::libm::sqrt((double)(delta_velocity->j * delta_velocity->j +
         delta_velocity->k * delta_velocity->k + delta_velocity->i * delta_velocity->i));
-    spin_scale = (real)(halo::math::globals().random_seed_global >> k_random_value_shift) * halo::k_unit_word_scale * magnitude * 1.5707964f;
+    spin_scale = (real)(halo::math::globals().random_seed_global >> k_random_value_shift) * halo::k_unit_word_scale * magnitude * halo::math::k_half_pi;
 
     obj->angular_velocity.i = sample.x * spin_scale + obj->angular_velocity.i;
     obj->angular_velocity.j = sample.y * spin_scale + obj->angular_velocity.j;

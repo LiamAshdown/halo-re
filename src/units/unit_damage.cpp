@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/units/seat_detach.hpp"
@@ -552,7 +553,7 @@ void UnitView::melee_lunge_damage_tick()
     dd.responsible_object = unit_index;
     dd.team_index = obj->base.owner_team;
     dd.responsible_player = obj->unit.controlling_player;
-    dd.random_blend = 0.033333335f;
+    dd.random_blend = halo::math::k_seconds_per_tick;
     if (hit) {
         dd.epicentre = hit_point;
         dd.origin = hit_point;

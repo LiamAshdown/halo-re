@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/hs/records.hpp"
 #include "halo/hs/hs2_commands.hpp"
 
@@ -224,9 +225,9 @@ void PlayerCommands::evaluate_player_effect_set_max_rotation(int16_t function_in
         definition->parameters, first);
 
     if (arguments != 0) {
-    player_effect_globals_pointer->scripted_shake_rotation[0] = halo::hs::argument_real(arguments[0]) * 0.017453292f;
-    player_effect_globals_pointer->scripted_shake_rotation[1] = halo::hs::argument_real(arguments[1]) * 0.017453292f;
-    player_effect_globals_pointer->scripted_shake_rotation[2] = halo::hs::argument_real(arguments[2]) * 0.017453292f;
+    player_effect_globals_pointer->scripted_shake_rotation[0] = halo::hs::argument_real(arguments[0]) * halo::math::k_degrees_to_radians;
+    player_effect_globals_pointer->scripted_shake_rotation[1] = halo::hs::argument_real(arguments[1]) * halo::math::k_degrees_to_radians;
+    player_effect_globals_pointer->scripted_shake_rotation[2] = halo::hs::argument_real(arguments[2]) * halo::math::k_degrees_to_radians;
     halo::hs::hs_thread_return(0, thread_index);
     }
 }

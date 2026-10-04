@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/game/gamerest_cheats.hpp"
@@ -175,7 +176,7 @@ void Cheats::spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
         if (tag_handle == k_datum_index_none) {
             continue;
         }
-        spacing = (double)6.2831855f / (double)(int32_t)count;
+        spacing = (double)halo::math::k_two_pi / (double)(int32_t)count;
         if (!(spacing <= (double)0.39269909f)) {
             spacing = (double)0.39269909f;
         }

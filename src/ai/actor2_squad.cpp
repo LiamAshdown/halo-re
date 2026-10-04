@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/units/animation_states.hpp"
@@ -213,7 +214,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
             if (entry->parameter2 < 0.0f || !(entry->parameter2 <= 360.0f)) {
                 return 0;
             }
-            angle = entry->parameter2 * 0.017453292f;
+            angle = entry->parameter2 * halo::math::k_degrees_to_radians;
             state->direction.k = 0.0f;
             state->direction.i = (float)halo::x87::fcos(angle);
             state->direction.j = (float)halo::x87::fsin(angle);

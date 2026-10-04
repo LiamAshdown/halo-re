@@ -3,6 +3,7 @@
  * Light constants, lights, fog constants and shader stage configuration.
  */
 
+#include "halo/math/constants.hpp"
 #include "halo/render/d3d9.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
@@ -152,9 +153,9 @@ void rasterizer_light_cone_set_orientation_constants(int32_t light_index)
                                               &rasterizer_effects[4]);
     }
 
-    yaw = halo::math::periodic_function_evaluate(light_tag(light)->yaw_function, rasterizer_time.time / light_tag(light)->yaw_period) * 6.2831855f;
-    pitch = halo::math::periodic_function_evaluate(light_tag(light)->pitch_function, rasterizer_time.time / light_tag(light)->pitch_period) * 6.2831855f;
-    roll = halo::math::periodic_function_evaluate(light_tag(light)->roll_function, rasterizer_time.time / light_tag(light)->roll_period) * 6.2831855f;
+    yaw = halo::math::periodic_function_evaluate(light_tag(light)->yaw_function, rasterizer_time.time / light_tag(light)->yaw_period) * halo::math::k_two_pi;
+    pitch = halo::math::periodic_function_evaluate(light_tag(light)->pitch_function, rasterizer_time.time / light_tag(light)->pitch_period) * halo::math::k_two_pi;
+    roll = halo::math::periodic_function_evaluate(light_tag(light)->roll_function, rasterizer_time.time / light_tag(light)->roll_period) * halo::math::k_two_pi;
 
     halo::math::matrix4x3_from_euler_angles(orientation, yaw, pitch, roll);
     halo::math::matrix4x3_transform_normal(axis_a, light->forward, orientation);

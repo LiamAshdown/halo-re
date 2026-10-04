@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/scenario/leaf.hpp"
 #include "halo/core/slot_mask.hpp"
@@ -120,8 +121,8 @@ void particle_system_view::creation_physics_jet(int32_t type_index, particle_sys
     float k0 = physics_constants[0].k;
     float k1 = physics_constants[1].k;
     float k2 = physics_constants[2].k;
-    float random_weight = k1 * k0 * 0.033333335f;
-    float forward_weight = (1.0f - k1) * k0 * 0.033333335f;
+    float random_weight = k1 * k0 * halo::math::k_seconds_per_tick;
+    float forward_weight = (1.0f - k1) * k0 * halo::math::k_seconds_per_tick;
     int16_t table_index;
 
     halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
@@ -790,7 +791,7 @@ void particle_system_view::spawn(int32_t type_index, float dt)
                 particle->active = 1;
                 particle->ping_pong_forward = 1;
                 particle->frame = -1.0f;
-                particle->rotation = particle_roll() * 6.2831855f;
+                particle->rotation = particle_roll() * halo::math::k_two_pi;
                 halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
                 marker_index = (int16_t)(((halo::math::globals().effect_random_seed >> 0x10) * (uint32_t)(int32_t)marker_count) >> 0x10);
                 particle_creation_physics_table[physics](system, type_index, particle, &markers[marker_index]);

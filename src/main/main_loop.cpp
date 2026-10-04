@@ -2,6 +2,7 @@
  * The main loop, its frame pacer and shutdown, plus per-frame game timing helpers.
  */
 
+#include "halo/math/constants.hpp"
 #include "tags.h"
 #include "halo/shell/standalone.hpp"
 #include <stdlib.h>
@@ -85,7 +86,7 @@ void MainLoop::engine_flush_pending_simulation_ticks(void)
         halo::game::globals().game_time->speed = 1.0f;
         while (main_globals_data.skip_tick_count > 0) {
             main_globals_data.skip_tick_count = main_globals_data.skip_tick_count - 1;
-            halo::game::game_engine_advance_simulation_ticks(0.033333335f);
+            halo::game::game_engine_advance_simulation_ticks(halo::math::k_seconds_per_tick);
         }
         halo::game::globals().game_time->speed = saved_speed;
     }
@@ -896,7 +897,7 @@ void MainLoop::loop_frame_pacer(void)
                                main_globals_data.frame_counter_low);
         main_globals_data.frame_counter_low = (uint32_t)new_counter;
         main_globals_data.frame_counter_high = (uint32_t)(new_counter >> 32);
-        main_globals_data.frame_delta_time = 0.033333335f;
+        main_globals_data.frame_delta_time = halo::math::k_seconds_per_tick;
         main_globals_data.frame_time_ms = main_globals_data.frame_time_ms + k_fallback_frame_time_ms;
         return;
     }

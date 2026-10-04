@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/tags/flags.hpp"
@@ -558,7 +559,7 @@ uint8_t halo::ai::prop_ops::find_danger_escape(int16_t *out_kind, float *out_ste
 
             axis.i *= inverse;
             axis.j *= inverse;
-            if (length > 0.033333335f) {
+            if (length > halo::math::k_seconds_per_tick) {
                 have_axis = 1;
             }
         }

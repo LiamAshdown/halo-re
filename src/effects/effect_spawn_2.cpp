@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/core/flags.hpp"
 #include "halo/effects/local_views.hpp"
 #include "halo/tags/flags.hpp"
@@ -269,7 +270,7 @@ void effect_view::spawn_particles()
                     pt->b_scales_values, &halo::math::globals().effect_random_seed, pt->angular_velocity[0], pt->angular_velocity[1]);
                 if ((pt->flags & halo::to_bits(particle_flag::random_initial_angle)) != 0) {
                     halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-                    record.rotation = (real)(int32_t)(halo::math::globals().effect_random_seed >> 16) * halo::k_unit_word_scale * 6.2831855f;
+                    record.rotation = (real)(int32_t)(halo::math::globals().effect_random_seed >> 16) * halo::k_unit_word_scale * halo::math::k_two_pi;
                 } else {
                     record.rotation = 0.0f;
                 }

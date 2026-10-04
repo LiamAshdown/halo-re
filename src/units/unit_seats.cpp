@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/networking/delta_message_types.hpp"
 #include "halo/units/seat_detach.hpp"
@@ -148,7 +149,7 @@ void UnitView::apply_impulse_to_seat(real_vector3d *impulse)
         length = halo::math::vector3d_normalize_with_length(axis);
 
         if (length > 0.0f) {
-            float scale = length * 3.1415927f;
+            float scale = length * halo::math::k_pi;
             obj->angular_velocity.i += axis.i * scale;
             obj->angular_velocity.j += axis.j * scale;
             obj->angular_velocity.k += axis.k * scale;

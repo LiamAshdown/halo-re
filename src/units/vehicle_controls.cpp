@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/models/api.hpp"
@@ -456,7 +457,7 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
     force.j = object_up->j * y_force + forward->j * x_force;
     force.k = forward->k * x_force + object_up->k * y_force;
 
-    angle = (velocity->j * facing.i - facing.j * velocity->i) * 1.5707964f / (real)halo::libm::fabs((double)max_speed);
+    angle = (velocity->j * facing.i - facing.j * velocity->i) * halo::math::k_half_pi / (real)halo::libm::fabs((double)max_speed);
     halo::math::vector3d_rotate_about_axis_perpendicular(up, facing, (real)halo::libm::sin((double)angle), (real)halo::libm::cos((double)angle));
     halo::math::matrix4x3_from_forward_up(*object_up, *forward, current);
     halo::math::matrix4x3_from_forward_up(up, facing, desired);
@@ -562,7 +563,7 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
     force.j = object_up->j * y_force + forward->j * x_force;
     force.k = forward->k * x_force + object_up->k * y_force;
 
-    angle = (velocity->j * facing.i - facing.j * velocity->i) * 1.5707964f / (real)halo::libm::fabs((double)max_speed);
+    angle = (velocity->j * facing.i - facing.j * velocity->i) * halo::math::k_half_pi / (real)halo::libm::fabs((double)max_speed);
     halo::math::vector3d_rotate_about_axis_perpendicular(up, facing, (real)halo::libm::sin((double)angle), (real)halo::libm::cos((double)angle));
     halo::math::matrix4x3_from_forward_up(*object_up, *forward, current);
     halo::math::matrix4x3_from_forward_up(up, facing, desired);
@@ -571,7 +572,7 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
     halo::math::quaternion_from_matrix4x3(&relative, rotation);
     halo::math::quaternion_to_axis_angle(rotation, &axis, angle);
 
-    per_tick = angle * 0.033333335f;
+    per_tick = angle * halo::math::k_seconds_per_tick;
     torque_scale = physics->radius * physics->radius * physics->mass * 0.05f;
     torque.i = (axis.i * per_tick - angular_velocity->i) * torque_scale;
     torque.j = (axis.j * per_tick - angular_velocity->j) * torque_scale;
@@ -658,7 +659,7 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
 
         halo::math::vector3d_cross_product(side, *forward, *up);
         halo::math::vector3d_cross_product(slip, *velocity, *forward);
-        angle = (slip.i * world_up->i + slip.j * world_up->j + slip.k * world_up->k) * 6.2831855f;
+        angle = (slip.i * world_up->i + slip.j * world_up->j + slip.k * world_up->k) * halo::math::k_two_pi;
         halo::math::vector3d_rotate_about_axis(torque, *forward, (real)halo::libm::sin((double)angle), (real)halo::libm::cos((double)angle));
         angle = halo::math::vector3d_angle_between_4cd4f0(*up, torque);
         if (side.k * torque.k + side.j * torque.j + side.i * torque.i > 0.0f) {

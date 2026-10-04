@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/effects/effects.hpp"
@@ -250,7 +251,7 @@ void decal_ref::flood_surfaces(decal_projection *projection, decal_flood_accumul
     axes = &halo::math::globals().k_projection_axes[projection->major_axis * 2 + projection->normal_positive];
 
     if (is_first_surface == 0 ||
-        angle <= k_decal_type_parameters[decal_type].maximum_edge_angle * 0.017453292f) {
+        angle <= k_decal_type_parameters[decal_type].maximum_edge_angle * halo::math::k_degrees_to_radians) {
         int32_t edge_index = (int32_t)surface->first_edge;
         uint16_t edge_ordinal = 0;
         int16_t vertex_count = 4;
@@ -398,7 +399,7 @@ void decal_ref::flood_surfaces(decal_projection *projection, decal_flood_accumul
             edge_index = (int32_t)(&edge->forward_edge)[surface_is_right];
         } while (edge_index != (int32_t)surface->first_edge);
 
-        if (angle <= k_decal_type_parameters[decal_type].fallback_edge_angle * 0.017453292f &&
+        if (angle <= k_decal_type_parameters[decal_type].fallback_edge_angle * halo::math::k_degrees_to_radians &&
             fallback_count < 0x400) {
             fallback_queue[fallback_count] = surface_index;
             fallback_count = fallback_count + 1;
@@ -606,7 +607,7 @@ void decal_ref::update_fade()
 {
     datum_index decal_index = datum;
     decal *self = &((decal *)decal_data->data)[(uint16_t)decal_index];
-    real age = (real)(halo::game::globals().game_time->game_time - self->creation_game_time) * 0.033333335f;
+    real age = (real)(halo::game::globals().game_time->game_time - self->creation_game_time) * halo::math::k_seconds_per_tick;
 
     self->alpha = 0xff;
 

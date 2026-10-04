@@ -2,6 +2,7 @@
  * Local player control input digitisation and look vector helpers.
  */
 
+#include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "tags.h"
 #include "halo/networking/game_mode.hpp"
@@ -407,7 +408,7 @@ void LocalControl::compute_look_angles_from_vector(real_vector3d *facing, int16_
     horizontal = (real)halo::libm::sqrt((double)(facing->i * facing->i + facing->j * facing->j));
     look->pitch = (real)halo::libm::atan2((double)facing->k, (double)horizontal);
     if (look->yaw < 0.0f) {
-        look->yaw = look->yaw + 6.2831855f;
+        look->yaw = look->yaw + halo::math::k_two_pi;
     }
 }
 
@@ -612,7 +613,7 @@ void LocalControl::init_player_look_state_from_object(datum_index unit, int16_t 
             u->desired_facing_vector.j * u->desired_facing_vector.j));
         look->pitch = (real)halo::libm::atan2((double)u->desired_facing_vector.k, (double)horizontal);
         if (look->yaw < 0.0f) {
-            look->yaw = look->yaw + 6.2831855f;
+            look->yaw = look->yaw + halo::math::k_two_pi;
         }
         look->desired_weapon_index = u->desired_weapon_index;
         look->desired_grenade_index = (int16_t)u->desired_grenade_index;

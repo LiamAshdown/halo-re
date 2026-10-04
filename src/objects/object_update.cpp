@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include <stdio.h>
 #include "halo/networking/game_mode.hpp"
 #include "halo/objects/record_access.hpp"
@@ -805,7 +806,7 @@ void halo::objects::ObjectUpdater::update_functions()
     uint32_t object_index = handle;
     uint8_t *obj = halo::objects::object_record_bytes(object_index);
     Object *definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
-    float phase = (float)(int32_t)(halo::datum_slot(object_index) * 0x39 + halo::game::globals().game_time->game_time) * 0.033333335f;
+    float phase = (float)(int32_t)(halo::datum_slot(object_index) * 0x39 + halo::game::globals().game_time->game_time) * halo::math::k_seconds_per_tick;
     int16_t i;
 
     for (i = 0; i < (int32_t)definition->functions.count; i++) {

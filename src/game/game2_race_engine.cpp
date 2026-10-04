@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/game/game2_engines.hpp"
 #include "halo/networking/delta_message_types.hpp"
 #include "halo/core/ui_tag_paths.hpp"
@@ -210,7 +211,7 @@ uint8_t RaceEngine::build_message_text(datum_index recipient, int32_t message_ty
         return 1;
     case 0x20:
         halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xaa), (int32_t)player->objective_time_words.race_laps,
-            (double)((float)player->objective_time_words.low * 0.033333335f));
+            (double)((float)player->objective_time_words.low * halo::math::k_seconds_per_tick));
         return 1;
     case 0x21:
     case 0x22:
@@ -219,7 +220,7 @@ uint8_t RaceEngine::build_message_text(datum_index recipient, int32_t message_ty
         return 1;
     case 0x26:
         halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xad),
-            (double)((float)player->objective_score * 0.033333335f));
+            (double)((float)player->objective_score * halo::math::k_seconds_per_tick));
         return 1;
     default:
         if (halo::memory::datum_get(recipient, player_data) == 0) {

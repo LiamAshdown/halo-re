@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/effects/local_views.hpp"
 #include "halo/effects/particle_system_tags.hpp"
@@ -183,9 +184,9 @@ void particle_ref::impact_response_dispatch(particle *self, tag_group fourcc, da
 {
     real_vector3d velocity;
 
-    velocity.i = self->velocity.i * 0.033333335f;
-    velocity.j = self->velocity.j * 0.033333335f;
-    velocity.k = self->velocity.k * 0.033333335f;
+    velocity.i = self->velocity.i * halo::math::k_seconds_per_tick;
+    velocity.j = self->velocity.j * halo::math::k_seconds_per_tick;
+    velocity.k = self->velocity.k * halo::math::k_seconds_per_tick;
     if (fourcc == halo::groups::effect) {
         real_point3d points[2];
         real_vector3d vectors[2];

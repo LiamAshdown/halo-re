@@ -1,3 +1,4 @@
+#include "halo/math/constants.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/tags/flags.hpp"
@@ -735,11 +736,11 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
  */
 real EnginePlayerSync::look_wrap_angle(real a)
 {
-    if (!(a < 3.1415927f)) {
-        a -= 6.2831855f;
+    if (!(a < halo::math::k_pi)) {
+        a -= halo::math::k_two_pi;
     }
-    if (a <= -3.1415927f) {
-        a += 6.2831855f;
+    if (a <= -halo::math::k_pi) {
+        a += halo::math::k_two_pi;
     }
     return a;
 }
@@ -784,7 +785,7 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
             forward_delta = look_wrap_angle(b - look->yaw);
             back_delta = look_wrap_angle(look->yaw - a);
             if (!(span >= 0.0f)) {
-                span += 6.2831855f;
+                span += halo::math::k_two_pi;
             }
             if (!((forward_delta >= 0.0f && forward_delta < span) || (back_delta >= 0.0f && back_delta < span))) {
                 if ((real)halo::libm::fabs((double)forward_delta) <= (real)halo::libm::fabs((double)back_delta)) {
@@ -799,15 +800,15 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
     if (!(look->yaw >= 0.0f)) {
         real yaw = look->yaw;
         do {
-            yaw += 6.2831855f;
+            yaw += halo::math::k_two_pi;
         } while (!(yaw >= 0.0f));
         look->yaw = yaw;
     }
-    if (look->yaw > 6.2831855f) {
+    if (look->yaw > halo::math::k_two_pi) {
         real yaw = look->yaw;
         do {
-            yaw -= 6.2831855f;
-        } while (yaw > 6.2831855f);
+            yaw -= halo::math::k_two_pi;
+        } while (yaw > halo::math::k_two_pi);
         look->yaw = yaw;
     }
 
@@ -826,7 +827,7 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
                 heading.i = (real)halo::libm::cos((double)look->yaw) * 1.0f;
                 heading.j = (real)halo::libm::sin((double)look->yaw) * 1.0f;
                 heading.k = 0.0f;
-                adjust = 1.5707964f - halo::math::vector3d_angle_between_4cd4f0(((unit_object *)unit)->base.up, heading);
+                adjust = halo::math::k_half_pi - halo::math::vector3d_angle_between_4cd4f0(((unit_object *)unit)->base.up, heading);
                 pitch_min = pitch_min - adjust;
                 pitch_max = pitch_max - adjust;
                 target_pitch = target_pitch - adjust;
