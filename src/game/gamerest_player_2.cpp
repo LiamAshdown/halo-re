@@ -1,3 +1,4 @@
+#include "halo/objects/flags.hpp"
 #include "halo/game/gamerest_player.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
@@ -607,7 +608,7 @@ void StructureBsp::switch_structure_bsp()
 
                         halo::game::chimera__kill_feed(player_handle, 0x1f, (uint32_t)halo::k_dword_none, 1, 0);
                     }
-                    unit_obj->vitality_flags = unit_obj->vitality_flags | 0x20;
+                    unit_obj->vitality_flags = unit_obj->vitality_flags | halo::to_bits(halo::objects::vitality_flag::die_act_of_god);
                 }
             }
         }

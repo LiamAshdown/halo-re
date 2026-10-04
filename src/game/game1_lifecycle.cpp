@@ -1,3 +1,4 @@
+#include "halo/objects/flags.hpp"
 /**
  * Game engine lifetime: new game set-up, end-game sequence stages and per-frame effects.
  */
@@ -353,7 +354,7 @@ void Lifecycle::end_game_sequence_stage2(void)
     while (p != (player *)0) {
         if (p->unit != (datum_index)halo::k_dword_none) {
             object *unit_obj = halo::game::object_at(p->unit);
-            unit_obj->vitality_flags = unit_obj->vitality_flags | 0x0020;
+            unit_obj->vitality_flags = unit_obj->vitality_flags | halo::to_bits(halo::objects::vitality_flag::die_act_of_god);
         }
         p = (player *)halo::memory::data_iterator_next(&iterator);
     }

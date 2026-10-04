@@ -1,3 +1,4 @@
+#include "halo/objects/flags.hpp"
 #include "halo/networking/net1_server.hpp"
 #include "halo/networking/message_decode.hpp"
 #include "halo/game/records.hpp"
@@ -555,7 +556,7 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
                             if ((uint32_t)unit != halo::k_dword_none) {
                                 hdr = &((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask];
                                 unit_obj = hdr->data;
-                                if ((unit_obj->vitality_flags & 0x04) == 0) {
+                                if ((unit_obj->vitality_flags & halo::to_bits(halo::objects::vitality_flag::health_frozen)) == 0) {
                                     halo::game::game_engine_send_unit_weapon_loadout((uint32_t)unit, (datum_index)datum, (int32_t)team, machine_id);
                                 }
                             }

@@ -1246,7 +1246,7 @@ void halo::objects::ObjectDamage::apply_shield_damage(ModelCollisionGeometry *ge
                 to_shield = ((1.0f - leak) * t + leak) * to_shield;
             }
         }
-        if (*vitality_flags & 0x10) {
+        if (*vitality_flags & halo::to_bits(vitality_flag::shield_recharging)) {
             to_shield = passthrough;
             passthrough = 0.0f;
         } else {

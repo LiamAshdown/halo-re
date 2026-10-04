@@ -493,7 +493,7 @@ void UnitCommands::evaluate_unit_set_enterable_by_player(int16_t function_index,
             if (halo::hs::argument_byte(arguments[1]) == 0) {
                 ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::not_enterable_by_player);
             } else {
-                ((unit_object *)unit)->unit.flags &= 0xfffeffff;
+                ((unit_object *)unit)->unit.flags &= ~halo::to_bits(halo::units::unit_flag::not_enterable_by_player);
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
