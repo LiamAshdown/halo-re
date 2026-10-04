@@ -813,6 +813,9 @@ glow_particle * halo::objects::GlowSystem::particle_datum_new()
 /**
  * Moves a particle to a new randomised location around its marker, advancing its phase by phase_rate.
  *
+ * The z midpoints of the control-point interpolation add the y component of the base point (`... * 0.5f + c.y`, see
+ * 0x4fe13d and 0x4fe189). That looks like a typo but it is what the retail code does, so it is kept as is.
+ *
  * @address 0x004fde40
  */
 void halo::objects::GlowView::particle_reposition(glow_particle *particle, float phase_rate)
