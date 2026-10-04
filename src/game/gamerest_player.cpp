@@ -2625,7 +2625,10 @@ datum_index Players::find_local_owned_unclear()
         }
         plr = (player *)halo::memory::data_iterator_next(&iter);
     }
-    return (datum_index)-1;
+    if (plr == (player *)0) {
+        return (datum_index)-1;
+    }
+    return iter.index;
 }
 
 /**
