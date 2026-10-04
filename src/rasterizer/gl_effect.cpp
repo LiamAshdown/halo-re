@@ -294,6 +294,37 @@ void apply_samplers(gl_effect *effect, unsigned int count, const MOJOSHADER_samp
 /** D3DX effect state-table entry for Texture[n]: 0xA0 + MOJOSHADER_SAMP_TEXTURE (MojoShader has no render-state name for it). */
 constexpr int k_state_texture = 0xA0 + MOJOSHADER_SAMP_TEXTURE;
 
+/**
+ * Vertex/PixelShaderConstant{F,B,I,,1..4}[n] = <param> (D3DX ops 0x94-0x9b vertex, 0x9c-0xa3 pixel):
+ * asm shaders without a CTAB get their effect constants only this way.
+ */
+void apply_constant_state(gl_effect *effect, const MOJOSHADER_effectState &state)
+{
+    const int op = static_cast<int>(state.type);
+    const bool pixel = op >= 0x9c;
+    const int kind = op - (pixel ? 0x9c : 0x94);  // 0 F, 1 B, 2 I, 3 plain, 4..7 one to four registers
+    const int param = static_cast<int>(state.param) - 1;  // MojoShader (halo-re patch) resolves <param> and the FXLC copies of one
+
+    if (param < 0) {
+        return;
+    }
+    const MOJOSHADER_effectValue &value = effect->fx->params[param].value;
+    float (*registers)[4] = pixel ? g_pipe.pixel_constants : g_pipe.vertex_constants;
+    const uint32_t limit = pixel ? 224u : 256u;
+    uint32_t floats = value.value_count;
+
+    // ponytail: bool/int constant states are skipped, Halo's effects only use float ones
+    if (kind == 1 || kind == 2 || value.type.parameter_type != MOJOSHADER_SYMTYPE_FLOAT || value.valuesF == nullptr) {
+        return;
+    }
+    if (kind >= 4 && floats > static_cast<uint32_t>(kind - 3) * 4) {
+        floats = static_cast<uint32_t>(kind - 3) * 4;
+    }
+    for (uint32_t i = 0; i < floats && state.index + i / 4 < limit; i++) {
+        registers[state.index + i / 4][i % 4] = value.valuesF[i];
+    }
+}
+
 void apply_pass_state(gl_effect *effect)
 {
     const MOJOSHADER_effectStateChanges &changes = effect->changes;
@@ -304,6 +335,8 @@ void apply_pass_state(gl_effect *effect)
 
         if (number >= 0) {
             g_pipe.render_state[number] = value_bits(state.value);
+        } else if (state.type >= 0x94 && state.type <= 0xa3) {
+            apply_constant_state(effect, state);
         } else if (state.type == k_state_texture && state.index < 16) {
             // Texture[n] = <parameter> in the pass (asm shaders without a CTAB bind their textures this way); null unbinds, as in Direct3D
             const char *wanted;

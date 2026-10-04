@@ -89,3 +89,7 @@ unchanged and translate them; the engine code above the interface is not rewritt
   shaders have no CTAB, so this is their only texture binding (vendored MojoShader patch: `readstates` keeps the state index). (2) vs_1_x inputs are matched
   to declaration elements by their `dcl` usage like every other version (Halo's vsh.bin declares every input; the lightmap shaders read stream 1's
   NORMAL1/TEXCOORD1 from v7/v8, which element order left unbound). NORMAL1 shares the TEXCOORD7 attribute slot. Remaining: night scene lacks D3D's blue fog tint.
+- 2026-10-04: effect shader constants. Halo's asm effect passes set constants with `PixelShaderConstant[n] = <param>` states; in the converted fx.bin
+  (tools/convert_fx.py) each is an FXLC expression copying one float4 parameter. MojoShader dropped them (vendored patch: the state records the
+  parameter named in the expression's CTAB, or by name for usage 1), and `gl_effect.cpp` now copies that parameter into the constant registers at
+  BeginPass. Fixes stale lightmap multipliers and the missing atmospheric fog; the a50 start now matches D3D9.
