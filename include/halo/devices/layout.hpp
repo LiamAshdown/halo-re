@@ -27,16 +27,6 @@ enum class machine_object_flags : uint32_t {
 };
 
 /**
- * DeviceMachine.machine_flags (tag side).
- */
-enum class machine_tag_flags : uint16_t {
-    none = 0,
-    pathfinding_obstacle = 0x1,
-    but_not_when_open = 0x2,
-    elevator = 0x4,
-};
-
-/**
  * ScenarioControl.control_flags bits that control_place copies into the runtime device flags.
  */
 enum class scenario_control_flags : uint32_t {
@@ -52,14 +42,6 @@ enum class control_type_flags : uint32_t {
     none = 0,
     usable_from_both_sides = 0x1,
     unknown_2 = 0x2,
-};
-
-/**
- * UnitFlags bits of a unit tag that the automatic door scan consults.
- */
-enum class unit_tag_flags : uint32_t {
-    none = 0,
-    cannot_open_doors_automatically = 0x4000,
 };
 
 /**
@@ -95,10 +77,8 @@ inline constexpr int16_t k_device_group_element_size = 8;
 namespace halo {
 template <> struct enable_bit_flags<devices::scenario_device_flags> : std::true_type {};
 template <> struct enable_bit_flags<devices::machine_object_flags> : std::true_type {};
-template <> struct enable_bit_flags<devices::machine_tag_flags> : std::true_type {};
 template <> struct enable_bit_flags<devices::scenario_control_flags> : std::true_type {};
 template <> struct enable_bit_flags<devices::control_type_flags> : std::true_type {};
-template <> struct enable_bit_flags<devices::unit_tag_flags> : std::true_type {};
 }
 
 

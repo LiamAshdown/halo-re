@@ -1,3 +1,4 @@
+#include "halo/tags/flags.hpp"
 #include "halo/devices/machine.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
@@ -44,7 +45,7 @@ uint8_t MachineHandle::create()
     constexpr uint32_t elevator_bits = to_bits(machine_object_flags::unknown_4000 | machine_object_flags::unknown_8000);
 
     *flags |= _object_unknown_2000_bit;
-    if ((((DeviceMachine *)definition)->machine_flags & to_bits(machine_tag_flags::elevator)) != 0) {
+    if ((((DeviceMachine *)definition)->machine_flags & to_bits(halo::tags::machine_tag_flag::elevator)) != 0) {
         *flags |= elevator_bits;
     } else {
         *flags &= ~elevator_bits;
@@ -145,7 +146,7 @@ uint32_t MachineHandle::update()
 
                 if (((candidate->vitality_flags & _object_health_frozen_bit) != 0) ||
                     ((((Unit *)halo::cache::globals().tag_instances[halo::datum_slot(candidate->definition_tag)].data)->unit_flags
-                        & to_bits(unit_tag_flags::cannot_open_doors_automatically)) != 0)) { 
+                        & to_bits(halo::tags::unit_tag_flag::cannot_open_doors_automatically)) != 0)) { 
                     counts = 0;
                 }
 
@@ -202,7 +203,7 @@ uint32_t MachineHandle::update()
     
     
     
-    if ((tag->machine_flags & to_bits(machine_tag_flags::elevator)) != 0) {
+    if ((tag->machine_flags & to_bits(halo::tags::machine_tag_flag::elevator)) != 0) {
         if (tag->elevator_node != halo::k_word_none) {
             
             
