@@ -980,8 +980,8 @@ void halo::objects::GlowView::particle_reposition(glow_particle *particle, float
                 c0[1].y = (c2[0].y - c0[0].y) * 0.5f + c0[0].y;
                 c0[1].z = (c2[0].z - c0[0].z) * 0.5f + c0[0].y;
                 {
-                    float local_54 = e->markers[1].node_transform.up.k;
-                    float a8 = local_54 - c1[0].z;
+                    float marker1_up_k = e->markers[1].node_transform.up.k;
+                    float a8 = marker1_up_k - c1[0].z;
                     c1[1].x = (t2 - c1[0].x) * 0.5f + c1[0].x;
                     c1[1].y = (e->markers[1].node_transform.up.j - c1[0].y) * 0.5f + c1[0].y;
                     c1[1].z = a8 * 0.5f + c1[0].y;

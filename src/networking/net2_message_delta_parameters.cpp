@@ -245,15 +245,15 @@ void ParametersProtocol::send_update(void)
         }
         halo::networking::message_delta_parameters_protocol_format_registered_values();
         {
-            uint8_t local_104[260];
-            uint8_t *local_10c;
-            int32_t local_108;
+            uint8_t update_record[260];
+            uint8_t *record_pointer;
+            int32_t record_pointer_pad;
 
-            local_104[0] = (uint8_t)next_sequence;
-            halo::networking::message_delta_parameters_protocol_pack_values((int32_t *)(local_104 + 4));
-            local_10c = local_104;
-            local_108 = 0;
-            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::parameters_update), 0, (void **)&local_10c, 0, 1, '\0');
+            update_record[0] = (uint8_t)next_sequence;
+            halo::networking::message_delta_parameters_protocol_pack_values((int32_t *)(update_record + 4));
+            record_pointer = update_record;
+            record_pointer_pad = 0;
+            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::parameters_update), 0, (void **)&record_pointer, 0, 1, '\0');
             if (0 < encoded_bits) {
                 if (halo::networking::network_session_broadcast_to_all(network_server, encoded_bits, 1, network_message_scratch, 1, 0, 1, 3) != '\0') {
                     message_delta_parameters_protocol_sequence = next_sequence;
