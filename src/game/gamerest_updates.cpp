@@ -16,6 +16,7 @@
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &update_client_latest_tick = halo::link::ref<int32_t>(halo::game::vars().update_client_latest_tick);
 static auto &update_client_queues = halo::link::ref<data_array *>(halo::game::vars().update_client_queues);
@@ -498,7 +499,7 @@ void UpdateQueues::dispose()
         for (i = 0; i < 14; i++) {
             words[i] = 0;
         }
-        GlobalFree(update_server_queues);
+        halo::platform::heap_free(update_server_queues);
         update_server_queues = 0;
     }
     update_server_initialized = 0;
@@ -511,7 +512,7 @@ void UpdateQueues::dispose()
         for (i = 0; i < 14; i++) {
             words[i] = 0;
         }
-        GlobalFree(update_client_queues);
+        halo::platform::heap_free(update_client_queues);
         update_client_queues = 0;
     }
 

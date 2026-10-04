@@ -19,6 +19,7 @@
 #include "halo/hs/vars.hpp"
 #include "halo/objects/vars.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
@@ -266,7 +267,7 @@ void ScriptRuntime::scripts_free() const
         if (halo::hs::globals().syntax_data_is_local != 0) {
             nodes->valid = 0;
             memset(nodes, 0, sizeof(*nodes));
-            GlobalFree(nodes);
+            halo::platform::heap_free(nodes);
             halo::hs::globals().syntax_data_is_local = 0;
         }
         halo::hs::globals().syntax_data = 0;

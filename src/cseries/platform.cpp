@@ -8,6 +8,8 @@
 #include "memory.h"
 #include "halo/cseries/api.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/file.hpp"
+#include "halo/platform/memory.hpp"
 
 
 namespace halo::cseries {
@@ -37,7 +39,7 @@ uint32_t performance_clock::milliseconds()
  */
 void *global_memory::alloc(uint32_t size)
 {
-    return GlobalAlloc(0, size);
+    return halo::platform::heap_allocate(0, size);
 }
 
 /**
@@ -47,7 +49,7 @@ void *global_memory::alloc(uint32_t size)
  */
 void *global_memory::release(void *handle)
 {
-    return GlobalFree(handle);
+    return halo::platform::heap_free(handle);
 }
 
 /**
@@ -71,7 +73,7 @@ char halo::cseries::directory_create_recursive(const char *path)
     all_created = 1;
     cursor = buffer;
     previous_error_mode = SetErrorMode(k_sem_noopenfileerrorbox);
-    attributes = GetFileAttributesA(path);
+    attributes = halo::platform::file_attributes(path);
     if (attributes != k_invalid_file_attributes) {
         return 1;
     }
@@ -84,15 +86,15 @@ char halo::cseries::directory_create_recursive(const char *path)
         do {
             cursor = strpbrk(cursor + 1, "\\");
             if (cursor == 0) {
-                if (all_created == 1 && CreateDirectoryA(path, 0) != 0) {
+                if (all_created == 1 && halo::platform::directory_create(path) != 0) {
                     goto done;
                 }
                 break;
             }
             saved_char = *cursor;
             *cursor = '\0';
-            attributes = GetFileAttributesA(buffer);
-            if (attributes == k_invalid_file_attributes && CreateDirectoryA(buffer, 0) == 0) {
+            attributes = halo::platform::file_attributes(buffer);
+            if (attributes == k_invalid_file_attributes && halo::platform::directory_create(buffer) == 0) {
                 all_created = 0;
             }
             *cursor = saved_char;

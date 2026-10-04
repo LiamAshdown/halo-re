@@ -13,6 +13,7 @@
 #include "halo/core/win32_constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/memory.hpp"
 
 
 namespace halo::cache {
@@ -97,7 +98,7 @@ void model_vertex_buffers::load(cache_file_tag_header *header)
     int32_t geometry_index;
     int32_t part_index;
 
-    model_buffer = GlobalAlloc(0, header->model_data_size);
+    model_buffer = halo::platform::heap_allocate(0, header->model_data_size);
 
     completion_flag = 0;
     completion.flag = &completion_flag;
@@ -154,7 +155,7 @@ void model_vertex_buffers::load(cache_file_tag_header *header)
         }
         tag_id = halo::cache::view(&iterator)->next();
     }
-    GlobalFree(model_buffer);
+    halo::platform::heap_free(model_buffer);
 }
 
 /**

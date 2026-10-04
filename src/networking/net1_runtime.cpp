@@ -28,6 +28,8 @@
 #include "halo/core/x87.hpp"
 #include "../gamespy/gamespy_calls.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/thread.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &network_connection_stats = halo::link::ref<network_connection_statistics [k_network_connection_stats_count]>(halo::networking::vars().network_connection_stats);
 static auto &network_statistics_logging_enabled = halo::link::ref<uint8_t>(halo::networking::vars().network_statistics_logging_enabled);
@@ -342,7 +344,7 @@ void NetworkRuntime::hostname_thread_proc(char *hostname_buffer)
     gethostname(hostname_buffer, 0x100);
     network_hostname_ready = 1;
 
-    ExitThread(0);
+    halo::platform::thread_exit(0);
 }
 
 /**
@@ -385,7 +387,7 @@ int16_t NetworkRuntime::initialize()
                 network_resolved_local_address = network_local_address;
             }
         }
-        CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)halo::networking::autopatch_proxy_initialize, 0, 0, (LPDWORD)&thread_id);
+        halo::platform::thread_create(0x10400, (halo::platform::thread_procedure)halo::networking::autopatch_proxy_initialize, 0, 0, &thread_id);
 
         network_initialized_at_ms = halo::cseries::time_query_performance_counter_ms();
         network_winsock_initialized = 1;
@@ -409,14 +411,13 @@ int NetworkRuntime::local_hostent_get(void **out_hostent)
     uint32_t thread_id;
 
     network_hostname_ready = 0;
-    thread_handle = CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)halo::networking::network_hostname_thread_proc,
-                                  network_local_hostname_buffer, 0, (LPDWORD)&thread_id);
+    thread_handle = halo::platform::thread_create(0x10400, (halo::platform::thread_procedure)halo::networking::network_hostname_thread_proc, network_local_hostname_buffer, 0, &thread_id);
     if (thread_handle != 0) {
-        wait_result = WaitForSingleObject(thread_handle, 10000);
+        wait_result = halo::platform::wait(thread_handle, 10000);
         if (wait_result == 0x102) {
-            TerminateThread(thread_handle, 0);
+            halo::platform::thread_terminate(thread_handle, 0);
         }
-        CloseHandle(thread_handle);
+        halo::platform::handle_close(thread_handle);
         if (network_hostname_ready != 0) {
             *out_hostent = gethostbyname(network_local_hostname_buffer);
             return 1;
@@ -1000,7 +1001,7 @@ uint16_t * MessageBlocks::block_build(uint16_t *buffer, uint32_t *source, uint8_
     uint32_t count;
 
     if (buffer == 0) {
-        buffer = (uint16_t *)GlobalAlloc(0, (uint32_t)(int16_t)(length + 2));
+        buffer = (uint16_t *)halo::platform::heap_allocate(0, (uint32_t)(int16_t)(length + 2));
         if (buffer == 0) {
             return 0;
         }

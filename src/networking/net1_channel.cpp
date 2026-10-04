@@ -21,6 +21,8 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/thread.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &network_player_index_cache = halo::link::ref<uint8_t []>(halo::game::vars().join_message_table);
 static auto &network_buffer_pair_pool = halo::link::ref<int32_t>(halo::main::vars().network_buffer_pair_pool);
@@ -95,14 +97,14 @@ void ChannelFactory::clear_buffer_pair_pool()
 
     if (0 < network_buffer_pair_pool_count) {
         for (i = 0; i < network_buffer_pair_pool_count; i = i + 1) {
-            GlobalFree(network_buffer_pair_pool_data[i].first);
-            GlobalFree(network_buffer_pair_pool_data[i].second);
+            halo::platform::heap_free(network_buffer_pair_pool_data[i].first);
+            halo::platform::heap_free(network_buffer_pair_pool_data[i].second);
         }
     }
     network_buffer_pair_pool = -1;
     network_buffer_pair_pool_count = -1;
     if (network_buffer_pair_pool_data != 0) {
-        GlobalFree(network_buffer_pair_pool_data);
+        halo::platform::heap_free(network_buffer_pair_pool_data);
         network_buffer_pair_pool_data = 0;
     }
 }
@@ -119,13 +121,13 @@ network_channel_list * ChannelFactory::create_list(int16_t requested_capacity)
     network_channel_list *list;
     void *entries;
 
-    list = (network_channel_list *)GlobalAlloc(0, 0x114);
+    list = (network_channel_list *)halo::platform::heap_allocate(0, 0x114);
     if (list == 0) {
         return 0;
     }
     if (requested_capacity < 0x41) {
         list->fd_count = 0;
-        entries = GlobalAlloc(0x40, requested_capacity * 4);
+        entries = halo::platform::heap_allocate(0x40, requested_capacity * 4);
         list->entries = (network_receive_queue **)entries;
         if (entries != 0) {
             list->capacity = requested_capacity;
@@ -134,7 +136,7 @@ network_channel_list * ChannelFactory::create_list(int16_t requested_capacity)
             return list;
         }
     }
-    GlobalFree(list);
+    halo::platform::heap_free(list);
     return 0;
 }
 
@@ -157,12 +159,12 @@ network_channel * ChannelFactory::create_channel(uint32_t flags)
         if ((flags & k_network_channel_client) == 0) {
             return 0;
         }
-        channel = (network_channel *)GlobalAlloc(0x40, 0xa9c);
+        channel = (network_channel *)halo::platform::heap_allocate(0x40, 0xa9c);
         if (channel == 0) {
             return 0;
         }
     } else {
-        channel = (network_channel *)GlobalAlloc(0x40, 0xae4);
+        channel = (network_channel *)halo::platform::heap_allocate(0x40, 0xae4);
         if (channel == 0) {
             return 0;
         }
@@ -216,7 +218,7 @@ network_channel * ChannelFactory::create_child(network_receive_queue *endpoint)
 {
     network_channel *channel;
 
-    channel = (network_channel *)GlobalAlloc(0x40, 0xa9c);
+    channel = (network_channel *)halo::platform::heap_allocate(0x40, 0xa9c);
     if (channel != 0) {
         channel->endpoint = endpoint;
         channel->flags = k_network_channel_transmit_pending;
@@ -323,7 +325,7 @@ void ChannelFactory::close_all_handles()
     for (i = 0; i < 64; i++) {
         record = network_handle_registry[i].record;
         if (record != 0 && network_handle_registry[i].registered != 0) {
-            CloseHandle(record->handle);
+            halo::platform::handle_close(record->handle);
             record->handle = 0;
             record->in_use = 0;
             network_handle_registry[i].record = 0;
@@ -369,7 +371,7 @@ network_receive_queue * ChannelFactory::create_receive_queue()
 
     halo::networking::network_channels_open();
     halo::networking::network_handle_registry_close_all();
-    queue = (network_receive_queue *)GlobalAlloc(0, 0x1c);
+    queue = (network_receive_queue *)halo::platform::heap_allocate(0, 0x1c);
     if (queue != 0) {
         queue->socket = 0;
         queue->data_ready = 0;
@@ -378,7 +380,7 @@ network_receive_queue * ChannelFactory::create_receive_queue()
         queue->flags = 0;
         queue->unknown_0d = 0x14;
         queue->last_error = 0;
-        buffer = (circular_buffer *)GlobalAlloc(0, 0x10019);
+        buffer = (circular_buffer *)halo::platform::heap_allocate(0, 0x10019);
         if (buffer != 0) {
             buffer->name = 0;
             buffer->signature = 0;
@@ -419,7 +421,7 @@ int32_t ChannelFactory::create_thread(uint8_t flags, void *start_address, void *
             slot = &network_thread_table[i];
             slot->handle = 0;
             slot->in_use = 1;
-            slot->handle = CreateThread(0, 0x4000, (LPTHREAD_START_ROUTINE)start_address, parameter, 4, (LPDWORD)&thread_id);
+            slot->handle = halo::platform::thread_create(0x4000, (halo::platform::thread_procedure)start_address, parameter, 4, &thread_id);
             *out_handle = slot;
             if (slot->handle != 0) {
                 if ((flags & 2) == 0) {
@@ -427,12 +429,12 @@ int32_t ChannelFactory::create_thread(uint8_t flags, void *start_address, void *
                 } else {
                     priority = -1;
                 }
-                if (SetThreadPriority(slot->handle, priority) != 0) {
-                    if (ResumeThread(slot->handle) != halo::k_dword_none) {
+                if (halo::platform::thread_set_priority(slot->handle, priority) != 0) {
+                    if (halo::platform::thread_resume(slot->handle) != halo::k_dword_none) {
                         return 1;
                     }
                 }
-                CloseHandle(slot->handle);
+                halo::platform::handle_close(slot->handle);
             }
             return 0;
         }
@@ -559,9 +561,9 @@ void ReceiveQueueView::release()
         gt2SetConnectionData(queue->socket, 0);
     }
     halo::networking::network_receive_queue_close_socket(queue);
-    GlobalFree(queue->incoming);
+    halo::platform::heap_free(queue->incoming);
     queue->incoming = 0;
-    GlobalFree(queue);
+    halo::platform::heap_free(queue);
     halo::networking::network_handle_registry_close_all();
 }
 
@@ -842,7 +844,7 @@ void ChannelView::destroy()
         halo::networking::network_receive_queue_free(channel->endpoint);
     }
     if (channel->incoming != 0) {
-        GlobalFree(channel->incoming);
+        halo::platform::heap_free(channel->incoming);
     }
     if (channel->flags & k_network_channel_listening) {
         for (i = 0; i < 16; i++) {
@@ -854,8 +856,8 @@ void ChannelView::destroy()
             }
         }
         if (channel->listen_list != 0) {
-            GlobalFree(channel->listen_list->entries);
-            GlobalFree(channel->listen_list);
+            halo::platform::heap_free(channel->listen_list->entries);
+            halo::platform::heap_free(channel->listen_list);
         }
     }
     channel->outgoing.stream.unknown_00 = halo::k_dword_none;
@@ -877,15 +879,15 @@ void ChannelView::destroy()
     if (channel->reliable_count > 0) {
         slot = channel->reliable;
         for (i = 0; i < channel->reliable_count; i++) {
-            GlobalFree(slot[i].header);
-            GlobalFree(slot[i].body);
+            halo::platform::heap_free(slot[i].header);
+            halo::platform::heap_free(slot[i].body);
         }
-        GlobalFree(channel->reliable);
+        halo::platform::heap_free(channel->reliable);
         channel->reliable = 0;
         channel->reliable_count = 0;
     }
     channel->send_budget = 0;
-    GlobalFree(channel);
+    halo::platform::heap_free(channel);
 }
 
 /**
@@ -1192,10 +1194,10 @@ int32_t ChannelView::reliable_pool_ensure_capacity(int32_t body_capacity_needed,
         } while (i < channel->reliable_count);
     }
 
-    new_pool = (network_channel_reliable_slot *)GlobalAlloc(0, (channel->reliable_count + 10) * 0x20);
+    new_pool = (network_channel_reliable_slot *)halo::platform::heap_allocate(0, (channel->reliable_count + 10) * 0x20);
     if (channel->reliable_count > 0) {
         memcpy(new_pool, channel->reliable, (uint32_t)channel->reliable_count * 0x20);
-        GlobalFree(channel->reliable);
+        halo::platform::heap_free(channel->reliable);
     }
     old_count = channel->reliable_count;
     channel->reliable = new_pool;
@@ -1215,8 +1217,8 @@ int32_t ChannelView::reliable_pool_ensure_capacity(int32_t body_capacity_needed,
             body_cap = 100;
         }
         slot->body_capacity = body_cap;
-        slot->body = static_cast<uint8_t *>(GlobalAlloc(0, slot->body_capacity));
-        slot->header = static_cast<uint8_t *>(GlobalAlloc(0, slot->header_capacity));
+        slot->body = static_cast<uint8_t *>(halo::platform::heap_allocate(0, slot->body_capacity));
+        slot->header = static_cast<uint8_t *>(halo::platform::heap_allocate(0, slot->header_capacity));
     }
     channel->reliable_count = channel->reliable_count + 10;
     return old_count;

@@ -10,6 +10,8 @@
 #include "halo/core/win32_constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/thread.hpp"
+#include "halo/platform/file.hpp"
 
 typedef int32_t (*read_file_ex_procedure)(void *file, void *buffer, uint32_t bytes_to_read, cache_io_request *overlapped, void *completion_routine);
 
@@ -65,14 +67,14 @@ void cache_io::read_file_ex_retry(void *read_file_ex, void *file, void *buffer, 
     request->offset_high = 0;
     request->event = nullptr;
 
-    SleepEx(0, 1);
-    SetLastError(0);
+    halo::platform::sleep_alertable(0);
+    halo::platform::set_last_error(0);
     started = read_procedure(file, buffer, size, request, completion_routine);
 
     while (started == 0) {
-        GetLastError();
-        SleepEx(0, 1);
-        SetLastError(0);
+        halo::platform::last_error();
+        halo::platform::sleep_alertable(0);
+        halo::platform::set_last_error(0);
         started = read_procedure(file, buffer, size, request, completion_routine);
     }
 }
@@ -155,7 +157,7 @@ int16_t cache_io::request_new(cache_io_completion *completion, int32_t offset, u
     request->data_file_index = data_file_index;
     request->completion = *completion;
 
-    SetEvent(globals().cache_io_event);
+    halo::platform::event_set(globals().cache_io_event);
     return slot_index;
 }
 
@@ -189,10 +191,10 @@ uint32_t cache_io::thread_proc_async(void *parameter)
     void *file_handle;
     data_file *source;
 
-    read_function = (void *)ReadFileEx;
+    read_function = (void *)&halo::platform::file_read_async;
     for (;;) {
         do {
-            wait_result = WaitForSingleObjectEx(globals().cache_io_event, halo::win32::k_infinite, 1);
+            wait_result = halo::platform::wait_alertable(globals().cache_io_event, halo::win32::k_infinite);
         } while (wait_result == 0xc0);
 
         for (;;) {
@@ -245,7 +247,7 @@ uint32_t cache_io::thread_proc_sync(void *parameter)
     uint32_t bytes_read;
 
     for (;;) {
-        WaitForSingleObject(globals().cache_io_event, halo::win32::k_infinite);
+        halo::platform::wait(globals().cache_io_event, halo::win32::k_infinite);
 
         for (;;) {
             best = nullptr;
@@ -274,8 +276,8 @@ uint32_t cache_io::thread_proc_sync(void *parameter)
                 file_handle = source->file;
             }
 
-            if (SetFilePointer(file_handle, (int32_t)best->offset, nullptr, 0) != halo::win32::k_invalid_set_file_pointer) {
-                ReadFile(file_handle, best->destination, best->size, (LPDWORD)(&bytes_read), nullptr);
+            if (halo::platform::file_seek(file_handle, (int32_t)best->offset, nullptr, 0) != halo::win32::k_invalid_set_file_pointer) {
+                halo::platform::file_read(file_handle, best->destination, best->size, &bytes_read);
             }
 
             *best->completion.flag = 1;
@@ -295,18 +297,18 @@ void cache_io::thread_start()
 {
     uint32_t thread_id;
 
-    globals().cache_io_event = CreateEventA(nullptr, 0, 0, nullptr);
+    globals().cache_io_event = halo::platform::event_create(false, false, nullptr);
 
     if (globals().os_platform == 0) {
         halo::shell::os_platform_identify();
     }
 
     if (globals().os_platform < 3) {
-        globals().cache_io_thread = CreateThread(nullptr, 0x4000, (LPTHREAD_START_ROUTINE)((void *)&cache_io::thread_proc_sync), nullptr, 0, (LPDWORD)(&thread_id));
+        globals().cache_io_thread = halo::platform::thread_create(0x4000, (halo::platform::thread_procedure)(void *)&cache_io::thread_proc_sync, nullptr, 0, &thread_id);
         return;
     }
 
-    globals().cache_io_thread = CreateThread(nullptr, 0x4000, (LPTHREAD_START_ROUTINE)((void *)&cache_io::thread_proc_async), nullptr, 0, nullptr);
+    globals().cache_io_thread = halo::platform::thread_create(0x4000, (halo::platform::thread_procedure)(void *)&cache_io::thread_proc_async, nullptr, 0, nullptr);
     return;
 }
 
@@ -341,7 +343,7 @@ uint8_t cache_io::wait_for_flag(uint8_t *flag)
     }
 
     do {
-        wait_result = SleepEx(5000, 1);
+        wait_result = halo::platform::sleep_alertable(5000);
         if (wait_result != 0xc0) {
             break;
         }

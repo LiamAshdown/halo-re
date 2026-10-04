@@ -26,6 +26,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/platform/memory.hpp"
 
 typedef game_variant *(*game_engine_variant_defaults_fn)(game_variant *out);
 typedef void (*profile_post_update_proc)(uint32_t arg_edx, uint32_t arg_ecx);
@@ -240,10 +241,10 @@ void Variants::free_custom_variant_cache(void)
     if (game_variant_history != 0) {
         uint32_t i;
         for (i = 0; i < game_variant_history_count; i++) {
-            GlobalFree(game_variant_history[i].path);
-            GlobalFree(game_variant_history[i].name);
+            halo::platform::heap_free(game_variant_history[i].path);
+            halo::platform::heap_free(game_variant_history[i].name);
         }
-        GlobalFree(game_variant_history);
+        halo::platform::heap_free(game_variant_history);
     }
     game_variant_history = 0;
     game_variant_history_capacity = 0;

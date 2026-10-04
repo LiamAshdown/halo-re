@@ -28,6 +28,8 @@ static auto &input_event_queue_active = halo::link::ref<input_event_queue>(halo:
 #include "halo/game/api.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/thread.hpp"
+#include "halo/platform/memory.hpp"
 
 #ifdef interface
 #undef interface
@@ -196,11 +198,11 @@ void InterfaceMain::tick()
 
     if (loading_thread != (loading_thread_record *)0) {
         uint32_t exit_code;
-        int32_t got_exit_code = GetExitCodeThread(loading_thread->handle, (LPDWORD)&exit_code);
+        int32_t got_exit_code = halo::platform::thread_exit_code(loading_thread->handle, &exit_code);
 
         root = ui_root_widget[0];
         if (got_exit_code != 0 && exit_code != halo::interface::k_still_active) {
-            CloseHandle(loading_thread->handle);
+            halo::platform::handle_close(loading_thread->handle);
             loading_thread->handle = nullptr;
             loading_thread->unknown_04 = 0;
             loading_thread = (loading_thread_record *)0;
@@ -328,13 +330,12 @@ void MapList::add_entry(char *path, int32_t map_id)
     if (map_list_capacity <= map_list_count) {
         map_list_capacity = map_list_capacity + 0x13;
         if (map_list == (map_list_entry *)0) {
-            map_list = (map_list_entry *)GlobalAlloc(0, map_list_capacity * sizeof(map_list_entry));
+            map_list = (map_list_entry *)halo::platform::heap_allocate(0, map_list_capacity * sizeof(map_list_entry));
         } else if (map_list_capacity * sizeof(map_list_entry) == 0) {
-            GlobalFree(map_list);
+            halo::platform::heap_free(map_list);
             map_list = (map_list_entry *)0;
         } else {
-            map_list = (map_list_entry *)GlobalReAlloc(
-                map_list, map_list_capacity * sizeof(map_list_entry), 2);
+            map_list = (map_list_entry *)halo::platform::heap_reallocate(map_list, map_list_capacity * sizeof(map_list_entry), 2);
         }
     }
 
@@ -344,7 +345,7 @@ void MapList::add_entry(char *path, int32_t map_id)
     entry->cache_file_exists = 0;
 
     path_length = strlen(path);
-    entry->path = (char *)GlobalAlloc(0, path_length + 1);
+    entry->path = (char *)halo::platform::heap_allocate(0, path_length + 1);
     strcpy(entry->path, path);
 
     extension = strstr(entry->path, ".map");
@@ -372,9 +373,9 @@ void MapList::free_all()
     int32_t i;
 
     for (i = 0; i < map_list_count; i++) {
-        GlobalFree(map_list[i].path);
+        halo::platform::heap_free(map_list[i].path);
     }
-    GlobalFree(map_list);
+    halo::platform::heap_free(map_list);
     map_list = (map_list_entry *)0;
     map_list_count = 0;
     map_list_capacity = 0;

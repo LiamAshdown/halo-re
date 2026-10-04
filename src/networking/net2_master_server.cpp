@@ -18,6 +18,7 @@
 #include "../gamespy/gamespy_calls.hpp"
 #include "../gamespy/gamespy_calls.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/thread.hpp"
 
 static auto &negotiatorList = halo::link::ref<void *>(halo::networking::vars().negotiatorList);
 static auto &server_list_mutex = halo::link::ref<network_mutex_record *>(halo::networking::vars().server_list_mutex);
@@ -76,7 +77,7 @@ int32_t MasterServerConnection::connection_start(void)
         if (thread_ok != 0) {
             return 1;
         }
-        CloseHandle(mutex_slot->handle);
+        halo::platform::handle_close(mutex_slot->handle);
         mutex_slot->name[0] = 0;
         mutex_slot->handle = 0;
         mutex_slot->in_use = 0;
@@ -95,7 +96,7 @@ void MasterServerConnection::connection_wait_thread(void)
 
     master_server_request_flags = master_server_request_flags | 2;
     while (1) {
-        exited = GetExitCodeThread(server_list_thread->handle, (LPDWORD)&exit_code);
+        exited = halo::platform::thread_exit_code(server_list_thread->handle, &exit_code);
         if (exited != 0 && exit_code != 0x103) {
             break;
         }
@@ -107,10 +108,10 @@ void MasterServerConnection::connection_wait_thread(void)
         master_server_request_flags = master_server_request_flags | 2;
         halo::platform::sleep_milliseconds(0x14);
     }
-    CloseHandle(server_list_thread->handle);
+    halo::platform::handle_close(server_list_thread->handle);
     server_list_thread->handle = 0;
     server_list_thread->in_use = 0;
-    CloseHandle(server_list_mutex->handle);
+    halo::platform::handle_close(server_list_mutex->handle);
     server_list_mutex->name[0] = 0;
     server_list_mutex->handle = 0;
     server_list_mutex->in_use = 0;
@@ -171,7 +172,7 @@ void MasterServerConnection::process_pending_requests(void)
         master_server_last_result = ServerBrowserThink(master_server_query_engine);
         if ((flags & 0x10) != 0) {
             if (server_list_thread == 0 ||
-                (wait_result = WaitForSingleObject(server_list_mutex->handle, 100),
+                (wait_result = halo::platform::wait(server_list_mutex->handle, 100),
                  wait_result == 0) || wait_result == 0x80) {
                 if (server_list.result_count < 1) {
                     flags = flags | 8;
@@ -190,7 +191,7 @@ void MasterServerConnection::process_pending_requests(void)
                     halo::networking::server_list_reset(&server_list);
                 }
                 if (server_list_thread != 0) {
-                    ReleaseMutex(server_list_mutex->handle);
+                    halo::platform::mutex_release(server_list_mutex->handle);
                 }
             } else {
                 master_server_request_flags = master_server_request_flags | 0x10;
@@ -198,12 +199,12 @@ void MasterServerConnection::process_pending_requests(void)
         }
         if ((flags & 8) != 0) {
             if (server_list_thread == 0 ||
-                (wait_result = WaitForSingleObject(server_list_mutex->handle, 100),
+                (wait_result = halo::platform::wait(server_list_mutex->handle, 100),
                  wait_result == 0) || wait_result == 0x80) {
                 ServerBrowserClear(master_server_query_engine);
                 halo::networking::server_list_reset(&server_list);
                 if (server_list_thread != 0) {
-                    ReleaseMutex(server_list_mutex->handle);
+                    halo::platform::mutex_release(server_list_mutex->handle);
                 }
                 if (server_browser_require_valid_entry == 0) {
                     last_result = ServerBrowserLANUpdate(master_server_query_engine, 1, network_session_start_game_type,
@@ -228,7 +229,7 @@ void MasterServerConnection::process_pending_requests(void)
                 last_result = ServerBrowserAuxUpdateServer(master_server_query_engine,
                                             locked->list[index], 1, 1);
                 if (server_list_thread != 0) {
-                    ReleaseMutex(server_list_mutex->handle);
+                    halo::platform::mutex_release(server_list_mutex->handle);
                 }
             }
         }

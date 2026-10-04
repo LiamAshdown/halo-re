@@ -74,6 +74,7 @@ static auto &hud_text_message_cycle_state_00719230 = halo::link::ref<int32_t>(ha
 #include "halo/interface/flags.hpp"
 #include "halo/interface/wide_text.hpp"
 #include "halo/interface/ui_event.hpp"
+#include "halo/platform/memory.hpp"
 
 namespace halo::ui {
 
@@ -816,7 +817,7 @@ uint8_t UiEventHandlers::event_4a3d40(widget_instance *widget, int16_t *event, u
     hud_text_message_queue.element_size = -1;
     hud_text_message_queue.count = -1;
     if (hud_text_message_queue.data != 0) {
-        GlobalFree(hud_text_message_queue.data);
+        halo::platform::heap_free(hud_text_message_queue.data);
         hud_text_message_queue.data = 0;
     }
     if (hud_text_message_cycle_state_00719230 > 0) {

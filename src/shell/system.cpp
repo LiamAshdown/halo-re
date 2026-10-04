@@ -6,6 +6,9 @@
 #include "halo/shell/vars.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/platform/file.hpp"
+#include "halo/platform/thread.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &shell_argv = halo::link::ref<char **>(halo::shell::vars().shell_argv);
 static auto &shell_argc = halo::link::ref<int32_t>(halo::shell::vars().shell_argc);
@@ -158,7 +161,7 @@ char **CommandLine::parse_to_argv(char *command_line, int32_t *out_count)
     }
 
     *out_count = token_count + 1;
-    argv = (char **)GlobalAlloc(0, (uint32_t)(token_count + 1) * 4);
+    argv = (char **)halo::platform::heap_allocate(0, (uint32_t)(token_count + 1) * 4);
     argv[0] = &k_empty_string;
 
     i = 0;
@@ -242,7 +245,7 @@ uint32_t Clipboard::get_text(char *buffer, uint32_t capacity)
 
     clipboard_handle = GetClipboardData(1);
     if (clipboard_handle == 0) {
-        GetLastError();
+        halo::platform::last_error();
     } else {
         locked_text = (char *)GlobalLock(clipboard_handle);
         if (locked_text != 0) {
@@ -870,11 +873,11 @@ void SingleInstance::check(int32_t mode)
         if (version.major_version < 5) {
             name += 7;
         }
-        shell_instance_mutex = CreateMutexA(0, 1, name);
-        last_error = GetLastError();
+        shell_instance_mutex = halo::platform::mutex_create(true, name);
+        last_error = halo::platform::last_error();
         if (last_error == halo::win32::k_error_already_exists) {
             if (shell_instance_mutex != 0) {
-                CloseHandle(shell_instance_mutex);
+                halo::platform::handle_close(shell_instance_mutex);
             }
         } else if (shell_instance_mutex != 0) {
             shell_instance_index = i - first_index;
@@ -910,7 +913,7 @@ void SingleInstance::check(int32_t mode)
 void SingleInstance::release()
 {
     if (shell_instance_mutex != 0) {
-        CloseHandle(shell_instance_mutex);
+        halo::platform::handle_close(shell_instance_mutex);
         shell_instance_mutex = 0;
         shell_instance_mode_value = k_shell_instance_mode_none;
         shell_instance_index = -1;
@@ -961,7 +964,7 @@ int32_t ExitFlag::previous_run_crashed()
         end[-1] = 'b';
     }
 
-    if (GetFileAttributesA(pdb_path) != k_datum_index_none) {
+    if (halo::platform::file_attributes(pdb_path) != k_datum_index_none) {
         return 0;
     }
 

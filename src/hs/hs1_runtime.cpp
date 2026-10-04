@@ -5,6 +5,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/platform/memory.hpp"
 
 
 namespace halo::hs {
@@ -29,7 +30,7 @@ void ScriptRuntime::allocate_script_node_table(void)
             halo::hs::globals().syntax_data->valid = 1;
             halo::memory::data_delete_all(halo::hs::globals().syntax_data);
             if (scenario != 0) {
-                GlobalFree((void *)scenario->script_syntax_data.pointer);
+                halo::platform::heap_free((void *)scenario->script_syntax_data.pointer);
                 scenario->script_syntax_data.pointer = (uint32_t)halo::hs::globals().syntax_data;
                 scenario->script_syntax_data.size = k_hs_syntax_node_table_size;
                 return;

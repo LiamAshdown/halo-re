@@ -4,6 +4,7 @@
 #include "tags.h"
 #include "crt.h"
 #include "halo/core/datum.hpp"
+#include "halo/platform/memory.hpp"
 
 
 
@@ -33,13 +34,13 @@ uint32_t growable_array_view::add_element()
         bytes = (uint32_t)this->element_size * new_count;
         new_data = this->data;
         if (new_data == 0) {
-            new_data = GlobalAlloc(0, bytes);
+            new_data = halo::platform::heap_allocate(0, bytes);
         } else {
             if (bytes == 0) {
-                GlobalFree(new_data);
+                halo::platform::heap_free(new_data);
                 return halo::k_dword_none;
             }
-            new_data = GlobalReAlloc(new_data, bytes, k_gmem_moveable);
+            new_data = halo::platform::heap_reallocate(new_data, bytes, k_gmem_moveable);
         }
         if (new_data != 0) {
             element_size = (uint32_t)this->element_size;
@@ -82,14 +83,14 @@ void growable_array_view::remove_element(uint32_t index)
     bytes = (uint32_t)this->element_size * (uint32_t)this->count;
     if (data != 0) {
         if (bytes != 0) {
-            this->data = GlobalReAlloc(data, bytes, k_gmem_moveable);
+            this->data = halo::platform::heap_reallocate(data, bytes, k_gmem_moveable);
             return;
         }
-        GlobalFree(data);
+        halo::platform::heap_free(data);
         this->data = 0;
         return;
     }
-    this->data = GlobalAlloc(0, bytes);
+    this->data = halo::platform::heap_allocate(0, bytes);
 }
 
 /**
@@ -102,7 +103,7 @@ circular_buffer *circular_buffer_view::create(char *name, int32_t requested_size
 {
     circular_buffer *buf;
 
-    buf = (circular_buffer *)GlobalAlloc(0, requested_size + 0x19);
+    buf = (circular_buffer *)halo::platform::heap_allocate(0, requested_size + 0x19);
     if (buf != 0) {
         buf->name = 0;
         buf->signature = 0;

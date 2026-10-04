@@ -50,6 +50,7 @@ static auto &quit_confirm_error_is_error = halo::link::ref<uint8_t>(halo::ui::va
 #include "halo/interface/net_session.hpp"
 #include "halo/interface/widget_pool.hpp"
 #include "halo/interface/wide_text.hpp"
+#include "halo/platform/memory.hpp"
 
 namespace halo::ui {
 
@@ -863,7 +864,7 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
             uint16_t *copy;
 
             item->data = 0;
-            copy = (uint16_t *)GlobalAlloc(0, (uint32_t)wcslen((const wchar_t *)text) * 2 + 2);
+            copy = (uint16_t *)halo::platform::heap_allocate(0, (uint32_t)wcslen((const wchar_t *)text) * 2 + 2);
             item->name = copy;
             item->id = i;
             item->is_default = is_default;

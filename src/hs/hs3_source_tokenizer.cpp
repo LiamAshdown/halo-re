@@ -14,6 +14,7 @@
 #include "halo/hs/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/hs/vars.hpp"
+#include "halo/platform/memory.hpp"
 
 typedef struct rebuild_file_reference {
     uint32_t signature;
@@ -122,13 +123,13 @@ char *SourceTokenizer::source_buffer_append(char *text, uint32_t length) const
 
     new_size = (uint32_t)halo::hs::globals().compiled_source_length + 1 + length;
     if (halo::hs::globals().compiled_source == 0) {
-        new_buffer = GlobalAlloc(0, new_size);
+        new_buffer = halo::platform::heap_allocate(0, new_size);
     } else {
         if (new_size == 0) {
-            GlobalFree(halo::hs::globals().compiled_source);
+            halo::platform::heap_free(halo::hs::globals().compiled_source);
             return 0;
         }
-        new_buffer = GlobalReAlloc(halo::hs::globals().compiled_source, new_size, 2);
+        new_buffer = halo::platform::heap_reallocate(halo::hs::globals().compiled_source, new_size, 2);
     }
     if (new_buffer == 0) {
         return 0;

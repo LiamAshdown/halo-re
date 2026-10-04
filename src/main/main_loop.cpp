@@ -64,6 +64,7 @@
 #include "../gamespy/gamespy_calls.hpp"
 #include "halo/units/api.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/memory.hpp"
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
@@ -485,8 +486,6 @@ void frame_render(uint8_t render_frame, uint32_t frame_average)
     }
 }
 
-extern "C" __declspec(dllimport) void *__stdcall GetProcessHeap(void);
-extern "C" __declspec(dllimport) int __stdcall HeapValidate(void *heap, unsigned long flags, const void *block);
 
 namespace {
 
@@ -506,7 +505,7 @@ void heap_checkpoint(const char *phase)
     if (phase[0] == 'b') {
         frame++;
     }
-    if (HeapValidate(GetProcessHeap(), 0, nullptr) == 0) {
+    if (!halo::platform::heap_validate()) {
         reported = true;
         halo::shell::standalone_log("HEAP CORRUPT detected at %s of main loop frame %u", phase, frame);
     }
@@ -927,7 +926,7 @@ void MainLoop::loop_shutdown_cleanup(void)
     ban_list.element_size = -1;
     ban_list.count = -1;
     if (ban_list.data != 0) {
-        GlobalFree(ban_list.data);
+        halo::platform::heap_free(ban_list.data);
         ban_list.data = 0;
     }
 

@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include "halo/game/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &message_delta_parameters_enabled = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_enabled);
@@ -127,7 +128,7 @@ void ParametersProtocol::free_registered(void)
 
     if (message_delta_parameters_enabled == 1) {
         for (i = 0; i < message_delta_parameter_count; i++) {
-            GlobalFree(message_delta_parameters[i].name);
+            halo::platform::heap_free(message_delta_parameters[i].name);
             message_delta_parameters[i].name = 0;
         }
         message_delta_parameter_count = 0;
@@ -188,12 +189,12 @@ void ParametersProtocol::run_register(char *scope, char *name, int32_t type, voi
 
     if (message_delta_parameters_enabled == 1) {
         if (scope == 0) {
-            buffer = (char *)GlobalAlloc(0, strlen(name) + 1);
+            buffer = (char *)halo::platform::heap_allocate(0, strlen(name) + 1);
             strcpy(buffer, strdup(name));
         } else {
             int32_t scope_len = strlen(scope);
             int32_t name_len = strlen(name);
-            buffer = (char *)GlobalAlloc(0, scope_len + name_len + 3);
+            buffer = (char *)halo::platform::heap_allocate(0, scope_len + name_len + 3);
             memcpy(buffer, scope, scope_len + 1);
             buffer[scope_len] = ':';
             buffer[scope_len + 1] = ':';

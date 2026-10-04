@@ -13,6 +13,7 @@
 #include "halo/text/text.hpp"
 #include "halo/core/link.hpp"
 #include "halo/hs/vars.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &hs_syntax_data_dirty = halo::link::ref<uint8_t>(halo::hs::vars().hs_syntax_data_dirty);
 static auto &hs_compiling = halo::link::ref<uint8_t>(halo::hs::vars().hs_compiling);
@@ -380,11 +381,11 @@ char ScriptCompiler::compile_and_evaluate(char *command)
                 halo::memory::data_delete_all(halo::hs::globals().syntax_data);
             }
             if (halo::hs::globals().compiled_source != 0) {
-                GlobalFree(halo::hs::globals().compiled_source);
+                halo::platform::heap_free(halo::hs::globals().compiled_source);
             }
         }
         if (hs_compiled_source_owned != 0) {
-            GlobalFree(halo::hs::globals().compiled_source);
+            halo::platform::heap_free(halo::hs::globals().compiled_source);
             halo::hs::globals().compiled_source = 0;
             hs_compiled_source_owned = 0;
         }
@@ -427,7 +428,7 @@ datum_index ScriptCompiler::compile_expression(char *text, uint32_t length, char
     if ((int32_t)length < k_hs_maximum_expression_length) {
         if (halo::scenario::globals().scenario_index == k_datum_index_none) {
             start = 0;
-            halo::hs::globals().compiled_source = (char *)GlobalAlloc(0, length + 1);
+            halo::hs::globals().compiled_source = (char *)halo::platform::heap_allocate(0, length + 1);
             hs_compiled_source_owned = 1;
         } else {
             halo::hs::globals().compiled_source = (char *)halo::scenario::globals().scenario->script_string_data.pointer;
@@ -711,11 +712,11 @@ char ScriptCompiler::compile_source(void)
             halo::memory::data_delete_all(halo::hs::globals().syntax_data);
         }
         if (halo::hs::globals().compiled_source != 0) {
-            GlobalFree(halo::hs::globals().compiled_source);
+            halo::platform::heap_free(halo::hs::globals().compiled_source);
         }
     }
     if (hs_compiled_source_owned != 0) {
-        GlobalFree(halo::hs::globals().compiled_source);
+        halo::platform::heap_free(halo::hs::globals().compiled_source);
         halo::hs::globals().compiled_source = 0;
         hs_compiled_source_owned = 0;
     }

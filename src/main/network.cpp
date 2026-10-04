@@ -22,6 +22,8 @@
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/thread.hpp"
+#include "halo/platform/memory.hpp"
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
@@ -83,7 +85,7 @@ uint32_t ClientConnection::game_client_connect_by_hostname(char *host_port_strin
             main_globals_data.return_to_main_menu = 1;
         }
     }
-    GlobalFree(host_port_string);
+    halo::platform::heap_free(host_port_string);
     connect_thread = 0;
     return 0;
 }
@@ -139,7 +141,7 @@ uint8_t ClientConnection::game_client_connect_to_address_async(char *address, ch
             return connect_address_failed();
         }
         length = strlen(address) + 1;
-        host_copy = (char *)(GlobalAlloc(0, length));
+        host_copy = (char *)(halo::platform::heap_allocate(0, length));
         strcpy(host_copy, address);
 
         halo::interface::widget_close_all();
@@ -150,9 +152,7 @@ uint8_t ClientConnection::game_client_connect_to_address_async(char *address, ch
         while (connect_thread != 0) {
             halo::platform::sleep_milliseconds(0);
         }
-        connect_thread = CreateThread(0, k_main_connect_thread_stack_size,
-                                      (LPTHREAD_START_ROUTINE)((void *)halo::main::network_game_client_connect_by_hostname), host_copy, 0,
-                                      (LPDWORD)(&thread_id));
+        connect_thread = halo::platform::thread_create(k_main_connect_thread_stack_size, (halo::platform::thread_procedure)(void *)halo::main::network_game_client_connect_by_hostname, host_copy, 0, &thread_id);
         return 1;
     }
 
@@ -243,7 +243,7 @@ uint32_t ClientConnection::hostname_resolve_thread_proc(char *hostname)
 {
     hostname_resolve_result = gethostbyname(hostname);
     hostname_resolve_complete = 1;
-    ExitThread(0);
+    halo::platform::thread_exit(0);
 }
 
 }
@@ -266,15 +266,13 @@ char ClientConnection::hostname_resolve_with_timeout(char *hostname)
     uint32_t wait_result;
 
     hostname_resolve_complete = 0;
-    thread_handle = CreateThread(0, k_main_hostname_thread_stack_size,
-                                  (LPTHREAD_START_ROUTINE)halo::main::network_hostname_resolve_thread_proc, hostname, 0,
-                                  (LPDWORD)(&thread_id));
+    thread_handle = halo::platform::thread_create(k_main_hostname_thread_stack_size, (halo::platform::thread_procedure)halo::main::network_hostname_resolve_thread_proc, hostname, 0, &thread_id);
     if (thread_handle != 0) {
-        wait_result = WaitForSingleObject(thread_handle, k_main_hostname_resolve_timeout_ms);
+        wait_result = halo::platform::wait(thread_handle, k_main_hostname_resolve_timeout_ms);
         if (wait_result == win32::k_wait_timeout) {
-            TerminateThread(thread_handle, 0);
+            halo::platform::thread_terminate(thread_handle, 0);
         }
-        CloseHandle(thread_handle);
+        halo::platform::handle_close(thread_handle);
         if (hostname_resolve_complete != 0) {
             return 1;
         }

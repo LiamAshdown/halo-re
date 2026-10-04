@@ -32,6 +32,7 @@
 #include "halo/interface/wide_text.hpp"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/platform/memory.hpp"
 
 
 static auto &ui_list_has_default = halo::link::ref<uint8_t>(halo::ui::vars().ui_list_has_default);
@@ -73,7 +74,7 @@ void UiLists::list_add_entry(int32_t group_index, const uint16_t *name, int32_t 
     length = wcslen((const wchar_t *)name);
     entry = (ui_list_item *)ui_lists[group_index].data + index;
     entry->data = 0;
-    entry->name = (uint16_t *)(GlobalAlloc(0, length * 2 + 2));
+    entry->name = (uint16_t *)(halo::platform::heap_allocate(0, length * 2 + 2));
     entry->id = id;
     entry->is_default = is_default;
     if (is_default != 0) {
@@ -83,7 +84,7 @@ void UiLists::list_add_entry(int32_t group_index, const uint16_t *name, int32_t 
     wcscpy((wchar_t *)entry->name, (const wchar_t *)name);
 
     if (data_blob != 0 && data_size != 0) {
-        entry->data = GlobalAlloc(0, data_size);
+        entry->data = halo::platform::heap_allocate(0, data_size);
         memcpy(entry->data, data_blob, data_size);
     }
 }
@@ -155,17 +156,17 @@ void UiLists::list_free_all(void)
         for (i = 0; i < count; i = i + 1) {
             ui_list_item *entry = (ui_list_item *)ui_lists[group].data + i;
             if (entry->name != 0) {
-                GlobalFree(entry->name);
+                halo::platform::heap_free(entry->name);
             }
             if (entry->data != 0) {
-                GlobalFree(entry->data);
+                halo::platform::heap_free(entry->data);
             }
         }
 
         ui_lists[group].element_size = -1;
         ui_lists[group].count = -1;
         if (ui_lists[group].data != 0) {
-            GlobalFree(ui_lists[group].data);
+            halo::platform::heap_free(ui_lists[group].data);
             ui_lists[group].data = 0;
         }
     }

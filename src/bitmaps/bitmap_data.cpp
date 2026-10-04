@@ -10,6 +10,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/bitmaps/globals.hpp"
+#include "halo/platform/memory.hpp"
 
 
 namespace halo::bitmaps {
@@ -289,9 +290,9 @@ void bitmap_data_view::free()
 
     if (self->flags & _bitmap_data_runtime_allocated_bit) {
         if (self->pixel_base != 0) {
-            GlobalFree(self->pixel_base);
+            halo::platform::heap_free(self->pixel_base);
         }
-        GlobalFree(self);
+        halo::platform::heap_free(self);
     }
 }
 

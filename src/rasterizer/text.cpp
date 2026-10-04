@@ -18,6 +18,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/bitmaps/bitmaps.hpp"
 #include "halo/text/text.hpp"
+#include "halo/platform/memory.hpp"
 
 
 
@@ -514,7 +515,7 @@ int32_t text_font_system_initialize(void)
     void *pixels;
     uint32_t result;
 
-    atlas = (BitmapData *)GlobalAlloc(0, sizeof(BitmapData));
+    atlas = (BitmapData *)halo::platform::heap_allocate(0, sizeof(BitmapData));
     result = 0;
     if (atlas != (BitmapData *)0) {
         int i;
@@ -530,7 +531,7 @@ int32_t text_font_system_initialize(void)
         atlas->flags = k_font_atlas_flags;
 
         pixel_data_size = halo::bitmaps::bitmap_data_view(atlas).calculate_pixel_data_size();
-        pixels = GlobalAlloc(0, pixel_data_size);
+        pixels = halo::platform::heap_allocate(0, pixel_data_size);
         atlas->pixel_base = pixels;
 
         {

@@ -10,6 +10,7 @@
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/platform/memory.hpp"
 
 #ifdef interface
 #undef interface
@@ -66,7 +67,7 @@ uint8_t ClosedHandler::handle(widget_instance *widget, int16_t *event, uint8_t *
     server_browser_initialized = 0;
     halo::networking::server_list_reset(nullptr);
     if (server_list != 0) {
-        GlobalFree(server_list);
+        halo::platform::heap_free(server_list);
     }
     server_list = 0;
     server_list_block_used = 0;

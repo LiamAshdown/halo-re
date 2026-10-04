@@ -40,6 +40,8 @@
 #include "halo/physics/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/file.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &shell_command_line = halo::link::ref<char *>(halo::shell::vars().shell_command_line);
 static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
@@ -192,7 +194,7 @@ void EngineLifecycle::shutdown()
 
     halo::input::DirectInput::directinput_release_devices();
     halo::rasterizer::rasterizer_shutdown();
-    GlobalFree(halo::math::globals().sphere_point_table);
+    halo::platform::heap_free(halo::math::globals().sphere_point_table);
     halo::math::periodic_function_tables_free();
     halo::cache::data_file_close();
     halo::sound::sound_dispose();
@@ -200,10 +202,10 @@ void EngineLifecycle::shutdown()
     external_00686b4c = k_dword_none;
     external_00686b50 = 0;
     if (external_00686b58 != 0) {
-        GlobalFree(external_00686b58);
+        halo::platform::heap_free(external_00686b58);
     }
     if (external_00686b5c != 0) {
-        GlobalFree(external_00686b5c);
+        halo::platform::heap_free(external_00686b5c);
     }
     external_00686b54 = 0;
     external_00686b58 = 0;
@@ -242,7 +244,7 @@ char *Application::copy_command_line(const char *command_line)
  */
 void Application::initialize_window_state(void *instance, char *command_line, int32_t show_command)
 {
-    SetLastError(0);
+    halo::platform::set_last_error(0);
     shell_command_line = command_line;
     shell_window = 0;
     shell_instance = instance;
@@ -394,7 +396,7 @@ void Application::check_requirements()
         }
     }
     GetTempPathA(sizeof(temp_path), temp_path);
-    GetDiskFreeSpaceExA(temp_path, (PULARGE_INTEGER)&free_bytes_available, 0, 0);
+    halo::platform::disk_free_space(temp_path, reinterpret_cast<uint64_t *>(&free_bytes_available), nullptr, nullptr);
     if (free_bytes_available.parts.high_part <= 0 &&
         (free_bytes_available.parts.high_part < 0 ||
          free_bytes_available.parts.low_part < (uint32_t)(required_disk_space << 20))) {
@@ -459,7 +461,7 @@ bool Application::run_session(void *instance, char *command_line, int32_t show_c
         stack_guard_buffer[i] = k_stack_guard_marker;
     }
     shell_stack_guard_page = (uint8_t *)stack_guard_buffer + k_stack_guard_page_offset;
-    VirtualProtect(shell_stack_guard_page, 1, 1, (PDWORD)&shell_stack_guard_old_protect);
+    halo::platform::memory_protect(shell_stack_guard_page, 1, 1, &shell_stack_guard_old_protect);
     integrity_ok = 1;
 
     command_line_copy = copy_command_line(command_line);
@@ -499,7 +501,7 @@ bool Application::run_session(void *instance, char *command_line, int32_t show_c
     halo::cseries::global_memory::release(command_line_copy);
     halo::cseries::global_memory::release(shell_argv);
     if (shell_stack_guard_page != 0) {
-        VirtualProtect(shell_stack_guard_page, 1, shell_stack_guard_old_protect, (PDWORD)&shell_stack_guard_old_protect);
+        halo::platform::memory_protect(shell_stack_guard_page, 1, shell_stack_guard_old_protect, &shell_stack_guard_old_protect);
         shell_stack_guard_page = 0;
     }
     return true;

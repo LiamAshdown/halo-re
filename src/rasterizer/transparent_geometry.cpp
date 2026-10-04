@@ -16,6 +16,7 @@
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/shaders/shaders.hpp"
+#include "halo/platform/memory.hpp"
 
 
 
@@ -1517,9 +1518,9 @@ int32_t transparent_geometry_pool_initialize(void)
 {
     transparent_geometry_group *secondary_pool;
 
-    transparent_geometry_groups = static_cast<transparent_geometry_group *>(GlobalAlloc(0, k_rasterizer_maximum_transparent_groups * sizeof(transparent_geometry_group)));
-    transparent_geometry_group_sorted_indices = static_cast<int16_t *>(GlobalAlloc(0, k_rasterizer_maximum_transparent_groups * sizeof(int16_t)));
-    secondary_pool = static_cast<transparent_geometry_group *>(GlobalAlloc(0, k_rasterizer_maximum_secondary_groups * sizeof(transparent_geometry_group)));
+    transparent_geometry_groups = static_cast<transparent_geometry_group *>(halo::platform::heap_allocate(0, k_rasterizer_maximum_transparent_groups * sizeof(transparent_geometry_group)));
+    transparent_geometry_group_sorted_indices = static_cast<int16_t *>(halo::platform::heap_allocate(0, k_rasterizer_maximum_transparent_groups * sizeof(int16_t)));
+    secondary_pool = static_cast<transparent_geometry_group *>(halo::platform::heap_allocate(0, k_rasterizer_maximum_secondary_groups * sizeof(transparent_geometry_group)));
     transparent_geometry_group_secondary_count = 0;
     transparent_geometry_group_count = 0;
     transparent_geometry_groups_secondary = secondary_pool;

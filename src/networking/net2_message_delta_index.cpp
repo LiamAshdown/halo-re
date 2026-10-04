@@ -14,6 +14,7 @@
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &item_placement_bits_x = halo::link::ref<uint32_t>(halo::networking::vars().item_placement_bits_x);
 static auto &item_placement_bits_y = halo::link::ref<uint32_t>(halo::networking::vars().item_placement_bits_y);
@@ -140,7 +141,7 @@ uint8_t IndexFieldCodec::index_initialize(message_delta_field_type *field_type)
         int32_t *table;
 
         halo::objects::hash_table_initialize((hash_table *)(descriptor + 3), descriptor[1]);
-        table = (int32_t *)GlobalAlloc(0, descriptor[0] * 4);
+        table = (int32_t *)halo::platform::heap_allocate(0, descriptor[0] * 4);
         descriptor[10] = (int32_t)table;
         descriptor[9] = 0;
         memset(table, 0xff, descriptor[0] * 4);
@@ -154,7 +155,7 @@ void IndexFieldCodec::index_teardown(message_delta_field_type *field_type)
 {
     int32_t *descriptor = FieldCodecRegistry::kind_flag(13) == 1 ? (int32_t *)field_type->array_descriptor : 0;
 
-    GlobalFree((void *)descriptor[10]);
+    halo::platform::heap_free((void *)descriptor[10]);
     halo::objects::hash_table_dispose((hash_table *)(descriptor + 3));
 }
 

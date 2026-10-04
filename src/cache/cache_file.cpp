@@ -16,6 +16,9 @@
 #include "halo/interface/api.hpp"
 #include "halo/cache/layout.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/file.hpp"
+#include "halo/platform/thread.hpp"
+#include "halo/platform/memory.hpp"
 
 typedef uint32_t (*get_mapped_file_name_a_t)(void *process, void *address, char *filename, uint32_t size);
 
@@ -32,19 +35,16 @@ void cache_files::download_finish()
 {
     uint32_t finished_signaled;
     int32_t slot_index;
-    system_time now;
 
-    finished_signaled = WaitForSingleObject(globals().map_download->finished_event, 0);
+    finished_signaled = halo::platform::wait(globals().map_download->finished_event, 0);
     if (finished_signaled != 0) {
-        SetEvent(globals().map_download->stop_event);
-        WaitForSingleObject(globals().map_download->finished_event, halo::win32::k_infinite);
+        halo::platform::event_set(globals().map_download->stop_event);
+        halo::platform::wait(globals().map_download->finished_event, halo::win32::k_infinite);
     }
 
     slot_index = globals().map_download_slot_index;
-    GetSystemTime((LPSYSTEMTIME)&now);
-    SystemTimeToFileTime((const SYSTEMTIME *)&now, (LPFILETIME)&globals().cache_file_slots[slot_index].last_write_time);
-    SetFileTime(globals().cache_file_slots[slot_index].file, (const FILETIME *)&globals().cache_file_slots[slot_index].last_write_time,
-        nullptr, nullptr);
+    halo::platform::file_time_now(&globals().cache_file_slots[slot_index].last_write_time);
+    halo::platform::file_set_creation_time(globals().cache_file_slots[slot_index].file, &globals().cache_file_slots[slot_index].last_write_time);
     halo::cache::cache_files::slot_read_header(slot_index);
 
     globals().map_download_in_progress = 0;
@@ -126,10 +126,10 @@ int16_t cache_files::download_poll(float *progress_out)
         return 3;
     }
 
-    finished_signaled = WaitForSingleObject(globals().map_download->finished_event, 0);
+    finished_signaled = halo::platform::wait(globals().map_download->finished_event, 0);
     code = (int16_t)(4 - (finished_signaled != 0));
 
-    progress_ready = WaitForSingleObject(globals().map_download->progress_event, 0);
+    progress_ready = halo::platform::wait(globals().map_download->progress_event, 0);
     if (progress_ready == 0) {
         progress = globals().map_download->progress;
         if (progress < 0.0f) {
@@ -180,9 +180,9 @@ void cache_files::download_stop()
 {
     uint32_t finished_signaled;
 
-    finished_signaled = WaitForSingleObject(globals().map_download->finished_event, 0);
+    finished_signaled = halo::platform::wait(globals().map_download->finished_event, 0);
     if (finished_signaled != 0) {
-        SetEvent(globals().map_download->stop_event);
+        halo::platform::event_set(globals().map_download->stop_event);
     }
 }
 
@@ -202,13 +202,13 @@ uint8_t cache_files::exists(char *name, cache_file_header *header_out)
 
     valid = 0;
     sprintf(path, "%s%s%s.map", globals().map_path_prefix, "maps\\", name);
-    file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, nullptr, halo::win32::k_open_existing, 0, nullptr);
+    file = halo::platform::file_open(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, halo::win32::k_open_existing, 0);
     if (file != halo::win32::invalid_handle()) {
-        if (ReadFile(file, header_out, k_cache_file_header_size, (LPDWORD)(&bytes_read), nullptr) != 0 &&
+        if (halo::platform::file_read(file, header_out, k_cache_file_header_size, &bytes_read) != 0 &&
             bytes_read == k_cache_file_header_size && map_header_valid(*header_out)) {
             valid = 1;
         }
-        CloseHandle(file);
+        halo::platform::file_close(file);
     }
     return valid;
 }
@@ -255,7 +255,7 @@ int16_t cache_files::find_oldest_slot(cache_file_slot_category slot_category, in
                     if (best_slot != -1) {
                         int32_t best_limit = halo::cache::cache_files::slot_size_limit(best_slot);
                         if (best_limit <= limit &&
-                            CompareFileTime((const FILETIME *)&best->last_write_time, (const FILETIME *)&current->last_write_time) < 1) {
+                            halo::platform::file_time_compare(&best->last_write_time, &current->last_write_time) < 1) {
                             goto next;
                         }
                     }
@@ -319,10 +319,10 @@ datum_index cache_files::load(char *path)
 
     if (globals().sound_decode_buffer_size < k_sound_decode_buffer_minimum_size) {
         if (globals().sound_decode_buffer != 0) {
-            GlobalFree(globals().sound_decode_buffer);
+            halo::platform::heap_free(globals().sound_decode_buffer);
         }
         globals().sound_decode_buffer_size = k_sound_decode_buffer_minimum_size;
-        globals().sound_decode_buffer = GlobalAlloc(0, globals().sound_decode_buffer_size);
+        globals().sound_decode_buffer = halo::platform::heap_allocate(0, globals().sound_decode_buffer_size);
     }
 
     globals().cache_file_index = halo::cache::cache_files::find_slot_by_name(basename);
@@ -400,7 +400,7 @@ uint8_t cache_files::open_by_name(char *name, uint8_t report_fatal_error)
         flags_and_attributes = halo::win32::k_file_flag_sequential_scan | halo::win32::k_file_attribute_normal;
     }
 
-    file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, nullptr, halo::win32::k_open_always, flags_and_attributes, nullptr);
+    file = halo::platform::file_open(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, halo::win32::k_open_always, flags_and_attributes);
     globals().cache_file_slots[slot_index].file = file;
     halo::cache::cache_files::slot_read_header(slot_index);
     return 1;
@@ -449,7 +449,7 @@ uint8_t cache_files::request_map(char *name, uint8_t quit_on_fail)
     }
 
     globals().map_download->thread_busy = 0;
-    SetThreadPriority(globals().map_download->thread, 0);
+    halo::platform::thread_set_priority(globals().map_download->thread, 0);
     opened = halo::cache::cache_files::open_by_name(name, 0);
     if (opened != 0) {
         return 0;
@@ -488,7 +488,7 @@ void cache_files::slot_read_header(int32_t slot_index)
     slot = &globals().cache_file_slots[slot_index];
     sprintf(path, "%s\\cache%03d.map", globals().profile_directory, slot_index);
 
-    GetFileTime(slot->file, (LPFILETIME)&slot->last_write_time, nullptr, nullptr);
+    halo::platform::file_get_creation_time(slot->file, &slot->last_write_time);
 
     header_read_ok = 0;
     request.completion.flag = &header_read_ok;
@@ -500,14 +500,14 @@ void cache_files::slot_read_header(int32_t slot_index)
     }
 
     if (globals().os_platform < 3) {
-        if (SetFilePointer(slot->file, 0, nullptr, 0) != halo::win32::k_invalid_set_file_pointer) {
-            if (ReadFile(slot->file, &slot->header, k_cache_file_header_size, (LPDWORD)(&bytes_read), nullptr) != 0 &&
+        if (halo::platform::file_seek(slot->file, 0, nullptr, 0) != halo::win32::k_invalid_set_file_pointer) {
+            if (halo::platform::file_read(slot->file, &slot->header, k_cache_file_header_size, &bytes_read) != 0 &&
                 bytes_read == k_cache_file_header_size) {
                 goto validate_header;
             }
         }
     } else {
-        halo::cache::cache_io::read_file_ex_retry((void *)ReadFileEx, slot->file, &slot->header, &request, k_cache_file_header_size, 0, (void *)&halo::cache::cache_io::completion_routine_stdcall);
+        halo::cache::cache_io::read_file_ex_retry((void *)&halo::platform::file_read_async, slot->file, &slot->header, &request, k_cache_file_header_size, 0, (void *)&halo::cache::cache_io::completion_routine_stdcall);
 
         halo::cache::cache_io::wait_for_flag(&header_read_ok);
         if (header_read_ok != 0) {
@@ -545,7 +545,7 @@ void cache_files::unload()
 
     if (globals().cache_file_index != -1) {
         halo::cache::cache_io::wait_all_requests();
-        CloseHandle(globals().cache_file_slots[globals().cache_file_index].file);
+        halo::platform::file_close(globals().cache_file_slots[globals().cache_file_index].file);
         memset(&globals().cache_file_slots[globals().cache_file_index], 0, sizeof(cache_file_slot));
         globals().cache_file_index = -1;
     }
@@ -574,10 +574,10 @@ void cache_files::reserve_map_memory()
     globals().texture_cache_memory = nullptr;
     globals().sound_cache_memory = nullptr;
 
-    globals().map_memory = VirtualAlloc((void *)k_map_memory_base, k_map_memory_size, halo::win32::k_mem_commit_reserve, halo::win32::k_page_readwrite);
+    globals().map_memory = halo::platform::memory_reserve((void *)k_map_memory_base, k_map_memory_size);
     globals().tag_data_base = (void *)k_tag_data_base;
-    globals().texture_cache_memory = VirtualAlloc(nullptr, 0x4000, halo::win32::k_mem_commit_reserve, halo::win32::k_page_readwrite);
-    globals().sound_cache_memory = VirtualAlloc(nullptr, (uint32_t)globals().sound_cache_size_megabytes << 0x14, halo::win32::k_mem_commit_reserve, halo::win32::k_page_readwrite);
+    globals().texture_cache_memory = halo::platform::memory_reserve(nullptr, 0x4000);
+    globals().sound_cache_memory = halo::platform::memory_reserve(nullptr, (uint32_t)globals().sound_cache_size_megabytes << 0x14);
 
     if (globals().map_memory == nullptr) {
         memset(path_buffer, 0, sizeof(path_buffer));

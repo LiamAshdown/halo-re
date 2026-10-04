@@ -45,6 +45,7 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/units/api.hpp"
+#include "halo/platform/memory.hpp"
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
@@ -354,7 +355,7 @@ void RenderViews::screenshot_render(render_view *views)
     height = (int16_t)((game_window_top_left.bottom - game_window_top_left.top) * screenshot_scale);
     width = (int16_t)((game_window_top_left.right - game_window_top_left.left) * screenshot_scale);
 
-    bitmap = (BitmapData *)GlobalAlloc(0, sizeof(BitmapData));
+    bitmap = (BitmapData *)halo::platform::heap_allocate(0, sizeof(BitmapData));
     if (bitmap == 0) {
         main_globals_data.screenshot_tile_count = 0;
         return;

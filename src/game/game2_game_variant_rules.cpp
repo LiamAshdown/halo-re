@@ -6,6 +6,7 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &game_engine_active_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_active_variant);
 static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
@@ -58,18 +59,18 @@ uint32_t GameVariantRules::variant_add_to_history(char *name, game_variant *opti
 
     if (path == 0) {
         int32_t length = (int32_t)wcslen((const wchar_t *)options);
-        name_copy = GlobalAlloc(0, (uint32_t)length + 1);
+        name_copy = halo::platform::heap_allocate(0, (uint32_t)length + 1);
         path = reinterpret_cast<char *>(halo::text::string_convert_unicode_to_ascii(static_cast<uint8_t *>(name_copy), reinterpret_cast<uint16_t *>(options), length + 1));
         ((char *)name_copy)[length] = 0;
     } else {
         size_t length = strlen(path);
-        name_copy = GlobalAlloc(0, (uint32_t)(length + 1));
+        name_copy = halo::platform::heap_allocate(0, (uint32_t)(length + 1));
         memcpy(name_copy, path, length + 1);
     }
 
     if (options == 0) {
         if (halo::game::game_engine_get_variant_by_name(name, &temp) == 0) {
-            GlobalFree(name_copy);
+            halo::platform::heap_free(name_copy);
             return 0;
         }
     } else {
@@ -84,12 +85,12 @@ uint32_t GameVariantRules::variant_add_to_history(char *name, game_variant *opti
             game_variant_history_capacity = game_variant_history_capacity + 4;
             bytes = game_variant_history_capacity * sizeof(game_variant_history_entry);
             if (game_variant_history == 0) {
-                game_variant_history = (game_variant_history_entry *)GlobalAlloc(0, bytes);
+                game_variant_history = (game_variant_history_entry *)halo::platform::heap_allocate(0, bytes);
             } else if (bytes == 0) {
-                GlobalFree(game_variant_history);
+                halo::platform::heap_free(game_variant_history);
                 game_variant_history = 0;
             } else {
-                game_variant_history = (game_variant_history_entry *)GlobalReAlloc(game_variant_history, bytes, 2);
+                game_variant_history = (game_variant_history_entry *)halo::platform::heap_reallocate(game_variant_history, bytes, 2);
             }
         }
 
@@ -101,7 +102,7 @@ uint32_t GameVariantRules::variant_add_to_history(char *name, game_variant *opti
 
         {
             size_t name_length = strlen(name);
-            char *path_copy = (char *)GlobalAlloc(0, (uint32_t)(name_length + 1));
+            char *path_copy = (char *)halo::platform::heap_allocate(0, (uint32_t)(name_length + 1));
             entry->path = path_copy;
             memcpy(path_copy, name, name_length + 1);
         }

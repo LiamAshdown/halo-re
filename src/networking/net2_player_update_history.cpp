@@ -31,6 +31,7 @@
 #include "halo/networking/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/main/api.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &local_player_name_filter = halo::link::ref<uint16_t [0x400]>(halo::game::vars().local_player_name_filter);
 static auto &player_update_log_categories_default = halo::link::ref<uint32_t>(halo::networking::vars().player_update_log_categories_default);
@@ -98,7 +99,7 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
         }
     }
 
-    node = (player_update_history_node *)GlobalAlloc(0, sizeof(player_update_history_node));
+    node = (player_update_history_node *)halo::platform::heap_allocate(0, sizeof(player_update_history_node));
     node->update_id = history->next_update_id;
     node->tick_count = tick_count;
     memcpy(node->control, &control, sizeof(node->control));
@@ -194,12 +195,12 @@ void PlayerUpdateHistory::destroy(player_update_history *history)
     node = history->head;
     while (node != 0) {
         next = node->next;
-        GlobalFree(node);
+        halo::platform::heap_free(node);
         node = next;
     }
     history->head = 0;
     history->tail = 0;
-    GlobalFree(history);
+    halo::platform::heap_free(history);
 }
 
 player_update_history_node * PlayerUpdateHistory::find_and_prune(player_update_history *history,
@@ -233,7 +234,7 @@ player_update_history_node * PlayerUpdateHistory::find_and_prune(player_update_h
                 }
                 matched_id = node->update_id;
                 walk = node->next;
-                GlobalFree(node);
+                halo::platform::heap_free(node);
                 node = walk;
             } while (matched_id != target_id);
             history->head = walk;
@@ -254,7 +255,7 @@ void PlayerUpdateHistory::free_all(player_update_history *history)
     node = history->head;
     while (node != 0) {
         next = node->next;
-        GlobalFree(node);
+        halo::platform::heap_free(node);
         node = next;
     }
     history->head = 0;

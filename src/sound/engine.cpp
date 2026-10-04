@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/memory.hpp"
 
 namespace halo::sound {
 
@@ -21,7 +22,7 @@ void sound_dispose_zero_and_free(void *block, int32_t dword_count)
     for (i = 0; i < dword_count; i++) {
         words[i] = 0;
     }
-    GlobalFree(block);
+    halo::platform::heap_free(block);
 }
 
 }  // namespace

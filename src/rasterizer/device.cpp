@@ -39,6 +39,7 @@ constexpr uint32_t k_pixel_shader_none = 0xffffffffu;
 #include "halo/core/win32_constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/memory.hpp"
 
 
 
@@ -1048,7 +1049,7 @@ uint8_t rasterizer_initialize_direct3d(void)
 
     succeeded = 0;
     if ((uint8_t)rasterizer_dx9_effects_initialize() &&
-        (rasterizer_scratch_memory = GlobalAlloc(0, k_rasterizer_scratch_memory_size)) != 0 &&
+        (rasterizer_scratch_memory = halo::platform::heap_allocate(0, k_rasterizer_scratch_memory_size)) != 0 &&
         (uint8_t)rasterizer_decal_index_buffer_initialize() &&
         (uint8_t)transparent_geometry_pool_initialize() &&
         (uint8_t)text_font_system_initialize() &&
@@ -1417,7 +1418,7 @@ void rasterizer_shutdown(void)
     int32_t i;
 
     if (rasterizer_scratch_memory != nullptr) {
-        GlobalFree(rasterizer_scratch_memory);
+        halo::platform::heap_free(rasterizer_scratch_memory);
     }
     rasterizer_scratch_memory = nullptr;
     rasterizer_scratch_memory_used = 0;

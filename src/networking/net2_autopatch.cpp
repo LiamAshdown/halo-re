@@ -30,6 +30,8 @@
 #include "../gamespy/gamespy_calls.hpp"
 #include "halo/units/api.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/thread.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &autopatch_download_slots = halo::link::ref<autopatch_download_slot [2]>(halo::networking::vars().autopatch_download_slots);
 static auto &network_mutex_table = halo::link::ref<network_mutex_record [k_network_mutex_table_count]>(halo::networking::vars().network_mutex_table);
@@ -111,7 +113,7 @@ uint32_t AutopatchUpdater::download_complete_callback(int32_t request_id, int32_
                 return 1;
             }
             if (autopatch_download_slots[i].cancelled == 0) {
-                uint8_t *buffer = (uint8_t *)GlobalAlloc(0, size + 1);
+                uint8_t *buffer = (uint8_t *)halo::platform::heap_allocate(0, size + 1);
                 uint32_t j;
 
                 autopatch_download_slots[i].data = buffer;
@@ -174,7 +176,7 @@ uint8_t AutopatchUpdater::download_pool_initialize(void)
         int32_t name_index = network_mutex_name_counter;
         network_mutex_name_counter = network_mutex_name_counter + 1;
         _snprintf(mutex_slot->name, 0x20, "mutex_%ld", name_index);
-        mutex_slot->handle = CreateMutexA(0, 0, 0);
+        mutex_slot->handle = halo::platform::mutex_create(false, nullptr);
         if (mutex_slot->handle == 0) {
             mutex_slot = 0;
         } else {
@@ -190,22 +192,21 @@ uint8_t AutopatchUpdater::download_pool_initialize(void)
                 thread_slot = &network_thread_table[i];
                 thread_slot->handle = 0;
                 network_thread_table[i].in_use = 1;
-                thread_slot->handle = CreateThread(0, 0x4000, (LPTHREAD_START_ROUTINE)halo::networking::autopatch_download_worker_thread,
-                                                    0, 4, (LPDWORD)&thread_id);
+                thread_slot->handle = halo::platform::thread_create(0x4000, (halo::platform::thread_procedure)halo::networking::autopatch_download_worker_thread, 0, 4, &thread_id);
                 autopatch_download_thread = thread_slot;
                 if (thread_slot->handle != 0) {
-                    if (SetThreadPriority(thread_slot->handle, 0) != 0 &&
-                        ResumeThread(thread_slot->handle) != halo::k_dword_none) {
+                    if (halo::platform::thread_set_priority(thread_slot->handle, 0) != 0 &&
+                        halo::platform::thread_resume(thread_slot->handle) != halo::k_dword_none) {
                         autopatch_download_pool_stop = 1;
                         autopatch_download_active_count = 0;
                         return 1;
                     }
-                    CloseHandle(thread_slot->handle);
+                    halo::platform::handle_close(thread_slot->handle);
                 }
                 break;
             }
         }
-        CloseHandle(autopatch_download_mutex->handle);
+        halo::platform::handle_close(autopatch_download_mutex->handle);
         autopatch_download_mutex->in_use = 0;
         autopatch_download_mutex->handle = 0;
         autopatch_download_mutex = 0;
@@ -229,15 +230,15 @@ uint32_t AutopatchUpdater::download_pool_shutdown(void)
 
     autopatch_download_active_count = 1;
     do {
-        while (GetExitCodeThread(autopatch_download_thread->handle, (LPDWORD)&exit_code) == 0) {
+        while (halo::platform::thread_exit_code(autopatch_download_thread->handle, &exit_code) == 0) {
         }
     } while (exit_code == 0x103);
 
-    CloseHandle(autopatch_download_thread->handle);
+    halo::platform::handle_close(autopatch_download_thread->handle);
     autopatch_download_thread->handle = 0;
     autopatch_download_thread->in_use = 0;
 
-    CloseHandle(autopatch_download_mutex->handle);
+    halo::platform::handle_close(autopatch_download_mutex->handle);
     autopatch_download_mutex->in_use = 0;
     autopatch_download_mutex->handle = 0;
     autopatch_download_mutex->name[0] = 0;
@@ -260,7 +261,7 @@ int32_t AutopatchUpdater::download_pool_tick(void)
         }
         if (autopatch_download_slots[i].cancelled != 0) {
             if (autopatch_download_slots[i].data != 0 && autopatch_download_slots[i].local_file == 0) {
-                GlobalFree(autopatch_download_slots[i].data);
+                halo::platform::heap_free(autopatch_download_slots[i].data);
             }
             ghttpCancelRequest(autopatch_download_slots[i].request_id);
             autopatch_download_slots[i].request_id = 0;
@@ -409,11 +410,11 @@ char * AutopatchUpdater::get_proxy_settings(void)
                                 proxy_list[0x3ff] = 0;
                             }
                             if (proxy_info.proxy != 0) {
-                                GlobalFree(proxy_info.proxy);
+                                halo::platform::heap_free(proxy_info.proxy);
                             }
                         }
                         if (proxy_info.proxy_bypass != 0) {
-                            GlobalFree(proxy_info.proxy_bypass);
+                            halo::platform::heap_free(proxy_info.proxy_bypass);
                         }
                     }
                     close_handle(session);

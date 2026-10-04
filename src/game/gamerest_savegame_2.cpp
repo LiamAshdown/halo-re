@@ -3,6 +3,7 @@
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/platform/thread.hpp"
 
 static auto &saved_game_root_path = halo::link::ref<char []>(halo::game::vars().saved_game_root_path);
 static auto &savegame_index_file = halo::link::ref<file_reference_record>(halo::game::vars().savegame_index_file);
@@ -23,7 +24,7 @@ uint8_t SaveGameIndex::remove_slot(uint16_t slot)
     uint32_t size;
     uint32_t read_offset, write_offset;
     uint8_t result = 0;
-    uint32_t wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
+    uint32_t wait_result = halo::platform::wait(savegame_index_mutex->handle, 5000);
 
     if (wait_result != 0 && wait_result != 0x80) {
         return 0;
@@ -61,7 +62,7 @@ uint8_t SaveGameIndex::remove_slot(uint16_t slot)
         }
     }
 
-    ReleaseMutex(savegame_index_mutex->handle);
+    halo::platform::mutex_release(savegame_index_mutex->handle);
     return result;
 }
 

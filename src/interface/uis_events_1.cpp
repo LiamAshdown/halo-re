@@ -60,6 +60,7 @@ static auto &network_host_edit_field_00719410 = halo::link::ref<int32_t>(halo::u
 static auto &ui_widget_history = halo::link::ref<widget_history_node * [3]>(halo::ui::vars().ui_widget_history);
 #include "halo/interface/widget_pool.hpp"
 #include "halo/interface/wide_text.hpp"
+#include "halo/platform/memory.hpp"
 
 #ifdef interface
 #undef interface
@@ -430,7 +431,7 @@ uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, u
             uint16_t *copy;
 
             item->data = 0;
-            copy = (uint16_t *)GlobalAlloc(0, (uint32_t)wcslen((const wchar_t *)name) * 2 + 2);
+            copy = (uint16_t *)halo::platform::heap_allocate(0, (uint32_t)wcslen((const wchar_t *)name) * 2 + 2);
             item->name = copy;
             item->id = i;
             item->is_default = is_default;

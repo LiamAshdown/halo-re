@@ -22,6 +22,7 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/saved_games/vars.hpp"
+#include "halo/platform/thread.hpp"
 
 static_assert(halo::saved_games::k_input_device_stride_dwords * sizeof(uint32_t) == sizeof(input_device));
 
@@ -757,10 +758,10 @@ void variant_write_wait_and_clear(void)
     if (variant_write_thread != 0) {
         do {
             do {
-                got_code = GetExitCodeThread(variant_write_thread->handle, (LPDWORD)&exit_code);
+                got_code = halo::platform::thread_exit_code(variant_write_thread->handle, &exit_code);
             } while (got_code == 0);
         } while (exit_code == win32::k_still_active);
-        CloseHandle(variant_write_thread->handle);
+        halo::platform::handle_close(variant_write_thread->handle);
         variant_write_thread->handle = 0;
         variant_write_thread->in_use = 0;
     }

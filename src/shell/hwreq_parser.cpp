@@ -4,6 +4,7 @@
 #include "halo/shell/vars.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/shell/runtime.hpp"
+#include "halo/platform/file.hpp"
 
 static auto &hwreq_parser_vtable_instance = halo::link::ref<hwreq_parser_vtable>(halo::shell::vars().hwreq_parser_vtable_instance);
 static auto &hwreq_open_error_text = halo::link::ref<char []>(halo::shell::vars().hwreq_open_error_text);
@@ -454,10 +455,9 @@ uint8_t HwreqParser::parse(const char *path, const shell_sound_device *sound_dev
         }
     }
 
-    file = CreateFileA(path, win32::k_generic_read, win32::k_file_share_read, 0, win32::k_open_existing, 0,
-                       0);
+    file = halo::platform::file_open(path, win32::k_generic_read, win32::k_file_share_read, win32::k_open_existing, 0);
     if (file == win32::invalid_handle()) {
-        GetCurrentDirectoryA(sizeof(directory), directory);
+        halo::platform::current_directory(sizeof(directory), directory);
         for (end = directory; *end; end++) {
         }
         for (i = 0; i < 12; i++) {
@@ -470,11 +470,11 @@ uint8_t HwreqParser::parse(const char *path, const shell_sound_device *sound_dev
         return 0;
     }
 
-    size = GetFileSize(file, 0);
+    size = halo::platform::file_size(file, nullptr);
     buffer = (char *)malloc(size + 0x10);
     self->file_buffer = (uint32_t)buffer;
-    ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0);
-    CloseHandle(file);
+    halo::platform::file_read(file, buffer, size, &bytes_read);
+    halo::platform::file_close(file);
     buffer[size] = '\r';
     self->cursor = (uint32_t)buffer;
     self->line_start = (uint32_t)buffer;

@@ -61,6 +61,7 @@ static auto &cached_profile_slot = halo::link::ref<int32_t>(halo::ui::vars().cac
 static auto &network_wait_flag_00719739 = halo::link::ref<uint8_t>(halo::ui::vars().network_wait_flag_00719739);
 static auto &last_profile_name = halo::link::ref<char []>(halo::ui::vars().last_profile_name);
 #include "halo/interface/wide_text.hpp"
+#include "halo/platform/memory.hpp"
 
 namespace halo::ui {
 
@@ -161,7 +162,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
             uint32_t name_length = wcslen((const wchar_t *)entry_name);
 
             item->data = nullptr;
-            item->name = (uint16_t *)GlobalAlloc(0, name_length * 2 + 2);
+            item->name = (uint16_t *)halo::platform::heap_allocate(0, name_length * 2 + 2);
             item->id = i;
             item->is_default = is_selected;
             if (is_selected) {

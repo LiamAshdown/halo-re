@@ -16,6 +16,7 @@
 #include "halo/core/win32_constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/memory.hpp"
 
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 
@@ -50,7 +51,7 @@ void texture_cache_manager::entry_release(datum_index handle)
     bitmap = entry->bitmap;
     bitmap->pointer = halo::k_dword_none;
     if (bitmap->pixel_base != 0) {
-        GlobalFree(bitmap->pixel_base);
+        halo::platform::heap_free(bitmap->pixel_base);
         bitmap->pixel_base = 0;
     }
     bitmap = entry->bitmap;
@@ -121,7 +122,7 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
                             halo::rasterizer::rasterizer_bitmap_upload_cubemap_mipmaps_by_face(bitmap);
                         }
                         if (bitmap->pixel_base != nullptr) {
-                            GlobalFree(bitmap->pixel_base);
+                            halo::platform::heap_free(bitmap->pixel_base);
                             bitmap->pixel_base = nullptr;
                         }
                         entry->texture = *(void **)&bitmap->hardware_texture;
@@ -167,7 +168,7 @@ void texture_cache_manager::initialize()
 
     globals().texture_cache_entries = halo::memory::data_array_view::create(sizeof(texture_cache_entry), "pc texture", k_texture_cache_maximum_entries);
 
-    cache_memory = GlobalAlloc(0, 0x1c07c);
+    cache_memory = halo::platform::heap_allocate(0, 0x1c07c);
     if (cache_memory != nullptr) {
         halo::memory::view((struct cache *)cache_memory)->initialize("pc texture cache", k_texture_cache_maximum_entries, k_texture_cache_block_shift, k_texture_cache_maximum_entries, (void *)&texture_cache_manager::entry_release, (void *)&texture_cache_manager::entry_in_use);
     }
@@ -203,7 +204,7 @@ uint32_t texture_cache_manager::page_allocate(BitmapData *bitmap, uint8_t priori
     if ((int32_t)alloc_size < (int32_t)computed_size) {
         alloc_size = computed_size;
     }
-    staging_buffer = GlobalAlloc(0, alloc_size);
+    staging_buffer = halo::platform::heap_allocate(0, alloc_size);
 
     halo::memory::view(globals().texture_cache_entries)->new_at_index_with_salt(cache_slot);
     entry = (texture_cache_entry *)((uint8_t *)globals().texture_cache_entries->data +

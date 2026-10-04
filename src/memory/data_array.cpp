@@ -4,6 +4,7 @@
 #include "tags.h"
 #include "win32.h"
 #include "halo/core/datum.hpp"
+#include "halo/platform/memory.hpp"
 
 namespace halo::memory {
 
@@ -44,7 +45,7 @@ data_array *data_array_view::create(int16_t element_size, const char *name, int1
     uint8_t *zero;
     int32_t i;
 
-    array = (data_array *)GlobalAlloc(0, (int32_t)maximum_count * (int32_t)element_size + 0x38);
+    array = (data_array *)halo::platform::heap_allocate(0, (int32_t)maximum_count * (int32_t)element_size + 0x38);
     if (array != 0) {
         zero = (uint8_t *)array;
         for (i = 0xe; i != 0; i = i - 1) {

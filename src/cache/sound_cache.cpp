@@ -15,6 +15,7 @@
 #include "halo/core/win32_constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/memory.hpp"
 
 
 
@@ -40,10 +41,10 @@ void sound_cache_manager::decode_permutation(SoundPermutation *permutation)
 
         if (globals().sound_decode_buffer_size < (int32_t)buffer_size) {
             if (globals().sound_decode_buffer != nullptr) {
-                GlobalFree(globals().sound_decode_buffer);
+                halo::platform::heap_free(globals().sound_decode_buffer);
             }
             globals().sound_decode_buffer_size = buffer_size;
-            globals().sound_decode_buffer = GlobalAlloc(0, buffer_size);
+            globals().sound_decode_buffer = halo::platform::heap_allocate(0, buffer_size);
         }
 
         {
@@ -98,7 +99,7 @@ void sound_cache_manager::dispose()
     globals().sound_cache_entries->valid = 0;
 
     if (globals().sound_decode_buffer != nullptr) {
-        GlobalFree(globals().sound_decode_buffer);
+        halo::platform::heap_free(globals().sound_decode_buffer);
         globals().sound_decode_buffer = nullptr;
         globals().sound_decode_buffer_size = 0;
     }
@@ -138,7 +139,7 @@ void sound_cache_manager::dump_to_file()
     locked_pages = 0;
     sound_count = 0;
 
-    bitmap = (uint8_t *)GlobalAlloc(0, globals().sound_cache_page_count);
+    bitmap = (uint8_t *)halo::platform::heap_allocate(0, globals().sound_cache_page_count);
     file = fopen("sound_cache_dump.txt", globals().file_open_mode_w);
 
     for (scan = line, bit = 0x100; bit != 0; bit--) {
@@ -224,7 +225,7 @@ void sound_cache_manager::dump_to_file()
         fclose((FILE *)file);
     }
 
-    GlobalFree(bitmap);
+    halo::platform::heap_free(bitmap);
     return;
 }
 
@@ -272,7 +273,7 @@ void sound_cache_manager::initialize()
     scaled_megabytes = (int32_t)*(int16_t *)&globals().sound_cache_size_megabytes * 0x100000;
     globals().sound_cache_page_count = (scaled_megabytes + ((scaled_megabytes >> 0x1f) & 0xfff)) >> k_sound_cache_page_shift;
 
-    cache_memory = GlobalAlloc(0, 0x387c);
+    cache_memory = halo::platform::heap_allocate(0, 0x387c);
     if (cache_memory != nullptr) {
         halo::memory::view((struct cache *)cache_memory)->initialize("pc sound cache", globals().sound_cache_page_count, k_sound_cache_page_shift, k_sound_cache_maximum_entries, (void *)&sound_cache_manager::entry_release, (void *)&sound_cache_manager::entry_in_use);
     }

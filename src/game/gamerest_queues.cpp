@@ -1,6 +1,7 @@
 #include "halo/game/gamerest_queues.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/game/api.hpp"
+#include "halo/platform/memory.hpp"
 
 
 namespace halo::game {
@@ -81,9 +82,9 @@ uint8_t CircularQueue::push(void *source)
  */
 void CircularQueue::destroy()
 {
-    GlobalFree(queue->records);
+    halo::platform::heap_free(queue->records);
     queue->records = 0;
-    GlobalFree(queue->storage);
+    halo::platform::heap_free(queue->storage);
     queue->storage = 0;
 }
 
@@ -99,14 +100,14 @@ void PositionUpdateQueue::create()
     int32_t i;
     uint8_t *record_cursor;
 
-    storage = (uint32_t *)GlobalAlloc(0, 600);
+    storage = (uint32_t *)halo::platform::heap_allocate(0, 600);
     queue->storage = storage;
     for (i = 0; i < 0x96; i++) {
         storage[i] = 0;
     }
 
     record_cursor = (uint8_t *)queue->storage;
-    records = (uint32_t *)GlobalAlloc(0, 0x78);
+    records = (uint32_t *)halo::platform::heap_allocate(0, 0x78);
     queue->records = (void **)records;
     records[0] = 0;
     queue->capacity = 0x1e;
@@ -196,14 +197,14 @@ void VehicleUpdateQueue::create()
     uint8_t *record_cursor;
     int32_t i;
 
-    storage = (uint32_t *)GlobalAlloc(0, 0x870);
+    storage = (uint32_t *)halo::platform::heap_allocate(0, 0x870);
     queue->storage = storage;
     for (i = 0; i < 0x21c; i++) {
         storage[i] = 0;
     }
 
     record_cursor = (uint8_t *)queue->storage;
-    queue->records = (void **)GlobalAlloc(0, 0x78);
+    queue->records = (void **)halo::platform::heap_allocate(0, 0x78);
     ((uint32_t *)queue->records)[0] = 0;
     queue->capacity = 0x1e;
     queue->record_size = 0x48;
@@ -280,14 +281,14 @@ void PlayerUpdateQueue::create()
     uint8_t *record_cursor;
     int32_t i;
 
-    storage = (uint32_t *)GlobalAlloc(0, 0x14a0);
+    storage = (uint32_t *)halo::platform::heap_allocate(0, 0x14a0);
     queue->queue.storage = storage;
     for (i = 0; i < 0x528; i++) {
         storage[i] = 0;
     }
 
     record_cursor = (uint8_t *)queue->queue.storage;
-    queue->queue.records = (void **)GlobalAlloc(0, 0x1e0);
+    queue->queue.records = (void **)halo::platform::heap_allocate(0, 0x1e0);
     ((uint32_t *)queue->queue.records)[0] = 0;
     queue->queue.capacity = 0x78;
     queue->queue.record_size = 0x2c;

@@ -2,6 +2,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/objects/vars.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
 static auto &object_list_header_data = halo::link::ref<data_array *>(halo::objects::vars().object_list_header_data);
@@ -105,7 +106,7 @@ void halo::objects::HashTableView::initialize(int32_t bucket_count)
         return;
     }
     table->bucket_count = bucket_count;
-    table->buckets = (hash_bucket *)GlobalAlloc(0, bucket_count * 8);
+    table->buckets = (hash_bucket *)halo::platform::heap_allocate(0, bucket_count * 8);
     for (i = 0; i < table->bucket_count; i++) {
         table->buckets[i].count = 0;
         table->buckets[i].first = 0;
@@ -141,13 +142,13 @@ void halo::objects::HashTableView::dispose()
     while (block != 0) {
         hash_node_block *next = block->next;
 
-        GlobalFree(block->nodes);
+        halo::platform::heap_free(block->nodes);
         block->nodes = 0;
-        GlobalFree(block);
+        halo::platform::heap_free(block);
         block = next;
     }
     table->blocks = 0;
-    GlobalFree(table->buckets);
+    halo::platform::heap_free(table->buckets);
     table->buckets = 0;
     table->bucket_count = 0;
     table->entry_count = 0;
@@ -255,8 +256,8 @@ void halo::objects::HashTableView::grow_freelist()
     hash_node *nodes;
     int32_t i;
 
-    block = (hash_node_block *)GlobalAlloc(0, sizeof(hash_node_block));
-    nodes = (hash_node *)GlobalAlloc(0, 600);
+    block = (hash_node_block *)halo::platform::heap_allocate(0, sizeof(hash_node_block));
+    nodes = (hash_node *)halo::platform::heap_allocate(0, 600);
 
     block->nodes = nodes;
     block->next = table->blocks;

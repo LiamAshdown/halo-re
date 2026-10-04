@@ -11,6 +11,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/platform/memory.hpp"
 
 
 
@@ -30,15 +31,15 @@ void chimera__rasterizer_dispose_free_memory(void)
         rasterizer_misc_vertex_buffer = nullptr;
     }
     if (transparent_geometry_groups != (transparent_geometry_group *)0) {
-        GlobalFree(transparent_geometry_groups);
+        halo::platform::heap_free(transparent_geometry_groups);
     }
     transparent_geometry_groups = (transparent_geometry_group *)0;
     if (transparent_geometry_group_sorted_indices != nullptr) {
-        GlobalFree(transparent_geometry_group_sorted_indices);
+        halo::platform::heap_free(transparent_geometry_group_sorted_indices);
     }
     transparent_geometry_group_sorted_indices = nullptr;
     if (transparent_geometry_groups_secondary != (transparent_geometry_group *)0) {
-        GlobalFree(transparent_geometry_groups_secondary);
+        halo::platform::heap_free(transparent_geometry_groups_secondary);
     }
     transparent_geometry_groups_secondary = (transparent_geometry_group *)0;
     transparent_geometry_group_secondary_count = 0;

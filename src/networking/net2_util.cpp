@@ -19,6 +19,8 @@
 #include "halo/networking/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/platform/thread.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &network_mutex_name_counter = halo::link::ref<int32_t>(halo::networking::vars().network_mutex_name_counter);
 static auto &default_time_unit_table = halo::link::ref<uint8_t []>(halo::networking::vars().default_time_unit_table);
@@ -56,12 +58,12 @@ int32_t NetworkUtil::add_unique(void *value, server_list_globals *array)
         void *new_data = array->list;
 
         if (new_data == 0) {
-            new_data = GlobalAlloc(0, new_bytes);
+            new_data = halo::platform::heap_allocate(0, new_bytes);
         } else if (new_bytes == 0) {
-            GlobalFree(new_data);
+            halo::platform::heap_free(new_data);
             new_data = 0;
         } else {
-            new_data = GlobalReAlloc(new_data, new_bytes, 2);
+            new_data = halo::platform::heap_reallocate(new_data, new_bytes, 2);
         }
         array->capacity = new_capacity;
         array->list = (void **)new_data;
@@ -150,7 +152,7 @@ int32_t NetworkUtil::create(network_mutex_record **out_handle)
     }
     network_mutex_name_counter = network_mutex_name_counter + 1;
     snprintf(slot->name, 0x20, "mutex_%ld", name_index);
-    slot->handle = CreateMutexA(0, 0, 0);
+    slot->handle = halo::platform::mutex_create(false, nullptr);
     if (slot->handle != 0) {
         *out_handle = slot;
         return 1;

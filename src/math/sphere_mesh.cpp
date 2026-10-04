@@ -8,6 +8,7 @@
 
 #include "win32.h"
 #include "tags.h"
+#include "halo/platform/memory.hpp"
 
 
 namespace halo::math {
@@ -21,7 +22,7 @@ sphere_mesh * sphere_mesh_generate(int16_t subdivisions)
     int16_t strip_cursor;
     int i;
 
-    mesh = (sphere_mesh *)GlobalAlloc(0, sizeof(sphere_mesh));
+    mesh = (sphere_mesh *)halo::platform::heap_allocate(0, sizeof(sphere_mesh));
     if (mesh == 0) {
         return 0;
     }
@@ -32,11 +33,11 @@ sphere_mesh * sphere_mesh_generate(int16_t subdivisions)
     mesh->point_count = point_count;
     mesh->subdivisions = subdivisions;
 
-    mesh->points = (real_point3d *)GlobalAlloc(0, (uint32_t)(point_count * (int)sizeof(real_point3d)));
-    mesh->indices = (int16_t *)GlobalAlloc(0, (uint32_t)((int)mesh->triangle_count << 3));
+    mesh->points = (real_point3d *)halo::platform::heap_allocate(0, (uint32_t)(point_count * (int)sizeof(real_point3d)));
+    mesh->indices = (int16_t *)halo::platform::heap_allocate(0, (uint32_t)((int)mesh->triangle_count << 3));
     mesh->strip_count = 0;
 
-    edge_cache = (sphere_mesh_edge_cache *)GlobalAlloc(0, sizeof(sphere_mesh_edge_cache));
+    edge_cache = (sphere_mesh_edge_cache *)halo::platform::heap_allocate(0, sizeof(sphere_mesh_edge_cache));
 
     if (mesh->points != 0) {
         if (mesh->indices != 0 && edge_cache != 0) {
@@ -58,16 +59,16 @@ sphere_mesh * sphere_mesh_generate(int16_t subdivisions)
                                         globals().k_octahedron_faces[i][0], globals().k_octahedron_faces[i][1],
                                         globals().k_octahedron_faces[i][2], strip_cursor, edge_cache);
             }
-            GlobalFree(edge_cache);
+            halo::platform::heap_free(edge_cache);
             return mesh;
         }
-        GlobalFree(mesh->points);
+        halo::platform::heap_free(mesh->points);
     }
     if (mesh->indices != 0) {
-        GlobalFree(mesh->indices);
+        halo::platform::heap_free(mesh->indices);
     }
     if (edge_cache != 0) {
-        GlobalFree(edge_cache);
+        halo::platform::heap_free(edge_cache);
     }
     return mesh;
 }
@@ -83,7 +84,7 @@ void sphere_mesh_build_face(int16_t *next_point_index, sphere_mesh *mesh, int16_
     int16_t tl, bl, br, tr;
 
     entry_count = (int16_t)((mesh->subdivisions + 1) * (mesh->subdivisions + 1));
-    face_cache = (sphere_mesh_face_cache *)GlobalAlloc(0, (uint32_t)(entry_count * 2));
+    face_cache = (sphere_mesh_face_cache *)halo::platform::heap_allocate(0, (uint32_t)(entry_count * 2));
     if (face_cache != 0) {
         if (0 < entry_count) {
             for (i = 0; i < entry_count; i++) {
@@ -127,7 +128,7 @@ void sphere_mesh_build_face(int16_t *next_point_index, sphere_mesh *mesh, int16_
                 strip_length = strip_length + 2;
             } while (row <= mesh->subdivisions);
         }
-        GlobalFree(face_cache);
+        halo::platform::heap_free(face_cache);
     }
 }
 
@@ -226,7 +227,7 @@ void sphere_point_table_init()
     globals().effect_random_seed = random_seed_generate();
     mesh = sphere_mesh_generate(k_sphere_point_table_subdivisions);
 
-    points = (real_point3d *)GlobalAlloc(0, (uint32_t)mesh->point_count * sizeof(real_point3d));
+    points = (real_point3d *)halo::platform::heap_allocate(0, (uint32_t)mesh->point_count * sizeof(real_point3d));
     globals().sphere_point_table_count = mesh->point_count;
     globals().sphere_point_table = points;
 
@@ -234,9 +235,9 @@ void sphere_point_table_init()
         points[i] = mesh->points[i];
     }
 
-    GlobalFree(mesh->points);
-    GlobalFree(mesh->indices);
-    GlobalFree(mesh);
+    halo::platform::heap_free(mesh->points);
+    halo::platform::heap_free(mesh->indices);
+    halo::platform::heap_free(mesh);
 }
 
 }  // namespace halo::math

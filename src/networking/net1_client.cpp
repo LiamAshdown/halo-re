@@ -30,6 +30,7 @@
 #include "../gamespy/gamespy_calls.hpp"
 #include "saved_games.h"
 #include "halo/platform/time.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
@@ -769,7 +770,7 @@ network_client_globals * ClientView::create()
     network_session_active = 1;
     halo::networking::message_delta_protocol_initialize();
 
-    history = (player_update_history *)GlobalAlloc(0, 0x2c);
+    history = (player_update_history *)halo::platform::heap_allocate(0, 0x2c);
     client->update_history = history;
     history->next_update_id = 0;
     history->head = 0;
@@ -969,7 +970,7 @@ int32_t ConnectionView::endpoint_set(const uint32_t *source)
     endpoint = &connection->connection;
     endpoint->ready = 0;
     if (endpoint->control_block != 0) {
-        GlobalFree(endpoint->control_block);
+        halo::platform::heap_free(endpoint->control_block);
         endpoint->control_block = 0;
     }
     memset(endpoint, 0, 6 * sizeof(uint32_t));
@@ -982,7 +983,7 @@ int32_t ConnectionView::endpoint_set(const uint32_t *source)
     endpoint->control_block = 0;
     memcpy(endpoint, source, 6 * sizeof(uint32_t));
     endpoint->ready = 1;
-    control_block = GlobalAlloc(0, 0x264);
+    control_block = halo::platform::heap_allocate(0, 0x264);
     memset(control_block, 0, 2 * sizeof(uint32_t));
     endpoint->control_block = control_block;
     return 1;

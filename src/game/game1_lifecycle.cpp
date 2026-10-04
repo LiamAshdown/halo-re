@@ -39,6 +39,8 @@
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/platform/file.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &player_profile_cache_initialized = halo::link::ref<uint8_t>(halo::game::vars().player_profile_cache_initialized);
@@ -105,7 +107,7 @@ void Lifecycle::dispose(void)
     halo::hs::hs_dispose_dynamic_globals();
     halo::interface::widget_close_all();
     if (widget_memory_pool->base != 0) {
-        GlobalFree(widget_memory_pool->base);
+        halo::platform::heap_free(widget_memory_pool->base);
     }
     widget_memory_pool->base = 0;
     widget_memory_pool->size = 0;
@@ -130,7 +132,7 @@ void Lifecycle::dispose(void)
 
     if (weather_particle_data != nullptr) {
         memset(weather_particle_data, 0, 14 * sizeof(uint32_t));
-        GlobalFree(weather_particle_data);
+        halo::platform::heap_free(weather_particle_data);
         weather_particle_data = nullptr;
     }
     effect_data = 0;
@@ -155,7 +157,7 @@ void Lifecycle::dispose(void)
     }
     if (terminal_messages != (data_array *)0) {
         memset(terminal_messages, 0, sizeof(*terminal_messages));
-        GlobalFree(terminal_messages);
+        halo::platform::heap_free(terminal_messages);
     }
     halo::main::globals().terminal_initialized = 0;
     halo::saved_games::saved_game_files_dispose();
@@ -169,9 +171,9 @@ void Lifecycle::dispose(void)
     for (i = 0; i < 0x1829; i = i + 1) {
         profile_globals_block[i] = 0;
     }
-    GlobalFree(game_state_write_buffer);
+    halo::platform::heap_free(game_state_write_buffer);
     game_state_write_buffer_allocated = 0;
-    CloseHandle(game_state_persistent_storage);
+    halo::platform::file_close(game_state_persistent_storage);
     game_state_persistent_storage_created = 0;
 
     halo::networking::network_shutdown();

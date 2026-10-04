@@ -7,6 +7,7 @@
 #include "halo/shell/vars.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/thread.hpp"
 
 static auto &physical_memory = halo::link::ref<uint32_t>(halo::shell::vars().physical_memory);
 static auto &cpu_speed = halo::link::ref<uint32_t>(halo::shell::vars().cpu_speed);
@@ -120,12 +121,12 @@ void Win32HardwareProbe::measure_cpu_speed()
     uint32_t speed;
     uint32_t remainder;
 
-    thread = GetCurrentThread();
+    thread = halo::platform::current_thread();
     process = GetCurrentProcess();
     thread_priority = GetThreadPriority(thread);
     priority_class = GetPriorityClass(process);
     SetPriorityClass(process, k_realtime_priority_class);
-    SetThreadPriority(thread, 15);
+    halo::platform::thread_set_priority(thread, 15);
     halo::platform::sleep_milliseconds(100);
     halo::platform::read_performance_frequency(&frequency);
     halo::platform::read_performance_counter(&target);
@@ -136,7 +137,7 @@ void Win32HardwareProbe::measure_cpu_speed()
     } while (target.quad_part > counter.quad_part);
     read_time_stamp_counter(&tsc_end);
     cycles = tsc_end.quad_part - tsc_start.quad_part;
-    SetThreadPriority(thread, thread_priority);
+    halo::platform::thread_set_priority(thread, thread_priority);
     SetPriorityClass(process, priority_class);
 
     speed = (uint32_t)(cycles / 250000);

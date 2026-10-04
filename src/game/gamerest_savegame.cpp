@@ -11,6 +11,8 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/platform/file.hpp"
+#include "halo/platform/thread.hpp"
 
 static auto &user_save_path_default = halo::link::ref<char *>(halo::game::vars().user_save_path_default);
 static auto &saved_game_root_path = halo::link::ref<char []>(halo::game::vars().saved_game_root_path);
@@ -70,12 +72,12 @@ uint32_t SaveGameFiles::create(const uint16_t *save_game_name, const char *root_
 
     sprintf(slot_file_no_slash, "%s\\%s", root_path, name);
 
-    root_attrs = GetFileAttributesA(root_path);
-    if (root_attrs == halo::k_dword_none && CreateDirectoryA(root_path, 0) == 0) {
+    root_attrs = halo::platform::file_attributes(root_path);
+    if (root_attrs == halo::k_dword_none && halo::platform::directory_create(root_path) == 0) {
         return 0x80004005;
     }
 
-    slot_attrs = GetFileAttributesA(slot_file_no_slash);
+    slot_attrs = halo::platform::file_attributes(slot_file_no_slash);
     have_slot = 1;
     if (slot_attrs == halo::k_dword_none) {
         have_slot = bytes_written;
@@ -86,11 +88,11 @@ uint32_t SaveGameFiles::create(const uint16_t *save_game_name, const char *root_
             if (have_slot == 0) {
                 return 0x80004005;
             }
-            file = CreateFileA(slot_path, 0, 0, 0, 2, 0x80, 0);
+            file = halo::platform::file_open(slot_path, 0, 0, 2, 0x80);
             if (file == (void *)halo::k_dword_none) {
                 return 0x80004005;
             }
-            CloseHandle(file);
+            halo::platform::file_close(file);
             return 0;
         }
         if (mode != 4) {
@@ -99,7 +101,7 @@ uint32_t SaveGameFiles::create(const uint16_t *save_game_name, const char *root_
     }
 
     if (have_slot == 0) {
-        if (CreateDirectoryA(slot_dir, 0) == 0) {
+        if (halo::platform::directory_create(slot_dir) == 0) {
             return 0x80004005;
         }
 
@@ -116,19 +118,19 @@ uint32_t SaveGameFiles::create(const uint16_t *save_game_name, const char *root_
             strncpy(checkpoint_dir + end, "checkpoints\\", 0xd);
         }
 
-        if (CreateDirectoryA(checkpoint_dir, 0) == 0) {
+        if (halo::platform::directory_create(checkpoint_dir) == 0) {
             return 0x80004005;
         }
     }
 
-    file = CreateFileA(slot_path, 0xc0000000, 0, 0, 2, 0x80, 0);
+    file = halo::platform::file_open(slot_path, 0xc0000000, 0, 2, 0x80);
     if (file != (void *)halo::k_dword_none) {
         int32_t length = 0;
         while (slot_path[length] != '\0') {
             length = length + 1;
         }
-        WriteFile(file, slot_path, length, (LPDWORD)(&bytes_written), 0);
-        CloseHandle(file);
+        halo::platform::file_write(file, slot_path, length, &bytes_written);
+        halo::platform::file_close(file);
         if ((uint32_t)length == bytes_written) {
             strncpy(out_path, slot_dir, out_path_size);
             return 0;
@@ -169,7 +171,7 @@ uint32_t SaveGameFiles::remove_files(const uint16_t *save_game_name, const char 
 
     sprintf(pattern, "%s*.*", root_with_slash);
     last_delete_ok = 0;
-    find_handle = FindFirstFileA(pattern, (LPWIN32_FIND_DATAA)&find_data);
+    find_handle = halo::platform::find_first(pattern, &find_data);
     if (find_handle != (void *)halo::k_dword_none) {
         do {
             if (find_data.cFileName[0] != '.') {
@@ -186,21 +188,21 @@ uint32_t SaveGameFiles::remove_files(const uint16_t *save_game_name, const char 
                     }
                     if (!matches_checkpoints) {
                         sprintf(delete_path, "%s%s", root_with_slash, find_data.cFileName);
-                        last_delete_ok = DeleteFileA(delete_path);
+                        last_delete_ok = halo::platform::file_delete(delete_path);
                         if (last_delete_ok == 0) {
                             break;
                         }
                     }
                 }
             }
-        } while (FindNextFileA(find_handle, (LPWIN32_FIND_DATAA)&find_data) != 0);
-        FindClose(find_handle);
+        } while (halo::platform::find_next(find_handle, &find_data) != 0);
+        halo::platform::find_close(find_handle);
     }
 
     sprintf(pattern, "%scheckpoints\\*.*", root_with_slash);
     result = 0;
     if (last_delete_ok != 0) {
-        find_handle = FindFirstFileA(pattern, (LPWIN32_FIND_DATAA)&find_data);
+        find_handle = halo::platform::find_first(pattern, &find_data);
         if (find_handle != (void *)halo::k_dword_none) {
             uint32_t has_more;
             do {
@@ -217,14 +219,14 @@ uint32_t SaveGameFiles::remove_files(const uint16_t *save_game_name, const char 
                     }
                     if (!matches_checkpoints) {
                         sprintf(delete_path, "%scheckpoints\\%s", root_with_slash, find_data.cFileName);
-                        DeleteFileA(delete_path);
+                        halo::platform::file_delete(delete_path);
                     }
                 }
-                has_more = FindNextFileA(find_handle, (LPWIN32_FIND_DATAA)&find_data);
+                has_more = halo::platform::find_next(find_handle, &find_data);
             } while (has_more != 0);
-            FindClose(find_handle);
+            halo::platform::find_close(find_handle);
             sprintf(pattern, "%scheckpoints", root_with_slash);
-            removed_checkpoints_dir = RemoveDirectoryA(pattern);
+            removed_checkpoints_dir = halo::platform::directory_remove(pattern);
         } else {
 
             removed_checkpoints_dir = last_delete_ok;
@@ -237,7 +239,7 @@ uint32_t SaveGameFiles::remove_files(const uint16_t *save_game_name, const char 
                 end = end + 1;
             }
             root_with_slash[end - 1] = '\0';
-            result = (int32_t)RemoveDirectoryA(root_with_slash);
+            result = (int32_t)halo::platform::directory_remove(root_with_slash);
         }
     }
     return result != 1;
@@ -265,7 +267,7 @@ int32_t SaveGameFiles::find_first(char *root_path, win32_find_dataa *find_data)
     }
 
     sprintf(pattern, "%s\\*.*", root_path);
-    handle = FindFirstFileA(pattern, (LPWIN32_FIND_DATAA)find_data);
+    handle = halo::platform::find_first(pattern, find_data);
     if (handle == (void *)halo::k_dword_none) {
         return (int32_t)handle;
     }
@@ -274,7 +276,7 @@ int32_t SaveGameFiles::find_first(char *root_path, win32_find_dataa *find_data)
         uint8_t exhausted = 0;
         int32_t slot = UserSavePaths::user_save_path_register((uint32_t)handle, root_path);
         if (slot == -1) {
-            FindClose(handle);
+            halo::platform::find_close(handle);
             return -1;
         }
 
@@ -322,13 +324,13 @@ int32_t SaveGameFiles::find_first(char *root_path, win32_find_dataa *find_data)
             if (exhausted) {
                 break;
             }
-            if (FindNextFileA(handle, (LPWIN32_FIND_DATAA)find_data) == 0) {
+            if (halo::platform::find_next(handle, find_data) == 0) {
                 exhausted = 1;
             }
         }
     }
 
-    FindClose(handle);
+    halo::platform::find_close(handle);
     return -1;
 }
 
@@ -349,7 +351,7 @@ uint32_t SaveGameFiles::find_next(win32_find_dataa *find_data, uint32_t handle)
     if (handle != 0 && find_data != 0) {
         char *root_path = UserSavePaths::lookup(handle);
         if (root_path != user_save_path_default &&
-            FindNextFileA((void *)handle, (LPWIN32_FIND_DATAA)find_data) != 0) {
+            halo::platform::find_next((void *)handle, find_data) != 0) {
             result = 1;
             if (find_data->cFileName[0] != '.' && (find_data->dwFileAttributes & 0x10) != 0) {
                 char *scratch = (char *)find_data + 0x140;
@@ -437,7 +439,7 @@ void SaveGameIndex::bind_index_file(file_reference_record &reference)
 uint8_t SaveGameIndex::append_slot(const void *entry, uint32_t *out_slot_count)
 {
     uint8_t result = 0;
-    uint32_t wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
+    uint32_t wait_result = halo::platform::wait(savegame_index_mutex->handle, 5000);
 
     if (wait_result != 0 && wait_result != 0x80) {
         return 0;
@@ -459,7 +461,7 @@ uint8_t SaveGameIndex::append_slot(const void *entry, uint32_t *out_slot_count)
         }
     }
 
-    ReleaseMutex(savegame_index_mutex->handle);
+    halo::platform::mutex_release(savegame_index_mutex->handle);
     return result;
 }
 
@@ -513,7 +515,7 @@ uint32_t SaveGameIndex::get_slot_count()
 uint8_t SaveGameIndex::read_slot(uint16_t slot, void *out_entry)
 {
     uint8_t result = 0;
-    uint32_t wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
+    uint32_t wait_result = halo::platform::wait(savegame_index_mutex->handle, 5000);
 
     if (wait_result != 0 && wait_result != 0x80) {
         return 0;
@@ -536,7 +538,7 @@ uint8_t SaveGameIndex::read_slot(uint16_t slot, void *out_entry)
         }
     }
 
-    ReleaseMutex(savegame_index_mutex->handle);
+    halo::platform::mutex_release(savegame_index_mutex->handle);
     return result;
 }
 
@@ -552,7 +554,7 @@ uint8_t SaveGameIndex::read_slot(uint16_t slot, void *out_entry)
 uint8_t SaveGameIndex::write_slot(uint16_t slot, const void *entry)
 {
     uint8_t result = 0;
-    uint32_t wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
+    uint32_t wait_result = halo::platform::wait(savegame_index_mutex->handle, 5000);
 
     if (wait_result != 0 && wait_result != 0x80) {
         return 0;
@@ -575,7 +577,7 @@ uint8_t SaveGameIndex::write_slot(uint16_t slot, const void *entry)
         }
     }
 
-    ReleaseMutex(savegame_index_mutex->handle);
+    halo::platform::mutex_release(savegame_index_mutex->handle);
     return result;
 }
 

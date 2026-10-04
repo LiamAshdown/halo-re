@@ -38,6 +38,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/platform/memory.hpp"
 
 static_assert(offsetof(Biped, collision_radius) == 0x42c, "biped tag collision radius");
 static_assert(offsetof(GlobalsPlayerInformation, coop_respawn_effect) + offsetof(TagDependency, tag_id) == 0xc4, "coop respawn effect id");
@@ -2108,7 +2109,7 @@ void Players::delete_player(uint32_t machine_index, datum_index player_handle)
                 if (p->identifier != 0 &&
                     (requested_salt == 0 || p->identifier == requested_salt) &&
                     p->local_player_index == -1) {
-                    GlobalFree(p->update_history.queue.storage);
+                    halo::platform::heap_free(p->update_history.queue.storage);
                     p->update_history.queue.storage = nullptr;
                     halo::game::network_queue_destroy(&p->position_updates);
                 }
@@ -2150,7 +2151,7 @@ void Players::remove_player(datum_index player_handle)
 
     if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         server_entry = &((update_server_queue *)update_server_queues->data)[index];
-        GlobalFree(server_entry->queue.queue.storage);
+        halo::platform::heap_free(server_entry->queue.queue.storage);
         server_entry->queue.queue.storage = nullptr;
         halo::memory::datum_delete(update_server_queues, player_handle);
     }

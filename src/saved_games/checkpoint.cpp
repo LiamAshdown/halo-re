@@ -20,6 +20,8 @@
 #include "halo/saved_games/vars.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/file.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &saved_player_profile_slots_handle = halo::link::ref<int32_t>(halo::saved_games::vars().saved_player_profile_slots_handle);
 static auto &checkpoint_sort_newest_first = halo::link::ref<uint8_t>(halo::saved_games::vars().checkpoint_sort_newest_first);
@@ -59,12 +61,12 @@ int32_t enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, ch
     int32_t accepted;
     uint32_t remaining;
 
-    entries = (checkpoint_file_entry *)GlobalAlloc(0, k_maximum_checkpoint_files * sizeof(checkpoint_file_entry));
+    entries = (checkpoint_file_entry *)halo::platform::heap_allocate(0, k_maximum_checkpoint_files * sizeof(checkpoint_file_entry));
     halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     sprintf(search_path, "%s%s%s", directory, k_checkpoints_directory, "*.sav");
 
     found_count = 0;
-    find_handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&find_data);
+    find_handle = halo::platform::find_first(search_path, &find_data);
     if (find_handle != win32::invalid_handle()) {
         entry = entries;
         do {
@@ -97,8 +99,8 @@ int32_t enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, ch
                     entry = entry + 1;
                 }
             }
-        } while (FindNextFileA(find_handle, (LPWIN32_FIND_DATAA)&find_data) != 0 && found_count < k_maximum_checkpoint_files);
-        FindClose(find_handle);
+        } while (halo::platform::find_next(find_handle, &find_data) != 0 && found_count < k_maximum_checkpoint_files);
+        halo::platform::find_close(find_handle);
     }
 
     checkpoint_sort_newest_first = sort_newest_first;
@@ -121,7 +123,7 @@ int32_t enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, ch
         } while (remaining != 0);
     }
 
-    GlobalFree(entries);
+    halo::platform::heap_free(entries);
     return accepted;
 }
 
@@ -142,11 +144,11 @@ uint8_t get_next_filename(char *out_name, char *directory)
     for (index = 0; index < k_maximum_checkpoint_slots; index = index + 1) {
         sprintf(out_name, "%scheckpoint%d", k_checkpoints_directory, index);
         sprintf(path, "%s%s.sav", directory, out_name);
-        find_handle = FindFirstFileA(path, (LPWIN32_FIND_DATAA)&find_data);
+        find_handle = halo::platform::find_first(path, &find_data);
         if (find_handle == win32::invalid_handle()) {
             return 1;
         }
-        FindClose(find_handle);
+        halo::platform::find_close(find_handle);
     }
 
     *out_name = 0;
@@ -312,7 +314,7 @@ int32_t compare(const checkpoint_file_entry *a, const checkpoint_file_entry *b)
     int32_t time_result;
 
     if (a->kind == b->kind) {
-        time_result = CompareFileTime((const FILETIME *)a->last_write_time, (const FILETIME *)b->last_write_time);
+        time_result = halo::platform::file_time_compare(reinterpret_cast<const file_time *>(a->last_write_time), reinterpret_cast<const file_time *>(b->last_write_time));
         result = -time_result;
         if (checkpoint_sort_newest_first == 0) {
             return time_result;
@@ -377,11 +379,11 @@ uint8_t load_checkpoint_by_name(const char *name)
 
     halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     sprintf(path, "%s%s.sav", directory, name);
-    find_handle = FindFirstFileA(path, (LPWIN32_FIND_DATAA)&find_data);
+    find_handle = halo::platform::find_first(path, &find_data);
     if (find_handle == win32::invalid_handle()) {
         return 0;
     }
-    FindClose(find_handle);
+    halo::platform::find_close(find_handle);
 
     level = halo::saved_games::game_checkpoint_read_stats_file(&difficulty, name, 0, 0);
     if (level == -1) {

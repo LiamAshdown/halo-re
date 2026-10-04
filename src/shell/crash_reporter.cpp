@@ -7,6 +7,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/shell/vars.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/platform/file.hpp"
 
 static auto &shell_stack_guard_page = halo::link::ref<void *>(halo::shell::vars().shell_stack_guard_page);
 static auto &shell_stack_guard_old_protect = halo::link::ref<uint32_t>(halo::shell::vars().shell_stack_guard_old_protect);
@@ -288,7 +289,7 @@ void WatsonCrashReporter::collect_log_files(CrashSession *session)
     if (session->file_list[0] != 0) {
         strcat(session->file_list, "|");
     }
-    GetCurrentDirectoryA(sizeof(current_directory), current_directory);
+    halo::platform::current_directory(sizeof(current_directory), current_directory);
     strcat(session->file_list, current_directory);
     strcat(session->file_list, "\\debug.txt");
     if (session->file_list[0] != 0) {

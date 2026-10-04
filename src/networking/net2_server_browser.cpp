@@ -46,6 +46,7 @@
 #include "../gamespy/gamespy_calls.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/thread.hpp"
 
 static auto &playlist_profiles_need_defaults = halo::link::ref<uint8_t>(halo::ui::vars().playlist_profiles_need_defaults);
 static auto &console_color_00685214 = halo::link::ref<void *>(halo::networking::vars().console_color_00685214);
@@ -376,7 +377,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
                 scan_index = scan_index + 1;
             } while (idx < 0xf);
             if (server_list_thread != 0) {
-                ReleaseMutex(server_list_mutex->handle);
+                halo::platform::mutex_release(server_list_mutex->handle);
             }
         }
         engine_state = ServerBrowserState(master_server_query_engine);
@@ -1163,7 +1164,7 @@ void ServerBrowser::latch_join_target(void)
     uint32_t wait_result;
 
     if (server_list_thread != 0) {
-        wait_result = WaitForSingleObject(server_list_mutex->handle, 100);
+        wait_result = halo::platform::wait(server_list_mutex->handle, 100);
         if (wait_result != 0 && wait_result != 0x80) {
             return;
         }
@@ -1180,7 +1181,7 @@ void ServerBrowser::latch_join_target(void)
         master_server_request_flags = master_server_request_flags | 4;
     }
     if (server_list_thread != 0) {
-        ReleaseMutex(server_list_mutex->handle);
+        halo::platform::mutex_release(server_list_mutex->handle);
     }
 }
 
@@ -1947,7 +1948,7 @@ int32_t ServerBrowser::compare_by_string_key(void **a, void **b, const char *key
 server_list_globals * ServerBrowser::mutex_try_lock(uint32_t timeout_ms)
 {
     if (server_list_thread != 0) {
-        uint32_t wait_result = WaitForSingleObject(server_list_mutex->handle, timeout_ms);
+        uint32_t wait_result = halo::platform::wait(server_list_mutex->handle, timeout_ms);
 
         if (wait_result != 0 && wait_result != 0x80) {
             return 0;
@@ -1960,7 +1961,7 @@ void ServerBrowser::mutex_unlock(server_list_globals **list_slot)
 {
     *list_slot = 0;
     if (server_list_thread != 0) {
-        ReleaseMutex(server_list_mutex->handle);
+        halo::platform::mutex_release(server_list_mutex->handle);
     }
 }
 
@@ -1984,7 +1985,7 @@ uint32_t ServerBrowser::result_count_get(void)
     uint32_t result;
 
     if (server_list_thread != 0) {
-        uint32_t wait_result = WaitForSingleObject(server_list_mutex->handle, 100);
+        uint32_t wait_result = halo::platform::wait(server_list_mutex->handle, 100);
 
         if (wait_result != 0 && wait_result != 0x80) {
             return 0;
@@ -1994,7 +1995,7 @@ uint32_t ServerBrowser::result_count_get(void)
     result = (uint32_t)server_list.result_count;
 
     if (server_list_thread != 0) {
-        ReleaseMutex(server_list_mutex->handle);
+        halo::platform::mutex_release(server_list_mutex->handle);
     }
     return result;
 }
@@ -2008,7 +2009,7 @@ void ServerBrowser::result_reset(server_list_globals *entry)
     }
 
     if (server_list_thread != 0) {
-        uint32_t wait_result = WaitForSingleObject(server_list_mutex->handle, 100);
+        uint32_t wait_result = halo::platform::wait(server_list_mutex->handle, 100);
 
         if (wait_result != 0 && wait_result != 0x80) {
             return;
@@ -2019,7 +2020,7 @@ void ServerBrowser::result_reset(server_list_globals *entry)
     server_browser_query_elapsed_ms = 0;
 
     if (server_list_thread != 0) {
-        ReleaseMutex(server_list_mutex->handle);
+        halo::platform::mutex_release(server_list_mutex->handle);
     }
 }
 

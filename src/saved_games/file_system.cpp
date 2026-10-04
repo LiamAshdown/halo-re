@@ -15,6 +15,7 @@
 #include "halo/text/text.hpp"
 #include "halo/core/link.hpp"
 #include "halo/saved_games/vars.hpp"
+#include "halo/platform/file.hpp"
 
 static auto &file_enumeration_pos = halo::link::ref<file_enumeration_position>(halo::saved_games::vars().file_enumeration_pos);
 static auto &file_enumeration_flags_value = halo::link::ref<uint32_t>(halo::saved_games::vars().file_enumeration_flags_value);
@@ -34,7 +35,7 @@ uint8_t halo::saved_games::FileReference::close()
     file_reference_record *ref = self;
     int32_t ok;
 
-    ok = CloseHandle(ref->handle);
+    ok = halo::platform::file_close(ref->handle);
     if (ok != 0) {
         ref->handle = 0;
         return 1;
@@ -97,21 +98,21 @@ uint8_t halo::saved_games::FileReference::create()
 
     halo::saved_games::path_build_full(ref->path, full_path, ref->location);
     if ((ref->flags & _file_reference_is_file_bit) == 0) {
-        created = CreateDirectoryA(ref->path, 0);
+        created = halo::platform::directory_create(ref->path);
         if (created == 0) {
-            error = GetLastError();
+            error = halo::platform::last_error();
             if (error != win32::k_error_already_exists) {
                 halo::saved_games::saved_games_report_last_error();
                 return 0;
             }
         }
     } else {
-        handle = CreateFileA(full_path, win32::k_generic_write, win32::k_file_share_none, 0, win32::k_create_always, win32::k_file_attribute_normal, 0);
+        handle = halo::platform::file_open(full_path, win32::k_generic_write, win32::k_file_share_none, win32::k_create_always, win32::k_file_attribute_normal);
         if (handle == win32::invalid_handle()) {
             halo::saved_games::saved_games_report_last_error();
             return 0;
         }
-        CloseHandle(handle);
+        halo::platform::file_close(handle);
     }
     return 1;
 }
@@ -130,14 +131,14 @@ uint8_t halo::saved_games::FileReference::remove()
 
     halo::saved_games::path_build_full(ref->path, full_path, ref->location);
     if ((ref->flags & _file_reference_is_file_bit) == 0) {
-        ok = RemoveDirectoryA(full_path);
+        ok = halo::platform::directory_remove(full_path);
         if (ok != 0) {
             return 1;
         }
     } else {
-        ok = SetFileAttributesA(full_path, win32::k_file_attribute_normal);
+        ok = halo::platform::file_set_attributes(full_path, win32::k_file_attribute_normal);
         if (ok != 0) {
-            ok = DeleteFileA(full_path);
+            ok = halo::platform::file_delete(full_path);
             if (ok != 0) {
                 return 1;
             }
@@ -161,13 +162,13 @@ uint8_t halo::saved_games::FileReference::exists()
     uint32_t error;
 
     halo::saved_games::path_build_full(ref->path, full_path, ref->location);
-    attributes = GetFileAttributesA(full_path);
+    attributes = halo::platform::file_attributes(full_path);
     if (attributes != win32::k_invalid_file_attributes) {
         return 1;
     }
-    error = GetLastError();
+    error = halo::platform::last_error();
     if (error != 2) {
-        error = GetLastError();
+        error = halo::platform::last_error();
         if (error != 3) {
             halo::saved_games::saved_games_report_last_error();
         }
@@ -186,7 +187,7 @@ uint32_t halo::saved_games::FileReference::get_size()
     file_reference_record *ref = self;
     uint32_t size;
 
-    size = GetFileSize(ref->handle, 0);
+    size = halo::platform::file_size(ref->handle, nullptr);
     if (size == win32::k_invalid_file_size) {
         halo::saved_games::saved_games_report_last_error();
     }
@@ -240,17 +241,17 @@ uint8_t halo::saved_games::FileReference::open(uint8_t mode)
     if ((mode & _file_open_write) != 0) {
         desired_access = desired_access | win32::k_generic_write;
     }
-    handle = CreateFileA(full_path, desired_access, win32::k_file_share_read, 0, win32::k_open_existing, win32::k_file_attribute_normal, 0);
+    handle = halo::platform::file_open(full_path, desired_access, win32::k_file_share_read, win32::k_open_existing, win32::k_file_attribute_normal);
     if (handle != win32::invalid_handle()) {
         ref->handle = handle;
         if ((mode & _file_open_append) == 0) {
             return 1;
         }
-        seek_result = SetFilePointer(handle, 0, 0, win32::k_file_end);
+        seek_result = halo::platform::file_seek(handle, 0, nullptr, win32::k_file_end);
         if (seek_result != win32::k_invalid_set_file_pointer) {
             return 1;
         }
-        CloseHandle(ref->handle);
+        halo::platform::file_close(ref->handle);
         ref->handle = 0;
     }
     halo::saved_games::saved_games_report_last_error();
@@ -270,12 +271,12 @@ uint8_t halo::saved_games::FileReference::read(void *buffer, uint32_t size)
     int32_t ok;
     uint32_t bytes_read;
 
-    ok = ReadFile(ref->handle, buffer, size, (LPDWORD)&bytes_read, 0);
+    ok = halo::platform::file_read(ref->handle, buffer, size, &bytes_read);
     if (ok != 0) {
         if (bytes_read == size) {
             return 1;
         }
-        SetLastError(win32::k_error_handle_eof);
+        halo::platform::set_last_error(win32::k_error_handle_eof);
     }
     halo::saved_games::saved_games_report_last_error();
     return 0;
@@ -292,7 +293,7 @@ uint8_t halo::saved_games::FileReference::seek(int32_t offset)
     file_reference_record *ref = self;
     uint32_t result;
 
-    result = SetFilePointer(ref->handle, offset, 0, win32::k_file_begin);
+    result = halo::platform::file_seek(ref->handle, offset, nullptr, win32::k_file_begin);
     if (result == win32::k_invalid_set_file_pointer) {
         halo::saved_games::saved_games_report_last_error();
     }
@@ -313,7 +314,7 @@ uint8_t halo::saved_games::FileReference::set_length(int32_t offset)
 
     seeked = halo::saved_games::file_reference_seek(offset, ref);
     if (seeked != 0) {
-        ok = SetEndOfFile(ref->handle);
+        ok = halo::platform::file_truncate(ref->handle);
         if (ok != 0) {
             return 1;
         }
@@ -334,7 +335,7 @@ uint8_t halo::saved_games::FileReference::write(const void *buffer, uint32_t siz
     int32_t ok;
     uint32_t bytes_written;
 
-    ok = WriteFile(ref->handle, buffer, size, (LPDWORD)&bytes_written, 0);
+    ok = halo::platform::file_write(ref->handle, buffer, size, &bytes_written);
     if (ok != 0 && bytes_written == size) {
         return 1;
     }
@@ -431,13 +432,13 @@ uint8_t find_next(file_reference_record *out_entry, uint32_t *out_write_time)
             remaining = (uint32_t)(0xff - ((int32_t)dest - (int32_t)search_path));
             strncpy(dest, "*.*", remaining);
             search_path[0xff] = '\0';
-            handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&file_enumeration_find_data);
+            handle = halo::platform::find_first(search_path, &file_enumeration_find_data);
             file_enumeration_handles[depth] = handle;
             level_exhausted = handle == win32::invalid_handle();
         } else {
-            found = FindNextFileA(file_enumeration_handles[depth], (LPWIN32_FIND_DATAA)&file_enumeration_find_data);
+            found = halo::platform::find_next(file_enumeration_handles[depth], &file_enumeration_find_data);
             if (found == 0) {
-                FindClose(file_enumeration_handles[depth]);
+                halo::platform::find_close(file_enumeration_handles[depth]);
                 file_enumeration_handles[depth] = (void *)-1;
                 level_exhausted = true;
             }
@@ -530,7 +531,7 @@ void start(uint32_t flags, file_reference_record *ref)
         handle_count = (uint16_t)(file_enumeration_pos.depth + 1);
         do {
             if (file_enumeration_handles[depth] != (void *)-1) {
-                FindClose(file_enumeration_handles[depth]);
+                halo::platform::find_close(file_enumeration_handles[depth]);
                 file_enumeration_handles[depth] = (void *)-1;
             }
             depth--;
@@ -778,9 +779,9 @@ void report_last_error(void)
     uint32_t message_id;
     char scratch[0x800];
 
-    message_id = GetLastError();
+    message_id = halo::platform::last_error();
     FormatMessageA(win32::k_format_message_system_message, 0, message_id, 0, (LPSTR)scratch, sizeof(scratch), 0);
-    SetLastError(0);
+    halo::platform::set_last_error(0);
     return;
 }
 

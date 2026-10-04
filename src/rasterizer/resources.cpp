@@ -14,6 +14,8 @@
 #include "halo/core/win32_constants.hpp"
 #include "halo/rasterizer/constants.hpp"
 #include <cstring>
+#include "halo/platform/file.hpp"
+#include "halo/platform/memory.hpp"
 
 namespace {
 
@@ -179,7 +181,7 @@ uint8_t rasterizer_dx9_pixel_shaders_load_all(void)
         }
     }
 
-    GlobalFree(buffer);
+    halo::platform::heap_free(buffer);
     return index == k_rasterizer_pixel_shader_effects;
 }
 
@@ -188,7 +190,7 @@ static void free_constant_handles(int first, int last)
     int i;
     for (i = first; i <= last; i++) {
         if (rasterizer_effects[i].constant_handles != 0) {
-            GlobalFree(rasterizer_effects[i].constant_handles);
+            halo::platform::heap_free(rasterizer_effects[i].constant_handles);
             rasterizer_effects[i].constant_handles = 0;
         }
     }
@@ -431,7 +433,7 @@ uint32_t rasterizer_dx9_vertex_shaders_load_all(void)
         halo::shell::shell_display_fatal_error_dialog(0x69, 0x7e, 1);
     }
 
-    GlobalFree(buffer);
+    halo::platform::heap_free(buffer);
     return index == k_rasterizer_vertex_shaders;
 }
 
@@ -555,34 +557,34 @@ uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, 
     *out_buffer = nullptr;
     *out_size = 0;
 
-    file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_none, (LPSECURITY_ATTRIBUTES)nullptr, halo::win32::k_open_existing, halo::win32::k_file_flag_sequential_scan, nullptr);
+    file = halo::platform::file_open(path, halo::win32::k_generic_read, halo::win32::k_file_share_none, halo::win32::k_open_existing, halo::win32::k_file_flag_sequential_scan);
     if (file == halo::win32::invalid_handle()) {
         return 0;
     }
 
-    size = GetFileSize(file, (LPDWORD)(nullptr));
+    size = halo::platform::file_size(file, nullptr);
     if (size == halo::k_dword_none) {
-        CloseHandle(file);
+        halo::platform::file_close(file);
         return 0;
     }
 
-    buffer = GlobalAlloc(0, size);
+    buffer = halo::platform::heap_allocate(0, size);
     if (buffer != nullptr) {
         uint32_t bytes_read;
-        int32_t ok = ReadFile(file, buffer, size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)nullptr);
+        int32_t ok = halo::platform::file_read(file, buffer, size, &bytes_read);
         if (ok != 0) {
-            CloseHandle(file);
+            halo::platform::file_close(file);
             if (rasterizer_resource_file_verify_signature(static_cast<uint8_t *>(buffer), size) == 0) {
-                GlobalFree(buffer);
+                halo::platform::heap_free(buffer);
                 return 0;
             }
             *out_buffer = buffer;
             *out_size = size;
             return 1;
         }
-        GlobalFree(buffer);
+        halo::platform::heap_free(buffer);
     }
-    CloseHandle(file);
+    halo::platform::file_close(file);
     return 0;
 }
 

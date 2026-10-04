@@ -10,6 +10,7 @@
 
 #include "win32.h"
 #include "tags.h"
+#include "halo/platform/memory.hpp"
 
 namespace halo::math {
 
@@ -184,7 +185,7 @@ void periodic_function_tables_init()
     globals().random_seed_global = k_periodic_function_noise_seed;
 
     for (i = 0; i < k_periodic_function_count; i++) {
-        table = (uint8_t *)GlobalAlloc(0, k_periodic_function_table_size);
+        table = (uint8_t *)halo::platform::heap_allocate(0, k_periodic_function_table_size);
         globals().periodic_function_tables[i] = (periodic_function_table *)table;
         if (table == 0) {
             globals().periodic_functions_initialized = 0;
@@ -194,7 +195,7 @@ void periodic_function_tables_init()
     }
 
     for (i = 0; i < k_transition_function_count; i++) {
-        table = (uint8_t *)GlobalAlloc(0, k_periodic_function_table_size);
+        table = (uint8_t *)halo::platform::heap_allocate(0, k_periodic_function_table_size);
         globals().transition_function_tables[i] = (periodic_function_table *)table;
         if (table == 0) {
             globals().periodic_functions_initialized = 0;
@@ -210,10 +211,10 @@ void periodic_function_tables_free()
 
     if (globals().periodic_functions_initialized != 0) {
         for (i = 0; i < 12; i++) {
-            GlobalFree(globals().periodic_function_tables[i]);
+            halo::platform::heap_free(globals().periodic_function_tables[i]);
         }
         for (i = 0; i < 6; i++) {
-            GlobalFree(globals().transition_function_tables[i]);
+            halo::platform::heap_free(globals().transition_function_tables[i]);
         }
         globals().periodic_functions_initialized = 0;
     }

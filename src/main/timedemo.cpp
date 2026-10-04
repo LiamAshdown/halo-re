@@ -30,6 +30,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/platform/memory.hpp"
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
 static auto &timedemo_globals_data = halo::link::ref<timedemo_globals>(halo::main::vars().timedemo_globals_data);
@@ -202,13 +203,13 @@ void Timedemo::benchmark_update(void)
 
         fprintf(file, "%s %s", module_path, halo::shell::globals().command_line);
         version_size = GetFileVersionInfoSizeA(module_path, (LPDWORD)(&version_handle));
-        version_data = GlobalAlloc(0, version_size);
+        version_data = halo::platform::heap_allocate(0, version_size);
         GetFileVersionInfoA(module_path, 0, version_size, version_data);
         VerQueryValueA(version_data, "\\", (void **)&fixed_file_info, &version_handle);
         fprintf(file, "   (Version=%d.%d.%d.%d)\n",
             fixed_file_info[2] >> 16, fixed_file_info[2] & 0xffff,
             fixed_file_info[3] >> 16, fixed_file_info[3] & 0xffff);
-        GlobalFree(version_data);
+        halo::platform::heap_free(version_data);
 
         frame_suffix = timedemo_globals_data.buckets[8].frames == 1 ? ")" : "s)";
         total_time = (double)timedemo_globals_data.total_time_ms;

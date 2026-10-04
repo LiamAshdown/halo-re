@@ -36,6 +36,8 @@
 #include "halo/interface/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
 #include "halo/saved_games/vars.hpp"
+#include "halo/platform/file.hpp"
+#include "halo/platform/thread.hpp"
 
 static auto &savegames_directory = halo::link::ref<char [halo::saved_games::k_path_buffer_size]>(halo::saved_games::vars().savegames_directory);
 static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
@@ -143,7 +145,7 @@ int32_t check_storage_availability(void)
     uint8_t found;
     uint8_t removed;
 
-    ok = GetDiskFreeSpaceExA(savegames_directory, (PULARGE_INTEGER)&free_bytes_available, (PULARGE_INTEGER)&total_bytes, (PULARGE_INTEGER)&total_free_bytes);
+    ok = halo::platform::disk_free_space(savegames_directory, &free_bytes_available, &total_bytes, &total_free_bytes);
     if (ok != 0 && (free_bytes_available >> 32) == 0 && (uint32_t)free_bytes_available < k_saved_game_minimum_free_disk_space) {
         return _saved_game_storage_ok;
     }
@@ -161,7 +163,7 @@ int32_t check_storage_availability(void)
         if (handle != 0) {
             removed = halo::game::user_save_path_remove(handle);
             if (removed != 0) {
-                FindClose((void *)handle);
+                halo::platform::find_close((void *)handle);
             }
         }
         if (k_maximum_saved_game_entries < count) {
@@ -189,19 +191,19 @@ uint8_t copy_files_to_target(char *source_directory, const char *source_name, co
     char target_path[256];
 
     sprintf(check_path, "%s%s.sav", source_directory, source_name);
-    find_handle = FindFirstFileA(check_path, (LPWIN32_FIND_DATAA)&find_data);
+    find_handle = halo::platform::find_first(check_path, &find_data);
     if (find_handle == win32::invalid_handle()) {
         return 0;
     }
-    FindClose(find_handle);
+    halo::platform::find_close(find_handle);
 
     sprintf(target_path, "%s%s.bin", source_directory, target_name);
     sprintf(source_path, "%s%s.bin", source_directory, source_name);
-    CopyFileA(source_path, target_path, 0);
+    halo::platform::file_copy(source_path, target_path, false);
 
     sprintf(source_path, "%s%s.sav", source_directory, source_name);
     sprintf(target_path, "%s%s.sav", source_directory, target_name);
-    CopyFileA(source_path, target_path, 0);
+    halo::platform::file_copy(source_path, target_path, false);
     return 1;
 }
 
@@ -375,7 +377,7 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
         body_size = k_saved_player_profile_size;
         storage_handle = halo::saved_games::game_state_open_persistent_storage(directory);
         if (storage_handle != (void *)-1) {
-            CloseHandle(storage_handle);
+            halo::platform::file_close(storage_handle);
         }
     } else {
         if (type != 1) {
@@ -529,16 +531,16 @@ uint8_t delete_files(char *name)
 
     halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     sprintf(check_path, "%s%s.sav", directory, name);
-    find_handle = FindFirstFileA(check_path, (LPWIN32_FIND_DATAA)&find_data);
+    find_handle = halo::platform::find_first(check_path, &find_data);
     if (find_handle == win32::invalid_handle()) {
         return 0;
     }
-    FindClose(find_handle);
+    halo::platform::find_close(find_handle);
 
     sprintf(path, "%s%s.bin", directory, name);
-    deleted_bin = DeleteFileA(path);
+    deleted_bin = halo::platform::file_delete(path);
     sprintf(path, "%s%s.sav", directory, name);
-    deleted_sav = DeleteFileA(path);
+    deleted_sav = halo::platform::file_delete(path);
     if (deleted_sav == 0 && deleted_bin == 0) {
         return 0;
     }
@@ -568,14 +570,14 @@ void enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only
     int32_t handle;
 
     written = 0;
-    wait_result = WaitForSingleObject(saved_game_files_mutex->handle, 5000);
+    wait_result = halo::platform::wait(saved_game_files_mutex->handle, 5000);
     if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
         if (savegame_index_dirty != 0) {
             halo::saved_games::saved_game_list_rebuild_index();
         }
         entry_count = halo::game::savegame_index_get_slot_count();
         written = 0;
-        wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
+        wait_result = halo::platform::wait(savegame_index_mutex->handle, 5000);
         if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
             opened = halo::game::savegame_index_file_exists();
             if (opened != 0) {
@@ -600,9 +602,9 @@ void enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only
                 }
                 halo::saved_games::file_reference_close(&savegame_index_file);
             }
-            ReleaseMutex(savegame_index_mutex->handle);
+            halo::platform::mutex_release(savegame_index_mutex->handle);
         }
-        ReleaseMutex(saved_game_files_mutex->handle);
+        halo::platform::mutex_release(saved_game_files_mutex->handle);
     }
     *capacity_and_count = (uint16_t)written;
     return;
@@ -624,10 +626,10 @@ uint8_t file_exists(const char *name)
     found = 0;
     halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     sprintf(path, "%s%s.sav", directory, name);
-    find_handle = FindFirstFileA(path, (LPWIN32_FIND_DATAA)&find_data);
+    find_handle = halo::platform::find_first(path, &find_data);
     if (find_handle != win32::invalid_handle()) {
         found = 1;
-        FindClose(find_handle);
+        halo::platform::find_close(find_handle);
     }
     return found;
 }
@@ -645,7 +647,7 @@ void files_dispose(void)
 
     mutex = saved_game_files_mutex;
     if (saved_game_files_mutex != 0) {
-        CloseHandle(mutex->handle);
+        halo::platform::handle_close(mutex->handle);
         mutex->name[0] = 0;
         mutex->handle = 0;
         mutex->in_use = 0;
@@ -653,7 +655,7 @@ void files_dispose(void)
     }
     mutex = savegame_index_mutex;
     if (savegame_index_mutex != 0) {
-        CloseHandle(mutex->handle);
+        halo::platform::handle_close(mutex->handle);
         mutex->name[0] = 0;
         mutex->handle = 0;
         mutex->in_use = 0;
@@ -758,9 +760,9 @@ int32_t find_by_name(char *name, int16_t type)
     handle = -1;
     name_length = strlen(name);
 
-    wait_result = WaitForSingleObject(saved_game_files_mutex->handle, 5000);
+    wait_result = halo::platform::wait(saved_game_files_mutex->handle, 5000);
     if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
-        wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
+        wait_result = halo::platform::wait(savegame_index_mutex->handle, 5000);
         if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
             entry_count = halo::game::savegame_index_get_slot_count();
             opened = halo::game::savegame_index_file_exists();
@@ -779,9 +781,9 @@ int32_t find_by_name(char *name, int16_t type)
                 halo::saved_games::file_reference_close(&savegame_index_file);
                 result = handle;
             }
-            ReleaseMutex(savegame_index_mutex->handle);
+            halo::platform::mutex_release(savegame_index_mutex->handle);
         }
-        ReleaseMutex(saved_game_files_mutex->handle);
+        halo::platform::mutex_release(saved_game_files_mutex->handle);
     }
     return result;
 }
@@ -884,9 +886,9 @@ uint8_t get_variant(int32_t handle, game_variant *out)
     if (variant_write_thread != 0) {
         do {
             do {
-            } while (GetExitCodeThread(variant_write_thread->handle, (LPDWORD)&exit_code) == 0);
+            } while (halo::platform::thread_exit_code(variant_write_thread->handle, &exit_code) == 0);
         } while (exit_code == win32::k_still_active);
-        CloseHandle(variant_write_thread->handle);
+        halo::platform::handle_close(variant_write_thread->handle);
         variant_write_thread->handle = 0;
         variant_write_thread->in_use = 0;
         variant_write_thread = 0;
@@ -904,7 +906,7 @@ uint8_t get_variant(int32_t handle, game_variant *out)
     }
 
     result = 0;
-    wait_result = WaitForSingleObject(saved_game_files_mutex->handle, 5000);
+    wait_result = halo::platform::wait(saved_game_files_mutex->handle, 5000);
     if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
         opened = halo::saved_games::saved_game_open_file_by_handle(handle, &ref);
         if (opened != 0) {
@@ -927,7 +929,7 @@ uint8_t get_variant(int32_t handle, game_variant *out)
             }
             halo::saved_games::file_reference_close(&ref);
         }
-        ReleaseMutex(saved_game_files_mutex->handle);
+        halo::platform::mutex_release(saved_game_files_mutex->handle);
     }
     return result;
 }
@@ -1358,7 +1360,7 @@ void list_rebuild_index(void)
     int32_t closed;
 
     written_count = 0;
-    wait_result = WaitForSingleObject(saved_game_files_mutex->handle, 5000);
+    wait_result = halo::platform::wait(saved_game_files_mutex->handle, 5000);
     if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned) {
         index_opened = halo::saved_games::saved_game_index_open_for_write();
         if (index_opened != 0) {
@@ -1437,13 +1439,13 @@ void list_rebuild_index(void)
                 if (find_handle != 0) {
                     removed = halo::game::user_save_path_remove(find_handle);
                     if (removed != 0) {
-                        FindClose((void *)find_handle);
+                        halo::platform::find_close((void *)find_handle);
                     }
                 }
             }
             halo::saved_games::saved_game_index_register_default_playlists();
             halo::saved_games::saved_game_index_register_default_profiles();
-            closed = CloseHandle(savegame_index_file.handle);
+            closed = halo::platform::file_close(savegame_index_file.handle);
             if (closed == 0) {
                 halo::saved_games::saved_games_report_last_error();
             } else {
@@ -1452,7 +1454,7 @@ void list_rebuild_index(void)
             savegame_index_write_count = -1;
             saved_game_index_file_open = 0;
         }
-        ReleaseMutex(saved_game_files_mutex->handle);
+        halo::platform::mutex_release(saved_game_files_mutex->handle);
     }
     savegame_index_dirty = 0;
 }
@@ -1536,11 +1538,11 @@ uint8_t validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_bu
         return 0;
     }
 
-    if (SetFilePointer(file, 0, 0, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
-        ReadFile(file, header_buffer, header_size, (LPDWORD)&bytes_read, 0) == 0 ||
+    if (halo::platform::file_seek(file, 0, nullptr, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
+        halo::platform::file_read(file, header_buffer, header_size, &bytes_read) == 0 ||
         bytes_read != (uint32_t)header_size) {
         if (halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, profile_directory) != 0) {
-            DeleteFileA(profile_directory);
+            halo::platform::file_delete(profile_directory);
         }
     } else {
         previous_crc = *expected_crc;
@@ -1556,7 +1558,7 @@ uint8_t validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_bu
             if (k_game_state_crc_chunk_size - 1 < remaining) {
                 chunk = k_game_state_crc_chunk_size;
             }
-            if (ReadFile(file, chunk_buffer, chunk, (LPDWORD)&bytes_read, 0) != 0 && bytes_read == (uint32_t)chunk) {
+            if (halo::platform::file_read(file, chunk_buffer, chunk, &bytes_read) != 0 && bytes_read == (uint32_t)chunk) {
                 halo::memory::crc32_update(&running_crc, chunk_buffer, chunk);
             }
             halo::sound::sound_idle_update();
@@ -1564,16 +1566,16 @@ uint8_t validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_bu
         }
 
         if (running_crc == previous_crc) {
-            CloseHandle(file);
+            halo::platform::file_close(file);
             return 1;
         }
         if (corrupt_flag != 0 && previous_crc != 0) {
             *corrupt_flag = 1;
-            CloseHandle(file);
+            halo::platform::file_close(file);
             return 0;
         }
     }
-    CloseHandle(file);
+    halo::platform::file_close(file);
     return 0;
 }
 

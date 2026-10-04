@@ -28,6 +28,9 @@
 #include "halo/saved_games/vars.hpp"
 #include <string.h>
 #include "halo/platform/time.hpp"
+#include "halo/platform/file.hpp"
+#include "halo/platform/thread.hpp"
+#include "halo/platform/memory.hpp"
 
 static_assert(sizeof(data_array) == halo::saved_games::k_game_state_block_header_size);
 static_assert(sizeof(memory_pool) == halo::saved_games::k_game_state_block_header_size);
@@ -95,12 +98,12 @@ void *allocate_buffer(int32_t cpu_size, int32_t extra_size)
     game_state_snapshot_source = (uint8_t *)halo::cache::globals().map_memory;
     game_state_size = cpu_size + extra_size;
     game_state_write_buffer_allocated = 1;
-    game_state_write_buffer = (uint8_t *)GlobalAlloc(0, game_state_size);
+    game_state_write_buffer = (uint8_t *)halo::platform::heap_allocate(0, game_state_size);
     _snprintf(game_state_persistent_storage_path, k_path_maximum_length, "%s\\%s", profile_directory, k_game_state_file_name);
     _snprintf(game_state_core_directory, k_path_maximum_length, "%s\\%s", profile_directory, "core");
     game_state_write_in_progress = 0;
-    game_state_write_event = CreateEventA(0, 0, 0, 0);
-    _beginthread((void (*)(void *))halo::saved_games::game_state_save_thread_proc, 0x1000, 0);
+    game_state_write_event = halo::platform::event_create(false, false, nullptr);
+    halo::platform::thread_start_detached((void (*)(void *))halo::saved_games::game_state_save_thread_proc, 0x1000, 0);
     return base;
 }
 
@@ -157,11 +160,10 @@ void build_header(void)
  */
 void create_persistent_storage_file(void)
 {
-    game_state_persistent_storage = CreateFileA(game_state_persistent_storage_path, win32::k_generic_read_write, win32::k_file_share_none, 0,
-        win32::k_open_always, win32::k_file_flag_sequential_scan, 0);
+    game_state_persistent_storage = halo::platform::file_open(game_state_persistent_storage_path, win32::k_generic_read_write, win32::k_file_share_none, win32::k_open_always, win32::k_file_flag_sequential_scan);
     if (game_state_persistent_storage != win32::invalid_handle() &&
-        SetFilePointer(game_state_persistent_storage, k_game_state_file_size, 0, win32::k_file_begin) != win32::k_invalid_set_file_pointer &&
-        SetEndOfFile(game_state_persistent_storage) != 0) {
+        halo::platform::file_seek(game_state_persistent_storage, k_game_state_file_size, nullptr, win32::k_file_begin) != win32::k_invalid_set_file_pointer &&
+        halo::platform::file_truncate(game_state_persistent_storage) != 0) {
         game_state_persistent_storage_created = 1;
         return;
     }
@@ -341,23 +343,23 @@ void *open_persistent_storage(char *name)
     end = path + strlen(path);
     strcpy(end, "savegame.bin");
 
-    file = CreateFileA(path, win32::k_generic_read_write, win32::k_file_share_none, 0, win32::k_open_always, 0, 0);
+    file = halo::platform::file_open(path, win32::k_generic_read_write, win32::k_file_share_none, win32::k_open_always, 0);
     if (file == win32::invalid_handle()) {
         return win32::invalid_handle();
     }
 
-    file_size = GetFileSize(file, 0);
+    file_size = halo::platform::file_size(file, nullptr);
     if (file_size != k_game_state_file_size) {
         memset(zero_block, 0, sizeof(zero_block));
-        if (WriteFile(file, zero_block, k_game_state_file_initial_block, (LPDWORD)&bytes_written, 0) == 0 ||
+        if (halo::platform::file_write(file, zero_block, k_game_state_file_initial_block, &bytes_written) == 0 ||
             bytes_written != k_game_state_file_initial_block ||
-            SetFilePointer(file, k_game_state_file_size, 0, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
-            SetEndOfFile(file) == 0) {
+            halo::platform::file_seek(file, k_game_state_file_size, nullptr, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
+            halo::platform::file_truncate(file) == 0) {
             halo::shell::shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
             if (halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, delete_path) != 0) {
-                DeleteFileA(delete_path);
+                halo::platform::file_delete(delete_path);
             }
-            CloseHandle(file);
+            halo::platform::file_close(file);
             return win32::invalid_handle();
         }
     }
@@ -423,7 +425,7 @@ uint8_t queue_write(uint8_t final_flag)
     memcpy(game_state_write_buffer, game_state_snapshot_source, game_state_size);
 
     game_state_write_is_checkpoint = final_flag;
-    SetEvent(game_state_write_event);
+    halo::platform::event_set(game_state_write_event);
     return 1;
 }
 
@@ -463,8 +465,8 @@ uint8_t read_persistent_storage(void)
         halo::platform::sleep_milliseconds(0);
     }
 
-    if (SetFilePointer(game_state_persistent_storage, 0, 0, win32::k_file_begin) != win32::k_invalid_set_file_pointer &&
-        ReadFile(game_state_persistent_storage, game_state_snapshot_source, game_state_size, (LPDWORD)&bytes_read, 0) != 0 &&
+    if (halo::platform::file_seek(game_state_persistent_storage, 0, nullptr, win32::k_file_begin) != win32::k_invalid_set_file_pointer &&
+        halo::platform::file_read(game_state_persistent_storage, game_state_snapshot_source, game_state_size, &bytes_read) != 0 &&
         bytes_read == game_state_size) {
         return 1;
     }
@@ -490,15 +492,15 @@ void read_persistent_storage_block(int32_t size, void *buffer)
         return;
     }
 
-    if (SetFilePointer(file, 0, 0, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
-        ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0) == 0 ||
+    if (halo::platform::file_seek(file, 0, nullptr, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
+        halo::platform::file_read(file, buffer, size, &bytes_read) == 0 ||
         bytes_read != (uint32_t)size) {
         halo::shell::shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
         if (halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory) != 0) {
-            DeleteFileA(directory);
+            halo::platform::file_delete(directory);
         }
     }
-    CloseHandle(file);
+    halo::platform::file_close(file);
 }
 
 /**
@@ -514,13 +516,13 @@ void read_profile_file(char *name, int32_t size, void *buffer)
     uint32_t bytes_read;
 
     sprintf(path, "%s\\%s", game_state_core_directory, name);
-    file = CreateFileA(path, win32::k_generic_read, win32::k_file_share_none, 0, win32::k_open_existing, win32::k_file_attribute_normal, 0);
+    file = halo::platform::file_open(path, win32::k_generic_read, win32::k_file_share_none, win32::k_open_existing, win32::k_file_attribute_normal);
     if (file == win32::invalid_handle() ||
-        ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0) == 0 ||
+        halo::platform::file_read(file, buffer, size, &bytes_read) == 0 ||
         bytes_read != (uint32_t)size) {
         halo::shell::shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
     }
-    CloseHandle(file);
+    halo::platform::file_close(file);
 }
 
 /**
@@ -538,13 +540,13 @@ uint8_t read_profile_header(char *name, int32_t size, void *buffer)
 
     result = 0;
     sprintf(path, "%s\\%s", game_state_core_directory, name);
-    file = CreateFileA(path, win32::k_generic_read, win32::k_file_share_none, 0, win32::k_open_existing, win32::k_file_attribute_normal, 0);
+    file = halo::platform::file_open(path, win32::k_generic_read, win32::k_file_share_none, win32::k_open_existing, win32::k_file_attribute_normal);
     if (file != win32::invalid_handle()) {
-        if (ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0) != 0 && bytes_read == (uint32_t)size) {
+        if (halo::platform::file_read(file, buffer, size, &bytes_read) != 0 && bytes_read == (uint32_t)size) {
             result = 1;
         }
     }
-    CloseHandle(file);
+    halo::platform::file_close(file);
     return result;
 }
 
@@ -563,20 +565,19 @@ void save_thread_proc(void)
     char directory[264];
 
     while (1) {
-        WaitForSingleObject(game_state_write_event, win32::k_infinite);
+        halo::platform::wait(game_state_write_event, win32::k_infinite);
         is_checkpoint = game_state_write_is_checkpoint;
         remaining = game_state_size;
         game_state_write_in_progress = 1;
         game_state_write_is_checkpoint = 0;
 
-        if (SetFilePointer(game_state_persistent_storage, 0, 0, 0) != k_datum_index_none) {
+        if (halo::platform::file_seek(game_state_persistent_storage, 0, nullptr, 0) != k_datum_index_none) {
             while (0 < remaining) {
                 chunk = remaining;
                 if (k_game_state_write_chunk_size - 1 < remaining) {
                     chunk = k_game_state_write_chunk_size;
                 }
-                WriteFile(game_state_persistent_storage, game_state_write_buffer + (game_state_size - remaining),
-                    chunk, (LPDWORD)&bytes_written, 0);
+                halo::platform::file_write(game_state_persistent_storage, game_state_write_buffer + (game_state_size - remaining), chunk, &bytes_written);
                 remaining = remaining - bytes_written;
                 halo::platform::sleep_milliseconds(0);
             }
@@ -656,20 +657,20 @@ void write_persistent_storage(uint32_t *crc_slot, uint8_t *buffer, int32_t heade
     memcpy(header_backup, buffer, header_size);
     memset(buffer, 0, header_size);
 
-    if (SetFilePointer(file, 0, 0, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
-        WriteFile(file, buffer, total_size, (LPDWORD)&bytes_written, 0) == 0 ||
+    if (halo::platform::file_seek(file, 0, nullptr, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
+        halo::platform::file_write(file, buffer, total_size, &bytes_written) == 0 ||
         bytes_written != (uint32_t)total_size ||
-        SetFilePointer(file, 0, 0, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
-        WriteFile(file, header_backup, header_size, (LPDWORD)&bytes_written, 0) == 0 ||
+        halo::platform::file_seek(file, 0, nullptr, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
+        halo::platform::file_write(file, header_backup, header_size, &bytes_written) == 0 ||
         bytes_written != (uint32_t)header_size) {
         halo::shell::shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
         if (halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory) != 0) {
-            DeleteFileA(directory);
+            halo::platform::file_delete(directory);
         }
     }
 
     memcpy(buffer, header_backup, header_size);
-    CloseHandle(file);
+    halo::platform::file_close(file);
 }
 
 /**
@@ -686,15 +687,15 @@ uint8_t write_profile_file(int32_t size, char *name, const void *buffer)
     uint8_t result;
 
     result = 0;
-    CreateDirectoryA(game_state_core_directory, 0);
+    halo::platform::directory_create(game_state_core_directory);
     sprintf(path, "%s\\%s", game_state_core_directory, name);
-    file = CreateFileA(path, win32::k_generic_write, win32::k_file_share_none, 0, win32::k_create_always, win32::k_file_attribute_normal, 0);
+    file = halo::platform::file_open(path, win32::k_generic_write, win32::k_file_share_none, win32::k_create_always, win32::k_file_attribute_normal);
     if (file != win32::invalid_handle()) {
-        if (WriteFile(file, buffer, size, (LPDWORD)&bytes_written, 0) != 0 && bytes_written == (uint32_t)size) {
+        if (halo::platform::file_write(file, buffer, size, &bytes_written) != 0 && bytes_written == (uint32_t)size) {
             result = 1;
         }
     }
-    CloseHandle(file);
+    halo::platform::file_close(file);
     return result;
 }
 

@@ -29,6 +29,8 @@
 #include "halo/rasterizer/vars.hpp"
 #include "halo/saved_games/vars.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/platform/file.hpp"
+#include "halo/platform/thread.hpp"
 
 static void copy_profile_block(saved_player_profile *destination, const saved_player_profile *source, size_t first_offset, size_t end_offset)
 {
@@ -92,7 +94,7 @@ uint32_t halo::saved_games::VariantWriteRequest::thread_proc()
     uint8_t closed;
     uint8_t write_failed;
 
-    wait_result = WaitForSingleObject(saved_game_files_mutex->handle, 5000);
+    wait_result = halo::platform::wait(saved_game_files_mutex->handle, 5000);
     if (wait_result != win32::k_wait_object_0 && wait_result != win32::k_wait_abandoned) {
         return 0;
     }
@@ -119,7 +121,7 @@ uint32_t halo::saved_games::VariantWriteRequest::thread_proc()
             halo::saved_games::saved_game_delete_by_handle(request->handle);
         }
     }
-    ReleaseMutex(saved_game_files_mutex->handle);
+    halo::platform::mutex_release(saved_game_files_mutex->handle);
     return 0;
 }
 
@@ -146,10 +148,10 @@ uint8_t halo::saved_games::PlayerProfile::get(int32_t index)
     if (player_profile_thread != 0) {
         uint32_t exit_code;
         do {
-            while (GetExitCodeThread(player_profile_thread->handle, (LPDWORD)&exit_code) == 0) {
+            while (halo::platform::thread_exit_code(player_profile_thread->handle, &exit_code) == 0) {
             }
         } while (exit_code == win32::k_still_active );
-        CloseHandle(player_profile_thread->handle);
+        halo::platform::handle_close(player_profile_thread->handle);
         player_profile_thread->handle = 0;
         player_profile_thread->in_use = 0;
         player_profile_thread = 0;
@@ -160,7 +162,7 @@ uint8_t halo::saved_games::PlayerProfile::get(int32_t index)
         return 1;
     }
 
-    wait_result = WaitForSingleObject(saved_game_files_mutex->handle, 5000);
+    wait_result = halo::platform::wait(saved_game_files_mutex->handle, 5000);
     if (wait_result == win32::k_wait_object_0 || wait_result == win32::k_wait_abandoned ) {
         if (halo::saved_games::saved_game_open_file_by_handle(index, &ref) != 0) {
             if (halo::saved_games::file_reference_read(&ref, &file, sizeof(file)) != 0) {
@@ -175,7 +177,7 @@ uint8_t halo::saved_games::PlayerProfile::get(int32_t index)
             }
             halo::saved_games::file_reference_close(&ref);
         }
-        ReleaseMutex(saved_game_files_mutex->handle);
+        halo::platform::mutex_release(saved_game_files_mutex->handle);
     }
     return result;
 }
@@ -589,9 +591,9 @@ void write_request_start(int32_t handle, game_variant *variant)
     if (variant_write_thread != 0) {
         do {
             do {
-            } while (GetExitCodeThread(variant_write_thread->handle, (LPDWORD)&exit_code) == 0);
+            } while (halo::platform::thread_exit_code(variant_write_thread->handle, &exit_code) == 0);
         } while (exit_code == win32::k_still_active);
-        CloseHandle(variant_write_thread->handle);
+        halo::platform::handle_close(variant_write_thread->handle);
         variant_write_thread->handle = 0;
         variant_write_thread->in_use = 0;
         variant_write_thread = 0;
@@ -660,7 +662,7 @@ uint32_t copy_files(const char *source_dir, char *dest_dir)
     _snprintf(source_path, k_path_maximum_length, "%s%s", source_dir, k_player_profile_file_name);
     dest_path[0xff] = '\0';
     source_path[0xff] = '\0';
-    result = (uint8_t)CopyFileA(source_path, dest_path, 0);
+    result = (uint8_t)halo::platform::file_copy(source_path, dest_path, false);
     if (result == 0) {
         return 0;
     }
@@ -669,7 +671,7 @@ uint32_t copy_files(const char *source_dir, char *dest_dir)
     _snprintf(source_path, k_path_maximum_length, "%s%s", source_dir, k_game_state_file_name);
     dest_path[0xff] = '\0';
     source_path[0xff] = '\0';
-    result = (uint8_t)CopyFileA(source_path, dest_path, 0);
+    result = (uint8_t)halo::platform::file_copy(source_path, dest_path, false);
     if (result == 0) {
         return 0;
     }
@@ -684,39 +686,39 @@ uint32_t copy_files(const char *source_dir, char *dest_dir)
         *dot = '\0';
     }
     strcat(source_path, ".sav");
-    copy_ok = (uint8_t)CopyFileA(source_path, dest_path, 0);
+    copy_ok = (uint8_t)halo::platform::file_copy(source_path, dest_path, false);
     if (copy_ok == 0) {
         return result;
     }
 
     _snprintf(search_path, k_path_maximum_length, "%scheckpoints\\*.sav", source_dir);
-    find_handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&find_data);
+    find_handle = halo::platform::find_first(search_path, &find_data);
     if (find_handle != (void *)-1) {
         do {
             _snprintf(dest_path, k_path_maximum_length, "%scheckpoints\\%s", dest_dir, find_data.cFileName);
             _snprintf(source_path, k_path_maximum_length, "%scheckpoints\\%s", source_dir, find_data.cFileName);
-            copy_ok = (uint8_t)CopyFileA(source_path, dest_path, 0);
+            copy_ok = (uint8_t)halo::platform::file_copy(source_path, dest_path, false);
             if (copy_ok == 0) {
                 break;
             }
-        } while (FindNextFileA(find_handle, (LPWIN32_FIND_DATAA)&find_data) != 0);
-        FindClose(find_handle);
+        } while (halo::platform::find_next(find_handle, &find_data) != 0);
+        halo::platform::find_close(find_handle);
     }
     if (copy_ok == 0) {
         return result;
     }
 
     _snprintf(search_path, k_path_maximum_length, "%scheckpoints\\*.bin", source_dir);
-    find_handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&find_data);
+    find_handle = halo::platform::find_first(search_path, &find_data);
     if (find_handle != (void *)-1) {
         do {
             _snprintf(dest_path, k_path_maximum_length, "%scheckpoints\\%s", dest_dir, find_data.cFileName);
             _snprintf(source_path, k_path_maximum_length, "%scheckpoints\\%s", source_dir, find_data.cFileName);
-            if ((uint8_t)CopyFileA(source_path, dest_path, 0) == 0) {
+            if ((uint8_t)halo::platform::file_copy(source_path, dest_path, false) == 0) {
                 break;
             }
-        } while (FindNextFileA(find_handle, (LPWIN32_FIND_DATAA)&find_data) != 0);
-        FindClose(find_handle);
+        } while (halo::platform::find_next(find_handle, &find_data) != 0);
+        halo::platform::find_close(find_handle);
     }
     return result;
 }
@@ -828,7 +830,7 @@ uint8_t rename(int32_t handle, uint16_t *new_name)
             char dest_path[0x100];
 
             _snprintf(dest_path, k_path_maximum_length, "%s%s", directory, "blam.lst");
-            result = (uint8_t)CopyFileA(entry.path, dest_path, 1);
+            result = (uint8_t)halo::platform::file_copy(entry.path, dest_path, true);
             if (result == 1) {
                 halo::game::XDeleteSaveGame(entry.display_name, savegames_directory);
                 strncpy(entry.path, dest_path, k_path_maximum_length);
@@ -893,10 +895,10 @@ void verify_thread_wait_and_clear(void)
 
     if (player_profile_thread != 0) {
         do {
-            while (GetExitCodeThread(player_profile_thread->handle, (LPDWORD)&exit_code) == 0) {
+            while (halo::platform::thread_exit_code(player_profile_thread->handle, &exit_code) == 0) {
             }
         } while (exit_code == win32::k_still_active );
-        CloseHandle(player_profile_thread->handle);
+        halo::platform::handle_close(player_profile_thread->handle);
         player_profile_thread->handle = 0;
         player_profile_thread->in_use = 0;
     }
