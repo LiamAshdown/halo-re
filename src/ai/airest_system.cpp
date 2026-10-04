@@ -917,8 +917,8 @@ void AiSystem::reset_fire_group_assignments()
             actor->original_encounter_index = static_cast<datum_index>(e);
             actor->original_squad_index = actor->squad_index;
             actor->firing_position_index = -1;
-            if (actor->active_movement.type == 3 || actor->active_movement.type == 4) {
-                actor->active_movement.type = 0;
+            if (actor->active_movement.type == _actor_destination_firing_position || actor->active_movement.type == _actor_destination_move_position) {
+                actor->active_movement.type = _actor_destination_none;
                 actor->active_movement.extra = static_cast<uint32_t>(k_datum_index_none);
             }
             {

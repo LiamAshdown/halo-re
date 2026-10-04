@@ -1248,9 +1248,9 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
         }
     }
 
-    if (self->active_movement.type == 5 && self->active_movement.reference == old_reference) {
+    if (self->active_movement.type == _actor_destination_prop && self->active_movement.reference == old_reference) {
         if (new_reference == halo::k_dword_none) {
-            self->active_movement.type = 0;
+            self->active_movement.type = _actor_destination_none;
             self->active_movement.extra = halo::k_dword_none;
         } else {
             self->active_movement.destination.x = halo::bit_cast<float>(static_cast<uint32_t>(new_reference));

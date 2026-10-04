@@ -35,7 +35,7 @@ void ActorView::movement_action_cancel()
 
     self->firing_position_index = -1;
     if (movement_type == 3 || movement_type == 4) {
-        self->active_movement.type = 0;
+        self->active_movement.type = _actor_destination_none;
         self->active_movement.extra = halo::k_dword_none;
     }
 
@@ -309,8 +309,8 @@ void ActorView::movement_action_stop()
     }
 
     self->firing_position_index = -1;
-    if (self->active_movement.type != 1) {
-        self->queued_movement.type = 1;
+    if (self->active_movement.type != _actor_destination_halt) {
+        self->queued_movement.type = _actor_destination_halt;
         self->active_movement = self->queued_movement;
     }
     halo::ai::actor_movement_action_resolve(actor_index, 1, 0);
@@ -702,7 +702,7 @@ uint8_t ActorView::movement_check_arrival()
 
     self = halo::ai::actor_at(actor_index);
 
-    if (self->active_movement.type != 0 && self->active_movement.type != 1) {
+    if (self->active_movement.type != _actor_destination_none && self->active_movement.type != _actor_destination_halt) {
         radius = halo::ai::actor_compute_accuracy_scale(actor_index);
         dx = self->destination.x - self->body_position.x;
         dy = self->destination.y - self->body_position.y;
@@ -1066,8 +1066,8 @@ uint8_t ActorView::movement_set_destination_firing_position(int16_t formation_sl
     self = halo::ai::actor_at(actor_index);
     halo::ai::actor_set_units_active(actor_index, 0);
 
-    if (self->active_movement.type != 3 || self->active_movement.slot_index != formation_slot) {
-        self->queued_movement.type = 3;
+    if (self->active_movement.type != _actor_destination_firing_position || self->active_movement.slot_index != formation_slot) {
+        self->queued_movement.type = _actor_destination_firing_position;
         self->queued_movement.cancelled = 0;
         self->queued_movement.slot_index = formation_slot;
         self->queued_movement.extra = halo::k_dword_none;
@@ -1098,8 +1098,8 @@ uint8_t ActorView::movement_set_destination_move_position(int16_t move_position_
     self->firing_position_index = -1;
     halo::ai::actor_set_units_active(actor_index, 0);
 
-    if (self->active_movement.type != 4 || self->active_movement.slot_index != move_position_index) {
-        self->queued_movement.type = 4;
+    if (self->active_movement.type != _actor_destination_move_position || self->active_movement.slot_index != move_position_index) {
+        self->queued_movement.type = _actor_destination_move_position;
         self->queued_movement.cancelled = 0;
         self->queued_movement.slot_index = move_position_index;
         self->queued_movement.extra = halo::k_dword_none;
@@ -1131,7 +1131,7 @@ uint8_t TargetView::movement_set_destination_near_target(datum_index actor_index
     self->firing_position_index = -1;
     halo::ai::actor_set_units_active(actor_index, 0);
 
-    if (self->active_movement.type == 5 && self->active_movement.reference == (uint32_t)target_prop_index) {
+    if (self->active_movement.type == _actor_destination_prop && self->active_movement.reference == (uint32_t)target_prop_index) {
         if (self->active_movement.destination.y == radius) {
             if (self->needs_new_path != 0 && self->path_resolved_this_tick == 0) {
                 return halo::ai::actor_movement_action_resolve(actor_index, 0, 0);
@@ -1142,7 +1142,7 @@ uint8_t TargetView::movement_set_destination_near_target(datum_index actor_index
 
     self->queued_movement.destination.x = halo::bit_cast<float>(static_cast<uint32_t>((uint32_t)target_prop_index));
     target = &((prop *)halo::ai::globals().prop_data->data)[target_prop_index & halo::k_slot_mask];
-    self->queued_movement.type = 5;
+    self->queued_movement.type = _actor_destination_prop;
     self->queued_movement.cancelled = 0;
     self->queued_movement.destination.y = radius;
     extra = target->relationship_object_index;
@@ -1173,7 +1173,7 @@ uint8_t ActorOps::movement_set_destination_point(real_point3d *destination, datu
     self->firing_position_index = -1;
     halo::ai::actor_set_units_active(actor_index, 0);
 
-    if (self->active_movement.type == 2 && self->active_movement.parameter == parameter) {
+    if (self->active_movement.type == _actor_destination_raw_location && self->active_movement.parameter == parameter) {
         dx = self->active_movement.destination.x - destination->x;
         dy = self->active_movement.destination.y - destination->y;
         dz = self->active_movement.destination.z - destination->z;
@@ -1186,7 +1186,7 @@ uint8_t ActorOps::movement_set_destination_point(real_point3d *destination, datu
         }
     }
 
-    self->queued_movement.type = 2;
+    self->queued_movement.type = _actor_destination_raw_location;
     self->queued_movement.cancelled = 0;
     self->queued_movement.destination = *destination;
     self->queued_movement.parameter = parameter;

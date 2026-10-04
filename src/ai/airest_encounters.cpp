@@ -2450,8 +2450,8 @@ void EncounterView::redistribute_squads_toward_targets()
                         if (((squad_considered_mask[member_squad >> 5] & (1u << (member_squad & 0x1f))) != 0) &&
                             (member_squad != best_squad)) {
                             member->firing_position_index = (int16_t)halo::k_word_none;
-                            if ((member->active_movement.type == 3) || (member->active_movement.type == 4)) {
-                                member->active_movement.type = 0;
+                            if ((member->active_movement.type == _actor_destination_firing_position) || (member->active_movement.type == _actor_destination_move_position)) {
+                                member->active_movement.type = _actor_destination_none;
                                 member->active_movement.extra = halo::k_dword_none;
                             }
                             {
@@ -2477,8 +2477,8 @@ void EncounterView::redistribute_squads_toward_targets()
                                     member->encounterless = 1;
                                     *(uint16_t *)&member->activation_delay = -(uint16_t)(member->active != 0) & 0x5a;
                                     member->firing_position_index = (int16_t)halo::k_word_none;
-                                    if ((member->active_movement.type == 3) || (member->active_movement.type == 4)) {
-                                        member->active_movement.type = 0;
+                                    if ((member->active_movement.type == _actor_destination_firing_position) || (member->active_movement.type == _actor_destination_move_position)) {
+                                        member->active_movement.type = _actor_destination_none;
                                         member->active_movement.extra = halo::k_dword_none;
                                     }
                                     {

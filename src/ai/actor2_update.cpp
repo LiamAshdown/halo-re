@@ -1926,11 +1926,11 @@ uint8_t ActorView::update_squad_link_state()
         if (stale) {
             uint8_t movement_done = self->movement_action_complete;
             if (movement_done != 0) {
-                if (self->active_movement.type == 3) {
+                if (self->active_movement.type == _actor_destination_firing_position) {
                     if (self->mode == halo::ai::actor_mode::guard && enc != 0 && enc->follow_target_type == 1) {
                         return 1;
                     }
-                } else if (self->active_movement.type == 5) {
+                } else if (self->active_movement.type == _actor_destination_prop) {
                     prop *p = &((prop *)halo::ai::globals().prop_data->data)[halo::bit_cast<datum_index>(self->active_movement.destination.x) & halo::k_slot_mask];
                     if (p->is_parented != 0) {
                         return 1;

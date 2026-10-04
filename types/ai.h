@@ -171,6 +171,16 @@ typedef struct actor_order {
 // The queued / active movement action pair inside the actor. The setters at 0x417610,
 // 0x417750, 0x417830 and 0x417910 write the queued copy at actor+0x400 and then copy all
 // six dwords to the active copy at actor+0x46c, which is what fixes the 0x18-byte layout.
+// The destination kinds an actor movement action can have (CEA destination_type).
+typedef enum actor_destination_type {
+    _actor_destination_none = 0,              // stopped
+    _actor_destination_halt = 1,
+    _actor_destination_raw_location = 2,      // the explicit point in destination
+    _actor_destination_firing_position = 3,   // slot_index is a firing position index
+    _actor_destination_move_position = 4,     // slot_index is a move position / formation slot index
+    _actor_destination_prop = 5               // reference is a prop handle
+} actor_destination_type;
+
 typedef struct actor_movement_action {
     int16_t type;                     // 0x00 0 stop, 2 explicit point, and the firing-position / formation / near-target kinds
     uint8_t cancelled;                // 0x02 actor_movement_action_cancel sets it

@@ -561,10 +561,10 @@ void halo::ai::combat_ops::clear_target_state()
     self->pathfinding_surface_index = halo::k_dword_none;
     self->search_surface_index = halo::k_dword_none;
 
-    if (self->queued_movement.type == 2) {
+    if (self->queued_movement.type == _actor_destination_raw_location) {
         self->queued_movement.parameter = halo::k_dword_none;
     }
-    if (self->active_movement.type == 2) {
+    if (self->active_movement.type == _actor_destination_raw_location) {
         self->active_movement.parameter = halo::k_dword_none;
     }
 
@@ -1516,7 +1516,7 @@ uint8_t halo::ai::combat_ops::is_target_within_engagement_range()
     }
 
     if ((a->movement_action_complete == 0 || a->movement_completed != 0) &&
-        a->active_movement.type == 3 &&
+        a->active_movement.type == _actor_destination_firing_position &&
         a->active_movement.slot_index == a->firing_position_index) {
         return 1;
     }

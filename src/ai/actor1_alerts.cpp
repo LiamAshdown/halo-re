@@ -905,7 +905,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)halo::ai::object_bytes(a->active_unit_index));
                 float vehicle_range = vehicle_tag->ai_strafing_abort_range;
 
-                if (a->movement_completed && a->active_movement.type == 5 &&
+                if (a->movement_completed && a->active_movement.type == _actor_destination_prop &&
                     halo::bit_cast<datum_index>(a->active_movement.destination.x) == a->target_unit_index) {
                     return guard();
                 }
