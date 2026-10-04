@@ -269,7 +269,7 @@ int16_t CameraSystem::get_seat_camera_state(datum_index unit, int16_t *out_state
 
     {
         object *parent_object = headers[halo::datum_slot(parent)].data;
-        if ((1 << (parent_object->type & 0x1f)) & 3) {
+        if ((1 << (parent_object->type & 0x1f)) & _object_mask_unit) {
             Unit *parent_unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(parent_object->definition_tag)].data;
             uint8_t *seats = (uint8_t *)parent_unit_tag->seats.pointer;
             int16_t seat_index = (halo::units::unit_data_of(unit_object))->vehicle_seat_index;

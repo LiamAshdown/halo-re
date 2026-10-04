@@ -1235,7 +1235,7 @@ datum_index halo::ai::combat_ops::get_relevant_squad_member_target(uint32_t unus
 
                     attacker_header = &headers[responsible_index];
 
-                    if ((1 << (attacker_header->type & 0x1f) & 3) != 0) {
+                    if ((1 << (attacker_header->type & 0x1f) & _object_mask_unit) != 0) {
                         attacker_obj = attacker_header->data;
                         if (attacker_obj != (object *)0) {
                             attacker_unit = halo::units::unit_data_of(attacker_obj);

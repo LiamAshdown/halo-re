@@ -611,7 +611,7 @@ int32_t player_effect_ref::locality_for_object(datum_index weapon_object_index)
                     int16_t salt = (int16_t)(unit_index >> 16);
 
                     if ((salt == 0 || header->identifier == salt) &&
-                        ((1 << (header->type & 0x1f)) & 3) != 0 &&
+                        ((1 << (header->type & 0x1f)) & _object_mask_unit) != 0 &&
                         header->data != 0) {
                         unit_data *held_unit =
                             &halo::objects::object_as<unit_object>(unit_index)->unit;

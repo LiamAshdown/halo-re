@@ -136,7 +136,7 @@ void AiObjects::clear_object_references(datum_index object_index)
         return;
     }
     obj = halo::ai::object_at(object_index);
-    if (((1 << (obj->type & 0x1f)) & 3) == 0) {
+    if (((1 << (obj->type & 0x1f)) & _object_mask_unit) == 0) {
         return;
     }
 
@@ -353,7 +353,7 @@ void ObjectListView::detach_actors_from_encounters()
             }
         }
 
-        if (entry != 0 && ((1 << (entry->type & 0x1f)) & 3) != 0 && entry->data != 0) {
+        if (entry != 0 && ((1 << (entry->type & 0x1f)) & _object_mask_unit) != 0 && entry->data != 0) {
             obj = entry->data;
             unit = halo::units::unit_data_of(obj);
             if (unit->actor_index != (datum_index)k_datum_index_none &&
@@ -490,7 +490,7 @@ int16_t ObjectListView::max_flee_grade()
             }
         }
 
-        if (entry != 0 && ((1 << (entry->type & 0x1f)) & 3) != 0 && entry->data != 0) {
+        if (entry != 0 && ((1 << (entry->type & 0x1f)) & _object_mask_unit) != 0 && entry->data != 0) {
             obj = entry->data;
             unit = halo::units::unit_data_of(obj);
             grade = 0;
@@ -587,7 +587,7 @@ void ObjectListView::remap_units_and_children(uint32_t packed_reference, char no
                 child = obj->first_child_object;
                 while (child != (datum_index)k_datum_index_none) {
                     object_header *child_header = &((object_header *)halo::objects::globals().object_data->data)[child & halo::k_slot_mask];
-                    if ((1 << (child_header->type & 0x1f) & 3) != 0) {
+                    if ((1 << (child_header->type & 0x1f) & _object_mask_unit) != 0) {
                         halo::ai::ai_unit_remap_actor_to_squad(child, packed_reference, 0);
                     }
                     child = ((object *)child_header->data)->next_object;
@@ -668,7 +668,7 @@ void ObjectListView::reset_or_wake_awareness(char flag)
             reset_or_wake(object_index, flag);
             while (child != (datum_index)k_datum_index_none) {
                 object_header *child_header = &((object_header *)halo::objects::globals().object_data->data)[child & halo::k_slot_mask];
-                if ((1 << (child_header->type & 0x1f) & 3) != 0) {
+                if ((1 << (child_header->type & 0x1f) & _object_mask_unit) != 0) {
                     reset_or_wake(child, flag);
                 }
                 child = ((object *)child_header->data)->next_object;
@@ -848,7 +848,7 @@ void ObjectListView::set_unit_flag_800000(char flag)
             }
         }
 
-        if (entry != 0 && ((1 << (entry->type & 0x1f)) & 3) != 0 && entry->data != 0) {
+        if (entry != 0 && ((1 << (entry->type & 0x1f)) & _object_mask_unit) != 0 && entry->data != 0) {
             unit_data *unit = halo::units::unit_data_of(entry->data);
             if (flag == 0) {
                 unit->flags &= ~(uint32_t)_unit_flag_unknown_800000;
@@ -943,7 +943,7 @@ uint8_t ObjectListView::start_user_animation_until_failure(datum_index graph_tag
             }
         }
 
-        if (entry != 0 && ((1 << (entry->type & 0x1f)) & 3) != 0 && entry->data != 0) {
+        if (entry != 0 && ((1 << (entry->type & 0x1f)) & _object_mask_unit) != 0 && entry->data != 0) {
             if (still_succeeding && halo::units::unit_start_user_animation((uint32_t)object_index, graph_tag_id, animation_name,
                     interpolate) != 0) {
                 still_succeeding = 1;

@@ -234,7 +234,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
                         object_header *unit_header = &halo::game::object_header_at(static_cast<uint32_t>(unit_index));
 
                         if (unit_header->identifier != 0 && (unit_salt == 0 || unit_header->identifier == unit_salt) &&
-                            (((1u << (unit_header->type & 0x1f)) & 3) != 0) && unit_header->data != 0) {
+                            (((1u << (unit_header->type & 0x1f)) & _object_mask_unit) != 0) && unit_header->data != 0) {
                             starred = (uint8_t)halo::units::unit_find_weapon_index_by_flag(p->unit, 3);
                         }
                     }

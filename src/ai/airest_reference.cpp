@@ -1442,7 +1442,7 @@ void ReferenceView::units_exit_vehicles()
         }
         header = (object_header *)((uint8_t *)halo::objects::globals().object_data->data + halo::objects::globals().object_data->size * index);
         if (header->identifier == 0 || (salt != 0 && header->identifier != salt) ||
-            ((1u << (header->type & 0x1f)) & 3) == 0) {
+            ((1u << (header->type & 0x1f)) & _object_mask_unit) == 0) {
             continue;
         }
         self = (unit_object *)header->data;

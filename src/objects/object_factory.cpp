@@ -113,7 +113,7 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
         if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client && type == _object_type_vehicle) {
             continue;
         }
-        if (((1 << type) & 0x240) != 0) {
+        if (((1 << type) & _object_mask_scenery_and_light_fixture) != 0) {
             continue;
         }
         definition = object_type_definitions[type];
@@ -183,7 +183,7 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
         int32_t size;
         int16_t i;
 
-        if (((1 << type) & 0x240) == 0 || definition->scenario_placement_offset == -1 ||
+        if (((1 << type) & _object_mask_scenery_and_light_fixture) == 0 || definition->scenario_placement_offset == -1 ||
             definition->scenario_palette_offset == -1) {
             continue;
         }

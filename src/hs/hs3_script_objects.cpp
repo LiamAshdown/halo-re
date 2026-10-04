@@ -320,7 +320,7 @@ char ScriptObjects::object_hierarchy_test(datum_index object_index) const
         ancestor = node->parent;
     }
 
-    if ((1 << (object->type & 0x1f) & 0x1c) != 0 && (object->flags_1f4 & 2) != 0) {
+    if ((1 << (object->type & 0x1f) & _object_mask_item) != 0 && (object->flags_1f4 & 2) != 0) {
         return 1;
     }
     return 0;
@@ -369,7 +369,7 @@ uint32_t ScriptObjects::object_list_any_angle_match(datum_index header_index, da
             if (entry->identifier != 0) {
                 salt = (int16_t)((uint32_t)object_index >> 0x10);
                 if ((salt == 0 || entry->identifier == salt) &&
-                    (1 << (entry->type_flag & 0x1f) & 3) != 0 && entry->data != 0 &&
+                    (1 << (entry->type_flag & 0x1f) & _object_mask_unit) != 0 && entry->data != 0 &&
                     halo::hs::hs_object_angle_predicate_helper(target_object, object_index, angle_degrees) != 0) {
 
                     return 1;
@@ -429,7 +429,7 @@ uint32_t ScriptObjects::object_list_any_angle_match_gated(datum_index header_ind
             if (entry->identifier != 0) {
                 salt = (int16_t)((uint32_t)object_index >> 0x10);
                 if ((salt == 0 || entry->identifier == salt) &&
-                    (1 << (entry->type_flag & 0x1f) & 3) != 0 && entry->data != 0 &&
+                    (1 << (entry->type_flag & 0x1f) & _object_mask_unit) != 0 && entry->data != 0 &&
                     gate != 0 && halo::units::unit_point_within_look_cone(angle_degrees * 0.017453292f, object_index,
                         reinterpret_cast<real_point3d *>(&halo::objects::block_element<ScenarioCutsceneFlag>(halo::scenario::globals().scenario->cutscene_flags, gate).position)) != 0) {
 

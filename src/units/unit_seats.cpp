@@ -1203,7 +1203,7 @@ int16_t halo::units::unit_seat_candidates_from_zone_and_enter(datum_index vehicl
         object *candidate = reinterpret_cast<object *>(halo::objects::object_record_bytes(candidate_index));
         int16_t i;
 
-        if (!((1u << ((uint8_t)candidate->type & 0x1f)) & 3) || (test_flag(vehicle->vitality_flags, objects::vitality_flag::health_frozen))) {
+        if (!((1u << ((uint8_t)candidate->type & 0x1f)) & _object_mask_unit) || (test_flag(vehicle->vitality_flags, objects::vitality_flag::health_frozen))) {
             continue;
         }
         for (i = 0; i < seat_count; i++) {
@@ -1346,7 +1346,7 @@ uint8_t halo::units::unit_seat_is_occupied_by_other(uint32_t self_index, int16_t
     while (child != k_datum_index_none) {
         object *child_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(child)].data;
 
-        if (((1 << (child_obj->type & 0x1f)) & 3) != 0) {
+        if (((1 << (child_obj->type & 0x1f)) & _object_mask_unit) != 0) {
             unit_data *child_unit = halo::units::unit_data_of(child_obj);
             uint8_t match = child_unit->vehicle_seat_index == seat_index;
             uint32_t reassigned = child;

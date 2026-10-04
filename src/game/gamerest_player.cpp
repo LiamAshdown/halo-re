@@ -2671,7 +2671,7 @@ void Players::handle_deleted_unit(uint32_t object_index)
     data_iterator iterator;
     ::player *player;
 
-    if (((1u << (obj->type & 0x1f)) & 3) == 0) {
+    if (((1u << (obj->type & 0x1f)) & _object_mask_unit) == 0) {
         return;
     }
     iterator.data = player_data;

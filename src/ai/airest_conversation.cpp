@@ -699,7 +699,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
                     }
                 }
             }
-            if (element != 0 && ((1 << (element->type & 0x1f)) & 3u) != 0) {
+            if (element != 0 && ((1 << (element->type & 0x1f)) & _object_mask_unit) != 0) {
                 obj = element->data;
             }
             candidate = 0;

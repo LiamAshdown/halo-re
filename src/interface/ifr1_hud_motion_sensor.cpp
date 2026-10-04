@@ -116,7 +116,7 @@ void HudMotionSensor::update(void)
                     header = candidate;
                 }
             }
-            if (header == 0 || ((1u << (header->type & 0x1f)) & 3) == 0 || header->data == 0 ||
+            if (header == 0 || ((1u << (header->type & 0x1f)) & _object_mask_unit) == 0 || header->data == 0 ||
                 halo::interface::has_bit(header->data->vitality_flags, halo::objects::vitality_flag::health_frozen) || halo::interface::motion_sensor_object_is_detected(object_index) == 0) {
                 continue;
             }

@@ -95,7 +95,7 @@ uint8_t ActorOps::resolve_flee_source_point(actor_flee_source_reason *reason, re
         if (target_object == 0) {
             return 0;
         }
-        if ((1 << (target_object->type & 0x1f) & 3) != 0) {
+        if ((1 << (target_object->type & 0x1f) & _object_mask_unit) != 0) {
             halo::units::unit_get_primary_eye_marker_position(reason->payload.handle, &source_position);
         } else {
             halo::objects::object_get_position(&source_position, reason->payload.handle);
