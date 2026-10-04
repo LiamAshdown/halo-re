@@ -70,7 +70,7 @@ void ActorView::mode_uncover_tick()
     if (act->firing_position_index != -1 && keep_going && (act->vehicle_gunner_bombards[0] || target_visible || act->moving)) {
         act->mode_data.uncover.remaining_ticks = act->mode_data.uncover.duration_ticks;
     } else {
-        act->mode_data.uncover.unknown_02 = 1;
+        act->mode_data.uncover.no_progress = 1;
         if (act->mode_data.uncover.remaining_ticks > 0) {
             act->mode_data.uncover.remaining_ticks -= 1;
         }

@@ -818,8 +818,8 @@ void halo::ai::grenade_ops::avoidance_entry_init(ai_grenade_avoidance_entry *ent
 
     halo::units::unit_get_crouch_height_offset(&entry->target_position, object_index, &offset, &deadline);
     entry->already_clear = (offset == 0.0f);
-    entry->unknown_10 = 0;
-    entry->unknown_14 = 0;
+    entry->target_offset_x = 0;
+    entry->target_offset_y = 0;
     entry->crouch_offset = offset;
     entry->avoid_until = deadline + 0.15f;
     entry->prop_index = prop_index;

@@ -634,7 +634,7 @@ static_assert(offsetof(actor_mode_converse_data, partner_unit) == 12);
 static_assert(offsetof(actor_mode_converse_data, partner_prop) == 16);
 static_assert(offsetof(actor_mode_uncover_data, crouch) == 0);
 static_assert(offsetof(actor_mode_uncover_data, done) == 1);
-static_assert(offsetof(actor_mode_uncover_data, unknown_02) == 2);
+static_assert(offsetof(actor_mode_uncover_data, no_progress) == 2);
 static_assert(offsetof(actor_mode_uncover_data, unknown_03) == 3);
 static_assert(offsetof(actor_mode_uncover_data, use_last_seen_position) == 4);
 static_assert(offsetof(actor_mode_uncover_data, unknown_05) == 5);

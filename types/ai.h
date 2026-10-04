@@ -284,7 +284,7 @@ typedef char actor_mode_converse_data_size[sizeof(actor_mode_converse_data) == 0
 typedef struct actor_mode_uncover_data {
     uint8_t crouch;                     // 0x00 copied to the crouch control flags by update; tick recomputes it
     uint8_t done;                       // 0x01 set by the tick once the uncovering is over; request_path_with_grenade_arc stops pathing
-    uint8_t unknown_02;                 // 0x02 set by the tick while the actor is not making progress
+    uint8_t no_progress;               // 0x02 set by the tick while the actor is not making progress
     uint8_t unknown_03;                 // 0x03 enter tests it
     uint8_t use_last_seen_position;     // 0x04 request_path_with_grenade_arc passes it as use_last_seen_position, then sets it
     uint8_t unknown_05[3];              // 0x05
@@ -2358,8 +2358,8 @@ typedef struct ai_grenade_avoidance_entry {
     uint8_t already_clear;        // 0x00 1 when the crouch-offset lookup returned exactly 0.0
     uint8_t unknown_01[3];        // 0x01
     real_point3d target_position; // 0x04 UNSURE: read by the trajectory tests, writer not identified
-    uint32_t unknown_10;          // 0x10 zeroed by the writer; read as target_offset.x
-    uint32_t unknown_14;          // 0x14 zeroed by the writer; read as target_offset.y
+    uint32_t target_offset_x;      // 0x10 zeroed by the writer; read as target_offset.x
+    uint32_t target_offset_y;      // 0x14 zeroed by the writer; read as target_offset.y
     float crouch_offset;          // 0x18 the first result of the crouch-offset lookup
     datum_index prop_index;       // 0x1c
     datum_index object_index;     // 0x20

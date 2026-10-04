@@ -126,7 +126,7 @@ uint8_t ActorView::request_path_with_grenade_arc()
     }
     if (halo::ai::actor_claim_firing_position(actor_index, previous_owner, &path_context, selected, path_ok) == -1) {
         actor = halo::ai::actor_at(actor_index);
-        actor->mode_data.uncover.unknown_02 = 1;
+        actor->mode_data.uncover.no_progress = 1;
     }
     return 0;
 }
