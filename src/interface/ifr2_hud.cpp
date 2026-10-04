@@ -1158,7 +1158,7 @@ uint8_t MotionSensor::object_is_detected(datum_index unit_index)
 
     halo::objects::object_get_root_object_velocities((uint32_t)unit_index, &velocity, (real_vector3d *)0);
 
-    visible = (halo::game::globals().current_engine == 0 && (unit->flags & _unit_flag_unknown_10) != 0)
+    visible = (halo::game::globals().current_engine == 0 && (unit->flags & _unit_flag_active_camouflaged) != 0)
               ? 0 : 1;
 
     speed_sq = velocity.i * velocity.i + velocity.j * velocity.j + velocity.k * velocity.k;

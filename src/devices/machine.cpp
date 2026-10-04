@@ -44,7 +44,7 @@ uint8_t MachineHandle::create()
     uint32_t *flags = &((struct object *)object)->flags;
     constexpr uint32_t elevator_bits = to_bits(machine_object_flags::unknown_4000 | machine_object_flags::unknown_8000);
 
-    *flags |= _object_unknown_2000_bit;
+    *flags |= _object_dynamic_lighting_recompute_bit;
     if ((((DeviceMachine *)definition)->machine_flags & to_bits(halo::tags::machine_tag_flag::elevator)) != 0) {
         *flags |= elevator_bits;
     } else {

@@ -163,7 +163,7 @@ void halo::objects::ObjectLifetime::delete_recursive(uint8_t recurse_siblings)
 
     header = (object_header *)object_data->data + halo::datum_slot(object_index);
     obj->flags |= _object_no_collision_bit;
-    header->flags &= (uint8_t)~_object_header_unknown_02_bit;
+    header->flags &= (uint8_t)~_object_header_visible_bit;
 
     halo::objects::object_release_render_cache_slot(object_index);
 }

@@ -851,9 +851,9 @@ void ObjectListView::set_unit_flag_800000(char flag)
         if (entry != 0 && ((1 << (entry->type & 0x1f)) & _object_mask_unit) != 0 && entry->data != 0) {
             unit_data *unit = halo::units::unit_data_of(entry->data);
             if (flag == 0) {
-                unit->flags &= ~(uint32_t)_unit_flag_unknown_800000;
+                unit->flags &= ~(uint32_t)_unit_flag_impervious;
             } else {
-                unit->flags |= (uint32_t)_unit_flag_unknown_800000;
+                unit->flags |= (uint32_t)_unit_flag_impervious;
             }
         }
 

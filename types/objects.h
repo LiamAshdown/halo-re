@@ -122,7 +122,7 @@ typedef enum object_type_mask {
 typedef enum object_header_flags {
     _object_header_active_bit = 0x01,         // object_mark_pending_delete sets it,
                                               // object_clear_pending_delete_flag clears it
-    _object_header_unknown_02_bit = 0x02,
+    _object_header_visible_bit = 0x02,
     _object_header_needs_update_bit = 0x04,   // objects_update runs object_update then clears it
     _object_header_delete_pending_bit = 0x08, // object_delete_recursive sets it,
                                               // object_is_delete_pending reads it
@@ -149,7 +149,7 @@ typedef enum object_flags {
     _object_needs_cluster_update_bit = 0x00000800,
     _object_mirrored_geometry_bit = 0x00001000,  // object_get_node_local_transform negates the
                                                  // marker axis when it is set
-    _object_unknown_2000_bit = 0x00002000,       // set by projectile_new (0x4bd7f2)
+    _object_dynamic_lighting_recompute_bit = 0x00002000,       // set by projectile_new (0x4bd7f2)
     _object_in_tracked_list_bit = 0x00010000,    // object_list_membership_set; the garbage
                                                  // column of the memory dump
     _object_unknown_20000_bit = 0x00020000,

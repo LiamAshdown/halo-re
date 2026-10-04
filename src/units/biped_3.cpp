@@ -132,7 +132,7 @@ void BipedView::update_facing(int8_t *out_animation_state)
 
         if (biped->movement_state == 0 &&
             base_state != _unit_base_animation_state_flaming &&
-            (unit->flags & _unit_flag_unknown_4000) == 0 &&
+            (unit->flags & _unit_flag_aim_without_turning) == 0 &&
             (unit->control_flags & _unit_control_flag_look_dont_turn) == 0) {
             threshold = ((unit->control_flags & _unit_control_flag_exact_facing) != 0)
                             ? 0.99f

@@ -367,7 +367,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
         biped->last_ground_object_index = solve.result_surface_index;
     }
 
-    if ((unit->flags & _unit_flag_unknown_1000000) != 0) {
+    if ((unit->flags & _unit_flag_suspended) != 0) {
         solve.result_velocity.i = global_origin3d_pointer->x;
         solve.result_velocity.j = global_origin3d_pointer->y;
         solve.result_velocity.k = global_origin3d_pointer->z;
@@ -768,7 +768,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
         biped->last_ground_object_index = solve.result_surface_index;
     }
 
-    if ((unit->flags & _unit_flag_unknown_1000000) != 0) {
+    if ((unit->flags & _unit_flag_suspended) != 0) {
         solve.velocity.i = global_origin3d_pointer->x;
         solve.velocity.j = global_origin3d_pointer->y;
         solve.velocity.k = global_origin3d_pointer->z;

@@ -87,7 +87,7 @@ uint8_t RecordedAnimationPlayer::start(int16_t scenario_animation_index, uint16_
     unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data + k_unit_data_offset);
     unit->flags = unit->flags & ~to_bits(halo::units::unit_flag::controllable);
     unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data + k_unit_data_offset);
-    unit->flags = unit->flags | _unit_flag_unknown_8000000;
+    unit->flags = unit->flags | _unit_flag_possessed_by_recording;
 
     halo::objects::object_set_in_pvs_pass_flag(unit_index, 0);
     record->flags = record->flags | extra_flags;
@@ -228,7 +228,7 @@ void RecordedAnimationPlayer::update_all()
             }
             header = &((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(record->unit_index)];
             unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
-            unit->flags = unit->flags & ~(uint32_t)_unit_flag_unknown_8000000; 
+            unit->flags = unit->flags & ~(uint32_t)_unit_flag_possessed_by_recording; 
 
             halo::units::unit_refresh_targeting_flag_and_weapons(record->unit_index, 0);
 

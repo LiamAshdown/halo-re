@@ -1465,7 +1465,7 @@ void PlayerView::reset_gauge_if_flagged()
     }
 
     unit = halo::game::unit_data_of(halo::game::object_at(p->unit));
-    if ((unit->flags & _unit_flag_unknown_10) != 0) {
+    if ((unit->flags & _unit_flag_active_camouflaged) != 0) {
         unit->active_camouflage_power = 0.5f;
     }
 }
@@ -1569,7 +1569,7 @@ uint8_t KillStreak::add_kill_streak(int32_t slot, int16_t amount)
     }
     if (slot == 0) {
         object *unit = halo::objects::object_try_and_get(p->unit, _object_mask_unit);
-        if (unit == 0 || ((halo::game::unit_data_of(unit))->flags & _unit_flag_unknown_10) != 0) {
+        if (unit == 0 || ((halo::game::unit_data_of(unit))->flags & _unit_flag_active_camouflaged) != 0) {
             return 0;
         }
     }
@@ -1659,7 +1659,7 @@ void KillStreak::set_max(int16_t slot, int16_t value)
 
     if (*streak == 0 && slot == 0) {
         unit_data *unit = halo::game::unit_data_of(halo::game::object_at(p->unit));
-        unit->flags = unit->flags | _unit_flag_unknown_10;
+        unit->flags = unit->flags | _unit_flag_active_camouflaged;
         unit->active_camouflage_regrowth = slot;
     }
 
@@ -1686,7 +1686,7 @@ void KillStreak::tick()
             p->kill_streak[slot] = p->kill_streak[slot] - 1;
             if (p->kill_streak[slot] == 0 && slot == 0) {
                 unit_data *unit = halo::game::unit_data_of(halo::game::object_at(p->unit));
-                unit->flags = unit->flags & ~_unit_flag_unknown_10;
+                unit->flags = unit->flags & ~_unit_flag_active_camouflaged;
             }
         }
     }

@@ -116,19 +116,19 @@ typedef enum unit_animation_state {
     _unit_animation_state_idle = 0,
     _unit_animation_state_unknown_02 = 2,      // unit_update_facing treats 2 and 3 as the
     _unit_animation_state_unknown_03 = 3,      //   two turning-in-place states
-    _unit_animation_state_unknown_17 = 0x17,   // 0x566de0 land / stand transition source
-    _unit_animation_state_unknown_18 = 0x18,   // 0x55e840 idle-basis refresh trigger
+    _unit_animation_state_hard_ping = 0x17,   // 0x566de0 land / stand transition source
+    _unit_animation_state_dying_airborne = 0x18,   // 0x55e840 idle-basis refresh trigger
     _unit_animation_state_ready_weapon = 0x19, // 0x569a20 sets it when readying a weapon
     _unit_animation_state_seat_enter = 0x1a,   // unit_enter_vehicle_seat (0x566970)
     _unit_animation_state_seat_exit = 0x1b,    // 0x56b5f0, 0x56c470, 0x56ab50, 0x5674a0
     _unit_animation_state_custom_animation = 0x1c, // unit_start_user_animation (0x5702a0),
                                                //   unit_get_custom_animation_time_remaining
     _unit_animation_state_scripted_action = 0x1d,  // 0x569530 starts the action animation
-    _unit_animation_state_unknown_1f = 0x1f,
+    _unit_animation_state_melee_airborne = 0x1f,
     _unit_animation_state_throwing_grenade = 0x21, // unit_begin_throw_grenade (0x56e080)
-    _unit_animation_state_unknown_25 = 0x25,   // forced on a seat occupant that is being
+    _unit_animation_state_opening = 0x25,   // forced on a seat occupant that is being
                                                //   ejected (0x5590a0, 0x5674a0, 0x568610)
-    _unit_animation_state_unknown_29 = 0x29
+    _unit_animation_state_leap_melee = 0x29
 } unit_animation_state;
 
 // ---------------------------------------------------------------------------
@@ -141,25 +141,25 @@ typedef enum unit_flags {
                                                //   an actor nor a swarm reference; unit_update
                                                //   then drives the aiming vectors off the
                                                //   object basis instead of off control input
-    _unit_flag_unknown_10 = 0x00000010,        // unit_update, paired with 0x80000
-    _unit_flag_unknown_20 = 0x00000020,
+    _unit_flag_active_camouflaged = 0x00000010,        // unit_update, paired with 0x80000
+    _unit_flag_super_camouflaged = 0x00000020,
     _unit_flag_disoriented = 0x00000080,       // 0x5705a0 sets it with the stun timer
     _unit_flag_permutation_dirty = 0x00000100, // 0x561620 runs 0x561990 then clears it
     _unit_flag_unknown_200 = 0x00000200,       // 0x562030
-    _unit_flag_unknown_1000 = 0x00001000,      // gates evade (0x55e190) and fall damage
-    _unit_flag_unknown_2000 = 0x00002000,      // set by both seat-teardown paths
-    _unit_flag_unknown_4000 = 0x00004000,      // suppresses turning in unit_update_facing
+    _unit_flag_no_falling_damage = 0x00001000,      // gates evade (0x55e190) and fall damage
+    _unit_flag_feign_death_allowed = 0x00002000,      // set by both seat-teardown paths
+    _unit_flag_aim_without_turning = 0x00004000,      // suppresses turning in unit_update_facing
     _unit_flag_detached = 0x00008000,          // unit_detach_from_parent (0x570140), 0x56ff40
     _unit_flag_permutation_chosen = 0x00020000,// 0x568540 caches a random variant once
-    _unit_flag_unknown_80000 = 0x00080000,     // toggled every other tick by unit_update;
+    _unit_flag_integrated_light_on = 0x00080000,     // toggled every other tick by unit_update;
                                                //   0x55b110 forces it off on a network create
     _unit_flag_delete_when_dropped = 0x00100000, // unit_drop_object_from_hand deletes the
                                                //   dropped object when this is set
-    _unit_flag_unknown_800000 = 0x00800000,    // 0x561d50 sets or clears it over a chain
-    _unit_flag_unknown_1000000 = 0x01000000,   // 0x56a290
+    _unit_flag_impervious = 0x00800000,    // 0x561d50 sets or clears it over a chain
+    _unit_flag_suspended = 0x01000000,   // 0x56a290
     _unit_flag_idle_turn_seeded = 0x02000000,  // 0x570650 seeds the idle turn angle once
-    _unit_flag_unknown_4000000 = 0x04000000,   // unit_update flips it, gated on 0x2a3
-    _unit_flag_unknown_8000000 = 0x08000000,
+    _unit_flag_integrated_night_vision_on = 0x04000000,   // unit_update flips it, gated on 0x2a3
+    _unit_flag_possessed_by_recording = 0x08000000,
     _unit_flag_unknown_80000000 = 0x80000000   // tested as (char)flags < 0 by 0x5590a0 and
                                                //   by 0x566de0
 } unit_flags;
@@ -174,12 +174,12 @@ typedef enum unit_flags {
 typedef enum unit_control_flags {
     _unit_control_flag_crouch = 0x0001,        // vehicle_update gates the brake on it
     _unit_control_flag_jump = 0x0002,          // 0x55ec90 counts ticks of it
-    _unit_control_flag_unknown_4 = 0x0004,
-    _unit_control_flag_unknown_8 = 0x0008,
-    _unit_control_flag_unknown_10 = 0x0010,    // unit_update, only when the seat allows it
+    _unit_control_flag_user_animation_1 = 0x0004,
+    _unit_control_flag_user_animation_2 = 0x0008,
+    _unit_control_flag_integrated_light = 0x0010,    // unit_update, only when the seat allows it
     _unit_control_flag_exact_facing = 0x0020,  // unit_update_facing skips the rate limit
     _unit_control_flag_action = 0x0040,        // biped_update uses it to enter a seat
-    _unit_control_flag_unknown_80 = 0x0080,
+    _unit_control_flag_use_equipment = 0x0080,
     _unit_control_flag_look_dont_turn = 0x0100,// unit_update_facing refuses to turn the body
     _unit_control_flag_force_alert = 0x0200,   // 0x565420
     _unit_control_flag_reload = 0x0400,        // unit_update

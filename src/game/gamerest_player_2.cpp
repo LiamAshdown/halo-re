@@ -359,7 +359,7 @@ void KillStreak::begin(int16_t slot)
     unit_data *unit = halo::game::unit_data_of(halo::game::object_at(p->unit));
 
     if (slot == 0) {
-        unit->flags = unit->flags | _unit_flag_unknown_10;
+        unit->flags = unit->flags | _unit_flag_active_camouflaged;
         unit->active_camouflage_regrowth = 0;
     }
 }
