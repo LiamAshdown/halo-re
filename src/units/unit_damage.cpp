@@ -587,7 +587,7 @@ void halo::units::unit_process_melee_special_interaction(uint32_t attacker_index
         halo::objects::object_delete(attacker_index);
         return;
     }
-    if (!(test_flag(unit_flags, tags::unit_tag_flag::impact_melee_attaches_to_unit)) || !((1u << ((uint8_t)target->type & 0x1f)) & _object_mask_unit) || (test_flag(target->vitality_flags, objects::vitality_flag::health_frozen))) {
+    if (!(test_flag(unit_flags, tags::unit_tag_flag::impact_melee_attaches_to_unit)) || !((halo::objects::object_type_mask_of((uint8_t)target->type)) & _object_mask_unit) || (test_flag(target->vitality_flags, objects::vitality_flag::health_frozen))) {
         return;
     }
     {

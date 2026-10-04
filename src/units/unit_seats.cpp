@@ -1205,7 +1205,7 @@ int16_t halo::units::unit_seat_candidates_from_zone_and_enter(datum_index vehicl
         object *candidate = reinterpret_cast<object *>(halo::objects::object_record_bytes(candidate_index));
         int16_t i;
 
-        if (!((1u << ((uint8_t)candidate->type & 0x1f)) & _object_mask_unit) || (test_flag(vehicle->vitality_flags, objects::vitality_flag::health_frozen))) {
+        if (!((halo::objects::object_type_mask_of((uint8_t)candidate->type)) & _object_mask_unit) || (test_flag(vehicle->vitality_flags, objects::vitality_flag::health_frozen))) {
             continue;
         }
         for (i = 0; i < seat_count; i++) {

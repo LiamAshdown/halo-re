@@ -438,7 +438,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
         uint8_t blocked;
         uint32_t flags;
 
-        if (apply && ((1u << ((uint8_t)target->base.type & 0x1f)) & _object_mask_unit) && effect->damage_aoe_core_radius > 9.999999747378752e-05f) {
+        if (apply && ((halo::objects::object_type_mask_of((uint8_t)target->base.type)) & _object_mask_unit) && effect->damage_aoe_core_radius > 9.999999747378752e-05f) {
 
             real_vector3d to_center;
             real_vector3d side_a;
@@ -504,7 +504,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
             apply = 0;
         } else if (apply && test_flag(flags, tags::damage_effect_damage_tag_flag::infection_form_pop)) {
             apply = 0;
-            if (((1u << ((uint8_t)target->base.type & 0x1f)) & _object_mask_unit) &&
+            if (((halo::objects::object_type_mask_of((uint8_t)target->base.type)) & _object_mask_unit) &&
                 (halo::objects::tag_as<Item>(target->base.definition_tag)->item_flags & 0x80000) &&
                 target_index != dd->responsible_object) {
                 real scale = halo::game::weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty);
@@ -1143,7 +1143,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
             obj->base.recent_body_damage = 1.0f;
         }
     }
-    if (g_0087abc0 && *vitality < 0.0f && ((1u << ((uint8_t)obj->base.type & 0x1f)) & _object_mask_unit)) {
+    if (g_0087abc0 && *vitality < 0.0f && ((halo::objects::object_type_mask_of((uint8_t)obj->base.type)) & _object_mask_unit)) {
         if (obj->unit.controlling_player != k_datum_index_none) {
             *vitality = 0.0f;
         } else if (obj->base.type == _object_type_vehicle) {
@@ -1152,7 +1152,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
             while (child != k_datum_index_none) {
                 unit_object *child_obj = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(child));
 
-                if (((1u << ((uint8_t)child_obj->base.type & 0x1f)) & _object_mask_unit) &&
+                if (((halo::objects::object_type_mask_of((uint8_t)child_obj->base.type)) & _object_mask_unit) &&
                     child_obj->unit.controlling_player != k_datum_index_none) {
                     *vitality = 0.0f;
                     break;
@@ -1482,7 +1482,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
             halo::game::game_engine_on_player_death(player_index, target_index, player_index, 1);
         }
     }
-    if ((1u << ((uint8_t)obj->base.type & 0x1f)) & _object_mask_unit) {
+    if ((halo::objects::object_type_mask_of((uint8_t)obj->base.type)) & _object_mask_unit) {
         halo::units::unit_apply_damage_effects(target_index, dd, notify_flags, shield_damage, body_damage, region_index,
             (uint8_t)is_local);
     }
