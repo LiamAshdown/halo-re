@@ -1865,26 +1865,27 @@ program *select_program(draw_setup &setup)
             sbuf wrapper = {};
 
             sb_printf(wrapper, "uniform float u_alpha_ref;\nvoid main()\n{\n    mojo_main();\n");
-            alpha_test_glsl(wrapper, alpha_function, "gl_FragData[0].a");
+            // ps_oC0 is MojoShader's name for the colour output (gl_FragColor or gl_FragData[0]): reading the other one is undefined
+            alpha_test_glsl(wrapper, alpha_function, "ps_oC0.a");
             {
                 // HALO_GL_PSDEBUG=<n>: show one input of a translated pixel shader instead of its result
                 // 1 vertex colour, 2 secondary colour, 3 texture coordinate 0, 4..7 sampler 0..3 (2D only)
                 const char *mode = getenv("HALO_GL_PSDEBUG");
                 int which = mode != nullptr ? atoi(mode) : 0;
 
-                if (which == 1) sb_printf(wrapper, "    gl_FragData[0] = vec4(gl_Color.rgb, 1.0);\n");
-                else if (which == 2) sb_printf(wrapper, "    gl_FragData[0] = vec4(gl_SecondaryColor.rgb, 1.0);\n");
-                else if (which == 3) sb_printf(wrapper, "    gl_FragData[0] = vec4(fract(gl_TexCoord[0].xy), 0.0, 1.0);\n");
+                if (which == 1) sb_printf(wrapper, "    ps_oC0 = vec4(gl_Color.rgb, 1.0);\n");
+                else if (which == 2) sb_printf(wrapper, "    ps_oC0 = vec4(gl_SecondaryColor.rgb, 1.0);\n");
+                else if (which == 3) sb_printf(wrapper, "    ps_oC0 = vec4(fract(gl_TexCoord[0].xy), 0.0, 1.0);\n");
                 else if (which >= 4 && which <= 7) {
                     for (int s = 0; s < ps->parse->sampler_count; s++) {
                         if (ps->parse->samplers[s].index == which - 4 && ps->parse->samplers[s].type == MOJOSHADER_SAMPLER_2D) {
-                            sb_printf(wrapper, "    gl_FragData[0] = vec4(texture2D(%s, gl_TexCoord[%d].xy).rgb, 1.0);\n", ps->parse->samplers[s].name, which - 4);
+                            sb_printf(wrapper, "    ps_oC0 = vec4(texture2D(%s, gl_TexCoord[%d].xy).rgb, 1.0);\n", ps->parse->samplers[s].name, which - 4);
                         }
                     }
                 }
             }
             if (getenv("HALO_GL_FORCEWHITE") != nullptr) {
-                sb_printf(wrapper, "    gl_FragData[0] = vec4(1.0);\n");
+                sb_printf(wrapper, "    ps_oC0 = vec4(1.0);\n");
             }
             sb_printf(wrapper, "}\n");
             wrapped_pixel = wrap_main(ps->parse->output, wrapper.text);

@@ -80,3 +80,8 @@ unchanged and translate them; the engine code above the interface is not rewritt
   20-byte CTAB header, ps_1_4 `texld` and `_dz/_dw`, pass states that name a shader variable. The menu draws with no skipped draws or translation errors.
   Not verified: in-game levels (`-exec map_name` does not leave the menu in either backend in the cmake build, so world/model/water/decal parity needs a way to start a level),
   fixed-function lighting/fog, process_vertices, GLES3 profile.
+
+- 2026-10-04: level geometry no longer black. Cause: the pixel-shader wrapper (alpha test, HALO_GL_FORCEWHITE, HALO_GL_PSDEBUG) read and wrote
+  `gl_FragData[0]` while MojoShader's translation writes `gl_FragColor`, so the alpha test compared an undefined value and discarded every fragment of
+  alpha-tested draws (most world/model draws). The wrapper now uses MojoShader's own `ps_oC0` name. The skinning path (vs 91, c29+3*bone) was checked and
+  gives in-range clip positions. The campaign start now shows the ship interior, marines and first-person weapon; brightness against D3D9 not compared yet.
