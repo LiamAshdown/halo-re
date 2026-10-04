@@ -341,7 +341,7 @@ typedef struct object {
                                     //       weapon_new and equipment_new zero it together with
                                     //       their three per-type network bytes when the game is
                                     //       a network client or server (0x00719720 == 1 or 2)
-    uint8_t unknown_00a[2];         // 0x00a
+    uint8_t pad_00a[2];             // 0x00a
     int32_t network_update_tick;    // 0x00c game tick stamp, -1 = never (-1 at create).
                                     //       projectile_is_old_enough 0x4c1270: -1 counts as
                                     //       old, else game_time >= stamp + [0x006894c8]
@@ -357,15 +357,15 @@ typedef struct object {
     // the SCENARIO placement entries it walks (placements.address + i * stride), never of an
     // object, so no object field carries that mask.
     uint8_t network_position_valid; // 0x018 zeroed at create, 1 once an update is accepted
-    uint8_t unknown_019[3];         // 0x019
+    uint8_t pad_019[3];             // 0x019
     real_point3d network_position;  // 0x01c
-    uint8_t unknown_028[0x1c];      // 0x028
+    uint8_t last_server_orientation[0x1c]; // 0x028
     uint8_t network_velocity_valid; // 0x044
-    uint8_t unknown_045[3];         // 0x045
+    uint8_t pad_045[3];             // 0x045
     real_vector3d network_velocity; // 0x048
     uint8_t network_timestamp_valid;// 0x054 object_nudge_position_by_velocity (0x4f7c40)
                                     //       requires 0x18, 0x44 and this byte all == 1
-    uint8_t unknown_055[3];         // 0x055
+    uint8_t pad_055[3];             // 0x055
     uint32_t network_timestamp;     // 0x058 millisecond stamp; 0x4f7c40 subtracts it from
                                     //       time_query_performance_counter_ms (0x449210) and
                                     //       extrapolates network_position along velocity
@@ -382,7 +382,7 @@ typedef struct object {
     float bounding_radius;          // 0x0ac written by every bounding-radius variant
     float scale;                    // 0x0b0 multiplies the radius when non-zero
     int16_t type;                   // 0x0b4 object_type, copied from Object tag offset 0
-    int16_t unknown_0b6;            // 0x0b6
+    int16_t render_flags;           // 0x0b6
     int16_t owner_team;             // 0x0b8 the owning team (formerly name_index). Copied from
                                     //       object_placement_data.owner_team; 0x42b8f4/0x42b8fb
                                     //       load it from two objects into CX/DX for
@@ -401,7 +401,7 @@ typedef struct object {
                                     //       projectile_send_creation resolves it through the
                                     //       object network hash table and projectile_new walks
                                     //       it up parent_object to find the firing unit
-    uint32_t unknown_0c8;           // 0x0c8
+    uint32_t owner_object_definition_index; // 0x0c8
     datum_index animation_graph;    // 0x0cc from Object tag animation_graph TagID
     int16_t animation_index;        // 0x0d0 -1 at create; object_start_animation
     int16_t animation_frame;        // 0x0d2 object_animation_get_frames_remaining
@@ -423,7 +423,7 @@ typedef struct object {
     int32_t body_damage_ticks;      // 0x100 -1 at create
     int16_t shield_stun_ticks;      // 0x104 game tick stamp taken from the tick counter
     uint16_t vitality_flags;        // 0x106 object_vitality_flags
-    uint32_t unknown_108;           // 0x108
+    uint32_t scenery_idx;           // 0x108
     datum_index placement_id;       // 0x10c -1 at create; object_get_root_parent_placement
                                     //       returns it for the root of an attachment chain
     datum_index next_tracked_object;// 0x110 singly linked list rooted at object_globals 0x08
@@ -431,7 +431,7 @@ typedef struct object {
     datum_index first_child_object; // 0x118
     datum_index parent_object;      // 0x11c -1 when unattached; the chain every root walk follows
     uint8_t parent_marker_index;    // 0x120 0xff when unattached
-    uint8_t unknown_121;            // 0x121
+    uint8_t pad_121;                // 0x121
     uint8_t shield_update_pending;  // 0x122 set by object_shield_recharge_start and object_apply_damage (shield hit);
                                     //    unit_submit_periodic_network_update reads it to send shield_vitality/3 then
                                     //    clears it

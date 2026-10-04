@@ -458,7 +458,7 @@ typedef struct unit_data {
                                         //       unit_update increments it
     int16_t throwing_grenade_duration;  // 0x290 unit_release_thrown_grenade divides the
                                         //       counter by it to get the throw fraction
-    int16_t unknown_292;                // 0x292
+    int16_t pad_292;                    // 0x292
     datum_index throwing_grenade_projectile; // 0x294 the grenade object attached to the hand,
                                         //       -1 once released
     uint16_t animation_state_flags;     // 0x298 unit_animation_state_flags
@@ -505,13 +505,13 @@ typedef struct unit_data {
                                         //    (0x563b50); decays 0.1 per tick
                                         //       unit block by it; unit_update decays it
                                         //       toward 0 each tick
-    uint32_t unknown_2ec;               // 0x2ec
+    uint32_t last_entrance_attempt;     // 0x2ec
     int16_t vehicle_seat_index;         // 0x2f0 index into the Unit tag seats block of the parent
                                         //       (stride 0x11c), -1 when not seated
     int16_t current_weapon_index;       // 0x2f2 slot in weapons[], -1 when unarmed
     int16_t desired_weapon_index;       // 0x2f4 unit_control_data.weapon_index;
                                         //       unit_ready_desired_weapon consumes it
-    int16_t unknown_2f6;                // 0x2f6
+    int16_t pad_2f6;                    // 0x2f6
     datum_index weapons[4];             // 0x2f8 the inventory; 0x56d660 returns the first -1
     int32_t weapon_ready_ticks[4];      // 0x308 zeroed when a weapon is picked up; 0x56dba0
                                         //       picks the lowest when choosing a replacement
@@ -625,7 +625,7 @@ typedef struct unit_data {
     int32_t ai_communication_tick;      // 0x42c tick of the last hit; the count resets after
                                         //       0x78 ticks
     unit_recent_damage recent_damage[4];// 0x430 the four-slot damage cache
-    uint32_t unknown_470;               // 0x470
+    uint32_t user_animation_indices;    // 0x470
     int8_t network_update_forced;       // 0x474 set on the server for trigger / grenade controls and by
                                         //    unit_detach_reposition_and_nudge; cleared by both network update
                                         //    encoders
@@ -640,7 +640,7 @@ typedef struct unit_data {
     int32_t control_update_id;          // 0x4bc the network update id of the control record; the queued position with
                                         //    this tick is applied
                                         //       unit_update reads it back
-    uint8_t unknown_4c0[12];            // 0x4c0 untouched by this module
+    uint8_t position_after_completing_last_client_update[12]; // 0x4c0 untouched by this module
 } unit_data;                            // size 0x2d8 (object 0x1f4 .. 0x4cc)
 
 #ifdef HALO_TYPES_OBJECTS_H

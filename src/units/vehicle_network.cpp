@@ -95,7 +95,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     memcpy(vehicle + 0x38, &baseline.up, 12);
     ((struct object *)vehicle)->network_position_valid = 1;
     ((struct object *)vehicle)->network_velocity_valid = 1;
-    ((struct object *)vehicle)->unknown_028[0] = 1;
+    ((struct object *)vehicle)->last_server_orientation[0] = 1;
     if (baseline.object_flag_5 == 0) {
         clear_flag(((unit_object *)vehicle)->base.flags, objects::object_flag::at_rest);
     }
