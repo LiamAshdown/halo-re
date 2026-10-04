@@ -277,7 +277,7 @@ void ConsoleTerminal::draw_overlay(void)
         hud_text_draw_color_b = halo::main::globals().console_active->color.blue;
         hud_text_draw_color_or_flags = halo::k_word_none;
         halo::text::globals().hud_text_draw_column = 0;
-        halo::text::globals().hud_text_draw_unknown_4730 = 0;
+        halo::text::globals().hud_text_draw_flags = 0;
 
         if (console_caret_visible != 0) {
             cursor = halo::main::globals().console_active->edit.cursor + (int16_t)strlen(halo::main::globals().console_active->prompt);
@@ -322,7 +322,7 @@ void ConsoleTerminal::draw_overlay(void)
             }
             hud_text_draw_color_or_flags = halo::k_word_none;
             halo::text::globals().hud_text_draw_column = 0;
-            halo::text::globals().hud_text_draw_unknown_4730 = 0;
+            halo::text::globals().hud_text_draw_flags = 0;
             hud_text_draw_font_tag_id = font_terminal_id;
             {
                 Rectangle2D rect;

@@ -124,7 +124,7 @@ void HudNameplates::draw_teammate_nameplate_text(wchar_t *text, int32_t value)
 
     hud_text_draw_font_tag_id = (int32_t)interface_bitmaps->font_terminal.tag_id.index |
                                  ((int32_t)interface_bitmaps->font_terminal.tag_id.id << 16);
-    halo::text::globals().hud_text_draw_unknown_4730 = 8;
+    halo::text::globals().hud_text_draw_flags = 8;
     hud_text_draw_color_r = 0.45882353f;
     *(int32_t *)&hud_text_draw_color_a = value;
     hud_text_draw_color_b = 1.0f;
@@ -140,7 +140,7 @@ void HudNameplates::draw_teammate_nameplate_text(wchar_t *text, int32_t value)
 
     hud_text_draw_color_or_flags = 0xffffu;
     halo::text::globals().hud_text_draw_column = 0;
-    halo::text::globals().hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_flags = 0;
     halo::text::globals().hud_text_draw_background_mode = 0;
 }
 
@@ -297,7 +297,7 @@ void HudText::scoreboard_row_text(int16_t row, wchar_t *text, int16_t column)
 
     hud_text_draw_color_or_flags = 0xffffu;
     halo::text::globals().hud_text_draw_column = column;
-    halo::text::globals().hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_flags = 0;
 
     safe_left = (int16_t)(render_viewport_top >> 16);
     bounds.top = (int16_t)(row * 0x12);
@@ -368,7 +368,7 @@ int32_t HudText::world_relative_text(hud_world_text_params *params, int16_t row,
         hud_text_draw_color_b = b;
         hud_text_draw_color_or_flags = 0xffffu;
         halo::text::globals().hud_text_draw_column = 0;
-        halo::text::globals().hud_text_draw_unknown_4730 = 0;
+        halo::text::globals().hud_text_draw_flags = 0;
         hud_text_draw_font_tag_id = font_terminal_id;
         hud_text_draw_color_a = params->alpha;
 

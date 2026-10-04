@@ -23,7 +23,7 @@ static_assert(offsetof(Bitmap, bitmap_data) == 0x60 && sizeof(light) == 0x7c, "b
 static auto &default_axis_b = halo::link::ref<real_vector3d *>(halo::game::vars().default_axis_b);
 static auto &light_data = halo::link::ref<data_array *>(halo::objects::vars().light_data);
 static auto &light_frame_counter = halo::link::ref<int32_t>(halo::objects::vars().light_frame_counter);
-static auto &light_render_unknown_7c0 = halo::link::ref<uint8_t>(halo::objects::vars().light_render_unknown_7c0);
+static auto &light_gather_in_progress = halo::link::ref<uint8_t>(halo::objects::vars().light_gather_in_progress);
 static auto &object_ambient_lightmap_default = halo::link::ref<real_vector3d *>(halo::objects::vars().object_ambient_lightmap_default);
 static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
 static auto &object_lighting_ambient_bias = halo::link::ref<float>(halo::objects::vars().object_lighting_ambient_bias);
@@ -116,10 +116,10 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
         int32_t i;
 
         light_frame_counter++;
-        light_render_unknown_7c0 = 1;
+        light_gather_in_progress = 1;
         halo::objects::object_lights_gather_nearest(location->cluster_index, k_datum_index_none, point, 0.0f, indices, scores,
             weights, &count, 2);
-        light_render_unknown_7c0 = 0;
+        light_gather_in_progress = 0;
 
         for (i = 0; i < count; i++) {
             light &entry = reinterpret_cast<light *>(light_data->data)[halo::datum_slot(indices[i])];
@@ -392,7 +392,7 @@ void halo::objects::ObjectLighting::gather_light_list(render_lighting *out)
 
     *count = 0;
     light_frame_counter = light_frame_counter + 1;
-    light_render_unknown_7c0 = 1;
+    light_gather_in_progress = 1;
     cluster = halo::objects::object_get_root_parent_placement(object_index, &cursor);
     while (cluster != -1) {
         halo::objects::object_lights_gather_nearest(cluster, object_index, &center, radius, indices, intensities,
@@ -407,7 +407,7 @@ void halo::objects::ObjectLighting::gather_light_list(render_lighting *out)
             cluster = static_cast<int16_t>(reference.object_index);
         }
     }
-    light_render_unknown_7c0 = 0;
+    light_gather_in_progress = 0;
     for (i = 0; i < *count; i++) {
         indices[i] = reinterpret_cast<light *>(light_data->data)[halo::datum_slot(indices[i])].queue_slot;
     }

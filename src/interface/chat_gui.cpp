@@ -66,7 +66,7 @@ int16_t begin_text()
     hud_text_draw_color_b = 1.0f;
     hud_text_draw_color_or_flags = halo::k_word_none;
     halo::text::globals().hud_text_draw_column = 0;
-    halo::text::globals().hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_flags = 0;
     hud_text_draw_font_tag_id = font_id;
     return static_cast<int16_t>(font->ascending_height + font->descending_height + font->leading_height);
 }

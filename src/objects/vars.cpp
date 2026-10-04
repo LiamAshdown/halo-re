@@ -33,7 +33,7 @@ const Vars &vars()
         light_data,
         light_frame_counter,
         light_object_references,
-        light_render_unknown_7c0,
+        light_gather_in_progress,
         light_transient_count,
         light_transient_count_or_queue,
         light_transient_table,

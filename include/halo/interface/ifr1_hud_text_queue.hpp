@@ -23,7 +23,7 @@ namespace halo::interface {
  */
 class HudTextQueue {
 public:
-    static void draw_configure(int16_t font_table_index, uint16_t color_or_flags, int16_t column, uint32_t unknown_4730, int16_t color_table_index, int16_t color_index);
+    static void draw_configure(int16_t font_table_index, uint16_t color_or_flags, int16_t column, uint32_t flags, int16_t color_table_index, int16_t color_index);
     static int32_t message_queue_add(uint16_t *text, int32_t start_time, int32_t tag);
     static uint32_t message_queue_init(void);
     static uint32_t message_queue_update_and_draw(widget_instance *widget);

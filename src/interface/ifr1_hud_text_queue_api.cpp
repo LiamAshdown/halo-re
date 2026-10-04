@@ -5,13 +5,13 @@ namespace halo::interface {
 
 /**
  * C ABI entry point; forwards to halo::interface::HudTextQueue::draw_configure.
- * blam-cc: stack -> (font_table_index, color_or_flags, column, unknown_4730, color_table_index,
+ * blam-cc: stack -> (font_table_index, color_or_flags, column, flags, color_table_index,
  *
  * @address 0x4944c0
  */
-void hud_text_draw_configure(int16_t font_table_index, uint16_t color_or_flags, int16_t column, uint32_t unknown_4730, int16_t color_table_index, int16_t color_index)
+void hud_text_draw_configure(int16_t font_table_index, uint16_t color_or_flags, int16_t column, uint32_t flags, int16_t color_table_index, int16_t color_index)
 {
-    halo::interface::HudTextQueue::draw_configure(font_table_index, color_or_flags, column, unknown_4730, color_table_index, color_index);
+    halo::interface::HudTextQueue::draw_configure(font_table_index, color_or_flags, column, flags, color_table_index, color_index);
 }
 
 /**

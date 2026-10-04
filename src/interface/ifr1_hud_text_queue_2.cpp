@@ -20,7 +20,7 @@ static auto &hud_text_message_hold_color = halo::link::ref<ColorARGB *>(halo::ui
 static auto &hud_text_message_normal_color = halo::link::ref<ColorARGB *>(halo::ui::vars().hud_text_message_normal_color);
 static auto &hud_text_draw_font_tag_id = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_font_tag_id);
 static auto &hud_text_draw_color_or_flags = halo::link::ref<uint32_t>(halo::ui::vars().hud_text_draw_color_or_flags);
-static auto &hud_text_draw_unknown_4730 = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_unknown_4730);
+static auto &hud_text_draw_flags = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_flags);
 static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
 #include "halo/interface/wide_text.hpp"
 
@@ -127,7 +127,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
             hud_text_draw_font_tag_id = *(int32_t *)&((struct UIWidgetDefinition *)tag)->text_font.tag_id;
             halo::text::globals().hud_text_draw_color_a = *color;
             hud_text_draw_color_or_flags = halo::k_word_none | (2u << 16);
-            hud_text_draw_unknown_4730 = 0;
+            hud_text_draw_flags = 0;
             halo::interface::draw_text16(&clip, &dest, entry->text);
         }
     }

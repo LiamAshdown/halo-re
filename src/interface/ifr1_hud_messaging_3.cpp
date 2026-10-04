@@ -60,7 +60,7 @@ static void hud_messaging_set_text_state(datum_index font, const ColorARGB *colo
     hud_text_draw_color_b = color->blue;
     hud_text_draw_color_or_flags = halo::k_word_none;
     halo::text::globals().hud_text_draw_column = 0;
-    halo::text::globals().hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_flags = 0;
 }
 
 static void hud_messaging_draw_button_icon(int16_t button_icon, Rectangle2D *cursor, Rectangle2D *line)

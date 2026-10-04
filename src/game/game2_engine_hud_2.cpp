@@ -93,7 +93,7 @@ void EngineHud::post_rasterize_post_game(void)
     post_game_set_text_color(color_normal);
     hud_text_draw_color_or_flags = 0xffffu;
     halo::text::globals().hud_text_draw_column = 0;
-    halo::text::globals().hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_flags = 0;
 
     interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
         ? (GlobalsInterfaceBitmaps *)0

@@ -22,8 +22,8 @@ static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::var
 static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
 static auto &slayer_team_score = halo::link::ref<int32_t [16]>(halo::game::vars().slayer_team_score);
 static auto &slayer_player_score = halo::link::ref<int32_t [16]>(halo::game::vars().slayer_player_score);
-static auto &slayer_unknown_0087a4a0 = halo::link::ref<int32_t [16]>(halo::game::vars().slayer_unknown_0087a4a0);
-static auto &slayer_unknown_0087a4e0 = halo::link::ref<int32_t [16]>(halo::game::vars().slayer_unknown_0087a4e0);
+static auto &slayer_team_score_decode_buffer = halo::link::ref<int32_t [16]>(halo::game::vars().slayer_team_score_decode_buffer);
+static auto &slayer_team_score_decode_buffer_tail = halo::link::ref<int32_t [16]>(halo::game::vars().slayer_team_score_decode_buffer_tail);
 static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
@@ -155,8 +155,8 @@ uint8_t SlayerEngine::initialize_for_new_game(void)
 {
     memset(slayer_team_score, 0, sizeof(slayer_team_score));
     memset(slayer_player_score, 0, sizeof(slayer_player_score));
-    memset(slayer_unknown_0087a4a0, 0, sizeof(slayer_unknown_0087a4a0));
-    memset(slayer_unknown_0087a4e0, 0, sizeof(slayer_unknown_0087a4e0));
+    memset(slayer_team_score_decode_buffer, 0, sizeof(slayer_team_score_decode_buffer));
+    memset(slayer_team_score_decode_buffer_tail, 0, sizeof(slayer_team_score_decode_buffer_tail));
     return 1;
 }
 
@@ -297,13 +297,13 @@ void SlayerEngine::profile_post_update(void **context)
     uint8_t changed;
 
     if (state->incremental == 0) {
-        changed = halo::networking::message_delta_decode_compound_field(context, slayer_unknown_0087a4a0);
+        changed = halo::networking::message_delta_decode_compound_field(context, slayer_team_score_decode_buffer);
     } else {
-        changed = read_changed(context, slayer_unknown_0087a4a0, slayer_team_score);
-        memcpy(slayer_unknown_0087a4a0, slayer_team_score, 0x20 * 4);
+        changed = read_changed(context, slayer_team_score_decode_buffer, slayer_team_score);
+        memcpy(slayer_team_score_decode_buffer, slayer_team_score, 0x20 * 4);
     }
     if (changed == 1) {
-        memcpy(slayer_team_score, slayer_unknown_0087a4a0, 0x20 * 4);
+        memcpy(slayer_team_score, slayer_team_score_decode_buffer, 0x20 * 4);
     }
 }
 
@@ -322,14 +322,14 @@ void SlayerEngine::profiles_updated(int32_t mode, int32_t machine_index)
     int32_t bits;
 
     if (mode == 0) {
-        network_fields[0] = slayer_unknown_0087a4a0;
+        network_fields[0] = slayer_team_score_decode_buffer;
         bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::slayer_profiles_updated), 0, network_fields, 0, 1, 0);
     } else {
         items[0] = slayer_team_score;
         items[1] = 0;
-        network_fields[0] = slayer_unknown_0087a4a0;
+        network_fields[0] = slayer_team_score_decode_buffer;
         bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1, halo::networking::message_id(halo::networking::delta_message::slayer_profiles_updated), 0, items, (int32_t)network_fields, 1, 0);
-        memcpy(slayer_unknown_0087a4a0, slayer_team_score, 0x20 * 4);
+        memcpy(slayer_team_score_decode_buffer, slayer_team_score, 0x20 * 4);
     }
     if (bits <= 0) {
         return;

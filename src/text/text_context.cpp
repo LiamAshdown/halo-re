@@ -18,7 +18,7 @@ void text_context::set_render_context(datum_index font, ColorARGB *color, int16_
     globals().hud_text_draw_color_a = *color;
     globals().hud_text_draw_color_or_flags = style;
     globals().hud_text_draw_column = justification;
-    globals().hud_text_draw_unknown_4730 = flags;
+    globals().hud_text_draw_flags = flags;
 }
 
 void text_context::parse_state_initialize(void *string, int16_t justification, int16_t style, text_parse_state *state, datum_index font, ColorARGB *color)
@@ -76,7 +76,7 @@ void text_context::language_initialize_from_string_list(void)
 
         globals().hud_text_draw_font_tag_id = (datum_index)k_datum_index_none;
         globals().hud_text_draw_background_mode = 0;
-        globals().hud_text_draw_unknown_4730 = 0;
+        globals().hud_text_draw_flags = 0;
         globals().hud_text_draw_column = 0;
         globals().ui_prompt_clip_x = 0;
         globals().ui_prompt_clip_y = 0;

@@ -222,7 +222,7 @@ void hud_set_player_message(int16_t message_index, int16_t local_player_index);
 void hud_set_timer_time(int32_t minutes, int32_t seconds);
 void hud_state_allocate(void);
 void hud_state_reset(void);
-void hud_text_draw_configure(int16_t font_table_index, uint16_t color_or_flags, int16_t column, uint32_t unknown_4730, int16_t color_table_index, int16_t color_index);
+void hud_text_draw_configure(int16_t font_table_index, uint16_t color_or_flags, int16_t column, uint32_t flags, int16_t color_table_index, int16_t color_index);
 int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t tag);
 uint32_t hud_text_message_queue_init(void);
 uint32_t hud_text_message_queue_update_and_draw(widget_instance *widget);

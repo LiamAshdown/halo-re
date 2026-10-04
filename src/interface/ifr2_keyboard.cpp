@@ -79,7 +79,7 @@ void VirtualKeyboard::virtual_keyboard_set_text_state(int16_t column)
     hud_text_draw_color_b = 0.9f;
     hud_text_draw_color_or_flags = halo::k_word_none;
     halo::text::globals().hud_text_draw_column = column;
-    halo::text::globals().hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_flags = 0;
 }
 
 /**
@@ -179,7 +179,7 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
     hud_text_draw_color_g = 0.9f;
     hud_text_draw_color_or_flags = halo::k_word_none;
     halo::text::globals().hud_text_draw_column = 2;
-    halo::text::globals().hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_flags = 0;
 
     if (virtual_keyboard.opened == 1) {
         BitmapData *white = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(virtual_keyboard.white_bitmap, 0, 0);

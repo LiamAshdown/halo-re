@@ -13,7 +13,7 @@ extern datum_index hud_text_draw_font_tag_id;
 extern int16_t hud_text_draw_background_mode;
 extern int16_t hud_text_draw_color_or_flags;
 extern int16_t hud_text_draw_column;
-extern uint32_t hud_text_draw_unknown_4730;
+extern uint32_t hud_text_draw_flags;
 extern datum_index text_localization_strings;
 extern float text_color_scale;
 extern int16_t ui_prompt_clip_x;

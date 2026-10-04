@@ -126,7 +126,7 @@ const Vars &vars()
         hud_text_draw_color_or_flags,
         hud_text_draw_color_r,
         hud_text_draw_font_tag_id,
-        hud_text_draw_unknown_4730,
+        hud_text_draw_flags,
         hud_text_message_cycle_state_00719230,
         hud_text_message_hold_color,
         hud_text_message_normal_color,

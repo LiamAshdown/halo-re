@@ -120,7 +120,7 @@ extern char hud_text_draw_color_g[];
 extern char hud_text_draw_color_or_flags[];
 extern char hud_text_draw_color_r[];
 extern char hud_text_draw_font_tag_id[];
-extern char hud_text_draw_unknown_4730[];
+extern char hud_text_draw_flags[];
 extern char hud_text_message_cycle_state_00719230[];
 extern char hud_text_message_hold_color[];
 extern char hud_text_message_normal_color[];

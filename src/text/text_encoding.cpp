@@ -318,7 +318,7 @@ void narrow_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangl
                                 previous_token = token;
                                 continue;
                             }
-                            if ((globals().hud_text_draw_unknown_4730 & _text_flag_word_wrap_bit) != 0) {
+                            if ((globals().hud_text_draw_flags & _text_flag_word_wrap_bit) != 0) {
                                 if (candidate_position > 0) {
                                     flush_end_position = candidate_position;
                                     span_width = candidate_width;
@@ -352,7 +352,7 @@ void narrow_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangl
                 line_bounds.left);
         }
 
-        if ((globals().hud_text_draw_unknown_4730 & _text_flag_draw_past_bottom_bit) != 0 || pen_y < bounds->bottom) {
+        if ((globals().hud_text_draw_flags & _text_flag_draw_past_bottom_bit) != 0 || pen_y < bounds->bottom) {
             narrow_text_strategy::instance().draw_character_range(&line_bounds, callback, &pen, clip, state.color, string, span_start_position, flush_end_position);
         }
 
@@ -604,7 +604,7 @@ void wide_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangle2
                                 previous_token = token;
                                 continue;
                             }
-                            if ((globals().hud_text_draw_unknown_4730 & _text_flag_word_wrap_bit) != 0) {
+                            if ((globals().hud_text_draw_flags & _text_flag_word_wrap_bit) != 0) {
                                 if (candidate_position > 0) {
                                     flush_end_position = candidate_position;
                                     span_width = candidate_width;
@@ -638,7 +638,7 @@ void wide_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangle2
                 line_bounds.left);
         }
 
-        if ((globals().hud_text_draw_unknown_4730 & _text_flag_draw_past_bottom_bit) != 0 || pen_y < bounds->bottom) {
+        if ((globals().hud_text_draw_flags & _text_flag_draw_past_bottom_bit) != 0 || pen_y < bounds->bottom) {
             wide_text_strategy::instance().draw_character_range(&line_bounds, callback, &pen, clip, state.color, string, span_start_position, flush_end_position);
         }
 

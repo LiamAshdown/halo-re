@@ -27,7 +27,7 @@ extern char light_cluster_references[];
 extern char light_data[];
 extern char light_frame_counter[];
 extern char light_object_references[];
-extern char light_render_unknown_7c0[];
+extern char light_gather_in_progress[];
 extern char light_transient_count[];
 extern char light_transient_count_or_queue[];
 extern char light_transient_table[];

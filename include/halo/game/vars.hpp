@@ -195,8 +195,8 @@ struct Vars {
     void *shared_hud_text_draw_state;
     void *slayer_player_score;
     void *slayer_team_score;
-    void *slayer_unknown_0087a4a0;
-    void *slayer_unknown_0087a4e0;
+    void *slayer_team_score_decode_buffer;
+    void *slayer_team_score_decode_buffer_tail;
     void *sound_class_gains;
     void *sqrt_pow_exponent;
     void *sv_friendly_fire_mode;

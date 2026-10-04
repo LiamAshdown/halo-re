@@ -123,7 +123,7 @@ struct Vars {
     void *hud_text_draw_color_or_flags;
     void *hud_text_draw_color_r;
     void *hud_text_draw_font_tag_id;
-    void *hud_text_draw_unknown_4730;
+    void *hud_text_draw_flags;
     void *hud_text_message_cycle_state_00719230;
     void *hud_text_message_hold_color;
     void *hud_text_message_normal_color;

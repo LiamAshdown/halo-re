@@ -35,7 +35,7 @@ struct Globals {
     int16_t &hud_text_draw_background_mode;
     int16_t &hud_text_draw_color_or_flags;
     int16_t &hud_text_draw_column;
-    uint32_t &hud_text_draw_unknown_4730;
+    uint32_t &hud_text_draw_flags;
     datum_index &localization_strings;
     float &color_scale;
     int16_t &ui_prompt_clip_x;

@@ -30,7 +30,7 @@ struct Vars {
     void *light_data;
     void *light_frame_counter;
     void *light_object_references;
-    void *light_render_unknown_7c0;
+    void *light_gather_in_progress;
     void *light_transient_count;
     void *light_transient_count_or_queue;
     void *light_transient_table;

@@ -42,7 +42,7 @@ static auto &light_count_enabled = halo::link::ref<int16_t>(halo::effects::vars(
 static auto &light_data = halo::link::ref<data_array *>(halo::objects::vars().light_data);
 static auto &light_frame_counter = halo::link::ref<int32_t>(halo::objects::vars().light_frame_counter);
 static auto &light_object_references = halo::link::ref<data_array *>(halo::objects::vars().light_object_references);
-static auto &light_render_unknown_7c0 = halo::link::ref<uint8_t>(halo::objects::vars().light_render_unknown_7c0);
+static auto &light_gather_in_progress = halo::link::ref<uint8_t>(halo::objects::vars().light_gather_in_progress);
 static auto &light_transient_count = halo::link::ref<int16_t>(halo::objects::vars().light_transient_count);
 static auto &light_transient_count_or_queue = halo::link::ref<int16_t>(halo::objects::vars().light_transient_count_or_queue);
 static auto &light_transient_table = halo::link::ref<light_transient [k_maximum_transient_lights]>(halo::objects::vars().light_transient_table);
@@ -286,11 +286,11 @@ void halo::objects::LightSystem::update_all()
     }
 
     light_frame_counter++;
-    light_render_unknown_7c0 = 1;
+    light_gather_in_progress = 1;
     light_active_list_count = halo::structures::structure_bsp_collect_visible_objects((int32_t *)light_active_list, 0x80,
         (structure_bsp_object_iterate_begin_fn)halo::objects::light_cluster_iterate_begin, (structure_bsp_object_iterate_next_fn)halo::objects::light_cluster_iterate_next, (structure_bsp_object_get_bounds_fn)halo::objects::light_get_render_bounds,
         (structure_bsp_object_predicate_fn)halo::objects::light_not_marked_this_frame, (structure_bsp_object_accept_fn)halo::objects::light_mark_this_frame);
-    light_render_unknown_7c0 = 0;
+    light_gather_in_progress = 0;
     rasterizer_light_count = 0;
     halo::rasterizer::rasterizer_light_disable_all();
     for (i = 0; i < halo::structures::globals().visible_cluster_count; i++) {

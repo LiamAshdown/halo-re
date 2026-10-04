@@ -25,7 +25,7 @@ Globals &Service::instance()
         ::hud_text_draw_background_mode,
         ::hud_text_draw_color_or_flags,
         ::hud_text_draw_column,
-        ::hud_text_draw_unknown_4730,
+        ::hud_text_draw_flags,
         ::text_localization_strings,
         ::text_color_scale,
         ::ui_prompt_clip_x,

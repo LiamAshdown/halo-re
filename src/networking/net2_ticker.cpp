@@ -28,7 +28,7 @@ static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud
 static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
 static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
 static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
-static auto &hud_text_draw_unknown_4730 = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_unknown_4730);
+static auto &hud_text_draw_flags = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_flags);
 
 
 namespace halo::networking {
@@ -57,7 +57,7 @@ void TickerTextBuffer::advance(network_ui_widget *widget, ticker_text_buffer *se
     hud_text_draw_color_b = 0.0f;
     hud_text_draw_color_or_flags = 0xffff;
     hud_text_draw_column = 0;
-    hud_text_draw_unknown_4730 = 0;
+    hud_text_draw_flags = 0;
 
     bool advance = true;
 

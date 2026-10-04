@@ -96,7 +96,7 @@ void EngineHud::scoreboard_draw_white_line(Rectangle2D *rect, wchar_t *text, flo
     hud_text_draw_color_b = global_white_argb->blue;
     hud_text_draw_color_or_flags = 0xffffu;
     halo::text::globals().hud_text_draw_column = 1;
-    halo::text::globals().hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_flags = 0;
     halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)rect, 0, 0, (const int16_t *)text);
 }
 

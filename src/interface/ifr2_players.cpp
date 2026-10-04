@@ -136,7 +136,7 @@ void LocalPlayers::state_reset()
     hud_text_draw_color_b = global_white_argb->blue;
     hud_text_draw_color_or_flags = halo::k_word_none;
     halo::text::globals().hud_text_draw_column = 0;
-    halo::text::globals().hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_flags = 0;
 }
 
 /**

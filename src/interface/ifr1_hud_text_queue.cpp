@@ -26,11 +26,11 @@ namespace halo::interface {
  * color_index) Configures the shared HUD text-draw state for a subsequent draw call: resolves
  * font_table_index's globals TagDependency tag id as the font, resolves color_table_index's cyclic color entry
  * at color_index as the color, and copies the three remaining flag/column arguments straight through.
- * blam-cc: stack -> (font_table_index, color_or_flags, column, unknown_4730, color_table_index,
+ * blam-cc: stack -> (font_table_index, color_or_flags, column, flags, color_table_index,
  *
  * @address 0x4944c0
  */
-void HudTextQueue::draw_configure(int16_t font_table_index, uint16_t color_or_flags, int16_t column, uint32_t unknown_4730, int16_t color_table_index, int16_t color_index)
+void HudTextQueue::draw_configure(int16_t font_table_index, uint16_t color_or_flags, int16_t column, uint32_t flags, int16_t color_table_index, int16_t color_index)
 {
     GlobalsInterfaceBitmaps *interface_bitmaps;
     TagDependency *dependency;
@@ -50,7 +50,7 @@ void HudTextQueue::draw_configure(int16_t font_table_index, uint16_t color_or_fl
     hud_text_draw_color_b = color.blue;
     hud_text_draw_color_or_flags = color_or_flags;
     halo::text::globals().hud_text_draw_column = column;
-    halo::text::globals().hud_text_draw_unknown_4730 = unknown_4730;
+    halo::text::globals().hud_text_draw_flags = flags;
 }
 
 /**
