@@ -59,3 +59,11 @@ unchanged and translate them; the engine code above the interface is not rewritt
 - Files: loading the retail `.map` files (hundreds of MB) through the browser's file API.
 - Threads and timing: Win32 threads and `QueryPerformanceCounter`.
 - Multiplayer: browsers cannot send UDP, so a WebSocket/WebRTC to UDP proxy is required for retail servers.
+
+## Progress log
+
+- 2026-10-04: milestone 1 done. `HALO_RENDERER=gl` boots the game with GlDevice (WGL context on the game window, clear/present, CPU-side
+  stand-ins for all resources); nothing is drawn yet (black window). All direct device vtable calls were routed through RenderDevice
+  (stage/sampler/render states, water ripple draw, GetDisplayMode). `build/dbg/gl_smoke.sh <seconds>` runs the GL path and screenshots the
+  screen to `build/dbg/gl_shot.png`; `build/dbg/resolve_eip.py` resolves crash addresses against the link map. Next: milestone 2 (texture and buffer
+  uploads, render targets, 2D menu drawing). vendor/mojoshader holds the MojoShader source for milestone 4.
