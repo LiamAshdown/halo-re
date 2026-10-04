@@ -881,16 +881,16 @@ typedef struct player_screen_flash {
     int16_t priority;               // 0x02 0x02 mirrors DamageEffect.priority (tag 0x26, screen flash block is
                                     //    tag+0x24); player_effect_set_screen_flash keeps the flash with the higher
                                     //    value and generic damage feedback sets 2 (high)
-    uint32_t unknown_04;            // 0x04
-    uint32_t unknown_08;            // 0x08
-    uint32_t unknown_0c;            // 0x0c
+    uint32_t unused_04;             // 0x04
+    uint32_t unused_08;             // 0x08
+    uint32_t unused_0c;             // 0x0c
     float duration;                 // 0x10 seconds; multiplied by the caller scale and 30 to
                                     //      give the tick count
     uint32_t fade_function;         // 0x14 0x14 mirrors DamageEffect.fade_function (tag 0x38);
                                     //    player_effect_build_screen_flash feeds its int16 to
                                     //    transition_function_evaluate with the elapsed fraction
-    uint32_t unknown_18;            // 0x18
-    uint32_t unknown_1c;            // 0x1c
+    uint32_t unused_18;             // 0x18
+    uint32_t unused_1c;             // 0x1c
     uint32_t maximum_intensity;     // 0x20 0x20 mirrors DamageEffect.maximum_intensity (tag 0x44);
                                     //    player_effect_set_screen_flash clamps the blended intensity to it, generic
                                     //    damage feedback stores the damage fraction here
@@ -905,19 +905,19 @@ typedef struct player_screen_flash {
 typedef struct player_camera_impulse {
     float duration;                 // 0x00 seconds, scaled to ticks the same way
     int16_t transition_function;    // 0x04 transition_function_evaluate index of the fade
-    int16_t unknown_06;             // 0x06
+    int16_t pad_06;                 // 0x06
     float rotation_angle;           // 0x08 scales the camera rotation about the impulse axis
     float translation_scale;        // 0x0c scales the camera push along the impulse direction
     float magnitude_minimum;        // 0x10 bounds of the random magnitude the direction is
     float magnitude_maximum;        // 0x14 scaled by
     float intensity;                // 0x18 the blend the next impulse must beat to replace this
                                     //      one
-    uint32_t unknown_1c;            // 0x1c
-    uint32_t unknown_20;            // 0x20
-    uint32_t unknown_24;            // 0x24
-    uint32_t unknown_28;            // 0x28
-    uint32_t unknown_2c;            // 0x2c
-    uint32_t unknown_30;            // 0x30
+    uint32_t unused_1c;             // 0x1c
+    uint32_t permanent_angle;       // 0x20
+    uint32_t permanent_zero_scale_factor; // 0x24
+    uint32_t unused_28;             // 0x28
+    uint32_t unused_2c;             // 0x2c
+    uint32_t unused_30;             // 0x30
 } player_camera_impulse;            // size 0x34
 
 // ---------------------------------------------------------------------------
@@ -926,29 +926,29 @@ typedef struct player_camera_impulse {
 typedef struct player_camera_shake {
     float duration;                 // 0x00 seconds, scaled to ticks
     int16_t transition_function;    // 0x04 transition_function_evaluate index of the fade
-    int16_t unknown_06;             // 0x06
+    int16_t pad_06;                 // 0x06
     float random_translation;       // 0x08 0x08 mirrors DamageEffect.camera_shaking_random_translation (tag 0xd4,
                                     //    shake block is tag+0xcc, duration matches at 0xc8/0xcc); generic damage
                                     //    feedback writes fraction * 0.01 here
     float random_rotation;          // 0x0c
-    uint32_t unknown_10;            // 0x10
-    uint32_t unknown_14;            // 0x14
-    uint32_t unknown_18;            // 0x18
+    uint32_t unused_10;             // 0x10
+    uint32_t unused_14;             // 0x14
+    uint32_t unused_18;             // 0x18
     int16_t wobble_function;        // 0x1c periodic_function_evaluate index of the wobble
-    int16_t unknown_1e;             // 0x1e
+    int16_t pad_1e;                 // 0x1e
     float wobble_period;            // 0x20 0x20 mirrors DamageEffect.camera_shaking_wobble_period (tag 0xec);
                                     //    player_effect_set_camera_shake multiplies it by scale * 30 to convert
                                     //    seconds to ticks like duration
     float wobble_weight;            // 0x24
     float intensity;                // 0x28 the blend the next shake must beat to replace this
                                     //      one
-    uint32_t unknown_2c;            // 0x2c
-    uint32_t unknown_30;            // 0x30
-    uint32_t unknown_34;            // 0x34
-    uint32_t unknown_38;            // 0x38
-    uint32_t unknown_3c;            // 0x3c
-    uint32_t unknown_40;            // 0x40
-    uint32_t unknown_44;            // 0x44
+    uint32_t unused_2c;             // 0x2c
+    uint32_t unused_30;             // 0x30
+    uint32_t unused_34;             // 0x34
+    uint32_t unused_38;             // 0x38
+    uint32_t unused_3c;             // 0x3c
+    uint32_t unused_40;             // 0x40
+    uint32_t unused_44;             // 0x44
 } player_camera_shake;              // size 0x48
 
 // ---------------------------------------------------------------------------
