@@ -1062,9 +1062,9 @@ uint8_t UnitView::try_set_animation_state(int16_t new_state)
         if ((uint8_t)unit->unit.animation_state == animation_state_value(unit_animation_state_id::throwing_grenade)) {
             UnitView(unit_index).release_thrown_grenade(1);
         }
-        if ((uint16_t)new_state < 0x2c && state_animations[new_state][0] == 1) {
+        if ((uint16_t)new_state < k_unit_animation_state_count && state_animations[new_state][0] == 1) {
             animation = animation_in_block(weapon_block.animations, state_animations[new_state][1]);
-        } else if ((uint16_t)new_state < 0x2c && state_animations[new_state][0] == 2) {
+        } else if ((uint16_t)new_state < k_unit_animation_state_count && state_animations[new_state][0] == 2) {
             animation = animation_in_block(unit_block.animations, state_animations[new_state][1]);
         }
         if (animation == -1) {
@@ -1304,7 +1304,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
             }
         } else if (advance == 2) {
             switch ((int8_t)(uint8_t)unit->unit.animation_state) {
-            case 0x19: {
+            case animation_state_value(unit_animation_state_id::dying): {
                 uint8_t delete_now = 0;
 
                 if ((uint8_t)unit_tag->unit_flags & 2) {
@@ -1331,7 +1331,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
                 unit->base.animation_frame -= 1;
                 break;
             }
-            case 0x1a: {
+            case animation_state_value(unit_animation_state_id::seat_enter): {
                 datum_index parent_index = unit->base.parent_object;
                 unit_object *parent = reinterpret_cast<unit_object *>(state_machine_object(parent_index));
                 Unit *parent_tag = halo::objects::tag_as<Unit>(*(datum_index *)parent);
@@ -1343,7 +1343,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
                 }
                 break;
             }
-            case 0x1b: {
+            case animation_state_value(unit_animation_state_id::seat_exit): {
                 void *model = halo::cache::globals().tag_instances[halo::objects::tag_handle(unit_tag->base.model) & 0xffff].data;
                 real_vector3d delta;
                 real_matrix4x3 world;
@@ -1358,12 +1358,12 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
                 unit->base.velocity.k = delta.k + unit->base.velocity.k;
                 break;
             }
-            case 0x25: case 0x26:
+            case animation_state_value(unit_animation_state_id::opening): case animation_state_value(unit_animation_state_id::closing):
                 unit->base.animation_frame -= 1;
                 break;
-            case 0x27:
+            case animation_state_value(unit_animation_state_id::leap_start):
                 result = 1;
-                requested = 0x28;
+                requested = animation_state_value(unit_animation_state_id::leap_airborne);
                 break;
             default:
                 break;

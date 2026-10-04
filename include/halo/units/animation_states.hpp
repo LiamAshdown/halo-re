@@ -59,6 +59,9 @@ enum class unit_animation_state_id : int8_t {
     leap_melee = 0x29,
 };
 
+/** Number of unit animation states (the last defined state is 0x2b, hovering). */
+inline constexpr int k_unit_animation_state_count = 0x2c;
+
 /** The animation state of a raw byte/word as stored in the unit record. */
 constexpr unit_animation_state_id animation_state_id(int value) noexcept
 {
