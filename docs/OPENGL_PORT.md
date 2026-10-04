@@ -74,3 +74,9 @@ unchanged and translate them; the engine code above the interface is not rewritt
   vs_1_x relative addressing without a CTAB and `mov a0` float-to-int), and generated GLSL for the fixed-function vertex and texture-stage pixel pipelines.
   Not done yet: fixed-function lighting/fog, ID3DXEffect (fx.bin) for world rendering, process_vertices, parity screenshots, GLES3 profile.
   Debug: `HALO_GL_TRACE=1` logs draws; `HALO_GL_PROGRAMS=<dir/>` dumps generated GLSL.
+
+- 2026-10-04 (later): effects. `ID3DXEffect` runs on MojoShader's effect parser (`gl_effect.cpp`): fx.bin loads, techniques/passes bind translated shaders and apply
+  render/sampler/texture state. Vendored MojoShader patches (vendor/ is untracked, re-apply on re-download): vs_1_x relative addressing without a CTAB, `mov a0` int cast,
+  20-byte CTAB header, ps_1_4 `texld` and `_dz/_dw`, pass states that name a shader variable. The menu draws with no skipped draws or translation errors.
+  Not verified: in-game levels (`-exec map_name` does not leave the menu in either backend in the cmake build, so world/model/water/decal parity needs a way to start a level),
+  fixed-function lighting/fog, process_vertices, GLES3 profile.
