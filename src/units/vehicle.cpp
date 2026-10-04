@@ -205,7 +205,7 @@ uint32_t VehicleView::update()
         {
             uint8_t direction = ((struct vehicle_object *)obj)->vehicle.push_direction;
 
-            if ((((struct vehicle_object *)obj)->vehicle.flags & 0x10) && direction != 0 && ((struct vehicle_object *)obj)->vehicle.push_ticks < 0x1e && up->k <= 0.9f) {
+            if (test_flag(((struct vehicle_object *)obj)->vehicle.flags, units::vehicle_flag::controls_active) && direction != 0 && ((struct vehicle_object *)obj)->vehicle.push_ticks < 0x1e && up->k <= 0.9f) {
                 float sign = (direction == 2 || direction == 4) ? 0.3f : -0.3f;
                 float spin;
 
@@ -314,7 +314,7 @@ uint32_t VehicleView::update()
                 UnitView(object_index).update_steering_deviation_effects(&b, contact_points);
             }
             UnitView(object_index).update_ground_contact_counter(contact_points);
-            if (((unit_object *)obj)->base.flags & 0x20) {
+            if (((unit_object *)obj)->base.flags & halo::to_bits(halo::objects::object_flag::at_rest)) {
                 ((struct vehicle_object *)obj)->vehicle.decay_ticks_remaining = 15;
             }
             if (!(test_flag(((unit_object *)obj)->base.flags, objects::object_flag::collision_disabled)) &&

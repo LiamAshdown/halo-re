@@ -857,7 +857,7 @@ void halo::objects::ObjectRef::set_collision_enabled(uint8_t enable)
         header->flags &= (uint8_t)~0x02;
     } else {
         obj->flags &= ~(uint32_t)_object_no_collision_bit;
-        header->flags |= 0x02;
+        header->flags |= halo::to_bits(halo::objects::object_header_flag::visible);
     }
 }
 

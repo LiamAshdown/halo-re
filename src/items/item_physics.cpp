@@ -1,3 +1,4 @@
+#include "halo/objects/flags.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/items/items.hpp"
@@ -202,7 +203,7 @@ void item_ref::compute_rotation()
 
     if (magnitude != 0.0f) {
         item->flags |= _item_rotation_valid_bit;
-        if ((obj->flags & 0x20) == 0) {
+        if ((obj->flags & halo::to_bits(halo::objects::object_flag::at_rest)) == 0) {
             real inverse = 1.0f / magnitude;
             item->rotation_axis.i = inverse * obj->angular_velocity.i;
             item->rotation_axis.j = inverse * obj->angular_velocity.j;

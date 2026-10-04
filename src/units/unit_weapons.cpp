@@ -1057,7 +1057,7 @@ uint8_t halo::units::unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_ind
                         halo::objects::object_for_each_light_attachment(weapon_index, 1, 0);
                     }
                     set_flag(weapon_obj->flags, objects::object_flag::no_collision);
-                    ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(weapon_index)].flags &= 0xfd;
+                    ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(weapon_index)].flags &= ~halo::to_bits(halo::objects::object_header_flag::visible);
                     halo::items::item_set_holder(weapon_index, unit_index);
                     unit->weapons[slot] = weapon_index;
                     unit->weapon_ready_ticks[slot] = 0;
@@ -1112,7 +1112,7 @@ void UnitView::ready_desired_weapon(uint8_t force)
                 halo::objects::object_for_each_light_attachment(weapon, 1, 0);
             }
             set_flag(weapon_obj->flags, objects::object_flag::no_collision);
-            halo::objects::object_header_of(weapon).flags &= 0xfd;
+            halo::objects::object_header_of(weapon).flags &= ~halo::to_bits(halo::objects::object_header_flag::visible);
             halo::items::item_set_holder(weapon, unit_index);
             unit->unit.current_weapon_index = -1;
         }
@@ -1654,7 +1654,7 @@ uint8_t UnitView::try_select_equipment(uint32_t new_equipment_object_index, int1
             halo::objects::object_for_each_light_attachment(new_equipment_object_index, 1, 0);
         }
         set_flag(new_obj->flags, objects::object_flag::no_collision);
-        ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(new_equipment_object_index)].flags &= 0xfd;
+        ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(new_equipment_object_index)].flags &= ~halo::to_bits(halo::objects::object_header_flag::visible);
 
         int32_t local_player = halo::game::player_index_from_unit_index(unit_index);
         if (local_player != -1) {

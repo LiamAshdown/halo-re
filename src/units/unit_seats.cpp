@@ -363,7 +363,7 @@ void UnitView::detach_reposition_and_nudge()
     }
     if ((int32_t)halo::objects::tag_handle(tag->base.model) != -1) {
         clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
-        ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].flags |= 0x02;
+        ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].flags |= halo::to_bits(halo::objects::object_header_flag::visible);
     }
     halo::objects::object_recalculate_bounding_radius(unit_index);
 }

@@ -1,3 +1,4 @@
+#include "halo/objects/flags.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
@@ -77,7 +78,7 @@ uint8_t item_ref::create()
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     item_data *id = halo::items::item_data_of(obj);
 
-    obj->flags |= 0x6000;
+    obj->flags |= halo::to_bits(halo::objects::object_flag::dynamic_lighting_recompute | halo::objects::object_flag::static_lighting_recompute);
     id->held_game_time = halo::game::globals().game_time->game_time;
     id->ignore_object_index = (datum_index)k_datum_index_none;
 

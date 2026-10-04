@@ -305,7 +305,7 @@ uint8_t UnitView::get_recently_updated_flag()
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    return (obj->flags & 0x20) == 0x20;
+    return (obj->flags & halo::to_bits(halo::objects::object_flag::at_rest)) != 0;
 }
 
 /**
