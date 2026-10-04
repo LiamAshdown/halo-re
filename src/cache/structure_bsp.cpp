@@ -1,3 +1,4 @@
+#include "halo/rasterizer/render_device.hpp"
 #include "tags.h"
 
 #include "halo/cache/cache.hpp"
@@ -37,7 +38,6 @@ void structure_bsp_loader::dispose_material_vertex_buffers(ScenarioStructureBSPC
     ScenarioStructureBSPLightmap *lightmap;
     ScenarioStructureBSPMaterial *material;
     void **object;
-    void (__stdcall **vtable)(void *);
     int32_t lightmap_index;
     int32_t material_index;
 
@@ -55,16 +55,14 @@ void structure_bsp_loader::dispose_material_vertex_buffers(ScenarioStructureBSPC
             if (halo::rasterizer::globals().device != 0 && (void *)material != (void *)-0xc4) {
                 object = (void **)material->lightmap_vertices_index_pointer;
                 if (object != 0) {
-                    vtable = *(void (__stdcall ***)(void *))object;
-                    vtable[2](object);
+                    halo::rasterizer::render_device().release(object);
                     material->lightmap_vertices_index_pointer = 0;
                 }
             }
             if (halo::rasterizer::globals().device != 0 && (void *)material != (void *)-0xb0) {
                 object = (void **)material->rendered_vertices_index_pointer;
                 if (object != 0) {
-                    vtable = *(void (__stdcall ***)(void *))object;
-                    vtable[2](object);
+                    halo::rasterizer::render_device().release(object);
                     material->rendered_vertices_index_pointer = 0;
                 }
             }

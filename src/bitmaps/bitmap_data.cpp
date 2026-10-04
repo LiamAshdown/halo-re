@@ -1,3 +1,4 @@
+#include "halo/rasterizer/render_device.hpp"
 /**
  * @file src/bitmaps/bitmap_data.cpp
  * BitmapData records: mip arithmetic, pixel addressing, validation, teardown and Targa export.
@@ -282,8 +283,7 @@ void bitmap_data_view::free()
 
     if (*(void **)&self->hardware_texture != 0) {
         void *hardware_texture = *(void **)&self->hardware_texture;
-        void **vtable = *(void ***)hardware_texture;
-        ((bitmap_hardware_texture_release_proc)vtable[2])(hardware_texture);
+        halo::rasterizer::render_device().release(hardware_texture);
         *(void **)&self->hardware_texture = 0;
     }
 

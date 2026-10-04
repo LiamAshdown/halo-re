@@ -1,3 +1,4 @@
+#include "halo/rasterizer/render_device.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/math/constants.hpp"
 #include "crt.h"
@@ -618,7 +619,7 @@ void sprites_end(build_sprite_data *data)
             if (handle != 0) {
                 void *buffer = rasterizer_vertex_buffer_slots[handle - 1].hardware_buffer;
 
-                d3d9::buffer_function<d3d_unlock_fn>(buffer, d3d9::buffer_method::unlock)(buffer);
+                halo::rasterizer::render_device().buffer_unlock(buffer);
             }
         }
 
@@ -917,13 +918,12 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         centroid.x = centroid.x * inverse;
         centroid.y = centroid.y * inverse;
         centroid.z = inverse * centroid.z;
-        d3d9::buffer_function<d3d_unlock_fn>(rasterizer_dynamic_index_buffer, d3d9::buffer_method::unlock)(
-            rasterizer_dynamic_index_buffer);
+        halo::rasterizer::render_device().buffer_unlock(rasterizer_dynamic_index_buffer);
         buffer_handle = rasterizer_dynamic_vertex_caches[
             rasterizer_dynamic_vertex_slots[vertex_slot].vertex_type].buffer_handle;
         if (buffer_handle != 0) {
             vertex_buffer = rasterizer_vertex_buffer_slots[buffer_handle - 1].hardware_buffer;
-            d3d9::buffer_function<d3d_unlock_fn>(vertex_buffer, d3d9::buffer_method::unlock)(vertex_buffer);
+            halo::rasterizer::render_device().buffer_unlock(vertex_buffer);
         }
         halo::rasterizer::rasterizer_transparent_object_append(bitmap, index_slot, vertex_slot,
                                              primitive_count, 0, &centroid, shader);

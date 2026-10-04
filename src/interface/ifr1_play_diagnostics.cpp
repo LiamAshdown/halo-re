@@ -336,7 +336,7 @@ void PlayDiagnostics::fp_pre_draw(void)
 {
     typedef int32_t (__stdcall *debug_set_render_state_fn)(void *self, uint32_t state, uint32_t value);
 
-    if (!debug_fp_state_armed || halo::rasterizer::globals().device == 0) {
+    if (!debug_fp_state_armed || halo::rasterizer::globals().device == 0 || halo::rasterizer::gl_renderer_requested()) {
         return;
     }
     ((debug_set_render_state_fn)(*(void ***)halo::rasterizer::globals().device)[0xe4 / 4])(halo::rasterizer::globals().device, 15, 0);

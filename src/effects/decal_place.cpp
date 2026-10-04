@@ -1,3 +1,4 @@
+#include "halo/rasterizer/render_device.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/effects/effects.hpp"
@@ -592,8 +593,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
             }
         }
 
-        ((int32_t (__stdcall *)(void *))(*(void ***)rasterizer_decal_vertex_cache)[0x30 / 4])(
-            rasterizer_decal_vertex_cache);
+        halo::rasterizer::render_device().buffer_unlock(rasterizer_decal_vertex_cache);
 
         inherit_geometry = (uint8_t)(*(const uint8_t *)&definition->flags & 1);
         decal_tag_index = halo::objects::tag_handle(definition->next_decal_in_chain);

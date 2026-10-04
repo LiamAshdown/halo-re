@@ -1,3 +1,4 @@
+#include "halo/rasterizer/render_device.hpp"
 #include "tags.h"
 
 #include "halo/cache/cache.hpp"
@@ -61,7 +62,7 @@ void texture_cache_manager::entry_release(datum_index handle)
     }
     texture = (void *)bitmap->hardware_texture;
     if (texture != 0) {
-        ((d3d_release_fn)(*(void ***)texture)[2])(texture);
+        halo::rasterizer::render_device().release(texture);
         bitmap->hardware_texture = 0;
     }
     halo::memory::view(globals().texture_cache_entries)->delete_datum(handle);

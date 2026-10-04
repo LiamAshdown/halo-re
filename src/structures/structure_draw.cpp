@@ -1,3 +1,4 @@
+#include "halo/rasterizer/render_device.hpp"
 /**
  * @file src/structures/structure_draw.cpp
  * Drawing structure bsp surfaces: leaf face lists, picked polygon and debug draws.
@@ -23,8 +24,6 @@ inline constexpr uint32_t k_pixel_shader_version_1_1 = 0xffff0101u;
 
 int32_t structure_draw::build_visible_surface_geometry(int32_t *visible_surface_indices, uint32_t *surface_bits, int16_t visible_surface_count)
 {
-    void (__stdcall **vtable)(void *);
-
     if (visible_surface_count > 0) {
         int32_t geometry_handle = halo::rasterizer::rasterizer_dynamic_index_cache_reserve(visible_surface_count);
         if (geometry_handle != -1) {
@@ -36,8 +35,7 @@ int32_t structure_draw::build_visible_surface_geometry(int32_t *visible_surface_
                 structure_draw::leaf_faces_gather_list(visible_surface_count, (ScenarioStructureBSPSurface *)vertex_buffer, visible_surface_indices);
             }
 
-            vtable = *(void (__stdcall ***)(void *))halo::rasterizer::globals().dynamic_index_buffer;
-            vtable[0xc](halo::rasterizer::globals().dynamic_index_buffer);
+            halo::rasterizer::render_device().buffer_unlock(halo::rasterizer::globals().dynamic_index_buffer);
             return geometry_handle;
         }
         if (globals().geometry_buffer_warning != 0) {
@@ -249,8 +247,7 @@ void structure_draw::picked_polygon_draw(void)
     structure_draw::leaf_faces_for_each(globals().picked_surfaces_geometry, (structure_lightmap_begin_callback)structure_picked_polygon_lightmap_begin, (structure_material_callback)structure_picked_polygon_material, (structure_lightmap_end_callback)halo::cseries::function_do_nothing, (structure_transparent_material_callback)0, globals().visible_surface_indices, (int16_t)globals().visible_surface_count);
 
     if (halo::rasterizer::globals().device_version < k_pixel_shader_version_1_1) {
-        void **device = (void **)halo::rasterizer::globals().device;
-        (*(void (__stdcall **)(void *, int32_t, int32_t))((uint8_t *)device + 0xe4))(device, 0x89, 0);
+        halo::rasterizer::render_device().set_render_state(0x89, 0);
     }
 
     halo::render::globals().force_flag = saved_render_flag;
@@ -277,7 +274,7 @@ void structure_draw::debug_draw_surfaces_in_box(void *render_point, real_point3d
             } else {
                 void *vertex_buffer = halo::render::rasterizer_dynamic_index_slot_lock(geometry_handle);
                 structure_draw::leaf_faces_gather_list(surface_count, (ScenarioStructureBSPSurface *)vertex_buffer, local_surface_indices);
-                (*(void (__stdcall **)(void *))((uint8_t *)*(void **)halo::rasterizer::globals().dynamic_index_buffer + 0x30))(halo::rasterizer::globals().dynamic_index_buffer);
+                halo::rasterizer::render_device().buffer_unlock(halo::rasterizer::globals().dynamic_index_buffer);
             }
         }
     } else {
@@ -313,7 +310,7 @@ void structure_draw::debug_draw_surfaces_in_box_alt(void *render_point, real_poi
             } else {
                 void *vertex_buffer = halo::render::rasterizer_dynamic_index_slot_lock(geometry_handle);
                 structure_draw::leaf_faces_gather_list(surface_count, (ScenarioStructureBSPSurface *)vertex_buffer, local_surface_indices);
-                (*(void (__stdcall **)(void *))((uint8_t *)*(void **)halo::rasterizer::globals().dynamic_index_buffer + 0x30))(halo::rasterizer::globals().dynamic_index_buffer);
+                halo::rasterizer::render_device().buffer_unlock(halo::rasterizer::globals().dynamic_index_buffer);
             }
         }
     } else {
@@ -342,7 +339,7 @@ void structure_draw::debug_draw_surfaces_simple(real_point3d *query_point, float
         } else {
             void *vertex_buffer = halo::render::rasterizer_dynamic_index_slot_lock(geometry_handle);
             structure_draw::leaf_faces_gather_list(surface_count, (ScenarioStructureBSPSurface *)vertex_buffer, local_surface_indices);
-            (*(void (__stdcall **)(void *))((uint8_t *)*(void **)halo::rasterizer::globals().dynamic_index_buffer + 0x30))(halo::rasterizer::globals().dynamic_index_buffer);
+            halo::rasterizer::render_device().buffer_unlock(halo::rasterizer::globals().dynamic_index_buffer);
 
             if (geometry_handle != -1) {
                 structure_draw::leaf_faces_for_each(geometry_handle, (structure_lightmap_begin_callback)0, (structure_material_callback)halo::render::render_window_structure_material_0x511f50, (structure_lightmap_end_callback)0, (structure_transparent_material_callback)0, local_surface_indices, surface_count);
