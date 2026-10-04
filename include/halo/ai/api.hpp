@@ -235,7 +235,7 @@ uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kin
 uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocity, datum_index source_actor_index, real_point3d *start_position, real total_time, real vertical_acceleration, datum_index exclude_object_index, uint8_t wide_mask);
 int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *target_point);
 uint8_t actor_grenade_trajectory_blocked(real_vector3d *trajectory_direction, datum_index source_actor_index, datum_index exclude_object_index, real_point3d *landing_position, int32_t *out_blocking_prop);
-uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3);
+uint8_t actor_handle_death(datum_index actor_index, uint8_t use_last_seen_position, uint8_t cover_flag);
 uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);
 void actor_init_prop_from_object(datum_index object_index, datum_index actor_index, datum_index prop_index);
 int32_t actor_investigate_disturbance_update(uint32_t actor_index);

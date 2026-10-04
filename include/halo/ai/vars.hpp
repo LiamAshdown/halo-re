@@ -9,8 +9,8 @@ namespace halo::ai {
 
 /** Address table of the engine variables owned by the ai module. */
 struct Vars {
-    void *DAT_00655ab4;
-    void *DAT_00656b24;
+    void *ai_communication_line_table;
+    void *ai_conversation_line_table;
     void *actor_avoidance_a_bearing;
     void *actor_avoidance_a_elevation;
     void *actor_avoidance_a_radius;

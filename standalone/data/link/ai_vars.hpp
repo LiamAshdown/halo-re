@@ -6,8 +6,8 @@
 #pragma once
 
 extern "C" {
-extern char DAT_00655ab4[];
-extern char DAT_00656b24[];
+extern char ai_communication_line_table[];
+extern char ai_conversation_line_table[];
 extern char actor_avoidance_a_bearing[];
 extern char actor_avoidance_a_elevation[];
 extern char actor_avoidance_a_radius[];

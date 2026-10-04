@@ -49,8 +49,8 @@ static inline uint8_t *ai_communication_event_definition_bytes()
 }
 static auto &ai_communication_class_repeat_delay = halo::link::ref<float []>(halo::ai::vars().ai_communication_class_repeat_delay);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
-static auto &DAT_00655ab4 = halo::link::ref<real []>(halo::ai::vars().DAT_00655ab4);
-static auto &DAT_00656b24 = halo::link::ref<real []>(halo::ai::vars().DAT_00656b24);
+static auto &ai_communication_line_table = halo::link::ref<real []>(halo::ai::vars().ai_communication_line_table);
+static auto &ai_conversation_line_table = halo::link::ref<real []>(halo::ai::vars().ai_conversation_line_table);
 
 namespace halo::ai {
 
@@ -1462,7 +1462,7 @@ void AiCommunication::record_line_played(datum_index object_index, int16_t tier,
     }
 
     if (communication_line_id != -1) {
-        float delay = DAT_00655ab4[communication_line_id * 0x28 / 4];
+        float delay = ai_communication_line_table[communication_line_id * 0x28 / 4];
 
         entry = &communication_line_history[category + communication_line_id * 2];
         entry->last_tick = current_tick;
@@ -1471,7 +1471,7 @@ void AiCommunication::record_line_played(datum_index object_index, int16_t tier,
         }
     }
     if (conversation_line_id != -1) {
-        float delay = DAT_00656b24[conversation_line_id * 0x24 / 4];
+        float delay = ai_conversation_line_table[conversation_line_id * 0x24 / 4];
 
         entry = &conversation_line_history[category + conversation_line_id * 2];
         entry->last_tick = current_tick;

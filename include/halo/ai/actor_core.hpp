@@ -38,7 +38,7 @@ public:
     void get_body_axis_vector(uint32_t unit_index, actor_squad_action_state *request);
     int16_t get_current_mode_combat_grade();
     static uint8_t get_ranged_attack_vector(datum_index target_prop_index, datum_index actor_index, real_vector3d *out_vector);
-    uint8_t handle_death(uint8_t param_2, uint8_t param_3);
+    uint8_t handle_death(uint8_t use_last_seen_position, uint8_t cover_flag);
     void invoke_type_handler();
     static void iterator_new(actor_iterator_state *out_iterator, uint8_t active_only);
     static actor * iterator_next(actor_iterator_state *iterator);

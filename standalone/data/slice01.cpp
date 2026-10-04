@@ -86,9 +86,9 @@ extern float ai_communication_class_repeat_delay[8];
 extern float ai_communication_direction_table[70];
 extern uint32_t ai_communication_selector_delay_seconds[14];
 extern uint8_t ai_communication_lines[20];
-extern uint32_t DAT_00655ab4[1045];
+extern uint32_t ai_communication_line_table[1045];
 extern uint32_t ai_communication_event_definitions[7];
-extern uint32_t DAT_00656b24[412];
+extern uint32_t ai_conversation_line_table[412];
 extern int16_t ai_vocalization_line_table[48];
 extern int8_t bitmap_format_bits_per_pixel[18];
 extern uint8_t natneg_magic[6];
@@ -662,7 +662,7 @@ __declspec(allocate(".gdat01")) __declspec(align(4)) uint8_t ai_communication_li
 SLICE01_SIZE_CHECK(ai_communication_lines, 20);
 
 /* 0x00655ab4, cluster item, 0x1054 bytes */
-__declspec(allocate(".gdat01")) __declspec(align(4)) uint32_t DAT_00655ab4[1045] = {
+__declspec(allocate(".gdat01")) __declspec(align(4)) uint32_t ai_communication_line_table[1045] = {
     0x00000000, 0xffff0000, 0xffff0002, 0xffffffff, 0x0000ffff, 0x00060000,
     0xffff0033, 0x00060001, 0x00060003, 0x41a00000, 0x00000000, 0xffff0042,
     0xffff0002, 0xffff0001, 0x0000ffff, 0x00020000, 0xffff0035, 0x00010001,
@@ -839,7 +839,7 @@ __declspec(allocate(".gdat01")) __declspec(align(4)) uint32_t DAT_00655ab4[1045]
     0xffffffff, 0x00000000, 0x00000000, 0xffff0000, 0xffffffff, 0xffffffff,
     0x0000ffff
 };
-SLICE01_SIZE_CHECK(DAT_00655ab4, 4180);
+SLICE01_SIZE_CHECK(ai_communication_line_table, 4180);
 
 /* 0x00656b08, cluster item, 0x1c bytes */
 __declspec(allocate(".gdat01")) __declspec(align(4)) uint32_t ai_communication_event_definitions[7] = {
@@ -849,7 +849,7 @@ __declspec(allocate(".gdat01")) __declspec(align(4)) uint32_t ai_communication_e
 SLICE01_SIZE_CHECK(ai_communication_event_definitions, 28);
 
 /* 0x00656b24, cluster item, 0x670 bytes */
-__declspec(allocate(".gdat01")) __declspec(align(4)) uint32_t DAT_00656b24[412] = {
+__declspec(allocate(".gdat01")) __declspec(align(4)) uint32_t ai_conversation_line_table[412] = {
     0x41f00000, (uint32_t)&halo::ai::actor_target_is_close_and_recognized, 0x00020035, 0x00510002,
     0x0002ffff, 0, 0, 0x3f000000,
     0x3f333333, 0x42700000, (uint32_t)&halo::ai::actor_target_is_close_and_recognized, 0x000b0035,
@@ -954,7 +954,7 @@ __declspec(allocate(".gdat01")) __declspec(align(4)) uint32_t DAT_00656b24[412] 
     0, 0, 0, 0x0000002f,
     0xffffffff, 0, 0xffffffff, 0xffffffff
 };
-SLICE01_SIZE_CHECK(DAT_00656b24, 1648);
+SLICE01_SIZE_CHECK(ai_conversation_line_table, 1648);
 
 /* 0x00657194, cluster item, 0x60 bytes */
 __declspec(allocate(".gdat01")) int16_t ai_vocalization_line_table[48] = {

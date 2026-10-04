@@ -777,7 +777,7 @@ namespace c_actor_handle_death {
  *
  * @address 0x40dd50
  */
-uint8_t halo::ai::actor_ref::handle_death(uint8_t param_2, uint8_t param_3)
+uint8_t halo::ai::actor_ref::handle_death(uint8_t use_last_seen_position, uint8_t cover_flag)
 {
     using namespace c_actor_handle_death;
     datum_index actor_index = datum;
@@ -797,8 +797,8 @@ uint8_t halo::ai::actor_ref::handle_death(uint8_t param_2, uint8_t param_3)
     local_data.panic = 0;
     local_data.countdown_180 = 0;
     local_data.destination = -1;
-    local_data.use_last_seen_position = param_2;
-    local_data.cover_flag = param_3;
+    local_data.use_last_seen_position = use_last_seen_position;
+    local_data.cover_flag = cover_flag;
     local_data.reference = previous_target;
 
     if (previous_target != -1) {
@@ -815,9 +815,9 @@ uint8_t halo::ai::actor_ref::handle_death(uint8_t param_2, uint8_t param_3)
 }
 
 namespace halo::ai {
-uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3)
+uint8_t actor_handle_death(datum_index actor_index, uint8_t use_last_seen_position, uint8_t cover_flag)
 {
-    return halo::ai::actor_ref(actor_index).handle_death(param_2, param_3);
+    return halo::ai::actor_ref(actor_index).handle_death(use_last_seen_position, cover_flag);
 }
 }
 

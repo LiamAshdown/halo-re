@@ -12,8 +12,8 @@ namespace halo::ai {
 const Vars &vars()
 {
     static const Vars table{
-        DAT_00655ab4,
-        DAT_00656b24,
+        ai_communication_line_table,
+        ai_conversation_line_table,
         actor_avoidance_a_bearing,
         actor_avoidance_a_elevation,
         actor_avoidance_a_radius,
