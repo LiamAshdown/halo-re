@@ -179,14 +179,14 @@ typedef struct console_globals {
     uint8_t unknown_002[2];           // 0x002 never referenced
     terminal_console terminal;        // 0x004 types/interface.h, 0x1be bytes, handed to
                                       //       console_open; input is terminal.input (0x006b70d8)
-    uint8_t unknown_1c2[2];           // 0x1c2 never referenced (alignment)
+    uint8_t pad_1c2[2];               // 0x1c2 never referenced (alignment)
     char history[k_console_history_count][k_console_history_line_length];
                                       // 0x1c4 submitted lines, stride 0xff, copied with strcpy
     int16_t history_count;            // 0x9bc saturates at 8
     int16_t history_newest_index;     // 0x9be ring slot of the newest line, -1 when empty
     int16_t history_browse_index;     // 0x9c0 lines back from the newest, -1 when not browsing;
                                       //       clamped to history_count - 1
-    uint8_t unknown_9c2[2];           // 0x9c2 never referenced (alignment)
+    uint8_t pad_9c2[2];               // 0x9c2 never referenced (alignment)
 } console_globals;                    // size 0x9c4
 static_assert(sizeof(console_globals) == 0x9c4, "console_globals layout");
 

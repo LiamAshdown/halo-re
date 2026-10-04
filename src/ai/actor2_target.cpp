@@ -195,7 +195,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, actor_firing_pos
         parent_obj = halo::ai::object_at(reassigned);
         target->location.leaf_index = parent_obj->location_leaf_index;
         target->location.cluster_index = parent_obj->location_cluster_index;
-        target->location.unknown_06 = parent_obj->location_reserved;
+        target->location.bonus = parent_obj->location_reserved;
 
         target->in_water = halo::scenario::scenario_location_get_water_and_weather(&target->center_of_mass, &target->location, 0);
         target->relationship_object_index = -1;

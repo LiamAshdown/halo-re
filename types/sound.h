@@ -94,7 +94,7 @@ typedef enum sound_location_type {
 
 typedef struct sound_location {
     int16_t type;              // 0x00 sound_location_type
-    int16_t unknown_02;        // 0x02 never read; a short store pads it
+    int16_t pad_02;            // 0x02 never read; a short store pads it
     float scale;               // 0x04 lerp factor between Sound.zero_* and Sound.one_* modifiers
     float gain;                // 0x08 1.0 from every builder; detail gain for detail sounds
     Point3D position;          // 0x0c
@@ -158,7 +158,7 @@ typedef struct sound_class_definition {
     float unknown_20;                    // 0x20 0.0 or 1.0, never read in this module
     float unknown_24;                    // 0x24 1.0 in every row, never read in this module
     uint8_t muted;                       // 0x28 set by the gain setters when their slider hits 0
-    uint8_t unknown_29[3];               // 0x29 padding
+    uint8_t pad_29[3];                   // 0x29 padding
 } sound_class_definition;                // size 0x2c
 
 // per-class gain fade, pointed to by the global at 0x00746140 (51 entries)
@@ -168,7 +168,7 @@ typedef struct sound_class_gain {
     float target_gain;         // 0x00 clamped [0,1] by 0x545390
     float current_gain;        // 0x04 read by 0x54b100, interpolated toward target by 0x545330
     int16_t fade_ticks;        // 0x08 ticks left; 0 snaps current to target
-    int16_t unknown_0a;        // 0x0a padding
+    int16_t pad_0a;            // 0x0a padding
 } sound_class_gain;            // size 0x0c
 
 // ---------------------------------------------------------------------------
@@ -262,7 +262,7 @@ typedef struct sound {
     int32_t fade_start_time;   // 0xa4 sound clock ms
     int32_t fade_end_time;     // 0xa8 == start means no fade
     uint8_t first_person;      // 0xac weapon classes / player dialog; head relative in 0x54c900
-    uint8_t unknown_ad[3];     // 0xad padding
+    uint8_t pad_ad[3];         // 0xad padding
 } sound;                       // size 0xb0
 
 // ---------------------------------------------------------------------------
@@ -280,7 +280,7 @@ typedef struct looping_sound {
     uint8_t update_toggle;     // 0x4c copy of the frame toggle, keep alive
     uint8_t alternate;         // 0x4d alternate loop / end selected
     uint8_t finished;          // 0x4e track ran out of permutations
-    uint8_t unknown_4f;        // 0x4f padding
+    uint8_t pad_4f;            // 0x4f padding
     int16_t active_sound_count;// 0x50 sounds created through 0x54d9f0 still alive
     int16_t state;             // 0x52 last state passed to sound_looping_set_state (2 = stopped)
     int32_t detail_next_time[32]; // 0x54 per SoundLoopingDetail, sound clock ms
@@ -329,7 +329,7 @@ typedef enum sound_channel_type_flags {
 typedef struct sound_listener {
     uint8_t valid;             // 0x00 cleared when there is no local player
     uint8_t underwater;        // 0x01 FUN_0053ed60; edges play the matg enter/exit water sounds
-    int16_t unknown_02;        // 0x02 padding
+    int16_t pad_02;            // 0x02 padding
     float scale;               // 0x04 real_matrix4x3 (types/math.h) from FUN_004cb970
     Vector3D forward;          // 0x08
     Vector3D left;             // 0x14
@@ -400,7 +400,7 @@ typedef struct sound_driver_parameters {
 
 typedef struct sound_driver {
     int16_t type;                                     // 0x00 must equal sound_driver_parameters.driver_index
-    int16_t unknown_02;                               // 0x02 padding
+    int16_t pad_02;                                   // 0x02 padding
     uint8_t (*initialize)(sound_driver_parameters *parameters); // 0x04 0x545e20
     void (*dispose)(void);                            // 0x08 0x546a60 (Ghidra: game_sound_dispose)
     void (*set_listener)(sound_listener_parameters *listener); // 0x0c 0x547070
@@ -440,7 +440,7 @@ typedef struct sound_ogg_memory_file {
     void *data;                // 0x04 SoundPermutation cached sample pointer
     int32_t size;              // 0x08 SoundPermutation.samples.size
     uint8_t end_of_file;       // 0x0c cleared by every seek
-    uint8_t unknown_0d[3];     // 0x0d padding
+    uint8_t pad_0d[3];         // 0x0d padding
 } sound_ogg_memory_file;       // size 0x10
 
 typedef struct sound_stream_decoder {
@@ -449,7 +449,7 @@ typedef struct sound_stream_decoder {
     uint8_t ogg_vorbis_file[2][0x2d0]; // 0x008 two OggVorbis_File for crosslapped transitions
     uint8_t open;              // 0x5a8 a stream is open (also cleared by 0x547f60)
     uint8_t active_file;       // 0x5a9 0 selects file 1 / memory file 1, 1 selects file 0 / memory file 0
-    int16_t unknown_5aa;       // 0x5aa padding
+    int16_t pad_5aa;           // 0x5aa padding
     sound_ogg_memory_file memory_files[2]; // 0x5ac datasource of each OggVorbis_File
 } sound_stream_decoder;        // size 0x5cc
 

@@ -648,7 +648,7 @@ typedef struct object_placement_cursor {
 typedef struct bsp_leaf_reference {
     int32_t leaf_index;             // 0x00 bsp3d_node_find_leaf result, -1 when outside
     int16_t cluster_index;          // 0x04 ScenarioStructureBSPLeaf.cluster, -1 alongside -1
-    int16_t unknown_06;             // 0x06 padding; never read
+    int16_t bonus;                  // 0x06 the CEA location.bonus; the object copies its location_reserved word here
 } bsp_leaf_reference;               // size 0x08
 
 // ---------------------------------------------------------------------------
@@ -956,7 +956,7 @@ typedef struct glow {
     glow_particle *first_particle;  // 0x250
     glow_particle *last_particle;   // 0x254
     int16_t spawn_timer;            // 0x258 ticks until the next trailing particle is spawned
-    uint8_t unknown_25a[2];         // 0x25a pads the record to the 0x25c the data_array allocates
+    uint8_t pad_25a[2];             // 0x25a pads the record to the 0x25c the data_array allocates
 } glow;                             // size at least 0x258. UNRESOLVED: the data_array is
                                     // created outside this module, so the stride is not
                                     // proven here.

@@ -528,7 +528,7 @@ uint8_t rasterizer_index_buffer_create(int32_t count, int16_t type, rasterizer_i
     }
     ok = 0;
     out->type = 0;
-    out->unknown_02 = 0;
+    out->pad_02 = 0;
     out->count = 0;
     out->data = 0;
     out->hardware_buffer = 0;
@@ -1112,7 +1112,7 @@ uint8_t rasterizer_vertex_buffer_create(rasterizer_vertex_buffer *record, int16_
         }
     }
     record->type = 0;
-    record->unknown_02 = 0;
+    record->pad_02 = 0;
     record->count = 0;
     record->unknown_08 = 0;
             record->unknown_0a = 0;

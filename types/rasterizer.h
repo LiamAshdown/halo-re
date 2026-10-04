@@ -137,7 +137,7 @@ typedef enum rasterizer_vertex_type {
 // ---------------------------------------------------------------------------
 typedef struct rasterizer_vertex_buffer {
     int16_t type;                   // 0x00 rasterizer_vertex_type
-    int16_t unknown_02;             // 0x02 alignment, never written
+    int16_t pad_02;                 // 0x02 alignment, never written
     int32_t count;                  // 0x04 vertex count
     int16_t unknown_08;             // 0x08 zeroed by the constructor
     int16_t unknown_0a;             // 0x0a zeroed by the constructor
@@ -154,7 +154,7 @@ typedef struct rasterizer_vertex_buffer {
 // ---------------------------------------------------------------------------
 typedef struct rasterizer_index_buffer {
     int16_t type;                   // 0x00 TriangleBufferType
-    int16_t unknown_02;             // 0x02 alignment
+    int16_t pad_02;                 // 0x02 alignment
     int32_t count;                  // 0x04 primitive count
     const void *data;               // 0x08 source indices (tag data)
     void *hardware_buffer;          // 0x0c IDirect3DIndexBuffer9
@@ -210,7 +210,7 @@ typedef struct rasterizer_dynamic_vertex_cache {
 // ---------------------------------------------------------------------------
 typedef struct rasterizer_dynamic_vertex_slot {
     int16_t vertex_type;            // 0x00 rasterizer_vertex_type
-    int16_t unknown_02;             // 0x02 alignment
+    int16_t pad_02;                 // 0x02 alignment
     int32_t first_vertex;           // 0x04
     int32_t vertex_count;           // 0x08
     void *locked_vertices;          // 0x0c Lock result, NULL on failure

@@ -210,17 +210,17 @@ typedef struct device_placement_data {
 typedef struct device_data {
     uint32_t flags;                 // 0x1f4 device_flags
     int16_t power_group;            // 0x1f8 index into the device_group table, -1 for none
-    int16_t unknown_1fa;            // 0x1fa never read; alignment ahead of the float
+    int16_t pad_1fa;                // 0x1fa never read; alignment ahead of the float
     float power;                    // 0x1fc cached copy of device_group[power_group].value
     float power_change;             // 0x200 signed rate; zeroed by the immediate setter
     int16_t position_group;         // 0x204 index into the device_group table, -1 for none
-    int16_t unknown_206;            // 0x206 never read; alignment ahead of the float
+    int16_t pad_206;                // 0x206 never read; alignment ahead of the float
     float position;                 // 0x208 cached copy of device_group[position_group].value
     float position_change;          // 0x20c signed rate; zeroed by the immediate setter
     int16_t delay_ticks;            // 0x210 counts up while the position is held back,
                                     //       compared against Device.delay_time_ticks 0x28c;
                                     //       reset to 0 once the position settles
-    int16_t unknown_212;            // 0x212 never read; alignment ahead of the flags word
+    int16_t pad_212;                // 0x212 never read; alignment ahead of the flags word
     uint32_t type_flags;            // 0x214 device_machine_flags for a machine,
                                     //       device_control_flags for a control, unused for a
                                     //       light fixture. Copied from the concrete

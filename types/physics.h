@@ -550,7 +550,7 @@ typedef struct breakable_surface_globals {
     uint8_t initialized;            // 0x000 every entry point bails when this is 0
     uint32_t active[16][8];         // 0x001 one bit per breakable surface, set while the
                                     //       surface is still intact. UNALIGNED on purpose.
-    uint8_t unknown_201[3];         // 0x201 padding up to the health array
+    uint8_t pad_201[3];             // 0x201 padding up to the health array
     float health[16][256];          // 0x204 remaining vitality; crossing zero clears the bit
                                     //       and fires the break effect at 0x00500090
 } breakable_surface_globals;        // size 0x4204

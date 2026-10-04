@@ -120,7 +120,7 @@ typedef struct cluster_reference_group {
 // ---------------------------------------------------------------------------
 typedef struct polygon2d {
     int16_t point_count;           // 0x000 -1 from polygon2d_clip_to_planes means "unchanged"
-    int16_t unknown_02;            // 0x002 alignment; never read
+    int16_t pad_02;                // 0x002 alignment; never read
     real_point2d points[0x100];    // 0x004
 } polygon2d;                       // size 0x804
 
@@ -186,7 +186,7 @@ typedef void (*structure_transparent_material_callback)(void *shader_data, int16
 // ---------------------------------------------------------------------------
 typedef struct structure_bsp_visible_cluster {
     int16_t cluster_index;         // 0x000
-    int16_t unknown_02;            // 0x002 alignment
+    int16_t pad_02;                // 0x002 alignment
     real_bounds screen_bounds_x;   // 0x004 min then max, seeded from *0x00696744
     real_bounds screen_bounds_y;   // 0x00c
     uint8_t frustum[0x18c];        // 0x014 0x014 per cluster clipped view frustum; collect_visible_objects and both
@@ -208,7 +208,7 @@ typedef struct structure_bsp_mirror_result {
                                    //      other shader types
     float shader_mirror_value_1;   // 0x14 ShaderEnvironment.runtime_mirror_value_1 (+0x310)
     int16_t cluster_index;         // 0x18 the cluster the mirror was found in
-    int16_t unknown_1a;            // 0x1a alignment; never written
+    int16_t pad_1a;                // 0x1a alignment; never written
 } structure_bsp_mirror_result;     // size 0x1c
 
 // ---------------------------------------------------------------------------

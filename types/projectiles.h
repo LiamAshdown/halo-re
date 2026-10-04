@@ -433,7 +433,7 @@ typedef struct collision_result {
                                     //      marker, object_apply_damage as its third argument, and
                                     //      the attach message carries it
     int16_t permutation_index;      // 0x40 (WORD store 0x5056fa)
-    int16_t unknown_42;             // 0x42 padding
+    int16_t pad_42;                 // 0x42 padding
     int32_t surface_index;          // 0x44 forwarded to the breakable-surface damage routine
                                     //      0x004ffde0. UNSURE of the name
     int32_t plane_index;            // 0x48 the BSP plane hit; the sign bit set means a back-face

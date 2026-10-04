@@ -371,7 +371,7 @@ typedef struct biped_movement_solver_data {
                                         //      stored in biped_data.last_ground_object_index and the 0x4d3
                                         //      countdown is reloaded with 60
     uint8_t result_flags;               // 0xa0 out: biped_movement_solver_result_flags
-    uint8_t unknown_a1[3];              // 0xa1 alignment
+    uint8_t pad_a1[3];                  // 0xa1 alignment
     datum_index result_ground_surface_index; // 0xa4 out: the new biped_data.ground_surface_index
     uint32_t snapped_ground_surface_index; // 0xa8 biped_movement_solve: -1, or the BSP surface synthesized as a
                                            //    ground contact when the sweep found none; that contact is preferred
@@ -487,7 +487,7 @@ typedef struct unit_data {
     int8_t base_animation_state;        // 0x2a7 unit_base_animation_state
     int8_t emotion_animation_frame;     // 0x2a8 -1 when idle; 0x563b50 plays the emotion
                                         //       animation of the graph at this frame
-    int8_t unknown_2a9;                 // 0x2a9 alignment; never read
+    int8_t pad_2a9;                     // 0x2a9 alignment; never read
     unit_animation_overlay overlays[3]; // 0x2aa 0x2ae 0x2b2, index then frame in each pair
     int8_t aiming_bounds_valid;         // 0x2b6 0x563b50 sets it after filling aiming_bounds
     int8_t looking_bounds_valid;        // 0x2b7 0x563b50 sets it after filling looking_bounds
@@ -583,7 +583,7 @@ typedef struct unit_data {
     int8_t speech_started;              // 0x3f4 0x561620 sets it once the sound was started
     int8_t speech_lipsync_stopped;      // 0x3f5 set once the lipsync countdown hit 0
     int8_t speech_finished;             // 0x3f6 set once the duration countdown hit 0
-    int8_t unknown_3f7;                 // 0x3f7 alignment
+    int8_t pad_3f7;                     // 0x3f7 alignment
     int16_t speech_delay_ticks;         // 0x3f8 loaded from unit_speech.delay_ticks
     int16_t speech_duration_ticks;      // 0x3fa 0x560f20 computes it from the length of the
                                         //       sound tag at +0x84 (times 30, divided by 1000),
@@ -632,11 +632,11 @@ typedef struct unit_data {
                                         //       bits 0x2800, cleared once the delta is sent
     int8_t network_update_applied;      // 0x475 write-only flag: unit_new clears it; the network create/update apply paths
                                         //       and the scripted spawn set it
-    int8_t unknown_476[2];              // 0x476 alignment
+    int8_t pad_476[2];                  // 0x476 alignment
     unit_control_data saved_control;    // 0x478 the server-side copy 0x5639f0 block-moves
     int8_t control_update_id_valid;     // 0x4b8 unit_apply_control_block: 1 with a source update id;
                                         //    game_engine_server_update_player_positions consumes it
-    int8_t unknown_4b9[3];              // 0x4b9 alignment
+    int8_t pad_4b9[3];                  // 0x4b9 alignment
     int32_t control_update_id;          // 0x4bc the network update id of the control record; the queued position with
                                         //    this tick is applied
                                         //       unit_update reads it back
@@ -746,7 +746,7 @@ typedef struct biped_data {
     int8_t melee_ticks;                 // 0x505 3/4 of the weapon's first-person melee animation on a melee, counts
                                         //    down; weapon control 0x10 while > 0
     int8_t melee_inflict_tick;          // 0x506 melee_ticks value at which unit_melee_attack_scan runs
-    int8_t unknown_507;                 // 0x507 alignment
+    int8_t pad_507;                     // 0x507 alignment
     int16_t landing_type;               // 0x508 0 soft, 1 hard, -1 none (0x55eaa0); a hard landing blocks jumping
                                         //       and 0x55eb90 turns it into a trigger id
     int16_t unknown_50a;                // 0x50a
@@ -767,22 +767,22 @@ typedef struct biped_data {
                                         //       behind this one
     uint8_t network_delta_sequence;     // 0x528 0x55b440 increments it per delta sent and
                                         //       wraps it at 0xff
-    uint8_t unknown_529[3];             // 0x529 alignment
+    uint8_t pad_529[3];                 // 0x529 alignment
     int16_t network_grenade_counts;     // 0x52c both grenade counts as one int16; 0x55b110
                                         //       copies it into unit_data.grenade_counts
     int16_t unknown_52e;                // 0x52e
     float network_body_vitality;        // 0x530 0x55b110 copies it into object 0xe0
     float network_shield_vitality;      // 0x534 0x55b110 writes object 0xe4 as this times 3
     int8_t network_shield_stunned;      // 0x538 0x55b110 turns it into object 0x104
-    int8_t unknown_539[3];              // 0x539 alignment
+    int8_t pad_539[3];                  // 0x539 alignment
     int8_t network_baseline_valid;      // 0x53c 0x55b5f0 sets it when it snapshots the block
-    int8_t unknown_53d[3];              // 0x53d alignment
+    int8_t pad_53d[3];                  // 0x53d alignment
     int16_t baseline_grenade_counts;    // 0x540 the snapshot 0x55b5f0 keeps of 0x52c
     int16_t unknown_542;                // 0x542
     float baseline_body_vitality;       // 0x544 snapshot of 0x530
     float baseline_shield_vitality;     // 0x548 snapshot of 0x534
     int8_t baseline_shield_stunned;     // 0x54c snapshot of 0x538
-    int8_t unknown_54d[3];              // 0x54d alignment
+    int8_t pad_54d[3];                  // 0x54d alignment
 } biped_data;                           // size 0x84 (object 0x4cc .. 0x550)
 
 // ---------------------------------------------------------------------------

@@ -100,10 +100,10 @@ static_assert(offsetof(real_matrix3x3, forward) == 0x00 && offsetof(real_matrix3
 static_assert(offsetof(real_matrix4x3, scale) == 0x00 && offsetof(real_matrix4x3, forward) == 0x04 &&
               offsetof(real_matrix4x3, left) == 0x10 && offsetof(real_matrix4x3, up) == 0x1c &&
               offsetof(real_matrix4x3, position) == 0x28);
-static_assert(offsetof(sphere_mesh, subdivisions) == 0x00 && offsetof(sphere_mesh, unknown_02) == 0x02 &&
+static_assert(offsetof(sphere_mesh, subdivisions) == 0x00 && offsetof(sphere_mesh, pad_02) == 0x02 &&
               offsetof(sphere_mesh, points) == 0x04 && offsetof(sphere_mesh, indices) == 0x08 &&
               offsetof(sphere_mesh, point_count) == 0x0c && offsetof(sphere_mesh, triangle_count) == 0x0e &&
-              offsetof(sphere_mesh, strip_count) == 0x10 && offsetof(sphere_mesh, unknown_12) == 0x12);
+              offsetof(sphere_mesh, strip_count) == 0x10 && offsetof(sphere_mesh, pad_12) == 0x12);
 static_assert(offsetof(periodic_function_table, samples) == 0x00);
 static_assert(offsetof(projection_axis_pair, i) == 0x00 && offsetof(projection_axis_pair, j) == 0x02);
 

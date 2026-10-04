@@ -181,7 +181,7 @@ typedef struct text_parse_state {
     int16_t justification;         // 0x10 text_justification
     uint16_t character;            // 0x12 last code read; a double byte pair is lead << 8 | trail
     int16_t token;                 // 0x14 text_token of the last token
-    int16_t unknown_16;            // 0x16 never written or read (alignment)
+    int16_t pad_16;                // 0x16 never written or read (alignment)
     uint32_t color;                // 0x18 a << 24 | r << 16 | g << 8 | b from the ColorARGB
                                    //      argument, each channel * 255.0 through __ftol;
                                    //      the draw loops XOR it with 0xffffff inside the highlight

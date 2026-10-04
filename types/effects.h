@@ -313,7 +313,7 @@ typedef struct decal_projection {
     float transformed_d;            // 0x50
     int16_t major_axis;             // 0x54 0, 1 or 2; the largest magnitude component
     uint8_t normal_positive;        // 0x56 1 when that component is greater than zero
-    uint8_t unknown_57;             // 0x57 padding
+    uint8_t pad_57;                 // 0x57 padding
     decal_projected_corner corners[4]; // 0x58 the quad flattened onto the two chosen axes
     float du_edge0;                 // 0x78 corners[1].u minus corners[0].u
     float dv_edge0;                 // 0x7c corners[1].v minus corners[0].v
@@ -543,7 +543,7 @@ typedef struct particle_system_type_state {
     float particle_creation_rate;   // 0x30
     float creation_fraction;        // 0x34 carried remainder of the per tick particle count
     uint8_t ping_pong_forward;      // 0x38 direction for the forward_backward state flag
-    uint8_t unknown_39;             // 0x39 padding
+    uint8_t pad_39;                 // 0x39 padding
     int16_t particle_count;         // 0x3a live particles on this list
     datum_index first_particle;     // 0x3c head of the particle_system_particle list
 } particle_system_type_state;       // size 0x40
@@ -745,7 +745,7 @@ typedef struct particle {
 // ---------------------------------------------------------------------------
 typedef struct weather_particle_system_state {
     uint8_t active;                 // 0x00 1 while the palette row carries a wind tag
-    uint8_t unknown_01[3];          // 0x01 padding
+    uint8_t pad_01[3];              // 0x01 padding
     float magnitude_walk;           // 0x04 random walk in steps of 0.01, clamped to 0..1
     float pitch_walk;               // 0x08 random walk in steps of 0.01, clamped to -1..1
     float yaw_walk;                 // 0x0c random walk in steps of 0.01, clamped to -1..1
@@ -768,7 +768,7 @@ typedef struct weather_instance_type {
     float field_extent;             // 0x04 fade_out_end_distance at +0x30; the size of the box
                                     //      particles are scattered inside
     int16_t particle_count;         // 0x08 live weather_particle records on the list
-    int16_t unknown_0a;             // 0x0a padding
+    int16_t pad_0a;                 // 0x0a padding
     datum_index first_particle;     // 0x0c -1 when empty, and -1 at activate
 } weather_instance_type;            // size 0x10
 
@@ -798,7 +798,7 @@ typedef struct weather_instance {
     int16_t unknown_16;             // 0x16 never written
     int16_t cluster_index;          // 0x18 FUN_0053ed60 output, -1 when outside the BSP
     uint8_t in_sky;                 // 0x1a FUN_0053ed60 return; picks render mode 5 or 7
-    uint8_t unknown_1b;             // 0x1b padding
+    uint8_t pad_1b;                 // 0x1b padding
     weather_instance_type types[8]; // 0x1c one per WeatherParticleSystemParticleType
 } weather_instance;                 // size 0x9c
 
@@ -819,7 +819,7 @@ typedef struct weather_particle {
                                     //      tick by acceleration_change_rate at +0xd4 and turned
                                     //      by acceleration_turning_rate at +0xd8
     int16_t sequence_index;         // 0x28 random in [0, bitmap sequence count)
-    int16_t unknown_2a;             // 0x2a padding
+    int16_t pad_2a;                 // 0x2a padding
     float frame;                    // 0x2c random start, advanced by animation_rate
     float rotation;                 // 0x30 random in 0..2pi when random_rotation is set, else 0
     float alpha;                    // 0x34 lerp of the two colour bound alphas at +0x134 and
@@ -996,7 +996,7 @@ typedef struct player_effect_globals {
     int32_t scripted_flash_start_tick;// 0x0f8
     int16_t scripted_flash_ticks;   // 0x0fc -1 when no scripted flash is running
     uint8_t scripted_flash_fade_in; // 0x0fe 0 fades the intensity out instead of in
-    uint8_t unknown_0ff;            // 0x0ff padding
+    uint8_t pad_0ff;                // 0x0ff padding
     float scripted_shake_translation[3];// 0x100 per axis random translation amplitudes
     float scripted_shake_rotation[3];// 0x10c per axis random rotation amplitudes
     float scripted_shake_intensity; // 0x118

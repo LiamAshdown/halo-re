@@ -164,14 +164,14 @@ typedef struct shader_texture_transform {
 // an average radius at +0x98 and that the sprite builder reads framebuffer_fade_mode at +0x2c.
 // ---------------------------------------------------------------------------
 typedef struct shader_effect {
-    uint8_t unknown_00[0x24];       // 0x00 tag padding; nothing in this module reads it
+    uint8_t pad_00[0x24];           // 0x00 tag padding; nothing in this module reads it
     int16_t shader_type;            // 0x24 ShaderType, 1 (effect)
-    int16_t unknown_26;             // 0x26 tag padding
+    int16_t pad_26;                 // 0x26 tag padding
     uint16_t flags;                 // 0x28 ParticleShaderFlags
     int16_t framebuffer_blend_function; // 0x2a FramebufferBlendFunction
     int16_t framebuffer_fade_mode;  // 0x2c FramebufferFadeMode
     uint16_t map_flags;             // 0x2e IsUnfilteredFlag
-    uint8_t unknown_30[0x1c];       // 0x30 tag padding
+    uint8_t pad_30[0x1c];           // 0x30 tag padding
     TagDependency secondary_map;    // 0x4c bitmap; tag_id at 0x58 (-1 means none)
     int16_t anchor;                 // 0x5c ParticleAnchor
     uint16_t secondary_map_flags;   // 0x5e IsUnfilteredFlag
@@ -179,7 +179,7 @@ typedef struct shader_effect {
     float average_particle_radius;  // 0x98 tag padding reused at runtime: render_particles stores the
                                     //      average radius of the particles it drew (types/render.h)
     float zsprite_radius_scale;     // 0x9c
-    uint8_t unknown_a0[0x14];       // 0xa0 tag padding
+    uint8_t pad_a0[0x14];           // 0xa0 tag padding
 } shader_effect;                    // size 0xb4
 
 // ---------------------------------------------------------------------------

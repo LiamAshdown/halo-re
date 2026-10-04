@@ -352,13 +352,13 @@ typedef enum random_constants {
 // ---------------------------------------------------------------------------
 typedef struct sphere_mesh {
     int16_t subdivisions;      // 0x00 n; the caller passes it in AX
-    int16_t unknown_02;        // 0x02 never written (alignment for the pointer below)
+    int16_t pad_02;            // 0x02 never written (alignment for the pointer below)
     real_point3d *points;      // 0x04 point_count unit vectors
     int16_t *indices;          // 0x08 run-length encoded triangle strips
     int16_t point_count;       // 0x0c 8*(n-2)*(n-1)/2 - 6 + 12*n
     int16_t triangle_count;    // 0x0e 8*n*n
     int16_t strip_count;       // 0x10 runs written into indices, 8*n
-    int16_t unknown_12;        // 0x12 never written (tail padding)
+    int16_t pad_12;            // 0x12 never written (tail padding)
 } sphere_mesh;                 // size 0x14
 
 // Scratch tables used while subdividing; both are filled with 0xffff, meaning

@@ -577,7 +577,7 @@ typedef struct hs_damage_request {
     uint32_t attacker;               // 0x0c UNSURE, set to -1 by both callers
     uint16_t team_index;             // 0x10 0x10 mirrors damage_data.team_index (objects.h 0x10, 0xffff); both hs
                                      //    damage callers write 0xffff
-    uint16_t unknown_12;             // 0x12 FIXED: explicit padding. hs.h is #pragma pack(1), so
+    uint16_t pad_12;                 // 0x12 FIXED: explicit padding. hs.h is #pragma pack(1), so
                                      //      without it every field from sound_impulse on sat 2
                                      //      bytes low and damage_apply_area_effect read a garbage
                                      //      cluster (the a10 crash in cluster_flood_fill_within_radius)
