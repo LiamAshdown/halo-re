@@ -694,7 +694,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
 
                 if (obstruction != (datum_index)halo::k_dword_none) {
                     object *blocker = halo::game::object_at(obstruction);
-                    if (((1 << blocker->type) & _object_mask_unit) != 0) {
+                    if (((halo::objects::object_type_mask_of(blocker->type)) & _object_mask_unit) != 0) {
                         datum_index controller =
                             reinterpret_cast<::unit_object *>(blocker)->unit.controlling_player;
                         if (controller != (datum_index)halo::k_dword_none) {
@@ -923,7 +923,7 @@ void EnginePlacement::update_item_scale_and_pickup(void)
         if (current_game_engine != 0 && current_game_engine->object_in_play_update != 0) {
             object_header *hdr = (object_header *)halo::memory::datum_get(iterator.handle, halo::objects::globals().object_data);
 
-            if (hdr != 0 && (1u << hdr->type) == _object_mask_weapon && hdr->data != 0 &&
+            if (hdr != 0 && (halo::objects::object_type_mask_of(hdr->type)) == _object_mask_weapon && hdr->data != 0 &&
                 (halo::game::weapon_flag_set(halo::game::tag_data_at(obj->definition_tag), halo::tags::weapon_tag_flag::must_be_readied)) != 0) {
                 halo::game::game_engine_notify_item_expired(iterator.handle);
                 ((void (*)(datum_index, object *))current_game_engine->object_in_play_update)(

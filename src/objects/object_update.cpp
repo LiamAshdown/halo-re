@@ -383,7 +383,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
     real_orientation local_orientations[k_maximum_nodes_per_model];
     real_orientation *orientations;
 
-    if (((1u << ((uint8_t)((struct object *)obj)->type & 0x1f)) & 0xfe0u) != 0) {
+    if ((halo::objects::object_type_mask_of((uint8_t)((struct object *)obj)->type) & _object_mask_no_node_functions) != 0) {
         orientations = local_orientations;
     } else {
         orientations = (real_orientation *)(obj + ((struct object *)obj)->node_function_defaults.offset);

@@ -65,7 +65,7 @@ void ObjectCleanup::cleanup_dropped_objects(void)
                 wake_flag = (uint8_t)((*(uint32_t *)((uint8_t *)ti->data + 0x308) >> 3) & 1);
             }
 
-            if ((hdr == 0 || (1u << hdr->type) != _object_mask_weapon ||
+            if ((hdr == 0 || (halo::objects::object_type_mask_of(hdr->type)) != _object_mask_weapon ||
                  hdr->data == 0 || wake_flag == 0) &&
                 (obj->network_role != 1 && (item->flags & 0x40) == 0)) {
                 halo::objects::object_delete(iterator.handle);
