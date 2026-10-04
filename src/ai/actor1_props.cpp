@@ -1001,7 +1001,7 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
     p->seen_state = -1;
     p->object_index = object_index;
     p->seen = 0;
-    p->unknown_70 = 0.0f;
+    p->damage_inflicted_on_me = 0.0f;
     p->information_age = -1;
     p->has_current_information = 0;
     p->information_source_actor = -1;
@@ -1090,13 +1090,13 @@ void halo::ai::prop_ops::mark_prop_seen_with_delta(datum_index object_index, dat
 
         p->seen_state = 0;
         p->seen = 1;
-        p->unknown_70 = delta + p->unknown_70;
+        p->damage_inflicted_on_me = delta + p->damage_inflicted_on_me;
         if (pair != k_datum_index_none) {
             prop *q = halo::ai::prop_at(pair);
 
             q->seen_state = 0;
             q->seen = 1;
-            q->unknown_70 = delta + q->unknown_70;
+            q->damage_inflicted_on_me = delta + q->damage_inflicted_on_me;
         }
         kind = p->state;
         if (kind < 2 || kind > 3) {

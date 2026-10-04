@@ -1344,14 +1344,14 @@ typedef struct prop {
                                       //    counts down by usage, the orphan is deleted below 0
     int16_t inspection_ticks;         // 0x3c ticks the orphan has been looked at; at 45 (300 when nearly dead) state
                                       //    4 becomes 5 (inspected orphan)
-    uint8_t unknown_3e[2];            // 0x3e
+    uint8_t pad_3e[2];                // 0x3e
     real_vector3d perceived_to_known_delta; // 0x40 actor_copy_prop_and_reset: last_known_position - last_perceived_position;
                                       //    actor_find_best_firing_position reads it as the query target_vault_point
     int16_t lost_timer;               // 0x4c 10 (60 when seen) on entering state 2; while set and near
                                       //    last_perceived_position the prop stays in state 2
     uint8_t dead_confirmed;           // 0x4e 0x41c4b0: an orphan whose object is dead, not feigning, unperceived and
                                       //    still; later non-forced refreshes skip it
-    uint8_t unknown_4f;               // 0x4f
+    uint8_t pad_4f;                   // 0x4f
     float desirability;               // 0x50 actor_rate_potential_target writes the score here
     float interest;                   // 0x54 actor_compute_target_priority_weight (0x414590), the CEA
                                       //    actor_look_compute_prop_interest; the idle look selector (0x414a90) scores
@@ -1373,17 +1373,17 @@ typedef struct prop {
     uint8_t in_use;                   // 0x63 set while the actor references the prop (target, vocalization / search
                                       //    slots, ...), mirrored to the pair; an in-use prop is never dropped
     uint8_t combat_dirty;             // 0x64 actor_target_reset_combat_flags sets it
-    uint8_t unknown_65;               // 0x65
+    uint8_t pad_65;                   // 0x65
     int16_t stimulus_type;            // 0x66 highest stimulus heard (0..3; weapon fire 1, a unit scream 2), -1 none;
                                       //    1 sets shooting
     int16_t stimulus_timer;           // 0x68 30 (150 for type 3) with stimulus_type; at 0 stimulus_type goes back to
                                       //    -1
     int16_t retain_timer;             // 0x6a 30 on a newly created shared prop; while > 0 the prop is never dropped
     int16_t seen_state;               // 0x6c actor_target_reset_seen_flags sets 0xffff
-    int16_t unknown_6e;               // 0x6e
-    float unknown_70;                 // 0x70 0x43e640 zeroes it
+    int16_t pad_6e;                   // 0x6e
+    float damage_inflicted_on_me;     // 0x70 0x43e640 zeroes it
     uint8_t seen;                     // 0x74 actor_target_reset_seen_flags clears it
-    uint8_t unknown_75;               // 0x75
+    uint8_t pad_75;                   // 0x75
     int16_t dead_ticks;               // 0x76 0 while alive, then +1 per tick (1000 for an object already dead at
                                       //    init); the CEA actor_perception_desire_prop dead_ticks
     int16_t sighted_ticks;            // 0x78 consecutive ticks with visual_perception >= 2, up to 0x7fff (a short:
@@ -1396,10 +1396,10 @@ typedef struct prop {
     real_point3d last_seen_position;  // 0x90 head_position when last seen
     int16_t engaged_ticks;            // 0x9c 1 when actor_target_mark_engaged (0x41fa80) marks it, 0 when cleared,
                                       //    counts up to 0x7fff
-    uint8_t unknown_9e[2];            // 0x9e
+    uint8_t pad_9e[2];                // 0x9e
     int32_t last_engaged_time;        // 0xa0 game time of the last engagement mark, -1 none; unmarked 150 ticks later
     uint8_t engaged;                  // 0xa4 0x41fa80 marks the target actively engaged
-    uint8_t unknown_a5;               // 0xa5
+    uint8_t pad_a5;                   // 0xa5
     int16_t friends_killed;           // 0xa6 allies this target killed (0x423220); compared with
                                       //    Actor.friends_killed_trigger
     int16_t friends_killed_timer;     // 0xa8 750 per kill; each expiry takes one off friends_killed
@@ -1408,7 +1408,7 @@ typedef struct prop {
     int16_t danger_trigger_ticks;     // 0xae ticks of being shot at after which the prop raises the danger priority to 7 (drawn from the actor definition danger_trigger_time)
     int16_t information_age;          // 0xb0 ticks since the information about it was last refreshed (-1 none); past
                                       //    59 has_current_information clears
-    uint8_t unknown_b2[2];            // 0xb2
+    uint8_t pad_b2[2];                // 0xb2
     int32_t information_source_actor; // 0xb4 the friend actor that handed the prop over (0x41f7d0), -1 none
     uint8_t has_current_information;  // 0xb8 set on fresh information (from a friend, or seen); expires after 60
                                       //    ticks
@@ -1436,7 +1436,7 @@ typedef struct prop {
                                       //    handle when the tracked unit's parent is a non-vehicle unit (biped);
                                       //    actor_update_firing_state reads it as the 'exclude' object of the aim ray
     uint8_t in_water;                 // 0x118 scenario_location_get_water_and_weather at the body marker
-    uint8_t unknown_119[3];           // 0x119
+    uint8_t pad_119[3];               // 0x119
     float distance;                   // 0x11c the ascending sort key of ai_target_distance_qsort_compare
     uint8_t perception_range_class;   // 0x120 always 2; the range class (0.4 / 0.6 / 0.8 / 1.0 x vision range) the
                                       //    perception test uses
