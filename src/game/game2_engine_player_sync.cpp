@@ -47,7 +47,7 @@ static auto &local_player_input_frozen = halo::link::ref<uint8_t []>(halo::game:
 static auto &local_player_look_frozen = halo::link::ref<uint8_t []>(halo::game::vars().local_player_look_frozen);
 static auto &update_client_staged = halo::link::ref<uint32_t [8]>(halo::game::vars().update_client_staged);
 static auto &update_client_staged_count = halo::link::ref<int32_t>(halo::game::vars().update_client_staged_count);
-static auto &update_client_unknown_ec4 = halo::link::ref<int32_t>(halo::game::vars().update_client_unknown_ec4);
+static auto &update_client_ticks_remaining = halo::link::ref<int32_t>(halo::game::vars().update_client_ticks_remaining);
 static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
 static auto &player_profile_cache_count = halo::link::ref<int32_t>(halo::game::vars().player_profile_cache_count);
 static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
@@ -726,7 +726,7 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
 
         ((player_action *)update_client_staged)[update_client_staged_count] = action;
         update_client_staged_count = update_client_staged_count + 1;
-        update_client_unknown_ec4 = ticks_this_frame;
+        update_client_ticks_remaining = ticks_this_frame;
     }
 }
 

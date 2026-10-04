@@ -16,12 +16,12 @@
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
 
-static auto &update_client_unknown_ea0 = halo::link::ref<int32_t>(halo::game::vars().update_client_unknown_ea0);
+static auto &update_client_latest_tick = halo::link::ref<int32_t>(halo::game::vars().update_client_latest_tick);
 static auto &update_client_queues = halo::link::ref<data_array *>(halo::game::vars().update_client_queues);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &update_client_staged = halo::link::ref<uint32_t [8]>(halo::game::vars().update_client_staged);
-static auto &update_client_unknown_ec8 = halo::link::ref<uint32_t>(halo::game::vars().update_client_unknown_ec8);
-static auto &update_client_unknown_ec4 = halo::link::ref<int32_t>(halo::game::vars().update_client_unknown_ec4);
+static auto &update_client_held_control_flags = halo::link::ref<uint32_t>(halo::game::vars().update_client_held_control_flags);
+static auto &update_client_ticks_remaining = halo::link::ref<int32_t>(halo::game::vars().update_client_ticks_remaining);
 static auto &update_client_base_tick = halo::link::ref<int32_t>(halo::game::vars().update_client_base_tick);
 static auto &update_client_initialized = halo::link::ref<uint8_t>(halo::game::vars().update_client_initialized);
 static auto &update_client_history = halo::link::ref<update_record [128]>(halo::game::vars().update_client_history);
@@ -34,7 +34,7 @@ static auto &update_server_tick = halo::link::ref<int32_t>(halo::game::vars().up
 static auto &update_server_history = halo::link::ref<update_record [32]>(halo::game::vars().update_server_history);
 static auto &machine_to_player = halo::link::ref<datum_index [16]>(halo::game::vars().machine_to_player);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-static auto &update_client_unknown_102d4 = halo::link::ref<int32_t>(halo::game::vars().update_client_unknown_102d4);
+static auto &update_client_next_update_id = halo::link::ref<int32_t>(halo::game::vars().update_client_next_update_id);
 static auto &wait_tick_counter = halo::link::ref<int32_t>(halo::game::vars().wait_tick_counter);
 static auto &local_player_name_filter = halo::link::ref<uint16_t []>(halo::game::vars().local_player_name_filter);
 static auto &vehicle_wait_tick_counter = halo::link::ref<int32_t>(halo::game::vars().vehicle_wait_tick_counter);
@@ -76,12 +76,12 @@ void UpdateClient::advance_read_cursor(int32_t target_tick, const uint32_t *reco
     }
     slot->tick = target_tick;
     memcpy(&slot->player_count, record, 0xc1 * 4);
-    if (target_tick > update_client_unknown_ea0) {
-        for (tick = update_client_unknown_ea0 + 1; tick < target_tick; tick++) {
+    if (target_tick > update_client_latest_tick) {
+        for (tick = update_client_latest_tick + 1; tick < target_tick; tick++) {
             UpdateClient::queue_get_slot(tick);
             slot->player_count = halo::k_word_none;
         }
-        update_client_unknown_ea0 = target_tick;
+        update_client_latest_tick = target_tick;
     }
 }
 
@@ -139,7 +139,7 @@ void UpdateClient::dispose()
 /**
  * Copies the staged 8-dword entry into every element of `out` (0x20 bytes
  * each, one per element of the client update queue array), overwriting dword 0 with a masked value derived from
- * update_client_unknown_ec8, and decrements update_client_unknown_ec4 the first time through.
+ * update_client_held_control_flags, and decrements update_client_ticks_remaining the first time through.
  * Advances update_client_base_tick and returns a packed (0, success) result.
  *
  * @address 0x473270
@@ -147,12 +147,12 @@ void UpdateClient::dispose()
 uint32_t UpdateClient::distribute_staged_entry(uint8_t *out_bytes)
 {
     player_action *out = (player_action *)out_bytes;
-    uint32_t masked = ~update_client_unknown_ec8 & update_client_staged[0];
+    uint32_t masked = ~update_client_held_control_flags & update_client_staged[0];
     data_iterator iter;
     void *element;
     int32_t index = -1;
 
-    update_client_unknown_ec8 = update_client_staged[0] & k_held_control_flags_mask;
+    update_client_held_control_flags = update_client_staged[0] & k_held_control_flags_mask;
 
     iter.data = update_client_queues;
     iter.next_index = 0;
@@ -167,7 +167,7 @@ uint32_t UpdateClient::distribute_staged_entry(uint8_t *out_bytes)
         memcpy(record, update_client_staged, sizeof(*record));
         record->control_flags = masked;
         if (index == 0) {
-            update_client_unknown_ec4 = update_client_unknown_ec4 - 1;
+            update_client_ticks_remaining = update_client_ticks_remaining - 1;
         }
         element = halo::memory::data_iterator_next(&iter);
     }
@@ -191,7 +191,7 @@ uint32_t UpdateClient::update_client_new()
     update_client_queues = halo::memory::data_new(0x28, halo::mutable_literal("update client queues"), 16);
     if (update_client_queues != 0) {
         memset(update_client_history, 0xff, sizeof(update_client_history));
-        update_client_unknown_ea0 = -1;
+        update_client_latest_tick = -1;
         update_client_base_tick = 0;
         update_client_initialized = 1;
         return 0xffffff01;
@@ -210,7 +210,7 @@ uint32_t UpdateClient::queue_apply_tick(player_action *out_actions, client_updat
 {
     update_record *slot = UpdateClient::queue_get_slot(update_client_base_tick);
 
-    if (slot == 0 || update_client_base_tick > (int32_t)update_client_unknown_ea0) {
+    if (slot == 0 || update_client_base_tick > (int32_t)update_client_latest_tick) {
         return 0;
     }
 
@@ -516,7 +516,7 @@ void UpdateQueues::dispose()
 
     update_client_base_tick = 0;
     update_client_initialized = 0;
-    update_client_unknown_ea0 = -1;
+    update_client_latest_tick = -1;
 }
 
 /**
@@ -537,10 +537,10 @@ void UpdateQueues::revert()
 
         memset(update_client_history, 0xff, 0x6100 * 4);
         memset(update_client_staged, 0, sizeof(update_client_staged));
-        update_client_unknown_ec8 = 0;
+        update_client_held_control_flags = 0;
         update_client_base_tick = 0;
-        update_client_unknown_ec4 = -1;
-        update_client_unknown_ea0 = -1;
+        update_client_ticks_remaining = -1;
+        update_client_latest_tick = -1;
 
         now = game_time->game_time;
         tick = now - 0x80;
@@ -554,7 +554,7 @@ void UpdateQueues::revert()
         }
         update_client_base_tick = now;
         update_server_tick = now;
-        update_client_unknown_ea0 = now - 1;
+        update_client_latest_tick = now - 1;
     }
     if (update_server_initialized) {
         UpdateServer::dispose();
@@ -582,12 +582,12 @@ void UpdateQueues::run_catchup_ticks(int16_t tick_count)
     if (tick_count <= 0) {
         return;
     }
-    previous = update_client_unknown_102d4;
+    previous = update_client_next_update_id;
     next = (previous + 1) & 0x8000003f;
     if (next < 0) {
         next = ((next - 1) | 0xffffffc0) + 1;
     }
-    update_client_unknown_102d4 = next;
+    update_client_next_update_id = next;
     for (i = 0; i < 8; i++) {
         staged_copy[i] = update_client_staged[i];
     }

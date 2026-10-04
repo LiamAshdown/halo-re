@@ -339,7 +339,7 @@ __declspec(allocate(".geq$006f7e98v")) __declspec(align(8)) uint8_t update_clien
 #pragma section(".geq$006f7e9cv", read, write)
 __declspec(allocate(".geq$006f7e9cv")) __declspec(align(4)) uint8_t update_client_base_tick[4] = {0};
 #pragma section(".geq$006f7ea0v", read, write)
-__declspec(allocate(".geq$006f7ea0v")) __declspec(align(16)) uint8_t update_client_unknown_ea0[4] = {0};
+__declspec(allocate(".geq$006f7ea0v")) __declspec(align(16)) uint8_t update_client_latest_tick[4] = {0};
 #pragma section(".geq$006f7ea4v", read, write)
 __declspec(allocate(".geq$006f7ea4v")) __declspec(align(4)) uint8_t update_client_staged[4] = {0};
 #pragma section(".geq$006f7ea8v", read, write)
@@ -347,9 +347,9 @@ __declspec(allocate(".geq$006f7ea8v")) __declspec(align(8)) uint8_t update_clien
 #pragma section(".geq$006f7eacv", read, write)
 __declspec(allocate(".geq$006f7eacv")) __declspec(align(4)) uint8_t update_client_unknown_eac[24] = {0};
 #pragma section(".geq$006f7ec4v", read, write)
-__declspec(allocate(".geq$006f7ec4v")) __declspec(align(4)) uint8_t update_client_unknown_ec4[4] = {0};
+__declspec(allocate(".geq$006f7ec4v")) __declspec(align(4)) uint8_t update_client_ticks_remaining[4] = {0};
 #pragma section(".geq$006f7ec8v", read, write)
-__declspec(allocate(".geq$006f7ec8v")) __declspec(align(8)) uint8_t update_client_unknown_ec8[4] = {0};
+__declspec(allocate(".geq$006f7ec8v")) __declspec(align(8)) uint8_t update_client_held_control_flags[4] = {0};
 #pragma section(".geq$006f7eccv", read, write)
 __declspec(allocate(".geq$006f7eccv")) __declspec(align(4)) uint8_t update_client_staged_count[4] = {0};
 #pragma section(".geq$006f7ed0v", read, write)

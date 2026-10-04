@@ -247,7 +247,7 @@ static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::va
 static auto &shell_application_inactive = halo::link::ref<uint8_t>(halo::main::vars().shell_application_inactive);
 static auto &terminal_initialized = halo::link::ref<uint8_t>(halo::main::vars().terminal_initialized);
 static auto &update_client_staged = halo::link::ref<uint32_t [8]>(halo::game::vars().update_client_staged);
-static auto &update_client_unknown_ec4 = halo::link::ref<int32_t>(halo::game::vars().update_client_unknown_ec4);
+static auto &update_client_ticks_remaining = halo::link::ref<int32_t>(halo::game::vars().update_client_ticks_remaining);
 static auto &update_client_staged_count = halo::link::ref<int32_t>(halo::game::vars().update_client_staged_count);
 static auto &player_update_log_flags = halo::link::ref<uint32_t>(halo::main::vars().player_update_log_flags);
 static auto &main_render_skip_threshold_ms = halo::link::ref<int32_t>(halo::main::vars().main_render_skip_threshold_ms);
@@ -382,7 +382,7 @@ void frame_simulate(uint8_t &render_frame)
         ticks = halo::game::game_engine_accumulate_simulation_ticks(delta, 1);
         memset(update_client_staged, 0, sizeof(update_client_staged));
         update_client_staged_count = 0;
-        update_client_unknown_ec4 = ticks;
+        update_client_ticks_remaining = ticks;
         halo::game::game_engine_update_local_player_control(0, delta, ticks);
         if (main_globals_data.game_connection == _game_connection_network_client ||
             (main_globals_data.game_connection == _game_connection_network_server &&

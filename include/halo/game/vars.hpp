@@ -228,12 +228,12 @@ struct Vars {
     void *update_client_queues;
     void *update_client_staged;
     void *update_client_staged_count;
-    void *update_client_unknown_102d4;
-    void *update_client_unknown_ea0;
+    void *update_client_next_update_id;
+    void *update_client_latest_tick;
     void *update_client_unknown_ea8;
     void *update_client_unknown_eac;
-    void *update_client_unknown_ec4;
-    void *update_client_unknown_ec8;
+    void *update_client_ticks_remaining;
+    void *update_client_held_control_flags;
     void *update_client_write_cursor;
     void *update_server_history;
     void *update_server_initialized;
