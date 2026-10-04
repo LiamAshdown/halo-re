@@ -749,7 +749,7 @@ typedef struct biped_data {
     int8_t pad_507;                     // 0x507 alignment
     int16_t landing_type;               // 0x508 0 soft, 1 hard, -1 none (0x55eaa0); a hard landing blocks jumping
                                         //       and 0x55eb90 turns it into a trigger id
-    int16_t unknown_50a;                // 0x50a
+    int16_t pad_50a;                    // 0x50a
     float crouch_fraction;              // 0x50c 0..1; the movement solvers step it by the
                                         //       crouch_camera_velocity of the Biped tag (0x4cc),
                                         //       unit_get_camera_position and 0x55a2e0 blend
@@ -762,7 +762,7 @@ typedef struct biped_data {
     uint8_t ground_adjust_iteration;    // 0x524 0x557a90 increments it up to 0x7f
     uint8_t ground_adjust_iteration_limit; // 0x525 0x55ad00 seeds it with 0x14; the solver
                                         //       stops once the iteration reaches it
-    uint8_t unknown_526;                // 0x526 set by the network create and scripted spawn
+    uint8_t baseline_valid;             // 0x526 set by the network create and scripted spawn
     uint8_t network_update_sequence;    // 0x527 0x55b5f0 rejects an update whose sequence is
                                         //       behind this one
     uint8_t network_delta_sequence;     // 0x528 0x55b440 increments it per delta sent and
@@ -770,7 +770,7 @@ typedef struct biped_data {
     uint8_t pad_529[3];                 // 0x529 alignment
     int16_t network_grenade_counts;     // 0x52c both grenade counts as one int16; 0x55b110
                                         //       copies it into unit_data.grenade_counts
-    int16_t unknown_52e;                // 0x52e
+    int16_t pad_52e;                    // 0x52e
     float network_body_vitality;        // 0x530 0x55b110 copies it into object 0xe0
     float network_shield_vitality;      // 0x534 0x55b110 writes object 0xe4 as this times 3
     int8_t network_shield_stunned;      // 0x538 0x55b110 turns it into object 0x104
@@ -778,7 +778,7 @@ typedef struct biped_data {
     int8_t network_baseline_valid;      // 0x53c 0x55b5f0 sets it when it snapshots the block
     int8_t pad_53d[3];                  // 0x53d alignment
     int16_t baseline_grenade_counts;    // 0x540 the snapshot 0x55b5f0 keeps of 0x52c
-    int16_t unknown_542;                // 0x542
+    int16_t pad_542;                    // 0x542
     float baseline_body_vitality;       // 0x544 snapshot of 0x530
     float baseline_shield_vitality;     // 0x548 snapshot of 0x534
     int8_t baseline_shield_stunned;     // 0x54c snapshot of 0x538
@@ -860,7 +860,8 @@ typedef struct vehicle_data {
                                         //       update; vehicle_update rate-limits on it
     int16_t cinematic_facing_index;     // 0x5b0 0x570de0 indexes the cinematic direction table
                                         //       of the scenario with it
-    uint8_t unknown_5b2[0xe];           // 0x5b2 untouched by this module
+    uint8_t pad_5b2[2];                 // 0x5b2 padding
+    real_point3d network_update_position; // 0x5b4 the vehicle position at the last network_update_tick refresh (CEA spawn_position)
 } vehicle_data;                         // size 0xf4 (object 0x4cc .. 0x5c0)
 
 #ifdef HALO_TYPES_OBJECTS_H

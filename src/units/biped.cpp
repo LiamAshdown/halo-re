@@ -232,7 +232,7 @@ uint8_t BipedView::create()
     ((struct biped_object *)object)->biped.last_ground_object_ticks = 0;
     ((struct biped_object *)object)->biped.last_ground_object_index = -1;
     if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client || halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
-        ((struct biped_object *)object)->biped.unknown_526 = 0;
+        ((struct biped_object *)object)->biped.baseline_valid = 0;
         ((struct biped_object *)object)->biped.network_update_sequence = 0;
         ((struct biped_object *)object)->biped.network_delta_sequence = 0;
         ((struct object *)object)->network_state_009 = 0;

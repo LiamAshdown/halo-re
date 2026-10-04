@@ -75,7 +75,7 @@ uint8_t VehicleView::create()
     }
     ((struct vehicle_object *)object)->vehicle.network_update_tick = (uint32_t)halo::game::globals().game_time->game_time;
     for (i = 0; i < 3; i++) {
-        ((uint32_t *)&((struct vehicle_object *)object)->vehicle.unknown_5b2[2])[i] = ((uint32_t *)&((struct object *)object)->position)[i];
+        ((uint32_t *)&((struct vehicle_object *)object)->vehicle.network_update_position)[i] = ((uint32_t *)&((struct object *)object)->position)[i];
     }
     ((struct vehicle_object *)object)->vehicle.collision_update_pending = 0;
     return 1;
@@ -156,7 +156,7 @@ uint32_t VehicleView::update()
 
     if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host && ((struct vehicle_object *)obj)->vehicle.network_update_tick != -1 && vehicle_network_update_period != 0 &&
         halo::game::globals().game_time->game_time >= ((struct vehicle_object *)obj)->vehicle.network_update_tick + vehicle_network_update_period) {
-        if (halo::math::vector3d_distance(*((real_point3d *)&((struct vehicle_object *)obj)->vehicle.unknown_5b2[2]), *((real_point3d *)&((struct object *)obj)->position)) > 1.5f &&
+        if (halo::math::vector3d_distance(*((real_point3d *)&((struct vehicle_object *)obj)->vehicle.network_update_position), *((real_point3d *)&((struct object *)obj)->position)) > 1.5f &&
             UnitView(object_index).get_recently_updated_flag() == 1 && !UnitView(object_index).has_child_of_type5()) {
             UnitView(object_index).set_facing_from_index_table();
         }

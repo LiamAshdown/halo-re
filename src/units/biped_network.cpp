@@ -56,7 +56,7 @@ void BipedView::network_baseline_take()
     ((struct biped_object *)obj)->biped.network_update_sequence++;
     ((struct biped_object *)obj)->biped.network_shield_vitality = ((unit_object *)obj)->base.shield_vitality * 0.33333334f;
     *(uint32_t *)&((struct biped_object *)obj)->biped.network_body_vitality = *(uint32_t *)&((unit_object *)obj)->base.body_vitality;
-    ((struct biped_object *)obj)->biped.unknown_526 = 1;
+    ((struct biped_object *)obj)->biped.baseline_valid = 1;
     ((struct biped_object *)obj)->biped.network_delta_sequence = 0;
     ((struct biped_object *)obj)->biped.network_shield_stunned = (uint8_t)(((unit_object *)obj)->base.shield_stun_ticks > 0);
     ((struct biped_object *)obj)->biped.network_grenade_counts = *(int16_t *)(obj + 0x31e);
