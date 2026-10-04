@@ -74,13 +74,13 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
 
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         if ((float)(int32_t)(halo::math::globals().random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale < unit_tag->feign_repeat_chance) {
-            set_flag(obj->unit.flags, units::unit_flag::unknown_2000);
+            set_flag(obj->unit.flags, units::unit_flag::feign_death_allowed);
         } else {
-            clear_flag(obj->unit.flags, units::unit_flag::unknown_2000);
+            clear_flag(obj->unit.flags, units::unit_flag::feign_death_allowed);
         }
     }
     obj->unit.death_time = halo::game::globals().game_time->game_time;
-    clear_flag(obj->unit.flags, units::unit_flag::unattended | units::unit_flag::unknown_10);
+    clear_flag(obj->unit.flags, units::unit_flag::unattended | units::unit_flag::active_camouflaged);
     obj->unit.control_flags = 0;
     if (obj->unit.current_weapon_index != -1) {
         unit_object *unit = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(unit_index));

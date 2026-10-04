@@ -33,9 +33,9 @@ void UnitCommands::evaluate_unit_aim_without_turning(int16_t function_index, uin
             uint8_t *unit = (uint8_t *)halo::ai::object_at(arguments[0]);
 
             if ((uint8_t)arguments[1]) {
-                ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::unknown_4000);
+                ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::aim_without_turning);
             } else {
-                ((unit_object *)unit)->unit.flags &= ~halo::to_bits(halo::units::unit_flag::unknown_4000);
+                ((unit_object *)unit)->unit.flags &= ~halo::to_bits(halo::units::unit_flag::aim_without_turning);
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
@@ -59,9 +59,9 @@ void UnitCommands::evaluate_unit_can_blink(int16_t function_index, uint32_t thre
             uint8_t *unit = (uint8_t *)halo::ai::object_at(arguments[0]);
 
             if (!(uint8_t)arguments[1]) {
-                ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::unknown_400000);
+                ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::cannot_blink);
             } else {
-                ((unit_object *)unit)->unit.flags &= ~halo::to_bits(halo::units::unit_flag::unknown_400000);
+                ((unit_object *)unit)->unit.flags &= ~halo::to_bits(halo::units::unit_flag::cannot_blink);
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
@@ -490,7 +490,7 @@ void UnitCommands::evaluate_unit_set_enterable_by_player(int16_t function_index,
             uint8_t *unit = (uint8_t *)halo::ai::object_at(arguments[0]);
 
             if (halo::hs::argument_byte(arguments[1]) == 0) {
-                ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::unknown_10000);
+                ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::not_enterable_by_player);
             } else {
                 ((unit_object *)unit)->unit.flags &= 0xfffeffff;
             }

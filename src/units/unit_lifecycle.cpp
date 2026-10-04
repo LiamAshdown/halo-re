@@ -409,9 +409,9 @@ uint8_t UnitView::new_()
     if (tag->feign_death_threshold > 0.0f && tag->feign_death_time > 0.0f && tag->feign_death_chance > 0.0f) {
         float roll = halo::math::random_real();
         if (roll < tag->feign_death_chance) {
-            set_flag(unit->flags, units::unit_flag::unknown_2000);
+            set_flag(unit->flags, units::unit_flag::feign_death_allowed);
         } else {
-            clear_flag(unit->flags, units::unit_flag::unknown_2000);
+            clear_flag(unit->flags, units::unit_flag::feign_death_allowed);
         }
     }
 
@@ -617,9 +617,9 @@ void UnitView::reset_velocity_and_ground_flag(uint8_t enable)
         unit_data *unit = halo::units::unit_data_of(unit_obj);
 
         if (!enable) {
-            clear_flag(unit->flags, units::unit_flag::unknown_1000000);
+            clear_flag(unit->flags, units::unit_flag::suspended);
         } else {
-            set_flag(unit->flags, units::unit_flag::unknown_1000000);
+            set_flag(unit->flags, units::unit_flag::suspended);
         }
         unit_obj->velocity.i = global_origin3d_pointer->x;
         unit_obj->velocity.j = global_origin3d_pointer->y;
@@ -765,7 +765,7 @@ void UnitView::update_scale_function_inputs()
                 value = unit->integrated_light_power;
                 break;
             case 6:
-                if (!test_flag(obj->vitality_flags, objects::vitality_flag::health_frozen) && !test_flag(unit->flags, units::unit_flag::unknown_400000)) {
+                if (!test_flag(obj->vitality_flags, objects::vitality_flag::health_frozen) && !test_flag(unit->flags, units::unit_flag::cannot_blink)) {
                     value = 1.0f;
                 } else {
                     value = 0.0f;

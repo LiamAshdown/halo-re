@@ -85,7 +85,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
         }
     }
     unit_flags = obj->unit.flags;
-    if (test_flag(unit_flags, units::unit_flag::unknown_10)) {
+    if (test_flag(unit_flags, units::unit_flag::active_camouflaged)) {
         float left = obj->unit.active_camouflage_power - effect.damage_active_camouflage_damage;
 
         obj->unit.active_camouflage_power = left;
@@ -95,7 +95,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
     }
     if (is_local == 1) {
         violent = (uint8_t)(killed && !(effect.damage_instantaneous_acceleration.i < 2.0f));
-        if (!killed && (test_flag(unit_flags, units::unit_flag::unknown_2000)) && unit_tag->feign_death_threshold > 0.0f &&
+        if (!killed && (test_flag(unit_flags, units::unit_flag::feign_death_allowed)) && unit_tag->feign_death_threshold > 0.0f &&
             unit_tag->feign_death_time > 0.0f && obj->base.body_vitality > 0.0f &&
             obj->base.recent_body_damage > unit_tag->feign_death_threshold) {
             float ticks = (halo::math::random_real_range(0.0f, 1.0f) + unit_tag->feign_death_time) * 30.0f;
@@ -185,7 +185,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
 
     if (!skip_record_check) {
         if (!test_flag(dd->flags, objects::damage_data_flag::unknown_10) && (killed || knocked_down || !test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen)) &&
-            !test_flag(obj->unit.flags, units::unit_flag::unknown_800000) && !test_flag(effect.damage_flags, tags::damage_effect_damage_tag_flag::does_not_ping_units)) {
+            !test_flag(obj->unit.flags, units::unit_flag::impervious) && !test_flag(effect.damage_flags, tags::damage_effect_damage_tag_flag::does_not_ping_units)) {
             uint32_t effect_flags = effect.damage_flags;
             real_vector2d direction;
             real_vector2d forward;
@@ -334,7 +334,7 @@ void UnitView::apply_fall_damage(float fall_speed)
     GlobalsFallingDamage *fall_table = halo::objects::block_elements<GlobalsFallingDamage>(global_globals->falling_damage);
     uint32_t exempt;
 
-    exempt = (!test_flag(unit->flags, units::unit_flag::unknown_1000) && (int8_t)tag->biped_flags >= 0) ? 0 : 1;
+    exempt = (!test_flag(unit->flags, units::unit_flag::no_falling_damage) && (int8_t)tag->biped_flags >= 0) ? 0 : 1;
     if (unit_updates_suppressed != 0) {
         exempt = 1;
     }

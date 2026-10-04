@@ -195,9 +195,9 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
     }
     if (variant->flags & 0x30) {
         if (halo::ai::flag_set(variant->flags, halo::tags::actor_variant_tag_flag::super_active_camouflage)) {
-            ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::unknown_20);
+            ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::super_camouflaged);
         }
-        ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::unknown_10);
+        ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::active_camouflaged);
         ((struct unit_object *)unit)->unit.active_camouflage_power = 1.0f;
         ((struct unit_object *)unit)->unit.super_active_camouflage_power = (static_cast<uint8_t>(unit_tag->base.object_type) & 0x20) ? 1.0f : 0.0f;
     }

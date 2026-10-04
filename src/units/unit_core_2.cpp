@@ -138,7 +138,7 @@ uint8_t UnitView::update()
                 obj->unit.persistent_control_flags = 0;
             }
         }
-        if (!test_flag(obj->unit.flags, units::unit_flag::unknown_8000000)) {
+        if (!test_flag(obj->unit.flags, units::unit_flag::possessed_by_recording)) {
             datum_index driver = obj->unit.driver_unit_index;
             datum_index gunner = obj->unit.gunner_unit_index;
 
@@ -173,7 +173,7 @@ uint8_t UnitView::update()
             }
         }
         if (!unit_updates_suppressed) {
-            if (test_flag(obj->unit.flags, units::unit_flag::unknown_10)) {
+            if (test_flag(obj->unit.flags, units::unit_flag::active_camouflaged)) {
                 float step = 0.008333334f;
 
                 if (halo::game::globals().current_engine != 0 && obj->unit.active_camouflage_regrowth != 0 && obj->unit.active_camouflage_regrowth == 1) {
@@ -198,7 +198,7 @@ uint8_t UnitView::update()
                     obj->unit.active_camouflage_power = 0.0f;
                 }
             }
-            if (test_flag(obj->unit.flags, units::unit_flag::unknown_20)) {
+            if (test_flag(obj->unit.flags, units::unit_flag::super_camouflaged)) {
                 obj->unit.super_active_camouflage_power += 0.011111111f;
                 if (obj->unit.super_active_camouflage_power > 1.0f) {
                     obj->unit.super_active_camouflage_power = 1.0f;
@@ -390,7 +390,7 @@ uint8_t UnitView::update()
             if (obj->unit.current_weapon_index == obj->unit.desired_weapon_index) {
                 uint8_t flashing = (uint8_t)(obj->unit.persistent_control_ticks > 0 && test_flag(obj->unit.persistent_control_flags, units::unit_control_flag::primary_trigger));
 
-                if (valid_team_player && test_flag(obj->unit.control_flags, units::unit_control_flag::unknown_10)) {
+                if (valid_team_player && test_flag(obj->unit.control_flags, units::unit_control_flag::integrated_light)) {
                     control = 1;
                 }
                 if (test_flag(obj->unit.control_flags, units::unit_control_flag::primary_trigger)) {
@@ -504,15 +504,15 @@ uint8_t UnitView::update()
         uint32_t flags = obj->unit.flags;
         uint32_t button;
 
-        if (test_flag(flags, units::unit_flag::unknown_10000000)) {
-            if (!test_flag(flags, units::unit_flag::unknown_80000)) {
+        if (test_flag(flags, units::unit_flag::desired_integrated_light_on)) {
+            if (!test_flag(flags, units::unit_flag::integrated_light_on)) {
                 toggle = 1;
             }
             obj->unit.flags = flags & 0xefffffff;
         }
         flags = obj->unit.flags;
-        if (test_flag(flags, units::unit_flag::unknown_20000000)) {
-            if (test_flag(flags, units::unit_flag::unknown_80000)) {
+        if (test_flag(flags, units::unit_flag::desired_integrated_light_off)) {
+            if (test_flag(flags, units::unit_flag::integrated_light_on)) {
                 toggle = 1;
             }
             obj->unit.flags = flags & 0xdfffffff;
@@ -521,11 +521,11 @@ uint8_t UnitView::update()
         if (button != 0 || !(obj->unit.integrated_light_energy > 0.0f) || toggle) {
             if (!valid_team_player) {
                 flags = obj->unit.flags;
-                if (test_flag(flags, units::unit_flag::unknown_4000000)) {
+                if (test_flag(flags, units::unit_flag::integrated_night_vision_on)) {
                     obj->unit.flags = flags & 0xfbffffff;
                 }
                 flags = obj->unit.flags;
-                if (test_flag(flags, units::unit_flag::unknown_80000)) {
+                if (test_flag(flags, units::unit_flag::integrated_light_on)) {
                     obj->unit.flags = (flags & 0xfff7ffff) | 0x10;
                 }
             } else {
@@ -534,7 +534,7 @@ uint8_t UnitView::update()
                 if (UnitView(unit_index).current_weapon_has_flag()) {
                     if (button != 0) {
                         GlobalsFirstPersonInterface *effects = halo::objects::block_elements<GlobalsFirstPersonInterface>(global_globals->first_person_interface);
-                        datum_index effect = (test_flag(obj->unit.flags, units::unit_flag::unknown_4000000))
+                        datum_index effect = (test_flag(obj->unit.flags, units::unit_flag::integrated_night_vision_on))
                             ? halo::objects::tag_handle(effects->night_vision_off_effect) : halo::objects::tag_handle(effects->night_vision_on_effect);
 
                         if (effect != k_datum_index_none) {
@@ -542,11 +542,11 @@ uint8_t UnitView::update()
                         }
                         obj->unit.flags ^= 0x4000000;
                     }
-                    if (test_flag(obj->unit.control_flags, units::unit_control_flag::unknown_10)) {
+                    if (test_flag(obj->unit.control_flags, units::unit_control_flag::integrated_light)) {
                         toggle_light = 0;
                     }
                 }
-                if (toggle_light && (test_flag(obj->unit.flags, units::unit_flag::unknown_80000) || obj->unit.integrated_light_energy > 0.2f) &&
+                if (toggle_light && (test_flag(obj->unit.flags, units::unit_flag::integrated_light_on) || obj->unit.integrated_light_energy > 0.2f) &&
                     obj->base.parent_object == k_datum_index_none) {
                     halo::effects::effect_new_on_object(unit_index, halo::objects::tag_handle(tag->integrated_light_toggle), unit_index, -1, 0.0f, 0.0f, 0, 0);
                     obj->unit.flags ^= 0x80000;
@@ -554,7 +554,7 @@ uint8_t UnitView::update()
             }
         }
         flags = obj->unit.flags;
-        if (test_flag(flags, units::unit_flag::unknown_80000)) {
+        if (test_flag(flags, units::unit_flag::integrated_light_on)) {
             if (!test_flag(tag->unit_flags, tags::unit_tag_flag::integrated_light_lasts_forever)) {
                 obj->unit.integrated_light_energy -= 0.00027777778f;
             }
@@ -580,7 +580,7 @@ uint8_t UnitView::update()
         }
     }
     if (UnitView(unit_index).current_weapon_has_flag()) {
-        if (test_flag(obj->unit.flags, units::unit_flag::unknown_4000000)) {
+        if (test_flag(obj->unit.flags, units::unit_flag::integrated_night_vision_on)) {
             if (obj->unit.integrated_night_vision_power != 1.0f) {
                 obj->unit.integrated_night_vision_power += 0.083333336f;
                 if (obj->unit.integrated_night_vision_power > 1.0f) {

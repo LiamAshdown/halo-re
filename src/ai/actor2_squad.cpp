@@ -61,7 +61,7 @@ void ActorView::obey_member_enter(datum_index unit_index, uint16_t command_list_
     if (list->flags & 0x10) {
         unit_object *unit = (unit_object *)halo::ai::object_at(unit_index);
 
-        ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::unknown_1000);
+        ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::no_falling_damage);
     }
 }
 
@@ -85,7 +85,7 @@ void ActorView::obey_member_exit(datum_index unit_index, uint16_t command_list_i
         halo::ai::actor_squad_action_reset_entry(actor_index, unit_index, action, (int16_t)command_list_index,
             aim, &next_action);
     }
-    ((unit_object *)unit)->unit.flags &= ~halo::to_bits(halo::units::unit_flag::unknown_1000);
+    ((unit_object *)unit)->unit.flags &= ~halo::to_bits(halo::units::unit_flag::no_falling_damage);
 }
 
 namespace actor_obey_member_tick_local {

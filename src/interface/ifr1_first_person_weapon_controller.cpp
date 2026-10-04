@@ -710,7 +710,7 @@ void FirstPersonWeaponController::update_lighting(void)
     light_sample = (int32_t)(uintptr_t)halo::render::object_get_cached_render_lighting((datum_index)unit_handle, 3.4028235e+38f);
     light_params.modifier_shader = 0;
 
-    if (halo::interface::has_bit(((struct unit_object *)unit_obj)->unit.flags, halo::units::unit_flag::unknown_10) ||
+    if (halo::interface::has_bit(((struct unit_object *)unit_obj)->unit.flags, halo::units::unit_flag::active_camouflaged) ||
         ((struct unit_object *)unit_obj)->unit.active_camouflage_power > 0.0f) {
         light_params.unit_37c = ((struct unit_object *)unit_obj)->unit.active_camouflage_power;
         light_params.unit_380 = ((struct unit_object *)unit_obj)->unit.super_active_camouflage_power;

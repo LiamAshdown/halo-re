@@ -753,9 +753,9 @@ void ObjectListView::set_unit_flag_400(char flag)
         if (obj != 0) {
             unit_data *unit = halo::units::unit_data_of(obj);
             if (flag == 0) {
-                unit->flags &= ~halo::to_bits(halo::units::unit_flag::unknown_400);
+                unit->flags &= ~halo::to_bits(halo::units::unit_flag::ignored_by_actors);
             } else {
-                unit->flags |= halo::to_bits(halo::units::unit_flag::unknown_400);
+                unit->flags |= halo::to_bits(halo::units::unit_flag::ignored_by_actors);
             }
         }
 
@@ -798,9 +798,9 @@ void ObjectListView::set_unit_flag_800(char flag)
         if (obj != 0) {
             unit_data *unit = halo::units::unit_data_of(obj);
             if (flag == 0) {
-                unit->flags &= ~halo::to_bits(halo::units::unit_flag::unknown_800);
+                unit->flags &= ~halo::to_bits(halo::units::unit_flag::preferred_target);
             } else {
-                unit->flags |= halo::to_bits(halo::units::unit_flag::unknown_800);
+                unit->flags |= halo::to_bits(halo::units::unit_flag::preferred_target);
             }
         }
 

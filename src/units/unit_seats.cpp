@@ -592,7 +592,7 @@ uint16_t UnitView::find_best_seat_to_enter(uint32_t vehicle_index, int16_t *out_
         *out_seat = -1;
         return 0;
     }
-    if (test_flag(((struct unit_object *)vehicle_obj)->unit.flags, units::unit_flag::unknown_10000)) {
+    if (test_flag(((struct unit_object *)vehicle_obj)->unit.flags, units::unit_flag::not_enterable_by_player)) {
         *out_seat = -1;
         return 0;
     }
@@ -877,9 +877,9 @@ void halo::units::unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t
             (found->data != nullptr)) {
             unit_data *unit = halo::units::unit_data_of(found->data);
             if (!use_second_bit) {
-                set_flag(unit->flags, units::unit_flag::unknown_20000000);
+                set_flag(unit->flags, units::unit_flag::desired_integrated_light_off);
             } else {
-                set_flag(unit->flags, units::unit_flag::unknown_10000000);
+                set_flag(unit->flags, units::unit_flag::desired_integrated_light_on);
             }
         }
 
@@ -1111,13 +1111,13 @@ void UnitView::release_transient_state_and_detach(uint8_t is_light_reset)
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(self_obj->definition_tag)].data;
         if (unit_tag->feign_repeat_chance <= (float)(halo::math::globals().random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale) {
-            clear_flag(unit->flags, units::unit_flag::unknown_2000);
+            clear_flag(unit->flags, units::unit_flag::feign_death_allowed);
         } else {
-            set_flag(unit->flags, units::unit_flag::unknown_2000);
+            set_flag(unit->flags, units::unit_flag::feign_death_allowed);
         }
     }
 
-    clear_flag(unit->flags, units::unit_flag::unattended | units::unit_flag::unknown_10);
+    clear_flag(unit->flags, units::unit_flag::unattended | units::unit_flag::active_camouflaged);
     unit->control_flags = 0;
     if (unit->current_weapon_index != -1) {
         int16_t slot = ((struct unit_object *)self_obj)->unit.current_weapon_index;

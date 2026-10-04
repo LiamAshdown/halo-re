@@ -456,8 +456,8 @@ void HudFrame::render_unit_interface(player *p)
 
         enabled_meters = (valid_team_player != 0 && ((struct unit_object *)unit_object)->unit.integrated_light_power == 1.0f) ? 1 : 0;
         blinking_meters = 0;
-        if (!halo::interface::has_bit(((struct unit_object *)unit_object)->unit.flags, halo::units::unit_flag::unknown_80000) && ((struct unit_object *)unit_object)->unit.integrated_light_energy < 0.2f &&
-            halo::interface::has_bit(((struct unit_object *)unit_object)->unit.control_flags, halo::units::unit_control_flag::unknown_10)) {
+        if (!halo::interface::has_bit(((struct unit_object *)unit_object)->unit.flags, halo::units::unit_flag::integrated_light_on) && ((struct unit_object *)unit_object)->unit.integrated_light_energy < 0.2f &&
+            halo::interface::has_bit(((struct unit_object *)unit_object)->unit.control_flags, halo::units::unit_control_flag::integrated_light)) {
             blinking_meters = 1;
         }
         meter_values[0] = ((struct unit_object *)unit_object)->unit.integrated_light_energy;

@@ -148,7 +148,7 @@ void BipedView::check_evade_reaction()
     biped_data *biped = halo::units::biped_data_of(obj);
 
     if (!test_flag(obj->vitality_flags, objects::vitality_flag::health_frozen) && !test_flag(tag->biped_flags, tags::biped_tag_flag::flying | tags::biped_tag_flag::immune_to_falling_damage) &&
-        !test_flag(unit->flags, units::unit_flag::unknown_1000) && unit->actor_index != k_datum_index_none &&
+        !test_flag(unit->flags, units::unit_flag::no_falling_damage) && unit->actor_index != k_datum_index_none &&
         unit->animation_state != animation_state_value(unit_animation_state_id::scripted_action) && (int8_t)biped->airborne_ticks > 0x1e &&
         (biped->last_falling_reaction_tick == -1 ||
          (int32_t)(biped->last_falling_reaction_tick + 0xf) < halo::game::globals().game_time->game_time)) {
