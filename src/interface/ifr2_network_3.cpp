@@ -107,7 +107,7 @@ void MenuListView::update()
                 datum_index tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
                 uint16_t *source = missing_string_text;
 
-                if (tag != (datum_index)-1) {
+                if (tag != k_datum_index_none) {
                     UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(tag);
 
                     if (list->strings.count > 0x13) {

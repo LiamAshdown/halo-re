@@ -50,7 +50,7 @@ void LocalPlayerVisitor::for_each_on_team(int16_t team, LocalPlayerVisitor &visi
 
     iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
-    iterator.index = (datum_index)-1;
+    iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     for (p = (player *)halo::memory::data_iterator_next(&iterator); p != 0;
          p = (player *)halo::memory::data_iterator_next(&iterator)) {
@@ -64,7 +64,7 @@ bool WaypointSlotSet::for_player(datum_index player_index, WaypointSlotSet *out)
 {
     int16_t local_player_index;
 
-    if (player_index == (datum_index)-1) {
+    if (player_index == k_datum_index_none) {
         return false;
     }
     local_player_index = (halo::interface::player_record(player_index))->local_player_index;
@@ -110,7 +110,7 @@ void WaypointSlotSet::deactivate(datum_index target, int16_t kind)
         hud_waypoint *waypoint = &slots[i];
         if ((int16_t)(waypoint->type << 12) >> 12 == kind && waypoint->object_index == target) {
             waypoint->type |= 0xf;
-            waypoint->object_index = (datum_index)-1;
+            waypoint->object_index = k_datum_index_none;
             waypoint->arrow_index = -1;
             return;
         }
@@ -163,7 +163,7 @@ void HudWaypoints::activate_for_player(datum_index player_index, datum_index tar
 {
     WaypointSlotSet slots(nullptr);
 
-    if (!WaypointSlotSet::for_player(player_index, &slots) || target == (datum_index)-1 || arrow_index == -1) {
+    if (!WaypointSlotSet::for_player(player_index, &slots) || target == k_datum_index_none || arrow_index == -1) {
         return;
     }
     slots.activate(target, kind, arrow_index, vertical_offset);
@@ -215,7 +215,7 @@ void HudWaypoints::deactivate_for_player(datum_index player_index, datum_index t
 {
     WaypointSlotSet slots(nullptr);
 
-    if (!WaypointSlotSet::for_player(player_index, &slots) || target == (datum_index)-1) {
+    if (!WaypointSlotSet::for_player(player_index, &slots) || target == k_datum_index_none) {
         return;
     }
     slots.deactivate(target, kind);
@@ -266,9 +266,9 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
     uint32_t packed;
 
     point = *position;
-    unit_index = (datum_index)-1;
+    unit_index = k_datum_index_none;
     if (local_player_index != -1 && local_player_index < 1 &&
-        halo::game::globals().local_player_globals->local_players[local_player_index] != (datum_index)-1) {
+        halo::game::globals().local_player_globals->local_players[local_player_index] != k_datum_index_none) {
         unit_index = (halo::interface::player_record(halo::game::globals().local_player_globals->local_players[local_player_index]))->unit;
     }
     halo::units::unit_get_camera_position(unit_index, &camera);
@@ -396,22 +396,22 @@ void HudWaypoints::draw_all_for_player(void)
     player *entry;
 
     if (current_local_player_index == -1 || current_local_player_index >= 1) {
-        local_player = (datum_index)-1;
+        local_player = k_datum_index_none;
     } else {
         local_player = halo::game::globals().local_player_globals->local_players[current_local_player_index];
     }
     team = (halo::interface::player_record(local_player))->team;
-    if (local_player == (datum_index)-1) {
+    if (local_player == k_datum_index_none) {
         return;
     }
 
     iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
-    iterator.index = (datum_index)-1;
+    iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     for (entry = (player *)halo::memory::data_iterator_next(&iterator); entry != 0;
          entry = (player *)halo::memory::data_iterator_next(&iterator)) {
-        if (local_player != iterator.index && entry->team == team && entry->unit != (datum_index)-1) {
+        if (local_player != iterator.index && entry->team == team && entry->unit != k_datum_index_none) {
             teammates[count] = iterator.index;
             count++;
         }

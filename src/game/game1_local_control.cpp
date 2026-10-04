@@ -76,7 +76,7 @@ real LocalControl::control_input_absolute(real value)
  */
 void LocalControl::build_local_player_control_input(int16_t local_player_index, real delta_time, player_control_input *out)
 {
-    datum_index player_index = (datum_index)-1;
+    datum_index player_index = k_datum_index_none;
     local_player_control *control;
     player *plr;
     local_player_input_state *input;
@@ -107,7 +107,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     out->control_flags = 0;
     out->button_flags = 0;
 
-    if (player_index == (datum_index)-1) {
+    if (player_index == k_datum_index_none) {
         halo::game::game_engine_digitize_control_input(out);
         return;
     }
@@ -125,7 +125,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
 
     yaw_rate = 0.0f;
     pitch_rate = 0.0f;
-    if (plr->unit != (datum_index)-1) {
+    if (plr->unit != k_datum_index_none) {
         object *unit_object = halo::game::object_at(plr->unit);
         unit_data *unit = halo::game::unit_data_of(unit_object);
 
@@ -134,7 +134,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
         pitch_rate = look_pitch_rate_setting[local_player_index] *
                      k_degrees_to_radians * k_seconds_per_tick;
 
-        if (unit_object->parent_object != (datum_index)-1 && unit->vehicle_seat_index != -1) {
+        if (unit_object->parent_object != k_datum_index_none && unit->vehicle_seat_index != -1) {
             object *parent =
                 halo::game::object_at(unit_object->parent_object);
             Unit *parent_definition =
@@ -184,10 +184,10 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
 
             out->throttle_x = input->throttle_x;
             out->throttle_y = input->throttle_y;
-            if (plr->unit != (datum_index)-1 && control->desired_zoom_level != -1) {
+            if (plr->unit != k_datum_index_none && control->desired_zoom_level != -1) {
                 scale = 1.0f / halo::units::unit_get_active_weapon_scale(plr->unit, control->desired_zoom_level);
             }
-            if (plr->unit != (datum_index)-1) {
+            if (plr->unit != k_datum_index_none) {
                 unit_data *unit = halo::game::unit_data_of(halo::game::object_at(plr->unit));
 
                 scale = (1.0f - unit->stun * player_information->stun_turning_penalty) * scale;
@@ -219,14 +219,14 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
                 halo::game::response_curve_evaluate((int16_t)player_control->look_function.count, look_y,
                                         (real *)player_control->look_function.pointer);
 
-            if (plr->unit != (datum_index)-1 && control->desired_zoom_level != -1) {
+            if (plr->unit != k_datum_index_none && control->desired_zoom_level != -1) {
                 real inverse_scale =
                     1.0f / halo::units::unit_get_active_weapon_scale(plr->unit, control->desired_zoom_level);
 
                 yaw_delta = yaw_delta * inverse_scale;
                 pitch_delta = inverse_scale * pitch_delta;
             }
-            if (plr->unit != (datum_index)-1) {
+            if (plr->unit != k_datum_index_none) {
                 unit_data *unit = halo::game::unit_data_of(halo::game::object_at(plr->unit));
                 real stun_scale =
                     1.0f - unit->stun * player_information->stun_turning_penalty;
@@ -345,7 +345,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     }
 
     if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client && (out->control_flags & 0x800u) != 0 &&
-        plr->unit != (datum_index)-1) {
+        plr->unit != k_datum_index_none) {
         unit_data *unit = halo::game::unit_data_of(halo::game::object_at(plr->unit));
 
         if (unit->current_weapon_index != -1) {

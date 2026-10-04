@@ -88,7 +88,7 @@ void ChimeraBridge::do_show_loading_screen(void)
         if (now >= interface_loading_screen_address_a) {
             interface_loading_screen_address_a = halo::k_dword_none;
             interface_loading_screen_address_b = -1;
-            interface_loading_screen_request_id = (datum_index)-1;
+            interface_loading_screen_request_id = k_datum_index_none;
             join_ui_state = (progress_screen_state)0;
             interface_loading_screen_progress = 0;
             progress_screen_text[0] = 0;
@@ -119,9 +119,9 @@ void ChimeraBridge::do_show_loading_screen(void)
             split_screen_quit_prompt_armed = 1;
             return;
         case 4:
-            if (interface_loading_screen_request_id != (datum_index)-1) {
+            if (interface_loading_screen_request_id != k_datum_index_none) {
                 NNCancel(interface_loading_screen_request_id);
-                interface_loading_screen_request_id = (datum_index)-1;
+                interface_loading_screen_request_id = k_datum_index_none;
                 split_screen_quit_prompt_string = halo::k_word_none;
                 halo::networking::globals().join_error_reason = 0;
                 split_screen_quit_prompt_armed = 1;
@@ -135,7 +135,7 @@ void ChimeraBridge::do_show_loading_screen(void)
     font = halo::interface::lookup_tag(halo::fourcc('f', 'o', 'n', 't'), halo::tag_paths::large_ui_font);
     background = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), halo::tag_paths::shell_background_bitmap);
     strings = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::loading_strings);
-    if (font == (datum_index)-1 || background == (datum_index)-1 || strings == (datum_index)-1) {
+    if (font == k_datum_index_none || background == k_datum_index_none || strings == k_datum_index_none) {
         return;
     }
 
@@ -236,8 +236,8 @@ void ChimeraBridge::load_main_menu(void)
     }
     halo::input::UiEvents::queue_sample_time_update();
     halo::interface::widget_close_all();
-    halo::interface::chimera__load_ui_widget(halo::tag_paths::main_menu_widget, (datum_index)-1, (widget_instance *)0, halo::k_word_none,
-                            (datum_index)-1, (datum_index)-1, -1);
+    halo::interface::chimera__load_ui_widget(halo::tag_paths::main_menu_widget, k_datum_index_none, (widget_instance *)0, halo::k_word_none,
+                            k_datum_index_none, k_datum_index_none, -1);
     if (halo::networking::globals().join_error_code != -1) {
         halo::interface::display_error(halo::networking::globals().join_error_code, -1, 1, 0);
         halo::networking::globals().join_error_code = -1;
@@ -245,7 +245,7 @@ void ChimeraBridge::load_main_menu(void)
     if (halo::main::globals().menu_music_pending == 0) {
         halo::interface::main_menu_play_title_music();
     }
-    cached_saved_game_something = (datum_index)-1;
+    cached_saved_game_something = k_datum_index_none;
     halo::interface::virtual_keyboard_initialize();
     main_menu_reload_pending = 0;
 }
@@ -271,9 +271,9 @@ widget_instance * ChimeraBridge::load_ui_widget(const const char *tag_path, datu
     ui_cursor_bitmap = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), halo::tag_paths::shell_cursor_bitmap);
     ui_widget_opened = 1;
 
-    if (tag_index == (datum_index)-1) {
+    if (tag_index == k_datum_index_none) {
         tag_index = halo::interface::lookup_tag(halo::fourcc('D', 'e', 'L', 'a'), tag_path);
-        if (tag_index == (datum_index)-1) {
+        if (tag_index == k_datum_index_none) {
             return (widget_instance *)0;
         }
     }
@@ -293,7 +293,7 @@ widget_instance * ChimeraBridge::load_ui_widget(const const char *tag_path, datu
         }
         ui_root_widget[slot] = widget;
 
-        if (history_definition != (datum_index)-1) {
+        if (history_definition != k_datum_index_none) {
             UIWidgetDefinition *history_tag_data = halo::interface::tag_data<UIWidgetDefinition>(history_definition);
 
             if (!halo::interface::has_bit(history_tag_data->flags, halo::interface::widget_flag::don_t_push_history)) {
@@ -333,7 +333,7 @@ void ChimeraBridge::main_menu_music(uint8_t finalize_render_frame)
 {
     if (halo::main::globals().menu_music_pending == 1) {
         datum_index sound_tag = halo::interface::lookup_tag(halo::fourcc('l', 's', 'n', 'd'), "sound\\music\\title1\\title1");
-        if (sound_tag != (datum_index)-1) {
+        if (sound_tag != k_datum_index_none) {
             halo::sound::sound_looping_stop(sound_tag);
         }
         halo::main::globals().menu_music_pending = 0;

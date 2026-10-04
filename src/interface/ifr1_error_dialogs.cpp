@@ -54,7 +54,7 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
     } else {
         int32_t matched_index = -1;
 
-        if (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) {
+        if (halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none) {
             active_player = 0;
         }
         if (active_player != -1) {
@@ -64,7 +64,7 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
                     half_screen = 0;
                 }
                 player_count = player_count + 1;
-                active_player = (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1 && active_player < 0)
+                active_player = (halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none && active_player < 0)
                                     ? 0
                                     : -1;
             } while (active_player != -1);
@@ -118,7 +118,7 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
     slot = (int16_t)(((uint16_t)player_index == halo::k_word_none) ? 0 : (uint16_t)player_index);
     root = ui_root_widget[slot];
     if (root == (widget_instance *)0) {
-        history_source = (datum_index)-1;
+        history_source = k_datum_index_none;
     } else {
         history_source = root->definition;
         if (root->is_error_dialog == 1) {
@@ -126,8 +126,8 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
         }
     }
 
-    dialog = halo::interface::chimera__load_ui_widget(tag_path, (datum_index)-1, (widget_instance *)0,
-                                     (uint16_t)player_index, history_source, (datum_index)-1, -1);
+    dialog = halo::interface::chimera__load_ui_widget(tag_path, k_datum_index_none, (widget_instance *)0,
+                                     (uint16_t)player_index, history_source, k_datum_index_none, -1);
     if (dialog != (widget_instance *)0) {
         int16_t clamped;
 

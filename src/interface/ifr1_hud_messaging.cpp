@@ -145,7 +145,7 @@ void HudMessaging::display_checkpoint_message(uint8_t is_begin)
         }
     }
 
-    if (message_index != -1 && halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) {
+    if (message_index != -1 && halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none) {
         const uint16_t *text = empty_wide_string_pointer;
         int32_t string_list_tag_id = halo::interface::tag_handle(hud_globals->item_message_text.tag_id);
         if (string_list_tag_id != -1) {
@@ -176,7 +176,7 @@ void HudMessaging::display_loading_message(uint8_t is_begin)
     }
 
     if (message_index != -1) {
-        halo::interface::chimera__hud_message(halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1,
+        halo::interface::chimera__hud_message(halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none ? 0 : -1,
                              (const wchar_t *)(halo::interface::hud_get_message_string(message_index)));
     }
 }
@@ -437,7 +437,7 @@ void HudMessaging::set_help_text(int16_t message_index)
         return;
     }
     tag_id = *(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id;
-    if (tag_id == (datum_index)-1) {
+    if (tag_id == k_datum_index_none) {
         return;
     }
     hud_messaging->help_text =
@@ -495,7 +495,7 @@ void HudMessaging::set_objective_text(int16_t message_index)
     datum_index tag_id;
 
     tag_id = *(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id;
-    if (tag_id == (datum_index)-1) {
+    if (tag_id == k_datum_index_none) {
         return;
     }
     messages_tag = halo::interface::tag_data<HUDMessageText>(tag_id);
@@ -527,7 +527,7 @@ void HudMessaging::set_player_message(int16_t message_index, int16_t local_playe
         return;
     }
     tag_id = halo::interface::tag_handle(hud_globals_tag_data->hud_messages.tag_id);
-    if (tag_id == (datum_index)-1) {
+    if (tag_id == k_datum_index_none) {
         return;
     }
     record = &hud_messaging->players[local_player_index];

@@ -17,7 +17,7 @@ int16_t model_markers::group_index_from_name(datum_index model_tag_id, const cha
     ModelMarker *markers;
     int16_t lo, hi;
 
-    if (model_tag_id == (datum_index)-1 || name == 0 || *name == '\0') {
+    if (model_tag_id == k_datum_index_none || name == 0 || *name == '\0') {
         return -1;
     }
 

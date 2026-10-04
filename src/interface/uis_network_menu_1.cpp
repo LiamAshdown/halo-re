@@ -457,13 +457,13 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
                     void *page = halo::interface::widget_instance_find_root(widget);
                     datum_index parent_definition = (widget->parent != (widget_instance *)0)
                                                          ? widget->parent->definition
-                                                         : (datum_index)-1;
+                                                         : k_datum_index_none;
                     int32_t sibling = halo::interface::widget_get_sibling_index(widget);
                     widget_instance *opened;
 
                     opened = halo::interface::chimera__load_ui_widget(
                         halo::tag_paths::connected_pregame_screen,
-                        (datum_index)-1, (widget_instance *)0, (uint16_t)-1,
+                        k_datum_index_none, (widget_instance *)0, (uint16_t)-1,
                         *(datum_index *)page, parent_definition, (int16_t)sibling);
                     if (opened != (widget_instance *)0) {
                         halo::networking::globals().game_mode = 1;

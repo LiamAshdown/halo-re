@@ -77,7 +77,7 @@ void InterfaceMain::draw_cursor()
     rect.top = (int16_t)ui_cursor_y;
     rect.left = (int16_t)ui_cursor_x;
 
-    if (ui_cursor_bitmap != (datum_index)-1) {
+    if (ui_cursor_bitmap != k_datum_index_none) {
         bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(ui_cursor_bitmap, 0, 0);
         if (bitmap_data != 0) {
             rect.bottom = (int16_t)(ui_cursor_y + 0x20);
@@ -118,7 +118,7 @@ void InterfaceMain::loading_screen_reset()
     interface_loading_screen_progress = 0;
     progress_screen_text[0] = 0;
     progress_screen_subtext[0] = 0;
-    interface_loading_screen_request_id = (datum_index)-1;
+    interface_loading_screen_request_id = k_datum_index_none;
 }
 
 /**
@@ -184,7 +184,7 @@ void InterfaceMain::on_shown(int32_t fade_milliseconds)
     if (halo::main::globals().menu_music_pending == 1) {
         datum_index sound_tag = halo::interface::lookup_tag(halo::fourcc('l', 's', 'n', 'd'), "sound\\music\\title1\\title1");
 
-        if (sound_tag != (datum_index)-1) {
+        if (sound_tag != k_datum_index_none) {
             halo::sound::sound_looping_stop(sound_tag);
         }
         halo::main::globals().menu_music_pending = 0;
@@ -210,7 +210,7 @@ void InterfaceMain::play_title_music()
 
     if (halo::main::globals().menu_music_pending == 0 && main_menu_music_datum == 0) {
         sound_tag = halo::interface::lookup_tag(halo::fourcc('l', 's', 'n', 'd'), "sound\\music\\title1\\title1");
-        if (sound_tag != (datum_index)-1) {
+        if (sound_tag != k_datum_index_none) {
             halo::sound::sound_looping_start(sound_tag, -1, 1.0f);
             halo::main::globals().menu_music_pending = 1;
         }
@@ -295,7 +295,7 @@ void InterfaceMain::set_profile_name(widget_instance *widget, const uint16_t *na
 
     widget->text = buffer;
     if (buffer != nullptr) {
-        if (tag_id != (datum_index)-1) {
+        if (tag_id != k_datum_index_none) {
             UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(tag_id);
 
             if (list->strings.count > 7) {

@@ -87,11 +87,11 @@ void FirstPersonWeaponController::update()
     halo::interface::debug_play_diagnostics();
     first_person_weapon_interface *fp = &first_person_weapon_interfaces[local_player_index];
 
-    if (fp->weapon_index != (datum_index)-1 && halo::objects::object_try_and_get(fp->weapon_index, 4) == 0) {
-        fp->weapon_index = (datum_index)-1;
+    if (fp->weapon_index != k_datum_index_none && halo::objects::object_try_and_get(fp->weapon_index, 4) == 0) {
+        fp->weapon_index = k_datum_index_none;
     }
 
-    if (fp->unit_index != (datum_index)-1 && fp->weapon_index != (datum_index)-1) {
+    if (fp->unit_index != k_datum_index_none && fp->weapon_index != k_datum_index_none) {
         object *weapon_obj = object_get(fp->weapon_index);
         object *unit_obj = object_get(fp->unit_index);
         Weapon *weapon_tag = halo::interface::tag_data<Weapon>(weapon_obj->definition_tag);
@@ -118,7 +118,7 @@ void FirstPersonWeaponController::update()
             halo::interface::first_person_weapon_update_state(local_player_index);
         }
 
-        if (frame_sound != (datum_index)-1 && halo::camera::camera_get_type_for_player(local_player_index) == 0) {
+        if (frame_sound != k_datum_index_none && halo::camera::camera_get_type_for_player(local_player_index) == 0) {
             fp->frame_sound_index = halo::sound::sound_start_at_object_marker(fp->weapon_index, (Point3D *)global_zero_vector3d_pointer,
                                             (Vector3D *)halo::math::globals().global_forward3d_pointer, frame_sound, -1, 1.0f,
                                             local_player_index != -1);
@@ -273,10 +273,10 @@ void FirstPersonWeaponController::update_animation_controls()
     *(real_vector3d *)(fp_raw + 0x54) = camera_forward_x;
     fp->aim_seeded = 1;
 
-    if (fp->weapon_index != (datum_index)-1 && halo::objects::object_try_and_get(fp->weapon_index, 4) == 0) {
-        fp->weapon_index = (datum_index)-1;
+    if (fp->weapon_index != k_datum_index_none && halo::objects::object_try_and_get(fp->weapon_index, 4) == 0) {
+        fp->weapon_index = k_datum_index_none;
     }
-    if (fp->weapon_index == (datum_index)-1) {
+    if (fp->weapon_index == k_datum_index_none) {
         return;
     }
 
@@ -406,7 +406,7 @@ void FirstPersonWeaponController::update_zoom_static_tint(uint8_t enabled)
     if (halo::main::render_local_view_count() > 1) {
         return;
     }
-    if (halo::interface::tag_handle(effect->mask_fullscreen.tag_id) == (datum_index)-1) {
+    if (halo::interface::tag_handle(effect->mask_fullscreen.tag_id) == k_datum_index_none) {
         return;
     }
     if (!halo::interface::has_bit(effect->desaturation_flags, halo::tags::weapon_hud_interface_screen_effect_definition_desaturation_tag_flag::connect_to_flashlight)) {

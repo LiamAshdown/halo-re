@@ -476,7 +476,7 @@ void ClientView::send_local_player_updates()
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
     candidate = (player *)halo::memory::data_iterator_next(&iter);
     while (candidate != 0) {
-        if (candidate->local_player_index == -1 && candidate->unit != (datum_index)-1) {
+        if (candidate->local_player_index == -1 && candidate->unit != k_datum_index_none) {
             if (halo::game::player_unit_has_parent(iter.index) == 0 || network_client_vehicle_ack_enabled == 0) {
                 encoded_size = halo::networking::build_local_player_position_update(&out_changed, candidate);
             } else {

@@ -74,7 +74,7 @@ void ChatDialog::queue_team_message(int32_t team_index)
 
     iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
-    iterator.index = (datum_index)-1;
+    iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     entry = (player *)halo::memory::data_iterator_next(&iterator);
 
@@ -191,7 +191,7 @@ void ChatDialog::open(int32_t chat_scope)
 
     auto scope_prompt = [](int32_t string_index) -> const void * {
         datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
-        return (tag_id == (datum_index)-1) ? (const void *)&empty_string
+        return (tag_id == k_datum_index_none) ? (const void *)&empty_string
                                            : (const void *)halo::text::text_string_list_get_string(tag_id, string_index);
     };
 

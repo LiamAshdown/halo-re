@@ -202,7 +202,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
         obj_iter.type_mask = _object_mask_projectile;
         obj_iter.flags_mask = 0;
         obj_iter.index = 0;
-        obj_iter.handle = (datum_index)-1;
+        obj_iter.handle = k_datum_index_none;
         if (halo::objects::object_iterator_next(&obj_iter) != (object *)0 || halo::units::unit_any_dying_or_seat_transition() != 0) {
             local_player_globals->mode = 1;
             return 0;
@@ -215,9 +215,9 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
 
     player_iter.data = player_data;
     player_iter.next_index = 0;
-    player_iter.index = (datum_index)-1;
+    player_iter.index = k_datum_index_none;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
-    best_root = (datum_index)-1;
+    best_root = k_datum_index_none;
     success = 0;
 
     plr = (player *)halo::memory::data_iterator_next(&player_iter);
@@ -225,13 +225,13 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
         do {
             unit_handle = plr->unit;
             root = best_root;
-            if (unit_handle != (datum_index)-1) {
+            if (unit_handle != k_datum_index_none) {
                 walk = unit_handle;
                 do {
                     root = walk;
                     next = halo::game::object_at(walk)->parent_object;
                     walk = next;
-                } while (next != (datum_index)-1);
+                } while (next != k_datum_index_none);
 
                 if (root == unit_handle) {
                     root_obj = halo::objects::object_try_and_get(unit_handle, _object_mask_biped);
@@ -262,18 +262,18 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
         } while (plr != (player *)0);
 
         success = 0;
-        if (best_root != (datum_index)-1) {
+        if (best_root != k_datum_index_none) {
             success = 1;
             player_iter.data = player_data;
             player_iter.next_index = 0;
-            player_iter.index = (datum_index)-1;
+            player_iter.index = k_datum_index_none;
             player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
             plr = (player *)halo::memory::data_iterator_next(&player_iter);
             while (plr != (player *)0) {
-                if (plr->unit == (datum_index)-1) {
+                if (plr->unit == k_datum_index_none) {
                     player_handle = player_iter.index;
                     halo::game::player_respawn(player_handle);
-                    if (plr->unit == (datum_index)-1) {
+                    if (plr->unit == k_datum_index_none) {
                         success = 0;
                     } else {
                         root_obj = halo::game::object_at(best_root);

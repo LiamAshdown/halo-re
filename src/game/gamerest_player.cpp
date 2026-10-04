@@ -879,12 +879,12 @@ void PlayerView::kill_and_release_unit(int32_t respawn_timer_override)
 
     plr = halo::game::player_at(player_index);
     unit_handle = plr->unit;
-    if (unit_handle == (datum_index)-1) {
+    if (unit_handle == k_datum_index_none) {
         return;
     }
 
     if (current_game_engine == 0 || game_engine_state_value == _game_engine_state_not_started) {
-        halo::game::game_engine_attribute_player_death(unit_handle, (datum_index)-1, (datum_index)-1, -1, 0);
+        halo::game::game_engine_attribute_player_death(unit_handle, k_datum_index_none, k_datum_index_none, -1, 0);
     }
 
     if (respawn_timer_override != 0) {
@@ -918,12 +918,12 @@ void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
     datum_index saved_unit;
 
     plr = halo::game::player_at(player_index);
-    if (plr->unit == (datum_index)-1) {
+    if (plr->unit == k_datum_index_none) {
         return;
     }
 
     if (current_game_engine == 0 || game_engine_state_value == _game_engine_state_not_started) {
-        halo::game::game_engine_attribute_player_death(plr->unit, (datum_index)-1, (datum_index)-1, -1, 1);
+        halo::game::game_engine_attribute_player_death(plr->unit, k_datum_index_none, k_datum_index_none, -1, 1);
     }
 
     local_player_globals->local_player_units[plr->local_player_index] = plr->unit;
@@ -934,12 +934,12 @@ void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
         object_header *unit_header = &((object_header *)halo::objects::globals().object_data->data)[saved_unit & halo::k_datum_slot_mask];
         object *unit_obj = unit_header->data;
         unit_data *unit = halo::game::unit_data_of(unit_obj);
-        datum_index weapon_handle = (datum_index)-1;
+        datum_index weapon_handle = k_datum_index_none;
 
         if (unit->current_weapon_index != -1) {
             weapon_handle = unit->weapons[unit->current_weapon_index];
         }
-        unit->controlling_player = (datum_index)-1;
+        unit->controlling_player = k_datum_index_none;
 
         if ((unit_header->flags & 1) != 0) {
             unit_header->flags = unit_header->flags & ~1;
@@ -953,7 +953,7 @@ void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
         unit_obj->flags = unit_obj->flags | 1;
         unit_header->flags = unit_header->flags & ~2;
 
-        if (weapon_handle != (datum_index)-1) {
+        if (weapon_handle != k_datum_index_none) {
             object_header *weapon_header = &((object_header *)halo::objects::globals().object_data->data)[weapon_handle & halo::k_datum_slot_mask];
             object *weapon_obj = weapon_header->data;
             uint8_t *weapon_tag_data = halo::game::tag_data_at(weapon_obj->definition_tag);
@@ -992,19 +992,19 @@ void PlayerView::reset_after_unit_change()
 
     plr = halo::game::player_at(player_index);
     plr->previous_unit = plr->unit;
-    plr->unit = (datum_index)-1;
+    plr->unit = k_datum_index_none;
 
     if (plr->local_player_index != -1) {
         local_player_control *look =
             &player_control_globals_ptr->local_players[plr->local_player_index];
 
         memset(look, 0, sizeof(*look));
-        look->unit = (datum_index)-1;
+        look->unit = k_datum_index_none;
         look->desired_weapon_index = -1;
         look->desired_grenade_index = -1;
         look->desired_zoom_level = -1;
         look->autolevelling_active = 0;
-        look->nameplate_target = (datum_index)-1;
+        look->nameplate_target = k_datum_index_none;
         look->pitch_maximum = 1.4906585f;
         look->pitch_minimum = -1.4906585f;
         look->suppressed_buttons = 0;
@@ -1014,11 +1014,11 @@ void PlayerView::reset_after_unit_change()
     local_player_globals->no_player_has_a_unit = 1;
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)-1;
+    iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
     scan = (player *)halo::memory::data_iterator_next(&iter);
     while (scan != (player *)0) {
-        if (scan->unit != (datum_index)-1) {
+        if (scan->unit != k_datum_index_none) {
             local_player_globals->no_player_has_a_unit = 0;
         }
         scan = (player *)halo::memory::data_iterator_next(&iter);
@@ -1032,7 +1032,7 @@ void PlayerView::reset_after_unit_change()
     if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         update_server_queue *entry =
             &((update_server_queue *)update_server_queues->data)[player_index];
-        plr->unknown_f4 = (datum_index)-1;
+        plr->unknown_f4 = k_datum_index_none;
         entry->queue.queue.read_index = 0;
         entry->queue.queue.write_index = 0;
         entry->last_action.control_flags = 0;
@@ -1265,7 +1265,7 @@ uint8_t PlayerView::unit_has_parent()
     player *plr;
     object *unit_obj;
 
-    if (player_handle == (datum_index)-1) {
+    if (player_handle == k_datum_index_none) {
         return 0;
     }
     index = (int16_t)player_handle;
@@ -1281,7 +1281,7 @@ uint8_t PlayerView::unit_has_parent()
     }
 
     unit_obj = halo::objects::object_try_and_get(plr->unit, _object_mask_unit);
-    if (unit_obj == (object *)0 || unit_obj->parent_object == (datum_index)-1) {
+    if (unit_obj == (object *)0 || unit_obj->parent_object == k_datum_index_none) {
         return 0;
     }
     return halo::units::unit_seat_flag_bit2(unit_obj->parent_object, halo::game::unit_data_of(unit_obj)->vehicle_seat_index);
@@ -1903,13 +1903,13 @@ datum_index Players::new_local(datum_index requested_handle, uint32_t machine_in
     player *p;
     wchar_t *name_source;
 
-    if (requested_handle == (datum_index)-1) {
+    if (requested_handle == k_datum_index_none) {
         result = halo::memory::datum_new(player_data);
     } else {
         result = halo::memory::datum_new_at_index_with_salt(requested_handle, player_data);
     }
 
-    if (result != (datum_index)-1) {
+    if (result != k_datum_index_none) {
         p = halo::game::player_at(result);
 
         name_source = &empty_string;
@@ -1923,25 +1923,25 @@ datum_index Players::new_local(datum_index requested_handle, uint32_t machine_in
         p->medal_streak_count = 0;
         p->medal_streak_timer = 0;
         p->local_player_index = local_player_index;
-        p->unit = (datum_index)-1;
-        p->previous_unit = (datum_index)-1;
+        p->unit = k_datum_index_none;
+        p->previous_unit = k_datum_index_none;
         p->unknown_1c = -1;
         p->bsp_cluster = -1;
-        p->observer_target = (datum_index)-1;
+        p->observer_target = k_datum_index_none;
         p->speed = 1.0f;
         p->team = 1;
 
         p->interaction_type = 0;
-        p->interaction_object = (datum_index)-1;
+        p->interaction_object = k_datum_index_none;
 
-        p->quit_tick = (datum_index)-1;
+        p->quit_tick = k_datum_index_none;
         p->marked_for_deletion = 0;
-        p->baseline_update_id = (datum_index)-1;
+        p->baseline_update_id = k_datum_index_none;
         p->last_update_id = -1;
 
         if (local_player_index == -1) {
             p->last_remote_update_id = -1;
-            p->last_position_update_id = (datum_index)-1;
+            p->last_position_update_id = k_datum_index_none;
             halo::game::player_update_queue_create(&p->update_history);
 
             memset(&p->unknown_f0, 0, offsetof(player, update_history) - offsetof(player, unknown_f0));
@@ -1952,7 +1952,7 @@ datum_index Players::new_local(datum_index requested_handle, uint32_t machine_in
             halo::game::position_update_queue_create(&p->position_updates);
 
             p->position_update_ignored_count = 0;
-            p->last_vehicle_update_id = (datum_index)-1;
+            p->last_vehicle_update_id = k_datum_index_none;
 
             memset(&p->vehicle_baseline, 0, sizeof(p->vehicle_baseline));
             halo::game::vehicle_update_queue_create(&p->vehicle_updates);
@@ -1969,7 +1969,7 @@ datum_index Players::new_local(datum_index requested_handle, uint32_t machine_in
         }
     }
 
-    if (machine_to_player[machine_index & halo::k_datum_slot_mask] == (datum_index)-1) {
+    if (machine_to_player[machine_index & halo::k_datum_slot_mask] == k_datum_index_none) {
         machine_to_player[machine_index & halo::k_datum_slot_mask] = result;
     }
     return result;
@@ -1996,13 +1996,13 @@ datum_index Players::new_network(datum_index requested_index, uint32_t machine_i
     player *p;
     wchar_t *name_source;
 
-    if (requested_index == (datum_index)-1) {
+    if (requested_index == k_datum_index_none) {
         result = halo::memory::datum_new(player_data);
     } else {
         result = halo::memory::datum_new_at_index((int16_t)requested_index, player_data);
     }
 
-    if (result != (datum_index)-1) {
+    if (result != k_datum_index_none) {
         p = halo::game::player_at(result);
 
         name_source = &empty_string;
@@ -2016,24 +2016,24 @@ datum_index Players::new_network(datum_index requested_index, uint32_t machine_i
         p->ping = 0;
         p->medal_streak_count = 0;
         p->medal_streak_timer = 0;
-        p->unit = (datum_index)-1;
-        p->previous_unit = (datum_index)-1;
+        p->unit = k_datum_index_none;
+        p->previous_unit = k_datum_index_none;
         p->unknown_1c = -1;
         p->bsp_cluster = -1;
-        p->observer_target = (datum_index)-1;
+        p->observer_target = k_datum_index_none;
         p->speed = 1.0f;
         p->team = 1;
 
         p->interaction_type = 0;
-        p->interaction_object = (datum_index)-1;
+        p->interaction_object = k_datum_index_none;
 
-        p->quit_tick = (datum_index)-1;
+        p->quit_tick = k_datum_index_none;
         p->marked_for_deletion = 0;
         p->odd_man_out = 0;
         p->last_update_id = 0;
-        p->baseline_update_id = (datum_index)-1;
+        p->baseline_update_id = k_datum_index_none;
         p->unknown_f0 = 0;
-        p->unknown_f4 = (datum_index)-1;
+        p->unknown_f4 = k_datum_index_none;
         p->unknown_104 = -1;
         p->connection_quality_started = 0;
         p->loss_window_start_ms = 0;
@@ -2069,7 +2069,7 @@ datum_index Players::new_network(datum_index requested_index, uint32_t machine_i
         }
     }
 
-    if (machine_to_player[machine_index & halo::k_datum_slot_mask] == (datum_index)-1) {
+    if (machine_to_player[machine_index & halo::k_datum_slot_mask] == k_datum_index_none) {
         machine_to_player[machine_index & halo::k_datum_slot_mask] = result;
     }
     return result;
@@ -2099,7 +2099,7 @@ void Players::delete_player(uint32_t machine_index, datum_index player_handle)
     update_machine_slot = 0;
     if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client) {
         update_machine_slot = 1;
-        if (player_handle != (datum_index)-1) {
+        if (player_handle != k_datum_index_none) {
             index = (int16_t)player_handle;
             if (index >= 0 && index < player_data->maximum_count) {
                 p = halo::game::player_at(index);
@@ -2120,7 +2120,7 @@ void Players::delete_player(uint32_t machine_index, datum_index player_handle)
     }
 
     if (update_machine_slot && machine_to_player[machine_index & halo::k_datum_slot_mask] == player_handle) {
-        machine_to_player[machine_index & halo::k_datum_slot_mask] = (datum_index)-1;
+        machine_to_player[machine_index & halo::k_datum_slot_mask] = k_datum_index_none;
     }
     halo::memory::datum_delete(player_data, player_handle);
 }
@@ -2171,11 +2171,11 @@ datum_index Players::index_from_unit_index(datum_index unit_index)
 {
     data_iterator iter;
     player *p;
-    datum_index result = (datum_index)-1;
+    datum_index result = k_datum_index_none;
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)-1;
+    iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     while ((p = (player *)halo::memory::data_iterator_next(&iter)) != 0) {
@@ -2298,12 +2298,12 @@ uint8_t Players::any_pending_seat_or_respawn()
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)-1;
+    iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     plr = (player *)halo::memory::data_iterator_next(&iter);
     while (plr != (player *)0) {
-        if (plr->unit != (datum_index)-1) {
+        if (plr->unit != k_datum_index_none) {
             object *unit_obj = halo::game::object_at(plr->unit);
             datum_index walk = plr->unit;
             datum_index root;
@@ -2313,14 +2313,14 @@ uint8_t Players::any_pending_seat_or_respawn()
             do {
                 root = walk;
                 walk = halo::game::object_at(root)->parent_object;
-            } while (walk != (datum_index)-1);
+            } while (walk != k_datum_index_none);
             root_obj = halo::game::object_at(root);
             if ((root_obj->flags & 0x200000) != 0) {
                 return 1;
             }
 
             airborne_check_obj = (object *)0;
-            if (unit_obj->parent_object == (datum_index)-1) {
+            if (unit_obj->parent_object == k_datum_index_none) {
                 if (unit_obj->type == _object_type_biped) {
                     if (halo::units::biped_is_idle_eligible(plr->unit) != 0) {
                         return 1;
@@ -2396,12 +2396,12 @@ uint8_t Players::any_without_unit()
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)-1;
+    iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     plr = (player *)halo::memory::data_iterator_next(&iter);
     while (plr != (player *)0) {
-        if (plr->unit == (datum_index)-1) {
+        if (plr->unit == k_datum_index_none) {
             return 1;
         }
         plr = (player *)halo::memory::data_iterator_next(&iter);
@@ -2426,7 +2426,7 @@ void Players::client_catchup_on_server_updates()
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)-1;
+    iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     plr = (player *)halo::memory::data_iterator_next(&iter);
@@ -2478,7 +2478,7 @@ void Players::client_catchup_on_server_updates()
                 updates_applied = updates_applied + 1;
 
                 if (record.references_remaining == record.reference_count - 1 && halo::networking::globals().game_mode == halo::networking::k_game_mode_client &&
-                    plr->local_player_index == -1 && plr->unit != (datum_index)-1) {
+                    plr->local_player_index == -1 && plr->unit != k_datum_index_none) {
                     int16_t index = (int16_t)plr->unit;
                     int16_t salt = (int16_t)((uint32_t)plr->unit >> 16);
                     object_header *header = 0;
@@ -2504,7 +2504,7 @@ void Players::client_catchup_on_server_updates()
                     }
                 }
 
-                if (plr->unit == (datum_index)-1) {
+                if (plr->unit == k_datum_index_none) {
                     continue;
                 }
 
@@ -2537,7 +2537,7 @@ void Players::client_catchup_on_server_updates()
                         control.facing_vector = control.aiming_vector;
                         control.looking_vector = control.aiming_vector;
                         apply = 1;
-                    } else if (unit->swarm_actor_index == (datum_index)-1 && unit->actor_index == (datum_index)-1) {
+                    } else if (unit->swarm_actor_index == k_datum_index_none && unit->actor_index == k_datum_index_none) {
                         control.control_flags = 0;
                         control.weapon_index = -1;
                         control.grenade_index = -1;
@@ -2587,9 +2587,9 @@ void Players::dispose()
     int32_t i;
 
     memset(local_player_globals, 0, sizeof(player_globals));
-    local_player_globals->local_players[0] = (datum_index)-1;
-    local_player_globals->local_player_units[0] = (datum_index)-1;
-    local_player_globals->unknown_00 = (datum_index)-1;
+    local_player_globals->local_players[0] = k_datum_index_none;
+    local_player_globals->local_player_units[0] = k_datum_index_none;
+    local_player_globals->unknown_00 = k_datum_index_none;
     local_player_globals->input_disabled = 0;
     local_player_globals->respawn_stagger = 0;
     local_player_globals->no_player_has_a_unit = 0;
@@ -2602,7 +2602,7 @@ void Players::dispose()
     halo::memory::data_delete_all(team_data);
 
     for (i = 0; i < 16; i = i + 1) {
-        machine_to_player[i] = (datum_index)-1;
+        machine_to_player[i] = k_datum_index_none;
     }
 }
 
@@ -2619,7 +2619,7 @@ datum_index Players::find_local_owned_unclear()
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)-1;
+    iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     plr = (player *)halo::memory::data_iterator_next(&iter);
@@ -2630,7 +2630,7 @@ datum_index Players::find_local_owned_unclear()
         plr = (player *)halo::memory::data_iterator_next(&iter);
     }
     if (plr == (player *)0) {
-        return (datum_index)-1;
+        return k_datum_index_none;
     }
     return iter.index;
 }
@@ -2706,8 +2706,8 @@ void Players::initialize()
     halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + k_player_globals_size;
     size = k_player_globals_size;
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, &size, 4);
-    local_player_globals->local_players[0] = (datum_index)-1;
-    local_player_globals->unknown_00 = (datum_index)-1;
+    local_player_globals->local_players[0] = k_datum_index_none;
+    local_player_globals->unknown_00 = k_datum_index_none;
     local_player_globals->local_player_count = 0;
 
     player_control_globals_ptr = (player_control_globals *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
@@ -2865,17 +2865,17 @@ void LocalPlayers::set_controlled_unit(datum_index new_unit, int16_t local_playe
     unit_data *unit;
     player *plr;
 
-    if (old_unit != (datum_index)-1) {
+    if (old_unit != k_datum_index_none) {
         obj = halo::game::object_at(old_unit);
         unit = halo::game::unit_data_of(obj);
-        unit->controlling_player = (datum_index)-1;
+        unit->controlling_player = k_datum_index_none;
         halo::units::unit_refresh_targeting_flag_and_weapons(old_unit, 0);
     }
 
-    if (new_unit != (datum_index)-1) {
+    if (new_unit != k_datum_index_none) {
         obj = halo::game::object_at(new_unit);
         halo::units::unit_refresh_targeting_flag_and_weapons(new_unit, 1);
-        owner = (datum_index)-1;
+        owner = k_datum_index_none;
         if (local_player_index != -1 && local_player_index <= 0) {
             owner = local_player_globals->local_players[local_player_index];
         }
@@ -2883,13 +2883,13 @@ void LocalPlayers::set_controlled_unit(datum_index new_unit, int16_t local_playe
         unit->controlling_player = owner;
     }
 
-    owner = (datum_index)-1;
+    owner = k_datum_index_none;
     if (local_player_index != -1 && local_player_index <= 0) {
         owner = local_player_globals->local_players[local_player_index];
     }
     plr = halo::game::player_at(owner);
     plr->unit = new_unit;
-    plr->previous_unit = (datum_index)-1;
+    plr->previous_unit = k_datum_index_none;
 
     halo::game::game_engine_init_player_look_state_from_object(new_unit, local_player_index);
 }
@@ -2905,7 +2905,7 @@ datum_index LocalPlayers::to_player_index(int16_t local_player_index)
     if (local_player_index != -1 && local_player_index < 1) {
         return local_player_globals->local_players[local_player_index];
     }
-    return (datum_index)-1;
+    return k_datum_index_none;
 }
 
 /**

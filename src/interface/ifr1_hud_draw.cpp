@@ -30,7 +30,7 @@ static datum_index hud_local_player_index_to_player(int16_t local_player_index)
     if (local_player_index != -1 && local_player_index < 1) {
         return halo::game::globals().local_player_globals->local_players[local_player_index];
     }
-    return (datum_index)-1;
+    return k_datum_index_none;
 }
 
 typedef struct hud_number_pen {
@@ -455,10 +455,10 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
         switch (effector->source) {
         case 0: {
             datum_index player_index = hud_local_player_index_to_player(local_player_index);
-            datum_index unit_index = (datum_index)-1;
+            datum_index unit_index = k_datum_index_none;
             const real_vector3d *aim;
 
-            if (player_index != (datum_index)-1) {
+            if (player_index != k_datum_index_none) {
                 unit_index = (halo::interface::player_record(player_index))->unit;
             }
             aim = &halo::interface::object_record<unit_object>(unit_index)->unit.aiming_vector;
@@ -562,7 +562,7 @@ void HudDraw::number(void *unused, const void *anchor, const hud_number_placemen
     hud_number_pen pen;
 
     (void)unused;
-    if (digits_tag == (datum_index)-1) {
+    if (digits_tag == k_datum_index_none) {
         return;
     }
     digits = halo::interface::tag_data<HUDNumber>(digits_tag);
@@ -794,7 +794,7 @@ void HudDraw::static_element(int16_t local_player_index, const void *anchor, con
     }
 
     uv = 0;
-    if (tag_id != (datum_index)-1 && element->sequence_index != halo::k_word_none) {
+    if (tag_id != k_datum_index_none && element->sequence_index != halo::k_word_none) {
         Bitmap *tag = halo::interface::tag_data<Bitmap>(tag_id);
         if ((int32_t)(int16_t)element->sequence_index < (int32_t)tag->bitmap_group_sequence.count) {
             BitmapGroupSequence *sequence =

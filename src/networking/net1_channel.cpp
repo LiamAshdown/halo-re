@@ -1691,7 +1691,7 @@ int32_t ChannelKeys::close(network_player_entry *entry, datum_index requested_ha
         key = entry->machine_player_index;
     }
     halo::game::player_new_local(requested_handle, entry->machine_index, key, (uint16_t *)entry);
-    if (requested_handle != (datum_index)-1) {
+    if (requested_handle != k_datum_index_none) {
         entry->slot_index = (int8_t)requested_handle;
         return 1;
     }

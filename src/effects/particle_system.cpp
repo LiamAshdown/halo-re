@@ -829,7 +829,7 @@ void particle_system_view::update_physics_default(real dt)
     ParticleSystem *definition_tag;
     uint32_t point_physics_tag_id;
 
-    if (system->object_index != (datum_index)-1) {
+    if (system->object_index != k_datum_index_none) {
         return;
     }
 

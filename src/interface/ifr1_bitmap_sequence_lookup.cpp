@@ -17,7 +17,7 @@ namespace halo::interface {
  */
 int32_t BitmapSequenceLookup::get_bitmap_offset(datum_index bitmap_tag, int16_t sequence_index, int16_t frame_index)
 {
-    if (bitmap_tag == (datum_index)-1 || sequence_index == -1 || frame_index == -1) {
+    if (bitmap_tag == k_datum_index_none || sequence_index == -1 || frame_index == -1) {
         return 0;
     }
 

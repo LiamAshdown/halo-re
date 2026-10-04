@@ -114,7 +114,7 @@ void HudTimer::draw(void)
         ? (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer
         : (GlobalsInterfaceBitmaps *)0;
     digits_tag = halo::interface::tag_handle(interface_bitmaps->hud_digits_definition.tag_id);
-    if (digits_tag != (datum_index)-1) {
+    if (digits_tag != k_datum_index_none) {
         HUDNumber *digits = halo::interface::tag_data<HUDNumber>(digits_tag);
         digit_step = halo::x87::__ftol((double)((float)(int32_t)digits->screen_digit_width + (float)(int32_t)digits->screen_digit_width));
     }

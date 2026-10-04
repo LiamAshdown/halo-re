@@ -462,7 +462,7 @@ void OddballEngine::unknown_48(void)
         waypoint->position = *(real_point3d *)&((unit_object *)unit)->base.bounding_center.x;
         waypoint->position.z += 0.63f;
         waypoint->team = -1;
-        waypoint->player = (datum_index)-1;
+        waypoint->player = k_datum_index_none;
     }
 }
 

@@ -64,14 +64,14 @@ uint32_t UiScreens::check_for_pause_game(void)
         return 0;
     }
 
-    active_player = (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) ? 0 : -1;
+    active_player = (halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none) ? 0 : -1;
     while (active_player != -1) {
         if (active_player == 0 && player_count > 0) {
             single_player_at_start = 0;
         }
         co_op_flag = 0;
         player_count = player_count + 1;
-        active_player = (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1 && active_player < 0)
+        active_player = (halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none && active_player < 0)
                              ? 0 : -1;
     }
 
@@ -126,8 +126,8 @@ uint32_t UiScreens::check_for_pause_game(void)
         }
     }
 
-    halo::interface::chimera__load_ui_widget(tag_path, (datum_index)-1, (widget_instance *)0, 0,
-                             (datum_index)-1, (datum_index)-1, -1);
+    halo::interface::chimera__load_ui_widget(tag_path, k_datum_index_none, (widget_instance *)0, 0,
+                             k_datum_index_none, k_datum_index_none, -1);
     return 1;
     };
 

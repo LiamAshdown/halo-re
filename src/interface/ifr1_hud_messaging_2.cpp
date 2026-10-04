@@ -57,7 +57,7 @@ void HudMessaging::receive_item_message(void **message)
     }
     iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
-    iterator.index = (datum_index)-1;
+    iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     for (p = (player *)halo::memory::data_iterator_next(&iterator); p != 0;
          p = (player *)halo::memory::data_iterator_next(&iterator)) {
@@ -96,7 +96,7 @@ void HudMessaging::receive_item_message(void **message)
     } else {
         return;
     }
-    if (sound != (datum_index)-1) {
+    if (sound != k_datum_index_none) {
         halo::sound::sound_start_unspatialized(sound, 1.0f);
     }
 }

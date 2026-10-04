@@ -38,7 +38,7 @@ static const int16_t *weapon_hud_messaging(const object *weapon_object)
     datum_index hud = halo::interface::tag_handle(halo::interface::tag_data<Weapon>(weapon_object->definition_tag)->hud_interface.tag_id);
     const int16_t *messaging;
 
-    if (hud == (datum_index)-1) {
+    if (hud == k_datum_index_none) {
         return 0;
     }
     static_assert(offsetof(WeaponHUDInterface, messaging_information_sequence_index) == 0x13c, "WeaponHUDInterface messaging block");
@@ -60,13 +60,13 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
     int16_t local = current_local_player_index;
     int16_t target_message;
 
-    if (halo::game::globals().local_player_globals->mode != 0 && p->unit == (datum_index)-1) {
+    if (halo::game::globals().local_player_globals->mode != 0 && p->unit == k_datum_index_none) {
         static const int16_t mode_message[4] = { 0xb, 0xa, 0x9, 0xc };
         halo::interface::hud_set_player_message(mode_message[halo::game::globals().local_player_globals->mode - 1], (uint16_t)local);
         return;
     }
 
-    if (p->interaction_object == (datum_index)-1) {
+    if (p->interaction_object == k_datum_index_none) {
         target_message = -1;
     } else {
         target_message = object_tag_data(p->interaction_object)->base.hud_text_message_index;
@@ -157,7 +157,7 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
         }
     }
 
-    if (p->unit == (datum_index)-1) {
+    if (p->unit == k_datum_index_none) {
         hud_player_messaging_state *msg = &hud_messaging->players[0] + local;
         msg->prompt_changed = msg->prompt_changed | (msg->message_shown != 0);
         msg->message_shown = 0;
@@ -175,12 +175,12 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
         uint8_t can_switch = 1;
         weapon_hud_ammo_state ammo;
 
-        if (parent != (datum_index)-1 && unit->vehicle_seat_index != -1) {
+        if (parent != k_datum_index_none && unit->vehicle_seat_index != -1) {
             UnitSeat *seats = halo::interface::reflexive_elements<UnitSeat>(object_tag_data(parent)->seats);
             can_switch = ((seats[unit->vehicle_seat_index].flags & 0xc) == 0);
         }
 
-        if (current_weapon != (datum_index)-1 && can_switch) {
+        if (current_weapon != k_datum_index_none && can_switch) {
             halo::items::weapon_build_hud_ammo_state(current_weapon, &ammo);
             if (halo::interface::weapon_hud_ammo_state_is_empty(&ammo)) {
                 int16_t slot = unit->current_weapon_index;
@@ -241,13 +241,13 @@ void HudFrame::update_player(void)
     int16_t camera_type;
 
     if (local_player_index == -1 || local_player_index > 0) {
-        player_index = (datum_index)-1;
+        player_index = k_datum_index_none;
     } else {
         player_index = halo::game::globals().local_player_globals->local_players[local_player_index];
     }
     camera_type = halo::camera::camera_get_type_for_player(local_player_index);
 
-    if (player_index == (datum_index)-1) {
+    if (player_index == k_datum_index_none) {
         return;
     }
 
@@ -260,7 +260,7 @@ void HudFrame::update_player(void)
         }
 
         if (halo::game::globals().game_time->paused == 0) {
-            int16_t expected = (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) ? 0 : -1;
+            int16_t expected = (halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none) ? 0 : -1;
             if (current_local_player_index == expected) {
                 halo::interface::chimera__motion_sensor_update();
             }
@@ -272,7 +272,7 @@ void HudFrame::update_player(void)
             return;
         }
 
-        if (camera_type != 3 && camera_type != 2 && local_player->unit != (datum_index)-1) {
+        if (camera_type != 3 && camera_type != 2 && local_player->unit != k_datum_index_none) {
             halo::interface::hud_draw_weapon_interface(local_player);
             halo::interface::hud_update_interaction_prompt(player_index);
             halo::interface::hud_unit_sounds_update(local_player, hud_flags->hud_enabled);

@@ -311,8 +311,8 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
         widget_creating_children = 1;
         for (i = 0; i < list->strings.count; i++) {
             widget_instance *child = halo::interface::chimera__load_ui_widget(nullptr, widget->definition, widget,
-                                                               widget->controller_index, (datum_index)-1,
-                                                               (datum_index)-1, -1);
+                                                               widget->controller_index, k_datum_index_none,
+                                                               k_datum_index_none, -1);
 
             if (child == (widget_instance *)0) {
                 ok = 0;
@@ -341,7 +341,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
             ChildWidgetReference *entry = entries + i;
             datum_index child_tag_index = halo::interface::tag_handle(entry->widget_tag.tag_id);
 
-            if (child_tag_index != (datum_index)-1) {
+            if (child_tag_index != k_datum_index_none) {
                 uint16_t controller = widget->controller_index;
                 widget_instance *child;
 
@@ -349,7 +349,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
                     controller = entry->custom_controller_index;
                 }
                 child = halo::interface::chimera__load_ui_widget(nullptr, child_tag_index, widget, controller,
-                                                 (datum_index)-1, (datum_index)-1, -1);
+                                                 k_datum_index_none, k_datum_index_none, -1);
                 if (child == (widget_instance *)0) {
                     ok = 0;
                     break;
@@ -375,7 +375,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
         halo::interface::tag_handle(tag->extended_description_widget.tag_id) != halo::k_dword_none) {
         widget_instance *desc = halo::interface::chimera__load_ui_widget(
             nullptr, halo::interface::tag_handle(tag->extended_description_widget.tag_id), widget,
-            widget->controller_index, (datum_index)-1, (datum_index)-1, -1);
+            widget->controller_index, k_datum_index_none, k_datum_index_none, -1);
 
         widget->extended_description = desc;
         if (desc != (widget_instance *)0) {
@@ -918,7 +918,7 @@ void WidgetLifecycle::close_and_restore_previous()
 {
     int16_t slot = (widget->controller_index == (int16_t)halo::k_word_none) ? 0 : widget->controller_index;
     widget_history_node history;
-    datum_index history_definition = (datum_index)-1;
+    datum_index history_definition = k_datum_index_none;
     widget_instance *root;
     widget_instance *reopened;
 
@@ -933,11 +933,11 @@ void WidgetLifecycle::close_and_restore_previous()
     }
     halo::interface::widget_close(root);
 
-    if (history_definition != (datum_index)-1) {
+    if (history_definition != k_datum_index_none) {
         ui_restoring_previous_widget = 1;
         reopened = halo::interface::chimera__load_ui_widget(nullptr, history_definition, (widget_instance *)0,
                                             (uint16_t)history.controller_index,
-                                            (datum_index)-1, (datum_index)-1, -1);
+                                            k_datum_index_none, k_datum_index_none, -1);
         ui_restoring_previous_widget = 0;
         if (reopened != (widget_instance *)0) {
             halo::interface::widget_instance_select_list_index(reopened, history.list_definition, history.selection);
@@ -1674,7 +1674,7 @@ void WidgetList::select_list_index(datum_index list_definition, int32_t selectio
 {
     widget_instance *target;
 
-    if (list_definition == (datum_index)-1) {
+    if (list_definition == k_datum_index_none) {
         return;
     }
     target = halo::interface::widget_find_by_tag_id(widget, list_definition);
@@ -2093,7 +2093,7 @@ void WidgetLifecycle::play_sound_effect(int16_t effect_id)
  */
 void WidgetLifecycle::play_sound_effect_tag(datum_index sound_tag)
 {
-    if (sound_tag != (datum_index)-1) {
+    if (sound_tag != k_datum_index_none) {
 
         sound_location location;
         memset(&location, 0, sizeof(location));
@@ -2205,7 +2205,7 @@ widget_instance * WidgetLifecycle::reopen_as_root_with_history(datum_index open_
 
     ancestor = widget->parent;
     if (ancestor == (widget_instance *)0) {
-        parent_definition = (datum_index)-1;
+        parent_definition = k_datum_index_none;
         root = widget;
     } else {
         parent_definition = ancestor->definition;

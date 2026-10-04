@@ -27,7 +27,7 @@ static void squad_link_add_far(ai_target_candidate_list *list, datum_index objec
     }
     entry = &list->entries[count];
     entry->object_index = object_index;
-    entry->prop_index = (datum_index)-1;
+    entry->prop_index = k_datum_index_none;
     entry->distance = distance_squared;
     list->entry_count = (int16_t)(count + 1);
 }

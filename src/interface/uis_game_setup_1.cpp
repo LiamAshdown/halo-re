@@ -140,7 +140,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
         }
 
         entry_name = missing_string_text;
-        if (string_list_tag != (datum_index)-1) {
+        if (string_list_tag != k_datum_index_none) {
             UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(string_list_tag);
 
             if (i >= 0 && i < (int32_t)list->strings.count) {

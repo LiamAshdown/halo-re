@@ -34,11 +34,11 @@ void HudUnitSounds::play(uint32_t active_mask, const TagReflexive *sounds, int32
             if (is_looping) {
                 if (handles[i] == -1) {
                     datum_index tag = *(const datum_index *)&sound->sound.tag_id;
-                    datum_index handle = (datum_index)-1;
+                    datum_index handle = k_datum_index_none;
 
-                    if (tag != (datum_index)-1) {
+                    if (tag != k_datum_index_none) {
                         handle = halo::memory::datum_new(halo::sound::globals().game_looping_sound_data);
-                        if (handle != (datum_index)-1) {
+                        if (handle != k_datum_index_none) {
                             uint8_t *element = (uint8_t *)halo::sound::globals().game_looping_sound_data->data + (handle & halo::k_slot_mask) * 0x34;
                             *(int32_t *)&((game_looping_sound *)element)->object_index = -1;
                             ((game_looping_sound *)element)->definition_index = tag;
@@ -93,7 +93,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
     datum_index hud_tag;
     uint32_t mask;
 
-    if (unit_index == (datum_index)-1) {
+    if (unit_index == k_datum_index_none) {
         unit_index = state->last_unit;
     }
     unit = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
@@ -110,14 +110,14 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
         return;
     }
     hud_tag = halo::interface::tag_handle(halo::interface::reflexive_elements<UnitUnitHudInterface>(((struct Unit *)unit_tag)->new_hud_interfaces)[(int16_t)choice].hud.tag_id);
-    if (hud_tag == (datum_index)-1) {
+    if (hud_tag == k_datum_index_none) {
         return;
     }
     hud = halo::interface::tag_data<UnitHUDInterface>(hud_tag);
 
     mask = 0;
     if ((unit[0x10] & 4) != 0 || !(((unit_object *)unit)->base.body_vitality > 0.0f)) {
-        state->last_unit = (datum_index)-1;
+        state->last_unit = k_datum_index_none;
     } else if (hud_enabled != 0 && halo::cutscene::globals().cinematic_globals->in_progress == 0) {
         float shield = ((unit_object *)unit)->base.shield_vitality;
         float health = ((unit_object *)unit)->base.body_vitality;

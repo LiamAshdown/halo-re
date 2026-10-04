@@ -254,10 +254,10 @@ void InterfaceMain::tick()
 
                         halo::interface::list_node_pop(&popped, &ui_widget_history[0]);
                         root = ui_root_widget[0];
-                        if (popped.definition != (datum_index)-1) {
+                        if (popped.definition != k_datum_index_none) {
                             widget_instance *reopened = halo::interface::chimera__load_ui_widget(
                                 nullptr, popped.definition, (widget_instance *)0,
-                                (uint16_t)popped.controller_index, (datum_index)-1, (datum_index)-1, -1);
+                                (uint16_t)popped.controller_index, k_datum_index_none, k_datum_index_none, -1);
 
                             root = ui_root_widget[0];
                             if (reopened != (widget_instance *)0) {

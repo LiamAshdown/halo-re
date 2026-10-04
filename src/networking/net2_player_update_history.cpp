@@ -311,7 +311,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
     history->statistics[3] = 0;
     history->statistics[4] = 0;
 
-    if (unit_index == (datum_index)-1) {
+    if (unit_index == k_datum_index_none) {
         result = 0;
         halo::networking::player_update_history_log_write(1, 0, "Ignoring update [%d] due to unit_index == NONE", prune_target_id);
         if (node != 0) {
@@ -323,7 +323,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
         biped_ext = &reinterpret_cast<biped_object *>(unit_obj)->biped;
         parent_object = unit_obj->parent_object;
 
-        if (parent_object != (datum_index)-1) {
+        if (parent_object != k_datum_index_none) {
             in_vehicle_check = halo::units::unit_seat_flag_bit2(parent_object, unit_ext->vehicle_seat_index);
             if (in_vehicle_check != 1) {
 
@@ -528,7 +528,7 @@ void PlayerUpdateHistory::play_local_player(int32_t target_update_id)
     player_update_history_node *after_match;
     int32_t node_id;
 
-    unit_index = (datum_index)-1;
+    unit_index = k_datum_index_none;
     iter.data = halo::game::globals().player_data;
     iter.next_index = 0;
     iter.index = k_datum_index_none;

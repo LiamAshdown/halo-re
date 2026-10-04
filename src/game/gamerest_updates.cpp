@@ -632,7 +632,7 @@ void PlayerNetworkState::apply_remote_position_update(object *unit_obj)
         plr->position_updates_applied_count = plr->position_updates_applied_count + 1;
         *(float *)&plr->position_update_error_total = dist + *(float *)&plr->position_update_error_total;
 
-        if (unit_obj->parent_object == (datum_index)-1 && unit_obj->network_role == 1) {
+        if (unit_obj->parent_object == k_datum_index_none && unit_obj->network_role == 1) {
             halo::game::unit_snap_position_if_far(&queued, unit_obj);
         }
     } else {
@@ -742,7 +742,7 @@ void PlayerNetworkState::apply_first_position_update(uint32_t field0)
 {
     object *unit_obj;
 
-    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_client || plr->local_player_index != -1 || plr->unit == (datum_index)-1) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_client || plr->local_player_index != -1 || plr->unit == k_datum_index_none) {
         return;
     }
 

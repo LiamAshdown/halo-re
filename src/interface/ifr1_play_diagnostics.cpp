@@ -65,7 +65,7 @@ void PlayDiagnostics::run(void)
 
         iterator.data = halo::game::globals().player_data;
         iterator.next_index = 0;
-        iterator.index = (datum_index)-1;
+        iterator.index = k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
         while ((entry = (player *)halo::memory::data_iterator_next(&iterator)) != 0) {
         }

@@ -658,8 +658,8 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
             halo::interface::tag_handle(handler->widget_tag.tag_id) != 0xffffffffu) {
             widget_instance *replacement =
                 halo::interface::chimera__load_ui_widget(nullptr, halo::interface::tag_handle(handler->widget_tag.tag_id),
-                                         widget, widget->controller_index, (datum_index)-1,
-                                         (datum_index)-1, -1);
+                                         widget, widget->controller_index, k_datum_index_none,
+                                         k_datum_index_none, -1);
 
             if (replacement == (widget_instance *)0) {
                 ok = 0;
@@ -765,7 +765,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
             if (function_failed == 1 && halo::interface::has_bit(entry->flags, halo::tags::conditional_widget_reference_tag_flag::load_if_event_handler_function_fails) && handled == 0) {
                 datum_index open_tag = halo::interface::tag_handle(entry->widget_tag.tag_id);
 
-                if (open_tag != (datum_index)-1 && halo::interface::widget_reopen_as_root_with_history(widget, open_tag) != 0) {
+                if (open_tag != k_datum_index_none && halo::interface::widget_reopen_as_root_with_history(widget, open_tag) != 0) {
                     handled = 1;
                 }
             }

@@ -627,7 +627,7 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
 
     is_host = (host->flags >> 2) & 1;
     if (!is_host) {
-        if (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) {
+        if (halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none) {
             struct player *local_player = (struct player *)halo::memory::datum_get(halo::game::globals().local_player_globals->local_players[0], halo::game::globals().player_data);
             if (local_player != 0) {
                 network_client->team_index = local_player->team;

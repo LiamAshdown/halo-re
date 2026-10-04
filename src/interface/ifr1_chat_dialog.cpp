@@ -38,7 +38,7 @@ static auto &network_message_scratch = halo::link::ref<uint8_t [halo::interface:
 static const wchar_t *chat_prefix_format(int16_t string_index)
 {
     datum_index tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
-    if (tag == (datum_index)-1) {
+    if (tag == k_datum_index_none) {
         return &empty_string;
     }
     return reinterpret_cast<const wchar_t *>(halo::text::text_string_list_get_string(tag, string_index));
@@ -87,7 +87,7 @@ int32_t ChatDialog::default_team_channel(void)
 
     iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
-    iterator.index = (datum_index)-1;
+    iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     entry = (player *)halo::memory::data_iterator_next(&iterator);

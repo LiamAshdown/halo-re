@@ -88,7 +88,7 @@ uint16_t * text_context::string_list_get_string(datum_index list_id, int16_t ind
     UnicodeStringList *list;
     UnicodeStringListString *entry;
 
-    if (list_id == (datum_index)-1) {
+    if (list_id == k_datum_index_none) {
         return globals().missing_string_text;
     }
     list = (UnicodeStringList *)halo::cache::globals().tag_instances[halo::datum_slot(list_id)].data;

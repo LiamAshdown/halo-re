@@ -197,7 +197,7 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
 
     halo::interface::draw_text16(bounds, bounds, virtual_keyboard.destination);
 
-    if (virtual_keyboard.opened == 0 && virtual_keyboard.white_bitmap != (datum_index)-1 &&
+    if (virtual_keyboard.opened == 0 && virtual_keyboard.white_bitmap != k_datum_index_none &&
         ((halo::cseries::time_query_performance_counter_ms() / 1000) & 1) != 0) {
         int16_t height = (int16_t)(*(const int16_t *)(font_data + 6) + *(const int16_t *)(font_data + 4));
         int16_t advance_before_caret = 0;
@@ -494,7 +494,7 @@ void VirtualKeyboard::render()
     const uint16_t *prompt = missing_string_text;
     Rectangle2D rect;
 
-    if (background != (datum_index)-1) {
+    if (background != k_datum_index_none) {
         BitmapData *bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(background, 0, 0);
 
         rect.top = 0;
@@ -506,7 +506,7 @@ void VirtualKeyboard::render()
 
     virtual_keyboard_set_text_state(0);
     string_list = *(const datum_index *)((const uint8_t *)virtual_keyboard.strings_tag_data + 0x2c);
-    if (string_list != (datum_index)-1) {
+    if (string_list != k_datum_index_none) {
         const uint16_t *title = halo::text::text_string_list_get_string(string_list, virtual_keyboard.field_kind);
 
         rect.top = 0x4e;
@@ -517,7 +517,7 @@ void VirtualKeyboard::render()
     }
 
     string_list = *(const datum_index *)((const uint8_t *)virtual_keyboard.strings_tag_data + 0x2c);
-    if (string_list != (datum_index)-1) {
+    if (string_list != k_datum_index_none) {
         UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(string_list);
 
         if (list->strings.count > 0xe) {

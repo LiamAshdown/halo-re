@@ -108,7 +108,7 @@ int32_t PlayerUpdateBuilder::local_player_vehicle_update(uint8_t *out_changed, p
     parent_object = unit_obj->parent_object;
     vehicle_obj = halo::game::object_at(parent_object);
     network_hash = 0;
-    if (parent_object != (datum_index)-1) {
+    if (parent_object != k_datum_index_none) {
         network_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index,
             parent_object);
         if (network_hash == -1) {
@@ -360,7 +360,7 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
         if (unit_obj != 0) {
             bool fall_back = false;
 
-            if (unit_obj->parent_object == (datum_index)-1) {
+            if (unit_obj->parent_object == k_datum_index_none) {
                 now = (uint32_t)halo::game::globals().game_time->game_time;
                 if (now < (uint32_t)(network_transform_resend_interval_ms + c.biped_full_tick) &&
                     c.biped_full_tick != -1) {
@@ -478,7 +478,7 @@ int32_t PlayerUpdateBuilder::remote_player_vehicle_attachment_update(uint8_t *ca
     parent_object = unit_obj->parent_object;
     vehicle_obj = halo::game::object_at(parent_object);
     vehicle_hash = 0;
-    if (parent_object != (datum_index)-1) {
+    if (parent_object != k_datum_index_none) {
         vehicle_hash = halo::objects::hash_table_get(&machine_table->id_to_index, parent_object);
         if (vehicle_hash == -1) {
             vehicle_hash = 0;

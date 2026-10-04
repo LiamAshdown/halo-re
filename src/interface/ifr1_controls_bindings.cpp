@@ -512,7 +512,7 @@ void ControlsBindings::build_device_label_table(void)
     memset(controls_device_labels, 0, sizeof(controls_device_labels));
     controls_device_label_count = 0;
 
-    if (tag_id != (datum_index)-1) {
+    if (tag_id != k_datum_index_none) {
         int32_t *reflexive = halo::interface::tag_data<int32_t>(tag_id);
         if (*(int32_t *)(halo::interface::tag_data<uint8_t>(tag_id)) > 0) {
             uint32_t *item = (uint32_t *)(halo::interface::tag_data<int32_t>(tag_id))[1];

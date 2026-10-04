@@ -76,7 +76,7 @@ void EnginePlayerSync::players_update_client(void)
 
     player_iter.data = player_data;
     player_iter.next_index = 0;
-    player_iter.index = (datum_index)-1;
+    player_iter.index = k_datum_index_none;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
     counter = 0;
 
@@ -101,7 +101,7 @@ void EnginePlayerSync::players_update_client(void)
         counter = counter + 1;
         player_handle = player_iter.index;
 
-        if (plr->unit == (datum_index)-1) {
+        if (plr->unit == k_datum_index_none) {
             if (current_game_engine == 0) {
                 if (ui_split_screen == 0) {
                     if (plr->deaths == 0) {
@@ -116,7 +116,7 @@ void EnginePlayerSync::players_update_client(void)
             } else if (halo::game::game_engine_player_ready_to_respawn(player_handle) != 0) {
                 halo::game::game_engine_resolve_player_team(player_handle);
                 halo::game::player_respawn(player_handle);
-                if (plr->unit == (datum_index)-1) {
+                if (plr->unit == k_datum_index_none) {
                     plr->respawn_timer = 1;
                 } else {
                     halo::game::game_engine_apply_player_grenade_counts(player_handle);
@@ -124,7 +124,7 @@ void EnginePlayerSync::players_update_client(void)
             }
         }
 
-        if (plr->unit != (datum_index)-1) {
+        if (plr->unit != k_datum_index_none) {
             object *unit_obj = halo::game::object_at(plr->unit);
             unit_data *unit = halo::game::unit_data_of(unit_obj);
 
@@ -133,7 +133,7 @@ void EnginePlayerSync::players_update_client(void)
                     unit_control_data ctrl;
 
                     if ((current_action.control_flags & 0x80) != 0 &&
-                        unit->equipment_object_index != (datum_index)-1) {
+                        unit->equipment_object_index != k_datum_index_none) {
                         halo::game::player_apply_pickup_effect(player_handle, unit->equipment_object_index);
                         halo::units::unit_release_selected_equipment(plr->unit);
                     }
@@ -155,7 +155,7 @@ void EnginePlayerSync::players_update_client(void)
                     ctrl.animation_state = 3;
                     ctrl.aiming_speed = 0;
                     halo::units::unit_apply_control_block(plr->unit, &ctrl, -1);
-                } else if (unit->swarm_actor_index == (datum_index)-1 && unit->actor_index == (datum_index)-1) {
+                } else if (unit->swarm_actor_index == k_datum_index_none && unit->actor_index == k_datum_index_none) {
                     unit_control_data ctrl;
 
                     memset(&ctrl, 0, sizeof(ctrl));
@@ -180,7 +180,7 @@ void EnginePlayerSync::players_update_client(void)
 
     halo::game::game_engine_build_visible_cluster_bitmask(local_player_globals->cluster_pvs + 0x10, 1);
     halo::game::game_engine_build_visible_cluster_bitmask(local_player_globals->cluster_pvs, 0);
-    local_player_globals->local_player_count = (int16_t)(local_player_globals->local_players[0] != (datum_index)-1);
+    local_player_globals->local_player_count = (int16_t)(local_player_globals->local_players[0] != k_datum_index_none);
 }
 
 /**
@@ -211,7 +211,7 @@ void EnginePlayerSync::players_update_server(void)
 
     player_iter.data = player_data;
     player_iter.next_index = 0;
-    player_iter.index = (datum_index)-1;
+    player_iter.index = k_datum_index_none;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
     counter = 0;
 
@@ -232,7 +232,7 @@ void EnginePlayerSync::players_update_server(void)
             }
         }
 
-        if (plr->unit == (datum_index)-1) {
+        if (plr->unit == k_datum_index_none) {
             if (current_game_engine == 0) {
                 if (ui_split_screen == 0) {
                     if (plr->deaths == 0) {
@@ -248,7 +248,7 @@ void EnginePlayerSync::players_update_server(void)
                 halo::game::game_engine_resolve_player_team(player_handle);
                 halo::game::player_respawn(player_handle);
                 if (halo::networking::globals().game_mode == halo::networking::k_game_mode_local) {
-                    if (plr->unit == (datum_index)-1) {
+                    if (plr->unit == k_datum_index_none) {
                         plr->respawn_timer = 1;
                     } else {
                         halo::game::game_engine_apply_player_grenade_counts(player_handle);
@@ -257,32 +257,32 @@ void EnginePlayerSync::players_update_server(void)
             }
         }
 
-        if (plr->unit != (datum_index)-1) {
+        if (plr->unit != k_datum_index_none) {
             object *unit_obj = halo::game::object_at(plr->unit);
             unit_data *unit = halo::game::unit_data_of(unit_obj);
 
             if (test_flag(unit->flags, halo::units::unit_flag::controllable)) {
                 if (local_player_globals->input_disabled == 0) {
                     if ((action->control_flags & _unit_control_flag_action) != 0 &&
-                        unit_obj->parent_object == (datum_index)-1) {
+                        unit_obj->parent_object == k_datum_index_none) {
                         if (halo::game::player_execute_pending_interaction(player_handle) == 0) {
                             action->control_flags = action->control_flags | 0x400;
                         }
                     }
-                    if ((action->control_flags & 0x4000) == 0 || unit_obj->parent_object != (datum_index)-1) {
+                    if ((action->control_flags & 0x4000) == 0 || unit_obj->parent_object != k_datum_index_none) {
                         *(uint8_t *)&plr->weapon_swap_result = 0;
                     } else if (*(uint8_t *)&plr->weapon_swap_result == 0) {
                         *(uint8_t *)&plr->weapon_swap_result = halo::game::player_execute_weapon_drop_interaction(player_handle);
                     }
 
-                    if ((action->control_flags & 0x80) != 0 && unit->equipment_object_index != (datum_index)-1) {
+                    if ((action->control_flags & 0x80) != 0 && unit->equipment_object_index != k_datum_index_none) {
                         halo::game::player_apply_pickup_effect(player_handle, unit->equipment_object_index);
                         halo::units::unit_release_selected_equipment(plr->unit);
                     }
 
                     if (unit->current_weapon_index != -1) {
                         datum_index weapon_handle = unit->weapons[unit->current_weapon_index];
-                        if (weapon_handle != (datum_index)-1) {
+                        if (weapon_handle != k_datum_index_none) {
                             object *weapon_obj = halo::game::object_at(weapon_handle);
                             Weapon *weapon_tag = (Weapon *)halo::game::tag_data_at(weapon_obj->definition_tag);
                             if (test_flag(weapon_tag->weapon_flags, halo::tags::weapon_tag_flag::must_be_readied)) {
@@ -318,7 +318,7 @@ void EnginePlayerSync::players_update_server(void)
                         ctrl.looking_vector = forward;
                         halo::units::unit_apply_control_block(plr->unit, &ctrl, grenade_value);
                     }
-                } else if (unit->swarm_actor_index == (datum_index)-1 && unit->actor_index == (datum_index)-1) {
+                } else if (unit->swarm_actor_index == k_datum_index_none && unit->actor_index == k_datum_index_none) {
                     unit_control_data ctrl;
 
                     memset(&ctrl, 0, sizeof(ctrl));
@@ -343,7 +343,7 @@ void EnginePlayerSync::players_update_server(void)
 
     halo::game::game_engine_build_visible_cluster_bitmask(local_player_globals->cluster_pvs + 0x10, 1);
     halo::game::game_engine_build_visible_cluster_bitmask(local_player_globals->cluster_pvs, 0);
-    local_player_globals->local_player_count = (int16_t)(local_player_globals->local_players[0] != (datum_index)-1);
+    local_player_globals->local_player_count = (int16_t)(local_player_globals->local_players[0] != k_datum_index_none);
 }
 
 /**
@@ -365,12 +365,12 @@ void EnginePlayerSync::server_update_player_positions(void)
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)-1;
+    iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     plr = (player *)halo::memory::data_iterator_next(&iter);
     while (plr != (player *)0) {
-        if (plr->unit != (datum_index)-1) {
+        if (plr->unit != k_datum_index_none) {
             object *unit_obj = halo::game::object_at(plr->unit);
             if (halo::game::unit_data_of(unit_obj)->control_update_id_valid == 1) {
                 object *position_source;
@@ -379,7 +379,7 @@ void EnginePlayerSync::server_update_player_positions(void)
                 *(int32_t *)&((struct player *)plr)->unknown_f4 = halo::game::unit_data_of(unit_obj)->control_update_id;
 
                 position_source = unit_obj;
-                if (unit_obj->parent_object != (datum_index)-1) {
+                if (unit_obj->parent_object != k_datum_index_none) {
                     position_source = halo::game::object_at(unit_obj->parent_object);
                 }
                 *(float *)&((struct player *)plr)->unknown_f8 = position_source->position.x;
@@ -599,7 +599,7 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
                 }
             }
             if ((button_flags & 0x20) != 0) {
-                if (control->unit == (datum_index)-1) {
+                if (control->unit == k_datum_index_none) {
                     break;
                 }
                 halo::units::unit_sample_camera_shake_from_velocity(control->unit);
@@ -607,25 +607,25 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
             }
         }
 
-        if (control->unit == (datum_index)-1) {
+        if (control->unit == k_datum_index_none) {
             break;
         }
 
         unit_object = halo::game::object_at(control->unit);
         unit = halo::game::unit_data_of(unit_object);
 
-        current_weapon = (datum_index)-1;
+        current_weapon = k_datum_index_none;
         if (unit->current_weapon_index != -1) {
             current_weapon = unit->weapons[unit->current_weapon_index];
         }
 
         if (control->desired_weapon_index == -1 ||
-            unit->weapons[control->desired_weapon_index] == (datum_index)-1) {
+            unit->weapons[control->desired_weapon_index] == k_datum_index_none) {
             control->desired_weapon_index = unit->desired_weapon_index;
         }
 
         if ((button_flags & 1) != 0 || control->desired_weapon_index == -1 ||
-            unit->weapons[control->desired_weapon_index] == (datum_index)-1) {
+            unit->weapons[control->desired_weapon_index] == k_datum_index_none) {
             control->desired_weapon_index = halo::units::unit_find_next_zone_permitted_weapon_slot(control->unit,
                 control->desired_weapon_index, (int16_t)(button_flags & 1));
             control->desired_zoom_level = -1;
@@ -671,7 +671,7 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
         }
 
         if ((button_flags & 4) != 0 && (player_control_globals_ptr->flags & 1) == 0 &&
-            game_time->paused == 0 && current_weapon != (datum_index)-1 &&
+            game_time->paused == 0 && current_weapon != k_datum_index_none &&
             cinematic_globals_ptr[9] == 0) {
             control->desired_zoom_level =
                 (int16_t)halo::items::weapon_get_next_zoom_level(control->desired_zoom_level, current_weapon);
@@ -681,7 +681,7 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
             halo::game::game_engine_update_local_player_look(local_player_index, input.yaw_delta, input.pitch_delta);
         }
 
-        if (unit_object->parent_object == (datum_index)-1) {
+        if (unit_object->parent_object == k_datum_index_none) {
             real absolute_throttle_x = control->input_throttle_x < 0.0f
                                            ? -control->input_throttle_x
                                            : control->input_throttle_x;
@@ -711,7 +711,7 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
     control->input_throttle_y = input.throttle_y;
 
     if (local_player_index != -1 && local_player_index < k_maximum_local_players &&
-        local_player_globals->local_players[local_player_index] != (datum_index)-1) {
+        local_player_globals->local_players[local_player_index] != k_datum_index_none) {
         player_action action;
 
         action.control_flags = input.control_flags;

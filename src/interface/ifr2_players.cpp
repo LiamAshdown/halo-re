@@ -225,17 +225,17 @@ datum_index LocalPlayers::get_vehicle(datum_index player_index)
     player *p;
     object *unit;
 
-    if (player_index == (datum_index)-1 || index < 0 || index >= halo::game::globals().player_data->maximum_count) {
-        return (datum_index)-1;
+    if (player_index == k_datum_index_none || index < 0 || index >= halo::game::globals().player_data->maximum_count) {
+        return k_datum_index_none;
     }
     p = halo::interface::player_record(index);
     if (p->identifier == 0 || (salt != 0 && p->identifier != salt)) {
-        return (datum_index)-1;
+        return k_datum_index_none;
     }
     unit = halo::objects::object_try_and_get(p->unit, 3);
-    if (unit == 0 || ((unit_object *)unit)->base.parent_object == (datum_index)-1 ||
+    if (unit == 0 || ((unit_object *)unit)->base.parent_object == k_datum_index_none ||
         ((unit_object *)unit)->unit.vehicle_seat_index == -1) {
-        return (datum_index)-1;
+        return k_datum_index_none;
     }
     return ((unit_object *)unit)->base.parent_object;
 }
@@ -253,7 +253,7 @@ void LocalPlayers::help_screen_select_by_name(int16_t value)
     const char *tag_path;
     widget_instance *dialog;
 
-    if (halo::scenario::globals().scenario_index == (datum_index)-1) {
+    if (halo::scenario::globals().scenario_index == k_datum_index_none) {
         return;
     }
     strncpy(name, halo::cache::globals().tag_instances[(int16_t)halo::scenario::globals().scenario_index].path, 0xff);
@@ -286,8 +286,8 @@ void LocalPlayers::help_screen_select_by_name(int16_t value)
         return;
     }
 
-    dialog = halo::interface::chimera__load_ui_widget(tag_path, (datum_index)-1, (widget_instance *)0,
-                                     (uint16_t)profile_slot_id[0], (datum_index)-1, (datum_index)-1, -1);
+    dialog = halo::interface::chimera__load_ui_widget(tag_path, k_datum_index_none, (widget_instance *)0,
+                                     (uint16_t)profile_slot_id[0], k_datum_index_none, k_datum_index_none, -1);
     if (dialog != (widget_instance *)0) {
         widget_instance *child;
 
@@ -330,7 +330,7 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                 if (flags & 1) {
                     datum_index names = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::default_player_profile_names);
                     const uint16_t *source = empty_string;
-                    if (names != (datum_index)-1) {
+                    if (names != k_datum_index_none) {
                         source = halo::text::text_string_list_get_string(names, (int16_t)(flags >> 8));
                     }
                     wcsncpy((wchar_t *)name, (const wchar_t *)source, 0xb);
@@ -351,7 +351,7 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                     if (halo::interface::has_bit(flags, halo::interface::profile_flag::builtin)) {
                         joysticks = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::joystick_set_defaults_descriptions);
                         buttons = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::button_set_long_descriptions);
-                        if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
+                        if (joysticks == k_datum_index_none || buttons == k_datum_index_none) {
                             (halo::interface::widget_text(description_row))[0] = 0;
                             (halo::interface::widget_text(description_row))[0xff] = 0;
                             return;
@@ -359,7 +359,7 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                     } else {
                         joysticks = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::joystick_set_short_descriptions);
                         buttons = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::button_set_short_descriptions);
-                        if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
+                        if (joysticks == k_datum_index_none || buttons == k_datum_index_none) {
                             (halo::interface::widget_text(description_row))[0xff] = 0;
                             return;
                         }
@@ -579,7 +579,7 @@ void PlayerProfiles::details_widget_refresh(widget_instance *widget, const uint8
         if ((flags & 1) != 0) {
             datum_index names_tag =
                 halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::default_player_profile_names);
-            const uint16_t *source = names_tag != (datum_index)-1
+            const uint16_t *source = names_tag != k_datum_index_none
                 ? halo::text::text_string_list_get_string(names_tag, (int16_t)(flags >> 8))
                 : hud_text_unknown;
 

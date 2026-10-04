@@ -252,12 +252,12 @@ void PlayerView::compute_view_forward_vector(real *yaw_pitch, real_vector3d *out
     out_forward->k = (float)halo::x87::fsin(yaw_pitch[1]);
 
     plr = halo::game::player_at(player_handle);
-    if (plr->unit == (datum_index)-1) {
+    if (plr->unit == k_datum_index_none) {
         return;
     }
 
     unit_obj = halo::game::object_at(plr->unit);
-    if (unit_obj->parent_object == (datum_index)-1) {
+    if (unit_obj->parent_object == k_datum_index_none) {
         return;
     }
 
@@ -457,7 +457,7 @@ void Players::server_catchup_on_client_updates()
 
     player_iter.data = player_data;
     player_iter.next_index = 0;
-    player_iter.index = (datum_index)-1;
+    player_iter.index = k_datum_index_none;
     player_iter.signature = (uint32_t)(uintptr_t)player_data ^ k_data_iterator_signature;
 
     for (plr = (player *)halo::memory::data_iterator_next(&player_iter); plr != 0;
@@ -495,7 +495,7 @@ void Players::server_catchup_on_client_updates()
             action = record.action;
             source_id = record.references_remaining != 0 ? -1 : (int32_t)record.field0;
 
-            if (plr->unit == (datum_index)-1) {
+            if (plr->unit == k_datum_index_none) {
                 continue;
             }
             unit_obj = object_from_index(plr->unit);
@@ -507,7 +507,7 @@ void Players::server_catchup_on_client_updates()
             if (local_player_globals->input_disabled == 0) {
                 if (unit->current_weapon_index != -1) {
                     datum_index weapon_index = unit->weapons[unit->current_weapon_index];
-                    if (weapon_index != (datum_index)-1) {
+                    if (weapon_index != k_datum_index_none) {
                         Weapon *weapon = (Weapon *)halo::game::tag_data_at(object_from_index(weapon_index)->definition_tag);
                         if (test_flag(weapon->weapon_flags, halo::tags::weapon_tag_flag::must_be_readied)) {
                             action.weapon_index = unit->current_weapon_index;
@@ -528,7 +528,7 @@ void Players::server_catchup_on_client_updates()
                 control.animation_state = 3;
                 control.aiming_speed = 0;
                 halo::units::unit_apply_control_block(plr->unit, &control, source_id);
-            } else if (unit->swarm_actor_index == (datum_index)-1 && unit->actor_index == (datum_index)-1) {
+            } else if (unit->swarm_actor_index == k_datum_index_none && unit->actor_index == k_datum_index_none) {
                 control.weapon_index = -1;
                 control.grenade_index = -1;
                 control.zoom_level = -1;
@@ -587,7 +587,7 @@ void StructureBsp::switch_structure_bsp()
 
     player_iter.data = player_data;
     player_iter.next_index = 0;
-    player_iter.index = (datum_index)-1;
+    player_iter.index = k_datum_index_none;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
 
     plr = (player *)halo::memory::data_iterator_next(&player_iter);
@@ -604,7 +604,7 @@ void StructureBsp::switch_structure_bsp()
                 }
             } else if (*fade_ticks < 0x5a) {
                 halo::effects::player_effect_apply_generic_damage_feedback(player_handle, (real)*fade_ticks * 0.011111111f);
-            } else if (plr->unit != (datum_index)-1) {
+            } else if (plr->unit != k_datum_index_none) {
                 object *unit_obj = halo::game::object_at(plr->unit);
                 if ((*((uint8_t *)unit_obj + 0x106) & 0x20) == 0) {
                     if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
@@ -617,16 +617,16 @@ void StructureBsp::switch_structure_bsp()
         }
         plr->telefrag_danger = 0;
 
-        if (plr->unit != (datum_index)-1) {
+        if (plr->unit != k_datum_index_none) {
             halo::game::player_kill_streak_tick(player_handle);
         }
 
-        if (plr->unit != (datum_index)-1) {
+        if (plr->unit != k_datum_index_none) {
             walk = plr->unit;
             do {
                 root = walk;
                 walk = halo::game::object_at(root)->parent_object;
-            } while (walk != (datum_index)-1);
+            } while (walk != k_datum_index_none);
             root_obj = halo::game::object_at(root);
 
             if ((root_obj->flags & 0x200000) == 0 && halo::scenario::globals().scenario->bsp_switch_trigger_volumes.count > 0) {
@@ -637,7 +637,7 @@ void StructureBsp::switch_structure_bsp()
 
                 for (i = 0; i < count; i = i + 1) {
                     ScenarioBSPSwitchTriggerVolume *entry = &volumes[i];
-                    if (entry->source == (uint16_t)halo::scenario::globals().structure_bsp_index && plr->unit != (datum_index)-1 &&
+                    if (entry->source == (uint16_t)halo::scenario::globals().structure_bsp_index && plr->unit != k_datum_index_none &&
                         halo::scenario::scenario_query::trigger_volume_contains_point((int16_t)entry->trigger_volume, &halo::game::object_at(plr->unit)->bounding_center) != 0) {
 
                         int16_t destination = (int16_t)entry->destination;
@@ -663,7 +663,7 @@ void StructureBsp::switch_structure_bsp()
             }
         }
 
-        plr->interaction_object = (datum_index)-1;
+        plr->interaction_object = k_datum_index_none;
         plr->interaction_type = 0;
 
         if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client) {

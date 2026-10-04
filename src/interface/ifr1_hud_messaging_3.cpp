@@ -117,7 +117,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         return;
     }
     player_index = local_player_index < 1 ? halo::game::globals().local_player_globals->local_players[local_player_index]
-                                          : (datum_index)-1;
+                                          : k_datum_index_none;
     if (halo::game::game_engine_local_player_score_is_nonpositive(player_index) == 0) {
         return;
     }
@@ -126,7 +126,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
     split_screen = halo::game::globals().local_player_globals->local_player_count > 1;
     font = halo::interface::tag_handle(parameters->fullscreen_font.tag_id);
     if (halo::game::globals().local_player_globals->local_player_count > 1 &&
-        halo::interface::tag_handle(parameters->splitscreen_font.tag_id) != (datum_index)-1) {
+        halo::interface::tag_handle(parameters->splitscreen_font.tag_id) != k_datum_index_none) {
         font = halo::interface::tag_handle(parameters->splitscreen_font.tag_id);
     }
     halo::interface::hud_anchor_offset_to_screen_position(&parameters->anchor, split_screen, 0.0f,
@@ -321,7 +321,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             item = halo::interface::tag_data<Item>(slot->source);
             string_index = (int16_t)((int8_t)plural + item->pickup_text_index);
             text = empty_wide_string_pointer;
-            if (strings != (datum_index)-1) {
+            if (strings != k_datum_index_none) {
                 int32_t *string_list = halo::interface::tag_data<int32_t>(strings);
                 if (string_list != 0 && string_index >= 0 && string_index < string_list[0]) {
                     text = halo::text::text_string_list_get_string(strings, (int16_t)string_index);

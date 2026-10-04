@@ -182,7 +182,7 @@ void MenuListView::update_item(const uint16_t *record)
                     halo::tag_paths::profile_description_labels);
 
                 desc_buf[0] = 0;
-                if (labels_tag != (datum_index)-1) {
+                if (labels_tag != k_datum_index_none) {
                     UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(labels_tag);
                     const uint16_t *source = missing_string_text;
 
@@ -232,7 +232,7 @@ void MenuListView::update_item(const uint16_t *record)
         case 5: desc_widget->background_bitmap_frame = 4; break;
         default: break;
         }
-        if (variant_strings_tag != (datum_index)-1 && desc_widget->text != nullptr) {
+        if (variant_strings_tag != k_datum_index_none && desc_widget->text != nullptr) {
             uint16_t *text = halo::text::text_string_list_get_string(variant_strings_tag, (int16_t)((record[k_record_variant_word] >> 8) + 0xa));
 
             wcsncpy((wchar_t *)(halo::interface::widget_text(desc_widget)), (const wchar_t *)text, 0xff);
@@ -251,7 +251,7 @@ void MenuListView::update_item(const uint16_t *record)
     default: return;
     }
 
-    if (variant_strings_tag != (datum_index)-1 && desc_widget->text != nullptr) {
+    if (variant_strings_tag != k_datum_index_none && desc_widget->text != nullptr) {
         uint16_t *text = halo::text::text_string_list_get_string(variant_strings_tag, (int16_t)(2 * (*(const uint32_t *)((const uint8_t *)record + k_record_game_type_byte) - 1) + (((const uint8_t *)record)[k_record_team_play_byte] == 1 ? 1 : 0)));
 
         wcsncpy((wchar_t *)(halo::interface::widget_text(desc_widget)), (const wchar_t *)text, 0xff);

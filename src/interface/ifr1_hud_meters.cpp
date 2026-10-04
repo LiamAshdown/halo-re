@@ -60,7 +60,7 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
         return;
     }
 
-    if (bitmap_tag != (datum_index)-1 && meter->sequence_index != halo::k_word_none) {
+    if (bitmap_tag != k_datum_index_none && meter->sequence_index != halo::k_word_none) {
         Bitmap *bitmap_definition = bitmap_tag_data;
         int16_t sequence = (int16_t)meter->sequence_index;
         if (sequence < (int32_t)bitmap_definition->bitmap_group_sequence.count) {
@@ -264,7 +264,7 @@ void HudMeters::resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_in
 {
     int32_t frame = frame_index;
 
-    if (bitmap_tag != (datum_index)-1) {
+    if (bitmap_tag != k_datum_index_none) {
         Bitmap *bitmap = halo::interface::tag_data<Bitmap>(bitmap_tag);
         int16_t sequence = (int16_t)sequence_index;
 
@@ -303,7 +303,7 @@ void HudMeters::unit_meter_apply_predictive_damage(datum_index player_index, flo
     int16_t salt;
     player *p;
 
-    if (player_index == (datum_index)-1) {
+    if (player_index == k_datum_index_none) {
         return;
     }
     index = (int16_t)player_index;
@@ -332,11 +332,11 @@ void HudMeters::unit_meter_apply_predictive_damage(datum_index player_index, flo
  */
 void HudMeters::unit_meters_update(void)
 {
-    int16_t local_player_index = halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1;
+    int16_t local_player_index = halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none ? 0 : -1;
 
     while (local_player_index != -1) {
         halo::interface::hud_unit_meters_update_for_player(local_player_index);
-        local_player_index = (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1 && local_player_index < 0)
+        local_player_index = (halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none && local_player_index < 0)
                                  ? 0 : -1;
     }
 }
@@ -353,10 +353,10 @@ void HudMeters::unit_meters_update_for_player(int16_t local_player_index)
 
     if (local_player_index != -1 && local_player_index < 1) {
         player_index = halo::game::globals().local_player_globals->local_players[local_player_index];
-        if (player_index != (datum_index)-1) {
+        if (player_index != k_datum_index_none) {
             datum_index unit_index = (halo::interface::player_record(player_index))->unit;
 
-            if (unit_index != (datum_index)-1) {
+            if (unit_index != k_datum_index_none) {
                 uint8_t *unit = halo::interface::object_record(unit_index);
                 hud_unit_meter_state *state = &hud_unit_meters->players[local_player_index];
                 float shield = ((unit_object *)unit)->base.shield_vitality;
@@ -400,7 +400,7 @@ void HudMeters::unit_meters_update_for_player(int16_t local_player_index)
 
     if (halo::cutscene::globals().cinematic_globals->in_progress != 0 && local_player_index != -1 && local_player_index < 1) {
         player_index = halo::game::globals().local_player_globals->local_players[local_player_index];
-        if (player_index != (datum_index)-1) {
+        if (player_index != k_datum_index_none) {
             halo::interface::hud_unit_sounds_update(halo::interface::player_record(player_index),
                                    hud_flags->hud_enabled);
         }
