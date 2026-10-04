@@ -10,6 +10,7 @@
 
 #include <windows.h>
 #include <GL/gl.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -93,6 +94,65 @@ struct device_state {
 };
 
 device_state g_state;
+
+/** Everything the draw calls depend on, tracked as the engine sets it (the fixed-function emulation reads this). */
+struct pipeline_state {
+    uint32_t render_state[256];
+    uint32_t texture_stage_state[8][32];
+    uint32_t sampler_state[16][16];
+    gl_object *texture[16];
+    gl_declaration *declaration;
+    uint32_t fvf;
+    gl_object *vertex_shader;
+    gl_object *pixel_shader;
+    gl_buffer *stream[4];
+    uint32_t stream_offset[4];
+    uint32_t stream_stride[4];
+    gl_buffer *indices;
+    float vertex_constants[256][4];
+    float pixel_constants[32][4];
+    float transform[512][16];  // indexed by D3DTRANSFORMSTATETYPE (view 2, projection 3, texture 16.., world 256)
+};
+
+pipeline_state g_pipe;
+
+bool trace_enabled()
+{
+    static const int enabled = []() {
+        const char *value = getenv("HALO_GL_TRACE");
+
+        return value != nullptr && value[0] != '0' ? 1 : 0;
+    }();
+
+    return enabled != 0;
+}
+
+int g_trace_budget = 60;
+
+void trace_draw(const char *name, uint32_t type, uint32_t count)
+{
+    uint32_t declaration_elements = 0;
+    char elements[200] = "";
+
+    if (!trace_enabled() || g_trace_budget <= 0) {
+        return;
+    }
+    g_trace_budget--;
+    if (g_pipe.declaration != nullptr) {
+        declaration_elements = g_pipe.declaration->element_count;
+        for (uint32_t i = 0; i < declaration_elements && i < 8; i++) {
+            const uint8_t *e = g_pipe.declaration->elements + i * 8;
+            char piece[32];
+
+            snprintf(piece, sizeof(piece), " [s%u o%u t%u u%u]", *reinterpret_cast<const uint16_t *>(e), *reinterpret_cast<const uint16_t *>(e + 2), e[4], e[6]);
+            strncat(elements, piece, sizeof(elements) - strlen(elements) - 1);
+        }
+    }
+    halo::shell::standalone_log("gl draw %s type=%u count=%u fvf=%08x decl=%u%s vs=%d ps=%d tex0=%d zen=%u zwr=%u ablend=%u src=%u dst=%u atest=%u cull=%u",
+        name, type, count, g_pipe.fvf, declaration_elements, elements, g_pipe.vertex_shader != nullptr, g_pipe.pixel_shader != nullptr,
+        g_pipe.texture[0] != nullptr, g_pipe.render_state[7], g_pipe.render_state[14], g_pipe.render_state[27], g_pipe.render_state[19],
+        g_pipe.render_state[20], g_pipe.render_state[15], g_pipe.render_state[22]);
+}
 
 template <typename T>
 T *new_object(uint32_t object_kind)
@@ -575,8 +635,11 @@ uint32_t GlDevice::release(d3d_arg object)
 
 /* States and draws: accepted and ignored until the fixed-function and shader milestones */
 
-int32_t GlDevice::set_transform(uint32_t, d3d_arg)
+int32_t GlDevice::set_transform(uint32_t state, d3d_arg matrix)
 {
+    if (state < 512 && matrix.get() != nullptr) {
+        memcpy(g_pipe.transform[state], matrix.get(), 16 * sizeof(float));
+    }
     return 0;
 }
 
@@ -595,23 +658,35 @@ int32_t GlDevice::light_enable(uint32_t, int32_t)
     return 0;
 }
 
-int32_t GlDevice::set_render_state(uint32_t, uint32_t)
+int32_t GlDevice::set_render_state(uint32_t state, uint32_t value)
 {
+    if (state < 256) {
+        g_pipe.render_state[state] = value;
+    }
     return 0;
 }
 
-int32_t GlDevice::set_texture(uint32_t, d3d_arg)
+int32_t GlDevice::set_texture(uint32_t stage, d3d_arg texture)
 {
+    if (stage < 16) {
+        g_pipe.texture[stage] = static_cast<gl_object *>(texture.get());
+    }
     return 0;
 }
 
-int32_t GlDevice::set_texture_stage_state(uint32_t, uint32_t, uint32_t)
+int32_t GlDevice::set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
+    if (stage < 8 && type < 32) {
+        g_pipe.texture_stage_state[stage][type] = value;
+    }
     return 0;
 }
 
-int32_t GlDevice::set_sampler_state(uint32_t, uint32_t, uint32_t)
+int32_t GlDevice::set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 {
+    if (sampler < 16 && type < 16) {
+        g_pipe.sampler_state[sampler][type] = value;
+    }
     return 0;
 }
 
@@ -620,63 +695,84 @@ int32_t GlDevice::set_software_vertex_processing(uint32_t)
     return 0;
 }
 
-int32_t GlDevice::draw_primitive(uint32_t, uint32_t, uint32_t)
+int32_t GlDevice::draw_primitive(uint32_t type, uint32_t, uint32_t primitive_count)
 {
+    trace_draw("prim", type, primitive_count);
     return 0;
 }
 
-int32_t GlDevice::draw_indexed_primitive(uint32_t, int32_t, uint32_t, uint32_t, uint32_t, uint32_t)
+int32_t GlDevice::draw_indexed_primitive(uint32_t type, int32_t, uint32_t, uint32_t, uint32_t, uint32_t primitive_count)
 {
+    trace_draw("indexed", type, primitive_count);
     return 0;
 }
 
-int32_t GlDevice::draw_primitive_up(uint32_t, uint32_t, d3d_arg, uint32_t)
+int32_t GlDevice::draw_primitive_up(uint32_t type, uint32_t primitive_count, d3d_arg, uint32_t)
 {
+    trace_draw("prim_up", type, primitive_count);
     return 0;
 }
 
-int32_t GlDevice::draw_indexed_primitive_up(uint32_t, uint32_t, uint32_t, uint32_t, d3d_arg, uint32_t, d3d_arg, uint32_t)
+int32_t GlDevice::draw_indexed_primitive_up(uint32_t type, uint32_t, uint32_t, uint32_t primitive_count, d3d_arg, uint32_t, d3d_arg, uint32_t)
 {
+    trace_draw("indexed_up", type, primitive_count);
     return 0;
 }
 
-int32_t GlDevice::set_vertex_declaration(d3d_arg)
+int32_t GlDevice::set_vertex_declaration(d3d_arg declaration)
 {
+    g_pipe.declaration = static_cast<gl_declaration *>(declaration.get());
     return 0;
 }
 
-int32_t GlDevice::set_fvf(uint32_t)
+int32_t GlDevice::set_fvf(uint32_t fvf)
 {
+    g_pipe.fvf = fvf;
+    g_pipe.declaration = nullptr;
     return 0;
 }
 
-int32_t GlDevice::set_vertex_shader(d3d_arg)
+int32_t GlDevice::set_vertex_shader(d3d_arg shader)
 {
+    g_pipe.vertex_shader = static_cast<gl_object *>(shader.get());
     return 0;
 }
 
-int32_t GlDevice::set_vertex_shader_constant_f(uint32_t, d3d_arg, uint32_t)
+int32_t GlDevice::set_vertex_shader_constant_f(uint32_t start_register, d3d_arg data, uint32_t count)
 {
+    if (start_register + count <= 256 && data.get() != nullptr) {
+        memcpy(g_pipe.vertex_constants[start_register], data.get(), count * 4 * sizeof(float));
+    }
     return 0;
 }
 
-int32_t GlDevice::set_stream_source(uint32_t, d3d_arg, uint32_t, uint32_t)
+int32_t GlDevice::set_stream_source(uint32_t stream, d3d_arg buffer, uint32_t offset, uint32_t stride)
 {
+    if (stream < 4) {
+        g_pipe.stream[stream] = static_cast<gl_buffer *>(buffer.get());
+        g_pipe.stream_offset[stream] = offset;
+        g_pipe.stream_stride[stream] = stride;
+    }
     return 0;
 }
 
-int32_t GlDevice::set_indices(d3d_arg)
+int32_t GlDevice::set_indices(d3d_arg index_buffer)
 {
+    g_pipe.indices = static_cast<gl_buffer *>(index_buffer.get());
     return 0;
 }
 
-int32_t GlDevice::set_pixel_shader(d3d_arg)
+int32_t GlDevice::set_pixel_shader(d3d_arg shader)
 {
+    g_pipe.pixel_shader = static_cast<gl_object *>(shader.get());
     return 0;
 }
 
-int32_t GlDevice::set_pixel_shader_constant_f(uint32_t, d3d_arg, uint32_t)
+int32_t GlDevice::set_pixel_shader_constant_f(uint32_t start_register, d3d_arg data, uint32_t count)
 {
+    if (start_register + count <= 32 && data.get() != nullptr) {
+        memcpy(g_pipe.pixel_constants[start_register], data.get(), count * 4 * sizeof(float));
+    }
     return 0;
 }
 
