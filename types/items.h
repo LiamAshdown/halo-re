@@ -190,7 +190,7 @@ typedef struct item_data {
                                      //       entry byte at +0x08 has bit 0x08 set.
     int16_t resting_bsp_index;       // 0x1fc stamped from the int16 at 0x0069e8d8 when the item
                                      //       came to rest; a mismatch invalidates the rest
-    int16_t unknown_1fe;             // 0x1fe never read or written by this module
+    int16_t pad_1fe;                 // 0x1fe never read or written by this module
     datum_index ignore_object_index; // 0x200 the object the in-flight collision test skips
                                      //       (item_update passes it to the sweep at 0x401a20,
                                      //       item_accelerate tests it against -1). item_update
@@ -230,7 +230,9 @@ typedef char item_object_item_at_1f4[offsetof(item_object, item) == 0x1f4 ? 1 : 
 // block. The size is the only thing the binary states.
 // ---------------------------------------------------------------------------
 typedef struct garbage_data {
-    uint8_t unknown_22c[0x18];       // 0x22c UNRESOLVED in full; see the notes file
+    int16_t destroy_timer;           // 0x22c CEA garbage_datum.destroy_timer
+    uint8_t pad_22e[2];              // 0x22e
+    uint32_t unused_230[5];          // 0x230 CEA garbage_datum.unused
 } garbage_data;                      // size 0x18 (object 0x22c .. 0x244)
 
 // ---------------------------------------------------------------------------
@@ -253,7 +255,12 @@ typedef struct equipment_network_state {
 // by Ghidra, so 0x22c..0x244 has no reader anywhere in the export.
 // ---------------------------------------------------------------------------
 typedef struct equipment_data {
-    uint8_t unknown_22c[0x18];       // 0x22c UNRESOLVED in full; see the notes file
+    uint32_t equipment_flags;        // 0x22c CEA equipment_datum.flags
+    datum_index ignore_object_index; // 0x230
+    float detonation_timer;          // 0x234
+    float detonation_timer_delta;    // 0x238
+    float arming_timer;              // 0x23c
+    float arming_timer_delta;        // 0x240
     uint8_t network_state_valid;     // 0x244 equipment_create_from_creation_message sets 1
     uint8_t network_baseline_index;  // 0x245 carried in both the creation and the update
                                      //       message and compared before an update is taken
