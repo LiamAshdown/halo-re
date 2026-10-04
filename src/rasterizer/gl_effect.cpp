@@ -38,7 +38,7 @@ namespace gl {
 struct gl_effect : gl_object {
     MOJOSHADER_effect *fx;
     MOJOSHADER_effectStateChanges changes;
-    gl_object **textures;  // one slot per effect object, indexed by the object number a texture parameter refers to
+    gl_object **textures;  // one slot per effect parameter (the texture parameters are the ones used)
     bool pass_active;
     bool begun;
 };
@@ -246,9 +246,17 @@ void apply_samplers(gl_effect *effect, unsigned int count, const MOJOSHADER_samp
 
             if (state.type == MOJOSHADER_SAMP_TEXTURE) {
                 uint32_t object = value_bits(state.value);
+                const char *wanted = static_cast<int>(object) < effect->fx->object_count ? effect->fx->objects[object].mapping.name : nullptr;
+                gl_object *texture = nullptr;
 
-                if (static_cast<int>(object) < effect->fx->object_count && effect->textures[object] != nullptr) {
-                    gl_object *texture = effect->textures[object];
+                // the sampler's Texture state names a texture parameter; effect_set_texture stores by parameter
+                for (int p = 0; wanted != nullptr && p < effect->fx->param_count; p++) {
+                    if (effect->fx->params[p].value.name != nullptr && strcmp(effect->fx->params[p].value.name, wanted) == 0) {
+                        texture = effect->textures[p];
+                        break;
+                    }
+                }
+                if (texture != nullptr) {
 
                     texture->refs++;
                     if (g_pipe.texture[unit] != nullptr) {
@@ -296,7 +304,7 @@ void effect_destroy(gl_object *object)
     gl_effect *effect = static_cast<gl_effect *>(object);
 
     if (effect->fx != nullptr) {
-        for (int i = 0; i < effect->fx->object_count; i++) {
+        for (int i = 0; i < effect->fx->param_count; i++) {
             if (effect->textures[i] != nullptr) {
                 gl_device().release(effect->textures[i]);
             }
@@ -329,7 +337,7 @@ int32_t gl_create_effect(const void *data, uint32_t size, void *out_effect)
         halo::shell::standalone_log("gl: effect failed to compile: %s", effect->fx != nullptr && effect->fx->errors != nullptr ? effect->fx->errors[0].error : "(null)");
         effect->fx = nullptr;
     } else {
-        effect->textures = static_cast<gl_object **>(calloc(static_cast<size_t>(effect->fx->object_count) + 1, sizeof(gl_object *)));
+        effect->textures = static_cast<gl_object **>(calloc(static_cast<size_t>(effect->fx->param_count) + 1, sizeof(gl_object *)));
     }
     *static_cast<void **>(out_effect) = effect;
     return 0;
@@ -358,9 +366,9 @@ int32_t GlDevice::effect_set_texture(d3d_arg object, d3d_arg handle, d3d_arg tex
     gl_object *incoming = static_cast<gl_object *>(texture.get());
 
     if (effect->fx != nullptr && param != nullptr && param->value.values != nullptr) {
-        uint32_t index = static_cast<uint32_t>(param->value.valuesI[0]);
+        uint32_t index = static_cast<uint32_t>(param - effect->fx->params);
 
-        if (static_cast<int>(index) < effect->fx->object_count) {
+        if (static_cast<int>(index) < effect->fx->param_count) {
             if (incoming != nullptr) {
                 incoming->refs++;
             }

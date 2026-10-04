@@ -437,7 +437,7 @@ void upload_texture(gl_texture *texture)
 
 void make_default_textures()
 {
-    static const uint8_t white[4] = {255, 255, 255, 255};
+    static const uint8_t white[4] = {0, 0, 0, 255};  // Direct3D 9 samples an unbound texture as opaque black
 
     glGenTextures(1, &g_white_texture);
     glActiveTexture(GL_TEXTURE0 + 15);
@@ -585,6 +585,19 @@ GLuint framebuffer_for_target(gl_surface *target, uint32_t *width, uint32_t *hei
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
         texture->kind == kind_cube_texture ? GL_TEXTURE_CUBE_MAP_POSITIVE_X + target->face : GL_TEXTURE_2D, texture->name, static_cast<GLint>(target->level));
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, texture->depth_buffer);
+    {
+        static uint32_t checked[16];
+        static uint32_t checked_count;
+        bool seen = false;
+
+        for (uint32_t i = 0; i < checked_count; i++) seen = seen || checked[i] == texture->framebuffer;
+        if (!seen && checked_count < 16) {
+            GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+            checked[checked_count++] = texture->framebuffer;
+            halo::shell::standalone_log("gl: render target texture format %u %ux%u usage %x -> framebuffer status %04x", texture->format, texture->width, texture->height, texture->usage, status);
+        }
+    }
     return texture->framebuffer;
 }
 
@@ -885,7 +898,7 @@ const char *compare_expression(uint32_t function)
 
 void alpha_test_glsl(sbuf &out, uint32_t function, const char *alpha)
 {
-    if (function == 8 || function == 0) {
+    if (function == 8 || function == 0 || getenv("HALO_GL_NOALPHATEST") != nullptr) {
         return;
     }
     sb_printf(out, "    { float a = %s; float r = u_alpha_ref; if (!(%s)) discard; }\n", alpha, compare_expression(function));
@@ -1144,10 +1157,24 @@ program *add_program()
     return &g_programs[g_program_count++];
 }
 
+/**
+ * Vertex shaders before 2.0 have no input declarations: Direct3D feeds input register vN from the Nth element of the
+ * vertex declaration, whatever its usage. Later shaders declare a usage per register and are matched by usage.
+ */
+bool inputs_by_element_order(const gl_shader *vertex_shader)
+{
+    return vertex_shader != nullptr && vertex_shader->parse != nullptr && vertex_shader->parse->major_ver < 2;
+}
+
 void bind_attribute_names(GLuint prog, const MOJOSHADER_parseData *parse)
 {
     for (int i = 0; i < parse->attribute_count; i++) {
         int slot = attribute_slot(static_cast<uint32_t>(parse->attributes[i].usage), static_cast<uint32_t>(parse->attributes[i].index));
+
+        if (parse->major_ver < 2 && strncmp(parse->attributes[i].name, "vs_v", 4) == 0) {
+            slot = atoi(parse->attributes[i].name + 4);
+            slot = slot < k_attribute_slots ? slot : -1;
+        }
 
         if (slot >= 0) {
             glBindAttribLocation(prog, static_cast<GLuint>(slot), parse->attributes[i].name);
@@ -1430,6 +1457,14 @@ void apply_render_state()
         commit_group(fill, 1);
     }
     g_applied_valid = true;
+    // debugging overrides
+    {
+        static const bool no_cull = getenv("HALO_GL_NOCULL") != nullptr;
+        static const bool no_depth = getenv("HALO_GL_NODEPTH") != nullptr;
+
+        if (no_cull) glDisable(GL_CULL_FACE);
+        if (no_depth) glDisable(GL_DEPTH_TEST);
+    }
 }
 
 /* ---- vertex declarations ---- */
@@ -1722,8 +1757,13 @@ program *select_program(draw_setup &setup)
         const char *pixel_text;
 
         if (vs != nullptr) {
-            wrapped_vertex = wrap_main(vs->parse->output,
-                "uniform vec2 u_half_pixel;\nvoid main()\n{\n    mojo_main();\n    gl_Position.xy += gl_Position.w * u_half_pixel;\n}\n");
+            if (getenv("HALO_GL_FORCEPOS") != nullptr) {
+                wrapped_vertex = wrap_main(vs->parse->output,
+                    "uniform vec2 u_half_pixel;\nvoid main()\n{\n    mojo_main();\n    gl_Position = vec4(vs_v0.x * 0.003, vs_v0.y * 0.003, 0.0, 1.0);\n}\n");
+            } else {
+                wrapped_vertex = wrap_main(vs->parse->output,
+                    "uniform vec2 u_half_pixel;\nvoid main()\n{\n    mojo_main();\n    gl_Position.xy += gl_Position.w * u_half_pixel;\n}\n");
+            }
             vertex_text = wrapped_vertex;
         } else {
             build_ff_vertex(vertex_source, setup.ff_vs);
@@ -1734,6 +1774,9 @@ program *select_program(draw_setup &setup)
 
             sb_printf(wrapper, "uniform float u_alpha_ref;\nvoid main()\n{\n    mojo_main();\n");
             alpha_test_glsl(wrapper, alpha_function, "gl_FragData[0].a");
+            if (getenv("HALO_GL_FORCEWHITE") != nullptr) {
+                sb_printf(wrapper, "    gl_FragData[0] = vec4(1.0);\n");
+            }
             sb_printf(wrapper, "}\n");
             wrapped_pixel = wrap_main(ps->parse->output, wrapper.text);
             sb_free(wrapper);
@@ -1916,6 +1959,8 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
     upload_uniforms(p, setup, viewport_width, viewport_height, viewport_x, viewport_y);
 
     // vertex arrays
+    const bool by_order = inputs_by_element_order(g_pipe.vertex_shader);
+
     if (user_data) {
         uint32_t count = indexed ? vertex_count : vertices;
 
@@ -1923,12 +1968,12 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
     }
     for (uint32_t i = 0; i < setup.element_count; i++) {
         const element &e = setup.elements[i];
-        int slot = attribute_slot(e.usage, e.index);
+        int slot = by_order ? static_cast<int>(i) : attribute_slot(e.usage, e.index);
         attribute_format format;
         uint32_t stride;
         uintptr_t offset;
 
-        if (slot < 0 || !attribute_format_for(e.type, &format)) {
+        if (slot < 0 || slot >= k_attribute_slots || !attribute_format_for(e.type, &format)) {
             continue;
         }
         if (user_data) {
@@ -1979,6 +2024,67 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
         glDrawArrays(primitive_mode(type), 0, static_cast<GLsizei>(vertices));
     }
     (void)used_streams;
+    if (getenv("HALO_GL_PROBE") != nullptr && trace_probe_frame()) {
+        uint8_t pixel[4] = {0, 0, 0, 0};
+        static int serial;
+        GLenum error = glGetError();
+
+        if (error != 0) {
+            halo::shell::standalone_log("gl probe   GL ERROR %04x after draw", error);
+        }
+
+        glReadPixels(static_cast<GLint>(g_target_width / 2), static_cast<GLint>(g_target_height / 2), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+        {
+            uint8_t *all = static_cast<uint8_t *>(malloc(static_cast<size_t>(g_target_width) * g_target_height * 4));
+            size_t lit = 0;
+            static uint8_t *previous;
+            static size_t previous_size;
+
+            glReadPixels(0, 0, static_cast<GLsizei>(g_target_width), static_cast<GLsizei>(g_target_height), GL_RGBA, GL_UNSIGNED_BYTE, all);
+            size_t bytes = static_cast<size_t>(g_target_width) * g_target_height * 4;
+
+            if (previous != nullptr && previous_size == bytes) {
+                for (size_t i = 0; i < bytes; i += 4) {
+                    lit += (all[i] != previous[i] || all[i + 1] != previous[i + 1] || all[i + 2] != previous[i + 2]);
+                }
+            }
+            free(previous);
+            previous = all;
+            previous_size = bytes;
+            halo::shell::standalone_log("gl probe   pixels changed by draw: %u of %ux%u", static_cast<unsigned>(lit), g_target_width, g_target_height);
+        }
+        halo::shell::standalone_log("gl probe #%d vs=%u ps=%u count=%u -> %u %u %u %u", serial++, g_pipe.vertex_shader != nullptr ? g_pipe.vertex_shader->id : 0,
+            g_pipe.pixel_shader != nullptr ? g_pipe.pixel_shader->id : 0, primitive_count, pixel[0], pixel[1], pixel[2], pixel[3]);
+        {
+            const float (*v)[4] = g_pipe.vertex_constants;
+
+            const uint32_t *rs = g_pipe.render_state;
+
+            halo::shell::standalone_log("gl probe   RS zen=%u zfunc=%u zwr=%u colorwrite=%x ablend=%u src=%u dst=%u blendop=%u cull=%u stencil=%u sfunc=%u atest=%u afunc=%u aref=%u fill=%u",
+                rs[7], rs[23], rs[14], rs[168], rs[27], rs[19], rs[20], rs[171], rs[22], rs[52], rs[56], rs[15], rs[25], rs[24], rs[8]);
+            halo::shell::standalone_log("gl probe   vc5=%g %g %g %g vc9=%g %g %g %g vc10=%g %g %g %g vc29=%g %g %g %g vc30=%g %g %g %g vc31=%g %g %g %g",
+                v[5][0], v[5][1], v[5][2], v[5][3], v[9][0], v[9][1], v[9][2], v[9][3], v[10][0], v[10][1], v[10][2], v[10][3],
+                v[29][0], v[29][1], v[29][2], v[29][3], v[30][0], v[30][1], v[30][2], v[30][3], v[31][0], v[31][1], v[31][2], v[31][3]);
+            halo::shell::standalone_log("gl probe   vc0=%g %g %g %g vc1=%g %g %g %g vc2=%g %g %g %g vc3=%g %g %g %g vp=%g %g %g %g flip=%d",
+                v[0][0], v[0][1], v[0][2], v[0][3], v[1][0], v[1][1], v[1][2], v[1][3], v[2][0], v[2][1], v[2][2], v[2][3], v[3][0], v[3][1], v[3][2], v[3][3],
+                g_pipe.viewport[0], g_pipe.viewport[1], g_pipe.viewport[2], g_pipe.viewport[3], g_target_flipped);
+        }
+        if (g_pipe.pixel_shader != nullptr) {
+            char text[400] = "";
+
+            for (int unit = 0; unit < 4; unit++) {
+                gl_texture *tex = static_cast<gl_texture *>(g_pipe.texture[unit]);
+
+                snprintf(text + strlen(text), sizeof(text) - strlen(text), " tex%d=%s", unit, tex == nullptr ? "none" : "");
+                if (tex != nullptr) {
+                    snprintf(text + strlen(text), sizeof(text) - strlen(text), "[fmt %u %ux%u L%u first %02x%02x%02x%02x]", tex->format, tex->width, tex->height, tex->levels,
+                        tex->level[0].data[0], tex->level[0].data[1], tex->level[0].data[2], tex->level[0].data[3]);
+                }
+            }
+            halo::shell::standalone_log("gl probe   c0=%g %g %g %g c1=%g %g %g %g%s", g_pipe.pixel_constants[0][0], g_pipe.pixel_constants[0][1], g_pipe.pixel_constants[0][2],
+                g_pipe.pixel_constants[0][3], g_pipe.pixel_constants[1][0], g_pipe.pixel_constants[1][1], g_pipe.pixel_constants[1][2], g_pipe.pixel_constants[1][3], text);
+        }
+    }
 }
 
 }  // namespace halo::rasterizer::gl

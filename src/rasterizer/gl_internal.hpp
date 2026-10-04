@@ -158,6 +158,7 @@ inline bool is_ours(const void *object)
 uint32_t bytes_per_pixel(uint32_t format);
 void image_layout(uint32_t format, uint32_t width, uint32_t height, uint32_t *pitch, uint32_t *rows);
 void destroy_object(gl_object *object);
+bool trace_probe_frame();
 void trace_draw(const char *name, uint32_t type, uint32_t count);
 
 /* gl_draw.cpp */

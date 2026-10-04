@@ -37,6 +37,15 @@ bool trace_enabled()
 }
 
 int g_trace_budget = 60;
+uint32_t g_frame_number;
+uint32_t g_trace_frame = []() {
+    const char *value = getenv("HALO_GL_TRACE_FRAME");
+
+    if (value != nullptr) {
+        g_trace_budget = 100000;
+    }
+    return value != nullptr ? static_cast<uint32_t>(atoi(value)) : 0u;
+}();
 
 uint32_t block_bytes(uint32_t format)
 {
@@ -47,12 +56,17 @@ uint32_t block_bytes(uint32_t format)
 
 namespace gl {
 
+bool trace_probe_frame()
+{
+    return g_trace_frame != 0 && g_frame_number == g_trace_frame;
+}
+
 void trace_draw(const char *name, uint32_t type, uint32_t count)
 {
     uint32_t declaration_elements = 0;
     char elements[200] = "";
 
-    if (!trace_enabled() || g_trace_budget <= 0) {
+    if (!trace_enabled() || g_trace_budget <= 0 || (g_trace_frame != 0 && g_frame_number != g_trace_frame)) {
         return;
     }
     g_trace_budget--;
@@ -66,8 +80,8 @@ void trace_draw(const char *name, uint32_t type, uint32_t count)
             strncat(elements, piece, sizeof(elements) - strlen(elements) - 1);
         }
     }
-    halo::shell::standalone_log("gl draw %s type=%u count=%u fvf=%08x decl=%u%s vs=%d ps=%d tex0=%d zen=%u zwr=%u ablend=%u src=%u dst=%u atest=%u cull=%u",
-        name, type, count, g_pipe.fvf, declaration_elements, elements, g_pipe.vertex_shader != nullptr, g_pipe.pixel_shader != nullptr,
+    halo::shell::standalone_log("gl draw %s type=%u count=%u fvf=%08x decl=%u%s vs=%u ps=%u tex0=%d zen=%u zwr=%u ablend=%u src=%u dst=%u atest=%u cull=%u",
+        name, type, count, g_pipe.fvf, declaration_elements, elements, g_pipe.vertex_shader != nullptr ? g_pipe.vertex_shader->id : 0, g_pipe.pixel_shader != nullptr ? g_pipe.pixel_shader->id : 0,
         g_pipe.texture[0] != nullptr, g_pipe.render_state[7], g_pipe.render_state[14], g_pipe.render_state[27], g_pipe.render_state[19],
         g_pipe.render_state[20], g_pipe.render_state[15], g_pipe.render_state[22]);
 }
@@ -364,6 +378,7 @@ int32_t GlDevice::present(d3d_arg, d3d_arg, d3d_arg, d3d_arg)
     if (g_state.dc != nullptr) {
         SwapBuffers(g_state.dc);
     }
+    g_frame_number++;
     return 0;
 }
 
