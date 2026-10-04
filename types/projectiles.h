@@ -260,7 +260,8 @@ typedef struct projectile_network_state {
 // projectile_send_detonation (0x4bda60).
 // ---------------------------------------------------------------------------
 typedef struct projectile_data {
-    uint8_t unknown_1f4[0x38];       // 0x1f4 UNRESOLVED. Not one of the 22 Ghidra functions nor
+    uint8_t item_data_block[0x38];   // 0x1f4 the 0x38-byte item_data every item-derived object starts with (CEA _item_datum);
+                                     //       this module never reads it. Not one of the 22 Ghidra functions nor
                                      //       any of the five recovered from the type row reads
                                      //       or writes a byte of it, and projectile_new does not
                                      //       initialize it either, so it arrives zeroed from the
