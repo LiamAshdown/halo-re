@@ -2095,6 +2095,12 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
     stream_stride_override = g_pipe.declaration == nullptr ? fvf_vertex_size(g_pipe.fvf) : 0;
 
     if (g_pipe.pixel_shader != nullptr) {
+        // HALO_GL_SKIP_PS=<id>: drop the draws that use one pixel shader
+        static const int skip_ps = getenv("HALO_GL_SKIP_PS") != nullptr ? atoi(getenv("HALO_GL_SKIP_PS")) : 0;
+
+        if (static_cast<int>(g_pipe.pixel_shader->id) == skip_ps) {
+            return;
+        }
         note_programmable_draw();
     }
     if (g_bound_program != p->name) {
@@ -2197,10 +2203,18 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
                     lit += (all[i] != previous[i] || all[i + 1] != previous[i + 1] || all[i + 2] != previous[i + 2]);
                 }
             }
+            double sum[3] = {0, 0, 0};
+
+            for (size_t i = 0; i < bytes; i += 4) {
+                sum[0] += all[i];
+                sum[1] += all[i + 1];
+                sum[2] += all[i + 2];
+            }
             free(previous);
             previous = all;
             previous_size = bytes;
-            halo::shell::standalone_log("gl probe   pixels changed by draw: %u of %ux%u", static_cast<unsigned>(lit), g_target_width, g_target_height);
+            halo::shell::standalone_log("gl probe   pixels changed by draw: %u of %ux%u, target average %.1f %.1f %.1f", static_cast<unsigned>(lit), g_target_width, g_target_height,
+                sum[0] * 4 / bytes, sum[1] * 4 / bytes, sum[2] * 4 / bytes);
         }
         halo::shell::standalone_log("gl probe #%d vs=%u ps=%u count=%u -> %u %u %u %u", serial++, g_pipe.vertex_shader != nullptr ? g_pipe.vertex_shader->id : 0,
             g_pipe.pixel_shader != nullptr ? g_pipe.pixel_shader->id : 0, primitive_count, pixel[0], pixel[1], pixel[2], pixel[3]);

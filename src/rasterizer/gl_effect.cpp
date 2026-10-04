@@ -232,6 +232,31 @@ uint32_t value_bits(const MOJOSHADER_effectValue &value)
     return bits;
 }
 
+/** The texture last set (effect_set_texture) on the parameter that effect object `object` names, or null. */
+gl_object *texture_for_object(gl_effect *effect, uint32_t object, const char **out_name)
+{
+    const char *wanted = static_cast<int>(object) < effect->fx->object_count ? effect->fx->objects[object].mapping.name : nullptr;
+
+    *out_name = wanted;
+    for (int p = 0; wanted != nullptr && p < effect->fx->param_count; p++) {
+        if (effect->fx->params[p].value.name != nullptr && strcmp(effect->fx->params[p].value.name, wanted) == 0) {
+            return effect->textures[p];
+        }
+    }
+    return nullptr;
+}
+
+void bind_unit(uint32_t unit, gl_object *texture)
+{
+    if (texture != nullptr) {
+        texture->refs++;
+    }
+    if (g_pipe.texture[unit] != nullptr) {
+        gl_device().release(g_pipe.texture[unit]);
+    }
+    g_pipe.texture[unit] = texture;
+}
+
 void apply_samplers(gl_effect *effect, unsigned int count, const MOJOSHADER_samplerStateRegister *samplers)
 {
     for (unsigned int i = 0; i < count; i++) {
@@ -245,24 +270,15 @@ void apply_samplers(gl_effect *effect, unsigned int count, const MOJOSHADER_samp
             const MOJOSHADER_effectSamplerState &state = entry.sampler_states[s];
 
             if (state.type == MOJOSHADER_SAMP_TEXTURE) {
-                uint32_t object = value_bits(state.value);
-                const char *wanted = static_cast<int>(object) < effect->fx->object_count ? effect->fx->objects[object].mapping.name : nullptr;
-                gl_object *texture = nullptr;
-
+                const char *wanted;
                 // the sampler's Texture state names a texture parameter; effect_set_texture stores by parameter
-                for (int p = 0; wanted != nullptr && p < effect->fx->param_count; p++) {
-                    if (effect->fx->params[p].value.name != nullptr && strcmp(effect->fx->params[p].value.name, wanted) == 0) {
-                        texture = effect->textures[p];
-                        break;
-                    }
+                gl_object *texture = texture_for_object(effect, value_bits(state.value), &wanted);
+
+                if (getenv("HALO_GL_PROBE") != nullptr && trace_probe_frame()) {
+                    halo::shell::standalone_log("gl probe   sampler %u wants '%s' -> %p", unit, wanted != nullptr ? wanted : "?", static_cast<void *>(texture));
                 }
                 if (texture != nullptr) {
-
-                    texture->refs++;
-                    if (g_pipe.texture[unit] != nullptr) {
-                        gl_device().release(g_pipe.texture[unit]);
-                    }
-                    g_pipe.texture[unit] = texture;
+                    bind_unit(unit, texture);
                 }
             } else {
                 int number = sampler_state_number(state.type);
@@ -275,6 +291,9 @@ void apply_samplers(gl_effect *effect, unsigned int count, const MOJOSHADER_samp
     }
 }
 
+/** D3DX effect state-table entry for Texture[n]: 0xA0 + MOJOSHADER_SAMP_TEXTURE (MojoShader has no render-state name for it). */
+constexpr int k_state_texture = 0xA0 + MOJOSHADER_SAMP_TEXTURE;
+
 void apply_pass_state(gl_effect *effect)
 {
     const MOJOSHADER_effectStateChanges &changes = effect->changes;
@@ -285,6 +304,11 @@ void apply_pass_state(gl_effect *effect)
 
         if (number >= 0) {
             g_pipe.render_state[number] = value_bits(state.value);
+        } else if (state.type == k_state_texture && state.index < 16) {
+            // Texture[n] = <parameter> in the pass (asm shaders without a CTAB bind their textures this way); null unbinds, as in Direct3D
+            const char *wanted;
+
+            bind_unit(state.index, texture_for_object(effect, value_bits(state.value), &wanted));
         }
     }
     apply_samplers(effect, changes.sampler_state_change_count, changes.sampler_state_changes);
@@ -364,6 +388,11 @@ int32_t GlDevice::effect_set_texture(d3d_arg object, d3d_arg handle, d3d_arg tex
     gl_effect *effect = as_effect(object);
     const MOJOSHADER_effectParam *param = static_cast<const MOJOSHADER_effectParam *>(handle.get());
     gl_object *incoming = static_cast<gl_object *>(texture.get());
+
+    if (getenv("HALO_GL_PROBE") != nullptr && trace_probe_frame()) {
+        halo::shell::standalone_log("gl probe   set_texture '%s' -> %p", param != nullptr && param->value.name != nullptr ? param->value.name : "(null handle)",
+            static_cast<void *>(incoming));
+    }
 
     if (effect->fx != nullptr && param != nullptr && param->value.values != nullptr) {
         uint32_t index = static_cast<uint32_t>(param - effect->fx->params);
