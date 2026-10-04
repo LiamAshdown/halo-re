@@ -1683,7 +1683,7 @@ namespace {
 
 class DialogueCondition_42f4f0 final : public DialogueCondition {
 public:
-    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+    uint8_t test(datum_index object_index, uint32_t unused, datum_index actor_index) const override;
 };
 
 /**
@@ -1691,7 +1691,7 @@ public:
  *
  * @address 0x42f4f0
  */
-uint8_t DialogueCondition_42f4f0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+uint8_t DialogueCondition_42f4f0::test(datum_index object_index, uint32_t unused, datum_index actor_index) const
 {
     datum_index prop_index;
     prop *p;
@@ -1717,7 +1717,7 @@ namespace {
 
 class DialogueCondition_42f560 final : public DialogueCondition {
 public:
-    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+    uint8_t test(datum_index object_index, uint32_t unused, datum_index actor_index) const override;
 };
 
 /**
@@ -1725,7 +1725,7 @@ public:
  *
  * @address 0x42f560
  */
-uint8_t DialogueCondition_42f560::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+uint8_t DialogueCondition_42f560::test(datum_index object_index, uint32_t unused, datum_index actor_index) const
 {
     struct actor *actor;
 
@@ -1746,7 +1746,7 @@ namespace {
 
 class DialogueCondition_42f5b0 final : public DialogueCondition {
 public:
-    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+    uint8_t test(datum_index object_index, uint32_t unused, datum_index actor_index) const override;
 };
 
 /**
@@ -1754,13 +1754,13 @@ public:
  *
  * @address 0x42f5b0
  */
-uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t unused, datum_index actor_index) const
 {
     datum_index own_actor;
     actor *a;
     actor *b;
 
-    if (!halo::ai::actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
+    if (!halo::ai::actor_target_is_close_and_recognized(object_index, unused, actor_index)) {
         return 0;
     }
     own_actor = halo::units::unit_data_of(halo::ai::object_at(object_index))->actor_index;
@@ -1781,7 +1781,7 @@ namespace {
 
 class DialogueCondition_42f650 final : public DialogueCondition {
 public:
-    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+    uint8_t test(datum_index object_index, uint32_t unused, datum_index actor_index) const override;
 };
 
 /**
@@ -1789,7 +1789,7 @@ public:
  *
  * @address 0x42f650
  */
-uint8_t DialogueCondition_42f650::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+uint8_t DialogueCondition_42f650::test(datum_index object_index, uint32_t unused, datum_index actor_index) const
 {
     struct actor *actor = halo::ai::actor_at(actor_index);
     uint8_t result = (uint8_t)(actor->combat_status >= 7);
@@ -1807,7 +1807,7 @@ namespace {
 
 class DialogueCondition_42f690 final : public DialogueCondition {
 public:
-    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+    uint8_t test(datum_index object_index, uint32_t unused, datum_index actor_index) const override;
 };
 
 /**
@@ -1815,11 +1815,11 @@ public:
  *
  * @address 0x42f690
  */
-uint8_t DialogueCondition_42f690::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+uint8_t DialogueCondition_42f690::test(datum_index object_index, uint32_t unused, datum_index actor_index) const
 {
     struct actor *actor;
 
-    if (!halo::ai::actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
+    if (!halo::ai::actor_target_is_close_and_recognized(object_index, unused, actor_index)) {
         return 0;
     }
     actor = halo::ai::actor_at(actor_index);
@@ -1839,7 +1839,7 @@ namespace {
 
 class DialogueCondition_42f6f0 final : public DialogueCondition {
 public:
-    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+    uint8_t test(datum_index object_index, uint32_t unused, datum_index actor_index) const override;
 };
 
 /**
@@ -1847,13 +1847,13 @@ public:
  *
  * @address 0x42f6f0
  */
-uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t unused, datum_index actor_index) const
 {
     datum_index own_actor;
     datum_index a_target;
     datum_index b_target;
 
-    if (!halo::ai::actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
+    if (!halo::ai::actor_target_is_close_and_recognized(object_index, unused, actor_index)) {
         return 0;
     }
     own_actor = halo::units::unit_data_of(halo::ai::object_at(object_index))->actor_index;
@@ -1878,7 +1878,7 @@ namespace {
 
 class DialogueCondition_42f7b0 final : public DialogueCondition {
 public:
-    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+    uint8_t test(datum_index object_index, uint32_t unused, datum_index actor_index) const override;
 };
 
 /**
@@ -1886,7 +1886,7 @@ public:
  *
  * @address 0x42f7b0
  */
-uint8_t DialogueCondition_42f7b0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+uint8_t DialogueCondition_42f7b0::test(datum_index object_index, uint32_t unused, datum_index actor_index) const
 {
     struct actor *actor;
 
@@ -1904,7 +1904,7 @@ namespace {
 
 class DialogueCondition_42f7f0 final : public DialogueCondition {
 public:
-    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+    uint8_t test(datum_index object_index, uint32_t unused, datum_index actor_index) const override;
 };
 
 /**
@@ -1912,7 +1912,7 @@ public:
  *
  * @address 0x42f7f0
  */
-uint8_t DialogueCondition_42f7f0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+uint8_t DialogueCondition_42f7f0::test(datum_index object_index, uint32_t unused, datum_index actor_index) const
 {
     struct actor *actor = halo::ai::actor_at(actor_index);
 

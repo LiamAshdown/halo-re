@@ -34,7 +34,7 @@ public:
  */
 class DialogueCondition {
 public:
-    virtual uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const = 0;
+    virtual uint8_t test(datum_index object_index, uint32_t unused, datum_index actor_index) const = 0;
 
 protected:
     ~DialogueCondition() = default;

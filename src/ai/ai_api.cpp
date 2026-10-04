@@ -1595,13 +1595,13 @@ uint16_t actor_target_hearing_check(const bsp_leaf_reference *record, int16_t st
 
 /**
  * Free-function entry point for halo::ai::ActorOps::target_is_close_and_recognized; forwards to the C++ implementation unchanged.
- * Register convention of the original: stack -> object_index, param_2 (unused), actor_index.
+ * Register convention of the original: stack -> object_index, the unused second argument, actor_index.
  *
  * @address 0x42f480
  */
-uint8_t actor_target_is_close_and_recognized(datum_index object_index, uint32_t param_2, datum_index actor_index)
+uint8_t actor_target_is_close_and_recognized(datum_index object_index, uint32_t unused, datum_index actor_index)
 {
-    return halo::ai::ActorOps::target_is_close_and_recognized(object_index, param_2, actor_index);
+    return halo::ai::ActorOps::target_is_close_and_recognized(object_index, unused, actor_index);
 }
 
 /**

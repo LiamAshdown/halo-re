@@ -300,7 +300,7 @@ namespace actor_target_is_close_and_recognized_local {
  *
  * @address 0x42f480
  */
-uint8_t ActorOps::target_is_close_and_recognized(datum_index object_index, uint32_t param_2, datum_index actor_index)
+uint8_t ActorOps::target_is_close_and_recognized(datum_index object_index, uint32_t unused, datum_index actor_index)
 {
     using namespace actor_target_is_close_and_recognized_local;
     datum_index prop_index;

@@ -405,9 +405,9 @@ int16_t ai_count_actors_in_mode9_group(int32_t group_id)
  *
  * @address 0x42f4f0
  */
-uint8_t ai_dialogue_condition_42f4f0(datum_index object_index, uint32_t param_2, datum_index actor_index)
+uint8_t ai_dialogue_condition_42f4f0(datum_index object_index, uint32_t unused, datum_index actor_index)
 {
-    return halo::ai::dialogue_condition(0).test(object_index, param_2, actor_index);
+    return halo::ai::dialogue_condition(0).test(object_index, unused, actor_index);
 }
 
 /**
@@ -415,9 +415,9 @@ uint8_t ai_dialogue_condition_42f4f0(datum_index object_index, uint32_t param_2,
  *
  * @address 0x42f560
  */
-uint8_t ai_dialogue_condition_42f560(datum_index object_index, uint32_t param_2, datum_index actor_index)
+uint8_t ai_dialogue_condition_42f560(datum_index object_index, uint32_t unused, datum_index actor_index)
 {
-    return halo::ai::dialogue_condition(1).test(object_index, param_2, actor_index);
+    return halo::ai::dialogue_condition(1).test(object_index, unused, actor_index);
 }
 
 /**
@@ -425,9 +425,9 @@ uint8_t ai_dialogue_condition_42f560(datum_index object_index, uint32_t param_2,
  *
  * @address 0x42f5b0
  */
-uint8_t ai_dialogue_condition_42f5b0(datum_index object_index, uint32_t param_2, datum_index actor_index)
+uint8_t ai_dialogue_condition_42f5b0(datum_index object_index, uint32_t unused, datum_index actor_index)
 {
-    return halo::ai::dialogue_condition(2).test(object_index, param_2, actor_index);
+    return halo::ai::dialogue_condition(2).test(object_index, unused, actor_index);
 }
 
 /**
@@ -435,9 +435,9 @@ uint8_t ai_dialogue_condition_42f5b0(datum_index object_index, uint32_t param_2,
  *
  * @address 0x42f650
  */
-uint8_t ai_dialogue_condition_42f650(datum_index object_index, uint32_t param_2, datum_index actor_index)
+uint8_t ai_dialogue_condition_42f650(datum_index object_index, uint32_t unused, datum_index actor_index)
 {
-    return halo::ai::dialogue_condition(3).test(object_index, param_2, actor_index);
+    return halo::ai::dialogue_condition(3).test(object_index, unused, actor_index);
 }
 
 /**
@@ -445,9 +445,9 @@ uint8_t ai_dialogue_condition_42f650(datum_index object_index, uint32_t param_2,
  *
  * @address 0x42f690
  */
-uint8_t ai_dialogue_condition_42f690(datum_index object_index, uint32_t param_2, datum_index actor_index)
+uint8_t ai_dialogue_condition_42f690(datum_index object_index, uint32_t unused, datum_index actor_index)
 {
-    return halo::ai::dialogue_condition(4).test(object_index, param_2, actor_index);
+    return halo::ai::dialogue_condition(4).test(object_index, unused, actor_index);
 }
 
 /**
@@ -455,9 +455,9 @@ uint8_t ai_dialogue_condition_42f690(datum_index object_index, uint32_t param_2,
  *
  * @address 0x42f6f0
  */
-uint8_t ai_dialogue_condition_42f6f0(datum_index object_index, uint32_t param_2, datum_index actor_index)
+uint8_t ai_dialogue_condition_42f6f0(datum_index object_index, uint32_t unused, datum_index actor_index)
 {
-    return halo::ai::dialogue_condition(5).test(object_index, param_2, actor_index);
+    return halo::ai::dialogue_condition(5).test(object_index, unused, actor_index);
 }
 
 /**
@@ -465,9 +465,9 @@ uint8_t ai_dialogue_condition_42f6f0(datum_index object_index, uint32_t param_2,
  *
  * @address 0x42f7b0
  */
-uint8_t ai_dialogue_condition_42f7b0(datum_index object_index, uint32_t param_2, datum_index actor_index)
+uint8_t ai_dialogue_condition_42f7b0(datum_index object_index, uint32_t unused, datum_index actor_index)
 {
-    return halo::ai::dialogue_condition(6).test(object_index, param_2, actor_index);
+    return halo::ai::dialogue_condition(6).test(object_index, unused, actor_index);
 }
 
 /**
@@ -475,9 +475,9 @@ uint8_t ai_dialogue_condition_42f7b0(datum_index object_index, uint32_t param_2,
  *
  * @address 0x42f7f0
  */
-uint8_t ai_dialogue_condition_42f7f0(datum_index object_index, uint32_t param_2, datum_index actor_index)
+uint8_t ai_dialogue_condition_42f7f0(datum_index object_index, uint32_t unused, datum_index actor_index)
 {
-    return halo::ai::dialogue_condition(7).test(object_index, param_2, actor_index);
+    return halo::ai::dialogue_condition(7).test(object_index, unused, actor_index);
 }
 
 /**

@@ -240,7 +240,7 @@ public:
     static void squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_object_index, datum_index other_object_index);
     static uint8_t take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint16_t direction_kind, float step_distance, float distance);
     static uint16_t target_hearing_check(const bsp_leaf_reference *record, int16_t stance, datum_index actor_index, const actor_firing_positions *target_ref, int16_t gate, real_point3d *listener_position);
-    static uint8_t target_is_close_and_recognized(datum_index object_index, uint32_t param_2, datum_index actor_index);
+    static uint8_t target_is_close_and_recognized(datum_index object_index, uint32_t unused, datum_index actor_index);
     static uint8_t targets_share_descriptor(datum_index actor_a, datum_index actor_b);
     static uint8_t toggle_active_state(uint8_t activate, datum_index actor_index);
     static void update_swarm_component_position(datum_index component_index, datum_index unit_index);
