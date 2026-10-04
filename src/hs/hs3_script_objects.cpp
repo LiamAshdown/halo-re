@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -73,9 +74,9 @@ static void hs_unit_leave_seat(uint32_t object_index)
         delta.i = nodes->position.x - marker.node_transform.position.x;
         delta.j = nodes->position.y - marker.node_transform.position.y;
         delta.k = nodes->position.z - marker.node_transform.position.z;
-        if (parent->unit.driver_unit_index == object_index && (int8_t)static_cast<uint8_t>(parent->unit.animation_state) != 0x25 &&
+        if (parent->unit.driver_unit_index == object_index && (int8_t)static_cast<uint8_t>(parent->unit.animation_state) != halo::units::animation_state_value(halo::units::unit_animation_state_id::opening) &&
             unit->base.parent_object != k_datum_index_none) {
-            halo::units::unit_try_set_animation_state(unit->base.parent_object, 0x25);
+            halo::units::unit_try_set_animation_state(unit->base.parent_object, halo::units::animation_state_value(halo::units::unit_animation_state_id::opening));
         }
         unit->unit.last_parent_object_index = parent_index;
         unit->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;

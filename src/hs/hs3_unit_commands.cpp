@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/tags/flags.hpp"
@@ -82,7 +83,7 @@ void UnitCommands::evaluate_unit_close(int16_t function_index, uint32_t thread_i
 
     if (arguments != 0) {
     if ((datum_index)arguments[0] != k_datum_index_none) {
-        halo::units::unit_try_set_animation_state((uint32_t)arguments[0], 0x26);
+        halo::units::unit_try_set_animation_state((uint32_t)arguments[0], halo::units::animation_state_value(halo::units::unit_animation_state_id::closing));
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
@@ -385,7 +386,7 @@ void UnitCommands::evaluate_unit_open(int16_t function_index, uint32_t thread_in
 
     if (arguments != 0) {
     if ((datum_index)arguments[0] != k_datum_index_none) {
-        halo::units::unit_try_set_animation_state((uint32_t)arguments[0], 0x25);
+        halo::units::unit_try_set_animation_state((uint32_t)arguments[0], halo::units::animation_state_value(halo::units::unit_animation_state_id::opening));
     }
     halo::hs::hs_thread_return(0, thread_index);
     }

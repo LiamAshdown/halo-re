@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/game/gamerest_player.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/core/tag_block.hpp"
@@ -107,9 +108,9 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
     offset.z = nodes->position.z - marker.node_transform.position.z;
     model_nodes = (ModelNode *)((Model *)halo::game::tag_data_at(halo::tag_id_bits<uint32_t>(((Object *)halo::game::tag_data_at(*(datum_index *)self))->model.tag_id)))->nodes.pointer;
     default_translation = *(real_point3d *)&model_nodes->default_translation;
-    if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && ((vehicle_object *)vehicle)->unit.animation_state != 0x25 &&
+    if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && ((vehicle_object *)vehicle)->unit.animation_state != halo::units::animation_state_value(halo::units::unit_animation_state_id::opening) &&
         ((struct object *)self)->parent_object != k_datum_index_none) {
-        halo::units::unit_try_set_animation_state(((struct object *)self)->parent_object, 0x25);
+        halo::units::unit_try_set_animation_state(((struct object *)self)->parent_object, halo::units::animation_state_value(halo::units::unit_animation_state_id::opening));
     }
     ((::unit_object *)self)->unit.last_parent_object_index = vehicle_index;
     ((::unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
@@ -613,7 +614,7 @@ uint8_t PlayerView::execute_pending_interaction()
             datum_index self_index = record->unit;
             unit_object *self = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(self_index, _object_mask_unit));
 
-            if (self != 0 && self->unit.animation_state == 0x1b) {
+            if (self != 0 && self->unit.animation_state == halo::units::animation_state_value(halo::units::unit_animation_state_id::seat_exit)) {
                 halo::units::unit_detach_from_seat(self_index, 1, 1, 0);
             }
         }

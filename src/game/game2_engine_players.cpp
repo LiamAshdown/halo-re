@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/game/game2_engine_players.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/game/variant_flags.hpp"
@@ -811,8 +812,8 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                     ModelNode *model_nodes = halo::tag_block_elements<ModelNode>(model_tag->nodes);
 
                     if (driver_unit->driver_unit_index == unit_handle &&
-                        driver_unit->animation_state != 0x25 && unit_obj->parent_object != (datum_index)-1) {
-                        halo::units::unit_try_set_animation_state(unit_obj->parent_object, 0x25);
+                        driver_unit->animation_state != halo::units::animation_state_value(halo::units::unit_animation_state_id::opening) && unit_obj->parent_object != (datum_index)-1) {
+                        halo::units::unit_try_set_animation_state(unit_obj->parent_object, halo::units::animation_state_value(halo::units::unit_animation_state_id::opening));
                     }
 
                     unit->last_parent_object_index = driver;

@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/tags/flags.hpp"
@@ -1316,9 +1317,9 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     model_nodes = halo::ai::reflexive_data<ModelNode>(
         halo::ai::tag_data<Model>(halo::ai::tag_handle(halo::ai::tag_data<Object>(self->base.definition_tag)->model))->nodes);
     default_translation = *(real_point3d *)&model_nodes->default_translation;
-    if (vehicle->unit.driver_unit_index == object_index && vehicle->unit.animation_state != 0x25 &&
+    if (vehicle->unit.driver_unit_index == object_index && vehicle->unit.animation_state != halo::units::animation_state_value(halo::units::unit_animation_state_id::opening) &&
         self->base.parent_object != k_datum_index_none) {
-        halo::units::unit_try_set_animation_state(self->base.parent_object, 0x25);
+        halo::units::unit_try_set_animation_state(self->base.parent_object, halo::units::animation_state_value(halo::units::unit_animation_state_id::opening));
     }
     self->unit.last_parent_object_index = vehicle_index;
     self->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;

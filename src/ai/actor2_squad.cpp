@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/tags/flags.hpp"
@@ -820,7 +821,7 @@ uint8_t ActorOps::squad_action_is_complete(actor_command_aim *aim_state, uint32_
     }
 
     case 0xd:
-        return halo::units::unit_data_of(halo::ai::object_at(check_object_index))->animation_state != 0x1c;
+        return halo::units::unit_data_of(halo::ai::object_at(check_object_index))->animation_state != halo::units::animation_state_value(halo::units::unit_animation_state_id::custom_animation);
 
     case 0xe:
         return halo::cutscene::recorded_animation_object_is_playing(check_object_index) == 0;
