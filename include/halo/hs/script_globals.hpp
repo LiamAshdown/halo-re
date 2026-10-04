@@ -119,6 +119,6 @@ inline uint8_t &director_camera_target_changed = ::director_camera_target_change
  *
  * @address 0x6894ba
  */
-inline uint8_t &framerate_throttle = unknown_006894ba;
+inline uint8_t &framerate_throttle = ::framerate_throttle;
 
 }

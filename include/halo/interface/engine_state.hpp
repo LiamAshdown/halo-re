@@ -46,7 +46,7 @@ inline char (&console_newline_escape)[4] = ::console_newline_escape;
  *
  * @address 0x695420
  */
-inline int32_t &autopatch_active_slot = DAT_00695420;
+inline int32_t &autopatch_active_slot = ::motd_download_slot;
 
 /**
  * Which team's vehicle set the vehicle options screen is editing: 0 red, 1 blue.
@@ -61,14 +61,14 @@ inline int32_t &vehicle_options_team_page = ::vehicle_options_team_page;
  *
  * @address 0x689450
  */
-inline int16_t &object_lod_quality = unknown_00689450;
+inline int16_t &object_lod_quality = ::object_lod_quality;
 
 /**
  * Non-zero while decals and lens flares are rendered; the video options set it every time they apply.
  *
  * @address 0x6893ff
  */
-inline uint8_t &decals_and_lens_flares_enabled = unknown_006893ff;
+inline uint8_t &decals_and_lens_flares_enabled = ::decals_and_lens_flares_enabled;
 
 /**
  * The 30 fps frame limiter: set when the profile's frame rate mode is 2, forced off while a single tick is
@@ -76,7 +76,7 @@ inline uint8_t &decals_and_lens_flares_enabled = unknown_006893ff;
  *
  * @address 0x6894ba
  */
-inline uint8_t &frame_rate_limiter_enabled = unknown_006894ba;
+inline uint8_t &frame_rate_limiter_enabled = ::framerate_throttle;
 
 /**
  * State of the escape key (system_key_states[1]); the pause menu only opens while it equals 1.
@@ -99,7 +99,7 @@ inline uint8_t &profile_slot_flag = ::profile_slot_flag;
  *
  * @address 0x719738
  */
-inline uint8_t &round_reset_pending = unknown_00719738;
+inline uint8_t &round_reset_pending = ::reset_map;
 
 /**
  * Path of the campaign level the single player session is playing or about to play.

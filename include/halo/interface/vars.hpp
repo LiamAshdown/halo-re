@@ -12,7 +12,7 @@ struct Vars {
     void *console_newline_text;
     void *console_tab_text;
     void *console_newline_escape;
-    void *DAT_00695420;
+    void *motd_download_slot;
     void *autopatch_status_active_00719235;
     void *autopatch_status_flag_00692b11;
     void *autopatch_status_state_00719234;
@@ -316,15 +316,15 @@ struct Vars {
     void *ui_video_requested_display_mode_006b7010;
     void *ui_widget_history;
     void *ui_widget_opened;
-    void *unknown_006893ff;
-    void *unknown_00689450;
+    void *decals_and_lens_flares_enabled;
+    void *object_lod_quality;
     void *vehicle_options_team_page;
     void *chat_window_unused_6b38f4;
     void *chat_window_unused_6b3914;
     void *escape_key_state;
     void *profile_slot_flag;
     void *vehicle_options_respawn_time;
-    void *unknown_00719738;
+    void *reset_map;
     void *current_campaign_level_path;
     void *vehicle_options_red_set;
     void *vehicle_options_blue_set;

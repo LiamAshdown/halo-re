@@ -821,7 +821,7 @@ void MainLoop::loop(void)
 
 }
 
-static auto &unknown_006894ba = halo::link::ref<uint8_t>(halo::hs::vars().unknown_006894ba);
+static auto &framerate_throttle = halo::link::ref<uint8_t>(halo::hs::vars().framerate_throttle);
 static auto &unknown_00710301 = halo::link::ref<uint8_t>(halo::main::vars().unknown_00710301);
 namespace halo::main {
 
@@ -845,7 +845,7 @@ void MainLoop::loop_frame_pacer(void)
     float delta;
 
     pacing = (halo::game::globals().time_force_single_tick == 0 &&
-              (unknown_006894ba != 0 || halo::cutscene::globals().cinematic_globals->in_progress != 0))
+              (framerate_throttle != 0 || halo::cutscene::globals().cinematic_globals->in_progress != 0))
                  ? 1
                  : 0;
 

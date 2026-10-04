@@ -85,6 +85,6 @@ extern char sound_listener_rolloff_factor[];
 extern char sound_supplementary_buffers_00746122[];
 extern char ui_widget_show_path_flag[];
 extern char director_camera_target_changed[];
-extern char unknown_006894ba[];
+extern char framerate_throttle[];
 extern char recover_saved_games_hack[];
 }

@@ -767,7 +767,7 @@ uint8_t device_reset_cleared_flag = 0x1;
 /* 0x006893fe */
 uint8_t rasterizer_water_enabled = 0x1;
 /* 0x006893ff */
-uint8_t unknown_006893ff = 0x1;
+uint8_t decals_and_lens_flares_enabled = 0x1;
 /* 0x00689400 */
 uint8_t console_debug_toggle_689400[2] = { 0x1, 0x1 };
 /* 0x00689402 */

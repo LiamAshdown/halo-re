@@ -547,7 +547,7 @@ __declspec(allocate(".g08$0000_00719700v")) __declspec(align(16)) uint8_t main_g
 #pragma section(".g08$0000_00719720v", read, write)
 __declspec(allocate(".g08$0000_00719720v")) __declspec(align(16)) uint8_t network_game_mode[24] = {0};
 #pragma section(".g08$0000_00719738v", read, write)
-__declspec(allocate(".g08$0000_00719738v")) __declspec(align(8)) uint8_t unknown_00719738[1] = {0};
+__declspec(allocate(".g08$0000_00719738v")) __declspec(align(8)) uint8_t reset_map[1] = {0};
 #pragma section(".g08$0000_00719739v", read, write)
 __declspec(allocate(".g08$0000_00719739v")) __declspec(align(1)) uint8_t network_wait_flag_00719739[1] = {0};
 #pragma section(".g08$0000_0071973av", read, write)

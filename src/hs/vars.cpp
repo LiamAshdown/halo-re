@@ -91,7 +91,7 @@ const Vars &vars()
         sound_supplementary_buffers_00746122,
         ui_widget_show_path_flag,
         director_camera_target_changed,
-        unknown_006894ba,
+        framerate_throttle,
         recover_saved_games_hack,
     };
     return table;

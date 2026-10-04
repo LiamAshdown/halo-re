@@ -25,7 +25,7 @@ namespace halo::main::fields {
  *
  * @address 0x719738
  */
-inline uint8_t &reset_map = unknown_00719738;
+inline uint8_t &reset_map = ::reset_map;
 
 /**
  * main_globals.revert_map: revert to the last checkpoint on the next frame. Raised by the revert script function and

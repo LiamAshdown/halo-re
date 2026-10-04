@@ -73,7 +73,7 @@ inline int32_t &next_auto_refresh_ms = ::next_auto_refresh_ms;
  *
  * @address 0x00695420
  */
-inline int32_t &motd_download_slot = ::DAT_00695420;
+inline int32_t &motd_download_slot = ::motd_download_slot;
 
 /**
  * Query-engine key ids requested from the master server when the list is refreshed.

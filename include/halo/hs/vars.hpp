@@ -88,7 +88,7 @@ struct Vars {
     void *sound_supplementary_buffers_00746122;
     void *ui_widget_show_path_flag;
     void *director_camera_target_changed;
-    void *unknown_006894ba;
+    void *framerate_throttle;
     void *recover_saved_games_hack;
 };
 

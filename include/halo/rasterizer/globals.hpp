@@ -84,7 +84,7 @@ inline uint16_t &frame_statistics_level = ::frame_statistics_level;
  *
  * @address 0x6893ff
  */
-inline uint8_t &decals_and_lens_flares_enabled = unknown_006893ff;
+inline uint8_t &decals_and_lens_flares_enabled = ::decals_and_lens_flares_enabled;
 
 /**
  * Object level-of-detail quality set by the video options: 0 low, 1 medium, 2 full. The same variable is
@@ -92,7 +92,7 @@ inline uint8_t &decals_and_lens_flares_enabled = unknown_006893ff;
  *
  * @address 0x689450
  */
-inline int16_t &object_lod_quality = unknown_00689450;
+inline int16_t &object_lod_quality = ::object_lod_quality;
 
 /**
  * Set by the video options and read by the shader stage switch: when zero every request to change the shader
