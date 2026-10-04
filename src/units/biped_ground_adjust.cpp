@@ -487,7 +487,7 @@ void UnitView::reset_ground_adjust_state()
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     biped_data *biped = halo::units::biped_data_of(obj);
 
-    if (((tag->biped_flags >> 9) & 1) != 0 && test_flag(obj->flags, objects::object_flag::at_rest) && !test_flag(biped->flags, units::biped_flag::airborne | units::biped_flag::ground_adjust_dirty)) {
+    if (test_flag(tag->biped_flags, halo::tags::biped_tag_flag::uses_limp_body_physics) && test_flag(obj->flags, objects::object_flag::at_rest) && !test_flag(biped->flags, units::biped_flag::airborne | units::biped_flag::ground_adjust_dirty)) {
         biped->ground_adjust_iteration = 0;
         biped->ground_adjust_iteration_limit = 0x14;
         set_flag(obj->flags, objects::object_flag::do_not_recompute_node_matrices);

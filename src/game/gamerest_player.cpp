@@ -1,3 +1,5 @@
+#include "halo/core/flag_bits.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/game/gamerest_player.hpp"
 #include "halo/core/cstring.hpp"
@@ -1842,7 +1844,7 @@ uint8_t LocalPlayerUnit::get_current_weapon_autoaim_cone(int16_t require_zoomed,
     }
     weapon_obj = halo::game::object_at(weapon_index);
     weapon = (Weapon *)halo::game::tag_data_at(weapon_obj->definition_tag);
-    if (require_zoomed == -1 && (weapon->weapon_flags & 0x20) != 0) {
+    if (require_zoomed == -1 && test_flag(weapon->weapon_flags, halo::tags::weapon_tag_flag::aim_assists_only_when_zoomed)) {
         return 0;
     }
 

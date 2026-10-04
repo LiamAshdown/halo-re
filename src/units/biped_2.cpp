@@ -1376,7 +1376,7 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
 
             if (unit->controlling_player != k_datum_index_none) {
                 Biped *tag = halo::objects::tag_as<Biped>(obj->definition_tag);
-                if ((tag->biped_flags & 0x18) == 0) {
+                if (!test_flag(tag->biped_flags, halo::tags::biped_tag_flag::physics_pill_centered_at_origin | halo::tags::biped_tag_flag::spherical)) {
                     float half_height = tag->standing_collision_height * 0.5f;
                     uint32_t query_flags = test_flag(flags, units::biped_movement_solver_flag::dead) ? k_dead_unit_collision_flags : k_unit_collision_flags;
                     real_point3d center;

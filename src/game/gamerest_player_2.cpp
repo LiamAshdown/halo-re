@@ -1,3 +1,5 @@
+#include "halo/core/flag_bits.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/game/gamerest_player.hpp"
 #include "halo/networking/game_mode.hpp"
@@ -506,7 +508,7 @@ void Players::server_catchup_on_client_updates()
                     datum_index weapon_index = unit->weapons[unit->current_weapon_index];
                     if (weapon_index != (datum_index)-1) {
                         Weapon *weapon = (Weapon *)halo::game::tag_data_at(object_from_index(weapon_index)->definition_tag);
-                        if ((weapon->weapon_flags & 0x8) != 0) {
+                        if (test_flag(weapon->weapon_flags, halo::tags::weapon_tag_flag::must_be_readied)) {
                             action.weapon_index = unit->current_weapon_index;
                         }
                     }

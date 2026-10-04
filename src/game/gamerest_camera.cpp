@@ -1,3 +1,5 @@
+#include "halo/core/flag_bits.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/game/gamerest_camera.hpp"
 #include "halo/game/records.hpp"
@@ -390,7 +392,7 @@ uint32_t CameraObserver::target_score(real_vector3d *facing, observer_target_con
         if (0.0f < out->weight_secondary) {
             target_object = halo::game::object_at(target);
             target_tag = (Unit *)halo::game::tag_data_at(target_object->definition_tag);
-            if ((target_tag->unit_flags & 0x80000) != 0) {
+            if (test_flag(target_tag->unit_flags, halo::tags::unit_tag_flag::inconsequential)) {
                 out->weight_secondary = out->weight_secondary *
                     ((GlobalsPlayerControl *)global_globals->player_control.pointer)
                         ->inconsequential_target_scale;

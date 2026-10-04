@@ -1,3 +1,5 @@
+#include "halo/core/flag_bits.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/items/tag_flags.hpp"
 #include "halo/items/items.hpp"
@@ -85,7 +87,7 @@ int32_t weapon_ref::update()
                 skip_decrement = 0;
             } else {
                 Unit *holder_tag = (Unit *)halo::cache::globals().tag_instances[(uint16_t)holder->definition_tag].data;
-                skip_decrement = (holder_tag->unit_flags & 0x800000) != 0;
+                skip_decrement = test_flag(holder_tag->unit_flags, halo::tags::unit_tag_flag::integrated_light_cntrls_weapon);
             }
         }
         if (!skip_decrement) {

@@ -1,3 +1,4 @@
+#include "halo/core/flag_bits.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
@@ -639,7 +640,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
             forward.i = facing->x - destination->x;
             forward.j = facing->y - destination->y;
             forward.k = facing->z - destination->z;
-            if (biped_tag != 0 && (biped_tag->biped_flags & 0x44) != 0) {
+            if (biped_tag != 0 && test_flag(biped_tag->biped_flags, halo::tags::biped_tag_flag::flying | halo::tags::biped_tag_flag::can_climb_any_surface)) {
                 length = halo::math::vector3d_normalize_with_length(forward);
             } else {
                 forward.k = 0.0f;

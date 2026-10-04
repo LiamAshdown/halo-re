@@ -1,3 +1,5 @@
+#include "halo/core/flag_bits.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/game/game2_engine_players.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
@@ -281,7 +283,7 @@ void EnginePlayerSync::players_update_server(void)
                         if (weapon_handle != (datum_index)-1) {
                             object *weapon_obj = halo::game::object_at(weapon_handle);
                             Weapon *weapon_tag = (Weapon *)halo::game::tag_data_at(weapon_obj->definition_tag);
-                            if ((weapon_tag->weapon_flags & 0x08) != 0) {
+                            if (test_flag(weapon_tag->weapon_flags, halo::tags::weapon_tag_flag::must_be_readied)) {
                                 if ((action->control_flags & 0x1800) != 0) {
                                     if (unit_obj->network_role == 0) {
                                         halo::units::unit_dispatch_scripted_event_1b(1, plr->unit);
