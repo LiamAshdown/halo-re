@@ -1,3 +1,4 @@
+#include "halo/objects/flags.hpp"
 #include "halo/math/constants.hpp"
 #include "crt.h"
 #include "halo/core/datum.hpp"
@@ -1095,7 +1096,7 @@ void particles(void)
 
                             if (header->identifier != 0 &&
                                 (salt == 0 || header->identifier == salt) &&
-                                (1 << (header->type & 0x1f)) != 0 && header->data != 0) {
+                                (halo::objects::object_type_mask_of(header->type)) != 0 && header->data != 0) {
                                 object *o = ((object_header *)halo::objects::globals().object_data->data)[
                                     (uint16_t)p->object_index].data;
 

@@ -1,3 +1,4 @@
+#include "halo/objects/flags.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/objects/object_manager.hpp"
 #include "game.h"
@@ -414,7 +415,7 @@ void halo::objects::ObjectManager::update()
         if (header->identifier != 0 && (header->flags & _object_header_active_bit) != 0 &&
             (header->flags & _object_header_needs_update_bit) == 0) {
             if (!restrict_to_units ||
-                (((1 << (header->type & 0x1f)) & _object_mask_unit) != 0 &&
+                (((halo::objects::object_type_mask_of(header->type)) & _object_mask_unit) != 0 &&
                  halo::units::unit_data_of(header->data)->controlling_player != k_datum_index_none)) {
                 halo::objects::object_update(((uint32_t)header->identifier << 16) | (uint16_t)i);
             }

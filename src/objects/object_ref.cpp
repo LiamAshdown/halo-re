@@ -159,7 +159,7 @@ int32_t halo::objects::ObjectRef::get_controlling_player_index()
                 int16_t salt = (int16_t)(object_index >> 0x10);
 
                 if ((salt == 0 || header->identifier == salt) &&
-                    (1 << (header->type & 0x1f) & _object_mask_unit) != 0 &&
+                    (halo::objects::object_type_mask_of(header->type) & _object_mask_unit) != 0 &&
                     header->data != 0) {
                     return halo::game::player_index_from_unit_index(object_index);
                 }
@@ -1397,7 +1397,7 @@ void halo::objects::ObjectRef::set_scale_and_refresh_nodes(float scale, int16_t 
     if (object_index != k_datum_index_none) {
         object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
         obj->scale = scale;
-        if (((1u << (obj->type & 0x1f)) & _object_mask_no_node_functions) == 0) {
+        if (((halo::objects::object_type_mask_of(obj->type)) & _object_mask_no_node_functions) == 0) {
             halo::objects::object_copy_default_node_transforms(object_index, ticks);
         }
     }

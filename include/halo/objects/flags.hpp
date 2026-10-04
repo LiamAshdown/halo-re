@@ -21,6 +21,9 @@ using halo::has;
 using halo::any;
 using halo::to_bits;
 
+/** The bit an object type has in an object type mask (see the _object_mask_* values); the type is taken modulo 32 like the engine does. */
+constexpr uint32_t object_type_mask_of(int type) noexcept { return 1u << (type & 0x1f); }
+
 /** object.flags (the dword at object +0x10). */
 enum class object_flag : uint32_t {
     none = 0,

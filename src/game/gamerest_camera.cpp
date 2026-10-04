@@ -1,3 +1,4 @@
+#include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/core/collision_flags.hpp"
@@ -48,7 +49,7 @@ uint16_t CameraObserver::collect_target_candidates(observer_target_cone *cone, d
     object_index = start_object;
     do {
         obj = halo::game::object_at(object_index);
-        type_bit = 1u << (obj->type & 0x1f);
+        type_bit = halo::objects::object_type_mask_of(obj->type);
         if ((type_bit & _object_mask_unit) != 0 && (obj->flags & 1) == 0 &&
             halo::game::unit_data_of(obj)->active_camouflage_power < 1.0f) {
 

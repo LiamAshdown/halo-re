@@ -1,3 +1,4 @@
+#include "halo/objects/flags.hpp"
 #include "halo/hs/records.hpp"
 #include "halo/hs/hs3_parser.hpp"
 #include "halo/scenario/api.hpp"
@@ -801,7 +802,7 @@ char Parser::parse_object_name(datum_index node_index) const
 
     object_names = (ScenarioObjectName *)scenario->object_names.pointer;
     if (halo::hs::globals().object_type_masks[node->type - _hs_type_object_name] &
-        (1 << (object_names[match_index].object_type & 0x1f))) {
+        (halo::objects::object_type_mask_of(object_names[match_index].object_type))) {
         node->data.short_value = match_index;
         return 1;
     }

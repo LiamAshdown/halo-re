@@ -1,3 +1,4 @@
+#include "halo/objects/flags.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/core/collision_flags.hpp"
@@ -1237,7 +1238,7 @@ datum_index halo::ai::combat_ops::get_relevant_squad_member_target(uint32_t unus
 
                     attacker_header = &headers[responsible_index];
 
-                    if ((1 << (attacker_header->type & 0x1f) & _object_mask_unit) != 0) {
+                    if ((halo::objects::object_type_mask_of(attacker_header->type) & _object_mask_unit) != 0) {
                         attacker_obj = attacker_header->data;
                         if (attacker_obj != (object *)0) {
                             attacker_unit = halo::units::unit_data_of(attacker_obj);

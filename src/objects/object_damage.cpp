@@ -824,7 +824,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
             if (header->identifier == 0 || (salt != 0 && header->identifier != salt)) {
                 continue;
             }
-            if (((1u << (header->type & 0x1f)) & _object_mask_unit) == 0) {
+            if (((halo::objects::object_type_mask_of(header->type)) & _object_mask_unit) == 0) {
                 continue;
             }
             unit = header->data;

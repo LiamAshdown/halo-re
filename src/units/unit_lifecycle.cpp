@@ -544,7 +544,7 @@ void halo::units::unit_propagate_position_delta_to_children(real_point3d *new_po
     child = obj->first_child_object;
     while (child != k_datum_index_none) {
         object *child_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(child)].data;
-        if ((1 << (child_obj->type & 0x1f) & _object_mask_unit) != 0) {
+        if ((halo::objects::object_type_mask_of(child_obj->type) & _object_mask_unit) != 0) {
             unit_data *child_unit = halo::units::unit_data_of(child_obj);
             child_unit->seat_acceleration_last_position.x += delta.i;
             child_unit->seat_acceleration_last_position.y += delta.j;

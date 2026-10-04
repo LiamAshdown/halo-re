@@ -186,7 +186,7 @@ datum_index UnitView::build_seat_occupant_zone_list()
         datum_index child = unit_obj->first_child_object;
         while (child != k_datum_index_none) {
             object *child_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(child)].data;
-            if (((_object_mask_unit & (1 << (child_obj->type & 0x1f))) != 0) &&
+            if (((_object_mask_unit & (halo::objects::object_type_mask_of(child_obj->type))) != 0) &&
                 ((halo::units::unit_data_of(child_obj))->vehicle_seat_index != -1)) {
                 halo::hs::object_list_reference_add(result, child);
             }
@@ -875,7 +875,7 @@ void halo::units::unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t
                 found = hdr;
             }
         }
-        if ((found != nullptr) && ((_object_mask_unit & (1 << (found->type & 0x1f))) != 0) &&
+        if ((found != nullptr) && ((_object_mask_unit & (halo::objects::object_type_mask_of(found->type))) != 0) &&
             (found->data != nullptr)) {
             unit_data *unit = halo::units::unit_data_of(found->data);
             if (!use_second_bit) {
@@ -931,7 +931,7 @@ void halo::units::unit_mark_zone_occupants_flag(uint32_t zone_list_index)
                 found = hdr;
             }
         }
-        if ((found != nullptr) && ((_object_mask_unit & (1 << (found->type & 0x1f))) != 0) &&
+        if ((found != nullptr) && ((_object_mask_unit & (halo::objects::object_type_mask_of(found->type))) != 0) &&
             (found->data != nullptr)) {
             unit_data *unit = halo::units::unit_data_of(found->data);
             set_flag(unit->flags, units::unit_flag::delete_when_dropped);
@@ -1045,7 +1045,7 @@ void UnitView::recompute_seat_occupants()
     while (child_index != k_datum_index_none) {
         object *child = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(child_index)].data;
 
-        if (((_object_mask_unit & (1 << (child->type & 0x1f))) != 0) &&
+        if (((_object_mask_unit & (halo::objects::object_type_mask_of(child->type))) != 0) &&
             ((halo::units::unit_data_of(child))->vehicle_seat_index != -1)) {
             int16_t seat_index = (halo::units::unit_data_of(child))->vehicle_seat_index;
             uint32_t seat_flags = seats[seat_index].flags;
@@ -1348,7 +1348,7 @@ uint8_t halo::units::unit_seat_is_occupied_by_other(uint32_t self_index, int16_t
     while (child != k_datum_index_none) {
         object *child_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(child)].data;
 
-        if (((1 << (child_obj->type & 0x1f)) & _object_mask_unit) != 0) {
+        if (((halo::objects::object_type_mask_of(child_obj->type)) & _object_mask_unit) != 0) {
             unit_data *child_unit = halo::units::unit_data_of(child_obj);
             uint8_t match = child_unit->vehicle_seat_index == seat_index;
             uint32_t reassigned = child;

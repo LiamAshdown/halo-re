@@ -836,7 +836,7 @@ uint8_t CollisionWorld::test_nearby_chain(uint32_t start_object_index, uint32_t 
                 float dz = obj->bounding_center.z - position->z;
 
                 if (dy * dy + dz * dz + dx * dx <= obj->bounding_radius * obj->bounding_radius) {
-                    if (((1 << (type & 0x1f)) & 2) == 0 || (type_mask & 0x400000) == 0) {
+                    if (((halo::objects::object_type_mask_of(type)) & 2) == 0 || (type_mask & 0x400000) == 0) {
                         object_collision_context node_ctx;
 
                         if (halo::physics::object_collision_context_build(object_index, &node_ctx) &&
@@ -902,7 +902,7 @@ uint8_t CollisionWorld::test_ray_nearby_chain(uint32_t start_object_index, uint3
 
                 halo::math::ray_intersects_sphere_test(obj->bounding_center, *origin, *delta,
                                             obj->bounding_radius)) {
-                if (((1 << (type & 0x1f)) & 2) == 0 || (type_mask & 0x400000) == 0) {
+                if (((halo::objects::object_type_mask_of(type)) & 2) == 0 || (type_mask & 0x400000) == 0) {
                     object_collision_context node_ctx;
 
                     if (halo::physics::object_collision_context_build(object_index, &node_ctx)) {

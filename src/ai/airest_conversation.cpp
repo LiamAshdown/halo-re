@@ -1,3 +1,4 @@
+#include "halo/objects/flags.hpp"
 #include "halo/ai/airest_conversation.hpp"
 
 #include <stdint.h>
@@ -699,7 +700,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
                     }
                 }
             }
-            if (element != 0 && ((1 << (element->type & 0x1f)) & _object_mask_unit) != 0) {
+            if (element != 0 && ((halo::objects::object_type_mask_of(element->type)) & _object_mask_unit) != 0) {
                 obj = element->data;
             }
             candidate = 0;

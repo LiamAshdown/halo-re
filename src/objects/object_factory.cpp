@@ -427,7 +427,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     grew_nodes = halo::objects::object_block_data_grow(new_index, 0x1f0, (int16_t)(node_count * 0x34));
     if (grew_nodes == 0) {
         active = 0;
-    } else if (((1 << (object_tag->object_type & 0x1f)) & _object_mask_no_node_functions) == 0) {
+    } else if (((halo::objects::object_type_mask_of(object_tag->object_type)) & _object_mask_no_node_functions) == 0) {
         grew_nodes = halo::objects::object_block_data_grow(new_index, 0x1ec, (int16_t)(node_count << 5));
         if (grew_nodes == 0 || (grew_nodes = halo::objects::object_block_data_grow(new_index, 0x1e8, (int16_t)(node_count << 5)),
                                  grew_nodes == 0)) {

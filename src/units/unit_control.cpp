@@ -250,7 +250,7 @@ void UnitView::get_camera_position(real_point3d *out)
         Unit *parent_tag;
         UnitSeat *seat;
         *out = parent->position;
-        if ((_object_mask_unit & (1 << (parent->type & 0x1f))) == 0) {
+        if ((_object_mask_unit & (halo::objects::object_type_mask_of(parent->type))) == 0) {
             return;
         }
         if (unit->vehicle_seat_index == -1) {

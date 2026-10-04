@@ -1,3 +1,4 @@
+#include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/tags/flags.hpp"
@@ -2339,7 +2340,7 @@ uint8_t Players::any_pending_seat_or_respawn()
                         parent_header = candidate;
                     }
                 }
-                if (parent_header != 0 && (1u << (parent_header->type & 0x1f) & _object_mask_vehicle) != 0 &&
+                if (parent_header != 0 && (halo::objects::object_type_mask_of(parent_header->type) & _object_mask_vehicle) != 0 &&
                     parent_header->data != 0) {
                     Item *parent_tag = (Item *)halo::game::tag_data_at(parent_header->data->definition_tag);
                     if ((parent_tag->item_flags & 0x40) != 0) {
@@ -2490,7 +2491,7 @@ void Players::client_catchup_on_server_updates()
                             header = candidate;
                         }
                     }
-                    if (header != 0 && (((1u << (header->type & 0x1f)) & _object_mask_unit) != 0) &&
+                    if (header != 0 && (((halo::objects::object_type_mask_of(header->type)) & _object_mask_unit) != 0) &&
                         header->data != 0) {
                         object *unit_obj = header->data;
                         uint8_t seated = PlayerView(reinterpret_cast<unit_object *>(unit_obj)->unit.controlling_player).unit_has_parent();
@@ -2671,7 +2672,7 @@ void Players::handle_deleted_unit(uint32_t object_index)
     data_iterator iterator;
     ::player *player;
 
-    if (((1u << (obj->type & 0x1f)) & _object_mask_unit) == 0) {
+    if (((halo::objects::object_type_mask_of(obj->type)) & _object_mask_unit) == 0) {
         return;
     }
     iterator.data = player_data;

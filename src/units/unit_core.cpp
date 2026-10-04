@@ -341,7 +341,7 @@ uint8_t UnitView::has_child_of_type5()
 
     for (;;) {
         object *child_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(child)].data;
-        if ((1 << (child_obj->type & 0x1f) & 0x20) != 0) {
+        if ((halo::objects::object_type_mask_of(child_obj->type) & 0x20) != 0) {
             return 1;
         }
         child = child_obj->next_object;

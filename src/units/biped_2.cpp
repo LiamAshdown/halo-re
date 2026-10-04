@@ -1242,7 +1242,7 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
                     uint8_t dynamic = (contact->surface_flags & 8) != 0;
                     if (!dynamic && contact->object_index != k_datum_index_none) {
                         uint8_t type = halo::objects::object_header_of(contact->object_index).type;
-                        dynamic = ((1u << (type & 0x1f)) & 0x40) == 0;
+                        dynamic = ((halo::objects::object_type_mask_of(type)) & 0x40) == 0;
                     }
                     if (dynamic) {
                         result_flags = static_cast<uint8_t>(result_flags | 0x10);
@@ -1353,7 +1353,7 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
                     header = candidate;
                 }
             }
-            if (header != 0 && (int8_t)(1 << (header->type & 0x1f)) < 0 && header->data != 0) {
+            if (header != 0 && (int8_t)(halo::objects::object_type_mask_of(header->type)) < 0 && header->data != 0) {
                 Unit *tag = halo::objects::tag_as<Unit>(header->data->definition_tag);
                 if (((uint8_t)(tag->melee_damage.path_size >> 16) & 4) != 0 && halo::raw_at<int16_t>(tag, 0x2ea) != -1) {
                     solve->result_surface_index = object_index;

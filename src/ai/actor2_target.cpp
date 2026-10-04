@@ -221,7 +221,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, actor_firing_pos
                 } else {
                     target->is_vehicle_driver = 0;
                 }
-            } else if ((1 << (parent_obj->type & 0x1f) & _object_mask_unit) != 0) {
+            } else if ((halo::objects::object_type_mask_of(parent_obj->type) & _object_mask_unit) != 0) {
                 target->parent_object_index = parent_index;
             }
         }
@@ -230,7 +230,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, actor_firing_pos
         child_index = unit_obj->first_child_object;
         while (child_index != k_datum_index_none) {
             child_obj = halo::ai::object_at(child_index);
-            if ((1 << (child_obj->type & 0x1f) & _object_mask_unit) != 0) {
+            if ((halo::objects::object_type_mask_of(child_obj->type) & _object_mask_unit) != 0) {
                 target->child_unit_count = target->child_unit_count + 1;
             }
             child_index = child_obj->next_object;

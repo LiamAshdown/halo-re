@@ -1,3 +1,4 @@
+#include "halo/objects/flags.hpp"
 #include "halo/objects/object_queries.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
@@ -113,7 +114,7 @@ object * halo::objects::ObjectQueries::try_and_get(datum_index object_index, uin
         }
     }
 
-    if ((found != nullptr) && ((type_mask & (1 << (found->type & 0x1f))) != 0)) {
+    if ((found != nullptr) && ((type_mask & (halo::objects::object_type_mask_of(found->type))) != 0)) {
         return found->data;
     }
     return nullptr;
@@ -136,7 +137,7 @@ object * halo::objects::ObjectIteratorView::next()
 
         if ((header->identifier != 0) &&
             ((header->flags & iterator->flags_mask) == iterator->flags_mask) &&
-            ((iterator->type_mask & (1u << (header->type & 0x1f))) != 0)) {
+            ((iterator->type_mask & (halo::objects::object_type_mask_of(header->type))) != 0)) {
             iterator->handle = ((uint32_t)(uint16_t)header->identifier << 16) | (uint16_t)this_index;
             iterator->index = index;
             return header->data;
@@ -189,7 +190,7 @@ int16_t halo::objects::ObjectQueries::find_in_sphere(uint32_t search_mask, uint3
             return result_count;
         }
         obj = ((object_header *)object_data->data)[candidates[i] & 0xffff].data;
-        if ((type_mask & (1u << (obj->type & 0x1f))) != 0) {
+        if ((type_mask & (halo::objects::object_type_mask_of(obj->type))) != 0) {
             float sum_radius = radius + obj->bounding_radius;
             float dx = obj->bounding_center.x - center->x;
             float dy = obj->bounding_center.y - center->y;

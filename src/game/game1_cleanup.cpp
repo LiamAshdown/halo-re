@@ -2,6 +2,7 @@
  * Removal of stray and dropped objects and per-unit game engine flags.
  */
 
+#include "halo/objects/flags.hpp"
 #include "tags.h"
 #include "halo/networking/game_mode.hpp"
 #include "halo/game/variant_flags.hpp"
@@ -123,7 +124,7 @@ void ObjectCleanup::cleanup_stray_items(void)
 
                 if (hdr->identifier != 0 &&
                     (salt == 0 || hdr->identifier == salt) &&
-                    ((1 << (hdr->type & 0x1f)) & _object_mask_weapon) != 0) {
+                    ((halo::objects::object_type_mask_of(hdr->type)) & _object_mask_weapon) != 0) {
                     if (hdr->data != (object *)0) {
                         const uint8_t *tag_data = halo::game::tag_data_at(obj->definition_tag);
 
