@@ -5,23 +5,6 @@
 
 namespace halo::cutscene {
 
-/**
- * Bits of the biped flags dword (biped_data.flags) that playback sets when it hands a unit back to the world.
- */
-enum class biped_playback_flags : uint32_t {
-    none = 0,
-    airborne = 0x1,
-    jumping = 0x2,
-};
-
-}
-
-namespace halo {
-template <> struct enable_bit_flags<cutscene::biped_playback_flags> : std::true_type {};
-}
-
-namespace halo::cutscene {
-
 static_assert(sizeof(cutscene_constants) == 4);
 static_assert(sizeof(recorded_animation_event_type) == 4);
 static_assert(sizeof(recorded_animation_vector_mask) == 4);

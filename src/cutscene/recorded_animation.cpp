@@ -253,7 +253,7 @@ void RecordedAnimationPlayer::update_all()
                 object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(record->unit_index)].data;
                 biped_data *biped = halo::units::biped_data_of(obj);
                 halo::objects::object_get_position((real_point3d *)&biped->bump_object_index, record->unit_index);
-                biped->flags = biped->flags | to_bits(biped_playback_flags::jumping);
+                biped->flags = biped->flags | to_bits(halo::units::biped_flag::jumping);
             }
             halo::memory::datum_delete(recorded_animations, iterator.index);
         } else {
