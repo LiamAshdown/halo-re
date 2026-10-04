@@ -46,7 +46,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     control.weapon_index = -1;
     control.grenade_index = -1;
     control.zoom_level = -1;
-    control.unknown_0a = 0;
+    control.pad_0a = 0;
     control.throttle = *(real_vector3d *)&actor->throttle.i;
     control.primary_trigger = halo::bit_cast<float>(actor->override_target);
     control.facing_vector = *(real_vector3d *)&actor->snapshot_facing.i;

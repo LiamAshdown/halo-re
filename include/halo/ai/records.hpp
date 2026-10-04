@@ -81,7 +81,7 @@ inline object_header &object_header_at(uint32_t handle)
 }
 
 static_assert(sizeof(unit_speech) == 0x30);
-static_assert(offsetof(unit_speech, unknown_10) == 0x10);
+static_assert(offsetof(unit_speech, ai_target_unit_index) == 0x10);
 static_assert(offsetof(Scenario, encounters) == 0x42c);
 static_assert(sizeof(ScenarioEncounter) == 0xb0 && offsetof(ScenarioEncounter, flags) == 0x20 && offsetof(ScenarioEncounter, squads) == 0x80);
 static_assert(sizeof(ScenarioSquad) == 0xe8);
@@ -172,7 +172,7 @@ inline bsp_leaf_reference *object_location(object *record)
 /** Returns the communication record that fills the second half of a unit_speech (offsets 0x10..0x2f). */
 inline ai_communication_target_result &speech_target(unit_speech &speech)
 {
-    return *reinterpret_cast<ai_communication_target_result *>(reinterpret_cast<uint8_t *>(&speech) + offsetof(unit_speech, unknown_10));
+    return *reinterpret_cast<ai_communication_target_result *>(reinterpret_cast<uint8_t *>(&speech) + offsetof(unit_speech, ai_target_unit_index));
 }
 
 /** Returns the elements a tag reflexive points at, typed as `T` (the reflexive pointer is a 32 bit address in the loaded tag). */

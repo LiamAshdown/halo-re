@@ -235,7 +235,7 @@ typedef struct unit_control_data {
     int16_t weapon_index;           // 0x04 -> unit 0x2f4 (desired weapon) when not -1
     int16_t grenade_index;          // 0x06 -> unit 0x31d (desired grenade) when not -1
     int16_t zoom_level;             // 0x08 -> unit 0x321; 0x55b110 reads it back at 0x480
-    int16_t unknown_0a;             // 0x0a never read by this module
+    int16_t pad_0a;                 // 0x0a never read by this module
     real_vector3d throttle;         // 0x0c -> unit 0x278
     float primary_trigger;          // 0x18 -> unit 0x284
     real_vector3d facing_vector;    // 0x1c -> unit 0x224; 0x55b110 copies 0x494 to 0x4ac
@@ -257,11 +257,11 @@ typedef struct unit_speech {
     int16_t delay_ticks;            // 0x08 copied to the 0x3f8 countdown
     int16_t lipsync_ticks;          // 0x0a copied to the 0x3fc countdown
     int16_t tail_ticks;             // 0x0c copied to the 0x3fe countdown
-    int16_t unknown_0e;             // 0x0e
-    int32_t unknown_10;             // 0x10 -1 in the 0x561030 construction
-    int16_t unknown_14;             // 0x14 -1
+    int16_t pad_0e;                 // 0x0e
+    int32_t ai_target_unit_index;   // 0x10 -1 in the 0x561030 construction
+    int16_t ai_communication_type;  // 0x14 -1
     int16_t ai_line_index;          // 0x16 passed to ai_communication_record_line_played
-    int16_t unknown_18;             // 0x18 -1
+    int16_t ai_damage_category;     // 0x18 -1
     int8_t suppress_line_record;    // 0x1a 0x561030 skips the line bookkeeping when set
     int8_t pad_1b;                  // 0x1b
     uint8_t unknown_1c[0x14];       // 0x1c zeroed by every construction, never read back

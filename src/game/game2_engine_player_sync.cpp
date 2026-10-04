@@ -151,7 +151,7 @@ void EnginePlayerSync::players_update_client(void)
                     ctrl.weapon_index = current_action.weapon_index;
                     ctrl.grenade_index = current_action.grenade_index;
                     ctrl.zoom_level = 0;
-                    ctrl.unknown_0a = 0;
+                    ctrl.pad_0a = 0;
                     ctrl.animation_state = 3;
                     ctrl.aiming_speed = 0;
                     halo::units::unit_apply_control_block(plr->unit, &ctrl, -1);

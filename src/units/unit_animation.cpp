@@ -434,10 +434,10 @@ uint8_t UnitView::choose_combat_reaction_animation(const datum_index *reaction_s
             line.scream_type = reaction_id;
             line.sound_tag = (datum_index)commit_chain;
             line.tail_ticks = 7;
-            line.unknown_10 = -1;
-            line.unknown_14 = -1;
+            line.ai_target_unit_index = -1;
+            line.ai_communication_type = -1;
             line.ai_line_index = -1;
-            line.unknown_18 = -1;
+            line.ai_damage_category = -1;
 
             UnitView(unit_index).commit_speech((const unit_speech *)(&line), (int16_t)result);
             success = 1;
@@ -512,10 +512,10 @@ uint8_t UnitView::dispatch_reaction_animation(int16_t reaction_code)
     speech.sound_tag = (datum_index)sound;
     speech.priority = 9;
     speech.tail_ticks = 7;
-    speech.unknown_10 = -1;
-    speech.unknown_14 = -1;
+    speech.ai_target_unit_index = -1;
+    speech.ai_communication_type = -1;
     speech.ai_line_index = -1;
-    speech.unknown_18 = -1;
+    speech.ai_damage_category = -1;
     UnitView((uint32_t)unit_index).commit_speech((const unit_speech *)(&speech), (int16_t)result);
     return 1;
 }
@@ -724,10 +724,10 @@ void UnitView::play_default_reaction_sound(datum_index sound_tag, datum_index so
     line.scream_type = -1;
     line.sound_tag = sound_tag;
     line.tail_ticks = 0x18;
-    line.unknown_10 = -1;
-    line.unknown_14 = -1;
+    line.ai_target_unit_index = -1;
+    line.ai_communication_type = -1;
     line.ai_line_index = -1;
-    line.unknown_18 = -1;
+    line.ai_damage_category = -1;
     UnitView(unit_index).commit_speech((const unit_speech *)(&line), (int16_t)(((int16_t)result > 2) ? result : 2));
 
     unit->speech_sound_handle = sound_handle;
@@ -1464,7 +1464,7 @@ void UnitView::update_animation_timers()
                     obj->unit.speech_sound_handle = halo::sound::sound_start_at_object_marker(unit_index, &position, &forward,
                         obj->unit.current_speech.sound_tag, node, 1.0f, 0);
                 }
-                halo::ai::ai_communication_gate_line_played(obj->unit.current_speech.priority, (ai_communication_record *)&obj->unit.current_speech.unknown_10,
+                halo::ai::ai_communication_gate_line_played(obj->unit.current_speech.priority, (ai_communication_record *)&obj->unit.current_speech.ai_target_unit_index,
                     unit_index);
                 obj->unit.speech_started = 1;
             }
@@ -1479,7 +1479,7 @@ void UnitView::update_animation_timers()
             } else {
                 if ((uint8_t)obj->unit.speech_finished == 0) {
                     halo::ai::ai_communication_play_event_line(unit_index, obj->unit.current_speech.scream_type, 0, k_datum_index_none,
-                        reinterpret_cast<uint32_t *>(&obj->unit.current_speech.unknown_10));
+                        reinterpret_cast<uint32_t *>(&obj->unit.current_speech.ai_target_unit_index));
                     obj->unit.speech_finished = 1;
                 }
                 count_down(obj->unit.speech_tail_ticks);
@@ -1490,7 +1490,7 @@ void UnitView::update_animation_timers()
         }
     }
     if (obj->unit.speech_lipsync_ticks == 0 && (uint8_t)obj->unit.speech_lipsync_stopped == 0) {
-        halo::ai::ai_propagate_communication_reaction(unit_index, (ai_communication_order *)&obj->unit.current_speech.unknown_10);
+        halo::ai::ai_propagate_communication_reaction(unit_index, (ai_communication_order *)&obj->unit.current_speech.ai_target_unit_index);
         obj->unit.speech_lipsync_stopped = 1;
     }
     if (obj->unit.current_speech.priority > 0 && obj->unit.speech_duration_ticks == 0 && obj->unit.speech_tail_ticks == 0) {
