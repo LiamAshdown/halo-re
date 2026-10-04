@@ -23,6 +23,7 @@
 #include "halo/input/directinput.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/ui_events.hpp"
+#include "halo/platform/time.hpp"
 
 namespace halo::input {
 
@@ -43,7 +44,7 @@ void InputSystem::state_initialize(void)
     input_state().last_input_device = 0;
     input_state().input_globals.unknown_2214 = 1;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     input_state().input_globals.time_base = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     input_state().input_globals.scan_result.device_type = 0;
@@ -124,7 +125,7 @@ void InputSystem::time_base_resync(void)
 {
     large_integer counter;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     input_state().input_globals.time_base = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 }
 
@@ -149,7 +150,7 @@ void InputSystem::update_tick(void)
     int32_t i;
     uint8_t mode;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     input_state().input_globals.idle = 1;

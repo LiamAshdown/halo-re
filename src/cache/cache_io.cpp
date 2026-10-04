@@ -9,6 +9,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/core/win32_constants.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/platform/time.hpp"
 
 typedef int32_t (*read_file_ex_procedure)(void *file, void *buffer, uint32_t bytes_to_read, cache_io_request *overlapped, void *completion_routine);
 
@@ -320,7 +321,7 @@ void cache_io::wait_all_requests()
 
     for (slot_index = 0; slot_index < (int32_t)k_cache_io_request_count; slot_index++) {
         while (globals().cache_io_requests[slot_index].pending != 0) {
-            Sleep(0);
+            halo::platform::sleep_milliseconds(0);
         }
     }
 }

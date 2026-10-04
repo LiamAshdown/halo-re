@@ -33,6 +33,7 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/platform/time.hpp"
 
 namespace halo::input {
 
@@ -935,7 +936,7 @@ void DirectInput::key_block_timer_set(int16_t key, int32_t duration_ms)
     }
 
     if (chosen != (key_block_timer *)0) {
-        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        halo::platform::read_performance_counter(&counter);
         now = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         chosen->deadline = now + duration_ms;
         chosen->key = key;
@@ -966,7 +967,7 @@ void DirectInput::key_block_timers_expire(void)
 
     for (i = 0; i < k_input_key_block_timer_count; i++) {
         if (input_state().key_block_timers[i].deadline != halo::k_dword_none) {
-            QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+            halo::platform::read_performance_counter(&counter);
             now = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
             if (input_state().key_block_timers[i].deadline <= now) {
                 input_state().key_block_timers[i].deadline = halo::k_dword_none;

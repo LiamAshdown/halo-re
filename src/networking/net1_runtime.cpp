@@ -27,6 +27,7 @@
 #include "halo/networking/vars.hpp"
 #include "halo/core/x87.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &network_connection_stats = halo::link::ref<network_connection_statistics [k_network_connection_stats_count]>(halo::networking::vars().network_connection_stats);
 static auto &network_statistics_logging_enabled = halo::link::ref<uint8_t>(halo::networking::vars().network_statistics_logging_enabled);
@@ -668,7 +669,7 @@ uint32_t NetworkRuntime::update_()
     large_integer counter;
     uint32_t result;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     network_high_res_clock_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     if (network_update_unknown_869bf == 1) {

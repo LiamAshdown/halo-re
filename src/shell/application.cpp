@@ -39,6 +39,7 @@
 #include "halo/hs/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &shell_command_line = halo::link::ref<char *>(halo::shell::vars().shell_command_line);
 static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
@@ -120,8 +121,8 @@ uint8_t EngineLifecycle::initialize()
     int32_t i;
     uint32_t startup_ok;
 
-    timeBeginPeriod(1);
-    QueryPerformanceFrequency((LARGE_INTEGER *)&halo::cseries::globals().performance_frequency);
+    halo::platform::timer_resolution_begin(1);
+    halo::platform::read_performance_frequency(&halo::cseries::globals().performance_frequency);
 
     for (i = 0; i < k_profile_directory_buffer_size; i++) {
         profile_directory[i] = 0;
@@ -208,7 +209,7 @@ void EngineLifecycle::shutdown()
     external_00686b58 = 0;
     external_00686b5c = 0;
 
-    timeEndPeriod(1);
+    halo::platform::timer_resolution_end(1);
 }
 
 /**

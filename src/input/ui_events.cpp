@@ -23,6 +23,7 @@
 #include "halo/input/directinput.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
+#include "halo/platform/time.hpp"
 
 static void menu_direction_update(menu_repeat_state *state, uint8_t active, int32_t now_ms,
                                    int32_t virtual_key_id, uint8_t *fired)
@@ -111,7 +112,7 @@ void UiEvents::menu_generate_events(void)
     accept_fired = 0;
     back_fired = 0;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     memset(&input_state().input_globals.states[0], 0, sizeof(input_state().input_globals.states[0]));
@@ -248,7 +249,7 @@ void UiEvents::menu_generate_events(void)
 
     {
         uint32_t double_click_ms = GetDoubleClickTime();
-        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        halo::platform::read_performance_counter(&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
         if (input_state().mouse_double_click_time == 0) {
@@ -295,7 +296,7 @@ void UiEvents::queue_initialize(void)
         cursor = cursor + 1;
     }
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     input_state().input_event_queue_active.last_event_time = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     input_state().input_event_queue_active.start_time = input_state().input_event_queue_active.last_event_time;
     input_state().input_event_queue_active.enabled = 1;
@@ -360,7 +361,7 @@ void UiEvents::queue_push_event(int16_t queue_index, ui_input_event *record)
     ui_input_event *slots;
 
     if (input_state().input_event_queue_active.push_disabled == 0) {
-        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        halo::platform::read_performance_counter(&counter);
         now = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
         record->controller_index = queue_index;
@@ -387,7 +388,7 @@ void UiEvents::queue_sample_time_update(void)
 {
     large_integer counter;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     input_state().input_queue_sample_time = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 }
 

@@ -26,6 +26,7 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/platform/time.hpp"
 
 static constexpr uint32_t k_uninitialized_fill = 0xfafafafau;
 
@@ -391,7 +392,7 @@ void EnginePlayerSync::server_update_player_positions(void)
                     float pos_x = *(float *)&((struct player *)plr)->unknown_f8;
                     float pos_y = *(float *)&plr->unknown_fc;
                     float pos_z = *(float *)&plr->unknown_100;
-                    unsigned long ticks = GetTickCount();
+                    unsigned long ticks = halo::platform::tick_milliseconds();
                     unit_data *unit = halo::game::unit_data_of(unit_obj);
 
                     halo::networking::network_player_update_history_log_write(

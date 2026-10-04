@@ -11,6 +11,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/hs/vars.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &ui_widget_show_path_flag = halo::link::ref<uint8_t>(halo::hs::vars().ui_widget_show_path_flag);
 
@@ -58,7 +59,7 @@ void ScriptCommands::evaluate_thread_sleep(int16_t function_index, uint32_t thre
         definition->parameters, first);
 
     if (arguments != 0) {
-        Sleep((uint32_t)arguments[0]);
+        halo::platform::sleep_milliseconds((uint32_t)arguments[0]);
         halo::hs::hs_thread_return(0, thread_index);
     }
 }

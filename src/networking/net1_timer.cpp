@@ -1,6 +1,7 @@
 #include "halo/networking/net1_timer.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/platform/time.hpp"
 
 
 namespace halo::networking {
@@ -19,7 +20,7 @@ void TimerView::advance()
     int32_t previous_tick_ms;
     int32_t elapsed;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     previous_tick_ms = timer->last_tick_ms;
     timer->last_tick_ms = now_ms;
@@ -89,7 +90,7 @@ void TimerView::start(int32_t duration_ms)
     network_timer_pair *timer = self;
     large_integer counter;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     timer->remaining_ms = duration_ms;
     timer->last_tick_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 }

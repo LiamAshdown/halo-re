@@ -19,6 +19,7 @@
 #include "halo/networking/vars.hpp"
 #include "halo/saved_games/vars.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &saved_player_profile_slots_handle = halo::link::ref<int32_t>(halo::saved_games::vars().saved_player_profile_slots_handle);
 static auto &checkpoint_sort_newest_first = halo::link::ref<uint8_t>(halo::saved_games::vars().checkpoint_sort_newest_first);
@@ -259,7 +260,7 @@ uint8_t save_new(void)
     char target_name[256];
 
     while (game_state_write_in_progress != 0) {
-        Sleep(0);
+        halo::platform::sleep_milliseconds(0);
     }
 
     halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);

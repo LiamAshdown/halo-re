@@ -12,6 +12,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/platform/time.hpp"
 
 namespace halo::sound {
 
@@ -21,7 +22,7 @@ namespace {
 int32_t game_sound_update_now_ms(void)
 {
     large_integer counter;
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     return (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 }
 

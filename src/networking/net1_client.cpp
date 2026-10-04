@@ -29,6 +29,7 @@
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
 #include "saved_games.h"
+#include "halo/platform/time.hpp"
 
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
@@ -406,7 +407,7 @@ int32_t ClientView::identity_tick()
     int32_t local_player_id;
     int32_t i;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     if (client->timer.active != 0 && (uint32_t)client->timer.deadline_ms <= now_ms) {
@@ -526,7 +527,7 @@ void ClientView::timer_schedule(int32_t delay_ms, int32_t context)
     large_integer counter;
     int32_t now_ms;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     timer = &client->timer;
@@ -1008,7 +1009,7 @@ uint8_t ConnectionView::initiate(const uint32_t *target, const uint32_t *session
     client->unknown_ec4 = 1;
     attempt->unknown_00 = 0;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     attempt->started_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     attempt->elapsed_counter = 0;
     attempt->loading_started = 0;
@@ -1088,7 +1089,7 @@ void ConnectionView::send_keepalive()
 
     uint8_t out_flag;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     endpoint = &client->connection;
@@ -1191,7 +1192,7 @@ void HostClientView::presence_broadcast_tick()
     int32_t bits_to_send;
     char retransmit_ok;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     if (client->last_presence_broadcast_ms + 1000 < now_ms) {
@@ -1230,11 +1231,11 @@ int32_t JoinView::connect_retry_tick()
         return 0;
     };
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     channel = client->channel;
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     endpoint = channel->endpoint;
@@ -1311,9 +1312,9 @@ uint32_t JoinView::handshake_tick()
     int32_t loopback_ip;
     bool failed = false;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     channel = client->channel;
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     channel->last_activity_ms = now_ms;
 

@@ -20,6 +20,7 @@
 #include "../gamespy/gamespy_calls.hpp"
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &network_player_index_cache = halo::link::ref<uint8_t []>(halo::game::vars().join_message_table);
 static auto &network_buffer_pair_pool = halo::link::ref<int32_t>(halo::main::vars().network_buffer_pair_pool);
@@ -192,7 +193,7 @@ network_channel * ChannelFactory::create_channel(uint32_t flags)
     channel->reliable = 0;
     channel->send_budget = 0xe0;
     channel->rate_index = 0;
-    channel->budget_base_tick = GetTickCount();
+    channel->budget_base_tick = halo::platform::tick_milliseconds();
     halo::networking::network_channel_stream_init(&channel->outgoing);
     halo::networking::network_channel_stream_init(&channel->retransmit);
     if (ok) {
@@ -225,7 +226,7 @@ network_channel * ChannelFactory::create_child(network_receive_queue *endpoint)
         channel->reliable = 0;
         channel->send_budget = 0xe0;
         channel->rate_index = 0;
-        channel->budget_base_tick = GetTickCount();
+        channel->budget_base_tick = halo::platform::tick_milliseconds();
         halo::networking::network_channel_stream_init(&channel->outgoing);
         halo::networking::network_channel_stream_init(&channel->retransmit);
         if (channel->incoming == 0) {
@@ -1153,7 +1154,7 @@ void ChannelView::record_timestamp()
     network_channel *channel = self;
     large_integer counter;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 }
 
@@ -1350,7 +1351,7 @@ void ChannelView::scan_retransmit_timeouts()
     int32_t budget_bits;
     int32_t free_bits;
 
-    now = GetTickCount();
+    now = halo::platform::tick_milliseconds();
     rate = network_rate_override;
     if (network_rate_override == 0) {
         rate = network_rate_table[channel->rate_index];
@@ -1410,7 +1411,7 @@ char ChannelView::service(int32_t timeout_ms, network_channel **out_new_child)
     {
 
         large_integer counter;
-        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        halo::platform::read_performance_counter(&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     }
 
@@ -1488,7 +1489,7 @@ char ChannelView::service_light(int32_t timeout_ms, network_channel **out_new_ch
     int32_t now_ms;
     uint32_t flags;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     flags = channel->flags;
@@ -1531,7 +1532,7 @@ int32_t ChannelView::service_retransmit_only()
     network_channel *channel = self;
     large_integer counter;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     halo::networking::network_channel_scan_retransmit_timeouts(channel);
     if (channel->outgoing.empty == 0) {
         halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
@@ -1592,7 +1593,7 @@ char ChannelView::transmit()
     char done;
     uint8_t scratch[0x5000];
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     destination = channel->incoming;
     done = 1;
     free_space = destination->capacity - transmit_circular_buffer_used(destination) - 1;
@@ -1651,7 +1652,7 @@ char ChannelView::transmit()
             }
 
             if (count > 0) {
-                QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+                halo::platform::read_performance_counter(&counter);
                 channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
                 halo::memory::circular_buffer_write((uint32_t)count, channel->incoming, scratch);
             } else {
@@ -1670,7 +1671,7 @@ char ChannelView::transmit()
             break;
         }
     }
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     return done;
 }
 
@@ -1977,7 +1978,7 @@ char ChannelStreamView::flush(network_channel *channel, char mode)
         halo::memory::bit_stream_write_bits_chunked(&stream->stream, &zero, network_bit_chunk_size);
     }
     channel->send_budget = channel->send_budget + 0xe0;
-    channel->budget_base_tick = GetTickCount();
+    channel->budget_base_tick = halo::platform::tick_milliseconds();
     return success > 0;
 }
 

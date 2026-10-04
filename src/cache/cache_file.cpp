@@ -15,6 +15,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/cache/layout.hpp"
+#include "halo/platform/time.hpp"
 
 typedef uint32_t (*get_mapped_file_name_a_t)(void *process, void *address, char *filename, uint32_t size);
 
@@ -106,7 +107,7 @@ int16_t cache_files::download_poll(float *progress_out)
 
     status_flags = globals().map_download->status_flags;
     if (globals().map_download->thread_busy != 0) {
-        Sleep(0x10);
+        halo::platform::sleep_milliseconds(0x10);
     }
 
     if (status_flags != 0 || globals().map_download->thread == 0) {
@@ -341,7 +342,7 @@ datum_index cache_files::load(char *path)
     completion.data = 0;
     halo::cache::cache_io::request_new(&completion, globals().cache_file_current_header.tag_data_offset, globals().cache_file_current_header.tag_data_size, globals().tag_data_base, 1, 0);
     while (completion_flag == 0) {
-        Sleep(0);
+        halo::platform::sleep_milliseconds(0);
     }
 
     globals().tag_header = (cache_file_tag_header *)globals().tag_data_base;

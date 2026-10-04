@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include "memory.h"
 #include "halo/cseries/api.hpp"
+#include "halo/platform/time.hpp"
 
 
 namespace halo::cseries {
@@ -25,7 +26,7 @@ uint32_t performance_clock::milliseconds()
 {
     large_integer counter;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     return (uint32_t)((counter.quad_part * 1000) / globals().performance_frequency);
 }
 

@@ -45,6 +45,7 @@
 #include "halo/networking/vars.hpp"
 #include <io.h>
 #include "halo/networking/api.hpp"
+#include "halo/platform/time.hpp"
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
@@ -283,7 +284,7 @@ void LevelControl::scenario_session_begin(network_scenario_load_request *request
     main_globals_data.load_core = main_globals_data.load_core_next_session;
     main_globals_data.load_core_next_session = 0;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     counter_ms = counter * 1000;
     main_globals_data.last_activity_time_ms = (int32_t)(counter_ms / halo::cseries::globals().performance_frequency);
 

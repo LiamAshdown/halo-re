@@ -15,6 +15,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &update_client_latest_tick = halo::link::ref<int32_t>(halo::game::vars().update_client_latest_tick);
 static auto &update_client_queues = halo::link::ref<data_array *>(halo::game::vars().update_client_queues);
@@ -407,7 +408,7 @@ void UpdateServer::queue_get_history_entry(int32_t *out_record, int32_t *out_tic
     uint8_t counter_scratch[8];
     update_server_queue *entry = 0;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)counter_scratch);
+    halo::platform::read_performance_counter(&counter_scratch);
 
     if (queue_handle != k_datum_index_none) {
         entry = (update_server_queue *)((uint8_t *)update_server_queues->data + (uint32_t)(uint16_t)queue_handle * update_server_queues->size);

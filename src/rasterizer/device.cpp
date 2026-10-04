@@ -38,6 +38,7 @@ constexpr uint32_t k_pixel_shader_none = 0xffffffffu;
 }  // namespace
 #include "halo/core/win32_constants.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/platform/time.hpp"
 
 
 
@@ -481,7 +482,7 @@ uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters)
             halo::shell::shell_display_fatal_error_dialog(0x81, 0x82, 1);
             return 0;
         }
-        Sleep(50);
+        halo::platform::sleep_milliseconds(50);
         return 0;
     }
 

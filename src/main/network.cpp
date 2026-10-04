@@ -21,6 +21,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/platform/time.hpp"
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
@@ -147,7 +148,7 @@ uint8_t ClientConnection::game_client_connect_to_address_async(char *address, ch
         halo::interface::interface_loading_screen_set_text(address);
 
         while (connect_thread != 0) {
-            Sleep(0);
+            halo::platform::sleep_milliseconds(0);
         }
         connect_thread = CreateThread(0, k_main_connect_thread_stack_size,
                                       (LPTHREAD_START_ROUTINE)((void *)halo::main::network_game_client_connect_by_hostname), host_copy, 0,

@@ -27,6 +27,7 @@
 #include "halo/main/vars.hpp"
 #include "halo/saved_games/vars.hpp"
 #include <string.h>
+#include "halo/platform/time.hpp"
 
 static_assert(sizeof(data_array) == halo::saved_games::k_game_state_block_header_size);
 static_assert(sizeof(memory_pool) == halo::saved_games::k_game_state_block_header_size);
@@ -380,7 +381,7 @@ void perform_revert(void)
     }
 
     while (game_state_write_in_progress != 0) {
-        Sleep(0);
+        halo::platform::sleep_milliseconds(0);
     }
 
     game_state_revert_proc();
@@ -416,7 +417,7 @@ void perform_save(uint8_t is_checkpoint)
 uint8_t queue_write(uint8_t final_flag)
 {
     while (game_state_write_in_progress != 0) {
-        Sleep(0);
+        halo::platform::sleep_milliseconds(0);
     }
 
     memcpy(game_state_write_buffer, game_state_snapshot_source, game_state_size);
@@ -459,7 +460,7 @@ uint8_t read_persistent_storage(void)
     uint32_t bytes_read;
 
     while (game_state_write_in_progress != 0) {
-        Sleep(0);
+        halo::platform::sleep_milliseconds(0);
     }
 
     if (SetFilePointer(game_state_persistent_storage, 0, 0, win32::k_file_begin) != win32::k_invalid_set_file_pointer &&
@@ -577,7 +578,7 @@ void save_thread_proc(void)
                 WriteFile(game_state_persistent_storage, game_state_write_buffer + (game_state_size - remaining),
                     chunk, (LPDWORD)&bytes_written, 0);
                 remaining = remaining - bytes_written;
-                Sleep(0);
+                halo::platform::sleep_milliseconds(0);
             }
         }
 

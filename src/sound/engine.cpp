@@ -7,6 +7,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/platform/time.hpp"
 
 namespace halo::sound {
 
@@ -308,7 +309,7 @@ void update_clock(void)
     int32_t new_time;
     float old_time;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     new_time = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     old_time = (float)sound_time;
     sound_time = new_time;

@@ -5,6 +5,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
@@ -26,7 +27,7 @@ uint8_t ServerView::heartbeat_tick()
     uint8_t result;
     network_timer_pair *timer = &server->handshake_timer;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     result = 1;
 
@@ -139,7 +140,7 @@ uint32_t ServerView::resend_challenge_periodic()
     uint32_t now_ms;
     uint32_t *last_sent;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     last_sent = &server->last_challenge_sent_ms;
     if (*last_sent + 5000u < now_ms) {

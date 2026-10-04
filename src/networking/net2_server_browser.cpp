@@ -45,6 +45,7 @@
 #include "../gamespy/gamespy_calls.hpp"
 #include "../gamespy/gamespy_calls.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &playlist_profiles_need_defaults = halo::link::ref<uint8_t>(halo::ui::vars().playlist_profiles_need_defaults);
 static auto &console_color_00685214 = halo::link::ref<void *>(halo::networking::vars().console_color_00685214);
@@ -506,7 +507,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
 
     default:
         master_server_last_result = 0;
-        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        halo::platform::read_performance_counter(&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         if ((uint32_t)server_browser_variant_ticker.scroll_delay_ms <= (uint32_t)(now_ms - master_server_connection_last_tick_ms)) {
             master_server_connection_last_tick_ms = now_ms;

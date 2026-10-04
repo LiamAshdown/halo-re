@@ -17,6 +17,7 @@
 #include "halo/interface/constants.hpp"
 #include "halo/interface/widget_pool.hpp"
 #include "halo/interface/wide_text.hpp"
+#include "halo/platform/time.hpp"
 
 #ifdef interface
 #undef interface
@@ -73,7 +74,7 @@ void MenuListView::update()
                 large_integer counter;
                 int32_t now_ms;
 
-                QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+                halo::platform::read_performance_counter(&counter);
                 now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
                 if (now_ms - entry->received_ms <= halo::interface::k_server_entry_stale_ms && entry->unknown_12a == 1 &&
                     entry->joinable == 0) {
@@ -145,7 +146,7 @@ void MenuListView::update()
         widget_instance *r9 = r8->next_sibling;
         widget_instance *r10 = r9->next_sibling;
 
-        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        halo::platform::read_performance_counter(&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
         if (widget->selection_index < 0) {

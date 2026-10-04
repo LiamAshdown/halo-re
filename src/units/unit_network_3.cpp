@@ -15,6 +15,7 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/x87.hpp"
 #include "halo/game/api.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
@@ -181,7 +182,7 @@ int32_t UnitView::submit_periodic_network_update(void *buffer, int32_t bit_budge
     header.is_delta = (uint8_t)(update_type == 0);
     header.shield_update_pending = obj->shield_update_pending;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     header.timestamp_milliseconds = halo::x87::__alldiv(halo::x87::__allmul(counter.parts.low_part, counter.parts.high_part, 1000, 0),
                                              (int32_t)halo::cseries::globals().performance_frequency,
                                              (int32_t)(halo::cseries::globals().performance_frequency >> 32));

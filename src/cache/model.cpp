@@ -12,6 +12,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/core/win32_constants.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/platform/time.hpp"
 
 
 namespace halo::cache {
@@ -104,7 +105,7 @@ void model_vertex_buffers::load(cache_file_tag_header *header)
     completion.data = 0;
     halo::cache::cache_io::request_new(&completion, header->model_data_file_offset, header->model_data_size, model_buffer, 1, 0);
     while (completion_flag == 0) {
-        Sleep(0);
+        halo::platform::sleep_milliseconds(0);
     }
 
     index_base = (void *)((uint8_t *)model_buffer + header->model_index_data_offset);

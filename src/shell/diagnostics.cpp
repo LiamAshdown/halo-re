@@ -12,6 +12,7 @@
 #include "halo/shell/vars.hpp"
 #include "halo/main/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &shell_module_handle = halo::link::ref<void *>(halo::shell::vars().shell_module_handle);
 static auto &fatal_error_text = halo::link::ref<char [k_shell_fatal_error_text_length]>(halo::shell::vars().fatal_error_text);
@@ -66,7 +67,7 @@ void Localization::initialize()
     Localization::load_localized_string(k_shell_exception_string_length, nullptr, exception_title, k_string_exception_title);
     Localization::load_localized_string(k_shell_exception_string_length, nullptr, exception_gathering_text, k_string_exception_gathering);
 
-    shell_startup_tick_count = GetTickCount();
+    shell_startup_tick_count = halo::platform::tick_milliseconds();
 }
 
 /**

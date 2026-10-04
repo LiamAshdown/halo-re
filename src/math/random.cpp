@@ -10,6 +10,7 @@
 #include "tags.h"
 #include "win32.h"
 #include "halo/cseries/api.hpp"
+#include "halo/platform/time.hpp"
 
 namespace halo::math {
 
@@ -41,8 +42,8 @@ uint32_t random_seed_generate()
     uint32_t scaled_a;
     uint32_t scaled_b;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter_a);
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter_b);
+    halo::platform::read_performance_counter(&counter_a);
+    halo::platform::read_performance_counter(&counter_b);
     rand_value = (uint32_t)rand();
 
     scaled_a = (uint32_t)((counter_a.quad_part * 1000) / halo::cseries::globals().performance_frequency);

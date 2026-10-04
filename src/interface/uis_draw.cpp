@@ -42,6 +42,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/core/x87.hpp"
 #include "halo/game/api.hpp"
+#include "halo/platform/time.hpp"
 
 
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
@@ -106,7 +107,7 @@ void UiDraw::button_prompt_draw_icon(HUDGlobalsButtonIcon *icon)
     } else {
         uint32_t milliseconds;
 
-        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        halo::platform::read_performance_counter(&counter);
         milliseconds = (uint32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
         frame = (int32_t)((milliseconds * 30u / 1000u) / (uint32_t)(int32_t)icon->frame_rate);
     }

@@ -26,6 +26,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
 static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_progress);
@@ -82,7 +83,7 @@ int8_t RemoteConsole::on_connect(const uint32_t *target_address, network_client_
     client->unknown_ec4 = 1;
     attempt->unknown_00 = 0;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     attempt->started_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     attempt->elapsed_counter = 0;
     attempt->loading_started = 0;

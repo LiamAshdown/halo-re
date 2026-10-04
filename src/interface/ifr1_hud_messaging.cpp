@@ -24,6 +24,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/units/api.hpp"
+#include "halo/platform/time.hpp"
 
 
 static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
@@ -80,7 +81,7 @@ void HudMessaging::multiplayer_message(const wchar_t *text)
 
     ChatGui::get().add_line(text);
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (counter * 1000) / halo::cseries::globals().performance_frequency;
     hud_chat_message_expiry[hud_chat_message_count] = (int32_t)now_ms + 8000;
     hud_chat_message_count = hud_chat_message_count + 1;

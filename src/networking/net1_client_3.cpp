@@ -13,6 +13,7 @@
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/main/api.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
 static auto &network_statistics_logging_enabled = halo::link::ref<uint8_t>(halo::networking::vars().network_statistics_logging_enabled);
@@ -54,7 +55,7 @@ int32_t ConnectionView::finalize_join(network_client_globals *client)
 
     client->game_start_countdown_seconds = halo::k_word_none;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     client->channel->last_activity_ms = now_ms;
 
@@ -102,7 +103,7 @@ int32_t ConnectionView::finalize_join(network_client_globals *client)
         }
     }
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     client->channel->last_activity_ms = now_ms;
 

@@ -8,6 +8,7 @@
 #include "internal/state.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/platform/time.hpp"
 
 namespace halo::sound {
 
@@ -376,7 +377,7 @@ int32_t DirectSoundDevice::restore_buffer(void *buffer, uint8_t *was_restored_ou
 
     do {
         if (((directsound_buffer_restore_proc)vtable[halo::sound::dsound_slot::sb_restore])(buffer) == (int32_t)0x88780096) {
-            Sleep(0);
+            halo::platform::sleep_milliseconds(0);
         }
     } while (((directsound_buffer_restore_proc)vtable[halo::sound::dsound_slot::sb_restore])(buffer) == (int32_t)0x88780096);
 

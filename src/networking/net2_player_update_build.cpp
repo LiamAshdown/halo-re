@@ -29,6 +29,7 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/units/api.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &network_ack_resend_interval_ms = halo::link::ref<int32_t>(halo::networking::vars().network_ack_resend_interval_ms);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
@@ -77,7 +78,7 @@ int32_t PlayerUpdateBuilder::local_player_position_update(uint8_t *out_changed, 
             }
             logged_id = ack.baseline_id;
             plr->last_update_id = static_cast<int32_t>(next_id);
-            halo::networking::network_player_update_history_log_write("[%d]: [%d]:\t Acked [%d]\n", GetTickCount(),
+            halo::networking::network_player_update_history_log_write("[%d]: [%d]:\t Acked [%d]\n", halo::platform::tick_milliseconds(),
                 halo::game::globals().game_time->game_time, logged_id);
             plr->baseline_update_id = plr->unknown_f4;
             plr->unknown_f0 = halo::game::globals().game_time->game_time;
@@ -138,7 +139,7 @@ int32_t PlayerUpdateBuilder::local_player_vehicle_update(uint8_t *out_changed, p
     }
     logged_id = ack.baseline_id;
     plr->last_update_id = static_cast<int32_t>(next_id);
-    halo::networking::network_player_update_history_log_write("[%d]: [%d]:\t Acked vehicle [%d]\n", GetTickCount(),
+    halo::networking::network_player_update_history_log_write("[%d]: [%d]:\t Acked vehicle [%d]\n", halo::platform::tick_milliseconds(),
         halo::game::globals().game_time->game_time, logged_id);
     plr->baseline_update_id = plr->unknown_f4;
     plr->unknown_f0 = halo::game::globals().game_time->game_time;

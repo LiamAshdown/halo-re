@@ -8,6 +8,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/records.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &hud_text_draw_color_or_flags = halo::link::ref<uint16_t>(halo::ui::vars().hud_text_draw_color_or_flags);
@@ -112,7 +113,7 @@ uint32_t HudTextQueue::message_queue_init(void)
     hud_text_message_queue.count = 0;
     hud_text_message_queue.data = nullptr;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     hud_text_message_time_base = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     return 1;
 }

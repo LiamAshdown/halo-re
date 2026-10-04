@@ -50,6 +50,7 @@ static auto &console_last_line = halo::link::ref<char [halo::interface::k_text_b
 static auto &console_last_cursor_column = halo::link::ref<int32_t>(halo::ui::vars().console_last_cursor_column);
 #include "halo/interface/records.hpp"
 #include "halo/interface/wide_text.hpp"
+#include "halo/platform/time.hpp"
 
 static console_message *console_message_at(datum_index handle)
 {
@@ -563,7 +564,7 @@ uint8_t ConsoleTerminal::process_queued_input(void)
         return 0;
     }
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     halo::main::globals().console_active->key_event_count = 0;
 

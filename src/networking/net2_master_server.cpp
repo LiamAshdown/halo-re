@@ -17,6 +17,7 @@
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &negotiatorList = halo::link::ref<void *>(halo::networking::vars().negotiatorList);
 static auto &server_list_mutex = halo::link::ref<network_mutex_record *>(halo::networking::vars().server_list_mutex);
@@ -98,13 +99,13 @@ void MasterServerConnection::connection_wait_thread(void)
         if (exited != 0 && exit_code != 0x103) {
             break;
         }
-        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        halo::platform::read_performance_counter(&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         if (0x84 < (uint32_t)(now_ms - halo::sound::globals().time)) {
             halo::sound::sound_idle_update();
         }
         master_server_request_flags = master_server_request_flags | 2;
-        Sleep(0x14);
+        halo::platform::sleep_milliseconds(0x14);
     }
     CloseHandle(server_list_thread->handle);
     server_list_thread->handle = 0;
@@ -146,7 +147,7 @@ void MasterServerConnection::list_refresh_request(void)
     int32_t now_ms;
 
     master_server_request_flags = master_server_request_flags | 8;
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     browser_state::next_auto_refresh_ms = now_ms + 10000;
     browser_state::refresh_in_flight = 1;
@@ -255,7 +256,7 @@ uint32_t __stdcall MasterServerConnection::setup_master_server_connection_sig(vo
             if (master_server_last_result == 0) {
                 halo::networking::master_server_process_pending_requests();
             }
-            Sleep(10);
+            halo::platform::sleep_milliseconds(10);
         } while ((master_server_request_flags & 2) == 0);
     }
     ServerBrowserFree(master_server_query_engine);

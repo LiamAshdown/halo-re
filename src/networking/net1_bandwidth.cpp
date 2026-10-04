@@ -12,6 +12,7 @@
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/main/api.hpp"
+#include "halo/platform/time.hpp"
 static auto &rasterizer_vertex_declarations = halo::link::ref<rasterizer_vertex_declaration [k_rasterizer_vertex_type_count]>(halo::networking::vars().rasterizer_vertex_declarations);
 static auto &rasterizer_vertex_shaders = halo::link::ref<rasterizer_vertex_shader [k_rasterizer_vertex_shaders]>(halo::networking::vars().rasterizer_vertex_shaders);
 
@@ -506,7 +507,7 @@ void BandwidthGraphView::new_sample()
                  graph->history[316] + graph->history[315];
     graph->displayed_rate = (float)recent_sum * 0.25f;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     graph->last_sample_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     graph->pending_sample = 0;
 }
@@ -528,7 +529,7 @@ void BandwidthGraphView::tick()
     large_integer counter;
     uint32_t elapsed_ms;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     if (graph->needs_layout != 0) {
         return;
     }
@@ -621,7 +622,7 @@ void BandwidthGraphView::rate_compute()
     int32_t now_ms;
     float elapsed_seconds;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     elapsed_seconds = as_unsigned_float(now_ms - base_ms) * 0.001f;
 

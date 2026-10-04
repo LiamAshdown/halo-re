@@ -23,6 +23,7 @@ static auto &hud_text_draw_color_or_flags = halo::link::ref<uint32_t>(halo::ui::
 static auto &hud_text_draw_flags = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_flags);
 static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
 #include "halo/interface/wide_text.hpp"
+#include "halo/platform/time.hpp"
 
 namespace halo::interface {
 
@@ -42,7 +43,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
     int32_t now_ms;
     int32_t elapsed;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     elapsed = (int32_t)(long long)((double)(uint32_t)(now_ms - hud_text_message_time_base) * (double)0.08f);
 

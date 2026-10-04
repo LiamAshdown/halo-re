@@ -27,6 +27,7 @@ static auto &input_event_queue_active = halo::link::ref<input_event_queue>(halo:
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/platform/time.hpp"
 
 #ifdef interface
 #undef interface
@@ -109,7 +110,7 @@ void InterfaceMain::tick()
 
     uint8_t event_scratch[16] = {0};
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     ui_time_milliseconds = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     auto shared_tail = [&]() {

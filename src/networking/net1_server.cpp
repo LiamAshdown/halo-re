@@ -28,6 +28,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &network_incoming_message_scratch = halo::link::ref<uint8_t [0x510]>(halo::networking::vars().network_incoming_message_scratch);
 typedef struct network_item_stream {
@@ -366,7 +367,7 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
         if (*field_9c4 == 0) {
             large_integer counter;
 
-            QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+            halo::platform::read_performance_counter(&counter);
             *field_9c4 = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         }
     }
@@ -755,7 +756,7 @@ void ServerView::per_frame_tick(int16_t update_count)
             do {
                 server->update_tick = server->update_tick + 1;
                 halo::game::update_server_push_player_tick_history();
-                QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+                halo::platform::read_performance_counter(&counter);
                 remaining = remaining - 1;
             } while (remaining != 0);
         }
@@ -1167,11 +1168,11 @@ uint32_t ServerView::status_periodic_print()
     network_server_globals *server = self;
     large_integer counter;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     if ((server->flags >> 2 & 1) != 0) {
         int32_t now_ms;
 
-        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        halo::platform::read_performance_counter(&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         if ((uint32_t)(now_ms - network_server_status_last_print_ms) > 15000) {
             halo::networking::sv_status();
@@ -1411,7 +1412,7 @@ uint32_t ServerMessageHandlers::keepalive(network_channel **channel, int32_t *re
     if (chan == 0) {
         return 0;
     }
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     payload.echoed_value = *record;
     payload.timestamp_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     packet = halo::networking::network_prepare_challenge_packet(3, &payload);
@@ -1815,7 +1816,7 @@ void MachineView::timer_start(int32_t duration_ms)
     large_integer counter;
     int32_t now_ms;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     machine->timer_14 = now_ms;
     machine->disconnect_timer_active = 1;

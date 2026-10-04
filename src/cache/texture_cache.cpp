@@ -15,6 +15,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/core/win32_constants.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/platform/time.hpp"
 
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 
@@ -44,7 +45,7 @@ void texture_cache_manager::entry_release(datum_index handle)
     void *texture;
 
     while (((texture_cache_entry *)globals().texture_cache_entries->data + (handle & 0xffff))->loaded == 0) {
-        Sleep(0);
+        halo::platform::sleep_milliseconds(0);
     }
     bitmap = entry->bitmap;
     bitmap->pointer = halo::k_dword_none;
@@ -129,7 +130,7 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
                     break;
                 }
 
-                QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+                halo::platform::read_performance_counter(&counter);
                 elapsed_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
                 if (0x84 < (uint32_t)(elapsed_ms - halo::sound::globals().time)) {
                     halo::sound::sound_idle_update();
@@ -137,7 +138,7 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
                 if (wait == 0) {
                     return nullptr;
                 }
-                Sleep(0);
+                halo::platform::sleep_milliseconds(0);
             }
         } else {
             result = nullptr;

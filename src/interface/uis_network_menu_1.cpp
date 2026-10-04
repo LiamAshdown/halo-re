@@ -28,6 +28,7 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/platform/time.hpp"
 
 
 static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
@@ -410,7 +411,7 @@ void UiNetworkMenu::network_wait_timeout_start(void)
     if (ui_network_wait_start_time == -1) {
         large_integer counter;
 
-        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        halo::platform::read_performance_counter(&counter);
         ui_network_wait_start_time = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     }
     ui_network_wait_active = 1;

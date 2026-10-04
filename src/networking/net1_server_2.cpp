@@ -17,6 +17,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
 static auto &network_game_info_packet_flag = halo::link::ref<uint8_t>(halo::ui::vars().network_game_info_packet_flag);
@@ -336,7 +337,7 @@ int32_t ServerView::check_machine_timeout(network_machine *machine)
     uint32_t timer_14;
     int32_t result;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     timer_18 = (uint32_t)machine->timer_18;
     timer_14 = (uint32_t)machine->timer_14;

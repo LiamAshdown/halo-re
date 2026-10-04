@@ -42,6 +42,7 @@
 #include "halo/main/api.hpp"
 
 #include <cstring>
+#include "halo/platform/time.hpp"
 
 using halo::rasterizer::render_device;
 
@@ -583,7 +584,7 @@ void draw(void)
         frame_statistics_key_b_latch = 0;
     }
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     milliseconds = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     delta = milliseconds - (uint32_t)frame_statistics_last_time;
     frame_statistics_last_time = (int32_t)milliseconds;
@@ -623,7 +624,7 @@ void draw(void)
     restore_color[2] = 1.0f;
     restore_color[3] = 1.0f;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     milliseconds = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     elapsed = (int64_t)(uint64_t)milliseconds - frame_statistics_unknown_d0;
 

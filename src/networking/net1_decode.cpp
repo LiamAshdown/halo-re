@@ -29,6 +29,7 @@
 #include "halo/objects/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
 static auto &network_action_apply_active = halo::link::ref<uint8_t>(halo::objects::vars().network_action_apply_active);
@@ -463,7 +464,7 @@ int32_t GameClientView::state_update_receive(uint8_t *record_bytes)
     halo::game::update_client_advance_read_cursor((int32_t)record->update_id, local_buffer);
     client->last_update_id = record->update_id;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     client->last_update_received_ms = now_ms;
     return 1;

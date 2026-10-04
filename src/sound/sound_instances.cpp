@@ -13,6 +13,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/platform/time.hpp"
 
 namespace halo::sound {
 
@@ -23,7 +24,7 @@ int32_t sound_fade_now_ms(void)
 {
     large_integer counter;
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     return (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 }
 

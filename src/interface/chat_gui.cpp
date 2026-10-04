@@ -15,6 +15,7 @@
 #include <string.h>
 #include <wchar.h>
 #include <windows.h>
+#include "halo/platform/time.hpp"
 
 #ifdef interface
 #undef interface
@@ -179,7 +180,7 @@ void ChatGui::draw()
         int32_t length = edit_length_ - first;
 
         memcpy(shown, edit_text_ + first, length * sizeof(wchar_t));
-        if ((GetTickCount() / k_caret_blink_ms) % 2 == 0) {
+        if ((halo::platform::tick_milliseconds() / k_caret_blink_ms) % 2 == 0) {
             shown[length++] = L'_';
         }
         shown[length] = 0;

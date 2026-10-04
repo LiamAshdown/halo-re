@@ -39,6 +39,7 @@
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/platform/time.hpp"
 static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
 
 static auto &object_type_definitions = halo::link::ref<void *[12]>(halo::game::vars().object_type_definitions);
@@ -231,7 +232,7 @@ void GameRuntime::client_apply_received_update(network_machine *machine, uint32_
     }
     if (machine->machine_id != 0) {
         halo::networking::network_player_update_history_log_write("[%d]: [%d]:\t Received update [%d] for [%d] ticks.\n",
-            GetTickCount(), game_time->game_time, (int32_t)history_byte, (int32_t)update.tick_count);
+            halo::platform::tick_milliseconds(), game_time->game_time, (int32_t)history_byte, (int32_t)update.tick_count);
     }
 }
 
@@ -913,7 +914,7 @@ uint8_t SearchEntryView::entry_is_fresh()
     if (entry->in_use == 0) {
         return 0;
     }
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     elapsed_ms = now_ms - entry->received_ms;
     if (elapsed_ms < 0x1771) {
@@ -956,7 +957,7 @@ int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement_bytes
             memset(entry, 0, sizeof(network_game_search_entry));
             continue;
         }
-        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        halo::platform::read_performance_counter(&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         if (6000 < now_ms - entry->received_ms) {
             memset(entry, 0, sizeof(network_game_search_entry));
@@ -1005,7 +1006,7 @@ int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement_bytes
     entry->identity[4] = announcement->identity[4];
     entry->identity[5] = announcement->identity[5];
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    halo::platform::read_performance_counter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     entry->received_ms = now_ms;
 

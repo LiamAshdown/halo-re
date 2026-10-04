@@ -14,6 +14,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/core/win32_constants.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/platform/time.hpp"
 
 
 
@@ -419,7 +420,7 @@ uint8_t sound_cache_manager::touch(uint8_t allocate_if_missing, uint8_t lock, ui
             return 1;
         }
 
-        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        halo::platform::read_performance_counter(&counter);
         elapsed_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         stall_ms = (uint32_t)(elapsed_ms - halo::sound::globals().time);
         if (0x84 < stall_ms) {
@@ -429,7 +430,7 @@ uint8_t sound_cache_manager::touch(uint8_t allocate_if_missing, uint8_t lock, ui
         if (wait_until_loaded == 0) {
             break;
         }
-        Sleep(0);
+        halo::platform::sleep_milliseconds(0);
     }
 
     return 0;

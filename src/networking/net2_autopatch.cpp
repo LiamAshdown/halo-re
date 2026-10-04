@@ -29,6 +29,7 @@
 #include "../gamespy/gamespy_calls.hpp"
 #include "../gamespy/gamespy_calls.hpp"
 #include "halo/units/api.hpp"
+#include "halo/platform/time.hpp"
 
 static auto &autopatch_download_slots = halo::link::ref<autopatch_download_slot [2]>(halo::networking::vars().autopatch_download_slots);
 static auto &network_mutex_table = halo::link::ref<network_mutex_record [k_network_mutex_table_count]>(halo::networking::vars().network_mutex_table);
@@ -346,7 +347,7 @@ uint32_t AutopatchUpdater::download_worker_thread(void)
     int32_t active_count = 1;
 
     do {
-        Sleep(active_count < 1 ? 1000 : 0x14);
+        halo::platform::sleep_milliseconds(active_count < 1 ? 1000 : 0x14);
         active_count = halo::networking::autopatch_download_pool_tick();
     } while (autopatch_download_active_count == 0);
     autopatch_download_active_count = 0;
