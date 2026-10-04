@@ -1,3 +1,4 @@
+#include "halo/rasterizer/render_device.hpp"
 #include "win32.h"
 #include "halo/interface/engine_state.hpp"
 #include "halo/rasterizer/globals.hpp"
@@ -90,12 +91,9 @@ uint8_t PlayerProfiles::apply_video_options(saved_player_profile *settings)
         }
     }
     if (halo::rasterizer::globals().needs_reset == 0 && halo::rasterizer::rasterizer_display_mode_differs(&mode)) {
-        void **vtable;
-
         halo::rasterizer::rasterizer_build_present_parameters((d3d_present_parameters *)present_parameters, &mode);
         halo::rasterizer::rasterizer_device_reset((d3d_present_parameters *)present_parameters);
-        vtable = halo::interface::com_vtable(halo::rasterizer::globals().device);
-        ((d3d_get_display_mode_fn)vtable[0x20 / 4])(halo::rasterizer::globals().device, 0, rasterizer_desktop_display_mode);
+        halo::rasterizer::render_device().get_display_mode(0, rasterizer_desktop_display_mode);
         reset = 1;
         halo::rasterizer::rasterizer_resize_game_window(mode.height, mode.width);
         halo::rasterizer::globals().needs_reset = 0;

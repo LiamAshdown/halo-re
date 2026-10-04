@@ -231,6 +231,11 @@ public:
     virtual int32_t set_pixel_shader_constant_f(uint32_t start_register, d3d_arg data, uint32_t vector4_count) = 0;
 
     /**
+     * Reads the display mode of a swap chain (IDirect3DDevice9::GetDisplayMode).
+     */
+    virtual int32_t get_display_mode(uint32_t swap_chain, d3d_arg mode) = 0;
+
+    /**
      * Fetches a back buffer surface (IDirect3DDevice9::GetBackBuffer).
      */
     virtual int32_t get_back_buffer(uint32_t swap_chain, uint32_t index, uint32_t type, d3d_arg out_surface) = 0;
@@ -499,6 +504,7 @@ public:
     int32_t set_indices(d3d_arg index_buffer) override;
     int32_t set_pixel_shader(d3d_arg shader) override;
     int32_t set_pixel_shader_constant_f(uint32_t start_register, d3d_arg data, uint32_t vector4_count) override;
+    int32_t get_display_mode(uint32_t swap_chain, d3d_arg mode) override;
     int32_t get_back_buffer(uint32_t swap_chain, uint32_t index, uint32_t type, d3d_arg out_surface) override;
     int32_t set_gamma_ramp(uint32_t swap_chain, uint32_t flags, d3d_arg ramp) override;
     int32_t process_vertices(uint32_t source_start, uint32_t dest_index, uint32_t vertex_count, d3d_arg dest_buffer, d3d_arg declaration, uint32_t flags) override;

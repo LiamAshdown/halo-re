@@ -1,3 +1,4 @@
+#include "halo/rasterizer/gl_device.hpp"
 #include "halo/interface/ifr1_play_diagnostics.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
@@ -211,6 +212,10 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
 {
     void **vtable;
     uint32_t rs[16];
+
+    if (halo::rasterizer::gl_renderer_requested()) {
+        return;  // this diagnostic reads the Direct3D 9 device state through its method table
+    }
     static const uint32_t states[16] = {
         7, 14, 23, 22, 27, 19, 20, 15, 24, 25, 52, 56, 57, 58, 59, 168
     };

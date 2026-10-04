@@ -86,7 +86,7 @@ set_source_files_properties("${SA}/loader.cpp" PROPERTIES COMPILE_DEFINITIONS "H
 target_link_directories(halo_rebuilt PRIVATE "${DXSDK_DIR}/Lib/x86")
 target_link_libraries(halo_rebuilt PRIVATE
     kernel32 user32 gdi32 advapi32 ole32 oleaut32 winmm ws2_32 shell32 version shlwapi comdlg32
-    dsound dinput8 dxguid d3d9 d3dx9 legacy_stdio_definitions wininet
+    dsound dinput8 dxguid d3d9 d3dx9 opengl32 legacy_stdio_definitions wininet
     stb_vorbis)
 # the data image sits at the original addresses (0x400000..0x891000), so the exe must load elsewhere, unrelocated
 target_link_options(halo_rebuilt PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x10000000 /SAFESEH:NO /OPT:NOREF /OPT:NOICF

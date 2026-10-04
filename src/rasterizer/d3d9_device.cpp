@@ -4,6 +4,7 @@
  */
 
 #include "halo/rasterizer/render_device.hpp"
+#include "halo/rasterizer/gl_device.hpp"
 #include "halo/render/d3d9.hpp"
 #include <type_traits>
 #include "halo/core/link.hpp"
@@ -247,6 +248,12 @@ int32_t D3D9Device::set_pixel_shader_constant_f(uint32_t start_register, d3d_arg
 {
     void *self = rasterizer_device;
     return com_slot<int32_t (__stdcall *)(void *, uint32_t, void *, uint32_t)>(self, d3d9::device_method::set_pixel_shader_constant_f)(self, start_register, data.get(), vector4_count);
+}
+
+int32_t D3D9Device::get_display_mode(uint32_t swap_chain, d3d_arg mode)
+{
+    void *self = rasterizer_device;
+    return com_slot<int32_t (__stdcall *)(void *, uint32_t, void *)>(self, d3d9::device_method::get_display_mode)(self, swap_chain, mode.get());
 }
 
 int32_t D3D9Device::get_back_buffer(uint32_t swap_chain, uint32_t index, uint32_t type, d3d_arg out_surface)
@@ -497,6 +504,9 @@ D3D9Device &d3d9_device()
 
 RenderDevice &render_device()
 {
+    if (gl_renderer_requested()) {
+        return gl_device();
+    }
     return d3d9_device();
 }
 
