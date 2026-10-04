@@ -302,6 +302,8 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
     real end2_x, end2_y, end2_z;
     real dx, dz;
     real distance;
+    int32_t first_replayed_update_id = 0;
+    int32_t last_replayed_update_id = 0;
 
     vehicle_obj = 0;
     node = halo::networking::player_update_history_find_and_prune(history, prune_target_id, prune);
@@ -311,7 +313,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
 
     if (unit_index == (datum_index)-1) {
         result = 0;
-        halo::networking::player_update_history_log_write(1, 0, "Ignoring update [%d] due to unit_index == NONE");
+        halo::networking::player_update_history_log_write(1, 0, "Ignoring update [%d] due to unit_index == NONE", prune_target_id);
         if (node != 0) {
             return result;
         }
@@ -411,10 +413,27 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
             ticks_this_call = 0;
         }
 
+        first_replayed_update_id = node->update_id;
         do {
-            real_vector3d view_forward;
-            halo::game::player_compute_view_forward_vector(reinterpret_cast<unit_object *>(unit_obj)->unit.controlling_player, (real *)(node->control + 1), &view_forward);
-            halo::units::unit_apply_control_block(unit_index, (const unit_control_data *)node->control, -1);
+            const player_action &action = *reinterpret_cast<const player_action *>(node->control);
+            unit_control_data control_block;
+
+            memset(&control_block, 0, sizeof(control_block));
+            halo::game::player_compute_view_forward_vector(reinterpret_cast<unit_object *>(unit_obj)->unit.controlling_player,
+                const_cast<real *>(&action.desired_yaw), &control_block.aiming_vector);
+            control_block.facing_vector = control_block.aiming_vector;
+            control_block.looking_vector = control_block.aiming_vector;
+            control_block.animation_state = 3;
+            control_block.aiming_speed = 0;
+            control_block.control_flags = (uint16_t)action.control_flags;
+            control_block.weapon_index = action.weapon_index;
+            control_block.grenade_index = action.grenade_index;
+            control_block.zoom_level = action.zoom_level;
+            control_block.throttle.i = action.throttle_x;
+            control_block.throttle.j = action.throttle_y;
+            control_block.throttle.k = 0.0f;
+            control_block.primary_trigger = action.primary_trigger;
+            halo::units::unit_apply_control_block(unit_index, &control_block, -1);
             remaining_ticks = node->tick_count;
             updates_this_call = updates_this_call + 1;
             if (0 < remaining_ticks) {
@@ -422,15 +441,16 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
                 do {
                     halo::units::globals().updates_suppressed = 1;
                     if (vehicle_obj == 0) {
-                        halo::units::biped_update(unit_index);
+                        halo::units::unit_update(unit_index);
                         halo::units::biped_update(unit_index);
                     } else {
-                        halo::objects::object_update(unit_index);
+                        halo::objects::object_update(parent_object);
                     }
                     remaining_ticks = remaining_ticks - 1;
                     halo::units::globals().updates_suppressed = 0;
                 } while (remaining_ticks != 0);
             }
+            last_replayed_update_id = node->update_id;
             node = node->next;
         } while (node != 0);
 
@@ -452,8 +472,11 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
             (double)client_start_x, (double)client_start_y, (double)client_start_z);
         halo::networking::player_update_history_log_write(1, 0, "         Ending Pos: [%f] [%f] [%f]",
             (double)end_x, (double)end_y, (double)end_z);
-        halo::networking::player_update_history_log_write(1, 0, "         Difference: [%f]");
-        halo::networking::player_update_history_log_write(1, 0, "        Ran updates: [%d] -> [%d], [%d] updates == [%d] ticks");
+        halo::networking::player_update_history_log_write(1, 0, "         Difference: [%f]",
+            (double)halo::libm::sqrt((double)((end_x - original_x) * (end_x - original_x) +
+                (end_y - original_y) * (end_y - original_y) + (end_z - original_z) * (end_z - original_z))));
+        halo::networking::player_update_history_log_write(1, 0, "        Ran updates: [%d] -> [%d], [%d] updates == [%d] ticks",
+            first_replayed_update_id, last_replayed_update_id, updates_this_call, ticks_this_call);
 
         if (vehicle_obj == 0) {
             end2_x = unit_obj->position.x;
@@ -482,7 +505,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
     }
 
     result = 0;
-    halo::networking::player_update_history_log_write(1, 0, "Ignoring update [%d] due to starting_update == NULL");
+    halo::networking::player_update_history_log_write(1, 0, "Ignoring update [%d] due to starting_update == NULL", prune_target_id);
     return result;
 }
 

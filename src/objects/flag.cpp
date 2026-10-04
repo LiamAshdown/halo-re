@@ -409,7 +409,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                 int16_t row_cursor;
                 int16_t bound;
 
-                row_cursor = (col == 0) ? (int16_t)(tag->height - 1) : 0;
+                row_cursor = ((int16_t)retracting == 0) ? (int16_t)(tag->height - 1) : 0;
 
                 for (;;) {
                     flag_vertex *vertex;
@@ -419,7 +419,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                     float wind_scale;
                     real_vector3d wind_dir;
 
-                    if (col == 0) {
+                    if ((int16_t)retracting == 0) {
                         if (!(0 < row_cursor)) break;
                     } else {
                         if (!(row_cursor < tag->height)) break;
