@@ -1,3 +1,4 @@
+#include "halo/core/collision_flags.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/effects/local_views.hpp"
 #include "halo/core/datum.hpp"
@@ -51,7 +52,7 @@ void effect_view::environment_probe(uint32_t definition_index, int16_t location_
         delta.j = global_down3d_pointer->j * 0.3f;
         delta.k = global_down3d_pointer->k * 0.3f;
 
-        hit = halo::physics::collision_test_movement_segment(0xc2a0, &origin, &delta, k_datum_index_none, &result);
+        hit = halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::structure_bsp | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::object_vehicle | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), &origin, &delta, k_datum_index_none, &result);
         if (hit) {
             uint8_t in_sky = halo::scenario::scenario_location_get_water_and_weather(&result.point, &result.leaf, 0);
             int16_t material_type = in_sky ? 0x1c : result.material_type;

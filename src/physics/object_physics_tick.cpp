@@ -2,6 +2,7 @@
  * Per-tick force and torque integration of an object carrying a physics tag, one mass point at a time.
  */
 
+#include "halo/core/collision_flags.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/scenario/leaf.hpp"
 #include "tags.h"
@@ -312,7 +313,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
                 delta.j = probe_length * global_down3d_pointer->j;
                 delta.k = probe_length * global_down3d_pointer->k;
 
-                if (halo::physics::collision_test_movement_segment(0xc0a0, (real_point3d *)&mp->position_x, &delta,
+                if (halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::structure_bsp | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), (real_point3d *)&mp->position_x, &delta,
                         object_index, &probe_result)) {
                     float clearance = probe_length * probe_result.t - mp_def->radius;
                     float lean = halo::math::real_inverse_lerp_clamped(mp->up_k, powered_def->antigrav_normal_k0, powered_def->antigrav_normal_k1);

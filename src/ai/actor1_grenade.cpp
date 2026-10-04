@@ -1,3 +1,4 @@
+#include "halo/core/collision_flags.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/ai/flags.hpp"
 #include "halo/ai/actor_grenade.hpp"
@@ -978,7 +979,7 @@ int32_t halo::ai::grenade_ops::trace_from_source(real_point3d *target_point)
     delta.i = target_point->x - source.x;
     delta.j = target_point->y - source.y;
     delta.k = target_point->z - source.z;
-    halo::physics::collision_test_movement_segment(0x33, &source, &delta, halo::k_dword_none, (collision_result *)trace_result);
+    halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::back_face | halo::collision_test_flag::ignore_breakable | halo::collision_test_flag::structure_bsp), &source, &delta, halo::k_dword_none, (collision_result *)trace_result);
     return 1;
 }
 

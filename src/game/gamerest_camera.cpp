@@ -1,3 +1,4 @@
+#include "halo/core/collision_flags.hpp"
 #include "halo/game/gamerest_camera.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
@@ -328,7 +329,7 @@ char CameraObserver::target_is_valid(datum_index exclude_object, real_point3d *o
     delta.j = target_position->y - observer_position->y;
     delta.k = target_position->z - observer_position->z;
 
-    if (halo::physics::collision_test_movement_segment(0xc2ad, observer_position, &delta, root, (collision_result *)scratch) == 0) {
+    if (halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::double_sided | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::object_vehicle | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), observer_position, &delta, root, (collision_result *)scratch) == 0) {
         return 1;
     }
     if (*(int16_t *)scratch != 3) {

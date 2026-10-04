@@ -1,3 +1,4 @@
+#include "halo/core/collision_flags.hpp"
 #include "halo/game/game2_engine_placement.hpp"
 #include "halo/core/ui_tag_paths.hpp"
 #include "halo/game/variant_flags.hpp"
@@ -679,7 +680,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
             destination_position.y = exit_flag->position.y;
             destination_position.z = exit_flag->position.z;
 
-            blocked = halo::physics::physics_model_build_from_sphere_query(0x200380, &destination_position,
+            blocked = halo::physics::physics_model_build_from_sphere_query(halo::to_bits(halo::collision_test_flag::nearby_objects | halo::collision_test_flag::object_biped | halo::collision_test_flag::object_vehicle | halo::collision_test_flag::unknown_200000), &destination_position,
                 pill_radius + pill_radius + pill_height, pill_height, pill_radius, halo::k_dword_none, &candidates);
 
             if (blocked != 0) {

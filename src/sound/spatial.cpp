@@ -3,6 +3,7 @@
  * Listener, environment and range handling for spatialized sounds.
  */
 
+#include "halo/core/collision_flags.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "internal/state.hpp"
@@ -427,7 +428,7 @@ void Location::compute_obstruction_occlusion(int16_t listener_index, float refer
             delta.j = this->position.y - listener->position.y;
             delta.k = this->position.z - listener->position.z;
 
-            if (halo::physics::collision_test_movement_segment(0xc0e1, (real_point3d *)&listener->position, &delta, k_datum_index_none,
+            if (halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), (real_point3d *)&listener->position, &delta, k_datum_index_none,
                     &result) == 0) {
                 this->obstruction = 0.0f;
                 this->occlusion = 0.0f;

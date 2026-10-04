@@ -1,3 +1,4 @@
+#include "halo/core/collision_flags.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/ai/flags.hpp"
 #include "halo/core/bit_cast.hpp"
@@ -509,7 +510,7 @@ void halo::ai::combat_ops::choose_random_point_near(real_point3d *inout_point, f
     delta.j = base.y - inout_point->y;
     delta.k = base.z - inout_point->z;
 
-    if (halo::physics::collision_test_movement_segment(0x23, inout_point, &delta, (uint32_t)-1, &line_result) != 0) {
+    if (halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::back_face | halo::collision_test_flag::structure_bsp), inout_point, &delta, (uint32_t)-1, &line_result) != 0) {
         base = *inout_point;
     }
 
@@ -517,7 +518,7 @@ void halo::ai::combat_ops::choose_random_point_near(real_point3d *inout_point, f
     delta.j = chosen.y - base.y;
     delta.k = chosen.z - base.z;
 
-    if (halo::physics::collision_test_movement_segment(0x23, &base, &delta, (uint32_t)-1, &line_result) != 0) {
+    if (halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::back_face | halo::collision_test_flag::structure_bsp), &base, &delta, (uint32_t)-1, &line_result) != 0) {
         clear_fraction = line_result.t * radius - 0.1f;
         if (clear_fraction < 0.0f) {
             clear_fraction = 0.0f;

@@ -1,3 +1,4 @@
+#include "halo/core/collision_flags.hpp"
 #include "halo/ai/airest_communication.hpp"
 
 #include <stdint.h>
@@ -1195,7 +1196,7 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                         to_self.k = dz;
                         line_of_sight_clear =
                             (distance_squared < 9.0f ||
-                             halo::physics::collision_test_movement_segment(0x27, &player_position, &to_self,
+                             halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::back_face | halo::collision_test_flag::double_sided | halo::collision_test_flag::structure_bsp), &player_position, &to_self,
                                                    (uint32_t)k_datum_index_none, (collision_result *)trace_scratch) == 0)
                                 ? 1 : 0;
                     }

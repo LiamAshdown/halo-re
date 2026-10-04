@@ -1,3 +1,4 @@
+#include "halo/core/collision_flags.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
@@ -584,7 +585,7 @@ void decal_ref::spawn_for_response(datum_index response_tag_index, uint8_t deter
         saved_seed = halo::math::globals().effect_random_seed;
         halo::math::globals().effect_random_seed = words[2] ^ words[1] ^ words[0] ^ 0xdeadc0de;
     }
-    if (halo::physics::collision_test_movement_segment(0x100061, origin, direction, k_datum_index_none, &result) &&
+    if (halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::unstick), origin, direction, k_datum_index_none, &result) &&
         result.type == 2 &&
         (*(uint8_t *)halo::cache::globals().tag_instances[response_tag_index & halo::k_slot_mask].data & 0x10) == 0) {
         halo::effects::decal_place(response_tag_index, &result, direction, radius, deterministic, (int16_t)marker_index);

@@ -1,3 +1,4 @@
+#include "halo/core/collision_flags.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_looks.hpp"
 #include "halo/math/api.hpp"
@@ -555,7 +556,7 @@ uint8_t halo::ai::look_ops::look_pick_random_point_in_cone(void *origin, float y
             scaled.j = direction.j * 3.0f;
             scaled.k = direction.k * 3.0f;
 
-            if (!halo::physics::collision_test_movement_segment(0x21, (real_point3d *)origin, &scaled, (uint32_t)k_datum_index_none, (collision_result *)trace_buffer)) {
+            if (!halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp), (real_point3d *)origin, &scaled, (uint32_t)k_datum_index_none, (collision_result *)trace_buffer)) {
                 break;
             }
         }

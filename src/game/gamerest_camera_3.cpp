@@ -1,3 +1,4 @@
+#include "halo/core/collision_flags.hpp"
 #include "halo/game/gamerest_camera.hpp"
 #include "halo/game/records.hpp"
 #include "projectiles.h"
@@ -96,7 +97,7 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
         probe_delta.i = camera_direction.i * 128.0f;
         probe_delta.j = camera_direction.j * 128.0f;
         probe_delta.k = camera_direction.k * 128.0f;
-        halo::physics::collision_test_movement_segment(0x1000e9, &probe_origin, &probe_delta, ((struct player *)player)->unit, &record.collision);
+        halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::unstick), &probe_origin, &probe_delta, ((struct player *)player)->unit, &record.collision);
 
         look_direction.i = record.collision.point.x - observer_position->x;
         look_direction.j = record.collision.point.y - observer_position->y;
