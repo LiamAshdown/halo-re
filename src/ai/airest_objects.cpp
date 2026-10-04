@@ -1152,18 +1152,18 @@ void AiObjects::refresh_unit_stimulus_and_alert(datum_index object_index, int16_
     }
     obj->unit.ai_stimulus_tick = now;
     obj->unit.ai_stimulus_type = stimulus_value;
-    if (((object *)obj)->type == 1) {
+    if (((object *)obj)->type == _object_type_vehicle) {
         datum_index child;
 
         for (child = ((object *)obj)->first_child_object; child != k_datum_index_none;) {
             uint8_t *c = halo::ai::object_bytes(child);
 
-            if (((struct object *)c)->type == 0) {
+            if (((struct object *)c)->type == _object_type_biped) {
                 halo::ai::ai_alert_actors_in_grenade_radius(child, stimulus_value, priority);
             }
             child = ((struct object *)c)->next_object;
         }
-    } else if (((object *)obj)->type == 0) {
+    } else if (((object *)obj)->type == _object_type_biped) {
         halo::ai::ai_alert_actors_in_grenade_radius(object_index, stimulus_value, priority);
     }
 }

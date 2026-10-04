@@ -723,11 +723,11 @@ void ObjectPhysics::handle_nearby_object_impacts(uint32_t object_index)
         uint32_t candidate_index = candidates[i];
         object_header *header = &((object_header *)halo::objects::globals().object_data->data)[candidate_index & halo::k_slot_mask];
 
-        if (header->type == 0) {
+        if (header->type == _object_type_biped) {
             if ((header->data->vitality_flags & _object_health_frozen_bit) == 0) {
                 halo::physics::object_physics_check_impact_damage((uint32_t *)&self_collision_context, candidate_index);
             }
-        } else if (header->type == 1 && candidate_index != object_index) {
+        } else if (header->type == _object_type_vehicle && candidate_index != object_index) {
             object_physics_context candidate_context;
 
             if (halo::physics::object_physics_context_build(candidate_index, &candidate_context)) {

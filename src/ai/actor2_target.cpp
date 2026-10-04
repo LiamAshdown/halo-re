@@ -207,7 +207,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, actor_firing_pos
         parent_index = unit_obj->parent_object;
         if (parent_index != k_datum_index_none) {
             parent_obj = halo::ai::object_at(parent_index);
-            if (parent_obj->type == 1) {
+            if (parent_obj->type == _object_type_vehicle) {
                 target->relationship_object_index = parent_index;
                 if ((int32_t)halo::units::unit_data_of(parent_obj)->gunner_unit_index == (int32_t)target->object_index ||
                     target->actor_type == 0xf) {

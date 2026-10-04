@@ -126,7 +126,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
             translation.y = root_offset.j;
             translation.z = root_offset.k;
         }
-        if (unit->base.type == 0) {
+        if (unit->base.type == _object_type_biped) {
             halo::units::unit_reset_orientation_and_find_position(object_index, parent_index);
         }
         halo::objects::object_recalculate_bounding_radius_recursive(object_index);

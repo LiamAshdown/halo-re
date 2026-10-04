@@ -1150,7 +1150,7 @@ void ActorOps::squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_
         occupant_index = vehicle_object_index;
     }
     occupant = (unit_object *)halo::ai::object_bytes(occupant_index);
-    if (occupant->base.type != 0) {
+    if (occupant->base.type != _object_type_biped) {
         return;
     }
     actor = halo::units::unit_data_of(halo::ai::object_at(other_object_index))->actor_index;

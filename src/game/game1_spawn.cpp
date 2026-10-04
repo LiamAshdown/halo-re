@@ -250,7 +250,7 @@ uint8_t SpawnLocations::location_blocked_by_vehicle(real_point3d *point)
     for (i = 0; i < count; i = i + 1) {
         object *obj = halo::game::object_at(candidates[i]);
 
-        if (obj != 0 && obj->type == 1) {
+        if (obj != 0 && obj->type == _object_type_vehicle) {
             return 1;
         }
     }

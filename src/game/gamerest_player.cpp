@@ -164,7 +164,7 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
         halo::units::unit_update_animation_state_machine(object_index, request);
     }
     *(real_point3d *)(self + ((struct object *)self)->node_function_values.offset + 0x10) = default_translation;
-    if (((struct object *)self)->type == 0) {
+    if (((struct object *)self)->type == _object_type_biped) {
         halo::units::unit_reset_orientation_and_find_position(object_index, vehicle_index);
     }
     halo::objects::object_recalculate_bounding_radius_recursive(object_index);

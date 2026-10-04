@@ -1370,7 +1370,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         halo::units::unit_update_animation_state_machine(object_index, request);
     }
     *(real_point3d *)((uint8_t *)self + self->base.node_function_values.offset + 0x10) = default_translation;
-    if (self->base.type == 0) {
+    if (self->base.type == _object_type_biped) {
         halo::units::unit_reset_orientation_and_find_position(object_index, vehicle_index);
     }
     halo::objects::object_recalculate_bounding_radius_recursive(object_index);
@@ -1451,7 +1451,7 @@ void ReferenceView::units_exit_vehicles()
             self->unit.vehicle_seat_index == -1) {
             continue;
         }
-        if (self->base.type == 1) {
+        if (self->base.type == _object_type_vehicle) {
             unit_object *me = (unit_object *)halo::ai::object_at(unit_index);
 
             if (me->base.parent_object != k_datum_index_none && me->unit.vehicle_seat_index != -1) {

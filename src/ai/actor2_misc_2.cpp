@@ -108,7 +108,7 @@ void ActorView::refresh_combat_context()
             swarm_component *creature = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[swarm->component_index[i] & halo::k_slot_mask];
             datum_index creature_unit = swarm->unit_index[i];
             uint8_t *creature_object = object_get(creature_unit);
-            datum_index vehicle = ((struct object *)creature_object)->type == 0 ?
+            datum_index vehicle = ((struct object *)creature_object)->type == _object_type_biped ?
                 ((biped_object *)creature_object)->biped.ground_surface_index : k_datum_index_none;
 
             halo::objects::object_get_position(&creature->position, creature_unit);
@@ -149,7 +149,7 @@ void ActorView::refresh_combat_context()
     }
     self->flying = (uint8_t)((actor_tag->flags >> 21) & 1);
 
-    if (parent != 0 && parent->base.type == 1) {
+    if (parent != 0 && parent->base.type == _object_type_vehicle) {
         Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(parent->base.definition_tag);
         uint32_t vehicle_flags;
 
@@ -254,7 +254,7 @@ void ActorView::refresh_combat_context()
 
     self->airborne = 0;
     self->pathfinding_surface_index = -1;
-    if (unit->base.type == 0 && self->active_unit_index == -1) {
+    if (unit->base.type == _object_type_biped && self->active_unit_index == -1) {
         uint8_t *unit_object = object_get((int32_t)self->unit_index);
 
         if (((biped_object *)unit_object)->biped.airborne_ticks >= 6) {

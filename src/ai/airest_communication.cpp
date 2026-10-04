@@ -527,7 +527,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         } else {
             unit_object *object = (unit_object *)halo::ai::object_bytes(speaker_unit);
 
-            if ((static_cast<uint8_t>(object->base.vitality_flags) & 4) || ((struct object *)object)->type == 1) {
+            if ((static_cast<uint8_t>(object->base.vitality_flags) & 4) || ((struct object *)object)->type == _object_type_vehicle) {
                 reject = 1;
             } else if (object->unit.controlling_player == k_datum_index_none &&
                        object->unit.actor_index == k_datum_index_none) {

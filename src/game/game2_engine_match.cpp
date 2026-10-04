@@ -170,9 +170,9 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
         message_category = (is_suicide != 0) + 4;
     } else if (death_object != (datum_index)halo::k_dword_none) {
         object *obj = halo::game::object_at(death_object);
-        if (obj->type == 0) {
+        if (obj->type == _object_type_biped) {
             message_category = 2;
-        } else if (obj->type == 1) {
+        } else if (obj->type == _object_type_vehicle) {
             message_category = 3;
         } else {
             message_category = 1;

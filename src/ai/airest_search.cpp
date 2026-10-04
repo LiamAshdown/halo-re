@@ -586,10 +586,10 @@ void ObstacleList::gather_obstacles(real_point3d *center, float radius, real_vec
         if (object_index == self_object_a || object_index == self_object_b || (object->flags & 1) != 0) {
             continue;
         }
-        if (object->type == 0 && halo::ai::flag_set(object->vitality_flags, halo::objects::vitality_flag::health_frozen)) {
+        if (object->type == _object_type_biped && halo::ai::flag_set(object->vitality_flags, halo::objects::vitality_flag::health_frozen)) {
             continue;
         }
-        if (object->type == 7) {
+        if (object->type == _object_type_device_machine) {
             uint16_t machine_flags = halo::ai::tag_data<DeviceMachine>(object->definition_tag)->machine_flags;
 
             if ((machine_flags & 1) == 0) {
@@ -642,7 +642,7 @@ void ObstacleList::gather_obstacles(real_point3d *center, float radius, real_vec
             if (reach * reach < dz * dz * 4.0f + dy * dy + dx * dx) {
                 continue;
             }
-            if (object->type == 0 && dy * direction->j + dx * direction->i + dz * direction->k > 0.0f &&
+            if (object->type == _object_type_biped && dy * direction->j + dx * direction->i + dz * direction->k > 0.0f &&
                 object->velocity.k * direction->k + object->velocity.j * direction->j +
                         object->velocity.i * direction->i > 0.06666667f) {
                 flags = 1;

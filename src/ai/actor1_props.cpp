@@ -839,7 +839,7 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
         cluster_ref = static_cast<int32_t>(object->unit.actor_index);
     }
 
-    if ((((struct object *)object)->type == 0) && ((datum_index)cluster_ref != actor_index)) {
+    if ((((struct object *)object)->type == _object_type_biped) && ((datum_index)cluster_ref != actor_index)) {
         datum_index cur = self->first_prop;
 
         for (;;) {

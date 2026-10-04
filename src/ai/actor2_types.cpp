@@ -622,7 +622,7 @@ void ActorView::type_infection_swarm_update()
         unit_control_data control;
 
         up = object->base.up;
-        if (object->base.type == 0) {
+        if (object->base.type == _object_type_biped) {
             if (static_cast<uint32_t>(object->biped.ground_surface_index) != (uint32_t)k_datum_index_none) {
                 up = object->biped.ground_normal;
             }
@@ -741,7 +741,7 @@ void ActorView::type_infection_swarm_update()
             } else {
                 Unit *parent_tag = halo::ai::tag_data<Unit>(parent->base.definition_tag);
 
-                if ((parent->base.type != 0 || halo::ai::flag_set(parent_tag->unit_flags, halo::tags::unit_tag_flag::melee_attackers_cannot_attach)) &&
+                if ((parent->base.type != _object_type_biped || halo::ai::flag_set(parent_tag->unit_flags, halo::tags::unit_tag_flag::melee_attackers_cannot_attach)) &&
                     component->infection.parent_ticks > 0x2d) {
                     component->infection.detach_delay = 0x2d;
                     detach = 1;

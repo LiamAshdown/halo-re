@@ -724,7 +724,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         halo::units::unit_update_animation_state_machine(object_index, request);
     }
     *(real_point3d *)((uint8_t *)self + self->base.node_function_values.offset + 0x10) = default_translation;
-    if (self->base.type == 0) {
+    if (self->base.type == _object_type_biped) {
         halo::units::unit_reset_orientation_and_find_position(object_index, vehicle_index);
     }
     halo::objects::object_recalculate_bounding_radius_recursive(object_index);
@@ -819,7 +819,7 @@ uint8_t ActorView::process_vehicle_seat_exit()
         rider->unit.vehicle_seat_index != -1) {
         datum_index vehicle_index = rider->base.parent_object;
 
-        if (rider->base.type == 1) {
+        if (rider->base.type == _object_type_vehicle) {
             unit_object *self = (unit_object *)halo::ai::object_bytes(rider_index);
 
             if (((struct object *)self)->parent_object != k_datum_index_none && self->unit.vehicle_seat_index != -1) {
@@ -2352,7 +2352,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
                     char reuse_existing = (char)halo::ai::flag_set(actor_tag_data->flags, halo::tags::actor_tag_flag::swarm);
                     datum_index new_actor;
 
-                    if (((object *)new_obj)->type == 0) {
+                    if (((object *)new_obj)->type == _object_type_biped) {
                         halo::units::unit_find_placement_position(new_object, halo::k_dword_none, 0, 1.0f, 1, 0, 0, 0,
                             (real_vector3d *)&placement.position);
                     }
@@ -2375,7 +2375,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
                         impulse.i = impulse.i * health_scale;
                         impulse.j = impulse.j * health_scale;
                         impulse.k = r2 * health_scale;
-                        if (((object *)new_obj)->type == 0) {
+                        if (((object *)new_obj)->type == _object_type_biped) {
                             halo::units::unit_apply_impulse(new_object, &impulse);
                         }
                     }
