@@ -2,6 +2,7 @@
  * World-level movement tests: structure BSP, nearby objects and water surfaces.
  */
 
+#include "halo/objects/flags.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/scenario/leaf.hpp"
 #include "halo/core/datum.hpp"
@@ -53,7 +54,7 @@ void CollisionWorld::gather_nearby_object_shapes(uint32_t flags, uint32_t start_
 
         if (object_index == exclude_object_index ||
             (obj->flags & _object_no_collision_bit) != 0 ||
-            (obj->flags & 0x01000000) != 0 ||
+            (obj->flags & halo::to_bits(halo::objects::object_flag::collision_disabled)) != 0 ||
             ((obj->vitality_flags & _object_health_frozen_bit) != 0 && obj->type == _object_type_biped)) {
             object_index = obj->next_object;
             continue;

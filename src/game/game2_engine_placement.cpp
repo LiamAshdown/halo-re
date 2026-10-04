@@ -1,3 +1,5 @@
+#include "halo/core/flag_bits.hpp"
+#include "halo/objects/flags.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/game/game2_engine_placement.hpp"
 #include "halo/core/ui_tag_paths.hpp"
@@ -508,7 +510,7 @@ void EnginePlacement::spawn_or_replay_netgame_equipment(int32_t *message)
         halo::networking::network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object);
         halo::objects::object_list_membership_set(new_object, 0);
         if ((equipment->flags & 1) != 0) {
-            obj->flags = obj->flags | 0x20;
+            set_flag(obj->flags, halo::objects::object_flag::at_rest);
         }
         halo::objects::object_type_override_call_0x68(new_object);
     }
@@ -597,7 +599,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
 
                             halo::objects::object_list_membership_set(new_object, 0);
                             if ((equipment->flags & 1) != 0) {
-                                obj->flags = obj->flags | 0x20;
+                                set_flag(obj->flags, halo::objects::object_flag::at_rest);
                             }
                             obj->network_role = 0;
                             halo::objects::object_type_override_call_0x68(new_object);

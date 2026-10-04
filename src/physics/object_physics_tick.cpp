@@ -2,6 +2,7 @@
  * Per-tick force and torque integration of an object carrying a physics tag, one mass point at a time.
  */
 
+#include "halo/objects/flags.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/scenario/leaf.hpp"
@@ -487,15 +488,15 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
         self->flags &= ~_object_at_rest_bit;
     }
 
-    self->flags = (ground_contact_count >= 1) ? (self->flags | 0x02u) : (self->flags & ~0x02u);
-    self->flags = (water_contact_count >= 1) ? (self->flags | 0x04u) : (self->flags & ~0x04u);
-    self->flags = (water_contact_count >= 1) ? (self->flags | 0x08u) : (self->flags & ~0x08u);
+    self->flags = (ground_contact_count >= 1) ? (self->flags | halo::to_bits(halo::objects::object_flag::on_ground)) : (self->flags & ~halo::to_bits(halo::objects::object_flag::on_ground));
+    self->flags = (water_contact_count >= 1) ? (self->flags | halo::to_bits(halo::objects::object_flag::on_media)) : (self->flags & ~halo::to_bits(halo::objects::object_flag::on_media));
+    self->flags = (water_contact_count >= 1) ? (self->flags | halo::to_bits(halo::objects::object_flag::partially_under_media)) : (self->flags & ~halo::to_bits(halo::objects::object_flag::partially_under_media));
 
     if (water_contact_count != definition->mass_points.count) {
-        self->flags &= ~0x10u;
+        self->flags &= ~halo::to_bits(halo::objects::object_flag::in_water);
         return;
     }
-    self->flags |= 0x10u;
+    self->flags |= halo::to_bits(halo::objects::object_flag::in_water);
 }
 
 }

@@ -223,7 +223,7 @@ void RecordedAnimationPlayer::update_all()
             if ((record->flags & _recorded_animation_flag_restore_object_flag_40) != 0) {
                 unit->flags = unit->flags | to_bits(unit_playback_flags::restore_marker);
             } else {
-                unit->flags = unit->flags & ~0x00000040u;
+                unit->flags = unit->flags & ~to_bits(unit_playback_flags::restore_marker);
             }
             header = &((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(record->unit_index)];
             unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);

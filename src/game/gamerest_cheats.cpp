@@ -1,3 +1,5 @@
+#include "halo/core/flag_bits.hpp"
+#include "halo/units/flags.hpp"
 #include "halo/game/gamerest_cheats.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
@@ -99,10 +101,10 @@ void Cheats::make_player_invincible(int16_t local_player_slot)
             unit_obj = halo::game::object_at(unit_index);
             unit = halo::game::unit_data_of(unit_obj);
             unit->active_camouflage_power = 1.0f;
-            if ((unit->flags & 0x10) != 0) {
-                unit->flags = unit->flags | 0x20;
+            if (test_flag(unit->flags, halo::units::unit_flag::active_camouflaged)) {
+                set_flag(unit->flags, halo::units::unit_flag::super_camouflaged);
             }
-            unit->flags = unit->flags | 0x10;
+            set_flag(unit->flags, halo::units::unit_flag::active_camouflaged);
         }
     }
 }
@@ -126,10 +128,10 @@ void Cheats::make_selected_object_invincible()
         unit_obj = halo::game::object_at(unit_index);
         unit = halo::game::unit_data_of(unit_obj);
         unit->active_camouflage_power = 1.0f;
-        if ((unit->flags & 0x10) != 0) {
-            unit->flags = unit->flags | 0x20;
+        if (test_flag(unit->flags, halo::units::unit_flag::active_camouflaged)) {
+            set_flag(unit->flags, halo::units::unit_flag::super_camouflaged);
         }
-        unit->flags = unit->flags | 0x10;
+        set_flag(unit->flags, halo::units::unit_flag::active_camouflaged);
     }
 }
 
