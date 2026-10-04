@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/ai/flags.hpp"
@@ -824,7 +825,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     if (self->target_unit_index != halo::k_dword_none) {
         target = halo::ai::prop_at(self->target_unit_index);
     }
-    if (static_cast<uint8_t>(unit->unit.animation_state) == 0x17 && self->berserking == 0) {
+    if (static_cast<uint8_t>(unit->unit.animation_state) == halo::units::animation_state_value(halo::units::unit_animation_state_id::hard_ping) && self->berserking == 0) {
         self->charge_trigger_active = 0;
         return 1;
     }

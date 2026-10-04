@@ -201,12 +201,15 @@ void halo::units::unit_animation_set_state(void)
  */
 uint8_t halo::units::unit_animation_state_allows_parent_ik(const unit_data &unit)
 {
-    int32_t state_index = (int32_t)unit.animation_state - 0x17;
+    int32_t state = (int32_t)unit.animation_state;
 
-    if ((uint32_t)state_index > 0x0c) {
+    if (state < animation_state_value(unit_animation_state_id::hard_ping) ||
+        state > animation_state_value(unit_animation_state_id::resurrect_back)) {
         return 1;
     }
-    return (state_index == 5 || (state_index >= 7 && state_index <= 10)) ? 1 : 0;
+    return (state == animation_state_value(unit_animation_state_id::custom_animation) ||
+            (state >= animation_state_value(unit_animation_state_id::melee_attack) &&
+             state <= animation_state_value(unit_animation_state_id::throwing_grenade))) ? 1 : 0;
 }
 
 /**
@@ -218,14 +221,17 @@ uint8_t halo::units::unit_animation_state_allows_parent_ik(const unit_data &unit
 uint8_t halo::units::unit_animation_state_allows_weapon_ik(const unit_data &unit)
 {
     uint8_t result = unit.overlays[2].animation_index == -1;
-    int32_t state_index;
+    int32_t state = (int32_t)unit.animation_state;
 
     if (unit.replacement_animation_state != 0) {
         result = 0;
     }
-    state_index = (int32_t)unit.animation_state - 0x10;
-    if ((uint32_t)state_index <= 0x19) {
-        if (!((state_index >= 4 && state_index <= 6) || (state_index >= 0x14 && state_index <= 0x16))) {
+    if (state >= animation_state_value(unit_animation_state_id::flying_front) &&
+        state <= animation_state_value(unit_animation_state_id::leap_melee)) {
+        if (!((state >= animation_state_value(unit_animation_state_id::airborne) &&
+               state <= animation_state_value(unit_animation_state_id::hard_landing)) ||
+              (state >= animation_state_value(unit_animation_state_id::feeding) &&
+               state <= animation_state_value(unit_animation_state_id::closing)))) {
             result = 0;
         }
     }

@@ -346,7 +346,7 @@ void UnitCommands::evaluate_unit_is_playing_custom_animation(int16_t function_in
         if (arguments[0] != -1) {
             unit_object *unit = (unit_object *)halo::ai::object_at(arguments[0]);
 
-            playing = (uint8_t)(static_cast<uint8_t>(unit->unit.animation_state) == 0x1c);
+            playing = (uint8_t)(static_cast<uint8_t>(unit->unit.animation_state) == halo::units::animation_state_value(halo::units::unit_animation_state_id::custom_animation));
         }
         halo::hs::hs_thread_return((int32_t)(uint8_t)(playing), thread_index);
     }

@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
@@ -87,7 +88,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
 
         distance_squared = dz * dz + dy * dy + dx * dx;
     }
-    if (radius > 0.0f && (firing || (int8_t)static_cast<uint8_t>(unit->unit.animation_state) == 0x1e)) {
+    if (radius > 0.0f && (firing || (int8_t)static_cast<uint8_t>(unit->unit.animation_state) == halo::units::animation_state_value(halo::units::unit_animation_state_id::melee_attack))) {
         halo::ai::actor_danger_register_point(actor_index, target, radius, (float)halo::libm::sqrt((double)distance_squared), (char)enemies, 0);
     }
     if (target_actor_index != k_datum_index_none) {

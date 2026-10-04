@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/ai/flags.hpp"
 #include "halo/ai/actor_modes.hpp"
@@ -77,7 +78,7 @@ uint8_t halo::ai::alert_mode::process()
         if (ready && !(actor->mode_data.alert.wait_ticks > 0) && actor->mode_data.alert.position_reached == 0) {
             unit_object *unit = (unit_object *)halo::ai::object_at(actor->unit_index);
 
-            if (static_cast<uint8_t>(unit->unit.animation_state) != 0x1c) {
+            if (static_cast<uint8_t>(unit->unit.animation_state) != halo::units::animation_state_value(halo::units::unit_animation_state_id::custom_animation)) {
                 actor->mode_data.alert.next_position = (int16_t)halo::ai::actor_select_move_position(actor_index, count, current, &actor->mode_data.alert.direction_flag);
             }
         }
