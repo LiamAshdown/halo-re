@@ -262,7 +262,7 @@ static_assert(offsetof(struct actor, pad_4a9) == 1193);
 static_assert(offsetof(struct actor, path_end_point) == 1196);
 static_assert(offsetof(struct actor, unknown_4b8) == 1208);
 static_assert(offsetof(struct actor, path_remaining_distance) == 1212);
-static_assert(offsetof(struct actor, unknown_4c0) == 1216);
+static_assert(offsetof(struct actor, steps_finish_path) == 1216);
 static_assert(offsetof(struct actor, waypoint_count) == 1217);
 static_assert(offsetof(struct actor, waypoint_cursor) == 1218);
 static_assert(offsetof(struct actor, unknown_4c3) == 1219);

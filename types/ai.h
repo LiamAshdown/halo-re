@@ -1028,7 +1028,7 @@ typedef struct actor {
     uint8_t unknown_4b8[4];           // 0x4b8
     float path_remaining_distance;    // 0x4bc path record +0x14 (0x43a4d0: distance from path end to goal); 0x41a460
                                       //    completes when near; 0x401da0 marks target engaged when > wait radius
-    uint8_t unknown_4c0;              // 0x4c0 advance_waypoint: with waypoint_reached, completes the movement action
+    uint8_t steps_finish_path;        // 0x4c0 advance_waypoint: with waypoint_reached, completes the movement action
     int8_t waypoint_count;            // 0x4c1 advance_waypoint stops advancing at count - 1
     int8_t waypoint_cursor;           // 0x4c2 current index into the 16-byte waypoint records at 0x4c8
     uint8_t unknown_4c3[9];           // 0x4c3

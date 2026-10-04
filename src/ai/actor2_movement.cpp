@@ -393,7 +393,7 @@ void ActorView::movement_advance_waypoint()
             self->waypoint_reached = 0;
         }
 
-        if (self->waypoint_reached != 0 && self->unknown_4c0 != 0) {
+        if (self->waypoint_reached != 0 && self->steps_finish_path != 0) {
             self->movement_action_complete = 0;
             self->movement_completed = 1;
             self->movement_timer = 0;
