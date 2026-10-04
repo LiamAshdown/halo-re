@@ -862,13 +862,13 @@ typedef struct antenna_vertex {
     real_vector3d velocity;         // 0x0c zeroed at create
     float texture_scale;            // 0x18 AntennaVertex length divided by the bitmap span
     int16_t step_count;             // 0x1c 0x1c zeroed at create, incremented once per antenna_update_physics pass
-    int16_t unknown_1e;             // 0x1e
+    int16_t pad_1e;                 // 0x1e
 } antenna_vertex;                   // size 0x20
 
 typedef struct antenna {
     int16_t identifier;             // 0x00 datum salt
-    int16_t unknown_02;             // 0x02
-    uint8_t unknown_04;             // 0x04 zeroed at create
+    int16_t pad_02;                 // 0x02
+    uint8_t initialized;            // 0x04 zeroed at create
     uint8_t degenerate;             // 0x05 set when the tag has fewer than two vertices
     int16_t update_counter;         // 0x06 0x06 incremented per antennas_update, reset by antenna_render_callback;
                                     //    physics runs three catch-up steps when above 5
@@ -891,9 +891,9 @@ typedef struct flag_vertex {
 typedef struct flag {
     int16_t identifier;             // 0x00 datum salt
     uint8_t invalid;                // 0x02 raised when the tag grid is out of range
-    uint8_t unknown_03;             // 0x03 zeroed at create
+    uint8_t initialized;            // 0x03 zeroed at create
     uint8_t deployed;               // 0x04 zero while flag_cloth_update treats the flag as retracting
-    uint8_t unknown_05;             // 0x05
+    uint8_t pad_05;                 // 0x05
     int16_t update_counter;         // 0x06 ticks since the flag was last rendered; render_callback and the tick update compare it with 5
     datum_index object_index;       // 0x08 -1 at create
     datum_index definition_tag;     // 0x0c the Flag tag
@@ -941,9 +941,9 @@ typedef struct glow_particle {
 typedef struct glow {
     int16_t identifier;             // 0x00 datum salt
     uint8_t disabled;               // 0x02 the update is skipped while set
-    uint8_t unknown_03;             // 0x03
+    uint8_t pad_03;                 // 0x03
     int16_t marker_count;           // 0x04 markers actually resolved, at most 5
-    int16_t unknown_06;             // 0x06
+    int16_t pad_06;                 // 0x06
     object_marker markers[5];       // 0x08 filled by object_get_node_local_transform from the
                                     //      TagString marker name at Glow tag offset 0
     datum_index definition_tag;     // 0x224 the Glow tag
@@ -952,7 +952,7 @@ typedef struct glow {
     float total_length;             // 0x234 sum of the distances along the ordered chain
     float cumulative_length[5];     // 0x238 running distance at each ordered marker
     int16_t spawn_count;            // 0x24c particles the initial chain build allocates
-    int16_t unknown_24e;            // 0x24e
+    int16_t pad_24e;                // 0x24e
     glow_particle *first_particle;  // 0x250
     glow_particle *last_particle;   // 0x254
     int16_t spawn_timer;            // 0x258 ticks until the next trailing particle is spawned

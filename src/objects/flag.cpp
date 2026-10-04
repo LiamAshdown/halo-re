@@ -111,7 +111,7 @@ datum_index halo::objects::FlagSystem::create(datum_index flag_tag)
 
                 entry->definition_tag = flag_tag;
                 entry->invalid = 0;
-                entry->unknown_03 = 0;
+                entry->initialized = 0;
                 entry->object_index = k_datum_index_none;
                 entry->previous_marker_position.x = 0.0f;
                 entry->previous_marker_position.y = 0.0f;
@@ -295,9 +295,9 @@ void halo::objects::FlagSystem::render_callback(datum_index object_index, datum_
     Flag *tag = halo::objects::tag_as<Flag>(self->definition_tag);
 
     self->object_index = object_index;
-    if (self->update_counter > 5 || self->unknown_03 == 0) {
+    if (self->update_counter > 5 || self->initialized == 0) {
         halo::objects::flag_cloth_update(self, tag, 5.0f);
-        self->unknown_03 = 1;
+        self->initialized = 1;
     }
     self->update_counter = 0;
     if (self->invalid == 0) {

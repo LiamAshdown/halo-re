@@ -98,7 +98,7 @@ datum_index halo::objects::AntennaSystem::create(datum_index antenna_tag)
             real_point3d position = { 0.0f, 0.0f, 0.0f };
             int32_t i;
 
-            ant->unknown_04 = 0;
+            ant->initialized = 0;
             ant->degenerate = tag_vertex_count < 2;
             ant->definition_tag = antenna_tag;
             ant->object_index = k_datum_index_none;
