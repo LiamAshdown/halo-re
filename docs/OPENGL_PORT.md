@@ -85,3 +85,7 @@ unchanged and translate them; the engine code above the interface is not rewritt
   `gl_FragData[0]` while MojoShader's translation writes `gl_FragColor`, so the alpha test compared an undefined value and discarded every fragment of
   alpha-tested draws (most world/model draws). The wrapper now uses MojoShader's own `ps_oC0` name. The skinning path (vs 91, c29+3*bone) was checked and
   gives in-range clip positions. The campaign start now shows the ship interior, marines and first-person weapon; brightness against D3D9 not compared yet.
+- 2026-10-04: BSP textured and lightmapped. (1) Effect passes now bind `Texture[n] = <param>` pass states (D3DX state 0xA4): the environment ps_1_x asm
+  shaders have no CTAB, so this is their only texture binding (vendored MojoShader patch: `readstates` keeps the state index). (2) vs_1_x inputs are matched
+  to declaration elements by their `dcl` usage like every other version (Halo's vsh.bin declares every input; the lightmap shaders read stream 1's
+  NORMAL1/TEXCOORD1 from v7/v8, which element order left unbound). NORMAL1 shares the TEXCOORD7 attribute slot. Remaining: night scene lacks D3D's blue fog tint.

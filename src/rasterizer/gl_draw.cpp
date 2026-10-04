@@ -143,7 +143,8 @@ int attribute_slot(uint32_t usage, uint32_t index)
     case USAGE_POSITION: case USAGE_POSITIONT: return index == 0 ? 0 : -1;
     case USAGE_BLENDWEIGHT: return index == 0 ? 1 : -1;
     case USAGE_BLENDINDICES: return index == 0 ? 2 : -1;
-    case USAGE_NORMAL: return index == 0 ? 3 : -1;
+    // ponytail: normal1 (the lightmap stream's incident radiosity vector) shares texcoord7's slot; no Halo declaration has both
+    case USAGE_NORMAL: return index == 0 ? 3 : (index == 1 ? 13 : -1);
     case USAGE_COLOR: return index < 2 ? 4 + static_cast<int>(index) : -1;
     case USAGE_TEXCOORD: return index < 8 ? 6 + static_cast<int>(index) : -1;
     case USAGE_TANGENT: return index == 0 ? 14 : -1;
@@ -1220,24 +1221,11 @@ program *add_program()
     return &g_programs[g_program_count++];
 }
 
-/**
- * Vertex shaders before 2.0 have no input declarations: Direct3D feeds input register vN from the Nth element of the
- * vertex declaration, whatever its usage. Later shaders declare a usage per register and are matched by usage.
- */
-bool inputs_by_element_order(const gl_shader *vertex_shader)
-{
-    return vertex_shader != nullptr && vertex_shader->parse != nullptr && vertex_shader->parse->major_ver < 2;
-}
-
 void bind_attribute_names(GLuint prog, const MOJOSHADER_parseData *parse)
 {
     for (int i = 0; i < parse->attribute_count; i++) {
+        // vs_1_x registers are declared too (dcl_texcoord1 v8, ...): Direct3D 9 matches them to declaration elements by usage
         int slot = attribute_slot(static_cast<uint32_t>(parse->attributes[i].usage), static_cast<uint32_t>(parse->attributes[i].index));
-
-        if (parse->major_ver < 2 && strncmp(parse->attributes[i].name, "vs_v", 4) == 0) {
-            slot = atoi(parse->attributes[i].name + 4);
-            slot = slot < k_attribute_slots ? slot : -1;
-        }
 
         if (slot >= 0) {
             glBindAttribLocation(prog, static_cast<GLuint>(slot), parse->attributes[i].name);
@@ -2114,8 +2102,6 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
     upload_uniforms(p, setup, viewport_width, viewport_height, viewport_x, viewport_y);
 
     // vertex arrays
-    const bool by_order = inputs_by_element_order(g_pipe.vertex_shader);
-
     if (user_data) {
         uint32_t count = indexed ? vertex_count : vertices;
 
@@ -2123,7 +2109,7 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
     }
     for (uint32_t i = 0; i < setup.element_count; i++) {
         const element &e = setup.elements[i];
-        int slot = by_order ? static_cast<int>(i) : attribute_slot(e.usage, e.index);
+        int slot = attribute_slot(e.usage, e.index);
         attribute_format format;
         uint32_t stride;
         uintptr_t offset;
@@ -2237,7 +2223,7 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
                 v[0][0], v[0][1], v[0][2], v[0][3], v[1][0], v[1][1], v[1][2], v[1][3], v[2][0], v[2][1], v[2][2], v[2][3], v[3][0], v[3][1], v[3][2], v[3][3],
                 g_pipe.viewport[0], g_pipe.viewport[1], g_pipe.viewport[2], g_pipe.viewport[3], g_target_flipped);
         }
-        if (inputs_by_element_order(g_pipe.vertex_shader) && g_pipe.stream[0] != nullptr && g_pipe.indices != nullptr && indexed && !user_data) {
+        if (g_pipe.vertex_shader != nullptr && g_pipe.stream[0] != nullptr && g_pipe.indices != nullptr && indexed && !user_data) {
             const uint8_t *base = g_pipe.stream[0]->data + g_pipe.stream_offset[0] + static_cast<int64_t>(base_vertex) * g_pipe.stream_stride[0];
             const uint16_t *index = reinterpret_cast<const uint16_t *>(g_pipe.indices->data + start_index * 2);
             char text[600] = "";
@@ -2254,7 +2240,7 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
             }
             halo::shell::standalone_log("gl probe   geometry %s", text);
         }
-        if (inputs_by_element_order(g_pipe.vertex_shader) && g_pipe.stream[0] != nullptr && g_pipe.indices != nullptr && indexed && !user_data) {
+        if (g_pipe.vertex_shader != nullptr && g_pipe.stream[0] != nullptr && g_pipe.indices != nullptr && indexed && !user_data) {
             const uint8_t *base = g_pipe.stream[0]->data + g_pipe.stream_offset[0] + static_cast<int64_t>(base_vertex) * g_pipe.stream_stride[0];
             const uint16_t *index = reinterpret_cast<const uint16_t *>(g_pipe.indices->data + start_index * 2);
             char text[600] = "";
@@ -2283,8 +2269,9 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
                     size_t nonzero = 0;
 
                     for (size_t b = 0; b < level_bytes; b++) nonzero += tex->level[0].data[b] != 0;
-                    snprintf(text + strlen(text), sizeof(text) - strlen(text), "[fmt %u %ux%u L%u nonzero %u/%u dirty %d name %u]", tex->format, tex->width, tex->height, tex->levels,
-                        static_cast<unsigned>(nonzero), static_cast<unsigned>(level_bytes), tex->dirty, tex->name);
+                    snprintf(text + strlen(text), sizeof(text) - strlen(text), "[fmt %u %ux%u L%u nonzero %u/%u dirty %d name %u first %02x%02x%02x%02x]", tex->format, tex->width, tex->height, tex->levels,
+                        static_cast<unsigned>(nonzero), static_cast<unsigned>(level_bytes), tex->dirty, tex->name,
+                        tex->level[0].data[0], tex->level[0].data[1], tex->level[0].data[2], tex->level[0].data[3]);
                 }
             }
             halo::shell::standalone_log("gl probe   c0=%g %g %g %g c1=%g %g %g %g%s", g_pipe.pixel_constants[0][0], g_pipe.pixel_constants[0][1], g_pipe.pixel_constants[0][2],
