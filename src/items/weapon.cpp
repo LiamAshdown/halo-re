@@ -933,7 +933,7 @@ void weapon_ref::set_ready_timer(real value)
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = halo::items::weapon_data_of(item_obj);
-    wd->ready_timer = value;
+    wd->integrated_light_power = value;
 }
 
 /**

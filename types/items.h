@@ -507,14 +507,14 @@ typedef struct weapon_data {
     uint32_t flags;                  // 0x22c weapon_flags
     uint16_t control_flags;          // 0x230 weapon_control_flags, refreshed every tick by
                                      //       unit_update through weapon_set_control_flags
-    uint16_t unknown_232;            // 0x232 the high half of the dword weapon_set_control_flags
+    uint16_t pad_232;                // 0x232 the high half of the dword weapon_set_control_flags
                                      //       writes; never read
     float primary_trigger;           // 0x234 0..1 analog pull, also from
                                      //       weapon_set_control_flags. A tag trigger with flag
                                      //       0x200 uses this instead of its own firing_rate, and
                                      //       treats > 0.05 as "pulled"
     int8_t state;                    // 0x238 weapon_state
-    int8_t unknown_239;              // 0x239 never read or written by this module
+    int8_t last_reported_state;      // 0x239 never read or written by this module
     int16_t action_ticks;            // 0x23a ticks left in the ready/put-away animation, seeded
                                      //       by weapon_ready from
                                      //       weapon_get_first_person_animation_time; while it is
@@ -530,23 +530,24 @@ typedef struct weapon_data {
     float charged_fraction;          // 0x244 while a trigger is charged, weapon_update stores
                                      //       1 - ticks/(30*charged_time) here; heat decay is
                                      //       suppressed on any tick this is nonzero
-    float ready_timer;               // 0x248 counts down by 1/24 per tick. UNSURE: the decrement
+    float integrated_light_power;    // 0x248 counts down by 1/24 per tick. UNSURE: the decrement
                                      //       is skipped, and unit_update writes this field
                                      //       directly through 0x4c2b20, when the holder Object
                                      //       tag has flag 0x800000
-    uint32_t unknown_24c;            // 0x24c never read or written by this module
+    uint32_t integrated_light_delay_ticks; // 0x24c never read or written by this module
     datum_index tracked_object_index;// 0x250 scrubbed to -1 by weapon_update when the object it
                                      //       names has died, and required by trigger effect
                                      //       state 5; 0x4c3eb0 clears it
-    uint32_t unknown_254;            // 0x254 never read or written by this module
-    uint32_t unknown_258;            // 0x258 never read or written by this module
+    uint32_t recoil_angular_velocity; // 0x254 never read or written by this module
+    int16_t recoil_recovery_time;    // 0x258 never read or written by this module (CEA recoil_recovery_time)
+    int16_t shots_until_demotion;    // 0x25a never read or written by this module (CEA shots_until_demotion)
     int16_t alternate_shots_loaded;  // 0x25c incremented by weapon_fire_trigger for a
                                      //       secondary_trigger_mode of 3 or 4, and bounded by
                                      //       the tag maximum_alternate_shots_loaded (0x32e)
-    int16_t unknown_25e;             // 0x25e never read or written by this module
+    int16_t pad_25e;                 // 0x25e never read or written by this module
     weapon_trigger_state triggers[2];    // 0x260 .. 0x2b0
     weapon_magazine_state magazines[2];  // 0x2b0 .. 0x2c8
-    uint32_t unknown_2c8;            // 0x2c8 never read or written by this module
+    uint32_t animation;              // 0x2c8 never read or written by this module
     datum_index overheat_effect_handle;  // 0x2cc the looping effect or particle system started
                                      //       when the weapon overheated; weapon_put_away deletes
                                      //       the particle system it names and resets it to -1
@@ -557,7 +558,7 @@ typedef struct weapon_data {
                                      //       weapon_trigger_begin_reload copies both arrays into
                                      //       the magazine states when it runs on a client
     int16_t predicted_rounds_loaded[2];  // 0x2d8
-    uint32_t unknown_2dc;            // 0x2dc never read or written by this module
+    int16_t rounds_total_to_use_at_reload_finish[2]; // 0x2dc never read or written by this module (CEA)
     uint8_t network_state_valid;     // 0x2e0 weapon_create_from_creation_message sets 1
     uint8_t network_baseline_index;  // 0x2e1 carried in the creation and update messages and
                                      //       compared before an update is taken

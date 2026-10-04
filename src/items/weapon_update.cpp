@@ -77,7 +77,7 @@ int32_t weapon_ref::update()
         halo::items::item_detonation_timer_start(item_index);
     }
 
-    if (wd->ready_timer > 0.0f) {
+    if (wd->integrated_light_power > 0.0f) {
         int skip_decrement = 0;
         if (item_obj->parent_object == k_datum_index_none) {
             skip_decrement = 0;
@@ -93,9 +93,9 @@ int32_t weapon_ref::update()
             }
         }
         if (!skip_decrement) {
-            wd->ready_timer = wd->ready_timer - 0.041666668f;
-            if (wd->ready_timer < 0.0f) {
-                wd->ready_timer = 0.0f;
+            wd->integrated_light_power = wd->integrated_light_power - 0.041666668f;
+            if (wd->integrated_light_power < 0.0f) {
+                wd->integrated_light_power = 0.0f;
             }
         }
     }
@@ -535,7 +535,7 @@ void weapon_ref::update_function_values()
                     break;
 
                 case weaponfunctionin_integrated_light:
-                    value = wd->ready_timer;
+                    value = wd->integrated_light_power;
                     break;
 
                 case weaponfunctionin_primary_firing:
