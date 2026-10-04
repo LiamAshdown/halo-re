@@ -93,6 +93,9 @@ void *MOJOSHADERCALL backend_compile(const void *, const char *mainfn, const uns
     shader->parse = parse;
     if (parse != nullptr && parse->shader_type == MOJOSHADER_TYPE_PIXEL) {
         shader->kind = kind_pixel_shader;
+        if (parse != &g_placeholder_parse) {
+            keep_ps1_bytecode(shader, tokenbuf, bufsize);
+        }
     }
     return shader;
 }

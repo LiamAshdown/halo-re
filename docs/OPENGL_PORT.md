@@ -93,3 +93,7 @@ unchanged and translate them; the engine code above the interface is not rewritt
   (tools/convert_fx.py) each is an FXLC expression copying one float4 parameter. MojoShader dropped them (vendored patch: the state records the
   parameter named in the expression's CTAB, or by name for usage 1), and `gl_effect.cpp` now copies that parameter into the constant registers at
   BeginPass. Fixes stale lightmap multipliers and the missing atmospheric fog; the a50 start now matches D3D9.
+- 2026-10-04: ps_1_x sampler types. ps_1_x declares no sampler types (Direct3D samples whatever is bound); the translation assumed 2D, so cube
+  textures (the flashlight's projected cube map) sampled black. ps_1_x shaders keep their bytecode and are re-translated with a MojoShader sampler
+  map when a cube/volume texture is bound (cached per shader, up to 8 combinations). Vendored MojoShader patch: ps_1_4 `texld` emits
+  textureCube/texture3D for those samplers. Flashlight lights the BSP. Open: other levels unchecked, GLES3/WebGL profile (milestone 6).

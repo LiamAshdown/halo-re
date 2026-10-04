@@ -810,6 +810,33 @@ void create_shader(gl_shader *shader, const void *function, bool pixel)
         MOJOSHADER_freeParseData(shader->parse);
         shader->parse = nullptr;
     }
+    if (pixel) {
+        keep_ps1_bytecode(shader, function, 0);
+    }
+}
+
+/**
+ * ps_1_x declares no sampler types: Direct3D samples whatever texture is bound, while the translation assumed 2D. Keeps
+ * a copy of such a shader's bytecode (size 0: up to its END token) so it can be translated again for other types.
+ */
+void keep_ps1_bytecode(gl_shader *shader, const void *tokens, uint32_t size)
+{
+    const uint32_t *words = static_cast<const uint32_t *>(tokens);
+
+    if (shader->parse == nullptr || shader->parse->shader_type != MOJOSHADER_TYPE_PIXEL || shader->parse->major_ver >= 2 || shader->parse->sampler_count == 0) {
+        return;
+    }
+    if (size == 0) {
+        uint32_t i = 1;
+
+        while (words[i] != 0x0000ffff) {
+            i += (words[i] & 0xffff) == 0xfffe ? 1 + ((words[i] >> 16) & 0x7fff) : 1;  // comments may hold any word
+        }
+        size = (i + 1) * 4;
+    }
+    shader->bytecode = static_cast<uint8_t *>(malloc(size));
+    memcpy(shader->bytecode, tokens, size);
+    shader->bytecode_size = size;
 }
 
 /* ======================================================================================================== */
@@ -1682,6 +1709,10 @@ void draw_shutdown_object(gl_object *object)
         gl_shader *shader = static_cast<gl_shader *>(object);
 
         if (shader->parse != nullptr && shader->parse != &g_placeholder_parse) MOJOSHADER_freeParseData(shader->parse);
+        for (uint32_t i = 0; i < shader->variant_count; i++) {
+            destroy_object(shader->variant[i]);
+        }
+        free(shader->bytecode);
         break;
     }
     default:
@@ -1779,13 +1810,62 @@ void gather_ff_vertex(ff_vertex_state &s, const element *elements, uint32_t coun
     }
 }
 
+/** The translation of ps_1_x shader `ps` whose sampler types match the textures bound now (see keep_ps1_bytecode). */
+gl_shader *pixel_shader_for_bound_textures(gl_shader *ps)
+{
+    static uint32_t next_variant_id = 0x40000000;
+    MOJOSHADER_samplerMap map[16];
+    unsigned int map_count = 0;
+    uint32_t key = 0;
+    gl_shader *variant;
+
+    if (ps == nullptr || ps->bytecode == nullptr) {
+        return ps;
+    }
+    for (int i = 0; i < ps->parse->sampler_count; i++) {
+        int unit = ps->parse->samplers[i].index;
+        const gl_object *texture = unit >= 0 && unit < 16 ? g_pipe.texture[unit] : nullptr;
+        uint32_t kind = texture != nullptr ? texture->kind : kind_texture;
+
+        if (kind == kind_cube_texture || kind == kind_volume_texture) {
+            map[map_count].index = unit;
+            map[map_count].type = kind == kind_cube_texture ? MOJOSHADER_SAMPLER_CUBE : MOJOSHADER_SAMPLER_VOLUME;
+            map_count++;
+            key |= (kind == kind_cube_texture ? 1u : 2u) << (2 * unit);
+        }
+    }
+    if (key == 0) {
+        return ps;
+    }
+    for (uint32_t i = 0; i < ps->variant_count; i++) {
+        if (ps->variant_key[i] == key) {
+            return ps->variant[i];
+        }
+    }
+    // ponytail: at most 8 texture-type combinations per shader; further ones keep the 2D translation
+    if (ps->variant_count == 8) {
+        return ps;
+    }
+    variant = new_object<gl_shader>(kind_pixel_shader);
+    variant->id = next_variant_id++;
+    variant->parse = MOJOSHADER_parse(MOJOSHADER_PROFILE_GLSL, nullptr, ps->bytecode, ps->bytecode_size, nullptr, 0, map, map_count, nullptr, nullptr, nullptr);
+    if (variant->parse != nullptr && variant->parse->error_count > 0) {
+        halo::shell::standalone_log("gl: pixel shader %u failed to translate for its bound textures: %s", ps->id, variant->parse->errors[0].error);
+        MOJOSHADER_freeParseData(variant->parse);
+        variant->parse = nullptr;
+    }
+    ps->variant_key[ps->variant_count] = key;
+    ps->variant[ps->variant_count++] = variant;
+    return variant;
+}
+
 program *select_program(draw_setup &setup)
 {
     program_key key;
     uint64_t hash;
     program *found;
     gl_shader *vs = g_pipe.vertex_shader;
-    gl_shader *ps = g_pipe.pixel_shader;
+    gl_shader *ps = pixel_shader_for_bound_textures(g_pipe.pixel_shader);
     bool alpha_test = g_pipe.render_state[D3DRS_ALPHATESTENABLE] != 0;
     uint32_t alpha_function = alpha_test ? g_pipe.render_state[D3DRS_ALPHAFUNC] : 8;
     uint32_t stage_count = 0;

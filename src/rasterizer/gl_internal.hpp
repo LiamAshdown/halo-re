@@ -96,6 +96,12 @@ struct gl_shader : gl_object {
     const MOJOSHADER_parseData *parse;  // null if the bytecode could not be translated
     GLuint compiled;                    // GL shader object, 0 until a program needs it
     uint32_t id;
+    // ps_1_x only: the bytecode, and re-translations for bound cube/volume textures (key: 2 bits per sampler)
+    uint8_t *bytecode;
+    uint32_t bytecode_size;
+    uint32_t variant_count;
+    uint32_t variant_key[8];
+    gl_shader *variant[8];
 };
 
 struct gl_query : gl_object {
@@ -175,6 +181,7 @@ void read_back_surface(gl_surface *surface);
 void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, uint32_t start_index, uint32_t primitive_count, uint32_t start_vertex,
     const void *vertex_data, uint32_t vertex_stride, const void *index_data, uint32_t index_format, bool indexed, bool user_data);
 void create_shader(gl_shader *shader, const void *function, bool pixel);
+void keep_ps1_bytecode(gl_shader *shader, const void *tokens, uint32_t size);
 void effect_destroy(gl_object *object);
 void viewport_scissor(bool enable);
 void stretch_rect_impl(gl_surface *source, const int32_t *source_rect, gl_surface *dest, const int32_t *dest_rect, uint32_t filter);
