@@ -1121,7 +1121,7 @@ typedef struct font_glyph_cache {
 // global 0x0071d164: GlobalsRasterizerData *rasterizer_globals_data
 // global 0x0069c6a8: uint8_t rasterizer_fog_enabled            latched copy of 0x006893fc (0x5176d0)
 // global 0x0069c6fc: int16_t rasterizer_projected_light_shader_variant  0 or 1 (0x521750)
-// global 0x006e0a04: uint8_t unknown_006e0a04                   UNSURE: odd environment effects
+// global 0x006e0a04: uint8_t environment_effect_variant                   UNSURE: odd environment effects
 // global 0x006e0a08: BitmapData *rasterizer_environment_lightmap  set from EAX by 0x51f310
 // global 0x006e0a0c: uint8_t rasterizer_environment_lightmap_missing  0x520910
 // global 0x006e0a68: uint8_t rasterizer_lightmap_bitmap_missing   set by 0x511f90 (render module)
