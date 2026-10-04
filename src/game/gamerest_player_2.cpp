@@ -1,3 +1,4 @@
+#include "halo/units/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -499,7 +500,7 @@ void Players::server_catchup_on_client_updates()
             }
             unit_obj = object_from_index(plr->unit);
             unit = halo::game::unit_data_of(unit_obj);
-            if ((unit->flags & 0x40) == 0) {
+            if (!test_flag(unit->flags, halo::units::unit_flag::controllable)) {
                 continue;
             }
 

@@ -2514,7 +2514,7 @@ void Players::client_catchup_on_server_updates()
                     unit_control_data control;
                     uint8_t apply = 0;
 
-                    if ((unit->flags & 0x40) == 0) {
+                    if (!test_flag(unit->flags, halo::units::unit_flag::controllable)) {
                         continue;
                     }
 

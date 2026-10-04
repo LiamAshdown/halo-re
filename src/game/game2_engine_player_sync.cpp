@@ -1,3 +1,4 @@
+#include "halo/units/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/game/game2_engine_players.hpp"
@@ -126,7 +127,7 @@ void EnginePlayerSync::players_update_client(void)
             object *unit_obj = halo::game::object_at(plr->unit);
             unit_data *unit = halo::game::unit_data_of(unit_obj);
 
-            if ((unit->flags & 0x40) != 0) {
+            if (test_flag(unit->flags, halo::units::unit_flag::controllable)) {
                 if (local_player_globals->input_disabled == 0) {
                     unit_control_data ctrl;
 
@@ -259,7 +260,7 @@ void EnginePlayerSync::players_update_server(void)
             object *unit_obj = halo::game::object_at(plr->unit);
             unit_data *unit = halo::game::unit_data_of(unit_obj);
 
-            if ((unit->flags & 0x40) != 0) {
+            if (test_flag(unit->flags, halo::units::unit_flag::controllable)) {
                 if (local_player_globals->input_disabled == 0) {
                     if ((action->control_flags & _unit_control_flag_action) != 0 &&
                         unit_obj->parent_object == (datum_index)-1) {

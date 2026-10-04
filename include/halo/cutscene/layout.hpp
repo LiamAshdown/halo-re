@@ -6,15 +6,6 @@
 namespace halo::cutscene {
 
 /**
- * Bits of the unit flags dword that the recorded animation player toggles around playback and that
- * have no name in the shared unit_flags enum.
- */
-enum class unit_playback_flags : uint32_t {
-    none = 0,
-    restore_marker = 0x00000040,
-};
-
-/**
  * Bits of the biped flags dword (biped_data.flags) that playback sets when it hands a unit back to the world.
  */
 enum class biped_playback_flags : uint32_t {
@@ -26,7 +17,6 @@ enum class biped_playback_flags : uint32_t {
 }
 
 namespace halo {
-template <> struct enable_bit_flags<cutscene::unit_playback_flags> : std::true_type {};
 template <> struct enable_bit_flags<cutscene::biped_playback_flags> : std::true_type {};
 }
 

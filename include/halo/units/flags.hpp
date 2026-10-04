@@ -31,7 +31,7 @@ enum class unit_flag : uint32_t {
     unknown_8 = 0x8,
     active_camouflaged = 0x00000010,
     super_camouflaged = 0x00000020,
-    unknown_40 = 0x40,
+    controllable = 0x40,
     disoriented = 0x00000080,
     permutation_dirty = 1u << 8,
     unknown_200 = 1u << 9,

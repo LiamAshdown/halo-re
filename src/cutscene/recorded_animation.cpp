@@ -1,3 +1,4 @@
+#include "halo/units/flags.hpp"
 #include "halo/cutscene/recorded_animation.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/flags.hpp"
@@ -84,7 +85,7 @@ uint8_t RecordedAnimationPlayer::start(int16_t scenario_animation_index, uint16_
     }
 
     unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data + k_unit_data_offset);
-    unit->flags = unit->flags & ~to_bits(unit_playback_flags::restore_marker);
+    unit->flags = unit->flags & ~to_bits(halo::units::unit_flag::controllable);
     unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data + k_unit_data_offset);
     unit->flags = unit->flags | _unit_flag_unknown_8000000;
 
@@ -221,9 +222,9 @@ void RecordedAnimationPlayer::update_all()
             unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
 
             if ((record->flags & _recorded_animation_flag_restore_object_flag_40) != 0) {
-                unit->flags = unit->flags | to_bits(unit_playback_flags::restore_marker);
+                unit->flags = unit->flags | to_bits(halo::units::unit_flag::controllable);
             } else {
-                unit->flags = unit->flags & ~to_bits(unit_playback_flags::restore_marker);
+                unit->flags = unit->flags & ~to_bits(halo::units::unit_flag::controllable);
             }
             header = &((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(record->unit_index)];
             unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
