@@ -423,7 +423,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
         obj->flags = obj->flags | 0x20;
     }
 
-    if (test_flag(obj->flags, objects::object_flag::unknown_2)) {
+    if (test_flag(obj->flags, objects::object_flag::on_ground)) {
         obj->angular_velocity.i = global_origin3d_pointer->x;
         obj->angular_velocity.j = global_origin3d_pointer->y;
         obj->angular_velocity.k = global_origin3d_pointer->z;
@@ -875,7 +875,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
         obj->flags = obj->flags | 0x20;
     }
 
-    if (test_flag(obj->flags, objects::object_flag::unknown_2)) {
+    if (test_flag(obj->flags, objects::object_flag::on_ground)) {
         obj->angular_velocity.i = global_origin3d_pointer->x;
         obj->angular_velocity.j = global_origin3d_pointer->y;
         obj->angular_velocity.k = global_origin3d_pointer->z;

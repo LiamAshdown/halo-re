@@ -215,14 +215,14 @@ void VehicleView::calculate_animation_controls()
             value = halo::math::vector3d_length(*velocity) / max_speed;
             break;
         case 0xf:
-            if (!test_flag(obj->base.flags, objects::object_flag::unknown_4 | objects::object_flag::unknown_8 | objects::object_flag::in_water)) {
+            if (!test_flag(obj->base.flags, objects::object_flag::on_media | objects::object_flag::partially_under_media | objects::object_flag::in_water)) {
                 outputs[i] = 0.0f;
                 continue;
             }
             value = halo::math::vector3d_length(*velocity) / max_speed;
             break;
         case 0x10:
-            if (!test_flag(obj->base.flags, objects::object_flag::unknown_2)) {
+            if (!test_flag(obj->base.flags, objects::object_flag::on_ground)) {
                 outputs[i] = 0.0f;
                 continue;
             }

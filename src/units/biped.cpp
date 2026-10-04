@@ -465,7 +465,7 @@ uint8_t BipedView::update()
                 }
             }
         }
-        if (biped_detach_from_flipped_vehicle && parent->up.k < 0.0f && test_flag(parent->flags, objects::object_flag::unknown_2) &&
+        if (biped_detach_from_flipped_vehicle && parent->up.k < 0.0f && test_flag(parent->flags, objects::object_flag::on_ground) &&
             halo::networking::globals().game_mode != halo::networking::k_game_mode_client) {
             unit_object *self = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(object_index));
             datum_index vehicle_index = self->base.parent_object;

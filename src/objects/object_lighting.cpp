@@ -332,7 +332,7 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(render_lighting *sam
 
     center_ok = halo::structures::object_lighting_sample_point(flags, &obj->bounding_center, sample);
 
-    if (!test_flag(obj->flags, objects::object_flag::unknown_4000)) {
+    if (!test_flag(obj->flags, objects::object_flag::static_lighting_recompute)) {
         render_lighting probe;
 
         if (center_ok == 0) {
@@ -545,7 +545,7 @@ void halo::objects::ObjectLighting::for_each_light_attachment(int32_t register_i
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
-    if (test_flag(obj->flags, objects::object_flag::unknown_100)) {
+    if (test_flag(obj->flags, objects::object_flag::has_attached_lights)) {
         Object *definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
         int16_t i;
 

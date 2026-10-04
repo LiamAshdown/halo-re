@@ -390,13 +390,13 @@ void halo::objects::ObjectLifetime::create_attachments()
         case 0:
             handle = halo::objects::light_new_attached(tag, object_index, i, first_scale, change_color);
             if (handle != k_datum_index_none) {
-                set_flag(obj->flags, objects::object_flag::unknown_100);
+                set_flag(obj->flags, objects::object_flag::has_attached_lights);
             }
             break;
         case 1:
             handle = halo::sound::looping_sound_new(object_index, tag, (char *)&attachment->marker, first_scale);
             if (handle != k_datum_index_none) {
-                set_flag(obj->flags, objects::object_flag::unknown_400);
+                set_flag(obj->flags, objects::object_flag::has_attached_looping_sounds);
             }
             break;
         case 2:

@@ -317,7 +317,7 @@ uint32_t VehicleView::update()
             if (((unit_object *)obj)->base.flags & 0x20) {
                 ((struct vehicle_object *)obj)->vehicle.decay_ticks_remaining = 15;
             }
-            if (!(test_flag(((unit_object *)obj)->base.flags, objects::object_flag::unknown_1000000)) &&
+            if (!(test_flag(((unit_object *)obj)->base.flags, objects::object_flag::collision_disabled)) &&
                 ((1u << ((uint8_t)tag->vehicle_type & 0x1f)) & ((1u << vehicletype_human_plane) | (1u << vehicletype_alien_fighter)))) {
                 float floor_z = *(float *)(global_structure_bsp + 0x10);
                 float ceiling_z = *(float *)(global_structure_bsp + 0x14);

@@ -434,7 +434,7 @@ real compute_level_of_detail_pixels(datum_index object_index)
 
     obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)object_index].data;
 
-    if (halo::cutscene::globals().cinematic_globals->in_progress != 0 && test_flag(obj->flags, objects::object_flag::unknown_400000)) {
+    if (halo::cutscene::globals().cinematic_globals->in_progress != 0 && test_flag(obj->flags, objects::object_flag::movie_star)) {
         return k_maximum_level_of_detail_pixels;
     }
 
@@ -561,7 +561,7 @@ void render_state_refresh(datum_index cache_index, datum_index object_index, rea
         windows_elapsed = 1;
     }
 
-    if (test_flag(obj->flags, objects::object_flag::unknown_4000)) {
+    if (test_flag(obj->flags, objects::object_flag::static_lighting_recompute)) {
         int32_t staleness_threshold;
 
         if (level_of_detail_pixels > 400.0f) {

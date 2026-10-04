@@ -393,7 +393,7 @@ void ObjectCommands::evaluate_object_set_collideable(int16_t function_index, uin
 
 
             if (halo::hs::argument_byte(arguments[1]) == 0) {
-                ((struct object *)object)->flags |= halo::to_bits(halo::objects::object_flag::unknown_1000000);
+                ((struct object *)object)->flags |= halo::to_bits(halo::objects::object_flag::collision_disabled);
             } else {
                 ((struct object *)object)->flags &= 0xfeffffff;
             }

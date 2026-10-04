@@ -609,7 +609,7 @@ uint8_t halo::objects::SceneryObject::initialize()
         if (animation != -1) {
             ((struct object *)object)->animation_index = animation;
             ((struct object *)object)->animation_graph = halo::objects::tag_handle(definition->animation_graph);
-            set_flag(((struct object *)object)->flags, objects::object_flag::unknown_80);
+            set_flag(((struct object *)object)->flags, objects::object_flag::animates_automatically);
         }
     }
     set_flag(((struct object *)object)->flags, objects::object_flag::definition_flag0);

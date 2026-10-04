@@ -145,14 +145,14 @@ uint8_t halo::objects::ObjectUpdater::update()
 
     halo::objects::object_type_definitions_notify_0x38(object_index);
 
-    if (!test_flag(obj->flags, objects::object_flag::unknown_800000)) {
+    if (!test_flag(obj->flags, objects::object_flag::do_not_recompute_node_matrices)) {
         halo::objects::object_recalculate_bounding_radius(object_index);
     }
 
     halo::objects::object_update_functions(object_index);
     halo::objects::object_update_change_colors(object_index);
 
-    if ((test_flag(obj->flags, objects::object_flag::unknown_2000)) &&
+    if ((test_flag(obj->flags, objects::object_flag::dynamic_lighting_recompute)) &&
         (((obj->flags & _object_no_collision_bit) == 0) || (definition->model.tag_id.index == halo::k_word_none))) {
         halo::objects::object_for_each_light_attachment(object_index, 1, 1);
     }
@@ -412,7 +412,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                 (int32_t)((struct object *)obj)->animation_index * 0xb4);
             int16_t frame_count = (int16_t)animation->frame_count;
             uint32_t frame;
-            if (test_flag(((struct object *)obj)->flags, objects::object_flag::unknown_80) && frame_count > 0) {
+            if (test_flag(((struct object *)obj)->flags, objects::object_flag::animates_automatically) && frame_count > 0) {
                 frame = ((uint32_t)halo::game::globals().game_time->game_time + object_index) % (uint32_t)(int32_t)frame_count;
             } else {
                 frame = (uint16_t)((struct object *)obj)->animation_frame;

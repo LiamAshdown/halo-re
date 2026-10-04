@@ -249,7 +249,7 @@ void halo::units::unit_get_crouch_height_offset(real_point3d *object_position, u
     }
 
     if (!test_flag(tag->biped_flags, tags::biped_tag_flag::spherical) &&
-        (unit->controlling_player != k_datum_index_none || test_flag(obj->flags, objects::object_flag::unknown_400000))) {
+        (unit->controlling_player != k_datum_index_none || test_flag(obj->flags, objects::object_flag::movie_star))) {
         *pill_height = ((tag->crouching_collision_height - tag->standing_collision_height) * biped->crouch_fraction +
                         tag->standing_collision_height) - (tag->collision_radius + tag->collision_radius);
         *pill_radius_out = tag->collision_radius;

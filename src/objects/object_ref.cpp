@@ -1480,7 +1480,7 @@ void halo::objects::ObjectRef::start_animation(datum_index graph_tag, char *name
         if (animation_index != -1) {
             uint8_t *extended_flags = (uint8_t *)obj + 0x1f4;
 
-            clear_flag(obj->flags, objects::object_flag::unknown_80);
+            clear_flag(obj->flags, objects::object_flag::animates_automatically);
             *extended_flags |= 1;
             obj->animation_index = animation_index;
 

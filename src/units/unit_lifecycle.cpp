@@ -404,7 +404,7 @@ uint8_t UnitView::new_()
         unit->grenade_counts[tag->grenade_type] = (int8_t)tag->grenade_count;
     }
 
-    set_flag(obj->flags, objects::object_flag::unknown_2000 | objects::object_flag::unknown_4000);
+    set_flag(obj->flags, objects::object_flag::dynamic_lighting_recompute | objects::object_flag::static_lighting_recompute);
 
     if (tag->feign_death_threshold > 0.0f && tag->feign_death_time > 0.0f && tag->feign_death_chance > 0.0f) {
         float roll = halo::math::random_real();
