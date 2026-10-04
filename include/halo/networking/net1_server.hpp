@@ -52,7 +52,7 @@ public:
     char service_machines_tick();
     uint32_t status_periodic_print();
     int32_t validate_join_request();
-    char broadcast_to_all(int32_t param_1, void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
+    char broadcast_to_all(int32_t bit_count, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t priority);
     char broadcast_to_flagged(int32_t body_bit_count, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
     uint8_t send_to_machine(int32_t machine_id, uint32_t status_bit, void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
 };

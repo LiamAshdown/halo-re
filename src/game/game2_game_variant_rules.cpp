@@ -52,7 +52,7 @@ uint32_t GameVariantRules::variant_add_to_history(char *name, game_variant *opti
     game_variant temp;
     void *name_copy;
 
-    if (halo::game::game_engine_is_map_and_variant_valid(0, 0) == 0) {
+    if (halo::game::game_engine_is_map_and_variant_valid(name, path) == 0) {
         return 0;
     }
 

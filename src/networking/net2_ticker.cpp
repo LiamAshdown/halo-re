@@ -44,7 +44,7 @@ void TickerTextBuffer::advance(network_ui_widget *widget, ticker_text_buffer *se
 
     row_object->value = (int16_t)self->start_column;
 
-    font_record = *(uint8_t **)(halo::cache::globals().tag_instances + (*reinterpret_cast<uint32_t *>(text_row) & halo::k_datum_slot_mask) * 0x20 + 0x14);
+    font_record = (uint8_t *)halo::cache::globals().tag_instances[*reinterpret_cast<uint32_t *>(text_row) & halo::k_datum_slot_mask].data;
     hud_text_draw_font_tag_id = *(void **)(font_record + 0x108);
     max_width[0] = (int32_t)*(int16_t *)(font_record + 0x2a) - (int32_t)*(int16_t *)(font_record + 0x26);
     max_width[1] = 0;

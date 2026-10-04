@@ -2,6 +2,8 @@
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/memory/api.hpp"
+#include "halo/game/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
@@ -55,6 +57,18 @@ void PlayDiagnostics::run(void)
 
     if ((++debug_play_tick % 90) != 0) {
         return;
+    }
+    {
+        data_iterator iterator;
+        player *entry;
+        int32_t n = 0;
+
+        iterator.data = halo::game::globals().player_data;
+        iterator.next_index = 0;
+        iterator.index = (datum_index)-1;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+        while ((entry = (player *)halo::memory::data_iterator_next(&iterator)) != 0) {
+        }
     }
     if (fp->unit_index != (datum_index)halo::k_dword_none) {
         uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + 8 + (fp->unit_index & halo::k_slot_mask) * 0xc);

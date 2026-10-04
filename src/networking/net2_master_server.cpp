@@ -208,6 +208,10 @@ void MasterServerConnection::process_pending_requests(void)
                     last_result = ServerBrowserLANUpdate(master_server_query_engine, 1, network_session_start_game_type,
                                                 (uint16_t)network_session_start_game_type);
                 } else {
+                    halo::networking::qr2_register_key(0x33, "dedicated");
+                    halo::networking::qr2_register_key(0x34, "player_flags");
+                    halo::networking::qr2_register_key(0x35, "game_flags");
+                    halo::networking::qr2_register_key(0x36, "game_classic");
                     last_result = ServerBrowserUpdate(master_server_query_engine, 1, 0, browser_state::master_query_key_ids, 10, 0);
                 }
             } else {

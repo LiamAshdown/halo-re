@@ -590,32 +590,34 @@ void halo::objects::DamageSystem::throttled_multiplayer_sound_event()
  */
 void halo::objects::DamageSystem::apply_shield_charge_and_notify(void **message)
 {
-    int32_t network_id;
-    float shield_damage;
-    int8_t notify;
+    struct {
+        int32_t network_id;
+        float shield_damage;
+        int8_t notify;
+    } decoded;
 
     if (halo::networking::delta_context(message)->state->incremental != 0) {
-        halo::networking::message_delta_decode_compound_field_staged(0);
+        halo::networking::message_delta_decode_compound_field_staged(message);
         return;
     }
 
-    if (halo::networking::message_delta_decode_compound_field(message, &network_id) == 0) {
+    if (halo::networking::message_delta_decode_compound_field(message, &decoded) == 0) {
         return;
     }
 
-    if (network_id != 0) {
-        datum_index effect = object_network_id_table->handles[network_id];
+    if (decoded.network_id != 0) {
+        datum_index effect = object_network_id_table->handles[decoded.network_id];
 
         if (effect != k_datum_index_none) {
             object *target = halo::objects::object_try_and_get(effect, _object_mask_unit);
 
             if (target != 0) {
-                if (0.0f < shield_damage) {
+                if (0.0f < decoded.shield_damage) {
                     target->shield_damage_ticks = 0;
                     if ((target->vitality_flags & _object_shield_depleted_bit) == 0) {
                         target->current_shield_damage = 1.0f;
                     }
-                    target->recent_shield_damage = shield_damage + target->recent_shield_damage;
+                    target->recent_shield_damage = decoded.shield_damage + target->recent_shield_damage;
                     if (1.0f < target->current_shield_damage) {
                         target->current_shield_damage = 1.0f;
                     }
@@ -623,8 +625,8 @@ void halo::objects::DamageSystem::apply_shield_charge_and_notify(void **message)
                         target->recent_shield_damage = 1.0f;
                     }
                 }
-                if (notify == 1) {
-                    halo::objects::object_set_shield_depleted_flag(0);
+                if (decoded.notify == 1) {
+                    halo::objects::object_set_shield_depleted_flag(effect);
                 }
                 halo::units::unit_update_stance_and_jump(effect, 0, 0, 0, 0, 0, 0, k_datum_index_none, 0, 0);
             }
@@ -1362,22 +1364,27 @@ void halo::objects::DamageSystem::queue_pickup_denied_event(void *param_1, int32
  */
 void halo::objects::DamageSystem::apply_linked_impulse(void **message)
 {
-    int32_t network_id;
-    float impulse_scale, direction_i, direction_j, direction_k;
+    struct {
+        int32_t network_id;
+        float impulse_scale;
+        float direction_i;
+        float direction_j;
+        float direction_k;
+    } decoded;
 
     if (halo::networking::delta_context(message)->state->incremental != 0) {
-        halo::networking::message_delta_decode_compound_field_staged(0);
+        halo::networking::message_delta_decode_compound_field_staged(message);
         return;
     }
 
-    if (halo::networking::message_delta_decode_compound_field(message, &network_id) != 0 && network_id != 0 &&
-        object_network_id_table->handles[network_id] != k_datum_index_none) {
+    if (halo::networking::message_delta_decode_compound_field(message, &decoded) != 0 && decoded.network_id != 0 &&
+        object_network_id_table->handles[decoded.network_id] != k_datum_index_none) {
         real_vector3d impulse;
 
-        impulse.i = direction_i * impulse_scale;
-        impulse.j = direction_j * impulse_scale;
-        impulse.k = direction_k * impulse_scale;
-        halo::items::item_accelerate(object_network_id_table->handles[network_id], &impulse, 0);
+        impulse.i = decoded.direction_i * decoded.impulse_scale;
+        impulse.j = decoded.direction_j * decoded.impulse_scale;
+        impulse.k = decoded.direction_k * decoded.impulse_scale;
+        halo::items::item_accelerate(object_network_id_table->handles[decoded.network_id], &impulse, 0);
     }
 }
 

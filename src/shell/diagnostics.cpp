@@ -110,7 +110,6 @@ void FatalError::shut_down_engine_services()
         halo::rasterizer::chimera__registry_check_3();
         halo::rasterizer::rasterizer_service_deferred_windowed_ops();
         halo::sound::sound_stop_all();
-        KeystoneLibrary::unload();
     } __except (1) {
     }
 }
@@ -132,6 +131,15 @@ int32_t FatalError::show(uint32_t resource_id, uint32_t help_text_or_id, int32_t
     int32_t result;
 
     load_text(resource_id, help_text_or_id, is_fatal);
+    {
+        void *frames[12];
+        USHORT n = CaptureStackBackTrace(0, 12, frames, 0);
+        char line[256];
+        int len = 0;
+        for (USHORT i = 0; i < n; i++) {
+            len += sprintf(line + len, "%p ", frames[i]);
+        }
+    }
 
     fatal_error_is_fatal = is_fatal;
 

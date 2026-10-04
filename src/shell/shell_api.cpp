@@ -545,11 +545,6 @@ int32_t cpu_get_type(int32_t mode)
 
 
 
-void keystone_library_unload(void)
-{
-    halo::shell::KeystoneLibrary::unload();
-}
-
 void os_platform_identify(void)
 {
     halo::shell::OperatingSystem::identify();

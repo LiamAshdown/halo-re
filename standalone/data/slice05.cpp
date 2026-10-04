@@ -125,8 +125,8 @@ render_model_effect model_render_default_effect;                       // 0x006b
 uint8_t model_render_default_region_permutations[32];                  // 0x006b7f40
 ColorRGB model_render_default_change_colors[4];                        // 0x006b7f60
 int32_t update_server_last_log_ms;                                     // 0x006b7f90
-uint16_t network_challenge_packet_block;                               // 0x006b7f98
-uint8_t network_broadcast_body[1536];                                  // 0x006b7f9a
+/* The packet block header and its body are one contiguous object in the original (0x006b7f98, body at +2); the packet queueing code writes a header word and then reads the whole block as a packet. */
+uint8_t network_challenge_packet_storage[2 + 1536];                    // 0x006b7f98
 growable_array ban_list;                                               // 0x006b859c
 uint8_t network_log_path_buffer[0x104];                                // 0x006b85b8
 message_delta_parameter message_delta_parameters[0x300 / sizeof(message_delta_parameter)]; // 0x006b86c0

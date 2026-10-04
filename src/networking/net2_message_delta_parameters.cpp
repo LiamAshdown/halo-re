@@ -255,7 +255,7 @@ void ParametersProtocol::send_update(void)
             local_108 = 0;
             encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::parameters_update), 0, (void **)&local_10c, 0, 1, '\0');
             if (0 < encoded_bits) {
-                if (halo::networking::network_session_broadcast_to_all(network_server, 1, message_delta_parameters_protocol_broadcast_target, 1, 0, 1, 3) != '\0') {
+                if (halo::networking::network_session_broadcast_to_all(network_server, encoded_bits, 1, network_message_scratch, 1, 0, 1, 3) != '\0') {
                     message_delta_parameters_protocol_sequence = next_sequence;
                 }
             }

@@ -547,7 +547,7 @@ void halo::objects::ObjectTypeDefinitions::override_call_0x70_release_node(int32
         next = ((int32_t *)object_network_id_table->handles)[node];
     }
     **slot = next;
-    halo::objects::object_type_override_call_0x70(0, 0, 0);
+    halo::objects::object_type_override_call_0x70((uint32_t)next, (uint32_t)(uintptr_t)record, client);
 }
 
 /**

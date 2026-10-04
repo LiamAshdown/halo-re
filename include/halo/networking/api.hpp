@@ -356,7 +356,7 @@ uint32_t network_game_all_machines_have_player(network_server_globals *server);
 uint32_t network_game_any_team_empty(network_server_globals *server);
 uint32_t network_game_broadcast_player_set_changed(uint8_t *param_1);
 uint32_t network_game_broadcast_state_snapshot(const uint32_t *record, network_server_globals *server);
-void network_game_broadcast_team_object_updates(int32_t *object_count, uint32_t param_1, int32_t *bytes_sent);
+void network_game_broadcast_team_object_updates(int32_t *object_count, uint32_t object_type_mask, int32_t machine_id, int32_t *bytes_sent);
 void network_game_client_apply_position_update(network_machine *machine, const client_position_packet *packet, int32_t tick_count, uint32_t history_byte);
 void network_game_client_apply_received_update(network_machine *machine, uint32_t server, void **message);
 uint32_t network_game_client_connect_to_address(wchar_t *player_name, char *address_string);
@@ -500,7 +500,13 @@ char network_server_service_machines_tick(network_server_globals *server);
 uint32_t network_server_status_periodic_print(network_server_globals *server);
 int32_t network_server_validate_join_request(network_server_globals *server);
 uint8_t network_session_autoban_player(datum_index player_handle);
-char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1, void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
+char network_session_broadcast_to_all(network_server_globals *server, int32_t bit_count, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t priority);
+
+/** The length in bits of a prepared challenge packet: its 16 bit header carries the byte count in the high 12 bits. */
+inline int32_t network_packet_bit_count(const void *packet)
+{
+    return static_cast<int32_t>(*static_cast<const uint16_t *>(packet) >> 4) << 3;
+}
 char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
 network_client_globals * network_session_create(void);
 void network_session_destroy(network_client_globals *client);

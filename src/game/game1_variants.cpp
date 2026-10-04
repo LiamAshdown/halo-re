@@ -83,7 +83,7 @@ void Variants::apply_current_custom_variant(void)
     }
 
     entry = &game_variant_history[game_variant_history_current];
-    strncpy(variant_defaults_source, entry->name, 0x3f);
+    strncpy(variant_defaults_source, entry->path, 0x3f);
 
     mode = sv_friendly_fire_mode;
     mode_is_1 = (mode == 1);

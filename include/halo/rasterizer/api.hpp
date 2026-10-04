@@ -166,7 +166,6 @@ void font_glyph_cache_clear_all(void);
 void rasterizer_draw_text_begin(ui_quad_render_state *state);
 namespace rasterizer_draw_text_end_impl { void rasterizer_draw_text_end(void); }
 using rasterizer_draw_text_end_impl::rasterizer_draw_text_end;
-void rasterizer_editbox_log_dump(void);
 namespace text_draw_glyph_callback_impl { void text_draw_glyph_callback(void *state, void *font, uint8_t *character, uint32_t color, int16_t x, int16_t y, int16_t source_x, int16_t source_y, int16_t width, int16_t height); }
 using text_draw_glyph_callback_impl::text_draw_glyph_callback;
 int32_t text_font_system_initialize(void);
@@ -314,7 +313,6 @@ uint8_t rasterizer_dx9_vertex_shaders_reload(void);
 void * rasterizer_get_capture_surface(BitmapData *bitmap, void *fallback);
 namespace rasterizer_index_buffer_create_impl { uint8_t rasterizer_index_buffer_create(int32_t count, int16_t type, rasterizer_index_buffer *out, const void *source); }
 using rasterizer_index_buffer_create_impl::rasterizer_index_buffer_create;
-void rasterizer_ksml_ui_shutdown(void);
 uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, const char *path);
 namespace rasterizer_misc_vertex_buffer_create_impl { uint8_t rasterizer_misc_vertex_buffer_create(void); }
 using rasterizer_misc_vertex_buffer_create_impl::rasterizer_misc_vertex_buffer_create;

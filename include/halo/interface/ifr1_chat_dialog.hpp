@@ -20,6 +20,14 @@
 
 namespace halo::interface {
 
+/** The compound chat message the clients send to the server and the server relays: the scope (all, team, vehicle), the sender and the text. */
+typedef struct chat_relay_message {
+    int32_t scope;
+    uint8_t sender;
+    uint8_t pad_05[3];
+    void *text;
+} chat_relay_message;
+
 /**
  * Strategy for turning a decoded incoming chat record into a line in the chat listbox. ChatDialog::dispatch_incoming
  * asks each registered source in order whether it accepts the record, so the precedence of the original branches
@@ -53,7 +61,7 @@ public:
     static void server_relay_incoming_message(void **context, void *machine);
     static void submit_input(void);
     static void open(int32_t chat_scope);
-    static void out(uint8_t channel);
+    static void out(int32_t scope, const wchar_t *text, uint8_t channel);
     static void queue_on_channel(network_channel *channel, int32_t encoded_bits);
 };
 

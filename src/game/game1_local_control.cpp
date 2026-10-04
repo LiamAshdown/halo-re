@@ -385,7 +385,7 @@ void LocalControl::compute_local_player_look_vector(real_vector3d *out_forward, 
     datum_index unit = k_datum_index_none;
 
     if (local_player_index != -1 && local_player_index < 1) {
-        unit = local_player_globals->local_player_units[local_player_index];
+        unit = local_player_globals->local_players[local_player_index];
     }
     halo::game::player_compute_view_forward_vector(unit, &look->yaw, out_forward);
 }

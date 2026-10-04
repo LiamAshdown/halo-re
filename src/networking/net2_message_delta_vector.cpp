@@ -51,18 +51,21 @@ int32_t VectorFieldCodec::decode_vector3d_indexed(int32_t param_1, int32_t mode,
     int32_t got_bit;
     int32_t ratios[3];
     int32_t a, b, c;
+    int32_t component_bits;
     real *entry;
 
     table = *(uint8_t **)(param_1 + 0x58);
     total_bits = 0;
 
+    component_bits = message_delta_vector3d_mode == 0 ? *(int32_t *)(table + 0x10) : *(int32_t *)(table + 8);
     if (mode != 0) {
-        (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&a, stream);
-        (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&b, stream);
-        (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&c, stream);
+        a = b = c = 0;
+        total_bits = halo::memory::bit_stream_read_bits_chunked(component_bits, (uint32_t *)&a, stream);
+        total_bits += halo::memory::bit_stream_read_bits_chunked(component_bits, (uint32_t *)&b, stream);
+        total_bits += halo::memory::bit_stream_read_bits_chunked(component_bits, (uint32_t *)&c, stream);
         ratios[0] = a; ratios[1] = b; ratios[2] = c;
         halo::networking::vector3d_lerp_by_mode_denominator((vector3d_lerp_table *)table, (real_vector3d *)destination, ratios);
-        return a + b + c;
+        return total_bits;
     }
 
     index = -1;
@@ -94,12 +97,13 @@ int32_t VectorFieldCodec::decode_vector3d_indexed(int32_t param_1, int32_t mode,
         return total_bits;
     }
 
-    (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&a, stream);
-    (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&b, stream);
-    (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&c, stream);
+    a = b = c = 0;
+    total_bits += halo::memory::bit_stream_read_bits_chunked(component_bits, (uint32_t *)&a, stream);
+    total_bits += halo::memory::bit_stream_read_bits_chunked(component_bits, (uint32_t *)&b, stream);
+    total_bits += halo::memory::bit_stream_read_bits_chunked(component_bits, (uint32_t *)&c, stream);
     ratios[0] = a; ratios[1] = b; ratios[2] = c;
     halo::networking::vector3d_lerp_by_mode_denominator((vector3d_lerp_table *)table, (real_vector3d *)destination, ratios);
-    return total_bits + a + b + c;
+    return total_bits;
 }
 
 int32_t VectorFieldCodec::encode_vector3d(int32_t unused, real *previous, real *values,

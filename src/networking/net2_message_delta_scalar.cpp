@@ -253,6 +253,9 @@ int32_t ScalarFieldCodec::integer_encode(message_delta_field_type *field_type, v
 
 uint8_t ScalarFieldCodec::integer_initialize(message_delta_field_type *field_type)
 {
+    if (field_type->array_descriptor == 0) {
+        return 0;
+    }
     int32_t subtype = *(int32_t *)field_type->array_descriptor;
 
     return subtype >= 0 && subtype < 0x1c;

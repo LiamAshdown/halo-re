@@ -119,7 +119,6 @@ uint8_t config_set_use_alternate_convolve_mask(const char *value);
 uint8_t config_set_use_anisotropic_filter(const char *value);
 uint8_t config_set_use_fixed_function(const char *value);
 int32_t cpu_get_type(int32_t mode);
-void keystone_library_unload(void);
 void os_platform_identify(void);
 int32_t security_check_write_access(void);
 int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal);

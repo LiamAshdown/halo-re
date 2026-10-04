@@ -445,55 +445,6 @@ void rasterizer_draw_text_end(void)
 
 }  // namespace rasterizer_draw_text_end_impl
 
-/**
- * 0x5195f0 (this session) Lazily creates the debug KSML UI engine, then (re)loads the editbox and log KSML
- * layout files from a resolution-specific "content/" subfolder.
- *
- * @address 0x5196b0
- */
-void rasterizer_editbox_log_dump(void)
-{
-    wchar_t editbox_path[64];
-    wchar_t log_path[64];
-    wchar_t height_text[32];
-    int32_t rect_zero[4];
-    int32_t document;
-
-    if (chat_gui_root_handle == nullptr) {
-        if (halo::rasterizer::fields::keystone_create == nullptr) {
-            return;
-        }
-        chat_gui_root_handle = halo::rasterizer::fields::keystone_create(shell_window, rasterizer_device, keystone_current_directory, 0, 0, 0, 0);
-        if (chat_gui_root_handle == nullptr) {
-            return;
-        }
-    }
-
-    rect_zero[0] = 0;
-    rect_zero[1] = 0;
-    rect_zero[2] = static_cast<int32_t>(rasterizer_present_parameters.back_buffer_width);
-    rect_zero[3] = static_cast<int32_t>(rasterizer_present_parameters.back_buffer_height);
-
-    wcscpy(log_path, L"content/");
-    wcscpy(editbox_path, L"content/");
-
-    _itow(rasterizer_round_up_resolution_height(rasterizer_present_parameters.back_buffer_height),
-          height_text, 10);
-
-    wcscat(editbox_path, height_text);
-    wcscat(editbox_path, L"editbox.ksml");
-    wcscat(log_path, height_text);
-    wcscat(log_path, L"log.ksml");
-
-    halo::rasterizer::fields::keystone_create_window(chat_gui_root_handle, editbox_path, chat_gui_find_object_arg, k_keystone_window_flags, rect_zero, 0, 0, 0, 0, 0, 0);
-    document = halo::rasterizer::fields::keystone_get_window(chat_gui_root_handle, chat_gui_find_object_arg);
-    if (document != 0) {
-        halo::rasterizer::fields::keystone_window_show(document, 0);
-        halo::rasterizer::fields::keystone_window_release(document);
-    }
-    halo::rasterizer::fields::keystone_create_window(chat_gui_root_handle, log_path, chat_listbox_gui_find_object_arg, k_keystone_window_flags, rect_zero, 0, 0, 0, 0, 0, 0);
-}
-
 namespace text_draw_glyph_callback_impl {
 
 typedef struct text_glyph_vertex {

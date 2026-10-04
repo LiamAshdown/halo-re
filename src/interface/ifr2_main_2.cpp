@@ -62,7 +62,7 @@ static auto &cached_product_id = halo::link::ref<uint32_t>(halo::ui::vars().cach
 namespace halo::interface {
 
 /**
- * Either force-quits the process immediately (unloading the keystone/DRM library first) when ui_force_quit is
+ * Either force-quits the process immediately when ui_force_quit is
  * set, or arms a "are you sure you want to quit" confirmation prompt: the split-screen shaped one when
  * ui_split_screen is set, otherwise the single-player error-dialog shaped one (only if neither is already
  * armed).
@@ -72,7 +72,6 @@ namespace halo::interface {
 void InterfaceMain::handle_quit_request()
 {
     if (ui_force_quit != 0) {
-        halo::shell::keystone_library_unload();
         ExitProcess((uint32_t)-4998);
     }
     if (ui_split_screen == 0) {
@@ -125,6 +124,17 @@ void InterfaceMain::tick()
                 widget_instance *hit = halo::interface::widget_instance_find_at_point(
                     root, ui_cursor_x, ui_cursor_y, *(int32_t *)&((struct widget_instance *)root)->local_x);
 
+                {
+                    static int logged2 = 0;
+                    if (hit == 0 && logged2 < 6) {
+                        UIWidgetDefinition *rt = halo::interface::tag_data<UIWidgetDefinition>(root->definition);
+                        logged2++;
+                    }
+                    static int logged = 0;
+                    if (logged < 120) {
+                        logged++;
+                    }
+                }
                 root = ui_root_widget[0];
                 if (hit != (widget_instance *)0 && hit->parent != (widget_instance *)0 &&
                     halo::interface::widget_instance_verify_stack_chain(hit) == 0) {

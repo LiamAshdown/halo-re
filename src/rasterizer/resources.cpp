@@ -538,37 +538,6 @@ uint8_t rasterizer_index_buffer_create(int32_t count, int16_t type, rasterizer_i
 }  // namespace rasterizer_index_buffer_create_impl
 
 /**
- * 0x0069c69c: log document key Tears down the debug KSML UI engine: releases the editbox and log documents
- * (each released twice, matching the original) and destroys the engine instance, only while all three engine
- * pointers are live.
- *
- * @address 0x5198a0
- */
-void rasterizer_ksml_ui_shutdown(void)
-{
-    int32_t document;
-
-    if (chat_gui_root_handle == nullptr || halo::rasterizer::fields::keystone_get_window == nullptr || halo::rasterizer::fields::keystone_window_release == nullptr) {
-        return;
-    }
-
-    document = halo::rasterizer::fields::keystone_get_window(chat_gui_root_handle, chat_gui_find_object_arg);
-    if (document != 0) {
-        halo::rasterizer::fields::keystone_window_release(document);
-        halo::rasterizer::fields::keystone_window_release(document);
-    }
-
-    document = halo::rasterizer::fields::keystone_get_window(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
-    if (document != 0) {
-        halo::rasterizer::fields::keystone_window_release(document);
-        halo::rasterizer::fields::keystone_window_release(document);
-    }
-
-    halo::rasterizer::fields::keystone_release(chat_gui_root_handle);
-    chat_gui_root_handle = nullptr;
-}
-
-/**
  * 0x519980 (this session) Reads the whole file `path` into a newly GlobalAlloc'd buffer, verifies it with
  * rasterizer_resource_file_verify_signature, and returns the buffer and size on success (1); frees the buffer
  * and returns 0 on any failure.

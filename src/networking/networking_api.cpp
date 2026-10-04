@@ -1106,9 +1106,9 @@ int32_t network_server_validate_join_request(network_server_globals *server)
  *
  * @address 0x4e19c0
  */
-char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1, void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6)
+char network_session_broadcast_to_all(network_server_globals *server, int32_t bit_count, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t priority)
 {
-    return halo::networking::ServerView(server).broadcast_to_all(param_1, data, param_3, param_4, force, param_6);
+    return halo::networking::ServerView(server).broadcast_to_all(bit_count, status_bit, data, immediate, flush_after, force, priority);
 }
 
 /**
@@ -2396,9 +2396,9 @@ int32_t network_game_decode_settings_request(network_client_globals *client, con
  *
  * @address 0x4df950
  */
-void network_game_broadcast_team_object_updates(int32_t *object_count, uint32_t param_1, int32_t *bytes_sent)
+void network_game_broadcast_team_object_updates(int32_t *object_count, uint32_t object_type_mask, int32_t machine_id, int32_t *bytes_sent)
 {
-    halo::networking::GameRuntime::broadcast_team_object_updates(object_count, param_1, bytes_sent);
+    halo::networking::GameRuntime::broadcast_team_object_updates(object_count, object_type_mask, machine_id, bytes_sent);
 }
 
 /**

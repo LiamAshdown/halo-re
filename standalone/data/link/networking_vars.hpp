@@ -83,12 +83,13 @@ extern char network_bandwidth_overlay_enabled[];
 extern char network_bandwidth_units_label_table[];
 extern char network_banlist_full_path[];
 extern char network_bit_chunk_size[];
-extern char network_broadcast_body[];
+extern char network_challenge_packet_storage[];
+#define network_broadcast_body (network_challenge_packet_storage + 2)
 extern char network_broadcast_event_feed_mode[];
 extern char network_buffer_pair_pool_count[];
 extern char network_buffer_pair_pool_data[];
 extern char network_build_string[];
-extern char network_challenge_packet_block[];
+#define network_challenge_packet_block network_challenge_packet_storage
 extern char network_channel_service_backoff_bypass[];
 extern char network_channel_table_default_flag[];
 extern char network_channels_open_ok[];

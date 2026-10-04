@@ -176,9 +176,12 @@ char GameClientView::action_queue_drain(bit_stream *stream, const uint32_t *send
         for (;;) {
             message_delta_decode_state *current;
 
-            if ((char)halo::networking::message_delta_decode_array_field(context) == 0) {
-                result = 0;
-                break;
+            {
+                char dr = (char)halo::networking::message_delta_decode_array_field(context);
+                if (dr == 0) {
+                    result = 0;
+                    break;
+                }
             }
             halo::networking::network_game_action_apply(context, client);
             current = storage.state;
@@ -479,13 +482,15 @@ char GameClientView::incoming_item_dispatch(uint32_t item_flag, bit_stream *stre
     uint16_t buffer[0x800];
 
     if (item_flag == 1) {
-        return halo::networking::network_game_action_queue_drain(client, stream, sender);
+        char r = halo::networking::network_game_action_queue_drain(client, stream, sender);
+        return r;
     }
     if (item_flag == 0) {
         uint16_t *record = halo::networking::network_message_read_sized_buffer(buffer, 0xfff, stream);
 
         if (record != 0) {
-            return halo::networking::network_game_message_decode_dispatch(client, record, *record >> 4, sender);
+            char r = halo::networking::network_game_message_decode_dispatch(client, record, *record >> 4, sender);
+            return r;
         }
     }
     return 0;

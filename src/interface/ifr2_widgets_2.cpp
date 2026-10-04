@@ -45,8 +45,8 @@ widget_instance * WidgetView::find_at_point(int32_t cursor_x, int32_t cursor_y, 
     uint8_t eligible =
         (widget->hidden == 0 &&
          (tag->event_handlers.count > 0 || widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list)) ||
-        (first_child == (widget_instance *)0 || first_child->widget_type == uiwidgettype_spinner_list ||
-         first_child->widget_type == uiwidgettype_column_list) ||
+        (widget->parent == (widget_instance *)0 || widget->parent->widget_type == uiwidgettype_spinner_list ||
+         widget->parent->widget_type == uiwidgettype_column_list) ||
         ((int8_t)((uint32_t)tag->flags >> 8) < 0);
     widget_instance *result = (widget_instance *)0;
 

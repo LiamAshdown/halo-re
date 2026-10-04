@@ -194,15 +194,6 @@ __declspec(allocate(".geq$00686fe8")) __declspec(align(16)) uint8_t eq_pad_00686
 #pragma section(".geq$00686fe8v", read, write)
 __declspec(allocate(".geq$00686fe8v")) __declspec(align(8)) uint32_t recorded_animation_codecs_by_version[4] = {(uint32_t)&recorded_animation_codecs_by_version_00686fd8[2], (uint32_t)&recorded_animation_codecs_by_version_00686fd8[2], (uint32_t)&recorded_animation_codecs_by_version_00686fd8[2], (uint32_t)&recorded_animation_codecs_by_version_00686fd8[0]};
 
-/** 0x00687130..0x00687134: object_network_id_table */
-#pragma section(".geq$00687130v", read, write)
-__declspec(allocate(".geq$00687130v")) __declspec(align(16)) uint32_t object_network_id_table[1] = {(uint32_t)&object_network_id_table_006870a8[0]};
-
-/** 0x00687558..0x0068755c: machine_table */
-#pragma section(".geq$00687558", read, write)
-__declspec(allocate(".geq$00687558")) __declspec(align(16)) uint8_t eq_pad_00687558[8] = {0};
-#pragma section(".geq$00687558v", read, write)
-__declspec(allocate(".geq$00687558v")) __declspec(align(8)) uint32_t machine_table[1] = {(uint32_t)&machine_table_006874d0[0]};
 
 /** 0x00687af0..0x00687af2: teleport_flash_type */
 #pragma section(".geq$00687af0v", read, write)
@@ -212,8 +203,9 @@ __declspec(allocate(".geq$00687af0v")) __declspec(align(16)) uint8_t teleport_fl
 #pragma section(".geq$00688308", read, write)
 __declspec(allocate(".geq$00688308")) __declspec(align(16)) uint8_t eq_pad_00688308[8] = {0};
 #pragma section(".geq$00688308v", read, write)
-__declspec(allocate(".geq$00688308v")) __declspec(align(8)) uint32_t game_engine_definitions[7] = {
-    0x00000000u, (uint32_t)&message_delta_definitions_00687b1c[129], (uint32_t)&message_delta_definitions_00687ff0[66], (uint32_t)&message_delta_definitions_00687ff0[154], (uint32_t)&message_delta_definitions_00687e48[32], (uint32_t)&message_delta_definitions_00687ff0[110], (uint32_t)&message_delta_definitions_00687ff0[22]
+__declspec(allocate(".geq$00688308v")) __declspec(align(8)) uint32_t game_engine_definitions[39] = {
+    0x00000000u, (uint32_t)&message_delta_definitions_00687b1c[129], (uint32_t)&message_delta_definitions_00687ff0[66], (uint32_t)&message_delta_definitions_00687ff0[154], (uint32_t)&message_delta_definitions_00687e48[32], (uint32_t)&message_delta_definitions_00687ff0[110], (uint32_t)&message_delta_definitions_00687ff0[22],
+    0x0, 0x1010101u, 0x1010101u, 0x1010101u, 0x1010101u, 0x1010101u, 0x1010101u, 0x101u, 0x0, 0x1010101u, 0x1010101u, 0x101u, 0x0, 0x19u, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0x0, (uint32_t)&multiplayer_sound_enabled_00687020[0], 0x1, 0xffffffffu, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xd2u
 };
 
 /** 0x00688b58..0x00689380: hs_function_definitions */
@@ -342,9 +334,10 @@ __declspec(allocate(".geq$00692ffcv")) __declspec(align(4)) uint32_t controls_ro
 #pragma section(".geq$006994f8", read, write)
 __declspec(allocate(".geq$006994f8")) __declspec(align(16)) uint8_t eq_pad_006994f8[8] = {0};
 #pragma section(".geq$006994f8v", read, write)
-__declspec(allocate(".geq$006994f8v")) __declspec(align(8)) uint32_t network_game_messages_group[12] = {
+__declspec(allocate(".geq$006994f8v")) __declspec(align(8)) uint32_t network_game_messages_group[24] = {
     (uint32_t)"network_game_messages_group", 0x00080027u, 0x00000600u, 0x00000800u, (uint32_t)&message_delta_definitions_00698718[810], 0x00000000u, 0x00000035u, 0xffffffffu,
-    0xffffffffu, 0xffffffffu, 0xffffffffu, 0x00000010u
+    0xffffffffu, 0xffffffffu, 0xffffffffu, 0x00000010u,
+    0x0, (uint32_t)&multiplayer_sound_enabled_00687020[0], 0x2, 0xffffffffu, (uint32_t)&table_006873f8[0], 0x0, 0x0, 0x0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x4, 0x4, 0x0
 };
 
 /** 0x00699f40..0x00699f48: unknown_00699f40, network_scenario_round_counter_a */

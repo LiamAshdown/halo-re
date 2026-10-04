@@ -19,8 +19,10 @@ extern char is_dedicated_server_flag[];
 extern char k_biped_minimum_age_ticks[];
 extern char k_default_resting_plane[];
 extern char k_vehicle_minimum_age_ticks[];
-extern char network_object_index_cache[];
-extern char object_network_id_table[];
+#define network_object_index_cache (reinterpret_cast<char *>(object_network_id_table_006870a8) + 0x30)
+/* The id table pointer lives inside the message delta field type record that surrounds it, so it is addressed relative to that record's table. */
+extern unsigned int object_network_id_table_006870a8[];
+#define object_network_id_table (reinterpret_cast<char *>(object_network_id_table_006870a8) + 0x88)
 extern char object_type_definitions_ex[];
 extern char object_update_gate_globals[];
 extern char placement_offset_table[];

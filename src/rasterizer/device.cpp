@@ -3,6 +3,7 @@
  * Window, display mode, device creation, reset, frame bracket, capture and shutdown.
  */
 
+#include "halo/interface/chat_gui.hpp"
 #include "halo/render/d3d9.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
@@ -439,8 +440,6 @@ uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters)
     render_device().set_vertex_shader(0);
     render_device().set_pixel_shader(0);
 
-    rasterizer_ksml_ui_shutdown();
-
     for (i = 0; i < (uint32_t)rasterizer_vertex_buffer_slot_high_water; i++) {
         void *buffer = rasterizer_vertex_buffer_slots[i].hardware_buffer;
         if (buffer != 0) {
@@ -505,7 +504,6 @@ uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters)
         ok = 0;
     }
     rasterizer_vertex_buffer_slot_recreate_lost();
-    rasterizer_editbox_log_dump();
     return ok;
 }
 
@@ -681,10 +679,7 @@ void rasterizer_end_frame(void)
     rasterizer_set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
     rasterizer_set_render_state(halo::d3d9::rs::blend_op, 1);
 
-    if (chat_gui_root_handle != 0 && rasterizer_ui_render_failed == 0 &&
-        halo::rasterizer::fields::keystone_update(chat_gui_root_handle) < 0) {
-        rasterizer_ui_render_failed = 1;
-    }
+    halo::interface::ChatGui::get().draw();
 
     if (render_device().set_software_vertex_processing(rasterizer_software_vertex_processing) < 0) {
         succeeded = 0;
@@ -1098,7 +1093,6 @@ uint8_t rasterizer_initialize_direct3d(void)
         succeeded = 0;
     }
     rasterizer_frame_started = 1;
-    rasterizer_editbox_log_dump();
     return succeeded;
 }
 
@@ -1420,8 +1414,6 @@ void rasterizer_set_default_render_states(void)
 void rasterizer_shutdown(void)
 {
     int32_t i;
-
-    rasterizer_ksml_ui_shutdown();
 
     if (rasterizer_scratch_memory != nullptr) {
         GlobalFree(rasterizer_scratch_memory);

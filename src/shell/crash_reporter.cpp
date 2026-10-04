@@ -13,11 +13,6 @@ static auto &shell_stack_guard_old_protect = halo::link::ref<uint32_t>(halo::she
 static auto &crash_in_progress = halo::link::ref<int32_t>(halo::shell::vars().crash_in_progress);
 static auto &report_fault = halo::link::ref<report_fault_fn>(halo::shell::vars().report_fault);
 static auto &shell_window_proc_bypass = halo::link::ref<uint8_t>(halo::shell::vars().shell_window_proc_bypass);
-static auto &chat_gui_root_handle = halo::link::ref<void *>(halo::ui::vars().chat_gui_root_handle);
-static auto &chat_gui_find_object = halo::link::ref<chat_gui_find_object_fn>(halo::ui::vars().chat_gui_find_object);
-static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
-static auto &keystone_release = halo::link::ref<keystone_release_fn>(halo::shell::vars().keystone_release);
-static auto &chat_gui_find_object_arg = halo::link::ref<void *>(halo::ui::vars().chat_gui_find_object_arg);
 static auto &chat_listbox_gui_find_object_arg = halo::link::ref<void *>(halo::ui::vars().chat_listbox_gui_find_object_arg);
 static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
 static auto &exception_title = halo::link::ref<char [k_shell_exception_string_length]>(halo::shell::vars().exception_title);
@@ -107,26 +102,12 @@ void WatsonCrashReporter::report_fault_and_exit(win32_exception_pointers *except
  */
 void WatsonCrashReporter::shut_down_services()
 {
-    void *window;
-
     __try {
         shell_window_proc_bypass = 1;
         halo::rasterizer::chimera__registry_check_3();
         halo::rasterizer::rasterizer_service_deferred_windowed_ops();
         halo::sound::sound_stop_all();
         ShowCursor(1);
-        if (chat_gui_root_handle != 0) {
-            window = chat_gui_find_object(chat_gui_root_handle, chat_gui_find_object_arg);
-            if (window != 0) {
-                chat_gui_release(window);
-            }
-            window = chat_gui_find_object(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
-            if (window != 0) {
-                chat_gui_release(window);
-            }
-            keystone_release(chat_gui_root_handle);
-            chat_gui_root_handle = 0;
-        }
         if (shell_window != 0) {
             ShowWindow((HWND)shell_window, 6);
         }

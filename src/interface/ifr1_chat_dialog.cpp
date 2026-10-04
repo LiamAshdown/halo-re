@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chat_dialog.hpp"
+#include "halo/interface/chat_gui.hpp"
 #include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -25,19 +26,11 @@ static auto &controls_input_capture_flags = halo::link::ref<uint8_t>(halo::ui::v
 static auto &keyboard_device = halo::link::ref<void **>(halo::ui::vars().keyboard_device);
 static auto &key_frames = halo::link::ref<uint8_t [0x6d]>(halo::ui::vars().key_frames);
 static auto &key_release_pending = halo::link::ref<uint8_t [0x6d]>(halo::ui::vars().key_release_pending);
-static auto &chat_gui_root_handle = halo::link::ref<void *>(halo::ui::vars().chat_gui_root_handle);
-static auto &chat_gui_find_object = halo::link::ref<chat_gui_find_object_fn>(halo::ui::vars().chat_gui_find_object);
-static auto &chat_gui_find_object_arg = halo::link::ref<void *>(halo::ui::vars().chat_gui_find_object_arg);
-static auto &chat_gui_set_focus = halo::link::ref<chat_gui_set_focus_fn>(halo::ui::vars().chat_gui_set_focus);
-static auto &chat_gui_set_state = halo::link::ref<chat_gui_set_state_fn>(halo::ui::vars().chat_gui_set_state);
-static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
 static auto &chat_gui_active = halo::link::ref<uint8_t>(halo::ui::vars().chat_gui_active);
 static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
 static auto &chat_hotkey_all = halo::link::ref<uint8_t>(halo::ui::vars().chat_hotkey_all);
 static auto &chat_hotkey_team = halo::link::ref<uint8_t>(halo::ui::vars().chat_hotkey_team);
 static auto &chat_hotkey_vehicle = halo::link::ref<uint8_t>(halo::ui::vars().chat_hotkey_vehicle);
-static auto &chat_gui_find_child = halo::link::ref<chat_gui_find_child_fn>(halo::ui::vars().chat_gui_find_child);
-static auto &keystone_control_get_attribute = halo::link::ref<chat_gui_get_property_string_fn>(halo::ui::vars().keystone_control_get_attribute);
 static auto &network_message_scratch = halo::link::ref<uint8_t [halo::interface::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
 #include "halo/interface/wide_text.hpp"
 #include "halo/interface/com_object.hpp"
@@ -61,8 +54,6 @@ namespace halo::interface {
  */
 void ChatDialog::close(void)
 {
-    void *gui_object;
-
     if (chat_dialog_open == 0) {
         return;
     }
@@ -80,12 +71,7 @@ void ChatDialog::close(void)
     }
 
     chat_gui_active = 0;
-    gui_object = chat_gui_find_object(chat_gui_root_handle, chat_gui_find_object_arg);
-    if (gui_object != 0) {
-        chat_gui_set_focus(gui_object, 0);
-        chat_gui_set_state(gui_object, 0);
-        chat_gui_release(gui_object);
-    }
+    ChatGui::get().close_edit();
 }
 
 /**
@@ -276,30 +262,19 @@ void ChatDialog::submit_input(void)
         return;
     }
 
-    {
-        int32_t team_index = halo::interface::chat_default_team_channel();
-        if (team_index != -1) {
-            const wchar_t *text = 0;
-            void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_gui_find_object_arg);
-            if (gui_object != 0) {
-                void *editbox = chat_gui_find_child(gui_object, halo::interface::wide(L"oEditbox"));
-                if (editbox != 0) {
-                    text = (const wchar_t *)(keystone_control_get_attribute(editbox, halo::interface::wide(L"text")));
-                }
-                chat_gui_release(gui_object);
+    int32_t team_index = halo::interface::chat_default_team_channel();
+    const wchar_t *text = ChatGui::get().edit_text();
 
-                if (text != 0 && *text != 0) {
-                    wchar_t buffer[256];
-                    uint32_t length = wcslen((const wchar_t *)((const uint16_t *)text));
-                    size_t count = (length < 0xff) ? length : 0xfe;
-                    wcsncpy(buffer, text, count);
-                    buffer[count] = 0;
-                    halo::interface::chimera__chat_out((uint8_t)team_index);
-                }
-            }
-        }
-        halo::interface::chat_close();
+    if (team_index != -1 && text[0] != 0) {
+        wchar_t buffer[256];
+        size_t length = wcslen(text);
+        size_t count = (length < 0xff) ? length : 0xfe;
+
+        wcsncpy(buffer, text, count);
+        buffer[count] = 0;
+        halo::interface::chimera__chat_out(chat_scope_active, buffer, (uint8_t)team_index);
     }
+    halo::interface::chat_close();
 }
 
 /**
@@ -321,9 +296,16 @@ void ChatDialog::queue_on_channel(network_channel *channel, int32_t encoded_bits
  *
  * @address 0x4aab00
  */
-void ChatDialog::out(uint8_t channel)
+void ChatDialog::out(int32_t scope, const wchar_t *text, uint8_t channel)
 {
-    int32_t encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::interface::k_network_message_scratch_size, 0, 0xf, 0, (void **)&channel, 0, 1, 0);
+    chat_relay_message message;
+    void *fields = &message;
+    int32_t encoded_bits;
+
+    message.scope = scope;
+    message.sender = channel;
+    message.text = const_cast<wchar_t *>(text);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::interface::k_network_message_scratch_size, 0, 0xf, 0, &fields, 0, 1, 0);
 
     if (encoded_bits > 0) {
         queue_on_channel(halo::networking::globals().client->channel, encoded_bits);

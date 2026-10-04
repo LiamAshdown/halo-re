@@ -22,6 +22,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/game/legacy_globals.hpp"
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/networking/vars.hpp"
@@ -326,7 +327,10 @@ void PlayerUpdateBuilder::remote_player_action_update(uint32_t player_index, uin
             }
         }
     } else if (is_full) {
-        halo::networking::network_event_feed_queue_append((uint8_t *)staged, 0, 0);
+        // The original queues the update on one of the two outgoing event feeds, keyed by the player's network hash and the update id.
+        uint32_t feed_key[2] = {network_hash, staged[0]};
+
+        halo::networking::network_event_feed_queue_append(skip_delta == 1 ? halo::game::fields::network_event_feed_a : halo::game::fields::network_event_feed_b, feed_key, staged);
     }
 }
 

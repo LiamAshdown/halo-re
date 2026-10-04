@@ -103,7 +103,7 @@ extern char hill_pulse_grow_done[];
 extern char hud_text_draw_box_field_474e[];
 extern char hud_text_draw_box_field_4756[];
 extern char hud_text_draw_tabstop_c[];
-extern char join_message_table[];
+#define join_message_table (reinterpret_cast<char *>(machine_table_006874d0) + 0x30)
 extern char k_air_density[];
 extern char k_default_sound_environment[];
 extern char k_water_density[];
@@ -147,7 +147,9 @@ extern char look_pitch_rate_setting[];
 extern char look_rate_doubler_enabled[];
 extern char look_rate_doubler_zoom_inverts[];
 extern char look_yaw_rate_setting[];
-extern char machine_table[];
+/* The machine table pointer lives inside the message delta field type record that surrounds it, so it is addressed relative to that record's table. */
+extern unsigned int machine_table_006874d0[];
+#define machine_table (reinterpret_cast<char *>(machine_table_006874d0) + 0x88)
 extern char machine_to_player[];
 extern char main_game_globals[];
 extern char map_per_map_table[];

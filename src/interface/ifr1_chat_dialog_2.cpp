@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chat_dialog.hpp"
+#include "halo/interface/chat_gui.hpp"
 #include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/core/datum.hpp"
@@ -31,24 +32,8 @@ static auto &chat_local_prompt_string = halo::link::ref<const uint16_t []>(halo:
 static auto &chat_dialog_open = halo::link::ref<uint8_t>(halo::ui::vars().chat_dialog_open);
 static auto &chat_scope_active = halo::link::ref<int32_t>(halo::ui::vars().chat_scope_active);
 static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
-static auto &chat_gui_root_handle = halo::link::ref<void *>(halo::ui::vars().chat_gui_root_handle);
-static auto &chat_gui_find_object = halo::link::ref<chat_gui_find_object_fn>(halo::ui::vars().chat_gui_find_object);
-static auto &chat_gui_find_object_arg = halo::link::ref<void *>(halo::ui::vars().chat_gui_find_object_arg);
-static auto &chat_gui_find_child = halo::link::ref<chat_gui_find_child_fn>(halo::ui::vars().chat_gui_find_child);
-static auto &chat_gui_set_focus = halo::link::ref<chat_gui_set_focus_fn>(halo::ui::vars().chat_gui_set_focus);
-static auto &keystone_control_set_attribute = halo::link::ref<chat_gui_set_property_string_fn>(halo::ui::vars().keystone_control_set_attribute);
-static auto &chat_gui_set_property_int = halo::link::ref<chat_gui_set_property_int_fn>(halo::ui::vars().chat_gui_set_property_int);
-static auto &chat_gui_set_state = halo::link::ref<chat_gui_set_state_fn>(halo::ui::vars().chat_gui_set_state);
-static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
 static auto &chat_gui_active = halo::link::ref<uint8_t>(halo::ui::vars().chat_gui_active);
 #include "halo/interface/wide_text.hpp"
-
-typedef struct chat_relay_message {
-    int32_t scope;
-    uint8_t sender;
-    uint8_t pad_05[3];
-    void *text;
-} chat_relay_message;
 
 static void chat_relay_iterator_begin(data_iterator *iterator)
 {
@@ -194,10 +179,7 @@ void ChatDialog::server_relay_incoming_message(void **context, void *machine)
 void ChatDialog::open(int32_t chat_scope)
 {
     const void *prompt_text;
-    void *gui_object;
-    void *child;
-
-    if (chat_dialog_open != 0 || halo::main::globals().console_globals.active != 0 || chat_gui_find_object == 0) {
+    if (chat_dialog_open != 0 || halo::main::globals().console_globals.active != 0) {
         return;
     }
 
@@ -230,22 +212,7 @@ void ChatDialog::open(int32_t chat_scope)
     }
 
     chat_gui_active = 1;
-    gui_object = chat_gui_find_object(chat_gui_root_handle, chat_gui_find_object_arg);
-    if (gui_object != 0) {
-        child = chat_gui_find_child(gui_object, halo::interface::wide(L"oPrompt"));
-        if (child != 0) {
-            keystone_control_set_attribute(child, halo::interface::wide(L"text"), prompt_text);
-        }
-        child = chat_gui_find_child(gui_object, halo::interface::wide(L"oEditbox"));
-        if (child != 0) {
-            int32_t zero[2] = {0, 0};
-            chat_gui_set_focus(gui_object, child);
-            keystone_control_set_attribute(child, halo::interface::wide(L"text"), &empty_string);
-            chat_gui_set_property_int(child, halo::interface::k_chat_property_select_range, 0, zero);
-        }
-        chat_gui_set_state(gui_object, 5);
-        chat_gui_release(gui_object);
-    }
+    ChatGui::get().open_edit(static_cast<const wchar_t *>(prompt_text));
     chat_dialog_open = 1;
     halo::input::DirectInput::keyboard_set_capture_mode(1);
 }

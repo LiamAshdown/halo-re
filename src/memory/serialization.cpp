@@ -267,7 +267,7 @@ void struct_definition_view::decode(byte_stream *input, int16_t version, void *d
                     input->overflow = 1;
                 } else {
                     uint8_t *src = input->data + input->cursor;
-                    halo::memory::byte_swap_array(4, (uint32_t *)src, field->count);
+                    halo::memory::byte_swap_array(-4, (uint32_t *)src, field->count);
                     input->cursor += byte_count;
                     if (src != 0) {
                         memcpy(dest, src, byte_count);
@@ -282,7 +282,7 @@ void struct_definition_view::decode(byte_stream *input, int16_t version, void *d
                     input->overflow = 1;
                 } else {
                     uint8_t *src = input->data + input->cursor;
-                    halo::memory::byte_swap_array(8, (uint32_t *)src, field->count);
+                    halo::memory::byte_swap_array(-8, (uint32_t *)src, field->count);
                     input->cursor += byte_count;
                     if (src != 0) {
                         memcpy(dest, src, byte_count);
@@ -469,7 +469,7 @@ void struct_definition_view::encode(byte_stream *output, int16_t version, void *
                 } else {
                     memcpy(dest, src_cursor, byte_count);
                 }
-                halo::memory::byte_swap_array(4, (uint32_t *)dest, field->count);
+                halo::memory::byte_swap_array(-4, (uint32_t *)dest, field->count);
                 output->cursor += byte_count;
                 field = field_start;
                 src_cursor = src_start;
@@ -484,7 +484,7 @@ void struct_definition_view::encode(byte_stream *output, int16_t version, void *
                     } else {
                         memcpy(dest, src_cursor, byte_count);
                     }
-                    halo::memory::byte_swap_array(8, (uint32_t *)dest, field->count);
+                    halo::memory::byte_swap_array(-8, (uint32_t *)dest, field->count);
                     output->cursor += byte_count;
                     field = field_start;
                     src_cursor = src_start;

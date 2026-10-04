@@ -110,14 +110,13 @@ namespace halo::networking {
  *
  * @address 0x4df950
  */
-void GameRuntime::broadcast_team_object_updates(int32_t *object_count, uint32_t param_1, int32_t *bytes_sent)
+void GameRuntime::broadcast_team_object_updates(int32_t *object_count, uint32_t object_type_mask, int32_t machine_id, int32_t *bytes_sent)
 {
     object_iterator iterator;
     object *obj;
     int32_t encoded_bits;
 
-    (void)param_1;
-    iterator.type_mask = halo::k_dword_none;
+    iterator.type_mask = object_type_mask;
     iterator.flags_mask = 0;
     iterator.index = 0;
     iterator.handle = halo::k_dword_none;
@@ -130,7 +129,7 @@ void GameRuntime::broadcast_team_object_updates(int32_t *object_count, uint32_t 
             if (encoded_bits > 0) {
                 *bytes_sent = *bytes_sent + encoded_bits;
                 *object_count = *object_count + 1;
-                halo::networking::network_session_send_to_machine((int32_t)param_1, network_server, 1, network_message_scratch, encoded_bits, 1, 0, 0, 3);
+                halo::networking::network_session_send_to_machine(machine_id, network_server, 1, network_message_scratch, encoded_bits, 1, 0, 0, 3);
             }
         }
         obj = halo::objects::object_iterator_next(&iterator);
@@ -354,7 +353,7 @@ uint32_t GameRuntime::settings_broadcast_send(network_server_globals *server, co
             (uint32_t *)buffer, 3, (uint32_t)capacity);
 
         if (message != 0) {
-            halo::networking::network_session_broadcast_to_all(server, 0, message, 1, 0, 0, 3);
+            halo::networking::network_session_broadcast_to_all(server, halo::networking::network_packet_bit_count(message), 0, message, 1, 0, 0, 3);
             halo::networking::network_object_record_last_sender(entry->slot_index, (int32_t)quit_tick, server);
             return 1;
         }
@@ -501,8 +500,8 @@ void GameRuntime::map_cycle_list_broadcast()
             item = halo::memory::data_iterator_next(&iterator);
         } while (item != 0 && count < 16);
         if (count > 0) {
-            halo::networking::message_delta_encode_message((int32_t)encoded, 0x2000, 0, halo::networking::message_id(halo::networking::delta_message::map_cycle_list), 0, entries, 0, count, 0);
-            halo::networking::network_session_broadcast_to_all(network_server, 1, encoded, 0, 0, 0, 3);
+            int32_t encoded_bits = halo::networking::message_delta_encode_message((int32_t)encoded, 0x2000, 0, halo::networking::message_id(halo::networking::delta_message::map_cycle_list), 0, entries, 0, count, 0);
+            halo::networking::network_session_broadcast_to_all(network_server, encoded_bits, 1, encoded, 0, 0, 0, 3);
         }
     }
 }

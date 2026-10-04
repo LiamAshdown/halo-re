@@ -370,7 +370,7 @@ typedef struct network_client_begin_connect_scratch {
     uint16_t pad_00;           // 0x0000
     uint16_t name[8];          // 0x0002 UTF-16
     uint16_t name_terminator;  // 0x0012 forced NUL
-    uint32_t config_template[1008]; // 0x0014
+    uint32_t config_template[0x800]; // 0x0014, the 0x7ff-dword profile copy must fit
     uint8_t trailing_byte;     // 0x0fd4
 } network_client_begin_connect_scratch;
 

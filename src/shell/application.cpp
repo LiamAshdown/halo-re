@@ -489,7 +489,7 @@ bool Application::run_session(void *instance, char *command_line, int32_t show_c
 
     check_requirements();
 
-    KeystoneLibrary::load();
+    CodepageLocale::apply();
 
     if (integrity_ok == 0 || EngineLifecycle::initialize() != 0) {
         run_engine();
@@ -497,7 +497,6 @@ bool Application::run_session(void *instance, char *command_line, int32_t show_c
 
     halo::cseries::global_memory::release(command_line_copy);
     halo::cseries::global_memory::release(shell_argv);
-    KeystoneLibrary::unload();
     if (shell_stack_guard_page != 0) {
         VirtualProtect(shell_stack_guard_page, 1, shell_stack_guard_old_protect, (PDWORD)&shell_stack_guard_old_protect);
         shell_stack_guard_page = 0;

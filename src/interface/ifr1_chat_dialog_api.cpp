@@ -89,9 +89,9 @@ void chimera__chat_open(int32_t chat_scope)
  *
  * @address 0x4aab00
  */
-void chimera__chat_out(uint8_t channel)
+void chimera__chat_out(int32_t scope, const wchar_t *text, uint8_t channel)
 {
-    halo::interface::ChatDialog::out(channel);
+    halo::interface::ChatDialog::out(scope, text, channel);
 }
 
 }

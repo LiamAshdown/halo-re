@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
+#include "halo/interface/chat_gui.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
@@ -28,13 +29,6 @@
 static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
 static auto &hud_chat_message_count = halo::link::ref<int32_t>(halo::ui::vars().hud_chat_message_count);
 static auto &hud_chat_message_expiry = halo::link::ref<int32_t[8]>(halo::ui::vars().hud_chat_message_expiry);
-static auto &chat_gui_root_handle = halo::link::ref<void *>(halo::ui::vars().chat_gui_root_handle);
-static auto &chat_gui_find_object = halo::link::ref<chat_gui_find_object_fn>(halo::ui::vars().chat_gui_find_object);
-static auto &chat_listbox_gui_find_object_arg = halo::link::ref<void *>(halo::ui::vars().chat_listbox_gui_find_object_arg);
-static auto &chat_gui_find_child = halo::link::ref<chat_gui_find_child_fn>(halo::ui::vars().chat_gui_find_child);
-static auto &chat_gui_set_property_int = halo::link::ref<chat_gui_set_property_int_fn>(halo::ui::vars().chat_gui_set_property_int);
-static auto &chat_gui_finalize = halo::link::ref<chat_gui_finalize_fn>(halo::ui::vars().chat_gui_finalize);
-static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
 static auto &empty_wide_string_pointer = halo::link::ref<uint16_t *>(halo::ui::vars().empty_wide_string_pointer);
 static auto &global_zero_vector3d_pointer = halo::link::ref<void *>(halo::units::vars().global_zero_vector3d_pointer);
@@ -84,18 +78,7 @@ void HudMessaging::multiplayer_message(const wchar_t *text)
         halo::interface::hud_chat_listbox_remove_oldest();
     }
 
-    if (chat_gui_find_object != 0) {
-        void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
-        if (gui_object != 0) {
-            void *listbox = chat_gui_find_child(gui_object, halo::interface::wide(L"oListbox"));
-            if (listbox != 0) {
-                chat_gui_set_property_int(listbox, halo::interface::k_chat_property_add_item, 0, text);
-                chat_gui_set_property_int(listbox, halo::interface::k_chat_property_scroll, 2, 0);
-                chat_gui_finalize(gui_object);
-            }
-            chat_gui_release(gui_object);
-        }
-    }
+    ChatGui::get().add_line(text);
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (counter * 1000) / halo::cseries::globals().performance_frequency;

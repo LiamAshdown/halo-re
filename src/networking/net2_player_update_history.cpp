@@ -44,7 +44,7 @@ static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::var
 
 namespace halo::networking {
 
-int32_t PlayerUpdateHistory::advance(int16_t step_count)
+int32_t PlayerUpdateHistory::advance(int16_t player_index)
 {
     data_iterator iter;
     void *element;
@@ -54,16 +54,11 @@ int32_t PlayerUpdateHistory::advance(int16_t step_count)
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    element = halo::memory::data_iterator_next(&iter);
-    if (element == 0) {
-        return -1;
-    }
-    do {
-        if (step_count == -1) {
-            return -1;
+    for (element = halo::memory::data_iterator_next(&iter); element != 0; element = halo::memory::data_iterator_next(&iter)) {
+        if ((uint16_t)iter.index == (uint16_t)player_index) {
+            return (int32_t)iter.index;
         }
-        element = halo::memory::data_iterator_next(&iter);
-    } while (element != 0);
+    }
     return -1;
 }
 
@@ -496,7 +491,7 @@ void PlayerUpdateHistory::play_for_update_index(datum_index player_index)
     player *plr;
 
     plr = (player *)((uint8_t *)halo::game::globals().player_data->data + (uint16_t)player_index * halo::game::globals().player_data->size);
-    halo::networking::player_update_history_play(0, 0, network_client->update_history, plr->unit,
+    halo::networking::player_update_history_play(1, plr->baseline_update_id, network_client->update_history, plr->unit,
         *(float *)&plr->unknown_f0, *(float *)&plr->unknown_f4, *(float *)&plr->unknown_f8, 0);
 
 }

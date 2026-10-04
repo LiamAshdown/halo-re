@@ -80,6 +80,6 @@ inline int32_t &motd_download_slot = ::DAT_00695420;
  *
  * @address 0x00695424
  */
-inline uint8_t (&master_query_key_ids)[10] = ::DAT_00695424;
+inline auto &master_query_key_ids = halo::link::ref<uint8_t [10]>(halo::networking::vars().DAT_00695424);
 
 }

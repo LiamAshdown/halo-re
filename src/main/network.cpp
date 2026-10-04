@@ -209,7 +209,7 @@ void ClientConnection::game_client_connect_to_resolved_address(void)
         wide_password[i - 1] = (uint8_t)main_globals_data.connect_password[i - 1];
     }
 
-    if (halo::networking::network_game_client_connect_to_address((wchar_t *)main_globals_data.connect_address, (char *)wide_password) == 0) {
+    if (halo::networking::network_game_client_connect_to_address((wchar_t *)wide_password, main_globals_data.connect_address) == 0) {
         if (halo::networking::globals().join_error_code == -1) {
             halo::networking::globals().join_error_code = k_join_error_connection_failed;
         }

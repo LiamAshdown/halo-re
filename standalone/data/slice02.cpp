@@ -558,14 +558,10 @@ void *particle_impact_vector_names[2] = {
     (void *)"velocity",
     (void *)"gravity"
 };
-/* 0x006870d8 */
-uint32_t network_object_index_cache[22] = { 0xdu, 0x656a626fu, 0x695f7463u, 0x7865646eu, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, (uint32_t)&halo::networking::message_delta_index_encode, (uint32_t)&halo::networking::message_delta_index_decode };
 /* 0x00687218 */
 int16_t screen_flash_pass[8] = { 0, 1, 2, 3, 4, 5, 6, 0 };
 /* 0x00687350 */
 uint8_t weather_enabled = 0x1;
-/* 0x00687500 */
-uint32_t join_message_table[22] = { 0xdu, 0x79616c70u, 0x695f7265u, 0x7865646eu, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, (uint32_t)&halo::networking::message_delta_index_encode, (uint32_t)&halo::networking::message_delta_index_decode };
 /* 0x00687af4 */
 float teleport_effect_const_00687af4 = 1.0f;
 /* 0x00687af8 */

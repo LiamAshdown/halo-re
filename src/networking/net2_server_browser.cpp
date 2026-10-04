@@ -1169,8 +1169,7 @@ void ServerBrowser::latch_join_target(void)
     }
     if (server_browser_join_requested != 0 && -1 < server_browser_selected_index &&
         server_browser_selected_index < server_list.result_count) {
-        server_browser_join_target =
-            *(void **)((uint8_t *)&server_list + server_browser_selected_index * 4);
+        server_browser_join_target = server_list.list[server_browser_selected_index];
         server_browser_join_target_has_password =
             SBServerGetBoolValue(server_browser_join_target, "password", 0);
         if (server_browser_join_target_has_password != 0) {
@@ -1275,7 +1274,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     text = (wchar_t *)halo::memory::heap_reallocate(w2->label_text, 0x80, halo::interface::globals().widget_memory_pool);
     w2->label_text = (uint16_t *)text;
     if (text != 0) {
-        wchar_t *source = reinterpret_cast<wchar_t *>(halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(string_widen_scratch), 0x800, server_name));
+        wchar_t *source = reinterpret_cast<wchar_t *>(halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(string_widen_scratch), 0x800, server_name ? server_name : ""));
         wcsncpy((wchar_t *)w2->label_text, source, 0x3f);
         w2->label_text[63] = 0;
     }
@@ -1293,7 +1292,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     text = (wchar_t *)halo::memory::heap_reallocate(w2->label_text, 0x40, halo::interface::globals().widget_memory_pool);
     w2->label_text = (uint16_t *)text;
     if (text != 0) {
-        wchar_t *source = reinterpret_cast<wchar_t *>(halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(string_widen_scratch), 0x800, gametype_name));
+        wchar_t *source = reinterpret_cast<wchar_t *>(halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(string_widen_scratch), 0x800, gametype_name ? gametype_name : ""));
         wcsncpy((wchar_t *)w2->label_text, source, 0x1f);
         w2->label_text[31] = 0;
     }
@@ -1328,7 +1327,7 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     int32_t motd_available;
     int32_t tag_index;
     uint16_t *source;
-    uint8_t saved_config[3200];
+    uint8_t saved_config[0x2000];
     network_ui_widget *w0;
     network_ui_widget *w1;
     network_ui_widget *w2;

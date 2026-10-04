@@ -18,19 +18,10 @@ private:
     static void suspend_focus();
 };
 
-/**
- * The Keystone UI middleware (keystone.dll): loads the library and resolves its exports into the
- * global call slots the chat interface uses, or clears them again.
- */
-class KeystoneLibrary {
+/** Selects the system code page for the C runtime's multibyte conversions. */
+class CodepageLocale {
 public:
-    static void load();
-    static void unload();
-
-private:
-    static void capture_current_directory();
-    static void use_codepage_locale();
-    static void resolve_exports();
+    static void apply();
 };
 
 }

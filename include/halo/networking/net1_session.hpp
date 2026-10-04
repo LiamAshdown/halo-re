@@ -11,7 +11,7 @@ class GameRuntime {
 public:
     GameRuntime() = delete;
 
-    static void broadcast_team_object_updates(int32_t *object_count, uint32_t param_1, int32_t *bytes_sent);
+    static void broadcast_team_object_updates(int32_t *object_count, uint32_t object_type_mask, int32_t machine_id, int32_t *bytes_sent);
     static void client_apply_position_update(network_machine *machine, const client_position_packet *packet, int32_t tick_count, uint32_t history_byte);
     static void client_apply_received_update(network_machine *machine, uint32_t server, void **message);
     static wchar_t * get_random_player_name();

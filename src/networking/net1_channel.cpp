@@ -15,12 +15,13 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 
-static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
+static auto &network_player_index_cache = halo::link::ref<uint8_t []>(halo::game::vars().join_message_table);
 static auto &network_buffer_pair_pool = halo::link::ref<int32_t>(halo::main::vars().network_buffer_pair_pool);
 static auto &network_buffer_pair_pool_count = halo::link::ref<int32_t>(halo::networking::vars().network_buffer_pair_pool_count);
 static auto &network_buffer_pair_pool_data = halo::link::ref<network_buffer_pair *>(halo::networking::vars().network_buffer_pair_pool_data);
@@ -166,7 +167,7 @@ network_channel * ChannelFactory::create_channel(uint32_t flags)
         }
         channel->listening = 1;
         channel->child_busy = 0;
-        channel->listen_list = halo::networking::network_channel_list_new(0);
+        channel->listen_list = halo::networking::network_channel_list_new(0x11);
         if (channel->listen_list == 0) {
             halo::networking::network_channel_delete(channel);
             return 0;
@@ -177,9 +178,10 @@ network_channel * ChannelFactory::create_channel(uint32_t flags)
     channel->endpoint = halo::networking::network_receive_queue_new();
     if (channel->endpoint != 0 &&
         ((flags & k_network_channel_listening) == 0 ||
-         (halo::networking::network_listen_start(channel->endpoint) == 0 &&
-          halo::networking::network_channel_list_add(channel->endpoint, channel->listen_list) == 0))) {
-        channel->incoming = halo::memory::circular_buffer_new(halo::mutable_literal("transport-incoming"), 0);
+         // The original tests only AX of these two results.
+         ((uint16_t)halo::networking::network_listen_start(channel->endpoint) == 0 &&
+          (uint16_t)halo::networking::network_channel_list_add(channel->endpoint, channel->listen_list) == 0))) {
+        channel->incoming = halo::memory::circular_buffer_new(halo::mutable_literal("transport-incoming"), 0x6400);
         if (channel->incoming == 0) {
             ok = 0;
         }
@@ -217,7 +219,7 @@ network_channel * ChannelFactory::create_child(network_receive_queue *endpoint)
     if (channel != 0) {
         channel->endpoint = endpoint;
         channel->flags = k_network_channel_transmit_pending;
-        channel->incoming = halo::memory::circular_buffer_new(halo::mutable_literal("transport-incoming"), 0);
+        channel->incoming = halo::memory::circular_buffer_new(halo::mutable_literal("transport-incoming"), 0x6400);
         halo::networking::network_channel_record_timestamp(channel);
         channel->reliable_count = 0;
         channel->reliable = 0;
@@ -1035,7 +1037,7 @@ char ChannelView::listen_service(network_channel **out_new_child)
                 if (channel->listening == 0) {
                     reject_code = 2;
                 } else {
-                    reject_code = halo::networking::network_server_validate_join_request((network_server_globals *)channel->endpoint);
+                    reject_code = halo::networking::network_server_validate_join_request(halo::networking::globals().server);
                     if (reject_code == 0) {
                         entry = halo::networking::network_listen_accept_pending_connection();
                         if (entry != 0) {
@@ -1123,9 +1125,10 @@ char ChannelView::queue_message(uint32_t header_value, uint32_t body_value, int3
             }
         }
         channel->send_budget = channel->send_budget + body_bit_count + header_bit_count;
-        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)header_value, header_bit_count);
+        // The original writes its second argument (the small header, `body_value` here) first and the payload (`header_value`) after it.
+        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)body_value, header_bit_count);
         channel->outgoing.empty = 0;
-        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)body_value, body_bit_count);
+        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)header_value, body_bit_count);
         channel->outgoing.empty = 0;
         if (flush_after != 1) {
             return result;
@@ -1133,7 +1136,7 @@ char ChannelView::queue_message(uint32_t header_value, uint32_t body_value, int3
         result = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
         return result;
     }
-    halo::networking::network_channel_reliable_pool_store(channel, (uint8_t *)&body_value, (uint8_t *)&header_value,
+    halo::networking::network_channel_reliable_pool_store(channel, (uint8_t *)header_value, (uint8_t *)body_value,
         0, header_bit_count, body_bit_count);
     return 1;
 }
@@ -1716,7 +1719,7 @@ int32_t ChannelKeys::open(network_player_entry *entry)
     index = halo::game::player_new_network((datum_index)(int32_t)entry->slot_index, (uint32_t)(int32_t)entry->machine_index, key, (uint16_t *)entry);
     if (index != -1) {
         entry->slot_index = (int8_t)index;
-        halo::networking::network_index_cache_find_or_allocate_slot(network_object_index_cache, index);
+        halo::networking::network_index_cache_find_or_allocate_slot(network_player_index_cache, index);
         return 1;
     }
     return 0;
@@ -2107,3 +2110,4 @@ uint32_t ListenerCallbacks::reject_pending_connection(int32_t reject_code)
 }
 
 }
+

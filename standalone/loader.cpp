@@ -312,7 +312,7 @@ void log_formatted(const char *format, va_list ap)
     char text[1024];
     _vsnprintf(text, sizeof text - 1, format, ap);
     text[sizeof text - 1] = 0;
-    log_line("%s", text);
+    log_line("[%lu] %s", (unsigned long)GetTickCount(), text);
 }
 
 /**

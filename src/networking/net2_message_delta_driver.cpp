@@ -312,7 +312,7 @@ uint8_t DeltaMessageDriver::encode_field(int32_t changed_offset, message_delta_e
 
     changed = 0;
     if (ctx->mode == 1) {
-        if (halo::memory::bit_stream_write_bit(field_bits != 0, 0) != 0) {
+        if (halo::memory::bit_stream_write_bit(field_bits != 0, &ctx->baseline_stream) != 0) {
             changed = 1;
         }
     } else if (0 < field_bits) {
@@ -419,7 +419,7 @@ uint8_t DeltaMessageDriver::encode_prepare_item(message_delta_encode_context *ct
     ctx->field_bits = 0;
     if (ctx->mode == 1) {
         uint32_t bit_offset = (uint32_t)ctx->bit_offset;
-        int32_t field_bits = message_delta_definitions[ctx->message_type]->field_bits;
+        int32_t field_bits = message_delta_definitions[ctx->message_type]->field_count;
         ctx->baseline_stream.bit_cursor = bit_offset & 7;
         ctx->baseline_stream.first_bit = (int32_t)bit_offset;
         ctx->baseline_stream.last_bit = (int32_t)(bit_offset - 1) + field_bits;

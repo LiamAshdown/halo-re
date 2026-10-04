@@ -42,7 +42,7 @@ static auto &network_client = halo::link::ref<network_client_globals *>(halo::ne
 static auto &network_console_connection_id = halo::link::ref<int32_t>(halo::networking::vars().network_console_connection_id);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
-static auto &variant_defaults_source = halo::link::ref<void *>(halo::networking::vars().variant_defaults_source);
+static auto &variant_defaults_source = halo::link::ref<char [0x40]>(halo::networking::vars().variant_defaults_source);
 static auto &game_engine_pending_variant = halo::link::ref<uint8_t [0x98]>(halo::game::vars().game_engine_pending_variant);
 static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
 static auto &ui_root_widget = halo::link::ref<int32_t>(halo::ui::vars().ui_root_widget);
@@ -409,7 +409,7 @@ int32_t ServerView::check_machine_timeout(network_machine *machine)
                         session_ptr = &server->session;
                         encoded = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::player_set_changed), 0, (void **)&session_ptr, 0, 1, 0);
                         if (encoded > 0) {
-                            halo::networking::network_session_broadcast_to_all(network_server, 1, network_message_scratch,
+                            halo::networking::network_session_broadcast_to_all(network_server, encoded, 1, network_message_scratch,
                                 1, 0, 1, 3);
                         }
                     }
@@ -679,7 +679,7 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
     }
     host->full_state_broadcast_pending = 1;
     memcpy(&host->session.variant, game_engine_pending_variant, sizeof(game_engine_pending_variant));
-    strncpy(host->session.server_name, (char *)variant_defaults_source, 0x3f);
+    strncpy(host->session.server_name, variant_defaults_source, 0x3f);
     host->session.server_name[63] = 0;
     host->state = host->state | 1;
     host->session.unknown_07e = 0;

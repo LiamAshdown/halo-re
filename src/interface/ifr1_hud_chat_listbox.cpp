@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_chat_listbox.hpp"
+#include "halo/interface/chat_gui.hpp"
 #include <wchar.h>
 #include <string.h>
 #include "halo/cseries/api.hpp"
@@ -12,17 +13,9 @@
 
 static auto &hud_chat_message_count = halo::link::ref<int32_t>(halo::ui::vars().hud_chat_message_count);
 static auto &hud_chat_message_expiry = halo::link::ref<int32_t [8]>(halo::ui::vars().hud_chat_message_expiry);
-static auto &chat_gui_root_handle = halo::link::ref<void *>(halo::ui::vars().chat_gui_root_handle);
-static auto &chat_gui_find_object = halo::link::ref<chat_gui_find_object_fn>(halo::ui::vars().chat_gui_find_object);
-static auto &chat_listbox_gui_find_object_arg = halo::link::ref<void *>(halo::ui::vars().chat_listbox_gui_find_object_arg);
-static auto &chat_gui_find_child = halo::link::ref<chat_gui_find_child_fn>(halo::ui::vars().chat_gui_find_child);
-static auto &chat_gui_set_property_int = halo::link::ref<chat_gui_set_property_int_fn>(halo::ui::vars().chat_gui_set_property_int);
-static auto &chat_gui_finalize = halo::link::ref<chat_gui_finalize_fn>(halo::ui::vars().chat_gui_finalize);
-static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
 static auto &hud_chat_listbox_visible = halo::link::ref<uint8_t>(halo::ui::vars().hud_chat_listbox_visible);
 static auto &game_engine_state_value = halo::link::ref<int32_t>(halo::game::vars().game_engine_state_value);
 static auto &game_engine_nameplate_fade_opacity_array = halo::link::ref<float>(halo::game::vars().game_engine_nameplate_fade_opacity_array);
-static auto &chat_gui_set_state = halo::link::ref<chat_gui_set_state_fn>(halo::ui::vars().chat_gui_set_state);
 
 namespace halo::interface {
 
@@ -34,20 +27,7 @@ namespace halo::interface {
  */
 void HudChatListbox::clear(void)
 {
-    if (chat_gui_find_object != 0) {
-        void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
-        if (gui_object != 0) {
-            void *listbox = chat_gui_find_child(gui_object, halo::interface::wide(L"oListbox"));
-            if (listbox != 0) {
-                while (hud_chat_message_count != 0 &&
-                       (int32_t)chat_gui_set_property_int(listbox, halo::interface::k_chat_property_remove_item, 0, 0) > 0) {
-                    hud_chat_message_count = hud_chat_message_count - 1;
-                }
-                chat_gui_finalize(gui_object);
-            }
-            chat_gui_release(gui_object);
-        }
-    }
+    ChatGui::get().clear_lines();
 
     {
         int32_t i;
@@ -69,17 +49,9 @@ uint32_t HudChatListbox::remove_oldest(void)
 {
     uint32_t result = 0;
 
-    if (hud_chat_message_count > 0 && chat_gui_find_object != 0) {
-        void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
-        if (gui_object != 0) {
-            void *listbox = chat_gui_find_child(gui_object, halo::interface::wide(L"oListbox"));
-            if (listbox != 0) {
-                result = chat_gui_set_property_int(listbox, halo::interface::k_chat_property_remove_item, 0, 0);
-                chat_gui_set_property_int(listbox, halo::interface::k_chat_property_scroll, 2, 0);
-                chat_gui_finalize(gui_object);
-            }
-            chat_gui_release(gui_object);
-        }
+    if (hud_chat_message_count > 0) {
+        ChatGui::get().remove_oldest_line();
+        result = 1;
     }
 
     hud_chat_message_count = hud_chat_message_count - 1;
@@ -97,7 +69,7 @@ uint32_t HudChatListbox::remove_oldest(void)
  */
 void HudChatListbox::update(void)
 {
-    if (hud_chat_message_count <= 0 || chat_gui_find_object == 0) {
+    if (hud_chat_message_count <= 0) {
         return;
     }
 
@@ -111,19 +83,11 @@ void HudChatListbox::update(void)
 
     if (hud_chat_listbox_visible == 0) {
         if (game_engine_state_value != 0 || game_engine_nameplate_fade_opacity_array == 0.0f) {
-            void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
-            if (gui_object != 0) {
-                chat_gui_set_state(gui_object, 5);
-                chat_gui_release(gui_object);
-            }
+            ChatGui::get().set_log_visible(true);
             hud_chat_listbox_visible = 1;
         }
     } else if (game_engine_state_value == 0 && game_engine_nameplate_fade_opacity_array != 0.0f) {
-        void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
-        if (gui_object != 0) {
-            chat_gui_set_state(gui_object, 0);
-            chat_gui_release(gui_object);
-        }
+        ChatGui::get().set_log_visible(false);
         hud_chat_listbox_visible = 0;
     }
 }

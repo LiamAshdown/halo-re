@@ -79,7 +79,7 @@ uint8_t ServerView::heartbeat_tick()
                     uint16_t countdown_seconds = restarting ? (uint16_t)(timer->remaining_ms / 1000) : 0xffff;
 
                     packet = halo::networking::network_prepare_challenge_packet(9, &countdown_seconds);
-                    if (packet != 0 && halo::networking::network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3) != 0) {
+                    if (packet != 0 && halo::networking::network_session_broadcast_to_all(server, halo::networking::network_packet_bit_count(packet), 0, packet, 1, 0, 1, 3) != 0) {
                         server->unknown_9d0 = now_ms;
                     }
                 }
@@ -90,7 +90,7 @@ uint8_t ServerView::heartbeat_tick()
             uint16_t empty_payload = 0;
 
             packet = halo::networking::network_prepare_challenge_packet(0xc, &empty_payload);
-            halo::networking::network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3);
+            halo::networking::network_session_broadcast_to_all(server, halo::networking::network_packet_bit_count(packet), 0, packet, 1, 0, 1, 3);
             server->last_challenge_sent_ms = now_ms;
         }
     } else if (static_cast<int32_t>(server->first_join_ms) != 0) {
@@ -148,7 +148,7 @@ uint32_t ServerView::resend_challenge_periodic()
         uint16_t empty_payload = 0;
 
         packet = halo::networking::network_prepare_challenge_packet(0xd, &empty_payload);
-        halo::networking::network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3);
+        halo::networking::network_session_broadcast_to_all(server, halo::networking::network_packet_bit_count(packet), 0, packet, 1, 0, 1, 3);
         *last_sent = now_ms;
     }
     return 1;

@@ -872,15 +872,15 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
     if (widget_creating_children == 0) {
         halo::interface::widget_create_children_from_tag(widget, tag);
     }
-    if (tag->child_widgets.count > 0) {
-        uint8_t *entry = (uint8_t *)tag->child_widgets.pointer;
+    if (tag->event_handlers.count > 0) {
+        EventHandlerReference *entry = halo::interface::reflexive_elements<EventHandlerReference>(tag->event_handlers);
 
-        for (i = 0; i < tag->child_widgets.count; i++, entry += 0x48) {
-            if (*(int16_t *)(entry + 4) == 0x18) {
+        for (i = 0; i < tag->event_handlers.count; i++, entry++) {
+            if (entry->event_type == uieventtype_created) {
                 uint8_t handled;
                 int16_t event[4] = {0, 0, 0, 0};
 
-                halo::interface::ui_widget_list_item_activate(widget, tag, event, (EventHandlerReference *)entry, &handled);
+                halo::interface::ui_widget_list_item_activate(widget, tag, event, entry, &handled);
             }
         }
     }
@@ -986,6 +986,12 @@ void WidgetView::handle_input_event(UIWidgetDefinition *tag, int16_t *event, uin
 
     controller_matches = (widget->hidden == 0 &&
                            (widget->controller_index == -1 || widget->controller_index == event[1]));
+    if (event[0] == 4 || event[0] == 3) {
+        static int logged = 0;
+        if (logged < 150 && tag->event_handlers.count > 0) {
+            logged++;
+        }
+    }
 
     if (widget->close_on_controller_connected[0] == 1) {
         int16_t controller = widget->controller_index;
@@ -1474,7 +1480,7 @@ void WidgetView::relink_focus(widget_instance *child)
 /**
  * Recursively renders a widget instance and all of its children: applies inherited scale/fade, runs the tag's
  * per-frame game-data-input bindings, draws its background bitmap (if any) and per-type content, recurses into
- * every child (tracking whether each is the focused one), then fires any bound "post_render" event handler.
+ * every child (tracking whether each is the focused one), then fires any bound "post_render" event handler. A widget whose state is 0 draws nothing at all, children included.
  *
  * @address 0x49a8c0
  */
@@ -1508,9 +1514,13 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
         }
     }
 
-    if (widget->state != 0) {
+    if (widget->state == 0) {
+        return;
+    }
+
+    {
         BitmapData *bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(
-            halo::interface::tag_handle(((struct UIWidgetDefinition *)tag)->background_bitmap.tag_id), 0, widget->background_bitmap_frame);
+            halo::interface::tag_handle(((struct UIWidgetDefinition *)tag)->background_bitmap.tag_id), widget->background_bitmap_frame, 0);
 
         if (bitmap_data != 0) {
             float alpha = scale;

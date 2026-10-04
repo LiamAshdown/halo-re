@@ -1,3 +1,4 @@
+#include "halo/interface/chat_gui.hpp"
 #include "halo/shell/window.hpp"
 #include "sound.h"
 #include "interface.h"
@@ -42,11 +43,6 @@ static auto &nowindowskey = halo::link::ref<int32_t>(halo::shell::vars().nowindo
 static auto &rasterizer_window_icon_dc = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_window_icon_dc);
 static auto &rasterizer_window_icon_bitmap = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_window_icon_bitmap);
 static auto &sound_paused = halo::link::ref<uint8_t>(halo::shell::vars().sound_paused);
-static auto &keystone_module = halo::link::ref<void *>(halo::shell::vars().keystone_module);
-static auto &chat_gui_root_handle = halo::link::ref<void *>(halo::ui::vars().chat_gui_root_handle);
-static auto &keystone_dispatch_message = halo::link::ref<keystone_dispatch_message_fn>(halo::shell::vars().keystone_dispatch_message);
-static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
-static auto &keystone_translate_accelerator = halo::link::ref<keystone_translate_accelerator_fn>(halo::shell::vars().keystone_translate_accelerator);
 
 namespace halo::shell {
 
@@ -81,7 +77,7 @@ void GameWindow::suspend_focus()
 /**
  * The game's window procedure. Handles suspend and resume around focus loss, close and destroy
  * quitting, the splash bitmap paint before the device exists, screensaver and monitor power
- * suppression while the device runs, the Windows key chord, Keystone accelerator translation and
+ * suppression while the device runs, the Windows key chord, and the chat input and
  * Enter/Escape chat routing for keyboard messages, and defers everything else to DefWindowProcA.
  *
  * @address 0x541b30
@@ -120,36 +116,26 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
         }
     };
 
-    auto keystone_dispatch = [&]() -> int32_t {
-        if (chat_gui_root_handle != 0 && keystone_module != 0) {
-            int32_t handled = 1;
-            void *released_window = keystone_dispatch_message(chat_gui_root_handle, message, wparam, lparam, &handled);
+    auto chat_dispatch = [&]() -> int32_t {
+        bool consumed = halo::interface::ChatGui::get().handle_message(message, wparam);
 
-            if (released_window != 0) {
-                chat_gui_release(released_window);
-            }
-            if (message == WM_KEYDOWN) {
-                if (wparam == VK_RETURN) {
-                    if (halo::interface::globals().chat_dialog_open != 0) {
-                        halo::interface::chat_submit_input();
-                        halo::input::DirectInput::key_block_timer_set(0x38, 200);
-                        halo::input::DirectInput::key_block_timer_set(0x66, 200);
-                        return 0;
-                    }
-                } else if (wparam == VK_ESCAPE) {
-                    if (halo::interface::globals().chat_dialog_open != 0) {
-                        halo::input::DirectInput::key_block_timer_set(0, 0xfa);
-                    }
-                    halo::interface::chat_close();
+        if (message == WM_KEYDOWN) {
+            if (wparam == VK_RETURN) {
+                if (halo::interface::globals().chat_dialog_open != 0) {
+                    halo::interface::chat_submit_input();
+                    halo::input::DirectInput::key_block_timer_set(0x38, 200);
+                    halo::input::DirectInput::key_block_timer_set(0x66, 200);
+                    return 0;
                 }
-            }
-            if (handled == 0) {
-                halo::input::DirectInput::record_windows_key_message(wparam, message);
-                return 0;
+            } else if (wparam == VK_ESCAPE) {
+                if (halo::interface::globals().chat_dialog_open != 0) {
+                    halo::input::DirectInput::key_block_timer_set(0, 0xfa);
+                }
+                halo::interface::chat_close();
             }
         }
         halo::input::DirectInput::record_windows_key_message(wparam, message);
-        return DefWindowProcA(hwnd, message, wparam, lparam);
+        return consumed ? 0 : DefWindowProcA(hwnd, message, wparam, lparam);
     };
 
     auto keyboard_message = [&]() -> int32_t {
@@ -160,7 +146,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             SetForegroundWindow(GetDesktopWindow());
             return DefWindowProcA(hwnd, message, wparam, lparam);
         }
-        return keystone_dispatch();
+        return chat_dispatch();
     };
 
     if (message <= WM_NCHITTEST) {
@@ -305,7 +291,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             return keyboard_message();
         case WM_CHAR:
         case WM_SYSKEYDOWN:
-            return keystone_dispatch();
+            return chat_dispatch();
         default:
             return DefWindowProcA(hwnd, message, wparam, lparam);
         }
@@ -406,8 +392,7 @@ void GameWindow::handle_activate_app(uint8_t inactive)
 }
 
 /**
- * Drains the Win32 message queue each frame. While the Keystone UI is loaded, messages go through its
- * accelerator translator first; the rest take the normal translate and dispatch path.
+ * Drains the Win32 message queue each frame through the normal translate and dispatch path.
  *
  * @address 0x541a20
  */
@@ -415,20 +400,11 @@ void GameWindow::pump_messages()
 {
     uint8_t message[28];
     int32_t has_message;
-    int32_t handled;
 
     has_message = PeekMessageA((LPMSG)message, 0, 0, 0, 1);
     while (has_message != 0) {
-        if (chat_gui_root_handle == 0 || keystone_module == 0) {
-            TranslateMessage((const MSG *)message);
-            DispatchMessageA((const MSG *)message);
-        } else {
-            handled = (int32_t)keystone_translate_accelerator(chat_gui_root_handle, shell_window, 0, message);
-            if (handled == 0) {
-                TranslateMessage((const MSG *)message);
-                DispatchMessageA((const MSG *)message);
-            }
-        }
+        TranslateMessage((const MSG *)message);
+        DispatchMessageA((const MSG *)message);
         has_message = PeekMessageA((LPMSG)message, 0, 0, 0, 1);
     }
 }

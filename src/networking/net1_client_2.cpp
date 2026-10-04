@@ -24,7 +24,7 @@ static auto &network_host_handoff_requested = halo::link::ref<uint8_t>(halo::net
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &network_disconnect_notice_shown = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_notice_shown);
 static auto &network_game_socket_port = halo::link::ref<uint32_t>(halo::networking::vars().network_game_socket_port);
-static auto &progress_screen_text = halo::link::ref<int32_t>(halo::main::vars().progress_screen_text);
+static auto &progress_screen_text = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_text);
 static auto &network_session_active = halo::link::ref<uint8_t>(halo::networking::vars().network_session_active);
 static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
 static auto &network_challenge_packet_block = halo::link::ref<uint16_t []>(halo::networking::vars().network_challenge_packet_block);
@@ -277,9 +277,9 @@ uint32_t ClientView::client_connect_to_address(wchar_t *player_name, char *addre
     }
     if (address_string == 0) {
 
-        progress_screen_text = 0;
+        progress_screen_text[0] = 0;
     } else {
-        halo::text::string_convert_ascii_to_unicode(0, 0, address_string);
+        halo::text::string_convert_ascii_to_unicode(progress_screen_text, 0x40, address_string);
 
     }
     return halo::networking::network_client_begin_connect(player_name, &target);
