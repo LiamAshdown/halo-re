@@ -46,7 +46,7 @@ static auto &cpu_speed = halo::link::ref<uint32_t>(halo::shell::vars().cpu_speed
 static auto &physical_memory = halo::link::ref<uint32_t>(halo::shell::vars().physical_memory);
 static auto &saved_player_profile_slots_handle = halo::link::ref<int32_t>(halo::saved_games::vars().saved_player_profile_slots_handle);
 static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
-static auto &unknown_00719779 = halo::link::ref<char []>(halo::ui::vars().unknown_00719779);
+static auto &current_campaign_level_path = halo::link::ref<char []>(halo::ui::vars().current_campaign_level_path);
 static auto &savegames_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().savegames_directory);
 static auto &empty_string = halo::link::ref<uint16_t []>(halo::game::vars().empty_string);
 static auto &rasterizer_device_version = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_device_version);
@@ -734,7 +734,7 @@ void mark_level_visited_and_select(int16_t local_player_index)
     int32_t handle;
     saved_player_profile profile;
 
-    current_level = halo::main::campaign_level_find_index_for_path(unknown_00719779);
+    current_level = halo::main::campaign_level_find_index_for_path(current_campaign_level_path);
     difficulty = halo::main::globals().game_globals->difficulty;
 
     if (local_player_index < 0 || 1 <= local_player_index) {
@@ -861,7 +861,7 @@ void select_local_slot(int16_t local_player_index)
     int32_t handle;
     saved_player_profile profile;
 
-    current_level = halo::main::campaign_level_find_index_for_path(unknown_00719779);
+    current_level = halo::main::campaign_level_find_index_for_path(current_campaign_level_path);
     if (current_level == -1 || local_player_index < 0 || 1 <= local_player_index) {
         return;
     }

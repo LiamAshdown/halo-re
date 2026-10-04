@@ -46,8 +46,8 @@ uint8_t structure_bsp_switcher::switch_to(int16_t structure_bsp_index)
     new_entry = &((ScenarioBSP *)globals().scenario->structure_bsps.pointer)[structure_bsp_index];
     old_bsp_was_active = (globals().structure_bsp_index != -1);
 
-    globals().unknown_00719769 = 0;
-    globals().unknown_0071976a = 0;
+    globals().time_is_running = 0;
+    globals().reset_frame_timers = 0;
 
     if (old_bsp_was_active) {
         ScenarioBSP *old_entry;
@@ -61,7 +61,7 @@ uint8_t structure_bsp_switcher::switch_to(int16_t structure_bsp_index)
     }
 
     if (!halo::cache::structure_bsp_load(new_entry)) {
-        globals().unknown_0071976a = 1;
+        globals().reset_frame_timers = 1;
         return 0;
     }
 
@@ -77,7 +77,7 @@ uint8_t structure_bsp_switcher::switch_to(int16_t structure_bsp_index)
         structure_bsp_switcher::activate_callbacks();
     }
 
-    globals().unknown_0071976a = 1;
+    globals().reset_frame_timers = 1;
     return 1;
 }
 

@@ -21,13 +21,13 @@ inline auto &DAT_00669ae0 = halo::link::ref<char [4]>(halo::ui::vars().DAT_00669
 inline auto &unknown_00692b0c = halo::link::ref<int32_t>(halo::ui::vars().unknown_00692b0c);
 inline auto &unknown_007127d1 = halo::link::ref<uint8_t>(halo::ui::vars().unknown_007127d1);
 inline auto &unknown_00712f07 = halo::link::ref<uint8_t>(halo::ui::vars().unknown_00712f07);
-inline auto &unknown_00719779 = halo::link::ref<char [255]>(halo::ui::vars().unknown_00719779);
+inline auto &current_campaign_level_path = halo::link::ref<char [255]>(halo::ui::vars().current_campaign_level_path);
 inline auto &unknown_00719208 = halo::link::ref<uint32_t>(halo::ui::vars().unknown_00719208);
 inline auto &unknown_00879f34 = halo::link::ref<uint32_t>(halo::ui::vars().unknown_00879f34);
 inline auto &unknown_00879f38 = halo::link::ref<uint32_t>(halo::ui::vars().unknown_00879f38);
 inline auto &unknown_006b38f4 = halo::link::ref<int32_t>(halo::ui::vars().unknown_006b38f4);
 inline auto &unknown_006b3914 = halo::link::ref<int32_t>(halo::ui::vars().unknown_006b3914);
-inline auto &ui_unknown_718fa8 = halo::link::ref<float>(halo::ui::vars().ui_unknown_718fa8);
+inline auto &screen_fade_progress = halo::link::ref<float>(halo::ui::vars().screen_fade_progress);
 
 namespace halo::interface::state {
 
@@ -106,7 +106,7 @@ inline uint8_t &round_reset_pending = unknown_00719738;
  *
  * @address 0x719779
  */
-inline char (&current_campaign_level_path)[255] = unknown_00719779;
+inline char (&current_campaign_level_path)[255] = ::current_campaign_level_path;
 
 /**
  * Vehicle respawn time in ticks being edited on the vehicle options screen.
@@ -149,6 +149,6 @@ inline int32_t &chat_window_unused_6b3914 = unknown_006b3914;
  *
  * @address 0x718fa8
  */
-inline float &screen_fade_progress = ui_unknown_718fa8;
+inline float &screen_fade_progress = ::screen_fade_progress;
 
 }

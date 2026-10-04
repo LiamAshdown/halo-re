@@ -39,8 +39,8 @@ struct Globals {
     GlobalsMaterial &material_table_fallback;
     structure_bsp_procedure (&structure_bsp_activate_procedures)[13];
     structure_bsp_procedure (&structure_bsp_deactivate_procedures)[10];
-    uint8_t &unknown_00719769;
-    uint8_t &unknown_0071976a;
+    uint8_t &time_is_running;
+    uint8_t &reset_frame_timers;
 };
 
 /**

@@ -354,7 +354,7 @@ void LevelControl::start_new_single_player_map(void)
 static auto &map_path_prefix = halo::link::ref<char []>(halo::main::vars().map_path_prefix);
 static auto &main_menu_music_pending = halo::link::ref<uint8_t>(halo::main::vars().main_menu_music_pending);
 static auto &ui_input_batch_mode = halo::link::ref<uint8_t>(halo::ui::vars().ui_input_batch_mode);
-static auto &ui_unknown_718fa8 = halo::link::ref<float>(halo::ui::vars().ui_unknown_718fa8);
+static auto &screen_fade_progress = halo::link::ref<float>(halo::ui::vars().screen_fade_progress);
 static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_progress);
 static auto &progress_screen_text = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_text);
 static auto &progress_screen_subtext = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_subtext);
@@ -411,7 +411,7 @@ void LevelControl::level_transition_update(void)
             main_globals_data.level_transition_fade_end_ms = main_globals_data.frame_time_ms + 1000;
             halo::interface::main_menu_on_shown(1000);
             ui_input_batch_mode = 1;
-            ui_unknown_718fa8 = 0.0f;
+            screen_fade_progress = 0.0f;
             }
         } else {
             float remaining = (float)(int32_t)(main_globals_data.level_transition_fade_end_ms -
@@ -420,7 +420,7 @@ void LevelControl::level_transition_update(void)
                            main_globals_data.frame_time_ms) < 0) {
                 remaining = remaining + 4.2949673e+09f;
             }
-            ui_unknown_718fa8 = 1.0f - remaining * 0.001f;
+            screen_fade_progress = 1.0f - remaining * 0.001f;
         }
         if (fade_pending && main_globals_data.frame_time_ms < main_globals_data.level_transition_fade_end_ms) {
             return;
@@ -430,7 +430,7 @@ void LevelControl::level_transition_update(void)
     }
 
     if (main_globals_data.idle_timeout_reached == 0) {
-        ui_unknown_718fa8 = -1.0f;
+        screen_fade_progress = -1.0f;
         halo::main::main_menu_music_stop();
         ui_input_batch_mode = 0;
 

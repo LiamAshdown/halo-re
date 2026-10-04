@@ -64,7 +64,7 @@ extern char timedemo_pixel_shader_version[];
 extern char ui_pause_pending_count_00718fa0[];
 extern char unknown_00710301[];
 extern char unknown_0071973b[];
-extern char unknown_00719769[];
-extern char unknown_0071976a[];
+extern char time_is_running[];
+extern char reset_frame_timers[];
 extern char unknown_00873d30[];
 }

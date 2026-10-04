@@ -309,7 +309,7 @@ struct Vars {
     void *ui_server_option_flag_00692b10;
     void *ui_split_screen;
     void *ui_time_milliseconds;
-    void *ui_unknown_718fa8;
+    void *screen_fade_progress;
     void *ui_use_os_cursor;
     void *ui_version_string;
     void *ui_version_text;
@@ -325,7 +325,7 @@ struct Vars {
     void *unknown_00712f07;
     void *unknown_00719208;
     void *unknown_00719738;
-    void *unknown_00719779;
+    void *current_campaign_level_path;
     void *unknown_00879f34;
     void *unknown_00879f38;
     void *variant_carousel_slots;

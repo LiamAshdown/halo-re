@@ -17,6 +17,6 @@ extern uint8_t material_table_warning_issued;
 extern GlobalsMaterial material_table_fallback;
 extern structure_bsp_procedure structure_bsp_activate_procedures[k_structure_bsp_activate_procedure_count];
 extern structure_bsp_procedure structure_bsp_deactivate_procedures[k_structure_bsp_deactivate_procedure_count];
-extern uint8_t unknown_00719769;
-extern uint8_t unknown_0071976a;
+extern uint8_t time_is_running;
+extern uint8_t reset_frame_timers;
 }

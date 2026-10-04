@@ -14,8 +14,8 @@
 inline auto &main_globals_byte_0071973a = halo::link::ref<uint8_t>(halo::main::vars().main_globals_byte_0071973a);
 inline auto &unknown_0071973b = halo::link::ref<uint8_t>(halo::main::vars().unknown_0071973b);
 inline auto &main_globals_byte_0071974f = halo::link::ref<uint8_t>(halo::main::vars().main_globals_byte_0071974f);
-inline auto &unknown_00719769 = halo::link::ref<uint8_t>(halo::main::vars().unknown_00719769);
-inline auto &unknown_0071976a = halo::link::ref<uint8_t>(halo::main::vars().unknown_0071976a);
+inline auto &time_is_running = halo::link::ref<uint8_t>(halo::main::vars().time_is_running);
+inline auto &reset_frame_timers = halo::link::ref<uint8_t>(halo::main::vars().reset_frame_timers);
 
 namespace halo::main::fields {
 
@@ -57,7 +57,7 @@ inline uint8_t &lost_map = main_globals_byte_0071974f;
  *
  * @address 0x719769
  */
-inline uint8_t &time_is_running = unknown_00719769;
+inline uint8_t &time_is_running = ::time_is_running;
 
 /**
  * main_globals.reset_frame_timers: re-baseline both frame counters on the next frame, then set
@@ -65,6 +65,6 @@ inline uint8_t &time_is_running = unknown_00719769;
  *
  * @address 0x71976a
  */
-inline uint8_t &reset_frame_timers = unknown_0071976a;
+inline uint8_t &reset_frame_timers = ::reset_frame_timers;
 
 }

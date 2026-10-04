@@ -70,8 +70,8 @@ const Vars &vars()
         ui_pause_pending_count_00718fa0,
         unknown_00710301,
         unknown_0071973b,
-        unknown_00719769,
-        unknown_0071976a,
+        time_is_running,
+        reset_frame_timers,
         unknown_00873d30,
     };
     return table;

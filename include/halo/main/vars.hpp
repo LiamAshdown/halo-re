@@ -67,8 +67,8 @@ struct Vars {
     void *ui_pause_pending_count_00718fa0;
     void *unknown_00710301;
     void *unknown_0071973b;
-    void *unknown_00719769;
-    void *unknown_0071976a;
+    void *time_is_running;
+    void *reset_frame_timers;
     void *unknown_00873d30;
 };
 

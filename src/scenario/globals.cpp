@@ -34,8 +34,8 @@ Globals &Service::instance()
         ::material_table_fallback,
         ::structure_bsp_activate_procedures,
         ::structure_bsp_deactivate_procedures,
-        ::unknown_00719769,
-        ::unknown_0071976a,
+        ::time_is_running,
+        ::reset_frame_timers,
     };
     return state;
 }

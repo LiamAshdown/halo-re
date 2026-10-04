@@ -45,7 +45,7 @@ __declspec(allocate(".g08$0003")) __declspec(align(4)) uint32_t unknown_00719774
 #pragma section(".g08$0004", read, write)
 __declspec(allocate(".g08$0004")) __declspec(align(1)) uint8_t selected_level_pending_00719778 = {0}; // 0x00719778
 #pragma section(".g08$0005", read, write)
-__declspec(allocate(".g08$0005")) __declspec(align(1)) char unknown_00719779[255] = {0}; // 0x00719779
+__declspec(allocate(".g08$0005")) __declspec(align(1)) char current_campaign_level_path[255] = {0}; // 0x00719779
 #pragma section(".g08$0006", read, write)
 __declspec(allocate(".g08$0006")) __declspec(align(1)) uint8_t selected_level_active_00719878 = {0}; // 0x00719878
 #pragma section(".g08$0007", read, write)

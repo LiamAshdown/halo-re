@@ -477,7 +477,7 @@ __declspec(allocate(".geq$00718fa4v")) __declspec(align(4)) uint8_t network_join
 #pragma section(".geq$00718fa6v", read, write)
 __declspec(allocate(".geq$00718fa6v")) __declspec(align(2)) uint8_t ui_pause_depth[2] = {0};
 #pragma section(".geq$00718fa8v", read, write)
-__declspec(allocate(".geq$00718fa8v")) __declspec(align(8)) uint8_t ui_unknown_718fa8[4] = {0};
+__declspec(allocate(".geq$00718fa8v")) __declspec(align(8)) uint8_t screen_fade_progress[4] = {0};
 #pragma section(".geq$00718facv", read, write)
 __declspec(allocate(".geq$00718facv")) __declspec(align(4)) uint8_t quit_confirm_error_string_index[2] = {0};
 #pragma section(".geq$00718faev", read, write)
@@ -589,9 +589,9 @@ __declspec(allocate(".g08$0000_0071975bv")) __declspec(align(1)) uint8_t ui_even
 #pragma section(".g08$0000_00719768v", read, write)
 __declspec(allocate(".g08$0000_00719768v")) __declspec(align(8)) uint8_t playback_requested_00719768[1] = {0};
 #pragma section(".g08$0000_00719769v", read, write)
-__declspec(allocate(".g08$0000_00719769v")) __declspec(align(1)) uint8_t unknown_00719769[1] = {0};
+__declspec(allocate(".g08$0000_00719769v")) __declspec(align(1)) uint8_t time_is_running[1] = {0};
 #pragma section(".g08$0000_0071976av", read, write)
-__declspec(allocate(".g08$0000_0071976av")) __declspec(align(2)) uint8_t unknown_0071976a[2] = {0};
+__declspec(allocate(".g08$0000_0071976av")) __declspec(align(2)) uint8_t reset_frame_timers[2] = {0};
 #pragma section(".g08$0000_0071976cv", read, write)
 __declspec(allocate(".g08$0000_0071976cv")) __declspec(align(4)) uint8_t main_globals_byte_0071976c[2] = {0};
 #pragma section(".g08$0000_0071976ev", read, write)
