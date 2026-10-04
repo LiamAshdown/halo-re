@@ -855,7 +855,9 @@ typedef struct vehicle_data {
     real_vector3d network_baseline_angular_velocity; // 0x544 the same for angular velocity
     real_vector3d network_baseline_forward;         // 0x550 the same for the forward vector
     real_vector3d network_baseline_up;              // 0x55c the same for the up vector
-    uint8_t unknown_568[0x44];          // 0x568 untouched by this module
+    uint8_t last_network_data_valid;    // 0x568 CEA _vehicle_datum.last_network_data_valid; untouched by this module
+    uint8_t pad_569[3];                 // 0x569
+    uint8_t last_network_data[0x40];    // 0x56c CEA vehicle_datum_network_data (the previous baseline); untouched by this module
     int32_t network_update_tick;        // 0x5ac game tick of the last seat change or network
                                         //       update; vehicle_update rate-limits on it
     int16_t cinematic_facing_index;     // 0x5b0 0x570de0 indexes the cinematic direction table
