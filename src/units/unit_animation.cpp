@@ -1094,7 +1094,7 @@ uint8_t UnitView::try_set_animation_state(int16_t new_state)
             (current_state == 0 || current_state == 2 || current_state == 3)) {
             transform_count = 1;
         }
-        if (new_state == 0x16 || new_state == 0x15) {
+        if (new_state == halo::units::animation_state_value(halo::units::unit_animation_state_id::hard_landing) || new_state == halo::units::animation_state_value(halo::units::unit_animation_state_id::soft_landing)) {
             transform_count = 2;
         }
         changed = 1;

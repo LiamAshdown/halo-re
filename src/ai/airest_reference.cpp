@@ -1486,7 +1486,7 @@ void ReferenceView::units_exit_vehicles()
                         halo::ai::object_header_at(unit_index).flags |= 2;
                     }
                 }
-                self->unit.animation_state = 0x1b;
+                self->unit.animation_state = halo::units::animation_state_value(halo::units::unit_animation_state_id::seat_exit);
                 halo::ai::actor_notify_weapon_pickup_once(unit_index);
                 if (self->base.network_role == 0) {
                     halo::units::unit_dispatch_scripted_event_9(0, (int32_t)unit_index);

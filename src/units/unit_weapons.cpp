@@ -1569,10 +1569,10 @@ uint8_t UnitView::try_ready_weapon(uint8_t forced, const real_vector2d *directio
     }
     if (forced) {
         new_state = animation_state_value(unit_animation_state_id::melee_continuous);
-    } else if (state == 0x28) {
+    } else if (state == halo::units::animation_state_value(halo::units::unit_animation_state_id::leap_airborne)) {
         new_state = animation_state_value(unit_animation_state_id::leap_melee);
     } else {
-        new_state = (int16_t)(0x1e + (airborne != 0));
+        new_state = (int16_t)(halo::units::animation_state_value(halo::units::unit_animation_state_id::melee_attack) + (airborne != 0));
     }
     if (!UnitView(unit_index).try_set_animation_state(new_state) && !forced) {
         return 0;

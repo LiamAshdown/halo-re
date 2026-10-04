@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/ai/actor_props.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
@@ -107,7 +108,7 @@ void halo::ai::prop_ops::danger_update_reaction()
             }
         }
         frames = halo::units::unit_get_animation_frames_remaining(actor->danger_object_index, &state);
-        actor->danger_countdown = state == 0x19 ? (int16_t)frames : -1;
+        actor->danger_countdown = state == halo::units::animation_state_value(halo::units::unit_animation_state_id::dying) ? (int16_t)frames : -1;
         break;
     }
     case 2: {

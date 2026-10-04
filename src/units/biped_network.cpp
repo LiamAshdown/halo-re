@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
@@ -31,9 +32,9 @@ void halo::units::biped_build_update_delta_unit_grenade_count_mod1(uint32_t flag
 
     {
         int8_t state = unit->animation_state;
-        if (state == 0x27 || state == 0x28) {
+        if (state == halo::units::animation_state_value(halo::units::unit_animation_state_id::leap_start) || state == halo::units::animation_state_value(halo::units::unit_animation_state_id::leap_airborne)) {
             state_out[0] = 0x28;
-        } else if (state == 0x14 || already_idle != 0) {
+        } else if (state == halo::units::animation_state_value(halo::units::unit_animation_state_id::airborne) || already_idle != 0) {
             state_out[0] = 0x14;
         }
     }

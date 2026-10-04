@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/objects/record_access.hpp"
 #include <string.h>
@@ -119,7 +120,7 @@ void UnitView::update_aiming_overlay_angles(void *output)
         return;
     }
     state = (int8_t)(uint8_t)unit->unit.animation_state;
-    if ((state >= 0x17 && state <= 0x23) || state == 0x29 || (uint8_t)unit->unit.replacement_animation_state != 0) {
+    if ((state >= halo::units::animation_state_value(halo::units::unit_animation_state_id::hard_ping) && state <= halo::units::animation_state_value(halo::units::unit_animation_state_id::resurrect_back)) || state == halo::units::animation_state_value(halo::units::unit_animation_state_id::leap_melee) || (uint8_t)unit->unit.replacement_animation_state != 0) {
         return;
     }
 

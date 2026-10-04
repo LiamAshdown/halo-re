@@ -852,7 +852,7 @@ uint8_t ActorView::process_vehicle_seat_exit()
                             halo::ai::object_header_at(rider_index).flags |= 2;
                         }
                     }
-                    rider->unit.animation_state = 0x1b;
+                    rider->unit.animation_state = halo::units::animation_state_value(halo::units::unit_animation_state_id::seat_exit);
                     halo::ai::actor_notify_weapon_pickup_once(rider_index);
                     if (rider->base.network_role == 0) {
                         halo::units::unit_dispatch_scripted_event_9(0, (int32_t)rider_index);

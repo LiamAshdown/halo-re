@@ -122,9 +122,9 @@ void BipedView::apply_idle_fidget(uint8_t *state_out)
 
     {
         int8_t state = unit->animation_state;
-        if (state == 0x27 || state == 0x28) {
+        if (state == halo::units::animation_state_value(halo::units::unit_animation_state_id::leap_start) || state == halo::units::animation_state_value(halo::units::unit_animation_state_id::leap_airborne)) {
             state_out[0] = 0x28;
-        } else if (state == 0x14 || already_idle) {
+        } else if (state == halo::units::animation_state_value(halo::units::unit_animation_state_id::airborne) || already_idle) {
             state_out[0] = 0x14;
         }
     }
