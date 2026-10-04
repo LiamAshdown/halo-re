@@ -6,9 +6,9 @@
 #pragma once
 
 extern "C" {
-extern char DAT_0065fb14[];
-extern char DAT_0065fb2c[];
-extern char DAT_00669ae0[];
+extern char console_newline_text[];
+extern char console_tab_text[];
+extern char console_newline_escape[];
 extern char DAT_00695420[];
 extern char autopatch_status_active_00719235[];
 extern char autopatch_status_flag_00692b11[];
@@ -315,16 +315,16 @@ extern char ui_widget_history[];
 extern char ui_widget_opened[];
 extern char unknown_006893ff[];
 extern char unknown_00689450[];
-extern char unknown_00692b0c[];
-extern char unknown_006b38f4[];
-extern char unknown_006b3914[];
-extern char unknown_007127d1[];
-extern char unknown_00712f07[];
-extern char unknown_00719208[];
+extern char vehicle_options_team_page[];
+extern char chat_window_unused_6b38f4[];
+extern char chat_window_unused_6b3914[];
+extern char escape_key_state[];
+extern char profile_slot_flag[];
+extern char vehicle_options_respawn_time[];
 extern char unknown_00719738[];
 extern char current_campaign_level_path[];
-extern char unknown_00879f34[];
-extern char unknown_00879f38[];
+extern char vehicle_options_red_set[];
+extern char vehicle_options_blue_set[];
 extern char variant_carousel_slots[];
 extern char variant_team_selection_00692b08[];
 extern char variant_teams_enabled_0071920c[];

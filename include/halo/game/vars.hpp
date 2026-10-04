@@ -9,7 +9,7 @@ namespace halo::game {
 
 /** Address table of the engine variables owned by the game module. */
 struct Vars {
-    void *DAT_0087ab18;
+    void *simulation_tick_in_progress;
     void *cached_network_engine_index;
     void *camera_point;
     void *camera_position_y_table;
@@ -218,8 +218,8 @@ struct Vars {
     void *ticker_field_separator;
     void *unicode_string_list_scratch_buffer;
     void *unknown_00699f40;
-    void *unknown_0069c530;
-    void *unknown_0069c534;
+    void *water_density_base;
+    void *air_density_base;
     void *unknown_0071cc20;
     void *unknown_00746280_block;
     void *update_client_base_tick;

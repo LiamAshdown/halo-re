@@ -10,8 +10,8 @@ namespace halo::hs {
 /** Address table of the engine variables owned by the hs module. */
 struct Vars {
     void *DAT_00689471;
-    void *DAT_0087abc1;
-    void *DAT_0087abc3;
+    void *jetpack;
+    void *bump_possession;
     void *ai_debug_gate_87abc6;
     void *camera_script_time_remaining;
     void *cheat_super_jump;
@@ -87,7 +87,7 @@ struct Vars {
     void *sound_listener_rolloff_factor;
     void *sound_supplementary_buffers_00746122;
     void *ui_widget_show_path_flag;
-    void *unknown_006869d1;
+    void *director_camera_target_changed;
     void *unknown_006894ba;
     void *unknown_00746fa4;
 };

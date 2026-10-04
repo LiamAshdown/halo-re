@@ -6,14 +6,14 @@
 #pragma once
 
 extern "C" {
-extern char DAT_006953fc[];
+extern char next_auto_refresh_ms[];
 extern char DAT_00695424[];
-extern char DAT_00719484[];
-extern char DAT_00719488[];
-extern char DAT_00719498[];
-extern char DAT_00719696[];
-extern char DAT_00719698[];
-extern char DAT_007196a0[];
+extern char scroll_arrow_flash[];
+extern char refresh_in_flight[];
+extern char ticker_message[];
+extern char ticker_message_terminator[];
+extern char motd_download_state[];
+extern char tick_reset_flag[];
 extern char PTR_s_parameter_handles_0063fff0_0x35_006607a0[];
 extern char actor_mode_default_look_weights[];
 extern char autopatch_download_active_count[];
@@ -202,8 +202,8 @@ extern char sv_ban_penalty_arg_buffer[];
 extern char sv_ban_penalty_seconds[];
 extern char sv_rcon_password_value[];
 extern char sv_tk_grace_arg_buffer[];
-extern char unknown_00697ed8[];
-extern char unknown_006982e8[];
+extern char channel_timeout_grace_seconds[];
+extern char last_connect_progress_percent[];
 extern char update_server_history_index[];
 extern char update_server_last_log_ms[];
 extern char update_server_last_tick_ms[];

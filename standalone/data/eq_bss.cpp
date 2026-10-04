@@ -399,7 +399,7 @@ __declspec(allocate(".geq$00712544v")) __declspec(align(4)) uint8_t controls_inp
 #pragma section(".geq$007127c4v", read, write)
 __declspec(allocate(".geq$007127c4v")) __declspec(align(4)) uint8_t controls_captured_binding[13] = {0};
 #pragma section(".geq$007127d1v", read, write)
-__declspec(allocate(".geq$007127d1v")) __declspec(align(1)) uint8_t unknown_007127d1[3] = {0};
+__declspec(allocate(".geq$007127d1v")) __declspec(align(1)) uint8_t escape_key_state[3] = {0};
 #pragma section(".geq$007127d4v", read, write)
 __declspec(allocate(".geq$007127d4v")) __declspec(align(4)) uint8_t controls_current_binding_table[324] = {0};
 
@@ -417,7 +417,7 @@ __declspec(allocate(".geq$00712dd8v")) __declspec(align(8)) uint8_t profile_glob
 #pragma section(".geq$00712f00v", read, write)
 __declspec(allocate(".geq$00712f00v")) __declspec(align(16)) uint8_t known_solo_level_index_00712f00[7] = {0};
 #pragma section(".geq$00712f07v", read, write)
-__declspec(allocate(".geq$00712f07v")) __declspec(align(1)) uint8_t unknown_00712f07[7885] = {0};
+__declspec(allocate(".geq$00712f07v")) __declspec(align(1)) uint8_t profile_slot_flag[7885] = {0};
 #pragma section(".geq$00714dd4v", read, write)
 __declspec(allocate(".geq$00714dd4v")) __declspec(align(4)) uint8_t saved_player_profile_slots_handle[4] = {0};
 #pragma section(".geq$00714dd8v", read, write)

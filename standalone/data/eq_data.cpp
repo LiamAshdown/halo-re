@@ -145,11 +145,11 @@ __declspec(allocate(".geq$006853b8v")) __declspec(align(8)) uint32_t actor_type_
 #pragma section(".geq$006869c0v", read, write)
 __declspec(allocate(".geq$006869c0v")) __declspec(align(16)) uint32_t map_download[1] = {(uint32_t)(cache_file_current_header_crc32 + 0x7a8)};
 
-/** 0x006869d0..0x00686a10: camera_script, unknown_006869d1, director_camera_mode and 2 more */
+/** 0x006869d0..0x00686a10: camera_script, director_camera_target_changed, director_camera_mode and 2 more */
 #pragma section(".geq$006869d0v", read, write)
 __declspec(allocate(".geq$006869d0v")) __declspec(align(16)) uint8_t camera_script[1] = {0x00};
 #pragma section(".geq$006869d1v", read, write)
-__declspec(allocate(".geq$006869d1v")) __declspec(align(1)) uint8_t unknown_006869d1[1] = {0x00};
+__declspec(allocate(".geq$006869d1v")) __declspec(align(1)) uint8_t director_camera_target_changed[1] = {0x00};
 #pragma section(".geq$006869d2v", read, write)
 __declspec(allocate(".geq$006869d2v")) __declspec(align(2)) uint8_t director_camera_mode[6] = {0xff, 0xff, 0xff, 0xff, 0x00, 0x00};
 #pragma section(".geq$006869d8v", read, write)

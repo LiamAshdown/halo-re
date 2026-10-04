@@ -7,8 +7,8 @@
 
 extern "C" {
 extern char DAT_00689471[];
-extern char DAT_0087abc1[];
-extern char DAT_0087abc3[];
+extern char jetpack[];
+extern char bump_possession[];
 extern char ai_debug_gate_87abc6[];
 extern char camera_script_time_remaining[];
 extern char cheat_super_jump[];
@@ -84,7 +84,7 @@ extern char sound_listener_doppler_factor[];
 extern char sound_listener_rolloff_factor[];
 extern char sound_supplementary_buffers_00746122[];
 extern char ui_widget_show_path_flag[];
-extern char unknown_006869d1[];
+extern char director_camera_target_changed[];
 extern char unknown_006894ba[];
 extern char unknown_00746fa4[];
 }

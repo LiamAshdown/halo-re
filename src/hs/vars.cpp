@@ -13,8 +13,8 @@ const Vars &vars()
 {
     static const Vars table{
         DAT_00689471,
-        DAT_0087abc1,
-        DAT_0087abc3,
+        jetpack,
+        bump_possession,
         ai_debug_gate_87abc6,
         camera_script_time_remaining,
         cheat_super_jump,
@@ -90,7 +90,7 @@ const Vars &vars()
         sound_listener_rolloff_factor,
         sound_supplementary_buffers_00746122,
         ui_widget_show_path_flag,
-        unknown_006869d1,
+        director_camera_target_changed,
         unknown_006894ba,
         unknown_00746fa4,
     };

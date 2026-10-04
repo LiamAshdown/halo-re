@@ -6,7 +6,7 @@
 #pragma once
 
 extern "C" {
-extern char DAT_0087ab18[];
+extern char simulation_tick_in_progress[];
 extern char cached_network_engine_index[];
 extern char camera_point[];
 extern char camera_position_y_table[];
@@ -217,8 +217,8 @@ extern char text_tab_stops[];
 extern char ticker_field_separator[];
 extern char unicode_string_list_scratch_buffer[];
 extern char unknown_00699f40[];
-extern char unknown_0069c530[];
-extern char unknown_0069c534[];
+extern char water_density_base[];
+extern char air_density_base[];
 extern char unknown_0071cc20[];
 extern char unknown_00746280_block[];
 extern char update_client_base_tick[];

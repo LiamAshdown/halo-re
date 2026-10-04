@@ -9,14 +9,14 @@ namespace halo::networking {
 
 /** Address table of the engine variables owned by the networking module. */
 struct Vars {
-    void *DAT_006953fc;
+    void *next_auto_refresh_ms;
     void *DAT_00695424;
-    void *DAT_00719484;
-    void *DAT_00719488;
-    void *DAT_00719498;
-    void *DAT_00719696;
-    void *DAT_00719698;
-    void *DAT_007196a0;
+    void *scroll_arrow_flash;
+    void *refresh_in_flight;
+    void *ticker_message;
+    void *ticker_message_terminator;
+    void *motd_download_state;
+    void *tick_reset_flag;
     void *PTR_s_parameter_handles_0063fff0_0x35_006607a0;
     void *actor_mode_default_look_weights;
     void *autopatch_download_active_count;
@@ -204,8 +204,8 @@ struct Vars {
     void *sv_ban_penalty_seconds;
     void *sv_rcon_password_value;
     void *sv_tk_grace_arg_buffer;
-    void *unknown_00697ed8;
-    void *unknown_006982e8;
+    void *channel_timeout_grace_seconds;
+    void *last_connect_progress_percent;
     void *update_server_history_index;
     void *update_server_last_log_ms;
     void *update_server_last_tick_ms;

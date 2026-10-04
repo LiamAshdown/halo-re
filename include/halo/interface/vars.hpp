@@ -9,9 +9,9 @@ namespace halo::ui {
 
 /** Address table of the engine variables owned by the interface module. */
 struct Vars {
-    void *DAT_0065fb14;
-    void *DAT_0065fb2c;
-    void *DAT_00669ae0;
+    void *console_newline_text;
+    void *console_tab_text;
+    void *console_newline_escape;
     void *DAT_00695420;
     void *autopatch_status_active_00719235;
     void *autopatch_status_flag_00692b11;
@@ -318,16 +318,16 @@ struct Vars {
     void *ui_widget_opened;
     void *unknown_006893ff;
     void *unknown_00689450;
-    void *unknown_00692b0c;
-    void *unknown_006b38f4;
-    void *unknown_006b3914;
-    void *unknown_007127d1;
-    void *unknown_00712f07;
-    void *unknown_00719208;
+    void *vehicle_options_team_page;
+    void *chat_window_unused_6b38f4;
+    void *chat_window_unused_6b3914;
+    void *escape_key_state;
+    void *profile_slot_flag;
+    void *vehicle_options_respawn_time;
     void *unknown_00719738;
     void *current_campaign_level_path;
-    void *unknown_00879f34;
-    void *unknown_00879f38;
+    void *vehicle_options_red_set;
+    void *vehicle_options_blue_set;
     void *variant_carousel_slots;
     void *variant_team_selection_00692b08;
     void *variant_teams_enabled_0071920c;

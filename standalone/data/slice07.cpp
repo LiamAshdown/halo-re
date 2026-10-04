@@ -40,7 +40,7 @@ uint8_t new_profile_name_flag_0071916e; // 0x0071916e
 uint16_t network_host_name_00719170[144]; // 0x00719170
 uint16_t network_host_subname_007191f0[9]; // 0x007191f0
 int32_t resolution_selection_00719204; // 0x00719204
-uint32_t unknown_00719208; // 0x00719208
+uint32_t vehicle_options_respawn_time; // 0x00719208
 uint8_t variant_teams_enabled_0071920c; // 0x0071920c
 uint32_t network_game_option_a_00719210; // 0x00719210
 uint32_t network_game_option_b_00719214; // 0x00719214
@@ -81,8 +81,8 @@ int32_t server_list_scroll_offset; // 0x00719478
 int32_t server_browser_last_click_ms; // 0x0071947c
 uint8_t server_browser_skip_reselect; // 0x00719480
 uint8_t server_browser_player_list_ready; // 0x00719481
-int32_t DAT_00719484; // 0x00719484
-uint8_t DAT_00719488; // 0x00719488
+int32_t scroll_arrow_flash; // 0x00719484
+uint8_t refresh_in_flight; // 0x00719488
 uint8_t server_browser_sort_column; // 0x00719489
 uint8_t server_browser_query_pending; // 0x0071948a
 uint8_t server_browser_filter_dedicated_only; // 0x0071948b
@@ -92,11 +92,11 @@ uint8_t server_browser_filter_gametype; // 0x0071948e
 uint8_t server_browser_filter_teamplay; // 0x0071948f
 uint8_t server_browser_filter_ping_limit_index; // 0x00719490
 uint8_t server_browser_join_requested; // 0x00719491
-wchar_t DAT_00719498[0x100]; // 0x00719498
-uint16_t DAT_00719696; // 0x00719696
-int32_t DAT_00719698; // 0x00719698
+wchar_t ticker_message[0x100]; // 0x00719498
+uint16_t ticker_message_terminator; // 0x00719696
+int32_t motd_download_state; // 0x00719698
 uint32_t master_server_request_flags; // 0x0071969c
-int32_t DAT_007196a0; // 0x007196a0
+int32_t tick_reset_flag; // 0x007196a0
 int32_t master_server_last_result; // 0x007196a4
 void *server_list_mutex; // 0x007196a8
 void *server_list_thread; // 0x007196ac

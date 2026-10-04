@@ -12,7 +12,7 @@ namespace halo::game {
 const Vars &vars()
 {
     static const Vars table{
-        DAT_0087ab18,
+        simulation_tick_in_progress,
         cached_network_engine_index,
         camera_point,
         camera_position_y_table,
@@ -221,8 +221,8 @@ const Vars &vars()
         ticker_field_separator,
         unicode_string_list_scratch_buffer,
         unknown_00699f40,
-        unknown_0069c530,
-        unknown_0069c534,
+        water_density_base,
+        air_density_base,
         unknown_0071cc20,
         unknown_00746280_block,
         update_client_base_tick,

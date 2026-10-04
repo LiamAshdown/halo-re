@@ -99,8 +99,8 @@ int32_t chat_listbox_x;                                                // 0x006b
 int32_t chat_listbox_y;                                                // 0x006b38e8
 int32_t chat_listbox_width;                                            // 0x006b38ec
 int32_t chat_listbox_height;                                           // 0x006b38f0
-int32_t unknown_006b38f4;                                              // 0x006b38f4
-int32_t unknown_006b3914;                                              // 0x006b3914
+int32_t chat_window_unused_6b38f4;                                              // 0x006b38f4
+int32_t chat_window_unused_6b3914;                                              // 0x006b3914
 int32_t hud_chat_message_expiry[8];                                    // 0x006b3a20
 hud_messaging_globals * hud_messaging;                                 // 0x006b3a40
 hud_waypoint_state * hud_waypoints;                                    // 0x006b3a44

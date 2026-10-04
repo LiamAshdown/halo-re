@@ -176,8 +176,8 @@ extern float unit_speech_repeat_seconds[12];
 extern char network_log_path_format[4];
 extern char prop_array_name[8];
 extern char joystick_set_separator_0065f010[4];
-extern char DAT_0065fb14[4];
-extern char DAT_0065fb2c[4];
+extern char console_newline_text[4];
+extern char console_tab_text[4];
 extern char decimal_format_string[4];
 extern char network_summary_log_mode_string[4];
 extern char file_open_mode_w[4];
@@ -208,7 +208,7 @@ extern char player_help_name_b30[4];
 extern char player_help_name_a50[4];
 extern char player_help_name_a30[4];
 extern char player_help_name_a10[4];
-extern char DAT_00669ae0[4];
+extern char console_newline_escape[4];
 extern wchar_t ui_out_of_memory_text[16];
 extern wchar_t hud_text_unbound[4];
 extern wchar_t hud_text_quote[2];
@@ -1785,12 +1785,12 @@ char joystick_set_separator_0065f010[4] = "\r\n";
 SLICE01_SIZE_CHECK(joystick_set_separator_0065f010, 4);
 
 /* 0x0065fb14, 0x4 bytes */
-char DAT_0065fb14[4] = "\n";
-SLICE01_SIZE_CHECK(DAT_0065fb14, 4);
+char console_newline_text[4] = "\n";
+SLICE01_SIZE_CHECK(console_newline_text, 4);
 
 /* 0x0065fb2c, 0x4 bytes */
-char DAT_0065fb2c[4] = "\t";
-SLICE01_SIZE_CHECK(DAT_0065fb2c, 4);
+char console_tab_text[4] = "\t";
+SLICE01_SIZE_CHECK(console_tab_text, 4);
 
 /* 0x0065fb30, 0x4 bytes */
 char decimal_format_string[4] = "%d";
@@ -1913,8 +1913,8 @@ char player_help_name_a10[4] = "a10";
 SLICE01_SIZE_CHECK(player_help_name_a10, 4);
 
 /* 0x00669ae0, 0x4 bytes */
-char DAT_00669ae0[4] = "|n";
-SLICE01_SIZE_CHECK(DAT_00669ae0, 4);
+char console_newline_escape[4] = "|n";
+SLICE01_SIZE_CHECK(console_newline_escape, 4);
 
 /* 0x00669ca8, 0x20 bytes */
 wchar_t ui_out_of_memory_text[16] = L"<out of memory>";

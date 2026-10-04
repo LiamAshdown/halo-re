@@ -4,8 +4,8 @@
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
 
-inline auto &unknown_00697ed8 = halo::link::ref<int32_t>(halo::networking::vars().unknown_00697ed8);
-inline auto &unknown_006982e8 = halo::link::ref<int32_t>(halo::networking::vars().unknown_006982e8);
+inline auto &channel_timeout_grace_seconds = halo::link::ref<int32_t>(halo::networking::vars().channel_timeout_grace_seconds);
+inline auto &last_connect_progress_percent = halo::link::ref<int32_t>(halo::networking::vars().last_connect_progress_percent);
 
 namespace halo::networking::net_state {
 
@@ -15,13 +15,13 @@ namespace halo::networking::net_state {
  *
  * @address 0x00697ed8
  */
-inline int32_t &channel_timeout_grace_seconds = ::unknown_00697ed8;
+inline int32_t &channel_timeout_grace_seconds = ::channel_timeout_grace_seconds;
 
 /**
  * Connect progress percentage last reported by the client connection state machine; starts at 0xffff and is never read.
  *
  * @address 0x006982e8
  */
-inline int32_t &last_connect_progress_percent = ::unknown_006982e8;
+inline int32_t &last_connect_progress_percent = ::last_connect_progress_percent;
 
 }

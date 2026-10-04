@@ -12,8 +12,8 @@
  * what the engine code uses.
  */
 inline auto &g_0087abc0 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc0);
-inline auto &DAT_0087abc1 = halo::link::ref<uint8_t>(halo::hs::vars().DAT_0087abc1);
-inline auto &DAT_0087abc3 = halo::link::ref<uint8_t>(halo::hs::vars().DAT_0087abc3);
+inline auto &jetpack = halo::link::ref<uint8_t>(halo::hs::vars().jetpack);
+inline auto &bump_possession = halo::link::ref<uint8_t>(halo::hs::vars().bump_possession);
 inline auto &g_0087abc5 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc5);
 inline auto &ai_debug_gate_87abc6 = halo::link::ref<uint8_t>(halo::hs::vars().ai_debug_gate_87abc6);
 inline auto &g_0087abc7 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc7);
@@ -21,7 +21,7 @@ inline auto &cheat_super_jump = halo::link::ref<uint8_t>(halo::hs::vars().cheat_
 inline auto &DAT_00689471 = halo::link::ref<uint8_t>(halo::hs::vars().DAT_00689471);
 inline auto &g_00689481 = halo::link::ref<uint8_t>(halo::hs::vars().g_00689481);
 inline auto &unknown_00746fa4 = halo::link::ref<uint8_t>(halo::hs::vars().unknown_00746fa4);
-inline auto &unknown_006869d1 = halo::link::ref<uint8_t>(halo::hs::vars().unknown_006869d1);
+inline auto &director_camera_target_changed = halo::link::ref<uint8_t>(halo::hs::vars().director_camera_target_changed);
 
 namespace halo::hs::fields {
 
@@ -39,7 +39,7 @@ inline uint8_t &deathless_player = g_0087abc0;
  *
  * @address 0x87abc1
  */
-inline uint8_t &jetpack = DAT_0087abc1;
+inline uint8_t &jetpack = ::jetpack;
 
 /**
  * hs global "cheat_bump_possession". While set, a unit that has bumped a biped for more than three ticks
@@ -47,7 +47,7 @@ inline uint8_t &jetpack = DAT_0087abc1;
  *
  * @address 0x87abc3
  */
-inline uint8_t &bump_possession = DAT_0087abc3;
+inline uint8_t &bump_possession = ::bump_possession;
 
 /**
  * hs global "cheat_reflexive_damage_effects". When set, damage that has no other player effect route marks
@@ -110,7 +110,7 @@ inline uint8_t &recover_saved_games_hack = unknown_00746fa4;
  *
  * @address 0x6869d1
  */
-inline uint8_t &director_camera_target_changed = unknown_006869d1;
+inline uint8_t &director_camera_target_changed = ::director_camera_target_changed;
 
 /**
  * hs global "framerate_throttle". The 30 fps frame limiter: set when the profile's frame rate mode is 2 and read
