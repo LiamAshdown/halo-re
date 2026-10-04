@@ -263,7 +263,7 @@ typedef struct unit_speech {
     int16_t ai_line_index;          // 0x16 passed to ai_communication_record_line_played
     int16_t unknown_18;             // 0x18 -1
     int8_t suppress_line_record;    // 0x1a 0x561030 skips the line bookkeeping when set
-    int8_t unknown_1b;              // 0x1b
+    int8_t pad_1b;                  // 0x1b
     uint8_t unknown_1c[0x14];       // 0x1c zeroed by every construction, never read back
 } unit_speech;                      // size 0x30
 

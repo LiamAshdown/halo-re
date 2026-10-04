@@ -371,7 +371,7 @@ typedef struct first_person_weapon_interface {
     uint8_t unknown_1c[4];     // 0x001c
     int16_t overcharged_animation; // 0x0020 0x493150 set to fp list[15] (overcharged-jitter overlay) in state 4,
                                    //    frame float +0x24 advanced by weapon +0x244; 0x493740 weighted overlay
-    uint8_t unknown_22[2];     // 0x0022
+    uint8_t pad_22[2];         // 0x0022
     float overcharge_frame;    // 0x0024 advanced by weapon +0x244 in state 4; frame of the overcharged overlay
     float recoil;              // 0x0028 0x493150 real_seek_toward_clamped(velocity=+0x2c 'charge', value=+0x28);
                                //    action 0 (primary fire, weapon_fire_trigger) kicks +0x2c; overlays frame 8

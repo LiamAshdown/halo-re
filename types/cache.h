@@ -247,9 +247,9 @@ typedef struct cache_io_request {
     uint8_t priority;              // 0x1c raised to 1 in place by the blocking waiters
     uint8_t pending;               // 0x1d 1 from submit until the read completes
     uint8_t started;               // 0x1e 1 while the worker has the read in flight
-    uint8_t unknown_1f;            // 0x1f
+    uint8_t pad_1f;                // 0x1f
     uint8_t data_file_index;       // 0x20 cache_io_data_file
-    uint8_t unknown_21[3];         // 0x21
+    uint8_t pad_21[3];             // 0x21
     cache_io_completion completion; // 0x24 copy of the caller record
 } cache_io_request;                // size 0x30
 

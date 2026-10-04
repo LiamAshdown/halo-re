@@ -122,7 +122,7 @@ typedef struct collision_bsp_sphere_query {
                                     //       while its plane is still on this stack
     int16_t projection_axis;        // 0x21c dominant axis of the plane being projected away
     uint8_t projection_sign;        // 0x21e second half of the k_projection_axes index
-    uint8_t unknown_21f;            // 0x21f
+    uint8_t pad_21f;                // 0x21f
     float projected_center_i;       // 0x220 center projected onto the surviving axis pair
     float projected_center_j;       // 0x224
 } collision_bsp_sphere_query;       // size 0x228
@@ -176,7 +176,7 @@ typedef struct collision_bsp_segment_query {
     int32_t last_leaf;              // 0x1c leaf the walk was inside when it last crossed a
                                     //      plane, -1 before the first crossing
     uint8_t last_leaf_type;         // 0x20 collision_bsp_leaf_type of last_leaf
-    uint8_t unknown_21[3];          // 0x21
+    uint8_t pad_21[3];              // 0x21
     int32_t crossing_plane;         // 0x24 plane index of the crossing being resolved
 } collision_bsp_segment_query;      // size 0x28
 static_assert(sizeof(collision_bsp_segment_query) == 0x28, "collision_bsp_segment_query layout");
@@ -213,7 +213,7 @@ typedef struct collision_bsp_pill_query {
     int32_t planes[128];            // 0x018 same encoding as the sphere query
     int16_t projection_axis;        // 0x218
     uint8_t projection_sign;        // 0x21a
-    uint8_t unknown_21b;            // 0x21b
+    uint8_t pad_21b;                // 0x21b
     float projected_origin_i;       // 0x21c
     float projected_origin_j;       // 0x220
     float projected_delta_i;        // 0x224

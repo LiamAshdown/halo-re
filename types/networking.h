@@ -1491,7 +1491,7 @@ struct network_ui_widget {
     int16_t value;                     // 0x40
     uint8_t unknown_42[6];             // 0x42
     uint16_t max_value;                // 0x48
-    uint8_t unknown_4a[2];             // 0x4a
+    uint8_t pad_4a[2];                 // 0x4a
     network_ui_widget *status_root;    // 0x4c root only: the numplayers/maxplayers/page labels
     uint8_t unknown_50[8];             // 0x50
     uint16_t highlight_flag;           // 0x58

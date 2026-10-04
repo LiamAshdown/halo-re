@@ -531,7 +531,7 @@ typedef struct render_camera {
     real_vector3d forward;          // 0x0c (used)
     real_vector3d up;               // 0x18
     uint8_t mirrored;               // 0x24
-    uint8_t unknown_25[3];          // 0x25
+    uint8_t pad_25[3];              // 0x25
     float vertical_field_of_view;   // 0x28
     Rectangle2D viewport_bounds;    // 0x2c (used) top, left, bottom, right
     Rectangle2D window_bounds;      // 0x34
@@ -559,7 +559,7 @@ typedef struct render_frustum {
     real_point3d world_midpoint;    // 0x11c
     real_rectangle3d world_bounds;  // 0x128
     uint8_t projection_valid;       // 0x140
-    uint8_t unknown_141[3];         // 0x141
+    uint8_t pad_141[3];             // 0x141
     float projection[4][4];         // 0x144 (used)
     real_vector2d projection_world_to_screen; // 0x184
 } render_frustum;                   // size 0x18c

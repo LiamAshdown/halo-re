@@ -262,7 +262,7 @@ typedef struct camera_input_axis_definition {
     uint8_t scale_by_zoom;           // 0x18 multiply the step by director.look_scale. Only row
                                      //      0 is ever read: the loop loads the absolute byte
                                      //      0x00686a40 on every iteration
-    uint8_t unknown_19[3];           // 0x19
+    uint8_t pad_19[3];               // 0x19
 } camera_input_axis_definition;      // size 0x1c
 
 // ---------------------------------------------------------------------------
