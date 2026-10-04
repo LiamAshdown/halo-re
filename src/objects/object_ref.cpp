@@ -381,7 +381,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
             obj->flags &= ~(uint32_t)_object_outside_map_bit;
         }
 
-        header->flags &= (uint8_t)~_object_header_unknown_80_bit;
+        header->flags &= (uint8_t)~_object_header_child_bit;
 
         halo::structures::cluster_reference_add_within_radius(object_index, &obj->placement_id, &obj->bounding_center, obj->bounding_radius,
                      (bsp_leaf_reference *)(&obj->location_leaf_index),
@@ -406,7 +406,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
 
         obj->next_object = parent->first_child_object;
         parent->first_child_object = object_index;
-        header->flags |= _object_header_unknown_80_bit;
+        header->flags |= _object_header_child_bit;
         obj->location_cluster_index = -1;
     }
 

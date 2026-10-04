@@ -129,7 +129,7 @@ typedef enum object_header_flags {
     _object_header_just_created_bit = 0x10,   // cleared at the top of the objects_update sweep
     _object_header_connected_bit = 0x20,      // set at create together with 0x40
     _object_header_in_pvs_pass_bit = 0x40,    // objects_update only reconciles slots with 0x60
-    _object_header_unknown_80_bit = 0x80
+    _object_header_child_bit = 0x80
 } object_header_flags;
 
 // object flags, the uint32 at object 0x10.

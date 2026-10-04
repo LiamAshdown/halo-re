@@ -68,7 +68,7 @@ enum class object_header_flag : uint8_t {
     just_created = 0x10,
     connected = 0x20,
     in_pvs_pass = 0x40,
-    unknown_80 = 0x80,
+    child = 0x80,
 };
 
 /** object.vitality_flags (the word at object +0x106). */
