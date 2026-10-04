@@ -842,7 +842,6 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
  */
 void rasterizer_shader_environment_lightmap_draw_single_stream(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer)
 {
-    d3d_call3_fn set_texture_stage_state;
 
     if (halo::rasterizer::fields::rasterizer_environment_diffuse_textures == 0) {
         return;
@@ -851,13 +850,12 @@ void rasterizer_shader_environment_lightmap_draw_single_stream(const ShaderEnvir
     render_device().set_vertex_shader(0);
     render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[19].declaration);
     render_device().set_pixel_shader(0);
-    set_texture_stage_state = halo::d3d9::device_function<d3d_call3_fn>(rasterizer_device, halo::d3d9::device_method::set_texture_stage_state);
-    set_texture_stage_state(rasterizer_device, 0, 1, 2);
-    set_texture_stage_state(rasterizer_device, 0, 2, 2);
-    set_texture_stage_state(rasterizer_device, 0, 4, 2);
-    set_texture_stage_state(rasterizer_device, 0, 5, 1);
-    set_texture_stage_state(rasterizer_device, halo::d3d9::ts::color_op, 1, 1);
-    set_texture_stage_state(rasterizer_device, halo::d3d9::ts::color_op, 4, 1);
+    render_device().set_texture_stage_state(0, 1, 2);
+    render_device().set_texture_stage_state(0, 2, 2);
+    render_device().set_texture_stage_state(0, 4, 2);
+    render_device().set_texture_stage_state(0, 5, 1);
+    render_device().set_texture_stage_state(halo::d3d9::ts::color_op, 1, 1);
+    render_device().set_texture_stage_state(halo::d3d9::ts::color_op, 4, 1);
     chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer, dynamic_index_slot, first_primitive);
 }
 

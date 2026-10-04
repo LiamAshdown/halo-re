@@ -1,3 +1,4 @@
+#include "halo/rasterizer/render_device.hpp"
 #include "halo/render/d3d9.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
@@ -656,8 +657,7 @@ namespace halo::render::lighting {
 void disable_workaround(void)
 {
     if (console_debug_toggle_6893ec != 0 && rasterizer_device_version < d3d9::k_pixel_shader_version_1_1) {
-        d3d_set_render_state_fn set_render_state = d3d9::device_function<d3d_set_render_state_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_render_state);
-        set_render_state(halo::rasterizer::globals().device, (uint32_t)d3d9::render_state::lighting, 0);
+        halo::rasterizer::render_device().set_render_state((uint32_t)d3d9::render_state::lighting, 0);
     }
 }
 
@@ -878,8 +878,7 @@ void s(void)
         rasterizer_render_states_dirty = 1;
         halo::rasterizer::fields::sky_pass_active = 0;
         if (rasterizer_device_version < d3d9::k_pixel_shader_version_1_1) {
-            d3d_set_render_state_fn set_render_state = d3d9::device_function<d3d_set_render_state_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_render_state);
-            set_render_state(halo::rasterizer::globals().device, (uint32_t)d3d9::render_state::lighting, 1);
+            halo::rasterizer::render_device().set_render_state((uint32_t)d3d9::render_state::lighting, 1);
         }
     }
 
@@ -902,8 +901,7 @@ void s(void)
     } while (first_iteration);
 
     if (console_debug_toggle_6893ec != 0 && rasterizer_device_version < d3d9::k_pixel_shader_version_1_1) {
-        d3d_set_render_state_fn set_render_state = d3d9::device_function<d3d_set_render_state_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_render_state);
-        set_render_state(halo::rasterizer::globals().device, (uint32_t)d3d9::render_state::lighting, 0);
+        halo::rasterizer::render_device().set_render_state((uint32_t)d3d9::render_state::lighting, 0);
     }
 }
 

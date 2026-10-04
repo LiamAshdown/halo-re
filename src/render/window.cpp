@@ -1,3 +1,4 @@
+#include "halo/rasterizer/render_device.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "crt.h"
 #include "halo/models/api.hpp"
@@ -76,7 +77,7 @@ typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
  */
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    halo::d3d9::device_function<d3d_call2_fn>(halo::rasterizer::globals().device, halo::d3d9::device_method::set_render_state)(halo::rasterizer::globals().device, state, value);
+    halo::rasterizer::render_device().set_render_state(state, value);
 }
 
 /**
@@ -269,10 +270,7 @@ void sky(void)
                  &render_camera_global.position, 0.0f, 0, 0, 0, 1);
 
     if (console_debug_toggle_6893ec && rasterizer_device_version < d3d9::k_pixel_shader_version_1_1) {
-        d3d_set_render_state_fn set_render_state =
-            d3d9::device_function<d3d_set_render_state_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_render_state);
-
-        set_render_state(halo::rasterizer::globals().device, (uint32_t)d3d9::render_state::lighting, 0);
+        halo::rasterizer::render_device().set_render_state((uint32_t)d3d9::render_state::lighting, 0);
     }
 }
 
