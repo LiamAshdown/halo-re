@@ -72,9 +72,9 @@ void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
     offset.y = nodes->position.y - marker.node_transform.position.y;
     offset.z = nodes->position.z - marker.node_transform.position.z;
     default_translation = *reinterpret_cast<real_point3d *>(&model_nodes->default_translation);
-    if (vehicle->unit.driver_unit_index == object_index && (uint8_t)vehicle->unit.animation_state != animation_state_value(unit_animation_state_id::unknown_25) &&
+    if (vehicle->unit.driver_unit_index == object_index && (uint8_t)vehicle->unit.animation_state != animation_state_value(unit_animation_state_id::opening) &&
         self->base.parent_object != k_datum_index_none) {
-        UnitView(self->base.parent_object).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_25));
+        UnitView(self->base.parent_object).try_set_animation_state(animation_state_value(unit_animation_state_id::opening));
     }
     self->unit.last_parent_object_index = vehicle_index;
     self->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;

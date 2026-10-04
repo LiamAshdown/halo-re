@@ -79,7 +79,7 @@ uint8_t halo::units::unit_any_dying_or_seat_transition(void)
     while (obj != nullptr) {
         unit_data *unit = halo::units::unit_data_of(obj);
         if (((unit->animation_state == animation_state_value(unit_animation_state_id::throwing_grenade)) && (unit->throwing_grenade_state != _unit_throwing_grenade_state_released)) ||
-            (((unit->animation_state == animation_state_value(unit_animation_state_id::ready_weapon)) || (unit->animation_state == animation_state_value(unit_animation_state_id::unknown_18))) &&
+            (((unit->animation_state == animation_state_value(unit_animation_state_id::dying)) || (unit->animation_state == animation_state_value(unit_animation_state_id::dying_airborne))) &&
              (!test_flag(unit->animation_state_flags, units::unit_animation_state_flag::unknown_4)))) {
             return 1;
         }

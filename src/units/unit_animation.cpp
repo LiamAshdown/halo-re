@@ -245,16 +245,16 @@ int32_t halo::units::unit_animation_state_from_seat_type(int16_t animation_state
     case unit_animation_state_id::idle:
     case unit_animation_state_id::turn_in_place_a:
     case unit_animation_state_id::turn_in_place_b:
-    case unit_animation_state_id::unknown_10:
-    case unit_animation_state_id::unknown_11:
-    case unit_animation_state_id::unknown_12:
-    case unit_animation_state_id::unknown_13:
-    case unit_animation_state_id::unknown_14:
+    case unit_animation_state_id::flying_front:
+    case unit_animation_state_id::flying_back:
+    case unit_animation_state_id::flying_left:
+    case unit_animation_state_id::flying_right:
+    case unit_animation_state_id::airborne:
     case unit_animation_state_id::soft_landing:
     case unit_animation_state_id::hard_landing:
-    case unit_animation_state_id::unknown_25:
-    case unit_animation_state_id::unknown_26:
-        return animation_state_value(unit_animation_state_id::ready_weapon);
+    case unit_animation_state_id::opening:
+    case unit_animation_state_id::closing:
+        return animation_state_value(unit_animation_state_id::dying);
     case unit_animation_state_id::move_front:
     case unit_animation_state_id::move_back:
     case unit_animation_state_id::move_left:
@@ -263,10 +263,10 @@ int32_t halo::units::unit_animation_state_from_seat_type(int16_t animation_state
     case unit_animation_state_id::hurt_move_back:
     case unit_animation_state_id::hurt_move_left:
     case unit_animation_state_id::hurt_move_right:
-    case unit_animation_state_id::unknown_0c:
-    case unit_animation_state_id::unknown_0d:
-    case unit_animation_state_id::unknown_0e:
-    case unit_animation_state_id::unknown_0f:
+    case unit_animation_state_id::slide_front:
+    case unit_animation_state_id::slide_back:
+    case unit_animation_state_id::slide_left:
+    case unit_animation_state_id::slide_right:
         return animation_state_value(unit_animation_state_id::seat_enter);
     default:
         return -1;
@@ -285,26 +285,26 @@ uint8_t halo::units::unit_animation_state_is_compatible(const unit_data &unit, i
     switch (animation_state_id(unit.animation_state)) {
     case unit_animation_state_id::turn_in_place_a:
     case unit_animation_state_id::turn_in_place_b:
-    case unit_animation_state_id::unknown_25:
-    case unit_animation_state_id::unknown_26:
+    case unit_animation_state_id::opening:
+    case unit_animation_state_id::closing:
         return requested_state != 0;
-    case unit_animation_state_id::unknown_17:
+    case unit_animation_state_id::hard_ping:
     case unit_animation_state_id::seat_enter:
     case unit_animation_state_id::seat_exit:
     case unit_animation_state_id::custom_animation:
         return 0;
-    case unit_animation_state_id::unknown_18:
-    case unit_animation_state_id::ready_weapon:
-        return (animation_state_value(unit_animation_state_id::unknown_17) < requested_state) && (requested_state < animation_state_value(unit_animation_state_id::seat_enter));
+    case unit_animation_state_id::dying_airborne:
+    case unit_animation_state_id::dying:
+        return (animation_state_value(unit_animation_state_id::hard_ping) < requested_state) && (requested_state < animation_state_value(unit_animation_state_id::seat_enter));
     case unit_animation_state_id::scripted_action:
-    case unit_animation_state_id::unknown_1e:
-    case unit_animation_state_id::unknown_1f:
+    case unit_animation_state_id::melee_attack:
+    case unit_animation_state_id::melee_airborne:
     case unit_animation_state_id::throwing_grenade:
-    case unit_animation_state_id::unknown_22:
-    case unit_animation_state_id::unknown_23:
-    case unit_animation_state_id::unknown_27:
-    case unit_animation_state_id::unknown_29:
-        return requested_state == animation_state_value(unit_animation_state_id::unknown_17);
+    case unit_animation_state_id::resurrect_front:
+    case unit_animation_state_id::resurrect_back:
+    case unit_animation_state_id::leap_start:
+    case unit_animation_state_id::leap_melee:
+        return requested_state == animation_state_value(unit_animation_state_id::hard_ping);
     default:
         return 1;
     }
@@ -670,19 +670,19 @@ int32_t halo::units::unit_map_action_command_to_animation_state(int16_t command,
     int32_t state = -1;
     switch (command) {
     case 0: state = animation_state_value(unit_animation_state_id::scripted_action); break;
-    case 1: state = animation_state_value(unit_animation_state_id::unknown_20); break;
+    case 1: state = animation_state_value(unit_animation_state_id::melee_continuous); break;
     case 2: state = animation_state_value(unit_animation_state_id::throwing_grenade); break;
-    case 3: state = animation_state_value(unit_animation_state_id::unknown_22); break;
+    case 3: state = animation_state_value(unit_animation_state_id::resurrect_front); break;
     case 4: state = animation_state_value(unit_animation_state_id::seat_exit); break;
     case 5: state = animation_state_value(unit_animation_state_id::custom_animation); break;
-    case 6: state = animation_state_value(unit_animation_state_id::unknown_1e); break;
-    case 7: state = animation_state_value(unit_animation_state_id::unknown_1f); break;
+    case 6: state = animation_state_value(unit_animation_state_id::melee_attack); break;
+    case 7: state = animation_state_value(unit_animation_state_id::melee_airborne); break;
     case 8: state = animation_state_value(unit_animation_state_id::move_front); break;
     case 9: state = animation_state_value(unit_animation_state_id::move_back); break;
     case 10: state = animation_state_value(unit_animation_state_id::move_left); break;
     case 0xb: state = animation_state_value(unit_animation_state_id::move_right); break;
-    case 0xc: state = animation_state_value(unit_animation_state_id::unknown_28); break;
-    case 0xd: state = animation_state_value(unit_animation_state_id::unknown_29); break;
+    case 0xc: state = animation_state_value(unit_animation_state_id::leap_airborne); break;
+    case 0xd: state = animation_state_value(unit_animation_state_id::leap_melee); break;
     }
     if (out_priority != nullptr) {
         switch (command) {
@@ -1069,12 +1069,12 @@ uint8_t UnitView::try_set_animation_state(int16_t new_state)
         }
         if (animation == -1) {
             switch (animation_state_id(new_state)) {
-            case unit_animation_state_id::unknown_1e:
-            case unit_animation_state_id::unknown_1f:
-            case unit_animation_state_id::unknown_20:
+            case unit_animation_state_id::melee_attack:
+            case unit_animation_state_id::melee_airborne:
+            case unit_animation_state_id::melee_continuous:
             case unit_animation_state_id::throwing_grenade:
-            case unit_animation_state_id::unknown_27:
-            case unit_animation_state_id::unknown_29:
+            case unit_animation_state_id::leap_start:
+            case unit_animation_state_id::leap_melee:
                 return 0;
             default:
                 break;
@@ -1291,9 +1291,9 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
         advance = ::halo::units::unit_reset_light_effect((animation_state *)&unit->base.animation_index, unit->base.animation_graph, unit_index);
         if (advance == 1) {
             switch (animation_state_id((int8_t)(uint8_t)unit->unit.animation_state)) {
-            case unit_animation_state_id::unknown_1e:
-            case unit_animation_state_id::unknown_1f:
-            case unit_animation_state_id::unknown_29:
+            case unit_animation_state_id::melee_attack:
+            case unit_animation_state_id::melee_airborne:
+            case unit_animation_state_id::leap_melee:
                 UnitView(unit_index).cause_melee_damage(0, k_datum_index_none, -1, -1, -1, 0);
                 break;
             case unit_animation_state_id::throwing_grenade:

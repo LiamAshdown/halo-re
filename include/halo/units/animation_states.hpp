@@ -16,7 +16,7 @@ namespace halo::units {
 enum class unit_animation_state_id : int8_t {
     none = -1,
     idle = 0x00,
-    unknown_01 = 0x01,
+    gesture = 0x01,
     turn_in_place_a = 0x02,
     turn_in_place_b = 0x03,
     move_front = 0x04,
@@ -27,36 +27,36 @@ enum class unit_animation_state_id : int8_t {
     hurt_move_back = 0x09,
     hurt_move_left = 0x0a,
     hurt_move_right = 0x0b,
-    unknown_0c = 0x0c,
-    unknown_0d = 0x0d,
-    unknown_0e = 0x0e,
-    unknown_0f = 0x0f,
-    unknown_10 = 0x10,
-    unknown_11 = 0x11,
-    unknown_12 = 0x12,
-    unknown_13 = 0x13,
-    unknown_14 = 0x14,
+    slide_front = 0x0c,
+    slide_back = 0x0d,
+    slide_left = 0x0e,
+    slide_right = 0x0f,
+    flying_front = 0x10,
+    flying_back = 0x11,
+    flying_left = 0x12,
+    flying_right = 0x13,
+    airborne = 0x14,
     soft_landing = 0x15,
     hard_landing = 0x16,
-    unknown_17 = 0x17,
-    unknown_18 = 0x18,
-    ready_weapon = 0x19,
+    hard_ping = 0x17,
+    dying_airborne = 0x18,
+    dying = 0x19,
     seat_enter = 0x1a,
     seat_exit = 0x1b,
     custom_animation = 0x1c,
     scripted_action = 0x1d,
-    unknown_1e = 0x1e,
-    unknown_1f = 0x1f,
-    unknown_20 = 0x20,
+    melee_attack = 0x1e,
+    melee_airborne = 0x1f,
+    melee_continuous = 0x20,
     throwing_grenade = 0x21,
-    unknown_22 = 0x22,
-    unknown_23 = 0x23,
-    unknown_24 = 0x24,
-    unknown_25 = 0x25,
-    unknown_26 = 0x26,
-    unknown_27 = 0x27,
-    unknown_28 = 0x28,
-    unknown_29 = 0x29,
+    resurrect_front = 0x22,
+    resurrect_back = 0x23,
+    feeding = 0x24,
+    opening = 0x25,
+    closing = 0x26,
+    leap_start = 0x27,
+    leap_airborne = 0x28,
+    leap_melee = 0x29,
 };
 
 /** The animation state of a raw byte/word as stored in the unit record. */
@@ -75,20 +75,20 @@ constexpr int animation_state_value(unit_animation_state_id state) noexcept
 constexpr bool is_scripted_animation_state(unit_animation_state_id state) noexcept
 {
     switch (state) {
-    case unit_animation_state_id::unknown_17:
-    case unit_animation_state_id::unknown_18:
-    case unit_animation_state_id::ready_weapon:
+    case unit_animation_state_id::hard_ping:
+    case unit_animation_state_id::dying_airborne:
+    case unit_animation_state_id::dying:
     case unit_animation_state_id::seat_enter:
     case unit_animation_state_id::seat_exit:
     case unit_animation_state_id::scripted_action:
-    case unit_animation_state_id::unknown_1e:
-    case unit_animation_state_id::unknown_1f:
-    case unit_animation_state_id::unknown_20:
+    case unit_animation_state_id::melee_attack:
+    case unit_animation_state_id::melee_airborne:
+    case unit_animation_state_id::melee_continuous:
     case unit_animation_state_id::throwing_grenade:
-    case unit_animation_state_id::unknown_22:
-    case unit_animation_state_id::unknown_23:
-    case unit_animation_state_id::unknown_27:
-    case unit_animation_state_id::unknown_29:
+    case unit_animation_state_id::resurrect_front:
+    case unit_animation_state_id::resurrect_back:
+    case unit_animation_state_id::leap_start:
+    case unit_animation_state_id::leap_melee:
         return true;
     default:
         return false;

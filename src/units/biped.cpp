@@ -94,7 +94,7 @@ void BipedView::apply_idle_fidget(uint8_t *state_out)
     if (BipedView(object_index).is_idle_eligible()) {
         already_idle = 1;
         if (test_flag(tag->biped_flags, tags::biped_tag_flag::rotate_while_airborne)) {
-            if (unit->animation_state != animation_state_value(unit_animation_state_id::unknown_1f) && unit->animation_state != animation_state_value(unit_animation_state_id::unknown_29)) {
+            if (unit->animation_state != animation_state_value(unit_animation_state_id::melee_airborne) && unit->animation_state != animation_state_value(unit_animation_state_id::leap_melee)) {
                 float magnitude = (float)halo::math::random_real_range(0.05235988, 0.08726646);
                 real_vector3d impulse_dir;
 
@@ -656,7 +656,7 @@ void BipedView::update_idle_basis(uint8_t *state_out)
     }
 
     if ((int8_t)biped->airborne_ticks > 2 && !test_flag(tag->biped_flags, tags::biped_tag_flag::has_no_dying_airborne)) {
-        if (unit->animation_state == animation_state_value(unit_animation_state_id::unknown_18)) {
+        if (unit->animation_state == animation_state_value(unit_animation_state_id::dying_airborne)) {
             UnitView(object_index).rotate_basis_about_axis();
         }
         state_out[0] = 0x18;
@@ -664,7 +664,7 @@ void BipedView::update_idle_basis(uint8_t *state_out)
         return;
     }
 
-    if (unit->animation_state == animation_state_value(unit_animation_state_id::unknown_18)) {
+    if (unit->animation_state == animation_state_value(unit_animation_state_id::dying_airborne)) {
         biped->bank_angle = 0.0f;
         ::halo::units::unit_update_up_vector((Biped *)tag, (::object *)obj);
     }

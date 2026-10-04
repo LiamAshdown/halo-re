@@ -781,21 +781,21 @@ void UnitView::set_facing_from_index_table()
 uint8_t halo::units::unit_state_allows_control(const unit_data &unit)
 {
     switch (animation_state_id(unit.animation_state)) {
-    case unit_animation_state_id::unknown_01:
+    case unit_animation_state_id::gesture:
     case unit_animation_state_id::turn_in_place_a:
     case unit_animation_state_id::turn_in_place_b:
-    case unit_animation_state_id::unknown_17:
+    case unit_animation_state_id::hard_ping:
     case unit_animation_state_id::seat_enter:
     case unit_animation_state_id::seat_exit:
     case unit_animation_state_id::custom_animation:
     case unit_animation_state_id::scripted_action:
-    case unit_animation_state_id::unknown_1e:
-    case unit_animation_state_id::unknown_1f:
+    case unit_animation_state_id::melee_attack:
+    case unit_animation_state_id::melee_airborne:
     case unit_animation_state_id::throwing_grenade:
-    case unit_animation_state_id::unknown_22:
-    case unit_animation_state_id::unknown_23:
-    case unit_animation_state_id::unknown_27:
-    case unit_animation_state_id::unknown_29:
+    case unit_animation_state_id::resurrect_front:
+    case unit_animation_state_id::resurrect_back:
+    case unit_animation_state_id::leap_start:
+    case unit_animation_state_id::leap_melee:
         return 0;
     default:
         return 1;
@@ -1082,7 +1082,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         stance_class = 1;
         allowed = ::halo::units::unit_animation_state_is_compatible(obj->unit, new_state) ? 1 : 0;
     }
-    if ((uint8_t)obj->unit.animation_state == animation_state_value(unit_animation_state_id::unknown_17) && obj->base.animation_frame > unit_tag->hard_ping_interrupt_ticks) {
+    if ((uint8_t)obj->unit.animation_state == animation_state_value(unit_animation_state_id::hard_ping) && obj->base.animation_frame > unit_tag->hard_ping_interrupt_ticks) {
         allowed = 1;
     }
     if (!forced) {
@@ -1099,10 +1099,10 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     if (forced) {
         UnitView(unit_index).set_or_test_seat_and_weapon_label(s_stand, UnitView(unit_index).get_current_weapon_label(), 1);
     }
-    if (new_state == animation_state_value(unit_animation_state_id::ready_weapon) && obj->base.type == _object_type_biped && test_flag(halo::units::biped_data_of(obj)->flags, units::biped_flag::airborne) &&
+    if (new_state == animation_state_value(unit_animation_state_id::dying) && obj->base.type == _object_type_biped && test_flag(halo::units::biped_data_of(obj)->flags, units::biped_flag::airborne) &&
         !test_flag(reinterpret_cast<const Biped *>(unit_tag)->biped_flags, tags::biped_tag_flag::has_no_dying_airborne)) {
-        new_state = animation_state_value(unit_animation_state_id::unknown_18);
-        if (UnitView(unit_index).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_18))) {
+        new_state = animation_state_value(unit_animation_state_id::dying_airborne);
+        if (UnitView(unit_index).try_set_animation_state(animation_state_value(unit_animation_state_id::dying_airborne))) {
             animation_started = true;
         }
     }

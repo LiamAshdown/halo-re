@@ -977,7 +977,7 @@ void UnitView::notify_weapon_removed()
 {
     int32_t object_index = datum_handle;
     if (object_index != -1) {
-        UnitView((uint32_t)object_index).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_25));
+        UnitView((uint32_t)object_index).try_set_animation_state(animation_state_value(unit_animation_state_id::opening));
     }
 }
 
@@ -992,7 +992,7 @@ void UnitView::notify_weapon_removed_dup()
 {
     int32_t object_index = datum_handle;
     if (object_index != -1) {
-        UnitView((uint32_t)object_index).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_26));
+        UnitView((uint32_t)object_index).try_set_animation_state(animation_state_value(unit_animation_state_id::closing));
     }
 }
 
@@ -1568,9 +1568,9 @@ uint8_t UnitView::try_ready_weapon(uint8_t forced, const real_vector2d *directio
         airborne = test_flag(halo::units::biped_data_of(unit)->flags, units::biped_flag::airborne);
     }
     if (forced) {
-        new_state = animation_state_value(unit_animation_state_id::unknown_20);
+        new_state = animation_state_value(unit_animation_state_id::melee_continuous);
     } else if (state == 0x28) {
-        new_state = animation_state_value(unit_animation_state_id::unknown_29);
+        new_state = animation_state_value(unit_animation_state_id::leap_melee);
     } else {
         new_state = (int16_t)(0x1e + (airborne != 0));
     }
@@ -1578,7 +1578,7 @@ uint8_t UnitView::try_ready_weapon(uint8_t forced, const real_vector2d *directio
         return 0;
     }
     if (test_flag(unit_tag->unit_flags, tags::unit_tag_flag::melee_attack_is_fatal)) {
-        unit->unit.animation_state = animation_state_value(unit_animation_state_id::ready_weapon);
+        unit->unit.animation_state = animation_state_value(unit_animation_state_id::dying);
     }
     if (direction != 0) {
         UnitView(unit_index).set_throw_aim_direction(direction);
@@ -1621,7 +1621,7 @@ uint8_t UnitView::try_ready_weapon_variant(const real_vector2d *direction)
     if (unit->base.type == _object_type_biped && test_flag(halo::units::biped_data_of(unit)->flags, units::biped_flag::airborne)) {
         return 0;
     }
-    if (!UnitView(unit_index).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_27))) {
+    if (!UnitView(unit_index).try_set_animation_state(animation_state_value(unit_animation_state_id::leap_start))) {
         return 0;
     }
     if (direction != 0) {
