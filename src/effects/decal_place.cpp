@@ -545,7 +545,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
         self->creation_game_time = halo::game::globals().game_time->game_time;
         self->sequence_index = (uint8_t)sequence_index;
         self->sprite_bitmap_index = (uint8_t)sprite_bitmap_index;
-        self->unknown_1a = 0;
+        self->sprite_index = 0;
         self->lifetime = decal_place_random_fraction() * (definition->lifetime[1] - definition->lifetime[0]) +
             definition->lifetime[0];
         self->triangle_count = (int16_t)block_count;

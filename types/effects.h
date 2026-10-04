@@ -207,7 +207,7 @@ typedef struct contrail_point {
     float inverse_duration;         // 0x08 1 / seconds; 0 means the state never expires
     float scale;                    // 0x0c the owning contrail scale at create, interpolated
                                     //      toward the previous point when subdividing
-    uint32_t unknown_10;            // 0x10 neither written at create nor read here; most likely
+    uint32_t width;                 // 0x10 neither written at create nor read here; most likely
                                     //      consumed by the renderer
     bsp_leaf_reference location;    // 0x14 bsp3d_node_find_leaf result plus its cluster
     real_point3d position;          // 0x1c
@@ -250,8 +250,8 @@ typedef struct decal {
     real_point3d position;          // 0x08 copied from the placement block
     int32_t creation_game_time;     // 0x14 game tick stamp; the fade is (now - this) * 1/30
     uint8_t sequence_index;         // 0x18 random in [0, bitmap sequence count)
-    uint8_t unknown_19;             // 0x19 never written by decal_place
-    uint8_t unknown_1a;             // 0x1a written as 0 by decal_place
+    uint8_t unused_was_frames_remaining; // 0x19 never written by decal_place
+    uint8_t sprite_index;           // 0x1a written as 0 by decal_place
     uint8_t sprite_bitmap_index;    // 0x1b 0x1b decal_place stores its sprite_bitmap_index local here;
                                     //    rasterizer_decals_draw_cluster hands it to chimera__rasterizer_set_texture
                                     //    as the bitmap frame
@@ -262,7 +262,7 @@ typedef struct decal {
                                     //      down; alpha from Decal.intensity and the RGB from
                                     //      color_interpolate over the Decal colour bounds
     uint8_t alpha;                  // 0x28 0xff until the decay window, then the fade byte
-    uint8_t unknown_29;             // 0x29 never written
+    uint8_t pad_29;                 // 0x29 never written
     int16_t triangle_count;         // 0x2a sum over the clipped surface polygons of
                                     //      (vertex_count - 1) / 2
     datum_index definition_index;   // 0x2c the Decal tag
@@ -447,7 +447,7 @@ typedef struct effect {
                                     //    effect_new_at_texture_coordinate
     int16_t change_color_index;     // 0x0c -1 selects the default white; otherwise indexes
                                     //      object.change_colors at object +0x1b8
-    int16_t unknown_0e;             // 0x0e never written
+    int16_t pad_0e;                 // 0x0e never written
     bsp_leaf_reference location;    // 0x10 mirrored from object.location_leaf_index and
                                     //      location_cluster_index, or probed for a free
                                     //      standing effect; cluster -1 means nowhere
@@ -559,7 +559,7 @@ typedef struct particle_system_type_state {
 // ---------------------------------------------------------------------------
 typedef struct particle_system {
     uint16_t identifier;            // 0x00 datum header
-    uint16_t unknown_02;            // 0x02 never written
+    uint16_t pad_02;                // 0x02 never written
     uint32_t flags;                 // 0x04 particle_system_flags
     datum_index definition_index;   // 0x08 the ParticleSystem tag
     datum_index object_index;       // 0x0c -1 for a free standing system
