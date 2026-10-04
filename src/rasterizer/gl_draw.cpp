@@ -1774,6 +1774,23 @@ program *select_program(draw_setup &setup)
 
             sb_printf(wrapper, "uniform float u_alpha_ref;\nvoid main()\n{\n    mojo_main();\n");
             alpha_test_glsl(wrapper, alpha_function, "gl_FragData[0].a");
+            {
+                // HALO_GL_PSDEBUG=<n>: show one input of a translated pixel shader instead of its result
+                // 1 vertex colour, 2 secondary colour, 3 texture coordinate 0, 4..7 sampler 0..3 (2D only)
+                const char *mode = getenv("HALO_GL_PSDEBUG");
+                int which = mode != nullptr ? atoi(mode) : 0;
+
+                if (which == 1) sb_printf(wrapper, "    gl_FragData[0] = vec4(gl_Color.rgb, 1.0);\n");
+                else if (which == 2) sb_printf(wrapper, "    gl_FragData[0] = vec4(gl_SecondaryColor.rgb, 1.0);\n");
+                else if (which == 3) sb_printf(wrapper, "    gl_FragData[0] = vec4(fract(gl_TexCoord[0].xy), 0.0, 1.0);\n");
+                else if (which >= 4 && which <= 7) {
+                    for (int s = 0; s < ps->parse->sampler_count; s++) {
+                        if (ps->parse->samplers[s].index == which - 4 && ps->parse->samplers[s].type == MOJOSHADER_SAMPLER_2D) {
+                            sb_printf(wrapper, "    gl_FragData[0] = vec4(texture2D(%s, gl_TexCoord[%d].xy).rgb, 1.0);\n", ps->parse->samplers[s].name, which - 4);
+                        }
+                    }
+                }
+            }
             if (getenv("HALO_GL_FORCEWHITE") != nullptr) {
                 sb_printf(wrapper, "    gl_FragData[0] = vec4(1.0);\n");
             }
@@ -2068,6 +2085,40 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
             halo::shell::standalone_log("gl probe   vc0=%g %g %g %g vc1=%g %g %g %g vc2=%g %g %g %g vc3=%g %g %g %g vp=%g %g %g %g flip=%d",
                 v[0][0], v[0][1], v[0][2], v[0][3], v[1][0], v[1][1], v[1][2], v[1][3], v[2][0], v[2][1], v[2][2], v[2][3], v[3][0], v[3][1], v[3][2], v[3][3],
                 g_pipe.viewport[0], g_pipe.viewport[1], g_pipe.viewport[2], g_pipe.viewport[3], g_target_flipped);
+        }
+        if (inputs_by_element_order(g_pipe.vertex_shader) && g_pipe.stream[0] != nullptr && g_pipe.indices != nullptr && indexed && !user_data) {
+            const uint8_t *base = g_pipe.stream[0]->data + g_pipe.stream_offset[0] + static_cast<int64_t>(base_vertex) * g_pipe.stream_stride[0];
+            const uint16_t *index = reinterpret_cast<const uint16_t *>(g_pipe.indices->data + start_index * 2);
+            char text[600] = "";
+
+            snprintf(text, sizeof(text), "stride=%u base_vertex=%d start_index=%u buffer=%u idx %u %u %u %u:", g_pipe.stream_stride[0], base_vertex, start_index, g_pipe.stream[0]->size,
+                index[0], index[1], index[2], index[3]);
+            for (int n = 0; n < 3; n++) {
+                const uint8_t *vertex = base + static_cast<size_t>(index[n]) * g_pipe.stream_stride[0];
+                const float *pos = reinterpret_cast<const float *>(vertex);
+                const int16_t *bi = reinterpret_cast<const int16_t *>(vertex + 56);
+                const float *bw = reinterpret_cast<const float *>(vertex + 60);
+
+                snprintf(text + strlen(text), sizeof(text) - strlen(text), " [pos %g %g %g bi %d %d bw %g %g]", pos[0], pos[1], pos[2], bi[0], bi[1], bw[0], bw[1]);
+            }
+            halo::shell::standalone_log("gl probe   geometry %s", text);
+        }
+        if (inputs_by_element_order(g_pipe.vertex_shader) && g_pipe.stream[0] != nullptr && g_pipe.indices != nullptr && indexed && !user_data) {
+            const uint8_t *base = g_pipe.stream[0]->data + g_pipe.stream_offset[0] + static_cast<int64_t>(base_vertex) * g_pipe.stream_stride[0];
+            const uint16_t *index = reinterpret_cast<const uint16_t *>(g_pipe.indices->data + start_index * 2);
+            char text[600] = "";
+
+            snprintf(text, sizeof(text), "stride=%u base_vertex=%d start_index=%u buffer=%u idx %u %u %u %u:", g_pipe.stream_stride[0], base_vertex, start_index, g_pipe.stream[0]->size,
+                index[0], index[1], index[2], index[3]);
+            for (int n = 0; n < 3; n++) {
+                const uint8_t *vertex = base + static_cast<size_t>(index[n]) * g_pipe.stream_stride[0];
+                const float *pos = reinterpret_cast<const float *>(vertex);
+                const int16_t *bi = reinterpret_cast<const int16_t *>(vertex + 56);
+                const float *bw = reinterpret_cast<const float *>(vertex + 60);
+
+                snprintf(text + strlen(text), sizeof(text) - strlen(text), " [pos %g %g %g bi %d %d bw %g %g]", pos[0], pos[1], pos[2], bi[0], bi[1], bw[0], bw[1]);
+            }
+            halo::shell::standalone_log("gl probe   geometry %s", text);
         }
         if (g_pipe.pixel_shader != nullptr) {
             char text[400] = "";
