@@ -161,7 +161,7 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
                     set_flag(dd.flags, damage_data_flag::kill_target);
                     dd.random_blend = 1.0f;
                     if (test_flag(flags, vitality_flag::die_act_of_god_silent)) {
-                        set_flag(dd.flags, damage_data_flag::unknown_10);
+                        set_flag(dd.flags, damage_data_flag::kill_silently);
                     }
                     if (kill_request) {
                         set_flag(dd.flags, damage_data_flag::suppress_death_notification);

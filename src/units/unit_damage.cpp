@@ -184,7 +184,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
     }
 
     if (!skip_record_check) {
-        if (!test_flag(dd->flags, objects::damage_data_flag::unknown_10) && (killed || knocked_down || !test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen)) &&
+        if (!test_flag(dd->flags, objects::damage_data_flag::kill_silently) && (killed || knocked_down || !test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen)) &&
             !test_flag(obj->unit.flags, units::unit_flag::impervious) && !test_flag(effect.damage_flags, tags::damage_effect_damage_tag_flag::does_not_ping_units)) {
             uint32_t effect_flags = effect.damage_flags;
             real_vector2d direction;
@@ -250,7 +250,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
         if (dd->responsible_player != k_datum_index_none || dd->responsible_object != k_datum_index_none) {
             UnitView(unit_index).record_recent_damage_and_react(total, effect.damage_category, killed, dd->responsible_player, (int16_t)(uint16_t)dd->team_index, dd->responsible_object);
         }
-        if (!test_flag(dd->flags, objects::damage_data_flag::unknown_10) && ((flags & 1) || body_damage > 0.0f || shield_damage > 0.0f)) {
+        if (!test_flag(dd->flags, objects::damage_data_flag::kill_silently) && ((flags & 1) || body_damage > 0.0f || shield_damage > 0.0f)) {
             UnitView(unit_index).choose_combat_reaction_animation((const datum_index *)dd, (uint8_t)(knocked_down | killed), (uint8_t)((flags >> 6) & 0xffffff01), body_damage);
         }
     }

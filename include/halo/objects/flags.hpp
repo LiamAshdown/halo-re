@@ -62,7 +62,7 @@ enum class object_flag : uint32_t {
 enum class object_header_flag : uint8_t {
     none = 0,
     active = 0x01,
-    unknown_02 = 0x02,
+    visible = 0x02,
     needs_update = 0x04,
     delete_pending = 0x08,
     just_created = 0x10,
@@ -99,7 +99,7 @@ enum class damage_data_flag : uint32_t {
     localized_damage = 0x02,
     kill_target = 0x04,
     unknown_08 = 0x08,
-    unknown_10 = 0x10,
+    kill_silently = 0x10,
     recursing_into_child = 0x20,
     player_spared = 0x40,
     suppress_death_notification = 0x80,

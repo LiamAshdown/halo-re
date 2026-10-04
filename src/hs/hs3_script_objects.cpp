@@ -102,7 +102,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
             }
             if (halo::objects::tag_handle(unit_tag->base.model) != k_datum_index_none) {
                 unit->base.flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
-                halo::set_flag(halo::objects::object_header_of(object_index).flags, halo::objects::object_header_flag::unknown_02);
+                halo::set_flag(halo::objects::object_header_of(object_index).flags, halo::objects::object_header_flag::visible);
             }
         }
         unit->unit.vehicle_seat_index = -1;
