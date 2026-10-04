@@ -682,7 +682,7 @@ int32_t ClientMessageDecoder::player_config_value(const uint8_t *buffer, int32_t
  *
  * @address 0x4dc240
  */
-char ClientMessageDecoder::player_join_chunk(uint8_t *param_1, int32_t param_2, int32_t *param_3)
+char ClientMessageDecoder::player_join_chunk(uint8_t *message, int32_t message_length, int32_t *expected_sender)
 {
     network_client_globals *client = self;
     char result;
@@ -691,11 +691,11 @@ char ClientMessageDecoder::player_join_chunk(uint8_t *param_1, int32_t param_2, 
 
     result = 0;
     halo::networking::network_channel_remote_address_or_default(client->channel, &sender);
-    if (sender.address.ipv4 != *param_3) {
+    if (sender.address.ipv4 != *expected_sender) {
         return 1;
     }
     if (client->state == 3) {
-        if (decode_game_message(param_1, param_2, decoded_body, 4) != 0) {
+        if (decode_game_message(message, message_length, decoded_body, 4) != 0) {
             result = halo::networking::network_player_join_finalize(client, (network_player_entry *)decoded_body);
             if (result != 0) {
                 return result;
@@ -715,11 +715,11 @@ char ClientMessageDecoder::player_join_chunk(uint8_t *param_1, int32_t param_2, 
  * records its assigned table index (e.g. team or score-table slot) for that player") gives this
  * handler its name. Accepted while client->state is 2, 3 or 4.
  * register/parameter convention: see network_game_client_decode_state_update_chunk.c for the
- * shared EAX/ESI->client, param_2->remaining_length reconstruction, and
+ * shared EAX/ESI->client, message_length->remaining_length reconstruction, and
  *
  * @address 0x4dc2e0
  */
-char ClientMessageDecoder::player_slot_chunk(uint8_t *param_1, int32_t param_2, int32_t *param_3)
+char ClientMessageDecoder::player_slot_chunk(uint8_t *message, int32_t message_length, int32_t *expected_sender)
 {
     network_client_globals *client = self;
     char result;
@@ -729,12 +729,12 @@ char ClientMessageDecoder::player_slot_chunk(uint8_t *param_1, int32_t param_2, 
 
     result = 0;
     halo::networking::network_channel_remote_address_or_default(client->channel, &sender);
-    if (sender.address.ipv4 != *param_3) {
+    if (sender.address.ipv4 != *expected_sender) {
         return 1;
     }
     state = client->state;
     if (state == 3 || state == 4 || state == 2) {
-        if (decode_game_message(param_1, param_2, decoded_body, 4) != 0) {
+        if (decode_game_message(message, message_length, decoded_body, 4) != 0) {
             result = halo::networking::network_session_player_table_index_apply(client, (int32_t)decoded_body[8], (const uint8_t *)decoded_body);
 
             if (result != 0) {
@@ -777,7 +777,7 @@ int32_t ClientMessageDecoder::pong_reply(const uint8_t *buffer, int32_t length, 
  *
  * @address 0x4dc190
  */
-char ClientMessageDecoder::state_update_chunk(uint8_t *param_1, int32_t param_2, int32_t *param_3)
+char ClientMessageDecoder::state_update_chunk(uint8_t *message, int32_t message_length, int32_t *expected_sender)
 {
     network_client_globals *client = self;
     char result;
@@ -786,10 +786,10 @@ char ClientMessageDecoder::state_update_chunk(uint8_t *param_1, int32_t param_2,
 
     result = 0;
     halo::networking::network_channel_remote_address_or_default(client->channel, &sender);
-    if ((sender.address.ipv4 != *param_3) || (client->state != 3)) {
+    if ((sender.address.ipv4 != *expected_sender) || (client->state != 3)) {
         return 1;
     }
-    if (decode_game_message(param_1, param_2, decoded_body, 4) != 0) {
+    if (decode_game_message(message, message_length, decoded_body, 4) != 0) {
         result = halo::networking::network_game_state_update_receive(client, decoded_body);
         if (result != 0) {
             return result;
@@ -891,18 +891,18 @@ int32_t ClientMessageDecoder::ingame_notification(const uint8_t *buffer, int32_t
  *
  * @address 0x4dc410
  */
-int32_t ClientMessageDecoder::replicated_command(uint8_t *param_1, int32_t param_2, int32_t *param_3)
+int32_t ClientMessageDecoder::replicated_command(uint8_t *message, int32_t message_length, int32_t *expected_sender)
 {
     network_client_globals *client = self;
     network_resolved_address sender;
     uint32_t decoded_body[2];
 
     halo::networking::network_channel_remote_address_or_default(client->channel, &sender);
-    if (sender.address.ipv4 != *param_3) {
+    if (sender.address.ipv4 != *expected_sender) {
         return 1;
     }
     if (client->state == 4 &&
-        decode_game_message(param_1, param_2, decoded_body, 6) != 0) {
+        decode_game_message(message, message_length, decoded_body, 6) != 0) {
         if (network_game_mode != halo::networking::k_game_mode_client) {
             return 1;
         }

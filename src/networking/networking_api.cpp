@@ -2286,9 +2286,9 @@ int32_t network_game_client_decode_player_config_value(network_client_globals *c
  *
  * @address 0x4dc240
  */
-char network_game_client_decode_player_join_chunk(network_client_globals *client, uint8_t *param_1, int32_t param_2, int32_t *param_3)
+char network_game_client_decode_player_join_chunk(network_client_globals *client, uint8_t *message, int32_t message_length, int32_t *expected_sender)
 {
-    return halo::networking::ClientMessageDecoder(client).player_join_chunk(param_1, param_2, param_3);
+    return halo::networking::ClientMessageDecoder(client).player_join_chunk(message, message_length, expected_sender);
 }
 
 /**
@@ -2296,9 +2296,9 @@ char network_game_client_decode_player_join_chunk(network_client_globals *client
  *
  * @address 0x4dc2e0
  */
-char network_game_client_decode_player_slot_chunk(network_client_globals *client, uint8_t *param_1, int32_t param_2, int32_t *param_3)
+char network_game_client_decode_player_slot_chunk(network_client_globals *client, uint8_t *message, int32_t message_length, int32_t *expected_sender)
 {
-    return halo::networking::ClientMessageDecoder(client).player_slot_chunk(param_1, param_2, param_3);
+    return halo::networking::ClientMessageDecoder(client).player_slot_chunk(message, message_length, expected_sender);
 }
 
 /**
@@ -2316,9 +2316,9 @@ int32_t network_game_client_decode_pong_reply(network_client_globals *client, co
  *
  * @address 0x4dc190
  */
-char network_game_client_decode_state_update_chunk(network_client_globals *client, uint8_t *param_1, int32_t param_2, int32_t *param_3)
+char network_game_client_decode_state_update_chunk(network_client_globals *client, uint8_t *message, int32_t message_length, int32_t *expected_sender)
 {
-    return halo::networking::ClientMessageDecoder(client).state_update_chunk(param_1, param_2, param_3);
+    return halo::networking::ClientMessageDecoder(client).state_update_chunk(message, message_length, expected_sender);
 }
 
 /**
@@ -2356,9 +2356,9 @@ int32_t network_game_message_decode_ingame_notification(network_client_globals *
  *
  * @address 0x4dc410
  */
-int32_t network_game_message_decode_replicated_command(network_client_globals *client, uint8_t *param_1, int32_t param_2, int32_t *param_3)
+int32_t network_game_message_decode_replicated_command(network_client_globals *client, uint8_t *message, int32_t message_length, int32_t *expected_sender)
 {
-    return halo::networking::ClientMessageDecoder(client).replicated_command(param_1, param_2, param_3);
+    return halo::networking::ClientMessageDecoder(client).replicated_command(message, message_length, expected_sender);
 }
 
 /**
@@ -2770,9 +2770,9 @@ uint32_t network_game_process_incoming_message(int32_t length, network_machine *
  *
  * @address 0x4e40f0
  */
-uint8_t network_game_start_new_server_from_profile(uint32_t param_1)
+uint8_t network_game_start_new_server_from_profile(uint32_t unused)
 {
-    return halo::networking::GameRuntime::start_new_server_from_profile(param_1);
+    return halo::networking::GameRuntime::start_new_server_from_profile(unused);
 }
 
 /**

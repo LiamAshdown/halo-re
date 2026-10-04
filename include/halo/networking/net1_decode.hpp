@@ -40,16 +40,16 @@ public:
     int32_t join_finalize_ack(const uint8_t *buffer, int32_t length, const uint32_t *sender_address);
     int32_t join_finalize_message(const uint8_t *buffer, int32_t length, const uint32_t *sender_address);
     int32_t player_config_value(const uint8_t *buffer, int32_t length, const uint32_t *sender_address);
-    char player_join_chunk(uint8_t *param_1, int32_t param_2, int32_t *param_3);
-    char player_slot_chunk(uint8_t *param_1, int32_t param_2, int32_t *param_3);
+    char player_join_chunk(uint8_t *message, int32_t message_length, int32_t *expected_sender);
+    char player_slot_chunk(uint8_t *message, int32_t message_length, int32_t *expected_sender);
     int32_t pong_reply(const uint8_t *buffer, int32_t length, const uint32_t *sender_address);
     int32_t settings_or_ack(const uint8_t *buffer, int32_t length, const int32_t *expected_sequence);
-    char state_update_chunk(uint8_t *param_1, int32_t param_2, int32_t *param_3);
+    char state_update_chunk(uint8_t *message, int32_t message_length, int32_t *expected_sender);
     int32_t sync_complete(const uint8_t *buffer, int32_t length, const uint32_t *sender_address);
     int32_t decode_settings_request(const uint8_t *buffer, int32_t length, const int32_t *expected_sequence);
     char dispatch(uint16_t *record, int32_t record_length, const uint32_t *sender);
     int32_t ingame_notification(const uint8_t *buffer, int32_t length, const uint32_t *sender_address);
-    int32_t replicated_command(uint8_t *param_1, int32_t param_2, int32_t *param_3);
+    int32_t replicated_command(uint8_t *message, int32_t message_length, int32_t *expected_sender);
 };
 
 }

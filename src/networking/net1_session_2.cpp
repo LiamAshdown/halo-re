@@ -64,7 +64,7 @@ uint32_t GameRuntime::process_incoming_message(int32_t length, network_machine *
  *
  * @address 0x4e40f0
  */
-uint8_t GameRuntime::start_new_server_from_profile(uint32_t param_1)
+uint8_t GameRuntime::start_new_server_from_profile(uint32_t unused)
 {
     uint32_t profile[0x7ff];
 
@@ -73,7 +73,7 @@ uint8_t GameRuntime::start_new_server_from_profile(uint32_t param_1)
     } else {
         memcpy(profile, profile_globals_block, sizeof(profile));
     }
-    return halo::networking::network_game_start_new_server_with_name_and_password(param_1,
+    return halo::networking::network_game_start_new_server_with_name_and_password(unused,
         (uint16_t *)((uint8_t *)profile + 867 * 4),
         (uint16_t *)((uint8_t *)profile + 867 * 4 + 288));
 }

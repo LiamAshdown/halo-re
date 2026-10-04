@@ -19,7 +19,7 @@ public:
     static uint32_t process_incoming_message(int32_t length, network_machine *machine, uint16_t *record, network_server_globals *server);
     static char settings_ack_send(network_client_globals *client, int16_t template_row);
     static uint32_t settings_broadcast_send(network_server_globals *server, const network_player_entry *entry);
-    static uint8_t start_new_server_from_profile(uint32_t param_1);
+    static uint8_t start_new_server_from_profile(uint32_t unused);
     static uint8_t start_new_server_with_name_and_password(uint32_t unused, uint16_t *name, uint16_t *password);
     static void map_cycle_list_broadcast();
     static void disconnect_with_error(int16_t error_code);
