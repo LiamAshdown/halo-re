@@ -1530,7 +1530,7 @@ typedef struct encounter {
     int16_t activation_link[3];       // 0x22 encounter indices linked by ai_link_activation; encounters_update_activation
                                       //    keeps this encounter active while any of them is pending (count at 0x20)
     uint8_t dirty;                    // 0x28 set by every member add / remove; 0x435f00 re-runs morale for dirty encounters
-    uint8_t unknown_29;               // 0x29
+    uint8_t pad_29;                   // 0x29
     int16_t living_count;             // 0x2a weighted member count (1 per unit, cluster_count per swarm); hs
                                       //    ai_living_count (ai_reference_get_stat_pair 0x432f90)
     int16_t swarm_count;              // 0x2c weighted swarm member count; hs ai_swarm_count, and ai_nonswarm_count =
@@ -1538,12 +1538,12 @@ typedef struct encounter {
     int16_t combat_count;             // 0x2e weighted members at awareness_level 3 with combat_status >
                                       //    minimum_combat_status; starts the squad timers
     int16_t engaged_count;            // 0x30 weighted members with combat_status > 6
-    uint8_t unknown_32[2];            // 0x32
+    uint8_t pad_32[2];                // 0x32
     float average_vitality;           // 0x34 encounter_recompute_morale sums one vitality sample per live member here and then divides by member_count
     datum_index first_pursuit;        // 0x38 head of the ai_pursuit ("recently seen object") list
     uint8_t respawn_enabled;          // 0x3c ScenarioEncounter flags bit 1; hs ai_set_respawn (0x47d3b0);
                                       //    reinforcements stop while clear
-    uint8_t unknown_3d;               // 0x3d
+    uint8_t pad_3d;                   // 0x3d
     int16_t respawn_delay_ticks;      // 0x3e random(respawn_delay) * 30 per reinforcement; counted down by 15 per
                                       //    update, spawns at 0
     uint8_t blind;                    // 0x40 ScenarioEncounter flags bit 2 (initially blind); hs ai_set_blind
@@ -1555,11 +1555,11 @@ typedef struct encounter {
     uint8_t ever_had_target;          // 0x43 set once any member has a target; never cleared
     uint8_t has_live_target;          // 0x44 a member's target is engaged or not dead (0x437940)
     uint8_t engaged;                  // 0x45 a member with a target has combat_status >= 7
-    uint8_t unknown_46;               // 0x46 squad_create zeroes it
+    uint8_t enemy_traitor;            // 0x46 squad_create zeroes it
     uint8_t post_combat;              // 0x47 set by encounter_choose_vocalizations (0x438580, the CEA
                                       //    encounter_post_combat); cleared when combat resumes
     uint8_t post_combat_quiet;        // 0x48 no member still has a post-combat line pending
-    uint8_t unknown_49;               // 0x49
+    uint8_t pad_49;                   // 0x49
     int16_t post_combat_timer;        // 0x4a 120 at post_combat, -15 per update; the encounter stands down at 0
     int16_t enemy_death_count;        // 0x4c enemies of this encounter killed during the fight (0x435f90, the CEA
                                       //    encounters_unit_died); reset at post combat / stand down
@@ -1572,7 +1572,7 @@ typedef struct encounter {
     datum_index last_grenade_time;    // 0x5c game time a member last committed a grenade throw; the encounter grenade
                                       //    timeout counts from it
     uint8_t playfight;                // 0x60 hs ai_playfight (0x47e070); copied to the members
-    uint8_t unknown_61;               // 0x61
+    uint8_t pad_61;                   // 0x61
     int16_t follow_target_type;       // 0x62 0 none, 1 players, 2 unit, 3 ai (hs ai_follow_target_*)
     int32_t follow_target;            // 0x64 the unit index or packed ai reference followed; -1 when the unit is gone
     float follow_distance;            // 0x68 hs ai_follow_distance (0x47e590) stores a real here; encounter_update_follow

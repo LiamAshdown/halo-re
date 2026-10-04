@@ -1696,7 +1696,7 @@ void Encounters::create(int16_t *squad_cursor, ScenarioEncounter *definition, in
     enc->deaf = (uint8_t)((definition->flags >> 3) & 1);
     enc->respawn_enabled = (uint8_t)((definition->flags >> 1) & 1);
     enc->respawn_delay_ticks = 0;
-    enc->unknown_46 = 0;
+    enc->enemy_traitor = 0;
     enc->engaged = 0;
     enc->ticks_since_engaged = (datum_index)k_datum_index_none;
     enc->has_live_target = 0;
@@ -2073,7 +2073,7 @@ void EncounterView::recompute_morale()
     }
 
     if (any_unfriendly_target != 0) {
-        enc->unknown_46 = 0;
+        enc->enemy_traitor = 0;
     }
 
     retreat_timer = enc->ticks_since_engaged;
