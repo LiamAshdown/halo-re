@@ -249,7 +249,7 @@ typedef struct device_machine_data {
 typedef struct device_control_data {
     device_data device;             // 0x1f4 type_flags holds device_control_flags
     int16_t custom_name_index;      // 0x218 ScenarioControl custom_control_name - 1 (control_place)
-    int16_t unknown_21a;            // 0x21a
+    int16_t pad_21a;                // 0x21a
 } device_control_data;              // size 0x28, object + 0x1f4 .. 0x21c
 
 // object + 0x1f4 for object type 9. Total object size 0x22c, from the "light_fixture" row.
@@ -258,7 +258,11 @@ typedef struct device_control_data {
 // (0x34 .. 0x48) that are the obvious candidates for these 0x14 bytes.
 typedef struct device_light_fixture_data {
     device_data device;             // 0x1f4 type_flags unused
-    uint8_t unknown_218[0x14];      // 0x218 .. 0x22c
+    float color_g;                  // 0x218 CEA light_fixture_datum.color (red overlaps type_flags at 0x214)
+    float color_b;                  // 0x21c
+    float intensity;                // 0x220
+    float falloff_angle;            // 0x224
+    float cutoff_angle;             // 0x228
 } device_light_fixture_data;        // size 0x38, object + 0x1f4 .. 0x22c
 
 // A device object as one struct: the common object header (types/objects.h, 0x1f4 bytes) followed
