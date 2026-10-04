@@ -552,7 +552,7 @@ void UnitView::drop_object_from_hand(uint32_t object_index)
     if (!halo::objects::object_reposition_to_spawn_location(object_index, &camera, k_datum_index_none) && halo::game::globals().current_engine == 0) {
         halo::objects::object_delete(object_index);
     }
-    if ((unit->unit.flags & 0x100000)) {
+    if ((unit->unit.flags & halo::to_bits(units::unit_flag::delete_when_dropped))) {
         role = ((struct object *)halo::objects::object_record_bytes(object_index))->network_role;
         if (role == 0) {
             halo::objects::object_delete_unparented(object_index);

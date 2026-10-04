@@ -392,14 +392,14 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
     }
 
     biped->flags = ((solve.result_flags & _biped_movement_result_airborne) == 0)
-                       ? (biped->flags & 0xfffffffe)
-                       : (biped->flags | 1);
+                       ? (biped->flags & ~halo::to_bits(units::biped_flag::airborne))
+                       : (biped->flags | halo::to_bits(units::biped_flag::airborne));
     biped->flags = ((solve.result_flags & _biped_movement_result_jumping) == 0)
-                       ? (biped->flags & 0xfffffffd)
-                       : (biped->flags | 2);
+                       ? (biped->flags & ~halo::to_bits(units::biped_flag::jumping))
+                       : (biped->flags | halo::to_bits(units::biped_flag::jumping));
     biped->flags = (!test_flag(tag->biped_flags, tags::biped_tag_flag::passes_through_other_bipeds))
-                       ? (biped->flags & 0xffffffef)
-                       : (biped->flags | 0x10);
+                       ? (biped->flags & ~halo::to_bits(units::biped_flag::passes_through_bipeds))
+                       : (biped->flags | halo::to_bits(units::biped_flag::passes_through_bipeds));
 
     biped->ground_normal = solve.ground_normal;
     biped->ground_plane_distance = solve.ground_plane;
@@ -409,18 +409,18 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
     }
 
     if ((solve.flags & _biped_movement_solver_flying) == 0 && !test_flag(biped->flags, units::biped_flag::airborne)) {
-        obj->flags = obj->flags | 2;
+        obj->flags = obj->flags | halo::to_bits(objects::object_flag::on_ground);
     } else {
-        obj->flags = obj->flags & 0xfffffffd;
+        obj->flags = obj->flags & ~halo::to_bits(objects::object_flag::on_ground);
     }
 
     if ((int16_t)(solve.flags & _biped_movement_solver_flying) != 0 || test_flag(biped->flags, units::biped_flag::airborne) ||
         (solve.result_flags & _biped_movement_result_moving) != 0 ||
         0.0001f <= obj->velocity.k * obj->velocity.k + obj->velocity.j * obj->velocity.j +
                        obj->velocity.i * obj->velocity.i) {
-        obj->flags = obj->flags & 0xffffffdf;
+        obj->flags = obj->flags & ~halo::to_bits(objects::object_flag::at_rest);
     } else {
-        obj->flags = obj->flags | 0x20;
+        obj->flags = obj->flags | halo::to_bits(objects::object_flag::at_rest);
     }
 
     if (test_flag(obj->flags, objects::object_flag::on_ground)) {
@@ -802,14 +802,14 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
     }
 
     biped->flags = ((solve.result_flags & _biped_movement_result_airborne) == 0)
-                       ? (biped->flags & 0xfffffffe)
-                       : (biped->flags | 1);
+                       ? (biped->flags & ~halo::to_bits(units::biped_flag::airborne))
+                       : (biped->flags | halo::to_bits(units::biped_flag::airborne));
     biped->flags = ((solve.result_flags & _biped_movement_result_jumping) == 0)
-                       ? (biped->flags & 0xfffffffd)
-                       : (biped->flags | 2);
+                       ? (biped->flags & ~halo::to_bits(units::biped_flag::jumping))
+                       : (biped->flags | halo::to_bits(units::biped_flag::jumping));
     biped->flags = (!test_flag(tag->biped_flags, tags::biped_tag_flag::passes_through_other_bipeds))
-                       ? (biped->flags & 0xffffffef)
-                       : (biped->flags | 0x10);
+                       ? (biped->flags & ~halo::to_bits(units::biped_flag::passes_through_bipeds))
+                       : (biped->flags | halo::to_bits(units::biped_flag::passes_through_bipeds));
 
     biped->ground_normal = solve.ground_normal;
     biped->ground_plane_distance = solve.ground_plane;
@@ -861,18 +861,18 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
     UnitView(object_index).apply_fall_damage(solve.result_impact_speed);
 
     if ((solve.flags & _biped_movement_solver_flying) == 0 && !test_flag(biped->flags, units::biped_flag::airborne)) {
-        obj->flags = obj->flags | 2;
+        obj->flags = obj->flags | halo::to_bits(objects::object_flag::on_ground);
     } else {
-        obj->flags = obj->flags & 0xfffffffd;
+        obj->flags = obj->flags & ~halo::to_bits(objects::object_flag::on_ground);
     }
 
     if ((int16_t)(solve.flags & _biped_movement_solver_flying) != 0 || test_flag(biped->flags, units::biped_flag::airborne) ||
         (result_flags & _biped_movement_result_moving) != 0 ||
         0.0001f <= obj->velocity.k * obj->velocity.k + obj->velocity.j * obj->velocity.j +
                        obj->velocity.i * obj->velocity.i) {
-        obj->flags = obj->flags & 0xffffffdf;
+        obj->flags = obj->flags & ~halo::to_bits(objects::object_flag::at_rest);
     } else {
-        obj->flags = obj->flags | 0x20;
+        obj->flags = obj->flags | halo::to_bits(objects::object_flag::at_rest);
     }
 
     if (test_flag(obj->flags, objects::object_flag::on_ground)) {

@@ -508,21 +508,21 @@ uint8_t UnitView::update()
             if (!test_flag(flags, units::unit_flag::integrated_light_on)) {
                 toggle = 1;
             }
-            obj->unit.flags = flags & 0xefffffff;
+            obj->unit.flags = flags & ~halo::to_bits(units::unit_flag::desired_integrated_light_on);
         }
         flags = obj->unit.flags;
         if (test_flag(flags, units::unit_flag::desired_integrated_light_off)) {
             if (test_flag(flags, units::unit_flag::integrated_light_on)) {
                 toggle = 1;
             }
-            obj->unit.flags = flags & 0xdfffffff;
+            obj->unit.flags = flags & ~halo::to_bits(units::unit_flag::desired_integrated_light_off);
         }
         button = obj->unit.control_flags & 0x10;
         if (button != 0 || !(obj->unit.integrated_light_energy > 0.0f) || toggle) {
             if (!valid_team_player) {
                 flags = obj->unit.flags;
                 if (test_flag(flags, units::unit_flag::integrated_night_vision_on)) {
-                    obj->unit.flags = flags & 0xfbffffff;
+                    obj->unit.flags = flags & ~halo::to_bits(units::unit_flag::integrated_night_vision_on);
                 }
                 flags = obj->unit.flags;
                 if (test_flag(flags, units::unit_flag::integrated_light_on)) {
@@ -559,7 +559,7 @@ uint8_t UnitView::update()
                 obj->unit.integrated_light_energy -= 0.00027777778f;
             }
             if (obj->base.parent_object != k_datum_index_none || test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen)) {
-                obj->unit.flags = flags & 0xfff7ffff;
+                obj->unit.flags = flags & ~halo::to_bits(units::unit_flag::integrated_light_on);
             }
             if (obj->unit.integrated_light_power != 1.0f) {
                 obj->unit.integrated_light_power += 0.16666667f;

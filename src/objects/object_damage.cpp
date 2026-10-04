@@ -1,3 +1,4 @@
+#include "halo/units/flags.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/networking/delta_message_types.hpp"
 #include "halo/core/bit_cast.hpp"
@@ -1425,7 +1426,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
         switch (type) {
         case _object_type_biped:
         case _object_type_vehicle:
-            if (effect->damage_instantaneous_acceleration.i > 0.0001f && (obj->unit.flags & 0x800000) == 0) {
+            if (effect->damage_instantaneous_acceleration.i > 0.0001f && (obj->unit.flags & halo::to_bits(units::unit_flag::impervious)) == 0) {
                 if (type == _object_type_biped) {
                     halo::units::unit_apply_impulse(target_index, &impulse);
                 } else {

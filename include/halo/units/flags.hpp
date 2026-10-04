@@ -174,7 +174,7 @@ enum class biped_flag : uint32_t {
     jumping = 0x02,
     absolute_movement = 0x04,
     no_collision = 0x08,
-    landing_latch = 0x10,
+    passes_through_bipeds = 0x10,
     ground_adjust_dirty = 0x20,
     unknown_40 = 0x40,
     unknown_80 = 0x80,
