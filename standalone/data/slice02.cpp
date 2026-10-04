@@ -721,7 +721,7 @@ float sound_dialog_ducking_gain = 0.699999988f;
 /* 0x006893e0 */
 uint8_t console_debug_toggle_6893e0[2] = { 0x0, 0x0 };
 /* 0x006893e2 */
-uint16_t unknown_006893e2 = 0x0;
+uint16_t frame_statistics_level = 0x0;
 /* 0x006893e4 */
 uint16_t console_debug_toggle_6893e4 = 0x0;
 /* 0x006893e6 */
@@ -737,7 +737,7 @@ uint8_t console_debug_toggle_6893ed = 0x1;
 /* 0x006893ee */
 uint8_t console_debug_toggle_6893ee = 0x1;
 /* 0x006893ef */
-uint8_t unknown_006893ef[2] = { 0x1, 0x2 };
+uint8_t shader_stage_config_enabled[2] = { 0x1, 0x2 };
 /* 0x006893f1 */
 uint8_t console_debug_toggle_6893f1 = 0x1;
 /* 0x006893f2 */
@@ -763,7 +763,7 @@ uint8_t console_debug_toggle_6893fb = 0x1;
 /* 0x006893fc */
 uint8_t console_debug_toggle_6893fc = 0x1;
 /* 0x006893fd */
-uint8_t unknown_006893fd = 0x1;
+uint8_t device_reset_cleared_flag = 0x1;
 /* 0x006893fe */
 uint8_t rasterizer_water_enabled = 0x1;
 /* 0x006893ff */
@@ -783,20 +783,20 @@ uint8_t console_debug_toggle_689408 = 0x1;
 /* 0x00689409 */
 uint8_t console_debug_toggle_689409[3] = { 0x1, 0x0, 0x0 };
 /* 0x0068940c */
-float renderer_unknown_68940c = 1.0f;
+float underwater_tint_jitter_forced_value = 1.0f;
 /* 0x00689412 */
 uint16_t debug_print_enabled_flag = 0x0;
 /* 0x00689418 */
-float unknown_00689418 = 0.0f;
+float model_lighting_ambient_override = 0.0f;
 /* 0x0068941c */
 uint8_t console_debug_toggle_68941c = 0x1;
 /* 0x0068941d */
 uint8_t console_debug_toggle_68941d = 0x1;
 
 /* ---- symbols that share the address of a definition above */
-#pragma comment(linker, "/alternatename:_unknown_006893f6=_console_debug_toggle_6893f6")
-#pragma comment(linker, "/alternatename:_unknown_006893f7=_console_debug_toggle_6893f7")
-#pragma comment(linker, "/alternatename:_unknown_006893f8=_console_debug_toggle_6893f8")
-#pragma comment(linker, "/alternatename:_unknown_0068941d=_console_debug_toggle_68941d")
+#pragma comment(linker, "/alternatename:_specular_projected_light_enabled=_console_debug_toggle_6893f6")
+#pragma comment(linker, "/alternatename:_specular_lightmap_enabled=_console_debug_toggle_6893f7")
+#pragma comment(linker, "/alternatename:_environment_multipurpose_enabled=_console_debug_toggle_6893f8")
+#pragma comment(linker, "/alternatename:_fog_screen_overlay_enabled=_console_debug_toggle_68941d")
 
 }

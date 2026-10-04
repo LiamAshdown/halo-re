@@ -174,7 +174,7 @@ float water_fade_factor_b;                                             // 0x006e
 float rasterizer_underwater_tint_jitter_r;                             // 0x006e09f8
 float rasterizer_underwater_tint_jitter_g;                             // 0x006e09fc
 float rasterizer_underwater_tint_jitter_b;                             // 0x006e0a00
-uint8_t unknown_006e0a04;                                              // 0x006e0a04
+uint8_t environment_effect_variant;                                              // 0x006e0a04
 BitmapData * rasterizer_environment_lightmap;                          // 0x006e0a08
 uint8_t rasterizer_environment_lightmap_missing;                       // 0x006e0a0c
 rasterizer_projected_light_constants rasterizer_projected_light;       // 0x006e0a10

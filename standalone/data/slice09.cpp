@@ -221,7 +221,7 @@ d3dx_macro rasterizer_effect_defines[2];  // 0x007c0460
 void *shader_environment_draw_simple;  // 0x007c0470
 void *shader_environment_draw;  // 0x007c0474
 uint8_t model_render_first_person;  // 0x007c0478
-float unknown_007c047c;  // 0x007c047c
+float planar_fog_attenuation;  // 0x007c047c
 void *rasterizer_glass_draw_procedures[3];  // 0x007c0480
 void *unknown_007c048c;  // 0x007c048c
 void *unknown_007c0490;  // 0x007c0490
@@ -421,7 +421,7 @@ HALO_SZ_CHECK(rasterizer_effect_defines, 16);
 HALO_SZ_CHECK(shader_environment_draw_simple, 4);
 HALO_SZ_CHECK(shader_environment_draw, 4);
 HALO_SZ_CHECK(model_render_first_person, 4);
-HALO_SZ_CHECK(unknown_007c047c, 4);
+HALO_SZ_CHECK(planar_fog_attenuation, 4);
 HALO_SZ_CHECK(rasterizer_glass_draw_procedures, 12);
 HALO_SZ_CHECK(unknown_007c048c, 4);
 HALO_SZ_CHECK(unknown_007c0490, 4);

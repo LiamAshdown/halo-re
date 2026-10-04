@@ -253,7 +253,7 @@ __declspec(allocate(".g08$0107")) __declspec(align(4)) int32_t transparent_geome
 #pragma section(".g08$0108", read, write)
 __declspec(allocate(".g08$0108")) __declspec(align(4)) void * transparent_geometry_group_sorted_indices = {0}; // 0x0071d15c
 #pragma section(".g08$0109", read, write)
-__declspec(allocate(".g08$0109")) __declspec(align(4)) uint32_t unknown_0071d160 = {0}; // 0x0071d160
+__declspec(allocate(".g08$0109")) __declspec(align(4)) uint32_t frame_reset_cleared_word = {0}; // 0x0071d160
 #pragma section(".g08$0110", read, write)
 __declspec(allocate(".g08$0110")) __declspec(align(4)) void * rasterizer_globals_data = {0}; // 0x0071d164
 #pragma section(".g08$0111", read, write)
@@ -285,7 +285,7 @@ __declspec(allocate(".g08$0123")) __declspec(align(4)) void * rasterizer_window_
 #pragma section(".g08$0124", read, write)
 __declspec(allocate(".g08$0124")) __declspec(align(1)) uint8_t rasterizer_widescreen_camouflage_scale = {0}; // 0x0071d18c
 #pragma section(".g08$0125", read, write)
-__declspec(allocate(".g08$0125")) __declspec(align(1)) uint8_t unknown_0071d18d = {0}; // 0x0071d18d
+__declspec(allocate(".g08$0125")) __declspec(align(1)) uint8_t lockable_back_buffer_requested = {0}; // 0x0071d18d
 #pragma section(".g08$0126", read, write)
 __declspec(allocate(".g08$0126")) __declspec(align(1)) uint8_t rasterizer_use_fx_file = {0}; // 0x0071d18e
 #pragma section(".g08$0127", read, write)
@@ -307,7 +307,7 @@ __declspec(allocate(".g08$0134")) __declspec(align(4)) int32_t rasterizer_window
 #pragma section(".g08$0135", read, write)
 __declspec(allocate(".g08$0135")) __declspec(align(4)) int32_t windowed = {0}; // 0x0071d1ac
 #pragma section(".g08$0136", read, write)
-__declspec(allocate(".g08$0136")) __declspec(align(1)) uint8_t unknown_0071d1b0 = {0}; // 0x0071d1b0
+__declspec(allocate(".g08$0136")) __declspec(align(1)) uint8_t video_mode_command_line_parsed = {0}; // 0x0071d1b0
 #pragma section(".g08$0137", read, write)
 __declspec(allocate(".g08$0137")) __declspec(align(1)) uint8_t rasterizer_render_target_capture_requested = {0}; // 0x0071d1b1
 #pragma section(".g08$0138", read, write)
@@ -315,7 +315,7 @@ __declspec(allocate(".g08$0138")) __declspec(align(1)) uint8_t rasterizer_render
 #pragma section(".g08$0139", read, write)
 __declspec(allocate(".g08$0139")) __declspec(align(1)) uint8_t g08_pad_0071d1b2[1] = {0}; // 0x0071d1b3 pad to next symbol
 #pragma section(".g08$0140", read, write)
-__declspec(allocate(".g08$0140")) __declspec(align(2)) uint16_t unknown_0071d1b4 = {0}; // 0x0071d1b4
+__declspec(allocate(".g08$0140")) __declspec(align(2)) uint16_t frame_reset_cleared_word_b = {0}; // 0x0071d1b4
 #pragma section(".g08$0141", read, write)
 __declspec(allocate(".g08$0141")) __declspec(align(1)) uint8_t g08_pad_0071d1b4[6] = {0}; // 0x0071d1b6 pad to next symbol
 #pragma section(".g08$0142", read, write)
@@ -323,7 +323,7 @@ __declspec(allocate(".g08$0142")) __declspec(align(4)) void * rasterizer_decal_v
 #pragma section(".g08$0143", read, write)
 __declspec(allocate(".g08$0143")) __declspec(align(4)) void * rasterizer_decal_vertex_cache_handle = {0}; // 0x0071d1c0
 #pragma section(".g08$0144", read, write)
-__declspec(allocate(".g08$0144")) __declspec(align(1)) uint8_t unknown_0071d1c4 = {0}; // 0x0071d1c4
+__declspec(allocate(".g08$0144")) __declspec(align(1)) uint8_t decal_fog_state_applied = {0}; // 0x0071d1c4
 #pragma section(".g08$0145", read, write)
 __declspec(allocate(".g08$0145")) __declspec(align(1)) uint8_t g08_pad_0071d1c4[3] = {0}; // 0x0071d1c5 pad to next symbol
 #pragma section(".g08$0146", read, write)
@@ -365,13 +365,13 @@ __declspec(allocate(".g08$0163")) __declspec(align(1)) uint8_t g08_pad_0071d1f4[
 #pragma section(".g08$0164", read, write)
 __declspec(allocate(".g08$0164")) __declspec(align(2)) int16_t rasterizer_active_model_mode = {0}; // 0x0071d1f8
 #pragma section(".g08$0165", read, write)
-__declspec(allocate(".g08$0165")) __declspec(align(1)) uint8_t unknown_0071d1fa = {0}; // 0x0071d1fa
+__declspec(allocate(".g08$0165")) __declspec(align(1)) uint8_t sky_pass_active = {0}; // 0x0071d1fa
 #pragma section(".g08$0166", read, write)
-__declspec(allocate(".g08$0166")) __declspec(align(1)) uint8_t unknown_0071d1fb = {0}; // 0x0071d1fb
+__declspec(allocate(".g08$0166")) __declspec(align(1)) uint8_t planar_fog_vertex_shader_active = {0}; // 0x0071d1fb
 #pragma section(".g08$0167", read, write)
-__declspec(allocate(".g08$0167")) __declspec(align(1)) uint8_t unknown_0071d1fc = {0}; // 0x0071d1fc
+__declspec(allocate(".g08$0167")) __declspec(align(1)) uint8_t model_begin_cleared_flag = {0}; // 0x0071d1fc
 #pragma section(".g08$0168", read, write)
-__declspec(allocate(".g08$0168")) __declspec(align(1)) uint8_t unknown_0071d1fd = {0}; // 0x0071d1fd
+__declspec(allocate(".g08$0168")) __declspec(align(1)) uint8_t model_draw_mode = {0}; // 0x0071d1fd
 #pragma section(".g08$0169", read, write)
 __declspec(allocate(".g08$0169")) __declspec(align(1)) uint8_t rasterizer_camouflage_fade_active = {0}; // 0x0071d1fe
 #pragma section(".g08$0170", read, write)
@@ -413,9 +413,9 @@ __declspec(allocate(".g08$0187")) __declspec(align(4)) void * rasterizer_misc_ve
 #pragma section(".g08$0188", read, write)
 __declspec(allocate(".g08$0188")) __declspec(align(1)) uint8_t rasterizer_secondary_groups_drawn = {0}; // 0x0071d274
 #pragma section(".g08$0189", read, write)
-__declspec(allocate(".g08$0189")) __declspec(align(1)) uint8_t unknown_0071d275 = {0}; // 0x0071d275
+__declspec(allocate(".g08$0189")) __declspec(align(1)) uint8_t water_ripple_update_pending = {0}; // 0x0071d275
 #pragma section(".g08$0190", read, write)
-__declspec(allocate(".g08$0190")) __declspec(align(1)) uint8_t unknown_0071d276 = {0}; // 0x0071d276
+__declspec(allocate(".g08$0190")) __declspec(align(1)) uint8_t transparent_group_created = {0}; // 0x0071d276
 #pragma section(".g08$0191", read, write)
 __declspec(allocate(".g08$0191")) __declspec(align(1)) uint8_t g08_pad_0071d276[1] = {0}; // 0x0071d277 pad to next symbol
 #pragma section(".g08$0192", read, write)

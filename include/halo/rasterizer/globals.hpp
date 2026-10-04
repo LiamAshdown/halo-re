@@ -13,7 +13,7 @@
  * definitions live in the standalone data layer under these original names; the module reaches them through
  * the named references of halo::rasterizer::globals below.
  */
-inline auto &unknown_006893ef = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006893ef);
+inline auto &shader_stage_config_enabled = halo::link::ref<uint8_t>(halo::rasterizer::vars().shader_stage_config_enabled);
 inline auto &console_debug_toggle_689409 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689409);
 inline auto &console_debug_toggle_689403 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689403);
 inline auto &console_debug_toggle_689421 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689421);
@@ -31,39 +31,39 @@ inline auto &console_debug_toggle_689400 = halo::link::ref<uint8_t>(halo::raster
 inline auto &console_debug_toggle_689407 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689407);
 inline auto &console_debug_toggle_689408 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_689408);
 inline auto &console_debug_toggle_69c614 = halo::link::ref<uint8_t>(halo::rasterizer::vars().console_debug_toggle_69c614);
-inline auto &unknown_006893e2 = halo::link::ref<uint16_t>(halo::rasterizer::vars().unknown_006893e2);
-inline auto &unknown_006893f6 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006893f6);
-inline auto &unknown_006893f7 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006893f7);
-inline auto &unknown_006893f8 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006893f8);
-inline auto &unknown_006893fd = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006893fd);
-inline auto &unknown_0068941d = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0068941d);
-inline auto &unknown_00689418 = halo::link::ref<float>(halo::rasterizer::vars().unknown_00689418);
-inline auto &unknown_00689426 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_00689426);
-inline auto &renderer_unknown_68940c = halo::link::ref<float>(halo::rasterizer::vars().renderer_unknown_68940c);
-inline auto &renderer_unknown_69c684 = halo::link::ref<uint32_t>(halo::rasterizer::vars().renderer_unknown_69c684);
-inline auto &unknown_0069c63e = halo::link::ref<int16_t>(halo::rasterizer::vars().unknown_0069c63e);
-inline auto &unknown_0069c640 = halo::link::ref<int16_t>(halo::rasterizer::vars().unknown_0069c640);
-inline auto &unknown_0069c642 = halo::link::ref<int16_t>(halo::rasterizer::vars().unknown_0069c642);
-inline auto &unknown_0069da10 = halo::link::ref<void *>(halo::rasterizer::vars().unknown_0069da10);
-inline auto &unknown_006e0a04 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_006e0a04);
+inline auto &frame_statistics_level = halo::link::ref<uint16_t>(halo::rasterizer::vars().frame_statistics_level);
+inline auto &specular_projected_light_enabled = halo::link::ref<uint8_t>(halo::rasterizer::vars().specular_projected_light_enabled);
+inline auto &specular_lightmap_enabled = halo::link::ref<uint8_t>(halo::rasterizer::vars().specular_lightmap_enabled);
+inline auto &environment_multipurpose_enabled = halo::link::ref<uint8_t>(halo::rasterizer::vars().environment_multipurpose_enabled);
+inline auto &device_reset_cleared_flag = halo::link::ref<uint8_t>(halo::rasterizer::vars().device_reset_cleared_flag);
+inline auto &fog_screen_overlay_enabled = halo::link::ref<uint8_t>(halo::rasterizer::vars().fog_screen_overlay_enabled);
+inline auto &model_lighting_ambient_override = halo::link::ref<float>(halo::rasterizer::vars().model_lighting_ambient_override);
+inline auto &lens_flare_occlusion_enabled = halo::link::ref<uint8_t>(halo::rasterizer::vars().lens_flare_occlusion_enabled);
+inline auto &underwater_tint_jitter_forced_value = halo::link::ref<float>(halo::rasterizer::vars().underwater_tint_jitter_forced_value);
+inline auto &fixed_function_ambient_color = halo::link::ref<uint32_t>(halo::rasterizer::vars().fixed_function_ambient_color);
+inline auto &game_screen_rect_left = halo::link::ref<int16_t>(halo::rasterizer::vars().game_screen_rect_left);
+inline auto &game_screen_rect_bottom = halo::link::ref<int16_t>(halo::rasterizer::vars().game_screen_rect_bottom);
+inline auto &game_screen_rect_right = halo::link::ref<int16_t>(halo::rasterizer::vars().game_screen_rect_right);
+inline auto &lens_flare_effect = halo::link::ref<void *>(halo::rasterizer::vars().lens_flare_effect);
+inline auto &environment_effect_variant = halo::link::ref<uint8_t>(halo::rasterizer::vars().environment_effect_variant);
 inline auto &unknown_00719aac = halo::link::ref<int16_t>(halo::rasterizer::vars().unknown_00719aac);
-inline auto &unknown_0071d160 = halo::link::ref<uint32_t>(halo::rasterizer::vars().unknown_0071d160);
-inline auto &unknown_0071d18d = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d18d);
-inline auto &unknown_0071d1b0 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1b0);
-inline auto &unknown_0071d1b4 = halo::link::ref<uint16_t>(halo::rasterizer::vars().unknown_0071d1b4);
-inline auto &unknown_0071d1c4 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1c4);
-inline auto &unknown_0071d1fa = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1fa);
-inline auto &unknown_0071d1fb = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1fb);
-inline auto &unknown_0071d1fc = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1fc);
-inline auto &unknown_0071d1fd = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d1fd);
+inline auto &frame_reset_cleared_word = halo::link::ref<uint32_t>(halo::rasterizer::vars().frame_reset_cleared_word);
+inline auto &lockable_back_buffer_requested = halo::link::ref<uint8_t>(halo::rasterizer::vars().lockable_back_buffer_requested);
+inline auto &video_mode_command_line_parsed = halo::link::ref<uint8_t>(halo::rasterizer::vars().video_mode_command_line_parsed);
+inline auto &frame_reset_cleared_word_b = halo::link::ref<uint16_t>(halo::rasterizer::vars().frame_reset_cleared_word_b);
+inline auto &decal_fog_state_applied = halo::link::ref<uint8_t>(halo::rasterizer::vars().decal_fog_state_applied);
+inline auto &sky_pass_active = halo::link::ref<uint8_t>(halo::rasterizer::vars().sky_pass_active);
+inline auto &planar_fog_vertex_shader_active = halo::link::ref<uint8_t>(halo::rasterizer::vars().planar_fog_vertex_shader_active);
+inline auto &model_begin_cleared_flag = halo::link::ref<uint8_t>(halo::rasterizer::vars().model_begin_cleared_flag);
+inline auto &model_draw_mode = halo::link::ref<uint8_t>(halo::rasterizer::vars().model_draw_mode);
 inline auto &unknown_00721ea0 = halo::link::ref<void *(*)(void *hwnd, void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e)>(halo::rasterizer::vars().unknown_00721ea0);
 inline auto &unknown_00721eb4 = halo::link::ref<int32_t (*)(void *engine, void *path, void *key, uint32_t flags, void *rect, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e, uint32_t f)>(halo::rasterizer::vars().unknown_00721eb4);
 inline auto &unknown_00721eb8 = halo::link::ref<int32_t (*)(void *engine, void *key)>(halo::rasterizer::vars().unknown_00721eb8);
 inline auto &unknown_00721ebc = halo::link::ref<int32_t (*)(void *engine)>(halo::rasterizer::vars().unknown_00721ebc);
 inline auto &unknown_00721ec8 = halo::link::ref<void (*)(int32_t document)>(halo::rasterizer::vars().unknown_00721ec8);
 inline auto &unknown_00721edc = halo::link::ref<void (*)(int32_t document, uint32_t a)>(halo::rasterizer::vars().unknown_00721edc);
-inline auto &unknown_00746fbc = halo::link::ref<int16_t>(halo::rasterizer::vars().unknown_00746fbc);
-inline auto &unknown_007c047c = halo::link::ref<float>(halo::rasterizer::vars().unknown_007c047c);
+inline auto &lens_flare_batch_mode = halo::link::ref<int16_t>(halo::rasterizer::vars().lens_flare_batch_mode);
+inline auto &planar_fog_attenuation = halo::link::ref<float>(halo::rasterizer::vars().planar_fog_attenuation);
 inline auto &unknown_007c048c = halo::link::ref<void *>(halo::rasterizer::vars().unknown_007c048c);
 inline auto &unknown_007c0490 = halo::link::ref<void *>(halo::rasterizer::vars().unknown_007c0490);
 inline auto &unknown_007c0494 = halo::link::ref<void *>(halo::rasterizer::vars().unknown_007c0494);
@@ -76,7 +76,7 @@ namespace halo::rasterizer::fields {
  *
  * @address 0x6893e2
  */
-inline uint16_t &frame_statistics_level = unknown_006893e2;
+inline uint16_t &frame_statistics_level = ::frame_statistics_level;
 
 /**
  * Non-zero while decals and lens flares are rendered; the video options set it every time they apply. The same
@@ -101,7 +101,7 @@ inline int16_t &object_lod_quality = unknown_00689450;
  *
  * @address 0x6893ef
  */
-inline uint8_t &shader_stage_config_enabled = unknown_006893ef;
+inline uint8_t &shader_stage_config_enabled = ::shader_stage_config_enabled;
 
 /**
  * Specular gate of projected lights. The video options set it together with the other specular gates from the
@@ -110,7 +110,7 @@ inline uint8_t &shader_stage_config_enabled = unknown_006893ef;
  *
  * @address 0x6893f6
  */
-inline uint8_t &specular_projected_light_enabled = unknown_006893f6;
+inline uint8_t &specular_projected_light_enabled = ::specular_projected_light_enabled;
 
 /**
  * Specular gate of lightmap and dynamic light draws, set from the same profile setting as the other specular
@@ -119,7 +119,7 @@ inline uint8_t &specular_projected_light_enabled = unknown_006893f6;
  *
  * @address 0x6893f7
  */
-inline uint8_t &specular_lightmap_enabled = unknown_006893f7;
+inline uint8_t &specular_lightmap_enabled = ::specular_lightmap_enabled;
 
 /**
  * Gate of the multipurpose environment technique (read by its state setup, the lightmap setter and the
@@ -127,14 +127,14 @@ inline uint8_t &specular_lightmap_enabled = unknown_006893f7;
  *
  * @address 0x6893f8
  */
-inline uint8_t &environment_multipurpose_enabled = unknown_006893f8;
+inline uint8_t &environment_multipurpose_enabled = ::environment_multipurpose_enabled;
 
 /**
  * Cleared by the device reset on old pixel shader versions. Nothing else in the image reads or sets it.
  *
  * @address 0x6893fd
  */
-inline uint8_t &device_reset_cleared_flag = unknown_006893fd;
+inline uint8_t &device_reset_cleared_flag = ::device_reset_cleared_flag;
 
 /**
  * Gate of the screen space fog overlay: read when the overlay render states are set, cleared by the device
@@ -142,7 +142,7 @@ inline uint8_t &device_reset_cleared_flag = unknown_006893fd;
  *
  * @address 0x68941d
  */
-inline uint8_t &fog_screen_overlay_enabled = unknown_0068941d;
+inline uint8_t &fog_screen_overlay_enabled = ::fog_screen_overlay_enabled;
 
 /**
  * Uniform ambient override of model lighting. Zero (the default) uses the lighting's own ambient colour; a
@@ -150,7 +150,7 @@ inline uint8_t &fog_screen_overlay_enabled = unknown_0068941d;
  *
  * @address 0x689418
  */
-inline float &model_lighting_ambient_override = unknown_00689418;
+inline float &model_lighting_ambient_override = ::model_lighting_ambient_override;
 
 /**
  * Lens flare occlusion queries enabled (default 1). Read by the lens flare draw when the hardware has no
@@ -158,7 +158,7 @@ inline float &model_lighting_ambient_override = unknown_00689418;
  *
  * @address 0x689426
  */
-inline uint8_t &lens_flare_occlusion_enabled = unknown_00689426;
+inline uint8_t &lens_flare_occlusion_enabled = ::lens_flare_occlusion_enabled;
 
 /**
  * Value the three underwater tint jitter components are forced to while the render force flag is 2 (default
@@ -166,7 +166,7 @@ inline uint8_t &lens_flare_occlusion_enabled = unknown_00689426;
  *
  * @address 0x68940c
  */
-inline float &underwater_tint_jitter_forced_value = renderer_unknown_68940c;
+inline float &underwater_tint_jitter_forced_value = ::underwater_tint_jitter_forced_value;
 
 /**
  * Packed ARGB colour of the fixed function ambient light, default 0xff202020. The script function
@@ -175,7 +175,7 @@ inline float &underwater_tint_jitter_forced_value = renderer_unknown_68940c;
  *
  * @address 0x69c684
  */
-inline uint32_t &fixed_function_ambient_color = renderer_unknown_69c684;
+inline uint32_t &fixed_function_ambient_color = ::fixed_function_ambient_color;
 
 /**
  * Left edge of the game screen rectangle (the safe area inside the window): 8 after every window resize. The
@@ -183,21 +183,21 @@ inline uint32_t &fixed_function_ambient_color = renderer_unknown_69c684;
  *
  * @address 0x69c63e
  */
-inline int16_t &game_screen_rect_left = unknown_0069c63e;
+inline int16_t &game_screen_rect_left = ::game_screen_rect_left;
 
 /**
  * Bottom edge of the game screen rectangle: window height minus 8 after every window resize.
  *
  * @address 0x69c640
  */
-inline int16_t &game_screen_rect_bottom = unknown_0069c640;
+inline int16_t &game_screen_rect_bottom = ::game_screen_rect_bottom;
 
 /**
  * Right edge of the game screen rectangle: window width minus 8 after every window resize.
  *
  * @address 0x69c642
  */
-inline int16_t &game_screen_rect_right = unknown_0069c642;
+inline int16_t &game_screen_rect_right = ::game_screen_rect_right;
 
 /**
  * Effect object (ID3DXEffect) the lens flare pass runs through; null when lens flares use the fixed function
@@ -205,7 +205,7 @@ inline int16_t &game_screen_rect_right = unknown_0069c642;
  *
  * @address 0x69da10
  */
-inline void *&lens_flare_effect = unknown_0069da10;
+inline void *&lens_flare_effect = ::lens_flare_effect;
 
 /**
  * Selects the variant of the environment lightmap / self illumination effects and the vertex stream used for
@@ -213,7 +213,7 @@ inline void *&lens_flare_effect = unknown_0069da10;
  *
  * @address 0x6e0a04
  */
-inline uint8_t &environment_effect_variant = unknown_006e0a04;
+inline uint8_t &environment_effect_variant = ::environment_effect_variant;
 
 /**
  * main_globals.screenshot_tile_count: the pending screenshot is taken as n by n tiles, 0 when idle; the movie
@@ -229,14 +229,14 @@ inline int16_t &screenshot_tile_count = unknown_00719aac;
  *
  * @address 0x71d160
  */
-inline uint32_t &frame_reset_cleared_word = unknown_0071d160;
+inline uint32_t &frame_reset_cleared_word = ::frame_reset_cleared_word;
 
 /**
  * Non-zero requests a lockable back buffer in the present parameters. Nothing in the image sets it.
  *
  * @address 0x71d18d
  */
-inline uint8_t &lockable_back_buffer_requested = unknown_0071d18d;
+inline uint8_t &lockable_back_buffer_requested = ::lockable_back_buffer_requested;
 
 /**
  * Set once the video mode command line has been parsed; the first parse also forces the mode when no refresh
@@ -244,21 +244,21 @@ inline uint8_t &lockable_back_buffer_requested = unknown_0071d18d;
  *
  * @address 0x71d1b0
  */
-inline uint8_t &video_mode_command_line_parsed = unknown_0071d1b0;
+inline uint8_t &video_mode_command_line_parsed = ::video_mode_command_line_parsed;
 
 /**
  * Cleared at the start of every frame and by the device reset. Nothing in the image reads it.
  *
  * @address 0x71d1b4
  */
-inline uint16_t &frame_reset_cleared_word_b = unknown_0071d1b4;
+inline uint16_t &frame_reset_cleared_word_b = ::frame_reset_cleared_word_b;
 
 /**
  * Set by the filthy decal fog hack once its fog state is applied; cleared when the decal pass begins.
  *
  * @address 0x71d1c4
  */
-inline uint8_t &decal_fog_state_applied = unknown_0071d1c4;
+inline uint8_t &decal_fog_state_applied = ::decal_fog_state_applied;
 
 /**
  * Non-zero while the sky model is being rendered (it uses its own render states): set by the sky render and
@@ -266,7 +266,7 @@ inline uint8_t &decal_fog_state_applied = unknown_0071d1c4;
  *
  * @address 0x71d1fa
  */
-inline uint8_t &sky_pass_active = unknown_0071d1fa;
+inline uint8_t &sky_pass_active = ::sky_pass_active;
 
 /**
  * Non-zero when the model or environment being drawn uses the fixed function planar fog vertex shader (0x19):
@@ -274,14 +274,14 @@ inline uint8_t &sky_pass_active = unknown_0071d1fa;
  *
  * @address 0x71d1fb
  */
-inline uint8_t &planar_fog_vertex_shader_active = unknown_0071d1fb;
+inline uint8_t &planar_fog_vertex_shader_active = ::planar_fog_vertex_shader_active;
 
 /**
  * Cleared at the start of every model draw group. Nothing in the image reads it.
  *
  * @address 0x71d1fc
  */
-inline uint8_t &model_begin_cleared_flag = unknown_0071d1fc;
+inline uint8_t &model_begin_cleared_flag = ::model_begin_cleared_flag;
 
 /**
  * Draw mode argument of the current model begin; the model end checks it to decide whether the shader stage
@@ -289,7 +289,7 @@ inline uint8_t &model_begin_cleared_flag = unknown_0071d1fc;
  *
  * @address 0x71d1fd
  */
-inline uint8_t &model_draw_mode = unknown_0071d1fd;
+inline uint8_t &model_draw_mode = ::model_draw_mode;
 
 /**
  * Set at the start of every frame on pixel shader 1.1 hardware and cleared once the water ripple texture has
@@ -297,7 +297,7 @@ inline uint8_t &model_draw_mode = unknown_0071d1fd;
  *
  * @address 0x71d275
  */
-inline uint8_t &water_ripple_update_pending = unknown_0071d275;
+inline uint8_t &water_ripple_update_pending = ::water_ripple_update_pending;
 
 /**
  * Set when a transparent geometry group is created and cleared at the start of the frame. Nothing in the image
@@ -305,7 +305,7 @@ inline uint8_t &water_ripple_update_pending = unknown_0071d275;
  *
  * @address 0x71d276
  */
-inline uint8_t &transparent_group_created = unknown_0071d276;
+inline uint8_t &transparent_group_created = ::transparent_group_created;
 
 /**
  * Lens flare batching mode: 2 when the flare being added has bit 8 set and its instance flags carry 0x80, else
@@ -313,7 +313,7 @@ inline uint8_t &transparent_group_created = unknown_0071d276;
  *
  * @address 0x746fbc
  */
-inline int16_t &lens_flare_batch_mode = unknown_00746fbc;
+inline int16_t &lens_flare_batch_mode = ::lens_flare_batch_mode;
 
 /**
  * Attenuation of the planar fog added by the fixed function model and environment fog: 1 minus the maximum
@@ -321,7 +321,7 @@ inline int16_t &lens_flare_batch_mode = unknown_00746fbc;
  *
  * @address 0x7c047c
  */
-inline float &planar_fog_attenuation = unknown_007c047c;
+inline float &planar_fog_attenuation = ::planar_fog_attenuation;
 
 /**
  * Draw routine for self illuminated environment surfaces, picked by the hardware code path selection

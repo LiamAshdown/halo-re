@@ -57,8 +57,8 @@ uint8_t rasterizer_software_vertex_processing;
 /* 0x0069c682 size 2: rasterizer_texture_stage_count */
 int16_t rasterizer_texture_stage_count = 4;
 
-/* 0x0069c684 size 4: renderer_unknown_69c684 */
-uint32_t renderer_unknown_69c684 = 0xff202020u;
+/* 0x0069c684 size 4: fixed_function_ambient_color */
+uint32_t fixed_function_ambient_color = 0xff202020u;
 
 /* 0x0069c688 size 1: rasterizer_caps_flag_688 */
 uint8_t rasterizer_caps_flag_688;

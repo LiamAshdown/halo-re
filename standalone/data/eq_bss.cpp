@@ -609,11 +609,11 @@ __declspec(allocate(".geq$00746b88v")) __declspec(align(8)) uint8_t weather_wind
 #pragma section(".geq$00746f88v", read, write)
 __declspec(allocate(".geq$00746f88v")) __declspec(align(8)) uint8_t weather_frame_counter[4] = {0};
 
-/** 0x00746fb0..0x00746fc0: lens_flare_current_key, unknown_00746fbc */
+/** 0x00746fb0..0x00746fc0: lens_flare_current_key, lens_flare_batch_mode */
 #pragma section(".geq$00746fb0v", read, write)
 __declspec(allocate(".geq$00746fb0v")) __declspec(align(16)) uint8_t lens_flare_current_key[12] = {0};
 #pragma section(".geq$00746fbcv", read, write)
-__declspec(allocate(".geq$00746fbcv")) __declspec(align(4)) uint8_t unknown_00746fbc[4] = {0};
+__declspec(allocate(".geq$00746fbcv")) __declspec(align(4)) uint8_t lens_flare_batch_mode[4] = {0};
 
 /** 0x007bf040..0x007bf050: lens_flare_applied_key, render_unknown_7bf04c */
 #pragma section(".geq$007bf040v", read, write)

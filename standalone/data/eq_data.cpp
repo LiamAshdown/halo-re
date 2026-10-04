@@ -421,13 +421,13 @@ __declspec(allocate(".geq$0069c638v")) __declspec(align(8)) uint32_t game_window
 #pragma section(".geq$0069c63cv", read, write)
 __declspec(allocate(".geq$0069c63cv")) __declspec(align(4)) uint8_t game_screen_rect[2] = {0x00, 0x00};
 #pragma section(".geq$0069c63ev", read, write)
-__declspec(allocate(".geq$0069c63ev")) __declspec(align(2)) uint8_t unknown_0069c63e[2] = {0x00, 0x00};
+__declspec(allocate(".geq$0069c63ev")) __declspec(align(2)) uint8_t game_screen_rect_left[2] = {0x00, 0x00};
 #pragma section(".geq$0069c640v", read, write)
-__declspec(allocate(".geq$0069c640v")) __declspec(align(16)) uint8_t unknown_0069c640[2] = {0x00, 0x00};
+__declspec(allocate(".geq$0069c640v")) __declspec(align(16)) uint8_t game_screen_rect_bottom[2] = {0x00, 0x00};
 #pragma section(".geq$0069c642v", read, write)
-__declspec(allocate(".geq$0069c642v")) __declspec(align(2)) uint8_t unknown_0069c642[2] = {0x00, 0x00};
+__declspec(allocate(".geq$0069c642v")) __declspec(align(2)) uint8_t game_screen_rect_right[2] = {0x00, 0x00};
 
-/** 0x0069d410..0x0069e550: rasterizer_effects, unknown_0069da10, rasterizer_screen_flash_effect and 4 more */
+/** 0x0069d410..0x0069e550: rasterizer_effects, lens_flare_effect, rasterizer_screen_flash_effect and 4 more */
 #pragma section(".geq$0069d410v", read, write)
 __declspec(allocate(".geq$0069d410v")) __declspec(align(16)) uint32_t rasterizer_effects[384] = {
     0x00000000u, 0x0000000du, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, (uint32_t)"environment_lightmap_normal",
@@ -480,7 +480,7 @@ __declspec(allocate(".geq$0069d410v")) __declspec(align(16)) uint32_t rasterizer
     0x00000000u, 0x00000013u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, (uint32_t)"environment_shadow"
 };
 #pragma section(".geq$0069da10v", read, write)
-__declspec(allocate(".geq$0069da10v")) __declspec(align(16)) uint32_t unknown_0069da10[536] = {
+__declspec(allocate(".geq$0069da10v")) __declspec(align(16)) uint32_t lens_flare_effect[536] = {
     0x00000000u, 0x00000018u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, (uint32_t)"widget_sprite",
     0x00000000u, 0x00000024u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, (uint32_t)"screen_normal",
     0x00000000u, 0x00000024u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, (uint32_t)"screen_multitexture_add_add",

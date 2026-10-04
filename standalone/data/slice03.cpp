@@ -93,7 +93,7 @@ extern uint8_t console_debug_toggle_689422;
 extern uint8_t console_debug_toggle_689423;
 extern uint8_t console_debug_toggle_689424;
 extern uint8_t console_debug_toggle_689425;
-extern uint8_t unknown_00689426;
+extern uint8_t lens_flare_occlusion_enabled;
 extern uint8_t console_debug_toggle_689427;
 extern uint8_t console_debug_toggle_689428;
 extern float console_debug_value_689430;
@@ -315,7 +315,7 @@ uint8_t console_debug_toggle_689422 = 1; /* 0x00689422, 1 bytes */
 uint8_t console_debug_toggle_689423 = 1; /* 0x00689423, 1 bytes */
 uint8_t console_debug_toggle_689424 = 1; /* 0x00689424, 1 bytes */
 uint8_t console_debug_toggle_689425 = 0; /* 0x00689425, 1 bytes */
-uint8_t unknown_00689426 = 1; /* 0x00689426, 1 bytes */
+uint8_t lens_flare_occlusion_enabled = 1; /* 0x00689426, 1 bytes */
 uint8_t console_debug_toggle_689427 = 1; /* 0x00689427, 1 bytes */
 uint8_t console_debug_toggle_689428 = 1; /* 0x00689428, 1 bytes */
 float console_debug_value_689430 = 0.4f; /* 0x00689430, 4 bytes */
