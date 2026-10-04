@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/interface/ifr1_hud_frame.hpp"
 #include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/records.hpp"
@@ -685,7 +686,7 @@ void HudFrame::render_unit_interface(player *p)
                         flags |= 1;
                     }
                     *timer = (int16_t)(*timer + halo::game::globals().game_time->ticks_this_frame);
-                    period = (int32_t)halo::libm::lrint((double)(panel->background_flash_period * 30.0f));
+                    period = (int32_t)halo::libm::lrint((double)(panel->background_flash_period * halo::game::k_ticks_per_second_f));
                     *timer = (int16_t)(*timer % (period * 2));
                     if (background != (datum_index)-1) {
                         halo::interface::hud_draw_static_element(local_player_index, &hud->anchor,
@@ -702,7 +703,7 @@ void HudFrame::render_unit_interface(player *p)
                 } else {
                     if ((blinking_meters & bit) == 0) {
                         if (*timer == -1 ||
-                            (int32_t)*timer >= (int32_t)halo::libm::lrint((double)(panel->background_flash_period * 30.0f))) {
+                            (int32_t)*timer >= (int32_t)halo::libm::lrint((double)(panel->background_flash_period * halo::game::k_ticks_per_second_f))) {
                             *timer = -1;
                             continue;
                         }

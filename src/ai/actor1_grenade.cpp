@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/ai/flags.hpp"
@@ -78,7 +79,7 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
                 } else if (!(seconds <= 1.3f)) {
                     seconds = 1.3f;
                 }
-                ticks = (int16_t)(int32_t)(seconds * 30.0f);
+                ticks = (int16_t)(int32_t)(seconds * halo::game::k_ticks_per_second_f);
                 halo::units::unit_set_control_countdown(a->unit_index, ticks, 0x800);
                 ((unit_object *)unit)->unit.delayed_weapon_drop_ticks = (int8_t)ticks;
             }
@@ -168,7 +169,7 @@ uint8_t halo::ai::grenade_ops::can_throw_grenade_at_target()
             random_wait = random_wait + random_wait;
         }
         if (squad_deadline != -1) {
-            random_wait_ticks = (int16_t)(int32_t)(random_wait * 30.0f);
+            random_wait_ticks = (int16_t)(int32_t)(random_wait * halo::game::k_ticks_per_second_f);
             if (now < random_wait_ticks + squad_deadline) {
                 return 0;
             }
@@ -409,7 +410,7 @@ uint8_t halo::ai::grenade_ops::consider_grenade_throw()
     now = halo::game::globals().game_time->game_time;
 
     if (self->last_grenade_check_time != (uint32_t)-1 &&
-        (variant->grenade_check_time * 30.0f + (float)(int32_t)self->last_grenade_check_time) > (float)now) {
+        (variant->grenade_check_time * halo::game::k_ticks_per_second_f + (float)(int32_t)self->last_grenade_check_time) > (float)now) {
         return 0;
     }
 

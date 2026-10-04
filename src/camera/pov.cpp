@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/camera/pov.hpp"
 #include "halo/models/api.hpp"
 #include "halo/core/datum.hpp"
@@ -682,7 +683,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
             (ModelAnimationsAnimation *)((uint8_t *)anims->animations.pointer +
                                          (int32_t)camera_script.animation_index * sizeof(ModelAnimationsAnimation));
         int16_t frame = (int16_t)halo::x87::__ftol(
-            (double)anim->frame_count - (double)(camera_script.time_remaining * 30.0f)); 
+            (double)anim->frame_count - (double)(camera_script.time_remaining * halo::game::k_ticks_per_second_f)); 
         int16_t frame_index;
         real_matrix4x3 sample;
 

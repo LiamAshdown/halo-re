@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/projectiles/network.hpp"
 #include "halo/projectiles/api.hpp"
 #include "halo/core/datum.hpp"
@@ -356,12 +357,12 @@ void ProjectileNetwork::attach_apply(void *incoming_record)
         if ((tag->projectile_flags & _projectile_definition_detonation_max_time_if_attached_bit) != 0) {
             real t = tag->timer[1];
             if (1.0f <= t * 30.0f) {
-                self_pd->detonation_timer_rate = 1.0f / (t * 30.0f);
+                self_pd->detonation_timer_rate = 1.0f / (t * halo::game::k_ticks_per_second_f);
             }
         } else if ((tag->projectile_flags & _projectile_definition_random_attached_detonation_time_bit) != 0) {
             real t = halo::math::random_real_range(tag->timer[0], tag->timer[1]);
             if (1.0f <= t * 30.0f) {
-                self_pd->detonation_timer_rate = 1.0f / (t * 30.0f);
+                self_pd->detonation_timer_rate = 1.0f / (t * halo::game::k_ticks_per_second_f);
             }
         }
     }

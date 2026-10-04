@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/items/items.hpp"
 #include "halo/models/api.hpp"
@@ -365,7 +366,7 @@ void weapon_ref::magazine_begin_chamber(int16_t magazine_index)
         halo::items::weapon_set_state(item_index, magazine_index + 3, 0);
         halo::items::weapon_play_trigger_tag_effect(item_index, halo::objects::tag_handle(magazine_tag->chambering_effect), 0, 0);
         magazine->state = _weapon_magazine_chambering;
-        magazine->state_ticks = (int16_t)(magazine_tag->chamber_time * 30.0f);
+        magazine->state_ticks = (int16_t)(magazine_tag->chamber_time * halo::game::k_ticks_per_second_f);
     }
 }
 

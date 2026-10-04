@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/ai/flags.hpp"
@@ -94,7 +95,7 @@ uint8_t halo::ai::alert_mode::process()
 
         if (next >= 0 && next < (int32_t)squad->move_positions.count) {
             ScenarioMovePosition *position = &halo::ai::reflexive_data<ScenarioMovePosition>(squad->move_positions)[next];
-            float wait = halo::math::random_real_range(position->time[0], position->time[1]) * 30.0f;
+            float wait = halo::math::random_real_range(position->time[0], position->time[1]) * halo::game::k_ticks_per_second_f;
 
             actor->mode_data.alert.current_position = actor->mode_data.alert.next_position;
             actor->mode_data.alert.next_position = -1;
@@ -704,7 +705,7 @@ void halo::ai::search_mode::enter()
     }
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     t = (float)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f;
-    ticks = (int32_t)(((hi - lo) * t + lo) * 30.0f);
+    ticks = (int32_t)(((hi - lo) * t + lo) * halo::game::k_ticks_per_second_f);
     act->mode_data.search.duration_ticks = ticks;
     act->mode_data.search.remaining_ticks = ticks;
 }

@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/ai/flags.hpp"
 #include "halo/core/bit_cast.hpp"
@@ -750,7 +751,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
             uint8_t engaged = p->seen || (p->shooting && (int8_t)p->distance_class <= 1);
 
             if (!engaged && actor_tag->stalking_discovery_time > 0.0f &&
-                !(a->mode_data.charge.weak_target_ticks < (int16_t)(int32_t)(actor_tag->stalking_discovery_time * 30.0f) )) {
+                !(a->mode_data.charge.weak_target_ticks < (int16_t)(int32_t)(actor_tag->stalking_discovery_time * halo::game::k_ticks_per_second_f) )) {
                 engaged = 1;
             }
             if (engaged) {
@@ -796,7 +797,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                     near_enough = distance <= 0.8f + extra;
                 }
                 if (near_enough &&
-                    (a->last_melee_time == -1 || (float)now > delay * 30.0f + (float)a->last_melee_time)) {
+                    (a->last_melee_time == -1 || (float)now > delay * halo::game::k_ticks_per_second_f + (float)a->last_melee_time)) {
                     halo::ai::actor_has_unshielded_threat_weapon(actor_index);
                     a->search_wait_time = now;
                     if (halo::ai::actor_consider_combat_mode(actor_index, 2, &consideration)) {
@@ -820,7 +821,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                     Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)halo::ai::object_bytes(a->active_unit_index));
 
                     ready = (float)game_time->game_time >
-                        vehicle_tag->ai_charge_repeat_timeout * 30.0f + (float)a->last_vehicle_charge_time;
+                        vehicle_tag->ai_charge_repeat_timeout * halo::game::k_ticks_per_second_f + (float)a->last_vehicle_charge_time;
                 }
                 if (ready && seat_kind == 4 && distance > definition->melee_range &&
                     p->obstruction == 0 &&

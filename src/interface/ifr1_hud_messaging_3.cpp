@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/interface/ifr1_hud_messaging.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
@@ -284,9 +285,9 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         now = halo::game::globals().game_time->game_time;
         color = parameters->text_color;
         elapsed = (float)(now - slot->timestamp);
-        up_ticks = parameters->up_time * 30.0f;
+        up_ticks = parameters->up_time * halo::game::k_ticks_per_second_f;
         if (elapsed > up_ticks) {
-            float t = 1.0f - (elapsed - up_ticks) / (parameters->fade_time * 30.0f);
+            float t = 1.0f - (elapsed - up_ticks) / (parameters->fade_time * halo::game::k_ticks_per_second_f);
             if (t < 0.0f) {
                 t = 0.0f;
             } else if (t > 1.0f) {
@@ -339,7 +340,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             }
         }
 
-        slot->active = (parameters->fade_time + parameters->up_time) * 30.0f > (float)(now - slot->timestamp);
+        slot->active = (parameters->fade_time + parameters->up_time) * halo::game::k_ticks_per_second_f > (float)(now - slot->timestamp);
         if (slot->active == 0) {
             slot->timestamp = -1;
         }

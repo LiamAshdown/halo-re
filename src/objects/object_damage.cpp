@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/networking/delta_message_types.hpp"
@@ -1315,7 +1316,7 @@ void halo::objects::ObjectDamage::apply_shield_damage(ModelCollisionGeometry *ge
     }
     if (is_local == 1) {
         if (!(to_shield < geometry->minimum_stun_damage) || *shield == 0.0f) {
-            obj->base.shield_stun_ticks = (int16_t)(int32_t)(geometry->stun_time * 30.0f);
+            obj->base.shield_stun_ticks = (int16_t)(int32_t)(geometry->stun_time * halo::game::k_ticks_per_second_f);
         }
     }
     *shield_damage_out = to_shield;

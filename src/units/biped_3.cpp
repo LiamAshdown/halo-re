@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
@@ -205,7 +206,7 @@ void BipedView::update_facing(int8_t *out_animation_state)
         }
         bank_time = bank_blend * tag->bank_apply_time + (1.0f - bank_blend) * tag->bank_decay_time;
         if (0.0f < bank_time) {
-            bank_target = (bank_target - biped->bank_angle) / (bank_time * 30.0f) +
+            bank_target = (bank_target - biped->bank_angle) / (bank_time * halo::game::k_ticks_per_second_f) +
                           biped->bank_angle;
         }
         biped->bank_angle = bank_target;

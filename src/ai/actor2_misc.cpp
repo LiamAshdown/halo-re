@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
@@ -1405,7 +1406,7 @@ uint8_t ActorView::request_move_and_face()
         }
     }
     actor->mode_data.guard.countdown_00 = (int16_t)(int32_t)(halo::math::random_real_range(actor_tag->guard_position_time[0],
-        actor_tag->guard_position_time[1]) * 30.0f);
+        actor_tag->guard_position_time[1]) * halo::game::k_ticks_per_second_f);
     return 0;
 }
 
@@ -1441,7 +1442,7 @@ void ActorView::reseed_movement_pause_timer()
     if (self->playfight != 0) {
         pause = pause * 1.7f;
     }
-    self->firing_state_timer = (int16_t)(int32_t)(pause * 30.0f);
+    self->firing_state_timer = (int16_t)(int32_t)(pause * halo::game::k_ticks_per_second_f);
 }
 
 namespace actor_reset_perception_scratch_local {
@@ -2249,7 +2250,7 @@ uint8_t ActorView::should_hold_position(const ActorVariant *definition)
 
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         r = (float)(int32_t)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f;
-        self->firing_state_timer = (int16_t)(int32_t)(((hi - lo) * r + lo) * 30.0f);
+        self->firing_state_timer = (int16_t)(int32_t)(((hi - lo) * r + lo) * halo::game::k_ticks_per_second_f);
     }
     return 1;
 }

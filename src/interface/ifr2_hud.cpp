@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/interface/ifr2_hud.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
@@ -383,7 +384,7 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
                                     (((unit_object *)unit)->unit.control_flags & _unit_control_flag_grenade) != 0;
                     }
                     if (!triggered) {
-                        int32_t duration = (int32_t)halo::libm::lrint((double)(overlay->flash_period * 30.0f));
+                        int32_t duration = (int32_t)halo::libm::lrint((double)(overlay->flash_period * halo::game::k_ticks_per_second_f));
                         if (halo::game::globals().game_time->game_time - *state >= duration) {
                             *state = -1;
                             continue;

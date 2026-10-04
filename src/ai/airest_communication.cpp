@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/ai/airest_communication.hpp"
 
@@ -390,7 +391,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                     }
                 }
                 if ((check_last || flag) && columns[4] > 0.0f &&
-                    columns[4] * 30.0f > (float)recent_ticks[side][2 + r]) {
+                    columns[4] * halo::game::k_ticks_per_second_f > (float)recent_ticks[side][2 + r]) {
                     flag = 0;
                 }
             }
@@ -612,13 +613,13 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             }
         }
 
-        delay = (int32_t)(ai_communication_selector_delay_seconds[selector] * 30.0f);
+        delay = (int32_t)(ai_communication_selector_delay_seconds[selector] * halo::game::k_ticks_per_second_f);
         if ((uint16_t)unit_class == 1 && !no_actor_speaker) {
             delay += 30;
         }
         {
             float tail = (row->flags & 4) ? 0.0f
-                                         : ai_communication_class_tail_seconds[(int16_t)class_word] * 30.0f;
+                                         : ai_communication_class_tail_seconds[(int16_t)class_word] * halo::game::k_ticks_per_second_f;
 
             delay += recent_value;
             lipsync = (uint16_t)(int32_t)tail + recent_value;
@@ -973,7 +974,7 @@ int16_t AiCommunication::line_fade_multiplier(uint32_t unit_index, int16_t prior
         if (elapsed < 0) {
             elapsed = 0;
         }
-        limit = (int16_t)(int32_t)(ai_communication_class_repeat_delay[line_class * 10] * 30.0f + (float)(int32_t)extra_delay);
+        limit = (int16_t)(int32_t)(ai_communication_class_repeat_delay[line_class * 10] * halo::game::k_ticks_per_second_f + (float)(int32_t)extra_delay);
         if ((int16_t)elapsed <= limit) {
             *volume = 0.0f;
             return 0;
@@ -1078,7 +1079,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
             continue;
         }
         dialogue_index = row->line_id;
-        delay = (int16_t)(int32_t)(row->delay_seconds * 30.0f);
+        delay = (int16_t)(int32_t)(row->delay_seconds * halo::game::k_ticks_per_second_f);
         status = halo::units::unit_animation_change_priority_check(speaker_unit, 0, priority, 1, &unused_out, &dialogue_index, &chain);
         if ((int16_t)status <= 0) {
             continue;
@@ -1092,7 +1093,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
             speech.scream_type = dialogue_index;
             speech.sound_tag = (datum_index)chain;
             speech.delay_ticks = delay;
-            speech.lipsync_ticks = (int16_t)(int32_t)(ai_communication_class_tail_seconds[class_index] * 30.0f);
+            speech.lipsync_ticks = (int16_t)(int32_t)(ai_communication_class_tail_seconds[class_index] * halo::game::k_ticks_per_second_f);
             speech.tail_ticks = 0x18;
             {
                 ai_communication_target_result &target = halo::ai::speech_target(speech);
@@ -1467,7 +1468,7 @@ void AiCommunication::record_line_played(datum_index object_index, int16_t tier,
         entry = &communication_line_history[category + communication_line_id * 2];
         entry->last_tick = current_tick;
         if (delay > 0.0f) {
-            entry->cooldown_until_tick = (int32_t)(delay * 30.0f + (float)stamp);
+            entry->cooldown_until_tick = (int32_t)(delay * halo::game::k_ticks_per_second_f + (float)stamp);
         }
     }
     if (conversation_line_id != -1) {
@@ -1476,7 +1477,7 @@ void AiCommunication::record_line_played(datum_index object_index, int16_t tier,
         entry = &conversation_line_history[category + conversation_line_id * 2];
         entry->last_tick = current_tick;
         if (delay > 0.0f) {
-            entry->cooldown_until_tick = (int32_t)(delay * 30.0f + (float)stamp);
+            entry->cooldown_until_tick = (int32_t)(delay * halo::game::k_ticks_per_second_f + (float)stamp);
         }
     }
 }

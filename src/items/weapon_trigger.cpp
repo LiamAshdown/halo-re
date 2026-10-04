@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/items/items.hpp"
 #include "halo/scenario/api.hpp"
@@ -337,7 +338,7 @@ void weapon_trigger_ref::become_charged(int16_t trigger_index)
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
 
-    wd->triggers[trigger_index].effect_state_ticks = (int16_t)(tag_trigger->charged_time * 30.0f);
+    wd->triggers[trigger_index].effect_state_ticks = (int16_t)(tag_trigger->charged_time * halo::game::k_ticks_per_second_f);
     wd->triggers[trigger_index].effect_state = _weapon_trigger_effect_charged;
 
     halo::items::weapon_set_state(item_index, trigger_index + 7, 1);
@@ -435,7 +436,7 @@ void weapon_trigger_ref::continue_burst(int16_t trigger_index)
 
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
     wd->triggers[trigger_index].effect_state = _weapon_trigger_effect_overloading;
-    wd->triggers[trigger_index].effect_state_ticks = (int16_t)(tag_trigger->overload_time * 30.0f);
+    wd->triggers[trigger_index].effect_state_ticks = (int16_t)(tag_trigger->overload_time * halo::game::k_ticks_per_second_f);
 }
 
 /**
@@ -509,7 +510,7 @@ void weapon_trigger_ref::enter_recovery(int16_t trigger_index)
 
     if (tag_trigger->spew_time > 0.0f) {
         wd->triggers[trigger_index].effect_state = _weapon_trigger_effect_spewing;
-        wd->triggers[trigger_index].effect_state_ticks = (int16_t)(tag_trigger->spew_time * 30.0f);
+        wd->triggers[trigger_index].effect_state_ticks = (int16_t)(tag_trigger->spew_time * halo::game::k_ticks_per_second_f);
         wd->triggers[trigger_index].firing_rate = 0.0f;
         return;
     }
@@ -590,12 +591,12 @@ void weapon_trigger_ref::fire_or_reload(int16_t trigger_index, int8_t force)
                         halo::items::weapon_play_trigger_tag_effect(item_index, halo::objects::tag_handle(tag_trigger->charging_effect), 0, 0);
                 }
                 halo::items::weapon_trigger_effect_set_state(item_index, trigger_index, _weapon_trigger_effect_charging,
-                    (int16_t)(int32_t)(tag_trigger->charging_time * 30.0f));
+                    (int16_t)(int32_t)(tag_trigger->charging_time * halo::game::k_ticks_per_second_f));
                 return;
             }
             if (tag_trigger->overload_time > 0.0f) {
                 halo::items::weapon_trigger_effect_set_state(item_index, trigger_index, _weapon_trigger_effect_overloading,
-                    (int16_t)(int32_t)(tag_trigger->overload_time * 30.0f));
+                    (int16_t)(int32_t)(tag_trigger->overload_time * halo::game::k_ticks_per_second_f));
                 return;
             }
         }

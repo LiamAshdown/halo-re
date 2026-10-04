@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/ai/flags.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/core/bit_cast.hpp"
@@ -129,7 +130,7 @@ void ActorView::update_aim_wander()
         moving = (velocity->i * velocity->i + velocity->j * velocity->j + velocity->k * velocity->k > 1.0f) ? 1 : 0;
     }
     a->moving_firing_pattern = moving;
-    a->new_target_firing_pattern = (halo::game::weapon_get_zoom_fov_resolved(0xd, team) * ((ActorVariant *)variant)->new_target_firing_pattern_time * 30.0f >
+    a->new_target_firing_pattern = (halo::game::weapon_get_zoom_fov_resolved(0xd, team) * ((ActorVariant *)variant)->new_target_firing_pattern_time * halo::game::k_ticks_per_second_f >
         (float)a->firing_target_ticks) ? 1 : 0;
 
     halo::ai::actor_select_stance_offset_pair(actor_index, variant, &burst, &scale);
@@ -146,7 +147,7 @@ void ActorView::update_aim_wander()
             time = time * 0.6f;
         }
     }
-    a->firing_state_timer = (int16_t)(int32_t)(time * 30.0f);
+    a->firing_state_timer = (int16_t)(int32_t)(time * halo::game::k_ticks_per_second_f);
 
     error = halo::game::weapon_get_zoom_fov_resolved(0xb, team) * ((ActorVariant *)variant)->projectile_error;
     if (scale != 0 && scale->projectile_error != 0.0f) {
@@ -1791,7 +1792,7 @@ uint8_t ActorView::update_movement_destination()
                         wait = cap;
                     }
                 }
-                actor->mode_data.fight.position_hold_countdown = (int16_t)(int32_t)(wait * 30.0f);
+                actor->mode_data.fight.position_hold_countdown = (int16_t)(int32_t)(wait * halo::game::k_ticks_per_second_f);
             }
         }
     }

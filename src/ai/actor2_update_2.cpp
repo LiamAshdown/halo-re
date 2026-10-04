@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/ai/flags.hpp"
 #include "halo/tags/flags.hpp"
@@ -126,7 +127,7 @@ void ActorView::update_firing_state()
                 float delay = halo::math::random_real_range(0.0f, 1.5f) + def->special_fire_delay;
                 float roll = halo::math::random_real();
 
-                a->special_fire_timer = (int16_t)(int32_t)(delay * 30.0f);
+                a->special_fire_timer = (int16_t)(int32_t)(delay * halo::game::k_ticks_per_second_f);
                 if (roll < def->special_fire_chance &&
                     halo::ai::actor_target_is_visible_or_object_count_ok(actor_index, (int16_t)def->special_fire_situation)) {
                     if (def->special_fire_situation == 3) {

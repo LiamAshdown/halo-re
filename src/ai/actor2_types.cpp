@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/ai/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -591,7 +592,7 @@ void ActorView::type_infection_swarm_update()
         float delay = ((float)(int32_t)swarm_random_next() * 1.5259022e-05f);
         int16_t count = swarm->component_count;
 
-        delay = (delay + delay + 6.0f) / (float)(int32_t)count * 30.0f;
+        delay = (delay + delay + 6.0f) / (float)(int32_t)count * halo::game::k_ticks_per_second_f;
         if (!(delay > 6.0f)) {
             delay = 6.0f;
         }

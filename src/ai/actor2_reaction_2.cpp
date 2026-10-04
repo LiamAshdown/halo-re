@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -57,10 +58,10 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
     halo::ai::ai_communication_broadcast(0x29, actor->unit_index, object, reason, halo::k_dword_none, halo::k_dword_none, 0);
     if (definition->surprise_fire_wildly_time > 0.0f) {
         actor->firing_state = 4;
-        actor->firing_state_timer = (int16_t)(int32_t)(definition->surprise_fire_wildly_time * 30.0f);
+        actor->firing_state_timer = (int16_t)(int32_t)(definition->surprise_fire_wildly_time * halo::game::k_ticks_per_second_f);
     }
     if (definition->surprise_delay_time > 0.0f) {
-        halo::ai::actor_raise_timer_5f6(actor_index, (int32_t)(definition->surprise_delay_time * 30.0f));
+        halo::ai::actor_raise_timer_5f6(actor_index, (int32_t)(definition->surprise_delay_time * halo::game::k_ticks_per_second_f));
     }
     actor->surprise_pending = 1;
     if (actor->look_at_reference != halo::k_dword_none) {

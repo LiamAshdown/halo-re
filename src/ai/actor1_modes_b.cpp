@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/tags/flags.hpp"
@@ -306,7 +307,7 @@ uint8_t halo::ai::charge_mode::process()
                 md->done = 1;
             }
         } else if (actor_tag->melee_charge_time > 0.0f &&
-                   !((float)md->charge_start_time + actor_tag->melee_charge_time * 30.0f > (float)now)) {
+                   !((float)md->charge_start_time + actor_tag->melee_charge_time * halo::game::k_ticks_per_second_f > (float)now)) {
             md->done = 1;
         }
     }
@@ -1396,7 +1397,7 @@ void halo::ai::uncover_mode::enter()
     }
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     t = (float)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f;
-    ticks = (int32_t)(((hi - lo) * t + lo) * 30.0f);
+    ticks = (int32_t)(((hi - lo) * t + lo) * halo::game::k_ticks_per_second_f);
     act->mode_data.uncover.duration_ticks = ticks;
     act->mode_data.uncover.remaining_ticks = ticks;
     if (act->mode_data.uncover.stage == 0 && act->target_unit_index != k_datum_index_none &&

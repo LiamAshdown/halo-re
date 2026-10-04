@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/items/items.hpp"
@@ -60,7 +61,7 @@ void item_ref::detonation_timer_start()
             0, 0);
 
         item->detonation_countdown =
-            (int16_t)(halo::math::random_real_range(tag->detonation_delay[0], tag->detonation_delay[1]) * 30.0f);
+            (int16_t)(halo::math::random_real_range(tag->detonation_delay[0], tag->detonation_delay[1]) * halo::game::k_ticks_per_second_f);
     }
 }
 

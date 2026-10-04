@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
 #include <cstring>
 #include "halo/core/bit_cast.hpp"
@@ -500,7 +501,7 @@ void player_effect_ref::send_network_update(const real_vector3d *direction, cons
 void player_effect_view::set_camera_shake(player_camera_shake *descriptor, float intensity_falloff, float duration_scale)
 {
     player_effect * self = record;
-    float duration = duration_scale * 30.0f;
+    float duration = duration_scale * halo::game::k_ticks_per_second_f;
     float blended = (1.0f - descriptor->intensity) * intensity_falloff + descriptor->intensity;
 
     if (duration * descriptor->duration <= (float)self->shake_ticks &&
@@ -530,13 +531,13 @@ void player_effect_view::set_screen_flash(player_screen_flash *descriptor, float
 {
     player_effect * self = record;
     if ((self->flash.priority <= descriptor->priority ||
-         (float)self->flash_ticks <= duration_scale * 30.0f * descriptor->duration) &&
+         (float)self->flash_ticks <= duration_scale * halo::game::k_ticks_per_second_f * descriptor->duration) &&
         screen_flash_pass[descriptor->type] != 0) {
         double blended;
 
         self->flash = *descriptor;
         {
-            double scaled_duration = (double)(duration_scale * 30.0f) * (double)descriptor->duration;
+            double scaled_duration = (double)(duration_scale * halo::game::k_ticks_per_second_f) * (double)descriptor->duration;
 
             self->flash.duration = (float)scaled_duration;
             self->flash_ticks = (int16_t)(int32_t)scaled_duration;

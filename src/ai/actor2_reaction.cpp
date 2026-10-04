@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/ai/ai_constants.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
@@ -390,7 +391,7 @@ void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, 
             wait_scale = halo::math::random_real_range(min_scale, max_scale) * wait_scale;
         }
 
-        ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+        ticks = (int32_t)(wait_scale * halo::game::k_ticks_per_second_f + 0.5f);
         if (ticks > INT16_MAX) {
             ticks = INT16_MAX;
         }
@@ -439,7 +440,7 @@ void ActorOps::queue_point_reaction_dialogue(const real_point3d *point, datum_in
             }
 
             {
-                int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+                int32_t ticks = (int32_t)(wait_scale * halo::game::k_ticks_per_second_f + 0.5f);
                 if (ticks > INT16_MAX) {
                     ticks = INT16_MAX;
                 }
@@ -502,7 +503,7 @@ void ActorView::queue_recognized_target_dialogue(datum_index target_prop_index)
                     wait_scale = halo::math::random_real_range(min_scale, max_scale) * wait_scale;
                 }
 
-                int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+                int32_t ticks = (int32_t)(wait_scale * halo::game::k_ticks_per_second_f + 0.5f);
                 if (ticks > INT16_MAX) {
                     ticks = INT16_MAX;
                 }
@@ -668,7 +669,7 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
                         wait_scale = halo::math::random_real_range(min_scale, max_scale) * wait_scale;
                     }
 
-                    int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+                    int32_t ticks = (int32_t)(wait_scale * halo::game::k_ticks_per_second_f + 0.5f);
                     if (ticks > INT16_MAX) {
                         ticks = INT16_MAX;
                     }
@@ -817,7 +818,7 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
         }
 
         {
-            int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+            int32_t ticks = (int32_t)(wait_scale * halo::game::k_ticks_per_second_f + 0.5f);
             if (ticks > INT16_MAX) {
                 ticks = INT16_MAX;
             }
@@ -880,7 +881,7 @@ void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index
         }
 
         {
-            int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+            int32_t ticks = (int32_t)(wait_scale * halo::game::k_ticks_per_second_f + 0.5f);
             if (ticks > INT16_MAX) {
                 ticks = INT16_MAX;
             }
@@ -974,7 +975,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
                     wait_scale = halo::math::random_real_range(min_scale, max_scale) * wait_scale;
                 }
 
-                int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+                int32_t ticks = (int32_t)(wait_scale * halo::game::k_ticks_per_second_f + 0.5f);
                 if (ticks > INT16_MAX) {
                     ticks = INT16_MAX;
                 }
@@ -1202,7 +1203,7 @@ void ActorView::scan_allies_for_backup_request()
 
         if (best_prop != k_datum_index_none) {
             self->retreat_timer = (int16_t)(halo::math::random_real_range(
-                actor_def->retreat_time[0], actor_def->retreat_time[1]) * 30.0f);
+                actor_def->retreat_time[0], actor_def->retreat_time[1]) * halo::game::k_ticks_per_second_f);
             self->retreat_prop_index = (datum_index)best_prop;
             self->retreat_start_time = halo::game::globals().game_time->game_time;
         }

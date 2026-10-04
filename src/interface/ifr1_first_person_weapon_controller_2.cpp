@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/interface/ifr1_first_person_weapon_controller.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
@@ -225,7 +226,7 @@ void FirstPersonWeaponController::update()
                     if (fp->idle_delay_ticks == 0) {
                         fp->idle_delay_ticks = (int16_t)halo::x87::__ftol(
                             halo::math::random_range_real(player_information->first_person_idle_time[0],
-                                              player_information->first_person_idle_time[1]) * 30.0f);
+                                              player_information->first_person_idle_time[1]) * halo::game::k_ticks_per_second_f);
                     }
                     fp->idle_ticks++;
                     if (fp->idle_ticks > fp->idle_delay_ticks) {

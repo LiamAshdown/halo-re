@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/tags/flags.hpp"
@@ -798,7 +799,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         } else {
             ticks = halo::math::random_real_range(variant->run_time[0], variant->run_time[1]);
         }
-        ticks = ticks * 30.0f;
+        ticks = ticks * halo::game::k_ticks_per_second_f;
         if (!(ticks > 31.0f)) {
             ticks = 31.0f;
         }

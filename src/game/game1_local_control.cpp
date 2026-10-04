@@ -2,6 +2,7 @@
  * Local player control input digitisation and look vector helpers.
  */
 
+#include "halo/game/constants.hpp"
 #include "tags.h"
 #include "halo/networking/game_mode.hpp"
 #include "halo/game/records.hpp"
@@ -281,8 +282,8 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
                 pitch_delta = keep * pitch_delta + magnetism_pitch * adhesion;
             }
 
-            out->yaw_delta = yaw_delta * delta_time * 30.0f;
-            out->pitch_delta = delta_time * 30.0f * pitch_delta;
+            out->yaw_delta = yaw_delta * delta_time * halo::game::k_ticks_per_second_f;
+            out->pitch_delta = delta_time * halo::game::k_ticks_per_second_f * pitch_delta;
         }
     } else {
         out->yaw_delta = 0.0f;

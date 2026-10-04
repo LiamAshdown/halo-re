@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/units/records.hpp"
@@ -160,7 +161,7 @@ int32_t UnitView::animation_change_priority_check(uint8_t follow_fallback, int16
                         allowed = 1;
                     } else {
                         allowed = (uint8_t)(obj->unit.speech_tail_ticks + obj->unit.speech_duration_ticks <
-                            (int16_t)(int32_t)(interval * 30.0f));
+                            (int16_t)(int32_t)(interval * halo::game::k_ticks_per_second_f));
                     }
                     if (allowed) {
                         if (requested_priority > highest) {

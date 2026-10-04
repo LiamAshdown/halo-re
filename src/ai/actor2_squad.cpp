@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/objects/flags.hpp"
@@ -151,7 +152,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
 
     switch (entry->atom_type) {
     case 0:
-        state->timer_ticks = (int16_t)(int32_t)(entry->parameter1 * 30.0f);
+        state->timer_ticks = (int16_t)(int32_t)(entry->parameter1 * halo::game::k_ticks_per_second_f);
         return 1;
 
     case 1:
@@ -335,7 +336,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
             }
         }
         halo::ai::actor_begin_vocalization(actor_index, 0xd, variant, &context);
-        state->timer_ticks = (int16_t)(int32_t)(duration * 30.0f);
+        state->timer_ticks = (int16_t)(int32_t)(duration * halo::game::k_ticks_per_second_f);
         return 1;
     }
 
@@ -607,7 +608,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
 
         state->axis = (kind >= 0 && kind <= 3) ? kind : 0;
         halo::ai::actor_get_body_axis_vector(actor_index, check_object_index, state);
-        state->timer_ticks = (int16_t)(int32_t)(entry->parameter1 * 30.0f);
+        state->timer_ticks = (int16_t)(int32_t)(entry->parameter1 * halo::game::k_ticks_per_second_f);
         state->movement_flags |= 3;
         return 1;
     }
@@ -778,7 +779,7 @@ uint8_t ActorOps::squad_action_is_complete(actor_command_aim *aim_state, uint32_
         }
         if (act->firing_target_type != 2 ||
             !(halo::math::vector3d_distance_squared(*&act->firing_target_free_point, *&aim_state->shoot_point) < 0.25f)) {
-            int16_t ticks = (int16_t)(int32_t)(halo::ai::tag_data<ActorVariant>(act->actor_variant_tag)->first_burst_delay_time[1] * 30.0f);
+            int16_t ticks = (int16_t)(int32_t)(halo::ai::tag_data<ActorVariant>(act->actor_variant_tag)->first_burst_delay_time[1] * halo::game::k_ticks_per_second_f);
 
             state->timer_ticks = ticks > 0x3c ? ticks : 0x3c;
         }

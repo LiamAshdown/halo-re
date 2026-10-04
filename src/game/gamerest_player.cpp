@@ -236,7 +236,7 @@ void PlayerView::apply_pickup_effect(uint32_t pickup_object)
     player *p = halo::game::player_at(player_index);
     object *pickup = (object *)halo::game::object_at(pickup_object);
     Equipment *tag = (Equipment *)halo::game::tag_data_at(pickup->definition_tag);
-    int16_t amount = (int16_t)(int32_t)(tag->powerup_time * 30.0f);
+    int16_t amount = (int16_t)(int32_t)(tag->powerup_time * halo::game::k_ticks_per_second_f);
     int16_t discriminator;
 
     if (amount < 1) {

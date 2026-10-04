@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/units/seat_detach.hpp"
 #include "halo/units/animation_states.hpp"
@@ -98,7 +99,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
         if (!killed && (test_flag(unit_flags, units::unit_flag::feign_death_allowed)) && unit_tag->feign_death_threshold > 0.0f &&
             unit_tag->feign_death_time > 0.0f && obj->base.body_vitality > 0.0f &&
             obj->base.recent_body_damage > unit_tag->feign_death_threshold) {
-            float ticks = (halo::math::random_real_range(0.0f, 1.0f) + unit_tag->feign_death_time) * 30.0f;
+            float ticks = (halo::math::random_real_range(0.0f, 1.0f) + unit_tag->feign_death_time) * halo::game::k_ticks_per_second_f;
 
             set_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen);
             knocked_down = 1;
@@ -291,9 +292,9 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
                 obj->unit.stun = cap;
             }
         }
-        add = (int16_t)(int32_t)(effect.damage_stun_time * 30.0f);
-        low = (int16_t)(int32_t)(shake->minimum_stun_time * 30.0f);
-        high = (int16_t)(int32_t)(shake->maximum_stun_time * 30.0f);
+        add = (int16_t)(int32_t)(effect.damage_stun_time * halo::game::k_ticks_per_second_f);
+        low = (int16_t)(int32_t)(shake->minimum_stun_time * halo::game::k_ticks_per_second_f);
+        high = (int16_t)(int32_t)(shake->maximum_stun_time * halo::game::k_ticks_per_second_f);
         if (obj->unit.stun_ticks < low) {
             obj->unit.stun_ticks = low;
         }

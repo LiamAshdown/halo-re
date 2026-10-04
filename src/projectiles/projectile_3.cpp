@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/projectiles/projectile.hpp"
@@ -428,13 +429,13 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
     if ((tag->projectile_flags & _projectile_definition_detonation_max_time_if_attached_bit) != 0) {
         real t = tag->timer[1];
         if (1.0f <= t * 30.0f) {
-            pd->detonation_timer_rate = 1.0f / (t * 30.0f);
+            pd->detonation_timer_rate = 1.0f / (t * halo::game::k_ticks_per_second_f);
         }
     } else if ((tag->projectile_flags & _projectile_definition_random_attached_detonation_time_bit) != 0) {
         real t = (real)((halo::math::globals().random_seed_global = advance_random_seed(halo::math::globals().random_seed_global), halo::math::globals().random_seed_global) >> k_random_high_shift) *
             halo::k_unit_word_scale * (tag->timer[1] - tag->timer[0]) + tag->timer[0];
         if (1.0f <= t * 30.0f) {
-            pd->detonation_timer_rate = 1.0f / (t * 30.0f);
+            pd->detonation_timer_rate = 1.0f / (t * halo::game::k_ticks_per_second_f);
         }
     }
 

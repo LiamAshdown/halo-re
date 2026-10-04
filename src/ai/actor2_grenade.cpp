@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/ai/flags.hpp"
 #include "halo/ai/actor_view.hpp"
@@ -185,7 +186,7 @@ void ActorView::schedule_grenade_throw()
 
         delay = halo::math::random_real_range(lo, hi) * delay;
     }
-    ticks = halo::x87::fistp_round(delay * 30.0f);
+    ticks = halo::x87::fistp_round(delay * halo::game::k_ticks_per_second_f);
     if (ticks > INT16_MAX) {
         ticks = INT16_MAX;
     }
@@ -216,7 +217,7 @@ uint8_t ActorView::should_throw_grenade(char force)
         if (actor_def->hide_target_not_visible_time > 0.0f) {
             if (a->combat_status < 7) {
                 if (a->target_last_seen_time != (datum_index)k_datum_index_none) {
-                    int16_t delay = (int16_t)(actor_def->hide_target_not_visible_time * 30.0f);
+                    int16_t delay = (int16_t)(actor_def->hide_target_not_visible_time * halo::game::k_ticks_per_second_f);
                     if (halo::game::globals().game_time->game_time < delay + (int32_t)a->target_last_seen_time) {
                         eligible = 0;
                     }
@@ -452,7 +453,7 @@ char ActorView::update_grenade_and_morale_reactions()
     }
     if (may_target && act->evasion_delay_ticks == 0 && halo::ai::actor_evaluate_grenade_target_position(actor_index)) {
         act->danger_meter = 0.0f;
-        act->evasion_delay_ticks = (int16_t)(int32_t)(actor_tag->evasion_delay_time * 30.0f);
+        act->evasion_delay_ticks = (int16_t)(int32_t)(actor_tag->evasion_delay_time * halo::game::k_ticks_per_second_f);
         act->grenade_evasion_active = 1;
         result = 1;
     }

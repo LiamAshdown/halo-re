@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
@@ -32,7 +33,7 @@ void player_effect_view::set_camera_impulse(int16_t local_player_index, real *de
     real_vector3d *impulse_direction = (real_vector3d *)(fx + 0x00);
     real_vector3d *impulse_rotation = (real_vector3d *)(fx + 0x0c);
     real_vector3d *up = (real_vector3d *)halo::math::globals().global_up3d_pointer;
-    real duration_ticks = duration_scale * 30.0f;
+    real duration_ticks = duration_scale * halo::game::k_ticks_per_second_f;
     real ticks = (real)((struct player_effect *)fx)->impulse_ticks;
     real blended = (1.0f - descriptor[6]) * intensity_falloff + descriptor[6];
     real *look_globals = (real *)((uint8_t *)player_control_globals_ptr + local_player_index * 0x40);

@@ -1,3 +1,4 @@
+#include "halo/game/constants.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_looks.hpp"
@@ -153,7 +154,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
         duration = halo::math::random_real_range(low, high) * duration;
     }
 
-    ticks = (int32_t)(duration * 30.0f + 0.5f);
+    ticks = (int32_t)(duration * halo::game::k_ticks_per_second_f + 0.5f);
     if (ticks > INT16_MAX) {
         ticks = INT16_MAX;
     }
@@ -485,7 +486,7 @@ int32_t halo::ai::look_ops::look_get_wait_ticks(int16_t mode, uint32_t flags, fl
         fraction = fraction * 1.5f;
     }
 
-    ticks = fraction * 30.0f;
+    ticks = fraction * halo::game::k_ticks_per_second_f;
     result = halo::x87::fistp_round(ticks);
     if (result < 2) {
         result = 1;
