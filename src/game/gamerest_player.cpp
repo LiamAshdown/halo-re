@@ -1,3 +1,4 @@
+#include "halo/units/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/animation_states.hpp"
@@ -417,7 +418,7 @@ void PlayerView::check_vehicle_boarding_interaction(uint32_t candidate_object)
         return;
     }
     weapon_tag = halo::game::tag_data_at(weapon->definition_tag);
-    dual_flagged = (uint8_t)((unit->unit.control_flags & 0x1800) != 0);
+    dual_flagged = (uint8_t)(test_flag(unit->unit.control_flags, halo::units::unit_control_flag::primary_trigger | halo::units::unit_control_flag::secondary_trigger));
     {
         current_weapon = halo::game::unit_current_weapon(halo::game::unit_at(unit_index)->unit);
     }
@@ -498,7 +499,7 @@ void PlayerView::check_vehicle_boarding_interaction_lightweight(uint32_t candida
         return;
     }
     weapon_tag = halo::game::tag_data_at(weapon_candidate->definition_tag);
-    unit_flag_1800 = (uint8_t)((unit_obj->unit.control_flags & 0x1800) != 0);
+    unit_flag_1800 = (uint8_t)(test_flag(unit_obj->unit.control_flags, halo::units::unit_control_flag::primary_trigger | halo::units::unit_control_flag::secondary_trigger));
 
     current_weapon = halo::units::unit_get_weapon_object_index((uint32_t)p->unit,
         halo::game::unit_at(p->unit)->unit.current_weapon_index);
@@ -547,7 +548,7 @@ void PlayerView::check_vehicle_interaction(uint32_t candidate_object)
         double flip_threshold = halo::libm::cos(1.5707963705062866 - (double)player_control[0].minimum_angle_for_vehicle_flipping);
 
         if ((double)vehicle->up.k <= flip_threshold) {
-            if ((((vehicle_object *)vehicle)->vehicle.flags & 0x10) == 0 &&
+            if (!test_flag(((vehicle_object *)vehicle)->vehicle.flags, halo::units::vehicle_flag::controls_active) &&
                 ((vehicle_object *)vehicle)->unit.driver_unit_index == k_datum_index_none) {
 
                 PlayerView(player_index).set_pending_interaction_action(0xb, (int16_t)halo::k_word_none, candidate_object);
@@ -672,7 +673,7 @@ uint8_t PlayerView::execute_pending_interaction()
             direction = (int8_t)((side.k * ((struct object *)target)->forward.k + side.j * ((struct object *)target)->forward.j +
                                   side.i * ((struct object *)target)->forward.i > 0.0f) ? 2 : 1);
         }
-        ((vehicle_object *)target)->vehicle.flags |= 0x10;
+        set_flag(((vehicle_object *)target)->vehicle.flags, halo::units::vehicle_flag::controls_active);
         ((vehicle_object *)target)->vehicle.push_direction = (uint8_t)direction;
         ((vehicle_object *)target)->vehicle.push_ticks = 0;
         break;

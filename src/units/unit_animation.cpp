@@ -1269,7 +1269,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
         if ((uint8_t)unit->unit.scripted_base_animation_state != 0xff) {
             base_state = (int8_t)(uint8_t)unit->unit.scripted_base_animation_state;
         }
-        if ((unit->unit.control_flags & 0x200)) {
+        if (test_flag(unit->unit.control_flags, halo::units::unit_control_flag::force_alert)) {
             base_state = 1;
         }
         if ((uint8_t)unit->unit.flaming_ticks != 0) {

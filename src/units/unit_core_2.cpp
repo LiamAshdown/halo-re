@@ -148,7 +148,7 @@ uint8_t UnitView::update()
                 obj->base.owner_team = d->base.owner_team;
                 riding = 1;
                 if (d->unit.controlling_player != k_datum_index_none || ((uint8_t)d->unit.animation_state != animation_state_value(unit_animation_state_id::seat_exit) && (uint8_t)d->unit.animation_state != animation_state_value(unit_animation_state_id::seat_enter))) {
-                    obj->unit.control_flags |= d->unit.control_flags & 0x3f;
+                    obj->unit.control_flags |= d->unit.control_flags & halo::to_bits(halo::units::unit_control_flag::crouch | halo::units::unit_control_flag::jump | halo::units::unit_control_flag::user_animation_1 | halo::units::unit_control_flag::user_animation_2 | halo::units::unit_control_flag::integrated_light | halo::units::unit_control_flag::exact_facing);
                     *(real_vector3d *)&obj->unit.desired_facing_vector.i = d->unit.desired_facing_vector;
                     *(real_point3d *)&obj->unit.throttle.i = *(real_point3d *)&d->unit.throttle.i;
                 }
@@ -162,7 +162,7 @@ uint8_t UnitView::update()
                 if (g->unit.controlling_player != k_datum_index_none || ((uint8_t)g->unit.animation_state != animation_state_value(unit_animation_state_id::seat_exit) && (uint8_t)g->unit.animation_state != animation_state_value(unit_animation_state_id::seat_enter))) {
                     *(real_vector3d *)&obj->unit.desired_aiming_vector.i = g->unit.desired_aiming_vector;
                     *(real_vector3d *)&obj->unit.desired_looking_vector.i = g->unit.desired_aiming_vector;
-                    obj->unit.control_flags |= g->unit.control_flags & 0x7c00;
+                    obj->unit.control_flags |= g->unit.control_flags & halo::to_bits(halo::units::unit_control_flag::reload | halo::units::unit_control_flag::primary_trigger | halo::units::unit_control_flag::secondary_trigger | halo::units::unit_control_flag::grenade | halo::units::unit_control_flag::exchange_weapon);
                     obj->unit.primary_trigger = g->unit.primary_trigger;
                 }
             }
@@ -517,7 +517,7 @@ uint8_t UnitView::update()
             }
             obj->unit.flags = flags & ~halo::to_bits(units::unit_flag::desired_integrated_light_off);
         }
-        button = obj->unit.control_flags & 0x10;
+        button = test_flag(obj->unit.control_flags, halo::units::unit_control_flag::integrated_light);
         if (button != 0 || !(obj->unit.integrated_light_energy > 0.0f) || toggle) {
             if (!valid_team_player) {
                 flags = obj->unit.flags;

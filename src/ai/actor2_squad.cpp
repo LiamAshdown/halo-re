@@ -968,7 +968,7 @@ void ActorView::squad_action_reset_entry(uint32_t check_object_index, actor_squa
         case 0xd: {
             biped_object *obj = (biped_object *)halo::objects::object_try_and_get(check_object_index, 1);
             if (obj != 0) {
-                obj->biped.flags &= 0xfffffff3;
+                obj->biped.flags &= ~halo::to_bits(halo::units::biped_flag::absolute_movement | halo::units::biped_flag::no_collision);
                 return;
             }
             break;
