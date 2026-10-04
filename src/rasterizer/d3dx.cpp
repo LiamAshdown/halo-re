@@ -21,7 +21,7 @@ int32_t create_effect(void *device, const void *data, uint32_t size, const void 
         if (out_error_buffer != nullptr) {
             *out_error_buffer = nullptr;
         }
-        return gl_create_effect(out_effect);
+        return gl_create_effect(data, size, out_effect);
     }
     return ::D3DXCreateEffect(device, data, size, defines, include, flags, pool, out_effect, out_error_buffer);
 }

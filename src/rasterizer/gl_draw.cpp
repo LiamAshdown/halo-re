@@ -1585,7 +1585,7 @@ void draw_shutdown_object(gl_object *object)
     case kind_pixel_shader: {
         gl_shader *shader = static_cast<gl_shader *>(object);
 
-        if (shader->parse != nullptr) MOJOSHADER_freeParseData(shader->parse);
+        if (shader->parse != nullptr && shader->parse != &g_placeholder_parse) MOJOSHADER_freeParseData(shader->parse);
         break;
     }
     default:
@@ -1677,7 +1677,7 @@ program *select_program(draw_setup &setup)
 
     setup.uses_ff_vertex = vs == nullptr;
     setup.uses_ff_pixel = ps == nullptr;
-    if ((vs != nullptr && vs->parse == nullptr) || (ps != nullptr && ps->parse == nullptr)) {
+    if ((vs != nullptr && (vs->parse == nullptr || vs->parse->output == nullptr)) || (ps != nullptr && (ps->parse == nullptr || ps->parse->output == nullptr))) {
         return nullptr;
     }
     memset(&key, 0, sizeof(key));

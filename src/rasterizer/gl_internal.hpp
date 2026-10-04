@@ -134,6 +134,7 @@ struct pipeline_state {
     gl_surface *render_target; // null = back buffer
 };
 
+extern MOJOSHADER_parseData g_placeholder_parse;  // stands in for effect shader variables that carry no bytecode
 extern device_state g_state;
 extern pipeline_state g_pipe;
 
@@ -168,6 +169,7 @@ void read_back_surface(gl_surface *surface);
 void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, uint32_t start_index, uint32_t primitive_count, uint32_t start_vertex,
     const void *vertex_data, uint32_t vertex_stride, const void *index_data, uint32_t index_format, bool indexed, bool user_data);
 void create_shader(gl_shader *shader, const void *function, bool pixel);
+void effect_destroy(gl_object *object);
 void viewport_scissor(bool enable);
 void stretch_rect_impl(gl_surface *source, const int32_t *source_rect, gl_surface *dest, const int32_t *dest_rect, uint32_t filter);
 

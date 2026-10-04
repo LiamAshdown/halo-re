@@ -317,6 +317,9 @@ void destroy_object(gl_object *object)
     case kind_declaration:
         free(static_cast<gl_declaration *>(object)->elements);
         break;
+    case kind_effect:
+        effect_destroy(object);
+        return;
     default:
         break;
     }
@@ -978,77 +981,6 @@ int32_t GlDevice::query_get_data(d3d_arg object, d3d_arg data, uint32_t size, ui
         *static_cast<uint32_t *>(data.get()) = samples;
     }
     return 0;
-}
-
-/* Effects: handles are opaque tokens; nothing is applied yet */
-
-namespace {
-
-uint32_t g_next_effect_handle = 0x1000;
-
-}  // namespace
-
-int32_t gl_create_effect(void *out_effect)
-{
-    *static_cast<void **>(out_effect) = new_object<gl_object>(kind_effect);
-    return 0;
-}
-
-int32_t GlDevice::effect_set_vector(d3d_arg, d3d_arg, d3d_arg)
-{
-    return 0;
-}
-
-int32_t GlDevice::effect_set_texture(d3d_arg, d3d_arg, d3d_arg)
-{
-    return 0;
-}
-
-int32_t GlDevice::effect_set_technique(d3d_arg, d3d_arg)
-{
-    return 0;
-}
-
-int32_t GlDevice::effect_validate_technique(d3d_arg, d3d_arg)
-{
-    return 0;
-}
-
-int32_t GlDevice::effect_find_next_valid_technique(d3d_arg, d3d_arg technique, d3d_arg out_technique)
-{
-    *static_cast<uint32_t *>(out_technique.get()) = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(technique.get()));
-    return 0;
-}
-
-int32_t GlDevice::effect_begin(d3d_arg, d3d_arg out_pass_count, uint32_t)
-{
-    *static_cast<uint32_t *>(out_pass_count.get()) = 1;
-    return 0;
-}
-
-int32_t GlDevice::effect_pass(d3d_arg, uint32_t)
-{
-    return 0;
-}
-
-int32_t GlDevice::effect_end(d3d_arg)
-{
-    return 0;
-}
-
-int32_t GlDevice::effect_get_parameter_by_name(d3d_arg, d3d_arg, d3d_arg)
-{
-    return static_cast<int32_t>(g_next_effect_handle++);
-}
-
-int32_t GlDevice::effect_get_technique_by_name(d3d_arg, d3d_arg)
-{
-    return static_cast<int32_t>(g_next_effect_handle++);
-}
-
-int32_t GlDevice::effect_get_technique_by_name_scoped(d3d_arg, d3d_arg, d3d_arg)
-{
-    return static_cast<int32_t>(g_next_effect_handle++);
 }
 
 }  // namespace halo::rasterizer

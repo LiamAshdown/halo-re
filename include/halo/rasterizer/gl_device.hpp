@@ -100,6 +100,6 @@ public:
 GlDevice &gl_device();
 
 /** Creates a stand-in effect object (the real D3DX effect compiler needs a Direct3D 9 device). Returns 0. */
-int32_t gl_create_effect(void *out_effect);
+int32_t gl_create_effect(const void *data, uint32_t size, void *out_effect);
 
 }  // namespace halo::rasterizer
