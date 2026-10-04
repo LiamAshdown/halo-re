@@ -104,6 +104,9 @@ void MOJOSHADERCALL backend_add_ref(void *shader)
 
 void MOJOSHADERCALL backend_delete(const void *, void *shader)
 {
+    if (shader == nullptr) {
+        return;
+    }
     gl_device().release(static_cast<gl_object *>(shader));
 }
 
@@ -423,6 +426,19 @@ int32_t GlDevice::effect_pass(d3d_arg object, uint32_t pass)
     MOJOSHADER_effectBeginPass(effect->fx, pass);
     effect->pass_active = true;
     apply_pass_state(effect);
+    if ((g_pipe.pixel_shader != nullptr && g_pipe.pixel_shader->parse == &g_placeholder_parse) || (g_pipe.vertex_shader != nullptr && g_pipe.vertex_shader->parse == &g_placeholder_parse)) {
+        static const void *reported[32];
+        static int reported_count;
+        const void *key = effect->fx->current_technique;
+        bool seen = false;
+
+        for (int i = 0; i < reported_count; i++) seen = seen || reported[i] == key;
+        if (!seen && reported_count < 32) {
+            reported[reported_count++] = key;
+            halo::shell::standalone_log("gl: effect technique '%s' pass %u binds a shader without bytecode (vs %d ps %d)", effect->fx->current_technique->name, pass,
+                g_pipe.vertex_shader != nullptr && g_pipe.vertex_shader->parse == &g_placeholder_parse, g_pipe.pixel_shader != nullptr && g_pipe.pixel_shader->parse == &g_placeholder_parse);
+        }
+    }
     return 0;
 }
 

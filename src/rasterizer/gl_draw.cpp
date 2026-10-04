@@ -1884,6 +1884,23 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
     }
     p = select_program(setup);
     if (p == nullptr) {
+        static uint32_t reported[64][2];
+        static uint32_t reported_count;
+        uint32_t vs_id = g_pipe.vertex_shader != nullptr ? g_pipe.vertex_shader->id : 0;
+        uint32_t ps_id = g_pipe.pixel_shader != nullptr ? g_pipe.pixel_shader->id : 0;
+        bool seen = false;
+
+        for (uint32_t i = 0; i < reported_count; i++) {
+            seen = seen || (reported[i][0] == vs_id && reported[i][1] == ps_id);
+        }
+        if (!seen && reported_count < 64) {
+            reported[reported_count][0] = vs_id;
+            reported[reported_count][1] = ps_id;
+            reported_count++;
+            halo::shell::standalone_log("gl: draw skipped (vs %u%s, ps %u%s)", vs_id,
+                g_pipe.vertex_shader != nullptr && g_pipe.vertex_shader->parse == nullptr ? " untranslated" : "", ps_id,
+                g_pipe.pixel_shader != nullptr && (g_pipe.pixel_shader->parse == nullptr || g_pipe.pixel_shader->parse->output == nullptr) ? " untranslated" : "");
+        }
         return;
     }
     stream_stride_override = g_pipe.declaration == nullptr ? fvf_vertex_size(g_pipe.fvf) : 0;
