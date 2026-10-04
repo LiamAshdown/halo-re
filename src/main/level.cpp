@@ -2,6 +2,7 @@
  * Map and scenario session control: queued map changes, level transitions, saving and credits.
  */
 
+#include "halo/core/datum.hpp"
 #include "tags.h"
 #include "halo/scenario/api.hpp"
 #include "memory.h"
@@ -212,7 +213,7 @@ void LevelControl::credits_load_directly_for_endgame(void)
     halo::main::main_menu_return_and_reset();
     main_menu_tag = halo::cache::tag_lookup(k_ui_widget_definition_group, "ui\\shell\\main_menu\\main_menu");
     halo::interface::chimera__load_ui_widget("ui\\shell\\main_menu\\credits_screen", k_datum_index_none,
-                             (widget_instance *)0, (uint16_t)-1, main_menu_tag, k_datum_index_none,
+                             (widget_instance *)0, halo::k_word_none, main_menu_tag, k_datum_index_none,
                              -1);
     hud_text_message_cycle_state_00719230 = 1;
 }

@@ -1,3 +1,4 @@
+#include "halo/core/datum.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/slot_mask.hpp"
@@ -565,7 +566,7 @@ void weapon_trigger_ref::fire_or_reload(int16_t trigger_index, int8_t force)
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
 
     ready = 1;
-    if (tag_trigger->magazine != (uint16_t)-1 && wd->magazines[tag_trigger->magazine].state != 0) {
+    if (tag_trigger->magazine != halo::k_word_none && wd->magazines[tag_trigger->magazine].state != 0) {
         ready = 0;
     }
     if ((wd->flags & _weapon_overheated_bit) != 0) {

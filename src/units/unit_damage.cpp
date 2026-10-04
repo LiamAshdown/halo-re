@@ -1,3 +1,4 @@
+#include "halo/core/datum.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/networking/game_mode.hpp"
@@ -849,7 +850,7 @@ void UnitView::update_vitality_fractions(float body_delta, float shield_delta)
     float shield_fraction;
     float body_fraction;
 
-    if (unit_index == (uint32_t)-1) {
+    if (unit_index == halo::k_dword_none) {
         return;
     }
     obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;

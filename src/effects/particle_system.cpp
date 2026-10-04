@@ -835,13 +835,13 @@ void particle_system_view::update_physics_default(real dt)
 
     definition_tag = (ParticleSystem *)halo::cache::globals().tag_instances[system->definition_index & halo::k_slot_mask].data;
     point_physics_tag_id = halo::objects::tag_handle(definition_tag->point_physics);
-    if (point_physics_tag_id == (uint32_t)-1) {
+    if (point_physics_tag_id == halo::k_dword_none) {
         return;
     }
 
     halo::physics::point_physics_tick(&system->velocity, 0,
         (PointPhysics *)halo::cache::globals().tag_instances[point_physics_tag_id & halo::k_slot_mask].data,
-        &system->location, (uint32_t)-1, &system->position, nullptr,
+        &system->location, halo::k_dword_none, &system->position, nullptr,
         nullptr, nullptr, 1.0f, dt);
 }
 
@@ -966,7 +966,7 @@ void particle_system_view::update_physics_default(int16_t type_index, real dt, p
         }
 
         collision_flags = halo::physics::point_physics_tick((real_vector3d *)&particle->velocity, 0, physics,
-            &particle->location, (uint32_t)-1, &particle->position, nullptr,
+            &particle->location, halo::k_dword_none, &particle->position, nullptr,
             nullptr, nullptr, radius, dt);
 
         if (((collision_flags & 1) != 0 && particle_type_has(particle_type, particle_type_flag::particles_die_in_air)) ||

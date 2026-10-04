@@ -46,7 +46,7 @@ void texture_cache_manager::entry_release(datum_index handle)
         Sleep(0);
     }
     bitmap = entry->bitmap;
-    bitmap->pointer = (uint32_t)-1;
+    bitmap->pointer = halo::k_dword_none;
     if (bitmap->pixel_base != 0) {
         GlobalFree(bitmap->pixel_base);
         bitmap->pixel_base = 0;
@@ -56,7 +56,7 @@ void texture_cache_manager::entry_release(datum_index handle)
         if ((int32_t)bitmap->pointer != -1) {
             halo::memory::view(globals().texture_cache)->evict_entry((datum_index)bitmap->pointer);
         }
-        bitmap->pointer = (uint32_t)-1;
+        bitmap->pointer = halo::k_dword_none;
         bitmap->pixel_base = 0;
     }
     texture = (void *)bitmap->hardware_texture;

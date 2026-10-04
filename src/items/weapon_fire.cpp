@@ -1,3 +1,4 @@
+#include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/items/tag_flags.hpp"
 #include "halo/items/items.hpp"
@@ -74,7 +75,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
         is_alternate_shot = 1;
     }
 
-    if (tag_trigger->magazine == (uint16_t)-1) {
+    if (tag_trigger->magazine == halo::k_word_none) {
         has_ammo = 1;
     } else {
         int16_t magazine_index = tag_trigger->magazine;

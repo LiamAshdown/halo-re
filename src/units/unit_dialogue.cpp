@@ -1,3 +1,4 @@
+#include "halo/core/datum.hpp"
 #include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/core/lcg.hpp"
@@ -32,11 +33,11 @@ void UnitView::choose_dialogue_variant()
     bool picked = false;
     if (permutation_group > 0) {
         chosen = ::halo::units::unit_pick_random_dialogue_variant(unit_tag, permutation_group);
-        picked = *(uint32_t *)&chosen != (uint32_t)-1;
+        picked = *(uint32_t *)&chosen != halo::k_dword_none;
     }
     if (!picked) {
         chosen = ::halo::units::unit_pick_random_dialogue_variant(unit_tag, 0);
-        if (*(uint32_t *)&chosen == (uint32_t)-1) {
+        if (*(uint32_t *)&chosen == halo::k_dword_none) {
             chosen = ::halo::units::unit_pick_random_dialogue_variant(unit_tag, -1);
         }
     }

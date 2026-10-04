@@ -1,3 +1,4 @@
+#include "halo/core/datum.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/networking/delta_message_types.hpp"
@@ -627,10 +628,10 @@ uint16_t UnitView::find_best_seat_to_enter(uint32_t vehicle_index, int16_t *out_
                 seat->label.string[0] != '\0' &&
                 UnitView(unit_index).set_or_test_seat_and_weapon_label(seat->label.string, 0, 0) != 0) {
 
-                uint32_t occupant = (uint32_t)-1;
+                uint32_t occupant = halo::k_dword_none;
                 uint16_t rank;
                 if (::halo::units::unit_seat_is_occupied_by_other(unit_index, seat_i, vehicle_index, &occupant) == 0) {
-                    if (occupant == (uint32_t)-1) {
+                    if (occupant == halo::k_dword_none) {
                         continue;
                     }
                     object *occupant_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(occupant)].data;
@@ -1338,7 +1339,7 @@ uint8_t halo::units::unit_seat_is_occupied_by_other(uint32_t self_index, int16_t
     object *self_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(self_index)].data;
     unit_data *self_unit = halo::units::unit_data_of(self_obj);
 
-    uint32_t found = (uint32_t)-1;
+    uint32_t found = halo::k_dword_none;
     uint8_t not_found = (self_index != vehicle_index);
 
     object *vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;

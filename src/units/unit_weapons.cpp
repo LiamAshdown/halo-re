@@ -1,3 +1,4 @@
+#include "halo/core/datum.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/networking/delta_message_types.hpp"
@@ -298,7 +299,7 @@ uint8_t UnitView::current_weapon_has_flag()
 uint8_t UnitView::current_weapon_is_type(datum_index weapon_tag_id)
 {
     uint32_t unit_index = datum_handle;
-    if (unit_index == (uint32_t)-1 || weapon_tag_id == k_datum_index_none) {
+    if (unit_index == halo::k_dword_none || weapon_tag_id == k_datum_index_none) {
         return 0;
     }
 
@@ -955,7 +956,7 @@ uint8_t halo::units::unit_local_player_weapon_flag_check(void)
         }
         if (slot != -1 && slot < 1) {
             uint32_t player_handle = local_player_globals->local_players[slot];
-            if (player_handle != (uint32_t)-1) {
+            if (player_handle != halo::k_dword_none) {
                 datum_index unit_handle = halo::game::player_at(player_handle)->unit;
                 if (unit_handle != k_datum_index_none) {
                     return UnitView(unit_handle).current_weapon_has_flag();

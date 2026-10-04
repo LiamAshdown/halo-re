@@ -123,7 +123,7 @@ uint8_t ProjectileHandle::construct()
     if (fog_region != -1) {
         ScenarioStructureBSPFogRegion *region =
             &((ScenarioStructureBSPFogRegion *)halo::scenario::globals().structure_bsp->fog_regions.pointer)[fog_region];
-        if (region->fog != (uint16_t)-1) {
+        if (region->fog != halo::k_word_none) {
             ScenarioStructureBSPFogPalette *fog_entry =
                 &((ScenarioStructureBSPFogPalette *)halo::scenario::globals().structure_bsp->fog_palette.pointer)[region->fog];
             datum_index fog_tag_id = halo::objects::tag_handle(fog_entry->fog);

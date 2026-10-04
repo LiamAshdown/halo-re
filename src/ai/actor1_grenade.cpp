@@ -327,12 +327,12 @@ uint32_t halo::ai::grenade_ops::compute_grenade_aim_direction(real_point3d *targ
     uint32_t result;
 
     self = halo::ai::actor_at(actor_index);
-    result = (uint32_t)-1;
+    result = halo::k_dword_none;
 
     if (self->firing_state == 2) {
         real_vector3d aim_from;
 
-        if (self->firing_target_type == 1 && self->firing_target_prop_index != (uint32_t)-1) {
+        if (self->firing_target_type == 1 && self->firing_target_prop_index != halo::k_dword_none) {
             prop *p = halo::ai::prop_at(self->firing_target_prop_index);
             if (1 < p->state && p->state < 4) {
                 result = p->object_index;
@@ -409,7 +409,7 @@ uint8_t halo::ai::grenade_ops::consider_grenade_throw()
 
     now = halo::game::globals().game_time->game_time;
 
-    if (self->last_grenade_check_time != (uint32_t)-1 &&
+    if (self->last_grenade_check_time != halo::k_dword_none &&
         (variant->grenade_check_time * halo::game::k_ticks_per_second_f + (float)(int32_t)self->last_grenade_check_time) > (float)now) {
         return 0;
     }

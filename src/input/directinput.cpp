@@ -2,6 +2,7 @@
  * DirectInput 8 device lifetime, polling and raw to engine state conversion.
  */
 
+#include "halo/core/datum.hpp"
 #include "tags.h"
 #include "halo/text/api.hpp"
 #include "memory.h"
@@ -399,7 +400,7 @@ void DirectInput::directinput_poll_devices(void)
             if (hr > 0) {
                 if (hr == 1) {
                     input_error_log_once(1, "keyboard_buffer_overflow");
-                    event_count = 0xffffffff;
+                    event_count = halo::k_dword_none;
                     ((idirectinputdevice8_getdevicedata_proc)vtable[10])(input_state().keyboard_device, 0x14,
                         (di_device_object_data *)0, &event_count, 0);
                 } else {
@@ -964,11 +965,11 @@ void DirectInput::key_block_timers_expire(void)
     uint32_t now;
 
     for (i = 0; i < k_input_key_block_timer_count; i++) {
-        if (input_state().key_block_timers[i].deadline != 0xffffffff) {
+        if (input_state().key_block_timers[i].deadline != halo::k_dword_none) {
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             now = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
             if (input_state().key_block_timers[i].deadline <= now) {
-                input_state().key_block_timers[i].deadline = 0xffffffff;
+                input_state().key_block_timers[i].deadline = halo::k_dword_none;
                 input_state().key_block_timers[i].key = -1;
             }
         }
@@ -1001,7 +1002,7 @@ uint8_t DirectInput::keyboard_device_create(void)
     memset(input_state().key_release_pending, 0, sizeof(input_state().key_release_pending));
 
     for (i = 0; i < k_input_key_block_timer_count; i++) {
-        input_state().key_block_timers[i].deadline = 0xffffffff;
+        input_state().key_block_timers[i].deadline = halo::k_dword_none;
         input_state().key_block_timers[i].key = -1;
     }
 
@@ -1066,7 +1067,7 @@ void DirectInput::keyboard_set_capture_mode(uint8_t enable_capture)
     }
 
     if (input_state().keyboard_device != 0) {
-        uint32_t flush_all = 0xffffffff;
+        uint32_t flush_all = halo::k_dword_none;
         void **vtable = halo::com_methods(input_state().keyboard_device);
         ((idirectinputdevice8_getdevicedata_proc)vtable[0x28 / 4])(input_state().keyboard_device,
             sizeof(di_device_object_data), (di_device_object_data *)0, &flush_all, 0);

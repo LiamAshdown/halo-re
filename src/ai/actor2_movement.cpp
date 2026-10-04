@@ -216,7 +216,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
 
     if (self->flying == 0) {
         if (halo::bit_cast<float>(self->destination_radius) == 0.0f &&
-            self->destination_surface_index == (uint32_t)-1) {
+            self->destination_surface_index == halo::k_dword_none) {
             result = 0;
             halo::ai::actor_movement_action_complete(actor_index);
             return result;
@@ -250,7 +250,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
         result = halo::ai::path_find_reconstruct_path(context, &self->movement_action_complete);
     } else {
         halo::ai::actor_build_path_find_request(actor_index, &request);
-        if (self->active_movement.extra != (uint32_t)-1) {
+        if (self->active_movement.extra != halo::k_dword_none) {
             request.exclude_object_index_b = (datum_index)self->active_movement.extra;
         }
         if (self->danger_type > 0 && self->danger_is_own == 0 &&
@@ -304,7 +304,7 @@ void ActorView::movement_action_stop()
     self = halo::ai::actor_at(actor_index);
 
     if (self->vehicle_driving_type == 4 && self->moving != 0) {
-        halo::ai::actor_movement_set_destination_point(&self->body_position, actor_index, self->pathfinding_surface_index, (uint32_t)-1);
+        halo::ai::actor_movement_set_destination_point(&self->body_position, actor_index, self->pathfinding_surface_index, halo::k_dword_none);
         return;
     }
 
@@ -1070,7 +1070,7 @@ uint8_t ActorView::movement_set_destination_firing_position(int16_t formation_sl
         self->queued_movement.type = 3;
         self->queued_movement.cancelled = 0;
         self->queued_movement.slot_index = formation_slot;
-        self->queued_movement.extra = (uint32_t)-1;
+        self->queued_movement.extra = halo::k_dword_none;
         self->active_movement = self->queued_movement;
         self->grenade_evasion_active = 0;
         return halo::ai::actor_movement_action_resolve(actor_index, 1, path_context);
@@ -1102,7 +1102,7 @@ uint8_t ActorView::movement_set_destination_move_position(int16_t move_position_
         self->queued_movement.type = 4;
         self->queued_movement.cancelled = 0;
         self->queued_movement.slot_index = move_position_index;
-        self->queued_movement.extra = (uint32_t)-1;
+        self->queued_movement.extra = halo::k_dword_none;
         self->active_movement = self->queued_movement;
         return halo::ai::actor_movement_action_resolve(actor_index, 1, 0);
     }

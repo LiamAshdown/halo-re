@@ -857,7 +857,7 @@ void ChannelView::destroy()
             GlobalFree(channel->listen_list);
         }
     }
-    channel->outgoing.stream.unknown_00 = (uint32_t)-1;
+    channel->outgoing.stream.unknown_00 = halo::k_dword_none;
     channel->outgoing.stream.data = 0;
     channel->outgoing.stream.first_bit = 0;
     channel->outgoing.stream.byte_cursor = 0;
@@ -865,7 +865,7 @@ void ChannelView::destroy()
     channel->outgoing.stream.last_bit = 0;
     channel->outgoing.capacity_bits = 0;
     channel->outgoing.empty = 1;
-    channel->retransmit.stream.unknown_00 = (uint32_t)-1;
+    channel->retransmit.stream.unknown_00 = halo::k_dword_none;
     channel->retransmit.stream.data = 0;
     channel->retransmit.stream.first_bit = 0;
     channel->retransmit.stream.byte_cursor = 0;

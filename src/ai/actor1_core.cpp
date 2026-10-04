@@ -588,7 +588,7 @@ void * halo::ai::actor_ref::get_actor_definition()
         Weapon *weapon_definition = halo::ai::tag_data<Weapon>(obj->definition_tag);
         if (weapon_definition != 0) {
             uint32_t override_index = static_cast<uint32_t>(halo::ai::tag_handle(weapon_definition->actor_firing_parameters));
-            if (override_index != (uint32_t)-1) {
+            if (override_index != halo::k_dword_none) {
                 return halo::cache::globals().tag_instances[override_index & halo::k_slot_mask].data;
             }
         }

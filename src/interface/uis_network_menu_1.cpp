@@ -2,6 +2,7 @@
  * Network game menu behaviour: host setup, adapter details, client connection and wait timeouts.
  */
 
+#include "halo/core/datum.hpp"
 #include "crt.h"
 #include "halo/core/ui_tag_paths.hpp"
 #include "halo/text/api.hpp"
@@ -463,7 +464,7 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
 
                     opened = halo::interface::chimera__load_ui_widget(
                         halo::tag_paths::connected_pregame_screen,
-                        k_datum_index_none, (widget_instance *)0, (uint16_t)-1,
+                        k_datum_index_none, (widget_instance *)0, halo::k_word_none,
                         *(datum_index *)page, parent_definition, (int16_t)sibling);
                     if (opened != (widget_instance *)0) {
                         halo::networking::globals().game_mode = 1;

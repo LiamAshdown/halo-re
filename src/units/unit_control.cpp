@@ -1,3 +1,4 @@
+#include "halo/core/datum.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/units/animation_states.hpp"
@@ -362,7 +363,7 @@ void UnitView::initialize_random_turn_angle()
 uint8_t UnitView::is_look_target_valid()
 {
     uint32_t unit_index = datum_handle;
-    if (unit_index == (uint32_t)-1) {
+    if (unit_index == halo::k_dword_none) {
         return 1;
     }
 

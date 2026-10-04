@@ -1,3 +1,4 @@
+#include "halo/core/datum.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/tags/flags.hpp"
@@ -271,7 +272,7 @@ int32_t weapon_ref::update()
             case 0: {
                 int32_t ready = 1;
                 if ((wd->control_flags & _weapon_control_inhibited_bit) == 0 && item_obj->parent_object != k_datum_index_none &&
-                    tag_trigger->magazine != (uint16_t)-1) {
+                    tag_trigger->magazine != halo::k_word_none) {
                     int16_t magazine_index = tag_trigger->magazine;
                     int16_t rounds_loaded = wd->magazines[magazine_index].rounds_loaded;
 

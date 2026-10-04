@@ -2198,7 +2198,7 @@ widget_instance * WidgetLifecycle::reopen_as_root_with_history(datum_index open_
         case 1: controller_index = 1; break;
         case 2: controller_index = 2; break;
         case 3: controller_index = 3; break;
-        case 4: controller_index = (uint16_t)-1; break;
+        case 4: controller_index = halo::k_word_none; break;
         default: controller_index = (uint16_t)(uintptr_t)widget; break;
         }
     }

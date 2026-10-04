@@ -1,3 +1,4 @@
+#include "halo/core/datum.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/units/animation_states.hpp"
@@ -333,7 +334,7 @@ uint8_t UnitView::new_()
     unit->actor_index = k_datum_index_none;
     unit->swarm_actor_index = k_datum_index_none;
     unit->swarm_next_unit_index = k_datum_index_none;
-    unit->swarm_previous_unit_index = (uint32_t)-1;
+    unit->swarm_previous_unit_index = halo::k_dword_none;
     unit->vehicle_seat_index = -1;
     unit->driver_unit_index = k_datum_index_none;
     unit->gunner_unit_index = k_datum_index_none;
@@ -379,7 +380,7 @@ uint8_t UnitView::new_()
     for (i = 0x1f; i != 0; i--) {
         *field++ = 0;
     }
-    unit->communication_hold_tick = (uint32_t)-1;
+    unit->communication_hold_tick = halo::k_dword_none;
 
     UnitView(object_index).dialogue_determine_variant();
 

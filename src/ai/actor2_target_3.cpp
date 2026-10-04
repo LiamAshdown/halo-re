@@ -432,7 +432,7 @@ void ActorView::target_relationship_think()
             if (self->friendly_player_greeted == 0 && target->enemy == 0 && target->is_parented != 0 &&
                 target->visual_perception > 1 && target->aiming_at_actor_class < 3 && target->distance < 7.0f) {
                 self->friendly_player_greeted = 1;
-                halo::ai::ai_communication_broadcast(0x19, self->unit_index, target->object_index, 2, (uint32_t)-1, (uint32_t)-1, 0);
+                halo::ai::ai_communication_broadcast(0x19, self->unit_index, target->object_index, 2, halo::k_dword_none, halo::k_dword_none, 0);
                 halo::ai::actor_notify_target_engaged(target_prop_index, actor_index, 0);
             }
             if (self->unit_index != (datum_index)k_datum_index_none && target->dead == 0 &&
@@ -449,7 +449,7 @@ void ActorView::target_relationship_think()
                 if ((payload.is_enemy != 0 && target->seen != 0) || target->distance < dist_threshold) {
                     halo::ai::ai_communication_broadcast(8, self->unit_index, target->object_index,
                                                 (int32_t)((payload.is_enemy != 0 ? 2 : 0) + 2),
-                                                (uint32_t)-1, 1, (uint32_t *)&payload);
+                                                halo::k_dword_none, 1, (uint32_t *)&payload);
                 }
             }
 
@@ -487,14 +487,14 @@ void ActorView::target_relationship_think()
                 if (self->unit_index != (datum_index)k_datum_index_none) {
                     if (self->awareness_level < 3) {
                         if (target->owner_stalled != 0) {
-                            halo::ai::ai_communication_broadcast(0xf, target->object_index, self->unit_index, 2, (uint32_t)-1, 2, 0);
+                            halo::ai::ai_communication_broadcast(0xf, target->object_index, self->unit_index, 2, halo::k_dword_none, 2, 0);
                         }
                     } else {
                         char busy = (char)halo::ai::actor_is_burst_pending(actor_index);
                         if (busy != 0) {
                             char should_end = (char)halo::ai::actor_check_burst_length_exceeded(actor_index);
                             if (should_end == 0 && target->owner_not_in_combat != 0 && target->visual_perception > 1) {
-                                halo::ai::ai_communication_broadcast(0xf, self->unit_index, target->object_index, 2, (uint32_t)-1, 2, 0);
+                                halo::ai::ai_communication_broadcast(0xf, self->unit_index, target->object_index, 2, halo::k_dword_none, 2, 0);
                             }
                         }
                     }

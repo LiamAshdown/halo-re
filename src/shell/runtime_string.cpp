@@ -1,3 +1,4 @@
+#include "halo/core/datum.hpp"
 #include "halo/shell/runtime.hpp"
 #include "halo/shell/layout.hpp"
 
@@ -139,7 +140,7 @@ int32_t StdString::compare(uint32_t n1, uint32_t pos, const char *s, uint32_t n2
                 r++;
             }
             if (!equal) {
-                result = less ? (uint32_t)-1 : 1;
+                result = less ? halo::k_dword_none : 1;
             }
         }
         if (result != 0) {

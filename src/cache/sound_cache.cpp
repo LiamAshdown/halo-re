@@ -250,7 +250,7 @@ void sound_cache_manager::entry_release(datum_index handle)
     sound_cache_entry *entry = (sound_cache_entry *)globals().sound_cache_entries->data + (handle & 0xffff);
     SoundPermutation *permutation = entry->permutation;
 
-    permutation->samples_pointer = (uint32_t)-1;
+    permutation->samples_pointer = halo::k_dword_none;
     permutation->cache_page = 0;
     halo::memory::view(globals().sound_cache_entries)->delete_datum(handle);
 }

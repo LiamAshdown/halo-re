@@ -3,6 +3,7 @@
  * Drawing structure bsp surfaces: leaf face lists, picked polygon and debug draws.
  */
 
+#include "halo/core/datum.hpp"
 #include "halo/structures/structures.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
@@ -135,7 +136,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
                         } while (*scan < material_end);
                         consumed = (int16_t)(scan - surface_indices);
 
-                        if (material->breakable_surface == (uint16_t)-1 ||
+                        if (material->breakable_surface == halo::k_word_none ||
                             (halo::physics::globals().breakable_surface_state->active[halo::scenario::globals().structure_bsp_index][bit_array_word(material->breakable_surface)] &
                              bit_array_mask(material->breakable_surface)) != 0) {
                             if (render::shader_type_is_transparent(shader->shader_type)) {

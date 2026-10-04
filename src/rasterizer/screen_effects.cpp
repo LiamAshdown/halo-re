@@ -1566,7 +1566,7 @@ void rasterizer_screen_flash_render(void)
 
     width = (int16_t)(rasterizer_window.camera.viewport_bounds.right - rasterizer_window.camera.viewport_bounds.left);
     height = (int16_t)(rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top);
-    neg_one_bits.bits = 0xffffffffu;
+    neg_one_bits.bits = halo::k_dword_none;
     {
         float w = (float)width;
         float h = (float)height;

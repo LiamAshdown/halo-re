@@ -873,7 +873,7 @@ void PlayerView::kill_and_release_unit(int32_t respawn_timer_override)
     player *plr;
     datum_index unit_handle;
 
-    if (player_index == (uint32_t)-1) {
+    if (player_index == halo::k_dword_none) {
         return;
     }
 
@@ -2782,7 +2782,7 @@ void StructureBsp::switch_regroup()
         offset = radius;
         leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &probe);
         if (leaf == halo::k_dword_none ||
-            halo::tag_block_at<ScenarioStructureBSPLeaf>(halo::scenario::globals().structure_bsp->leaves, leaf & 0x7fffffff).cluster == 0xffff) {
+            halo::tag_block_at<ScenarioStructureBSPLeaf>(halo::scenario::globals().structure_bsp->leaves, leaf & 0x7fffffff).cluster == halo::k_word_none) {
             continue;
         }
         if (!have_flag) {
