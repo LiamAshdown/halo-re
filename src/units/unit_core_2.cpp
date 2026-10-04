@@ -391,31 +391,31 @@ uint8_t UnitView::update()
                 uint8_t flashing = (uint8_t)(obj->unit.persistent_control_ticks > 0 && test_flag(obj->unit.persistent_control_flags, units::unit_control_flag::primary_trigger));
 
                 if (valid_team_player && test_flag(obj->unit.control_flags, units::unit_control_flag::integrated_light)) {
-                    control = 1;
+                    control = _weapon_control_integrated_light_bit;
                 }
                 if (test_flag(obj->unit.control_flags, units::unit_control_flag::primary_trigger)) {
-                    control |= 2;
+                    control |= _weapon_control_primary_trigger_bit;
                 }
                 if (test_flag(obj->unit.control_flags, units::unit_control_flag::secondary_trigger)) {
-                    control |= 4;
+                    control |= _weapon_control_secondary_trigger_bit;
                 }
                 if (test_flag(halo::objects::tag_as<Unit>(*(datum_index *)obj)->unit_flags, tags::unit_tag_flag::integrated_light_cntrls_weapon)) {
                     halo::items::weapon_set_ready_timer(UnitView(unit_index).get_weapon_object_index(((struct unit_object *)halo::objects::object_record_bytes(unit_index))->unit.current_weapon_index), obj->unit.integrated_light_power);
                 }
                 if (test_flag(obj->unit.control_flags, units::unit_control_flag::reload)) {
-                    control |= 8;
+                    control |= _weapon_control_reload_bit;
                 }
                 if (::halo::units::unit_state_is_scripted_animation(halo::units::unit_data_of(obj)) && !flashing) {
-                    control |= 0x10;
+                    control |= _weapon_control_inhibited_bit;
                 }
                 if (obj->base.type == _object_type_biped && (int8_t)halo::units::biped_data_of(obj)->melee_ticks > 0) {
-                    control |= 0x10;
+                    control |= _weapon_control_inhibited_bit;
                 }
                 if ((uint8_t)obj->unit.zoom_level != 0xff) {
-                    control |= 0x40;
+                    control |= _weapon_control_zoomed_bit;
                 }
             } else {
-                control = 0x20;
+                control = _weapon_control_not_current_bit;
             }
             unit_now = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(unit_index));
             if (unit_now->unit.current_weapon_index != -1) {

@@ -307,18 +307,18 @@ typedef enum weapon_flags {
 // not the unit current weapon gets exactly _weapon_control_not_current_bit and nothing else.
 // ---------------------------------------------------------------------------
 typedef enum weapon_control_flags {
-    _weapon_control_unknown_01_bit = 0x01,  // from unit control flag 0x10 plus a caller predicate
+    _weapon_control_integrated_light_bit = 0x01,  // from unit control flag 0x10 plus a caller predicate
     _weapon_control_primary_trigger_bit = 0x02,  // unit control flag 0x800
     _weapon_control_secondary_trigger_bit = 0x04,// unit control flag 0x1000; only reaches the
                                           //   trigger when the Weapon tag has
                                           //   secondary_trigger_overrides_grenades (0x1000)
-    _weapon_control_unknown_08_bit = 0x08,  // unit control flag 0x400
+    _weapon_control_reload_bit = 0x08,  // unit control flag 0x400
     _weapon_control_inhibited_bit = 0x10,   // weapon_update ignores every trigger while it is
                                           //   set, and trigger effect state 0 will not
                                           //   auto-reload
     _weapon_control_not_current_bit = 0x20, // the only bit set when the unit is holding a
                                           //   different weapon
-    _weapon_control_unknown_40_bit = 0x40
+    _weapon_control_zoomed_bit = 0x40
 } weapon_control_flags;
 
 // ---------------------------------------------------------------------------

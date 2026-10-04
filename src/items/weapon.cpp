@@ -422,7 +422,7 @@ void weapon_ref::magazine_reload_tick(int16_t magazine_index)
     magazine->state_ticks = 0;
 
     if (magazine->rounds_unloaded > 0 && new_loaded < magazine_tag->rounds_loaded_maximum &&
-        (magazine_tag->flags & 1) == 0 && (wd->control_flags & 0x26) == 0) {
+        (magazine_tag->flags & 1) == 0 && (wd->control_flags & (_weapon_control_primary_trigger_bit | _weapon_control_secondary_trigger_bit | _weapon_control_not_current_bit)) == 0) {
         halo::items::weapon_trigger_begin_reload(item_index, magazine_index, 0);
         return;
     }
@@ -473,7 +473,7 @@ void weapon_ref::magazine_reload_tick_predicted(int16_t magazine_index)
     magazine->rounds_loaded = new_loaded;
 
     if (magazine->rounds_unloaded > 0 && new_loaded < magazine_tag->rounds_loaded_maximum &&
-        (magazine_tag->flags & 1) == 0 && (wd->control_flags & 0x26) == 0) {
+        (magazine_tag->flags & 1) == 0 && (wd->control_flags & (_weapon_control_primary_trigger_bit | _weapon_control_secondary_trigger_bit | _weapon_control_not_current_bit)) == 0) {
         magazine->state = _weapon_magazine_chamber_pending;
         magazine->state_ticks = 0;
         halo::items::weapon_trigger_begin_reload(item_index, magazine_index, 0);

@@ -149,9 +149,9 @@ int32_t weapon_ref::update()
         int32_t local_trigger_index = 0;
 
         pulled[0] = 0;
-        if ((wd->control_flags & 0x10) == 0 && wd->action_ticks < 1) {
-            pulled[0] = (uint8_t)((wd->control_flags >> 1) & 1);
-            if (weapon_has(weapon_tag->weapon_flags, weapon_tag_flag::secondary_trigger_overrides_grenades) && (wd->control_flags & 4) != 0) {
+        if ((wd->control_flags & _weapon_control_inhibited_bit) == 0 && wd->action_ticks < 1) {
+            pulled[0] = (uint8_t)((wd->control_flags & _weapon_control_primary_trigger_bit) != 0);
+            if (weapon_has(weapon_tag->weapon_flags, weapon_tag_flag::secondary_trigger_overrides_grenades) && (wd->control_flags & _weapon_control_secondary_trigger_bit) != 0) {
                 pulled[1] = 1;
             } else {
                 pulled[1] = 0;
@@ -168,7 +168,7 @@ int32_t weapon_ref::update()
             pulled[0] = 0;
         }
 
-        if (item_obj->network_role != 1 && (wd->control_flags & 8) != 0 && weapon_tag->magazines.count > 0) {
+        if (item_obj->network_role != 1 && (wd->control_flags & _weapon_control_reload_bit) != 0 && weapon_tag->magazines.count > 0) {
             wd->flags = wd->flags | 8;
         }
         if ((wd->flags & 8) != 0) {
@@ -269,7 +269,7 @@ int32_t weapon_ref::update()
             switch (trigger->effect_state) {
             case 0: {
                 int32_t ready = 1;
-                if ((wd->control_flags & 0x10) == 0 && item_obj->parent_object != k_datum_index_none &&
+                if ((wd->control_flags & _weapon_control_inhibited_bit) == 0 && item_obj->parent_object != k_datum_index_none &&
                     tag_trigger->magazine != (uint16_t)-1) {
                     int16_t magazine_index = tag_trigger->magazine;
                     int16_t rounds_loaded = wd->magazines[magazine_index].rounds_loaded;

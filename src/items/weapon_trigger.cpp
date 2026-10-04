@@ -214,7 +214,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
                 error = (1.0f - e) * trigger->error_angle[0] + e * trigger->error_angle[1];
             }
             if (!trigger_has(trigger->flags, weapon_trigger_tag_flag::use_error_when_unzoomed) ||
-                !(item->weapon.control_flags & _weapon_control_unknown_40_bit)) {
+                !(item->weapon.control_flags & _weapon_control_zoomed_bit)) {
                 halo::math::vector3d_randomize_direction(*((real_point3d *)&placement.forward), &placement.forward, halo::math::globals().random_seed_global,
                                              trigger->minimum_error, error);
             }
