@@ -130,6 +130,9 @@ struct pipeline_state {
     float vertex_constants[256][4];
     float pixel_constants[224][4];
     float transform[512][16];  // indexed by D3DTRANSFORMSTATETYPE (view 2, projection 3, texture 16.., world 256)
+    float light[8][26];        // D3DLIGHT9 as dwords: type, diffuse, specular, ambient, position, direction, range, falloff, attenuation 0-2, theta, phi
+    bool light_on[8];
+    float material[17];        // D3DMATERIAL9: diffuse, ambient, specular, emissive, power
     float viewport[6];         // x, y, width, height, min z, max z
     gl_surface *render_target; // null = back buffer
 };
@@ -159,6 +162,8 @@ uint32_t bytes_per_pixel(uint32_t format);
 void image_layout(uint32_t format, uint32_t width, uint32_t height, uint32_t *pitch, uint32_t *rows);
 void destroy_object(gl_object *object);
 bool trace_probe_frame();
+void note_programmable_draw();
+void frame_presented();
 void trace_draw(const char *name, uint32_t type, uint32_t count);
 
 /* gl_draw.cpp */

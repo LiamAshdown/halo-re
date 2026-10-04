@@ -56,6 +56,33 @@ uint32_t block_bytes(uint32_t format)
 
 namespace gl {
 
+uint32_t g_programmable_draws;
+
+void note_programmable_draw()
+{
+    g_programmable_draws++;
+}
+
+/** With HALO_GL_PROBE_AUTO set, arms the draw trace for the frame two after the first one that has world-sized programmable work. */
+void frame_presented()
+{
+    static const bool automatic = getenv("HALO_GL_PROBE_AUTO") != nullptr;
+
+    static const uint32_t not_before_ms = []() {
+        const char *value = getenv("HALO_GL_PROBE_AFTER");
+
+        return value != nullptr ? static_cast<uint32_t>(atoi(value)) : 38000u;
+    }();
+    static const DWORD started = GetTickCount();
+
+    if (automatic && g_trace_frame == 0 && g_programmable_draws >= 45 && GetTickCount() - started >= not_before_ms) {
+        g_trace_frame = g_frame_number + 2;
+        g_trace_budget = 100000;
+        halo::shell::standalone_log("gl: probe armed for frame %u", g_trace_frame);
+    }
+    g_programmable_draws = 0;
+}
+
 bool trace_probe_frame()
 {
     return g_trace_frame != 0 && g_frame_number == g_trace_frame;
@@ -379,6 +406,7 @@ int32_t GlDevice::present(d3d_arg, d3d_arg, d3d_arg, d3d_arg)
         SwapBuffers(g_state.dc);
     }
     g_frame_number++;
+    frame_presented();
     return 0;
 }
 
@@ -660,18 +688,27 @@ int32_t GlDevice::set_transform(uint32_t state, d3d_arg matrix)
     return 0;
 }
 
-int32_t GlDevice::set_material(d3d_arg)
+int32_t GlDevice::set_material(d3d_arg material)
 {
+    if (material.get() != nullptr) {
+        memcpy(g_pipe.material, material.get(), sizeof(g_pipe.material));
+    }
     return 0;
 }
 
-int32_t GlDevice::set_light(uint32_t, d3d_arg)
+int32_t GlDevice::set_light(uint32_t index, d3d_arg light)
 {
+    if (index < 8 && light.get() != nullptr) {
+        memcpy(g_pipe.light[index], light.get(), sizeof(g_pipe.light[index]));
+    }
     return 0;
 }
 
-int32_t GlDevice::light_enable(uint32_t, int32_t)
+int32_t GlDevice::light_enable(uint32_t index, int32_t enable)
 {
+    if (index < 8) {
+        g_pipe.light_on[index] = enable != 0;
+    }
     return 0;
 }
 

@@ -70,6 +70,14 @@ bool trace_enabled_for_programs()
     return enabled != 0;
 }
 
+/** cos(x) for 0 <= x <= pi (half spot-cone angles): a short Taylor series is plenty for a lighting cutoff. */
+float cosine(float x)
+{
+    float x2 = x * x;
+
+    return 1.0f - x2 / 2.0f + x2 * x2 / 24.0f - x2 * x2 * x2 / 720.0f + x2 * x2 * x2 * x2 / 40320.0f - x2 * x2 * x2 * x2 * x2 / 3628800.0f;
+}
+
 uint32_t g_warned[8];
 
 /** Logs a message the first time a given feature is hit (feature < 256). */
@@ -830,7 +838,11 @@ struct program {
     GLint texture_factor;    // u_texture_factor
     GLint constant_color[8]; // u_constant[i]
     GLint texture_matrix[8]; // u_texmat[i]
-    GLint lighting;          // u_light.* handled by the lighting block
+    GLint world;             // u_world
+    GLint eye;               // u_eye
+    GLint ambient;           // u_gambient
+    GLint material[5];       // u_mdiffuse, u_mambient, u_mspecular, u_memissive, u_mpower
+    GLint light[7];          // u_lpos, u_ldir, u_ldiffuse, u_lspecular, u_lambient, u_latten, u_lspot
     GLint sampler[16];
     const gl_shader *vertex_shader;
     const gl_shader *pixel_shader;
@@ -917,6 +929,9 @@ struct ff_vertex_state {
     uint32_t stage_texgen[8];     // 0 none, 1 camera-space normal, 2 camera-space position, 3 reflection vector
     uint32_t stage_transform[8];  // D3DTTFF count (0 = off) | 0x100 projected
     bool lighting;
+    uint32_t light_type[8];       // 0 off, 1 point, 2 spot, 3 directional
+    uint32_t material_source[4];  // diffuse, ambient, specular, emissive: 0 material, 1 vertex colour 1, 2 vertex colour 2
+    bool specular;
 };
 
 void build_ff_vertex(sbuf &out, const ff_vertex_state &s)
@@ -930,6 +945,12 @@ void build_ff_vertex(sbuf &out, const ff_vertex_state &s)
         if ((s.texcoord_mask & (1u << i)) != 0) sb_printf(out, "attribute vec4 a_texcoord%u;\n", i);
     }
     sb_printf(out, "uniform mat4 u_wvp;\nuniform mat4 u_world_view;\nuniform vec4 u_rhw_scale;\nuniform float vpFlip;\nuniform vec2 u_half_pixel;\n");
+    if (s.lighting) {
+        sb_printf(out, "uniform mat4 u_world;\nuniform vec3 u_eye;\nuniform vec4 u_gambient;\nuniform vec4 u_mdiffuse;\nuniform vec4 u_mambient;\n");
+        sb_printf(out, "uniform vec4 u_mspecular;\nuniform vec4 u_memissive;\nuniform float u_mpower;\n");
+        sb_printf(out, "uniform vec4 u_lpos[8];\nuniform vec4 u_ldir[8];\nuniform vec4 u_ldiffuse[8];\nuniform vec4 u_lspecular[8];\n");
+        sb_printf(out, "uniform vec4 u_lambient[8];\nuniform vec4 u_latten[8];\nuniform vec4 u_lspot[8];\n");
+    }
     for (uint32_t i = 0; i < s.stage_count; i++) {
         if (s.stage_transform[i] != 0) sb_printf(out, "uniform mat4 u_texmat%u;\n", i);
     }
@@ -946,8 +967,50 @@ void build_ff_vertex(sbuf &out, const ff_vertex_state &s)
         sb_printf(out, "    gl_Position.z = gl_Position.z * 2.0 - gl_Position.w;\n");
         sb_printf(out, "    gl_Position.xy += gl_Position.w * u_half_pixel;\n");
     }
-    sb_printf(out, "    gl_FrontColor = %s;\n", s.has_color0 ? "a_color0" : "vec4(1.0)");
-    sb_printf(out, "    gl_FrontSecondaryColor = %s;\n", s.has_color1 ? "a_color1" : "vec4(0.0)");
+    if (s.lighting) {
+        static const char *const sources[3][2] = {{"u_mdiffuse", "u_mdiffuse"}, {"vdiffuse", "vdiffuse"}, {"vspecular", "vspecular"}};
+        static const char *const names[4] = {"u_mdiffuse", "u_mambient", "u_mspecular", "u_memissive"};
+        char material[4][16];
+
+        for (int k = 0; k < 4; k++) {
+            snprintf(material[k], sizeof(material[k]), "%s", s.material_source[k] == 0 ? names[k] : sources[s.material_source[k]][0]);
+        }
+        sb_printf(out, "    vec4 vdiffuse = %s;\n", s.has_color0 ? "a_color0" : "vec4(1.0)");
+        sb_printf(out, "    vec4 vspecular = %s;\n", s.has_color1 ? "a_color1" : "vec4(0.0)");
+        sb_printf(out, "    vec3 wpos = (u_world * vec4(a_position.xyz, 1.0)).xyz;\n");
+        sb_printf(out, "    vec3 wn = normalize(mat3(u_world) * a_normal.xyz);\n");
+        sb_printf(out, "    vec3 view_dir = normalize(u_eye - wpos);\n");
+        sb_printf(out, "    vec3 diffuse_sum = vec3(0.0);\n    vec3 ambient_sum = vec3(0.0);\n    vec3 specular_sum = vec3(0.0);\n");
+        for (int i = 0; i < 8; i++) {
+            if (s.light_type[i] == 0) {
+                continue;
+            }
+            sb_printf(out, "    {\n        vec3 L;\n        float att = 1.0;\n        float spot = 1.0;\n");
+            if (s.light_type[i] == 3) {
+                sb_printf(out, "        L = -normalize(u_ldir[%d].xyz);\n", i);
+            } else {
+                sb_printf(out, "        vec3 d = u_lpos[%d].xyz - wpos;\n        float dist = length(d);\n        L = d / max(dist, 0.0001);\n", i);
+                sb_printf(out, "        att = (dist > u_latten[%d].w) ? 0.0 : 1.0 / max(u_latten[%d].x + u_latten[%d].y * dist + u_latten[%d].z * dist * dist, 0.0001);\n", i, i, i, i);
+            }
+            if (s.light_type[i] == 2) {
+                sb_printf(out, "        float rho = dot(-L, normalize(u_ldir[%d].xyz));\n", i);
+                sb_printf(out, "        spot = (rho <= u_lspot[%d].y) ? 0.0 : ((rho > u_lspot[%d].x) ? 1.0 : pow((rho - u_lspot[%d].y) / max(u_lspot[%d].x - u_lspot[%d].y, 0.0001), u_lspot[%d].z));\n", i, i, i, i, i, i);
+            }
+            sb_printf(out, "        float ndl = max(dot(wn, L), 0.0);\n");
+            sb_printf(out, "        diffuse_sum += att * spot * ndl * u_ldiffuse[%d].rgb;\n", i);
+            sb_printf(out, "        ambient_sum += att * spot * u_lambient[%d].rgb;\n", i);
+            if (s.specular) {
+                sb_printf(out, "        if (ndl > 0.0) specular_sum += att * spot * pow(max(dot(wn, normalize(L + view_dir)), 0.0), max(u_mpower, 0.0001)) * u_lspecular[%d].rgb;\n", i);
+            }
+            sb_printf(out, "    }\n");
+        }
+        sb_printf(out, "    vec4 mdiff = %s;\n    vec4 mamb = %s;\n    vec4 mspec = %s;\n    vec4 memis = %s;\n", material[0], material[1], material[2], material[3]);
+        sb_printf(out, "    gl_FrontColor = vec4(clamp(memis.rgb + mamb.rgb * u_gambient.rgb + ambient_sum * mamb.rgb + diffuse_sum * mdiff.rgb, 0.0, 1.0), mdiff.a);\n");
+        sb_printf(out, "    gl_FrontSecondaryColor = vec4(clamp(specular_sum * mspec.rgb, 0.0, 1.0), 0.0);\n");
+    } else {
+        sb_printf(out, "    gl_FrontColor = %s;\n", s.has_color0 ? "a_color0" : "vec4(1.0)");
+        sb_printf(out, "    gl_FrontSecondaryColor = %s;\n", s.has_color1 ? "a_color1" : "vec4(0.0)");
+    }
     if (s.stage_texgen[0] != 0 || s.stage_texgen[1] != 0 || s.stage_texgen[2] != 0 || s.stage_texgen[3] != 0 || s.stage_texgen[4] != 0 || s.stage_texgen[5] != 0 ||
         s.stage_texgen[6] != 0 || s.stage_texgen[7] != 0) {
         sb_printf(out, "    vec4 view_position = u_world_view * vec4(a_position.xyz, 1.0);\n");
@@ -1241,6 +1304,16 @@ void finish_program(program *p, const gl_shader *vs, const gl_shader *ps, const 
     p->world_view = glGetUniformLocation(p->name, "u_world_view");
     p->rhw_scale = glGetUniformLocation(p->name, "u_rhw_scale");
     p->texture_factor = glGetUniformLocation(p->name, "u_texture_factor");
+    p->world = glGetUniformLocation(p->name, "u_world");
+    p->eye = glGetUniformLocation(p->name, "u_eye");
+    p->ambient = glGetUniformLocation(p->name, "u_gambient");
+    {
+        static const char *const material_names[5] = {"u_mdiffuse", "u_mambient", "u_mspecular", "u_memissive", "u_mpower"};
+        static const char *const light_names[7] = {"u_lpos", "u_ldir", "u_ldiffuse", "u_lspecular", "u_lambient", "u_latten", "u_lspot"};
+
+        for (int k = 0; k < 5; k++) p->material[k] = glGetUniformLocation(p->name, material_names[k]);
+        for (int k = 0; k < 7; k++) p->light[k] = glGetUniformLocation(p->name, light_names[k]);
+    }
     for (int i = 0; i < 8; i++) {
         char name[24];
 
@@ -1696,7 +1769,26 @@ void gather_ff_vertex(ff_vertex_state &s, const element *elements, uint32_t coun
         s.stage_texgen[i] = (index >> 16) & 3;
         s.stage_transform[i] = g_pipe.texture_stage_state[i][TSS_TEXTURETRANSFORMFLAGS] & 0x1ff;
     }
-    s.lighting = g_pipe.render_state[D3DRS_LIGHTING] != 0;
+    s.lighting = g_pipe.render_state[D3DRS_LIGHTING] != 0 && s.has_normal && !s.rhw;
+    if (s.lighting) {
+        const uint32_t *rs = g_pipe.render_state;
+        bool color_vertex = rs[D3DRS_COLORVERTEX] != 0;
+
+        s.specular = rs[D3DRS_SPECULARENABLE] != 0;
+        s.material_source[0] = color_vertex ? (rs[D3DRS_DIFFUSEMATERIALSOURCE] & 3) : 0;
+        s.material_source[1] = color_vertex ? (rs[D3DRS_AMBIENTMATERIALSOURCE] & 3) : 0;
+        s.material_source[2] = color_vertex ? (rs[D3DRS_SPECULARMATERIALSOURCE] & 3) : 0;
+        s.material_source[3] = color_vertex ? (rs[D3DRS_EMISSIVEMATERIALSOURCE] & 3) : 0;
+        for (int i = 0; i < 8; i++) {
+            uint32_t type = 0;
+
+            if (g_pipe.light_on[i]) {
+                memcpy(&type, &g_pipe.light[i][0], sizeof(type));
+                type = type >= 1 && type <= 3 ? type : 0;
+            }
+            s.light_type[i] = type;
+        }
+    }
 }
 
 program *select_program(draw_setup &setup)
@@ -1873,6 +1965,42 @@ void upload_uniforms(program *p, const draw_setup &setup, float viewport_width, 
         multiply(world_view, g_pipe.transform[3], wvp);
         if (p->wvp >= 0) glUniformMatrix4fv(p->wvp, 1, GL_FALSE, wvp);
         if (p->world_view >= 0) glUniformMatrix4fv(p->world_view, 1, GL_FALSE, world_view);
+        if (setup.ff_vs.lighting) {
+            const float *m = g_pipe.material;
+            const float *v = g_pipe.transform[2];
+            uint32_t ambient = g_pipe.render_state[D3DRS_AMBIENT];
+            float eye[3];
+            float data[7][8][4];
+
+            for (int j = 0; j < 3; j++) {
+                eye[j] = -(v[12] * v[j * 4] + v[13] * v[j * 4 + 1] + v[14] * v[j * 4 + 2]);
+            }
+            if (p->world >= 0) glUniformMatrix4fv(p->world, 1, GL_FALSE, g_pipe.transform[256]);
+            if (p->eye >= 0) glUniform3f(p->eye, eye[0], eye[1], eye[2]);
+            if (p->ambient >= 0) {
+                glUniform4f(p->ambient, static_cast<float>((ambient >> 16) & 255) / 255.0f, static_cast<float>((ambient >> 8) & 255) / 255.0f,
+                    static_cast<float>(ambient & 255) / 255.0f, static_cast<float>(ambient >> 24) / 255.0f);
+            }
+            if (p->material[0] >= 0) glUniform4f(p->material[0], m[0], m[1], m[2], m[3]);
+            if (p->material[1] >= 0) glUniform4f(p->material[1], m[4], m[5], m[6], m[7]);
+            if (p->material[2] >= 0) glUniform4f(p->material[2], m[8], m[9], m[10], m[11]);
+            if (p->material[3] >= 0) glUniform4f(p->material[3], m[12], m[13], m[14], m[15]);
+            if (p->material[4] >= 0) glUniform1f(p->material[4], m[16]);
+            for (int i = 0; i < 8; i++) {
+                const float *l = g_pipe.light[i];
+
+                memcpy(data[0][i], &l[13], 3 * sizeof(float)); data[0][i][3] = 1.0f;                       // position
+                memcpy(data[1][i], &l[16], 3 * sizeof(float)); data[1][i][3] = 0.0f;                       // direction
+                memcpy(data[2][i], &l[1], 4 * sizeof(float));                                                // diffuse
+                memcpy(data[3][i], &l[5], 4 * sizeof(float));                                                // specular
+                memcpy(data[4][i], &l[9], 4 * sizeof(float));                                                // ambient
+                data[5][i][0] = l[21]; data[5][i][1] = l[22]; data[5][i][2] = l[23]; data[5][i][3] = l[19]; // attenuation, range
+                data[6][i][0] = cosine(l[24] * 0.5f); data[6][i][1] = cosine(l[25] * 0.5f); data[6][i][2] = l[20]; data[6][i][3] = 0.0f;  // spot: cos(theta/2), cos(phi/2), falloff
+            }
+            for (int k = 0; k < 7; k++) {
+                if (p->light[k] >= 0) glUniform4fv(p->light[k], 8, &data[k][0][0]);
+            }
+        }
         if (p->rhw_scale >= 0) {
             float gy0 = g_target_flipped ? static_cast<float>(viewport_y) : static_cast<float>(viewport_y);
             float scale_x = 2.0f / viewport_width;
@@ -1965,6 +2093,9 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
     }
     stream_stride_override = g_pipe.declaration == nullptr ? fvf_vertex_size(g_pipe.fvf) : 0;
 
+    if (g_pipe.pixel_shader != nullptr) {
+        note_programmable_draw();
+    }
     if (g_bound_program != p->name) {
         glUseProgram(p->name);
         g_bound_program = p->name;
@@ -2079,6 +2210,11 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
 
             halo::shell::standalone_log("gl probe   RS zen=%u zfunc=%u zwr=%u colorwrite=%x ablend=%u src=%u dst=%u blendop=%u cull=%u stencil=%u sfunc=%u atest=%u afunc=%u aref=%u fill=%u",
                 rs[7], rs[23], rs[14], rs[168], rs[27], rs[19], rs[20], rs[171], rs[22], rs[52], rs[56], rs[15], rs[25], rs[24], rs[8]);
+            halo::shell::standalone_log("gl probe   nodes vc68=%g %g %g %g vc69=%g %g %g %g vc70=%g %g %g %g vc100=%g vc150=%g vc200=%g",
+                v[68][0], v[68][1], v[68][2], v[68][3], v[69][0], v[69][1], v[69][2], v[69][3], v[70][0], v[70][1], v[70][2], v[70][3], v[100][0], v[150][0], v[200][0]);
+            halo::shell::standalone_log("gl probe   lights vc15=%g %g %g %g vc17=%g %g %g %g vc20=%g %g %g %g vc22=%g %g %g %g vc24=%g %g %g %g vc25=%g %g %g %g",
+                v[15][0], v[15][1], v[15][2], v[15][3], v[17][0], v[17][1], v[17][2], v[17][3], v[20][0], v[20][1], v[20][2], v[20][3],
+                v[22][0], v[22][1], v[22][2], v[22][3], v[24][0], v[24][1], v[24][2], v[24][3], v[25][0], v[25][1], v[25][2], v[25][3]);
             halo::shell::standalone_log("gl probe   vc5=%g %g %g %g vc9=%g %g %g %g vc10=%g %g %g %g vc29=%g %g %g %g vc30=%g %g %g %g vc31=%g %g %g %g",
                 v[5][0], v[5][1], v[5][2], v[5][3], v[9][0], v[9][1], v[9][2], v[9][3], v[10][0], v[10][1], v[10][2], v[10][3],
                 v[29][0], v[29][1], v[29][2], v[29][3], v[30][0], v[30][1], v[30][2], v[30][3], v[31][0], v[31][1], v[31][2], v[31][3]);
@@ -2128,8 +2264,12 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
 
                 snprintf(text + strlen(text), sizeof(text) - strlen(text), " tex%d=%s", unit, tex == nullptr ? "none" : "");
                 if (tex != nullptr) {
-                    snprintf(text + strlen(text), sizeof(text) - strlen(text), "[fmt %u %ux%u L%u first %02x%02x%02x%02x]", tex->format, tex->width, tex->height, tex->levels,
-                        tex->level[0].data[0], tex->level[0].data[1], tex->level[0].data[2], tex->level[0].data[3]);
+                    size_t level_bytes = static_cast<size_t>(tex->level[0].slice) * tex->level[0].depth;
+                    size_t nonzero = 0;
+
+                    for (size_t b = 0; b < level_bytes; b++) nonzero += tex->level[0].data[b] != 0;
+                    snprintf(text + strlen(text), sizeof(text) - strlen(text), "[fmt %u %ux%u L%u nonzero %u/%u dirty %d name %u]", tex->format, tex->width, tex->height, tex->levels,
+                        static_cast<unsigned>(nonzero), static_cast<unsigned>(level_bytes), tex->dirty, tex->name);
                 }
             }
             halo::shell::standalone_log("gl probe   c0=%g %g %g %g c1=%g %g %g %g%s", g_pipe.pixel_constants[0][0], g_pipe.pixel_constants[0][1], g_pipe.pixel_constants[0][2],
