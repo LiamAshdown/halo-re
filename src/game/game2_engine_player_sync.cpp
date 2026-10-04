@@ -64,8 +64,6 @@ void EnginePlayerSync::players_update_client(void)
     player *plr;
     datum_index player_handle;
     player_action current_action;
-    uint32_t carried_weapon_index;
-    uint32_t carried_grenade_or_zoom;
 
     memset(actions, 0, sizeof(actions));
     if (halo::game::update_client_distribute_staged_entry((uint8_t *)actions) == 0) {
@@ -77,8 +75,6 @@ void EnginePlayerSync::players_update_client(void)
     player_iter.index = (datum_index)-1;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
     counter = 0;
-    carried_weapon_index = 0;
-    carried_grenade_or_zoom = 0;
 
     plr = (player *)halo::memory::data_iterator_next(&player_iter);
     while (plr != (player *)0) {
@@ -94,8 +90,6 @@ void EnginePlayerSync::players_update_client(void)
             } else {
                 current_action.control_flags = 0;
                 memset((uint8_t *)&current_action + 4, 0, sizeof(current_action) - 4);
-                carried_weapon_index = 0;
-                carried_grenade_or_zoom = 0;
             }
         } else {
             current_action = actions[counter];
@@ -150,9 +144,9 @@ void EnginePlayerSync::players_update_client(void)
                     ctrl.throttle.j = current_action.throttle_y;
                     ctrl.throttle.k = 0.0f;
                     ctrl.primary_trigger = current_action.primary_trigger;
-                    ctrl.weapon_index = (int16_t)carried_grenade_or_zoom;
-                    ctrl.grenade_index = (int16_t)(carried_grenade_or_zoom >> 16);
-                    ctrl.zoom_level = (int16_t)carried_weapon_index;
+                    ctrl.weapon_index = current_action.weapon_index;
+                    ctrl.grenade_index = current_action.grenade_index;
+                    ctrl.zoom_level = 0;
                     ctrl.unknown_0a = 0;
                     ctrl.animation_state = 3;
                     ctrl.aiming_speed = 0;
