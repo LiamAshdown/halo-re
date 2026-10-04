@@ -252,53 +252,53 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0x06` | `squad_count` | `int16_t` | ScenarioEncounter.squads.count |
 | `0x08` | `first_platoon` | `int16_t` | index of this encounter first encounter_platoon_state |
 | `0x0a` | `platoon_count` | `int16_t` | ScenarioEncounter.platoons.count |
-| `0x0c` | `unknown_0c` | `uint8_t` |  |
+| `0x0c` | `force_active` | `uint8_t` |  |
 | `0x0d` | `units_active` | `uint8_t` | encounter_add_actor calls actor_set_units_active when set |
 | `0x0e` | `activation_delay` | `int16_t` | ticks remaining before encounters_update_activation re-evaluates this encounter; encounter_add_actor sets 0x96 |
 | `0x10` | `activation_tick` | `int32_t` | encounter_new sets -1; encounter_activate stamps the current game tick |
 | `0x14` | `first_actor` | `datum_index` | head of the member list, chained through actor.next_in_encounter |
 | `0x18` | `member_count` | `int16_t` | encounter_add_actor increments, squad_remove_actor decrements |
-| `0x1a` | `unknown_1a` | `int16_t` | encounter_recompute_morale snapshots unknown_2a here when the retreat latch clears |
+| `0x1a` | `pre_combat_living_count` | `int16_t` | encounter_recompute_morale snapshots unknown_2a here when the retreat latch clears |
 | `0x1c` | `live_count` | `int16_t` | only actors with counts_toward_encounter set are counted |
-| `0x1e` | `unknown_1e[2]` | `uint8_t` |  |
-| `0x20` | `unknown_20` | `int16_t` | squad_create zeroes it; 0x437820 records recent zone ids near here |
-| `0x22` | `unknown_22` | `int16_t` |  |
+| `0x1e` | `squads_carried_over[2]` | `uint8_t` |  |
+| `0x20` | `activation_link_count` | `int16_t` | squad_create zeroes it; 0x437820 records recent zone ids near here |
+| `0x22` | `activation_link` | `int16_t` |  |
 | `0x24` | `unknown_24` | `int16_t` |  |
 | `0x26` | `unknown_26[2]` | `uint8_t` |  |
 | `0x28` | `dirty` | `uint8_t` | set by every member add / remove; 0x435f00 re-runs morale for dirty encounters |
-| `0x29` | `unknown_29` | `uint8_t` |  |
-| `0x2a` | `unknown_2a` | `int16_t` |  |
-| `0x2c` | `unknown_2c` | `int16_t` |  |
-| `0x2e` | `unknown_2e` | `int16_t` |  |
-| `0x30` | `unknown_30` | `int16_t` |  |
-| `0x32` | `unknown_32[2]` | `uint8_t` |  |
+| `0x29` | `pad_29` | `uint8_t` |  |
+| `0x2a` | `living_count` | `int16_t` |  |
+| `0x2c` | `swarm_count` | `int16_t` |  |
+| `0x2e` | `combat_count` | `int16_t` |  |
+| `0x30` | `engaged_count` | `int16_t` |  |
+| `0x32` | `pad_32[2]` | `uint8_t` |  |
 | `0x34` | `average_vitality` | `float` | encounter_recompute_morale sums one vitality sample per live member here and then divides by member_count |
 | `0x38` | `first_pursuit` | `datum_index` | head of the ai_pursuit ("recently seen object") list |
-| `0x3c` | `unknown_3c` | `uint8_t` | ScenarioEncounter.flags bit 1 |
-| `0x3d` | `unknown_3d` | `uint8_t` |  |
-| `0x3e` | `unknown_3e` | `int16_t` | squad_create zeroes it |
-| `0x40` | `unknown_40` | `uint8_t` | ScenarioEncounter.flags bit 2 |
-| `0x41` | `unknown_41` | `uint8_t` | ScenarioEncounter.flags bit 3 |
-| `0x42` | `unknown_42` | `uint8_t` | squad_create sets 1 |
-| `0x43` | `unknown_43` | `uint8_t` |  |
-| `0x44` | `unknown_44` | `uint8_t` | squad_create zeroes it |
-| `0x45` | `unknown_45` | `uint8_t` | squad_create zeroes it |
-| `0x46` | `unknown_46` | `uint8_t` | squad_create zeroes it |
-| `0x47` | `unknown_47` | `uint8_t` |  |
-| `0x48` | `unknown_48` | `uint8_t` |  |
-| `0x49` | `unknown_49` | `uint8_t` |  |
-| `0x4a` | `unknown_4a` | `int16_t` |  |
-| `0x4c` | `unknown_4c` | `int16_t` |  |
-| `0x4e` | `unknown_4e[2]` | `uint8_t` |  |
-| `0x50` | `unknown_50` | `datum_index` | squad_create sets -1 |
-| `0x54` | `unknown_54` | `datum_index` | squad_create sets -1 |
-| `0x58` | `unknown_58` | `int32_t` | squad_create sets -1; 0x43e270 compares it against actor+0x3a0 |
-| `0x5c` | `unknown_5c` | `datum_index` | squad_create sets -1 |
-| `0x60` | `unknown_60` | `uint8_t` |  |
-| `0x61` | `unknown_61` | `uint8_t` |  |
-| `0x62` | `unknown_62` | `int16_t` |  |
-| `0x64` | `unknown_64` | `int32_t` |  |
-| `0x68` | `unknown_68` | `int16_t` |  |
+| `0x3c` | `respawn_enabled` | `uint8_t` | ScenarioEncounter.flags bit 1 |
+| `0x3d` | `pad_3d` | `uint8_t` |  |
+| `0x3e` | `respawn_delay_ticks` | `int16_t` | squad_create zeroes it |
+| `0x40` | `blind` | `uint8_t` | ScenarioEncounter.flags bit 2 |
+| `0x41` | `deaf` | `uint8_t` | ScenarioEncounter.flags bit 3 |
+| `0x42` | `stood_down` | `uint8_t` | squad_create sets 1 |
+| `0x43` | `ever_had_target` | `uint8_t` |  |
+| `0x44` | `has_live_target` | `uint8_t` | squad_create zeroes it |
+| `0x45` | `engaged` | `uint8_t` | squad_create zeroes it |
+| `0x46` | `enemy_traitor` | `uint8_t` | squad_create zeroes it |
+| `0x47` | `post_combat` | `uint8_t` |  |
+| `0x48` | `post_combat_quiet` | `uint8_t` |  |
+| `0x49` | `pad_49` | `uint8_t` |  |
+| `0x4a` | `post_combat_timer` | `int16_t` |  |
+| `0x4c` | `enemy_death_count` | `int16_t` |  |
+| `0x4e` | `pad_4e[2]` | `uint8_t` |  |
+| `0x50` | `ticks_since_engaged` | `datum_index` | squad_create sets -1 |
+| `0x54` | `ticks_since_live_target` | `datum_index` | squad_create sets -1 |
+| `0x58` | `last_idle_time` | `int32_t` | squad_create sets -1; 0x43e270 compares it against actor+0x3a0 |
+| `0x5c` | `last_grenade_time` | `datum_index` | squad_create sets -1 |
+| `0x60` | `playfight` | `uint8_t` |  |
+| `0x61` | `pad_61` | `uint8_t` |  |
+| `0x62` | `follow_target_type` | `int16_t` |  |
+| `0x64` | `follow_target` | `int32_t` |  |
+| `0x68` | `follow_distance` | `int16_t` |  |
 | `0x6a` | `unknown_6a` | `int16_t` |  |
 
 #### `encounter_squad_state` // size 0x20
@@ -307,28 +307,28 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 |---|---|---|---|
 | `0x00` | `starting_location_mask` | `uint32_t` | locations this squad is allowed to use |
 | `0x04` | `starting_location_free` | `uint32_t` | locations not yet handed out this round |
-| `0x08` | `unknown_08` | `float` |  |
+| `0x08` | `major_upgrade_error` | `float` |  |
 | `0x0c` | `respawn_budget` | `int16_t` | ScenarioSquad.respawn_total (999 when that is 0), only set when the squad has a respawn range; the reinforcement spawner decrements it |
-| `0x0e` | `unknown_0e` | `int16_t` |  |
-| `0x10` | `unknown_10` | `uint8_t` | ScenarioSquad.flags bit 5 |
-| `0x11` | `unknown_11` | `uint8_t` | encounter_new zeroes it |
+| `0x0e` | `respawn_delay_ticks` | `int16_t` |  |
+| `0x10` | `automatic_migration` | `uint8_t` | ScenarioSquad.flags bit 5 |
+| `0x11` | `timer_started` | `uint8_t` | encounter_new zeroes it |
 | `0x12` | `squad_delay_ticks` | `int16_t` | ftol(ScenarioSquad.squad_delay_time * 30), or 999 when ScenarioSquad.flags bit 3 is set |
-| `0x14` | `unknown_14` | `uint8_t` | read as a flag by encounter_gather_occupied_bsp_clusters |
+| `0x14` | `dormancy_disabled` | `uint8_t` | read as a flag by encounter_gather_occupied_bsp_clusters |
 | `0x15` | `unknown_15` | `uint8_t` |  |
 | `0x16` | `member_count` | `int16_t` | encounter_add_actor increments, squad_remove_actor decrements |
-| `0x18` | `unknown_18` | `int16_t` |  |
-| `0x1a` | `unknown_1a` | `int16_t` |  |
+| `0x18` | `living_count` | `int16_t` |  |
+| `0x1a` | `swarm_count` | `int16_t` |  |
 | `0x1c` | `average_vitality` | `float` | encounter_recompute_morale @0x437940 sums one vitality sample per live member here and then divides by member_count |
 
 #### `encounter_platoon_state` // size 0x10
 
 | offset | field | type | note |
 |---|---|---|---|
-| `0x00` | `unknown_00` | `uint8_t` | ScenarioPlatoon.flags bit 2 |
-| `0x01` | `unknown_01[3]` | `uint8_t` |  |
+| `0x00` | `defending` | `uint8_t` | ScenarioPlatoon.flags bit 2 |
+| `0x01` | `maneuvering[3]` | `uint8_t` |  |
 | `0x04` | `member_count` | `int16_t` | encounter_add_actor increments, squad_remove_actor decrements |
-| `0x06` | `unknown_06` | `int16_t` |  |
-| `0x08` | `unknown_08` | `int16_t` |  |
+| `0x06` | `living_count` | `int16_t` |  |
+| `0x08` | `swarm_count` | `int16_t` |  |
 | `0x0a` | `unknown_0a` | `int16_t` |  |
 | `0x0c` | `average_vitality` | `float` | same running sum as encounter_squad_state.average_vitality, divided by member_count at 0x04 |
 
@@ -363,30 +363,30 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0x00` | `identifier` | `int16_t` | datum_header |
 | `0x02` | `definition_index` | `int16_t` | index into Scenario.ai_conversations (stride 0x74) |
 | `0x04` | `priority` | `uint8_t` | ai_conversation_new stores its allow_eviction argument here |
-| `0x05` | `unknown_05` | `uint8_t` |  |
-| `0x06` | `unknown_06` | `uint8_t` |  |
-| `0x07` | `unknown_07[5]` | `uint8_t` |  |
+| `0x05` | `started` | `uint8_t` |  |
+| `0x06` | `active` | `uint8_t` |  |
+| `0x07` | `finished[5]` | `uint8_t` |  |
 | `0x0c` | `start_tick` | `int32_t` | the game tick the instance was created |
-| `0x10` | `unknown_10` | `int32_t` |  |
+| `0x10` | `player_unit_index` | `int32_t` |  |
 | `0x14` | `participant_mask` | `uint32_t` | bit i set once participant i has been resolved |
-| `0x18` | `unknown_18` | `uint32_t` |  |
+| `0x18` | `participant_variant` | `uint32_t` |  |
 | `0x1c` | `unknown_1c` | `uint32_t` |  |
 | `0x20` | `unknown_20` | `int16_t` |  |
 | `0x22` | `unknown_22` | `int16_t` |  |
 | `0x24` | `unknown_24` | `uint32_t` |  |
 | `0x28` | `participant_actor[8]` | `datum_index` | one actor datum per resolved participant |
-| `0x48` | `unknown_48` | `int16_t` | ai_conversation_new sets 0xffff |
-| `0x4a` | `unknown_4a` | `int16_t` |  |
-| `0x4c` | `unknown_4c` | `int16_t` |  |
-| `0x4e` | `unknown_4e` | `int16_t` |  |
-| `0x50` | `unknown_50` | `int32_t` |  |
-| `0x54` | `unknown_54` | `int32_t` |  |
-| `0x58` | `unknown_58` | `uint32_t` |  |
-| `0x5c` | `unknown_5c` | `uint32_t` |  |
-| `0x60` | `unknown_60` | `uint8_t` |  |
-| `0x61` | `unknown_61` | `uint8_t` |  |
-| `0x62` | `unknown_62` | `uint8_t` |  |
-| `0x63` | `unknown_63` | `uint8_t` |  |
+| `0x48` | `line_index` | `int16_t` | ai_conversation_new sets 0xffff |
+| `0x4a` | `speaker_participant_index` | `int16_t` |  |
+| `0x4c` | `line_delay_ticks` | `int16_t` |  |
+| `0x4e` | `line_flags` | `int16_t` |  |
+| `0x50` | `speaker_actor_index` | `int32_t` |  |
+| `0x54` | `speaker_unit_index` | `int32_t` |  |
+| `0x58` | `addressee_unit_index` | `uint32_t` |  |
+| `0x5c` | `sound_index` | `uint32_t` |  |
+| `0x60` | `speaker_disembodied` | `uint8_t` |  |
+| `0x61` | `line_started` | `uint8_t` |  |
+| `0x62` | `line_spoken` | `uint8_t` |  |
+| `0x63` | `line_finished` | `uint8_t` |  |
 
 #### `ai_conversation_event` // size 0x10
 
@@ -404,12 +404,12 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 |---|---|---|---|
 | `0x00` | `initialized` | `uint8_t` | ai_reset_for_new_map sets it |
 | `0x01` | `actors_valid` | `uint8_t` | every actor and encounter entry point returns early when this is clear |
-| `0x02` | `unknown_02` | `uint8_t` | ai_reset_for_new_map sets it |
+| `0x02` | `ai_was_active` | `uint8_t` | ai_reset_for_new_map sets it |
 | `0x03` | `stagger_claimed` | `uint8_t` | 0x429430 claims the per-tick idle slot |
 | `0x04` | `stagger_threshold` | `int16_t` |  |
 | `0x06` | `stagger_highest` | `int16_t` | 0x429430 tracks the highest idle counter seen |
-| `0x08` | `unknown_08` | `datum_index` | ai_reset_for_new_map sets none; also the head of the unassigned actor list |
-| `0x0c` | `unknown_0c` | `float` |  |
+| `0x08` | `first_encounterless_actor` | `datum_index` | ai_reset_for_new_map sets none; also the head of the unassigned actor list |
+| `0x0c` | `major_upgrade_error` | `float` |  |
 | `0x10` | `communication_valid` | `uint8_t` | 0x42d230 sets it |
 | `0x11` | `unknown_11` | `uint8_t` |  |
 | `0x12` | `unknown_12` | `int16_t` |  |
@@ -422,19 +422,19 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0x2c` | `conversation_event_count` | `int16_t` | high-water mark, capped at 16 |
 | `0x2e` | `conversation_event_cursor` | `int16_t` | next ring slot, modulo 16 |
 | `0x30` | `conversation_events[16]` | `ai_conversation_event` | 0x42d230 zeroes the whole 0x100-byte ring |
-| `0x130` | `unknown_130` | `int16_t` | ai_reset_for_new_map zeroes it |
-| `0x132` | `unknown_132` | `int16_t` | ai_reset_for_new_map zeroes it |
-| `0x134` | `unknown_134[0x280]` | `uint8_t` | ai_reset_for_new_map zeroes 0xa0 dwords from here |
-| `0x3b4` | `unknown_3b4` | `uint8_t` | ai_reset_for_new_map sets it |
+| `0x130` | `recent_event_head` | `int16_t` | ai_reset_for_new_map zeroes it |
+| `0x132` | `recent_event_tail` | `int16_t` | ai_reset_for_new_map zeroes it |
+| `0x134` | `recent_events[0x280]` | `uint8_t` | ai_reset_for_new_map zeroes 0xa0 dwords from here |
+| `0x3b4` | `grenades_enabled` | `uint8_t` | ai_reset_for_new_map sets it |
 | `0x3b5` | `unknown_3b5` | `uint8_t` |  |
-| `0x3b6` | `unknown_3b6` | `int16_t` | 0x435900 uses it as the per-object record table count |
-| `0x3b8` | `unknown_3b8[56]` | `uint8_t` |  |
+| `0x3b6` | `object_attention_count` | `int16_t` | 0x435900 uses it as the per-object record table count |
+| `0x3b8` | `object_attention_table[56]` | `uint8_t` |  |
 | `0x3f0` | `unknown_3f0` | `int32_t` | ai_communication_record_line_played |
 | `0x3f4` | `unknown_3f4[6]` | `uint8_t` |  |
 | `0x3fa` | `unknown_3fa` | `int16_t` |  |
 | `0x3fc` | `unknown_3fc[1212]` | `uint8_t` |  |
 | `0x8b8` | `vehicle_entry_count` | `int16_t` | ai_process_vehicle_entry_queue drains the queue and zeroes this |
-| `0x8ba` | `unknown_8ba[2]` | `uint8_t` |  |
+| `0x8ba` | `pad_8ba[2]` | `uint8_t` |  |
 | `0x8bc` | `vehicle_entry_queue[8]` | `datum_index` | unit object indices waiting for a seat |
 
 #### `ai_object_attention_record` // size 0x28
@@ -461,7 +461,7 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0x00` | `identifier` | `int16_t` | datum_header |
 | `0x02` | `component_count` | `int16_t` | 0..16 |
 | `0x04` | `actor_index` | `datum_index` | the actor that owns this swarm |
-| `0x08` | `unknown_08[4]` | `uint8_t` |  |
+| `0x08` | `component_pick_delay[4]` | `uint8_t` |  |
 | `0x0c` | `aggregate_position` | `real_point3d` | the mean of every component's swarm_component.position, recomputed each tick by actor_refresh_combat_context @0x4297a0 |
 | `0x18` | `unit_index[16]` | `datum_index` | one unit object per component |
 | `0x58` | `component_index[16]` | `datum_index` | the matching swarm_component datums |
@@ -475,8 +475,8 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0x03` | `unknown_03` | `uint8_t` |  |
 | `0x04` | `position` | `real_point3d` | object_get_position of the component unit |
 | `0x10` | `marker_index` | `datum_index` | object+0x4d8 when object+0xb4 is 0, otherwise none |
-| `0x14` | `unknown_14` | `uint32_t` | swarm_add_component sets -1 |
-| `0x18` | `unknown_18[40]` | `uint8_t` |  |
+| `0x14` | `leap_target_index` | `uint32_t` | swarm_add_component sets -1 |
+| `0x18` | `infection[40]` | `uint8_t` |  |
 
 #### `actor_mode_definition` // size 0x38
 
@@ -486,7 +486,7 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0x04` | `combat_grade` | `int16_t` | nonzero raises actor.awareness_level to 3, zero clamps it to 2 |
 | `0x06` | `unknown_06[2]` | `uint8_t` |  |
 | `0x08` | `enter_proc` | `uint32_t` | actor_set_mode calls it after switching in |
-| `0x0c` | `unknown_0c[8]` | `uint8_t` |  |
+| `0x0c` | `process_proc[8]` | `uint8_t` |  |
 | `0x14` | `update_proc` | `uint32_t` | actor_invoke_type_handler calls it |
 | `0x18` | `exit_proc` | `uint32_t` | actor_set_mode calls the outgoing mode proc first |
 | `0x1c` | `unknown_1c[28]` | `uint8_t` |  |
@@ -519,23 +519,23 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 
 | offset | field | type | note |
 |---|---|---|---|
-| `0x04` | `unknown_04` | `int16_t` | zeroed |
+| `0x04` | `next_index` | `int16_t` | zeroed |
 | `0x06` | `unknown_06[2]` | `uint8_t` |  |
 | `0x08` | `cursor` | `int32_t` | -1 (not yet started) |
 | `0x0c` | `signature` | `uint32_t` | filter_array XOR 0x69746572 |
-| `0x10` | `unknown_10` | `uint8_t` | zeroed |
+| `0x10` | `encounterless_done` | `uint8_t` | zeroed |
 | `0x11` | `active` | `uint8_t` | 1 |
 | `0x12` | `unknown_12[2]` | `uint8_t` |  |
 | `0x14` | `actor_index` | `datum_index` | handle of the actor the last _next returned, else none |
-| `0x18` | `unknown_18` | `int32_t` | -1 |
+| `0x18` | `next_actor_index` | `int32_t` | -1 |
 
 #### `ai_reference_actor_iterator` // size 0x18
 
 | offset | field | type | note |
 |---|---|---|---|
-| `0x00` | `unknown_00[0x10]` | `uint8_t` |  |
+| `0x00` | `encounter_index[0x10]` | `uint8_t` |  |
 | `0x10` | `actor_index` | `datum_index` | handle of the actor the last _next returned |
-| `0x14` | `unknown_14[4]` | `uint8_t` |  |
+| `0x14` | `next_actor_index[4]` | `uint8_t` |  |
 
 #### `ai_reference_squad_iterator` // size 0x14
 
@@ -553,13 +553,13 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 |---|---|---|---|
 | `0x00` | `unknown_00` | `int16_t` |  |
 | `0x02` | `parent` | `int16_t` | 0xffff on the start node; the reconstruction walks this chain |
-| `0x04` | `unknown_04` | `int32_t` | path_find_push_start_node sets -1 |
+| `0x04` | `previous_vertex_id` | `int32_t` | path_find_push_start_node sets -1 |
 | `0x08` | `vertex_id` | `uint32_t` | hashed as (vertex_id & 0x1ff) into the 512-bucket table |
 | `0x0c` | `position` | `real_point3d` |  |
 | `0x18` | `cost` | `float` | g, zero on the start node |
-| `0x1c` | `unknown_1c` | `float` | path_find_push_start_node sets FLT_MAX |
-| `0x20` | `unknown_20` | `float` |  |
-| `0x24` | `unknown_24` | `float` |  |
+| `0x1c` | `avoid_distance` | `float` | path_find_push_start_node sets FLT_MAX |
+| `0x20` | `travelled_distance` | `float` |  |
+| `0x24` | `accumulated_cost` | `float` |  |
 | `0x28` | `distance` | `float` | the heuristic distance to the goal |
 | `0x2c` | `key` | `int16_t` | the heap ordering key |
 | `0x2e` | `waypoint` | `int16_t` | index into the caller waypoint array, must stay below 0x40 |
@@ -574,7 +574,7 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0x14` | `start_position` | `real_point3d` | path_find_push_start_node rejects a z below -1000.0 |
 | `0x20` | `start_vertex_id` | `uint32_t` | none means there is nothing to search from |
 | `0x24` | `unknown_24[36]` | `uint8_t` |  |
-| `0x48` | `unknown_48` | `uint32_t` | path_find_context_init stores its second argument here |
+| `0x48` | `obstacle_cache` | `uint32_t` | path_find_context_init stores its second argument here |
 | `0x4c` | `have_goal` | `uint8_t` | the whole search and the reconstruction are gated on this |
 | `0x4d` | `unknown_4d[3]` | `uint8_t` |  |
 | `0x50` | `goal_position` | `real_point3d` |  |
@@ -584,7 +584,7 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0x68` | `best_node` | `int16_t` |  |
 | `0x6a` | `unknown_6a[2]` | `uint8_t` |  |
 | `0x6c` | `best_cost` | `float` |  |
-| `0x70` | `unknown_70` | `float` |  |
+| `0x70` | `best_estimate` | `float` |  |
 | `0x74` | `best_position` | `real_point3d` |  |
 | `0x80` | `node_count` | `int16_t` | capped at 1024 by the array below |
 | `0x82` | `unknown_82[2]` | `uint8_t` |  |
@@ -592,7 +592,7 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0xd084` | `heap_count` | `int16_t` | path_find_heap_push refuses past 0x400 |
 | `0xd086` | `heap[1025]` | `path_find_heap_entry` | one-based, slot 0 unused |
 | `0xe08a` | `vertex_hash[4096]` | `int16_t` | 512 buckets of 8 entries, probed linearly modulo 0x1000 |
-| `0x1008a` | `unknown_1008a[2]` | `uint8_t` |  |
+| `0x1008a` | `pad_1008a[2]` | `uint8_t` |  |
 
 #### `ai_search_obstacle` // size 0x14
 
@@ -614,35 +614,35 @@ documented sizes passes (the five apparent mismatches are all pointer-width infl
 | `0x14` | `length` | `float` | the length the normalize returned |
 | `0x18` | `point_id` | `int16_t` | index into the obstacle list, or -1 for a free point |
 | `0x1a` | `side` | `uint8_t` | which tangent side this node bends around |
-| `0x1b` | `unknown_1b` | `uint8_t` |  |
+| `0x1b` | `pad_1b` | `uint8_t` |  |
 | `0x1c` | `side_link` | `int16_t` | two child links, one per side; initialized to -1 |
-| `0x1e` | `unknown_1e[2]` | `uint8_t` |  |
+| `0x1e` | `squads_carried_over[2]` | `uint8_t` |  |
 | `0x20` | `cost` | `float` | length plus the inherited cost |
 | `0x24` | `parent` | `int16_t` | the node this one was expanded from |
-| `0x26` | `unknown_26[2]` | `uint8_t` |  |
+| `0x26` | `pad_26[2]` | `uint8_t` |  |
 
 #### `ai_search_context` // size 0x1532
 
 | offset | field | type | note |
 |---|---|---|---|
-| `0x00` | `unknown_00` | `uint32_t` |  |
-| `0x04` | `unknown_04` | `uint8_t` |  |
+| `0x00` | `search_radius` | `uint32_t` |  |
+| `0x04` | `ignores_glass` | `uint8_t` |  |
 | `0x05` | `unknown_05[3]` | `uint8_t` |  |
 | `0x08` | `obstacles` | `uint32_t` | pointer to the ai_search_obstacle_list this search reads |
-| `0x0c` | `unknown_0c` | `uint32_t` |  |
+| `0x0c` | `structure_bsp` | `uint32_t` |  |
 | `0x10` | `origin` | `real_point2d` |  |
-| `0x18` | `unknown_18` | `uint32_t` |  |
+| `0x18` | `origin_surface_index` | `uint32_t` |  |
 | `0x1c` | `goal_point_id` | `int16_t` | taken from obstacle[goal].link, or -1 |
 | `0x1e` | `result_node` | `int16_t` | -1 until a node reaches the goal |
 | `0x20` | `best_node` | `int16_t` | the fallback best-effort node |
-| `0x22` | `unknown_22[2]` | `uint8_t` |  |
+| `0x22` | `pad_22[2]` | `uint8_t` |  |
 | `0x24` | `best_cost` | `float` | FLT_MAX until best_node is set |
 | `0x28` | `complete` | `uint8_t` | set when result_node is valid |
-| `0x29` | `unknown_29` | `uint8_t` |  |
-| `0x2a` | `unknown_2a` | `uint8_t` |  |
-| `0x2b` | `unknown_2b` | `uint8_t` |  |
+| `0x29` | `final_leg` | `uint8_t` |  |
+| `0x2a` | `ignore_flagged_obstacles` | `uint8_t` |  |
+| `0x2b` | `pad_2b` | `uint8_t` |  |
 | `0x2c` | `node_count` | `int16_t` | 0x43b5a0 refuses past 0x80 |
-| `0x2e` | `unknown_2e[2]` | `uint8_t` |  |
+| `0x2e` | `pad_2e[2]` | `uint8_t` |  |
 | `0x30` | `nodes[128]` | `ai_search_node` |  |
 | `0x1430` | `heap_count` | `int16_t` | capped at 0x80 |
 | `0x1432` | `heap[128]` | `int16_t` | node indices, ordered by ai_search_node.cost |
